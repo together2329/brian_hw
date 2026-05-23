@@ -42,10 +42,9 @@ for (const name of FILES) {
   await page.close();
 }
 
-// ssot-explorer is a full document (tables + multiple diagrams), not a single
-// diagram — capture it as a full-page PNG (also an E2E load test in real Chrome).
-{
-  const name = 'ssot-explorer';
+// Full-document pages (tables + multiple diagrams), not a single diagram —
+// capture each as a full-page PNG (also an E2E load test in real Chrome).
+for (const name of ['ssot-explorer', 'ca53-trm']) {
   const page = await ctx.newPage();
   const errs = [];
   page.on('pageerror', e => errs.push(String(e)));

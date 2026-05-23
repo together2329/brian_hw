@@ -1,0 +1,131 @@
+{
+  "_disclaimer": "Illustrative Cortex-A53 TRM-STYLE datasheet built from publicly documented ARMv8-A / Cortex-A53 architectural facts. NOT a copy of ARM's copyrighted Technical Reference Manual. Configurable/implementation-defined values are marked illustrative. For authoritative detail consult ARM DDI 0500 (Cortex-A53 TRM) and the ARMv8-A ARM (DDI 0487).",
+  "overview": {
+    "name": "ARM Cortex-A53",
+    "type": "Application processor core (ARMv8-A)",
+    "doc": "TRM-style datasheet (illustrative)",
+    "description": "Mid-range, power-efficient 64/32-bit application processor implementing the ARMv8-A architecture. In-order, dual-issue, 8-stage integer pipeline. Deployed as a 1–4 core MPCore cluster with a shared L2 cache and an AMBA 4 ACE coherent master interface.",
+    "config": {
+      "architecture": "ARMv8-A (AArch64 + AArch32)",
+      "cores_per_cluster": "1 to 4",
+      "pipeline": "in-order, dual-issue, 8-stage",
+      "phys_addr": "40-bit",
+      "endianness": "configurable LE/BE (per EL)"
+    }
+  },
+  "toc": [
+    { "n": "1",  "title": "Introduction",                       "topics": ["About the core", "Features", "Implementation options", "Compliance"] },
+    { "n": "2",  "title": "Functional Description",              "topics": ["Components", "Interfaces", "Clocking and resets", "Power management"] },
+    { "n": "3",  "title": "Programmers Model",                   "topics": ["Execution states", "Exception levels (EL0–EL3)", "Register file", "AArch64/AArch32 modes"] },
+    { "n": "4",  "title": "System Control Registers",            "topics": ["AArch64 register summary", "Register encodings", "Reset values"] },
+    { "n": "5",  "title": "Memory Management Unit",              "topics": ["TLB organization", "Translation regimes", "40-bit PA support"] },
+    { "n": "6",  "title": "Level 1 Memory System",               "topics": ["L1 instruction cache", "L1 data cache", "Prefetch"] },
+    { "n": "7",  "title": "Level 2 Memory System",               "topics": ["L2 cache", "Snoop Control Unit", "ACP"] },
+    { "n": "8",  "title": "ACE / CHI Master Interface",          "topics": ["AMBA 4 ACE channels", "Coherency", "Read/write transactions"] },
+    { "n": "9",  "title": "GIC CPU Interface",                   "topics": ["Interrupt handling", "GICv3/v4 (optional)"] },
+    { "n": "10", "title": "Generic Timer",                       "topics": ["Per-core timers", "Counter"] },
+    { "n": "11", "title": "Debug",                               "topics": ["CoreSight debug", "Debug registers", "Cross-trigger"] },
+    { "n": "12", "title": "Performance Monitor Unit (PMU)",      "topics": ["PMUv3", "Events", "Counters"] },
+    { "n": "13", "title": "Embedded Trace Macrocell (ETM)",      "topics": ["ETMv4 instruction trace", "ATB interface"] }
+  ],
+  "features": [
+    { "group": "Architecture", "items": ["ARMv8-A, both AArch64 and AArch32 execution states", "Four exception levels EL0–EL3 with TrustZone Secure/Non-secure states", "A64, A32 and T32 instruction sets"] },
+    { "group": "Pipeline",     "items": ["In-order, dual-issue, symmetric pipeline (8 stages, illustrative)", "Static + dynamic branch prediction", "Integer, multiply and divide units"] },
+    { "group": "Advanced SIMD","items": ["NEON Advanced SIMD and scalar floating-point (IEEE 754)", "Optional Cryptography Extension (AES, SHA1/SHA-256, PMULL)"] },
+    { "group": "Memory system","items": ["Separate L1 I-cache (illustrative 32 KB, 2-way) and L1 D-cache (illustrative 32 KB, 4-way)", "Shared, unified L2 cache (illustrative 128 KB–2 MB, 16-way)", "Snoop Control Unit (SCU) maintaining L1 coherency", "Optional Accelerator Coherency Port (ACP) slave", "MMU with separate TLBs, 40-bit physical addressing"] },
+    { "group": "Interfaces",   "items": ["AMBA 4 ACE coherent master interface (128-bit, illustrative)", "GIC CPU interface (GICv3/v4 optional)", "ARM Generic Timer (per-core)"] },
+    { "group": "Debug & trace","items": ["CoreSight-compliant debug (APB)", "PMUv3 performance monitors", "ETMv4 instruction trace over ATB"] },
+    { "group": "RAS / power",  "items": ["Per-core and cluster power-down with state retention (illustrative)", "Dynamic + static power management hooks"] }
+  ],
+  "block": {
+    "cluster": "Cortex-A53 MPCore cluster",
+    "cores": 4,
+    "per_core": [
+      { "id": "ifu",   "name": "Instruction Fetch + Branch Predictor", "kind": "frontend" },
+      { "id": "dec",   "name": "Decode / Issue (in-order, dual-issue)", "kind": "frontend" },
+      { "id": "alu",   "name": "Integer ALU / MAC / Divide",           "kind": "exec" },
+      { "id": "neon",  "name": "NEON & FP (opt. Crypto)",              "kind": "exec" },
+      { "id": "l1i",   "name": "L1 I-Cache (32 KB, 2-way)",            "kind": "mem" },
+      { "id": "l1d",   "name": "L1 D-Cache (32 KB, 4-way)",            "kind": "mem" },
+      { "id": "mmu",   "name": "MMU (TLBs · 40-bit PA)",              "kind": "mem" },
+      { "id": "dbg",   "name": "Debug · PMU · ETM",                   "kind": "debug" }
+    ],
+    "shared": [
+      { "id": "l2",  "name": "L2 Cache (128 KB–2 MB, 16-way)", "kind": "mem" },
+      { "id": "scu", "name": "Snoop Control Unit (SCU)",       "kind": "coherency" },
+      { "id": "gic", "name": "GIC CPU interface",              "kind": "interrupt" },
+      { "id": "tmr", "name": "Generic Timer",                  "kind": "timer" }
+    ],
+    "interfaces": [
+      { "name": "ACE master",  "role": "master", "width": 128, "desc": "AMBA 4 ACE coherent memory interface (illustrative 128-bit)" },
+      { "name": "ACP",         "role": "slave",  "width": 128, "desc": "Accelerator Coherency Port (optional)" },
+      { "name": "GIC",         "role": "io",     "desc": "Interrupt distributor connection" },
+      { "name": "Debug APB",   "role": "slave",  "desc": "CoreSight debug access" },
+      { "name": "ATB trace",   "role": "master", "desc": "ETM instruction trace out" }
+    ]
+  },
+  "registers": {
+    "note": "ARMv8-A system registers are accessed with MRS/MSR via op0/op1/CRn/CRm/op2 encodings (not memory-mapped offsets). Subset shown is representative; reset values are illustrative except where architecturally fixed.",
+    "register_list": [
+      {
+        "name": "MIDR_EL1", "encoding": "S3_0_C0_C0_0", "access": "RO", "reset": "0x410FD03x",
+        "desc": "Main ID Register — identifies the implementer and part.",
+        "fields": [
+          { "name": "Implementer", "msb": 31, "lsb": 24, "reset": "0x41", "desc": "0x41 = ARM Limited (fixed)" },
+          { "name": "Variant",     "msb": 23, "lsb": 20, "desc": "rNpM variant (illustrative)" },
+          { "name": "Architecture","msb": 19, "lsb": 16, "reset": "0xF",  "desc": "0xF = defined by CPUID scheme (ARMv8)" },
+          { "name": "PartNum",     "msb": 15, "lsb": 4,  "reset": "0xD03","desc": "0xD03 = Cortex-A53 (fixed)" },
+          { "name": "Revision",    "msb": 3,  "lsb": 0,  "desc": "rNpM revision (illustrative)" }
+        ]
+      },
+      {
+        "name": "MPIDR_EL1", "encoding": "S3_0_C0_C0_5", "access": "RO", "reset": "0x80000xxx",
+        "desc": "Multiprocessor Affinity Register — core/cluster identification.",
+        "fields": [
+          { "name": "U",    "msb": 30, "lsb": 30, "desc": "1 = uniprocessor (illustrative)" },
+          { "name": "MT",   "msb": 24, "lsb": 24, "reset": "0", "desc": "Multithreading (0 for A53)" },
+          { "name": "Aff2", "msb": 23, "lsb": 16, "desc": "Affinity level 2 (cluster)" },
+          { "name": "Aff1", "msb": 15, "lsb": 8,  "desc": "Affinity level 1" },
+          { "name": "Aff0", "msb": 7,  "lsb": 0,  "desc": "Affinity level 0 (core id)" }
+        ]
+      },
+      {
+        "name": "SCTLR_EL1", "encoding": "S3_0_C1_C0_0", "access": "RW", "reset": "0x00C50838",
+        "desc": "System Control Register (EL1) — MMU, cache and alignment controls.",
+        "fields": [
+          { "name": "EE",  "msb": 25, "lsb": 25, "desc": "Exception endianness at EL1" },
+          { "name": "WXN", "msb": 19, "lsb": 19, "desc": "Writeable implies execute-never" },
+          { "name": "I",   "msb": 12, "lsb": 12, "reset": "0", "desc": "Instruction cache enable" },
+          { "name": "SA0", "msb": 4,  "lsb": 4,  "desc": "EL0 stack alignment check" },
+          { "name": "SA",  "msb": 3,  "lsb": 3,  "desc": "Stack alignment check" },
+          { "name": "C",   "msb": 2,  "lsb": 2,  "reset": "0", "desc": "Data cache enable" },
+          { "name": "A",   "msb": 1,  "lsb": 1,  "desc": "Alignment check enable" },
+          { "name": "M",   "msb": 0,  "lsb": 0,  "reset": "0", "desc": "MMU enable" }
+        ]
+      },
+      { "name": "CPACR_EL1",      "encoding": "S3_0_C1_C0_2", "access": "RW", "desc": "Architectural feature access (FP/SIMD trap) control." },
+      { "name": "TTBR0_EL1",      "encoding": "S3_0_C2_C0_0", "access": "RW", "desc": "Translation Table Base Register 0 (EL1)." },
+      { "name": "TTBR1_EL1",      "encoding": "S3_0_C2_C0_1", "access": "RW", "desc": "Translation Table Base Register 1 (EL1)." },
+      { "name": "TCR_EL1",        "encoding": "S3_0_C2_C0_2", "access": "RW", "desc": "Translation Control Register (EL1)." },
+      { "name": "ESR_EL1",        "encoding": "S3_0_C5_C2_0", "access": "RW", "desc": "Exception Syndrome Register (EL1)." },
+      { "name": "FAR_EL1",        "encoding": "S3_0_C6_C0_0", "access": "RW", "desc": "Fault Address Register (EL1)." },
+      { "name": "VBAR_EL1",       "encoding": "S3_0_C12_C0_0","access": "RW", "desc": "Vector Base Address Register (EL1)." },
+      { "name": "CTR_EL0",        "encoding": "S3_3_C0_C0_1", "access": "RO", "desc": "Cache Type Register." },
+      { "name": "ID_AA64PFR0_EL1","encoding": "S3_0_C0_C4_0", "access": "RO", "desc": "AArch64 Processor Feature Register 0 (FP/SIMD/EL support)." }
+    ]
+  },
+  "timing": {
+    "title": "ACE/AXI read burst — 2-beat (illustrative AMBA 4)",
+    "note": "AR address handshake (ARVALID·ARREADY), then R data channel (RVALID·RREADY), RLAST on the final beat.",
+    "signals": [
+      { "name": "ACLK",    "wave": "pppppppp" },
+      { "name": "ARVALID", "wave": "01.0...." },
+      { "name": "ARREADY", "wave": "0.10...." },
+      { "name": "ARADDR",  "wave": "x=.x....", "data": ["0x80000000"] },
+      { "name": "RVALID",  "wave": "0...1.0." },
+      { "name": "RREADY",  "wave": "0...1.0." },
+      { "name": "RDATA",   "wave": "x...==x.", "data": ["0xCD00", "0xCD04"] },
+      { "name": "RLAST",   "wave": "0....1.0" }
+    ]
+  }
+}

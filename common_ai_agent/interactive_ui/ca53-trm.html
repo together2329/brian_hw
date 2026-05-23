@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cortex-A53 · TRM (illustrative)</title>
+<style>
+  :root{--bg:#0d1117;--fg:#e6edf3;--mute:#8b949e;--accent:#58a6ff;--ok:#3fb950;--warn:#d29922;--bad:#f85149;--line:#30363d;--panel:#161b22;}
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:ui-monospace,SFMono-Regular,Menlo,"Cascadia Mono",Consolas,monospace;font-size:13px;line-height:1.5;}
+  a{color:var(--accent);text-decoration:none;}
+
+  /* sticky top nav */
+  .nav{position:sticky;top:0;z-index:50;display:flex;gap:4px;align-items:center;flex-wrap:wrap;
+       padding:9px 14px;background:rgba(13,17,23,.92);backdrop-filter:blur(6px);
+       border-bottom:1px solid var(--line);}
+  .nav .chip{font-weight:700;margin-right:10px;display:inline-flex;align-items:center;gap:7px;
+       border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:3px 10px;}
+  .nav .chip b{color:var(--accent);}
+  .nav .chip .sub{font-size:10px;color:var(--mute);font-weight:400;}
+  .nav a.lnk{font-size:11px;color:var(--mute);border:1px solid transparent;border-radius:5px;padding:3px 8px;cursor:pointer;}
+  .nav a.lnk:hover{color:var(--fg);border-color:var(--line);background:var(--panel);}
+  .nav a.lnk.active{color:var(--accent);border-color:var(--line);background:var(--panel);}
+  .nav .grow{flex:1;}
+  .nav .hint{font-size:10px;color:var(--mute);}
+
+  /* sections */
+  .doc{max-width:1180px;margin:0 auto;padding:0 18px 90px;}
+  section{padding:26px 0 8px;border-bottom:1px solid var(--line);scroll-margin-top:54px;}
+  section:last-of-type{border-bottom:0;}
+  h2{font-size:16px;margin:0 0 4px;display:flex;align-items:baseline;gap:9px;}
+  h2 .ix{color:var(--accent);font-size:12px;}
+  h2 .k{color:var(--mute);font-size:10px;font-weight:400;}
+  .lead{color:var(--mute);font-size:12px;margin:0 0 16px;max-width:820px;line-height:1.6;}
+
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;}
+  .panel + .panel{margin-top:12px;}
+  .stage{overflow:auto;}
+  svg{display:block;font-family:inherit;}
+
+  /* disclaimer banner (muted/amber) */
+  .disclaimer{border:1px solid #5a4a18;background:#1c1708;color:var(--warn);border-radius:8px;
+       padding:11px 13px;font-size:11.5px;line-height:1.65;margin-bottom:14px;display:flex;gap:10px;align-items:flex-start;}
+  .disclaimer .dx{font-size:14px;line-height:1;flex:0 0 auto;margin-top:1px;}
+  .disclaimer b{color:#e9c45a;}
+
+  /* overview facts grid */
+  .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;}
+  .fact{border:1px solid var(--line);border-radius:6px;padding:9px 11px;background:var(--bg);}
+  .fact .fk{font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:.05em;}
+  .fact .fv{font-size:14px;color:var(--fg);font-weight:700;margin-top:3px;word-break:break-word;}
+  .fact .fv.acc{color:var(--accent);}
+  .desc{font-size:12.5px;color:var(--fg);line-height:1.65;margin-top:14px;max-width:880px;}
+
+  /* table of contents */
+  .toc{list-style:none;margin:0;padding:0;}
+  .toc li{border-bottom:1px solid var(--line);}
+  .toc li:last-child{border-bottom:0;}
+  .toc .crow{display:flex;align-items:baseline;gap:12px;padding:9px 6px;cursor:pointer;user-select:none;transition:background .12s;}
+  .toc .crow:hover{background:#10243b;}
+  .toc .cn{color:var(--accent);font-weight:700;font-size:12px;width:26px;flex:0 0 auto;text-align:right;}
+  .toc .ct{color:var(--fg);font-size:13px;flex:1;}
+  .toc .cx{color:var(--mute);font-size:10px;flex:0 0 auto;transition:transform .15s;}
+  .toc li.open .cx{transform:rotate(90deg);color:var(--accent);}
+  .toc .topics{max-height:0;overflow:hidden;transition:max-height .2s ease;}
+  .toc li.open .topics{max-height:200px;}
+  .toc .topics ul{margin:0;padding:2px 0 10px 44px;list-style:none;}
+  .toc .topics li{border:0;font-size:11.5px;color:var(--mute);padding:2px 0;position:relative;}
+  .toc .topics li:before{content:"§";color:var(--line);position:absolute;left:-15px;}
+
+  /* features */
+  .featgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:12px;}
+  .featcard{border:1px solid var(--line);border-radius:8px;background:var(--bg);overflow:hidden;}
+  .featcard .fh{padding:7px 11px;border-bottom:1px solid var(--line);background:var(--panel);
+       color:var(--accent);font-weight:700;font-size:12px;display:flex;align-items:center;gap:7px;}
+  .featcard ul{margin:0;padding:9px 11px 11px;list-style:none;}
+  .featcard li{font-size:11.5px;color:var(--fg);padding:4px 0 4px 16px;position:relative;line-height:1.55;border-top:1px solid var(--line);}
+  .featcard li:first-child{border-top:0;}
+  .featcard li:before{content:"▸";color:var(--ok);position:absolute;left:0;}
+  .featcard li em{color:var(--warn);font-style:italic;}
+
+  /* generic info panel (shared hover target) */
+  .info{font-size:11.5px;color:var(--mute);min-height:18px;}
+  .info b{color:var(--fg);}
+  .info code{color:var(--accent);}
+
+  /* tables */
+  table{border-collapse:collapse;width:100%;font-size:12px;}
+  th,td{text-align:left;padding:6px 9px;border-bottom:1px solid var(--line);vertical-align:top;}
+  th{color:var(--mute);font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.04em;}
+  td code{color:var(--accent);}
+  tr.hot td{background:#10243b;}
+  tr.hasfields{cursor:pointer;}
+  tr.hasfields td:nth-child(2):after{content:" ◴";color:var(--ok);font-size:9px;}
+  .acctag{display:inline-block;font-size:9px;font-weight:700;border-radius:4px;padding:1px 6px;}
+  .acctag.rw{color:var(--ok);border:1px solid var(--ok);}
+  .acctag.ro{color:var(--accent);border:1px solid var(--accent);}
+  .acctag.reserved{color:var(--mute);border:1px solid var(--line);}
+
+  .legend{font-size:10.5px;color:var(--mute);display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-top:10px;}
+  .legend .sw{display:inline-block;width:14px;height:11px;border-radius:2px;vertical-align:middle;margin-right:5px;border:1px solid var(--line);}
+  .sw.named{background:#0b1827;border-color:var(--accent);}
+  .sw.res{background:repeating-linear-gradient(45deg,transparent,transparent 3px,var(--line) 3px,var(--line) 4px);}
+
+  .sidenote{font-size:11px;color:var(--mute);margin-top:10px;}
+  .sidenote b{color:var(--fg);}
+
+  /* register strip tabs */
+  .rtabs{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 12px;}
+  .rtab{font-size:11px;font-weight:700;color:var(--mute);border:1px solid var(--line);background:var(--bg);
+       border-radius:5px;padding:4px 11px;cursor:pointer;transition:color .12s,border-color .12s,background .12s;}
+  .rtab:hover{color:var(--fg);border-color:var(--mute);}
+  .rtab.on{color:var(--accent);border-color:var(--accent);background:#0b1827;}
+
+  /* bit-field hover readout */
+  .bitinfo{margin-top:12px;border:1px solid var(--line);border-radius:6px;padding:9px 11px;background:var(--bg);font-size:11.5px;min-height:54px;}
+  .bitinfo .bn{color:var(--accent);font-weight:700;}
+  .bitinfo .bm{color:var(--mute);}
+  .bitinfo .bm b{color:var(--fg);}
+
+  /* block diagram — arch svg classes (match ssot-explorer idiom) */
+  .boundary{fill:rgba(88,166,255,0.03);stroke:var(--line);stroke-width:1.4;stroke-dasharray:4 4;}
+  .boundaryLbl{fill:var(--mute);font-size:11px;}
+  .grp{fill:none;stroke:var(--line);stroke-width:1;stroke-dasharray:2 3;}
+  .grpLbl{fill:var(--mute);font-size:10px;}
+  .ghost{opacity:.42;}
+  .blkTitle{fill:var(--fg);font-size:11px;font-weight:700;text-anchor:middle;pointer-events:none;}
+  .blkSub{fill:var(--mute);font-size:8.5px;text-anchor:middle;pointer-events:none;}
+  .coreLbl{fill:var(--mute);font-size:9px;font-weight:700;}
+
+  /* kind color coding */
+  .blk{stroke-width:1.4;cursor:pointer;transition:stroke .12s,fill .12s,filter .12s;}
+  .blk.frontend {fill:#161b22;stroke:#3a5170;}
+  .blk.frontend:hover,.blk.frontend.hot {fill:#0b1827;stroke:var(--accent);}
+  .blk.exec     {fill:#161b22;stroke:#1d4326;}
+  .blk.exec:hover,.blk.exec.hot         {fill:#0c1c11;stroke:var(--ok);}
+  .blk.mem      {fill:#161b22;stroke:#5a4a18;}
+  .blk.mem:hover,.blk.mem.hot           {fill:#1c1708;stroke:var(--warn);}
+  .blk.coherency{fill:#161b22;stroke:#5b2a6b;}
+  .blk.coherency:hover,.blk.coherency.hot{fill:#190f1f;stroke:#bc8cff;}
+  .blk.interrupt{fill:#161b22;stroke:#6b3320;}
+  .blk.interrupt:hover,.blk.interrupt.hot{fill:#1f0f0a;stroke:#f0883e;}
+  .blk.timer    {fill:#161b22;stroke:#1d4a4a;}
+  .blk.timer:hover,.blk.timer.hot       {fill:#0a1c1c;stroke:#56d4d4;}
+  .blk.debug    {fill:#161b22;stroke:#4a4a52;}
+  .blk.debug:hover,.blk.debug.hot       {fill:#16161b;stroke:#adadc0;}
+
+  .port{fill:#0d1117;stroke:var(--line);stroke-width:1.2;cursor:pointer;transition:stroke .12s,fill .12s;}
+  .port.master{stroke:#3a5a3f;} .port.slave{stroke:#3a5170;} .port.io{stroke:#5a4a18;}
+  .port:hover,.port.hot{stroke:var(--accent);fill:#10243b;}
+  .portLbl{font-size:10px;font-weight:700;pointer-events:none;}
+  .portLbl.master{fill:var(--ok);} .portLbl.slave{fill:var(--accent);} .portLbl.io{fill:var(--warn);}
+  .portW{fill:var(--mute);font-size:8.5px;pointer-events:none;}
+  .aedge{fill:none;stroke:var(--mute);stroke-width:1.3;}
+  .aedge.flow{stroke-width:1.6;}
+
+  .lgnd{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;font-size:10.5px;color:var(--mute);align-items:center;}
+  .lgnd .li{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);border-radius:5px;padding:2px 8px;}
+  .lgnd .dot{width:11px;height:11px;border-radius:3px;border:1.4px solid;display:inline-block;}
+
+  /* timing svg classes (match timing-diagram.html) */
+  .grid{stroke:var(--line);stroke-width:1;stroke-dasharray:2 4;}
+  .wave{fill:none;stroke:var(--accent);stroke-width:1.6;stroke-linejoin:round;}
+  .hatch{stroke:var(--mute);stroke-width:1;opacity:.5;}
+  .tlbl{fill:var(--mute);font-size:12px;}
+  .cyc{fill:var(--mute);font-size:10px;text-anchor:middle;}
+  .busText{fill:var(--fg);font-size:11px;text-anchor:middle;}
+
+  /* editor */
+  .editor{margin-top:30px;}
+  .editor textarea{width:100%;height:300px;background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:12px;padding:12px;resize:vertical;line-height:1.5;}
+  .editor .erow{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;}
+  button{background:var(--accent);color:#000;border:0;padding:7px 15px;border-radius:6px;font-family:inherit;font-weight:700;cursor:pointer;font-size:12px;}
+  .err{color:var(--bad);font-size:11.5px;min-height:16px;margin-top:8px;white-space:pre-wrap;}
+  .ok-msg{color:var(--ok);}
+</style></head>
+<body>
+
+<nav class="nav" id="nav">
+  <span class="chip">▤ <b>Cortex-A53</b> <span class="sub">· TRM (illustrative)</span></span>
+  <a class="lnk" href="#overview">Overview</a>
+  <a class="lnk" href="#toc">목차/TOC</a>
+  <a class="lnk" href="#features">Features</a>
+  <a class="lnk" href="#block">Block</a>
+  <a class="lnk" href="#registers">Registers</a>
+  <a class="lnk" href="#timing">Timing</a>
+  <span class="grow"></span>
+  <span class="hint">single HTML · 0 deps · file://</span>
+</nav>
+
+<div class="doc">
+
+  <section id="overview">
+    <h2><span class="ix">01</span> Overview <span class="k">overview · config</span></h2>
+    <div class="disclaimer" id="disclaimer"><span class="dx">⚠</span><span id="disclaimerTxt"></span></div>
+    <p class="lead" id="ovLead"></p>
+    <div class="panel">
+      <div class="facts" id="ovFacts"></div>
+      <div class="desc" id="ovDesc"></div>
+    </div>
+  </section>
+
+  <section id="toc">
+    <h2><span class="ix">02</span> 목차 / Table of Contents <span class="k">toc · 13 chapters</span></h2>
+    <p class="lead">The TRM contents page. Click a chapter row to expand its subtopics.</p>
+    <div class="panel">
+      <ul class="toc" id="tocList"></ul>
+    </div>
+  </section>
+
+  <section id="features">
+    <h2><span class="ix">03</span> Features <span class="k">features · grouped</span></h2>
+    <p class="lead">Architectural feature summary, grouped. Items marked <em>illustrative</em> are configurable / implementation-defined.</p>
+    <div class="panel">
+      <div class="featgrid" id="featGrid"></div>
+    </div>
+  </section>
+
+  <section id="block">
+    <h2><span class="ix">04</span> Block diagram <span class="k">MPCore cluster · cores · shared · interfaces</span></h2>
+    <p class="lead">The Cortex-A53 MPCore cluster: 1–4 cores (one detailed, others ghosted) over a shared L2/SCU/GIC/Timer fabric, with external AMBA interfaces on the boundary. Hover any block for kind/name, or an interface for role/width/desc.</p>
+    <div class="panel">
+      <div class="stage"><svg id="archSvg"></svg></div>
+      <div class="info" id="archInfo" style="margin-top:10px">Hover a block (name · kind) or an interface (role · width · desc).</div>
+      <div class="lgnd" id="blkLegend"></div>
+    </div>
+  </section>
+
+  <section id="registers">
+    <h2><span class="ix">05</span> Register map <span class="k">registers.register_list · MRS/MSR encodings</span></h2>
+    <p class="lead" id="regNote"></p>
+    <div class="panel">
+      <table id="regTable"><thead><tr><th>encoding</th><th>name</th><th>access</th><th>reset</th><th>description</th></tr></thead><tbody></tbody></table>
+      <div style="margin-top:18px">
+        <div class="grpLbl" style="font-size:11px;color:var(--mute);margin-bottom:2px">32-bit field map (msb ← → lsb) — pick a register:</div>
+        <div class="rtabs" id="regTabs"></div>
+        <div class="stage"><svg id="bitSvg"></svg></div>
+      </div>
+      <div class="legend">
+        <span><span class="sw named"></span>named field</span>
+        <span><span class="sw res"></span>reserved</span>
+        <span style="color:var(--mute)">access: <span class="acctag rw">RW</span> read/write · <span class="acctag ro">RO</span> read-only · <span class="acctag reserved">reserved</span></span>
+      </div>
+      <div class="bitinfo" id="bitInfo">Hover a field stripe above for bit-level detail.</div>
+    </div>
+  </section>
+
+  <section id="timing">
+    <h2><span class="ix">06</span> Timing diagram <span class="k">timing.signals · WaveDrom-style</span></h2>
+    <p class="lead" id="tmLead"></p>
+    <div class="panel">
+      <div class="stage"><svg id="timeSvg"></svg></div>
+      <div class="sidenote" id="tmNote"></div>
+      <div class="legend" style="margin-top:12px">tokens:
+        <span><code>p</code> clock</span><span><code>0/1</code> level</span><span><code>.</code> hold</span>
+        <span><code>=</code> bus+data</span><span><code>x</code> don't-care</span><span><code>z</code> hi-Z</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="editor" id="editorBox">
+    <div class="erow">
+      <div>
+        <div style="font-weight:700;font-size:13px">▦ master JSON · playable spec</div>
+        <div class="legend" style="margin-top:4px">edit the JSON below → <code>↻ Re-render all</code> rebuilds every section above.</div>
+      </div>
+      <button onclick="reRenderAll()">↻ Re-render all</button>
+    </div>
+    <textarea id="spec" spellcheck="false"></textarea>
+    <div class="err" id="err"></div>
+  </div>
+
+</div>
+
+<script>
+const SVGNS='http://www.w3.org/2000/svg';
+
+/* ============================================================
+   Embedded data — from interactive_ui/data/ca53.json
+   (inline const; also preloaded into the editor textarea below)
+   ============================================================ */
+const DEFAULT = {
+  "_disclaimer": "Illustrative Cortex-A53 TRM-STYLE datasheet built from publicly documented ARMv8-A / Cortex-A53 architectural facts. NOT a copy of ARM's copyrighted Technical Reference Manual. Configurable/implementation-defined values are marked illustrative. For authoritative detail consult ARM DDI 0500 (Cortex-A53 TRM) and the ARMv8-A ARM (DDI 0487).",
+  "overview": {
+    "name": "ARM Cortex-A53",
+    "type": "Application processor core (ARMv8-A)",
+    "doc": "TRM-style datasheet (illustrative)",
+    "description": "Mid-range, power-efficient 64/32-bit application processor implementing the ARMv8-A architecture. In-order, dual-issue, 8-stage integer pipeline. Deployed as a 1–4 core MPCore cluster with a shared L2 cache and an AMBA 4 ACE coherent master interface.",
+    "config": {
+      "architecture": "ARMv8-A (AArch64 + AArch32)",
+      "cores_per_cluster": "1 to 4",
+      "pipeline": "in-order, dual-issue, 8-stage",
+      "phys_addr": "40-bit",
+      "endianness": "configurable LE/BE (per EL)"
+    }
+  },
+  "toc": [
+    { "n": "1",  "title": "Introduction",                       "topics": ["About the core", "Features", "Implementation options", "Compliance"] },
+    { "n": "2",  "title": "Functional Description",              "topics": ["Components", "Interfaces", "Clocking and resets", "Power management"] },
+    { "n": "3",  "title": "Programmers Model",                   "topics": ["Execution states", "Exception levels (EL0–EL3)", "Register file", "AArch64/AArch32 modes"] },
+    { "n": "4",  "title": "System Control Registers",            "topics": ["AArch64 register summary", "Register encodings", "Reset values"] },
+    { "n": "5",  "title": "Memory Management Unit",              "topics": ["TLB organization", "Translation regimes", "40-bit PA support"] },
+    { "n": "6",  "title": "Level 1 Memory System",               "topics": ["L1 instruction cache", "L1 data cache", "Prefetch"] },
+    { "n": "7",  "title": "Level 2 Memory System",               "topics": ["L2 cache", "Snoop Control Unit", "ACP"] },
+    { "n": "8",  "title": "ACE / CHI Master Interface",          "topics": ["AMBA 4 ACE channels", "Coherency", "Read/write transactions"] },
+    { "n": "9",  "title": "GIC CPU Interface",                   "topics": ["Interrupt handling", "GICv3/v4 (optional)"] },
+    { "n": "10", "title": "Generic Timer",                       "topics": ["Per-core timers", "Counter"] },
+    { "n": "11", "title": "Debug",                               "topics": ["CoreSight debug", "Debug registers", "Cross-trigger"] },
+    { "n": "12", "title": "Performance Monitor Unit (PMU)",      "topics": ["PMUv3", "Events", "Counters"] },
+    { "n": "13", "title": "Embedded Trace Macrocell (ETM)",      "topics": ["ETMv4 instruction trace", "ATB interface"] }
+  ],
+  "features": [
+    { "group": "Architecture", "items": ["ARMv8-A, both AArch64 and AArch32 execution states", "Four exception levels EL0–EL3 with TrustZone Secure/Non-secure states", "A64, A32 and T32 instruction sets"] },
+    { "group": "Pipeline",     "items": ["In-order, dual-issue, symmetric pipeline (8 stages, illustrative)", "Static + dynamic branch prediction", "Integer, multiply and divide units"] },
+    { "group": "Advanced SIMD","items": ["NEON Advanced SIMD and scalar floating-point (IEEE 754)", "Optional Cryptography Extension (AES, SHA1/SHA-256, PMULL)"] },
+    { "group": "Memory system","items": ["Separate L1 I-cache (illustrative 32 KB, 2-way) and L1 D-cache (illustrative 32 KB, 4-way)", "Shared, unified L2 cache (illustrative 128 KB–2 MB, 16-way)", "Snoop Control Unit (SCU) maintaining L1 coherency", "Optional Accelerator Coherency Port (ACP) slave", "MMU with separate TLBs, 40-bit physical addressing"] },
+    { "group": "Interfaces",   "items": ["AMBA 4 ACE coherent master interface (128-bit, illustrative)", "GIC CPU interface (GICv3/v4 optional)", "ARM Generic Timer (per-core)"] },
+    { "group": "Debug & trace","items": ["CoreSight-compliant debug (APB)", "PMUv3 performance monitors", "ETMv4 instruction trace over ATB"] },
+    { "group": "RAS / power",  "items": ["Per-core and cluster power-down with state retention (illustrative)", "Dynamic + static power management hooks"] }
+  ],
+  "block": {
+    "cluster": "Cortex-A53 MPCore cluster",
+    "cores": 4,
+    "per_core": [
+      { "id": "ifu",   "name": "Instruction Fetch + Branch Predictor", "kind": "frontend" },
+      { "id": "dec",   "name": "Decode / Issue (in-order, dual-issue)", "kind": "frontend" },
+      { "id": "alu",   "name": "Integer ALU / MAC / Divide",           "kind": "exec" },
+      { "id": "neon",  "name": "NEON & FP (opt. Crypto)",              "kind": "exec" },
+      { "id": "l1i",   "name": "L1 I-Cache (32 KB, 2-way)",            "kind": "mem" },
+      { "id": "l1d",   "name": "L1 D-Cache (32 KB, 4-way)",            "kind": "mem" },
+      { "id": "mmu",   "name": "MMU (TLBs · 40-bit PA)",              "kind": "mem" },
+      { "id": "dbg",   "name": "Debug · PMU · ETM",                   "kind": "debug" }
+    ],
+    "shared": [
+      { "id": "l2",  "name": "L2 Cache (128 KB–2 MB, 16-way)", "kind": "mem" },
+      { "id": "scu", "name": "Snoop Control Unit (SCU)",       "kind": "coherency" },
+      { "id": "gic", "name": "GIC CPU interface",              "kind": "interrupt" },
+      { "id": "tmr", "name": "Generic Timer",                  "kind": "timer" }
+    ],
+    "interfaces": [
+      { "name": "ACE master",  "role": "master", "width": 128, "desc": "AMBA 4 ACE coherent memory interface (illustrative 128-bit)" },
+      { "name": "ACP",         "role": "slave",  "width": 128, "desc": "Accelerator Coherency Port (optional)" },
+      { "name": "GIC",         "role": "io",     "desc": "Interrupt distributor connection" },
+      { "name": "Debug APB",   "role": "slave",  "desc": "CoreSight debug access" },
+      { "name": "ATB trace",   "role": "master", "desc": "ETM instruction trace out" }
+    ]
+  },
+  "registers": {
+    "note": "ARMv8-A system registers are accessed with MRS/MSR via op0/op1/CRn/CRm/op2 encodings (not memory-mapped offsets). Subset shown is representative; reset values are illustrative except where architecturally fixed.",
+    "register_list": [
+      {
+        "name": "MIDR_EL1", "encoding": "S3_0_C0_C0_0", "access": "RO", "reset": "0x410FD03x",
+        "desc": "Main ID Register — identifies the implementer and part.",
+        "fields": [
+          { "name": "Implementer", "msb": 31, "lsb": 24, "reset": "0x41", "desc": "0x41 = ARM Limited (fixed)" },
+          { "name": "Variant",     "msb": 23, "lsb": 20, "desc": "rNpM variant (illustrative)" },
+          { "name": "Architecture","msb": 19, "lsb": 16, "reset": "0xF",  "desc": "0xF = defined by CPUID scheme (ARMv8)" },
+          { "name": "PartNum",     "msb": 15, "lsb": 4,  "reset": "0xD03","desc": "0xD03 = Cortex-A53 (fixed)" },
+          { "name": "Revision",    "msb": 3,  "lsb": 0,  "desc": "rNpM revision (illustrative)" }
+        ]
+      },
+      {
+        "name": "MPIDR_EL1", "encoding": "S3_0_C0_C0_5", "access": "RO", "reset": "0x80000xxx",
+        "desc": "Multiprocessor Affinity Register — core/cluster identification.",
+        "fields": [
+          { "name": "U",    "msb": 30, "lsb": 30, "desc": "1 = uniprocessor (illustrative)" },
+          { "name": "MT",   "msb": 24, "lsb": 24, "reset": "0", "desc": "Multithreading (0 for A53)" },
+          { "name": "Aff2", "msb": 23, "lsb": 16, "desc": "Affinity level 2 (cluster)" },
+          { "name": "Aff1", "msb": 15, "lsb": 8,  "desc": "Affinity level 1" },
+          { "name": "Aff0", "msb": 7,  "lsb": 0,  "desc": "Affinity level 0 (core id)" }
+        ]
+      },
+      {
+        "name": "SCTLR_EL1", "encoding": "S3_0_C1_C0_0", "access": "RW", "reset": "0x00C50838",
+        "desc": "System Control Register (EL1) — MMU, cache and alignment controls.",
+        "fields": [
+          { "name": "EE",  "msb": 25, "lsb": 25, "desc": "Exception endianness at EL1" },
+          { "name": "WXN", "msb": 19, "lsb": 19, "desc": "Writeable implies execute-never" },
+          { "name": "I",   "msb": 12, "lsb": 12, "reset": "0", "desc": "Instruction cache enable" },
+          { "name": "SA0", "msb": 4,  "lsb": 4,  "desc": "EL0 stack alignment check" },
+          { "name": "SA",  "msb": 3,  "lsb": 3,  "desc": "Stack alignment check" },
+          { "name": "C",   "msb": 2,  "lsb": 2,  "reset": "0", "desc": "Data cache enable" },
+          { "name": "A",   "msb": 1,  "lsb": 1,  "desc": "Alignment check enable" },
+          { "name": "M",   "msb": 0,  "lsb": 0,  "reset": "0", "desc": "MMU enable" }
+        ]
+      },
+      { "name": "CPACR_EL1",      "encoding": "S3_0_C1_C0_2", "access": "RW", "desc": "Architectural feature access (FP/SIMD trap) control." },
+      { "name": "TTBR0_EL1",      "encoding": "S3_0_C2_C0_0", "access": "RW", "desc": "Translation Table Base Register 0 (EL1)." },
+      { "name": "TTBR1_EL1",      "encoding": "S3_0_C2_C0_1", "access": "RW", "desc": "Translation Table Base Register 1 (EL1)." },
+      { "name": "TCR_EL1",        "encoding": "S3_0_C2_C0_2", "access": "RW", "desc": "Translation Control Register (EL1)." },
+      { "name": "ESR_EL1",        "encoding": "S3_0_C5_C2_0", "access": "RW", "desc": "Exception Syndrome Register (EL1)." },
+      { "name": "FAR_EL1",        "encoding": "S3_0_C6_C0_0", "access": "RW", "desc": "Fault Address Register (EL1)." },
+      { "name": "VBAR_EL1",       "encoding": "S3_0_C12_C0_0","access": "RW", "desc": "Vector Base Address Register (EL1)." },
+      { "name": "CTR_EL0",        "encoding": "S3_3_C0_C0_1", "access": "RO", "desc": "Cache Type Register." },
+      { "name": "ID_AA64PFR0_EL1","encoding": "S3_0_C0_C4_0", "access": "RO", "desc": "AArch64 Processor Feature Register 0 (FP/SIMD/EL support)." }
+    ]
+  },
+  "timing": {
+    "title": "ACE/AXI read burst — 2-beat (illustrative AMBA 4)",
+    "note": "AR address handshake (ARVALID·ARREADY), then R data channel (RVALID·RREADY), RLAST on the final beat.",
+    "signals": [
+      { "name": "ACLK",    "wave": "pppppppp" },
+      { "name": "ARVALID", "wave": "01.0...." },
+      { "name": "ARREADY", "wave": "0.10...." },
+      { "name": "ARADDR",  "wave": "x=.x....", "data": ["0x80000000"] },
+      { "name": "RVALID",  "wave": "0...1.0." },
+      { "name": "RREADY",  "wave": "0...1.0." },
+      { "name": "RDATA",   "wave": "x...==x.", "data": ["0xCD00", "0xCD04"] },
+      { "name": "RLAST",   "wave": "0....1.0" }
+    ]
+  }
+};
+
+let SPEC=null;
+
+/* ---- shared helpers (match sibling idiom) ---- */
+function svgEl(tag,attrs){const e=document.createElementNS(SVGNS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);return e;}
+function txt(cls,x,y,s,extra){const t=svgEl('text',Object.assign({class:cls,x,y},extra||{}));t.textContent=s;return t;}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function clearSvg(id){const s=document.getElementById(id);s.innerHTML='';return s;}
+function el(id){return document.getElementById(id);}
+function regList(){return (SPEC.registers&&SPEC.registers.register_list)||[];}
+
+/* kind → human label + accent color (used for legend + hover) */
+const KINDS={
+  frontend :{lbl:'frontend', col:'#58a6ff'},
+  exec     :{lbl:'execute',  col:'#3fb950'},
+  mem      :{lbl:'memory',   col:'#d29922'},
+  coherency:{lbl:'coherency',col:'#bc8cff'},
+  interrupt:{lbl:'interrupt',col:'#f0883e'},
+  timer    :{lbl:'timer',    col:'#56d4d4'},
+  debug    :{lbl:'debug',    col:'#adadc0'}
+};
+
+/* ============================================================
+   01 · OVERVIEW
+   ============================================================ */
+function renderOverview(){
+  const o=SPEC.overview||{}, cfg=o.config||{};
+  el('disclaimerTxt').textContent=SPEC._disclaimer||'';
+  el('ovLead').textContent=o.type+' · '+(o.doc||'');
+  const facts=[
+    ['name', o.name, true],
+    ['type', o.type, false],
+    ['architecture', cfg.architecture, true],
+    ['cores / cluster', cfg.cores_per_cluster, false],
+    ['pipeline', cfg.pipeline, false],
+    ['physical addr', cfg.phys_addr, true],
+    ['endianness', cfg.endianness, false]
+  ];
+  el('ovFacts').innerHTML=facts.map(([k,v,a])=>
+    '<div class="fact"><div class="fk">'+esc(k)+'</div><div class="fv'+(a?' acc':'')+'">'+esc(v||'—')+'</div></div>'
+  ).join('');
+  el('ovDesc').textContent=o.description||'';
+}
+
+/* ============================================================
+   02 · TABLE OF CONTENTS  (expandable chapter list)
+   ============================================================ */
+function renderToc(){
+  const toc=SPEC.toc||[];
+  el('tocList').innerHTML=toc.map((c,i)=>
+    '<li id="toc_'+i+'">'+
+      '<div class="crow" data-i="'+i+'">'+
+        '<span class="cn">'+esc(c.n)+'</span>'+
+        '<span class="ct">'+esc(c.title)+'</span>'+
+        '<span class="cx">▶</span>'+
+      '</div>'+
+      '<div class="topics"><ul>'+
+        (c.topics||[]).map(t=>'<li>'+esc(t)+'</li>').join('')+
+      '</ul></div>'+
+    '</li>'
+  ).join('');
+  el('tocList').querySelectorAll('.crow').forEach(row=>{
+    row.addEventListener('click',()=>{
+      el('toc_'+row.getAttribute('data-i')).classList.toggle('open');
+    });
+  });
+}
+
+/* ============================================================
+   03 · FEATURES  (grouped cards, multi-column)
+   ============================================================ */
+function emItalic(s){ // wrap "illustrative" / "optional" hints in <em>
+  return esc(s).replace(/(illustrative|optional)/gi,'<em>$1</em>');
+}
+function renderFeatures(){
+  const groups=SPEC.features||[];
+  el('featGrid').innerHTML=groups.map(g=>
+    '<div class="featcard"><div class="fh">◆ '+esc(g.group)+'</div>'+
+    '<ul>'+(g.items||[]).map(it=>'<li>'+emItalic(it)+'</li>').join('')+'</ul></div>'
+  ).join('');
+}
+
+/* ============================================================
+   04 · BLOCK DIAGRAM  (MPCore cluster — hand-built SVG)
+   ============================================================ */
+let A_PORTS={};
+function archInfo(html){el('archInfo').innerHTML=html;}
+function archReset(){archInfo('Hover a block (name · kind) or an interface (role · width · desc).');}
+
+function renderBlock(){
+  const b=SPEC.block||{};
+  const svg=clearSvg('archSvg');
+  const W=940, H=560;
+  svg.setAttribute('width',W);svg.setAttribute('height',H);svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  svg.innerHTML='<defs><marker id="a_ah" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#8b949e"/></marker></defs>';
+  A_PORTS={};
+
+  // cluster boundary
+  const BX=150, BY=22, BW=W-300, BH=H-150;
+  svg.appendChild(svgEl('rect',{class:'boundary',x:BX,y:BY,width:BW,height:BH,rx:10}));
+  svg.appendChild(txt('boundaryLbl',BX+12,BY-7,(b.cluster||'MPCore cluster')+'  ·  '+(b.cores||1)+' core'+((b.cores||1)>1?'s (1–4)':'')));
+
+  // ---- ghosted cores behind the detailed one (Core 3..1) ----
+  const nCores=Math.min(b.cores||1,4);
+  const coreX=BX+22, coreY=BY+34, coreW=BW-44, coreH=270;
+  for(let g=nCores-1;g>=1;g--){
+    const off=g*9;
+    svg.appendChild(svgEl('rect',{class:'grp ghost',x:coreX+off,y:coreY+off,width:coreW,height:coreH,rx:8}));
+    svg.appendChild(txt('coreLbl',coreX+coreW-58+off,coreY+15+off,'Core '+g,{class:'coreLbl ghost'}));
+  }
+  // detailed Core 0 frame
+  svg.appendChild(svgEl('rect',{class:'grp',x:coreX,y:coreY,width:coreW,height:coreH,rx:8}));
+  svg.appendChild(txt('coreLbl',coreX+8,coreY+15,'Core 0  (detailed)'));
+
+  // per-core blocks: 2 cols x 4 rows inside the core frame
+  const per=b.per_core||[];
+  const cols=2, padIn=14, gx=14, gy=12;
+  const innerW=coreW-padIn*2, innerH=coreH-padIn-26;
+  const bw=(innerW-gx*(cols-1))/cols;
+  const rows=Math.ceil(per.length/cols);
+  const bh=(innerH-gy*(rows-1))/rows;
+  per.forEach((blk,i)=>{
+    const c=i%cols, r=Math.floor(i/cols);
+    const x=coreX+padIn+c*(bw+gx), y=coreY+26+r*(bh+gy);
+    drawBlk(svg,blk,x,y,bw,bh);
+  });
+
+  // ---- shared blocks (below cores, full cluster width) ----
+  const shared=b.shared||[];
+  const shY=coreY+coreH+18, shN=shared.length;
+  const shGap=12, shPad=22;
+  const shW=(BW-shPad*2-shGap*(shN-1))/shN, shH=58;
+  svg.appendChild(txt('grpLbl',BX+shPad,shY-6,'shared (cluster-level)'));
+  shared.forEach((blk,i)=>{
+    const x=BX+shPad+i*(shW+shGap), y=shY;
+    drawBlk(svg,blk,x,y,shW,shH);
+  });
+
+  // connect each shared block up to the core frame (coherency fabric hint)
+  shared.forEach((blk,i)=>{
+    const x=BX+shPad+i*(shW+shGap)+shW/2;
+    aedge(svg,[[x,shY],[x,coreY+coreH+9]],'aedge');
+  });
+
+  // ---- external interfaces on the boundary edges ----
+  const ifaces=b.interfaces||[];
+  // place: master ACE + ATB on right, slaves (ACP, Debug APB) on left, GIC io on left too
+  const left=[], right=[];
+  ifaces.forEach(f=>{ (f.role==='master'?right:left).push(f); });
+  layoutIfaces(svg,left,'left',BX,BY,BH);
+  layoutIfaces(svg,right,'right',BX+BW,BY,BH);
+
+  // legend
+  buildLegend();
+}
+
+function drawBlk(svg,blk,x,y,w,h){
+  const kind=blk.kind||'frontend';
+  const r=svgEl('rect',{class:'blk '+kind,x,y,width:w,height:h,rx:6});
+  r.addEventListener('mouseenter',()=>{r.classList.add('hot');showBlk(blk);});
+  r.addEventListener('mouseleave',()=>{r.classList.remove('hot');archReset();});
+  svg.appendChild(r);
+  // title: id (uppercase) + wrapped name
+  svg.appendChild(txt('blkTitle',x+w/2,y+(w<150?18:20),(blk.id||'').toUpperCase()));
+  wrapText(svg,blk.name||'',x+w/2,y+(w<150?32:36),w-12,'blkSub',8.5,3);
+}
+function showBlk(blk){
+  const k=KINDS[blk.kind]||{lbl:blk.kind,col:'var(--fg)'};
+  archInfo('<b>'+esc(blk.name||blk.id)+'</b> · id <code>'+esc(blk.id)+'</code> · kind '+
+    '<b style="color:'+k.col+'">'+esc(k.lbl)+'</b>');
+}
+
+/* external interface ports stacked on a boundary edge */
+function layoutIfaces(svg,list,side,edgeX,by,bh){
+  if(!list.length) return;
+  const pw=96, ph=24, gap=14;
+  const totalH=list.length*ph+(list.length-1)*gap;
+  let y=by+(bh-totalH)/2;
+  list.forEach(f=>{
+    const x=(side==='left')?edgeX-pw:edgeX;
+    const r=svgEl('rect',{class:'port '+(f.role||'io'),x,y,width:pw,height:ph,rx:4});
+    attachIface(r,f); svg.appendChild(r);
+    svg.appendChild(txt('portLbl '+(f.role||'io'),x+7,y+11,f.name));
+    const sub=(f.role||'io')+(f.width?(' '+f.width+'b'):'');
+    svg.appendChild(txt('portW',x+7,y+20,sub));
+    // stub line into the boundary
+    if(side==='left') svg.appendChild(svgEl('line',{class:'aedge',x1:x+pw,y1:y+ph/2,x2:edgeX+30,y2:y+ph/2,'stroke-dasharray':'3 3'}));
+    else              svg.appendChild(svgEl('line',{class:'aedge',x1:x,y1:y+ph/2,x2:edgeX-30,y2:y+ph/2,'stroke-dasharray':'3 3'}));
+    y+=ph+gap;
+  });
+}
+function attachIface(r,f){
+  r.addEventListener('mouseenter',()=>{
+    r.classList.add('hot');
+    archInfo('<b>'+esc(f.name)+'</b> · role <b>'+esc(f.role||'io')+'</b>'+
+      (f.width?(' · width <b>'+f.width+'</b>-bit'):'')+'<br>'+esc(f.desc||''));
+  });
+  r.addEventListener('mouseleave',()=>{r.classList.remove('hot');archReset();});
+}
+function aedge(svg,pts,cls){
+  const d='M'+pts.map(p=>p[0]+','+p[1]).join(' L');
+  svg.appendChild(svgEl('path',{class:cls,d,'marker-end':'url(#a_ah)'}));
+}
+function buildLegend(){
+  const used=new Set();
+  (SPEC.block.per_core||[]).concat(SPEC.block.shared||[]).forEach(b=>used.add(b.kind));
+  el('blkLegend').innerHTML='<span style="color:var(--mute)">kind:</span>'+
+    [...used].map(k=>{const m=KINDS[k]||{lbl:k,col:'var(--mute)'};
+      return '<span class="li"><span class="dot" style="border-color:'+m.col+'"></span>'+esc(m.lbl)+'</span>';
+    }).join('')+
+    '<span class="li"><span class="dot" style="border-color:#3a5a3f;border-radius:1px"></span>master iface</span>'+
+    '<span class="li"><span class="dot" style="border-color:#3a5170;border-radius:1px"></span>slave iface</span>'+
+    '<span class="li"><span class="dot" style="border-color:#5a4a18;border-radius:1px"></span>io iface</span>';
+}
+
+/* shared text-wrapper (matches ssot-explorer wrapText idiom, n-line) */
+function wrapText(svg,str,cx,y,maxW,cls,fontPx,maxLines){
+  const words=String(str).split(/\s+/);const lines=[];let cur='';
+  const charW=fontPx*0.58;const maxChars=Math.max(6,Math.floor(maxW/charW));
+  words.forEach(w=>{ if((cur+' '+w).trim().length>maxChars){lines.push(cur.trim());cur=w;} else cur+=' '+w; });
+  if(cur.trim())lines.push(cur.trim());
+  const lim=maxLines||3;
+  lines.slice(0,lim).forEach((ln,i)=>{ if(i===lim-1 && lines.length>lim) ln=ln.replace(/\s\S*$/,'…'); svg.appendChild(txt(cls,cx,y+i*11,ln,{'text-anchor':'middle'})); });
+}
+
+/* ============================================================
+   05 · REGISTER MAP  (table + 32-bit field strip w/ tabs)
+   ============================================================ */
+const B_W=860, B_H=92, B_X=6, B_Y=18, B_STRIPH=36;
+let CUR_REG=null;
+function renderRegisters(){
+  el('regNote').textContent=(SPEC.registers&&SPEC.registers.note)||'';
+  const regs=regList();
+  // table
+  const tb=el('regTable').querySelector('tbody');
+  tb.innerHTML=regs.map((r,i)=>{
+    const hasF=Array.isArray(r.fields)&&r.fields.length;
+    return '<tr class="'+(hasF?'hasfields':'')+'" data-i="'+i+'">'+
+      '<td><code>'+esc(r.encoding)+'</code></td><td><b>'+esc(r.name)+'</b></td>'+
+      '<td><span class="acctag '+esc((r.access||'').toLowerCase())+'">'+esc(r.access)+'</span></td>'+
+      '<td><code>'+esc(r.reset||'—')+'</code></td><td>'+esc(r.desc||'')+'</td></tr>';
+  }).join('');
+  // clicking a fielded register row selects its strip
+  tb.querySelectorAll('tr.hasfields').forEach(tr=>{
+    tr.addEventListener('click',()=>selectReg(regs[+tr.getAttribute('data-i')].name));
+  });
+
+  // tabs: only the registers that have fields
+  const fielded=regs.filter(r=>Array.isArray(r.fields)&&r.fields.length);
+  el('regTabs').innerHTML=fielded.map(r=>
+    '<button class="rtab" data-name="'+esc(r.name)+'">'+esc(r.name)+'</button>'
+  ).join('');
+  el('regTabs').querySelectorAll('.rtab').forEach(btn=>{
+    btn.addEventListener('click',()=>selectReg(btn.getAttribute('data-name')));
+  });
+
+  selectReg(fielded.length?fielded[0].name:null);
+}
+
+function selectReg(name){
+  CUR_REG=name;
+  el('regTabs').querySelectorAll('.rtab').forEach(b=>b.classList.toggle('on',b.getAttribute('data-name')===name));
+  el('regTable').querySelectorAll('tbody tr').forEach(tr=>tr.classList.remove('hot'));
+  const regs=regList();
+  const reg=regs.find(r=>r.name===name);
+  const idx=regs.findIndex(r=>r.name===name);
+  const tr=el('regTable').querySelector('tbody tr[data-i="'+idx+'"]');
+  if(tr) tr.classList.add('hot');
+  drawBitStrip(reg);
+}
+
+function drawBitStrip(reg){
+  const svg=clearSvg('bitSvg');
+  if(!reg||!reg.fields){el('bitInfo').innerHTML='This register has no published field map in the dataset.';return;}
+  const totalBits=32;
+  svg.setAttribute('width',B_W);svg.setAttribute('height',B_H);svg.setAttribute('viewBox',`0 0 ${B_W} ${B_H}`);
+  svg.innerHTML='<defs><pattern id="b_hatch" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#30363d" stroke-width="1.6"/></pattern></defs>';
+  const stripW=B_W-2*B_X;
+  const bitW=stripW/totalBits;
+  // strip outline
+  svg.appendChild(svgEl('rect',{x:B_X,y:B_Y,width:stripW,height:B_STRIPH,fill:'none',stroke:'#30363d','stroke-width':1,rx:3}));
+
+  // build a per-bit occupancy map (msb-left) so reserved gaps can be filled
+  const occ=new Array(totalBits).fill(null); // index by bit number
+  (reg.fields||[]).forEach(f=>{ for(let b=f.lsb;b<=f.msb;b++) if(b>=0&&b<totalBits) occ[b]=f; });
+
+  // helper: x for left edge of a bit index (msb on left)
+  const bitX=bit=>B_X+(totalBits-1-bit)*bitW;
+
+  // draw named fields
+  (reg.fields||[]).forEach(f=>{
+    const bits=f.msb-f.lsb+1;
+    const fx=bitX(f.msb);          // left edge = msb side
+    const fw=bits*bitW;
+    drawStripe(svg,fx,fw,false,f);
+  });
+
+  // fill reserved gaps (contiguous runs of unoccupied bits)
+  let b=totalBits-1;
+  while(b>=0){
+    if(occ[b]===null){
+      let hi=b; while(b>=0 && occ[b]===null) b--; let lo=b+1;
+      const fx=bitX(hi), fw=(hi-lo+1)*bitW;
+      drawStripe(svg,fx,fw,true,{name:'RES'+hi+'_'+lo,msb:hi,lsb:lo,access:'reserved',desc:'Reserved (RES0 / implementation-defined)'});
+    } else b--;
+  }
+
+  // tick labels every 4 bits along the bottom (msb..lsb)
+  for(let bit=totalBits-1;bit>=0;bit-=4){
+    const x=bitX(bit)+bitW/2;
+    svg.appendChild(txt('cyc',x,B_Y+B_STRIPH+14,String(bit)));
+  }
+  el('bitInfo').innerHTML='<span class="bn">'+esc(reg.name)+'</span> <span class="acctag '+esc((reg.access||'').toLowerCase())+'">'+esc(reg.access)+'</span> · '+esc(reg.encoding)+' — hover a field stripe for detail.';
+}
+
+function drawStripe(svg,fx,fw,isRes,f){
+  const fill=isRes?'url(#b_hatch)':'#0b1827';
+  const stroke=isRes?'#30363d':'#58a6ff';
+  const g=svgEl('g',{class:'field'});g.style.cursor='pointer';
+  const fr=svgEl('rect',{x:fx,y:B_Y,width:Math.max(fw-1,1),height:B_STRIPH,fill,stroke,'stroke-width':1.2,rx:2});
+  g.appendChild(fr);
+  if(fw>26 && !isRes){
+    const ft=svgEl('text',{x:fx+fw/2,y:B_Y+B_STRIPH/2+4,'text-anchor':'middle','font-size':10,fill:'#58a6ff','font-weight':700});
+    ft.textContent=f.name;g.appendChild(ft);
+  } else if(fw>40 && isRes){
+    const ft=svgEl('text',{x:fx+fw/2,y:B_Y+B_STRIPH/2+4,'text-anchor':'middle','font-size':9,fill:'#8b949e'});
+    ft.textContent='reserved';g.appendChild(ft);
+  }
+  g.addEventListener('mouseenter',()=>showBit(f,isRes));
+  g.addEventListener('mouseleave',()=>{const r=regList().find(x=>x.name===CUR_REG);if(r)el('bitInfo').innerHTML='<span class="bn">'+esc(r.name)+'</span> <span class="acctag '+esc((r.access||'').toLowerCase())+'">'+esc(r.access)+'</span> · '+esc(r.encoding)+' — hover a field stripe for detail.';});
+  svg.appendChild(g);
+}
+function showBit(f,isRes){
+  const acc=isRes?'reserved':((f.access||CurAcc()||'').toLowerCase());
+  el('bitInfo').innerHTML=
+    '<span class="bn">'+esc(f.name)+'</span> <span class="acctag '+esc(acc||'reserved')+'">'+esc(acc||'reserved')+'</span>'+
+    '<div class="bm" style="margin-top:5px">bits <b>['+f.msb+':'+f.lsb+']</b> · width <b>'+(f.msb-f.lsb+1)+'</b>'+
+      (f.reset!==undefined?(' · reset <b>'+esc(f.reset)+'</b>'):'')+'</div>'+
+    '<div class="bm" style="margin-top:3px">'+esc(f.desc||'')+'</div>';
+}
+function CurAcc(){const r=regList().find(x=>x.name===CUR_REG);return r?r.access:'';}
+
+/* ============================================================
+   06 · TIMING  (WaveDrom-style — reuses timing-diagram parseWave/draw)
+   ============================================================ */
+const T_LABELW=92, T_CW=58, T_ROWH=44, T_HDR=24, T_AMP=22, T_PADTOP=10;
+function parseWave(wave,data){
+  const cells=[];let prev=null,di=0;
+  for(const ch of wave){
+    if(ch==='.'){cells.push(prev?{...prev,edge:false}:{kind:'level',v:0,edge:false});continue;}
+    let c;
+    if(ch==='p'||ch==='n')c={kind:'clock',pol:ch};
+    else if(ch==='1')c={kind:'level',v:1};
+    else if(ch==='0')c={kind:'level',v:0};
+    else if(ch==='=')c={kind:'bus',label:(data&&data[di++])||'='};
+    else if(ch==='x')c={kind:'x'};
+    else if(ch==='z')c={kind:'z'};
+    else c={kind:'level',v:0};
+    c.edge=true;cells.push(c);prev=c;
+  }
+  return cells;
+}
+function renderTiming(){
+  const te=SPEC.timing||{signals:[]};
+  el('tmLead').textContent=te.title||'';
+  el('tmNote').innerHTML=te.note?('<b>note:</b> '+esc(te.note)):'';
+  const rows=(te.signals||[]).map(s=>({name:s.name,cells:parseWave(s.wave,s.data)}));
+  const n=Math.max(1,...rows.map(r=>r.cells.length));
+  const svg=clearSvg('timeSvg');
+  const W=T_LABELW+n*T_CW, H=T_HDR+rows.length*T_ROWH+8;
+  svg.setAttribute('width',W);svg.setAttribute('height',H);svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+
+  for(let i=0;i<n;i++){
+    const x=T_LABELW+i*T_CW;
+    svg.appendChild(svgEl('line',{class:'grid',x1:x,y1:T_HDR,x2:x,y2:H-8}));
+    svg.appendChild(txt('cyc',x+T_CW/2,15,String(i)));
+  }
+  rows.forEach((row,ri)=>{
+    const top=T_HDR+ri*T_ROWH, hiY=top+T_PADTOP, lowY=hiY+T_AMP, midY=(hiY+lowY)/2;
+    svg.appendChild(txt('tlbl',8,midY+4,row.name));
+    const parts=[],hatches=[],texts=[];let prevY=lowY;
+    row.cells.forEach((c,ci)=>{
+      const x0=T_LABELW+ci*T_CW,x1=x0+T_CW,mid=(x0+x1)/2;
+      if(c.kind==='clock'){parts.push(`M${x0},${lowY} L${x0},${hiY} L${mid},${hiY} L${mid},${lowY} L${x1},${lowY}`);prevY=lowY;}
+      else if(c.kind==='level'){const y=c.v?hiY:lowY;if(c.edge&&prevY!==y)parts.push(`M${x0},${prevY} L${x0},${y}`);parts.push(`M${x0},${y} L${x1},${y}`);prevY=y;}
+      else if(c.kind==='bus'){
+        if(c.edge){let j=ci+1;while(j<row.cells.length&&row.cells[j].kind==='bus'&&!row.cells[j].edge)j++;const rx=T_LABELW+j*T_CW;
+          parts.push(`M${x0},${midY} L${x0+5},${hiY}`);parts.push(`M${x0},${midY} L${x0+5},${lowY}`);
+          parts.push(`M${x0+5},${hiY} L${rx},${hiY}`);parts.push(`M${x0+5},${lowY} L${rx},${lowY}`);
+          texts.push({x:(x0+rx)/2,y:midY+4,t:c.label});}
+        prevY=midY;}
+      else if(c.kind==='x'){parts.push(`M${x0},${hiY} L${x1},${hiY}`);parts.push(`M${x0},${lowY} L${x1},${lowY}`);for(let hx=x0;hx<x1;hx+=6)hatches.push(`M${hx},${hiY} L${Math.min(hx+T_AMP,x1)},${lowY}`);prevY=midY;}
+      else if(c.kind==='z'){parts.push(`M${x0},${midY} L${x1},${midY}`);prevY=midY;}
+    });
+    if(hatches.length)svg.appendChild(svgEl('path',{class:'hatch',d:hatches.join(' ')}));
+    svg.appendChild(svgEl('path',{class:'wave',d:parts.join(' ')}));
+    texts.forEach(tx=>svg.appendChild(txt('busText',tx.x,tx.y,tx.t)));
+  });
+}
+
+/* ============================================================
+   ORCHESTRATION + editor re-render
+   ============================================================ */
+function renderAll(spec){
+  SPEC=spec;
+  renderOverview();
+  renderToc();
+  renderFeatures();
+  renderBlock();
+  renderRegisters();
+  renderTiming();
+}
+function reRenderAll(){
+  const err=el('err');err.textContent='';err.classList.remove('ok-msg');
+  try{
+    const spec=JSON.parse(el('spec').value);
+    if(!spec.overview||!spec.block) throw new Error('spec needs at least "overview" and "block" keys');
+    renderAll(spec);
+    err.textContent='✓ re-rendered all sections';err.classList.add('ok-msg');
+    setTimeout(()=>{err.textContent='';err.classList.remove('ok-msg');},2200);
+  }catch(ex){ err.textContent='JSON / render error: '+ex.message; }
+}
+
+/* scroll-spy: highlight active nav link */
+function initScrollSpy(){
+  const links=[...document.querySelectorAll('.nav a.lnk')];
+  const map={};links.forEach(a=>map[a.getAttribute('href').slice(1)]=a);
+  const obs=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{ if(e.isIntersecting){ links.forEach(l=>l.classList.remove('active')); const a=map[e.target.id]; if(a)a.classList.add('active'); } });
+  },{rootMargin:'-45% 0px -50% 0px',threshold:0});
+  ['overview','toc','features','block','registers','timing'].forEach(id=>{const s=el(id);if(s)obs.observe(s);});
+}
+
+/* boot */
+el('spec').value=JSON.stringify(DEFAULT,null,2);
+renderAll(DEFAULT);
+initScrollSpy();
+</script>
+
+</body></html>
