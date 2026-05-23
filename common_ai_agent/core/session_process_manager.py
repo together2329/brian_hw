@@ -23,6 +23,7 @@ Or as a context manager::
 from __future__ import annotations
 
 import os
+import shlex
 import signal
 import subprocess
 import sys
@@ -64,6 +65,13 @@ class SessionProcessManager:
         self._project_root = Path(os.path.expanduser(str(raw_project_root))).resolve()
         self._processes: Dict[str, Dict[str, Any]] = {}
         self._lock = threading.RLock()
+
+    @staticmethod
+    def _env_enabled(name: str, default: bool = True) -> bool:
+        raw = os.environ.get(name)
+        if raw is None or not raw.strip():
+            return default
+        return raw.strip().lower() in {"1", "true", "yes", "on"}
 
     def _resolve_db_path(self, db_path: Optional[str] = None) -> str:
         """Return the concrete DB path shared by UI and worker processes."""
@@ -130,6 +138,117 @@ class SessionProcessManager:
         env.setdefault("PYTHONIOENCODING", "utf-8:replace")
         return env
 
+    @staticmethod
+    def _arg_value(args: List[str], name: str) -> str:
+        for i, arg in enumerate(args):
+            if arg == name and i + 1 < len(args):
+                return args[i + 1]
+            prefix = f"{name}="
+            if arg.startswith(prefix):
+                return arg[len(prefix):]
+        return ""
+
+    @staticmethod
+    def _is_session_worker_args(args: List[str]) -> bool:
+        for i, arg in enumerate(args[:-1]):
+            if arg == "-m" and args[i + 1] == "core.session_worker":
+                return True
+        return False
+
+    @staticmethod
+    def _same_resolved_path(left: str, right: str) -> bool:
+        try:
+            return Path(os.path.expanduser(left)).resolve() == Path(os.path.expanduser(right)).resolve()
+        except Exception:
+            return str(left or "") == str(right or "")
+
+    @staticmethod
+    def _pid_exists(pid: int) -> bool:
+        try:
+            os.kill(pid, 0)
+            return True
+        except ProcessLookupError:
+            return False
+        except PermissionError:
+            return True
+        except OSError:
+            return False
+
+    def _external_worker_pids(self, session_id: str, db_path: str) -> List[int]:
+        if not self._env_enabled("ATLAS_SESSION_WORKER_PRUNE_ORPHANS", True):
+            return []
+        try:
+            result = subprocess.run(
+                ["ps", "-axo", "pid=,command="],
+                capture_output=True,
+                text=True,
+                timeout=2,
+                check=False,
+            )
+        except Exception:
+            return []
+
+        current_pid = os.getpid()
+        matches: List[int] = []
+        for raw_line in (result.stdout or "").splitlines():
+            line = raw_line.strip()
+            if not line:
+                continue
+            try:
+                pid_text, command = line.split(None, 1)
+                pid = int(pid_text)
+            except ValueError:
+                continue
+            if pid == current_pid:
+                continue
+            try:
+                args = shlex.split(command)
+            except ValueError:
+                continue
+            if not self._is_session_worker_args(args):
+                continue
+            if self._arg_value(args, "--session-id") != session_id:
+                continue
+            worker_db = self._arg_value(args, "--db-path")
+            if worker_db and not self._same_resolved_path(worker_db, db_path):
+                continue
+            matches.append(pid)
+        return matches
+
+    def _terminate_external_session_workers(self, session_id: str, db_path: str) -> None:
+        """Stop untracked same-session workers left behind by an old UI server.
+
+        Detached workers share the SQLite input queue. If an orphan survives a
+        backend restart, it can consume prompts that the new backend never
+        polls, making the user resend input until the tracked worker wins.
+        """
+        pids = self._external_worker_pids(session_id, db_path)
+        if not pids:
+            return
+        for pid in pids:
+            try:
+                os.kill(pid, signal.SIGTERM)
+            except ProcessLookupError:
+                pass
+            except Exception:
+                continue
+
+        deadline = time.time() + 3.0
+        while time.time() < deadline:
+            if all(not self._pid_exists(pid) for pid in pids):
+                return
+            time.sleep(0.05)
+
+        for pid in pids:
+            if not self._pid_exists(pid):
+                continue
+            try:
+                os.kill(pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            except Exception:
+                pass
+
     def spawn(self, session_id: str, db_path: Optional[str] = None) -> bool:
         """Start a worker process for *session_id* if not already running.
 
@@ -147,6 +266,9 @@ class SessionProcessManager:
                 # Dead entry — clean it up before respawning.
                 self._processes.pop(session_id, None)
 
+            effective_db = self._resolve_db_path(db_path)
+            self._terminate_external_session_workers(session_id, effective_db)
+
             cmd = [
                 sys.executable,
                 "-m",
@@ -154,7 +276,6 @@ class SessionProcessManager:
                 "--session-id",
                 session_id,
             ]
-            effective_db = self._resolve_db_path(db_path)
             cmd.extend(["--db-path", effective_db])
 
             proc = subprocess.Popen(

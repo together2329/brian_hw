@@ -809,9 +809,17 @@ const App = () => {
     // todo template all kept the old workspace's wiring.
     const wf = normalizeSession(workflow) || 'default';
     if (window.backend && typeof window.backend.send === 'function') {
-      window.backend.send({ type: 'prompt', text: `/wf ${wf}`, session: session || window.ACTIVE_SESSION || 'default', ui_lang: window.ATLAS_UI_LANG || uiLang });
+      const parts = splitSessionNamespace(session || window.ACTIVE_SESSION || '');
+      window.backend.send({
+        type: 'prompt',
+        text: `/wf ${wf}`,
+        session: session || window.ACTIVE_SESSION || 'default',
+        ip: parts.ipId || activeIp || WORKFLOW_DEFAULT,
+        workflow: wf,
+        ui_lang: window.ATLAS_UI_LANG || uiLang,
+      });
     }
-  }, [normalizeSession, uiLang]);
+  }, [activeIp, normalizeSession, splitSessionNamespace, uiLang]);
 
   const stopForWorkflowSwitch = React.useCallback(() => {
     setAgentRunningState(false);

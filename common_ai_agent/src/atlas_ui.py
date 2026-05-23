@@ -2892,9 +2892,12 @@ def create_app():
     if _single_worker_raw:
         _single_worker_per_owner = _single_worker_raw in ("1", "true", "yes", "on")
     else:
-        _single_worker_per_owner = _use_proc and (
-            _single_loop or _exec_raw == "single-worker" or _orch_disabled
-        )
+        # Multi-user process mode means isolation is owned by the full
+        # user/ip/workflow namespace.  Collapsing to one worker per owner
+        # makes workflow tabs kill each other and can route browser prompts
+        # into the wrong SQLite queue after reconnects.  Keep the legacy
+        # owner-singleton behavior only behind the explicit env flag above.
+        _single_worker_per_owner = False
 
     def _multi_user_enabled() -> bool:
         raw = os.environ.get("ATLAS_MULTI_USER", "1").strip().lower()
@@ -17049,6 +17052,39 @@ def create_app():
                     return None
             return normalized
 
+        def _prompt_target_session(raw_session: str, msg: dict) -> str | None:
+            """Canonicalize prompt routing from the visible browser target.
+
+            The browser can briefly hold a stale ACTIVE_SESSION while the top
+            IP/workflow controls already show the new target.  The prompt
+            message carries explicit `ip` and `workflow`; prefer those so we
+            do not spawn queues like `<user>/<ip>/default` when the user is
+            visibly on `<user>/<ip>/ssot-gen`.
+            """
+            base = _authorize_ws_session(raw_session)
+            if not base:
+                return None
+            parts = [part for part in normalize_session_name(base).split("/") if part]
+            while len(parts) < 3:
+                parts.append("default")
+            ip = normalize_session_name(str(
+                msg.get("ip")
+                or msg.get("scope")
+                or msg.get("ip_id")
+                or ""
+            ))
+            workflow = normalize_session_name(str(
+                msg.get("workflow")
+                or msg.get("workspace")
+                or msg.get("active_workflow")
+                or ""
+            ))
+            if ip and ip not in {"default", "soc", "user"}:
+                parts[1] = ip
+            if workflow and workflow not in {"user", "soc"}:
+                parts[2] = workflow
+            return _authorize_ws_session("/".join(parts[:3]))
+
         # Identity-driven default: empty / legacy "default" session_id
         # collapses to the user's default namespace. Full
         # <user>/<ip>/<workflow> namespaces are allowed for that user, so
@@ -17148,7 +17184,7 @@ def create_app():
                     _txt = msg["text"].strip()
                     _session_raw = str(msg.get("session") or "").strip()
                     if _session_raw:
-                        _session = _authorize_ws_session(_session_raw)
+                        _session = _prompt_target_session(_session_raw, msg)
                         if not _session:
                             session.emit("error", message=f"invalid or forbidden session: {_session_raw!r}")
                             continue

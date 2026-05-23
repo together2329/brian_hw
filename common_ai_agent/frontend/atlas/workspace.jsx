@@ -1582,6 +1582,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         msg_id,
         text,
         session,
+        ip: promptScope,
+        workflow: promptWorkflow,
         ui_lang: window.ATLAS_UI_LANG || uiLang,
       });
     }
@@ -3433,16 +3435,25 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         if (!r.ok) return;
         const d = await r.json();
         const msgs = Array.isArray(d.messages) ? d.messages : [];
+        const toFeedEntry = window.AtlasOrchestratorChatLogic?.feedEntryFromChatMessage
+          || ((msg) => {
+            const payload = (msg && msg.payload) || {};
+            const role = String(payload.role || '').toLowerCase();
+            const content = String(payload.content || '').trim();
+            if (!content) return null;
+            const created = Number((msg && msg.created_at) || 0);
+            const createdAt = created > 0 ? created * 1000 : 0;
+            if (role === 'assistant') return { kind: 'agent', text: content, createdAt };
+            if (role === 'tool') return { kind: 'action', text: content.startsWith('▶') ? content : `▶ ${content}`, createdAt };
+            return null;
+          });
         const fresh = [];
         for (const m of msgs) {
           const id = m.id || '';
-          const role = (m.payload && m.payload.role) || '';
-          const content = (m.payload && m.payload.content) || '';
           if (!id || orchSeenRef.current.has(id)) continue;
           orchSeenRef.current.add(id);
-          if (role === 'assistant' && content) {
-            fresh.push({ kind: 'agent', text: content, createdAt: (m.created_at || 0) * 1000 });
-          }
+          const entry = toFeedEntry(m);
+          if (entry) fresh.push(entry);
         }
         if (typeof d.next_since === 'number') orchSinceRef.current = d.next_since;
         if (fresh.length) { setFeed(f => [...f, ...fresh]); setStreaming(false); }

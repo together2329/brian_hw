@@ -1,4 +1,5 @@
 import os
+import signal
 import subprocess
 import sys
 import tempfile
@@ -123,6 +124,7 @@ def test_session_process_manager_spawns_worker_from_project_root(monkeypatch, tm
 
     monkeypatch.chdir(tmp_path)
     monkeypatch.setenv("ATLAS_DB_PATH", str(db_path))
+    monkeypatch.setenv("ATLAS_SESSION_WORKER_PRUNE_ORPHANS", "0")
     monkeypatch.delenv("PYTHONPATH", raising=False)
     monkeypatch.setattr(subprocess, "Popen", fake_popen)
 
@@ -148,6 +150,59 @@ def test_session_process_manager_spawns_worker_from_project_root(monkeypatch, tm
     pythonpath = env["PYTHONPATH"].split(os.pathsep)
     assert str(Path(PROJECT_ROOT).resolve()) in pythonpath
     assert str((Path(PROJECT_ROOT) / "src").resolve()) in pythonpath
+
+
+def test_spawn_prunes_orphan_same_session_worker(monkeypatch, tmp_path):
+    db_path = tmp_path / "atlas-custom.db"
+    session_id = "alice/spi_core/ssot-gen"
+    killed = []
+    popen_calls = []
+    terminated = set()
+
+    class FakeRunResult:
+        stdout = (
+            f"111 {sys.executable} -m core.session_worker "
+            f"--session-id {session_id} --db-path {db_path.resolve()}\n"
+            f"222 {sys.executable} -m core.session_worker "
+            f"--session-id alice/other/ssot-gen --db-path {db_path.resolve()}\n"
+            f"333 {sys.executable} -m core.session_worker "
+            f"--session-id {session_id} --db-path {tmp_path / 'other.db'}\n"
+        )
+
+    class FakeProc:
+        pid = 444
+
+        def poll(self):
+            return None
+
+    def fake_run(cmd, **kwargs):
+        assert cmd == ["ps", "-axo", "pid=,command="]
+        return FakeRunResult()
+
+    def fake_kill(pid, sig):
+        if sig == 0:
+            if pid in terminated:
+                raise ProcessLookupError
+            return
+        killed.append((pid, sig))
+        terminated.add(pid)
+
+    def fake_popen(cmd, **kwargs):
+        popen_calls.append((cmd, kwargs))
+        return FakeProc()
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("ATLAS_DB_PATH", str(db_path))
+    monkeypatch.setattr(subprocess, "run", fake_run)
+    monkeypatch.setattr(subprocess, "Popen", fake_popen)
+    monkeypatch.setattr(os, "kill", fake_kill)
+
+    manager = SessionProcessManager()
+    assert manager.spawn(session_id)
+
+    assert killed == [(111, signal.SIGTERM)]
+    assert len(popen_calls) == 1
+    assert popen_calls[0][0][popen_calls[0][0].index("--session-id") + 1] == session_id
 
 
 def test_process_bridge_seeds_output_cursor_before_fresh_spawn():
