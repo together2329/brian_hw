@@ -6048,8 +6048,11 @@ pre, code,
 }
 /* ── End mobile styles ────────────────────────────────────────────────── */
 
-/* Desktop: atlas-mobile-only elements stay hidden */
+/* Desktop: atlas-mobile-only elements stay hidden. atlas-desktop-only
+   keeps its NATURAL display — do NOT force `display: contents` here; that
+   dissolves the .dir-switcher flex box and breaks its two-row
+   `data-row-break` layout (DASHBOARD/WORKSPACE/PIPELINE/ARCHITECT
+   wrapped up into row 1). The element's own CSS (flex) must win. */
 @media (min-width: 901px) {
   .atlas-mobile-only  { display: none !important; }
-  .atlas-desktop-only { display: contents; }
 }
