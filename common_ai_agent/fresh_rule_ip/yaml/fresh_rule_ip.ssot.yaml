@@ -1,0 +1,91 @@
+top_module:
+  name: fresh_rule_ip
+io_list:
+  clock_domains:
+    - name: main
+      ports:
+        - name: clk
+          direction: input
+          width: 1
+  resets:
+    - name: rst_n
+      active: low
+      ports:
+        - name: rst_n
+          direction: input
+          width: 1
+  interfaces:
+    - name: rule_io
+      type: custom
+      ports:
+        - name: valid
+          direction: input
+          width: 1
+        - name: data_in
+          direction: input
+          width: 8
+        - name: result
+          direction: output
+          width: 9
+        - name: ready
+          direction: output
+          width: 1
+        - name: result_valid
+          direction: output
+          width: 1
+        - name: accepted_count
+          direction: output
+          width: 8
+features:
+  - name: double_value
+    description: Sample data_in when valid is high and produce result=data_in*2 one cycle later.
+function_model:
+  state_variables:
+    - name: accepted_count
+      width: 8
+      reset: 0
+  transactions:
+    - id: FM_PRIMARY
+      name: primary_behavior
+      required_fields:
+        - value
+      outputs:
+        - result
+      output_rules:
+        - name: result
+          port: result
+          expr: value * 2
+          width: 9
+      side_effects:
+        - accepted_count increments on each sampled transaction
+      state_updates:
+        - name: accepted_count
+          expr: accepted_count + 1
+          width: 8
+cycle_model:
+  latency: 1
+  handshake_rules:
+    - name: valid_sample
+      description: data_in is sampled only when valid is high; ready remains high after reset.
+rtl_contract:
+  clock: clk
+  reset: rst_n
+  reset_active: low
+  transaction: FM_PRIMARY
+  sample_condition: valid and ready
+  input_map:
+    value: data_in
+  ready_output: ready
+  output_valid: result_valid
+test_requirements:
+  scenarios:
+    - id: SC_RULE_DOUBLE
+      name: double sampled input
+      stimulus: assert valid with data_in=13 after reset
+      expected: result equals FunctionalModel result and result_valid pulses
+      checker: EquivalenceScoreboard compares result observable against FunctionalModel.apply
+  coverage_goals:
+    planned_bins:
+      - id: FCOV_RULE_DOUBLE
+        class: datapath
+        description: sampled data_in doubling rule observed
