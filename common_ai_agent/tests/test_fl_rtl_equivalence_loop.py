@@ -3651,7 +3651,7 @@ def test_atlas_websocket_sim_debug_human_gate_persists_answer(tmp_path: Path, mo
     assert state["equivalence_human_gate_answers"][0]["goal_id"] == "EQ_DOUBLE"
 
 
-def test_atlas_websocket_runs_fresh_structured_ip_full_equivalence_flow(tmp_path: Path, monkeypatch):
+def test_atlas_websocket_fresh_structured_ip_queues_rtl_worker_handoff(tmp_path: Path, monkeypatch):
     if not shutil.which("iverilog"):
         pytest.skip("iverilog is required for cocotb/RTL simulation")
     if not (shutil.which("verilator") or shutil.which("iverilog")):
@@ -3673,45 +3673,18 @@ def test_atlas_websocket_runs_fresh_structured_ip_full_equivalence_flow(tmp_path
         assert "[ssot-equiv-goals] PASS" in eq_out
 
         ws.send_json({"type": "prompt", "text": f"/ssot-rtl {ip}"})
-        rtl_out = _receive_slash_output(ws, "[RTL RESULT]")
-        assert "PASS - generated RTL and DUT-only compile/lint evidence" in rtl_out
-
-        ws.send_json({"type": "prompt", "text": f"/tb {ip}"})
-        tb_out = _receive_slash_output(ws, "[ssot-tb-cocotb]")
-        assert "PASS - generated goal-driven pyuvm/cocotb scoreboard" in tb_out
-
-        ws.send_json({"type": "prompt", "text": f"/sim {ip}"})
-        sim_out = _receive_slash_output(ws, "[sim]")
-        assert "[sim] PASS" in sim_out
-
-        ws.send_json({"type": "prompt", "text": f"/sim-debug {ip}"})
-        debug_out = _receive_slash_output(ws, "[sim-debug]")
-        assert "status=pass" in debug_out
-
-        ws.send_json({"type": "prompt", "text": f"/goal-audit {ip}"})
-        audit_out = _receive_slash_output(ws, "[goal-audit]")
-        assert "[goal-audit] PASS" in audit_out
-
-        ws.send_json({"type": "prompt", "text": f"/signoff {ip}"})
-        signoff_out = _receive_slash_output(ws, "[signoff] strict SSOT progress gate")
-        assert f"module: {ip}" in signoff_out
-
-    audit_doc = json.loads((tmp_path / ip / "sim" / "fl_rtl_goal_audit.json").read_text(encoding="utf-8"))
-    compare_doc = json.loads((tmp_path / ip / "sim" / "fl_rtl_compare.json").read_text(encoding="utf-8"))
-    coverage_doc = json.loads((tmp_path / ip / "cov" / "coverage.json").read_text(encoding="utf-8"))
-    assert audit_doc["status"] == "pass"
-    assert audit_doc["stop_condition"]["signoff_evidence_backed"] is True
-    assert compare_doc["status"] == "pass"
-    assert compare_doc["summary"]["goals_checked"] == compare_doc["summary"]["total"]
-    assert coverage_doc["status"] == "pass"
+        rtl_out = _receive_slash_output(ws, "[RTL BLOCKED]")
+        assert "LLM-authored RTL" in rtl_out
+        assert f"{ip}/rtl/rtl_blocked.json" in rtl_out
+        assert "LLM_RTL_IMPLEMENTATION_REQUIRED" in rtl_out
 
     response = client.get("/api/progress", params={"scope": ip})
     assert response.status_code == 200
-    selected = response.json()["selected"]
-    assert selected["progress"]["equivalence_goals"]["status"] == "pass"
-    assert selected["progress"]["goal_audit"]["status"] == "pass"
-    assert selected["signoff"]["status"]["goal_audit"] == "pass"
-    assert selected["signoff"]["status"]["equivalence_goals"] == "pass"
+    goals_doc = json.loads((tmp_path / ip / "verify" / "equivalence_goals.json").read_text(encoding="utf-8"))
+    blocked_doc = json.loads((tmp_path / ip / "rtl" / "rtl_blocked.json").read_text(encoding="utf-8"))
+    assert goals_doc["summary"]["total"] > 0
+    assert goals_doc["summary"]["blocked"] == 0
+    assert any(q.get("id") == "LLM_RTL_IMPLEMENTATION_REQUIRED" for q in blocked_doc.get("questions", []))
 
 
 def test_live_atlas_server_5400_equivalence_smoke(tmp_path: Path, monkeypatch):

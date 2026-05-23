@@ -260,6 +260,10 @@ class _SessionBridge:
         self.emit("ask_user_answered", flow_id=flow_id)
         return True
 
+    def has_answer_flow(self, flow_id: str) -> bool:
+        with self._answer_lock:
+            return flow_id in self._answer_qs
+
     def request_stop(self) -> None:
         self._stop_flag = True
         user_kept = []
@@ -677,13 +681,20 @@ class _MultiUserBridge:
         self._ensure_session(session_id)._interrupts.put(text)
 
     def submit_answer_for_session(self, session_id: str | None, flow_id: str, payload: dict[str, Any]) -> bool:
+        session = self._ensure_session(session_id)
+        # Slash handlers such as /sim-debug can open human-gate questions in
+        # the main process even when process-per-session mode is enabled for
+        # normal agent turns. Prefer that local queue when it exists; otherwise
+        # forward to the child session process that emitted the question.
+        if session.has_answer_flow(flow_id):
+            return session.submit_answer(flow_id, payload)
         if self._process_manager is not None:
             body = dict(payload or {})
             body.setdefault("flow_id", flow_id)
             return self._send_process_input_for_session(
                 session_id, "answer", body, spawn=False
             )
-        return self._ensure_session(session_id).submit_answer(flow_id, payload)
+        return session.submit_answer(flow_id, payload)
 
     def request_stop_for_session(self, session_id: str | None) -> None:
         if self._process_manager is not None:
