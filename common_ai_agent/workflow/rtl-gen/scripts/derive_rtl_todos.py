@@ -1661,8 +1661,12 @@ def _is_repair_generated_fm_marker(value: Any) -> bool:
     return False
 
 
+def _is_repair_generated_fm_task(category: str, value: Any) -> bool:
+    return category.startswith("function_model.") and _is_repair_generated_fm_marker(value)
+
+
 def _evidence_terms(category: str, source_ref: str, value: Any) -> list[str]:
-    if category.startswith("function_model.") and _is_repair_generated_fm_marker(value):
+    if _is_repair_generated_fm_task(category, value):
         return []
 
     terms: set[str] = set()
@@ -1992,16 +1996,26 @@ def _task(
     required: bool = True,
 ) -> None:
     index = len(tasks) + 1
+    repair_generated_fm_marker = _is_repair_generated_fm_task(category, value)
+    if repair_generated_fm_marker:
+        required = False
+        priority = "low"
     requires_static = category.startswith(STATIC_EVIDENCE_CATEGORIES) or category == "workflow_todo.rtl_gen"
     terms = _evidence_terms(category, source_ref, value)
     enriched_detail = _append_detail_context(detail, source_ref=source_ref, owner=owner, value=value)
+    if repair_generated_fm_marker:
+        enriched_detail = (
+            enriched_detail
+            + "\n\nRepair-generated FunctionModel marker: this SSOT row is advisory traceability from schema repair. "
+            "Do not add dedicated RTL ports, wires, or state solely for fm*_observed markers."
+        )
     enriched_criteria: list[str] = []
     seen_criteria: set[str] = set()
     for item in [*criteria, *_specific_criteria(category, source_ref, value, owner)]:
         if item not in seen_criteria:
             enriched_criteria.append(item)
             seen_criteria.add(item)
-    tasks.append({
+    task = {
         "id": f"RTL-{index:04d}",
         "category": category,
         "source_ref": source_ref,
@@ -2017,7 +2031,10 @@ def _task(
         "requires_static_rtl_evidence": requires_static and bool(terms),
         "required": required,
         "priority": priority,
-    })
+    }
+    if repair_generated_fm_marker:
+        task["policy_tags"] = ["repair_generated_fm_marker", "verification_advisory"]
+    tasks.append(task)
 
 
 def _item_name(item: Any, idx: int, fallback: str = "item") -> str:
@@ -3376,10 +3393,16 @@ def _packet_task_item(task: dict[str, Any]) -> dict[str, Any]:
         "todo_completion",
         "priority",
         "required",
+        "policy_tags",
         "gate_todo",
         "workflow_todo",
     )
     return {key: task.get(key) for key in keys if key in task}
+
+
+def _is_repair_generated_fm_task_record(task: dict[str, Any]) -> bool:
+    tags = task.get("policy_tags") if isinstance(task.get("policy_tags"), list) else []
+    return "repair_generated_fm_marker" in {str(tag) for tag in tags}
 
 
 def _packet_section_key(task: dict[str, Any]) -> str:
