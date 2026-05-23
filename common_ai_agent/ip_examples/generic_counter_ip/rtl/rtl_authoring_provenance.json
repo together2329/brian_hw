@@ -1,26 +1,27 @@
 {
-  "schema_version": 1,
-  "type": "rtl_authoring_provenance",
   "agent": "common_ai_agent",
-  "workflow": "rtl-gen",
-  "surface": "headless_common_engine",
-  "model_profile": "atlas_rtl_gen",
-  "generated_at": "2025-05-22T10:31:00Z",
-  "updated_at": "2025-05-22T10:31:00Z",
-  "ip": "generic_counter_ip",
-  "ssot": "yaml/generic_counter_ip.ssot.yaml",
   "filelist": "list/generic_counter_ip.f",
+  "generated_at": "2025-05-22T10:31:00Z",
+  "ip": "generic_counter_ip",
+  "model_profile": "atlas_rtl_gen",
+  "refresh_reason": "SSOT metadata gate update refreshed rtl_todo_plan hash without changing RTL files.",
+  "repair_note": "EQ_DOUBLE FL-vs-RTL repair: replaced {1'b0, data_in} << 1 with {data_in, 1'b0} to fix off-by-one mismatch (expected=20 observed=19). Provenance written by rtl-gen agent during repair session; engine ssot_to_rtl.py blocked on missing function_model.output_rules.",
   "rtl_files": [
     "rtl/generic_counter_ip.sv"
   ],
+  "schema_version": 1,
+  "ssot": "yaml/generic_counter_ip.ssot.yaml",
+  "surface": "headless_common_engine",
   "todo_plan": "rtl/rtl_todo_plan.json",
-  "todo_plan_sha256": "6becdbff5e7395b4aab45544394f19aa3b7a23785d478828c52adde77d06fb2e",
+  "todo_plan_sha256": "c3aee053a7c47fa83b671a7c16c3d120057822beb3701c2334595163d70231dc",
   "toolchain": {
-    "compiler": "iverilog -g2012",
-    "linter": "pyslang+verilator",
     "compile_errors": 0,
+    "compiler": "iverilog -g2012",
     "lint_errors": 0,
-    "lint_warnings": 0
+    "lint_warnings": 0,
+    "linter": "pyslang+verilator"
   },
-  "repair_note": "EQ_DOUBLE FL-vs-RTL repair: replaced {1'b0, data_in} << 1 with {data_in, 1'b0} to fix off-by-one mismatch (expected=20 observed=19). Provenance written by rtl-gen agent during repair session; engine ssot_to_rtl.py blocked on missing function_model.output_rules."
+  "type": "rtl_authoring_provenance",
+  "updated_at": "2026-05-23T16:05:39Z",
+  "workflow": "rtl-gen"
 }
