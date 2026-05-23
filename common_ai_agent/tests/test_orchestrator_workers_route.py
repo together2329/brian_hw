@@ -210,6 +210,8 @@ def test_workers_route_uses_request_user_worker_url_when_idle(
     monkeypatch.setenv("ATLAS_SINGLE_MAIN_LOOP", "0")
     monkeypatch.setenv("ATLAS_WORKFLOW_WORKER_PORT_BASE", "6000")
     monkeypatch.setenv("ATLAS_WORKFLOW_WORKER_PORT_SPAN", "200")
+    monkeypatch.setenv("WORKER_URL_RTL_GEN", "http://127.0.0.1:5623")
+    monkeypatch.setenv("WORKER_URL_DEFAULT", "http://127.0.0.1:5601")
 
     with jobs._jobs_lock:
         jobs._jobs.clear()
@@ -243,6 +245,7 @@ def test_workers_route_uses_request_user_worker_url_when_idle(
 
     rtl = next(item for item in resp.json()["workers"] if item["workflow"] == "rtl-gen")
     assert rtl["url"] != "http://127.0.0.1:5623"
+    assert rtl["url"] != "http://127.0.0.1:5601"
     assert rtl["status"] == "unreachable"
     assert default_rtl_url not in probed_urls
 

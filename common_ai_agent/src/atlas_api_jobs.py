@@ -1709,8 +1709,6 @@ def _session_scoped_worker_url(
     wf = str(workflow or "").strip()
     if wf not in _DEFAULT_WORKER_PORTS:
         return ""
-    if _workflow_specific_worker_url(wf) or os.environ.get("WORKER_URL_DEFAULT"):
-        return ""
     if not _workflow_worker_per_owner_enabled(exec_mode):
         return ""
 
