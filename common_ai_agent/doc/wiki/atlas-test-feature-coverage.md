@@ -264,9 +264,9 @@ skips the dead-import paths automatically (see §5).
 | Change | Files | Gating tests | Status |
 |---|---|---|---|
 | Lazy single-worker mode (`[single-worker] lazy mode: ...`) | `src/atlas_ui.py:17929-18006` | `test_worker_url_routing.py`, `test_dispatch_seed_direct.py` | ✅ Pass |
-| AtlasDB class-level write lock (`_WRITE_LOCK` shared by all instances) | `core/atlas_db.py:595-622` | `test_atlas_db.py`, `test_db_concurrent_workflow_runs.py`, `test_atlas_db_orchestrator.py` | ✅ Pass (13 cases) |
-| Worker reaper thread | `src/atlas_api_jobs.py:_lazy_worker_reaper_loop` | not gated by a unit test; observe via stdin `status` and `[lazy-worker] reap ...` log line | ⚠ manual verification |
-| Per-URL lock + spawn semaphore (`ATLAS_LAZY_WORKER_SPAWN_PARALLEL=4`) | `src/atlas_api_jobs.py:_get_url_lock`, `_LAZY_WORKER_SPAWN_SEM` | `test_parallel_todo_dispatcher.py`, indirectly by all multi-worker tests | ✅ Pass |
+| AtlasDB class-level write lock (`_WRITE_LOCK` shared by all instances) | `core/atlas_db.py:595-622` | `test_atlas_db.py`, `test_db_concurrent_workflow_runs.py`, `test_atlas_db_orchestrator.py`, **`test_atlas_db_concurrent_writers.py`** (50-thread stress, 2 cases) | ✅ Pass |
+| Worker reaper thread | `src/atlas_api_jobs.py:_lazy_worker_reaper_loop` | **`test_lazy_worker_reaper.py`** (SIGKILL → job reconcile, 6 cases) | ✅ Pass |
+| Per-URL lock + spawn semaphore (`ATLAS_LAZY_WORKER_SPAWN_PARALLEL=4`) | `src/atlas_api_jobs.py:_get_url_lock`, `_LAZY_WORKER_SPAWN_SEM` | `test_parallel_todo_dispatcher.py`, **`test_lazy_worker_cold_start_storm.py`** (12-way concurrent spawn, 4 cases) | ✅ Pass |
 | Health probe 1.5s cache (`_probe_worker_health_cached`) | `src/atlas_api_jobs.py` | `test_orchestrator_workers_route.py` | ✅ Pass |
 | Logging → stdout + RotatingFileHandler (`.session/atlas-dispatch.log`) | `src/atlas_api_jobs.py:_dispatch_logger` | covered by existing dispatch tests | ✅ Pass |
 | Direct dispatch lazy-spawn hook (`_ensure_lazy_worker_callback`) | `core/tools.py:_dispatch_workflow_direct_fallback`, `src/atlas_api_jobs.py:register_jobs_routes` | `test_dispatch_seed_direct.py`, `test_agent_worker_dispatch_fallback.py` | ✅ Pass |
