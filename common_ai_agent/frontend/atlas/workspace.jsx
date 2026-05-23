@@ -15839,6 +15839,8 @@ const AgentStatusPanel = ({ intent, workflow, onCollapse }) => {
   const [liveContext, setLiveContext] = React.useState(() => Object.assign({}, window.CONTEXT || {}));
   const _ctx = liveContext;
   const [liveStageStatus, setLiveStageStatus] = React.useState(null);
+  const [liveWorkers, setLiveWorkers] = React.useState([]);
+  const [workersError, setWorkersError] = React.useState('');
   const effortOptions = ['none', 'low', 'medium', 'high', 'xhigh'];
   const normalizeEffortValue = (value) => (
     effortOptions.includes(String(value || '').toLowerCase())
@@ -15899,6 +15901,34 @@ const AgentStatusPanel = ({ intent, workflow, onCollapse }) => {
   React.useEffect(() => {
     setEffortValue(normalizeEffortValue(_ctx.reasoningEffort));
   }, [_ctx.reasoningEffort]);
+  // Live orchestrator worker list. Server caches /api/orchestrator/workers
+  // per URL for 1.5s, so this 3s poll is one HTTP round-trip per tab, not
+  // per worker. Pauses while the tab is hidden.
+  React.useEffect(() => {
+    let dead = false;
+    const poll = async () => {
+      if (dead) return;
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+      try {
+        const r = await fetch('/api/orchestrator/workers', { cache: 'no-store' });
+        if (!r.ok) {
+          if (!dead) setWorkersError(`HTTP ${r.status}`);
+          return;
+        }
+        const j = await r.json();
+        const list = Array.isArray(j && j.workers) ? j.workers : [];
+        if (!dead) {
+          setLiveWorkers(list);
+          setWorkersError('');
+        }
+      } catch (e) {
+        if (!dead) setWorkersError(String((e && e.message) || e));
+      }
+    };
+    poll();
+    const id = setInterval(poll, 3000);
+    return () => { dead = true; clearInterval(id); };
+  }, []);
   React.useEffect(() => {
     let alive = true;
     const refresh = () => {
@@ -16126,52 +16156,85 @@ const AgentStatusPanel = ({ intent, workflow, onCollapse }) => {
           );
         })()}
 
-        {/* ── pipeline · ATLAS (this session) ─────────────────────── */}
-        <div className="mute" style={{
-          fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase',
-          marginTop: 14, marginBottom: 6,
-          display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap',
-        }}>
-          <span style={{ color: 'var(--accent)', fontWeight: 700 }}>▸ atlas</span>
-          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>· session</span>
-          <span style={{ flex: 1 }} />
-          <span className="ok" style={{ fontSize: 9 }}>● live</span>
-        </div>
-        <div style={{
-          display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4,
-          fontSize: 10, marginBottom: 12,
-        }}>
-          {(() => {
-            const st = liveStageStatus || {};
-            const normalize = (v) => v === 'ok' || v === 'pass' ? 'done'
-              : v === 'partial' || v === 'approved' || v === 'planned' || v === 'blocked' ? 'active'
-              : v === 'err' || v === 'error' || v === 'fail' || v === 'rejected' ? 'err'
-              : 'pending';
-            const simDebugReady = st.sim_debug === 'ok' || (st.sim === 'ok' && (st.tb === 'ok' || st.tb === 'partial'));
-            return [
-              { id: 'ssot', label: 'SSOT', state: normalize(st.ssot) },
-              { id: 'rtl',  label: 'RTL',  state: normalize(st.rtl) },
-              { id: 'tb',   label: 'TB',   state: normalize(st.tb) },
-              { id: 'dbg',  label: 'SIMDBG',  state: simDebugReady ? 'done' : normalize(st.sim_debug) },
-            ];
-          })().map(s => {
-            const cfg = s.state === 'done'    ? { color: 'var(--ok)',     glyph: '✓', bg: 'color-mix(in oklch, var(--ok) 12%, transparent)',     border: 'var(--ok)' }
-                      : s.state === 'active'  ? { color: 'var(--accent)', glyph: '●', bg: 'color-mix(in oklch, var(--accent) 14%, transparent)', border: 'var(--accent)' }
-                      : s.state === 'err'     ? { color: 'var(--err)',    glyph: '✗', bg: 'color-mix(in oklch, var(--err) 14%, transparent)',    border: 'var(--err)' }
-                      :                         { color: 'var(--fg-mute)',glyph: '○', bg: 'transparent',                                          border: 'var(--line)' };
-            return (
-              <div key={s.id} style={{
-                border: `1px solid ${cfg.border}`, borderRadius: 2,
-                padding: '4px 6px', textAlign: 'center', background: cfg.bg,
-                fontFamily: 'var(--mono)',
-              }}>
-                <div style={{ color: cfg.color, fontWeight: 700, fontSize: 10 }}>
-                  {cfg.glyph} {s.label}
-                </div>
+        {/* ── orchestrator workers (live lazy-spawn state) ──────── */}
+        {(() => {
+          const upCount = liveWorkers.filter(w => String(w.status || '') === 'ok').length;
+          const total = liveWorkers.length;
+          const portFromUrl = (u) => {
+            const m = String(u || '').match(/:(\d+)(?:\/|$)/);
+            return m ? m[1] : '';
+          };
+          const portShort = (w) => portFromUrl(w.url) || (String(w.workflow || '').slice(0, 4));
+          const tone = (w) => {
+            const s = String(w.status || '');
+            if (s === 'ok' && Number(w.running_count || 0) > 0) return 'active';
+            if (s === 'ok') return 'done';
+            if (s === 'mismatch') return 'err';
+            return 'pending';
+          };
+          const cfgFor = (t) => (
+            t === 'active'  ? { color: 'var(--accent)', glyph: '●', bg: 'color-mix(in oklch, var(--accent) 14%, transparent)', border: 'var(--accent)' } :
+            t === 'done'    ? { color: 'var(--ok)',     glyph: '✓', bg: 'color-mix(in oklch, var(--ok) 12%, transparent)',     border: 'var(--ok)' } :
+            t === 'err'     ? { color: 'var(--err)',    glyph: '✗', bg: 'color-mix(in oklch, var(--err) 14%, transparent)',    border: 'var(--err)' } :
+                              { color: 'var(--fg-mute)',glyph: '○', bg: 'transparent',                                          border: 'var(--line)' }
+          );
+          return (
+            <>
+              <div className="mute" style={{
+                fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase',
+                marginTop: 14, marginBottom: 6,
+                display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap',
+              }}
+                title="Live state of orchestrator workers (port + status). Lazy-spawned on first dispatch."
+              >
+                <span style={{ color: 'var(--accent)', fontWeight: 700 }}>▸ workers</span>
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>· orch</span>
+                <span style={{ flex: 1 }} />
+                <span className={upCount > 0 ? 'ok' : 'mute'} style={{ fontSize: 9 }}>
+                  {workersError ? '!' : `${upCount}/${total} up`}
+                </span>
               </div>
-            );
-          })}
-        </div>
+              {total === 0 ? (
+                <div className="mute" style={{ fontSize: 10, padding: '4px 0 10px', textAlign: 'center' }}>
+                  {workersError || 'no workers yet — dispatch a workflow to spawn'}
+                </div>
+              ) : (
+                <div style={{
+                  display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4,
+                  fontSize: 10, marginBottom: 12,
+                }}>
+                  {liveWorkers.map((w) => {
+                    const cfg = cfgFor(tone(w));
+                    const label = String(w.workflow || '').slice(0, 6) || portShort(w);
+                    const running = Number(w.running_count || 0);
+                    return (
+                      <div key={w.url || w.workflow} style={{
+                        border: `1px solid ${cfg.border}`, borderRadius: 2,
+                        padding: '4px 6px', textAlign: 'center', background: cfg.bg,
+                        fontFamily: 'var(--mono)',
+                      }}
+                        title={
+                          `${w.workflow || '?'}\n` +
+                          `${w.url || ''}\n` +
+                          `status: ${w.status || '-'}` +
+                          (running ? `\nrunning jobs: ${running}` : '') +
+                          (w.bound_workflow ? `\nbound: ${w.bound_workflow}` : '')
+                        }
+                      >
+                        <div style={{ color: cfg.color, fontWeight: 700, fontSize: 10 }}>
+                          {cfg.glyph} {label}
+                        </div>
+                        <div className="mute" style={{ fontSize: 9, marginTop: 1 }}>
+                          {portShort(w)}{running ? ` · ${running}` : ''}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          );
+        })()}
       </div>
     </div>
   );

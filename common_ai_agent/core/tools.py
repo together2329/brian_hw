@@ -5730,6 +5730,12 @@ _ask_user_callback = None
 _record_ssot_qa_callback = None
 _dispatch_workflow_callback = None
 _read_pipeline_state_callback = None
+# Same callback pattern as `_dispatch_workflow_callback` /
+# `_read_pipeline_state_callback`: atlas_api_jobs registers this during
+# `register_jobs_routes` so the direct dispatch path can lazy-start a
+# cold worker before `worker_call` opens its socket. Signature:
+# (worker_url, workflow, project_root) -> None.
+_ensure_lazy_worker_callback = None
 
 
 def _ask_user_exec_mode() -> str:
@@ -5888,6 +5894,12 @@ def set_read_pipeline_state_callback(cb):
     """Install the ATLAS Pipeline bridge for in-process state reads."""
     global _read_pipeline_state_callback
     _read_pipeline_state_callback = cb
+
+
+def set_ensure_lazy_worker_callback(cb):
+    """Install the lazy-worker hook used by the direct dispatch path."""
+    global _ensure_lazy_worker_callback
+    _ensure_lazy_worker_callback = cb
 
 
 def scaffold_ip(name=None, root="."):
@@ -6514,9 +6526,10 @@ def _dispatch_workflow_direct_fallback(
 
     try:
         try:
-            from core.agent_client import worker_call
+            from core.agent_client import _resolve_worker, worker_call
         except Exception:
             from agent_client import worker_call  # type: ignore
+            _resolve_worker = None  # type: ignore
 
         timeout_raw = os.environ.get("ATLAS_DIRECT_WORKER_TIMEOUT", "600")
         try:
@@ -6534,6 +6547,54 @@ def _dispatch_workflow_direct_fallback(
             exec_mode=exec_mode or "",
             reason=reason or "",
         )
+        # Lazy-spawn the per-workflow worker if the orchestrator is the
+        # first caller. Prefer the registered bridge; when the bridge was
+        # never installed, fall back to atlas_api_jobs' small direct helper.
+        resolved_url = target
+        if callable(_resolve_worker):
+            try:
+                resolved_url = _resolve_worker(target)
+            except Exception:
+                resolved_url = target
+        lazy_project_root = _atlas_project_root() or os.getcwd()
+        if _ensure_lazy_worker_callback is not None:
+            try:
+                _ensure_lazy_worker_callback(resolved_url, target, lazy_project_root)
+            except Exception as exc:
+                return {
+                    "ok": False,
+                    "source": "direct_worker_lazy_spawn_failed",
+                    "workflow": target,
+                    "worker": resolved_url,
+                    "ip": ip or "",
+                    "scope": scope or "",
+                    "status": "error",
+                    "result": {"error": f"lazy worker spawn failed: {exc}"},
+                }, ""
+        else:
+            try:
+                try:
+                    from src import atlas_api_jobs as _atlas_api_jobs  # type: ignore
+                except Exception:
+                    import atlas_api_jobs as _atlas_api_jobs  # type: ignore
+                ensure_direct = getattr(
+                    _atlas_api_jobs,
+                    "_ensure_lazy_worker_for_direct_dispatch",
+                    None,
+                )
+                if callable(ensure_direct):
+                    ensure_direct(resolved_url, target, lazy_project_root)
+            except Exception as exc:
+                return {
+                    "ok": False,
+                    "source": "direct_worker_lazy_spawn_failed",
+                    "workflow": target,
+                    "worker": resolved_url,
+                    "ip": ip or "",
+                    "scope": scope or "",
+                    "status": "error",
+                    "result": {"error": f"lazy worker spawn failed: {exc}"},
+                }, ""
         result = worker_call(
             worker=target,
             task=task,

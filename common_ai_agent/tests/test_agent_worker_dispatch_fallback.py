@@ -35,6 +35,9 @@ def _clear_worker_env(monkeypatch):
         "ATLAS_SINGLE_MAIN_LOOP",
         "ATLAS_EXEC_MODE",
         "ATLAS_DEFAULT_EXEC_MODE",
+        "ATLAS_LAZY_WORKERS",
+        "ATLAS_PROJECT_ROOT",
+        "ATLAS_WORKER_LAZY_START",
         "WORKER_URL_DEFAULT",
     ):
         monkeypatch.delenv(key, raising=False)
@@ -102,6 +105,118 @@ def test_dispatch_workflow_uses_direct_worker_when_ui_bridge_missing(monkeypatch
     assert calls[0]["model"] == "glm-5.1"
     assert "IP: new_axi" in calls[0]["task"]
     assert "Quality pass for new_axi SSOT." in calls[0]["task"]
+
+
+def test_dispatch_workflow_lazy_starts_via_registered_callback(monkeypatch, tmp_path):
+    _clear_worker_env(monkeypatch)
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.setattr(tools, "_dispatch_workflow_callback", None)
+    lazy_calls = []
+    worker_calls = []
+
+    def fake_lazy(worker_url, workflow, project_root):
+        lazy_calls.append((worker_url, workflow, project_root))
+
+    def fake_worker_call(**kwargs):
+        worker_calls.append(kwargs)
+        return {
+            "status": "completed",
+            "result": "ssot updated",
+            "files_modified": [],
+            "files_examined": [],
+            "iterations": 1,
+            "execution_time_ms": 10,
+            "error": "",
+        }
+
+    monkeypatch.setattr(tools, "_ensure_lazy_worker_callback", fake_lazy)
+    monkeypatch.setattr(agent_client, "worker_call", fake_worker_call)
+
+    output = tools.dispatch_workflow(
+        workflow="ssot-gen",
+        ip="new_axi",
+        prompt="Quality pass for new_axi SSOT.",
+    )
+    data = json.loads(output)
+
+    assert data["ok"] is True
+    assert lazy_calls == [
+        ("http://127.0.0.1:5621", "ssot-gen", str(tmp_path))
+    ]
+    assert worker_calls[0]["worker"] == "ssot-gen"
+
+
+def test_dispatch_workflow_lazy_starts_via_atlas_jobs_when_callback_missing(
+    monkeypatch, tmp_path
+):
+    _clear_worker_env(monkeypatch)
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.setattr(tools, "_dispatch_workflow_callback", None)
+    monkeypatch.setattr(tools, "_ensure_lazy_worker_callback", None)
+    import src.atlas_api_jobs as atlas_jobs
+
+    lazy_calls = []
+
+    def fake_lazy(worker_url, workflow, project_root):
+        lazy_calls.append((worker_url, workflow, project_root))
+
+    monkeypatch.setattr(
+        atlas_jobs,
+        "_ensure_lazy_worker_for_direct_dispatch",
+        fake_lazy,
+    )
+    monkeypatch.setattr(
+        agent_client,
+        "worker_call",
+        lambda **_kwargs: {
+            "status": "completed",
+            "result": "ssot updated",
+            "files_modified": [],
+            "files_examined": [],
+            "iterations": 1,
+            "execution_time_ms": 10,
+            "error": "",
+        },
+    )
+
+    output = tools.dispatch_workflow(
+        workflow="ssot-gen",
+        ip="new_axi",
+        prompt="Quality pass for new_axi SSOT.",
+    )
+    data = json.loads(output)
+
+    assert data["ok"] is True
+    assert lazy_calls == [
+        ("http://127.0.0.1:5621", "ssot-gen", str(tmp_path))
+    ]
+
+
+def test_dispatch_workflow_reports_lazy_spawn_failure(monkeypatch, tmp_path):
+    _clear_worker_env(monkeypatch)
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.setattr(tools, "_dispatch_workflow_callback", None)
+
+    def fail_lazy(*_args):
+        raise RuntimeError("spawn exploded")
+
+    def fail_worker_call(**_kwargs):
+        raise AssertionError("worker_call should not run after lazy failure")
+
+    monkeypatch.setattr(tools, "_ensure_lazy_worker_callback", fail_lazy)
+    monkeypatch.setattr(agent_client, "worker_call", fail_worker_call)
+
+    output = tools.dispatch_workflow(
+        workflow="ssot-gen",
+        ip="new_axi",
+        prompt="Quality pass for new_axi SSOT.",
+    )
+    data = json.loads(output)
+
+    assert data["ok"] is False
+    assert data["source"] == "direct_worker_lazy_spawn_failed"
+    assert data["worker"] == "http://127.0.0.1:5621"
+    assert "spawn exploded" in data["result"]["error"]
 
 
 def test_dispatch_workflow_keeps_manual_handoff_for_multi_stage_without_bridge(monkeypatch):

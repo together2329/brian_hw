@@ -2027,6 +2027,35 @@ def _ensure_lazy_worker(job: dict[str, Any]) -> None:
         )
 
 
+def _ensure_lazy_worker_for_direct_dispatch(
+    worker_url: str,
+    workflow: str,
+    project_root_value: str = "",
+) -> None:
+    """Lazy-start a worker for core.tools' direct dispatch fallback.
+
+    The normal /api/pipeline/dispatch path already builds a full job object
+    before calling _ensure_lazy_worker(). The direct fallback only has the
+    target workflow/URL, so normalize that small contract here instead of
+    duplicating worker-spawn details in core.tools.
+    """
+    wf = str(workflow or "").strip()
+    url = str(worker_url or "").strip()
+    if not (url.startswith("http://") or url.startswith("https://")):
+        url = _resolve_worker_url(wf or url)
+    pr = str(project_root_value or os.environ.get("ATLAS_PROJECT_ROOT") or ".")
+    job = {
+        "job_id": f"direct-{wf or 'worker'}",
+        "worker": url,
+        "workflow": wf,
+        "session": f"direct/{wf}" if wf else "direct",
+        "project_root": pr,
+        "model": _worker_model_default_for(wf),
+        "reasoning_effort": _worker_reasoning_effort_default_for(wf),
+    }
+    _ensure_lazy_worker(job)
+
+
 def _worker_launch_command(
     worker_url: str,
     workflow: str,
@@ -4182,6 +4211,14 @@ def register_jobs_routes(
                 break
         if not candidate:
             candidate = str(fallback or "").strip()
+        # `default` is the placeholder IP that the IP dropdown shows when
+        # nothing real is selected. The orchestrator's job is to progress
+        # a *specific* IP's pipeline; with the placeholder, every tool
+        # call's `ip` argument would be meaningless and the loop ends
+        # silently after one no-op iteration. Surfacing this as an
+        # empty result lets the handler return a clear 400 instead.
+        if candidate.lower() == "default":
+            return ""
         return candidate
 
     def _record_orchestrator_chat(
@@ -4703,6 +4740,14 @@ def register_jobs_routes(
         _atlas_tools.set_dispatch_workflow_callback(_dispatch_workflow_tool_bridge)
     if _atlas_tools is not None and hasattr(_atlas_tools, "set_read_pipeline_state_callback"):
         _atlas_tools.set_read_pipeline_state_callback(_read_pipeline_state_tool_bridge)
+    if _atlas_tools is not None and hasattr(_atlas_tools, "set_ensure_lazy_worker_callback"):
+        def _ensure_lazy_worker_for_direct(worker_url: str, workflow: str, pr_path: str) -> None:
+            _ensure_lazy_worker_for_direct_dispatch(
+                worker_url,
+                workflow,
+                pr_path or str(project_root() or ""),
+            )
+        _atlas_tools.set_ensure_lazy_worker_callback(_ensure_lazy_worker_for_direct)
 
     # ── /api/pipeline/orchestrator_mode ───────────────────────────
 

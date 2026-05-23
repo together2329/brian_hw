@@ -255,6 +255,8 @@ class TestOrchestratorModePerWorkflowPorts(unittest.TestCase):
 @unittest.skipIf(_resolve_worker_url is None, "atlas_api_jobs could not be imported")
 class TestLazyWorkerStart(unittest.TestCase):
     def setUp(self):
+        os.environ.pop("WORKER_URL_DEFAULT", None)
+        os.environ.pop("WORKER_URL_RTL_GEN", None)
         os.environ["ATLAS_LAZY_WORKERS"] = "1"
         os.environ["ATLAS_EXEC_MODE"] = "orchestrator"
         os.environ["ATLAS_SINGLE_MAIN_LOOP"] = "0"
@@ -264,6 +266,8 @@ class TestLazyWorkerStart(unittest.TestCase):
         os.environ.pop("ATLAS_LAZY_WORKERS", None)
         os.environ.pop("ATLAS_EXEC_MODE", None)
         os.environ.pop("ATLAS_SINGLE_MAIN_LOOP", None)
+        os.environ.pop("WORKER_URL_DEFAULT", None)
+        os.environ.pop("WORKER_URL_RTL_GEN", None)
         _m._LAZY_WORKER_PROCS.clear()
 
     def _job(self, root: str, worker: str = "http://127.0.0.1:5623") -> dict:
@@ -348,6 +352,26 @@ class TestLazyWorkerStart(unittest.TestCase):
                 with self.assertRaisesRegex(RuntimeError, "worker mismatch"):
                     _m._ensure_lazy_worker(self._job(tmp))
             popen.assert_not_called()
+
+    def test_direct_dispatch_lazy_helper_resolves_alias(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            jobs = []
+
+            def _capture(job):
+                jobs.append(job)
+
+            with patch.object(_m, "_ensure_lazy_worker", side_effect=_capture):
+                _m._ensure_lazy_worker_for_direct_dispatch(
+                    "ssot-gen",
+                    "ssot-gen",
+                    tmp,
+                )
+
+            self.assertEqual(len(jobs), 1)
+            self.assertEqual(jobs[0]["worker"], "http://127.0.0.1:5621")
+            self.assertEqual(jobs[0]["workflow"], "ssot-gen")
+            self.assertEqual(jobs[0]["session"], "direct/ssot-gen")
+            self.assertEqual(jobs[0]["project_root"], tmp)
 
 
 if __name__ == "__main__":
