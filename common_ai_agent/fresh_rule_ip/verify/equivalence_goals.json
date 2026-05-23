@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0",
+  "ip": "fresh_rule_ip",
+  "goals": [
+    {
+      "id": "EQ_MODULE_FRESH_RULE_IP",
+      "source_ref": "sub_modules.fresh_rule_ip.module_equivalence",
+      "scope": {
+        "level": "module",
+        "module": "fresh_rule_ip",
+        "rtl_file": "rtl/fresh_rule_ip.sv"
+      },
+      "blocked": false,
+      "fl_expected": {
+        "model_api": "FunctionalModel.apply",
+        "transaction": "FM_PRIMARY",
+        "input_map": {
+          "value": "data_in"
+        },
+        "output_rules": [
+          {
+            "port": "result",
+            "expr": "value * 2",
+            "width": 9
+          }
+        ],
+        "state_updates": [
+          {
+            "name": "accepted_count",
+            "expr": "accepted_count + 1",
+            "width": 8
+          }
+        ]
+      },
+      "rtl_observed": {
+        "ports": ["result", "result_valid", "accepted_count", "ready"],
+        "sample_condition": "valid and ready",
+        "latency": 1
+      }
+    }
+  ]
+}

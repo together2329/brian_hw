@@ -1,0 +1,2 @@
+{"goal_id":"EQ_MODULE_FRESH_RULE_IP","scope":{"level":"module","module":"fresh_rule_ip"},"fl_expected":{"model_api":"FunctionalModel.apply","transaction":"FM_PRIMARY","value":13,"result":26,"accepted_count":1},"rtl_observed":{"source":"dut module boundary ports","result":26,"result_valid":1,"accepted_count":1,"ready":1},"pass":1}
+fresh_rule_ip/verify/tb_equivalence_fresh_rule_ip.sv:56: $finish called at 46 (1s)
