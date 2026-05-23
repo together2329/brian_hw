@@ -36,6 +36,19 @@ from src.orchestrator.ui_formatter import format_tool_call
 
 
 # ----------------------------------------------------------------------
+# Orchestrator chat broadcast hook — set by atlas_ui after the bridge is
+# available. Best-effort: a missing or failing hook never breaks the loop.
+# ----------------------------------------------------------------------
+
+_orchestrator_chat_broadcast = None
+
+
+def set_orchestrator_chat_broadcast(cb: Any) -> None:
+    global _orchestrator_chat_broadcast
+    _orchestrator_chat_broadcast = cb
+
+
+# ----------------------------------------------------------------------
 # Chat persister — writes replayable raw stream rows to chat_messages.
 # ----------------------------------------------------------------------
 
@@ -70,6 +83,18 @@ class _ChatPersister:
                 )
         except Exception:
             pass
+        if _orchestrator_chat_broadcast is not None:
+            try:
+                _orchestrator_chat_broadcast({
+                    "type": "orchestrator_chat",
+                    "ip_id": self._ip_id,
+                    "role": role,
+                    "content": text,
+                    "display_name": display_name or self._display_name,
+                    "ts": time.time(),
+                })
+            except Exception:
+                pass
 
     def flush_assistant_turn(self, content: str) -> None:
         self._record(content=content, role="assistant")

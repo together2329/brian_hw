@@ -795,14 +795,16 @@ def test_orchestrator_worker_status_exposes_default_model_bindings(
     tmp_path: Path,
     monkeypatch,
 ) -> None:
+    import atlas_api_jobs as jobs
+
     client = _make_client(tmp_path, monkeypatch)
 
     resp = client.get("/api/orchestrator/workers?ip=model_bind_ip")
 
     assert resp.status_code == 200, resp.text
     body = resp.json()
-    assert body["orchestrator"]["model"] == "gpt-5.5"
-    assert body["orchestrator"]["reasoning_effort"] == "xhigh"
+    assert body["orchestrator"]["model"] == jobs.ORCHESTRATOR_MODEL
+    assert body["orchestrator"]["reasoning_effort"] == jobs.ORCHESTRATOR_REASONING_EFFORT
     models = {item["workflow"]: item["model"] for item in body["workers"]}
     defaults = {item["workflow"]: item["default_model"] for item in body["workers"]}
     assert models["ssot-gen"] == "gpt-5.5"
@@ -923,8 +925,8 @@ def test_orchestrator_chat_smoke_dispatches_worker_evidence_and_db_run(
             })
             assert resp.status_code == 200, resp.text
             body = resp.json()
-            assert body["model"] == "gpt-5.5"
-            assert body["reasoning_effort"] == "xhigh"
+            assert body["model"] == jobs.ORCHESTRATOR_MODEL
+            assert body["reasoning_effort"] == jobs.ORCHESTRATOR_REASONING_EFFORT
 
             with runner._lock:
                 active_futures = [entry[1] for entry in runner._active.values()]

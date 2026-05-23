@@ -4700,6 +4700,14 @@ def register_jobs_routes(
                         workspace_id=workspace["id"],
                     )
                 if reply:
+                    db.record_chat_message(
+                        ip_row["id"],
+                        db_user_id,
+                        reply,
+                        display_name="ATLAS",
+                        workspace_id=workspace["id"],
+                        role="assistant",
+                    )
                     db.record_trace_event(
                         event_type="chat_response",
                         payload={"content": reply, "pipeline_run_id": pipeline_id},
@@ -4710,6 +4718,101 @@ def register_jobs_routes(
                     )
         except Exception:
             return
+
+    def _is_orchestrator_status_query(message: str) -> bool:
+        text = re.sub(r"\s+", " ", str(message or "").strip().lower())
+        if not text:
+            return False
+        stripped = text.strip(" ?!.,")
+        if stripped in {"status", "state", "progress", "worker", "workers", "log", "logs", "상태", "진행", "로그"}:
+            return True
+        return any(
+            marker in text
+            for marker in (
+                "status?",
+                "status ?",
+                "how many worker",
+                "worker alive",
+                "workers alive",
+                "is alive",
+                "running?",
+                "running ?",
+                "잘 생성",
+                "진행",
+                "상태",
+                "돌고",
+                "살아",
+                "로그",
+            )
+        )
+
+    def _orchestrator_fast_status_reply(request: Request, ip: str) -> str:
+        pr = project_root()
+        snapshot, _ = _refresh_tracked_jobs(pr)
+        request_user = _request_username(request)
+        request_db_user = _request_db_user_id(request)
+        visible = [
+            job for job in snapshot
+            if str(job.get("ip") or "") == ip
+            and _job_visible_to_request(job, request_user, request_db_user)
+        ]
+        active = [
+            job for job in visible
+            if str(job.get("status") or "") in {"pending", "running"}
+        ]
+        latest = sorted(
+            visible,
+            key=lambda job: float(job.get("started_at") or 0),
+            reverse=True,
+        )[:3]
+
+        ip_dir = _ip_dir_for(pr, ip)
+        stage_bits: list[str] = []
+        if (ip_dir / "yaml" / f"{ip}.ssot.yaml").is_file():
+            stage_bits.append("ssot=passed")
+        rtl_path = ip_dir / "rtl" / f"{ip}.sv"
+        if active and any(str(job.get("stage_id") or "") == "rtl" for job in active):
+            stage_bits.append("rtl=running")
+        elif rtl_path.is_file():
+            try:
+                head = rtl_path.read_text(encoding="utf-8", errors="ignore")[:1000].lower()
+            except Exception:
+                head = ""
+            if "todo" in head or "tbd" in head or "placeholder" in head:
+                stage_bits.append("rtl=failed placeholder")
+            else:
+                stage_bits.append("rtl=present")
+
+        if active:
+            job_lines = []
+            now = time.time()
+            for job in active[:3]:
+                started = float(job.get("started_at") or 0)
+                elapsed = int(max(0, now - started)) if started else 0
+                job_lines.append(
+                    f"{job.get('workflow') or job.get('stage_id')} "
+                    f"{job.get('job_id')} {job.get('status')} "
+                    f"on {job.get('worker')} model={job.get('model') or 'default'} "
+                    f"elapsed={elapsed}s"
+                )
+            return (
+                f"{ip}: {', '.join(stage_bits) if stage_bits else 'pipeline state available'}; "
+                f"active worker job(s): " + " | ".join(job_lines)
+            )
+
+        if latest:
+            job = latest[0]
+            return (
+                f"{ip}: {', '.join(stage_bits) if stage_bits else 'no passed stages detected'}; "
+                f"no active worker jobs. Latest job: {job.get('workflow')} "
+                f"{job.get('job_id')} {job.get('status')}"
+                + (f" ({job.get('error')})" if job.get("error") else "")
+            )
+
+        return (
+            f"{ip}: {', '.join(stage_bits) if stage_bits else 'no active worker jobs'}; "
+            "no active worker jobs are registered in this server process."
+        )
 
     @app.post("/api/pipeline/orchestrator/chat")
     async def api_pipeline_orchestrator_chat(request: Request):
@@ -4726,6 +4829,20 @@ def register_jobs_routes(
         ip = _extract_ip_from_orchestrator_message(message, str(body.get("ip") or ""))
         if not ip or len(ip) > 64 or not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", ip):
             return JSONResponse({"error": "valid ip required"}, status_code=400)
+
+        if _is_orchestrator_status_query(message):
+            reply = _orchestrator_fast_status_reply(request, ip)
+            _record_orchestrator_chat(request, ip=ip, message=message, reply=reply)
+            return JSONResponse({
+                "ok": True,
+                "ip": ip,
+                "status": "answered",
+                "action": "status",
+                "reply": reply,
+                "fast_path": True,
+                "model": ORCHESTRATOR_MODEL,
+                "reasoning_effort": ORCHESTRATOR_REASONING_EFFORT,
+            })
 
         # Persist user chat first so the trace ledger has the message regardless
         # of what the loop does.

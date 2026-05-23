@@ -66,6 +66,7 @@ def stub_runner(monkeypatch):
 
 def test_chat_returns_run_id_and_started_status(tmp_path, monkeypatch, stub_runner):
     from core.atlas_db import AtlasDB
+    from src.atlas_api_jobs import ORCHESTRATOR_MODEL, ORCHESTRATOR_REASONING_EFFORT
 
     client = _make_client(tmp_path, monkeypatch)
     resp = client.post(
@@ -81,12 +82,12 @@ def test_chat_returns_run_id_and_started_status(tmp_path, monkeypatch, stub_runn
     assert len(stub_runner.calls) == 1
     assert stub_runner.calls[0]["ip_name"] == "ipA"
     assert stub_runner.calls[0]["message_text"] == "create ipA and run to green"
-    assert stub_runner.calls[0]["model"] == "gpt-5.5"
-    assert stub_runner.calls[0]["reasoning_effort"] == "xhigh"
+    assert stub_runner.calls[0]["model"] == ORCHESTRATOR_MODEL
+    assert stub_runner.calls[0]["reasoning_effort"] == ORCHESTRATOR_REASONING_EFFORT
     assert stub_runner.calls[0]["session_id"] == "u/ipA/orchestrator"
     assert stub_runner.calls[0]["workspace_id"]
-    assert body["model"] == "gpt-5.5"
-    assert body["reasoning_effort"] == "xhigh"
+    assert body["model"] == ORCHESTRATOR_MODEL
+    assert body["reasoning_effort"] == ORCHESTRATOR_REASONING_EFFORT
 
     db = AtlasDB(str(tmp_path / "atlas.db"))
     try:
@@ -112,6 +113,31 @@ def test_second_chat_to_same_ip_is_appended(tmp_path, monkeypatch, stub_runner):
     assert first.json()["status"] == "started"
     assert second.json()["status"] == "appended"
     assert first.json()["run_id"] == second.json()["run_id"]
+
+
+def test_status_chat_fast_path_records_assistant_reply_without_runner(
+    tmp_path, monkeypatch, stub_runner
+):
+    client = _make_client(tmp_path, monkeypatch)
+
+    resp = client.post(
+        "/api/pipeline/orchestrator/chat",
+        json={"message": "status ?", "ip": "ipA"},
+    )
+
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body["ok"] is True
+    assert body["action"] == "status"
+    assert body["status"] == "answered"
+    assert body["fast_path"] is True
+    assert "ipA" in body["reply"]
+    assert stub_runner.calls == []
+
+    messages = client.get("/api/orchestrator/chat/messages?ip=ipA").json()["messages"]
+    roles = [m["payload"]["role"] for m in messages]
+    assert roles == ["user", "assistant"]
+    assert messages[-1]["payload"]["content"] == body["reply"]
 
 
 def test_chat_rejects_missing_message(tmp_path, monkeypatch, stub_runner):
