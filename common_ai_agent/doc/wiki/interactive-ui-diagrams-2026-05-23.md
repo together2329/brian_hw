@@ -40,6 +40,22 @@ python3 scripts/wavespec/vcd_to_wavespec.py atlas_flow_gpio_demo/sim/atlas_flow_
 `timing-compare.html` currently inlines these specs so it stays standalone;
 re-paste after regenerating (or add an HTTP loader if served).
 
+## Export to image (SVG / PNG)
+
+The four SVG-based viewers carry floating **⬇ SVG** / **⬇ PNG** buttons that
+serialize the live diagram with inlined computed styles into a self-contained
+file (SVG = true vector for docs/slides; PNG = 2× raster). Batch/CI export:
+
+```bash
+node scripts/wavespec/export_svg.mjs   # -> interactive_ui/img/*.{svg,png}
+```
+
+`export_svg.mjs` drives each page via system Chrome (Playwright
+`channel:'chrome'`), clicks the in-page buttons, captures downloads, and
+validates them — doubling as an E2E test. Multi-`<svg>` pages (timing-compare's
+two lanes) are composed into one stacked SVG. Pre-rendered output in
+`interactive_ui/img/`.
+
 ## Why timing-compare matters
 
 It lays the **SSOT contract** (`protocol.setup_phase`/`access_phase`/
