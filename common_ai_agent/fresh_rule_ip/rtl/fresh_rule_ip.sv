@@ -1,4 +1,4 @@
-// fresh_rule_ip.sv — SSOT-authored starter RTL for the double_value rule
+// fresh_rule_ip.sv — SSOT-authored RTL for the double_value rule
 module fresh_rule_ip (
     input  logic       clk,
     input  logic       rst_n,
@@ -19,7 +19,7 @@ module fresh_rule_ip (
 
     assign valid_sample = valid & ready;
     assign value = data_in;
-    // SSOT double_value: exact unsigned multiply by two using a left shift; result widens to 9 bits with no rounding or saturation.
+    // SSOT double_value: exact unsigned multiply by two uses a left shift; result widens to 9 bits with no rounding or saturation.
     assign doubled_value = {1'b0, value} << 1;
     assign accepted_count_next = accepted_count + 8'd1;
 

@@ -5,13 +5,13 @@
   "dut_only": true,
   "tool": "pyslang+verilator",
   "command": "pyslang rtl/generic_counter_ip.sv && verilator --lint-only -Wall -Irtl -f list/generic_counter_ip.f --top-module generic_counter_ip",
-  "cwd": "ip_examples/generic_counter_ip",
+  "cwd": "generic_counter_ip",
   "top": "generic_counter_ip",
-  "filelist": "ip_examples/generic_counter_ip/list/generic_counter_ip.f",
+  "filelist": "generic_counter_ip/list/generic_counter_ip.f",
   "rtl_files": [
     "rtl/generic_counter_ip.sv"
   ],
-  "timestamp": "2026-05-23T17:10:29.856950+00:00",
+  "timestamp": "2026-05-23T17:34:30.897879+00:00",
   "returncode": 0,
   "errors": 0,
   "warnings": 0,
