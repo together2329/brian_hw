@@ -172,6 +172,7 @@ TOOL_OUTPUT_LIMITS = {
     # Web tools
     "web_fetch": 10000,
     "web_search": 10000,
+    "websearch": 10000,
     # Sub-agent results
     "spawn_explore": 8000,
     "spawn_plan": 8000,

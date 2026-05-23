@@ -512,19 +512,20 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
             "ATLAS orchestrator tool: dispatch one or more pipeline stages to their bound workers.\n"
             "Runs through the Atlas Pipeline job tracker and returns pipeline_id, job ids, sessions, and status.\n"
             "Use workflow='pipeline' for the full run-to-green DAG, or workflow='rtl-gen' / stages=['rtl'] "
-            "for a specific worker."
+            "for a specific worker. CL model and equivalence are not separate workers: use "
+            "workflow='fl-model-gen' with stages=['cl-model'] or stages=['equivalence']."
         ),
         {
             "workflow": {
                 "type": "string",
-                "description": "Workflow or alias: ssot-gen, rtl-gen, tb-gen, sim_debug, coverage, pipeline, run-to-green",
+                "description": "Workflow or alias: ssot-gen, fl-model-gen, rtl-gen, tb-gen, sim_debug, coverage, pipeline, run-to-green. Do not use cl-model-gen/equiv-goals as worker names; use fl-model-gen stages instead.",
                 "default": "",
             },
             "ip": {"type": "string", "description": "Target IP id, e.g. spi_core", "default": ""},
             "stages": {
                 "type": "array",
                 "items": {"type": "string"},
-                "description": "Optional explicit stage ids/workflows to dispatch, e.g. ['ssot','rtl','lint']",
+                "description": "Optional explicit stage ids/workflows to dispatch, e.g. ['ssot','rtl','lint']; model stages are ['fl-model','cl-model','equivalence'].",
                 "default": [],
             },
             "prompt": {"type": "string", "description": "Optional worker task override", "default": ""},
@@ -588,11 +589,22 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
         required=["spec"],
     ),
 
-    # ── Web Tools (Firecrawl) ────────────────────────────────────────────────
+    # ── Web Tools (Cursor CLI) ───────────────────────────────────────────────
     "web_search": _fn(
         "web_search",
-        "Search the web using Firecrawl. Returns scraped markdown content for each result. "
+        "Search the web using Cursor CLI. Returns concise titles, URLs, and snippets. "
         "Use for finding current information, documentation, or answers not in local files.",
+        {
+            "query": {"type": "string", "description": "Search query string"},
+            "limit": {"type": "integer", "description": "Maximum number of results (1-20, default: 5)"},
+            "lang": {"type": "string", "description": "Language code (default: 'en', 'ko' for Korean)"},
+            "tbs": {"type": "string", "description": "Time filter: 'qdr:d' (day), 'qdr:w' (week), 'qdr:m' (month), 'qdr:y' (year), '' (any)"},
+        },
+        required=["query"],
+    ),
+    "websearch": _fn(
+        "websearch",
+        "Alias for web_search. Search the web using Cursor CLI.",
         {
             "query": {"type": "string", "description": "Search query string"},
             "limit": {"type": "integer", "description": "Maximum number of results (1-20, default: 5)"},
@@ -603,16 +615,15 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
     ),
     "web_fetch": _fn(
         "web_fetch",
-        "Fetch and scrape content from a specific URL. Returns page content in markdown (default), HTML, or raw HTML format. "
-        "Waits for JavaScript rendering.",
+        "Fetch/summarize content from a specific URL using Cursor CLI.",
         {
             "url": {"type": "string", "description": "URL to scrape"},
             "formats": {
                 "type": "string",
                 "enum": ["markdown", "html", "rawHtml"],
-                "description": "Output format (default: 'markdown')",
+                "description": "Backward-compatible hint; Cursor returns markdown text.",
             },
-            "wait_for": {"type": "integer", "description": "Milliseconds to wait for JS rendering (default: 3000)"},
+            "wait_for": {"type": "integer", "description": "Backward-compatible hint; Cursor controls page loading."},
         },
         required=["url"],
     ),
@@ -1161,7 +1172,7 @@ def get_tool_schemas(allowed_tools: List[str], compact: bool = False) -> List[Di
         dynamic_names = set(_dynamic_schemas)
         # Tools to exclude in compact mode (bulky, rarely needed for basic tasks)
         _compact_exclude = {"background_task", "background_output", "background_cancel",
-                            "background_list", "web_search", "web_fetch", "web_extract"}
+                            "background_list", "web_search", "websearch", "web_fetch", "web_extract"}
         schemas = [s for s in _copy.deepcopy(schemas)
                    if s.get("function", {}).get("name") not in _compact_exclude]
         # Minimal description map — hand-tuned for brevity

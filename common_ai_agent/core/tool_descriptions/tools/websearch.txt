@@ -1,0 +1,14 @@
+# Tool: websearch
+
+Alias for `web_search`.
+
+# Signature
+websearch(query="search query", limit=5, lang="en", tbs="")
+
+# Description
+
+Searches the web through Cursor CLI (`cursor-agent`). This one-word alias
+exists for tool callers that emit `websearch` instead of `web_search`.
+
+Use the same rules as `web_search`: external/current information only;
+prefer local tools for local files and repository facts.

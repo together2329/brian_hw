@@ -1,22 +1,28 @@
 """
-core/tools_web.py — Firecrawl-powered web tools for common_ai_agent
+core/tools_web.py — Cursor CLI-backed web tools for common_ai_agent
 
-Provides web search, fetch, and extract capabilities via locally-hosted
-or remote Firecrawl API. Zero-dependency (uses urllib.request).
+Provides web search/fetch capabilities through cursor-agent CLI.
+The structured web_extract tool still uses Firecrawl's extract endpoint.
 
 Tools:
-  web_search  — Search the web and get scraped results
-  web_fetch   — Scrape a specific URL
+  web_search  — Search the web via Cursor CLI
+  websearch   — Alias for web_search
+  web_fetch   — Fetch/summarize a specific URL via Cursor CLI
   web_extract — AI-powered structured data extraction from URLs
 
 Configuration (.config):
   ENABLE_WEB_TOOLS=true          # Enable/disable (default: false)
-  FIRECRAWL_API_URL=http://localhost:3002  # Firecrawl endpoint
-  FIRECRAWL_TIMEOUT=30           # Request timeout in seconds
+  WEB_CURSOR_MODEL=auto          # cursor-agent model
+  WEB_CURSOR_TIMEOUT=120         # cursor-agent timeout in seconds
+  WEB_CURSOR_YOLO=true           # non-interactive cursor-agent execution
+  FIRECRAWL_API_URL=http://localhost:3002  # Firecrawl endpoint for web_extract
+  FIRECRAWL_TIMEOUT=30           # Firecrawl request timeout in seconds
 """
 
 import json
 import os
+import shutil
+import subprocess
 import urllib.request
 import urllib.error
 from typing import Dict, Optional
@@ -37,6 +43,27 @@ def _get_timeout() -> int:
         return int(os.environ.get("FIRECRAWL_TIMEOUT", "30"))
     except (ValueError, TypeError):
         return 30
+
+
+def _get_cursor_timeout() -> int:
+    """Read cursor-agent timeout from environment."""
+    try:
+        return max(1, int(os.environ.get("WEB_CURSOR_TIMEOUT", "120")))
+    except (ValueError, TypeError):
+        return 120
+
+
+def _get_cursor_model() -> str:
+    return os.environ.get("WEB_CURSOR_MODEL", "auto").strip() or "auto"
+
+
+def _cursor_yolo_enabled() -> bool:
+    return os.environ.get("WEB_CURSOR_YOLO", "true").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -115,242 +142,156 @@ def _truncate_result(data: dict, max_chars: int = _MAX_RESULT_CHARS) -> str:
 
 
 # ---------------------------------------------------------------------------
-# CLI engines — Claude Code (`claude-cli`) and Cursor Agent (`cursor-cli`)
-# act as alternative WebSearch / WebFetch backends when Firecrawl is not
-# available (no API key, server down). They use the LLM CLI's built-in
-# WebSearch / WebFetch tools and return the answer text directly.
+# Cursor CLI engine. Web search/fetch intentionally do not fall back to
+# Firecrawl or Claude; Cursor is the required backend for this tool surface.
 # ---------------------------------------------------------------------------
 
-def _cli_available(binary: str) -> bool:
-    import shutil
-    return bool(shutil.which(binary))
+def _cursor_agent_text(stdout: str) -> str:
+    """Extract assistant text/result from cursor-agent stream-json output."""
+    chunks: list[str] = []
+    final_result = ""
+    for raw in str(stdout or "").splitlines():
+        raw = raw.strip()
+        if not raw:
+            continue
+        try:
+            item = json.loads(raw)
+        except json.JSONDecodeError:
+            chunks.append(raw)
+            continue
+        if item.get("type") == "assistant" and "timestamp_ms" in item:
+            for block in item.get("message", {}).get("content", []):
+                if isinstance(block, dict) and block.get("type") == "text":
+                    chunks.append(block.get("text", ""))
+        elif item.get("type") == "result":
+            final_result = str(item.get("result") or "")
+    text = "".join(chunks).strip()
+    return text or final_result.strip()
 
 
-def _search_via_claude_cli(query: str, limit: int = 5, timeout_sec: int = 120) -> str:
-    try:
-        from src.claude_cli_backend import claude_cli_call
-    except ModuleNotFoundError:
-        from claude_cli_backend import claude_cli_call  # type: ignore
+def _cursor_agent_request(prompt: str) -> str:
+    exe = shutil.which(os.environ.get("WEB_CURSOR_BIN", "cursor-agent"))
+    if not exe:
+        raise RuntimeError("cursor-agent not found in PATH")
+    cmd = [exe, "--model", _get_cursor_model()]
+    if _cursor_yolo_enabled():
+        cmd.append("--yolo")
+    cmd += [
+        "--print",
+        "--output-format",
+        "stream-json",
+        "--stream-partial-output",
+        "-p",
+        prompt,
+    ]
+    proc = subprocess.run(
+        cmd,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=_get_cursor_timeout(),
+    )
+    if proc.returncode != 0:
+        detail = (proc.stderr or proc.stdout or "").strip()
+        raise RuntimeError(f"cursor-agent failed rc={proc.returncode}: {detail[:800]}")
+    text = _cursor_agent_text(proc.stdout)
+    if not text:
+        raise RuntimeError("cursor-agent returned empty output")
+    return text
+
+
+def _search_via_cursor_cli(query: str, limit: int = 5, lang: str = "en", tbs: str = "") -> str:
     prompt = (
-        f"Use WebSearch to find up to {limit} results for: {query}\n"
-        "Return the top results as a concise list with title + URL + 1-line snippet each."
+        "[ATLAS web_search]\n"
+        "Use Cursor's web search capability only. Do not inspect or edit local files.\n"
+        f"Query: {query}\n"
+        f"Max results: {limit}\n"
+        f"Language preference: {lang or 'any'}\n"
+        f"Time filter hint: {tbs or 'none'}\n\n"
+        "Return concise Markdown with:\n"
+        "- engine: cursor-cli\n"
+        "- query\n"
+        "- results, each with title, URL, and one-line snippet\n"
     )
-    return claude_cli_call(
-        messages=[{"role": "user", "content": prompt}],
-        model="sonnet",
-        permission_mode="bypassPermissions",
-        tools="WebSearch,WebFetch",
-        no_session_persistence=True,
-        output_format="json",
-        timeout_sec=timeout_sec,
-    )
-
-
-def _fetch_via_claude_cli(url: str, timeout_sec: int = 120) -> str:
-    try:
-        from src.claude_cli_backend import claude_cli_call
-    except ModuleNotFoundError:
-        from claude_cli_backend import claude_cli_call  # type: ignore
-    prompt = (
-        f"Use WebFetch to retrieve and summarize the content at: {url}\n"
-        "Return the main content as markdown."
-    )
-    return claude_cli_call(
-        messages=[{"role": "user", "content": prompt}],
-        model="sonnet",
-        permission_mode="bypassPermissions",
-        tools="WebFetch,WebSearch",
-        no_session_persistence=True,
-        output_format="json",
-        timeout_sec=timeout_sec,
-    )
-
-
-def _search_via_cursor_cli(query: str, limit: int = 5) -> str:
-    try:
-        from src.cursor_agent_backend import cursor_agent_call
-    except ModuleNotFoundError:
-        from cursor_agent_backend import cursor_agent_call  # type: ignore
-    prompt = (
-        f"Search the web for up to {limit} results for: {query}\n"
-        "Return the top results as a concise list with title + URL + 1-line snippet each."
-    )
-    return cursor_agent_call(
-        messages=[{"role": "user", "content": prompt}],
-        model="auto",
-        yolo=True,
-    )
+    return _cursor_agent_request(prompt)
 
 
 def _fetch_via_cursor_cli(url: str) -> str:
-    try:
-        from src.cursor_agent_backend import cursor_agent_call
-    except ModuleNotFoundError:
-        from cursor_agent_backend import cursor_agent_call  # type: ignore
     prompt = (
-        f"Fetch the content of this URL and summarize the main body as markdown: {url}"
+        "[ATLAS web_fetch]\n"
+        "Use Cursor's web fetch/search capability only. Do not inspect or edit local files.\n"
+        f"URL: {url}\n\n"
+        "Return concise Markdown with:\n"
+        "- engine: cursor-cli\n"
+        "- title/source URL if available\n"
+        "- the main page content summary\n"
     )
-    return cursor_agent_call(
-        messages=[{"role": "user", "content": prompt}],
-        model="auto",
-        yolo=True,
-    )
-
-
-def _engine_fallback_chain(engine: str) -> list[str]:
-    """Resolve ``engine`` argument to an ordered try-list."""
-    e = (engine or "auto").strip().lower()
-    if e == "firecrawl":
-        return ["firecrawl"]
-    if e in ("claude", "claude-cli"):
-        return ["claude-cli"]
-    if e in ("cursor", "cursor-cli", "cursor-agent"):
-        return ["cursor-cli"]
-    # "auto" — prefer Firecrawl (cheapest), then the CLI backends.
-    chain = ["firecrawl"]
-    if _cli_available("claude"):
-        chain.append("claude-cli")
-    if _cli_available("cursor-agent"):
-        chain.append("cursor-cli")
-    return chain
+    return _cursor_agent_request(prompt)
 
 
 # ---------------------------------------------------------------------------
 # Tool: web_search
 # ---------------------------------------------------------------------------
 
-def web_search(query: str, limit: int = 5, lang: str = "en", tbs: str = "", engine: str = "auto") -> str:
+def web_search(query: str, limit: int = 5, lang: str = "en", tbs: str = "", engine: str = "cursor-cli") -> str:
     """
-    Search the web. Tries the requested ``engine`` in order, falling back
-    to the next on failure. Default ``auto`` prefers Firecrawl (cheapest)
-    then the LLM CLI backends (``claude-cli``, ``cursor-cli``) when their
-    binaries are installed.
+    Search the web through Cursor CLI only.
 
     Args:
         query: Search query string
         limit: Maximum number of results (1-20, default: 5)
-        lang:  Language code (default: 'en', use 'ko' for Korean) — Firecrawl only
+        lang:  Language code preference (default: 'en', use 'ko' for Korean)
         tbs:   Time filter — 'qdr:d' (day), 'qdr:w' (week),
-               'qdr:m' (month), 'qdr:y' (year), '' (any time) — Firecrawl only
-        engine: "auto" | "firecrawl" | "claude-cli" | "cursor-cli"
+               'qdr:m' (month), 'qdr:y' (year), '' (any time)
+        engine: accepted for backward compatibility, ignored; Cursor CLI is forced.
 
     Returns:
-        JSON-formatted Firecrawl results, or the CLI's text answer.
+        Cursor CLI's text answer.
     """
+    query = str(query or "").strip()
+    if not query:
+        return "Error: query is required."
     limit = max(1, min(20, int(limit)))
-    errors: list[str] = []
-    for backend in _engine_fallback_chain(engine):
-        try:
-            if backend == "firecrawl":
-                payload = {
-                    "query": query,
-                    "limit": limit,
-                    "scrapeOptions": {"formats": ["markdown"]},
-                }
-                if lang:
-                    payload["lang"] = lang
-                if tbs:
-                    payload["tbs"] = tbs
-                result = _firecrawl_request("/v1/search", payload)
-                if not result.get("success", True):
-                    raise RuntimeError(f"firecrawl: {result.get('error', 'unknown')}")
-                data = result.get("data", [])
-                if not data:
-                    if engine == "firecrawl":
-                        return f"No results found for query: '{query}'"
-                    raise RuntimeError("firecrawl: empty results")
-                formatted = []
-                for i, item in enumerate(data, 1):
-                    formatted.append({
-                        "index": i,
-                        "title": item.get("metadata", {}).get("title", ""),
-                        "url": item.get("metadata", {}).get("sourceURL", item.get("url", "")),
-                        "content": item.get("markdown", item.get("content", ""))[:2000],
-                    })
-                return _truncate_result({"engine": "firecrawl", "results": formatted, "total": len(formatted)})
-            if backend == "claude-cli":
-                return _search_via_claude_cli(query, limit=limit)
-            if backend == "cursor-cli":
-                return _search_via_cursor_cli(query, limit=limit)
-        except Exception as exc:
-            errors.append(f"{backend}: {exc}")
-            continue
-    return "web_search failed — tried " + "; ".join(errors) if errors else (
-        f"web_search: no backend available for engine={engine!r}"
-    )
+    try:
+        return _search_via_cursor_cli(query, limit=limit, lang=lang, tbs=tbs)
+    except subprocess.TimeoutExpired:
+        return f"web_search failed — cursor-agent timed out after {_get_cursor_timeout()}s"
+    except Exception as exc:
+        return f"web_search failed — cursor-cli: {exc}"
+
+
+def websearch(query: str, limit: int = 5, lang: str = "en", tbs: str = "", engine: str = "cursor-cli") -> str:
+    """Alias for ``web_search`` for models that emit websearch as one word."""
+    return web_search(query=query, limit=limit, lang=lang, tbs=tbs, engine=engine)
 
 
 # ---------------------------------------------------------------------------
 # Tool: web_fetch
 # ---------------------------------------------------------------------------
 
-def web_fetch(url: str, formats: str = "markdown", wait_for: int = 3000, engine: str = "auto") -> str:
+def web_fetch(url: str, formats: str = "markdown", wait_for: int = 3000, engine: str = "cursor-cli") -> str:
     """
-    Fetch and scrape content from a specific URL. Tries ``engine`` in
-    order, falling back to the next on failure. Default ``auto`` prefers
-    Firecrawl (full HTML/markdown) and falls back to the LLM CLI
-    backends (``claude-cli`` / ``cursor-cli``) when their binaries are
-    installed.
+    Fetch/summarize content from a specific URL through Cursor CLI only.
 
     Args:
         url:      URL to scrape
-        formats:  Output format — 'markdown' (default), 'html', or 'rawHtml' — Firecrawl only
-        wait_for: Milliseconds to wait for JavaScript rendering — Firecrawl only
-        engine:   "auto" | "firecrawl" | "claude-cli" | "cursor-cli"
+        formats:  Kept for backward compatibility; Cursor returns Markdown text.
+        wait_for: Kept for backward compatibility; Cursor controls page loading.
+        engine:   accepted for backward compatibility, ignored; Cursor CLI is forced.
 
     Returns:
-        Markdown / HTML payload from Firecrawl, or the CLI's text summary.
+        Cursor CLI's text answer.
     """
-    errors: list[str] = []
-    for backend in _engine_fallback_chain(engine):
-        try:
-            if backend == "firecrawl":
-                payload = {
-                    "url": url,
-                    "formats": [formats] if isinstance(formats, str) else formats,
-                }
-                if wait_for > 0:
-                    payload["waitFor"] = int(wait_for)
-                result = _firecrawl_request("/v0/scrape", payload)
-                if not result.get("success", True):
-                    raise RuntimeError(f"firecrawl: {result.get('error', 'unknown')}")
-                data = result.get("data", {})
-                if formats in ("html", ["html"]):
-                    content = data.get("html", "")
-                elif formats in ("rawHtml", ["rawHtml"]):
-                    content = data.get("rawHtml", "")
-                else:
-                    content = data.get("markdown", "")
-                if not content:
-                    if engine == "firecrawl":
-                        return f"No content retrieved from: {url}"
-                    raise RuntimeError("firecrawl: empty body")
-                metadata = data.get("metadata", {})
-                response = {
-                    "engine": "firecrawl",
-                    "metadata": {
-                        "title": metadata.get("title", ""),
-                        "url": url,
-                        "description": metadata.get("description", ""),
-                    },
-                    "content": content[:6000],
-                }
-                if len(content) > 6000:
-                    response["truncated"] = (
-                        f"Content truncated from {len(content)} to 6000 chars. "
-                        "Use web_extract for specific data."
-                    )
-                return _truncate_result(response)
-            if backend == "claude-cli":
-                return _fetch_via_claude_cli(url)
-            if backend == "cursor-cli":
-                return _fetch_via_cursor_cli(url)
-        except Exception as exc:
-            errors.append(f"{backend}: {exc}")
-            continue
-    return "web_fetch failed — tried " + "; ".join(errors) if errors else (
-        f"web_fetch: no backend available for engine={engine!r}"
-    )
+    url = str(url or "").strip()
+    if not url:
+        return "Error: url is required."
+    try:
+        return _fetch_via_cursor_cli(url)
+    except subprocess.TimeoutExpired:
+        return f"web_fetch failed — cursor-agent timed out after {_get_cursor_timeout()}s"
+    except Exception as exc:
+        return f"web_fetch failed — cursor-cli: {exc}"
 
 
 # ---------------------------------------------------------------------------
@@ -457,6 +398,7 @@ def _poll_extract_job(job_id: str, max_wait: int = 60, interval: int = 3) -> dic
 
 WEB_TOOLS = {
     "web_search":  web_search,
+    "websearch":   websearch,
     "web_fetch":   web_fetch,
     "web_extract": web_extract,
 }

@@ -1,22 +1,23 @@
 # Tool: web_fetch
 
-Fetch and scrape content from a specific URL using Firecrawl.
+Fetch/summarize content from a specific URL using Cursor CLI.
 
 # Signature
 web_fetch(url="https://example.com", formats="markdown", wait_for=3000)
 
 # Description
 
-Fetches and scrapes content from a specific URL using the Firecrawl Scrape API.
-Returns page content in markdown (default), HTML, or raw HTML.
-Waits for JavaScript rendering before capturing content.
+Fetches and summarizes content from a specific URL through `cursor-agent`.
+Returns concise Markdown text. The `formats` and `wait_for` parameters remain
+for compatibility, but Cursor controls page loading and output format.
 
-Requires Firecrawl service running (default: http://localhost:3002).
+Requires `cursor-agent` on PATH. Firecrawl and Claude are not fallback
+backends for web_fetch.
 
 Key Parameters:
 - url      - URL to scrape (required)
-- formats  - Output format: markdown (default), html, rawHtml
-- wait_for - Milliseconds to wait for JS rendering (default: 3000)
+- formats  - Compatibility hint; Cursor returns Markdown text
+- wait_for - Compatibility hint; Cursor controls page loading
 
 # Good Examples
 
@@ -60,10 +61,10 @@ Bad: web_fetch(url="")
 
 # Error Recovery
 
-- Firecrawl service is not reachable
-  1. Check if Firecrawl is running: curl http://localhost:3002/health
-  2. Start Firecrawl if needed
-  3. Fall back to answering from local knowledge
+- cursor-agent is not reachable
+  1. Verify `cursor-agent` is installed and on PATH
+  2. Check WEB_CURSOR_TIMEOUT if the request is slow
+  3. Fall back to answering from local knowledge only if web access is unavailable
 
 - Fetch failed or No content retrieved
   1. Check if URL is valid and accessible
@@ -72,8 +73,8 @@ Bad: web_fetch(url="")
   4. The site may block scrapers -- try web_search instead
 
 - Timeout errors
-  1. Increase FIRECRAWL_TIMEOUT environment variable
-  2. Increase wait_for parameter
+  1. Increase WEB_CURSOR_TIMEOUT environment variable
+  2. Try a simpler URL or ask for a targeted section
   3. Try again -- may be transient network issue
 
 - Bot detection / CAPTCHA

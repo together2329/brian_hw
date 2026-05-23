@@ -279,6 +279,78 @@ def worker_call(
     return result
 
 
+def worker_start(
+    worker: str = "http://localhost:8001",
+    task: str = "",
+    model: str = "",
+    todos: list = None,
+    template: str = "",
+    workflow: str = "",
+    reasoning_effort: str = "",
+    system_prompt: str = "",
+    allowed_tools: Any = None,
+    custom_agent: str = "",
+    custom_agent_owner_id: str = "",
+    session: str = "",
+    ip: str = "",
+    project_root: str = "",
+    source_root: str = "",
+    context: str = "",
+    run_mode: str = "",
+    exec_mode: str = "",
+    stage_id: str = "",
+    pipeline_id: str = "",
+    scope_path: str = "",
+    timeout: int = 30,
+) -> Dict:
+    """Start a Worker run asynchronously and return its ``run_id``.
+
+    This is the non-blocking companion to :func:`worker_call`.  It uses the
+    same Worker ``/run`` endpoint, but leaves ``sync`` false so long workflow
+    jobs can continue for minutes or hours while the caller tracks status via
+    ``worker_status`` / ``worker_result``.
+    """
+    worker_url = _resolve_worker(worker).rstrip("/")
+    data: Dict[str, Any] = {"task": task, "sync": False}
+    optional = {
+        "model": model,
+        "todos": todos,
+        "template": template,
+        "workflow": workflow,
+        "reasoning_effort": reasoning_effort,
+        "system_prompt": system_prompt,
+        "allowed_tools": allowed_tools,
+        "custom_agent": custom_agent,
+        "custom_agent_owner_id": custom_agent_owner_id,
+        "session": session,
+        "ip": ip,
+        "project_root": project_root,
+        "source_root": source_root,
+        "context": context,
+        "run_mode": run_mode,
+        "exec_mode": exec_mode,
+        "stage_id": stage_id,
+        "pipeline_id": pipeline_id,
+        "pipeline_run_id": pipeline_id,
+        "scope_path": scope_path,
+    }
+    for key, value in optional.items():
+        if value:
+            data[key] = value
+    try:
+        resp = _post_json(f"{worker_url}/run", data, timeout=timeout)
+    except Exception as e:
+        return {
+            "status": "error",
+            "run_id": "",
+            "worker": worker_url,
+            "error": f"Failed to start Worker at {worker_url}: {e}",
+        }
+    resp.setdefault("status", "pending")
+    resp.setdefault("worker", worker_url)
+    return resp
+
+
 def worker_status(worker: str = "http://localhost:8001", run_id: str = "") -> Dict:
     """
     Get current status of a Worker run.

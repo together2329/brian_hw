@@ -33,6 +33,10 @@ PARALLEL_ELIGIBLE_TOOLS = frozenset({
     "extract_module_hierarchy",
     "find_potential_issues",
     "analyze_timing_paths",
+    "web_search",
+    "websearch",
+    "web_fetch",
+    "web_extract",
 })
 
 

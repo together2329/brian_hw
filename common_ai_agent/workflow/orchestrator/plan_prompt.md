@@ -11,8 +11,8 @@ budget: 40 dispatches total
 
 Steps:
 1. ssot-gen        (gate: yaml/<ip>.ssot.yaml validates)
-2. fl-model-gen ∥ cl-model-gen  (gate: both pass)
-3. equiv-goals     (gate: 100% required goals derived)
+2. fl-model ∥ cl-model on fl-model-gen  (gate: both pass)
+3. equivalence on fl-model-gen          (gate: 100% required goals derived)
 4. rtl-gen         (gate: compile clean, lint clean)
 5. tb-gen          (gate: TB compile + scoreboard manifest)
 6. sim             (gate: cocotb PASS or → sim_debug)

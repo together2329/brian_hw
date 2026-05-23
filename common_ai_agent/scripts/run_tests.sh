@@ -1,0 +1,100 @@
+#!/usr/bin/env bash
+# run_tests.sh — single entry point for the ATLAS test quality check.
+#
+# Usage:
+#   ./scripts/run_tests.sh             # default: quick (no live LLM, ~3 min)
+#   ./scripts/run_tests.sh quick       # same as above
+#   ./scripts/run_tests.sh full        # everything except live LLM (~5 min)
+#   ./scripts/run_tests.sh live        # full + live LLM workers (~10 min, needs .env)
+#   ./scripts/run_tests.sh smoke       # 5 fastest critical paths (~30s)
+#   ./scripts/run_tests.sh -- <args>   # pass args directly to pytest
+#
+# What it does:
+# - Loads .env (LLM API keys etc.)
+# - Excludes CLI-only test scripts (moved to scripts/cli_tests/)
+# - Excludes dead-import dirs (filed for deletion — see wiki §5.1)
+# - Returns the same exit code as pytest
+#
+# Quality report:
+#   doc/wiki/atlas-test-feature-coverage.md describes which test gates which feature.
+
+set -uo pipefail
+cd "$(dirname "$0")/.."
+
+# ── env ──────────────────────────────────────────────────────────────
+if [[ -f .env ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source .env
+  set +a
+fi
+
+MODE="${1:-quick}"
+shift || true
+
+# Pass-through after `--`
+PYTEST_EXTRA=()
+if [[ "$MODE" == "--" ]]; then
+  PYTEST_EXTRA=("$@")
+  MODE="quick"
+fi
+
+# Common args. `collect_ignore_glob` in tests/conftest.py handles the
+# dead-import paths so the operator never has to list 7 --ignore flags.
+BASE_ARGS=(tests/ -q --tb=short --no-header)
+
+case "$MODE" in
+  smoke)
+    echo "[run_tests] mode=smoke (critical paths only)"
+    python3 -m pytest \
+      tests/test_atlas_db_orchestrator.py \
+      tests/test_orchestrator_workers_route.py \
+      tests/test_orchestrator_dispatch_seed.py \
+      tests/test_orchestrator_chat_ip_extraction.py \
+      tests/test_chat_full_multiuser_system.py \
+      -q --tb=short ${PYTEST_EXTRA[@]+"${PYTEST_EXTRA[@]}"}
+    ;;
+
+  quick)
+    echo "[run_tests] mode=quick (no live LLM)"
+    python3 -m pytest \
+      "${BASE_ARGS[@]}" \
+      --ignore=tests/test_agent_server.py \
+      --ignore=tests/test_worker_chaining.py \
+      --ignore=tests/test_worker_tool_execution.py \
+      --ignore=tests/test_real_glm51_headless_flow.py \
+      --ignore=tests/test_llm_api.py \
+      --ignore=tests/test_llm_benchmark.py \
+      ${PYTEST_EXTRA[@]+"${PYTEST_EXTRA[@]}"}
+    ;;
+
+  full)
+    echo "[run_tests] mode=full (excludes only live-LLM-bound suites)"
+    python3 -m pytest \
+      "${BASE_ARGS[@]}" \
+      --ignore=tests/test_worker_chaining.py \
+      --ignore=tests/test_worker_tool_execution.py \
+      --ignore=tests/test_real_glm51_headless_flow.py \
+      ${PYTEST_EXTRA[@]+"${PYTEST_EXTRA[@]}"}
+    ;;
+
+  live)
+    echo "[run_tests] mode=live (real LLM calls — costs money)"
+    if [[ -z "${LLM_API_KEY:-}${ANTHROPIC_API_KEY:-}${PROFILE_glm_API_KEY:-}" ]]; then
+      echo "[run_tests] ERROR: no LLM API key in env. Configure .env first." >&2
+      exit 2
+    fi
+    export ATLAS_RUN_REAL_LLM_TDD=1
+    python3 -m pytest "${BASE_ARGS[@]}" ${PYTEST_EXTRA[@]+"${PYTEST_EXTRA[@]}"}
+    ;;
+
+  help|-h|--help)
+    sed -n '2,20p' "$0"
+    exit 0
+    ;;
+
+  *)
+    echo "[run_tests] unknown mode: $MODE (try 'quick', 'full', 'live', 'smoke', or 'help')" >&2
+    exit 2
+    ;;
+esac

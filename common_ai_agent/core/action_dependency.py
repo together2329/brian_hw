@@ -61,6 +61,8 @@ class ActionDependencyAnalyzer:
         "background_task",  # 병렬 분석 에이전트 (read-only)
         # Spec 탐색 도구 (pcie/ucie/nvme 등 모든 스펙, read-only)
         "spec_navigate",
+        # Web lookup/fetch tools are external reads; they do not touch local files.
+        "web_search", "websearch", "web_fetch", "web_extract",
     }
 
     # Write 도구들 (barrier 필요)

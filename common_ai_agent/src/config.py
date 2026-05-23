@@ -2427,12 +2427,13 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
             _tool_line("suggest_optimizations", 'path', "Optimization suggestions."),
         ]
 
-    # Web tools (conditional — requires Firecrawl)
-    if ENABLE_WEB_TOOLS and "web_search" in tool_list:
+    # Web tools (conditional — search/fetch via Cursor CLI)
+    if ENABLE_WEB_TOOLS and ({"web_search", "websearch"} & tool_list):
         tool_lines["Web"] = [
-            _tool_line("web_search", 'query, limit=5, lang="en", tbs=""', "Search the web via Firecrawl. Returns titles, URLs, content."),
-            _tool_line("web_fetch", 'url, formats="markdown"', "Scrape a URL and return markdown/html content."),
-            _tool_line("web_extract", 'urls, prompt="", schema=""', "Extract structured data from URLs using AI."),
+            _tool_line("web_search", 'query, limit=5, lang="en", tbs=""', "Search the web via Cursor CLI. Returns titles, URLs, snippets."),
+            _tool_line("websearch", 'query, limit=5, lang="en", tbs=""', "Alias for web_search; also uses Cursor CLI."),
+            _tool_line("web_fetch", 'url, formats="markdown"', "Fetch/summarize a URL via Cursor CLI."),
+            _tool_line("web_extract", 'urls, prompt="", schema=""', "Extract structured data from URLs using AI/Firecrawl."),
         ]
  
     # Image tools (conditional — requires ENABLE_IMAGE_READ=true)

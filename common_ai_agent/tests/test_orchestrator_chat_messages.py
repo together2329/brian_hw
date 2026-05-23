@@ -116,9 +116,15 @@ class TestToolCallLabelsPersist:
     def test_dispatch_workflow_renders_label_row(self, db, ctx, monkeypatch):
         # Stub dispatch_workflow so the LLM-driven tool call doesn't really
         # spawn a worker — we only care that the label was persisted.
+        seen = {}
+
+        def fake_bridge(**kw):
+            seen.update(kw)
+            return {"ok": True, "dispatched": True}
+
         monkeypatch.setattr(
             orch_tools, "_dispatch_workflow_bridge",
-            lambda: lambda **kw: ({"ok": True, "dispatched": True}, "stub"),
+            lambda: fake_bridge,
             raising=False,
         )
         caller = _scripted(
@@ -142,6 +148,7 @@ class TestToolCallLabelsPersist:
         assert "pl330" in rendered
         assert "glm-5.1" in rendered
         assert "effort=high" in rendered
+        assert seen["model"] == "glm-5.1"
 
     def test_dispatch_workflow_summary_exposes_worker_model_effort(self, monkeypatch):
         def fake_bridge(**kw):

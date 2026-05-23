@@ -6432,6 +6432,37 @@ _DIRECT_WORKFLOW_FALLBACKS = {
     "sta-post",
 }
 
+_DIRECT_WORKFLOW_ALIASES = {
+    "fl-model": "fl-model-gen",
+    "ssot-fl-model": "fl-model-gen",
+    "cl": "fl-model-gen",
+    "cl-model": "fl-model-gen",
+    "cl-model-gen": "fl-model-gen",
+    "cycle-model": "fl-model-gen",
+    "ssot-cycle-model": "fl-model-gen",
+    "equiv": "fl-model-gen",
+    "equivalence": "fl-model-gen",
+    "equiv-goals": "fl-model-gen",
+    "equivalence-goals": "fl-model-gen",
+    "ssot-equiv-goals": "fl-model-gen",
+}
+
+_DIRECT_STAGE_COMMANDS = {
+    "fl-model": ("ssot-fl-model",),
+    "fl-model-gen": ("ssot-fl-model",),
+    "ssot-fl-model": ("ssot-fl-model",),
+    "cl": ("ssot-cycle-model", "ssot-dual-fcov"),
+    "cl-model": ("ssot-cycle-model", "ssot-dual-fcov"),
+    "cl-model-gen": ("ssot-cycle-model", "ssot-dual-fcov"),
+    "cycle-model": ("ssot-cycle-model", "ssot-dual-fcov"),
+    "ssot-cycle-model": ("ssot-cycle-model", "ssot-dual-fcov"),
+    "equiv": ("ssot-equiv-goals",),
+    "equivalence": ("ssot-equiv-goals",),
+    "equiv-goals": ("ssot-equiv-goals",),
+    "equivalence-goals": ("ssot-equiv-goals",),
+    "ssot-equiv-goals": ("ssot-equiv-goals",),
+}
+
 
 def _normalize_dispatch_stages(stages):
     if not stages:
@@ -6443,15 +6474,31 @@ def _normalize_dispatch_stages(stages):
     return [str(stages).strip()]
 
 
+def _direct_dispatch_target_for_name(name):
+    key = str(name or "").strip()
+    if not key:
+        return ""
+    return _DIRECT_WORKFLOW_ALIASES.get(key) or _DIRECT_WORKFLOW_ALIASES.get(key.lower()) or key
+
+
 def _direct_dispatch_target(workflow, stages):
     workflow = str(workflow or "").strip()
     stage_list = _normalize_dispatch_stages(stages)
-    if workflow:
-        if stage_list and any(s != workflow for s in stage_list):
+    stage_targets = [_direct_dispatch_target_for_name(s) for s in stage_list]
+    stage_targets = [s for s in stage_targets if s]
+    workflow_target = _direct_dispatch_target_for_name(workflow)
+    if stage_targets:
+        unique_targets = []
+        for item in stage_targets:
+            if item not in unique_targets:
+                unique_targets.append(item)
+        if len(unique_targets) != 1:
             return "", "direct fallback supports one concrete workflow only"
-        target = workflow
-    elif len(stage_list) == 1:
-        target = stage_list[0]
+        if workflow_target and workflow_target in _DIRECT_WORKFLOW_FALLBACKS and workflow_target != unique_targets[0]:
+            return "", "direct fallback supports one concrete workflow only"
+        target = unique_targets[0]
+    elif workflow_target:
+        target = workflow_target
     elif stage_list:
         return "", "direct fallback supports one concrete workflow only"
     else:
@@ -6471,7 +6518,19 @@ def _string_payload_value(payload, keys):
     return ""
 
 
-def _build_direct_dispatch_task(target, scope, prompt, ip, payload, schedule, run_mode, exec_mode, reason):
+def _direct_stage_commands(workflow=None, stages=None):
+    names = _normalize_dispatch_stages(stages)
+    if workflow:
+        names.insert(0, str(workflow).strip())
+    commands = []
+    for name in names:
+        for command in _DIRECT_STAGE_COMMANDS.get(str(name or "").strip().lower(), ()):
+            if command not in commands:
+                commands.append(command)
+    return commands
+
+
+def _build_direct_dispatch_task(target, scope, prompt, ip, payload, schedule, run_mode, exec_mode, reason, workflow=None, stages=None):
     body = payload if isinstance(payload, dict) else {}
     task = str(prompt or "").strip() or _string_payload_value(
         body,
@@ -6489,6 +6548,17 @@ def _build_direct_dispatch_task(target, scope, prompt, ip, payload, schedule, ru
         subject = ip or scope or "current scope"
         task = f"Run {target} for {subject}."
 
+    commands = _direct_stage_commands(workflow=workflow, stages=stages)
+    if commands and ip:
+        command_lines = [f"/{command} {ip}" for command in commands]
+        command_text = "\n".join(command_lines)
+        if not any(line in task for line in command_lines):
+            task = (
+                "Run these stage command(s) on the target workflow before reporting DONE:\n"
+                f"{command_text}\n\n"
+                f"{task}"
+            )
+
     header = []
     if ip:
         header.append(f"IP: {ip}")
@@ -6505,6 +6575,28 @@ def _build_direct_dispatch_task(target, scope, prompt, ip, payload, schedule, ru
     if header:
         return "\n".join(header + ["", task])
     return task
+
+
+def _direct_dispatch_session(target, ip="", scope=""):
+    active = os.environ.get("ATLAS_ACTIVE_SESSION", "").strip()
+    parts = [p for p in active.split("/") if p]
+    owner = (
+        os.environ.get("ATLAS_DEFAULT_SESSION_ID", "").strip()
+        or os.environ.get("ATLAS_USER_SESSION_ID", "").strip()
+        or (parts[0] if parts else "")
+        or "default"
+    )
+    ip_name = str(ip or "").strip()
+    if not ip_name and len(parts) >= 2:
+        ip_name = parts[-2]
+    if not ip_name and scope:
+        ip_name = Path(str(scope).rstrip("/")).name
+    ip_name = ip_name or "default"
+    return f"{owner}/{ip_name}/{target}"
+
+
+def _truthy_env(name):
+    return os.environ.get(name, "").strip().lower() in {"1", "true", "yes", "on"}
 
 
 def _dispatch_workflow_direct_fallback(
@@ -6526,9 +6618,9 @@ def _dispatch_workflow_direct_fallback(
 
     try:
         try:
-            from core.agent_client import _resolve_worker, worker_call
+            from core.agent_client import _resolve_worker, worker_call, worker_start
         except Exception:
-            from agent_client import worker_call  # type: ignore
+            from agent_client import worker_call, worker_start  # type: ignore
             _resolve_worker = None  # type: ignore
 
         timeout_raw = os.environ.get("ATLAS_DIRECT_WORKER_TIMEOUT", "600")
@@ -6546,6 +6638,8 @@ def _dispatch_workflow_direct_fallback(
             run_mode=run_mode or "",
             exec_mode=exec_mode or "",
             reason=reason or "",
+            workflow=workflow or "",
+            stages=stages,
         )
         # Lazy-spawn the per-workflow worker if the orchestrator is the
         # first caller. Prefer the registered bridge; when the bridge was
@@ -6593,25 +6687,58 @@ def _dispatch_workflow_direct_fallback(
                     "ip": ip or "",
                     "scope": scope or "",
                     "status": "error",
-                    "result": {"error": f"lazy worker spawn failed: {exc}"},
+                        "result": {"error": f"lazy worker spawn failed: {exc}"},
                 }, ""
-        result = worker_call(
-            worker=target,
-            task=task,
-            model=model or "",
-            workflow=target,
-            timeout=timeout,
-            show_log=False,
-        )
-        ok = isinstance(result, dict) and result.get("status") == "completed"
+        session_name = _direct_dispatch_session(target, ip=ip or "", scope=scope or "")
+        project_root = lazy_project_root
+        scope_path = ""
+        if ip:
+            scope_path = str(ip)
+        elif scope:
+            scope_path = str(scope)
+        if _truthy_env("ATLAS_DIRECT_WORKER_SYNC"):
+            result = worker_call(
+                worker=target,
+                task=task,
+                model=model or "",
+                workflow=target,
+                timeout=timeout,
+                show_log=False,
+            )
+            ok = isinstance(result, dict) and result.get("status") == "completed"
+            status = result.get("status") if isinstance(result, dict) else ""
+            run_id = result.get("run_id", "") if isinstance(result, dict) else ""
+        else:
+            result = worker_start(
+                worker=target,
+                task=task,
+                model=model or "",
+                workflow=target,
+                session=session_name,
+                ip=ip or "",
+                project_root=project_root,
+                source_root=os.environ.get("ATLAS_WORKFLOW_ROOT", ""),
+                context=task.split("\n\n", 1)[0],
+                run_mode=run_mode or "",
+                exec_mode=exec_mode or "",
+                stage_id=_normalize_dispatch_stages(stages)[0] if _normalize_dispatch_stages(stages) else target,
+                scope_path=scope_path,
+                timeout=min(timeout, 30),
+            )
+            run_id = result.get("run_id", "") if isinstance(result, dict) else ""
+            status = result.get("status", "") if isinstance(result, dict) else ""
+            ok = bool(run_id) and status != "error"
         return {
             "ok": ok,
             "source": "direct_worker_fallback",
             "workflow": target,
             "worker": target,
+            "worker_url": resolved_url,
             "ip": ip or "",
             "scope": scope or "",
-            "status": result.get("status") if isinstance(result, dict) else "",
+            "session": session_name,
+            "run_id": run_id,
+            "status": status,
             "result": result,
         }, ""
     except Exception as exc:
