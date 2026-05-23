@@ -28,6 +28,16 @@ from pathlib import Path
 from typing import Any
 
 
+REPAIR_MARKER_PHRASES = (
+    "auto-injected transaction coverage/state marker",
+    "repair marker making this transaction machine-checkable",
+    "ssot-gen should replace with ip-specific",
+    "architectural output matches feature definition",
+    "architectural state updates according to fsm/control policy",
+    "feature trigger is asserted under legal configuration",
+)
+
+
 SCOREBOARD_FIELDS = [
     "goal_id",
     "scenario_id",
