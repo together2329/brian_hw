@@ -300,6 +300,7 @@
     "Generate real RTL; do not instantiate a fixed IP template or copy boilerplate as the implementation.",
     "Do not close static RTL evidence with comments: derive_rtl_todos.py strips comments before matching, so evidence_terms must be preserved in live lint-clean RTL identifiers/logic.",
     "Do not close static RTL evidence with evidence-only alias wires or marker-only helper wires; the matched identifiers must participate in real RTL behavior.",
+    "Repair-generated FunctionModel fm*_observed markers are advisory schema-repair traceability only; do not create RTL ports, wires, or state solely for tasks tagged repair_generated_fm_marker.",
     "If reference_profile is present, use it only to understand implementation scale and decomposition gaps; never copy or clone reference RTL.",
     "After the top RTL exists, prioritize missing manifest child RTL packets before residual top-module slices.",
     "Keep locked authority artifacts unchanged unless a human approves a change request.",

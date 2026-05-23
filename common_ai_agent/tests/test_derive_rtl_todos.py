@@ -215,6 +215,56 @@ def test_workflow_todo_evidence_ignores_synthetic_todo_ids():
     assert {"counter_reg", "reg"} <= set(terms)
 
 
+def test_repair_generated_fm_markers_are_not_authoring_work(tmp_path: Path):
+    derive = _load_derive()
+    tasks: list[dict[str, Any]] = []
+    repair_marker = {
+        "name": "fm2_observed",
+        "expr": "1",
+        "description": "Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.",
+    }
+    owner = {"module": "counter_reg", "file": "rtl/counter_reg.sv", "matched_ref": "function_model"}
+
+    derive._task(
+        tasks,
+        category="function_model.state_update",
+        source_ref="function_model.transactions.FM2.state_updates.fm2_observed",
+        title="Implement state update for FM2: fm2_observed",
+        detail="Repair-generated marker from SSOT schema repair.",
+        criteria=["RTL owner logic is identifiable"],
+        owner=owner,
+        value=repair_marker,
+    )
+    derive._task(
+        tasks,
+        category="function_model.output_rule",
+        source_ref="function_model.transactions.FM1.output_rules.count",
+        title="Implement output rule for FM1: count",
+        detail="Real output rule.",
+        criteria=["count is driven"],
+        owner=owner,
+        value={"name": "count", "expr": "count_q"},
+    )
+
+    plan = {"schema_version": 1, "ip": "counter", "top": "counter", "tasks": tasks, "gate": {"status": "fail"}}
+    derive._update_todo_completion(plan, tmp_path, audit_rtl=True)
+
+    assert tasks[0]["required"] is False
+    assert "repair_generated_fm_marker" in tasks[0]["policy_tags"]
+    assert tasks[0]["todo_completion"]["status"] == "pass"
+    assert tasks[1]["required"] is True
+
+    authoring_plan = derive._write_authoring_packets(tmp_path, plan, todo_plan_sha256="unit-test")
+    packet_tasks = []
+    for packet in authoring_plan["authoring_packets"]:
+        packet_json = tmp_path / packet["json"]
+        packet_tasks.extend(derive._safe_read_json(packet_json)["tasks"])
+
+    assert packet_tasks
+    assert all("fm2_observed" not in str(task.get("source_ref", "")) for task in packet_tasks)
+    assert any(task.get("source_ref") == "function_model.transactions.FM1.output_rules.count" for task in packet_tasks)
+
+
 def test_placeholder_audit_accepts_not_implemented_in_comment(tmp_path: Path):
     derive = _load_derive()
     ip_dir = tmp_path / "ip"
