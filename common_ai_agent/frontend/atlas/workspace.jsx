@@ -4030,6 +4030,43 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
           </span>
         </div>
       ) : null}
+      {workflow === 'orchestrator' && orchWorkers.length > 0 ? (
+        <div style={{
+          display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6,
+          padding: '5px 12px', margin: '0 0 6px',
+          borderTop: '1px solid var(--line)',
+          fontFamily: 'var(--mono)', fontSize: 11,
+        }}>
+          <span className="mute" style={{ color: 'var(--fg-mute)' }}>workers</span>
+          {orchWorkers.map(w => {
+            const st = Number(w.running_count || 0) > 0 ? 'running'
+              : Number(w.pending_count || 0) > 0 ? 'starting' : 'queued';
+            const col = st === 'running' ? 'var(--accent)' : 'var(--warn)';
+            return (
+              <button key={w.workflow} type="button"
+                title={`Open the ${w.workflow} worker session for full live detail`}
+                onClick={() => {
+                  try {
+                    window.openPipelineWorkflowWorkspace?.({
+                      ip: String(activeIp || '').trim(), workflow: w.workflow,
+                    });
+                  } catch (_) {}
+                }}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 5,
+                  padding: '2px 8px', border: '1px solid var(--line-2)',
+                  borderRadius: 10, background: 'var(--bg-2)', cursor: 'pointer',
+                  color: 'var(--fg)', fontFamily: 'var(--mono)', fontSize: 11,
+                }}>
+                <span style={{ color: col }}>{st === 'running' ? '▶' : '◌'}</span>
+                <span style={{ fontWeight: 700 }}>{w.workflow}</span>
+                <span className="mute" style={{ color: 'var(--fg-mute)' }}>{st}</span>
+              </button>
+            );
+          })}
+          <span className="mute" style={{ color: 'var(--fg-dim)', marginLeft: 'auto' }}>click → detail</span>
+        </div>
+      ) : null}
     <div className="prompt-row">
       <span className="ps" style={{ color: 'var(--fg-mute)' }}>❯</span>
       <textarea ref={inputRef} value={input}
