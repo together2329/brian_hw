@@ -6646,6 +6646,12 @@ def _dispatch_workflow_direct_fallback(
         except Exception:
             from agent_client import worker_call, worker_start  # type: ignore
             _resolve_worker = None  # type: ignore
+        try:
+            from core.atlas_exec_policy import current_exec_mode, normalize_exec_mode
+        except Exception:
+            from atlas_exec_policy import current_exec_mode, normalize_exec_mode  # type: ignore
+
+        effective_exec_mode = normalize_exec_mode(exec_mode) or current_exec_mode(os.environ)
 
         timeout_raw = os.environ.get("ATLAS_DIRECT_WORKER_TIMEOUT", "600")
         try:
@@ -6660,7 +6666,7 @@ def _dispatch_workflow_direct_fallback(
             payload=payload,
             schedule=schedule or "auto",
             run_mode=run_mode or "",
-            exec_mode=exec_mode or "",
+            exec_mode=effective_exec_mode,
             reason=reason or "",
             workflow=workflow or "",
             stages=stages,
@@ -6692,7 +6698,7 @@ def _dispatch_workflow_direct_fallback(
                         os.environ.get("ATLAS_ACTIVE_DB_USER_ID", "")
                         or os.environ.get("ATLAS_DB_USER_ID", "")
                     ),
-                    exec_mode=exec_mode or "orchestrator",
+                    exec_mode=effective_exec_mode,
                 )
                 if scoped_url:
                     resolved_url = scoped_url
@@ -6767,7 +6773,7 @@ def _dispatch_workflow_direct_fallback(
                 source_root=os.environ.get("ATLAS_WORKFLOW_ROOT", ""),
                 context=task.split("\n\n", 1)[0],
                 run_mode=run_mode or "",
-                exec_mode=exec_mode or "",
+                exec_mode=effective_exec_mode,
                 stage_id=_normalize_dispatch_stages(stages)[0] if _normalize_dispatch_stages(stages) else target,
                 scope_path=scope_path,
                 timeout=min(timeout, 30),
@@ -6786,6 +6792,7 @@ def _dispatch_workflow_direct_fallback(
             "session": session_name,
             "run_id": run_id,
             "status": status,
+            "exec_mode": effective_exec_mode,
             "result": result,
         }, ""
     except Exception as exc:

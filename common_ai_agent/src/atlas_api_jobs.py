@@ -38,6 +38,17 @@ from fastapi import FastAPI
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 
+from core.atlas_exec_policy import (
+    EXEC_MODE_ORCHESTRATOR,
+    EXEC_MODE_SINGLE,
+    EXEC_MODES,
+    SINGLE_WORKER_URL,
+    apply_exec_mode_env,
+    current_exec_mode,
+    exec_policy_payload,
+    normalize_exec_mode,
+    schedule_for_exec_mode,
+)
 from src.orchestrator.profile import (
     ORCHESTRATOR_MODEL,
     ORCHESTRATOR_REASONING_EFFORT,
@@ -318,7 +329,7 @@ def _junit_counts(results_xml: Path) -> tuple[int, int, int]:
         )
     return tests, failures, errors
 _RUN_MODES = ("starter", "engineering", "signoff")
-_EXEC_MODES = ("single-worker", "orchestrator")
+_EXEC_MODES = EXEC_MODES
 _WORKER_MODEL_DEFAULTS = {
     "orchestrator": "gpt-5.5",
     "ssot-gen": "gpt-5.5",
@@ -669,32 +680,11 @@ def _current_run_mode() -> str:
 
 
 def _normalize_exec_mode(value: Any) -> str:
-    mode = str(value or "").strip().lower().replace("_", "-")
-    aliases = {
-        "single": "single-worker",
-        "single-worker": "single-worker",
-        "single worker": "single-worker",
-        "worker": "single-worker",
-        "serial": "single-worker",
-        "orch": "orchestrator",
-        "orchestrator-mode": "orchestrator",
-        "multi-worker": "orchestrator",
-        "multi worker": "orchestrator",
-    }
-    mode = aliases.get(mode, mode)
-    return mode if mode in _EXEC_MODES else ""
+    return normalize_exec_mode(value)
 
 
 def _current_exec_mode() -> str:
-    if os.environ.get("ATLAS_ORCHESTRATOR_MODE") is not None:
-        return "orchestrator" if _truthy_env("ATLAS_ORCHESTRATOR_MODE") else "single-worker"
-    explicit = _normalize_exec_mode(os.environ.get("ATLAS_EXEC_MODE"))
-    if explicit:
-        return explicit
-    explicit = _normalize_exec_mode(os.environ.get("ATLAS_DEFAULT_EXEC_MODE"))
-    if explicit:
-        return explicit
-    return "orchestrator" if _orchestrator_mode_enabled() else "single-worker"
+    return current_exec_mode(os.environ)
 
 
 def _provenance_summary(ip_dir: Path, run_mode: str) -> dict[str, Any]:
@@ -866,14 +856,23 @@ def _job_allows_failed_dependency(candidate: dict[str, Any], dependency: dict[st
     return str(dependency.get("stage_id") or "") in allowed
 
 
-def _resolve_pipeline_schedule(requested_schedule: str, stages: list[dict[str, str]]) -> str:
+def _resolve_pipeline_schedule(
+    requested_schedule: str,
+    stages: list[dict[str, str]],
+    *,
+    exec_mode: str = "",
+) -> str:
     if requested_schedule in {"dag", "serial"}:
         return requested_schedule
     worker_urls = {
         _resolve_worker_url(str(stage.get("workflow") or ""))
         for stage in stages
     }
-    return "dag" if len(worker_urls) > 1 else "serial"
+    return schedule_for_exec_mode(
+        _normalize_exec_mode(exec_mode) or _current_exec_mode(),
+        requested_schedule,
+        list(worker_urls),
+    )
 
 
 def _ordered_pipeline_stages(stages: list[dict[str, str]]) -> list[dict[str, str]]:
@@ -1698,9 +1697,7 @@ def _workflow_worker_per_owner_enabled(exec_mode: str = "") -> bool:
         return False
 
     effective_exec = _normalize_exec_mode(exec_mode) or _current_exec_mode()
-    if effective_exec != "orchestrator":
-        return False
-    if _truthy_env("ATLAS_SINGLE_MAIN_LOOP"):
+    if effective_exec != EXEC_MODE_ORCHESTRATOR:
         return False
     return True
 
@@ -1770,8 +1767,8 @@ def _session_scoped_worker_url(
 
 def _resolve_worker_url(workflow: str) -> str:
     """Same precedence as core.delegate_runner.HTTPWorkerDelegate."""
-    if _truthy_env("ATLAS_SINGLE_MAIN_LOOP") or _current_exec_mode() == "single-worker":
-        return f"http://127.0.0.1:{_DEFAULT_SINGLE_MAIN_LOOP_PORT}"
+    if _current_exec_mode() == EXEC_MODE_SINGLE:
+        return SINGLE_WORKER_URL
     if workflow:
         url = _workflow_specific_worker_url(workflow)
         if url:
@@ -2818,17 +2815,7 @@ def _advance_pipeline_from(job: dict[str, Any]) -> None:
 
 
 def _orchestrator_mode_enabled() -> bool:
-    if os.environ.get("ATLAS_ORCHESTRATOR_MODE") is not None:
-        return _truthy_env("ATLAS_ORCHESTRATOR_MODE")
-    explicit = _normalize_exec_mode(os.environ.get("ATLAS_EXEC_MODE"))
-    if explicit:
-        return explicit == "orchestrator"
-    explicit = _normalize_exec_mode(os.environ.get("ATLAS_DEFAULT_EXEC_MODE"))
-    if explicit:
-        return explicit == "orchestrator"
-    if os.environ.get("ATLAS_ORCHESTRATOR_MODE") is None:
-        return True
-    return _truthy_env("ATLAS_ORCHESTRATOR_MODE")
+    return _current_exec_mode() == EXEC_MODE_ORCHESTRATOR
 
 
 def _orchestrator_block(
@@ -4694,8 +4681,12 @@ def register_jobs_routes(
                 return JSONResponse({"error": f"unknown pipeline stage {key!r}"}, status_code=400)
             if not any(s["id"] == stage["id"] for s in resolved):
                 resolved.append(stage)
-        schedule = "serial" if requested_schedule == "auto" and exec_mode == "single-worker" else _resolve_pipeline_schedule(requested_schedule, resolved)
         resolved = _ordered_pipeline_stages(resolved)
+        schedule = _resolve_pipeline_schedule(
+            requested_schedule,
+            resolved,
+            exec_mode=exec_mode,
+        )
         owner_user_id    = _request_username(request)
         selected_stage_ids = [stage["id"] for stage in resolved]
         db_user_id = _request_db_user_id(request)
@@ -5172,10 +5163,10 @@ def register_jobs_routes(
             if not any(s["id"] == stage["id"] for s in resolved):
                 resolved.append(stage)
         resolved = _ordered_pipeline_stages(resolved)
-        dispatch_schedule = (
-            "serial"
-            if req_schedule == "auto" and exec_mode_resolved == "single-worker"
-            else _resolve_pipeline_schedule(req_schedule, resolved)
+        dispatch_schedule = _resolve_pipeline_schedule(
+            req_schedule,
+            resolved,
+            exec_mode=exec_mode_resolved,
         )
 
         context_session = normalize_session_name(str(
@@ -5903,12 +5894,20 @@ def register_jobs_routes(
 
     def _run_policy_payload() -> dict[str, Any]:
         exec_mode = _current_exec_mode()
+        policy = exec_policy_payload(exec_mode, env=os.environ)
         return {
             "run_mode": _current_run_mode(),
             "exec_mode": exec_mode,
-            "orchestrator_enabled": exec_mode == "orchestrator",
+            "orchestrator_enabled": exec_mode == EXEC_MODE_ORCHESTRATOR,
             "run_modes": list(_RUN_MODES),
             "exec_modes": list(_EXEC_MODES),
+            "policy": policy,
+            "initial_workflow": policy["initial_workflow"],
+            "dispatch_schedule": policy["dispatch_schedule"],
+            "worker_strategy": policy["worker_strategy"],
+            "single_worker_url": policy["single_worker_url"],
+            "preserve_running_on_workflow_switch": policy["preserve_running_on_workflow_switch"],
+            "allow_orchestrator_namespace": policy["allow_orchestrator_namespace"],
         }
 
     @app.get("/api/pipeline/run_policy")
@@ -5939,18 +5938,10 @@ def register_jobs_routes(
             exec_mode = _normalize_exec_mode(body.get("exec_mode"))
             if not exec_mode:
                 return JSONResponse({"error": "exec_mode must be single-worker or orchestrator"}, status_code=400)
-            os.environ["ATLAS_EXEC_MODE"] = exec_mode
-            os.environ["ATLAS_DEFAULT_EXEC_MODE"] = exec_mode
-            os.environ["ATLAS_ORCHESTRATOR_MODE"] = "1" if exec_mode == "orchestrator" else "0"
-            os.environ["ATLAS_SINGLE_MAIN_LOOP"] = "1" if exec_mode == "single-worker" else "0"
+            persisted_exec = apply_exec_mode_env(exec_mode, os.environ)
             if persist_config_values is not None:
                 try:
-                    persist_config_values({
-                        "ATLAS_EXEC_MODE": exec_mode,
-                        "ATLAS_DEFAULT_EXEC_MODE": exec_mode,
-                        "ATLAS_ORCHESTRATOR_MODE": "1" if exec_mode == "orchestrator" else "0",
-                        "ATLAS_SINGLE_MAIN_LOOP": "1" if exec_mode == "single-worker" else "0",
-                    })
+                    persist_config_values(persisted_exec)
                 except Exception:
                     pass
 

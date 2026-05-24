@@ -18,6 +18,13 @@ import urllib.request
 import urllib.error
 from typing import Any, Dict, Optional
 
+from core.atlas_exec_policy import (
+    EXEC_MODE_SINGLE,
+    SINGLE_WORKER_URL,
+    current_exec_mode,
+    normalize_exec_mode,
+)
+
 
 # ── Public API ────────────────────────────────────────────────
 
@@ -27,7 +34,6 @@ _coordinator_cache: Dict[str, str] = {}
 _coordinator_cache_ts = 0.0
 _COORDINATOR_CACHE_TTL = 30.0  # seconds
 
-_DEFAULT_SINGLE_MAIN_LOOP_PORT = 5601
 _DEFAULT_WORKER_PORTS = {
     "ssot-gen": 5621,
     "fl-model-gen": 5622,
@@ -55,39 +61,12 @@ def set_coordinator(url: str = ""):
     _coordinator_url = url.rstrip("/") if url else ""
 
 
-def _truthy_env(name: str) -> bool:
-    return os.environ.get(name, "").strip().lower() in {"1", "true", "yes", "on"}
-
-
 def _normalize_exec_mode(value: str) -> str:
-    mode = str(value or "").strip().lower().replace("_", "-")
-    aliases = {
-        "s": "single-worker",
-        "single": "single-worker",
-        "single-worker": "single-worker",
-        "single worker": "single-worker",
-        "worker": "single-worker",
-        "serial": "single-worker",
-        "o": "orchestrator",
-        "orch": "orchestrator",
-        "orchestrator-mode": "orchestrator",
-        "multi-worker": "orchestrator",
-        "multi worker": "orchestrator",
-    }
-    return aliases.get(mode, mode)
+    return normalize_exec_mode(value) or str(value or "").strip().lower().replace("_", "-")
 
 
 def _single_worker_mode_enabled() -> bool:
-    if os.environ.get("ATLAS_ORCHESTRATOR_MODE") is not None:
-        return not _truthy_env("ATLAS_ORCHESTRATOR_MODE")
-    if _truthy_env("ATLAS_SINGLE_MAIN_LOOP"):
-        return True
-    mode = _normalize_exec_mode(
-        os.environ.get("ATLAS_EXEC_MODE")
-        or os.environ.get("ATLAS_DEFAULT_EXEC_MODE")
-        or ""
-    )
-    return mode == "single-worker"
+    return current_exec_mode(os.environ) == EXEC_MODE_SINGLE
 
 
 def _workflow_env_suffix(workflow: str) -> str:
@@ -112,7 +91,7 @@ def _builtin_worker_url(worker: str) -> str:
     if not workflow:
         return ""
     if _single_worker_mode_enabled():
-        return f"http://127.0.0.1:{_DEFAULT_SINGLE_MAIN_LOOP_PORT}"
+        return SINGLE_WORKER_URL
     if workflow not in _DEFAULT_WORKER_PORTS:
         return ""
     specific = _workflow_specific_worker_url(workflow)

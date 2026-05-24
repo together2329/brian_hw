@@ -107,6 +107,15 @@ else:
         class Request:  # fallback name for annotations when FastAPI is absent
             pass
 
+from core.atlas_exec_policy import (
+    EXEC_MODE_ORCHESTRATOR,
+    apply_exec_mode_env,
+    current_exec_mode,
+    exec_policy_payload,
+    initial_workflow_for_exec_mode,
+    normalize_exec_mode,
+)
+
 # ── Paths ──────────────────────────────────────────────────────────
 HERE         = Path(__file__).resolve().parent
 SOURCE_ROOT  = HERE.parent                            # common_ai_agent/ (source)
@@ -2905,39 +2914,17 @@ def create_app():
         raw = os.environ.get("ATLAS_MULTI_USER", "1").strip().lower()
         return raw not in ("0", "false", "no", "off")
 
-    def _truthy_atlas_value(value: Any) -> bool:
-        return str(value or "").strip().lower() not in ("", "0", "false", "no", "off")
-
     def _normalize_atlas_exec_mode(value: Any) -> str:
-        mode = str(value or "").strip().lower().replace("_", "-")
-        aliases = {
-            "single": "single-worker",
-            "single-worker": "single-worker",
-            "single worker": "single-worker",
-            "worker": "single-worker",
-            "serial": "single-worker",
-            "orch": "orchestrator",
-            "orchestrator-mode": "orchestrator",
-            "multi-worker": "orchestrator",
-            "multi worker": "orchestrator",
-        }
-        mode = aliases.get(mode, mode)
-        return mode if mode in {"single-worker", "orchestrator"} else ""
+        return normalize_exec_mode(value)
 
     def _current_atlas_exec_mode() -> str:
-        if os.environ.get("ATLAS_ORCHESTRATOR_MODE") is not None:
-            return "orchestrator" if _truthy_atlas_value(os.environ.get("ATLAS_ORCHESTRATOR_MODE")) else "single-worker"
-        return (
-            _normalize_atlas_exec_mode(os.environ.get("ATLAS_EXEC_MODE"))
-            or _normalize_atlas_exec_mode(os.environ.get("ATLAS_DEFAULT_EXEC_MODE"))
-            or "orchestrator"
-        )
+        return current_exec_mode(os.environ)
 
-    def _new_ip_initial_workflow(explicit: Any = "") -> str:
-        requested = normalize_session_name(str(explicit or ""))
-        if requested in {"orchestrator", "ssot-gen"}:
-            return requested
-        return "orchestrator" if _current_atlas_exec_mode() == "orchestrator" else "ssot-gen"
+    def _new_ip_initial_workflow(explicit: Any = "", exec_mode: Any = "") -> str:
+        return initial_workflow_for_exec_mode(
+            _normalize_atlas_exec_mode(exec_mode) or _current_atlas_exec_mode(),
+            normalize_session_name(str(explicit or "")),
+        )
 
     if _multi_user_env:
         print(f"[atlas] Multi-user enabled (process_per_session={'on' if _use_proc else 'off'})")
@@ -3204,13 +3191,12 @@ def create_app():
         html = _inline_html_cached(template_name)
         if not html:
             return html
-        exec_mode = (os.environ.get("ATLAS_EXEC_MODE")
-                     or os.environ.get("ATLAS_DEFAULT_EXEC_MODE")
-                     or ("orchestrator" if os.environ.get("ATLAS_ORCHESTRATOR_MODE", "1").strip().lower()
-                         not in ("0", "false", "no", "off") else "single-worker"))
+        exec_mode = _current_atlas_exec_mode()
+        policy = exec_policy_payload(exec_mode, env=os.environ)
         payload = {
             "run_mode": os.environ.get("ATLAS_RUN_MODE", "engineering"),
             "exec_mode": exec_mode,
+            "exec_policy": policy,
             "multi_user": os.environ.get("ATLAS_MULTI_USER", "1"),
             "multi_user_proc": os.environ.get("ATLAS_MULTI_USER_PROC", "1"),
         }
@@ -4875,8 +4861,12 @@ def create_app():
             body = {}
         name = str((body or {}).get("name") or "").strip()
         kind = str((body or {}).get("kind") or "TBD").strip() or "TBD"
+        requested_exec_mode = _normalize_atlas_exec_mode((body or {}).get("exec_mode"))
+        if (body or {}).get("exec_mode") is not None and not requested_exec_mode:
+            return JSONResponse({"error": "exec_mode must be single-worker or orchestrator"}, status_code=400)
         workflow = _new_ip_initial_workflow(
-            (body or {}).get("workflow") or (body or {}).get("initial_workflow")
+            (body or {}).get("workflow") or (body or {}).get("initial_workflow"),
+            requested_exec_mode,
         )
         if not name:
             return JSONResponse({"error": "name required"}, status_code=400)
@@ -18508,20 +18498,11 @@ def main() -> None:
     # the CLI flag wins over inherited env.
     _exec_raw = (args.exec_mode or "").strip().lower()
     if _exec_raw:
-        if _exec_raw in {"s", "single", "single-worker", "sw", "main"}:
-            _exec_resolved = "single-worker"
-        elif _exec_raw in {"o", "orch", "orchestrator"}:
-            _exec_resolved = "orchestrator"
-        else:
+        _exec_resolved = normalize_exec_mode(_exec_raw)
+        if not _exec_resolved:
             sys.exit(f"--exec: unknown value {args.exec_mode!r}. "
                      f"Use s|single|single-worker or o|orch|orchestrator.")
-        os.environ["ATLAS_EXEC_MODE"] = _exec_resolved
-        if _exec_resolved == "single-worker":
-            os.environ["ATLAS_SINGLE_MAIN_LOOP"] = "1"
-            os.environ["ATLAS_ORCHESTRATOR_MODE"] = "0"
-        else:
-            os.environ["ATLAS_SINGLE_MAIN_LOOP"] = "0"
-            os.environ["ATLAS_ORCHESTRATOR_MODE"] = "1"
+        apply_exec_mode_env(_exec_resolved, os.environ)
     # Re-anchor PROJECT_ROOT before any request handler runs. Module-level
     # PROJECT_ROOT was computed from the import-time cwd; chdir + rebind
     # so /api/files, .session/, and friends all serve from --root.
@@ -18570,7 +18551,7 @@ def main() -> None:
     _sync_env_to_context()
     os.environ.setdefault("ATLAS_DEFAULT_SESSION_ID", args.session_id)
     os.environ.setdefault("ATLAS_DEFAULT_WORKFLOW", args.workflow)
-    if os.environ.get("ATLAS_EXEC_MODE") == "orchestrator":
+    if current_exec_mode(os.environ) == EXEC_MODE_ORCHESTRATOR:
         from src.orchestrator.profile import (
             ORCHESTRATOR_MODEL,
             ORCHESTRATOR_REASONING_EFFORT,
