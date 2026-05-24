@@ -79,6 +79,8 @@ def _question_intents(question: str) -> set[str]:
         intents.add("models")
     if any(k in q for k in ("workflow", "워크플로우")):
         intents.add("workflows")
+    if any(k in q for k in ("stage", "stages", "단계", "스테이지")):
+        intents.add("stages")
     if any(k in q for k in ("ip", "아이피")):
         intents.add("ips")
     if not intents:
@@ -99,6 +101,7 @@ def answer_admin_question(db, question: str) -> dict[str, Any]:
     tool_rows = usage.get("tool_usage", [])
     memory_rules = usage.get("memory_rules", [])
     input_history = usage.get("input_history", [])
+    workflow_stages = usage.get("workflow_stages", [])
 
     total_cost = sum(float(row.get("total_cost_usd") or 0) for row in users)
     total_tokens = sum(
@@ -195,6 +198,32 @@ def answer_admin_question(db, question: str) -> dict[str, Any]:
             for row in rows[:6]
         ) if rows else "no workflow usage yet."))
         sections.append({"title": "Workflows", "rows": rows})
+
+    if "stages" in intents:
+        status_counts: dict[str, int] = defaultdict(int)
+        for row in workflow_stages:
+            status_counts[_text(row.get("status")) or "unknown"] += 1
+        if workflow_stages:
+            summary = ", ".join(
+                f"{status}={_fmt_int(count)}"
+                for status, count in sorted(status_counts.items())
+            )
+            recent = workflow_stages[:10]
+            lines.append(
+                f"Stages: {len(workflow_stages)} recent rows loaded"
+                + (f" ({summary})." if summary else ".")
+            )
+            lines.append("Recent stages: " + "; ".join(
+                f"{_text(row.get('ip')) or 'unknown'} "
+                f"{_text(row.get('workflow')) or 'workflow'}:"
+                f"{_text(row.get('stage_name')) or 'stage'} "
+                f"{_text(row.get('status')) or 'unknown'}"
+                for row in recent[:5]
+            ))
+        else:
+            lines.append("Stages: no workflow stage rows yet.")
+            recent = []
+        sections.append({"title": "Workflow Stages", "rows": recent})
 
     if "ips" in intents:
         ips: dict[str, dict[str, Any]] = {}

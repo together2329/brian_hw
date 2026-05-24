@@ -160,6 +160,55 @@ def test_admin_usage_reports_memory_rules_and_user_inputs(tmp_path: Path) -> Non
     assert usage["input_history"][0]["content"] == "build the AXI block"
 
 
+def test_admin_usage_reports_workflow_stages(tmp_path: Path) -> None:
+    with AtlasDB(str(tmp_path / "atlas.db")) as db:
+        user = db.create_user("stage_user", "Stage User")
+        session = db.create_session(user["id"], "Stage Session", project_id="uart")
+        workspace = db.upsert_workspace("stage-ws", owner_user_id=user["id"], local_path="/repo/stage")
+        ip = db.upsert_ip_block(workspace["id"], "uart", ip_type="peripheral")
+        run = db.start_workflow_run(
+            session_id=session["id"],
+            workspace_id=workspace["id"],
+            ip_id=ip["id"],
+            workflow="pipeline",
+            mode="orchestrator",
+            trigger_source="admin-smoke",
+        )
+        stage = db.start_workflow_stage(run["id"], "rtl", attempt=2)
+        db.record_workflow_event(run["id"], "stage.started", {"stage": "rtl"}, stage_id=stage["id"])
+        db.record_llm_call(
+            session_id=session["id"],
+            run_id=run["id"],
+            stage_id=stage["id"],
+            workspace_id=workspace["id"],
+            ip_id=ip["id"],
+            workflow="pipeline",
+            model="gpt-5.5",
+            provider="openai",
+            tokens_input=100,
+            tokens_output=40,
+            cost_usd=0.12,
+        )
+        db.finish_workflow_stage(stage["id"], "failed", error_summary="lint failed")
+
+        usage = build_admin_usage_payload(db)
+
+    assert len(usage["workflow_stages"]) == 1
+    row = usage["workflow_stages"][0]
+    assert row["username"] == "stage_user"
+    assert row["ip"] == "uart"
+    assert row["workspace"] == "stage-ws"
+    assert row["workflow"] == "pipeline"
+    assert row["stage_name"] == "rtl"
+    assert row["status"] == "failed"
+    assert row["attempt"] == 2
+    assert row["llm_calls"] == 1
+    assert row["tokens"] == 140
+    assert row["cost"] == 0.12
+    assert row["event_count"] == 1
+    assert row["error_summary"] == "lint failed"
+
+
 def test_admin_chat_answers_memory_and_input_questions_from_db(tmp_path: Path) -> None:
     with AtlasDB(str(tmp_path / "atlas.db")) as db:
         user = db.create_user("chat_user", "Chat User")
@@ -175,6 +224,27 @@ def test_admin_chat_answers_memory_and_input_questions_from_db(tmp_path: Path) -
     section_titles = [section["title"] for section in answer["sections"]]
     assert "Memory Rules" in section_titles
     assert "Latest User Inputs" in section_titles
+
+
+def test_admin_chat_answers_stage_questions_from_db(tmp_path: Path) -> None:
+    with AtlasDB(str(tmp_path / "atlas.db")) as db:
+        user = db.create_user("stage_chat", "Stage Chat")
+        session = db.create_session(user["id"], "Stage Chat Session", project_id="spi")
+        workspace = db.upsert_workspace("stage-chat-ws", owner_user_id=user["id"], local_path="/repo/spi")
+        ip = db.upsert_ip_block(workspace["id"], "spi", ip_type="peripheral")
+        run = db.start_workflow_run(
+            session_id=session["id"],
+            workspace_id=workspace["id"],
+            ip_id=ip["id"],
+            workflow="pipeline",
+        )
+        db.start_workflow_stage(run["id"], "sim", attempt=1)
+
+        answer = answer_admin_question(db, "show stage status")
+
+    assert "Stages: 1 recent rows loaded" in answer["answer"]
+    assert "spi pipeline:sim running" in answer["answer"]
+    assert answer["sections"][0]["title"] == "Workflow Stages"
 
 
 def test_admin_usage_prefers_llm_calls_for_cost_context(tmp_path: Path) -> None:

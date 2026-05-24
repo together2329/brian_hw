@@ -8,6 +8,7 @@ function AdminPage() {
   const [todoFlow, setTodoFlow] = React.useState([]);
   const [traceEvents, setTraceEvents] = React.useState([]);
   const [toolUsage, setToolUsage] = React.useState([]);
+  const [workflowStages, setWorkflowStages] = React.useState([]);
   const [interventions, setInterventions] = React.useState([]);
   const [rtlRunHistory, setRtlRunHistory] = React.useState([]);
   const [artifactVersions, setArtifactVersions] = React.useState([]);
@@ -116,6 +117,7 @@ function AdminPage() {
       setTodoFlow(usageData.todo_flow || []);
       setTraceEvents(usageData.trace_events || []);
       setToolUsage(usageData.tool_usage || []);
+      setWorkflowStages(usageData.workflow_stages || []);
       setInterventions(usageData.interventions || []);
       setRtlRunHistory(usageData.rtl_run_history || []);
       setArtifactVersions(usageData.artifact_versions || []);
@@ -729,6 +731,12 @@ function AdminPage() {
 
   const fmt = (n) => (n == null ? '—' : Number(n).toLocaleString());
   const usd = (n) => (n == null ? '—' : `$${Number(n).toFixed(4)}`);
+  const durationMs = (n) => {
+    const value = Number(n || 0);
+    if (!value) return '—';
+    if (value < 1000) return `${value.toFixed(0)} ms`;
+    return `${(value / 1000).toFixed(1)} s`;
+  };
   const shortId = (value) => String(value || '').slice(0, 8) || '—';
   const sessionDisplay = (rowOrId) => {
     const row = rowOrId && typeof rowOrId === 'object' ? rowOrId : { session_id: rowOrId };
@@ -769,6 +777,33 @@ function AdminPage() {
     } catch (_) {
       return String(value);
     }
+  };
+  const statusPillStyle = (status) => {
+    const value = String(status || '').toLowerCase();
+    const tone = (
+      value === 'passed' || value === 'completed' || value === 'success' ? 'ok'
+        : value === 'failed' || value === 'error' ? 'bad'
+          : value === 'running' ? 'run'
+            : value === 'blocked' ? 'warn'
+              : 'idle'
+    );
+    const palette = {
+      ok: ['#1c2f25', '#7dc9a0'],
+      bad: ['#3a1f24', '#e06c75'],
+      run: ['#1f2a3a', '#82aaff'],
+      warn: ['#3a3120', '#f0c674'],
+      idle: ['#1c252f', '#a3aebb'],
+    }[tone];
+    return {
+      fontSize: 10,
+      fontWeight: 600,
+      textTransform: 'uppercase',
+      padding: '2px 6px',
+      borderRadius: 3,
+      background: palette[0],
+      color: palette[1],
+      border: '1px solid #2a3540',
+    };
   };
   const sum = (rows, key) => rows.reduce((acc, row) => acc + Number(row[key] || 0), 0);
   const rowTimestamp = (row) => {
@@ -820,6 +855,7 @@ function AdminPage() {
     ...todoFlow,
     ...traceEvents,
     ...toolUsage,
+    ...workflowStages,
     ...interventions,
     ...rtlRunHistory,
     ...artifactVersions,
@@ -867,6 +903,7 @@ function AdminPage() {
   const filteredTodoFlow = todoFlow.filter(rowMatches);
   const filteredTraceEvents = traceEvents.filter(rowMatches);
   const filteredToolUsage = toolUsage.filter(rowMatches);
+  const filteredWorkflowStages = workflowStages.filter(rowMatches);
   const filteredInterventions = interventions.filter(rowMatches);
   const filteredRtlRunHistory = rtlRunHistory.filter(rowMatches);
   const filteredArtifactVersions = artifactVersions.filter(rowMatches);
@@ -952,6 +989,9 @@ function AdminPage() {
       || Number(b.observation_tokens_est || 0) - Number(a.observation_tokens_est || 0)
     ))
     .slice(0, 5);
+  const recentStageRows = [...filteredWorkflowStages]
+    .sort((a, b) => rowTimestamp(b) - rowTimestamp(a))
+    .slice(0, 8);
   const topHumanRows = [...filteredInterventions]
     .sort((a, b) => Number(b.intervention_count || 0) - Number(a.intervention_count || 0))
     .slice(0, 5);
@@ -966,6 +1006,7 @@ function AdminPage() {
   const overview = {
     activeUsers: filteredUsers.filter((row) => (row.active_ip || row.active_workflow) && inRange(row)).length,
     activeSessions: filteredSessions.filter((row) => String(row.status || '').toLowerCase() === 'active').length,
+    workflowStages: filteredWorkflowStages.length,
     activeIps: new Set(filteredSessions
       .filter((row) => String(row.status || '').toLowerCase() === 'active')
       .map((row) => row.ip || row.project_id || row.title)
@@ -1089,6 +1130,9 @@ function AdminPage() {
               </button>
               <button style={tabStyle(activeTab === 'sessions')} onClick={() => setActiveTab('sessions')}>
                 Sessions ({filteredSessions.length})
+              </button>
+              <button style={tabStyle(activeTab === 'stages')} onClick={() => setActiveTab('stages')}>
+                Stages ({filteredWorkflowStages.length})
               </button>
               <button style={tabStyle(activeTab === 'usage')} onClick={() => setActiveTab('usage')}>
                 Usage ({filteredUsage.length})
@@ -1227,6 +1271,10 @@ function AdminPage() {
                   <div style={metricCardStyle()}>
                     <div style={metricLabelStyle}>Active Sessions</div>
                     <div style={metricValueStyle}>{fmt(overview.activeSessions)}</div>
+                  </div>
+                  <div style={metricCardStyle()}>
+                    <div style={metricLabelStyle}>Workflow Stages</div>
+                    <div style={metricValueStyle}>{fmt(overview.workflowStages)}</div>
                   </div>
                   <div style={metricCardStyle()}>
                     <div style={metricLabelStyle}>Cost</div>
@@ -1430,6 +1478,41 @@ function AdminPage() {
                               {sessionDisplay(row)}
                             </td>
                             <td style={tdStyle}>{formatDate(row.updated_at)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div style={{ ...tableWrapStyle, ...dashboardWideStyle }}>
+                    <div style={widgetHeaderStyle}>
+                      <div style={widgetTitleStyle}>Recent Stages</div>
+                      <div style={widgetMetaStyle}>run stage status by IP/workflow</div>
+                    </div>
+                    <table style={tableStyle}>
+                      <thead>
+                        <tr>
+                          <th style={thStyle}>IP</th>
+                          <th style={thStyle}>Workflow</th>
+                          <th style={thStyle}>Stage</th>
+                          <th style={thStyle}>Status</th>
+                          <th style={thStyle}>Attempt</th>
+                          <th style={thStyle}>Duration</th>
+                          <th style={thStyle}>Updated</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {recentStageRows.length === 0 ? (
+                          <tr><td colSpan={7} style={{ ...tdStyle, ...emptyStateStyle }}>No workflow stage rows in filter.</td></tr>
+                        ) : recentStageRows.map((row, index) => (
+                          <tr key={rowKey('recent-stage', index, row.stage_id, row.run_id, row.stage_name)}>
+                            <td style={tdStyle}>{row.ip || 'unknown'}</td>
+                            <td style={tdStyle}>{row.workflow || '—'}</td>
+                            <td style={tdStyle}>{row.stage_name || '—'}</td>
+                            <td style={tdStyle}><span style={statusPillStyle(row.status)}>{row.status || 'unknown'}</span></td>
+                            <td style={tdStyle}>{fmt(row.attempt)}</td>
+                            <td style={tdStyle}>{durationMs(row.duration_ms)}</td>
+                            <td style={tdStyle}>{formatDate(row.updated_at || row.ended_at || row.started_at)}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -1666,6 +1749,64 @@ function AdminPage() {
                             >
                               {deleting === s.id ? 'Deleting…' : 'Delete'}
                             </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {activeTab === 'stages' && (
+              <div style={tableWrapStyle}>
+                <table style={tableStyle}>
+                  <thead>
+                    <tr>
+                      <th style={thStyle}>When</th>
+                      <th style={thStyle}>User</th>
+                      <th style={thStyle}>IP</th>
+                      <th style={thStyle}>Workspace</th>
+                      <th style={thStyle}>Workflow</th>
+                      <th style={thStyle}>Stage</th>
+                      <th style={thStyle}>Status</th>
+                      <th style={thStyle}>Attempt</th>
+                      <th style={thStyle}>Duration</th>
+                      <th style={thStyle}>Run</th>
+                      <th style={thStyle}>LLM</th>
+                      <th style={thStyle}>Cost</th>
+                      <th style={thStyle}>Error</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredWorkflowStages.length === 0 ? (
+                      <tr>
+                        <td colSpan={13} style={{ ...tdStyle, ...emptyStateStyle }}>No workflow stage rows yet.</td>
+                      </tr>
+                    ) : (
+                      filteredWorkflowStages.map((row, index) => (
+                        <tr key={rowKey('workflow-stage', index, row.stage_id, row.run_id, row.stage_name)}>
+                          <td style={tdStyle}>{formatDate(row.started_at || row.created_at)}</td>
+                          <td style={tdStyle}>{row.username || 'unknown'}</td>
+                          <td style={tdStyle}>{row.ip || 'unknown'}</td>
+                          <td style={tdStyle}>{row.workspace || 'default'}</td>
+                          <td style={tdStyle}>{row.workflow || '—'}</td>
+                          <td style={tdStyle}>
+                            <div>{row.stage_name || '—'}</div>
+                            {row.trigger_source && (
+                              <div style={{ color: '#8893a3', fontSize: 11, marginTop: 3 }}>
+                                {row.trigger_source}
+                              </div>
+                            )}
+                          </td>
+                          <td style={tdStyle}><span style={statusPillStyle(row.status)}>{row.status || 'unknown'}</span></td>
+                          <td style={tdStyle}>{fmt(row.attempt)}</td>
+                          <td style={tdStyle}>{durationMs(row.duration_ms)}</td>
+                          <td style={tdStyle} title={row.run_id || ''}>{shortId(row.run_id)}</td>
+                          <td style={tdStyle}>{fmt(row.llm_calls)}</td>
+                          <td style={tdStyle}>{usd(row.cost)}</td>
+                          <td style={{ ...tdStyle, maxWidth: 300, whiteSpace: 'normal' }}>
+                            {row.error_summary || '—'}
                           </td>
                         </tr>
                       ))

@@ -517,6 +517,55 @@ def build_admin_usage_payload(db) -> dict[str, Any]:
          LIMIT 500
         """
     )]
+    workflow_stage_rows = [dict(r) for r in db._fetchall(
+        """
+        SELECT st.id AS stage_id, st.run_id, st.rtl_version_id,
+               st.stage_name, st.status, st.attempt, st.started_at,
+               st.ended_at, st.duration_ms, st.error_summary,
+               st.created_at, st.updated_at,
+               r.session_id, r.workspace_id, r.ip_id,
+               r.workflow, r.mode, r.model_profile,
+               r.reasoning_effort, r.status AS run_status, r.trigger,
+               r.trigger_source, r.orchestrator_run_id,
+               s.user_id, u.username, s.project_id, s.directory, s.title,
+               w.name AS workspace_name, w.local_path AS workspace_path,
+               i.ip_name,
+               rv.version AS rtl_version, rv.git_tag AS rtl_git_tag,
+               COALESCE(llm.llm_calls, 0) AS llm_calls,
+               COALESCE(llm.tokens_input, 0) AS tokens_input,
+               COALESCE(llm.tokens_output, 0) AS tokens_output,
+               COALESCE(llm.tokens_reasoning, 0) AS tokens_reasoning,
+               COALESCE(llm.cost, 0) AS cost,
+               COALESCE(ev.event_count, 0) AS event_count
+          FROM workflow_stages st
+          JOIN workflow_runs r ON r.id = st.run_id
+          LEFT JOIN sessions s ON s.id = r.session_id
+          LEFT JOIN users u ON u.id = s.user_id
+          LEFT JOIN workspaces w ON w.id = r.workspace_id
+          LEFT JOIN ip_blocks i ON i.id = r.ip_id
+          LEFT JOIN rtl_versions rv
+                 ON rv.id = COALESCE(NULLIF(st.rtl_version_id, ''), r.rtl_version_id)
+          LEFT JOIN (
+              SELECT stage_id,
+                     COUNT(*) AS llm_calls,
+                     SUM(tokens_input) AS tokens_input,
+                     SUM(tokens_output) AS tokens_output,
+                     SUM(tokens_reasoning) AS tokens_reasoning,
+                     SUM(cost_usd) AS cost
+                FROM llm_calls
+               WHERE stage_id IS NOT NULL AND stage_id != ''
+               GROUP BY stage_id
+          ) llm ON llm.stage_id = st.id
+          LEFT JOIN (
+              SELECT stage_id, COUNT(*) AS event_count
+                FROM workflow_events
+               WHERE stage_id IS NOT NULL AND stage_id != ''
+               GROUP BY stage_id
+          ) ev ON ev.stage_id = st.id
+         ORDER BY st.started_at DESC, st.created_at DESC
+         LIMIT 1000
+        """
+    )]
     rtl_history_rows = db.list_rtl_run_history()
     artifact_version_rows = db.list_artifact_versions()
     run_artifact_set_rows = db.list_run_artifact_version_sets()
@@ -727,6 +776,49 @@ def build_admin_usage_payload(db) -> dict[str, Any]:
             "updated_at": row.get("updated_at"),
         })
 
+    workflow_stages = []
+    for row in workflow_stage_rows:
+        context = _cost_context(row)
+        tokens_input = int(row.get("tokens_input") or 0)
+        tokens_output = int(row.get("tokens_output") or 0)
+        workflow_stages.append({
+            **context,
+            "stage_id": row.get("stage_id") or "",
+            "run_id": row.get("run_id") or "",
+            "session_id": row.get("session_id") or "",
+            "workspace_id": row.get("workspace_id") or "",
+            "ip_id": row.get("ip_id") or "",
+            "user_id": row.get("user_id") or "",
+            "username": row.get("username") or "unknown",
+            "workflow": row.get("workflow") or "",
+            "stage_name": row.get("stage_name") or "",
+            "status": row.get("status") or "",
+            "attempt": row.get("attempt") or 0,
+            "mode": row.get("mode") or "",
+            "model_profile": row.get("model_profile") or "",
+            "reasoning_effort": row.get("reasoning_effort") or "",
+            "run_status": row.get("run_status") or "",
+            "trigger": row.get("trigger") or "",
+            "trigger_source": row.get("trigger_source") or "",
+            "orchestrator_run_id": row.get("orchestrator_run_id") or "",
+            "rtl_version_id": row.get("rtl_version_id") or "",
+            "rtl_version": row.get("rtl_version") or "",
+            "rtl_git_tag": row.get("rtl_git_tag") or "",
+            "started_at": row.get("started_at"),
+            "ended_at": row.get("ended_at"),
+            "duration_ms": row.get("duration_ms") or 0,
+            "error_summary": row.get("error_summary") or "",
+            "created_at": row.get("created_at"),
+            "updated_at": row.get("updated_at"),
+            "llm_calls": row.get("llm_calls") or 0,
+            "event_count": row.get("event_count") or 0,
+            "tokens_input": tokens_input,
+            "tokens_output": tokens_output,
+            "tokens_reasoning": row.get("tokens_reasoning") or 0,
+            "tokens": tokens_input + tokens_output,
+            "cost": row.get("cost") or 0,
+        })
+
     rtl_run_history = []
     for row in rtl_history_rows:
         context = _cost_context(row)
@@ -839,6 +931,7 @@ def build_admin_usage_payload(db) -> dict[str, Any]:
         "interventions": interventions,
         "input_history": input_history,
         "memory_rules": memory_rules,
+        "workflow_stages": workflow_stages,
         "rtl_run_history": rtl_run_history,
         "artifact_versions": artifact_versions,
         "run_artifact_sets": run_artifact_sets,
