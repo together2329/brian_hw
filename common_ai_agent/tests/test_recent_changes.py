@@ -1530,7 +1530,9 @@ class TestAtlasPipelineOrchestratorNamespace(unittest.TestCase):
 
     def test_app_treats_orchestrator_as_session_workflow(self):
         src = (PROJECT_ROOT / "frontend/atlas/app.jsx").read_text(encoding="utf-8")
+        workspace_src = (PROJECT_ROOT / "frontend/atlas/workspace.jsx").read_text(encoding="utf-8")
         data_src = (PROJECT_ROOT / "frontend/atlas/data.jsx").read_text(encoding="utf-8")
+        jobs_src = (PROJECT_ROOT / "src/atlas_api_jobs.py").read_text(encoding="utf-8")
 
         self.assertIn("'orchestrator'", src)
         self.assertIn("'orchestrator'", data_src)
@@ -1544,7 +1546,13 @@ class TestAtlasPipelineOrchestratorNamespace(unittest.TestCase):
         self.assertIn("const parsedWf = normalizeSession(parsed.workflow || '');", src)
         self.assertIn("if (parsedWf && parsedWf !== WORKFLOW_DEFAULT) return;", src)
         self.assertIn("const preserveRunning = execMode === 'orchestrator';", src)
+        self.assertIn("window.dispatchEvent(new CustomEvent('atlas-workflow-view-request'", src)
+        self.assertIn("showNotice(`Viewing ${wf}; orchestrator remains active.`);", src)
         self.assertIn("activateNamespace(owner, ip, wf, true, { preserveRunning });", src)
+        self.assertIn("workspace: 'orchestrator',\n        view_workspace: viewWorkflow", workspace_src)
+        self.assertIn("Worker chips are a transcript/artifact", workspace_src)
+        self.assertIn("session: orchSession", workspace_src)
+        self.assertIn('raw_workflow and raw_workflow != "orchestrator"', jobs_src)
         self.assertIn("const ORCHESTRATOR_FLOW_STAGE", data_src)
         self.assertIn("return [ORCHESTRATOR_FLOW_STAGE].concat(deduped);", data_src)
 

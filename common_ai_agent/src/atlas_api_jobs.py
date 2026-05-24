@@ -4607,6 +4607,17 @@ def register_jobs_routes(
             or body.get("session_id")
             or ""
         ))
+        raw_parts = [p for p in raw_session.split("/") if p]
+        raw_workflow = raw_parts[-1] if raw_parts else ""
+        raw_ip = raw_parts[-2] if len(raw_parts) >= 3 else ""
+        if (
+            raw_session
+            and (
+                (raw_workflow and raw_workflow != "orchestrator")
+                or (raw_ip and raw_ip != ip)
+            )
+        ):
+            raw_session = ""
         session_row = db.get_session_for_user(db_user_id, raw_session) if raw_session else None
         session_id = str((session_row or {}).get("id") or "")
         if not session_id:

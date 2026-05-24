@@ -1401,11 +1401,21 @@ const App = () => {
   // explicit workflow segment; /api/session/activate loads the matching
   // backend prompt, TODO file and workspace config.
   const selectWorkflow = (rawWf) => {
-    const wf = normalizeSession(rawWf) || WORKFLOW_DEFAULT;
+    let wf = normalizeSession(rawWf) || WORKFLOW_DEFAULT;
+    if (execMode === 'orchestrator' && wf === WORKFLOW_DEFAULT) wf = 'orchestrator';
     const parsed = splitActiveNamespace();
     const parsedWf = parsed.workflow || WORKFLOW_DEFAULT;
     if (wf === (currentWorkflow() || WORKFLOW_DEFAULT) && !(wf === 'orchestrator' && parsedWf !== 'orchestrator')) return;
     const preserveRunning = execMode === 'orchestrator';
+    if (preserveRunning && wf !== 'orchestrator') {
+      try {
+        window.dispatchEvent(new CustomEvent('atlas-workflow-view-request', {
+          detail: { workflow: wf },
+        }));
+      } catch (_) {}
+      showNotice(`Viewing ${wf}; orchestrator remains active.`);
+      return;
+    }
     const ok = preserveRunning || confirmStopForWorkflowSwitch(wf);
     if (!ok) return;
     const owner = loggedInOwner() || parsed.sessionId || activeSessionId || 'default';

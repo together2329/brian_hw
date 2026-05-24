@@ -1506,9 +1506,16 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     }
   });
   const activeSessionRef = React.useRef(activeSession);
+  const [, setChatViewSessionState] = React.useState('');
+  const chatViewSessionRef = React.useRef('');
   const hydratedConversationSessionRef = React.useRef(activeSession);
   const liveFeedStartedRef = React.useRef(false);
   const workerLogCursorsRef = React.useRef(new Map());
+  const setChatViewSession = React.useCallback((sid) => {
+    const normalized = normalizeUiSession(sid || '');
+    chatViewSessionRef.current = normalized;
+    setChatViewSessionState(normalized);
+  }, []);
   const appendLiveFeedEntries = React.useCallback((entries) => {
     const fresh = (Array.isArray(entries) ? entries : [entries])
       .filter(Boolean)
@@ -1570,11 +1577,15 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
   const sendPrompt = React.useCallback((text, sessionOverride) => {
     if (window.backend) {
       const promptWorkflow = String(
-        workflow
-        || activeWorkflow
-        || workflowFromSession(window.ACTIVE_SESSION || activeSessionRef.current || activeNamespace || '')
-        || defaultWorkflowForExecMode()
-        || ''
+        atlasUiOrchestratorMode()
+          ? 'orchestrator'
+          : (
+            workflow
+            || activeWorkflow
+            || workflowFromSession(window.ACTIVE_SESSION || activeSessionRef.current || activeNamespace || '')
+            || defaultWorkflowForExecMode()
+            || ''
+          )
       ).trim();
       const promptScope = (() => {
         const scoped = normalizeUiSession(window.SCOPE_PATH || '');
@@ -1706,6 +1717,57 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         window.dispatchEvent(new CustomEvent('atlas-agent-running', { detail: { running: false } }));
       } catch (_) {}
     }
+    if (orchestratorMode) {
+      const viewWorkflow = next || 'orchestrator';
+      const parts = normalizeUiSession(activeSession || window.ACTIVE_SESSION || '').split('/').filter(Boolean);
+      const scopedIp = String(window.SCOPE_PATH || window.ACTIVE_IP || '').trim();
+      const owner = normalizeUiSession((window.ATLAS_USER && window.ATLAS_USER.username) || '') || parts[0] || 'default';
+      const ip = (scopedIp && scopedIp !== 'default')
+        ? scopedIp
+        : ((parts.length >= 3 && parts[1]) ? parts[1] : 'default');
+      const sessionFor = (wf) => resolveSession(
+        (window.atlasData && window.atlasData.sessionFor)
+          ? window.atlasData.sessionFor(ip, wf)
+          : `${owner}/${ip}/${wf}`
+      );
+      const orchestratorSid = sessionFor('orchestrator');
+      const activeNow = normalizeUiSession(window.ACTIVE_SESSION || activeSessionRef.current || '');
+
+      // In orchestrator execution the backend websocket and prompt target must
+      // stay on the orchestrator session. Worker chips are a transcript/artifact
+      // view only; switching the runtime to a worker namespace drops future
+      // orchestrator replies on the floor.
+      if (activeNow !== orchestratorSid) {
+        window.ACTIVE_SESSION = orchestratorSid;
+        activeSessionRef.current = orchestratorSid;
+        setActiveSession(orchestratorSid);
+        try { localStorage.setItem('atlasActiveSession', orchestratorSid); } catch (_) {}
+        if (window.backend) {
+          try {
+            if (typeof window.backend.switchSession === 'function') window.backend.switchSession(orchestratorSid);
+            else if (typeof window.backend.connect === 'function') window.backend.connect(orchestratorSid);
+          } catch (_) {}
+        }
+      }
+
+      setWorkflow(viewWorkflow);
+      window.CONTEXT = Object.assign({}, window.CONTEXT || {}, {
+        workspace: 'orchestrator',
+        view_workspace: viewWorkflow,
+      });
+      refreshFeed(intent, viewWorkflow);
+      if (viewWorkflow === 'orchestrator') {
+        setChatViewSession('');
+        refreshChatSession(orchestratorSid, { force: true });
+        return;
+      }
+      const viewSid = sessionFor(viewWorkflow);
+      liveFeedStartedRef.current = false;
+      hydratedConversationSessionRef.current = viewSid;
+      setChatViewSession(viewSid);
+      refreshChatSession(viewSid, { force: true });
+      return;
+    }
     setWorkflow(next || null);
     window.CONTEXT = Object.assign({}, window.CONTEXT || {}, { workspace: next || '' });
     refreshFeed(intent, next || null);
@@ -1734,6 +1796,15 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       }
     }
   };
+  React.useEffect(() => {
+    const onWorkflowViewRequest = (ev) => {
+      const wf = String((ev && ev.detail && ev.detail.workflow) || '').trim();
+      if (!wf) return;
+      switchWorkflow(wf);
+    };
+    window.addEventListener('atlas-workflow-view-request', onWorkflowViewRequest);
+    return () => window.removeEventListener('atlas-workflow-view-request', onWorkflowViewRequest);
+  }, [switchWorkflow]);
   const [input, setInput] = React.useState('');
 
   // Listen for fold/drag-select comment events from PreviewPane so a
@@ -2334,7 +2405,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       const msgs = (ev.detail && ev.detail.messages) || [];
       const session = normalizeUiSession(ev.detail && ev.detail.session || '');
       const activeNow = normalizeUiSession(window.ACTIVE_SESSION || activeSessionRef.current || '');
-      if (session && activeNow && session !== activeNow) return;
+      const viewNow = normalizeUiSession(chatViewSessionRef.current || '');
+      if (session && activeNow && session !== activeNow && (!viewNow || session !== viewNow)) return;
       const telemetry = workspaceTelemetryFromMessages(msgs);
       if (telemetry.count || telemetry.result) {
         setWorkspaceTelemetry(prev => ({
@@ -2345,7 +2417,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
           lastToolResult: telemetry.result || prev.lastToolResult,
         }));
       }
-      if (session) setActiveSession(session);
+      if (session && session === activeNow) setActiveSession(session);
       if (streamingRef.current || (streamBufferRef.current || '').trim()) {
         return;
       }
@@ -2410,7 +2482,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       setFeed(prev => {
         const prevSession = normalizeUiSession(hydratedConversationSessionRef.current || '');
         const namespaceChanged = !!(session && prevSession && session !== prevSession);
-        const sameActiveSession = !session || session === normalizeUiSession(window.ACTIVE_SESSION || activeSessionRef.current || '');
+        const activeDisplaySession = normalizeUiSession(window.ACTIVE_SESSION || activeSessionRef.current || '');
+        const viewDisplaySession = normalizeUiSession(chatViewSessionRef.current || '');
+        const sameActiveSession = !session || session === activeDisplaySession || (!!viewDisplaySession && session === viewDisplaySession);
         if (sameActiveSession && !namespaceChanged && liveFeedStartedRef.current && hasLiveFeedEntries(prev)) {
           return prev;
         }
@@ -2431,6 +2505,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         if (namespaceChanged) {
           liveFeedStartedRef.current = false;
           workerLogCursorsRef.current.clear();
+        }
+        if (viewDisplaySession && session === viewDisplaySession && newFeed.length === 0) {
+          const viewWorkflow = workflowFromSession(viewDisplaySession) || 'worker';
+          return [{ kind: 'agent', text: `No ${viewWorkflow} worker transcript yet.`, createdAt: Date.now() }];
         }
         return newFeed;
       });
@@ -2967,9 +3045,33 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       return;
     }
 
-    const isOrch = String(workflow || '') === 'orchestrator';
+    const isOrch = atlasUiOrchestratorMode() || String(workflow || '') === 'orchestrator';
     const orchIp = String(activeIp || '').trim();
     if (isOrch && orchIp && orchIp.toLowerCase() !== 'default' && !raw.startsWith('/')) {
+      const sessionParts = normalizeUiSession(window.ACTIVE_SESSION || activeSessionRef.current || activeSession || '').split('/').filter(Boolean);
+      const orchOwner = normalizeUiSession((window.ATLAS_USER && window.ATLAS_USER.username) || '') || sessionParts[0] || 'default';
+      const orchSession = resolveSession(
+        (window.atlasData && window.atlasData.sessionFor)
+          ? window.atlasData.sessionFor(orchIp, 'orchestrator')
+          : `${orchOwner}/${orchIp}/orchestrator`,
+      );
+      if (atlasUiOrchestratorMode()) {
+        setWorkflow('orchestrator');
+        setMainTab('chat');
+        setChatViewSession('');
+        if (orchSession) {
+          window.ACTIVE_SESSION = orchSession;
+          activeSessionRef.current = orchSession;
+          setActiveSession(orchSession);
+          try { localStorage.setItem('atlasActiveSession', orchSession); } catch (_) {}
+          if (window.backend) {
+            try {
+              if (typeof window.backend.switchSession === 'function') window.backend.switchSession(orchSession);
+              else if (typeof window.backend.connect === 'function') window.backend.connect(orchSession);
+            } catch (_) {}
+          }
+        }
+      }
       setFeed(f => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
       setStreaming(true);
       awaitingRunStartRef.current = true;
@@ -2980,7 +3082,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         body: JSON.stringify({
           message: raw,
           ip: orchIp,
-          session: normalizeUiSession(window.ACTIVE_SESSION || activeSessionRef.current || activeSession || ''),
+          session: orchSession,
         }),
       })
         .then(r => r.json().catch(() => ({})))
