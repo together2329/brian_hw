@@ -30,6 +30,7 @@ const CHAT_RECORDER = path.join(SOURCE_ROOT, 'scripts/ui_tests/record_orch_chat.
 const ip = process.env.IP || uniqueIp('scriptip');
 const kind = process.env.KIND || 'AXI4-Lite packet status block';
 const runMode = process.env.RUN_MODE || 'starter';
+const provider = process.env.PROVIDER || 'fake';
 const commandTimeoutMs = Number(process.env.CMD_TIMEOUT_MS || 180000);
 const userRequirement = process.env.REQ || [
   'Create a compact AXI4-Lite slave IP for packet status/control.',
@@ -50,6 +51,9 @@ const env = {
   ATLAS_RUN_MODE: runMode,
   PYTHONPATH: SOURCE_ROOT,
 };
+if (provider === 'real' && !env.ATLAS_RUN_REAL_LLM_TDD) {
+  env.ATLAS_RUN_REAL_LLM_TDD = '1';
+}
 
 const clickExact = async (label) => page.evaluate((wanted) => {
   const target = String(wanted || '').trim().toUpperCase();
@@ -367,7 +371,7 @@ const headlessArgs = (stage, reqPath = '') => {
     '--ip', ip,
     '--run-mode', runMode,
     '--stages', stage,
-    '--provider', 'fake',
+    '--provider', provider,
   ];
   if (reqPath) args.splice(5, 0, '--req', reqPath);
   return args;
@@ -389,7 +393,7 @@ try {
   await page.waitForTimeout(1200);
   await capture(0, 'dashboard', {
     title: '00 dashboard',
-    status: `ip will be created: ${ip}`,
+    status: `ip will be created: ${ip} · provider=${provider} · run_mode=${runMode}`,
   });
 
   await gotoWorkspace(page, { ip: 'default', workflow: 'orchestrator' });
