@@ -17,6 +17,7 @@
     "FM_INVARIANTS": "PASS"
   },
   "all_passed": true,
+  "passed": true,
   "transaction_coverage": {
     "FM_CLEAR": {
       "self_check": "FM_CLEAR",

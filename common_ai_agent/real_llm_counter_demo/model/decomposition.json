@@ -64,5 +64,6 @@
       "responsibility": "Top-level integration module implementing all decomposed units",
       "source_sections": ["top_module", "io_list", "decomposition", "integration"]
     }
-  ]
+  ],
+  "complete": true
 }

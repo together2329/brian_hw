@@ -1,0 +1,120 @@
+{
+  "evidence": {
+    "decomposition_units": 2,
+    "fcov_bins": 14,
+    "fl_model_check": {
+      "additional_checks": {
+        "accepted_count_wrap": "PASS",
+        "back_to_back": "PASS",
+        "dec_saturation": "PASS",
+        "inc_saturation": "PASS",
+        "invariants": "PASS",
+        "load_boundary": "PASS",
+        "reset_contract": "PASS"
+      },
+      "all_passed": true,
+      "ip": "real_llm_counter_demo",
+      "passed": true,
+      "self_check_results": {
+        "FM_ACCEPTED_WRAP": "PASS",
+        "FM_BACK_TO_BACK": "PASS",
+        "FM_CLEAR": "PASS",
+        "FM_DEC": "PASS",
+        "FM_DEC_SAT": "PASS",
+        "FM_HOLD": "PASS",
+        "FM_INC": "PASS",
+        "FM_INC_SAT": "PASS",
+        "FM_INVALID": "PASS",
+        "FM_INVARIANTS": "PASS",
+        "FM_LOAD": "PASS",
+        "FM_LOAD_BOUNDARY": "PASS",
+        "FM_RESET": "PASS"
+      },
+      "source": "yaml/real_llm_counter_demo.ssot.yaml",
+      "ssot_tbd_report": "none",
+      "transaction_coverage": {
+        "FM_CLEAR": {
+          "self_check": "FM_CLEAR",
+          "ssot_question": null,
+          "status": "covered",
+          "trace_entry": true
+        },
+        "FM_DEC": {
+          "self_check": "FM_DEC",
+          "ssot_question": null,
+          "status": "covered",
+          "trace_entry": true
+        },
+        "FM_HOLD": {
+          "self_check": "FM_HOLD",
+          "ssot_question": null,
+          "status": "covered",
+          "trace_entry": true
+        },
+        "FM_INC": {
+          "self_check": "FM_INC",
+          "ssot_question": null,
+          "status": "covered",
+          "trace_entry": true
+        },
+        "FM_INVALID": {
+          "self_check": "FM_INVALID",
+          "ssot_question": null,
+          "status": "covered",
+          "trace_entry": true
+        },
+        "FM_LOAD": {
+          "self_check": "FM_LOAD",
+          "ssot_question": null,
+          "status": "covered",
+          "trace_entry": true
+        }
+      }
+    },
+    "ip": "real_llm_counter_demo",
+    "paths": {
+      "decomposition": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/real_llm_counter_demo/model/decomposition.json",
+      "fcov_plan": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/real_llm_counter_demo/cov/fcov_plan.json",
+      "fl_model_check": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/real_llm_counter_demo/model/fl_model_check.json",
+      "functional_model": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/real_llm_counter_demo/model/functional_model.py",
+      "ssot": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/real_llm_counter_demo/yaml/real_llm_counter_demo.ssot.yaml"
+    },
+    "self_check": {
+      "checks": {
+        "FM_ACCEPTED_WRAP": "PASS",
+        "FM_BACK_TO_BACK": "PASS",
+        "FM_CLEAR": "PASS",
+        "FM_DEC": "PASS",
+        "FM_DEC_SAT": "PASS",
+        "FM_HOLD": "PASS",
+        "FM_INC": "PASS",
+        "FM_INC_SAT": "PASS",
+        "FM_INVALID": "PASS",
+        "FM_INVARIANTS": "PASS",
+        "FM_LOAD": "PASS",
+        "FM_LOAD_BOUNDARY": "PASS",
+        "FM_RESET": "PASS"
+      },
+      "passed": true,
+      "transaction_results": {
+        "FM_CLEAR": "PASS",
+        "FM_DEC": "PASS",
+        "FM_HOLD": "PASS",
+        "FM_INC": "PASS",
+        "FM_INVALID": "PASS",
+        "FM_LOAD": "PASS"
+      }
+    },
+    "ssot_transactions": [
+      "FM_CLEAR",
+      "FM_LOAD",
+      "FM_INC",
+      "FM_DEC",
+      "FM_HOLD",
+      "FM_INVALID"
+    ]
+  },
+  "issues": [],
+  "ok": true,
+  "passed": true
+}

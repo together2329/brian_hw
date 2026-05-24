@@ -1,82 +1,117 @@
 {
   "ip": "real_llm_counter_demo",
   "source": "yaml/real_llm_counter_demo.ssot.yaml",
+  "planned_before_rtl": true,
+  "bins": [
+    {
+      "id": "FCOV_FM_CLEAR",
+      "transaction": "FM_CLEAR",
+      "source_ref": "function_model.transactions.FM_CLEAR",
+      "description": "FM_CLEAR command executed and count == 0 observed",
+      "test_scenario": "SC02"
+    },
+    {
+      "id": "FCOV_FM_LOAD",
+      "transaction": "FM_LOAD",
+      "source_ref": "function_model.transactions.FM_LOAD",
+      "description": "FM_LOAD command executed and count == load_value observed",
+      "test_scenario": "SC03"
+    },
+    {
+      "id": "FCOV_FM_INC",
+      "transaction": "FM_INC",
+      "source_ref": "function_model.transactions.FM_INC",
+      "description": "FM_INC command executed and count incremented observed",
+      "test_scenario": "SC04"
+    },
+    {
+      "id": "FCOV_FM_INC_SATURATE",
+      "transaction": "FM_INC",
+      "source_ref": "function_model.transactions.FM_INC",
+      "description": "FM_INC at max (255) — saturation holds count at 255",
+      "test_scenario": "SC05"
+    },
+    {
+      "id": "FCOV_FM_DEC",
+      "transaction": "FM_DEC",
+      "source_ref": "function_model.transactions.FM_DEC",
+      "description": "FM_DEC command executed and count decremented observed",
+      "test_scenario": "SC06"
+    },
+    {
+      "id": "FCOV_FM_DEC_SATURATE",
+      "transaction": "FM_DEC",
+      "source_ref": "function_model.transactions.FM_DEC",
+      "description": "FM_DEC at min (0) — saturation holds count at 0",
+      "test_scenario": "SC07"
+    },
+    {
+      "id": "FCOV_FM_HOLD",
+      "transaction": "FM_HOLD",
+      "source_ref": "function_model.transactions.FM_HOLD",
+      "description": "FM_HOLD command executed and count unchanged observed",
+      "test_scenario": "SC08"
+    },
+    {
+      "id": "FCOV_FM_INVALID",
+      "transaction": "FM_INVALID",
+      "source_ref": "function_model.transactions.FM_INVALID",
+      "description": "FM_INVALID command (5-7) treated as HOLD",
+      "test_scenario": "SC09"
+    },
+    {
+      "id": "FCOV_ZERO_FLAG",
+      "source_ref": "function_model.transactions",
+      "description": "zero flag asserted when count == 0",
+      "test_scenario": "SC12"
+    },
+    {
+      "id": "FCOV_MAX_FLAG",
+      "source_ref": "function_model.transactions",
+      "description": "max flag asserted when count == 255",
+      "test_scenario": "SC12"
+    },
+    {
+      "id": "CCOV_CMD_ACCEPT",
+      "source_ref": "cycle_model.pipeline.S0_ACCEPT",
+      "description": "Command accepted on cmd_valid/cmd_ready handshake",
+      "test_scenario": "SC02-SC11"
+    },
+    {
+      "id": "CCOV_STATE_UPDATE",
+      "source_ref": "cycle_model.pipeline.S1_UPDATE",
+      "description": "State update observed on clock edge after acceptance",
+      "test_scenario": "SC02-SC11"
+    },
+    {
+      "id": "CCOV_FLAG_COMBINATIONAL",
+      "source_ref": "cycle_model.pipeline.S2_FLAGS",
+      "description": "zero/max flags update combinationally with count",
+      "test_scenario": "SC12"
+    },
+    {
+      "id": "CCOV_BACK_TO_BACK",
+      "source_ref": "cycle_model.performance.throughput",
+      "description": "Back-to-back commands at full throughput",
+      "test_scenario": "SC11"
+    }
+  ],
   "coverage_goals": {
     "function": {
       "target_pct": 100,
       "model": "function_model",
       "description": "Behavioral coverage for all counter commands and saturation.",
       "bins": [
-        {
-          "id": "FCOV_CLEAR",
-          "source_ref": "function_model.transactions.FM_CLEAR",
-          "class": "transaction",
-          "description": "CLEAR command executed and count == 0 observed",
-          "test_scenario": "SC02"
-        },
-        {
-          "id": "FCOV_LOAD",
-          "source_ref": "function_model.transactions.FM_LOAD",
-          "class": "transaction",
-          "description": "LOAD command executed and count == load_value observed",
-          "test_scenario": "SC03"
-        },
-        {
-          "id": "FCOV_INC",
-          "source_ref": "function_model.transactions.FM_INC",
-          "class": "transaction",
-          "description": "INC command executed and count incremented observed",
-          "test_scenario": "SC04"
-        },
-        {
-          "id": "FCOV_INC_SATURATE",
-          "source_ref": "function_model.transactions.FM_INC",
-          "class": "transaction",
-          "description": "INC at max (255) — saturation holds count at 255",
-          "test_scenario": "SC05"
-        },
-        {
-          "id": "FCOV_DEC",
-          "source_ref": "function_model.transactions.FM_DEC",
-          "class": "transaction",
-          "description": "DEC command executed and count decremented observed",
-          "test_scenario": "SC06"
-        },
-        {
-          "id": "FCOV_DEC_SATURATE",
-          "source_ref": "function_model.transactions.FM_DEC",
-          "class": "transaction",
-          "description": "DEC at min (0) — saturation holds count at 0",
-          "test_scenario": "SC07"
-        },
-        {
-          "id": "FCOV_HOLD",
-          "source_ref": "function_model.transactions.FM_HOLD",
-          "class": "transaction",
-          "description": "HOLD command executed and count unchanged observed",
-          "test_scenario": "SC08"
-        },
-        {
-          "id": "FCOV_INVALID",
-          "source_ref": "function_model.transactions.FM_INVALID",
-          "class": "transaction",
-          "description": "Invalid command (5-7) treated as HOLD",
-          "test_scenario": "SC09"
-        },
-        {
-          "id": "FCOV_ZERO_FLAG",
-          "source_ref": "function_model.transactions",
-          "class": "flag",
-          "description": "zero flag asserted when count == 0",
-          "test_scenario": "SC12"
-        },
-        {
-          "id": "FCOV_MAX_FLAG",
-          "source_ref": "function_model.transactions",
-          "class": "flag",
-          "description": "max flag asserted when count == 255",
-          "test_scenario": "SC12"
-        }
+        {"id": "FCOV_FM_CLEAR", "source_ref": "function_model.transactions.FM_CLEAR", "class": "transaction", "description": "FM_CLEAR command executed and count == 0 observed"},
+        {"id": "FCOV_FM_LOAD", "source_ref": "function_model.transactions.FM_LOAD", "class": "transaction", "description": "FM_LOAD command executed and count == load_value observed"},
+        {"id": "FCOV_FM_INC", "source_ref": "function_model.transactions.FM_INC", "class": "transaction", "description": "FM_INC command executed and count incremented observed"},
+        {"id": "FCOV_FM_INC_SATURATE", "source_ref": "function_model.transactions.FM_INC", "class": "transaction", "description": "FM_INC at max (255) — saturation holds count at 255"},
+        {"id": "FCOV_FM_DEC", "source_ref": "function_model.transactions.FM_DEC", "class": "transaction", "description": "FM_DEC command executed and count decremented observed"},
+        {"id": "FCOV_FM_DEC_SATURATE", "source_ref": "function_model.transactions.FM_DEC", "class": "transaction", "description": "FM_DEC at min (0) — saturation holds count at 0"},
+        {"id": "FCOV_FM_HOLD", "source_ref": "function_model.transactions.FM_HOLD", "class": "transaction", "description": "FM_HOLD command executed and count unchanged observed"},
+        {"id": "FCOV_FM_INVALID", "source_ref": "function_model.transactions.FM_INVALID", "class": "transaction", "description": "FM_INVALID command (5-7) treated as HOLD"},
+        {"id": "FCOV_ZERO_FLAG", "source_ref": "function_model.transactions", "class": "flag", "description": "zero flag asserted when count == 0"},
+        {"id": "FCOV_MAX_FLAG", "source_ref": "function_model.transactions", "class": "flag", "description": "max flag asserted when count == 255"}
       ]
     },
     "cycle": {
@@ -84,34 +119,10 @@
       "model": "cycle_model",
       "description": "Cycle coverage for command acceptance, state update, and flag timing.",
       "bins": [
-        {
-          "id": "CCOV_CMD_ACCEPT",
-          "source_ref": "cycle_model.pipeline.S0_ACCEPT",
-          "class": "pipeline_stage",
-          "description": "Command accepted on cmd_valid/cmd_ready handshake",
-          "test_scenario": "SC02-SC11"
-        },
-        {
-          "id": "CCOV_STATE_UPDATE",
-          "source_ref": "cycle_model.pipeline.S1_UPDATE",
-          "class": "pipeline_stage",
-          "description": "State update observed on clock edge after acceptance",
-          "test_scenario": "SC02-SC11"
-        },
-        {
-          "id": "CCOV_FLAG_COMBINATIONAL",
-          "source_ref": "cycle_model.pipeline.S2_FLAGS",
-          "class": "pipeline_stage",
-          "description": "zero/max flags update combinationally with count",
-          "test_scenario": "SC12"
-        },
-        {
-          "id": "CCOV_BACK_TO_BACK",
-          "source_ref": "cycle_model.performance.throughput",
-          "class": "throughput",
-          "description": "Back-to-back commands at full throughput",
-          "test_scenario": "SC11"
-        }
+        {"id": "CCOV_CMD_ACCEPT", "source_ref": "cycle_model.pipeline.S0_ACCEPT", "class": "pipeline_stage", "description": "Command accepted on cmd_valid/cmd_ready handshake"},
+        {"id": "CCOV_STATE_UPDATE", "source_ref": "cycle_model.pipeline.S1_UPDATE", "class": "pipeline_stage", "description": "State update observed on clock edge after acceptance"},
+        {"id": "CCOV_FLAG_COMBINATIONAL", "source_ref": "cycle_model.pipeline.S2_FLAGS", "class": "pipeline_stage", "description": "zero/max flags update combinationally with count"},
+        {"id": "CCOV_BACK_TO_BACK", "source_ref": "cycle_model.performance.throughput", "class": "throughput", "description": "Back-to-back commands at full throughput"}
       ]
     },
     "code": "line >= 90%, branch >= 85%, toggle >= 80%",

@@ -440,6 +440,51 @@ def run_all_self_checks() -> Dict[str, str]:
     return results
 
 
+def run_self_check() -> Dict:
+    """
+    Module-level self-check entry point required by the FL artifact validation gate.
+
+    Returns a dict with:
+      - passed: bool
+      - transaction_results: dict mapping each SSOT transaction ID to PASS/FAIL evidence
+      - checks: dict mapping each self-check name to its result
+    """
+    # Run individual transaction self-checks
+    transaction_results = {}
+    transaction_checks = {
+        "FM_CLEAR": self_check_clear,
+        "FM_LOAD": self_check_load,
+        "FM_INC": self_check_inc,
+        "FM_DEC": self_check_dec,
+        "FM_HOLD": self_check_hold,
+        "FM_INVALID": self_check_invalid,
+    }
+    all_pass = True
+    for txn_id, fn in transaction_checks.items():
+        try:
+            fn()
+            transaction_results[txn_id] = "PASS"
+        except Exception as e:
+            transaction_results[txn_id] = f"FAIL: {e}"
+            all_pass = False
+
+    # Run all remaining checks
+    checks = {}
+    for name, fn in ALL_SELF_CHECKS.items():
+        try:
+            fn()
+            checks[name] = "PASS"
+        except Exception as e:
+            checks[name] = f"FAIL: {e}"
+            all_pass = False
+
+    return {
+        "passed": all_pass,
+        "transaction_results": transaction_results,
+        "checks": checks,
+    }
+
+
 # ---------------------------------------------------------------------------
 # CLI entry point
 # ---------------------------------------------------------------------------
