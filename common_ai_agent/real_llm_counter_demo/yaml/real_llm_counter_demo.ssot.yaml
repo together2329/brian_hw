@@ -1,0 +1,532 @@
+# =============================================================================
+# SSOT YAML — real_llm_counter_demo
+# Single-clock, active-low-reset, 8-bit saturating up/down counter
+# with valid-ready command interface.
+# =============================================================================
+ssot_version: "1.0"
+ip: real_llm_counter_demo
+
+top_module:
+  name: real_llm_counter_demo
+  file: rtl/real_llm_counter_demo.sv
+  version: "1.0.0"
+  type: leaf
+  description: >
+    8-bit saturating up/down counter with valid-ready command input.
+    Supports CLEAR, LOAD, INC, DEC, and HOLD commands. INC saturates at
+    8'hFF; DEC saturates at 8'h00. Single clock domain, active-low async
+    reset, no bus/CSR/interrupt/CDC/memory interfaces.
+  target:
+    process: generic
+    frequency_hz: 100_000_000
+    reset: active_low_async
+
+sub_modules:
+  - name: counter_core
+    implements: real_llm_counter_demo
+    ownership: manifest
+    file: rtl/real_llm_counter_demo.sv
+    function_model_refs: [function_model]
+    cycle_model_refs: [cycle_model]
+    fsm_refs: [fsm]
+    register_refs: [registers]
+    dataflow_refs: [dataflow]
+
+parameters:
+  - name: WIDTH
+    type: integer
+    default: 8
+    description: Counter width in bits. Fixed at 8 for this IP.
+    min: 8
+    max: 8
+  - name: SAT_MAX
+    type: integer
+    default: 255
+    description: Saturation ceiling (2**WIDTH - 1).
+  - name: SAT_MIN
+    type: integer
+    default: 0
+    description: Saturation floor.
+
+io_list:
+  clocks:
+    - name: clk
+      direction: input
+      width: 1
+      description: System clock, rising-edge active.
+  resets:
+    - name: rst_n
+      direction: input
+      width: 1
+      description: Active-low asynchronous reset.
+  inputs:
+    - name: cmd_valid
+      direction: input
+      width: 1
+      description: Command valid handshake signal.
+      protocol: valid_ready
+      role: master
+    - name: cmd
+      direction: input
+      width: 3
+      description: >
+        Command encoding. 0=CLEAR, 1=LOAD, 2=INC, 3=DEC, 4=HOLD.
+        Values 5-7 are reserved/invalid.
+      encoding:
+        CLEAR: 3'b000
+        LOAD: 3'b001
+        INC:  3'b010
+        DEC:  3'b011
+        HOLD: 3'b100
+    - name: load_value
+      direction: input
+      width: 8
+      description: Data value loaded when cmd==LOAD and cmd_valid==1.
+
+  outputs:
+    - name: cmd_ready
+      direction: output
+      width: 1
+      description: >
+        Command ready handshake. When HIGH the counter accepts the current
+        command on the next rising clock edge. Always HIGH (no backpressure).
+      protocol: valid_ready
+      role: slave
+      backpressure: false
+    - name: count
+      direction: output
+      width: 8
+      description: Current counter value.
+    - name: zero
+      direction: output
+      width: 1
+      description: Asserted when count == 8'h00.
+    - name: max
+      direction: output
+      width: 1
+      description: Asserted when count == 8'hFF.
+    - name: accepted_count
+      direction: output
+      width: 32
+      description: >
+        Running total of accepted (cmd_valid && cmd_ready) transactions.
+        Free-running, wraps at 2^32-1. Cleared by reset.
+    - name: status
+      direction: output
+      width: 2
+      description: >
+        Compact status: 00=idle(HOLD or no cmd), 01=counting(INC/DEC),
+        10=loaded(LOAD or CLEAR), 11=reserved.
+      encoding:
+        idle:    2'b00
+        counting: 2'b01
+        loaded:  2'b10
+
+features:
+  - id: F001
+    description: Saturating increment — count stays at 8'hFF on INC at max.
+    priority: high
+  - id: F002
+    description: Saturating decrement — count stays at 8'h00 on DEC at min.
+    priority: high
+  - id: F003
+    description: Valid-ready command interface with always-ready sink.
+    priority: high
+  - id: F004
+    description: CLEAR command forces count to 8'h00 regardless of current value.
+    priority: high
+  - id: F005
+    description: LOAD command sets count to load_value[7:0] unconditionally.
+    priority: high
+  - id: F006
+    description: HOLD command leaves count unchanged.
+    priority: medium
+  - id: F007
+    description: Zero/max flags are combinational functions of count register.
+    priority: medium
+  - id: F008
+    description: accepted_count tracks total accepted transactions, wraps at 32-bit boundary.
+    priority: medium
+  - id: F009
+    description: status output reflects last accepted command category.
+    priority: low
+
+dataflow:
+  description: >
+    Single-path dataflow: command input → decode → next-count logic →
+    count register → output flags. No pipelining; all combinational
+    decode and next-state logic resolves in one clock cycle.
+  paths:
+    - name: command_path
+      source: cmd_valid
+      sink: count
+      latency_cycles: 1
+      throughput: 1
+    - name: flag_path
+      source: count
+      sink: [zero, max]
+      latency_cycles: 0
+      throughput: 1
+      note: Combinational — flags update same cycle as count register.
+
+function_model:
+  description: >
+    Behavioral model of the counter. On every rising clock edge when rst_n
+    is LOW, count resets to 0 and accepted_count resets to 0. When rst_n
+    is HIGH and cmd_valid && cmd_ready, the command is accepted.
+  transactions:
+    - name: reset
+      trigger: "negedge rst_n"
+      output_rules:
+        - expr: "count <= 8'h00"
+          width: 8
+          port: count
+        - expr: "accepted_count <= 32'h00000000"
+          width: 32
+          port: accepted_count
+        - expr: "status <= 2'b10"
+          width: 2
+          port: status
+      state_updates:
+        - state: count_reg
+          expr: "8'h00"
+          width: 8
+        - state: accepted_count_reg
+          expr: "32'h0"
+          width: 32
+
+    - name: clear
+      trigger: "posedge clk && rst_n && cmd_valid && cmd == CLEAR"
+      output_rules:
+        - expr: "count <= 8'h00"
+          width: 8
+          port: count
+        - expr: "accepted_count <= accepted_count + 1"
+          width: 32
+          port: accepted_count
+        - expr: "status <= 2'b10"
+          width: 2
+          port: status
+      state_updates:
+        - state: count_reg
+          expr: "8'h00"
+          width: 8
+        - state: accepted_count_reg
+          expr: "accepted_count_reg + 32'd1"
+          width: 32
+
+    - name: load
+      trigger: "posedge clk && rst_n && cmd_valid && cmd == LOAD"
+      output_rules:
+        - expr: "count <= load_value[7:0]"
+          width: 8
+          port: count
+        - expr: "accepted_count <= accepted_count + 1"
+          width: 32
+          port: accepted_count
+        - expr: "status <= 2'b10"
+          width: 2
+          port: status
+      state_updates:
+        - state: count_reg
+          expr: "load_value[7:0]"
+          width: 8
+        - state: accepted_count_reg
+          expr: "accepted_count_reg + 32'd1"
+          width: 32
+
+    - name: inc
+      trigger: "posedge clk && rst_n && cmd_valid && cmd == INC"
+      guard: "count < 8'hFF"
+      output_rules:
+        - expr: "count <= count + 8'd1"
+          width: 8
+          port: count
+        - expr: "accepted_count <= accepted_count + 1"
+          width: 32
+          port: accepted_count
+        - expr: "status <= 2'b01"
+          width: 2
+          port: status
+      state_updates:
+        - state: count_reg
+          expr: "count_reg + 8'd1"
+          width: 8
+        - state: accepted_count_reg
+          expr: "accepted_count_reg + 32'd1"
+          width: 32
+      alt_guard: "count == 8'hFF"
+      alt_state_updates:
+        - state: count_reg
+          expr: "8'hFF"
+          width: 8
+          note: Saturated — no change.
+
+    - name: dec
+      trigger: "posedge clk && rst_n && cmd_valid && cmd == DEC"
+      guard: "count > 8'h00"
+      output_rules:
+        - expr: "count <= count - 8'd1"
+          width: 8
+          port: count
+        - expr: "accepted_count <= accepted_count + 1"
+          width: 32
+          port: accepted_count
+        - expr: "status <= 2'b01"
+          width: 2
+          port: status
+      state_updates:
+        - state: count_reg
+          expr: "count_reg - 8'd1"
+          width: 8
+        - state: accepted_count_reg
+          expr: "accepted_count_reg + 32'd1"
+          width: 32
+      alt_guard: "count == 8'h00"
+      alt_state_updates:
+        - state: count_reg
+          expr: "8'h00"
+          width: 8
+          note: Saturated — no change.
+
+    - name: hold
+      trigger: "posedge clk && rst_n && cmd_valid && cmd == HOLD"
+      output_rules:
+        - expr: "count <= count"
+          width: 8
+          port: count
+          note: No change to count.
+        - expr: "accepted_count <= accepted_count + 1"
+          width: 32
+          port: accepted_count
+        - expr: "status <= 2'b00"
+          width: 2
+          port: status
+      state_updates:
+        - state: count_reg
+          expr: "count_reg"
+          width: 8
+        - state: accepted_count_reg
+          expr: "accepted_count_reg + 32'd1"
+          width: 32
+
+    - name: idle_no_cmd
+      trigger: "posedge clk && rst_n && !cmd_valid"
+      output_rules:
+        - expr: "count <= count"
+          width: 8
+          port: count
+        - expr: "status <= 2'b00"
+          width: 2
+          port: status
+      state_updates: []
+      note: No state change when no command is presented.
+
+  combinational:
+    - expr: "zero = (count == 8'h00)"
+      width: 1
+      port: zero
+    - expr: "max  = (count == 8'hFF)"
+      width: 1
+      port: max
+    - expr: "cmd_ready = 1'b1"
+      width: 1
+      port: cmd_ready
+      note: Always ready — no backpressure.
+
+cycle_model:
+  description: >
+    Single-cycle command acceptance. Every accepted command (cmd_valid &&
+    cmd_ready) produces a new count value on the next rising edge. Flags
+    (zero, max) are combinational and update in the same cycle as count.
+  stages:
+    - name: decode_and_execute
+      cycles: 1
+      description: Command decoded, count register updated, flags driven combinationally.
+
+registers:
+  - name: count_reg
+    width: 8
+    reset_value: 0x00
+    access: internal_rw
+    description: Current counter value.
+  - name: accepted_count_reg
+    width: 32
+    reset_value: 0x00000000
+    access: internal_rw
+    description: Running count of accepted transactions.
+
+interrupts: []
+
+fsm:
+  style: none
+  description: >
+    No explicit FSM — the counter uses combinational next-state decode
+    from the command input directly. The status output encodes a soft
+    state category but there is no sequential FSM.
+
+timing:
+  clock_domains:
+    - name: clk
+      period_ns: 10.0
+      description: Single 100 MHz clock domain.
+  critical_paths: []
+
+power:
+  domains:
+    - name: VDD
+      voltage: 1.0
+      rails: [core]
+  gating: disabled
+
+security: []
+
+error_handling:
+  description: >
+    Invalid command encodings (5-7) are treated as HOLD — count remains
+    unchanged and accepted_count still increments. No error output is
+    provided.
+  invalid_cmd_action: treat_as_hold
+
+debug_observability:
+  description: All internal state is observable through output ports (count, zero, max, accepted_count, status).
+
+integration:
+  bus_interfaces: []
+  sideband_signals: []
+
+dft:
+  scan_style: none
+
+synthesis:
+  target_library: generic
+  constraints: []
+
+custom:
+  assumptions:
+    - "cmd encoding values 5-7 are treated as HOLD (no-op)."
+    - "cmd_ready is always 1'b1 — the sink never applies backpressure."
+    - "No CDC, no multi-clock, no bus/CSR, no memory arrays."
+    - "load_value is only sampled when cmd==LOAD and cmd_valid==1."
+    - "accepted_count wraps naturally at 2^32-1; no overflow flag."
+    - "Reset is asynchronous active-low; deassertion is synchronous to clk."
+  future_considerations:
+    - "Parameterizable WIDTH for reuse."
+    - "Backpressure support via cmd_ready gating."
+    - "Overflow/underflow error output flags."
+
+test_requirements:
+  - id: TR001
+    description: Verify CLEAR sets count to 0 from any value.
+    stimulus: "Apply CLEAR command with count at random values."
+    expected: "count == 8'h00, zero == 1, max == 0."
+    checkers: ["count == 0", "zero == 1"]
+    coverage:
+      - "cover count transitions from non-zero to zero via CLEAR."
+
+  - id: TR002
+    description: Verify LOAD sets count to load_value.
+    stimulus: "Apply LOAD with load_value walking through 0x00..0xFF."
+    expected: "count == load_value after each LOAD."
+    checkers: ["count == load_value"]
+    coverage:
+      - "cover all 256 load_value settings."
+
+  - id: TR003
+    description: Verify INC saturates at 0xFF.
+    stimulus: "Apply INC repeatedly starting from 0xFE."
+    expected: "count goes to 0xFF and stays at 0xFF on subsequent INC."
+    checkers: ["count <= 8'hFF"]
+    coverage:
+      - "cover count at 0xFE → INC → 0xFF."
+      - "cover count at 0xFF → INC → 0xFF (saturation)."
+
+  - id: TR004
+    description: Verify DEC saturates at 0x00.
+    stimulus: "Apply DEC repeatedly starting from 0x01."
+    expected: "count goes to 0x00 and stays at 0x00 on subsequent DEC."
+    checkers: ["count >= 8'h00"]
+    coverage:
+      - "cover count at 0x01 → DEC → 0x00."
+      - "cover count at 0x00 → DEC → 0x00 (saturation)."
+
+  - id: TR005
+    description: Verify HOLD leaves count unchanged.
+    stimulus: "Apply HOLD at various count values."
+    expected: "count remains the same; accepted_count increments."
+    checkers: ["count == prev_count", "accepted_count == prev_accepted + 1"]
+    coverage:
+      - "cover HOLD at count == 0x00 and count == 0xFF."
+
+  - id: TR006
+    description: Verify zero and max flags.
+    stimulus: "Drive count to 0x00 and 0xFF via LOAD."
+    expected: "zero==1 when count==0; max==1 when count==0xFF; both 0 otherwise."
+    checkers: ["zero == (count == 0)", "max == (count == 255)"]
+    coverage:
+      - "cover zero flag assertion and de-assertion."
+      - "cover max flag assertion and de-assertion."
+
+  - id: TR007
+    description: Verify accepted_count increments on every accepted command.
+    stimulus: "Apply a sequence of N commands and check accepted_count."
+    expected: "accepted_count == N after N accepted commands."
+    checkers: ["accepted_count == expected_total"]
+    coverage:
+      - "cover accepted_count wrap-around at 32-bit boundary."
+
+  - id: TR008
+    description: Verify reset clears count and accepted_count.
+    stimulus: "Assert rst_n LOW while count is non-zero."
+    expected: "count == 0, accepted_count == 0."
+    checkers: ["count == 0", "accepted_count == 0"]
+    coverage:
+      - "cover async reset assertion at random points."
+
+  - id: TR009
+    description: Verify invalid commands treated as HOLD.
+    stimulus: "Apply cmd values 5, 6, 7 with cmd_valid=1."
+    expected: "count unchanged, accepted_count increments."
+    checkers: ["count == prev_count"]
+    coverage:
+      - "cover all three invalid encodings."
+
+  - id: TR010
+    description: Verify status output tracks command category.
+    stimulus: "Apply each command type and observe status."
+    expected: "status==00 for HOLD/idle, 01 for INC/DEC, 10 for LOAD/CLEAR."
+    checkers: ["status matches expected encoding"]
+    coverage:
+      - "cover all status transitions."
+
+quality_gates:
+  - gate: ssot_valid
+    condition: "YAML parses, all required sections present, no TBD markers."
+    status: pending
+  - gate: lint_clean
+    condition: "RTL passes Verilator lint with zero warnings."
+    status: pending
+  - gate: sim_pass
+    condition: "All test_requirements (TR001-TR010) pass in simulation."
+    status: pending
+  - gate: coverage
+    condition: "Toggle + FSM + functional coverage ≥ 95%."
+    status: pending
+
+workflow_todos:
+  - id: WT001
+    task: "Generate RTL from SSOT."
+    owner: rtl-gen
+    status: pending
+  - id: WT002
+    task: "Generate testbench from SSOT."
+    owner: tb-gen
+    status: pending
+  - id: WT003
+    task: "Run simulation and collect coverage."
+    owner: sim
+    status: pending
+  - id: WT004
+    task: "Run lint check."
+    owner: lint
+    status: pending
