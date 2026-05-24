@@ -2341,8 +2341,11 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       }
       if (ev.detail === 'CONTEXT' || ev.detail === 'FLOW_STAGES') {
         const backendWorkflow = (window.CONTEXT && window.CONTEXT.workspace) || '';
+        const backendViewWorkflow = (window.CONTEXT && window.CONTEXT.view_workspace) || '';
         const activeWorkflow = workflowFromSession(window.ACTIVE_SESSION || '');
-        const nextWorkflow = activeWorkflow || backendWorkflow;
+        const nextWorkflow = (
+          atlasUiOrchestratorMode() && backendViewWorkflow && backendViewWorkflow !== 'default'
+        ) ? backendViewWorkflow : (activeWorkflow || backendWorkflow);
         const known = (window.FLOW_STAGES || []).some(s => s.id === nextWorkflow);
         if (!nextWorkflow || nextWorkflow === 'default') {
           setWorkflow(defaultWorkflowForExecMode());
@@ -3061,6 +3064,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         setWorkflow('orchestrator');
         setMainTab('chat');
         setChatViewSession('');
+        window.CONTEXT = Object.assign({}, window.CONTEXT || {}, {
+          workspace: 'orchestrator',
+          view_workspace: 'orchestrator',
+        });
         if (orchSession) {
           window.ACTIVE_SESSION = orchSession;
           activeSessionRef.current = orchSession;
