@@ -55,7 +55,9 @@ def test_fl_model_workflow_prompt_is_stage_specific() -> None:
     cl_prompt = jobs._default_workflow_prompt("fl-model-gen", ip, "cl-model")
     eq_prompt = jobs._default_workflow_prompt("fl-model-gen", ip, "equivalence")
 
-    assert "/ssot-fl-model demo_ip" in fl_prompt
+    assert "Do not run /ssot-fl-model or emit_fl_model.py" in fl_prompt
+    assert "check_fl_model_artifacts.py" in fl_prompt
+    assert "FunctionalModel.apply(txn)" in fl_prompt
     assert "/ssot-cycle-model demo_ip" in cl_prompt
     assert "/ssot-dual-fcov demo_ip" in cl_prompt
     assert "/ssot-equiv-goals demo_ip" in eq_prompt

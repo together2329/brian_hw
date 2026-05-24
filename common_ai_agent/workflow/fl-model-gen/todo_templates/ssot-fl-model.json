@@ -12,8 +12,8 @@
     },
     {
       "content": "Generate model/functional_model.py with FunctionalModel.apply(txn) in the active IP root",
-      "detail": "Write an executable Python reference model independent of RTL. The model must implement the actual SSOT transaction vocabulary, state updates, side effects, error cases, invariants, and reset behavior. Do not emit unrelated AXI/APB/memory/cpu helper behavior unless the SSOT explicitly describes that behavior.",
-      "criteria": "functional_model.py exists\nFunctionalModel.apply(txn) dispatches every SSOT transaction or returns a precise unsupported transaction tied to an SSOT question\nModel state variables trace to function_model.state_variables\nExpected outputs are computed from SSOT behavior, not observed RTL\nNo IP-specific common_ai_agent generator branch was added",
+      "detail": "Write an executable Python reference model independent of RTL. The model must implement the actual SSOT transaction vocabulary, state updates, side effects, error cases, invariants, and reset behavior. Do not run /ssot-fl-model or emit_fl_model.py as the authoring path. Do not emit unrelated AXI/APB/memory/cpu helper behavior unless the SSOT explicitly describes that behavior.",
+      "criteria": "functional_model.py exists\nFunctionalModel.apply(txn) dispatches every SSOT transaction or returns a precise unsupported transaction tied to an SSOT question\nFunctionalModel or the module exposes run_self_check()\nModel state variables trace to function_model.state_variables\nExpected outputs are computed from SSOT behavior, not observed RTL\nNo IP-specific common_ai_agent generator branch was added\nemit_fl_model.py was not used as the authoring path",
       "status": "pending"
     },
     {
@@ -30,8 +30,8 @@
     },
     {
       "content": "Run FL self-check and write model/fl_model_check.json in the active IP root",
-      "detail": "Execute the generated Python model self-check. The report must include pass/fail, transaction coverage over SSOT function_model.transactions, invariant checks, reset checks, error-case checks, and coverage-bin count. A pass without transaction traceability is rejected.",
-      "criteria": "fl_model_check.json exists\npassed=true\nEvery SSOT transaction id/name is represented in transaction_results or equivalent traceability\nInvariant/reset/error checks pass\nReport points to functional_model.py and current SSOT",
+      "detail": "Execute the generated Python model self-check, then run workflow/fl-model-gen/scripts/check_fl_model_artifacts.py as the non-generating gate. The report must include pass/fail, transaction coverage over SSOT function_model.transactions, invariant checks, reset checks, error-case checks, and coverage-bin count. A pass without transaction traceability is rejected.",
+      "criteria": "fl_model_check.json exists\npassed=true\nEvery SSOT transaction id/name is represented in transaction_results or equivalent traceability\nInvariant/reset/error checks pass\nReport points to functional_model.py and current SSOT\ncheck_fl_model_artifacts.py exits 0 and writes logs/gates/fl_model_gate.json",
       "status": "pending"
     }
   ]

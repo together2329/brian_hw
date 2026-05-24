@@ -1,0 +1,21 @@
+{
+  "approval_mode": "starter",
+  "status": "approved",
+  "ip": "real_llm_counter_demo",
+  "artifact": "req/real_llm_counter_demo_requirements.md",
+  "bytes": 3500,
+  "approved_by": "ssot-gen-autonomous",
+  "approved_at_utc": "2025-01-01T00:00:00Z",
+  "checks": {
+    "has_overview": true,
+    "has_functional_requirements": true,
+    "has_nonfunctional_requirements": true,
+    "has_interface_table": true,
+    "has_verification_goals": true,
+    "no_todo_markers": true,
+    "no_tbd_markers": true,
+    "min_1000_bytes": true
+  },
+  "source": "orchestrator-goal",
+  "notes": "Starter-mode approval — requirements bootstrapped from orchestrator goal for real_llm_counter_demo IP. No external architect review packet exists."
+}
