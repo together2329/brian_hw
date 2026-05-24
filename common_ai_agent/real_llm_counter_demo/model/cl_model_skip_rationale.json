@@ -1,0 +1,16 @@
+{
+  "ip": "real_llm_counter_demo",
+  "artifact": "cl_model_skip_rationale",
+  "source": "yaml/real_llm_counter_demo.ssot.yaml",
+  "rationale": "The SSOT cycle_model describes a deterministic single-cycle command acceptance with a 2-stage accept-then-update pipeline and combinational flag update. There is no multi-cycle latency, no pipelining with stalls, no backpressure, no out-of-order completion, and no variable-latency operations. The cycle behavior is fully captured by FunctionalModel.apply() which models the state transition atomically per transaction. A separate executable cycle-level (CL) model would be redundant with the functional model because: (1) command acceptance is always 0-cycle (same edge), (2) state update is always exactly 1-cycle latency, (3) flags are combinational (0-cycle after count), (4) no backpressure exists (cmd_ready=1 always), (5) throughput is exactly 1 command per cycle when cmd_valid is high. The cycle_model section is descriptive documentation only — it does not define any behavior that FunctionalModel.apply does not already model deterministically.",
+  "ssot_refs": [
+    "cycle_model.latency.command_accept: min=0, max=0",
+    "cycle_model.latency.command_effect: min=1, max=1",
+    "cycle_model.latency.flag_update: min=0, max=0",
+    "cycle_model.pipeline: S0_ACCEPT → S1_UPDATE → S2_FLAGS",
+    "cycle_model.backpressure: none (cmd_ready always 1)",
+    "cycle_model.performance.throughput: 1 beat/cycle sustained"
+  ],
+  "executable_cl_required": false,
+  "functional_model_covers_cycle_behavior": true
+}

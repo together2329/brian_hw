@@ -881,6 +881,60 @@ def test_pipeline_state_isolates_handoffs_by_authenticated_user(
     assert data_bob["handoffs_by_workflow"]["rtl-gen"]["pending"] == 1
 
 
+def test_pipeline_state_allows_admin_to_inspect_user_owned_ip(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """Admin dashboard can list user-owned IPs, so opening one should not
+    dead-end on the normal pipeline state endpoint with 403."""
+    from core.atlas_db import AtlasDB
+
+    monkeypatch.setenv("ATLAS_ADMIN_USERS", "admin")
+    ip = "admin_view_ip"
+    (tmp_path / ip).mkdir()
+
+    client = _make_client(tmp_path, monkeypatch)
+    client.post("/api/auth/register", json={"username": "alice", "password": "pw"})
+    client.post("/api/auth/register", json={"username": "bob", "password": "pw"})
+    admin_reg = client.post("/api/auth/register", json={"username": "admin", "password": "1151"})
+    assert admin_reg.status_code == 200, admin_reg.text
+    assert admin_reg.json()["user"]["role"] == "admin"
+
+    client.post("/api/auth/login", json={"username": "alice", "password": "pw"})
+    activated = client.post(
+        "/api/session/activate",
+        json={"session_id": "alice", "ip": ip, "workflow": "ssot-gen"},
+    )
+    assert activated.status_code == 200, activated.text
+
+    with AtlasDB(str(tmp_path / "atlas.db")) as db:
+        alice = db.get_user_by_username("alice")
+        session = db.get_session(f"alice/{ip}/ssot-gen")
+        assert alice is not None
+        assert session is not None
+        ws = db.upsert_workspace(
+            tmp_path.name or "default",
+            owner_user_id=alice["id"],
+            local_path=str(tmp_path),
+        )
+        ipb = db.upsert_ip_block(ws["id"], ip)
+        db.start_workflow_run(
+            session_id=session["id"],
+            workspace_id=ws["id"],
+            ip_id=ipb["id"],
+            workflow="ssot-gen",
+            status="completed",
+        )
+
+    client.post("/api/auth/login", json={"username": "bob", "password": "pw"})
+    bob_state = client.get(f"/api/pipeline/state?ip={ip}")
+    assert bob_state.status_code == 403
+
+    client.post("/api/auth/login", json={"username": "admin", "password": "1151"})
+    admin_state = client.get(f"/api/pipeline/state?ip={ip}")
+    assert admin_state.status_code == 200, admin_state.text
+    assert admin_state.json()["ip"] == ip
+
+
 def test_stage_carries_workflow_and_handoffs_count(tmp_path: Path, monkeypatch) -> None:
     """Each stage object in the response must expose its workflow name and a
     per-workflow handoff count so the StageCard can render [take] without

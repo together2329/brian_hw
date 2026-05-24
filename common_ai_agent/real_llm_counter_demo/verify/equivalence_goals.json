@@ -1,0 +1,144 @@
+{
+  "ip": "real_llm_counter_demo",
+  "source": "yaml/real_llm_counter_demo.ssot.yaml",
+  "expected_behavior_source": "FunctionalModel.apply",
+  "blocked_count": 0,
+  "evaluation_contract": {
+    "traceability": "Every equivalence goal traces to one or more SSOT sections.",
+    "functional_equivalence": "RTL outputs must match FunctionalModel.apply for every SSOT transaction after each accepted command.",
+    "module_equivalence": "Top module real_llm_counter_demo matches SSOT top_module and io_list.",
+    "coverage_closure": "Function and cycle coverage bins (fcov_plan.json) must reach target_pct before signoff.",
+    "interface_protocol": "Valid-ready handshake (cmd_valid/cmd_ready) follows SSOT cycle_model; cmd_ready is always 1.",
+    "dut_only_lint_compile": "RTL must compile and pass lint with zero errors on DUT-only filelist before equivalence check.",
+    "simulation_evidence_freshness": "Scoreboard events must come from a fresh simulation run, not cached results.",
+    "performance_cycle_evidence": "Single-cycle command acceptance (0-cycle accept, 1-cycle effect) verified per cycle_model.",
+    "debug_observability": "All debug_observability.waveform_must_probe signals visible in waveform.",
+    "maintainability": "LLM-editable artifacts remain human-readable and SSOT-traceable.",
+    "locked_artifacts": "functional_model.py, fcov_plan.json, and equivalence_goals.json are locked after human approval.",
+    "llm_editable_artifacts": "functional_model.py, fcov_plan.json, equivalence_goals.json, decomposition.json may be re-authored by LLM before lock.",
+    "loopable_evidence_points": "Self-check results, simulation scoreboard, and coverage reports are loopable.",
+    "non_loopable_human_decisions": "Semantic changes to locked artifacts require human gate approval."
+  },
+  "goals": [
+    {
+      "id": "EQ_RESET",
+      "description": "After reset, RTL outputs match FunctionalModel.reset(): count=0, zero=1, max=0, accepted_count=0, status=0, cmd_ready=1.",
+      "ssot_refs": ["function_model.transactions.FM_CLEAR", "clock_reset_domains.reset_behavior", "test_requirements.scenarios.SC01"],
+      "coverage_bins": ["FCOV_CLEAR"],
+      "failure_ownership": "rtl",
+      "status": "unblocked"
+    },
+    {
+      "id": "EQ_CLEAR",
+      "description": "CLEAR command (cmd=000) sets count to 0, zero=1, max=0, accepted_count increments, status=000.",
+      "ssot_refs": ["function_model.transactions.FM_CLEAR", "test_requirements.scenarios.SC02"],
+      "coverage_bins": ["FCOV_CLEAR"],
+      "failure_ownership": "rtl",
+      "status": "unblocked"
+    },
+    {
+      "id": "EQ_LOAD",
+      "description": "LOAD command (cmd=001) sets count to load_value[7:0], zero/max flags recomputed, accepted_count increments, status=001.",
+      "ssot_refs": ["function_model.transactions.FM_LOAD", "test_requirements.scenarios.SC03"],
+      "coverage_bins": ["FCOV_LOAD"],
+      "failure_ownership": "rtl",
+      "status": "unblocked"
+    },
+    {
+      "id": "EQ_LOAD_BOUNDARY",
+      "description": "LOAD with boundary values (0, 128, 255) produces correct count and flags.",
+      "ssot_refs": ["function_model.transactions.FM_LOAD", "test_requirements.scenarios.SC12"],
+      "coverage_bins": ["FCOV_LOAD", "FCOV_ZERO_FLAG", "FCOV_MAX_FLAG"],
+      "failure_ownership": "rtl",
+      "status": "unblocked"
+    },
+    {
+      "id": "EQ_INC",
+      "description": "INC command (cmd=010) increments count, saturating at 255.",
+      "ssot_refs": ["function_model.transactions.FM_INC", "features.F001", "test_requirements.scenarios.SC04"],
+      "coverage_bins": ["FCOV_INC"],
+      "failure_ownership": "rtl",
+      "status": "unblocked"
+    },
+    {
+      "id": "EQ_INC_SATURATE",
+      "description": "INC at count=255 saturates: count stays 255, max=1, zero=0.",
+      "ssot_refs": ["function_model.transactions.FM_INC", "features.F001", "test_requirements.scenarios.SC05"],
+      "coverage_bins": ["FCOV_INC_SATURATE"],
+      "failure_ownership": "rtl",
+      "status": "unblocked"
+    },
+    {
+      "id": "EQ_DEC",
+      "description": "DEC command (cmd=011) decrements count, saturating at 0.",
+      "ssot_refs": ["function_model.transactions.FM_DEC", "features.F002", "test_requirements.scenarios.SC06"],
+      "coverage_bins": ["FCOV_DEC"],
+      "failure_ownership": "rtl",
+      "status": "unblocked"
+    },
+    {
+      "id": "EQ_DEC_SATURATE",
+      "description": "DEC at count=0 saturates: count stays 0, zero=1, max=0.",
+      "ssot_refs": ["function_model.transactions.FM_DEC", "features.F002", "test_requirements.scenarios.SC07"],
+      "coverage_bins": ["FCOV_DEC_SATURATE"],
+      "failure_ownership": "rtl",
+      "status": "unblocked"
+    },
+    {
+      "id": "EQ_HOLD",
+      "description": "HOLD command (cmd=100) leaves count unchanged, accepted_count increments, status=100.",
+      "ssot_refs": ["function_model.transactions.FM_HOLD", "features.F005", "test_requirements.scenarios.SC08"],
+      "coverage_bins": ["FCOV_HOLD"],
+      "failure_ownership": "rtl",
+      "status": "unblocked"
+    },
+    {
+      "id": "EQ_INVALID",
+      "description": "Invalid/reserved commands (cmd=5,6,7) treated as HOLD; count unchanged, status records actual cmd value, accepted_count increments.",
+      "ssot_refs": ["function_model.transactions.FM_INVALID", "error_handling", "test_requirements.scenarios.SC09"],
+      "coverage_bins": ["FCOV_INVALID"],
+      "failure_ownership": "rtl",
+      "status": "unblocked"
+    },
+    {
+      "id": "EQ_ACCEPTED_COUNT_WRAP",
+      "description": "accepted_count wraps from 0xFFFFFFFF to 0x00000000 after 2^32 accepted commands.",
+      "ssot_refs": ["features.F008", "test_requirements.scenarios.SC10"],
+      "coverage_bins": [],
+      "failure_ownership": "rtl",
+      "status": "unblocked"
+    },
+    {
+      "id": "EQ_BACK_TO_BACK",
+      "description": "Back-to-back commands update count every cycle at full throughput.",
+      "ssot_refs": ["cycle_model.performance.throughput", "test_requirements.scenarios.SC11"],
+      "coverage_bins": ["CCOV_BACK_TO_BACK"],
+      "failure_ownership": "rtl",
+      "status": "unblocked"
+    },
+    {
+      "id": "EQ_FLAGS",
+      "description": "zero and max flags are correct combinational functions of count for all values.",
+      "ssot_refs": ["features.F007", "function_model.invariants", "test_requirements.scenarios.SC12"],
+      "coverage_bins": ["FCOV_ZERO_FLAG", "FCOV_MAX_FLAG", "CCOV_FLAG_COMBINATIONAL"],
+      "failure_ownership": "rtl",
+      "status": "unblocked"
+    },
+    {
+      "id": "EQ_CMD_READY_ALWAYS",
+      "description": "cmd_ready is always 1 during and after reset and during normal operation.",
+      "ssot_refs": ["function_model.invariants", "io_list.interfaces.command_if.protocol.always_ready"],
+      "coverage_bins": [],
+      "failure_ownership": "rtl",
+      "status": "unblocked"
+    },
+    {
+      "id": "EQ_CYCLE_TIMING",
+      "description": "Command acceptance is 0-cycle (same edge), state update is 1-cycle latency, flags are combinational (0-cycle after count).",
+      "ssot_refs": ["cycle_model.latency", "cycle_model.pipeline"],
+      "coverage_bins": ["CCOV_CMD_ACCEPT", "CCOV_STATE_UPDATE", "CCOV_FLAG_COMBINATIONAL"],
+      "failure_ownership": "rtl",
+      "status": "unblocked"
+    }
+  ]
+}

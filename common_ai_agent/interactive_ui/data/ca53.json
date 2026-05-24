@@ -182,7 +182,21 @@
       "EL2 stage 1 — TTBR0_EL2 (optional)",
       "EL1&0 stage 2 — VTTBR_EL2 (virtualization, optional)"
     ],
-    "tlb": "Per-core L1 instruction & data micro-TLBs backed by a unified L2 TLB (illustrative)"
+    "tlb": "Per-core L1 instruction & data micro-TLBs backed by a unified L2 TLB (illustrative)",
+    "walk": {
+      "granule": "4 KB",
+      "va_bits": 48,
+      "pa_bits": 40,
+      "ttbr": "TTBR0_EL1",
+      "entries_per_table": 512,
+      "levels": [
+        { "level": "L0", "hi": 47, "lo": 39, "desc": "Level 0 table index (512 GB/entry)" },
+        { "level": "L1", "hi": 38, "lo": 30, "desc": "Level 1 table index (1 GB/entry)" },
+        { "level": "L2", "hi": 29, "lo": 21, "desc": "Level 2 table index (2 MB/entry)" },
+        { "level": "L3", "hi": 20, "lo": 12, "desc": "Level 3 table index (4 KB page)" }
+      ],
+      "offset": { "hi": 11, "lo": 0, "desc": "Page offset (within 4 KB page)" }
+    }
   },
   "caches": {
     "rows": [
@@ -190,7 +204,20 @@
       { "cache": "L1 Data",        "size": "8–64 KB (illustrative 32 KB)", "ways": "4", "line": "64 B", "policy": "PIPT, write-back, read/write-allocate" },
       { "cache": "L2 Unified",     "size": "128 KB–2 MB",                  "ways": "16","line": "64 B", "policy": "write-back, inclusive of L1 (illustrative)" }
     ],
-    "coherency": "Snoop Control Unit (SCU) keeps L1 D-caches coherent across cores (MOESI-style states)."
+    "coherency": "Snoop Control Unit (SCU) keeps L1 D-caches coherent across cores (MOESI-style states).",
+    "indexing": {
+      "cache": "L1 Data (illustrative 32 KB, 4-way, 64 B line)",
+      "addr_bits": 40,
+      "line_bytes": 64,
+      "ways": 4,
+      "size_kb": 32,
+      "sets": 128,
+      "fields": [
+        { "name": "Tag",    "hi": 39, "lo": 13, "desc": "Compared against the way tags in the selected set" },
+        { "name": "Index",  "hi": 12, "lo": 6,  "desc": "Selects 1 of 128 sets" },
+        { "name": "Offset", "hi": 5,  "lo": 0,  "desc": "Byte within the 64 B cache line" }
+      ]
+    }
   },
   "interrupts": {
     "types": ["IRQ — normal interrupt", "FIQ — fast interrupt", "SError — system error abort"],

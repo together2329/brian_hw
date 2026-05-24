@@ -1,0 +1,68 @@
+{
+  "ip": "real_llm_counter_demo",
+  "source": "yaml/real_llm_counter_demo.ssot.yaml",
+  "strategy": "manifest_owned_leaf",
+  "units": [
+    {
+      "id": "command_decode",
+      "kind": "combinational",
+      "source_refs": ["function_model.transactions"],
+      "rtl_candidates": ["real_llm_counter_demo"],
+      "verification_impact": ["test_requirements.scenarios"],
+      "description": "Decodes cmd[2:0] into one of CLEAR, LOAD, INC, DEC, HOLD, or INVALID (reserved treated as HOLD). Purely combinational logic."
+    },
+    {
+      "id": "counter_datapath",
+      "kind": "sequential",
+      "source_refs": ["function_model.state_variables", "function_model.transactions"],
+      "rtl_candidates": ["real_llm_counter_demo"],
+      "verification_impact": ["test_requirements.scenarios"],
+      "description": "8-bit saturating counter register with next-state logic. Includes accepted_count (32-bit wrapping) and last_cmd (3-bit) registers. Saturates at 0 and 255."
+    }
+  ],
+  "submodels": {
+    "protocol": {
+      "present": true,
+      "description": "Valid-ready command interface with always-ready sink (cmd_ready=1). Single-cycle acceptance, no backpressure.",
+      "source_refs": ["io_list.interfaces.command_if", "cycle_model.handshake_rules"]
+    },
+    "register": {
+      "present": false,
+      "description": "No firmware-visible CSR registers. State is accessed only through native command interface and output ports.",
+      "source_refs": ["registers"]
+    },
+    "memory": {
+      "present": false,
+      "description": "No internal memory instances.",
+      "source_refs": ["memory"]
+    },
+    "datapath": {
+      "present": true,
+      "description": "8-bit saturating up/down counter datapath: count register, next-state mux, zero/max flag comparators, accepted_count incrementer.",
+      "source_refs": ["function_model.state_variables", "dataflow"]
+    },
+    "fsm": {
+      "present": false,
+      "description": "No sequential FSM. Combinational command decode drives registered counter update directly.",
+      "source_refs": ["fsm"]
+    },
+    "error": {
+      "present": true,
+      "description": "Invalid/reserved command encodings (5-7) treated as HOLD. No error output signal. accepted_count still increments.",
+      "source_refs": ["error_handling", "function_model.transactions.FM_INVALID"]
+    },
+    "security": {
+      "present": false,
+      "description": "Non-secure leaf IP. No privilege model. Counter state is deterministic from command sequence.",
+      "source_refs": ["security"]
+    }
+  },
+  "owners": [
+    {
+      "module": "real_llm_counter_demo",
+      "file": "rtl/real_llm_counter_demo.sv",
+      "responsibility": "Top-level integration module implementing all decomposed units",
+      "source_sections": ["top_module", "io_list", "decomposition", "integration"]
+    }
+  ]
+}

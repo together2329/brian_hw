@@ -209,6 +209,19 @@
   /* PMU events: event num badge */
   td.ev-num code{color:var(--warn);}
 
+  /* interactive walk / cache address diagrams */
+  .isvg-wrap{margin-top:18px;}
+  .isvg-ctrl{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
+  .isvg-ctrl label{font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:.05em;}
+  .isvg-ctrl input[type=text]{background:var(--bg);color:var(--fg);border:1px solid var(--line);
+       border-radius:5px;padding:4px 9px;font-family:inherit;font-size:12px;width:200px;}
+  .isvg-ctrl input[type=text]:focus{outline:none;border-color:var(--accent);}
+  .isvg-ctrl .isvg-err{font-size:11px;color:var(--bad);}
+  .isvg-readout{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+  .isvg-field{border:1px solid var(--line);border-radius:5px;padding:5px 10px;background:var(--bg);min-width:100px;}
+  .isvg-field .if-name{font-size:10px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;}
+  .isvg-field .if-val{font-size:13px;font-weight:700;}
+
   /* editor */
   .editor{margin-top:30px;}
   .editor textarea{width:100%;height:300px;background:var(--panel);color:var(--fg);
@@ -601,7 +614,21 @@ const DEFAULT = {
       "EL2 stage 1 — TTBR0_EL2 (optional)",
       "EL1&0 stage 2 — VTTBR_EL2 (virtualization, optional)"
     ],
-    "tlb": "Per-core L1 instruction & data micro-TLBs backed by a unified L2 TLB (illustrative)"
+    "tlb": "Per-core L1 instruction & data micro-TLBs backed by a unified L2 TLB (illustrative)",
+    "walk": {
+      "granule": "4 KB",
+      "va_bits": 48,
+      "pa_bits": 40,
+      "ttbr": "TTBR0_EL1",
+      "entries_per_table": 512,
+      "levels": [
+        { "level": "L0", "hi": 47, "lo": 39, "desc": "Level 0 table index (512 GB/entry)" },
+        { "level": "L1", "hi": 38, "lo": 30, "desc": "Level 1 table index (1 GB/entry)" },
+        { "level": "L2", "hi": 29, "lo": 21, "desc": "Level 2 table index (2 MB/entry)" },
+        { "level": "L3", "hi": 20, "lo": 12, "desc": "Level 3 table index (4 KB page)" }
+      ],
+      "offset": { "hi": 11, "lo": 0, "desc": "Page offset (within 4 KB page)" }
+    }
   },
   "caches": {
     "rows": [
@@ -609,7 +636,20 @@ const DEFAULT = {
       { "cache": "L1 Data",        "size": "8–64 KB (illustrative 32 KB)", "ways": "4",  "line": "64 B", "policy": "PIPT, write-back, read/write-allocate" },
       { "cache": "L2 Unified",     "size": "128 KB–2 MB",                 "ways": "16", "line": "64 B", "policy": "write-back, inclusive of L1 (illustrative)" }
     ],
-    "coherency": "Snoop Control Unit (SCU) keeps L1 D-caches coherent across cores (MOESI-style states)."
+    "coherency": "Snoop Control Unit (SCU) keeps L1 D-caches coherent across cores (MOESI-style states).",
+    "indexing": {
+      "cache": "L1 Data (illustrative 32 KB, 4-way, 64 B line)",
+      "addr_bits": 40,
+      "line_bytes": 64,
+      "ways": 4,
+      "size_kb": 32,
+      "sets": 128,
+      "fields": [
+        { "name": "Tag",    "hi": 39, "lo": 13, "desc": "Compared against the way tags in the selected set" },
+        { "name": "Index",  "hi": 12, "lo": 6,  "desc": "Selects 1 of 128 sets" },
+        { "name": "Offset", "hi": 5,  "lo": 0,  "desc": "Byte within the 64 B cache line" }
+      ]
+    }
   },
   "interrupts": {
     "types": ["IRQ — normal interrupt", "FIQ — fast interrupt", "SError — system error abort"],
@@ -1084,6 +1124,203 @@ function renderMmu(){
     '</tbody></table></div>';
 
   el('mmuPanel').innerHTML=factsHtml+granulesHtml+regimesHtml;
+
+  /* page-table-walk interactive diagram */
+  if(SPEC.mmu&&SPEC.mmu.walk) renderWalkDiagram(SPEC.mmu.walk);
+}
+
+/* --- MMU: page-table-walk SVG -------------------------------- */
+function renderWalkDiagram(w){
+  /* colour palette — uses only existing theme-map hex values */
+  const LCOLS=['#3a5170','#1d4326','#5a4a18','#5b2a6b'];
+  const LFILLS=['#10243e','#0c1c11','#1c1708','#190f1f'];
+  const LTXT=[var_accent(),'#3fb950','#d29922','#bc8cff'];
+
+  /* helper: read a CSS var at runtime so we get the live value */
+  function cssv(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
+  function var_accent(){return cssv('--accent')||'#58a6ff';}
+
+  /* levels from data */
+  const levels=w.levels||[];
+  const offset=w.offset||{hi:11,lo:0,desc:'Page offset'};
+
+  /* ------- build the container div ------- */
+  const wrap=document.createElement('div');
+  wrap.className='isvg-wrap';
+  wrap.innerHTML=
+    '<div style="font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">'+
+      'Figure: ARMv8-A 4KB-granule 4-level page-table walk (TTBR0_EL1)'+
+    '</div>'+
+    '<div class="isvg-ctrl">'+
+      '<label>48-bit VA (hex)</label>'+
+      '<input type="text" id="walkVaInput" value="0x0000804020001000" spellcheck="false">'+
+      '<span class="isvg-err" id="walkErr"></span>'+
+    '</div>'+
+    '<div class="stage"><svg id="walkSvg" style="overflow:visible"></svg></div>'+
+    '<div class="isvg-readout" id="walkReadout"></div>';
+
+  el('mmuPanel').appendChild(wrap);
+
+  /* ------- draw static SVG skeleton ------- */
+  const SVG_W=860, BAR_Y=28, BAR_H=34, WALK_Y=110, BOX_W=110, BOX_H=44, ARROW_H=22;
+  const svg=document.getElementById('walkSvg');
+  svg.setAttribute('width',SVG_W);
+  svg.setAttribute('height',WALK_Y+BOX_H+ARROW_H+30);
+  svg.setAttribute('viewBox','0 0 '+SVG_W+' '+(WALK_Y+BOX_H+ARROW_H+30));
+
+  /* total VA bits */
+  const totalBits=48;
+  /* all field segments: levels + offset */
+  const segs=[...levels.map((lv,i)=>({name:lv.level,hi:lv.hi,lo:lv.lo,desc:lv.desc,
+    col:LCOLS[i],fill:LFILLS[i],txt:LTXT[i],idx:i})),
+    {name:'Offset',hi:offset.hi,lo:offset.lo,desc:offset.desc,
+     col:'#4a4a52',fill:'#16161b',txt:'#adadc0',idx:4}];
+
+  const BAR_X=10, BAR_W=SVG_W-20;
+
+  /* draw VA bar header */
+  const hdrt=svgEl('text',{x:BAR_X,y:16,fill:'#8b949e','font-size':10});
+  hdrt.textContent='VA[47:0]'; svg.appendChild(hdrt);
+
+  /* draw segments */
+  segs.forEach(seg=>{
+    const bitsTotal=totalBits;
+    const segBits=seg.hi-seg.lo+1;
+    const x=BAR_X+((totalBits-1-seg.hi)/bitsTotal)*BAR_W;
+    const w2=(segBits/bitsTotal)*BAR_W;
+    const r=svgEl('rect',{x,y:BAR_Y,width:w2,height:BAR_H,rx:3,
+      fill:seg.fill,stroke:seg.col,'stroke-width':1.5});
+    svg.appendChild(r);
+    /* field name */
+    const nt=svgEl('text',{x:x+w2/2,y:BAR_Y+12,'text-anchor':'middle','font-size':9.5,
+      fill:seg.txt,'font-weight':700,'pointer-events':'none'});
+    nt.textContent=seg.name; svg.appendChild(nt);
+    /* bit range */
+    const bt=svgEl('text',{x:x+w2/2,y:BAR_Y+24,'text-anchor':'middle','font-size':8.5,
+      fill:'#8b949e','pointer-events':'none'});
+    bt.textContent='['+seg.hi+':'+seg.lo+']'; svg.appendChild(bt);
+
+    /* value placeholder text (updated on input) */
+    if(seg.idx<4){
+      const vt=svgEl('text',{x:x+w2/2,y:BAR_Y+35,'text-anchor':'middle','font-size':8,
+        fill:seg.txt,'pointer-events':'none','font-weight':700});
+      vt.id='walkBarVal'+seg.idx; svg.appendChild(vt);
+    }
+  });
+
+  /* --- walk flow boxes: TTBR + L0..L3 + PA --- */
+  /* positions: evenly spaced across full width */
+  const boxes=[
+    {id:'wb_ttbr', label:w.ttbr||'TTBR0_EL1', sub:'',         col:'#3a5170', fill:'#10243e', txt:'#58a6ff'},
+    ...levels.map((lv,i)=>({id:'wb_'+lv.level, label:lv.level+' table',
+      sub:(w.entries_per_table||512)+' entries', col:LCOLS[i], fill:LFILLS[i], txt:LTXT[i]})),
+    {id:'wb_pa',   label:'PA[39:0]', sub:'Physical addr',      col:'#1d4326', fill:'#0c1c11', txt:'#3fb950'}
+  ];
+  const nBoxes=boxes.length;
+  const totalBoxW=nBoxes*BOX_W, gap2=(SVG_W-totalBoxW)/(nBoxes+1);
+
+  boxes.forEach((b,i)=>{
+    const bx=gap2+(gap2+BOX_W)*i;
+    const by=WALK_Y;
+    const r=svgEl('rect',{x:bx,y:by,width:BOX_W,height:BOX_H,rx:5,
+      fill:b.fill,stroke:b.col,'stroke-width':1.4});
+    svg.appendChild(r);
+    const lt=svgEl('text',{x:bx+BOX_W/2,y:by+15,'text-anchor':'middle','font-size':10,
+      fill:b.txt,'font-weight':700,'pointer-events':'none'});
+    lt.textContent=b.label; svg.appendChild(lt);
+    /* sub label or value placeholder */
+    const st=svgEl('text',{x:bx+BOX_W/2,y:by+27,'text-anchor':'middle','font-size':8.5,
+      fill:'#8b949e','pointer-events':'none'});
+    st.textContent=b.sub;
+    if(b.id.startsWith('wb_L')) st.id='walkBoxVal'+(i-1);
+    svg.appendChild(st);
+    /* value hex line */
+    if(b.id.startsWith('wb_L')){
+      const hxt=svgEl('text',{x:bx+BOX_W/2,y:by+38,'text-anchor':'middle','font-size':8,
+        fill:b.txt,'pointer-events':'none','font-weight':700});
+      hxt.id='walkBoxHex'+(i-1); svg.appendChild(hxt);
+    }
+
+    /* arrow to next box */
+    if(i<nBoxes-1){
+      const ax=bx+BOX_W, ay=by+BOX_H/2;
+      const nx=bx+gap2+BOX_W;
+      const arrowPath='M'+ax+','+ay+' L'+(nx-6)+','+ay;
+      svg.appendChild(svgEl('path',{d:arrowPath,fill:'none',stroke:'#8b949e','stroke-width':1.2,
+        'marker-end':'url(#wk_ah)'}));
+    }
+  });
+
+  /* arrowhead marker */
+  const defs=svgEl('defs',{});
+  defs.innerHTML='<marker id="wk_ah" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">'+
+    '<path d="M0,0 L7,3.5 L0,7 Z" fill="#8b949e"/></marker>';
+  svg.insertBefore(defs,svg.firstChild);
+
+  /* offset label at bottom of walk area */
+  const offSeg=segs[segs.length-1];
+  const offX=BAR_X+((totalBits-1-offSeg.hi)/totalBits)*BAR_W;
+  const offW=(( offSeg.hi-offSeg.lo+1)/totalBits)*BAR_W;
+  const offReadT=svgEl('text',{x:offX+offW/2,y:WALK_Y+BOX_H+ARROW_H+14,
+    'text-anchor':'middle','font-size':9,fill:'#adadc0'});
+  offReadT.id='walkOffsetVal'; svg.appendChild(offReadT);
+
+  /* ------- live update function ------- */
+  function updateWalk(raw){
+    const errEl=document.getElementById('walkErr');
+    const clean=raw.replace(/[\s_]/g,'');
+    /* parse — BigInt handles 48-bit safely */
+    let va;
+    try{ va=BigInt(clean); } catch(e){ errEl.textContent='invalid hex'; return; }
+    if(va<0n||va>=BigInt(2)**48n){ errEl.textContent='value exceeds 48 bits'; return; }
+    errEl.textContent='';
+
+    /* extract each level index */
+    const vals=levels.map(lv=>{
+      const width=BigInt(lv.hi-lv.lo+1);
+      const mask=(1n<<width)-1n;
+      return Number((va>>BigInt(lv.lo))&mask);
+    });
+    const offVal=Number(va&0xFFFn);
+
+    /* update VA bar value overlays */
+    vals.forEach((v,i)=>{
+      const t=document.getElementById('walkBarVal'+i);
+      if(t) t.textContent='='+v;
+    });
+
+    /* update walk box index values */
+    vals.forEach((v,i)=>{
+      const st=document.getElementById('walkBoxVal'+i);
+      if(st) st.textContent='idx='+v;
+      const hx=document.getElementById('walkBoxHex'+i);
+      if(hx) hx.textContent='(0x'+v.toString(16).toUpperCase()+')';
+    });
+
+    /* update offset */
+    const ot=document.getElementById('walkOffsetVal');
+    if(ot) ot.textContent='offset=0x'+offVal.toString(16).toUpperCase()+' ('+offVal+')';
+
+    /* update readout pills */
+    const ro=document.getElementById('walkReadout');
+    if(ro){
+      const allSegs=[...vals.map((v,i)=>({
+        name:levels[i].level,val:v,col:LTXT[i],hex:'0x'+v.toString(16).toUpperCase()
+      })),{name:'Offset',val:offVal,col:'#adadc0',hex:'0x'+offVal.toString(16).toUpperCase()}];
+      ro.innerHTML=allSegs.map(s=>
+        '<div class="isvg-field">'+
+          '<div class="if-name" style="color:'+s.col+'">'+esc(s.name)+'</div>'+
+          '<div class="if-val" style="color:'+s.col+'">'+s.hex+'</div>'+
+          '<div style="font-size:10px;color:var(--mute)">idx='+s.val+'</div>'+
+        '</div>'
+      ).join('');
+    }
+  }
+
+  /* initial render */
+  const inp=document.getElementById('walkVaInput');
+  updateWalk(inp.value);
+  inp.addEventListener('input',()=>updateWalk(inp.value));
 }
 
 /* ============================================================
@@ -1113,6 +1350,146 @@ function renderCaches(){
     : '';
 
   el('cachePanel').innerHTML=tableHtml+cohHtml;
+
+  /* address-breakdown interactive diagram */
+  if(SPEC.caches&&SPEC.caches.indexing) renderCacheAddrDiagram(SPEC.caches.indexing);
+}
+
+/* --- Caches: address-breakdown SVG -------------------------- */
+function renderCacheAddrDiagram(idx){
+  /* colour per field: Tag=accent, Index=ok, Offset=warn */
+  const FIELD_STYLE=[
+    {col:'#3a5170',fill:'#10243e',txt:'#58a6ff'},
+    {col:'#1d4326',fill:'#0c1c11',txt:'#3fb950'},
+    {col:'#5a4a18',fill:'#1c1708',txt:'#d29922'}
+  ];
+
+  const wrap=document.createElement('div');
+  wrap.className='isvg-wrap';
+  wrap.style.marginTop='18px';
+  wrap.innerHTML=
+    '<div style="font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">'+
+      'Figure: '+esc(idx.cache||'L1 Data')+' — physical address breakdown'+
+    '</div>'+
+    '<div class="isvg-ctrl">'+
+      '<label>40-bit PA (hex)</label>'+
+      '<input type="text" id="cacheAddrInput" value="0x8040002A40" spellcheck="false">'+
+      '<span class="isvg-err" id="cacheAddrErr"></span>'+
+    '</div>'+
+    '<div class="stage"><svg id="cacheAddrSvg" style="overflow:visible"></svg></div>'+
+    '<div class="isvg-readout" id="cacheAddrReadout"></div>'+
+    '<div class="sidenote" style="margin-top:10px">'+
+      'Index selects 1 of '+(idx.sets||128)+' sets; Tag compared across '+(idx.ways||4)+' ways; '+
+      'Offset addresses byte within '+(idx.line_bytes||64)+' B line.'+
+    '</div>';
+
+  el('cachePanel').appendChild(wrap);
+
+  const fields=idx.fields||[];
+  const totalBits=idx.addr_bits||40;
+  const SVG_W=860, BAR_Y=28, BAR_H=40;
+  const svg=document.getElementById('cacheAddrSvg');
+  svg.setAttribute('width',SVG_W);
+  svg.setAttribute('height',BAR_Y+BAR_H+54);
+  svg.setAttribute('viewBox','0 0 '+SVG_W+' '+(BAR_Y+BAR_H+54));
+
+  /* header label */
+  const hdr=svgEl('text',{x:10,y:16,fill:'#8b949e','font-size':10});
+  hdr.textContent='PA['+(totalBits-1)+':0]'; svg.appendChild(hdr);
+
+  const BAR_X=10, BAR_W=SVG_W-20;
+
+  /* draw each field segment */
+  fields.forEach((f,i)=>{
+    const st=FIELD_STYLE[i]||FIELD_STYLE[0];
+    const segBits=f.hi-f.lo+1;
+    const x=BAR_X+((totalBits-1-f.hi)/totalBits)*BAR_W;
+    const w2=(segBits/totalBits)*BAR_W;
+
+    svg.appendChild(svgEl('rect',{x,y:BAR_Y,width:w2,height:BAR_H,rx:3,
+      fill:st.fill,stroke:st.col,'stroke-width':1.5}));
+
+    /* field name */
+    const nt=svgEl('text',{x:x+w2/2,y:BAR_Y+13,'text-anchor':'middle','font-size':10,
+      fill:st.txt,'font-weight':700,'pointer-events':'none'});
+    nt.textContent=f.name; svg.appendChild(nt);
+
+    /* bit range */
+    const bt=svgEl('text',{x:x+w2/2,y:BAR_Y+25,'text-anchor':'middle','font-size':8.5,
+      fill:'#8b949e','pointer-events':'none'});
+    bt.textContent='['+f.hi+':'+f.lo+']'; svg.appendChild(bt);
+
+    /* live value overlay */
+    const vt=svgEl('text',{x:x+w2/2,y:BAR_Y+37,'text-anchor':'middle','font-size':9,
+      fill:st.txt,'font-weight':700,'pointer-events':'none'});
+    vt.id='cacheFieldVal'+i; svg.appendChild(vt);
+
+    /* description line below bar */
+    const dt=svgEl('text',{x:x+w2/2,y:BAR_Y+BAR_H+14,'text-anchor':'middle','font-size':8,
+      fill:'#8b949e','pointer-events':'none'});
+    dt.textContent=esc(f.desc||''); svg.appendChild(dt);
+  });
+
+  /* bit tick marks at boundaries */
+  fields.forEach(f=>{
+    [f.hi,f.lo].forEach(bit=>{
+      const tx=BAR_X+((totalBits-1-bit)/totalBits)*BAR_W;
+      svg.appendChild(svgEl('line',{x1:tx,y1:BAR_Y+BAR_H,x2:tx,y2:BAR_Y+BAR_H+5,
+        stroke:'#30363d','stroke-width':1}));
+      const tl=svgEl('text',{x:tx,y:BAR_Y+BAR_H+16,'text-anchor':'middle',
+        'font-size':8,fill:'#8b949e'});
+      tl.textContent=String(bit); svg.appendChild(tl);
+    });
+  });
+
+  /* ------- live update ------- */
+  function updateCacheAddr(raw){
+    const errEl=document.getElementById('cacheAddrErr');
+    const clean=raw.replace(/[\s_]/g,'');
+    let pa;
+    try{ pa=BigInt(clean); } catch(e){ errEl.textContent='invalid hex'; return; }
+    const maxBits=BigInt(totalBits);
+    if(pa<0n||pa>=(1n<<maxBits)){ errEl.textContent='exceeds '+totalBits+' bits'; return; }
+    errEl.textContent='';
+
+    const vals=fields.map(f=>{
+      const width=BigInt(f.hi-f.lo+1);
+      const mask=(1n<<width)-1n;
+      return Number((pa>>BigInt(f.lo))&mask);
+    });
+
+    /* update bar overlays */
+    vals.forEach((v,i)=>{
+      const t=document.getElementById('cacheFieldVal'+i);
+      if(!t) return;
+      const f=fields[i];
+      /* show different interpretations per field */
+      if(f.name==='Index') t.textContent='set '+v;
+      else if(f.name==='Offset') t.textContent='+'+v;
+      else t.textContent='0x'+v.toString(16).toUpperCase();
+    });
+
+    /* readout */
+    const ro=document.getElementById('cacheAddrReadout');
+    if(ro){
+      const labels=['Tag','Set index','Byte offset'];
+      const fmts=[v=>'0x'+v.toString(16).toUpperCase().padStart(7,'0'),
+                  v=>String(v)+' / 0x'+v.toString(16).toUpperCase(),
+                  v=>'+'+v+' B'];
+      ro.innerHTML=vals.map((v,i)=>{
+        const st=FIELD_STYLE[i]||FIELD_STYLE[0];
+        return '<div class="isvg-field">'+
+          '<div class="if-name" style="color:'+st.txt+'">'+esc(labels[i]||fields[i].name)+'</div>'+
+          '<div class="if-val" style="color:'+st.txt+'">'+(fmts[i]?fmts[i](v):String(v))+'</div>'+
+          '<div style="font-size:10px;color:var(--mute)">bits ['+fields[i].hi+':'+fields[i].lo+']</div>'+
+        '</div>';
+      }).join('');
+    }
+  }
+
+  const inp=document.getElementById('cacheAddrInput');
+  updateCacheAddr(inp.value);
+  inp.addEventListener('input',()=>updateCacheAddr(inp.value));
 }
 
 /* ============================================================
@@ -1458,6 +1835,8 @@ el('spec').value=JSON.stringify(DEFAULT,null,2);
 renderAll(DEFAULT);
 initScrollSpy();
 </script>
+
+
 
 
 

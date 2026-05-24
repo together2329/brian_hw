@@ -1,0 +1,68 @@
+{
+  "ip": "real_llm_counter_demo",
+  "source": "yaml/real_llm_counter_demo.ssot.yaml",
+  "self_check_results": {
+    "FM_RESET": "PASS",
+    "FM_CLEAR": "PASS",
+    "FM_LOAD": "PASS",
+    "FM_LOAD_BOUNDARY": "PASS",
+    "FM_INC": "PASS",
+    "FM_INC_SAT": "PASS",
+    "FM_DEC": "PASS",
+    "FM_DEC_SAT": "PASS",
+    "FM_HOLD": "PASS",
+    "FM_INVALID": "PASS",
+    "FM_ACCEPTED_WRAP": "PASS",
+    "FM_BACK_TO_BACK": "PASS",
+    "FM_INVARIANTS": "PASS"
+  },
+  "all_passed": true,
+  "transaction_coverage": {
+    "FM_CLEAR": {
+      "self_check": "FM_CLEAR",
+      "trace_entry": true,
+      "ssot_question": null,
+      "status": "covered"
+    },
+    "FM_LOAD": {
+      "self_check": "FM_LOAD",
+      "trace_entry": true,
+      "ssot_question": null,
+      "status": "covered"
+    },
+    "FM_INC": {
+      "self_check": "FM_INC",
+      "trace_entry": true,
+      "ssot_question": null,
+      "status": "covered"
+    },
+    "FM_DEC": {
+      "self_check": "FM_DEC",
+      "trace_entry": true,
+      "ssot_question": null,
+      "status": "covered"
+    },
+    "FM_HOLD": {
+      "self_check": "FM_HOLD",
+      "trace_entry": true,
+      "ssot_question": null,
+      "status": "covered"
+    },
+    "FM_INVALID": {
+      "self_check": "FM_INVALID",
+      "trace_entry": true,
+      "ssot_question": null,
+      "status": "covered"
+    }
+  },
+  "additional_checks": {
+    "reset_contract": "PASS",
+    "load_boundary": "PASS",
+    "inc_saturation": "PASS",
+    "dec_saturation": "PASS",
+    "accepted_count_wrap": "PASS",
+    "back_to_back": "PASS",
+    "invariants": "PASS"
+  },
+  "ssot_tbd_report": "none"
+}

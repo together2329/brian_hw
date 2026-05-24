@@ -1612,6 +1612,54 @@ def _extract_responses_delta_text(event_json: dict) -> str:
     return str(delta) if delta else ""
 
 
+def _responses_stream_event_has_forward_progress(event_json: dict) -> bool:
+    """Return True only for Responses SSE events that move the answer forward."""
+    event_type = event_json.get("type", "")
+    if event_type == "response.output_text.delta":
+        return bool(_extract_responses_delta_text(event_json))
+    if "reasoning" in event_type and event_type.endswith(".delta"):
+        return bool(_extract_responses_delta_text(event_json))
+    if event_type == "response.function_call_arguments.delta":
+        return bool(event_json.get("delta"))
+    if event_type == "response.output_item.added":
+        item = event_json.get("item") or {}
+        if item.get("type") == "function_call":
+            return bool(item.get("name") or item.get("call_id") or item.get("id"))
+    if event_type == "response.output_item.done":
+        item = event_json.get("item") or {}
+        if item.get("type") == "reasoning":
+            return bool(_extract_responses_reasoning_text(item))
+    return False
+
+
+def _chat_stream_chunk_has_forward_progress(chunk_json: dict) -> bool:
+    """Return True only when a Chat Completions chunk contains usable output."""
+    for choice in chunk_json.get("choices") or []:
+        delta = choice.get("delta") or {}
+        if not isinstance(delta, dict):
+            continue
+        reasoning = (delta.get("reasoning")
+                     or delta.get("reasoning_content")
+                     or delta.get("thinking")
+                     or delta.get("thought")
+                     or "")
+        if not reasoning:
+            for rd in (delta.get("reasoning_details") or []):
+                if rd.get("type") == "thinking":
+                    reasoning = (reasoning or "") + (rd.get("thinking", "") or rd.get("summary", ""))
+        content = (delta.get("content")
+                   or delta.get("text")
+                   or (delta.get("message") or {}).get("content")
+                   or "")
+        if reasoning or content:
+            return True
+        for tc in delta.get("tool_calls") or []:
+            func = tc.get("function") or {}
+            if tc.get("id") or func.get("name") or func.get("arguments"):
+                return True
+    return False
+
+
 def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, messages: List, native_mode: bool = False):
     """
     Execute streaming request using the Responses API SSE format.
@@ -1672,13 +1720,6 @@ def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, me
                     line = line.decode('utf-8').strip()
                     if not line.startswith("data: "):
                         continue
-                    # Separate progress checkpoint: only real SSE data lines
-                    # count as "progress" for the new watchdog. Keep-alives
-                    # (':keep-alive', empty lines) reset _last_data[0] above
-                    # for the spinner UX, but the second watchdog (fed by
-                    # _last_progress) ignores those so a stalled provider
-                    # actually triggers the timeout.
-                    _last_progress[0] = time.time()
                     data_str = line[6:]
                     if data_str == "[DONE]":
                         break
@@ -1688,6 +1729,8 @@ def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, me
                         continue
 
                     event_type = event_json.get("type", "")
+                    if _responses_stream_event_has_forward_progress(event_json):
+                        _last_progress[0] = time.time()
 
 
                     # ── Usage stats (from response.completed or inline) ──
@@ -2605,17 +2648,13 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                     _last_data[0] = time.time()
                     line = line.decode('utf-8').strip()
                     if line.startswith("data: "):
-                        # Real SSE event: bump the secondary "progress"
-                        # timer. _last_data[0] above tracks raw bytes for
-                        # spinner UX; _last_progress[0] only moves on
-                        # actual data:-prefixed lines so the watchdog can
-                        # detect provider stalls hidden behind keep-alives.
-                        _last_progress[0] = time.time()
                         data_str = line[6:]
                         if data_str == "[DONE]":
                             break
                         try:
                             chunk_json = json.loads(data_str)
+                            if _chat_stream_chunk_has_forward_progress(chunk_json):
+                                _last_progress[0] = time.time()
 
                             # Kimi For Coding stream-format diagnostic dump.
                             # Enabled by KIMI_DEBUG_STREAM=1 OR auto-on when BASE_URL
@@ -4060,10 +4099,6 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                     _last_data[0] = time.time()
                     line = line.decode('utf-8').strip()
                     if line.startswith("data: "):
-                        # Secondary progress checkpoint — see Responses API
-                        # streamer for rationale (don't let SSE keep-alives
-                        # mask a stalled provider).
-                        _last_progress[0] = time.time()
                         data_str = line[6:] # Remove "data: " prefix
                         if data_str == "[DONE]":
                             if _t_first_token:
@@ -4072,6 +4107,8 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                             break
                         try:
                             chunk_json = json.loads(data_str)
+                            if _chat_stream_chunk_has_forward_progress(chunk_json):
+                                _last_progress[0] = time.time()
 
                             # Usage stats appear only in the last chunk (Z.AI / OpenAI spec)
                             if "usage" in chunk_json:

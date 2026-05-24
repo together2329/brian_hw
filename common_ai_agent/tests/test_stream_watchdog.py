@@ -4,9 +4,10 @@ Regression coverage for the gpt-5.5 / Responses-API hang: a provider that keeps
 the connection alive with periodic SSE heartbeats (events arriving under the
 inactivity threshold) could keep a single streaming turn "live" for 40+ minutes
 while making no real forward progress. The inactivity lane never fired because
-``_last_progress`` kept getting bumped. The fix adds a per-turn wall-clock hard
-cap and makes the abort tear down the underlying socket so a thread blocked in a
-C-level ``recv()`` actually unblocks.
+``_last_progress`` kept getting bumped. The fix keeps status-only events from
+refreshing the progress timer, adds a per-turn wall-clock hard cap, and makes
+the abort tear down the underlying socket so a thread blocked in a C-level
+``recv()`` actually unblocks.
 """
 
 import time
@@ -138,3 +139,60 @@ def test_no_trigger_when_progressing_within_budget():
     assert not triggered[0], f"healthy stream wrongly aborted: {triggered[0]!r}"
     assert not resp.close_called
     assert not sock.shutdown_called
+
+
+def test_responses_progress_ignores_status_only_events():
+    """Responses status/usage events must not mask a no-output stall."""
+    assert not llm_client._responses_stream_event_has_forward_progress(
+        {"type": "response.in_progress", "response": {"status": "in_progress"}}
+    )
+    assert not llm_client._responses_stream_event_has_forward_progress(
+        {"type": "response.reasoning_summary_text.delta", "delta": ""}
+    )
+    assert not llm_client._responses_stream_event_has_forward_progress(
+        {"type": "response.completed", "response": {"status": "completed", "usage": {}}}
+    )
+
+
+def test_responses_progress_tracks_user_visible_output_and_tool_fragments():
+    assert llm_client._responses_stream_event_has_forward_progress(
+        {"type": "response.output_text.delta", "delta": "hello"}
+    )
+    assert llm_client._responses_stream_event_has_forward_progress(
+        {"type": "response.reasoning_summary_text.delta", "delta": "thinking"}
+    )
+    assert llm_client._responses_stream_event_has_forward_progress(
+        {"type": "response.output_item.added",
+         "item": {"type": "function_call", "call_id": "call_1", "name": "read_file"}}
+    )
+    assert llm_client._responses_stream_event_has_forward_progress(
+        {"type": "response.function_call_arguments.delta", "delta": '{"path"'}
+    )
+
+
+def test_chat_progress_ignores_empty_choice_metadata():
+    assert not llm_client._chat_stream_chunk_has_forward_progress(
+        {"choices": [{"delta": {}, "finish_reason": None}]}
+    )
+    assert not llm_client._chat_stream_chunk_has_forward_progress(
+        {"usage": {"input_tokens": 1, "output_tokens": 0}}
+    )
+
+
+def test_chat_progress_tracks_content_reasoning_and_tool_fragments():
+    assert llm_client._chat_stream_chunk_has_forward_progress(
+        {"choices": [{"delta": {"content": "hello"}}]}
+    )
+    assert llm_client._chat_stream_chunk_has_forward_progress(
+        {"choices": [{"delta": {"reasoning_content": "thinking"}}]}
+    )
+    assert llm_client._chat_stream_chunk_has_forward_progress(
+        {"choices": [{"delta": {"tool_calls": [
+            {"index": 0, "function": {"name": "read_file"}}
+        ]}}]}
+    )
+    assert llm_client._chat_stream_chunk_has_forward_progress(
+        {"choices": [{"delta": {"tool_calls": [
+            {"index": 0, "function": {"arguments": '{"path"'}}
+        ]}}]}
+    )

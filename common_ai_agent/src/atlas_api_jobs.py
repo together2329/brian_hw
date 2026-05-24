@@ -4144,7 +4144,8 @@ def register_jobs_routes(
         scoped_user = request.scope.get("user") or {}
         user_id = str(scoped_user.get("username") or scoped_user.get("id") or "")
         db_user_id = _request_db_user_id(request) or user_id
-        if not _assert_ip_access(db_user_id, ip):
+        request_is_admin = _request_is_admin(request)
+        if not _assert_ip_access(db_user_id, ip, request_is_admin):
             return JSONResponse({"error": "forbidden"}, status_code=403)
         scope_filter = {"user_id": user_id} if user_id else None
         cache_key = (ip, user_id)
@@ -4253,7 +4254,7 @@ def register_jobs_routes(
             ip_jobs = [
                 dict(j) for j in _jobs.values()
                 if j.get("ip") == ip
-                and _job_visible_to_request(j, _ps_request_user, _ps_request_db_user)
+                and _job_visible_to_request(j, _ps_request_user, _ps_request_db_user, request_is_admin)
             ]
         progress_debug = _combine_progress_debug(
             progress_debug,
@@ -4687,7 +4688,7 @@ def register_jobs_routes(
         owner_user_id    = _request_username(request)
         selected_stage_ids = [stage["id"] for stage in resolved]
         db_user_id = _request_db_user_id(request)
-        if ip and not _assert_ip_access(db_user_id, ip):
+        if ip and not _assert_ip_access(db_user_id, ip, _request_is_admin(request)):
             return JSONResponse({"error": "forbidden"}, status_code=403)
         _, _ = _refresh_tracked_jobs(project_root())
         conflicts = _active_job_conflicts(
@@ -4887,10 +4888,11 @@ def register_jobs_routes(
         snapshot, _ = _refresh_tracked_jobs(pr)
         request_user = _request_username(request)
         request_db_user = _request_db_user_id(request)
+        request_is_admin = _request_is_admin(request)
         visible = [
             job for job in snapshot
             if str(job.get("ip") or "") == ip
-            and _job_visible_to_request(job, request_user, request_db_user)
+            and _job_visible_to_request(job, request_user, request_db_user, request_is_admin)
         ]
         active = [
             job for job in visible
@@ -5527,7 +5529,7 @@ def register_jobs_routes(
         if not ip:
             return JSONResponse({"error": "ip query param required"}, status_code=400)
         _trace_db_user = _request_db_user_id(request)
-        if not _assert_ip_access(_trace_db_user, ip):
+        if not _assert_ip_access(_trace_db_user, ip, _request_is_admin(request)):
             return JSONResponse({"error": "forbidden"}, status_code=403)
         try:
             limit = int(params.get("limit") or "100")
@@ -5624,6 +5626,7 @@ def register_jobs_routes(
         ).strip().lower() in {"1", "true", "yes", "on"}
         request_user = _request_username(request)
         request_db_user = _request_db_user_id(request)
+        request_is_admin = _request_is_admin(request)
         if _multi_user_enabled() and not request_user and not request_db_user:
             return JSONResponse({
                 "ip": ip or None,
@@ -5666,7 +5669,7 @@ def register_jobs_routes(
             }
 
         def _job_visible(job: dict[str, Any]) -> bool:
-            return _job_visible_to_request(job, request_user, request_db_user)
+            return _job_visible_to_request(job, request_user, request_db_user, request_is_admin)
 
         def _visible_worker_jobs(workflow: str) -> list[dict[str, Any]]:
             active_states = {"pending", "queued", "running", "blocked"}
@@ -6149,9 +6152,10 @@ def register_jobs_routes(
         snapshot, _ = _refresh_tracked_jobs(pr)
         request_user = _request_username(request)
         request_db_user = _request_db_user_id(request)
+        request_is_admin = _request_is_admin(request)
         out = [
             _public_job(job) for job in snapshot
-            if _job_visible_to_request(job, request_user, request_db_user)
+            if _job_visible_to_request(job, request_user, request_db_user, request_is_admin)
         ]
         out.sort(key=lambda j: j.get("started_at", 0), reverse=True)
         return JSONResponse({"jobs": out, "count": len(out)})
