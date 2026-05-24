@@ -67,6 +67,9 @@ def _extract_check_keys(value: Any) -> set[str]:
 
     def visit(item: Any) -> None:
         if isinstance(item, dict):
+            for key in item:
+                if isinstance(key, str) and key.strip():
+                    seen.add(key.strip())
             for key in ("id", "transaction_id", "txn_id", "name", "transaction_name"):
                 val = item.get(key)
                 if isinstance(val, str) and val.strip():
