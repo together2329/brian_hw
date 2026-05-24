@@ -332,37 +332,58 @@
     <div class="panel" id="intPanel"></div>
   </section>
 
-  <!-- 10 POWER -->
-  <section id="power">
-    <h2><span class="ix">10</span> Power Management <span class="k">power · domains · modes</span></h2>
-    <p class="lead">Per-core and cluster power domains with operating modes from Run to Shutdown.</p>
-    <div class="panel" id="powerPanel"></div>
+  <!-- 10 GENERIC TIMER -->
+  <section id="generic-timer">
+    <h2><span class="ix">10</span> Generic Timer <span class="k">generic_timer · CNTPCT · per-core</span></h2>
+    <p class="lead">ARM Generic Timer — shared system counter plus per-core comparators with EL-banked control.</p>
+    <div class="panel" id="timerPanel"></div>
   </section>
 
-  <!-- 11 PMU -->
+  <!-- 11 DEBUG -->
+  <section id="debug">
+    <h2><span class="ix">11</span> Debug <span class="k">debug · CoreSight · APB · self-hosted</span></h2>
+    <p class="lead">External CoreSight debug over APB and self-hosted debug through system registers.</p>
+    <div class="panel" id="debugPanel"></div>
+  </section>
+
+  <!-- 12 PMU -->
   <section id="pmu">
-    <h2><span class="ix">11</span> Performance Monitor Unit <span class="k">pmu_events · PMUv3</span></h2>
+    <h2><span class="ix">12</span> Performance Monitor Unit <span class="k">pmu_events · PMUv3</span></h2>
     <p class="lead" id="pmuNote"></p>
     <div class="panel" id="pmuPanel"></div>
   </section>
 
-  <!-- 12 PIPELINE -->
+  <!-- 13 ETM -->
+  <section id="etm">
+    <h2><span class="ix">13</span> Embedded Trace Macrocell <span class="k">etm · ETMv4 · ATB</span></h2>
+    <p class="lead">Non-invasive instruction program-flow trace via the AMBA Trace Bus.</p>
+    <div class="panel" id="etmPanel"></div>
+  </section>
+
+  <!-- 14 POWER -->
+  <section id="power">
+    <h2><span class="ix">14</span> Power Management <span class="k">power · domains · modes</span></h2>
+    <p class="lead">Per-core and cluster power domains with operating modes from Run to Shutdown.</p>
+    <div class="panel" id="powerPanel"></div>
+  </section>
+
+  <!-- 15 PIPELINE -->
   <section id="pipeline">
-    <h2><span class="ix">12</span> Pipeline <span class="k">pipeline · in-order · dual-issue</span></h2>
+    <h2><span class="ix">15</span> Pipeline <span class="k">pipeline · in-order · dual-issue</span></h2>
     <p class="lead">Integer pipeline topology and issue characteristics.</p>
     <div class="panel" id="pipePanel"></div>
   </section>
 
-  <!-- 13 CONFIG SIGNALS -->
+  <!-- 16 CONFIG SIGNALS -->
   <section id="config-signals">
-    <h2><span class="ix">13</span> Configuration Signals <span class="k">config_signals · implementation inputs</span></h2>
+    <h2><span class="ix">16</span> Configuration Signals <span class="k">config_signals · implementation inputs</span></h2>
     <p class="lead">Static tie-off / strap inputs sampled at reset that configure implementation behaviour.</p>
     <div class="panel" id="cfgPanel"></div>
   </section>
 
-  <!-- 14 TIMING -->
+  <!-- 17 TIMING -->
   <section id="timing">
-    <h2><span class="ix">14</span> Timing diagram <span class="k">timing.signals · WaveDrom-style</span></h2>
+    <h2><span class="ix">17</span> Timing diagram <span class="k">timing.signals · WaveDrom-style</span></h2>
     <p class="lead" id="tmLead"></p>
     <div class="panel">
       <div class="stage"><svg id="timeSvg"></svg></div>
@@ -629,6 +650,36 @@ const DEFAULT = {
     { "name": "CP15SDISABLE", "desc": "Disable Secure CP15 register writes" },
     { "name": "CLUSTERIDAFF", "desc": "Cluster affinity value (MPIDR Aff1/Aff2)" }
   ],
+  "generic_timer": {
+    "description": "ARM Generic Timer — a shared always-on system counter plus per-core comparators that raise timer interrupts.",
+    "counter": "64-bit system counter; frequency reported by CNTFRQ_EL0 (programmed by firmware). Count read via CNTPCT_EL0 (physical) / CNTVCT_EL0 (virtual).",
+    "control": "Per-EL access controlled by CNTKCTL_EL1 / CNTHCTL_EL2.",
+    "timers": [
+      { "name": "EL1 Physical",        "registers": "CNTP_CTL/CVAL/TVAL_EL0",  "irq": "nCNTPNSIRQ" },
+      { "name": "Virtual",             "registers": "CNTV_CTL/CVAL/TVAL_EL0",  "irq": "nCNTVIRQ" },
+      { "name": "Secure EL1 Physical", "registers": "CNTPS_CTL/CVAL/TVAL_EL1", "irq": "nCNTPSIRQ" },
+      { "name": "EL2 Hypervisor",      "registers": "CNTHP_CTL/CVAL/TVAL_EL2", "irq": "nCNTHPIRQ" }
+    ]
+  },
+  "debug": {
+    "description": "ARMv8 CoreSight debug — external (memory-mapped APB) debug plus self-hosted debug via system registers.",
+    "interface": "External debug over a CoreSight Debug APB slave; self-hosted debug through MDSCR_EL1 and friends.",
+    "features": ["Halting debug mode", "Hardware breakpoints & watchpoints", "Cross-Trigger Interface (CTI/CTM)", "OS lock / OS double-lock", "Authentication interface (SPIDEN/SPNIDEN/DBGEN/NIDEN)"],
+    "registers": [
+      { "name": "EDSCR",             "desc": "External Debug Status and Control Register" },
+      { "name": "DBGBVR/DBGBCR",     "desc": "Breakpoint value/control — 6 breakpoints (illustrative)" },
+      { "name": "DBGWVR/DBGWCR",     "desc": "Watchpoint value/control — 4 watchpoints (illustrative)" },
+      { "name": "MDSCR_EL1",         "desc": "Monitor Debug System Control (self-hosted)" },
+      { "name": "DBGAUTHSTATUS_EL1", "desc": "Debug authentication status" }
+    ]
+  },
+  "etm": {
+    "description": "Embedded Trace Macrocell (ETMv4) — non-invasive instruction (program-flow) trace.",
+    "version": "ETMv4 (PFT — program-flow trace)",
+    "output": "Trace stream over the ATB (AMBA Trace Bus) to a CoreSight sink (ETF / ETR / TPIU).",
+    "traces": ["Instruction / program-flow trace", "Context ID & VMID tracing", "Timestamping & cycle counting (optional)"],
+    "note": "Data-address / data-value trace not supported — instruction trace only (illustrative)."
+  },
   "timing": {
     "title": "ACE/AXI read burst — 2-beat (illustrative AMBA 4)",
     "note": "AR address handshake (ARVALID·ARREADY), then R data channel (RVALID·RREADY), RLAST on the final beat.",
@@ -692,11 +743,18 @@ function renderOverview(){
 /* ============================================================
    02 · TABLE OF CONTENTS
    ============================================================ */
+/* chapter n → section id */
+const TOC_MAP={
+  '1':'overview','2':'block','3':'prog-model','4':'registers',
+  '5':'mmu','6':'caches','7':'caches','8':'timing',
+  '9':'interrupts','10':'generic-timer','11':'debug',
+  '12':'pmu','13':'etm'
+};
 function renderToc(){
   const toc=SPEC.toc||[];
   el('tocList').innerHTML=toc.map((c,i)=>
     '<li id="toc_'+i+'">'+
-      '<div class="crow" data-i="'+i+'">'+
+      '<div class="crow" data-i="'+i+'" data-n="'+esc(c.n)+'">'+
         '<span class="cn">'+esc(c.n)+'</span>'+
         '<span class="ct">'+esc(c.title)+'</span>'+
         '<span class="cx">▶</span>'+
@@ -705,7 +763,19 @@ function renderToc(){
     '</li>'
   ).join('');
   el('tocList').querySelectorAll('.crow').forEach(row=>{
-    row.addEventListener('click',()=>el('toc_'+row.getAttribute('data-i')).classList.toggle('open'));
+    /* chevron click: toggle expand only */
+    row.querySelector('.cx').addEventListener('click',function(e){
+      e.stopPropagation();
+      el('toc_'+row.getAttribute('data-i')).classList.toggle('open');
+    });
+    /* row click: scroll to mapped section */
+    row.addEventListener('click',function(){
+      const sid=TOC_MAP[row.getAttribute('data-n')];
+      if(sid){
+        const target=document.getElementById(sid);
+        if(target) target.scrollIntoView({behavior:'smooth',block:'start'});
+      }
+    });
   });
 }
 
@@ -1067,7 +1137,99 @@ function renderInterrupts(){
 }
 
 /* ============================================================
-   10 · POWER
+   10 · GENERIC TIMER
+   ============================================================ */
+function renderGenericTimer(){
+  const gt=SPEC.generic_timer;
+  if(!gt){el('timerPanel').innerHTML='';return;}
+
+  const descHtml='<div class="sidenote" style="margin-bottom:12px">'+esc(gt.description)+'</div>';
+
+  const counterHtml='<div class="infobox" style="margin-bottom:10px">'+
+    '<div class="ik">System counter</div>'+
+    '<div class="iv">'+esc(gt.counter||'—')+'</div></div>';
+
+  const controlHtml='<div class="infobox" style="margin-bottom:14px">'+
+    '<div class="ik">Access control</div>'+
+    '<div class="iv">'+esc(gt.control||'—')+'</div></div>';
+
+  const timersHtml='<div style="font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Per-core timer views</div>'+
+    '<table><thead><tr><th>timer</th><th>registers</th><th>IRQ</th></tr></thead><tbody>'+
+      (gt.timers||[]).map(t=>
+        '<tr>'+
+          '<td><b>'+esc(t.name)+'</b></td>'+
+          '<td><code>'+esc(t.registers)+'</code></td>'+
+          '<td style="color:var(--warn)">'+esc(t.irq)+'</td>'+
+        '</tr>'
+      ).join('')+
+    '</tbody></table>';
+
+  el('timerPanel').innerHTML=descHtml+counterHtml+controlHtml+timersHtml;
+}
+
+/* ============================================================
+   11 · DEBUG
+   ============================================================ */
+function renderDebug(){
+  const dbg=SPEC.debug;
+  if(!dbg){el('debugPanel').innerHTML='';return;}
+
+  const descHtml='<div class="sidenote" style="margin-bottom:12px">'+esc(dbg.description)+'</div>';
+
+  const ifaceHtml='<div class="infobox" style="margin-bottom:12px">'+
+    '<div class="ik">Interface</div>'+
+    '<div class="iv">'+esc(dbg.interface||'—')+'</div></div>';
+
+  const featHtml='<div style="margin-bottom:14px">'+
+    '<div style="font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Features</div>'+
+    '<div class="pill-list">'+
+      (dbg.features||[]).map(f=>'<span class="pill">'+esc(f)+'</span>').join('')+
+    '</div></div>';
+
+  const regsHtml='<div style="font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Key registers</div>'+
+    '<table><thead><tr><th>register</th><th>description</th></tr></thead><tbody>'+
+      (dbg.registers||[]).map(r=>
+        '<tr>'+
+          '<td><code style="color:var(--accent)">'+esc(r.name)+'</code></td>'+
+          '<td>'+esc(r.desc)+'</td>'+
+        '</tr>'
+      ).join('')+
+    '</tbody></table>';
+
+  el('debugPanel').innerHTML=descHtml+ifaceHtml+featHtml+regsHtml;
+}
+
+/* ============================================================
+   13 · ETM
+   ============================================================ */
+function renderEtm(){
+  const etm=SPEC.etm;
+  if(!etm){el('etmPanel').innerHTML='';return;}
+
+  const descHtml='<div class="sidenote" style="margin-bottom:12px">'+esc(etm.description)+'</div>';
+
+  const metaHtml='<div class="two-col" style="margin-bottom:14px">'+
+    '<div class="infobox"><div class="ik">Version</div>'+
+      '<div class="iv">'+esc(etm.version||'—')+'</div></div>'+
+    '<div class="infobox"><div class="ik">Output</div>'+
+      '<div class="iv">'+esc(etm.output||'—')+'</div></div>'+
+  '</div>';
+
+  const tracesHtml='<div style="margin-bottom:12px">'+
+    '<div style="font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Trace capabilities</div>'+
+    '<div class="pill-list">'+
+      (etm.traces||[]).map(t=>'<span class="pill ok">'+esc(t)+'</span>').join('')+
+    '</div></div>';
+
+  const noteHtml=etm.note
+    ? '<div class="sidenote"><b>note:</b> '+esc(etm.note)+'</div>'
+    : '';
+
+  el('etmPanel').innerHTML=descHtml+metaHtml+tracesHtml+noteHtml;
+}
+
+/* ============================================================
+   14 · POWER
    ============================================================ */
 const POWER_MODE_CLASSES=['mode-run','mode-stby','mode-dorm','mode-off'];
 function renderPower(){
@@ -1252,8 +1414,11 @@ function renderAll(spec){
   renderMmu();
   renderCaches();
   renderInterrupts();
-  renderPower();
+  renderGenericTimer();
+  renderDebug();
   renderPmu();
+  renderEtm();
+  renderPower();
   renderPipeline();
   renderConfigSignals();
   renderTiming();
@@ -1282,8 +1447,8 @@ function initScrollSpy(){
     });
   },{rootMargin:'-40% 0px -55% 0px',threshold:0});
   ['overview','toc','features','block','registers',
-   'prog-model','mmu','caches','interrupts','power',
-   'pmu','pipeline','config-signals','timing'].forEach(id=>{
+   'prog-model','mmu','caches','interrupts','generic-timer',
+   'debug','pmu','etm','power','pipeline','config-signals','timing'].forEach(id=>{
     const s=el(id); if(s) obs.observe(s);
   });
 }
@@ -1293,6 +1458,8 @@ el('spec').value=JSON.stringify(DEFAULT,null,2);
 renderAll(DEFAULT);
 initScrollSpy();
 </script>
+
+
 
 
 
