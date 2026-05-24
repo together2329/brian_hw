@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "ip": "ssot_screenshot_smoke_20260524_083011",
+  "generated_at": "2026-05-23T23:56:33Z",
+  "emitter": "fl-model-gen",
+  "produced": [
+    "model/functional_model.py",
+    "model/decomposition.json",
+    "model/fl_model_check.json",
+    "cov/fcov_plan.json"
+  ]
+}

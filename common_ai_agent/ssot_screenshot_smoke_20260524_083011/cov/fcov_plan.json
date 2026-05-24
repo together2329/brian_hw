@@ -1,0 +1,213 @@
+{
+  "schema_version": 1,
+  "type": "functional_coverage_plan",
+  "ip": "ssot_screenshot_smoke_20260524_083011",
+  "source": "ssot_screenshot_smoke_20260524_083011/yaml/ssot_screenshot_smoke_20260524_083011.ssot.yaml",
+  "planned_before_rtl": true,
+  "level": "union",
+  "summary": {
+    "total_bins": 28,
+    "by_class": {
+      "scenario": 8,
+      "transaction_type": 3,
+      "state_transition": 6,
+      "error": 1,
+      "protocol_handshake": 2,
+      "latency_bin": 8
+    }
+  },
+  "bins": [
+    {
+      "id": "SC01_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[0]",
+      "scenario": "SC01",
+      "description": "reset contract"
+    },
+    {
+      "id": "SC02_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[1]",
+      "scenario": "SC02",
+      "description": "primary approved behavior"
+    },
+    {
+      "id": "SC03_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[2]",
+      "scenario": "SC03",
+      "description": "cycle handshake and backpressure"
+    },
+    {
+      "id": "SC04_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[3]",
+      "scenario": "SC04",
+      "description": "error and recovery policy"
+    },
+    {
+      "id": "SC05_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[4]",
+      "scenario": "SC05",
+      "description": "debug and trace observability"
+    },
+    {
+      "id": "SC06_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[5]",
+      "scenario": "SC06",
+      "description": "function_model transaction FM_RESET"
+    },
+    {
+      "id": "SC07_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[6]",
+      "scenario": "SC07",
+      "description": "function_model transaction FM_PRIMARY"
+    },
+    {
+      "id": "SC08_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[7]",
+      "scenario": "SC08",
+      "description": "function_model transaction FM_CSR"
+    },
+    {
+      "id": "function_reset",
+      "class": "transaction_type",
+      "source": "function_model.transactions[0]",
+      "description": "reset"
+    },
+    {
+      "id": "function_primary_behavior",
+      "class": "transaction_type",
+      "source": "function_model.transactions[1]",
+      "description": "primary_behavior"
+    },
+    {
+      "id": "function_control_status_access",
+      "class": "transaction_type",
+      "source": "function_model.transactions[2]",
+      "description": "control_status_access"
+    },
+    {
+      "id": "fsm_control_idle_to_accept_0",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[0]",
+      "description": "approved protocol transaction is accepted"
+    },
+    {
+      "id": "fsm_control_accept_to_process_1",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[1]",
+      "description": "function_model primary transaction begins"
+    },
+    {
+      "id": "fsm_control_process_to_respond_2",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[2]",
+      "description": "observable output/status is ready"
+    },
+    {
+      "id": "fsm_control_process_to_error_3",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[3]",
+      "description": "error_handling condition detected"
+    },
+    {
+      "id": "fsm_control_respond_to_idle_4",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[4]",
+      "description": "response/status event observed and no further work pending"
+    },
+    {
+      "id": "fsm_control_error_to_idle_5",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[5]",
+      "description": "approved clear/reset policy completes"
+    },
+    {
+      "id": "error_error_0",
+      "class": "error",
+      "source": "error_handling.error_sources[0]",
+      "description": "{'id': 'ERR_MALFORMED_OR_ILLEGAL', 'condition': 'malformed input, illegal CSR access, or function_model error case', 'architectural_effect': 'error status and optional interrupt follow approved policy'}"
+    },
+    {
+      "id": "cycle_handshake_0",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[0]",
+      "description": "handshake_0"
+    },
+    {
+      "id": "cycle_handshake_1",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[1]",
+      "description": "handshake_1"
+    },
+    {
+      "id": "latency_control_access_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.control_access",
+      "description": "control_access latency < 1 cycles",
+      "bucket": "<min",
+      "threshold": 1
+    },
+    {
+      "id": "latency_control_access_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.control_access",
+      "description": "control_access latency == 1 cycles",
+      "bucket": "min",
+      "cycles": 1
+    },
+    {
+      "id": "latency_control_access_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.control_access",
+      "description": "control_access latency == protocol_backpressure_bound cycles",
+      "bucket": "max",
+      "cycles": "protocol_backpressure_bound"
+    },
+    {
+      "id": "latency_control_access_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.control_access",
+      "description": "control_access latency > protocol_backpressure_bound cycles",
+      "bucket": ">max",
+      "threshold": "protocol_backpressure_bound"
+    },
+    {
+      "id": "latency_primary_transaction_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.primary_transaction",
+      "description": "primary_transaction latency < 1 cycles",
+      "bucket": "<min",
+      "threshold": 1
+    },
+    {
+      "id": "latency_primary_transaction_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.primary_transaction",
+      "description": "primary_transaction latency == 1 cycles",
+      "bucket": "min",
+      "cycles": 1
+    },
+    {
+      "id": "latency_primary_transaction_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.primary_transaction",
+      "description": "primary_transaction latency == implementation_defined_by_function_model cycles",
+      "bucket": "max",
+      "cycles": "implementation_defined_by_function_model"
+    },
+    {
+      "id": "latency_primary_transaction_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.primary_transaction",
+      "description": "primary_transaction latency > implementation_defined_by_function_model cycles",
+      "bucket": ">max",
+      "threshold": "implementation_defined_by_function_model"
+    }
+  ]
+}

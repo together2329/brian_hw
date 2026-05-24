@@ -79,6 +79,68 @@ const typeAndSubmit = async (text) => {
 
 const bodyHas = (re) => page.evaluate((source) => new RegExp(source, 'i').test(document.body.innerText), re.source);
 
+const setShotOverlay = async ({ title, status = '', command = '', details = '' }) => {
+  await page.evaluate((meta) => {
+    let box = document.getElementById('atlas-ui-test-shot-overlay');
+    if (!box) {
+      box = document.createElement('div');
+      box.id = 'atlas-ui-test-shot-overlay';
+      document.body.appendChild(box);
+    }
+    Object.assign(box.style, {
+      position: 'fixed',
+      right: '18px',
+      bottom: '74px',
+      zIndex: '2147483647',
+      width: '720px',
+      maxWidth: '44vw',
+      maxHeight: '38vh',
+      overflow: 'hidden',
+      padding: '14px 16px',
+      border: '2px solid #e9c46a',
+      borderRadius: '6px',
+      background: 'rgba(12, 17, 23, 0.96)',
+      color: '#d7dee8',
+      font: '13px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+      boxShadow: '0 10px 32px rgba(0,0,0,0.45)',
+      whiteSpace: 'pre-wrap',
+    });
+    box.replaceChildren();
+
+    const add = (text, style = {}) => {
+      if (!text) return;
+      const el = document.createElement('div');
+      el.textContent = text;
+      Object.assign(el.style, style);
+      box.appendChild(el);
+    };
+    const statusColor = /FAIL|ERROR|code=[1-9]/i.test(meta.status || '')
+      ? '#ff8f70'
+      : /PASS|code=0/i.test(meta.status || '')
+        ? '#84e0a4'
+        : '#e9c46a';
+    add(meta.title || '', {
+      color: '#ffd166',
+      fontSize: '15px',
+      fontWeight: '700',
+      marginBottom: '8px',
+    });
+    add(meta.status || '', {
+      color: statusColor,
+      fontWeight: '700',
+      marginBottom: '8px',
+    });
+    add(meta.command ? `cmd: ${meta.command}` : '', {
+      color: '#9fb0c3',
+      marginBottom: '8px',
+    });
+    add(meta.details || '', {
+      color: '#c4ceda',
+      lineHeight: '1.35',
+    });
+  }, { title, status, command, details });
+};
+
 const waitForBody = async (re, { tries = 40, interval = 750, label = 'body' } = {}) => {
   for (let i = 0; i < tries; i++) {
     if (await bodyHas(re)) return true;
@@ -106,7 +168,14 @@ const refreshValidation = async () => {
   await openValidation();
 };
 
-const capture = async (index, name) => {
+const capture = async (index, name, meta = {}) => {
+  await setShotOverlay({
+    title: meta.title || `SHOT ${String(index).padStart(2, '0')} ${name}`,
+    status: meta.status || `ip=${ip}`,
+    command: meta.command || '',
+    details: meta.details || '',
+  });
+  await page.waitForTimeout(120);
   await shoot(page, `ssot-pnr-script-${String(index).padStart(2, '0')}-${name}-${ip}.png`);
 };
 
@@ -144,6 +213,22 @@ const run = (label, cmd, args, { cwd = SOURCE_ROOT, timeoutMs = commandTimeoutMs
   });
 });
 
+const tailLines = (text, maxLines = 10, maxChars = 1200) => String(text || '')
+  .split(/\r?\n/)
+  .filter(Boolean)
+  .slice(-maxLines)
+  .join('\n')
+  .slice(-maxChars);
+
+const resultDetails = (result) => {
+  const stderr = tailLines(result.stderr);
+  const stdout = tailLines(result.stdout);
+  if (stderr && stdout) return `stderr:\n${stderr}\n\nstdout:\n${stdout}`;
+  if (stderr) return `stderr:\n${stderr}`;
+  if (stdout) return `stdout:\n${stdout}`;
+  return 'no stdout/stderr captured';
+};
+
 const headlessArgs = (stage, reqPath = '') => {
   const args = [
     'src/headless_workflow.py',
@@ -168,14 +253,25 @@ try {
 
   await page.goto(BASE, { waitUntil: 'networkidle' });
   await page.waitForTimeout(1200);
-  await capture(0, 'dashboard');
+  await capture(0, 'dashboard', {
+    title: '00 dashboard',
+    status: `ip will be created: ${ip}`,
+  });
 
   await gotoWorkspace(page, { ip: 'default', workflow: 'orchestrator' });
   await openChat();
-  await capture(1, 'chat-before-new-ip');
+  await capture(1, 'chat-before-new-ip', {
+    title: '01 before /new-ip',
+    status: 'workspace chat ready',
+    command: newIpCommand,
+  });
   await typeAndSubmit(newIpCommand);
   await page.waitForTimeout(800);
-  await capture(2, 'new-ip-submitted');
+  await capture(2, 'new-ip-submitted', {
+    title: '02 /new-ip submitted',
+    status: 'waiting for new IP scaffold / SSOT plan UI',
+    command: newIpCommand,
+  });
 
   const planned = await waitForBody(new RegExp(`${ip}|SSOT TO-YAML|SSOT plan ready|Validation|Approval`, 'i'), {
     tries: 45,
@@ -185,7 +281,10 @@ try {
   assert(planned, 'new IP appeared in UI');
 
   await refreshValidation();
-  await capture(3, 'validation-before-scripts');
+  await capture(3, 'validation-before-scripts', {
+    title: '03 validation before deterministic scripts',
+    status: 'UI workspace loaded for generated IP',
+  });
 
   const reqPath = path.join(SOURCE_ROOT, '.omc', 'stage-reqs', `${ip}_requirements.md`);
   await writeFile(reqPath, `# ${ip} requirements\n\n${userRequirement}\n`, 'utf8');
@@ -209,10 +308,20 @@ try {
   let shot = 4;
   for (const [stage, cmd, args, opts] of stages) {
     await refreshValidation();
-    await capture(shot++, `${stage}-before`);
+    const command = [cmd, ...args].join(' ');
+    await capture(shot++, `${stage}-before`, {
+      title: `${stage}: before`,
+      status: 'about to execute stage command',
+      command,
+    });
     const result = await run(stage, cmd, args, opts);
     await refreshValidation();
-    await capture(shot++, `${stage}-${result.ok ? 'pass' : 'fail'}`);
+    await capture(shot++, `${stage}-${result.ok ? 'pass' : 'fail'}`, {
+      title: `${stage}: after`,
+      status: `${result.ok ? 'PASS' : 'FAIL'} code=${result.code} timeout=${result.timedOut}`,
+      command,
+      details: resultDetails(result),
+    });
   }
 
   const resultPath = path.join(OUT, `ssot-pnr-script-results-${ip}.json`);

@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "type": "cl_model_check",
+  "ip": "ssot_screenshot_smoke_20260524_083011",
+  "source": "model/cycle_model.py",
+  "backend": "python",
+  "timestamp": "2026-05-24T00:00:10Z",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "backend": "python",
+    "transactions": 3,
+    "results_observed": 2,
+    "coverage_bins": 7,
+    "coverage_hit": 7,
+    "performance_targets": {
+      "frequency_mhz": 100,
+      "throughput": {
+        "sustained_beats_per_cycle": 1,
+        "condition": "No downstream or internal backpressure"
+      },
+      "outstanding": {
+        "max": 1,
+        "description": "Default one accepted operation until Q&A declares deeper buffering"
+      },
+      "pipeline_stages": 3,
+      "queue_depth": 1
+    }
+  },
+  "performance_targets": {
+    "frequency_mhz": 100,
+    "throughput": {
+      "sustained_beats_per_cycle": 1,
+      "condition": "No downstream or internal backpressure"
+    },
+    "outstanding": {
+      "max": 1,
+      "description": "Default one accepted operation until Q&A declares deeper buffering"
+    },
+    "pipeline_stages": 3,
+    "queue_depth": 1
+  },
+  "decomposition_units": 5,
+  "fcov_bins": 7
+}

@@ -53,6 +53,27 @@ def _as_list(value: Any) -> list[Any]:
     return [value]
 
 
+def _int_or_none(value: Any) -> int | None:
+    """Return an int only for concrete numeric latency values.
+
+    SSOT latency bounds may be symbolic (for example
+    ``protocol_backpressure_bound``).  Coverage should still preserve those
+    symbolic thresholds in emitted bins, but numeric-only bucket derivation
+    such as the mid-point must not compare strings with integers.
+    """
+    if isinstance(value, bool) or value is None:
+        return None
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float) and value.is_integer():
+        return int(value)
+    if isinstance(value, str):
+        text = value.strip()
+        if text and text.lstrip("+-").isdigit():
+            return int(text)
+    return None
+
+
 def _dedup(bins: list[dict[str, Any]]) -> list[dict[str, Any]]:
     seen: set[str] = set()
     unique: list[dict[str, Any]] = []
@@ -225,11 +246,14 @@ def _cl_bins(ssot: dict[str, Any]) -> list[dict[str, Any]]:
                 continue
             min_c = entry.get("min_cycles")
             max_c = entry.get("max_cycles")
+            min_i = _int_or_none(min_c)
+            max_i = _int_or_none(max_c)
             safe_op = _safe_name(op_name, "op")
             source_ref = f"cycle_model.latency.{op_name}"
 
-            # <min bucket — skip if min == 0
-            if min_c is not None and min_c != 0:
+            # <min bucket — skip if min == 0.  Symbolic bounds are still
+            # carried as thresholds, but numeric comparisons use min_i/max_i.
+            if min_c is not None and min_i != 0:
                 bins.append({
                     "id": f"latency_{safe_op}_lt_min",
                     "class": "latency_bin",
@@ -250,9 +274,9 @@ def _cl_bins(ssot: dict[str, Any]) -> list[dict[str, Any]]:
                     "cycles": min_c,
                 })
 
-            # mid bucket — only when min and max are both set and differ
-            if min_c is not None and max_c is not None and max_c > min_c:
-                mid_c = (min_c + max_c) // 2
+            # mid bucket — only when min and max are both concrete numeric bounds and differ
+            if min_i is not None and max_i is not None and max_i > min_i:
+                mid_c = (min_i + max_i) // 2
                 bins.append({
                     "id": f"latency_{safe_op}_mid",
                     "class": "latency_bin",

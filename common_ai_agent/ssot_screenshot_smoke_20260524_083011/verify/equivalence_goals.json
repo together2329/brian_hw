@@ -1,0 +1,2200 @@
+{
+  "ip": "ssot_screenshot_smoke_20260524_083011",
+  "schema_version": 1,
+  "type": "fl_rtl_equivalence_goals",
+  "source_of_truth": {
+    "ssot": "ssot_screenshot_smoke_20260524_083011/yaml/ssot_screenshot_smoke_20260524_083011.ssot.yaml",
+    "functional_model": "ssot_screenshot_smoke_20260524_083011/model/functional_model.py",
+    "functional_model_exists": true,
+    "cycle_model_section": "cycle_model",
+    "decomposition": "ssot_screenshot_smoke_20260524_083011/model/decomposition.json",
+    "coverage_plan": "ssot_screenshot_smoke_20260524_083011/cov/fcov_plan.json",
+    "authority_contract": {
+      "rule": "LLM repair loops are allowed when a general criterion has objective machine evidence: PASS/FAIL/DIFF, coverage gap, lint diagnostic, assertion failure, stale evidence, traceability gap, or measured performance gap. Human gates own intent, semantic rule changes, waivers, interface changes, performance tradeoffs, and final signoff.",
+      "general_evaluation_criteria": [
+        {
+          "id": "traceability",
+          "criterion": "Every generated artifact traces to SSOT requirement, function_model, cycle_model, interface, coverage, or quality_gates refs.",
+          "machine_evidence": [
+            "source refs in decomposition/equivalence goals",
+            "artifact manifests"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "functional_equivalence",
+          "criterion": "RTL observable behavior matches FunctionalModel results for every required transaction/scenario.",
+          "machine_evidence": [
+            "scoreboard_events.jsonl",
+            "fl_rtl_compare.json"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "module_equivalence",
+          "criterion": "Each behavior-owning RTL module has module-boundary evidence before top-level signoff.",
+          "machine_evidence": [
+            "scope.level=module scoreboard rows",
+            "module goal status"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "coverage_closure",
+          "criterion": "SSOT coverage goals are hit by passing RTL-observed scoreboard evidence.",
+          "machine_evidence": [
+            "fcov_plan.json",
+            "coverage.json",
+            "scoreboard coverage_refs"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "interface_protocol",
+          "criterion": "Ports, handshakes, ordering, reset, and error protocol obey SSOT io_list/cycle_model/interface contract.",
+          "machine_evidence": [
+            "protocol goals",
+            "assertion failures",
+            "waveform evidence"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "lint_compile",
+          "criterion": "DUT-only RTL compile/lint has zero unwaived errors, warnings, and style diagnostics.",
+          "machine_evidence": [
+            "rtl_compile.json",
+            "dut_lint.json"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "simulation_evidence",
+          "criterion": "Simulation results are fresh, bounded, non-stale, and tied to structured scoreboard goals.",
+          "machine_evidence": [
+            "results.xml",
+            "scoreboard_events.jsonl",
+            "stale_evidence checks"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "performance_cycle",
+          "criterion": "Cycle/performance targets from cycle_model/timing are measured or explicitly escalated.",
+          "machine_evidence": [
+            "latency/throughput measurements",
+            "CL/performance sweep reports"
+          ],
+          "llm_loop_allowed": "candidate_search_only"
+        },
+        {
+          "id": "debug_observability",
+          "criterion": "Waveforms and debug probes are sufficient to inspect reset, interface activity, state, outputs, and failures.",
+          "machine_evidence": [
+            "VCD/FST presence",
+            "debug_observability goals",
+            "waveform parser summary"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "maintainability",
+          "criterion": "Generated RTL/TB is structured by SSOT-owned modules, avoids fixed IP templates, and remains reviewable.",
+          "machine_evidence": [
+            "module contracts",
+            "dynamic todo plan",
+            "filelist/manifest checks"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "human_decision",
+          "criterion": "Intent, semantic rule changes, waivers, interface changes, performance tradeoffs, and final signoff are human-owned.",
+          "machine_evidence": [
+            "human_gate questions/answers",
+            "approval state"
+          ],
+          "llm_loop_allowed": false
+        }
+      ],
+      "locked_artifacts": [
+        {
+          "name": "requirement",
+          "path": "ssot_screenshot_smoke_20260524_083011/req/",
+          "owner": "human",
+          "change_rule": "Human owns intent, scope, priority, tradeoffs, and final acceptance."
+        },
+        {
+          "name": "ssot_spec",
+          "path": "ssot_screenshot_smoke_20260524_083011/yaml/ssot_screenshot_smoke_20260524_083011.ssot.yaml",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "Behavior, interface, coverage goal, and waiver changes require human gate."
+        },
+        {
+          "name": "functional_model",
+          "path": "ssot_screenshot_smoke_20260524_083011/model/functional_model.py",
+          "owner": "human-approved fl-model-gen",
+          "change_rule": "FunctionalModel is the golden oracle; sim-debug cannot change it to match RTL."
+        },
+        {
+          "name": "coverage_plan",
+          "path": "ssot_screenshot_smoke_20260524_083011/cov/fcov_plan.json",
+          "owner": "human-approved fl-model-gen",
+          "change_rule": "LLM may add tests to hit bins, but cannot weaken or delete bins without approval."
+        },
+        {
+          "name": "interface_contract",
+          "path": "ssot_screenshot_smoke_20260524_083011/yaml/ssot_screenshot_smoke_20260524_083011.ssot.yaml#io_list",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "Protocol and port contract changes require human approval."
+        },
+        {
+          "name": "performance_target",
+          "path": "ssot_screenshot_smoke_20260524_083011/yaml/ssot_screenshot_smoke_20260524_083011.ssot.yaml#cycle_model",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "LLM may sweep candidates, but target/tradeoff changes require human approval."
+        }
+      ],
+      "llm_editable_artifacts": [
+        "ssot_screenshot_smoke_20260524_083011/rtl/",
+        "ssot_screenshot_smoke_20260524_083011/tb/",
+        "ssot_screenshot_smoke_20260524_083011/sim/",
+        "ssot_screenshot_smoke_20260524_083011/reports/",
+        "ssot_screenshot_smoke_20260524_083011/vectors/"
+      ],
+      "loopable_evidence_points": [
+        {
+          "loop": "traceability_closure",
+          "criterion": "SSOT refs vs generated artifact refs",
+          "llm_action": "Add missing refs/artifact ownership or open a human gate if ownership is undefined."
+        },
+        {
+          "loop": "rtl_function",
+          "criterion": "FunctionalModel.apply expected values vs RTL observed values",
+          "llm_action": "Patch RTL and rerun cocotb/sim-debug."
+        },
+        {
+          "loop": "module_function",
+          "criterion": "scope.level=module equivalence goal against RTL module boundary observations",
+          "llm_action": "Patch the owning RTL module only."
+        },
+        {
+          "loop": "coverage_closure",
+          "criterion": "coverage goals vs RTL-observed scoreboard coverage rows",
+          "llm_action": "Add stimulus/tests/vectors without changing coverage goals."
+        },
+        {
+          "loop": "lint_compile",
+          "criterion": "DUT-only compile/lint diagnostics",
+          "llm_action": "Patch RTL syntax, widths, drivers, and coding style."
+        },
+        {
+          "loop": "assertion_protocol",
+          "criterion": "SSOT interface/cycle assertion failure",
+          "llm_action": "Patch RTL or TB driver/monitor depending on classified owner."
+        },
+        {
+          "loop": "cl_performance",
+          "criterion": "cycle_model/performance target vs measured latency/throughput",
+          "llm_action": "Run parameter/architecture sweeps and report tradeoff candidates."
+        },
+        {
+          "loop": "regression_minimize",
+          "criterion": "minimal vector still reproduces the same failure",
+          "llm_action": "Reduce failing stimulus before patching."
+        },
+        {
+          "loop": "report_root_cause",
+          "criterion": "scoreboard diff, logs, coverage miss, and waveform evidence",
+          "llm_action": "Write root-cause report and repair prompt."
+        }
+      ],
+      "loopable_oracles": [
+        {
+          "loop": "traceability_closure",
+          "criterion": "SSOT refs vs generated artifact refs",
+          "llm_action": "Add missing refs/artifact ownership or open a human gate if ownership is undefined."
+        },
+        {
+          "loop": "rtl_function",
+          "criterion": "FunctionalModel.apply expected values vs RTL observed values",
+          "llm_action": "Patch RTL and rerun cocotb/sim-debug."
+        },
+        {
+          "loop": "module_function",
+          "criterion": "scope.level=module equivalence goal against RTL module boundary observations",
+          "llm_action": "Patch the owning RTL module only."
+        },
+        {
+          "loop": "coverage_closure",
+          "criterion": "coverage goals vs RTL-observed scoreboard coverage rows",
+          "llm_action": "Add stimulus/tests/vectors without changing coverage goals."
+        },
+        {
+          "loop": "lint_compile",
+          "criterion": "DUT-only compile/lint diagnostics",
+          "llm_action": "Patch RTL syntax, widths, drivers, and coding style."
+        },
+        {
+          "loop": "assertion_protocol",
+          "criterion": "SSOT interface/cycle assertion failure",
+          "llm_action": "Patch RTL or TB driver/monitor depending on classified owner."
+        },
+        {
+          "loop": "cl_performance",
+          "criterion": "cycle_model/performance target vs measured latency/throughput",
+          "llm_action": "Run parameter/architecture sweeps and report tradeoff candidates."
+        },
+        {
+          "loop": "regression_minimize",
+          "criterion": "minimal vector still reproduces the same failure",
+          "llm_action": "Reduce failing stimulus before patching."
+        },
+        {
+          "loop": "report_root_cause",
+          "criterion": "scoreboard diff, logs, coverage miss, and waveform evidence",
+          "llm_action": "Write root-cause report and repair prompt."
+        }
+      ],
+      "non_loopable_decisions": [
+        "change requirement intent or scope",
+        "change SSOT behavioral rule",
+        "change FunctionalModel golden semantics",
+        "change coverage goal or waiver",
+        "change interface contract",
+        "change performance target or architecture tradeoff",
+        "final signoff"
+      ]
+    }
+  },
+  "summary": {
+    "total": 28,
+    "required": 28,
+    "optional": 0,
+    "blocked": 0,
+    "unverified": 0,
+    "module_total": 1,
+    "module_required": 1,
+    "module_blocked": 0,
+    "module_unverified": 0
+  },
+  "goals": [
+    {
+      "goal_id": "EQ_TRANSACTION_FM_RESET",
+      "title": "Transaction reset matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[0]"
+      ],
+      "decomposition_refs": [
+        "ssot_screenshot_smoke_20260524_083011_protocol_model",
+        "ssot_screenshot_smoke_20260524_083011_register_model",
+        "ssot_screenshot_smoke_20260524_083011_datapath_model",
+        "ssot_screenshot_smoke_20260524_083011_fsm_model",
+        "ssot_screenshot_smoke_20260524_083011_error_model"
+      ],
+      "coverage_refs": [
+        "SC01_executed",
+        "SC06_executed",
+        "function_reset",
+        "fsm_control_error_to_idle_5"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "reset",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "reset asserted"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "busy == 0",
+          "error == 0",
+          "registers and counters equal approved reset defaults",
+          "{'name': 'accepted_count', 'port': 'accepted_count', 'expr': '0', 'description': \"Auto-injected placeholder rule for observable state 'accepted_count' (repair_ssot_schema rule_expr_completeness pass; advisory: downstream TB/scoreboard treats this as 0 unless overridden).\"}",
+          "accepted_count"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "clears transient protocol state",
+          "clears pending non-retained status"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM_PRIMARY",
+      "title": "Transaction primary_behavior matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[1]"
+      ],
+      "decomposition_refs": [
+        "ssot_screenshot_smoke_20260524_083011_protocol_model",
+        "ssot_screenshot_smoke_20260524_083011_register_model",
+        "ssot_screenshot_smoke_20260524_083011_datapath_model",
+        "ssot_screenshot_smoke_20260524_083011_fsm_model",
+        "ssot_screenshot_smoke_20260524_083011_error_model"
+      ],
+      "coverage_refs": [
+        "SC07_executed",
+        "function_primary_behavior"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "primary_behavior",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "valid input transaction or packet is accepted"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Accept one byte-oriented valid-ready transaction when valid and ready are high; output result equals data_in XOR command and assert result_valid on the accepted transaction.",
+          "{'name': 'busy', 'port': 'busy', 'expr': 'busy', 'description': 'Scoreboard-observable busy output mirrors function_model busy state.'}",
+          "{'name': 'error', 'port': 'error', 'expr': 'error', 'description': 'Scoreboard-observable error output mirrors function_model error state.'}",
+          "busy",
+          "error"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "updates status, counters, events, and observable outputs according to approved Q&A",
+          "busy"
+        ],
+        "error_policy": "{'condition': 'malformed input or invalid control policy', 'result': 'error status follows error_handling section'}"
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM_CSR",
+      "title": "Transaction control_status_access matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[2]"
+      ],
+      "decomposition_refs": [
+        "ssot_screenshot_smoke_20260524_083011_protocol_model",
+        "ssot_screenshot_smoke_20260524_083011_register_model",
+        "ssot_screenshot_smoke_20260524_083011_datapath_model",
+        "ssot_screenshot_smoke_20260524_083011_fsm_model",
+        "ssot_screenshot_smoke_20260524_083011_error_model"
+      ],
+      "coverage_refs": [
+        "SC08_executed",
+        "function_control_status_access"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "control_status_access",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "firmware/control bus access is accepted"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data and side effects match registers.register_list",
+          "{'name': 'error', 'port': 'error', 'expr': 'error', 'description': 'CSR illegal access or malformed transaction status is visible on error.'}",
+          "error"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "RW and W1C fields update exactly as specified",
+          "error"
+        ],
+        "error_policy": "{'condition': 'unsupported address or illegal access', 'result': 'bus error/status error according to error_handling'}"
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC01",
+      "title": "Scenario SC01: reset contract",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[0]"
+      ],
+      "decomposition_refs": [
+        "ssot_screenshot_smoke_20260524_083011",
+        "ssot_screenshot_smoke_20260524_083011_protocol_model",
+        "ssot_screenshot_smoke_20260524_083011_register_model",
+        "ssot_screenshot_smoke_20260524_083011_datapath_model",
+        "ssot_screenshot_smoke_20260524_083011_fsm_model",
+        "ssot_screenshot_smoke_20260524_083011_error_model",
+        "ssot_screenshot_smoke_20260524_083011_security_model"
+      ],
+      "coverage_refs": [
+        "SC01_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "reset",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Assert and release the declared reset while all external interfaces remain idle.",
+          "reset asserted"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Architectural state, status, outputs, and debug observability match function_model reset outputs.",
+          "busy == 0",
+          "error == 0",
+          "registers and counters equal approved reset defaults",
+          "{'name': 'accepted_count', 'port': 'accepted_count', 'expr': '0', 'description': \"Auto-injected placeholder rule for observable state 'accepted_count' (repair_ssot_schema rule_expr_completeness pass; advisory: downstream TB/scoreboard treats this as 0 unless overridden).\"}",
+          "accepted_count"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "clears transient protocol state",
+          "clears pending non-retained status"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC02",
+      "title": "Scenario SC02: primary approved behavior",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[1]"
+      ],
+      "decomposition_refs": [
+        "ssot_screenshot_smoke_20260524_083011",
+        "ssot_screenshot_smoke_20260524_083011_protocol_model",
+        "ssot_screenshot_smoke_20260524_083011_register_model",
+        "ssot_screenshot_smoke_20260524_083011_datapath_model",
+        "ssot_screenshot_smoke_20260524_083011_fsm_model",
+        "ssot_screenshot_smoke_20260524_083011_error_model",
+        "ssot_screenshot_smoke_20260524_083011_security_model"
+      ],
+      "coverage_refs": [
+        "SC02_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "reset",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Drive a legal request, transaction, command, packet, or CSR operation from function_model primary preconditions.",
+          "reset asserted"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Externally observable result/status/side effects match the function_model primary transaction.",
+          "busy == 0",
+          "error == 0",
+          "registers and counters equal approved reset defaults",
+          "{'name': 'accepted_count', 'port': 'accepted_count', 'expr': '0', 'description': \"Auto-injected placeholder rule for observable state 'accepted_count' (repair_ssot_schema rule_expr_completeness pass; advisory: downstream TB/scoreboard treats this as 0 unless overridden).\"}",
+          "accepted_count"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "clears transient protocol state",
+          "clears pending non-retained status"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC03",
+      "title": "Scenario SC03: cycle handshake and backpressure",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[2]"
+      ],
+      "decomposition_refs": [
+        "ssot_screenshot_smoke_20260524_083011",
+        "ssot_screenshot_smoke_20260524_083011_protocol_model",
+        "ssot_screenshot_smoke_20260524_083011_register_model",
+        "ssot_screenshot_smoke_20260524_083011_datapath_model",
+        "ssot_screenshot_smoke_20260524_083011_fsm_model",
+        "ssot_screenshot_smoke_20260524_083011_error_model",
+        "ssot_screenshot_smoke_20260524_083011_security_model"
+      ],
+      "coverage_refs": [
+        "SC03_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "reset",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Apply legal stalls or delayed handshakes on every declared cycle_model interface phase.",
+          "reset asserted"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Payloads remain stable, ordering is preserved, and completion timing respects cycle_model latency/backpressure rules.",
+          "busy == 0",
+          "error == 0",
+          "registers and counters equal approved reset defaults",
+          "{'name': 'accepted_count', 'port': 'accepted_count', 'expr': '0', 'description': \"Auto-injected placeholder rule for observable state 'accepted_count' (repair_ssot_schema rule_expr_completeness pass; advisory: downstream TB/scoreboard treats this as 0 unless overridden).\"}",
+          "accepted_count"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "clears transient protocol state",
+          "clears pending non-retained status"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC04",
+      "title": "Scenario SC04: error and recovery policy",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[3]"
+      ],
+      "decomposition_refs": [
+        "ssot_screenshot_smoke_20260524_083011",
+        "ssot_screenshot_smoke_20260524_083011_protocol_model",
+        "ssot_screenshot_smoke_20260524_083011_register_model",
+        "ssot_screenshot_smoke_20260524_083011_datapath_model",
+        "ssot_screenshot_smoke_20260524_083011_fsm_model",
+        "ssot_screenshot_smoke_20260524_083011_error_model",
+        "ssot_screenshot_smoke_20260524_083011_security_model"
+      ],
+      "coverage_refs": [
+        "SC04_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC04",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Inject each declared error_handling.error_sources condition where the interface can represent it."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Error/status/response/recovery behavior follows error_handling without corrupting unrelated architectural state.",
+          "Scenario expected result from SSOT"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC05",
+      "title": "Scenario SC05: debug and trace observability",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[4]"
+      ],
+      "decomposition_refs": [
+        "ssot_screenshot_smoke_20260524_083011",
+        "ssot_screenshot_smoke_20260524_083011_protocol_model",
+        "ssot_screenshot_smoke_20260524_083011_register_model",
+        "ssot_screenshot_smoke_20260524_083011_datapath_model",
+        "ssot_screenshot_smoke_20260524_083011_fsm_model",
+        "ssot_screenshot_smoke_20260524_083011_error_model",
+        "ssot_screenshot_smoke_20260524_083011_security_model"
+      ],
+      "coverage_refs": [
+        "SC05_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "reset",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Run nominal and error flows while sampling every debug_observability waveform/status/trace point.",
+          "reset asserted"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Debug/status/trace events reflect committed SSOT-visible state without exposing unsupported behavior.",
+          "busy == 0",
+          "error == 0",
+          "registers and counters equal approved reset defaults",
+          "{'name': 'accepted_count', 'port': 'accepted_count', 'expr': '0', 'description': \"Auto-injected placeholder rule for observable state 'accepted_count' (repair_ssot_schema rule_expr_completeness pass; advisory: downstream TB/scoreboard treats this as 0 unless overridden).\"}",
+          "accepted_count"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "clears transient protocol state",
+          "clears pending non-retained status"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC06",
+      "title": "Scenario SC06: function_model transaction FM_RESET",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[5]"
+      ],
+      "decomposition_refs": [
+        "ssot_screenshot_smoke_20260524_083011",
+        "ssot_screenshot_smoke_20260524_083011_protocol_model",
+        "ssot_screenshot_smoke_20260524_083011_register_model",
+        "ssot_screenshot_smoke_20260524_083011_datapath_model",
+        "ssot_screenshot_smoke_20260524_083011_fsm_model",
+        "ssot_screenshot_smoke_20260524_083011_error_model",
+        "ssot_screenshot_smoke_20260524_083011_security_model"
+      ],
+      "coverage_refs": [
+        "SC06_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "reset",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Drive preconditions for function_model transaction `FM_RESET`.",
+          "reset asserted"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Outputs and side effects match `FM_RESET` exactly.",
+          "busy == 0",
+          "error == 0",
+          "registers and counters equal approved reset defaults",
+          "{'name': 'accepted_count', 'port': 'accepted_count', 'expr': '0', 'description': \"Auto-injected placeholder rule for observable state 'accepted_count' (repair_ssot_schema rule_expr_completeness pass; advisory: downstream TB/scoreboard treats this as 0 unless overridden).\"}",
+          "accepted_count"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "clears transient protocol state",
+          "clears pending non-retained status"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC07",
+      "title": "Scenario SC07: function_model transaction FM_PRIMARY",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[6]"
+      ],
+      "decomposition_refs": [
+        "ssot_screenshot_smoke_20260524_083011",
+        "ssot_screenshot_smoke_20260524_083011_protocol_model",
+        "ssot_screenshot_smoke_20260524_083011_register_model",
+        "ssot_screenshot_smoke_20260524_083011_datapath_model",
+        "ssot_screenshot_smoke_20260524_083011_fsm_model",
+        "ssot_screenshot_smoke_20260524_083011_error_model",
+        "ssot_screenshot_smoke_20260524_083011_security_model"
+      ],
+      "coverage_refs": [
+        "SC07_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "primary_behavior",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Drive preconditions for function_model transaction `FM_PRIMARY`.",
+          "valid input transaction or packet is accepted"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Outputs and side effects match `FM_PRIMARY` exactly.",
+          "Accept one byte-oriented valid-ready transaction when valid and ready are high; output result equals data_in XOR command and assert result_valid on the accepted transaction.",
+          "{'name': 'busy', 'port': 'busy', 'expr': 'busy', 'description': 'Scoreboard-observable busy output mirrors function_model busy state.'}",
+          "{'name': 'error', 'port': 'error', 'expr': 'error', 'description': 'Scoreboard-observable error output mirrors function_model error state.'}",
+          "busy",
+          "error"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "updates status, counters, events, and observable outputs according to approved Q&A",
+          "busy"
+        ],
+        "error_policy": "{'condition': 'malformed input or invalid control policy', 'result': 'error status follows error_handling section'}"
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC08",
+      "title": "Scenario SC08: function_model transaction FM_CSR",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[7]"
+      ],
+      "decomposition_refs": [
+        "ssot_screenshot_smoke_20260524_083011",
+        "ssot_screenshot_smoke_20260524_083011_protocol_model",
+        "ssot_screenshot_smoke_20260524_083011_register_model",
+        "ssot_screenshot_smoke_20260524_083011_datapath_model",
+        "ssot_screenshot_smoke_20260524_083011_fsm_model",
+        "ssot_screenshot_smoke_20260524_083011_error_model",
+        "ssot_screenshot_smoke_20260524_083011_security_model"
+      ],
+      "coverage_refs": [
+        "SC08_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "control_status_access",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Drive preconditions for function_model transaction `FM_CSR`.",
+          "firmware/control bus access is accepted"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Outputs and side effects match `FM_CSR` exactly.",
+          "read data and side effects match registers.register_list",
+          "{'name': 'error', 'port': 'error', 'expr': 'error', 'description': 'CSR illegal access or malformed transaction status is visible on error.'}",
+          "error"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "RW and W1C fields update exactly as specified",
+          "error"
+        ],
+        "error_policy": "{'condition': 'unsupported address or illegal access', 'result': 'bus error/status error according to error_handling'}"
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_0",
+      "title": "Cycle/handshake rule handshake_0",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[0]"
+      ],
+      "decomposition_refs": [
+        "ssot_screenshot_smoke_20260524_083011_protocol_model",
+        "ssot_screenshot_smoke_20260524_083011_fsm_model"
+      ],
+      "coverage_refs": [
+        "SC03_executed",
+        "fsm_control_idle_to_accept_0",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "latency_control_access_at_max",
+        "latency_control_access_gt_max"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "handshake_0",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "{'signal': 'valid_ready', 'rule': 'A transfer is accepted only on valid && ready or the equivalent approved protocol phase.'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "{'control_access': {'min_cycles': 1, 'max_cycles': 'protocol_backpressure_bound', 'description': 'CSR/control latency is bounded by protocol ready/valid phases.'}, 'primary_transaction': {'min_cycles': 1, 'max_cycles': 'implementation_defined_by_function_model', 'description': 'Primary behavior completes when output/status event is observed.'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
+      "title": "Cycle/handshake rule handshake_1",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[1]"
+      ],
+      "decomposition_refs": [
+        "ssot_screenshot_smoke_20260524_083011_protocol_model",
+        "ssot_screenshot_smoke_20260524_083011_fsm_model"
+      ],
+      "coverage_refs": [
+        "SC03_executed",
+        "fsm_control_idle_to_accept_0",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "latency_control_access_at_max",
+        "latency_control_access_gt_max"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "handshake_1",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "{'signal': 'outputs', 'rule': 'Outputs remain stable while downstream backpressure prevents acceptance.'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "{'control_access': {'min_cycles': 1, 'max_cycles': 'protocol_backpressure_bound', 'description': 'CSR/control latency is bounded by protocol ready/valid phases.'}, 'primary_transaction': {'min_cycles': 1, 'max_cycles': 'implementation_defined_by_function_model', 'description': 'Primary behavior completes when output/status event is observed.'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_0",
+      "title": "Ordering rule ordering_0",
+      "kind": "timing",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[0]"
+      ],
+      "decomposition_refs": [
+        "ssot_screenshot_smoke_20260524_083011_protocol_model",
+        "ssot_screenshot_smoke_20260524_083011_datapath_model",
+        "ssot_screenshot_smoke_20260524_083011_fsm_model"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "ordering_0",
+        "required_fields": [
+          "cycle",
+          "transaction_order"
+        ],
+        "constraints": [
+          "Accepted transactions preserve externally visible ordering unless an explicit reordering feature is listed."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered RTL observable sequence"
+        ],
+        "latency": "{'control_access': {'min_cycles': 1, 'max_cycles': 'protocol_backpressure_bound', 'description': 'CSR/control latency is bounded by protocol ready/valid phases.'}, 'primary_transaction': {'min_cycles': 1, 'max_cycles': 'implementation_defined_by_function_model', 'description': 'Primary behavior completes when output/status event is observed.'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL response order matches cycle_model ordering",
+        "FL trace and RTL monitor trace preserve the same transaction order"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_1",
+      "title": "Ordering rule ordering_1",
+      "kind": "timing",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[1]"
+      ],
+      "decomposition_refs": [
+        "ssot_screenshot_smoke_20260524_083011_protocol_model",
+        "ssot_screenshot_smoke_20260524_083011_datapath_model",
+        "ssot_screenshot_smoke_20260524_083011_fsm_model"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "ordering_1",
+        "required_fields": [
+          "cycle",
+          "transaction_order"
+        ],
+        "constraints": [
+          "CSR side effects occur in program order at the accepted control transaction boundary."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered RTL observable sequence"
+        ],
+        "latency": "{'control_access': {'min_cycles': 1, 'max_cycles': 'protocol_backpressure_bound', 'description': 'CSR/control latency is bounded by protocol ready/valid phases.'}, 'primary_transaction': {'min_cycles': 1, 'max_cycles': 'implementation_defined_by_function_model', 'description': 'Primary behavior completes when output/status event is observed.'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL response order matches cycle_model ordering",
+        "FL trace and RTL monitor trace preserve the same transaction order"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_ERROR_NONE",
+      "title": "Error policy None",
+      "kind": "error",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "error_handling.error_sources[0]"
+      ],
+      "decomposition_refs": [
+        "ssot_screenshot_smoke_20260524_083011_protocol_model",
+        "ssot_screenshot_smoke_20260524_083011_error_model"
+      ],
+      "coverage_refs": [
+        "SC04_executed",
+        "fsm_control_process_to_error_3",
+        "fsm_control_error_to_idle_5",
+        "error_error_0"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "None",
+        "required_fields": [
+          "fault_condition"
+        ],
+        "constraints": [
+          "{'id': 'ERR_MALFORMED_OR_ILLEGAL', 'condition': 'malformed input, illegal CSR access, or function_model error case', 'architectural_effect': 'error status and optional interrupt follow approved policy'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "error response",
+          "status/interrupt/debug observable"
+        ],
+        "latency": "error propagation timing from cycle_model",
+        "state_updates": [
+          "error state/counter/status update"
+        ],
+        "error_policy": "['Errors are visible through status/debug outputs and bus response or interrupt when the approved interface supports it.']"
+      },
+      "pass_criteria": [
+        "Fault stimulus produces the SSOT-defined error response",
+        "No illegal side effect occurs unless SSOT allows it",
+        "Error coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_STATE_CONTROL_IDLE_TO_ACCEPT_0",
+      "title": "FSM transition control: IDLE -> ACCEPT",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.control.transitions[0]"
+      ],
+      "decomposition_refs": [
+        "ssot_screenshot_smoke_20260524_083011_fsm_model"
+      ],
+      "coverage_refs": [
+        "function_control_status_access",
+        "fsm_control_idle_to_accept_0",
+        "fsm_control_accept_to_process_1",
+        "fsm_control_process_to_respond_2",
+        "fsm_control_process_to_error_3",
+        "fsm_control_respond_to_idle_4",
+        "fsm_control_error_to_idle_5",
+        "latency_control_access_lt_min",
+        "latency_control_access_at_min",
+        "latency_control_access_at_max",
+        "latency_control_access_gt_max"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "control_IDLE_to_ACCEPT_0",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "approved protocol transaction is accepted"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "control state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_STATE_CONTROL_ACCEPT_TO_PROCESS_1",
+      "title": "FSM transition control: ACCEPT -> PROCESS",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.control.transitions[1]"
+      ],
+      "decomposition_refs": [
+        "ssot_screenshot_smoke_20260524_083011_fsm_model"
+      ],
+      "coverage_refs": [
+        "function_control_status_access",
+        "fsm_control_idle_to_accept_0",
+        "fsm_control_accept_to_process_1",
+        "fsm_control_process_to_respond_2",
+        "fsm_control_process_to_error_3",
+        "fsm_control_respond_to_idle_4",
+        "fsm_control_error_to_idle_5",
+        "latency_control_access_lt_min",
+        "latency_control_access_at_min",
+        "latency_control_access_at_max",
+        "latency_control_access_gt_max"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "control_ACCEPT_to_PROCESS_1",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "function_model primary transaction begins"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "control state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_STATE_CONTROL_PROCESS_TO_RESPOND_2",
+      "title": "FSM transition control: PROCESS -> RESPOND",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.control.transitions[2]"
+      ],
+      "decomposition_refs": [
+        "ssot_screenshot_smoke_20260524_083011_fsm_model"
+      ],
+      "coverage_refs": [
+        "function_control_status_access",
+        "fsm_control_idle_to_accept_0",
+        "fsm_control_accept_to_process_1",
+        "fsm_control_process_to_respond_2",
+        "fsm_control_process_to_error_3",
+        "fsm_control_respond_to_idle_4",
+        "fsm_control_error_to_idle_5",
+        "latency_control_access_lt_min",
+        "latency_control_access_at_min",
+        "latency_control_access_at_max",
+        "latency_control_access_gt_max"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "control_PROCESS_to_RESPOND_2",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "observable output/status is ready"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "control state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_STATE_CONTROL_PROCESS_TO_ERROR_3",
+      "title": "FSM transition control: PROCESS -> ERROR",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.control.transitions[3]"
+      ],
+      "decomposition_refs": [
+        "ssot_screenshot_smoke_20260524_083011_fsm_model"
+      ],
+      "coverage_refs": [
+        "SC04_executed",
+        "function_control_status_access",
+        "fsm_control_idle_to_accept_0",
+        "fsm_control_accept_to_process_1",
+        "fsm_control_process_to_respond_2",
+        "fsm_control_process_to_error_3",
+        "fsm_control_respond_to_idle_4",
+        "fsm_control_error_to_idle_5",
+        "error_error_0",
+        "latency_control_access_lt_min",
+        "latency_control_access_at_min",
+        "latency_control_access_at_max",
+        "latency_control_access_gt_max"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "control_PROCESS_to_ERROR_3",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "error_handling condition detected"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "control state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_STATE_CONTROL_RESPOND_TO_IDLE_4",
+      "title": "FSM transition control: RESPOND -> IDLE",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.control.transitions[4]"
+      ],
+      "decomposition_refs": [
+        "ssot_screenshot_smoke_20260524_083011_fsm_model"
+      ],
+      "coverage_refs": [
+        "function_control_status_access",
+        "fsm_control_idle_to_accept_0",
+        "fsm_control_accept_to_process_1",
+        "fsm_control_process_to_respond_2",
+        "fsm_control_process_to_error_3",
+        "fsm_control_respond_to_idle_4",
+        "fsm_control_error_to_idle_5",
+        "latency_control_access_lt_min",
+        "latency_control_access_at_min",
+        "latency_control_access_at_max",
+        "latency_control_access_gt_max"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "control_RESPOND_to_IDLE_4",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "response/status event observed and no further work pending"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "control state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_STATE_CONTROL_ERROR_TO_IDLE_5",
+      "title": "FSM transition control: ERROR -> IDLE",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.control.transitions[5]"
+      ],
+      "decomposition_refs": [
+        "ssot_screenshot_smoke_20260524_083011_fsm_model"
+      ],
+      "coverage_refs": [
+        "SC04_executed",
+        "function_control_status_access",
+        "fsm_control_idle_to_accept_0",
+        "fsm_control_accept_to_process_1",
+        "fsm_control_process_to_respond_2",
+        "fsm_control_process_to_error_3",
+        "fsm_control_respond_to_idle_4",
+        "fsm_control_error_to_idle_5",
+        "error_error_0",
+        "latency_control_access_lt_min",
+        "latency_control_access_at_min",
+        "latency_control_access_at_max",
+        "latency_control_access_gt_max"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "control_ERROR_to_IDLE_5",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "approved clear/reset policy completes"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "control state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_DEBUG_OBSERVABILITY",
+      "title": "Required debug/waveform observability exists",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "debug_observability.waveform_must_probe"
+      ],
+      "decomposition_refs": [
+        "ssot_screenshot_smoke_20260524_083011_protocol_model",
+        "ssot_screenshot_smoke_20260524_083011_register_model",
+        "ssot_screenshot_smoke_20260524_083011_datapath_model",
+        "ssot_screenshot_smoke_20260524_083011_fsm_model",
+        "ssot_screenshot_smoke_20260524_083011_error_model"
+      ],
+      "coverage_refs": [
+        "SC05_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "debug_probe_capture",
+        "required_fields": [
+          "waveform_path"
+        ],
+        "constraints": [
+          "clk",
+          "rst_n",
+          "busy",
+          "error",
+          "all valid/ready or protocol phase signals",
+          "all CSR side-effect state"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "waveform contains required probes"
+        ],
+        "latency": "throughout simulation window",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Waveform includes SSOT-required debug probes",
+        "sim_debug can inspect those probes around checked scenarios"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "tb",
+          "coverage",
+          "rtl",
+          "ssot",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_MODULE_SSOT_SCREENSHOT_SMOKE_20260524_083011",
+      "title": "Module ssot_screenshot_smoke_20260524_083011 functionality equals FunctionalModel",
+      "kind": "module",
+      "scope": {
+        "level": "module",
+        "rtl_module": "ssot_screenshot_smoke_20260524_083011",
+        "rtl_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "boundary": "module RTL observable outputs must be compared against FunctionalModel.apply"
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.outputs",
+        "cycle_model.handshake_rules.valid_ready",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.observability.observability_1",
+        "cycle_model.observability.observability_2",
+        "cycle_model.observability.observability_3",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.pipeline.s0_accept",
+        "cycle_model.pipeline.s1_update",
+        "cycle_model.pipeline.s2_observe",
+        "cycle_model.reset",
+        "dataflow",
+        "decomposition",
+        "features.approved_primary_behavior",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.state_variables.accepted_count",
+        "function_model.state_variables.busy",
+        "function_model.state_variables.error",
+        "function_model.transactions.fm_csr",
+        "function_model.transactions.fm_csr.error_cases.error_case_0",
+        "function_model.transactions.fm_csr.inputs.input_0",
+        "function_model.transactions.fm_csr.inputs.input_1",
+        "function_model.transactions.fm_csr.inputs.input_2",
+        "function_model.transactions.fm_csr.inputs.input_3",
+        "function_model.transactions.fm_csr.output_rules.error",
+        "function_model.transactions.fm_csr.outputs.error",
+        "function_model.transactions.fm_csr.outputs.output_0",
+        "function_model.transactions.fm_csr.preconditions.precondition_0",
+        "function_model.transactions.fm_csr.side_effects.side_effect_0",
+        "function_model.transactions.fm_csr.state_updates.error",
+        "function_model.transactions.fm_primary",
+        "function_model.transactions.fm_primary.error_cases.error_case_0",
+        "function_model.transactions.fm_primary.inputs.input_0",
+        "function_model.transactions.fm_primary.inputs.input_1",
+        "function_model.transactions.fm_primary.output_rules.busy",
+        "function_model.transactions.fm_primary.output_rules.error",
+        "function_model.transactions.fm_primary.outputs.busy",
+        "function_model.transactions.fm_primary.outputs.error",
+        "function_model.transactions.fm_primary.outputs.output_0",
+        "function_model.transactions.fm_primary.preconditions.precondition_0",
+        "function_model.transactions.fm_primary.side_effects.side_effect_0",
+        "function_model.transactions.fm_primary.state_updates.busy",
+        "function_model.transactions.fm_reset",
+        "function_model.transactions.fm_reset.inputs.input_0",
+        "function_model.transactions.fm_reset.inputs.input_1",
+        "function_model.transactions.fm_reset.output_rules.accepted_count",
+        "function_model.transactions.fm_reset.outputs.accepted_count",
+        "function_model.transactions.fm_reset.outputs.output_0",
+        "function_model.transactions.fm_reset.outputs.output_1",
+        "function_model.transactions.fm_reset.outputs.output_2",
+        "function_model.transactions.fm_reset.preconditions.precondition_0",
+        "function_model.transactions.fm_reset.side_effects.side_effect_0",
+        "function_model.transactions.fm_reset.side_effects.side_effect_1",
+        "integration",
+        "io_list",
+        "parameters.addr_width",
+        "parameters.command_width",
+        "parameters.count_width",
+        "parameters.data_width",
+        "registers.config.memory_mapped_registers",
+        "registers.config.note",
+        "registers.config.register_width",
+        "top_module"
+      ],
+      "decomposition_refs": [
+        "ssot_screenshot_smoke_20260524_083011"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "reset",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "reset asserted",
+          "Use the module boundary stimulus/monitor contract from SSOT decomposition; do not compare against RTL-internal self-derived expected values."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "busy == 0",
+          "error == 0",
+          "registers and counters equal approved reset defaults",
+          "{'name': 'accepted_count', 'port': 'accepted_count', 'expr': '0', 'description': \"Auto-injected placeholder rule for observable state 'accepted_count' (repair_ssot_schema rule_expr_completeness pass; advisory: downstream TB/scoreboard treats this as 0 unless overridden).\"}",
+          "accepted_count"
+        ],
+        "latency": "cycle_model latency/ordering must hold at the module boundary",
+        "state_updates": [
+          "clears transient protocol state",
+          "clears pending non-retained status"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Drive the RTL module boundary with stimulus derived from the same SSOT transaction intent used for FunctionalModel.apply",
+        "Observe only RTL module boundary outputs/state exposed by SSOT or rtl_contract",
+        "Compare RTL observed values against FunctionalModel.apply output; do not copy FL expected into rtl_observed",
+        "Record a scoreboard row for this module goal before top-level signoff"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_LATENCY_PRIMARY_TRANSACTION_LT_MIN",
+      "title": "Functional coverage bin latency_primary_transaction_lt_min: primary_transaction latency < 1 cycles",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.latency.primary_transaction"
+      ],
+      "decomposition_refs": [
+        "ssot_screenshot_smoke_20260524_083011",
+        "ssot_screenshot_smoke_20260524_083011_protocol_model",
+        "ssot_screenshot_smoke_20260524_083011_register_model",
+        "ssot_screenshot_smoke_20260524_083011_datapath_model",
+        "ssot_screenshot_smoke_20260524_083011_fsm_model",
+        "ssot_screenshot_smoke_20260524_083011_error_model",
+        "ssot_screenshot_smoke_20260524_083011_security_model"
+      ],
+      "coverage_refs": [
+        "latency_primary_transaction_lt_min"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "reset",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "reset asserted",
+          "primary_transaction latency < 1 cycles"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "busy == 0",
+          "error == 0",
+          "registers and counters equal approved reset defaults",
+          "{'name': 'accepted_count', 'port': 'accepted_count', 'expr': '0', 'description': \"Auto-injected placeholder rule for observable state 'accepted_count' (repair_ssot_schema rule_expr_completeness pass; advisory: downstream TB/scoreboard treats this as 0 unless overridden).\"}",
+          "accepted_count"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "clears transient protocol state",
+          "clears pending non-retained status"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_LATENCY_PRIMARY_TRANSACTION_AT_MIN",
+      "title": "Functional coverage bin latency_primary_transaction_at_min: primary_transaction latency == 1 cycles",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.latency.primary_transaction"
+      ],
+      "decomposition_refs": [
+        "ssot_screenshot_smoke_20260524_083011",
+        "ssot_screenshot_smoke_20260524_083011_protocol_model",
+        "ssot_screenshot_smoke_20260524_083011_register_model",
+        "ssot_screenshot_smoke_20260524_083011_datapath_model",
+        "ssot_screenshot_smoke_20260524_083011_fsm_model",
+        "ssot_screenshot_smoke_20260524_083011_error_model",
+        "ssot_screenshot_smoke_20260524_083011_security_model"
+      ],
+      "coverage_refs": [
+        "latency_primary_transaction_at_min"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "reset",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "reset asserted",
+          "primary_transaction latency == 1 cycles"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "busy == 0",
+          "error == 0",
+          "registers and counters equal approved reset defaults",
+          "{'name': 'accepted_count', 'port': 'accepted_count', 'expr': '0', 'description': \"Auto-injected placeholder rule for observable state 'accepted_count' (repair_ssot_schema rule_expr_completeness pass; advisory: downstream TB/scoreboard treats this as 0 unless overridden).\"}",
+          "accepted_count"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "clears transient protocol state",
+          "clears pending non-retained status"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_LATENCY_PRIMARY_TRANSACTION_AT_MAX",
+      "title": "Functional coverage bin latency_primary_transaction_at_max: primary_transaction latency == implementation_defined_by_function_model cycles",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.latency.primary_transaction"
+      ],
+      "decomposition_refs": [
+        "ssot_screenshot_smoke_20260524_083011",
+        "ssot_screenshot_smoke_20260524_083011_protocol_model",
+        "ssot_screenshot_smoke_20260524_083011_register_model",
+        "ssot_screenshot_smoke_20260524_083011_datapath_model",
+        "ssot_screenshot_smoke_20260524_083011_fsm_model",
+        "ssot_screenshot_smoke_20260524_083011_error_model",
+        "ssot_screenshot_smoke_20260524_083011_security_model"
+      ],
+      "coverage_refs": [
+        "latency_primary_transaction_at_max"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "reset",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "reset asserted",
+          "primary_transaction latency == implementation_defined_by_function_model cycles"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "busy == 0",
+          "error == 0",
+          "registers and counters equal approved reset defaults",
+          "{'name': 'accepted_count', 'port': 'accepted_count', 'expr': '0', 'description': \"Auto-injected placeholder rule for observable state 'accepted_count' (repair_ssot_schema rule_expr_completeness pass; advisory: downstream TB/scoreboard treats this as 0 unless overridden).\"}",
+          "accepted_count"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "clears transient protocol state",
+          "clears pending non-retained status"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_LATENCY_PRIMARY_TRANSACTION_GT_MAX",
+      "title": "Functional coverage bin latency_primary_transaction_gt_max: primary_transaction latency > implementation_defined_by_function_model cycles",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.latency.primary_transaction"
+      ],
+      "decomposition_refs": [
+        "ssot_screenshot_smoke_20260524_083011",
+        "ssot_screenshot_smoke_20260524_083011_protocol_model",
+        "ssot_screenshot_smoke_20260524_083011_register_model",
+        "ssot_screenshot_smoke_20260524_083011_datapath_model",
+        "ssot_screenshot_smoke_20260524_083011_fsm_model",
+        "ssot_screenshot_smoke_20260524_083011_error_model",
+        "ssot_screenshot_smoke_20260524_083011_security_model"
+      ],
+      "coverage_refs": [
+        "latency_primary_transaction_gt_max"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "reset",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "reset asserted",
+          "primary_transaction latency > implementation_defined_by_function_model cycles"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "busy == 0",
+          "error == 0",
+          "registers and counters equal approved reset defaults",
+          "{'name': 'accepted_count', 'port': 'accepted_count', 'expr': '0', 'description': \"Auto-injected placeholder rule for observable state 'accepted_count' (repair_ssot_schema rule_expr_completeness pass; advisory: downstream TB/scoreboard treats this as 0 unless overridden).\"}",
+          "accepted_count"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "clears transient protocol state",
+          "clears pending non-retained status"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    }
+  ]
+}

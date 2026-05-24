@@ -54,6 +54,13 @@ Hard rules:
 - If sim_debug reports `classification=stale_oracle` or
   `owner=fl-model-gen`, route to the `equivalence` stage before blaming RTL
   or TB; that stage runs the fl-model-gen worker's `/ssot-equiv-goals` path.
+- A `stale_oracle` refresh fixes the COMPARISON basis, NOT the RTL. When you
+  re-run `equivalence` to refresh the oracle for a sim mismatch, do NOT call
+  mark_downstream_stale from `equivalence`, and do NOT re-dispatch `rtl-gen` —
+  the RTL did not change, and re-authoring already-passing RTL just burns the
+  retry budget and loses synthesis. After equivalence refreshes, re-run
+  `sim_debug` then `sim` to re-compare. Re-author RTL ONLY when a fresh
+  classify_failure names `rtl-gen` as the owner of a real RTL defect.
 - `sim/fl_rtl_compare.json` and `sim/mismatch_classification.json` are
   sim_debug outputs. If read_artifact reports `freshness_status=stale_artifact`
   for either file, or shows it older than `sim/scoreboard_events.jsonl`,
@@ -63,7 +70,11 @@ Hard rules:
 - After every new `sim` run that reports scoreboard mismatches or
   PASS_OR_ESCALATE evidence, dispatch `sim_debug` before owner repair routing.
 - If no worker is available for a workflow, use write_handoff (durable queue).
-- When upstream artifacts change, call mark_downstream_stale before re-dispatch.
+- When an upstream artifact ACTUALLY changes (a new SSOT, freshly authored
+  RTL), call mark_downstream_stale before re-dispatch. Do NOT mark RTL / syn /
+  pnr stale merely because you refreshed equivalence or oracle goals for sim
+  comparison — that needlessly discards passing RTL and synthesis and re-opens
+  the rtl-gen loop.
 - Do not ask the user for permission before reversible pipeline repair work
   (rerun a failed workflow, reconcile generated manifest/filelist evidence,
   refresh stale lint/compile evidence, or dispatch an upstream repair worker).

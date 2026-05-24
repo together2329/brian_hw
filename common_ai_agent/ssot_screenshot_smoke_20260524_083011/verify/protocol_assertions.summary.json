@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "type": "protocol_assertions_summary",
+  "ip": "ssot_screenshot_smoke_20260524_083011",
+  "source": "ssot_screenshot_smoke_20260524_083011/yaml/ssot_screenshot_smoke_20260524_083011.ssot.yaml",
+  "assertions_total": 4,
+  "output": "verify/protocol_assertions.sva"
+}

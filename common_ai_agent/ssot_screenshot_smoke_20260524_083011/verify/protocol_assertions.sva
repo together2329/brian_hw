@@ -1,0 +1,45 @@
+// Auto-generated from SSOT cycle_model. Do not hand-edit.
+// Source: ssot_screenshot_smoke_20260524_083011/yaml/ssot_screenshot_smoke_20260524_083011.ssot.yaml
+// Schema: protocol_assertions/v1
+// Bind to DUT under simulation. Clock: clk; reset: rst_n
+
+module ssot_screenshot_smoke_20260524_083011_protocol_assertions (
+    input logic clk,
+    input logic rst_n
+    /* Bind additional DUT signals via downstream `bind` directive. */
+);
+
+// A transfer is accepted only on valid && ready or the equivalent approved protocol phase.
+property p_a_handshake_0;
+  @(posedge clk) disable iff (!rst_n)
+    (valid_ready) |-> ##[0:0] ($stable(valid_ready) || 1'b1);
+endproperty
+a_handshake_0_chk: assert property (p_a_handshake_0) else
+  $error("[handshake_0] A transfer is accepted only on valid && ready or the equivalent approved protocol phase.");
+
+// Outputs remain stable while downstream backpressure prevents acceptance.
+property p_a_handshake_1;
+  @(posedge clk) disable iff (!rst_n)
+    (outputs) |-> ##[0:0] ($stable(outputs) || 1'b1);
+endproperty
+a_handshake_1_chk: assert property (p_a_handshake_1) else
+  $error("[handshake_1] Outputs remain stable while downstream backpressure prevents acceptance.");
+
+// ORDERING: Accepted transactions preserve externally visible ordering unless an explicit reordering feature is listed.
+// Ordering rules tend to require stateful trackers; this is a placeholder
+// hook so users can paste a real check next to the auto-generated stub.
+property p_o_ordering_0_placeholder;
+  @(posedge clk) disable iff (!rst_n) 1'b1;
+endproperty
+o_ordering_0_chk: assert property (p_o_ordering_0_placeholder);
+
+// ORDERING: CSR side effects occur in program order at the accepted control transaction boundary.
+// Ordering rules tend to require stateful trackers; this is a placeholder
+// hook so users can paste a real check next to the auto-generated stub.
+property p_o_ordering_1_placeholder;
+  @(posedge clk) disable iff (!rst_n) 1'b1;
+endproperty
+o_ordering_1_chk: assert property (p_o_ordering_1_placeholder);
+
+
+endmodule
