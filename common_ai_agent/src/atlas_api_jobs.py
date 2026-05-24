@@ -5498,18 +5498,13 @@ def register_jobs_routes(
             return JSONResponse({"error": "expected JSON body with 'enabled' bool"}, status_code=400)
         if not isinstance(body["enabled"], bool):
             return JSONResponse({"error": "'enabled' must be a JSON bool"}, status_code=400)
-        os.environ["ATLAS_ORCHESTRATOR_MODE"] = "1" if body["enabled"] else "0"
-        os.environ["ATLAS_EXEC_MODE"] = "orchestrator" if body["enabled"] else "single-worker"
-        os.environ["ATLAS_DEFAULT_EXEC_MODE"] = os.environ["ATLAS_EXEC_MODE"]
-        os.environ["ATLAS_SINGLE_MAIN_LOOP"] = "0" if body["enabled"] else "1"
+        persisted_exec = apply_exec_mode_env(
+            EXEC_MODE_ORCHESTRATOR if body["enabled"] else EXEC_MODE_SINGLE,
+            os.environ,
+        )
         if persist_config_values is not None:
             try:
-                persist_config_values({
-                    "ATLAS_EXEC_MODE": os.environ["ATLAS_EXEC_MODE"],
-                    "ATLAS_DEFAULT_EXEC_MODE": os.environ["ATLAS_DEFAULT_EXEC_MODE"],
-                    "ATLAS_ORCHESTRATOR_MODE": os.environ["ATLAS_ORCHESTRATOR_MODE"],
-                    "ATLAS_SINGLE_MAIN_LOOP": os.environ["ATLAS_SINGLE_MAIN_LOOP"],
-                })
+                persist_config_values(persisted_exec)
             except Exception:
                 pass
         # Bust the /api/pipeline/state micro-cache for every (ip, user_id)

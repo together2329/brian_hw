@@ -4946,6 +4946,8 @@ def create_app():
                              "paths": paths,
                              "session": session_namespace,
                              "workflow": workflow,
+                             "exec_mode": requested_exec_mode or _current_atlas_exec_mode(),
+                             "policy": exec_policy_payload(requested_exec_mode or _current_atlas_exec_mode(), env=os.environ),
                              "session_uid": str(db_session.get("session_uid") or ""),
                              "workspace_id": str(workspace_row.get("id") or ""),
                              "ip_block_id": str(ip_row.get("id") or "")})

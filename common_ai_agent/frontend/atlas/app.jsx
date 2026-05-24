@@ -89,14 +89,48 @@ const normalizeAtlasRunMode = (value) => {
   return ATLAS_RUN_MODE_OPTIONS.some(o => o.key === v) ? v : 'engineering';
 };
 const normalizeAtlasExecMode = (value) => {
+  if (window.AtlasExecPolicy && window.AtlasExecPolicy.normalizeExecMode) {
+    return window.AtlasExecPolicy.normalizeExecMode(value, DEFAULT_ATLAS_EXEC_MODE);
+  }
   const v = String(value || '').trim().toLowerCase().replace(/_/g, '-');
   if (v === 'single' || v === 'worker' || v === 'serial') return 'single-worker';
-  if (v === 'orch' || v === 'multi-worker') return 'orchestrator';
+  if (v === 's' || v === 'sw' || v === 'main' || v === 'single worker') return 'single-worker';
+  if (v === 'orch' || v === 'o' || v === 'multi-worker' || v === 'multi worker' || v === 'orchestrator-mode') return 'orchestrator';
   return ATLAS_EXEC_MODE_OPTIONS.some(o => o.key === v) ? v : DEFAULT_ATLAS_EXEC_MODE;
 };
 const atlasBootConfig = () => {
   try { return window.ATLAS_BOOT_CONFIG || {}; }
   catch (_) { return {}; }
+};
+const atlasPolicyConfig = () => {
+  const cfg = atlasBootConfig();
+  try {
+    if (window.AtlasExecPolicy && window.AtlasExecPolicy.policyFromBootConfig) {
+      return window.AtlasExecPolicy.policyFromBootConfig(cfg);
+    }
+  } catch (_) {}
+  const mode = normalizeAtlasExecMode(cfg.exec_mode || window.ATLAS_EXEC_MODE || window.ATLAS_DEFAULT_EXEC_MODE);
+  const policy = cfg.exec_policy || cfg.policy || {};
+  return {
+    exec_mode: mode,
+    initial_workflow: policy.initial_workflow || (mode === 'orchestrator' ? 'orchestrator' : 'ssot-gen'),
+    preserve_running_on_workflow_switch:
+      typeof policy.preserve_running_on_workflow_switch === 'boolean'
+        ? policy.preserve_running_on_workflow_switch
+        : mode === 'orchestrator',
+  };
+};
+const mergeAtlasPolicyResponse = (response) => {
+  try {
+    window.ATLAS_BOOT_CONFIG = window.ATLAS_BOOT_CONFIG || {};
+    if (window.AtlasExecPolicy && window.AtlasExecPolicy.mergePolicyResponse) {
+      window.AtlasExecPolicy.mergePolicyResponse(window.ATLAS_BOOT_CONFIG, response || {});
+    } else {
+      if (response && response.exec_mode) window.ATLAS_BOOT_CONFIG.exec_mode = response.exec_mode;
+      if (response && response.policy) window.ATLAS_BOOT_CONFIG.exec_policy = response.policy;
+    }
+    window.ATLAS_DEFAULT_EXEC_MODE = window.ATLAS_BOOT_CONFIG.exec_mode || window.ATLAS_DEFAULT_EXEC_MODE;
+  } catch (_) {}
 };
 const atlasNavigationIntent = () => {
   try {
@@ -174,7 +208,14 @@ const OrchInlineStatus = ({ activeIp }) => {
     return () => { cancelled = true; clearInterval(id); };
   }, [activeIp]);
 
-  const execMode = window.ATLAS_EXEC_MODE || window.ATLAS_DEFAULT_EXEC_MODE || 'single';
+  const execMode = normalizeAtlasExecMode(
+    (atlasBootConfig().exec_policy && atlasBootConfig().exec_policy.exec_mode)
+    || (atlasBootConfig().policy && atlasBootConfig().policy.exec_mode)
+    || atlasBootConfig().exec_mode
+    || window.ATLAS_EXEC_MODE
+    || window.ATLAS_DEFAULT_EXEC_MODE
+    || 'single'
+  );
   const isOrch = execMode === 'orchestrator';
   const workerCount = status && status.run && typeof status.run.running_count === 'number'
     ? status.run.running_count : 0;
@@ -319,17 +360,26 @@ const App = () => {
     const wf = String(value || '');
     return wf === WORKFLOW_DEFAULT || TOP_WORKFLOWS.has(wf);
   }, [TOP_WORKFLOWS]);
-  const newIpInitialWorkflow = React.useCallback(() => (
-    normalizeAtlasExecMode(execMode || window.ATLAS_EXEC_MODE || window.ATLAS_DEFAULT_EXEC_MODE) === 'orchestrator'
-      ? 'orchestrator'
-      : 'ssot-gen'
-  ), [execMode]);
-
   const normalizeSession = React.useCallback((value) => {
     const norm = (window.atlasData && window.atlasData.normalizeSessionName) || window.normalizeAtlasSessionName;
     try { return (norm && norm(value || '')) || ''; }
     catch (_) { return ''; }
   }, []);
+  const newIpInitialWorkflow = React.useCallback(() => {
+    const policy = atlasPolicyConfig();
+    return normalizeSession(policy.initial_workflow || '') || (
+      normalizeAtlasExecMode(execMode || policy.exec_mode || window.ATLAS_EXEC_MODE || window.ATLAS_DEFAULT_EXEC_MODE) === 'orchestrator'
+        ? 'orchestrator'
+        : 'ssot-gen'
+    );
+  }, [execMode, normalizeSession]);
+  const preserveRunningForCurrentMode = React.useCallback(() => {
+    const policy = atlasPolicyConfig();
+    if (window.AtlasExecPolicy && window.AtlasExecPolicy.preserveRunning) {
+      try { return window.AtlasExecPolicy.preserveRunning(policy, execMode); } catch (_) {}
+    }
+    return !!policy.preserve_running_on_workflow_switch;
+  }, [execMode]);
   const loggedInOwner = React.useCallback(() => (
     normalizeSession((window.ATLAS_USER && window.ATLAS_USER.username) || '')
   ), [normalizeSession]);
@@ -468,6 +518,7 @@ const App = () => {
       });
       const j = await r.json().catch(() => ({}));
       if (r.ok) {
+        mergeAtlasPolicyResponse(j);
         if (j.run_mode) setRunMode(normalizeAtlasRunMode(j.run_mode));
         if (j.exec_mode) setExecMode(normalizeAtlasExecMode(j.exec_mode));
         try { window.dispatchEvent(new CustomEvent('atlas:pipeline-poll')); } catch (_) {}
@@ -675,6 +726,7 @@ const App = () => {
       .then(r => r.ok ? r.json() : Promise.reject(r.status))
       .then(j => {
         if (dead || !j) return;
+        mergeAtlasPolicyResponse(j);
         if (j.run_mode) setRunMode(normalizeAtlasRunMode(j.run_mode));
         if (j.exec_mode) setExecMode(normalizeAtlasExecMode(j.exec_mode));
       })
@@ -1486,12 +1538,13 @@ const App = () => {
       || activeSessionId
       || 'default';
     const requestedWorkflow = newIpInitialWorkflow();
+    const requestedExecMode = normalizeAtlasExecMode(execMode);
     let createPayload = {};
     try {
       const createResponse = await fetch('/api/ip/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: ip, kind: 'TBD', workflow: requestedWorkflow }),
+        body: JSON.stringify({ name: ip, kind: 'TBD', exec_mode: requestedExecMode }),
       });
       try { createPayload = await createResponse.json(); } catch (_) { createPayload = {}; }
       if (!createResponse.ok) {
@@ -1500,6 +1553,7 @@ const App = () => {
         showNotice(`Failed to create IP "${ip}": ${message}`);
         return false;
       }
+      mergeAtlasPolicyResponse(createPayload);
     } catch (e) {
       showNotice(`Failed to create IP "${ip}": ${String(e && e.message || e)}`);
       return false;
@@ -1511,7 +1565,7 @@ const App = () => {
     // immediately after the scaffold exists.
     setIpOptions(prev => Array.from(new Set([ip].concat(prev || []))));
     try { setScreen('workspace'); localStorage.atlasScreen = 'workspace'; } catch (_) {}
-    activateNamespace(me, ip, workflow, true, { preserveRunning: execMode === 'orchestrator' });
+    activateNamespace(me, ip, workflow, true, { preserveRunning: preserveRunningForCurrentMode() });
     setTimeout(() => {
       try { window.atlasData && window.atlasData.refreshFileTree && window.atlasData.refreshFileTree(ip, { recursive: true }); } catch (_) {}
       try { refreshTopTargets(); } catch (_) {}

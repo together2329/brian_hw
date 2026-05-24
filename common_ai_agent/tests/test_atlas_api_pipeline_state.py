@@ -658,9 +658,10 @@ def test_orchestrator_mode_post_toggles_env_and_state_payload(
     (tmp_path / ip).mkdir()
     client = _make_client(tmp_path, monkeypatch)
 
-    # baseline: default on
+    # baseline: legacy single-main-loop flag means single-worker until toggled.
     base = client.get(f"/api/pipeline/state?ip={ip}").json()
-    assert base["orchestrator"]["enabled"] is True
+    assert base["orchestrator"]["enabled"] is False
+    assert base["exec_mode"] == "single-worker"
 
     # toggle off
     r = client.post("/api/pipeline/orchestrator_mode", json={"enabled": False})
@@ -709,6 +710,8 @@ def test_pipeline_run_policy_get_post_and_state_payload(tmp_path: Path, monkeypa
 
     monkeypatch.delenv("ATLAS_RUN_MODE", raising=False)
     monkeypatch.delenv("ATLAS_ORCHESTRATOR_MODE", raising=False)
+    monkeypatch.delenv("ATLAS_EXEC_MODE", raising=False)
+    monkeypatch.delenv("ATLAS_DEFAULT_EXEC_MODE", raising=False)
     monkeypatch.setenv("ATLAS_SINGLE_MAIN_LOOP", "1")
     ip = "policy_ip"
     (tmp_path / ip).mkdir()
@@ -717,7 +720,9 @@ def test_pipeline_run_policy_get_post_and_state_payload(tmp_path: Path, monkeypa
     base = client.get("/api/pipeline/run_policy")
     assert base.status_code == 200
     assert base.json()["run_mode"] == "engineering"
-    assert base.json()["exec_mode"] == "orchestrator"
+    assert base.json()["exec_mode"] == "single-worker"
+    assert base.json()["initial_workflow"] == "ssot-gen"
+    assert base.json()["policy"]["worker_strategy"] == "single-main-loop"
 
     r = client.post("/api/pipeline/run_policy", json={
         "run_mode": "starter",
@@ -726,6 +731,8 @@ def test_pipeline_run_policy_get_post_and_state_payload(tmp_path: Path, monkeypa
     assert r.status_code == 200, r.text
     assert r.json()["run_mode"] == "starter"
     assert r.json()["exec_mode"] == "orchestrator"
+    assert r.json()["initial_workflow"] == "orchestrator"
+    assert r.json()["policy"]["preserve_running_on_workflow_switch"] is True
     assert os.environ.get("ATLAS_RUN_MODE") == "starter"
     assert os.environ.get("ATLAS_EXEC_MODE") == "orchestrator"
     assert os.environ.get("ATLAS_DEFAULT_EXEC_MODE") == "orchestrator"

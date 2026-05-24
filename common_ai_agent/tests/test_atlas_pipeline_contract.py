@@ -173,6 +173,9 @@ def test_pipeline_serial_schedule_keeps_single_previous_dependency() -> None:
 def test_pipeline_auto_schedule_uses_serial_with_one_worker(monkeypatch) -> None:
     for key in ("WORKER_URL_RTL_GEN", "WORKER_URL_LINT", "WORKER_URL_TB_GEN", "WORKER_URL_SYN"):
         monkeypatch.delenv(key, raising=False)
+    monkeypatch.setenv("ATLAS_EXEC_MODE", "orchestrator")
+    monkeypatch.delenv("ATLAS_ORCHESTRATOR_MODE", raising=False)
+    monkeypatch.delenv("ATLAS_SINGLE_MAIN_LOOP", raising=False)
     monkeypatch.setenv("WORKER_URL_DEFAULT", "http://localhost:8001")
     stages = [jobs._PIPELINE_BY_ID[stage] for stage in ("rtl", "lint", "tb", "syn")]
 
@@ -180,6 +183,9 @@ def test_pipeline_auto_schedule_uses_serial_with_one_worker(monkeypatch) -> None
 
 
 def test_pipeline_auto_schedule_uses_dag_with_multiple_workers(monkeypatch) -> None:
+    monkeypatch.setenv("ATLAS_EXEC_MODE", "orchestrator")
+    monkeypatch.delenv("ATLAS_ORCHESTRATOR_MODE", raising=False)
+    monkeypatch.delenv("ATLAS_SINGLE_MAIN_LOOP", raising=False)
     monkeypatch.setenv("WORKER_URL_DEFAULT", "http://localhost:8001")
     monkeypatch.setenv("WORKER_URL_LINT", "http://localhost:8002")
     monkeypatch.setenv("WORKER_URL_TB_GEN", "http://localhost:8003")
@@ -190,11 +196,23 @@ def test_pipeline_auto_schedule_uses_dag_with_multiple_workers(monkeypatch) -> N
 
 
 def test_pipeline_explicit_schedule_overrides_worker_count(monkeypatch) -> None:
+    monkeypatch.setenv("ATLAS_EXEC_MODE", "single-worker")
+    monkeypatch.delenv("ATLAS_ORCHESTRATOR_MODE", raising=False)
     monkeypatch.setenv("WORKER_URL_DEFAULT", "http://localhost:8001")
     stages = [jobs._PIPELINE_BY_ID[stage] for stage in ("rtl", "lint", "tb", "syn")]
 
     assert jobs._resolve_pipeline_schedule("dag", stages) == "dag"
     assert jobs._resolve_pipeline_schedule("serial", stages) == "serial"
+
+
+def test_pipeline_auto_schedule_is_serial_in_single_worker_mode(monkeypatch) -> None:
+    monkeypatch.setenv("ATLAS_EXEC_MODE", "single-worker")
+    monkeypatch.delenv("ATLAS_ORCHESTRATOR_MODE", raising=False)
+    monkeypatch.setenv("WORKER_URL_DEFAULT", "http://localhost:8001")
+    monkeypatch.setenv("WORKER_URL_LINT", "http://localhost:8002")
+    stages = [jobs._PIPELINE_BY_ID[stage] for stage in ("rtl", "lint")]
+
+    assert jobs._resolve_pipeline_schedule("auto", stages) == "serial"
 
 
 def test_pipeline_stage_order_is_canonical_even_when_requested_out_of_order() -> None:

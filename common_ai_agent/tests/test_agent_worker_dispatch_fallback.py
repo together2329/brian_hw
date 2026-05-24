@@ -159,6 +159,35 @@ def test_dispatch_workflow_direct_fallback_scopes_worker_url_by_active_user(monk
     assert second["worker_url"] == calls[1]["worker"]
 
 
+def test_dispatch_workflow_direct_fallback_uses_single_worker_policy(monkeypatch):
+    _clear_worker_env(monkeypatch)
+    monkeypatch.setenv("ATLAS_EXEC_MODE", "single-worker")
+    monkeypatch.setattr(tools, "_dispatch_workflow_callback", None)
+    calls = []
+
+    def fake_worker_start(**kwargs):
+        calls.append(kwargs)
+        return {
+            "status": "pending",
+            "run_id": "run-single",
+            "worker": kwargs["worker"],
+        }
+
+    monkeypatch.setattr(agent_client, "worker_start", fake_worker_start)
+
+    data = json.loads(tools.dispatch_workflow(
+        workflow="ssot-gen",
+        ip="new_axi",
+        prompt="Quality pass for single worker.",
+    ))
+
+    assert data["ok"] is True
+    assert data["exec_mode"] == "single-worker"
+    assert data["worker_url"] == "http://127.0.0.1:5601"
+    assert calls[0]["worker"] == "http://127.0.0.1:5601"
+    assert calls[0]["exec_mode"] == "single-worker"
+
+
 def test_dispatch_workflow_lazy_starts_via_registered_callback(monkeypatch, tmp_path):
     _clear_worker_env(monkeypatch)
     monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
