@@ -1213,6 +1213,16 @@ NONSTREAM_API_TIMEOUT = int(os.getenv("NONSTREAM_API_TIMEOUT", "1800"))
 # set this high enough to avoid false-positive "Read timeout" mid-reasoning.
 STREAM_INACTIVITY_TIMEOUT = int(os.getenv("STREAM_INACTIVITY_TIMEOUT", "180"))
 
+# Hard wall-clock cap on a SINGLE streaming turn, regardless of activity.
+# The inactivity watchdog above only catches *idle* gaps; a provider that keeps
+# the connection alive with periodic SSE heartbeats / empty reasoning deltas
+# (arriving < STREAM_INACTIVITY_TIMEOUT apart) can keep one turn "live" for
+# hours while making no real progress — observed with gpt-5.5 via the Responses
+# API stalling a single rtl-gen turn for 40+ min. This cap forces such a turn to
+# abort (and retry) once it exceeds the limit. 0 disables. Defaults to
+# STREAM_API_TIMEOUT so a turn may not outlive its own read budget.
+STREAM_TURN_HARD_TIMEOUT = int(os.getenv("STREAM_TURN_HARD_TIMEOUT", str(STREAM_API_TIMEOUT)))
+
 # Maximum output tokens per LLM response (0 = no limit)
 # MAX_OUTPUT_TOKENS: per-LLM-call output budget. Tool-call args (e.g.
 # todo_write([...10 detailed tasks])) eat from this budget too, so a

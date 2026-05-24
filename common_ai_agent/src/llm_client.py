@@ -1870,7 +1870,7 @@ def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, me
                 except Exception:
                     pass
             if _wd_triggered[0]:
-                raise socket.timeout(f"No data for {_inactivity_s}s (inactivity)")
+                raise socket.timeout(f"stream watchdog fired: {_wd_triggered[0]}")
 
         except urllib.error.HTTPError as e:
             error_body = e.read().decode('utf-8')
@@ -1952,15 +1952,58 @@ def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, me
     return  # all retries exhausted
 
 
-def _make_stream_watchdog(response, inactivity_s: int, last_data_ref: list,
-                          last_progress_ref=None):
+def _abort_stream_response(response):
+    """Forcibly unblock a thread blocked in ``for line in response``.
+
+    ``response.close()`` alone is not enough: when the main thread is parked in
+    a C-level ``recv()`` on the underlying socket (half-open TCP, no FIN/RST),
+    closing the HTTPResponse object does not interrupt the in-flight read. We
+    additionally ``shutdown()``+``close()`` the underlying socket FD, which
+    makes the blocked recv return immediately on every platform.
     """
-    Daemon thread that watches the stream for inactivity.
+    try:
+        response.close()
+    except Exception:
+        pass
+    # Dig out the underlying socket (http.client.HTTPResponse.fp.raw._sock)
+    # and tear it down so a blocked readline() actually raises.
+    sock = None
+    try:
+        fp = getattr(response, "fp", None)
+        raw = getattr(fp, "raw", None)
+        sock = getattr(raw, "_sock", None) or getattr(fp, "_sock", None)
+    except Exception:
+        sock = None
+    if sock is not None:
+        try:
+            sock.shutdown(socket.SHUT_RDWR)
+        except Exception:
+            pass
+        try:
+            sock.close()
+        except Exception:
+            pass
+
+
+def _make_stream_watchdog(response, inactivity_s: int, last_data_ref: list,
+                          last_progress_ref=None, max_total_s: int = None):
+    """
+    Daemon thread that watches the stream for inactivity AND total duration.
 
     - Prints a spinner to stderr every 10 s when there's been a > 5 s gap
       (so the user can see the model is still generating).
-    - Closes *response* and sets triggered[0]=True if no data arrives for
-      *inactivity_s* seconds (truly stuck / dead connection).
+    - Aborts the stream and sets ``triggered[0]`` to a reason string when EITHER:
+        * no data / no real SSE progress for *inactivity_s* seconds
+          (truly stuck / dead connection), OR
+        * the whole turn exceeds *max_total_s* wall-clock seconds regardless of
+          activity. The inactivity lane alone misses providers that emit
+          periodic heartbeats (in_progress events, empty reasoning deltas) under
+          the idle threshold while making no real progress — a single turn could
+          otherwise run for hours. ``max_total_s`` is the hard backstop.
+
+    ``triggered[0]`` is falsy (``False``) until fired, then a human-readable
+    reason string (still truthy) so callers' ``if triggered[0]:`` checks keep
+    working while error messages can surface *why*.
 
     Usage::
 
@@ -1973,12 +2016,15 @@ def _make_stream_watchdog(response, inactivity_s: int, last_data_ref: list,
         finally:
             _stop.set()
         if _triggered[0]:
-            raise socket.timeout(f"No data for {inactivity_s}s")
+            raise socket.timeout(f"stream watchdog fired: {_triggered[0]}")
     """
     _stop = threading.Event()
     _triggered = [False]
     _SPIN_EVERY = 10   # seconds between spinner prints
     _SPIN_AFTER = 5    # only start spinning after this idle gap
+    if max_total_s is None:
+        max_total_s = getattr(config, "STREAM_TURN_HARD_TIMEOUT", 0) or 0
+    _start = time.time()
 
     def _run():
         _last_spin = time.time()
@@ -1997,12 +2043,17 @@ def _make_stream_watchdog(response, inactivity_s: int, last_data_ref: list,
                 else 0
             )
             stall = max(elapsed, progress_elapsed)
+            total_elapsed = now - _start
+            _reason = None
             if stall >= inactivity_s:
-                _triggered[0] = True
-                try:
-                    response.close()
-                except Exception:
-                    pass
+                _reason = f"inactivity ({int(stall)}s idle, limit {inactivity_s}s)"
+            elif max_total_s and total_elapsed >= max_total_s:
+                # Heartbeat-masked stall: connection alive but no real forward
+                # progress within the per-turn budget.
+                _reason = f"hard-cap ({int(total_elapsed)}s total, limit {max_total_s}s)"
+            if _reason:
+                _triggered[0] = _reason
+                _abort_stream_response(response)
                 break
             if elapsed > _SPIN_AFTER and now - _last_spin >= _SPIN_EVERY:
                 _last_spin = now
@@ -2784,7 +2835,7 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
                 except Exception:
                     pass
             if _wd_triggered[0]:
-                raise socket.timeout(f"No data for {_inactivity_s}s (inactivity)")
+                raise socket.timeout(f"stream watchdog fired: {_wd_triggered[0]}")
 
         except urllib.error.HTTPError as e:
             error_body = e.read().decode('utf-8')
@@ -4235,7 +4286,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
                 except Exception:
                     pass
             if _wd_triggered[0]:
-                raise socket.timeout(f"No data for {_inactivity_s}s (inactivity)")
+                raise socket.timeout(f"stream watchdog fired: {_wd_triggered[0]}")
 
         except urllib.error.HTTPError as e:
             error_body = e.read().decode('utf-8')
