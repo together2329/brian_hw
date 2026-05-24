@@ -33,12 +33,16 @@ try {
 
   await page.evaluate(() => {
     window.__atlasViewOnlyFetches = [];
+    window.__atlasOrchChatFetches = [];
     window.__atlasViewOnlySwitches = [];
     const oldFetch = window.fetch.bind(window);
     window.fetch = (input, init) => {
       const url = String((input && input.url) || input || '');
       if (url.includes('/api/session/activate')) {
         window.__atlasViewOnlyFetches.push({ url, body: init && init.body });
+      }
+      if (url.includes('/api/pipeline/orchestrator/chat')) {
+        window.__atlasOrchChatFetches.push({ url, body: init && init.body });
       }
       return oldFetch(input, init);
     };
@@ -76,9 +80,11 @@ try {
   assert(replied, 'orchestrator status reply rendered after returning from worker view');
   const afterStatus = await page.evaluate(() => ({
     activeSession: window.ACTIVE_SESSION || '',
+    orchChatCalls: window.__atlasOrchChatFetches || [],
     lastBody: document.body.innerText,
   }));
   assert(afterStatus.activeSession.endsWith(`/${ip}/orchestrator`), `status prompt used orchestrator session (${afterStatus.activeSession})`);
+  assert(afterStatus.orchChatCalls.length >= 1, `orchestrator chat API was called (${afterStatus.orchChatCalls.length})`);
   await shoot(page, 'orch-view-status-reply.png');
 } finally {
   await browser.close();
