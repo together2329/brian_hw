@@ -125,6 +125,7 @@ def test_pipeline_state_includes_real_worker_and_headless_progress_debug(tmp_pat
             "workflow": "rtl-gen",
             "stage_id": "rtl",
             "ip": ip,
+            "user_id": "u",
             "model": "gpt-5.3-codex",
             "session": f"{ip}/pipeline/pipe-progress/05-rtl-gen",
             "scope_path": ip,

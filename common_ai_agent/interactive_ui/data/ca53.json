@@ -222,7 +222,19 @@
   "interrupts": {
     "types": ["IRQ — normal interrupt", "FIQ — fast interrupt", "SError — system error abort"],
     "gic": "GICv3/v4 system-register CPU interface (optional)",
-    "vectors": "Vector table base in VBAR_EL1; 16 entries (4 groups × 4 exception types)"
+    "vectors": "Vector table base in VBAR_EL1; 16 entries (4 groups × 4 exception types)",
+    "int_types": [
+      { "name": "SGI", "range": "INTID 0–15",     "desc": "Software-Generated Interrupt (inter-processor)" },
+      { "name": "PPI", "range": "INTID 16–31",    "desc": "Private Peripheral Interrupt (per-core)" },
+      { "name": "SPI", "range": "INTID 32–1019",  "desc": "Shared Peripheral Interrupt" },
+      { "name": "LPI", "range": "INTID 8192+",    "desc": "Locality-specific, message-based (GICv3)" }
+    ],
+    "flow": ["Peripheral / SGI source", "Distributor (GICD)", "Redistributor (GICR, per-core)", "CPU interface (ICC_* sysregs)", "Core IRQ / FIQ"],
+    "groups": [
+      { "group": "Group 0",              "signal": "FIQ",     "desc": "Secure, highest priority" },
+      { "group": "Group 1 (Secure)",     "signal": "IRQ/FIQ", "desc": "Secure world" },
+      { "group": "Group 1 (Non-secure)", "signal": "IRQ",     "desc": "Normal world" }
+    ]
   },
   "power": {
     "domains": ["Per-core", "Cluster / L2"],
