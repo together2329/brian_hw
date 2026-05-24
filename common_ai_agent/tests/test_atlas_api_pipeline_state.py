@@ -653,6 +653,8 @@ def test_orchestrator_mode_post_toggles_env_and_state_payload(
     import os
 
     monkeypatch.delenv("ATLAS_ORCHESTRATOR_MODE", raising=False)
+    monkeypatch.delenv("ATLAS_EXEC_MODE", raising=False)
+    monkeypatch.delenv("ATLAS_DEFAULT_EXEC_MODE", raising=False)
     monkeypatch.setenv("ATLAS_SINGLE_MAIN_LOOP", "1")
     ip = "toggle_ip"
     (tmp_path / ip).mkdir()
