@@ -406,6 +406,13 @@
         <span><code>=</code> bus+data</span><span><code>x</code> don't-care</span><span><code>z</code> hi-Z</span>
       </div>
     </div>
+    <div id="timingWriteWrap" style="margin-top:12px">
+      <p class="lead" id="tmWriteLead"></p>
+      <div class="panel">
+        <div class="stage"><svg id="timeSvgWrite"></svg></div>
+        <div class="sidenote" id="tmWriteNote"></div>
+      </div>
+    </div>
   </section>
 
   <!-- EDITOR -->
@@ -654,7 +661,19 @@ const DEFAULT = {
   "interrupts": {
     "types": ["IRQ — normal interrupt", "FIQ — fast interrupt", "SError — system error abort"],
     "gic": "GICv3/v4 system-register CPU interface (optional)",
-    "vectors": "Vector table base in VBAR_EL1; 16 entries (4 groups × 4 exception types)"
+    "vectors": "Vector table base in VBAR_EL1; 16 entries (4 groups × 4 exception types)",
+    "int_types": [
+      { "name": "SGI", "range": "INTID 0–15",    "desc": "Software-Generated Interrupt (inter-processor)" },
+      { "name": "PPI", "range": "INTID 16–31",   "desc": "Private Peripheral Interrupt (per-core)" },
+      { "name": "SPI", "range": "INTID 32–1019", "desc": "Shared Peripheral Interrupt" },
+      { "name": "LPI", "range": "INTID 8192+",   "desc": "Locality-specific, message-based (GICv3)" }
+    ],
+    "flow": ["Peripheral / SGI source", "Distributor (GICD)", "Redistributor (GICR, per-core)", "CPU interface (ICC_* sysregs)", "Core IRQ / FIQ"],
+    "groups": [
+      { "group": "Group 0",              "signal": "FIQ",     "desc": "Secure, highest priority" },
+      { "group": "Group 1 (Secure)",     "signal": "IRQ/FIQ", "desc": "Secure world" },
+      { "group": "Group 1 (Non-secure)", "signal": "IRQ",     "desc": "Normal world" }
+    ]
   },
   "power": {
     "domains": ["Per-core", "Cluster / L2"],
@@ -719,6 +738,23 @@ const DEFAULT = {
     "output": "Trace stream over the ATB (AMBA Trace Bus) to a CoreSight sink (ETF / ETR / TPIU).",
     "traces": ["Instruction / program-flow trace", "Context ID & VMID tracing", "Timestamping & cycle counting (optional)"],
     "note": "Data-address / data-value trace not supported — instruction trace only (illustrative)."
+  },
+  "timing_write": {
+    "title": "ACE/AXI write burst — 2-beat (illustrative AMBA 4)",
+    "note": "AW address handshake, then W data channel with WLAST on final beat, then B response channel (BVALID·BREADY·BRESP).",
+    "signals": [
+      { "name": "ACLK",    "wave": "pppppppppp" },
+      { "name": "AWVALID", "wave": "01.0......" },
+      { "name": "AWREADY", "wave": "0.10......" },
+      { "name": "AWADDR",  "wave": "x=.x......", "data": ["0x80000000"] },
+      { "name": "WVALID",  "wave": "01...0...." },
+      { "name": "WREADY",  "wave": "0.1...0..." },
+      { "name": "WDATA",   "wave": "x=...=x...", "data": ["0xAA00", "0xAA04"] },
+      { "name": "WLAST",   "wave": "0....10..." },
+      { "name": "BVALID",  "wave": "0.....10.." },
+      { "name": "BREADY",  "wave": "0.....10.." },
+      { "name": "BRESP",   "wave": "x.....=x..", "data": ["OKAY"] }
+    ]
   },
   "timing": {
     "title": "ACE/AXI read burst — 2-beat (illustrative AMBA 4)",
@@ -1510,7 +1546,119 @@ function renderInterrupts(){
   const vecHtml='<div class="infobox"><div class="ik">Vector table</div>'+
     '<div class="iv">'+esc(it.vectors||'—')+'</div></div>';
 
-  el('intPanel').innerHTML='<div class="three-col">'+typesHtml+gicHtml+vecHtml+'</div>';
+  /* INTID type table */
+  const intTypesHtml=it.int_types&&it.int_types.length
+    ? '<div style="margin-top:14px">'+
+        '<div style="font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">INTID types</div>'+
+        '<table><thead><tr><th>type</th><th>INTID range</th><th>description</th></tr></thead><tbody>'+
+          it.int_types.map(t=>
+            '<tr>'+
+              '<td><b style="color:var(--accent)">'+esc(t.name)+'</b></td>'+
+              '<td><code>'+esc(t.range)+'</code></td>'+
+              '<td>'+esc(t.desc)+'</td>'+
+            '</tr>'
+          ).join('')+
+        '</tbody></table></div>'
+    : '';
+
+  /* interrupt groups table */
+  const groupsHtml=it.groups&&it.groups.length
+    ? '<div style="margin-top:14px">'+
+        '<div style="font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Interrupt groups</div>'+
+        '<table><thead><tr><th>group</th><th>signal</th><th>description</th></tr></thead><tbody>'+
+          it.groups.map(g=>
+            '<tr>'+
+              '<td><b>'+esc(g.group)+'</b></td>'+
+              '<td><span class="pill '+(g.signal==='FIQ'?'warn':'acc')+'" style="display:inline-block">'+esc(g.signal)+'</span></td>'+
+              '<td style="color:var(--mute)">'+esc(g.desc)+'</td>'+
+            '</tr>'
+          ).join('')+
+        '</tbody></table></div>'
+    : '';
+
+  el('intPanel').innerHTML=
+    '<div class="three-col">'+typesHtml+gicHtml+vecHtml+'</div>'+
+    intTypesHtml+groupsHtml;
+
+  /* GIC flow SVG — guard */
+  if(it.flow&&it.flow.length) renderGicFlow(it.flow);
+}
+
+/* --- GIC interrupt-flow pipeline SVG ------------------------ */
+function renderGicFlow(flow){
+  const BOX_W=138, BOX_H=44, GAP=32, ARROW_TIP=8;
+  const nBoxes=flow.length;
+  const SVG_W=nBoxes*BOX_W+(nBoxes-1)*GAP+2, SVG_H=BOX_H+28;
+
+  /* colour gradient: source=interrupt, middle=coherency, end=exec */
+  const BOX_STYLES=[
+    {stroke:'#6b3320',fill:'#1f0f0a',txt:'#f0883e'},
+    {stroke:'#5b2a6b',fill:'#190f1f',txt:'#bc8cff'},
+    {stroke:'#5b2a6b',fill:'#190f1f',txt:'#bc8cff'},
+    {stroke:'#3a5170',fill:'#10243e',txt:'#58a6ff'},
+    {stroke:'#1d4326',fill:'#0c1c11',txt:'#3fb950'}
+  ];
+
+  const wrap=document.createElement('div');
+  wrap.style.marginTop='18px';
+  wrap.innerHTML=
+    '<div style="font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">'+
+      'Figure: GICv3 interrupt delivery pipeline'+
+    '</div>'+
+    '<div class="stage"><svg id="gicFlowSvg"></svg></div>';
+  el('intPanel').appendChild(wrap);
+
+  const svg=document.getElementById('gicFlowSvg');
+  svg.setAttribute('width',SVG_W);
+  svg.setAttribute('height',SVG_H);
+  svg.setAttribute('viewBox','0 0 '+SVG_W+' '+SVG_H);
+
+  /* arrowhead marker */
+  const defs=svgEl('defs',{});
+  defs.innerHTML='<marker id="gic_ah" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">'+
+    '<path d="M0,0 L8,4 L0,8 Z" fill="#8b949e"/></marker>';
+  svg.appendChild(defs);
+
+  flow.forEach((label,i)=>{
+    const st=BOX_STYLES[Math.min(i,BOX_STYLES.length-1)];
+    const bx=i*(BOX_W+GAP)+1;
+    const by=4;
+
+    /* box */
+    svg.appendChild(svgEl('rect',{
+      x:bx,y:by,width:BOX_W,height:BOX_H,rx:6,
+      fill:st.fill,stroke:st.stroke,'stroke-width':1.4
+    }));
+
+    /* step number */
+    const nt=svgEl('text',{x:bx+8,y:by+13,'font-size':8,fill:st.txt,'font-weight':700,'pointer-events':'none'});
+    nt.textContent=String(i+1); svg.appendChild(nt);
+
+    /* label — word-wrap into up to 2 lines */
+    const words=label.split(' '), lines=[]; let cur='';
+    words.forEach(w=>{ const next=(cur?cur+' ':'')+w; if(next.length>18&&cur){lines.push(cur);cur=w;}else cur=next; });
+    if(cur) lines.push(cur);
+    lines.slice(0,2).forEach((ln,li)=>{
+      const lt=svgEl('text',{
+        x:bx+BOX_W/2,
+        y:by+(lines.length===1?BOX_H/2+4:(BOX_H/2-4+li*13)),
+        'text-anchor':'middle','font-size':9.5,fill:st.txt,
+        'font-weight':700,'pointer-events':'none'
+      });
+      lt.textContent=ln; svg.appendChild(lt);
+    });
+
+    /* arrow to next */
+    if(i<nBoxes-1){
+      const ax=bx+BOX_W, ay=by+BOX_H/2;
+      const ex=ax+GAP-ARROW_TIP;
+      svg.appendChild(svgEl('line',{
+        x1:ax,y1:ay,x2:ex,y2:ay,
+        stroke:'#8b949e','stroke-width':1.3,
+        'marker-end':'url(#gic_ah)'
+      }));
+    }
+  });
 }
 
 /* ============================================================
@@ -1722,13 +1870,10 @@ function parseWave(wave,data){
   }
   return cells;
 }
-function renderTiming(){
-  const te=SPEC.timing||{signals:[]};
-  el('tmLead').textContent=te.title||'';
-  el('tmNote').innerHTML=te.note?('<b>note:</b> '+esc(te.note)):'';
+function drawWaveformIntoSvg(svgId,te){
   const rows=(te.signals||[]).map(s=>({name:s.name,cells:parseWave(s.wave,s.data)}));
   const n=Math.max(1,...rows.map(r=>r.cells.length));
-  const svg=clearSvg('timeSvg');
+  const svg=clearSvg(svgId);
   const W=T_LABELW+n*T_CW, H=T_HDR+rows.length*T_ROWH+8;
   svg.setAttribute('width',W); svg.setAttribute('height',H);
   svg.setAttribute('viewBox','0 0 '+W+' '+H);
@@ -1775,6 +1920,24 @@ function renderTiming(){
     svg.appendChild(svgEl('path',{class:'wave',d:parts.join(' ')}));
     texts.forEach(tx=>svg.appendChild(txt('busText',tx.x,tx.y,tx.t)));
   });
+}
+function renderTiming(){
+  const te=SPEC.timing||{signals:[]};
+  el('tmLead').textContent=te.title||'';
+  el('tmNote').innerHTML=te.note?('<b>note:</b> '+esc(te.note)):'';
+  drawWaveformIntoSvg('timeSvg',te);
+
+  /* write burst — guard */
+  const tw=SPEC.timing_write;
+  const wrapEl=el('timingWriteWrap');
+  if(tw&&wrapEl){
+    wrapEl.style.display='';
+    el('tmWriteLead').textContent=tw.title||'';
+    el('tmWriteNote').innerHTML=tw.note?('<b>note:</b> '+esc(tw.note)):'';
+    drawWaveformIntoSvg('timeSvgWrite',tw);
+  } else if(wrapEl){
+    wrapEl.style.display='none';
+  }
 }
 
 /* ============================================================
@@ -1835,6 +1998,8 @@ el('spec').value=JSON.stringify(DEFAULT,null,2);
 renderAll(DEFAULT);
 initScrollSpy();
 </script>
+
+
 
 
 

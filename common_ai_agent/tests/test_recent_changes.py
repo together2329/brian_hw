@@ -1553,6 +1553,7 @@ class TestAtlasPipelineOrchestratorNamespace(unittest.TestCase):
         self.assertIn("Worker chips are a transcript/artifact", workspace_src)
         self.assertIn("session: orchSession", workspace_src)
         self.assertIn("viewOnly: true", workspace_src)
+        self.assertIn("if (workflow === 'orchestrator')", workspace_src)
         self.assertIn("allowInactiveConversation", data_src)
         self.assertIn('raw_workflow and raw_workflow != "orchestrator"', jobs_src)
         self.assertIn("const ORCHESTRATOR_FLOW_STAGE", data_src)

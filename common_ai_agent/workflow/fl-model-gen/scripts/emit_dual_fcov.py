@@ -138,12 +138,18 @@ def _fl_bins(ssot: dict[str, Any]) -> list[dict[str, Any]]:
     for idx, tx in enumerate(fm.get("transactions") or []):
         if not isinstance(tx, dict):
             continue
-        name = _safe_name(tx.get("name") or tx.get("id"), f"transaction_{idx}")
+        tid = str(tx.get("id") or "").strip()
+        name = _safe_name(tx.get("name") or tid, f"transaction_{idx}")
+        description_parts = [str(tx.get("description") or tx.get("expected") or name)]
+        if tid:
+            description_parts.insert(0, tid)
         bins.append({
             "id": f"function_{name}",
             "class": "transaction_type",
             "source": f"function_model.transactions[{idx}]",
-            "description": str(tx.get("description") or tx.get("expected") or name),
+            "transaction_id": tid or None,
+            "transaction_name": str(tx.get("name") or name),
+            "description": " — ".join(part for part in description_parts if part),
         })
 
     # state_transition bins — fsm.*.transitions
@@ -206,12 +212,15 @@ def _cl_bins(ssot: dict[str, Any]) -> list[dict[str, Any]]:
     for idx, rule in enumerate(cm.get("handshake_rules") or []):
         if not isinstance(rule, dict):
             continue
-        name = _safe_name(rule.get("name") or rule.get("id"), f"handshake_{idx}")
+        signal = rule.get("signal")
+        rule_text = rule.get("rule")
+        name = _safe_name(rule.get("name") or rule.get("id") or signal, f"handshake_{idx}")
         bins.append({
             "id": f"cycle_{name}",
             "class": "protocol_handshake",
             "source": f"cycle_model.handshake_rules[{idx}]",
-            "description": str(rule.get("description") or rule.get("predicate") or name),
+            "signal": str(signal or ""),
+            "description": str(rule.get("description") or rule.get("predicate") or rule_text or signal or name),
         })
 
     # ordering bins — cycle_model.ordering

@@ -2607,6 +2607,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       setMainTab('checklist');
       return;
     }
+    if (workflow === 'orchestrator') {
+      setMainTab(t => t === 'workflow_report' ? 'chat' : t);
+      return;
+    }
     if (WORKFLOW_REPORT_TABS[workflow]) {
       setMainTab('workflow_report');
       return;
@@ -3060,6 +3064,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
           ? window.atlasData.sessionFor(orchIp, 'orchestrator')
           : `${orchOwner}/${orchIp}/orchestrator`,
       );
+      const returningFromWorkerView = !!normalizeUiSession(chatViewSessionRef.current || '');
       if (atlasUiOrchestratorMode()) {
         setWorkflow('orchestrator');
         setMainTab('chat');
@@ -3085,7 +3090,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
           }
         }
       }
-      setFeed(f => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
+      setFeed(f => [...(returningFromWorkerView ? [] : f), { kind: 'user', text: raw, createdAt: Date.now() }]);
       setStreaming(true);
       awaitingRunStartRef.current = true;
       fetch('/api/pipeline/orchestrator/chat', {

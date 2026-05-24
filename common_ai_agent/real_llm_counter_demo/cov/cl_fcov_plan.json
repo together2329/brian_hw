@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "type": "cl_functional_coverage_plan",
+  "ip": "real_llm_counter_demo",
+  "source": "real_llm_counter_demo/yaml/real_llm_counter_demo.ssot.yaml",
+  "planned_before_rtl": true,
+  "level": "cl",
+  "summary": {
+    "total_bins": 11,
+    "by_class": {
+      "protocol_handshake": 1,
+      "latency_bin": 10
+    }
+  },
+  "bins": [
+    {
+      "id": "cycle_cmd_valid_cmd_ready",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[0]",
+      "signal": "cmd_valid/cmd_ready",
+      "description": "cmd_valid asserts the command; cmd_ready is always 1 so the command is always accepted on the same rising edge. cmd and load_value must be stable when cmd_valid is high."
+    },
+    {
+      "id": "latency_command_accept_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.command_accept",
+      "description": "command_accept latency == 0 cycles",
+      "bucket": "min",
+      "cycles": 0
+    },
+    {
+      "id": "latency_command_accept_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.command_accept",
+      "description": "command_accept latency == 0 cycles",
+      "bucket": "max",
+      "cycles": 0
+    },
+    {
+      "id": "latency_command_accept_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.command_accept",
+      "description": "command_accept latency > 0 cycles",
+      "bucket": ">max",
+      "threshold": 0
+    },
+    {
+      "id": "latency_command_effect_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.command_effect",
+      "description": "command_effect latency < 1 cycles",
+      "bucket": "<min",
+      "threshold": 1
+    },
+    {
+      "id": "latency_command_effect_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.command_effect",
+      "description": "command_effect latency == 1 cycles",
+      "bucket": "min",
+      "cycles": 1
+    },
+    {
+      "id": "latency_command_effect_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.command_effect",
+      "description": "command_effect latency == 1 cycles",
+      "bucket": "max",
+      "cycles": 1
+    },
+    {
+      "id": "latency_command_effect_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.command_effect",
+      "description": "command_effect latency > 1 cycles",
+      "bucket": ">max",
+      "threshold": 1
+    },
+    {
+      "id": "latency_flag_update_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.flag_update",
+      "description": "flag_update latency == 0 cycles",
+      "bucket": "min",
+      "cycles": 0
+    },
+    {
+      "id": "latency_flag_update_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.flag_update",
+      "description": "flag_update latency == 0 cycles",
+      "bucket": "max",
+      "cycles": 0
+    },
+    {
+      "id": "latency_flag_update_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.flag_update",
+      "description": "flag_update latency > 0 cycles",
+      "bucket": ">max",
+      "threshold": 0
+    }
+  ]
+}

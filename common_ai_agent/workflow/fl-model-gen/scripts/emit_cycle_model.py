@@ -151,11 +151,14 @@ def _extract_handshake_rules(cm: dict[str, Any]) -> list[dict[str, Any]]:
     for idx, item in enumerate(_as_list(cm.get("handshake_rules"))):
         if not isinstance(item, dict):
             item = {"name": str(item)}
-        name = _safe_name(item.get("name") or item.get("id"), f"handshake_{idx}")
+        signal = item.get("signal")
+        rule_text = item.get("rule")
+        name = _safe_name(item.get("name") or item.get("id") or signal, f"handshake_{idx}")
         rules.append({
             "name": name,
-            "description": str(item.get("description") or ""),
-            "predicate": str(item.get("predicate") or ""),
+            "signal": str(signal or ""),
+            "description": str(item.get("description") or rule_text or signal or name),
+            "predicate": str(item.get("predicate") or rule_text or ""),
         })
     return rules
 
@@ -318,9 +321,12 @@ from __future__ import annotations
 import json
 
 try:
-    from .functional_model import FunctionalModel
+    from . import functional_model as _functional_model_mod
 except ImportError:
-    from functional_model import FunctionalModel
+    import functional_model as _functional_model_mod
+
+FunctionalModel = _functional_model_mod.FunctionalModel
+Transaction = getattr(_functional_model_mod, "Transaction", None)
 
 
 # ---------------------------------------------------------------------------
@@ -365,7 +371,11 @@ class CycleModel:
     delegates all functional evaluation to FunctionalModel.apply()."""
 
     def __init__(self, params=None):
-        self.fl = FunctionalModel(params)
+        self.params = params or {{}}
+        try:
+            self.fl = FunctionalModel(self.params)
+        except TypeError:
+            self.fl = FunctionalModel()
         self.in_q: list[tuple[int, dict]] = []   # (arrival_t, txn)
         self.out_q: list[tuple[int, dict]] = []  # (ready_t, result)
         self.cov: dict[str, int] = {{k: 0 for k in CL_BINS}}
@@ -386,7 +396,41 @@ class CycleModel:
 
     def _latency_for(self, txn: dict) -> int:
         kind = str(txn.get("kind") or txn.get("op") or "").strip().lower()
-        return _LATENCY.get(kind, _LATENCY.get("default", 1))
+        candidates = [kind]
+        if kind.startswith("fm_"):
+            candidates.append(kind[3:])
+        cmd = txn.get("cmd")
+        if cmd is not None:
+            candidates.append("command_effect")
+        candidates.append("default")
+        for candidate in candidates:
+            if candidate in _LATENCY:
+                return _LATENCY[candidate]
+        return 1
+
+    def _coerce_txn_for_fl(self, txn: dict):
+        if Transaction is None or not isinstance(txn, dict):
+            return txn
+        if isinstance(txn, Transaction):
+            return txn
+        if "cmd" in txn:
+            return Transaction(
+                cmd=int(txn.get("cmd", 0)) & 0x7,
+                cmd_valid=int(txn.get("cmd_valid", 1)),
+                load_value=int(txn.get("load_value", 0)) & 0xFF,
+            )
+        kind = str(txn.get("kind") or txn.get("op") or "").strip().lower()
+        cmd_by_kind = {{
+            "fm_clear": 0, "clear": 0, "clear_counter": 0,
+            "fm_load": 1, "load": 1, "load_counter": 1,
+            "fm_inc": 2, "inc": 2, "increment": 2, "increment_counter": 2,
+            "fm_dec": 3, "dec": 3, "decrement": 3, "decrement_counter": 3,
+            "fm_hold": 4, "hold": 4,
+            "fm_invalid": 5, "invalid": 5,
+        }}
+        cmd = cmd_by_kind.get(kind, 4)
+        load_value = int(txn.get("load_value", 0 if cmd != 1 else 0x55)) & 0xFF
+        return Transaction(cmd=cmd, cmd_valid=int(txn.get("cmd_valid", 1)), load_value=load_value)
 
     def _sample_handshake_coverage(self, txn: dict) -> None:
         for rule in _HANDSHAKE_RULES:
@@ -412,17 +456,19 @@ class CycleModel:
     def tick(self, t: int) -> None:
         """Advance model to cycle t.  Drain in_q respecting outstanding cap and handshake rules."""
         self.now = int(t)
-        # Pop one pending transaction if not stalled by outstanding cap
+        # Ready-but-not-yet-observed responses no longer consume outstanding capacity.
+        self._outstanding = sum(1 for (d, _r) in self.out_q if d > self.now)
+        # Pop pending transactions if not stalled by outstanding cap.
         while self.in_q:
             if self._outstanding >= _OUTSTANDING_CAP:
-                break  # stalled: wait for out_q drain
+                break  # stalled: wait for not-yet-ready out_q entries to mature
             arrival_t, txn = self.in_q[0]
             if arrival_t > self.now:
                 break  # not yet arrived
             self.in_q.pop(0)
             # FunctionalModel is the ONLY oracle — one call per transaction
             try:
-                result = self.fl.apply(txn)
+                result = self.fl.apply(self._coerce_txn_for_fl(txn))
             except Exception as _exc:
                 result = {{"kind": txn.get("kind", "unknown"), "resp": 2, "fl_error": str(_exc)}}
             latency = self._latency_for(txn)
@@ -434,9 +480,8 @@ class CycleModel:
             self._sample_ordering_coverage()
             self._sample_latency_coverage(txn)
 
-        # Release completed transactions from outstanding count
-        completed = [r for (d, r) in self.out_q if d <= self.now]
-        self._outstanding = max(0, self._outstanding - len(completed))
+        # Keep outstanding equal to responses that are still in flight.
+        self._outstanding = sum(1 for (d, _r) in self.out_q if d > self.now)
 
     def observe(self, t: int) -> list[tuple[int, dict]]:
         """Return all results ready at or before t, removing them from out_q."""
@@ -463,13 +508,16 @@ class CycleModel:
         obs = self.observe(drain_t)
         total_bins = len(CL_BINS)
         hit_bins = sum(1 for v in self.cov.values() if v > 0)
+        fl_errors = [r for (_d, r) in obs if isinstance(r, dict) and r.get("fl_error")]
+        passed = (len(obs) == len(kinds)) and not fl_errors and (hit_bins == total_bins)
         return {{
-            "passed": bool(obs),
+            "passed": passed,
             "backend": MODEL_BACKEND,
             "transactions": len(kinds),
             "results_observed": len(obs),
             "coverage_bins": total_bins,
             "coverage_hit": hit_bins,
+            "fl_errors": fl_errors,
             "performance_targets": PERFORMANCE_TARGETS,
         }}
 

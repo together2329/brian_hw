@@ -1,7 +1,7 @@
 {
   "evidence": {
     "decomposition_units": 2,
-    "fcov_bins": 14,
+    "fcov_bins": 30,
     "fl_model_check": {
       "additional_checks": {
         "accepted_count_wrap": "PASS",

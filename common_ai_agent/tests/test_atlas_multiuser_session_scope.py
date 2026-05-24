@@ -3,6 +3,7 @@ import sys
 from pathlib import Path
 from typing import Optional
 
+import pytest
 from fastapi.testclient import TestClient
 from starlette.websockets import WebSocketDisconnect
 
@@ -20,6 +21,18 @@ def _register(client: TestClient, username: str) -> None:
         json={"username": username, "password": "pw"},
     )
     assert response.status_code == 200, response.text
+
+
+@pytest.fixture(autouse=True)
+def _isolate_atlas_db_path(tmp_path, monkeypatch):
+    monkeypatch.setenv("ATLAS_DB_PATH", str(tmp_path / "atlas.db"))
+    for key in (
+        "ATLAS_EXEC_MODE",
+        "ATLAS_DEFAULT_EXEC_MODE",
+        "ATLAS_ORCHESTRATOR_MODE",
+        "ATLAS_SINGLE_MAIN_LOOP",
+    ):
+        monkeypatch.delenv(key, raising=False)
 
 
 def _activate(

@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "type": "cl_model_check",
+  "ip": "real_llm_counter_demo",
+  "source": "model/cycle_model.py",
+  "backend": "python",
+  "timestamp": "2026-05-24T15:12:28Z",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "backend": "python",
+    "transactions": 6,
+    "results_observed": 6,
+    "coverage_bins": 10,
+    "coverage_hit": 10,
+    "fl_errors": [],
+    "performance_targets": {
+      "frequency_mhz": 100,
+      "throughput": {
+        "sustained_beats_per_cycle": 1,
+        "condition": "One command per clock cycle when cmd_valid is high."
+      },
+      "outstanding": {
+        "max": 1,
+        "description": "Single-cycle acceptance, single-cycle effect."
+      },
+      "pipeline_stages": 2,
+      "queue_depth": 0
+    }
+  },
+  "performance_targets": {
+    "frequency_mhz": 100,
+    "throughput": {
+      "sustained_beats_per_cycle": 1,
+      "condition": "One command per clock cycle when cmd_valid is high."
+    },
+    "outstanding": {
+      "max": 1,
+      "description": "Single-cycle acceptance, single-cycle effect."
+    },
+    "pipeline_stages": 2,
+    "queue_depth": 0
+  },
+  "decomposition_units": 2,
+  "fcov_bins": 10
+}
