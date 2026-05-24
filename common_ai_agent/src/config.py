@@ -920,6 +920,23 @@ def is_opencode_model(name: str) -> bool:
     return n.startswith("gpt-5") or ("gpt" in n and "codex" in n)
 
 
+def _active_profile_blocks_auto_opencode() -> bool:
+    """True when LLM_PROFILE names a non-Codex provider profile.
+
+    `USE_OPENCODE_OAUTH` defaults on so gpt-5* can work without a separate
+    API key.  That default must not override an explicit provider profile
+    such as glm/deepseek/kimi during module import; profile selection is the
+    higher-priority model contract.
+    """
+    profile_name = os.getenv("LLM_PROFILE", "").strip()
+    if not profile_name:
+        return False
+    profile = get_profile(profile_name)
+    if not profile:
+        return False
+    return not is_opencode_model(profile.get("model", ""))
+
+
 _THREAD_RUNTIME_KEYS = frozenset({
     "BASE_URL",
     "API_KEY",
@@ -1134,7 +1151,12 @@ sys.modules[__name__].__class__ = _ThreadRuntimeConfigModule
 
 
 if USE_OPENCODE_OAUTH and not (CURSOR_AGENT_ENABLE or CLAUDE_CLI_ENABLE):
-    if not activate_opencode_oauth(runtime_override=False):
+    if _active_profile_blocks_auto_opencode():
+        USE_OPENCODE_OAUTH = False
+        USE_RESPONSES_API = False
+        os.environ["USE_OPENCODE_OAUTH"] = "false"
+        os.environ["USE_RESPONSES_API"] = "false"
+    elif not activate_opencode_oauth(runtime_override=False):
         USE_OPENCODE_OAUTH = False
 
 # ============================================================

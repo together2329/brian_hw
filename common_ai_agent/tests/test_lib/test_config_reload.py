@@ -53,14 +53,18 @@ class TestReloadEnv(unittest.TestCase):
         self._saved_env = {}
         for k in list(os.environ):
             if k.startswith(("LLM_", "PROFILE_", "MODEL_NAME",
-                             "PRIMARY_MODEL", "SECONDARY_MODEL")):
+                             "PRIMARY_MODEL", "SECONDARY_MODEL",
+                             "USE_OPENCODE_OAUTH", "USE_RESPONSES_API",
+                             "OPENCODE_")):
                 self._saved_env[k] = os.environ.pop(k)
 
     def tearDown(self):
         # Restore original env so other tests aren't polluted.
         for k in list(os.environ):
             if k.startswith(("LLM_", "PROFILE_", "MODEL_NAME",
-                             "PRIMARY_MODEL", "SECONDARY_MODEL")):
+                             "PRIMARY_MODEL", "SECONDARY_MODEL",
+                             "USE_OPENCODE_OAUTH", "USE_RESPONSES_API",
+                             "OPENCODE_")):
                 os.environ.pop(k, None)
         os.environ.update(self._saved_env)
 
@@ -142,13 +146,17 @@ class TestProfileSystem(unittest.TestCase):
         self._saved_env = {}
         for k in list(os.environ):
             if k.startswith(("LLM_", "PROFILE_", "MODEL_NAME",
-                             "PRIMARY_MODEL", "SECONDARY_MODEL")):
+                             "PRIMARY_MODEL", "SECONDARY_MODEL",
+                             "USE_OPENCODE_OAUTH", "USE_RESPONSES_API",
+                             "OPENCODE_")):
                 self._saved_env[k] = os.environ.pop(k)
 
     def tearDown(self):
         for k in list(os.environ):
             if k.startswith(("LLM_", "PROFILE_", "MODEL_NAME",
-                             "PRIMARY_MODEL", "SECONDARY_MODEL")):
+                             "PRIMARY_MODEL", "SECONDARY_MODEL",
+                             "USE_OPENCODE_OAUTH", "USE_RESPONSES_API",
+                             "OPENCODE_")):
                 os.environ.pop(k, None)
         os.environ.update(self._saved_env)
 
@@ -214,6 +222,16 @@ class TestProfileSystem(unittest.TestCase):
         cfg = _fresh_config(os.environ)
         self.assertEqual(cfg.MODEL_NAME, "kimi-2.6")
         self.assertEqual(cfg.BASE_URL, "https://kimi.example.com")
+
+    def test_non_opencode_profile_blocks_auto_oauth(self):
+        """A provider profile must not be overwritten by default Codex OAuth."""
+        os.environ["PROFILE_glm_MODEL"] = "glm-5.1"
+        os.environ["PROFILE_glm_BASE_URL"] = "https://api.z.ai"
+        os.environ["PROFILE_glm_API_KEY"] = "glm-key"
+        os.environ["LLM_PROFILE"] = "glm"
+        os.environ["USE_OPENCODE_OAUTH"] = "true"
+        cfg = _fresh_config(os.environ)
+        self.assertTrue(cfg._active_profile_blocks_auto_opencode())
 
 
 if __name__ == "__main__":
