@@ -702,28 +702,37 @@
       if (!d) return null;
       const responseSession = normalizeSessionName(d.session || sid) || sid;
       const currentSession = normalizeSessionName(window.ACTIVE_SESSION || '') || sid;
-      if (currentSession !== sid && currentSession !== responseSession) {
+      const allowInactiveConversation = !!(
+        opts && (opts.viewOnly || opts.allowInactiveConversation || opts.allow_inactive_conversation)
+      );
+      if (!allowInactiveConversation && currentSession !== sid && currentSession !== responseSession) {
         return d;
       }
       const appliedSession = responseSession === sid ? responseSession : sid;
-      setActiveSessionName(appliedSession);
       const todos = d.todos && Array.isArray(d.todos.todos) ? d.todos.todos : [];
-      window.TODOS = normalizeTodos(todos);
+      if (!allowInactiveConversation) {
+        setActiveSessionName(appliedSession);
+        window.TODOS = normalizeTodos(todos);
+      }
       if (hydrateConversation) {
         const sessionDetail = { ...d, session: appliedSession };
         const conversationDetail = {
           messages: (d.conversation && d.conversation.messages) || [],
           session: appliedSession,
         };
-        window.ATLAS_LAST_SESSION_STATE = sessionDetail;
-        window.ATLAS_LAST_CONVERSATION = conversationDetail;
-        window.dispatchEvent(new CustomEvent('atlas-session-loaded', { detail: sessionDetail }));
+        if (!allowInactiveConversation) {
+          window.ATLAS_LAST_SESSION_STATE = sessionDetail;
+          window.ATLAS_LAST_CONVERSATION = conversationDetail;
+          window.dispatchEvent(new CustomEvent('atlas-session-loaded', { detail: sessionDetail }));
+        }
         window.dispatchEvent(new CustomEvent('atlas-conversation-loaded', {
           detail: conversationDetail,
         }));
       }
-      window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'SESSION_STATE' }));
-      window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'TODOS' }));
+      if (!allowInactiveConversation) {
+        window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'SESSION_STATE' }));
+        window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'TODOS' }));
+      }
       return d;
     } catch (e) {
       return null;

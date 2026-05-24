@@ -63,7 +63,7 @@ try {
   assert(afterWorkerView.activeSession.endsWith(`/${ip}/orchestrator`), `runtime stayed on orchestrator (${afterWorkerView.activeSession})`);
   assert(afterWorkerView.activateCalls.length === 0, `worker view did not call /api/session/activate (${afterWorkerView.activateCalls.length})`);
   assert(afterWorkerView.switchCalls.every(s => s.endsWith(`/${ip}/orchestrator`)), 'backend switchSession was not pointed at a worker namespace');
-  assert(/No ssot-gen worker transcript yet|ssot-gen/i.test(afterWorkerView.body), 'ssot-gen worker view rendered a visible state');
+  assert(/No ssot-gen worker transcript yet/i.test(afterWorkerView.body), 'ssot-gen worker view rendered a visible empty transcript');
   await shoot(page, 'orch-view-worker-ssot.png');
 
   await send('status ?');

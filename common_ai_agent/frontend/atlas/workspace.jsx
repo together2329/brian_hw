@@ -1756,6 +1756,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         view_workspace: viewWorkflow,
       });
       refreshFeed(intent, viewWorkflow);
+      setMainTab('chat');
       if (viewWorkflow === 'orchestrator') {
         setChatViewSession('');
         refreshChatSession(orchestratorSid, { force: true });
@@ -1765,7 +1766,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       liveFeedStartedRef.current = false;
       hydratedConversationSessionRef.current = viewSid;
       setChatViewSession(viewSid);
-      refreshChatSession(viewSid, { force: true });
+      requestAnimationFrame(() => setMainTab('chat'));
+      refreshChatSession(viewSid, { force: true, viewOnly: true });
       return;
     }
     setWorkflow(next || null);
