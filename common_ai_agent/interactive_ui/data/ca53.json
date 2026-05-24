@@ -231,6 +231,36 @@
     { "name": "CP15SDISABLE","desc": "Disable Secure CP15 register writes" },
     { "name": "CLUSTERIDAFF","desc": "Cluster affinity value (MPIDR Aff1/Aff2)" }
   ],
+  "generic_timer": {
+    "description": "ARM Generic Timer — a shared always-on system counter plus per-core comparators that raise timer interrupts.",
+    "counter": "64-bit system counter; frequency reported by CNTFRQ_EL0 (programmed by firmware). Count read via CNTPCT_EL0 (physical) / CNTVCT_EL0 (virtual).",
+    "control": "Per-EL access controlled by CNTKCTL_EL1 / CNTHCTL_EL2.",
+    "timers": [
+      { "name": "EL1 Physical",        "registers": "CNTP_CTL/CVAL/TVAL_EL0",  "irq": "nCNTPNSIRQ" },
+      { "name": "Virtual",             "registers": "CNTV_CTL/CVAL/TVAL_EL0",  "irq": "nCNTVIRQ" },
+      { "name": "Secure EL1 Physical", "registers": "CNTPS_CTL/CVAL/TVAL_EL1", "irq": "nCNTPSIRQ" },
+      { "name": "EL2 Hypervisor",      "registers": "CNTHP_CTL/CVAL/TVAL_EL2", "irq": "nCNTHPIRQ" }
+    ]
+  },
+  "debug": {
+    "description": "ARMv8 CoreSight debug — external (memory-mapped APB) debug plus self-hosted debug via system registers.",
+    "interface": "External debug over a CoreSight Debug APB slave; self-hosted debug through MDSCR_EL1 and friends.",
+    "features": ["Halting debug mode", "Hardware breakpoints & watchpoints", "Cross-Trigger Interface (CTI/CTM)", "OS lock / OS double-lock", "Authentication interface (SPIDEN/SPNIDEN/DBGEN/NIDEN)"],
+    "registers": [
+      { "name": "EDSCR",             "desc": "External Debug Status and Control Register" },
+      { "name": "DBGBVR/DBGBCR",     "desc": "Breakpoint value/control — 6 breakpoints (illustrative)" },
+      { "name": "DBGWVR/DBGWCR",     "desc": "Watchpoint value/control — 4 watchpoints (illustrative)" },
+      { "name": "MDSCR_EL1",         "desc": "Monitor Debug System Control (self-hosted)" },
+      { "name": "DBGAUTHSTATUS_EL1", "desc": "Debug authentication status" }
+    ]
+  },
+  "etm": {
+    "description": "Embedded Trace Macrocell (ETMv4) — non-invasive instruction (program-flow) trace.",
+    "version": "ETMv4 (PFT — program-flow trace)",
+    "output": "Trace stream over the ATB (AMBA Trace Bus) to a CoreSight sink (ETF / ETR / TPIU).",
+    "traces": ["Instruction / program-flow trace", "Context ID & VMID tracing", "Timestamping & cycle counting (optional)"],
+    "note": "Data-address / data-value trace not supported — instruction trace only (illustrative)."
+  },
   "timing": {
     "title": "ACE/AXI read burst — 2-beat (illustrative AMBA 4)",
     "note": "AR address handshake (ARVALID·ARREADY), then R data channel (RVALID·RREADY), RLAST on the final beat.",

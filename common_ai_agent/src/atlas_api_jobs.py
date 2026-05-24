@@ -2386,8 +2386,15 @@ def _default_workflow_prompt(workflow: str, ip: str, stage_id: str = "") -> str:
             "and downstream RTL/TB obligations."
         ),
         "fl-model": (
-            f"run /ssot-fl-model {ip}; generate the SSOT-derived FunctionalModel, "
-            "decomposition manifest, FL self-check, and function coverage plan"
+            f"Do not run /ssot-fl-model or emit_fl_model.py as the authoring path for `{ip}`. "
+            f"Read {ip}/yaml/{ip}.ssot.yaml, then author the SSOT-derived "
+            f"{ip}/model/functional_model.py, {ip}/model/decomposition.json, "
+            f"{ip}/model/fl_model_check.json, and {ip}/cov/fcov_plan.json directly. "
+            "The model must implement FunctionalModel.apply(txn), run_self_check(), reset/invariant/error "
+            "checks, and transaction traceability for every function_model.transactions[] entry. "
+            f"After writing the artifacts, run python3 \"$ATLAS_WORKFLOW_ROOT/fl-model-gen/scripts/check_fl_model_artifacts.py\" {ip} --root \"$ATLAS_PROJECT_ROOT\". "
+            "If the gate fails, fix the authored artifacts and rerun the gate; if the SSOT lacks enough "
+            "semantic detail, emit [SSOT TBD REPORT] -> ssot-gen with exact yaml paths instead of guessing."
         ),
         "cl-model": (
             f"run /ssot-cycle-model {ip} and /ssot-dual-fcov {ip}; generate the SSOT-derived "
