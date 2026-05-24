@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "type": "dut_lint",
+  "scope": "dut",
+  "dut_only": true,
+  "tool": "pyslang+verilator",
+  "command": "pyslang rtl/ssot_screenshot_smoke_20260524_083011.sv && verilator --lint-only -Wall -Irtl -f list/ssot_screenshot_smoke_20260524_083011.f --top-module ssot_screenshot_smoke_20260524_083011",
+  "cwd": "ssot_screenshot_smoke_20260524_083011",
+  "top": "ssot_screenshot_smoke_20260524_083011",
+  "filelist": "ssot_screenshot_smoke_20260524_083011/list/ssot_screenshot_smoke_20260524_083011.f",
+  "rtl_files": [
+    "rtl/ssot_screenshot_smoke_20260524_083011.sv"
+  ],
+  "timestamp": "2026-05-24T00:39:01.641585+00:00",
+  "returncode": 0,
+  "errors": 0,
+  "warnings": 0,
+  "waived_warnings": 0,
+  "tool_results": [
+    {
+      "tool": "pyslang",
+      "available": true,
+      "command": "pyslang rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "returncode": 0,
+      "errors": 0,
+      "warnings": 0,
+      "diagnostics": [],
+      "passed": true
+    },
+    {
+      "tool": "verilator",
+      "available": true,
+      "command": "verilator --lint-only -Wall -Irtl -f list/ssot_screenshot_smoke_20260524_083011.f --top-module ssot_screenshot_smoke_20260524_083011",
+      "returncode": 0,
+      "errors": 0,
+      "warnings": 0,
+      "diagnostics": [],
+      "passed": true
+    }
+  ],
+  "suppression_violation_count": 0,
+  "suppression_violations": [],
+  "style_violation_count": 0,
+  "style_violations": [],
+  "policy": "DUT RTL must be lint-clean without ad-hoc verilator lint_off/lint_on or -Wno suppressions, and generated RTL must keep .sv filenames while using the project SystemVerilog subset: input logic/output logic ports and internal logic are allowed; package/import/interface/modport/function/task/for/while/typedef/enum/always_ff/always_comb remain forbidden.",
+  "passed": true
+}

@@ -1,0 +1,602 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 15,
+      "enabled": true,
+      "index": 15,
+      "key": "dataflow",
+      "module_task_count": 115,
+      "rule": "Owner module ssot_screenshot_smoke_20260524_083011 is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "dataflow",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "name": "ssot_screenshot_smoke_20260524_083011",
+      "refs": [
+        "dataflow",
+        "decomposition",
+        "integration",
+        "io_list",
+        "top_module"
+      ],
+      "wiring_only": true
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "name": "ssot_screenshot_smoke_20260524_083011",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "clk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "clk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "rst_n"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rst_n",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "valid",
+          "valid_ready_transaction_valid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "valid",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ready",
+          "valid_ready_transaction_ready"
+        ],
+        "allow_constant": true,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "ready",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "data_in",
+          "valid_ready_transaction_data_in"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "data_in",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "result",
+          "valid_ready_transaction_result"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "result",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "result_valid",
+          "valid_ready_transaction_result_valid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "result_valid",
+        "source_ref": "io_list.interfaces[0].ports[4]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "accepted_count",
+          "valid_ready_transaction_accepted_count"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "accepted_count",
+        "source_ref": "io_list.interfaces[0].ports[5]",
+        "width": "16"
+      },
+      {
+        "aliases": [
+          "busy",
+          "debug_status_busy"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "busy",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "debug_status_error",
+          "error"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "error",
+        "source_ref": "io_list.interfaces[1].ports[1]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "ssot_screenshot_smoke_20260524_083011",
+  "kind": "module",
+  "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+  "owner_module": "ssot_screenshot_smoke_20260524_083011",
+  "packet_id": "module__ssot_screenshot_smoke_20260524_083011__dataflow",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "dataflow.notes": 1,
+      "dataflow.sequence": 3,
+      "dataflow.sinks": 3,
+      "dataflow.source": 1
+    },
+    "module_slice": {
+      "count": 15,
+      "enabled": true,
+      "index": 15,
+      "key": "dataflow",
+      "module_task_count": 115,
+      "rule": "Owner module ssot_screenshot_smoke_20260524_083011 is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "dataflow",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 8,
+    "source_refs": [
+      "dataflow.source.source_0",
+      "dataflow.sequence.sequence_0",
+      "dataflow.sequence.sequence_1",
+      "dataflow.sequence.sequence_2",
+      "dataflow.sinks.sinks_0",
+      "dataflow.sinks.sinks_1",
+      "dataflow.sinks.sinks_2",
+      "dataflow.notes.notes_0"
+    ],
+    "status_counts": {
+      "pass": 8
+    },
+    "task_count": 8
+  },
+  "tasks": [
+    {
+      "category": "dataflow.source",
+      "content": "Implement dataflow source: source_0",
+      "criteria": [
+        "RTL data/control path implements the described step",
+        "Ordering/backpressure is consistent with cycle_model",
+        "Downstream checks can observe the result or side effect",
+        "Traceability keeps source_ref dataflow.source.source_0",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv"
+      ],
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.source.source_0.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via dataflow.\nSSOT item context: value=approved external input/control interfaces.",
+      "evidence_terms": [],
+      "id": "RTL-0104",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dataflow.source.source_0",
+      "ssot_context": {
+        "value": "approved external input/control interfaces"
+      },
+      "ssot_refs": [
+        "dataflow.source.source_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "dataflow.sequence",
+      "content": "Implement dataflow sequence: sequence_0",
+      "criteria": [
+        "RTL data/control path implements the described step",
+        "Ordering/backpressure is consistent with cycle_model",
+        "Downstream checks can observe the result or side effect",
+        "Traceability keeps source_ref dataflow.sequence.sequence_0",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv"
+      ],
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sequence.sequence_0.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via dataflow.\nSSOT item context: value=accept transaction or packet using cycle_model handshake.",
+      "evidence_terms": [],
+      "id": "RTL-0105",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dataflow.sequence.sequence_0",
+      "ssot_context": {
+        "value": "accept transaction or packet using cycle_model handshake"
+      },
+      "ssot_refs": [
+        "dataflow.sequence.sequence_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "dataflow.sequence",
+      "content": "Implement dataflow sequence: sequence_1",
+      "criteria": [
+        "RTL data/control path implements the described step",
+        "Ordering/backpressure is consistent with cycle_model",
+        "Downstream checks can observe the result or side effect",
+        "Traceability keeps source_ref dataflow.sequence.sequence_1",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv"
+      ],
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sequence.sequence_1.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via dataflow.\nSSOT item context: value=apply function_model transaction and update internal state.",
+      "evidence_terms": [],
+      "id": "RTL-0106",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dataflow.sequence.sequence_1",
+      "ssot_context": {
+        "value": "apply function_model transaction and update internal state"
+      },
+      "ssot_refs": [
+        "dataflow.sequence.sequence_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "dataflow.sequence",
+      "content": "Implement dataflow sequence: sequence_2",
+      "criteria": [
+        "RTL data/control path implements the described step",
+        "Ordering/backpressure is consistent with cycle_model",
+        "Downstream checks can observe the result or side effect",
+        "Traceability keeps source_ref dataflow.sequence.sequence_2",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv"
+      ],
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sequence.sequence_2.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via dataflow.\nSSOT item context: value=publish response/status/interrupt/debug outputs.",
+      "evidence_terms": [],
+      "id": "RTL-0107",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dataflow.sequence.sequence_2",
+      "ssot_context": {
+        "value": "publish response/status/interrupt/debug outputs"
+      },
+      "ssot_refs": [
+        "dataflow.sequence.sequence_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "dataflow.sinks",
+      "content": "Implement dataflow sinks: sinks_0",
+      "criteria": [
+        "RTL data/control path implements the described step",
+        "Ordering/backpressure is consistent with cycle_model",
+        "Downstream checks can observe the result or side effect",
+        "Traceability keeps source_ref dataflow.sinks.sinks_0",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv"
+      ],
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sinks.sinks_0.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via dataflow.\nSSOT item context: value=external outputs.",
+      "evidence_terms": [],
+      "id": "RTL-0108",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dataflow.sinks.sinks_0",
+      "ssot_context": {
+        "value": "external outputs"
+      },
+      "ssot_refs": [
+        "dataflow.sinks.sinks_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "dataflow.sinks",
+      "content": "Implement dataflow sinks: sinks_1",
+      "criteria": [
+        "RTL data/control path implements the described step",
+        "Ordering/backpressure is consistent with cycle_model",
+        "Downstream checks can observe the result or side effect",
+        "Traceability keeps source_ref dataflow.sinks.sinks_1",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv"
+      ],
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sinks.sinks_1.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via dataflow.\nSSOT item context: value=register reads.",
+      "evidence_terms": [],
+      "id": "RTL-0109",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dataflow.sinks.sinks_1",
+      "ssot_context": {
+        "value": "register reads"
+      },
+      "ssot_refs": [
+        "dataflow.sinks.sinks_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "dataflow.sinks",
+      "content": "Implement dataflow sinks: sinks_2",
+      "criteria": [
+        "RTL data/control path implements the described step",
+        "Ordering/backpressure is consistent with cycle_model",
+        "Downstream checks can observe the result or side effect",
+        "Traceability keeps source_ref dataflow.sinks.sinks_2",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv"
+      ],
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sinks.sinks_2.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via dataflow.\nSSOT item context: value=interrupt/status/debug observability.",
+      "evidence_terms": [],
+      "id": "RTL-0110",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dataflow.sinks.sinks_2",
+      "ssot_context": {
+        "value": "interrupt/status/debug observability"
+      },
+      "ssot_refs": [
+        "dataflow.sinks.sinks_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "dataflow.notes",
+      "content": "Implement dataflow notes: notes_0",
+      "criteria": [
+        "RTL data/control path implements the described step",
+        "Ordering/backpressure is consistent with cycle_model",
+        "Downstream checks can observe the result or side effect",
+        "Traceability keeps source_ref dataflow.notes.notes_0",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv"
+      ],
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.notes.notes_0.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via dataflow.\nSSOT item context: value=Accept one byte-oriented valid-ready transaction when valid and ready are high; output result equals data_in XOR comm....",
+      "evidence_terms": [
+        "data",
+        "data_in",
+        "in",
+        "result",
+        "result_valid",
+        "valid"
+      ],
+      "id": "RTL-0111",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dataflow.notes.notes_0",
+      "ssot_context": {
+        "value": "Accept one byte-oriented valid-ready transaction when valid and ready are high; output result equals data_in XOR comm..."
+      },
+      "ssot_refs": [
+        "dataflow.notes.notes_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 6,
+        "matched_terms": [
+          "data",
+          "data_in",
+          "in",
+          "result",
+          "result_valid",
+          "valid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "data",
+          "data_in",
+          "in",
+          "result",
+          "result_valid",
+          "valid"
+        ],
+        "source_scope": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "23442a0bea75a5ef309d6702c4ec8b9a7db1af727316e962f3563a99380680ef",
+  "top": "ssot_screenshot_smoke_20260524_083011",
+  "type": "rtl_authoring_packet"
+}

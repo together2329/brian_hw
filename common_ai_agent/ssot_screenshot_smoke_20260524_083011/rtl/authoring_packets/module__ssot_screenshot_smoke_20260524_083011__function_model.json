@@ -1,0 +1,2411 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 15,
+      "enabled": true,
+      "index": 5,
+      "key": "function_model",
+      "module_task_count": 115,
+      "rule": "Owner module ssot_screenshot_smoke_20260524_083011 is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "name": "ssot_screenshot_smoke_20260524_083011",
+      "refs": [
+        "dataflow",
+        "decomposition",
+        "integration",
+        "io_list",
+        "top_module"
+      ],
+      "wiring_only": true
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "name": "ssot_screenshot_smoke_20260524_083011",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "clk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "clk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "rst_n"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rst_n",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "valid",
+          "valid_ready_transaction_valid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "valid",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ready",
+          "valid_ready_transaction_ready"
+        ],
+        "allow_constant": true,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "ready",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "data_in",
+          "valid_ready_transaction_data_in"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "data_in",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "result",
+          "valid_ready_transaction_result"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "result",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "result_valid",
+          "valid_ready_transaction_result_valid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "result_valid",
+        "source_ref": "io_list.interfaces[0].ports[4]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "accepted_count",
+          "valid_ready_transaction_accepted_count"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "accepted_count",
+        "source_ref": "io_list.interfaces[0].ports[5]",
+        "width": "16"
+      },
+      {
+        "aliases": [
+          "busy",
+          "debug_status_busy"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "busy",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "debug_status_error",
+          "error"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "error",
+        "source_ref": "io_list.interfaces[1].ports[1]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "ssot_screenshot_smoke_20260524_083011",
+  "kind": "module",
+  "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+  "owner_module": "ssot_screenshot_smoke_20260524_083011",
+  "packet_id": "module__ssot_screenshot_smoke_20260524_083011__function_model",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "function_model.error_case": 2,
+      "function_model.input": 8,
+      "function_model.invariant": 3,
+      "function_model.output": 9,
+      "function_model.output_rule": 4,
+      "function_model.precondition": 3,
+      "function_model.side_effect": 4,
+      "function_model.state_update": 2,
+      "function_model.state_variable": 3,
+      "function_model.transaction": 3
+    },
+    "module_slice": {
+      "count": 15,
+      "enabled": true,
+      "index": 5,
+      "key": "function_model",
+      "module_task_count": 115,
+      "rule": "Owner module ssot_screenshot_smoke_20260524_083011 is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 41,
+    "source_refs": [
+      "function_model.state_variables.busy",
+      "function_model.state_variables.error",
+      "function_model.state_variables.accepted_count",
+      "function_model.transactions.FM_RESET",
+      "function_model.transactions.FM_RESET.preconditions.precondition_0",
+      "function_model.transactions.FM_RESET.inputs.input_0",
+      "function_model.transactions.FM_RESET.inputs.input_1",
+      "function_model.transactions.FM_RESET.outputs.output_0",
+      "function_model.transactions.FM_RESET.outputs.output_1",
+      "function_model.transactions.FM_RESET.outputs.output_2",
+      "function_model.transactions.FM_RESET.outputs.accepted_count",
+      "function_model.transactions.FM_RESET.output_rules.accepted_count",
+      "function_model.transactions.FM_RESET.side_effects.side_effect_0",
+      "function_model.transactions.FM_RESET.side_effects.side_effect_1",
+      "function_model.transactions.FM_PRIMARY",
+      "function_model.transactions.FM_PRIMARY.preconditions.precondition_0",
+      "function_model.transactions.FM_PRIMARY.inputs.input_0",
+      "function_model.transactions.FM_PRIMARY.inputs.input_1",
+      "function_model.transactions.FM_PRIMARY.outputs.output_0",
+      "function_model.transactions.FM_PRIMARY.outputs.busy",
+      "function_model.transactions.FM_PRIMARY.outputs.error",
+      "function_model.transactions.FM_PRIMARY.output_rules.busy",
+      "function_model.transactions.FM_PRIMARY.output_rules.error",
+      "function_model.transactions.FM_PRIMARY.state_updates.busy"
+    ],
+    "status_counts": {
+      "pass": 41
+    },
+    "task_count": 41
+  },
+  "tasks": [
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state busy",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.busy",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "busy reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.busy.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: name=busy; reset=0.",
+      "evidence_terms": [
+        "busy"
+      ],
+      "id": "RTL-0036",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.busy",
+      "ssot_context": {
+        "name": "busy",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.busy"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 1,
+        "matched_terms": [
+          "busy"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "busy"
+        ],
+        "source_scope": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state error",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.error",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "error reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.error.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: name=error; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0037",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.error",
+      "ssot_context": {
+        "name": "error",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.error"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state accepted_count",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.accepted_count",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "accepted_count width matches SSOT value 16",
+        "accepted_count reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.accepted_count.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: name=accepted_count; output=True; width=16; reset=0.",
+      "evidence_terms": [
+        "True",
+        "accepted",
+        "accepted_count",
+        "count"
+      ],
+      "id": "RTL-0038",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.accepted_count",
+      "ssot_context": {
+        "name": "accepted_count",
+        "output": "True",
+        "reset": "0",
+        "width": "16"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.accepted_count"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "accepted",
+          "accepted_count",
+          "count"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "True",
+          "accepted",
+          "accepted_count",
+          "count"
+        ],
+        "source_scope": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_RESET",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_RESET.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: id=FM_RESET; name=reset.",
+      "evidence_terms": [],
+      "id": "RTL-0039",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET",
+      "ssot_context": {
+        "id": "FM_RESET",
+        "name": "reset"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_RESET: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.preconditions.precondition_0.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: value=reset asserted.",
+      "evidence_terms": [],
+      "id": "RTL-0040",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "reset asserted"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_RESET: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.inputs.input_0",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "DUT port [\"accepted_count\"] is the implementation/observation point for reset"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.inputs.input_0.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: id=FM_RESET; name=reset; port=[\"accepted_count\"]; signal=[\"clock\"].",
+      "evidence_terms": [
+        "accepted",
+        "accepted_count",
+        "clock",
+        "count"
+      ],
+      "id": "RTL-0041",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.inputs.input_0",
+      "ssot_context": {
+        "id": "FM_RESET",
+        "name": "reset",
+        "port": "[\"accepted_count\"]",
+        "signal": "[\"clock\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.inputs.input_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "accepted",
+          "accepted_count",
+          "count"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "accepted",
+          "accepted_count",
+          "clock",
+          "count"
+        ],
+        "source_scope": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_RESET: input_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.inputs.input_1",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "DUT port [\"accepted_count\"] is the implementation/observation point for reset"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.inputs.input_1.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: id=FM_RESET; name=reset; port=[\"accepted_count\"]; signal=[\"reset\"].",
+      "evidence_terms": [
+        "accepted",
+        "accepted_count",
+        "count",
+        "reset"
+      ],
+      "id": "RTL-0042",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.inputs.input_1",
+      "ssot_context": {
+        "id": "FM_RESET",
+        "name": "reset",
+        "port": "[\"accepted_count\"]",
+        "signal": "[\"reset\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.inputs.input_1"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "accepted",
+          "accepted_count",
+          "count"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "accepted",
+          "accepted_count",
+          "count",
+          "reset"
+        ],
+        "source_scope": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_RESET: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.outputs.output_0",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.outputs.output_0.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: value=busy == 0.",
+      "evidence_terms": [],
+      "id": "RTL-0043",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.outputs.output_0",
+      "ssot_context": {
+        "value": "busy == 0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.outputs.output_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_RESET: output_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.outputs.output_1",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.outputs.output_1.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: value=error == 0.",
+      "evidence_terms": [],
+      "id": "RTL-0044",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.outputs.output_1",
+      "ssot_context": {
+        "value": "error == 0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.outputs.output_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_RESET: output_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.outputs.output_2",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.outputs.output_2.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: value=registers and counters equal approved reset defaults.",
+      "evidence_terms": [],
+      "id": "RTL-0045",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.outputs.output_2",
+      "ssot_context": {
+        "value": "registers and counters equal approved reset defaults"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.outputs.output_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_RESET: accepted_count",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.outputs.accepted_count",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "accepted_count RTL expression implements SSOT expression 0",
+        "DUT port accepted_count is the implementation/observation point for accepted_count"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.outputs.accepted_count.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: name=accepted_count; port=accepted_count; expr=0.",
+      "evidence_terms": [
+        "accepted",
+        "accepted_count",
+        "count"
+      ],
+      "id": "RTL-0046",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.outputs.accepted_count",
+      "ssot_context": {
+        "expr": "0",
+        "name": "accepted_count",
+        "port": "accepted_count"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.outputs.accepted_count"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "accepted",
+          "accepted_count",
+          "count"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "accepted",
+          "accepted_count",
+          "count"
+        ],
+        "source_scope": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_RESET: accepted_count",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.output_rules.accepted_count",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "accepted_count width matches SSOT value 16",
+        "accepted_count RTL expression implements SSOT expression 0",
+        "DUT port accepted_count is the implementation/observation point for accepted_count",
+        "accepted_count is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.output_rules.accepted_count.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: name=accepted_count; port=accepted_count; expr=0; width=16.",
+      "evidence_terms": [
+        "accepted",
+        "accepted_count",
+        "count"
+      ],
+      "id": "RTL-0047",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.output_rules.accepted_count",
+      "ssot_context": {
+        "expr": "0",
+        "name": "accepted_count",
+        "port": "accepted_count",
+        "width": "16"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.output_rules.accepted_count"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "accepted",
+          "accepted_count",
+          "count"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "accepted",
+          "accepted_count",
+          "count"
+        ],
+        "source_scope": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_RESET: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "DUT port [\"accepted_count\"] is the implementation/observation point for reset"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.side_effects.side_effect_0.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: id=FM_RESET; name=reset; port=[\"accepted_count\"]; signal=[\"clears transient protocol state\"].",
+      "evidence_terms": [
+        "accepted",
+        "accepted_count",
+        "count"
+      ],
+      "id": "RTL-0048",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "FM_RESET",
+        "name": "reset",
+        "port": "[\"accepted_count\"]",
+        "signal": "[\"clears transient protocol state\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "accepted",
+          "accepted_count",
+          "count"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "accepted",
+          "accepted_count",
+          "count"
+        ],
+        "source_scope": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_RESET: side_effect_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.side_effects.side_effect_1",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "DUT port [\"accepted_count\"] is the implementation/observation point for reset"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.side_effects.side_effect_1.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: id=FM_RESET; name=reset; port=[\"accepted_count\"]; signal=[\"clears pending non-retained status\"].",
+      "evidence_terms": [
+        "accepted",
+        "accepted_count",
+        "count"
+      ],
+      "id": "RTL-0049",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.side_effects.side_effect_1",
+      "ssot_context": {
+        "id": "FM_RESET",
+        "name": "reset",
+        "port": "[\"accepted_count\"]",
+        "signal": "[\"clears pending non-retained status\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.side_effects.side_effect_1"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "accepted",
+          "accepted_count",
+          "count"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "accepted",
+          "accepted_count",
+          "count"
+        ],
+        "source_scope": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_PRIMARY",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_PRIMARY",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_PRIMARY.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: id=FM_PRIMARY; name=primary_behavior.",
+      "evidence_terms": [],
+      "id": "RTL-0050",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PRIMARY",
+      "ssot_context": {
+        "id": "FM_PRIMARY",
+        "name": "primary_behavior"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PRIMARY"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_PRIMARY: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PRIMARY.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PRIMARY.preconditions.precondition_0.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: value=valid input transaction or packet is accepted.",
+      "evidence_terms": [],
+      "id": "RTL-0051",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PRIMARY.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "valid input transaction or packet is accepted"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PRIMARY.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_PRIMARY: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PRIMARY.inputs.input_0",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "DUT port [\"busy\", \"error\"] is the implementation/observation point for primary_behavior"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PRIMARY.inputs.input_0.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: id=FM_PRIMARY; name=primary_behavior; port=[\"busy\", \"error\"]; signal=[\"external interface signals\"]; state=[\"busy\"].",
+      "evidence_terms": [
+        "busy"
+      ],
+      "id": "RTL-0052",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PRIMARY.inputs.input_0",
+      "ssot_context": {
+        "id": "FM_PRIMARY",
+        "name": "primary_behavior",
+        "port": "[\"busy\", \"error\"]",
+        "signal": "[\"external interface signals\"]",
+        "state": "[\"busy\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PRIMARY.inputs.input_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 1,
+        "matched_terms": [
+          "busy"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "busy"
+        ],
+        "source_scope": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_PRIMARY: input_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PRIMARY.inputs.input_1",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "DUT port [\"busy\", \"error\"] is the implementation/observation point for primary_behavior"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PRIMARY.inputs.input_1.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: id=FM_PRIMARY; name=primary_behavior; port=[\"busy\", \"error\"]; signal=[\"configuration/register state\"]; state=[\"busy\"].",
+      "evidence_terms": [
+        "busy"
+      ],
+      "id": "RTL-0053",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PRIMARY.inputs.input_1",
+      "ssot_context": {
+        "id": "FM_PRIMARY",
+        "name": "primary_behavior",
+        "port": "[\"busy\", \"error\"]",
+        "signal": "[\"configuration/register state\"]",
+        "state": "[\"busy\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PRIMARY.inputs.input_1"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 1,
+        "matched_terms": [
+          "busy"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "busy"
+        ],
+        "source_scope": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_PRIMARY: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PRIMARY.outputs.output_0",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PRIMARY.outputs.output_0.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: value=Accept one byte-oriented valid-ready transaction when valid and ready are high; output result equals data_in XOR comm....",
+      "evidence_terms": [
+        "data",
+        "data_in",
+        "in",
+        "result",
+        "result_valid",
+        "valid"
+      ],
+      "id": "RTL-0054",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PRIMARY.outputs.output_0",
+      "ssot_context": {
+        "value": "Accept one byte-oriented valid-ready transaction when valid and ready are high; output result equals data_in XOR comm..."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PRIMARY.outputs.output_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 6,
+        "matched_terms": [
+          "data",
+          "data_in",
+          "in",
+          "result",
+          "result_valid",
+          "valid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "data",
+          "data_in",
+          "in",
+          "result",
+          "result_valid",
+          "valid"
+        ],
+        "source_scope": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_PRIMARY: busy",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PRIMARY.outputs.busy",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "busy RTL expression implements SSOT expression busy",
+        "DUT port busy is the implementation/observation point for busy"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PRIMARY.outputs.busy.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: name=busy; port=busy; expr=busy.",
+      "evidence_terms": [
+        "busy"
+      ],
+      "id": "RTL-0055",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PRIMARY.outputs.busy",
+      "ssot_context": {
+        "expr": "busy",
+        "name": "busy",
+        "port": "busy"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PRIMARY.outputs.busy"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 1,
+        "matched_terms": [
+          "busy"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "busy"
+        ],
+        "source_scope": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_PRIMARY: error",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PRIMARY.outputs.error",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "error RTL expression implements SSOT expression error",
+        "DUT port error is the implementation/observation point for error"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PRIMARY.outputs.error.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: name=error; port=error; expr=error.",
+      "evidence_terms": [],
+      "id": "RTL-0056",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PRIMARY.outputs.error",
+      "ssot_context": {
+        "expr": "error",
+        "name": "error",
+        "port": "error"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PRIMARY.outputs.error"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_PRIMARY: busy",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PRIMARY.output_rules.busy",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "busy width matches SSOT value 1",
+        "busy RTL expression implements SSOT expression busy",
+        "DUT port busy is the implementation/observation point for busy",
+        "busy is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PRIMARY.output_rules.busy.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: name=busy; port=busy; expr=busy; width=1.",
+      "evidence_terms": [
+        "busy"
+      ],
+      "id": "RTL-0057",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PRIMARY.output_rules.busy",
+      "ssot_context": {
+        "expr": "busy",
+        "name": "busy",
+        "port": "busy",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PRIMARY.output_rules.busy"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 1,
+        "matched_terms": [
+          "busy"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "busy"
+        ],
+        "source_scope": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_PRIMARY: error",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PRIMARY.output_rules.error",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "error width matches SSOT value 1",
+        "error RTL expression implements SSOT expression error",
+        "DUT port error is the implementation/observation point for error",
+        "error is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PRIMARY.output_rules.error.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: name=error; port=error; expr=error; width=1.",
+      "evidence_terms": [],
+      "id": "RTL-0058",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PRIMARY.output_rules.error",
+      "ssot_context": {
+        "expr": "error",
+        "name": "error",
+        "port": "error",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PRIMARY.output_rules.error"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_PRIMARY: busy",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PRIMARY.state_updates.busy",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "busy width matches SSOT value 1",
+        "busy reset behavior matches SSOT value 0",
+        "busy RTL expression implements SSOT expression 1",
+        "busy updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PRIMARY.state_updates.busy.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: name=busy; expr=1; width=1; reset=0.",
+      "evidence_terms": [
+        "busy"
+      ],
+      "id": "RTL-0059",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PRIMARY.state_updates.busy",
+      "ssot_context": {
+        "expr": "1",
+        "name": "busy",
+        "reset": "0",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PRIMARY.state_updates.busy"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 1,
+        "matched_terms": [
+          "busy"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "busy"
+        ],
+        "source_scope": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_PRIMARY: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PRIMARY.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "DUT port [\"busy\", \"error\"] is the implementation/observation point for primary_behavior"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PRIMARY.side_effects.side_effect_0.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: id=FM_PRIMARY; name=primary_behavior; port=[\"busy\", \"error\"]; signal=[\"updates status, counters, events, and observable outputs according to approved Q&A\"]; state=[\"busy\"].",
+      "evidence_terms": [
+        "busy"
+      ],
+      "id": "RTL-0060",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PRIMARY.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "FM_PRIMARY",
+        "name": "primary_behavior",
+        "port": "[\"busy\", \"error\"]",
+        "signal": "[\"updates status, counters, events, and observable outputs according to approved Q&A\"]",
+        "state": "[\"busy\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PRIMARY.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 1,
+        "matched_terms": [
+          "busy"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "busy"
+        ],
+        "source_scope": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_PRIMARY: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PRIMARY.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "DUT port [\"busy\", \"error\"] is the implementation/observation point for primary_behavior"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PRIMARY.error_cases.error_case_0.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: id=FM_PRIMARY; name=primary_behavior; port=[\"busy\", \"error\"]; signal=[{\"condition\": \"malformed input or invalid control policy\", \"result\": \"error status follows error_handling section\"}]; state=[\"busy\"].",
+      "evidence_terms": [
+        "busy",
+        "error_handling",
+        "handling"
+      ],
+      "id": "RTL-0061",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PRIMARY.error_cases.error_case_0",
+      "ssot_context": {
+        "id": "FM_PRIMARY",
+        "name": "primary_behavior",
+        "port": "[\"busy\", \"error\"]",
+        "signal": "[{\"condition\": \"malformed input or invalid control policy\", \"result\": \"error status follows error_handling section\"}]",
+        "state": "[\"busy\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PRIMARY.error_cases.error_case_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "busy",
+          "error_handling",
+          "handling"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "busy",
+          "error_handling",
+          "handling"
+        ],
+        "source_scope": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_CSR",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_CSR",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_CSR.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: id=FM_CSR; name=control_status_access.",
+      "evidence_terms": [],
+      "id": "RTL-0062",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_CSR",
+      "ssot_context": {
+        "id": "FM_CSR",
+        "name": "control_status_access"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_CSR"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_CSR: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_CSR.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_CSR.preconditions.precondition_0.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: value=firmware/control bus access is accepted.",
+      "evidence_terms": [],
+      "id": "RTL-0063",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_CSR.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "firmware/control bus access is accepted"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_CSR.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_CSR: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_CSR.inputs.input_0",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "DUT port [\"error\"] is the implementation/observation point for control_status_access"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_CSR.inputs.input_0.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: id=FM_CSR; name=control_status_access; port=[\"error\"]; signal=[\"address\"]; state=[\"error\"].",
+      "evidence_terms": [
+        "address"
+      ],
+      "id": "RTL-0064",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_CSR.inputs.input_0",
+      "ssot_context": {
+        "id": "FM_CSR",
+        "name": "control_status_access",
+        "port": "[\"error\"]",
+        "signal": "[\"address\"]",
+        "state": "[\"error\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_CSR.inputs.input_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 1,
+        "matched_terms": [
+          "address"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "address"
+        ],
+        "source_scope": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_CSR: input_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_CSR.inputs.input_1",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "DUT port [\"error\"] is the implementation/observation point for control_status_access"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_CSR.inputs.input_1.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: id=FM_CSR; name=control_status_access; port=[\"error\"]; signal=[\"write data\"]; state=[\"error\"].",
+      "evidence_terms": [],
+      "id": "RTL-0065",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_CSR.inputs.input_1",
+      "ssot_context": {
+        "id": "FM_CSR",
+        "name": "control_status_access",
+        "port": "[\"error\"]",
+        "signal": "[\"write data\"]",
+        "state": "[\"error\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_CSR.inputs.input_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_CSR: input_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_CSR.inputs.input_2",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "DUT port [\"error\"] is the implementation/observation point for control_status_access"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_CSR.inputs.input_2.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: id=FM_CSR; name=control_status_access; port=[\"error\"]; signal=[\"write enable\"]; state=[\"error\"].",
+      "evidence_terms": [],
+      "id": "RTL-0066",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_CSR.inputs.input_2",
+      "ssot_context": {
+        "id": "FM_CSR",
+        "name": "control_status_access",
+        "port": "[\"error\"]",
+        "signal": "[\"write enable\"]",
+        "state": "[\"error\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_CSR.inputs.input_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_CSR: input_3",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_CSR.inputs.input_3",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "DUT port [\"error\"] is the implementation/observation point for control_status_access"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_CSR.inputs.input_3.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: id=FM_CSR; name=control_status_access; port=[\"error\"]; signal=[\"byte strobes\"]; state=[\"error\"].",
+      "evidence_terms": [],
+      "id": "RTL-0067",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_CSR.inputs.input_3",
+      "ssot_context": {
+        "id": "FM_CSR",
+        "name": "control_status_access",
+        "port": "[\"error\"]",
+        "signal": "[\"byte strobes\"]",
+        "state": "[\"error\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_CSR.inputs.input_3"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_CSR: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_CSR.outputs.output_0",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_CSR.outputs.output_0.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: value=read data and side effects match registers.register_list.",
+      "evidence_terms": [],
+      "id": "RTL-0068",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_CSR.outputs.output_0",
+      "ssot_context": {
+        "value": "read data and side effects match registers.register_list"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_CSR.outputs.output_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_CSR: error",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_CSR.outputs.error",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "error RTL expression implements SSOT expression error",
+        "DUT port error is the implementation/observation point for error"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_CSR.outputs.error.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: name=error; port=error; expr=error.",
+      "evidence_terms": [],
+      "id": "RTL-0069",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_CSR.outputs.error",
+      "ssot_context": {
+        "expr": "error",
+        "name": "error",
+        "port": "error"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_CSR.outputs.error"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_CSR: error",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_CSR.output_rules.error",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "error width matches SSOT value 1",
+        "error RTL expression implements SSOT expression error",
+        "DUT port error is the implementation/observation point for error",
+        "error is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_CSR.output_rules.error.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: name=error; port=error; expr=error; width=1.",
+      "evidence_terms": [],
+      "id": "RTL-0070",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_CSR.output_rules.error",
+      "ssot_context": {
+        "expr": "error",
+        "name": "error",
+        "port": "error",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_CSR.output_rules.error"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_CSR: error",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_CSR.state_updates.error",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "error width matches SSOT value 1",
+        "error reset behavior matches SSOT value 0",
+        "error RTL expression implements SSOT expression error",
+        "error updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_CSR.state_updates.error.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: name=error; expr=error; width=1; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0071",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_CSR.state_updates.error",
+      "ssot_context": {
+        "expr": "error",
+        "name": "error",
+        "reset": "0",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_CSR.state_updates.error"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_CSR: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_CSR.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "DUT port [\"error\"] is the implementation/observation point for control_status_access"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_CSR.side_effects.side_effect_0.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: id=FM_CSR; name=control_status_access; port=[\"error\"]; signal=[\"RW and W1C fields update exactly as specified\"]; state=[\"error\"].",
+      "evidence_terms": [
+        "RW",
+        "W1C"
+      ],
+      "id": "RTL-0072",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_CSR.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "FM_CSR",
+        "name": "control_status_access",
+        "port": "[\"error\"]",
+        "signal": "[\"RW and W1C fields update exactly as specified\"]",
+        "state": "[\"error\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_CSR.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "RW",
+          "W1C"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "RW",
+          "W1C"
+        ],
+        "source_scope": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_CSR: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_CSR.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "DUT port [\"error\"] is the implementation/observation point for control_status_access"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_CSR.error_cases.error_case_0.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: id=FM_CSR; name=control_status_access; port=[\"error\"]; signal=[{\"condition\": \"unsupported address or illegal access\", \"result\": \"bus error/status error according to error_handling\"}]; state=[\"error\"].",
+      "evidence_terms": [
+        "error_handling",
+        "handling"
+      ],
+      "id": "RTL-0073",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_CSR.error_cases.error_case_0",
+      "ssot_context": {
+        "id": "FM_CSR",
+        "name": "control_status_access",
+        "port": "[\"error\"]",
+        "signal": "[{\"condition\": \"unsupported address or illegal access\", \"result\": \"bus error/status error according to error_handling\"}]",
+        "state": "[\"error\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_CSR.error_cases.error_case_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "error_handling",
+          "handling"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "error_handling",
+          "handling"
+        ],
+        "source_scope": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_0",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_0",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "DUT port [\"accepted_count\", \"busy\", \"error\", \"error\"] is the implementation/observation point for [\"accepted_count\", \"busy\", \"error\", \"error\"]"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_0.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: port=[\"accepted_count\", \"busy\", \"error\", \"error\"]; signal=No output, counter, status bit, or interrupt may change except as a consequence of an approved transaction, event, re...; state=[\"busy\", \"accepted_count\"].",
+      "evidence_terms": [],
+      "id": "RTL-0074",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_0",
+      "ssot_context": {
+        "port": "[\"accepted_count\", \"busy\", \"error\", \"error\"]",
+        "signal": "No output, counter, status bit, or interrupt may change except as a consequence of an approved transaction, event, re...",
+        "state": "[\"busy\", \"accepted_count\"]"
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_1",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_1",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_1.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: signal=The function_model is the scoreboard source of truth for tb-gen.; state=[\"accepted_count\"].",
+      "evidence_terms": [],
+      "id": "RTL-0075",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_1",
+      "ssot_context": {
+        "signal": "The function_model is the scoreboard source of truth for tb-gen.",
+        "state": "[\"accepted_count\"]"
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_2",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_2",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_2.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via single_owner.\nSSOT item context: signal=Any behavior not represented here must be escalated to ssot-gen before RTL signoff..",
+      "evidence_terms": [],
+      "id": "RTL-0076",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_2",
+      "ssot_context": {
+        "signal": "Any behavior not represented here must be escalated to ssot-gen before RTL signoff."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "23442a0bea75a5ef309d6702c4ec8b9a7db1af727316e962f3563a99380680ef",
+  "top": "ssot_screenshot_smoke_20260524_083011",
+  "type": "rtl_authoring_packet"
+}

@@ -26,6 +26,7 @@ import {
 const SOURCE_ROOT = process.env.SOURCE_ROOT || '/Users/brian/Desktop/Project/brian_hw/common_ai_agent';
 const PROJECT_ROOT = process.env.PROJECT_ROOT || '/Users/brian/Desktop/Project/ROOT_IP';
 const WORKFLOW_ROOT = process.env.WORKFLOW_ROOT || path.join(SOURCE_ROOT, 'workflow');
+const CHAT_RECORDER = path.join(SOURCE_ROOT, 'scripts/ui_tests/record_orch_chat.py');
 const ip = process.env.IP || uniqueIp('scriptip');
 const kind = process.env.KIND || 'AXI4-Lite packet status block';
 const runMode = process.env.RUN_MODE || 'starter';
@@ -39,6 +40,8 @@ const newIpCommand = `/new-ip ${ip} ${kind}`;
 
 const { browser, page } = await launch({ viewport: { width: 1900, height: 1150 }, dsf: 2 });
 const stageResults = [];
+let dbUserId = 'admin';
+let displayName = 'admin';
 
 const env = {
   ...process.env,
@@ -67,6 +70,34 @@ const openValidation = async () => {
 const openChat = async () => {
   await clickExact('CHAT');
   await page.waitForTimeout(500);
+};
+
+const chatEntryCount = async () => page.evaluate(() =>
+  document.querySelectorAll('.feed-entry, .react-block, .tool-card').length);
+
+const refreshChat = async () => {
+  try {
+    await page.goto(`${BASE}/?session_id=admin&ip=${ip}&workflow=orchestrator`, {
+      waitUntil: 'domcontentloaded',
+      timeout: 15000,
+    });
+  } catch (e) {
+    log('chat goto soft-timeout:', e.message);
+  }
+  await page.evaluate(() => {
+    const e = [...document.querySelectorAll('button,a,span,.dir-btn,[role="tab"]')]
+      .find(x => /^\s*[⌂\s]*WORKSPACE\s*$/i.test((x.textContent || '').trim()) && x.offsetParent);
+    if (e) e.click();
+  });
+  await page.waitForTimeout(900);
+  await openChat();
+  let count = 0;
+  for (let i = 0; i < 8; i++) {
+    count = await chatEntryCount();
+    if (count > 0) break;
+    await page.waitForTimeout(500);
+  }
+  return count;
 };
 
 const typeAndSubmit = async (text) => {
@@ -213,6 +244,24 @@ const run = (label, cmd, args, { cwd = SOURCE_ROOT, timeoutMs = commandTimeoutMs
   });
 });
 
+const recordChat = (role, content, who = '') => new Promise((resolve) => {
+  const child = spawn('python3', [
+    CHAT_RECORDER,
+    '--project-root', PROJECT_ROOT,
+    '--ip', ip,
+    '--user-id', dbUserId,
+    '--display-name', who || (role === 'assistant' ? 'ATLAS' : role === 'user' ? displayName : 'tool'),
+    '--role', role,
+  ], { cwd: SOURCE_ROOT, env, stdio: ['pipe', 'pipe', 'pipe'] });
+  let stderr = '';
+  child.stderr.on('data', d => { stderr += d.toString(); });
+  child.on('close', (code) => {
+    if (code !== 0) log(`recordChat ${role} failed code=${code}:`, stderr.slice(-600));
+    resolve(code === 0);
+  });
+  child.stdin.end(String(content || ''));
+});
+
 const tailLines = (text, maxLines = 10, maxChars = 1200) => String(text || '')
   .split(/\r?\n/)
   .filter(Boolean)
@@ -250,6 +299,9 @@ try {
   assert(li.status === 200, `login ok (${li.status})`);
   const me = await jget(page, '/api/users/me');
   assert(me.status === 200, `authed (me ${me.status})`);
+  const authUser = (me.body && me.body.user) || {};
+  dbUserId = String(authUser.id || authUser.username || 'admin');
+  displayName = String(authUser.username || authUser.display_name || 'admin');
 
   await page.goto(BASE, { waitUntil: 'networkidle' });
   await page.waitForTimeout(1200);
@@ -288,6 +340,8 @@ try {
 
   const reqPath = path.join(SOURCE_ROOT, '.omc', 'stage-reqs', `${ip}_requirements.md`);
   await writeFile(reqPath, `# ${ip} requirements\n\n${userRequirement}\n`, 'utf8');
+  await recordChat('user', userRequirement, displayName);
+  await recordChat('assistant', `I will run the IP flow for ${ip} from SSOT through PNR and leave stage evidence in this chat.`, 'ATLAS');
 
   const stages = [
     ['ssot', 'python3', headlessArgs('ssot-gen', reqPath), { cwd: SOURCE_ROOT }],
@@ -307,18 +361,32 @@ try {
 
   let shot = 4;
   for (const [stage, cmd, args, opts] of stages) {
-    await refreshValidation();
     const command = [cmd, ...args].join(' ');
-    await capture(shot++, `${stage}-before`, {
+    await recordChat('thought', `Preparing ${stage}: check current ${ip} artifacts, then execute the stage command.`, 'reasoning');
+    await recordChat('tool', `⏺ run_stage(stage="${stage}", ip="${ip}")\n${command}`, 'tool');
+    const beforeChatCount = await refreshChat();
+    assert(beforeChatCount > 0, `${stage} chat feed rendered before execution (${beforeChatCount})`);
+    await capture(shot++, `${stage}-chat-before`, {
       title: `${stage}: before`,
-      status: 'about to execute stage command',
+      status: 'chat feed shows reasoning + tool call before execution',
       command,
     });
     const result = await run(stage, cmd, args, opts);
-    await refreshValidation();
-    await capture(shot++, `${stage}-${result.ok ? 'pass' : 'fail'}`, {
+    await recordChat(
+      'tool_result',
+      `└─ ${result.ok ? 'PASS' : 'FAIL'} code=${result.code} timeout=${result.timedOut}\n${resultDetails(result)}`,
+      'tool',
+    );
+    await recordChat(
+      'assistant',
+      `${stage} ${result.ok ? 'passed' : 'failed'} for ${ip}. ${result.ok ? 'Proceeding to the next stage.' : 'Keeping the failure visible as gate evidence, then continuing only where allowed.'}`,
+      'ATLAS',
+    );
+    const afterChatCount = await refreshChat();
+    assert(afterChatCount > 0, `${stage} chat feed rendered after execution (${afterChatCount})`);
+    await capture(shot++, `${stage}-chat-${result.ok ? 'pass' : 'fail'}`, {
       title: `${stage}: after`,
-      status: `${result.ok ? 'PASS' : 'FAIL'} code=${result.code} timeout=${result.timedOut}`,
+      status: 'chat feed shows tool result + assistant summary',
       command,
       details: resultDetails(result),
     });

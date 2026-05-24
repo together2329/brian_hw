@@ -1,0 +1,32 @@
+{
+  "agent": "common_ai_agent",
+  "authoring_basis": [
+    "SSOT YAML io_list/function_model/cycle_model/fsm sections",
+    "rtl/rtl_todo_plan.json",
+    "rtl/authoring_packets/*.json"
+  ],
+  "filelists": [
+    "list/ssot_screenshot_smoke_20260524_083011.f"
+  ],
+  "generated_at": "2026-05-24T00:39:29Z",
+  "ip": "ssot_screenshot_smoke_20260524_083011",
+  "notes": [
+    "Manual common_ai_agent rtl-gen authoring pass because ssot_to_rtl preflight requires LLM-authored RTL before tool gates can close.",
+    "Top IO follows machine-readable SSOT top IO contracts; prose-only command term is implemented as an internal zero command because no command top port exists in io_list."
+  ],
+  "post_audit_refresh": {
+    "raw_hash_after_audit": "1aaf93409596c82dd25e5170e620d48c49ae35783871ff240bc1830c4cdf2c9a",
+    "reason": "Refreshed after derive_rtl_todos.py --audit-rtl rewrote volatile audit evidence in rtl_todo_plan.json.",
+    "stable_hash_after_audit": "23442a0bea75a5ef309d6702c4ec8b9a7db1af727316e962f3563a99380680ef"
+  },
+  "rtl_files": [
+    "rtl/ssot_screenshot_smoke_20260524_083011.sv"
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "surface": "headless_common_engine",
+  "todo_plan_sha256": "23442a0bea75a5ef309d6702c4ec8b9a7db1af727316e962f3563a99380680ef",
+  "top": "ssot_screenshot_smoke_20260524_083011",
+  "type": "rtl_authoring_provenance",
+  "workflow": "rtl-gen"
+}

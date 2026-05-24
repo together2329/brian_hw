@@ -1,0 +1,695 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 15,
+      "enabled": true,
+      "index": 2,
+      "key": "io_list",
+      "module_task_count": 115,
+      "rule": "Owner module ssot_screenshot_smoke_20260524_083011 is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "io_list",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "name": "ssot_screenshot_smoke_20260524_083011",
+      "refs": [
+        "dataflow",
+        "decomposition",
+        "integration",
+        "io_list",
+        "top_module"
+      ],
+      "wiring_only": true
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "name": "ssot_screenshot_smoke_20260524_083011",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "clk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "clk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "rst_n"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rst_n",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "valid",
+          "valid_ready_transaction_valid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "valid",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ready",
+          "valid_ready_transaction_ready"
+        ],
+        "allow_constant": true,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "ready",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "data_in",
+          "valid_ready_transaction_data_in"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "data_in",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "result",
+          "valid_ready_transaction_result"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "result",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "result_valid",
+          "valid_ready_transaction_result_valid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "result_valid",
+        "source_ref": "io_list.interfaces[0].ports[4]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "accepted_count",
+          "valid_ready_transaction_accepted_count"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "accepted_count",
+        "source_ref": "io_list.interfaces[0].ports[5]",
+        "width": "16"
+      },
+      {
+        "aliases": [
+          "busy",
+          "debug_status_busy"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "busy",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "debug_status_error",
+          "error"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "error",
+        "source_ref": "io_list.interfaces[1].ports[1]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "ssot_screenshot_smoke_20260524_083011",
+  "kind": "module",
+  "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+  "owner_module": "ssot_screenshot_smoke_20260524_083011",
+  "packet_id": "module__ssot_screenshot_smoke_20260524_083011__io_list",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "io_list.port": 10
+    },
+    "module_slice": {
+      "count": 15,
+      "enabled": true,
+      "index": 2,
+      "key": "io_list",
+      "module_task_count": 115,
+      "rule": "Owner module ssot_screenshot_smoke_20260524_083011 is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "io_list",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 10,
+    "source_refs": [
+      "io_list.clock_domains.primary_clk.ports.clk",
+      "io_list.resets.rst_n.ports.rst_n",
+      "io_list.interfaces.valid_ready_transaction.ports.valid",
+      "io_list.interfaces.valid_ready_transaction.ports.ready",
+      "io_list.interfaces.valid_ready_transaction.ports.data_in",
+      "io_list.interfaces.valid_ready_transaction.ports.result",
+      "io_list.interfaces.valid_ready_transaction.ports.result_valid",
+      "io_list.interfaces.valid_ready_transaction.ports.accepted_count",
+      "io_list.interfaces.debug_status.ports.busy",
+      "io_list.interfaces.debug_status.ports.error"
+    ],
+    "status_counts": {
+      "pass": 10
+    },
+    "task_count": 10
+  },
+  "tasks": [
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port clk",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.clock_domains.primary_clk.ports.clk",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "clk width matches SSOT value 1",
+        "clk port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.clock_domains.primary_clk.ports.clk.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via io_list.\nSSOT item context: name=clk; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0026",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.clock_domains.primary_clk.ports.clk",
+      "ssot_context": {
+        "direction": "input",
+        "name": "clk",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.clock_domains.primary_clk.ports.clk"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port rst_n",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.resets.rst_n.ports.rst_n",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "rst_n width matches SSOT value 1",
+        "rst_n port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.resets.rst_n.ports.rst_n.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via io_list.\nSSOT item context: name=rst_n; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0027",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.resets.rst_n.ports.rst_n",
+      "ssot_context": {
+        "direction": "input",
+        "name": "rst_n",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.resets.rst_n.ports.rst_n"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port valid",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.valid_ready_transaction.ports.valid",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "valid width matches SSOT value 1",
+        "valid port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.valid_ready_transaction.ports.valid.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via io_list.\nSSOT item context: name=valid; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0028",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.valid_ready_transaction.ports.valid",
+      "ssot_context": {
+        "direction": "input",
+        "name": "valid",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.valid_ready_transaction.ports.valid"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port ready",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.valid_ready_transaction.ports.ready",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "ready width matches SSOT value 1",
+        "ready port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.valid_ready_transaction.ports.ready.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via io_list.\nSSOT item context: name=ready; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0029",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.valid_ready_transaction.ports.ready",
+      "ssot_context": {
+        "direction": "output",
+        "name": "ready",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.valid_ready_transaction.ports.ready"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port data_in",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.valid_ready_transaction.ports.data_in",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "data_in width matches SSOT value 8",
+        "data_in port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.valid_ready_transaction.ports.data_in.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via io_list.\nSSOT item context: name=data_in; width=8; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0030",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.valid_ready_transaction.ports.data_in",
+      "ssot_context": {
+        "direction": "input",
+        "name": "data_in",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.valid_ready_transaction.ports.data_in"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port result",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.valid_ready_transaction.ports.result",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "result width matches SSOT value 8",
+        "result port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.valid_ready_transaction.ports.result.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via io_list.\nSSOT item context: name=result; width=8; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0031",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.valid_ready_transaction.ports.result",
+      "ssot_context": {
+        "direction": "output",
+        "name": "result",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.valid_ready_transaction.ports.result"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port result_valid",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.valid_ready_transaction.ports.result_valid",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "result_valid width matches SSOT value 1",
+        "result_valid port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.valid_ready_transaction.ports.result_valid.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via io_list.\nSSOT item context: name=result_valid; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0032",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.valid_ready_transaction.ports.result_valid",
+      "ssot_context": {
+        "direction": "output",
+        "name": "result_valid",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.valid_ready_transaction.ports.result_valid"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port accepted_count",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.valid_ready_transaction.ports.accepted_count",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "accepted_count width matches SSOT value 16",
+        "accepted_count port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.valid_ready_transaction.ports.accepted_count.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via io_list.\nSSOT item context: name=accepted_count; width=16; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0033",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.valid_ready_transaction.ports.accepted_count",
+      "ssot_context": {
+        "direction": "output",
+        "name": "accepted_count",
+        "width": "16"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.valid_ready_transaction.ports.accepted_count"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port busy",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.debug_status.ports.busy",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "busy width matches SSOT value 1",
+        "busy port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.debug_status.ports.busy.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via io_list.\nSSOT item context: name=busy; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0034",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.debug_status.ports.busy",
+      "ssot_context": {
+        "direction": "output",
+        "name": "busy",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.debug_status.ports.busy"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port error",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.debug_status.ports.error",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "error width matches SSOT value 1",
+        "error port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.debug_status.ports.error.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via io_list.\nSSOT item context: name=error; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0035",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.debug_status.ports.error",
+      "ssot_context": {
+        "direction": "output",
+        "name": "error",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.debug_status.ports.error"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "23442a0bea75a5ef309d6702c4ec8b9a7db1af727316e962f3563a99380680ef",
+  "top": "ssot_screenshot_smoke_20260524_083011",
+  "type": "rtl_authoring_packet"
+}

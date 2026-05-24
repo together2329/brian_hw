@@ -1,0 +1,136 @@
+{
+  "schema_version": 1,
+  "type": "generic_ssot_rule_rtl_contract",
+  "ip": "ssot_screenshot_smoke_20260524_083011",
+  "top": "ssot_screenshot_smoke_20260524_083011",
+  "generated_at": "2026-05-24T00:09:46Z",
+  "contract": {
+    "top": "ssot_screenshot_smoke_20260524_083011",
+    "transaction": "FM_PRIMARY",
+    "clock": "clk",
+    "reset": "rst_n",
+    "reset_active": "low",
+    "sample_condition": "(((valid) != 0) && ((ready) != 0))",
+    "outputs": [
+      {
+        "name": "busy",
+        "port": "busy",
+        "expr": "((busy) != 0)",
+        "width": 1,
+        "source": {
+          "name": "busy",
+          "expr": "busy",
+          "width": 1,
+          "port": "busy",
+          "description": "Scoreboard-observable busy output mirrors function_model busy state."
+        }
+      },
+      {
+        "name": "error",
+        "port": "error",
+        "expr": "((error) != 0)",
+        "width": 1,
+        "source": {
+          "name": "error",
+          "expr": "error",
+          "width": 1,
+          "port": "error",
+          "description": "Scoreboard-observable error output mirrors function_model error state."
+        }
+      },
+      {
+        "name": "accepted_count",
+        "port": "accepted_count",
+        "expr": "16'(accepted_count)",
+        "width": 16,
+        "source": {
+          "name": "accepted_count",
+          "port": "accepted_count",
+          "expr": "accepted_count",
+          "width": 16,
+          "description": "Externally observable function_model state is driven from the RTL state register."
+        }
+      }
+    ],
+    "state_vars": {
+      "busy": {
+        "width": 1,
+        "reset": 0
+      },
+      "error": {
+        "width": 1,
+        "reset": 0
+      },
+      "accepted_count": {
+        "width": 16,
+        "reset": 0
+      }
+    },
+    "state_updates": [
+      {
+        "name": "busy",
+        "expr": "1",
+        "source": {
+          "name": "busy",
+          "expr": "1",
+          "width": 1,
+          "reset": 0,
+          "description": "Primary accepted transaction marks the IP busy until the cycle_model response point."
+        }
+      }
+    ],
+    "special_outputs": {
+      "ready_output": "ready"
+    },
+    "pipeline_stages": [
+      "S0_ACCEPT",
+      "S1_UPDATE",
+      "S2_OBSERVE"
+    ],
+    "fsm_states": [
+      "IDLE",
+      "ACCEPT",
+      "PROCESS",
+      "RESPOND",
+      "ERROR"
+    ],
+    "fsm_transitions": [
+      {
+        "from": "IDLE",
+        "to": "ACCEPT",
+        "condition": "approved protocol transaction is accepted"
+      },
+      {
+        "from": "ACCEPT",
+        "to": "PROCESS",
+        "condition": "function_model primary transaction begins"
+      },
+      {
+        "from": "PROCESS",
+        "to": "RESPOND",
+        "condition": "observable output/status is ready"
+      },
+      {
+        "from": "PROCESS",
+        "to": "ERROR",
+        "condition": "error_handling condition detected"
+      },
+      {
+        "from": "RESPOND",
+        "to": "IDLE",
+        "condition": "response/status event observed and no further work pending"
+      },
+      {
+        "from": "ERROR",
+        "to": "IDLE",
+        "condition": "approved clear/reset policy completes"
+      }
+    ],
+    "input_map": {
+      "valid": "valid",
+      "data_in": "data_in"
+    },
+    "apb_registers": {},
+    "source": "rtl_contract + function_model.output_rules"
+  }
+}

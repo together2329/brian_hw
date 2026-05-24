@@ -1,0 +1,1 @@
+rtl/ssot_screenshot_smoke_20260524_083011.sv

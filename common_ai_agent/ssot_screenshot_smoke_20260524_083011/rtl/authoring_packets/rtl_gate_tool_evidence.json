@@ -1,0 +1,405 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "owner": {
+      "file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "name": "ssot_screenshot_smoke_20260524_083011",
+      "refs": [
+        "dataflow",
+        "decomposition",
+        "integration",
+        "io_list",
+        "top_module"
+      ],
+      "wiring_only": true
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+        "name": "ssot_screenshot_smoke_20260524_083011",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "clk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "clk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "rst_n"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rst_n",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "valid",
+          "valid_ready_transaction_valid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "valid",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ready",
+          "valid_ready_transaction_ready"
+        ],
+        "allow_constant": true,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "ready",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "data_in",
+          "valid_ready_transaction_data_in"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "data_in",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "result",
+          "valid_ready_transaction_result"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "result",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "result_valid",
+          "valid_ready_transaction_result_valid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "result_valid",
+        "source_ref": "io_list.interfaces[0].ports[4]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "accepted_count",
+          "valid_ready_transaction_accepted_count"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "accepted_count",
+        "source_ref": "io_list.interfaces[0].ports[5]",
+        "width": "16"
+      },
+      {
+        "aliases": [
+          "busy",
+          "debug_status_busy"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "busy",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "debug_status_error",
+          "error"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "error",
+        "source_ref": "io_list.interfaces[1].ports[1]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": false,
+    "evidence_closure_allowed": true,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "ssot_screenshot_smoke_20260524_083011",
+  "kind": "gate",
+  "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+  "owner_module": "ssot_screenshot_smoke_20260524_083011",
+  "packet_id": "rtl_gate_tool_evidence",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "rtl_gate.rtl_gen": 4
+    },
+    "module_slice": {},
+    "open_required_count": 0,
+    "required_count": 4,
+    "source_refs": [
+      "quality_gates.rtl_gen.common_ai_agent_authoring",
+      "quality_gates.rtl_gen.dut_compile",
+      "quality_gates.rtl_gen.dut_lint",
+      "quality_gates.rtl_gen.dynamic_todo_closure"
+    ],
+    "status_counts": {
+      "pass": 4
+    },
+    "task_count": 4
+  },
+  "tasks": [
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: RTL is authored by common_ai_agent rtl-gen, not by direct operator edits",
+      "criteria": [
+        "rtl/rtl_authoring_provenance.json exists",
+        "provenance agent is common_ai_agent",
+        "provenance workflow is rtl-gen",
+        "provenance surface is atlas_ui, textual_ui, or headless_common_engine",
+        "provenance todo_plan_sha256 matches the current rtl_todo_plan.json",
+        "provenance rtl_files lists every SSOT manifest RTL file",
+        "provenance rtl_files covers the current DUT filelist sources",
+        "Traceability keeps source_ref quality_gates.rtl_gen.common_ai_agent_authoring",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv"
+      ],
+      "detail": "RTL approval requires provenance that the common engine/ATLAS/Textual/headless rtl-gen path wrote the RTL from the current SSOT-derived TODO plan.\nSSOT ref: quality_gates.rtl_gen.common_ai_agent_authoring.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "rtl/rtl_authoring_provenance.json",
+        "kind": "common_ai_agent_authoring",
+        "profile": "standard",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0006",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.common_ai_agent_authoring"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "rtl/rtl_authoring_provenance.json"
+        ],
+        "reason": "RTL authoring provenance proves common_ai_agent rtl-gen ownership.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: DUT-only RTL compile report passes after the final RTL edit",
+      "criteria": [
+        "rtl/rtl_compile.json exists",
+        "rtl_compile.json reports dut_only=true",
+        "rtl_compile.json passed=true with zero errors, diagnostics, and style violations",
+        "rtl_compile.json is newer than or equal to every listed DUT RTL source",
+        "rtl_compile.json rtl_files covers the current DUT filelist Verilog/SystemVerilog sources",
+        "Traceability keeps source_ref quality_gates.rtl_gen.dut_compile",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv"
+      ],
+      "detail": "Compile approval must come from the canonical rtl_compile_report.py artifact generated after RTL generation or repair.\nSSOT ref: quality_gates.rtl_gen.dut_compile.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "rtl/rtl_compile.json",
+        "kind": "dut_compile",
+        "profile": "standard",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0017",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.dut_compile",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.dut_compile"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "rtl/rtl_compile.json"
+        ],
+        "reason": "DUT-only compile artifact passed with zero errors, diagnostics, and style violations.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: DUT-only lint report passes after the final RTL edit",
+      "criteria": [
+        "lint/dut_lint.json exists",
+        "dut_lint.json reports dut_only=true",
+        "dut_lint.json passed=true with zero errors and zero warnings",
+        "dut_lint.json is newer than or equal to every listed DUT RTL source",
+        "dut_lint.json rtl_files covers the current DUT filelist RTL/header sources",
+        "No ad-hoc lint suppression violation remains unless represented by an exact SSOT waiver",
+        "Traceability keeps source_ref quality_gates.rtl_gen.dut_lint",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv"
+      ],
+      "detail": "Lint approval must come from the canonical dut_lint_report.py artifact and must not rely on ad-hoc suppressions.\nSSOT ref: quality_gates.rtl_gen.dut_lint.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "lint/dut_lint.json",
+        "kind": "dut_lint",
+        "profile": "standard",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0018",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.dut_lint",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.dut_lint"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "lint/dut_lint.json"
+        ],
+        "reason": "DUT-only lint artifact passed with zero errors, warnings, and suppression violations.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: every required rtl_todo_plan item is closed before rtl-gen PASS",
+      "criteria": [
+        "Every required non-closure task has todo_completion.status=pass",
+        "open_required_todos is zero",
+        "all_required_todos_pass is true",
+        "Traceability keeps source_ref quality_gates.rtl_gen.dynamic_todo_closure",
+        "Primary implementation evidence is in rtl/ssot_screenshot_smoke_20260524_083011.sv"
+      ],
+      "detail": "rtl-gen PASS is forbidden until all required implementation, SSOT workflow, and RTL gate TODOs have pass status.\nSSOT ref: quality_gates.rtl_gen.dynamic_todo_closure.\nOwner: ssot_screenshot_smoke_20260524_083011 in rtl/ssot_screenshot_smoke_20260524_083011.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "rtl/rtl_todo_plan.json",
+        "kind": "dynamic_todo_closure",
+        "profile": "standard",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0019",
+      "owner_file": "rtl/ssot_screenshot_smoke_20260524_083011.sv",
+      "owner_module": "ssot_screenshot_smoke_20260524_083011",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.dynamic_todo_closure"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "rtl/rtl_todo_plan.json"
+        ],
+        "reason": "Every required non-closure TODO has pass status.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "23442a0bea75a5ef309d6702c4ec8b9a7db1af727316e962f3563a99380680ef",
+  "top": "ssot_screenshot_smoke_20260524_083011",
+  "type": "rtl_authoring_packet"
+}
