@@ -2905,6 +2905,40 @@ def create_app():
         raw = os.environ.get("ATLAS_MULTI_USER", "1").strip().lower()
         return raw not in ("0", "false", "no", "off")
 
+    def _truthy_atlas_value(value: Any) -> bool:
+        return str(value or "").strip().lower() not in ("", "0", "false", "no", "off")
+
+    def _normalize_atlas_exec_mode(value: Any) -> str:
+        mode = str(value or "").strip().lower().replace("_", "-")
+        aliases = {
+            "single": "single-worker",
+            "single-worker": "single-worker",
+            "single worker": "single-worker",
+            "worker": "single-worker",
+            "serial": "single-worker",
+            "orch": "orchestrator",
+            "orchestrator-mode": "orchestrator",
+            "multi-worker": "orchestrator",
+            "multi worker": "orchestrator",
+        }
+        mode = aliases.get(mode, mode)
+        return mode if mode in {"single-worker", "orchestrator"} else ""
+
+    def _current_atlas_exec_mode() -> str:
+        if os.environ.get("ATLAS_ORCHESTRATOR_MODE") is not None:
+            return "orchestrator" if _truthy_atlas_value(os.environ.get("ATLAS_ORCHESTRATOR_MODE")) else "single-worker"
+        return (
+            _normalize_atlas_exec_mode(os.environ.get("ATLAS_EXEC_MODE"))
+            or _normalize_atlas_exec_mode(os.environ.get("ATLAS_DEFAULT_EXEC_MODE"))
+            or "orchestrator"
+        )
+
+    def _new_ip_initial_workflow(explicit: Any = "") -> str:
+        requested = normalize_session_name(str(explicit or ""))
+        if requested in {"orchestrator", "ssot-gen"}:
+            return requested
+        return "orchestrator" if _current_atlas_exec_mode() == "orchestrator" else "ssot-gen"
+
     if _multi_user_env:
         print(f"[atlas] Multi-user enabled (process_per_session={'on' if _use_proc else 'off'})")
     # single_user collapses every WS-bound session_id onto "default" so
@@ -4841,6 +4875,9 @@ def create_app():
             body = {}
         name = str((body or {}).get("name") or "").strip()
         kind = str((body or {}).get("kind") or "TBD").strip() or "TBD"
+        workflow = _new_ip_initial_workflow(
+            (body or {}).get("workflow") or (body or {}).get("initial_workflow")
+        )
         if not name:
             return JSONResponse({"error": "name required"}, status_code=400)
         if not _valid_ip_name(name) or "/" in name or "\\" in name or ".." in name:
@@ -4861,8 +4898,8 @@ def create_app():
         multi_user_on = _multi_user_enabled()
         if multi_user_on and (not username or not user_id):
             return JSONResponse({"error": "login required"}, status_code=401)
-        session_namespace = f"{username}/{name}/ssot-gen" if username else ""
-        session_dir = (PROJECT_ROOT / ".session" / username / name / "ssot-gen") if username else None
+        session_namespace = f"{username}/{name}/{workflow}" if username else ""
+        session_dir = (PROJECT_ROOT / ".session" / username / name / workflow) if username else None
         db_session: dict[str, Any] = {}
         workspace_row: dict[str, Any] = {}
         ip_row: dict[str, Any] = {}
@@ -4881,7 +4918,7 @@ def create_app():
                     "namespace": session_namespace,
                     "owner": username,
                     "ip": name,
-                    "workflow": "ssot-gen",
+                    "workflow": workflow,
                 }
                 with AtlasDB() as db:
                     workspace_row = db.upsert_workspace(
@@ -4900,12 +4937,12 @@ def create_app():
                         user_id,
                         owner=username,
                         ip=name,
-                        workflow="ssot-gen",
+                        workflow=workflow,
                         workspace_id=str(workspace_row.get("id") or ""),
                         ip_id=str(ip_row.get("id") or name),
                         project_id=name,
                         directory=str(session_dir) if session_dir is not None else "",
-                        title=f"{name} / ssot-gen",
+                        title=f"{name} / {workflow}",
                         status="active",
                         summary=summary,
                     )
@@ -4918,6 +4955,7 @@ def create_app():
                              "ssot_path": f"{name}/yaml/{name}.ssot.yaml",
                              "paths": paths,
                              "session": session_namespace,
+                             "workflow": workflow,
                              "session_uid": str(db_session.get("session_uid") or ""),
                              "workspace_id": str(workspace_row.get("id") or ""),
                              "ip_block_id": str(ip_row.get("id") or "")})
@@ -11122,11 +11160,12 @@ def create_app():
                 continue
         return canon
 
-    def _set_active_ssot_ip(ip: str) -> None:
+    def _set_active_ssot_ip(ip: str, workflow: str = "ssot-gen") -> None:
         if not _valid_ip_name(ip):
             return
+        workflow = normalize_session_name(str(workflow or "ssot-gen")) or "ssot-gen"
         _atlas_active_ip_cv.set(ip)
-        _atlas_active_session_cv.set(_canonical_session_string(ip, "ssot-gen"))
+        _atlas_active_session_cv.set(_canonical_session_string(ip, workflow))
 
     def _infer_ip_from_project_root() -> str:
         """Infer an IP when ATLAS is pointed directly at an IP workspace."""
@@ -13885,7 +13924,8 @@ def create_app():
             _emit_workflow_result(f"[SSOT PLAN] failed to scaffold {ip}: {e}", "new-ip")
             return True
 
-        _set_active_ssot_ip(ip)
+        initial_workflow = _new_ip_initial_workflow()
+        _set_active_ssot_ip(ip, initial_workflow)
         state = _new_ssot_state(ip, kind)
         _ensure_new_ip_structure(ip)
         _ensure_ssot_draft(ip, kind)
@@ -13896,7 +13936,7 @@ def create_app():
                 "Run `/import " + ip + " " + " ".join(import_paths) + "` to populate SSOT TODOs."
             )
         _save_ssot_state(ip, state)
-        session = _canonical_session_string(ip)
+        session = _canonical_session_string(ip, initial_workflow)
         plan = _render_new_ip_plan(ip, kind, state)
         if import_notes:
             plan += "\n\nImport:\n" + "\n".join(f"- {line}" for line in import_notes)
@@ -13908,14 +13948,13 @@ def create_app():
         _append_active_history("assistant", "```\n" + plan + "\n```")
         _emit_workflow_result(plan, "new-ip")
         _emit_ssot_approval_ready(ip, state)
-        # Tell the frontend to pivot to the newly-created IP under
-        # ssot-gen so the user lands directly in the import / Q&A
-        # workspace instead of having to flip the IP dropdown by hand.
+        # Tell legacy frontend surfaces to pivot to the newly-created IP
+        # using the execution-mode default workflow.
         try:
             bridge.emit(
                 "session_switch_request",
                 ip=ip,
-                workflow="ssot-gen",
+                workflow=initial_workflow,
                 reason="new-ip",
             )
         except Exception:

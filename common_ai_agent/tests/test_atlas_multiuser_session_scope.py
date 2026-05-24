@@ -868,6 +868,8 @@ def test_ip_create_endpoint_scaffolds_once_and_rejects_duplicate(tmp_path, monke
     monkeypatch.setenv("HOME", str(tmp_path / "home"))
     monkeypatch.setenv("ATLAS_DB_PATH", str(tmp_path / "atlas.db"))
     monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_EXEC_MODE", "single-worker")
+    monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODE", "0")
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
 
@@ -905,6 +907,42 @@ def test_ip_create_endpoint_scaffolds_once_and_rejects_duplicate(tmp_path, monke
 
     assert duplicate.status_code == 409
     assert "already exists" in duplicate.json()["error"]
+
+
+def test_ip_create_endpoint_uses_orchestrator_workflow_in_orchestrator_mode(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+    from core.atlas_db import AtlasDB
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_DB_PATH", str(tmp_path / "atlas.db"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_EXEC_MODE", "orchestrator")
+    monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODE", "1")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    response = client.post("/api/ip/create", json={"name": "mctp"})
+
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert payload["session"] == "alice/mctp/orchestrator"
+    assert payload["workflow"] == "orchestrator"
+    assert (tmp_path / ".session" / "alice" / "mctp" / "orchestrator" / "conversation.json").is_file()
+
+    listed = client.get("/api/ip/list")
+    assert listed.status_code == 200, listed.text
+    assert listed.json()["items"][0]["workflows"] == ["orchestrator"]
+
+    with AtlasDB() as db:
+        session = db.get_session("alice/mctp/orchestrator")
+        assert session is not None
+        assert session["ip"] == "mctp"
+        assert session["workflow"] == "orchestrator"
+        assert session["summary"]["workflow"] == "orchestrator"
 
 
 def test_model_scoped_session_dirs_are_opt_in(tmp_path, monkeypatch):

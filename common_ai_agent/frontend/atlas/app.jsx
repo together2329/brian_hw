@@ -319,6 +319,11 @@ const App = () => {
     const wf = String(value || '');
     return wf === WORKFLOW_DEFAULT || TOP_WORKFLOWS.has(wf);
   }, [TOP_WORKFLOWS]);
+  const newIpInitialWorkflow = React.useCallback(() => (
+    normalizeAtlasExecMode(execMode || window.ATLAS_EXEC_MODE || window.ATLAS_DEFAULT_EXEC_MODE) === 'orchestrator'
+      ? 'orchestrator'
+      : 'ssot-gen'
+  ), [execMode]);
 
   const normalizeSession = React.useCallback((value) => {
     const norm = (window.atlasData && window.atlasData.normalizeSessionName) || window.normalizeAtlasSessionName;
@@ -1470,19 +1475,18 @@ const App = () => {
     const me = authedOwner
       || activeSessionId
       || 'default';
-    const namespace = `${me}/${ip}/ssot-gen`;
+    const requestedWorkflow = newIpInitialWorkflow();
+    let createPayload = {};
     try {
       const createResponse = await fetch('/api/ip/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: ip, kind: 'TBD' }),
+        body: JSON.stringify({ name: ip, kind: 'TBD', workflow: requestedWorkflow }),
       });
+      try { createPayload = await createResponse.json(); } catch (_) { createPayload = {}; }
       if (!createResponse.ok) {
         let message = createResponse.statusText || `HTTP ${createResponse.status}`;
-        try {
-          const payload = await createResponse.json();
-          message = payload.error || payload.detail || message;
-        } catch (_) {}
+        message = createPayload.error || createPayload.detail || message;
         showNotice(`Failed to create IP "${ip}": ${message}`);
         return false;
       }
@@ -1490,55 +1494,14 @@ const App = () => {
       showNotice(`Failed to create IP "${ip}": ${String(e && e.message || e)}`);
       return false;
     }
+    const createdNamespace = normalizeSession(createPayload.session || '');
+    const createdParts = splitSessionNamespace(createdNamespace);
+    const workflow = normalizeSession(createPayload.workflow || createdParts.workflow || requestedWorkflow) || requestedWorkflow;
     // Local state first so the dropdown and scope reflect the new IP
     // immediately after the scaffold exists.
     setIpOptions(prev => Array.from(new Set([ip].concat(prev || []))));
-    setActiveIp(ip);
-    setActiveSessionId(me);
-    setActiveNamespace(namespace);
     try { setScreen('workspace'); localStorage.atlasScreen = 'workspace'; } catch (_) {}
-    window.ACTIVE_SESSION = namespace;
-    window.CONTEXT = Object.assign({}, window.CONTEXT || {}, {
-      active_session: namespace,
-      owner: me,
-      session_id: me,
-      ip_id: ip,
-      ip,
-      workspace: 'ssot-gen',
-      active_workflow: 'ssot-gen',
-    });
-    window.SCOPE_PATH = ip;
-    try { localStorage.setItem('atlasActiveSession', namespace); } catch (_) {}
-    syncNamespaceUrl(namespace, me, ip, 'ssot-gen');
-    try { window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'CONTEXT' })); } catch (_) {}
-    if (window.atlasData && typeof window.atlasData.setUserSessionId === 'function') {
-      window.atlasData.setUserSessionId(me);
-    }
-    if (window.atlasData && typeof window.atlasData.setScopePath === 'function') {
-      window.atlasData.setScopePath(ip);
-    }
-    try { window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'SCOPE_PATH' })); } catch (_) {}
-    // /api/ip/create is the single creation path for +IP. Do not send
-    // `/new-ip` after this point: the server now rejects duplicate IP
-    // names, and this freshly-created IP would count as an existing one.
-    try {
-      const response = await fetch('/api/session/activate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ owner: me, ip, workflow: 'ssot-gen' }),
-      });
-      if (response && response.ok) {
-        let payload = {};
-        try { payload = await response.json(); } catch (_) { payload = {}; }
-        applySessionMeta(payload, namespace);
-      }
-    } catch (_) {}
-    if (window.backend) {
-      try {
-        if (typeof window.backend.switchSession === 'function') window.backend.switchSession(namespace);
-        else if (typeof window.backend.connect === 'function') window.backend.connect(namespace);
-      } catch (_) {}
-    }
+    activateNamespace(me, ip, workflow, true, { preserveRunning: execMode === 'orchestrator' });
     setTimeout(() => {
       try { window.atlasData && window.atlasData.refreshFileTree && window.atlasData.refreshFileTree(ip, { recursive: true }); } catch (_) {}
       try { refreshTopTargets(); } catch (_) {}
@@ -2059,7 +2022,7 @@ const App = () => {
           </select>
         </label>
         <button className="dir-btn"
-                title="Create a new IP under the current user and switch to it (ssot-gen workflow)"
+                title={`Create a new IP under the current user and switch to ${newIpInitialWorkflow()}`}
                 onClick={() => beginNameEntry('ip')}>+ IP</button>
         {nameEntry && nameEntry.kind === 'ip' && (
           <form className="dir-name-entry"

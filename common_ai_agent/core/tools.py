@@ -6448,9 +6448,9 @@ _DIRECT_WORKFLOW_ALIASES = {
 }
 
 _DIRECT_STAGE_COMMANDS = {
-    "fl-model": ("ssot-fl-model",),
-    "fl-model-gen": ("ssot-fl-model",),
-    "ssot-fl-model": ("ssot-fl-model",),
+    "fl-model": (),
+    "fl-model-gen": (),
+    "ssot-fl-model": (),
     "cl": ("ssot-cycle-model", "ssot-dual-fcov"),
     "cl-model": ("ssot-cycle-model", "ssot-dual-fcov"),
     "cl-model-gen": ("ssot-cycle-model", "ssot-dual-fcov"),
@@ -6462,6 +6462,17 @@ _DIRECT_STAGE_COMMANDS = {
     "equivalence-goals": ("ssot-equiv-goals",),
     "ssot-equiv-goals": ("ssot-equiv-goals",),
 }
+
+
+def _direct_needs_fl_authoring_instruction(workflow=None, stages=None):
+    names = _normalize_dispatch_stages(stages)
+    if workflow:
+        names.insert(0, str(workflow).strip())
+    return any(
+        str(name or "").strip().lower()
+        in {"fl-model", "fl-model-gen", "ssot-fl-model", "model-equivalence"}
+        for name in names
+    )
 
 
 def _normalize_dispatch_stages(stages):
@@ -6547,6 +6558,19 @@ def _build_direct_dispatch_task(target, scope, prompt, ip, payload, schedule, ru
     if not task:
         subject = ip or scope or "current scope"
         task = f"Run {target} for {subject}."
+
+    if ip and target == "fl-model-gen" and _direct_needs_fl_authoring_instruction(workflow=workflow, stages=stages):
+        fl_instruction = (
+            f"FL authoring rule for {ip}: do not run /ssot-fl-model or emit_fl_model.py as the "
+            f"authoring path. Read yaml/{ip}.ssot.yaml, author model/functional_model.py, "
+            "model/decomposition.json, model/fl_model_check.json, and cov/fcov_plan.json directly "
+            "from the SSOT, then run "
+            f"python3 \"$ATLAS_WORKFLOW_ROOT/fl-model-gen/scripts/check_fl_model_artifacts.py\" {ip} "
+            "--root \"$ATLAS_PROJECT_ROOT\" as the gate. Fix authored artifacts until that gate passes; "
+            "if the SSOT is underspecified, emit [SSOT TBD REPORT] -> ssot-gen with exact YAML paths."
+        )
+        if fl_instruction not in task:
+            task = f"{fl_instruction}\n\n{task}"
 
     commands = _direct_stage_commands(workflow=workflow, stages=stages)
     if commands and ip:

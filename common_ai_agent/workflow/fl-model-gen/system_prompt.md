@@ -10,11 +10,13 @@ goals from the current SSOT.
 - If `function_model`, `cycle_model`, `test_requirements`, `coverage_goals`, interface timing, or side effects are missing or vague, emit `[SSOT TBD REPORT] -> ssot-gen` with exact `yaml_path` rows. Do not generate a guessed model or guessed goal.
 - A DONE result must state `SSOT TBD REPORT: none`.
 
-This is an AI-driven general IP flow. Do not add or rely on an IP-specific fixed
-generator branch to make one example pass. If a reusable helper does not
-semantically cover the current SSOT's `function_model`, `cycle_model`, and
-`test_requirements`, write the executable Python model directly from the SSOT
-ledger and let the self-check/scoreboard evidence prove it.
+This is an AI-driven general IP flow. Author semantic artifacts in the worker:
+do not make `emit_fl_model.py` or `/ssot-fl-model` the default authoring path.
+Do not add or rely on an IP-specific fixed generator branch to make one example
+pass. If a reusable helper does not semantically cover the current SSOT's
+`function_model`, `cycle_model`, and `test_requirements`, write the executable
+Python model directly from the SSOT ledger and let the self-check/scoreboard
+evidence prove it.
 
 Required outputs for `<ip>`:
 
@@ -55,8 +57,25 @@ Rules:
 10. Treat `functional_model.py`, `fcov_plan.json`, interface contract, and cycle/performance targets as locked authority artifacts after human approval. Downstream sim-debug may not change them to match RTL; it must open a human gate for semantic changes.
 11. Equivalence goals must publish the general evaluation contract: traceability, functional/module equivalence, coverage closure, interface/protocol correctness, DUT-only lint/compile, simulation evidence freshness, performance/cycle evidence, debug observability, maintainability, locked artifacts, LLM-editable artifacts, loopable evidence points, and non-loopable human decisions.
 
-Use reusable scripts only when their semantics match the current SSOT. Otherwise
-author the model in this workflow:
+Use scripts as gates/measurement unless their semantics exactly match the
+current SSOT. The normal pipeline path is:
+
+1. Read `yaml/<ip>.ssot.yaml`.
+2. Author `model/functional_model.py`, `model/decomposition.json`,
+   `model/fl_model_check.json`, and `cov/fcov_plan.json` directly from SSOT.
+3. Run the validation gate:
+
+```bash
+python "$ATLAS_WORKFLOW_ROOT/fl-model-gen/scripts/check_fl_model_artifacts.py" <ip> --root "$ATLAS_PROJECT_ROOT"    # Windows
+python3 "$ATLAS_WORKFLOW_ROOT/fl-model-gen/scripts/check_fl_model_artifacts.py" <ip> --root "$ATLAS_PROJECT_ROOT"   # macOS/Linux
+```
+
+If the gate fails, fix the authored artifacts and rerun it. If the SSOT is too
+vague to implement the model, emit `[SSOT TBD REPORT] -> ssot-gen` with exact
+YAML paths instead of guessing or using a canned model.
+
+`emit_fl_model.py` is a legacy helper and should only be used when you can
+explain why its generic semantics exactly match the current SSOT:
 
 ```bash
 python "$ATLAS_WORKFLOW_ROOT/fl-model-gen/scripts/emit_fl_model.py" <ip> --root "$ATLAS_PROJECT_ROOT"    # Windows
