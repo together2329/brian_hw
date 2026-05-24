@@ -674,6 +674,20 @@ class TestAtlasUiWorkerDispatchTemplateWorkflow(unittest.TestCase):
         self.assertTrue(response.get("ok"), response)
         self.assertEqual(posted.get("template"), "custom-rtl")
 
+    def test_dispatch_accepts_worker_direct_trigger_source(self):
+        response, posted = self._dispatch({
+            "workflow": "ssot-gen",
+            "ip": "dma330",
+            "session": "admin/dma330/ssot-gen",
+            "prompt": "Draft SSOT from this worker view",
+            "trigger_source": "worker_direct_chat",
+            "worker": "http://localhost:8001",
+        })
+
+        self.assertTrue(response.get("ok"), response)
+        self.assertEqual(response.get("trigger_source"), "worker_direct_chat")
+        self.assertEqual(posted.get("session"), "admin/dma330/ssot-gen")
+
     def test_dispatch_accepts_windows_session_path_as_namespace(self):
         response, posted = self._dispatch({
             "workflow": "rtl-gen",
@@ -1554,6 +1568,9 @@ class TestAtlasPipelineOrchestratorNamespace(unittest.TestCase):
         self.assertIn("session: orchSession", workspace_src)
         self.assertIn("viewOnly: true", workspace_src)
         self.assertIn("if (workflow === 'orchestrator')", workspace_src)
+        self.assertIn("worker_direct_chat", workspace_src)
+        self.assertIn("setInterval(tick, 2500)", workspace_src)
+        self.assertIn("trigger_source", jobs_src)
         self.assertIn("allowInactiveConversation", data_src)
         self.assertIn('raw_workflow and raw_workflow != "orchestrator"', jobs_src)
         self.assertIn("const ORCHESTRATOR_FLOW_STAGE", data_src)

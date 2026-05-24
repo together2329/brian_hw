@@ -3887,6 +3887,7 @@ def register_jobs_routes(
         exec_mode       = _normalize_exec_mode(body.get("exec_mode"))
         stage_raw       = (body.get("stage_id") or body.get("stage") or "").strip()
         session_raw     = (body.get("session")  or "").strip()
+        trigger_source  = str(body.get("trigger_source") or "").strip()
         session_name    = normalize_session_name(session_raw or _default_job_session(request, ip, workflow))
         worker_override = (body.get("worker")   or "").strip()
         if not workflow:
@@ -3903,6 +3904,8 @@ def register_jobs_routes(
             return JSONResponse({"error": f"invalid model {model!r}"}, status_code=400)
         if rtl_version_id and not re.match(r"^[A-Za-z0-9_.:\-]+$", rtl_version_id):
             return JSONResponse({"error": f"invalid rtl_version_id {rtl_version_id!r}"}, status_code=400)
+        if trigger_source and not re.match(r"^[A-Za-z0-9_.:\-]+$", trigger_source):
+            return JSONResponse({"error": f"invalid trigger_source {trigger_source!r}"}, status_code=400)
         if body.get("run_mode") is not None and not run_mode:
             return JSONResponse({"error": "run_mode must be starter, engineering, or signoff"}, status_code=400)
         if body.get("exec_mode") is not None and not exec_mode:
@@ -3953,6 +3956,7 @@ def register_jobs_routes(
             rtl_version_id=rtl_version_id, run_mode=run_mode, exec_mode=exec_mode,
             user_id=request_user,
             db_user_id=request_db_user,
+            trigger_source=trigger_source,
         )
         if job.get("status") == "error":
             return JSONResponse({"error": job.get("error"), "worker": job.get("worker")}, status_code=502)
@@ -3974,6 +3978,7 @@ def register_jobs_routes(
             "workflow_run_id": job.get("workflow_run_id", ""),
             "db_session_id":   job.get("db_session_id", ""),
             "worker_command": job["worker_command"],
+            "trigger_source":  job.get("trigger_source", ""),
             "status":         job["status"],
         })
 

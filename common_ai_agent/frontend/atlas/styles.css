@@ -1042,6 +1042,25 @@ html[data-platform="windows"] .app {
   font-family: var(--mono);
 }
 .prompt-row .ps { color: var(--accent); font-weight: 600; user-select: none; line-height: 1.55; }
+.prompt-route-pill {
+  flex: 0 0 auto;
+  max-width: 190px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 1px 7px;
+  border: 1px solid var(--line-2);
+  border-radius: 3px;
+  color: var(--fg-mute);
+  background: var(--bg-2);
+  font-size: var(--ui-small-font-size);
+  line-height: 1.55;
+}
+.prompt-route-pill[data-route="workflow-dispatch"] {
+  color: var(--accent);
+  border-color: color-mix(in oklch, var(--accent) 46%, var(--line-2));
+  background: color-mix(in oklch, var(--accent) 10%, transparent);
+}
 .prompt-row input,
 .prompt-row textarea {
   flex: 1;

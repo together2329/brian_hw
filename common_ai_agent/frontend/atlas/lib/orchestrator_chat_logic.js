@@ -125,15 +125,24 @@
     var match = String(argsText || '').match(re);
     return match ? (match[1] || match[2] || match[3] || '').trim() : '';
   }
+  function hValueText(value) {
+    if (value == null) return '';
+    if (typeof value === 'string') return value.trim();
+    if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') return String(value).trim();
+    try {
+      return JSON.stringify(value);
+    } catch (_) {
+      return String(value).trim();
+    }
+  }
   function hFirstMetaValue() {
     for (var i = 0; i < arguments.length; i++) {
       var value = arguments[i];
       if (Array.isArray(value)) {
-        var compact = value.map(function (v) { return String(v == null ? '' : v).trim(); })
-          .filter(Boolean);
+        var compact = value.map(hValueText).filter(Boolean);
         if (compact.length) return compact.join(', ');
       } else {
-        var text = String(value == null ? '' : value).trim();
+        var text = hValueText(value);
         if (text) return text;
       }
     }
@@ -160,7 +169,7 @@
       if (pm) { try { var pj = JSON.parse(pm[1]); if (pj && typeof pj === 'object') payload = pj; } catch (_) {} }
     }
     var stages = (a && Array.isArray(a.stages))
-      ? a.stages.map(function (s) { return String(s || '').trim(); }).filter(Boolean) : [];
+      ? a.stages.map(hValueText).filter(Boolean) : [];
     var workflow = hFirstMetaValue(a && a.workflow, hArgMetaValue(argsText, 'workflow'));
     var target = stages.length ? stages.join(', ') : workflow;
     var sent = {
@@ -184,7 +193,7 @@
         error: hFirstMetaValue(r.error, r.result && r.result.error),
       };
       var perStage = jobs
-        .map(function (j) { return { workflow: String(j.workflow || '').trim(), status: String(j.status || '').trim() }; })
+        .map(function (j) { return { workflow: hValueText(j.workflow), status: hValueText(j.status) }; })
         .filter(function (j) { return j.workflow; });
       if (perStage.length > 1) result.jobs = perStage;
       if (!result.status && !result.worker && !result.job && !result.error && !result.jobs) result = null;

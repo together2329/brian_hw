@@ -129,13 +129,24 @@ function _hArgMetaValue(argsText, name) {
   return match ? (match[1] || match[2] || match[3] || '').trim() : '';
 }
 
+function _hValueText(value) {
+  if (value == null) return '';
+  if (typeof value === 'string') return value.trim();
+  if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') return String(value).trim();
+  try {
+    return JSON.stringify(value);
+  } catch (_) {
+    return String(value).trim();
+  }
+}
+
 function _hFirstMetaValue(...values) {
   for (const value of values) {
     if (Array.isArray(value)) {
-      const compact = value.map(v => String(v == null ? '' : v).trim()).filter(Boolean);
+      const compact = value.map(_hValueText).filter(Boolean);
       if (compact.length) return compact.join(', ');
     } else {
-      const text = String(value == null ? '' : value).trim();
+      const text = _hValueText(value);
       if (text) return text;
     }
   }
@@ -164,7 +175,7 @@ export function handoffFields(action, obs) {
     if (pm) { try { const pj = JSON.parse(pm[1]); if (pj && typeof pj === 'object') payload = pj; } catch (_) {} }
   }
   const stages = (a && Array.isArray(a.stages))
-    ? a.stages.map(s => String(s || '').trim()).filter(Boolean) : [];
+    ? a.stages.map(_hValueText).filter(Boolean) : [];
   const workflow = _hFirstMetaValue(a && a.workflow, _hArgMetaValue(argsText, 'workflow'));
   const target = stages.length ? stages.join(', ') : workflow;
   const sent = {
@@ -190,7 +201,7 @@ export function handoffFields(action, obs) {
     // Fan-out: keep per-stage workflow/status so the card can show
     // "lint ● running · tb ● running · syn ● queued" instead of one merged dot.
     const perStage = jobs
-      .map(j => ({ workflow: String(j.workflow || '').trim(), status: String(j.status || '').trim() }))
+      .map(j => ({ workflow: _hValueText(j.workflow), status: _hValueText(j.status) }))
       .filter(j => j.workflow);
     if (perStage.length > 1) result.jobs = perStage;
     if (!result.status && !result.worker && !result.job && !result.error && !result.jobs) result = null;

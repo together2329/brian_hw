@@ -1692,7 +1692,7 @@ function renderCacheArrayAnim(idx,fields,totalBits){
         if(idxBarEl) idxBarEl.setAttribute('fill',fl?'var(--warn)':'#3fb950');
         if(elapsed<phEnd){ _cacheRaf=requestAnimationFrame(tick); return; }
         if(idxBarEl) idxBarEl.setAttribute('fill','#3fb950');
-        phase=1; t0=ts;
+        phase=1; t0=ts; _cacheRaf=requestAnimationFrame(tick); return;
       } else if(phase===1){
         /* light selected set row (all ways dim blue) */
         for(let w=0;w<nWays;w++){
@@ -1700,7 +1700,7 @@ function renderCacheArrayAnim(idx,fields,totalBits){
           cellRects[hotRow][w].setAttribute('stroke','#3a5170');
         }
         if(elapsed<phEnd){ _cacheRaf=requestAnimationFrame(tick); return; }
-        phase=2; t0=ts;
+        phase=2; t0=ts; _cacheRaf=requestAnimationFrame(tick); return;
       } else if(phase>=2&&phase<=2+nWays-1){
         /* sweep way (phase 2 = way 0, phase 3 = way 1, …) */
         const w=phase-2;
@@ -1713,7 +1713,7 @@ function renderCacheArrayAnim(idx,fields,totalBits){
           cellRects[hotRow][w].setAttribute('fill','#10243e');
           cellRects[hotRow][w].setAttribute('stroke','#3a5170');
         }
-        phase++; t0=ts;
+        phase++; t0=ts; _cacheRaf=requestAnimationFrame(tick); return;
       } else {
         /* resolve phase */
         const ro=document.getElementById('cacheAnim_readout');
@@ -2312,6 +2312,8 @@ el('spec').value=JSON.stringify(DEFAULT,null,2);
 renderAll(DEFAULT);
 initScrollSpy();
 </script>
+
+
 
 
 

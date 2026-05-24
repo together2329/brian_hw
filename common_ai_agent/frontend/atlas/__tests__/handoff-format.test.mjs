@@ -110,6 +110,33 @@ describe('handoffFields — dispatch / write_handoff labeled rendering', () => {
     expect(nan.result).toBeNull();
   });
 
+  it('stringifies object metadata before it reaches React rendering', () => {
+    const { sent, result } = handoffFields({
+      tool: 'dispatch_workflow',
+      argsRaw: {
+        ip: 'x',
+        workflow: { static: 'ssot-gen', internal: 'debug' },
+        prompt: { static: 'make IP', internal: { source: 'test' } },
+      },
+    }, {
+      text: JSON.stringify({
+        status: { static: 'running', internal: 'queued' },
+        jobs: [
+          { workflow: { static: 'ssot-gen', internal: 'debug' }, status: { static: 'running', internal: 'queued' } },
+          { workflow: 'rtl-gen', status: 'queued' },
+        ],
+      }),
+    });
+
+    expect(sent.target).toBe('{"static":"ssot-gen","internal":"debug"}');
+    expect(sent.task).toBe('{"static":"make IP","internal":{"source":"test"}}');
+    expect(result.status).toBe('{"static":"running","internal":"queued"}');
+    expect(result.jobs).toEqual([
+      { workflow: '{"static":"ssot-gen","internal":"debug"}', status: '{"static":"running","internal":"queued"}' },
+      { workflow: 'rtl-gen', status: 'queued' },
+    ]);
+  });
+
   it('a single job in jobs[] does not trigger per-stage rendering', () => {
     const { result } = handoffFields({ tool: 'dispatch_workflow', argsRaw: { ip: 'x', workflow: 'sim' } },
       { text: '{"jobs":[{"workflow":"sim","status":"running","job_id":"j1"}]}' });

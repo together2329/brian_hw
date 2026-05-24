@@ -34,6 +34,7 @@ try {
   await page.evaluate(() => {
     window.__atlasViewOnlyFetches = [];
     window.__atlasOrchChatFetches = [];
+    window.__atlasWorkerDirectFetches = [];
     window.__atlasViewOnlySwitches = [];
     const oldFetch = window.fetch.bind(window);
     window.fetch = (input, init) => {
@@ -43,6 +44,18 @@ try {
       }
       if (url.includes('/api/pipeline/orchestrator/chat')) {
         window.__atlasOrchChatFetches.push({ url, body: init && init.body });
+      }
+      if (url.includes('/api/job/dispatch')) {
+        window.__atlasWorkerDirectFetches.push({ url, body: init && init.body });
+        return Promise.resolve(new Response(JSON.stringify({
+          ok: true,
+          job_id: 'ui_direct_1',
+          workflow: 'ssot-gen',
+          ip: window.ACTIVE_IP || '',
+          session: `${window.ATLAS_USER_SESSION_ID || 'admin'}/${window.ACTIVE_IP || ''}/ssot-gen`,
+          worker: 'http://127.0.0.1:5621',
+          status: 'queued',
+        }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
       }
       return oldFetch(input, init);
     };
@@ -70,6 +83,28 @@ try {
   assert(/No ssot-gen worker transcript yet/i.test(afterWorkerView.body), 'ssot-gen worker view rendered a visible empty transcript');
   await shoot(page, 'orch-view-worker-ssot.png');
 
+  await send('Draft SSOT from this worker view');
+  await page.waitForTimeout(1000);
+  const afterDirect = await page.evaluate((ipName) => {
+    const calls = window.__atlasWorkerDirectFetches || [];
+    const last = calls[calls.length - 1] || {};
+    let body = {};
+    try { body = JSON.parse(last.body || '{}'); } catch (_) {}
+    return {
+      activeSession: window.ACTIVE_SESSION || '',
+      calls,
+      body,
+      text: document.body.innerText,
+    };
+  }, ip);
+  assert(afterDirect.activeSession.endsWith(`/${ip}/orchestrator`), `direct worker prompt kept runtime on orchestrator (${afterDirect.activeSession})`);
+  assert(afterDirect.calls.length === 1, `worker view direct prompt called /api/job/dispatch once (${afterDirect.calls.length})`);
+  assert(afterDirect.body.workflow === 'ssot-gen', `worker direct prompt targeted ssot-gen (${afterDirect.body.workflow})`);
+  assert(afterDirect.body.session && afterDirect.body.session.endsWith(`/${ip}/ssot-gen`), `worker direct prompt used worker transcript session (${afterDirect.body.session})`);
+  assert(/ui_direct_1|dispatch_workflow/i.test(afterDirect.text), 'worker direct dispatch result rendered in chat');
+
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent('atlas-workflow-view-request', { detail: { workflow: 'orchestrator' } })));
+  await page.waitForTimeout(700);
   await send('status ?');
   let replied = false;
   for (let i = 0; i < 10; i++) {

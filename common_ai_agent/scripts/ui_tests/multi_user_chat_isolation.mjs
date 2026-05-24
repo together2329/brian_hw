@@ -129,23 +129,49 @@ const stateText = (state) => {
   return messages.map(m => String(m.content || m.text || '')).join('\n');
 };
 
+const withNavigationRetry = async (page, label, fn, tries = 6) => {
+  let lastError = null;
+  for (let i = 0; i < tries; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      lastError = e;
+      const msg = String((e && e.message) || e || '');
+      if (!/Execution context was destroyed|navigation|Target closed/i.test(msg)) throw e;
+      log(`${label}: retry after page navigation (${i + 1}/${tries})`);
+      await page.waitForLoadState('domcontentloaded', { timeout: 5000 }).catch(() => {});
+      await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+      await page.waitForTimeout(500);
+    }
+  }
+  throw lastError;
+};
+
+const clickVisibleControl = async (page, label, matcherSource) => withNavigationRetry(page, label, async () => {
+  const clicked = await page.evaluate((src) => {
+    const matcher = new Function('text', `return (${src})(text);`);
+    const el = [...document.querySelectorAll('button,a,span,div,.dir-btn,[role="tab"]')]
+      .find(x => matcher((x.textContent || '').trim()) && x.offsetParent);
+    if (!el) return false;
+    el.click();
+    return true;
+  }, matcherSource);
+  if (!clicked) {
+    await page.waitForTimeout(500);
+  }
+  return clicked;
+});
+
 const gotoWorkspaceChatText = async (page, username, workflow) => {
   await page.goto(`${BASE}/?session_id=${username}&ip=${ip}&workflow=${workflow}`, {
-    waitUntil: 'networkidle',
+    waitUntil: 'domcontentloaded',
   });
-  await page.evaluate(() => {
-    const workspace = [...document.querySelectorAll('button,a,span,.dir-btn,[role="tab"]')]
-      .find(x => /^\s*[⌂\s]*WORKSPACE\s*$/i.test((x.textContent || '').trim()) && x.offsetParent);
-    if (workspace) workspace.click();
-  });
+  await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+  await clickVisibleControl(page, 'workspace click', '(text) => /^\\s*[⌂\\s]*WORKSPACE\\s*$/i.test(text)');
   await page.waitForTimeout(1600);
-  await page.evaluate(() => {
-    const chat = [...document.querySelectorAll('button,a,span,div,[role="tab"]')]
-      .find(x => (x.textContent || '').trim().toUpperCase() === 'CHAT' && x.offsetParent);
-    if (chat) chat.click();
-  });
+  await clickVisibleControl(page, 'chat click', '(text) => text.toUpperCase() === "CHAT"');
   await page.waitForTimeout(1800);
-  return page.evaluate(() => document.body.innerText || '');
+  return withNavigationRetry(page, 'body text', () => page.evaluate(() => document.body.innerText || ''));
 };
 
 try {

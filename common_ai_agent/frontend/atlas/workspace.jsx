@@ -1506,16 +1506,94 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     }
   });
   const activeSessionRef = React.useRef(activeSession);
-  const [, setChatViewSessionState] = React.useState('');
+  const [chatViewSessionState, setChatViewSessionState] = React.useState('');
   const chatViewSessionRef = React.useRef('');
+  const [inputRouteState, setInputRouteState] = React.useState({
+    type: 'orchestrator-chat',
+    workflow: 'orchestrator',
+    session: '',
+  });
+  const inputRouteRef = React.useRef(inputRouteState);
   const hydratedConversationSessionRef = React.useRef(activeSession);
   const liveFeedStartedRef = React.useRef(false);
   const workerLogCursorsRef = React.useRef(new Map());
+  const setInputRoute = React.useCallback((route) => {
+    const requestedType = String((route && route.type) || '').trim();
+    const type = requestedType === 'workflow-dispatch'
+      ? 'workflow-dispatch'
+      : 'orchestrator-chat';
+    const workflow = type === 'workflow-dispatch'
+      ? normalizeUiSession((route && route.workflow) || '')
+      : 'orchestrator';
+    const session = normalizeUiSession((route && route.session) || '');
+    const next = {
+      type,
+      workflow: type === 'workflow-dispatch' ? workflow : 'orchestrator',
+      session,
+    };
+    const prev = inputRouteRef.current || {};
+    if (
+      prev.type === next.type
+      && prev.workflow === next.workflow
+      && prev.session === next.session
+    ) {
+      return;
+    }
+    inputRouteRef.current = next;
+    setInputRouteState(next);
+  }, []);
+  const sessionForInputRoute = React.useCallback((ip, wf) => {
+    const workflowName = normalizeUiSession(wf || 'orchestrator') || 'orchestrator';
+    const ipName = normalizeUiSession(ip || '') || 'default';
+    const parts = normalizeUiSession(window.ACTIVE_SESSION || activeSessionRef.current || activeSession || '').split('/').filter(Boolean);
+    const owner = normalizeUiSession((window.ATLAS_USER && window.ATLAS_USER.username) || '') || parts[0] || 'default';
+    return resolveSession(
+      (window.atlasData && window.atlasData.sessionFor)
+        ? window.atlasData.sessionFor(ipName, workflowName)
+        : `${owner}/${ipName}/${workflowName}`,
+    );
+  }, [activeSession, resolveSession]);
+  const setOrchestratorInputRoute = React.useCallback((ip = '') => {
+    setInputRoute({
+      type: 'orchestrator-chat',
+      workflow: 'orchestrator',
+      session: sessionForInputRoute(ip, 'orchestrator'),
+    });
+  }, [sessionForInputRoute, setInputRoute]);
+  const setWorkflowDispatchInputRoute = React.useCallback((wf, ip = '') => {
+    const workflowName = normalizeUiSession(wf || '');
+    if (!workflowName || workflowName === 'default' || workflowName === 'orchestrator') {
+      setOrchestratorInputRoute(ip);
+      return;
+    }
+    setInputRoute({
+      type: 'workflow-dispatch',
+      workflow: workflowName,
+      session: sessionForInputRoute(ip, workflowName),
+    });
+  }, [sessionForInputRoute, setInputRoute, setOrchestratorInputRoute]);
   const setChatViewSession = React.useCallback((sid) => {
     const normalized = normalizeUiSession(sid || '');
     chatViewSessionRef.current = normalized;
     setChatViewSessionState(normalized);
   }, []);
+  React.useEffect(() => {
+    const sid = normalizeUiSession(chatViewSessionState || '');
+    if (!sid || workflowFromSession(sid) === 'orchestrator') return undefined;
+    let cancelled = false;
+    const tick = () => {
+      if (cancelled) return;
+      if (normalizeUiSession(chatViewSessionRef.current || '') !== sid) return;
+      refreshChatSession(sid, { force: true, viewOnly: true });
+    };
+    const first = setTimeout(tick, 1500);
+    const interval = setInterval(tick, 2500);
+    return () => {
+      cancelled = true;
+      clearTimeout(first);
+      clearInterval(interval);
+    };
+  }, [chatViewSessionState]);
   const appendLiveFeedEntries = React.useCallback((entries) => {
     const fresh = (Array.isArray(entries) ? entries : [entries])
       .filter(Boolean)
@@ -1758,6 +1836,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       refreshFeed(intent, viewWorkflow);
       setMainTab('chat');
       if (viewWorkflow === 'orchestrator') {
+        setOrchestratorInputRoute(ip);
         setChatViewSession('');
         refreshChatSession(orchestratorSid, { force: true });
         return;
@@ -1766,6 +1845,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       liveFeedStartedRef.current = false;
       hydratedConversationSessionRef.current = viewSid;
       setChatViewSession(viewSid);
+      setWorkflowDispatchInputRoute(viewWorkflow, ip);
       requestAnimationFrame(() => setMainTab('chat'));
       refreshChatSession(viewSid, { force: true, viewOnly: true });
       return;
@@ -2354,6 +2434,16 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         } else {
           setWorkflow(defaultWorkflowForExecMode());
         }
+        if (atlasUiOrchestratorMode()) {
+          const viewWorkflow = (known && nextWorkflow && nextWorkflow !== 'default')
+            ? nextWorkflow
+            : 'orchestrator';
+          if (viewWorkflow === 'orchestrator') {
+            setOrchestratorInputRoute(activeIp);
+          } else {
+            setWorkflowDispatchInputRoute(viewWorkflow, activeIp);
+          }
+        }
       }
       if (ev.detail === 'SCOPE_PATH') {
         const activeWorkflow = workflowFromSession(window.ACTIVE_SESSION || '');
@@ -2363,7 +2453,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     onData({ detail: 'CONTEXT' });
     window.addEventListener('atlas-data-changed', onData);
     return () => window.removeEventListener('atlas-data-changed', onData);
-  }, [activateSession, workflow]);
+  }, [activateSession, activeIp, setOrchestratorInputRoute, setWorkflowDispatchInputRoute, workflow]);
 
   React.useEffect(() => {
     const onSessionSwitched = (ev) => {
@@ -2376,11 +2466,19 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       try { localStorage.setItem('atlasActiveSession', sid); } catch (_) {}
       const nextWorkflow = workflowFromSession(sid);
       setWorkflow(nextWorkflow && nextWorkflow !== 'default' ? nextWorkflow : defaultWorkflowForExecMode());
+      if (atlasUiOrchestratorMode()) {
+        const ip = ssotIpFromSession(sid) || activeIp || '';
+        if (nextWorkflow && nextWorkflow !== 'default' && nextWorkflow !== 'orchestrator') {
+          setWorkflowDispatchInputRoute(nextWorkflow, ip);
+        } else {
+          setOrchestratorInputRoute(ip);
+        }
+      }
       refreshChatSession(sid);
     };
     window.addEventListener('atlas-session-switched', onSessionSwitched);
     return () => window.removeEventListener('atlas-session-switched', onSessionSwitched);
-  }, []);
+  }, [activeIp, setOrchestratorInputRoute, setWorkflowDispatchInputRoute]);
 
   // Hydrate the chat feed from the active .session/<scope>/<workflow>
   // conversation.json. data.jsx fires 'atlas-conversation-loaded' after
@@ -3056,6 +3154,85 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
 
     const isOrch = atlasUiOrchestratorMode() || String(workflow || '') === 'orchestrator';
     const orchIp = String(activeIp || '').trim();
+    const inputRoute = inputRouteRef.current || {};
+    const dispatchWorkflow = inputRoute.type === 'workflow-dispatch'
+      ? normalizeUiSession(inputRoute.workflow || '')
+      : '';
+    const dispatchSession = dispatchWorkflow
+      ? (normalizeUiSession(inputRoute.session || '') || sessionForInputRoute(orchIp, dispatchWorkflow))
+      : '';
+    if (
+      atlasUiOrchestratorMode()
+      && dispatchWorkflow
+      && dispatchWorkflow !== 'orchestrator'
+      && orchIp
+      && orchIp.toLowerCase() !== 'default'
+      && !raw.startsWith('/')
+    ) {
+      setFeed(f => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
+      setStreaming(true);
+      awaitingRunStartRef.current = true;
+      fetch('/api/job/dispatch', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          workflow: dispatchWorkflow,
+          ip: orchIp,
+          prompt: raw,
+          session: dispatchSession,
+          exec_mode: 'orchestrator',
+          run_mode: window.ATLAS_RUN_MODE || (window.ATLAS_BOOT_CONFIG && window.ATLAS_BOOT_CONFIG.run_mode) || '',
+          trigger_source: 'worker_direct_chat',
+        }),
+      })
+        .then(async r => {
+          const j = await r.json().catch(() => ({}));
+          if (!r.ok || j.error || j.detail) throw new Error(j.error || j.detail || `HTTP ${r.status}`);
+          return j;
+        })
+        .then(j => {
+          const result = {
+            ok: true,
+            job_id: j.job_id || '',
+            workflow: j.workflow || dispatchWorkflow,
+            ip: orchIp,
+            session: j.session || dispatchSession,
+            worker: j.worker || '',
+            status: j.status || 'queued',
+          };
+          setFeed(f => [...f, {
+            kind: 'action',
+            text: `▶ dispatch_workflow workflow="${dispatchWorkflow}" ip="${orchIp}"`,
+            tool: 'dispatch_workflow',
+            args: `workflow="${dispatchWorkflow}", ip="${orchIp}"`,
+            createdAt: Date.now(),
+          }, {
+            kind: 'obs',
+            text: JSON.stringify(result, null, 2),
+            tool: 'dispatch_workflow',
+            createdAt: Date.now(),
+          }]);
+          window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'JOBS' }));
+          [1200, 3500, 7000].forEach(delay => setTimeout(() => {
+            const route = inputRouteRef.current || {};
+            const sid = normalizeUiSession(route.session || '');
+            if (route.type === 'workflow-dispatch' && sid === dispatchSession) {
+              refreshChatSession(dispatchSession, { force: true, viewOnly: true });
+            }
+          }, delay));
+        })
+        .catch(e => {
+          setFeed(f => [...f, { kind: 'agent', text: `[${dispatchWorkflow}] dispatch failed: ${String(e && e.message || e)}` }]);
+        })
+        .finally(() => {
+          setStreaming(false);
+          awaitingRunStartRef.current = false;
+          streamBufferRef.current = '';
+          setStreamText('');
+        });
+      return;
+    }
     if (isOrch && orchIp && orchIp.toLowerCase() !== 'default' && !raw.startsWith('/')) {
       const sessionParts = normalizeUiSession(window.ACTIVE_SESSION || activeSessionRef.current || activeSession || '').split('/').filter(Boolean);
       const orchOwner = normalizeUiSession((window.ATLAS_USER && window.ATLAS_USER.username) || '') || sessionParts[0] || 'default';
@@ -3069,6 +3246,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         setWorkflow('orchestrator');
         setMainTab('chat');
         setChatViewSession('');
+        setOrchestratorInputRoute(orchIp);
         window.CONTEXT = Object.assign({}, window.CONTEXT || {}, {
           workspace: 'orchestrator',
           view_workspace: 'orchestrator',
@@ -4466,6 +4644,19 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     const orchestratorIdle = window.AtlasBannerLogic
       ? window.AtlasBannerLogic.shouldShowSelectIpBanner({ workflow, activeIp })
       : (workflow === 'orchestrator' && (!activeIp || String(activeIp).toLowerCase() === 'default'));
+    const currentInputRoute = inputRouteState || inputRouteRef.current || {};
+    const inputRouteType = currentInputRoute.type === 'workflow-dispatch'
+      ? 'workflow-dispatch'
+      : 'orchestrator-chat';
+    const inputRouteWorkflow = inputRouteType === 'workflow-dispatch'
+      ? (currentInputRoute.workflow || 'workflow')
+      : 'orchestrator';
+    const inputRouteLabel = inputRouteType === 'workflow-dispatch'
+      ? `dispatch:${inputRouteWorkflow}`
+      : 'ask:orchestrator';
+    const inputRouteTitle = inputRouteType === 'workflow-dispatch'
+      ? `This input creates a ${inputRouteWorkflow} workflow job; runtime stays on orchestrator.`
+      : 'This input goes to the orchestrator chat loop.';
     return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
       {orchestratorIdle ? (
@@ -4527,6 +4718,15 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       ) : null}
     <div className="prompt-row">
       <span className="ps" style={{ color: 'var(--fg-mute)' }}>❯</span>
+      {atlasUiOrchestratorMode() && !pendingQcard ? (
+        <span
+          className="prompt-route-pill"
+          data-route={inputRouteType}
+          title={inputRouteTitle}
+        >
+          {inputRouteLabel}
+        </span>
+      ) : null}
       <textarea ref={inputRef} value={input}
         rows={1}
         onChange={e => {

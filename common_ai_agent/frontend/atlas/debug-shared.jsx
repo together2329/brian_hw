@@ -400,20 +400,35 @@ window.TraceBlock = ({ kind, tag, children }) => (
   </div>
 );
 
+const _debugCardText = (value, pretty = false) => {
+  if (value == null) return '';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') return String(value);
+  try {
+    return JSON.stringify(value, null, pretty ? 2 : 0);
+  } catch (_) {
+    return String(value);
+  }
+};
+
 // Tool call card
-window.ToolCard = ({ name, args, result, status = 'done' }) => (
-  <div className="tool-card">
-    <div className="tc-h">
-      <span style={{ color: status === 'running' ? 'var(--cyan)' : 'var(--ok)' }}>
-        {status === 'running' ? '◌' : '✓'}
-      </span>
-      <span className="name">{name}</span>
-      <span className="args">({args})</span>
-      <span style={{ marginLeft: 'auto', color: 'var(--fg-mute)', fontSize: 10 }}>{status}</span>
+window.ToolCard = ({ name, args, result, status = 'done' }) => {
+  const argsText = _debugCardText(args);
+  const resultText = _debugCardText(result, true);
+  return (
+    <div className="tool-card">
+      <div className="tc-h">
+        <span style={{ color: status === 'running' ? 'var(--cyan)' : 'var(--ok)' }}>
+          {status === 'running' ? '◌' : '✓'}
+        </span>
+        <span className="name">{_debugCardText(name) || 'tool'}</span>
+        <span className="args">({argsText})</span>
+        <span style={{ marginLeft: 'auto', color: 'var(--fg-mute)', fontSize: 10 }}>{_debugCardText(status)}</span>
+      </div>
+      {resultText && <div className="tc-body">{resultText}</div>}
     </div>
-    {result && <div className="tc-body">{result}</div>}
-  </div>
-);
+  );
+};
 
 // Mini "wavelet" preview SVG used in scope tree previews
 window.MiniWave = ({ trace, width = 38, height = 8 }) => {
