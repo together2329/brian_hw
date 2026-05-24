@@ -364,6 +364,7 @@ const resultDetails = (result) => {
   return 'no stdout/stderr captured';
 };
 
+const realModel = process.env.E2E_REAL_MODEL || 'gpt-5.5';
 const headlessArgs = (stage, reqPath = '') => {
   const args = [
     'src/headless_workflow.py',
@@ -373,6 +374,11 @@ const headlessArgs = (stage, reqPath = '') => {
     '--stages', stage,
     '--provider', provider,
   ];
+  // Pin the model for real runs. Without --model, headless config falls back to
+  // the .env default profile (glm-5.1), which the provider 403s. An empty
+  // LLM_PROFILE env does not reliably disable the profile in the spawned child,
+  // so the explicit arg is what actually routes (e.g. gpt-5.5 via OpenCode).
+  if (provider === 'real') args.push('--model', realModel);
   if (reqPath) args.splice(5, 0, '--req', reqPath);
   return args;
 };
