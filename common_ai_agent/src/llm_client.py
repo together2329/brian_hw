@@ -550,6 +550,7 @@ def print_call_summary() -> None:
 # Reuses TCP+SSL connections across LLM calls to avoid per-call handshake overhead.
 _ssl_ctx_cache: Optional[ssl.SSLContext] = None
 _http_conn_pool: Dict[str, http.client.HTTPSConnection] = {}
+_http_conn_last_used: Dict[str, float] = {}  # host -> last successful use epoch; for idle-expiry
 _last_post_reused: bool = False  # set by _persistent_post; read by PERF logging
 _active_stream_response = None   # current streaming response; closed by cancel_current_stream()
 _stream_cancelled = False        # set by cancel_current_stream(); prevents retry loop
@@ -686,23 +687,44 @@ def _persistent_post(url: str, headers: dict, body: bytes, timeout: int = 300):
             force_close = True
     req_headers["Connection"] = "close" if force_close else "keep-alive"
 
+    # Bound the connect + send + header-wait phase. Headers arrive before the
+    # model generates, so this is far shorter than the stream read budget; it
+    # is raised back to `timeout` for the body read once headers land. This
+    # prevents a 30+ min hang in getresponse() on a dropped/half-open socket.
+    _headers_timeout = getattr(config, "LLM_HEADERS_TIMEOUT", 120) or timeout
+    _headers_timeout = min(_headers_timeout, timeout)
+    _max_idle = getattr(config, "LLM_CONN_MAX_IDLE_SEC", 0) or 0
+
     global _last_post_reused
     for attempt in range(2):
         conn = None if force_close else _http_conn_pool.get(host)
+        # Idle-expiry: a pooled keep-alive connection that has sat unused longer
+        # than the provider's LB idle window is very likely already dropped
+        # (CLOSE_WAIT). Reusing it blocks in getresponse(). Drop it pre-emptively
+        # and open a fresh one instead of discovering the corpse the hard way.
+        if conn is not None and _max_idle:
+            _idle = time.time() - _http_conn_last_used.get(host, 0.0)
+            if _idle > _max_idle:
+                try:
+                    conn.close()
+                except Exception:
+                    pass
+                _http_conn_pool.pop(host, None)
+                _http_conn_last_used.pop(host, None)
+                conn = None
         _was_alive = conn is not None and conn.sock is not None
         if conn is None:
-            conn = _make_https_conn(host, timeout=timeout)
+            conn = _make_https_conn(host, timeout=_headers_timeout)
             if not force_close:
                 _http_conn_pool[host] = conn
         else:
             # Update socket timeout on reuse — pooled connections keep the timeout
-            # from when they were first created (set at connect() time).  Without
-            # this, a streaming call (timeout=3600) reusing a non-streaming socket
-            # (timeout=600) times out in 600s while the label says 3600s.
-            conn.timeout = timeout
+            # from when they were first created (set at connect() time).  Use the
+            # bounded header timeout for the request/getresponse phase.
+            conn.timeout = _headers_timeout
             if conn.sock is not None:
                 try:
-                    conn.sock.settimeout(timeout)
+                    conn.sock.settimeout(_headers_timeout)
                 except Exception:
                     pass
         try:
@@ -711,19 +733,29 @@ def _persistent_post(url: str, headers: dict, body: bytes, timeout: int = 300):
             if resp.status >= 400:
                 body_bytes = resp.read()  # fully drain before raising
                 raise _PersistentHTTPError(url, resp.status, resp.reason, body_bytes)
+            # Headers landed — raise the socket timeout to the full (streaming)
+            # budget for the body read, and mark the connection fresh.
+            try:
+                conn.timeout = timeout
+                if conn.sock is not None:
+                    conn.sock.settimeout(timeout)
+            except Exception:
+                pass
+            _http_conn_last_used[host] = time.time()
             _last_post_reused = _was_alive and attempt == 0 and (not force_close)
             return resp
         except _PersistentHTTPError:
             raise
         except (http.client.RemoteDisconnected, http.client.CannotSendRequest,
                 http.client.BadStatusLine,
-                ConnectionResetError, BrokenPipeError, OSError):
+                ConnectionResetError, BrokenPipeError, OSError, socket.timeout):
             # Stale connection (or leftover bytes from prev SSE stream) — drop and retry fresh
             try:
                 conn.close()
             except Exception:
                 pass
             _http_conn_pool.pop(host, None)
+            _http_conn_last_used.pop(host, None)
             _last_post_reused = False
             if attempt == 1:
                 raise

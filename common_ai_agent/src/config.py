@@ -1223,6 +1223,22 @@ STREAM_INACTIVITY_TIMEOUT = int(os.getenv("STREAM_INACTIVITY_TIMEOUT", "180"))
 # STREAM_API_TIMEOUT so a turn may not outlive its own read budget.
 STREAM_TURN_HARD_TIMEOUT = int(os.getenv("STREAM_TURN_HARD_TIMEOUT", str(STREAM_API_TIMEOUT)))
 
+# Max idle time a pooled keep-alive connection may sit unused before we treat it
+# as stale and open a fresh one. Long agent tasks (e.g. rtl-gen) leave big gaps
+# between LLM calls while reading files / thinking locally; provider load
+# balancers silently drop idle keep-alive connections (Cloudflare ~100s, AWS ALB
+# ~60s). Reusing such a dropped connection blocks in getresponse() (CLOSE_WAIT)
+# until the socket read timeout — a 30+ min hang. Expiring below the typical LB
+# idle window avoids reusing an already-dead socket. 0 disables expiry.
+LLM_CONN_MAX_IDLE_SEC = int(os.getenv("LLM_CONN_MAX_IDLE_SEC", "45"))
+
+# Bound the pre-stream phase (connect + send + wait for response headers).
+# Headers (200 OK + content-type) arrive before the model starts generating, so
+# this can be far shorter than STREAM_API_TIMEOUT. Without it, a dropped/half-open
+# connection hangs getresponse() for the full read budget. The socket timeout is
+# raised back to the full budget for the streaming body read once headers land.
+LLM_HEADERS_TIMEOUT = int(os.getenv("LLM_HEADERS_TIMEOUT", "120"))
+
 # Maximum output tokens per LLM response (0 = no limit)
 # MAX_OUTPUT_TOKENS: per-LLM-call output budget. Tool-call args (e.g.
 # todo_write([...10 detailed tasks])) eat from this budget too, so a
