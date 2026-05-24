@@ -3069,11 +3069,15 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
           view_workspace: 'orchestrator',
         });
         if (orchSession) {
-          window.ACTIVE_SESSION = orchSession;
-          activeSessionRef.current = orchSession;
-          setActiveSession(orchSession);
-          try { localStorage.setItem('atlasActiveSession', orchSession); } catch (_) {}
-          if (window.backend) {
+          const activeBefore = normalizeUiSession(window.ACTIVE_SESSION || activeSessionRef.current || '');
+          hydratedConversationSessionRef.current = orchSession;
+          if (activeBefore !== orchSession) {
+            window.ACTIVE_SESSION = orchSession;
+            activeSessionRef.current = orchSession;
+            setActiveSession(orchSession);
+            try { localStorage.setItem('atlasActiveSession', orchSession); } catch (_) {}
+          }
+          if (activeBefore !== orchSession && window.backend) {
             try {
               if (typeof window.backend.switchSession === 'function') window.backend.switchSession(orchSession);
               else if (typeof window.backend.connect === 'function') window.backend.connect(orchSession);

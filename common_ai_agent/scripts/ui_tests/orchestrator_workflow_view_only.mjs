@@ -18,9 +18,9 @@ const send = async (text) => {
   const ta = await page.$('textarea');
   assert(!!ta, 'prompt textarea present');
   await ta.click();
-  await ta.fill('');
-  await ta.type(text);
-  await page.keyboard.press('Enter');
+  await ta.fill(text);
+  await page.waitForTimeout(100);
+  await ta.press('Enter');
 };
 
 try {
