@@ -2746,6 +2746,80 @@ class HeadlessWorkflowRunner:
                 repair_packets.append(packet)
         return repair_packets
 
+    def _rtl_packet_key(self, packet: dict[str, Any]) -> str:
+        return str(packet.get("packet_id") or Path(str(packet.get("json") or "")).stem)
+
+    def _rtl_mix_missing_owner_packets(
+        self,
+        ip: str,
+        selected: list[dict[str, Any]],
+        work_packets: list[dict[str, Any]],
+        limit: int,
+    ) -> list[dict[str, Any]]:
+        """Mix missing top/core owner packets into bounded RTL batches.
+
+        Without this, large starter runs can spend every repair pass on early
+        slices for one existing owner file while the canonical top/core files
+        remain missing.  Establishing the hierarchy early gives later packet
+        repairs concrete RTL to extend instead of repeatedly rewriting one file.
+        """
+        if not ip or limit <= 0 or len(selected) >= len(work_packets):
+            return selected
+        ip_dir = self._ip_dir(ip)
+        selected_keys = {self._rtl_packet_key(packet) for packet in selected}
+        missing_owner_packets: list[dict[str, Any]] = []
+        for packet in work_packets:
+            key = self._rtl_packet_key(packet)
+            if key in selected_keys:
+                continue
+            owner_file = str(packet.get("owner_file") or "").strip()
+            if not owner_file.endswith(".sv"):
+                continue
+            if (ip_dir / owner_file).is_file():
+                continue
+            missing_owner_packets.append(packet)
+        if not missing_owner_packets:
+            return selected
+
+        top = self._top_name(ip)
+
+        def priority(packet: dict[str, Any]) -> tuple[int, str]:
+            owner = str(packet.get("owner_module") or "").strip()
+            key = self._rtl_packet_key(packet)
+            if owner == top or key == f"module__{top}":
+                return (0, key)
+            if owner.endswith("_core") or key.endswith("_core"):
+                return (1, key)
+            return (2, key)
+
+        missing_owner_packets.sort(key=priority)
+        inject = missing_owner_packets[: min(len(missing_owner_packets), max(1, limit // 2))]
+        inject_keys = {self._rtl_packet_key(packet) for packet in inject}
+        keep_count = max(0, limit - len(inject))
+        mixed: list[dict[str, Any]] = []
+        mixed_keys: set[str] = set()
+        for packet in selected:
+            key = self._rtl_packet_key(packet)
+            if key in inject_keys:
+                continue
+            if len(mixed) >= keep_count:
+                break
+            mixed.append(packet)
+            mixed_keys.add(key)
+        for packet in inject:
+            key = self._rtl_packet_key(packet)
+            if key not in mixed_keys:
+                mixed.append(packet)
+                mixed_keys.add(key)
+        for packet in selected:
+            if len(mixed) >= limit:
+                break
+            key = self._rtl_packet_key(packet)
+            if key not in mixed_keys:
+                mixed.append(packet)
+                mixed_keys.add(key)
+        return mixed[:limit]
+
     def _rtl_packet_work_batch(self, plan: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[str, int]]:
         packets = self._rtl_packet_entries(plan)
         work_packets = [packet for packet in packets if self._rtl_packet_needs_llm(packet)]
@@ -2769,6 +2843,7 @@ class HeadlessWorkflowRunner:
             if preferred:
                 limit = self._rtl_packet_batch_limit()
                 selected = preferred[:limit] if limit else preferred
+                selected = self._rtl_mix_missing_owner_packets(ip, selected, work_packets, limit)
                 return selected, {
                     "total_packets": len(packets),
                     "work_packets": len(work_packets),
@@ -2788,6 +2863,7 @@ class HeadlessWorkflowRunner:
         eligible_packets = primary_packets if primary_packets else work_packets
         limit = self._rtl_packet_batch_limit()
         selected = eligible_packets[:limit] if limit else eligible_packets
+        selected = self._rtl_mix_missing_owner_packets(ip, selected, work_packets, limit)
         return selected, {
             "total_packets": len(packets),
             "work_packets": len(work_packets),

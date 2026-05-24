@@ -247,6 +247,62 @@ def test_rtl_packet_work_batch_defaults_to_small_ui_batch(tmp_path: Path, monkey
     assert batch["packet_batch_limit"] == 4
 
 
+def test_rtl_packet_work_batch_mixes_missing_top_core_packets(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    ip = "missing_owner_packet_ip"
+    runner = HeadlessWorkflowRunner(
+        root=tmp_path / "work",
+        model="deepseek-v4-pro",
+        llm_provider=FakeLLMProvider(),
+    )
+    ip_dir = tmp_path / "work" / ip
+    (ip_dir / "rtl").mkdir(parents=True)
+    (ip_dir / "rtl" / f"{ip}_regs.sv").write_text("module regs; endmodule\n", encoding="utf-8")
+    monkeypatch.setenv("ATLAS_HEADLESS_RTL_PACKET_MAX_PER_PASS", "4")
+
+    def packet(packet_id: str, owner_file: str, owner_module: str) -> dict:
+        return {
+            "packet_id": packet_id,
+            "json": f"rtl/authoring_packets/{packet_id}.json",
+            "kind": "module",
+            "owner_file": owner_file,
+            "owner_module": owner_module,
+            "execution_policy": {"llm_actionable_open_count": 1},
+        }
+
+    plan = {
+        "ip": ip,
+        "summary": {
+            "next_llm_packets": [
+                "regs_a",
+                "regs_b",
+                "regs_c",
+                "regs_d",
+                f"module__{ip}_core",
+                f"module__{ip}",
+            ]
+        },
+        "packets": [
+            packet("regs_a", f"rtl/{ip}_regs.sv", f"{ip}_regs"),
+            packet("regs_b", f"rtl/{ip}_regs.sv", f"{ip}_regs"),
+            packet("regs_c", f"rtl/{ip}_regs.sv", f"{ip}_regs"),
+            packet("regs_d", f"rtl/{ip}_regs.sv", f"{ip}_regs"),
+            packet(f"module__{ip}_core", f"rtl/{ip}_core.sv", f"{ip}_core"),
+            packet(f"module__{ip}", f"rtl/{ip}.sv", ip),
+        ],
+    }
+
+    selected, batch = runner._rtl_packet_work_batch(plan)
+
+    assert [packet["packet_id"] for packet in selected] == [
+        "regs_a",
+        "regs_b",
+        f"module__{ip}",
+        f"module__{ip}_core",
+    ]
+    assert batch["selected_packets"] == 4
+    assert batch["deferred_work_packets"] == 2
+
+
 def test_rtl_packet_parallel_mode_runs_independent_module_packets_concurrently(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     ip = "parallel_packet_ip"
     runner = HeadlessWorkflowRunner(
