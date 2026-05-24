@@ -1812,6 +1812,39 @@ def _lazy_workers_enabled() -> bool:
     return raw in {"1", "true", "yes", "on"}
 
 
+def _env_float(name: str, default: float, *, minimum: float = 0.0) -> float:
+    raw = str(os.environ.get(name, "") or "").strip()
+    if not raw:
+        return default
+    try:
+        value = float(raw)
+    except Exception:
+        return default
+    return max(minimum, value)
+
+
+def _lazy_worker_proc_alive(worker_url: str) -> bool:
+    key = str(worker_url or "").rstrip("/")
+    if not key:
+        return False
+    with _LAZY_WORKER_LOCK:
+        proc = _LAZY_WORKER_PROCS.get(key)
+    return proc is not None and proc.poll() is None
+
+
+def _lazy_worker_probe_timeout(worker_url: str) -> float:
+    """Shorten cold probes for untracked local lazy workers.
+
+    A brand-new lazy worker URL is normally closed until we spawn it. Using
+    the same warm-worker timeout there adds visible latency to first dispatch
+    and to same-URL lock rechecks. Existing/tracked workers still get the
+    longer timeout so slow health handlers are not mistaken for cold ports.
+    """
+    if _local_worker_target(worker_url) is not None and not _lazy_worker_proc_alive(worker_url):
+        return _env_float("ATLAS_LAZY_WORKER_COLD_PROBE_TIMEOUT", 0.15, minimum=0.02)
+    return _env_float("ATLAS_LAZY_WORKER_HEALTH_TIMEOUT", 0.7, minimum=0.05)
+
+
 def _local_worker_target(worker_url: str) -> tuple[str, int] | None:
     try:
         parsed = urllib.parse.urlparse(worker_url)
@@ -1998,6 +2031,21 @@ def _mark_jobs_failed_for_worker(worker_url: str, reason: str) -> int:
     return transitioned
 
 
+def _worker_has_active_job(worker_url: str) -> bool:
+    """True if the orchestrator's job tracker still has a pending/running job
+    bound to this worker URL. The idle reaper consults this so it never kills a
+    worker that is actually busy — e.g. a slow high-reasoning RTL author whose
+    /health probe times out under load (which would otherwise read as idle)."""
+    key = worker_url.rstrip("/")
+    active = {"pending", "running", "queued", "starting"}
+    with _jobs_lock:
+        return any(
+            str(j.get("status") or "") in active
+            and str(j.get("worker") or "").rstrip("/") == key
+            for j in _jobs.values()
+        )
+
+
 def _lazy_worker_reaper_loop() -> None:
     """Background thread: poll lazy worker procs and reap dead ones.
 
@@ -2022,16 +2070,22 @@ def _lazy_worker_reaper_loop() -> None:
                     if _LAZY_WORKER_IDLE_TTL_SEC > 0:
                         health = _probe_worker_health(url, timeout=1.5)
                         now_mono = time.monotonic()
-                        try:
-                            running_count = int(health.get("running_count") or 0)
-                        except Exception:
-                            running_count = -1
+                        # A failed/empty probe must NOT read as idle: a busy
+                        # worker (e.g. deep xhigh reasoning) can miss the 1.5s
+                        # /health window, and health.get('running_count') or 0
+                        # would wrongly yield 0. Only trust a probe that
+                        # actually reported running_count.
+                        probe_ok = isinstance(health, dict) and ("running_count" in health)
+                        running_count = int(health.get("running_count") or 0) if probe_ok else -1
+                        has_active_job = _worker_has_active_job(url)
                         with _LAZY_WORKER_LOCK:
-                            if running_count > 0:
+                            # Busy, has a tracked job, or probe unknown → not idle.
+                            if running_count > 0 or has_active_job or not probe_ok:
                                 _LAZY_WORKER_LAST_BUSY[url] = now_mono
                             last_busy = _LAZY_WORKER_LAST_BUSY.get(url, now_mono)
                         idle_sec = now_mono - last_busy
-                        if running_count == 0 and idle_sec >= _LAZY_WORKER_IDLE_TTL_SEC:
+                        if (running_count == 0 and not has_active_job
+                                and idle_sec >= _LAZY_WORKER_IDLE_TTL_SEC):
                             _LOG.info(
                                 f"[lazy-worker] idle-ttl url={url} "
                                 f"terminating after {idle_sec:.0f}s idle"
@@ -2087,7 +2141,7 @@ def _ensure_lazy_worker(job: dict[str, Any]) -> None:
     worker_url = str(job.get("worker") or "").strip()
     if not worker_url:
         return
-    health = _probe_worker_health(worker_url, timeout=0.7)
+    health = _probe_worker_health(worker_url, timeout=_lazy_worker_probe_timeout(worker_url))
     mismatch = _worker_workflow_mismatch(workflow, health)
     if mismatch:
         raise RuntimeError(f"worker mismatch at {worker_url}: {mismatch}")
@@ -2117,7 +2171,7 @@ def _ensure_lazy_worker(job: dict[str, Any]) -> None:
     # under the lock — another thread for the same URL may have just
     # finished spawning while we were queued.
     with url_lock:
-        health = _probe_worker_health(worker_url, timeout=0.7)
+        health = _probe_worker_health(worker_url, timeout=_lazy_worker_probe_timeout(worker_url))
         if str(health.get("status") or "") == "ok":
             health_owner = str(health.get("owner") or "").strip()
             if expected_owner and health_owner and health_owner != expected_owner:
@@ -3740,6 +3794,12 @@ def register_jobs_routes(
             f"- parallelism: assume other IP/workflow jobs may be running; never revert or overwrite their files.\n\n"
         )
         now = time.time()
+        effective_prompt = _workflow_prompt_with_stage_driver(
+            workflow=workflow,
+            ip=ip,
+            stage_id=stage_id,
+            prompt=prompt,
+        )
         job: dict[str, Any] = {
             "job_id":         uuid.uuid4().hex[:12],
             "run_id":         "",
@@ -3759,7 +3819,7 @@ def register_jobs_routes(
             "project_root":    str(pr),
             "source_root":     str(_SOURCE_ROOT),
             "worker_command": _worker_launch_command(worker_url, workflow, session_name, pr, model, reasoning_effort),
-            "prompt":         boundary + (prompt or _default_workflow_prompt(workflow, ip, stage_id)),
+            "prompt":         boundary + effective_prompt,
             "created_at":     now,
             "queued_at":      now,
             "started_at":     0.0,
@@ -5574,6 +5634,20 @@ def register_jobs_routes(
             # probe traffic ~Nx without changing user-visible latency.
             return _probe_worker_health_cached(url, timeout=2.0)
 
+        def _idle_lazy_worker_health(url: str, active_list: list[dict[str, Any]]) -> dict[str, Any] | None:
+            if active_list:
+                return None
+            if not _lazy_workers_enabled():
+                return None
+            if _local_worker_target(url) is None:
+                return None
+            if _lazy_worker_proc_alive(url):
+                return None
+            return {
+                "status": "unreachable",
+                "error": "lazy worker not spawned",
+            }
+
         def _job_visible(job: dict[str, Any]) -> bool:
             return _job_visible_to_request(job, request_user, request_db_user)
 
@@ -5643,10 +5717,17 @@ def register_jobs_routes(
                         exec_mode="orchestrator",
                     )
                 )
-                tasks.append((wf, url, expected_worker_owner, loop.run_in_executor(None, _probe, url)))
+                idle_health = _idle_lazy_worker_health(url, active_list)
+                if idle_health is not None:
+                    tasks.append((wf, url, expected_worker_owner, idle_health, None))
+                else:
+                    tasks.append((
+                        wf, url, expected_worker_owner, None,
+                        loop.run_in_executor(None, _probe, url),
+                    ))
             out = []
-            for wf, url, expected_worker_owner, t in tasks:
-                health = await t
+            for wf, url, expected_worker_owner, eager_health, t in tasks:
+                health = eager_health if eager_health is not None else await t
                 health_owner = str(health.get("owner") or "").strip()
                 owner_mismatch = (
                     _workflow_worker_per_owner_enabled("orchestrator")

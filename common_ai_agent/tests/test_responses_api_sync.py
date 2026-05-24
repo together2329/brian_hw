@@ -394,6 +394,40 @@ class TestCallLLMRawResponsesPath:
         assert response.read() == b'{"ok": true}'
         assert calls == ["Bearer old-token", "Bearer new-token"]
 
+    def test_raw_chat_call_applies_provider_reasoning_controls(self, monkeypatch):
+        captured = {}
+
+        def fake_post(url, headers, body, timeout):
+            captured["url"] = url
+            captured["body"] = body
+            return _FakeJSONResponse({
+                "choices": [{"message": {"content": "OK"}, "finish_reason": "stop"}],
+                "usage": {"prompt_tokens": 2, "completion_tokens": 1},
+            })
+
+        monkeypatch.setattr(lc.config, "BASE_URL", "https://api.deepseek.com/v1", raising=False)
+        monkeypatch.setattr(lc.config, "API_KEY", "test-token", raising=False)
+        monkeypatch.setattr(lc.config, "CURSOR_AGENT_ENABLE", False, raising=False)
+        monkeypatch.setattr(lc.config, "CLAUDE_CLI_ENABLE", False, raising=False)
+        monkeypatch.setattr(lc.config, "USE_RESPONSES_API", False, raising=False)
+        monkeypatch.setattr(lc.config, "FORCE_CHAT_COMPLETIONS_GPT5", False, raising=False)
+        monkeypatch.setattr(lc.config, "NONSTREAM_API_TIMEOUT", 5, raising=False)
+        monkeypatch.setattr(lc.config, "STREAM_API_TIMEOUT", 5, raising=False)
+        monkeypatch.setattr(lc, "_persistent_post_with_auth_retry", fake_post)
+
+        out = lc.call_llm_raw(
+            messages=[{"role": "user", "content": "return OK"}],
+            model="deepseek-v4-pro",
+            caller_tag="test.raw_chat_reasoning",
+            reasoning_effort="none",
+        )
+
+        assert out == "OK"
+        body = json.loads(captured["body"].decode("utf-8"))
+        assert captured["url"] == "https://api.deepseek.com/v1/chat/completions"
+        assert body["thinking"] == {"type": "disabled"}
+        assert "reasoning_effort" not in body
+
     def test_gpt5_raw_call_uses_codex_responses_not_chat(self, monkeypatch):
         captured = {}
 

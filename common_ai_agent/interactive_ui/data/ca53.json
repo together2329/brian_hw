@@ -155,6 +155,82 @@
       { "name": "CCSIDR_EL1",     "encoding": "S3_1_C0_C0_0",  "access": "RO", "desc": "Current Cache Size ID Register." }
     ]
   },
+  "programmers_model": {
+    "execution_states": ["AArch64 — A64 instruction set, 64-bit", "AArch32 — A32/T32 instruction sets, 32-bit (compatible)"],
+    "exception_levels": [
+      { "el": "EL0", "use": "Application / unprivileged" },
+      { "el": "EL1", "use": "OS kernel" },
+      { "el": "EL2", "use": "Hypervisor (optional)" },
+      { "el": "EL3", "use": "Secure monitor / firmware" }
+    ],
+    "security_states": ["Secure", "Non-secure (TrustZone)"],
+    "register_file": [
+      { "name": "X0–X30", "desc": "31 general-purpose 64-bit registers (W0–W30 = 32-bit views)" },
+      { "name": "SP_ELx", "desc": "Stack pointer, banked per exception level" },
+      { "name": "PC", "desc": "Program counter" },
+      { "name": "V0–V31", "desc": "32 × 128-bit SIMD/FP registers" },
+      { "name": "SPSR_ELx / ELR_ELx", "desc": "Saved program status / exception link, per EL" }
+    ]
+  },
+  "mmu": {
+    "va_size": "48-bit virtual address",
+    "pa_size": "40-bit physical address",
+    "granules": ["4 KB", "64 KB"],
+    "granule_note": "16 KB granule not supported (illustrative)",
+    "translation_regimes": [
+      "EL0/EL1 stage 1 — TTBR0_EL1 (low) / TTBR1_EL1 (high), TCR_EL1",
+      "EL2 stage 1 — TTBR0_EL2 (optional)",
+      "EL1&0 stage 2 — VTTBR_EL2 (virtualization, optional)"
+    ],
+    "tlb": "Per-core L1 instruction & data micro-TLBs backed by a unified L2 TLB (illustrative)"
+  },
+  "caches": {
+    "rows": [
+      { "cache": "L1 Instruction", "size": "8–64 KB (illustrative 32 KB)", "ways": "2", "line": "64 B", "policy": "VIPT, read-allocate" },
+      { "cache": "L1 Data",        "size": "8–64 KB (illustrative 32 KB)", "ways": "4", "line": "64 B", "policy": "PIPT, write-back, read/write-allocate" },
+      { "cache": "L2 Unified",     "size": "128 KB–2 MB",                  "ways": "16","line": "64 B", "policy": "write-back, inclusive of L1 (illustrative)" }
+    ],
+    "coherency": "Snoop Control Unit (SCU) keeps L1 D-caches coherent across cores (MOESI-style states)."
+  },
+  "interrupts": {
+    "types": ["IRQ — normal interrupt", "FIQ — fast interrupt", "SError — system error abort"],
+    "gic": "GICv3/v4 system-register CPU interface (optional)",
+    "vectors": "Vector table base in VBAR_EL1; 16 entries (4 groups × 4 exception types)"
+  },
+  "power": {
+    "domains": ["Per-core", "Cluster / L2"],
+    "modes": [
+      { "mode": "Run",                 "desc": "Normal operation" },
+      { "mode": "Standby (WFI/WFE)",    "desc": "Clocks gated, full state retained" },
+      { "mode": "Dormant",             "desc": "Logic powered down, caches retained (illustrative)" },
+      { "mode": "Shutdown",            "desc": "Power domain off, no state retained" }
+    ]
+  },
+  "pmu_events": {
+    "note": "Architecturally-defined common PMUv3 event numbers (subset).",
+    "events": [
+      { "num": "0x00", "name": "SW_INCR",          "desc": "Software increment" },
+      { "num": "0x03", "name": "L1D_CACHE_REFILL", "desc": "L1 data cache refill" },
+      { "num": "0x04", "name": "L1D_CACHE",        "desc": "L1 data cache access" },
+      { "num": "0x08", "name": "INST_RETIRED",     "desc": "Instruction architecturally executed" },
+      { "num": "0x10", "name": "BR_MIS_PRED",      "desc": "Mispredicted branch" },
+      { "num": "0x11", "name": "CPU_CYCLES",       "desc": "Cycle count" },
+      { "num": "0x12", "name": "BR_PRED",          "desc": "Predictable branch speculatively executed" },
+      { "num": "0x17", "name": "L2D_CACHE_REFILL", "desc": "L2 data cache refill" }
+    ]
+  },
+  "pipeline": {
+    "stages": 8,
+    "type": "in-order, dual-issue, symmetric integer pipeline",
+    "note": "8-stage integer pipeline with a separate NEON/FP pipeline; static + dynamic branch prediction. Exact stage breakdown is illustrative."
+  },
+  "config_signals": [
+    { "name": "CFGEND",      "desc": "Reset endianness (initial SCTLR.EE)" },
+    { "name": "VINITHI",     "desc": "High exception vectors at reset" },
+    { "name": "AA64nAA32",   "desc": "Reset execution state at EL3 (AArch64 vs AArch32)" },
+    { "name": "CP15SDISABLE","desc": "Disable Secure CP15 register writes" },
+    { "name": "CLUSTERIDAFF","desc": "Cluster affinity value (MPIDR Aff1/Aff2)" }
+  ],
   "timing": {
     "title": "ACE/AXI read burst — 2-beat (illustrative AMBA 4)",
     "note": "AR address handshake (ARVALID·ARREADY), then R data channel (RVALID·RREADY), RLAST on the final beat.",

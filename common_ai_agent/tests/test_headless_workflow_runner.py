@@ -1519,6 +1519,22 @@ def test_real_llm_provider_resolves_profile_model(monkeypatch: pytest.MonkeyPatc
     assert provider.available_reason("deepseek") == ""
 
 
+def test_real_llm_provider_defaults_artifact_reasoning_to_none(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.delenv("ATLAS_HEADLESS_LLM_REASONING_EFFORT", raising=False)
+    monkeypatch.delenv("ATLAS_HEADLESS_LLM_REASONING_EFFORT_SSOT_GEN", raising=False)
+    monkeypatch.delenv("REASONING_EFFORT", raising=False)
+    monkeypatch.delenv("REASONING_MODE", raising=False)
+
+    provider = RealLLMProvider()
+
+    assert provider._reasoning_effort_for_stage("ssot-gen") == "none"
+    assert provider._reasoning_effort_for_stage("rtl-gen") == "none"
+    assert provider._reasoning_effort_for_stage("tb-gen") == "none"
+
+    monkeypatch.setenv("ATLAS_HEADLESS_LLM_REASONING_EFFORT_SSOT_GEN", "high")
+    assert provider._reasoning_effort_for_stage("ssot-gen") == "high"
+
+
 def test_real_llm_provider_resolves_cli_backend_models(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("ATLAS_RUN_REAL_LLM_TDD", "1")
     monkeypatch.delenv("LLM_API_KEY", raising=False)

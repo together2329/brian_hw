@@ -1233,6 +1233,25 @@ class RealLLMProvider:
             return "no live API key found in process environment"
         return ""
 
+    def _reasoning_effort_for_stage(self, stage: str) -> str:
+        suffix = str(stage or "").upper().replace("-", "_")
+        configured = (
+            os.getenv(f"ATLAS_HEADLESS_LLM_REASONING_EFFORT_{suffix}", "").strip()
+            or os.getenv("ATLAS_HEADLESS_LLM_REASONING_EFFORT", "").strip()
+        )
+        if configured:
+            return configured
+        # Headless real runs need complete JSON artifacts more than hidden
+        # chain-of-thought.  Reasoning-heavy providers can spend the whole
+        # completion budget before emitting content, so default artifact stages
+        # to no provider thinking unless the operator opts back in.
+        if stage in {"ssot-gen", "rtl-gen", "tb-gen"}:
+            return "none"
+        return (
+            os.getenv("REASONING_EFFORT", "").strip()
+            or os.getenv("REASONING_MODE", "").strip()
+        )
+
     def complete(
         self,
         *,
@@ -1259,6 +1278,7 @@ class RealLLMProvider:
             "profile": profile_name,
             "caller_tag": f"headless.{stage}",
             "max_tokens": stage_max_tokens if stage_max_tokens > 0 else default_max_tokens,
+            "reasoning_effort": self._reasoning_effort_for_stage(stage),
         }
         if str(resolved_model or model).lower() in {"claude-cli", "claude"}:
             # Let the Claude backend own timeout cleanup.  If the outer
@@ -1311,6 +1331,7 @@ try:
         caller_tag=req.get("caller_tag") or "headless",
         max_tokens=req.get("max_tokens"),
         extra_body=req.get("extra_body"),
+        reasoning_effort=req.get("reasoning_effort") or None,
     )
     usage = get_last_usage() or {}
     cost = {}

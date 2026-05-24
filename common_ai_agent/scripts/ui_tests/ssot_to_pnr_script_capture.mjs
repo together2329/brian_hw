@@ -100,6 +100,88 @@ const refreshChat = async () => {
   return count;
 };
 
+const workflowForStage = (stage) => ({
+  ssot: 'ssot-gen',
+  'fl-model': 'fl-model-gen',
+  'cl-model': 'fl-model-gen',
+  equivalence: 'fl-model-gen',
+  rtl: 'rtl-gen',
+  lint: 'lint',
+  tb: 'tb-gen',
+  sim: 'sim',
+  coverage: 'coverage',
+  'sim-debug': 'sim_debug',
+  syn: 'syn',
+  sta: 'sta',
+  pnr: 'pnr',
+}[stage] || stage);
+
+const writeWorkflowConversation = async (stage, command, result = null) => {
+  const workflow = workflowForStage(stage);
+  const sdir = path.join(PROJECT_ROOT, '.session', 'admin', ip, workflow);
+  await mkdir(sdir, { recursive: true });
+  const messages = [
+    {
+      role: 'user',
+      content: `Run ${stage} for ${ip}.`,
+    },
+    {
+      role: 'assistant',
+      content: `I am executing the ${stage} stage for ${ip} and will report command evidence.`,
+    },
+    {
+      role: 'assistant',
+      tool_calls: [{
+        function: {
+          name: 'run_stage',
+          arguments: `stage="${stage}", ip="${ip}"`,
+        },
+      }],
+    },
+    {
+      role: 'tool',
+      name: 'run_stage',
+      content: result
+        ? `└─ ${result.ok ? 'PASS' : 'FAIL'} code=${result.code} timeout=${result.timedOut}\n${resultDetails(result)}`
+        : `└─ command pending\n${command}`,
+    },
+  ];
+  if (result) {
+    messages.push({
+      role: 'assistant',
+      content: `${stage} ${result.ok ? 'passed' : 'failed'} for ${ip}.`,
+    });
+  }
+  await writeFile(path.join(sdir, 'conversation.json'), JSON.stringify(messages, null, 2) + '\n', 'utf8');
+  await writeFile(path.join(sdir, 'full_conversation.json'), JSON.stringify(messages, null, 2) + '\n', 'utf8');
+  return { workflow, count: messages.length };
+};
+
+const refreshWorkflowChat = async (workflow) => {
+  try {
+    await page.goto(`${BASE}/?session_id=admin&ip=${ip}&workflow=${workflow}`, {
+      waitUntil: 'domcontentloaded',
+      timeout: 15000,
+    });
+  } catch (e) {
+    log('workflow chat goto soft-timeout:', e.message);
+  }
+  await page.evaluate(() => {
+    const e = [...document.querySelectorAll('button,a,span,.dir-btn,[role="tab"]')]
+      .find(x => /^\s*[⌂\s]*WORKSPACE\s*$/i.test((x.textContent || '').trim()) && x.offsetParent);
+    if (e) e.click();
+  });
+  await page.waitForTimeout(900);
+  await openChat();
+  let count = 0;
+  for (let i = 0; i < 10; i++) {
+    count = await chatEntryCount();
+    if (count > 0) break;
+    await page.waitForTimeout(500);
+  }
+  return count;
+};
+
 const typeAndSubmit = async (text) => {
   const ta = await page.waitForSelector('textarea', { timeout: 10000 });
   await ta.click();
@@ -387,6 +469,15 @@ try {
     await capture(shot++, `${stage}-chat-${result.ok ? 'pass' : 'fail'}`, {
       title: `${stage}: after`,
       status: 'chat feed shows tool result + assistant summary',
+      command,
+      details: resultDetails(result),
+    });
+    const wf = await writeWorkflowConversation(stage, command, result);
+    const wfChatCount = await refreshWorkflowChat(wf.workflow);
+    assert(wfChatCount > 0, `${stage} workflow chat rendered in ${wf.workflow} (${wfChatCount})`);
+    await capture(shot++, `${stage}-${wf.workflow}-workflow-chat-${result.ok ? 'pass' : 'fail'}`, {
+      title: `${stage}: ${wf.workflow} chat`,
+      status: `individual workflow chat rendered (${wfChatCount} entries)`,
       command,
       details: resultDetails(result),
     });

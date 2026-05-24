@@ -9,23 +9,25 @@
   body{margin:0;background:var(--bg);color:var(--fg);font-family:ui-monospace,SFMono-Regular,Menlo,"Cascadia Mono",Consolas,monospace;font-size:13px;line-height:1.5;}
   a{color:var(--accent);text-decoration:none;}
 
-  /* sticky top nav */
+  /* sticky top nav — wraps freely so links never clip */
   .nav{position:sticky;top:0;z-index:50;display:flex;gap:4px;align-items:center;flex-wrap:wrap;
-       padding:9px 14px;background:rgba(13,17,23,.92);backdrop-filter:blur(6px);
+       padding:7px 14px;background:rgba(13,17,23,.94);backdrop-filter:blur(6px);
        border-bottom:1px solid var(--line);}
-  .nav .chip{font-weight:700;margin-right:10px;display:inline-flex;align-items:center;gap:7px;
-       border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:3px 10px;}
+  .nav .chip{font-weight:700;margin-right:6px;display:inline-flex;align-items:center;gap:7px;
+       border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:3px 10px;
+       white-space:nowrap;}
   .nav .chip b{color:var(--accent);}
   .nav .chip .sub{font-size:10px;color:var(--mute);font-weight:400;}
-  .nav a.lnk{font-size:11px;color:var(--mute);border:1px solid transparent;border-radius:5px;padding:3px 8px;cursor:pointer;}
+  .nav a.lnk{font-size:11px;color:var(--mute);border:1px solid transparent;border-radius:5px;
+       padding:2px 7px;cursor:pointer;white-space:nowrap;}
   .nav a.lnk:hover{color:var(--fg);border-color:var(--line);background:var(--panel);}
   .nav a.lnk.active{color:var(--accent);border-color:var(--line);background:var(--panel);}
   .nav .grow{flex:1;}
-  .nav .hint{font-size:10px;color:var(--mute);}
+  .nav .hint{font-size:10px;color:var(--mute);white-space:nowrap;}
 
   /* sections */
   .doc{max-width:1180px;margin:0 auto;padding:0 18px 90px;}
-  section{padding:26px 0 8px;border-bottom:1px solid var(--line);scroll-margin-top:54px;}
+  section{padding:26px 0 8px;border-bottom:1px solid var(--line);scroll-margin-top:58px;}
   section:last-of-type{border-bottom:0;}
   h2{font-size:16px;margin:0 0 4px;display:flex;align-items:baseline;gap:9px;}
   h2 .ix{color:var(--accent);font-size:12px;}
@@ -33,15 +35,14 @@
   .lead{color:var(--mute);font-size:12px;margin:0 0 16px;max-width:820px;line-height:1.6;}
 
   .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;}
-  .panel + .panel{margin-top:12px;}
+  .panel+.panel{margin-top:12px;}
   .stage{overflow:auto;}
   svg{display:block;font-family:inherit;}
 
-  /* disclaimer banner (muted/amber) */
-  .disclaimer{border:1px solid #5a4a18;background:#1c1708;color:var(--warn);border-radius:8px;
+  /* disclaimer banner */
+  .disclaimer{border:1px solid var(--warn);background:#1c1708;color:var(--warn);border-radius:8px;
        padding:11px 13px;font-size:11.5px;line-height:1.65;margin-bottom:14px;display:flex;gap:10px;align-items:flex-start;}
   .disclaimer .dx{font-size:14px;line-height:1;flex:0 0 auto;margin-top:1px;}
-  .disclaimer b{color:#e9c45a;}
 
   /* overview facts grid */
   .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;}
@@ -53,16 +54,16 @@
 
   /* table of contents */
   .toc{list-style:none;margin:0;padding:0;}
-  .toc li{border-bottom:1px solid var(--line);}
-  .toc li:last-child{border-bottom:0;}
+  .toc>li{border-bottom:1px solid var(--line);}
+  .toc>li:last-child{border-bottom:0;}
   .toc .crow{display:flex;align-items:baseline;gap:12px;padding:9px 6px;cursor:pointer;user-select:none;transition:background .12s;}
   .toc .crow:hover{background:#10243b;}
   .toc .cn{color:var(--accent);font-weight:700;font-size:12px;width:26px;flex:0 0 auto;text-align:right;}
   .toc .ct{color:var(--fg);font-size:13px;flex:1;}
   .toc .cx{color:var(--mute);font-size:10px;flex:0 0 auto;transition:transform .15s;}
-  .toc li.open .cx{transform:rotate(90deg);color:var(--accent);}
+  .toc>li.open .cx{transform:rotate(90deg);color:var(--accent);}
   .toc .topics{max-height:0;overflow:hidden;transition:max-height .2s ease;}
-  .toc li.open .topics{max-height:200px;}
+  .toc>li.open .topics{max-height:300px;}
   .toc .topics ul{margin:0;padding:2px 0 10px 44px;list-style:none;}
   .toc .topics li{border:0;font-size:11.5px;color:var(--mute);padding:2px 0;position:relative;}
   .toc .topics li:before{content:"§";color:var(--line);position:absolute;left:-15px;}
@@ -71,14 +72,15 @@
   .featgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:12px;}
   .featcard{border:1px solid var(--line);border-radius:8px;background:var(--bg);overflow:hidden;}
   .featcard .fh{padding:7px 11px;border-bottom:1px solid var(--line);background:var(--panel);
-       color:var(--accent);font-weight:700;font-size:12px;display:flex;align-items:center;gap:7px;}
+       color:var(--accent);font-weight:700;font-size:12px;}
   .featcard ul{margin:0;padding:9px 11px 11px;list-style:none;}
-  .featcard li{font-size:11.5px;color:var(--fg);padding:4px 0 4px 16px;position:relative;line-height:1.55;border-top:1px solid var(--line);}
+  .featcard li{font-size:11.5px;color:var(--fg);padding:4px 0 4px 16px;position:relative;
+       line-height:1.55;border-top:1px solid var(--line);}
   .featcard li:first-child{border-top:0;}
   .featcard li:before{content:"▸";color:var(--ok);position:absolute;left:0;}
   .featcard li em{color:var(--warn);font-style:italic;}
 
-  /* generic info panel (shared hover target) */
+  /* generic info / hover panel */
   .info{font-size:11.5px;color:var(--mute);min-height:18px;}
   .info b{color:var(--fg);}
   .info code{color:var(--accent);}
@@ -112,12 +114,13 @@
   .rtab.on{color:var(--accent);border-color:var(--accent);background:#0b1827;}
 
   /* bit-field hover readout */
-  .bitinfo{margin-top:12px;border:1px solid var(--line);border-radius:6px;padding:9px 11px;background:var(--bg);font-size:11.5px;min-height:54px;}
+  .bitinfo{margin-top:12px;border:1px solid var(--line);border-radius:6px;padding:9px 11px;
+       background:var(--bg);font-size:11.5px;min-height:54px;}
   .bitinfo .bn{color:var(--accent);font-weight:700;}
   .bitinfo .bm{color:var(--mute);}
   .bitinfo .bm b{color:var(--fg);}
 
-  /* block diagram — arch svg classes (match ssot-explorer idiom) */
+  /* block diagram SVG classes (match ssot-explorer idiom) */
   .boundary{fill:rgba(88,166,255,0.03);stroke:var(--line);stroke-width:1.4;stroke-dasharray:4 4;}
   .boundaryLbl{fill:var(--mute);font-size:11px;}
   .grp{fill:none;stroke:var(--line);stroke-width:1;stroke-dasharray:2 3;}
@@ -126,38 +129,34 @@
   .blkTitle{fill:var(--fg);font-size:11px;font-weight:700;text-anchor:middle;pointer-events:none;}
   .blkSub{fill:var(--mute);font-size:8.5px;text-anchor:middle;pointer-events:none;}
   .coreLbl{fill:var(--mute);font-size:9px;font-weight:700;}
-
-  /* kind color coding */
-  .blk{stroke-width:1.4;cursor:pointer;transition:stroke .12s,fill .12s,filter .12s;}
-  .blk.frontend {fill:#161b22;stroke:#3a5170;}
-  .blk.frontend:hover,.blk.frontend.hot {fill:#0b1827;stroke:var(--accent);}
-  .blk.exec     {fill:#161b22;stroke:#1d4326;}
-  .blk.exec:hover,.blk.exec.hot         {fill:#0c1c11;stroke:var(--ok);}
-  .blk.mem      {fill:#161b22;stroke:#5a4a18;}
-  .blk.mem:hover,.blk.mem.hot           {fill:#1c1708;stroke:var(--warn);}
+  .blk{stroke-width:1.4;cursor:pointer;transition:stroke .12s,fill .12s;}
+  .blk.frontend{fill:#161b22;stroke:#3a5170;}
+  .blk.frontend:hover,.blk.frontend.hot{fill:#0b1827;stroke:var(--accent);}
+  .blk.exec{fill:#161b22;stroke:#1d4326;}
+  .blk.exec:hover,.blk.exec.hot{fill:#0c1c11;stroke:var(--ok);}
+  .blk.mem{fill:#161b22;stroke:#5a4a18;}
+  .blk.mem:hover,.blk.mem.hot{fill:#1c1708;stroke:var(--warn);}
   .blk.coherency{fill:#161b22;stroke:#5b2a6b;}
   .blk.coherency:hover,.blk.coherency.hot{fill:#190f1f;stroke:#bc8cff;}
   .blk.interrupt{fill:#161b22;stroke:#6b3320;}
   .blk.interrupt:hover,.blk.interrupt.hot{fill:#1f0f0a;stroke:#f0883e;}
-  .blk.timer    {fill:#161b22;stroke:#1d4a4a;}
-  .blk.timer:hover,.blk.timer.hot       {fill:#0a1c1c;stroke:#56d4d4;}
-  .blk.debug    {fill:#161b22;stroke:#4a4a52;}
-  .blk.debug:hover,.blk.debug.hot       {fill:#16161b;stroke:#adadc0;}
-
+  .blk.timer{fill:#161b22;stroke:#1d4a4a;}
+  .blk.timer:hover,.blk.timer.hot{fill:#0a1c1c;stroke:#56d4d4;}
+  .blk.debug{fill:#161b22;stroke:#4a4a52;}
+  .blk.debug:hover,.blk.debug.hot{fill:#16161b;stroke:#adadc0;}
   .port{fill:#0d1117;stroke:var(--line);stroke-width:1.2;cursor:pointer;transition:stroke .12s,fill .12s;}
-  .port.master{stroke:#3a5a3f;} .port.slave{stroke:#3a5170;} .port.io{stroke:#5a4a18;}
+  .port.master{stroke:#3a5a3f;}.port.slave{stroke:#3a5170;}.port.io{stroke:#5a4a18;}
   .port:hover,.port.hot{stroke:var(--accent);fill:#10243b;}
   .portLbl{font-size:10px;font-weight:700;pointer-events:none;}
-  .portLbl.master{fill:var(--ok);} .portLbl.slave{fill:var(--accent);} .portLbl.io{fill:var(--warn);}
+  .portLbl.master{fill:var(--ok);}.portLbl.slave{fill:var(--accent);}.portLbl.io{fill:var(--warn);}
   .portW{fill:var(--mute);font-size:8.5px;pointer-events:none;}
   .aedge{fill:none;stroke:var(--mute);stroke-width:1.3;}
   .aedge.flow{stroke-width:1.6;}
-
   .lgnd{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;font-size:10.5px;color:var(--mute);align-items:center;}
   .lgnd .li{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);border-radius:5px;padding:2px 8px;}
   .lgnd .dot{width:11px;height:11px;border-radius:3px;border:1.4px solid;display:inline-block;}
 
-  /* timing svg classes (match timing-diagram.html) */
+  /* timing SVG classes */
   .grid{stroke:var(--line);stroke-width:1;stroke-dasharray:2 4;}
   .wave{fill:none;stroke:var(--accent);stroke-width:1.6;stroke-linejoin:round;}
   .hatch{stroke:var(--mute);stroke-width:1;opacity:.5;}
@@ -165,11 +164,60 @@
   .cyc{fill:var(--mute);font-size:10px;text-anchor:middle;}
   .busText{fill:var(--fg);font-size:11px;text-anchor:middle;}
 
+  /* ---- NEW section layouts ---- */
+
+  /* programmers model: EL ladder + register-file grid */
+  .el-ladder{display:flex;flex-direction:column;gap:6px;max-width:680px;}
+  .el-row{display:flex;align-items:stretch;gap:10px;}
+  .el-badge{font-size:11px;font-weight:700;color:var(--accent);border:1px solid var(--accent);
+       border-radius:5px;padding:4px 10px;min-width:46px;text-align:center;background:#0b1827;
+       display:flex;align-items:center;justify-content:center;}
+  .el-desc{font-size:12px;color:var(--fg);border:1px solid var(--line);border-radius:5px;
+       padding:5px 10px;flex:1;background:var(--bg);display:flex;align-items:center;}
+  .el-sep{width:2px;background:var(--line);border-radius:2px;margin:0 4px;}
+
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media(max-width:640px){.two-col{grid-template-columns:1fr;}}
+  .three-col{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;}
+
+  .infobox{border:1px solid var(--line);border-radius:6px;padding:10px 12px;background:var(--bg);}
+  .infobox .ik{font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}
+  .infobox .iv{font-size:12.5px;color:var(--fg);}
+  .infobox .iv code{color:var(--accent);}
+
+  .pill-list{display:flex;gap:7px;flex-wrap:wrap;margin-top:6px;}
+  .pill{font-size:11px;border:1px solid var(--line);border-radius:4px;padding:2px 9px;color:var(--mute);}
+  .pill.ok{border-color:var(--ok);color:var(--ok);background:#0c1c11;}
+  .pill.acc{border-color:var(--accent);color:var(--accent);background:#0b1827;}
+  .pill.warn{border-color:var(--warn);color:var(--warn);background:#1c1708;}
+
+  /* pipeline stage strip */
+  .pipe-strip{display:flex;align-items:center;gap:0;flex-wrap:wrap;margin:10px 0;}
+  .pipe-stage{border:1px solid var(--accent);border-radius:4px;padding:7px 14px;font-size:11.5px;
+       font-weight:700;color:var(--accent);background:#0b1827;white-space:nowrap;}
+  .pipe-arrow{color:var(--mute);font-size:14px;padding:0 4px;}
+
+  /* power modes table coloring */
+  tr.mode-run td:first-child{color:var(--ok);}
+  tr.mode-stby td:first-child{color:var(--accent);}
+  tr.mode-dorm td:first-child{color:var(--warn);}
+  tr.mode-off td:first-child{color:var(--bad);}
+
+  /* config signals table */
+  td.sig-name{color:var(--ok);font-weight:700;font-size:12px;}
+
+  /* PMU events: event num badge */
+  td.ev-num code{color:var(--warn);}
+
   /* editor */
   .editor{margin-top:30px;}
-  .editor textarea{width:100%;height:300px;background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:12px;padding:12px;resize:vertical;line-height:1.5;}
-  .editor .erow{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;}
-  button{background:var(--accent);color:#000;border:0;padding:7px 15px;border-radius:6px;font-family:inherit;font-weight:700;cursor:pointer;font-size:12px;}
+  .editor textarea{width:100%;height:300px;background:var(--panel);color:var(--fg);
+       border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:12px;
+       padding:12px;resize:vertical;line-height:1.5;}
+  .editor .erow{display:flex;justify-content:space-between;align-items:center;gap:10px;
+       margin-bottom:8px;flex-wrap:wrap;}
+  button{background:var(--accent);color:#000;border:0;padding:7px 15px;border-radius:6px;
+       font-family:inherit;font-weight:700;cursor:pointer;font-size:12px;}
   .err{color:var(--bad);font-size:11.5px;min-height:16px;margin-top:8px;white-space:pre-wrap;}
   .ok-msg{color:var(--ok);}
 </style></head>
@@ -178,10 +226,18 @@
 <nav class="nav" id="nav">
   <span class="chip">▤ <b>Cortex-A53</b> <span class="sub">· TRM (illustrative)</span></span>
   <a class="lnk" href="#overview">Overview</a>
-  <a class="lnk" href="#toc">목차/TOC</a>
+  <a class="lnk" href="#toc">TOC</a>
   <a class="lnk" href="#features">Features</a>
   <a class="lnk" href="#block">Block</a>
   <a class="lnk" href="#registers">Registers</a>
+  <a class="lnk" href="#prog-model">Prog Model</a>
+  <a class="lnk" href="#mmu">MMU</a>
+  <a class="lnk" href="#caches">Caches</a>
+  <a class="lnk" href="#interrupts">Interrupts</a>
+  <a class="lnk" href="#power">Power</a>
+  <a class="lnk" href="#pmu">PMU</a>
+  <a class="lnk" href="#pipeline">Pipeline</a>
+  <a class="lnk" href="#config-signals">Config</a>
   <a class="lnk" href="#timing">Timing</a>
   <span class="grow"></span>
   <span class="hint">single HTML · 0 deps · file://</span>
@@ -189,6 +245,7 @@
 
 <div class="doc">
 
+  <!-- 01 OVERVIEW -->
   <section id="overview">
     <h2><span class="ix">01</span> Overview <span class="k">overview · config</span></h2>
     <div class="disclaimer" id="disclaimer"><span class="dx">⚠</span><span id="disclaimerTxt"></span></div>
@@ -199,25 +256,24 @@
     </div>
   </section>
 
+  <!-- 02 TOC -->
   <section id="toc">
     <h2><span class="ix">02</span> 목차 / Table of Contents <span class="k">toc · 13 chapters</span></h2>
-    <p class="lead">The TRM contents page. Click a chapter row to expand its subtopics.</p>
-    <div class="panel">
-      <ul class="toc" id="tocList"></ul>
-    </div>
+    <p class="lead">Click a chapter row to expand its subtopics.</p>
+    <div class="panel"><ul class="toc" id="tocList"></ul></div>
   </section>
 
+  <!-- 03 FEATURES -->
   <section id="features">
     <h2><span class="ix">03</span> Features <span class="k">features · grouped</span></h2>
-    <p class="lead">Architectural feature summary, grouped. Items marked <em>illustrative</em> are configurable / implementation-defined.</p>
-    <div class="panel">
-      <div class="featgrid" id="featGrid"></div>
-    </div>
+    <p class="lead">Items marked <em style="color:var(--warn)">illustrative</em> are configurable / implementation-defined.</p>
+    <div class="panel"><div class="featgrid" id="featGrid"></div></div>
   </section>
 
+  <!-- 04 BLOCK DIAGRAM -->
   <section id="block">
     <h2><span class="ix">04</span> Block diagram <span class="k">MPCore cluster · cores · shared · interfaces</span></h2>
-    <p class="lead">The Cortex-A53 MPCore cluster: 1–4 cores (one detailed, others ghosted) over a shared L2/SCU/GIC/Timer fabric, with external AMBA interfaces on the boundary. Hover any block for kind/name, or an interface for role/width/desc.</p>
+    <p class="lead">1–4 core MPCore cluster (Core 0 detailed, others ghosted). Shared L2/SCU/GIC/Timer beneath. External AMBA interfaces on the boundary edges. Hover any block or interface.</p>
     <div class="panel">
       <div class="stage"><svg id="archSvg"></svg></div>
       <div class="info" id="archInfo" style="margin-top:10px">Hover a block (name · kind) or an interface (role · width · desc).</div>
@@ -225,27 +281,85 @@
     </div>
   </section>
 
+  <!-- 05 REGISTER MAP -->
   <section id="registers">
     <h2><span class="ix">05</span> Register map <span class="k">registers.register_list · MRS/MSR encodings</span></h2>
     <p class="lead" id="regNote"></p>
     <div class="panel">
       <table id="regTable"><thead><tr><th>encoding</th><th>name</th><th>access</th><th>reset</th><th>description</th></tr></thead><tbody></tbody></table>
       <div style="margin-top:18px">
-        <div class="grpLbl" style="font-size:11px;color:var(--mute);margin-bottom:2px">32-bit field map (msb ← → lsb) — pick a register:</div>
+        <div style="font-size:11px;color:var(--mute);margin-bottom:4px">32-bit field map (msb ← → lsb) — click a register name or tab:</div>
         <div class="rtabs" id="regTabs"></div>
         <div class="stage"><svg id="bitSvg"></svg></div>
       </div>
       <div class="legend">
         <span><span class="sw named"></span>named field</span>
         <span><span class="sw res"></span>reserved</span>
-        <span style="color:var(--mute)">access: <span class="acctag rw">RW</span> read/write · <span class="acctag ro">RO</span> read-only · <span class="acctag reserved">reserved</span></span>
+        <span style="color:var(--mute)">access: <span class="acctag rw">RW</span> read/write · <span class="acctag ro">RO</span> read-only</span>
       </div>
       <div class="bitinfo" id="bitInfo">Hover a field stripe above for bit-level detail.</div>
     </div>
   </section>
 
+  <!-- 06 PROGRAMMERS MODEL -->
+  <section id="prog-model">
+    <h2><span class="ix">06</span> Programmers Model <span class="k">programmers_model</span></h2>
+    <p class="lead">Execution states, exception levels, security model, and register file overview.</p>
+    <div class="panel" id="pmPanel"></div>
+  </section>
+
+  <!-- 07 MMU -->
+  <section id="mmu">
+    <h2><span class="ix">07</span> Memory Management Unit <span class="k">mmu · TLBs · translation regimes</span></h2>
+    <p class="lead">ARMv8-A address translation configuration implemented in the Cortex-A53.</p>
+    <div class="panel" id="mmuPanel"></div>
+  </section>
+
+  <!-- 08 CACHES -->
+  <section id="caches">
+    <h2><span class="ix">08</span> Caches <span class="k">caches · sizes · policies</span></h2>
+    <p class="lead">L1 instruction, L1 data, and L2 unified cache parameters (illustrative configurable values shown).</p>
+    <div class="panel" id="cachePanel"></div>
+  </section>
+
+  <!-- 09 INTERRUPTS -->
+  <section id="interrupts">
+    <h2><span class="ix">09</span> Interrupts <span class="k">interrupts · GIC · vectors</span></h2>
+    <p class="lead">Interrupt types, GIC interface, and vector table layout.</p>
+    <div class="panel" id="intPanel"></div>
+  </section>
+
+  <!-- 10 POWER -->
+  <section id="power">
+    <h2><span class="ix">10</span> Power Management <span class="k">power · domains · modes</span></h2>
+    <p class="lead">Per-core and cluster power domains with operating modes from Run to Shutdown.</p>
+    <div class="panel" id="powerPanel"></div>
+  </section>
+
+  <!-- 11 PMU -->
+  <section id="pmu">
+    <h2><span class="ix">11</span> Performance Monitor Unit <span class="k">pmu_events · PMUv3</span></h2>
+    <p class="lead" id="pmuNote"></p>
+    <div class="panel" id="pmuPanel"></div>
+  </section>
+
+  <!-- 12 PIPELINE -->
+  <section id="pipeline">
+    <h2><span class="ix">12</span> Pipeline <span class="k">pipeline · in-order · dual-issue</span></h2>
+    <p class="lead">Integer pipeline topology and issue characteristics.</p>
+    <div class="panel" id="pipePanel"></div>
+  </section>
+
+  <!-- 13 CONFIG SIGNALS -->
+  <section id="config-signals">
+    <h2><span class="ix">13</span> Configuration Signals <span class="k">config_signals · implementation inputs</span></h2>
+    <p class="lead">Static tie-off / strap inputs sampled at reset that configure implementation behaviour.</p>
+    <div class="panel" id="cfgPanel"></div>
+  </section>
+
+  <!-- 14 TIMING -->
   <section id="timing">
-    <h2><span class="ix">06</span> Timing diagram <span class="k">timing.signals · WaveDrom-style</span></h2>
+    <h2><span class="ix">14</span> Timing diagram <span class="k">timing.signals · WaveDrom-style</span></h2>
     <p class="lead" id="tmLead"></p>
     <div class="panel">
       <div class="stage"><svg id="timeSvg"></svg></div>
@@ -257,11 +371,12 @@
     </div>
   </section>
 
+  <!-- EDITOR -->
   <div class="editor" id="editorBox">
     <div class="erow">
       <div>
         <div style="font-weight:700;font-size:13px">▦ master JSON · playable spec</div>
-        <div class="legend" style="margin-top:4px">edit the JSON below → <code>↻ Re-render all</code> rebuilds every section above.</div>
+        <div class="legend" style="margin-top:4px">Edit the JSON below → <code>↻ Re-render all</code> rebuilds every section.</div>
       </div>
       <button onclick="reRenderAll()">↻ Re-render all</button>
     </div>
@@ -269,14 +384,14 @@
     <div class="err" id="err"></div>
   </div>
 
-</div>
+</div><!-- .doc -->
 
 <script>
 const SVGNS='http://www.w3.org/2000/svg';
 
 /* ============================================================
    Embedded data — from interactive_ui/data/ca53.json
-   (inline const; also preloaded into the editor textarea below)
+   (inline const; also preloaded into the editor textarea)
    ============================================================ */
 const DEFAULT = {
   "_disclaimer": "Illustrative Cortex-A53 TRM-STYLE datasheet built from publicly documented ARMv8-A / Cortex-A53 architectural facts. NOT a copy of ARM's copyrighted Technical Reference Manual. Configurable/implementation-defined values are marked illustrative. For authoritative detail consult ARM DDI 0500 (Cortex-A53 TRM) and the ARMv8-A ARM (DDI 0487).",
@@ -322,27 +437,27 @@ const DEFAULT = {
     "cluster": "Cortex-A53 MPCore cluster",
     "cores": 4,
     "per_core": [
-      { "id": "ifu",   "name": "Instruction Fetch + Branch Predictor", "kind": "frontend" },
-      { "id": "dec",   "name": "Decode / Issue (in-order, dual-issue)", "kind": "frontend" },
-      { "id": "alu",   "name": "Integer ALU / MAC / Divide",           "kind": "exec" },
-      { "id": "neon",  "name": "NEON & FP (opt. Crypto)",              "kind": "exec" },
-      { "id": "l1i",   "name": "L1 I-Cache (32 KB, 2-way)",            "kind": "mem" },
-      { "id": "l1d",   "name": "L1 D-Cache (32 KB, 4-way)",            "kind": "mem" },
-      { "id": "mmu",   "name": "MMU (TLBs · 40-bit PA)",              "kind": "mem" },
-      { "id": "dbg",   "name": "Debug · PMU · ETM",                   "kind": "debug" }
+      { "id": "ifu",  "name": "Instruction Fetch + Branch Predictor", "kind": "frontend" },
+      { "id": "dec",  "name": "Decode / Issue (in-order, dual-issue)", "kind": "frontend" },
+      { "id": "alu",  "name": "Integer ALU / MAC / Divide",           "kind": "exec" },
+      { "id": "neon", "name": "NEON & FP (opt. Crypto)",              "kind": "exec" },
+      { "id": "l1i",  "name": "L1 I-Cache (32 KB, 2-way)",            "kind": "mem" },
+      { "id": "l1d",  "name": "L1 D-Cache (32 KB, 4-way)",            "kind": "mem" },
+      { "id": "mmu",  "name": "MMU (TLBs · 40-bit PA)",          "kind": "mem" },
+      { "id": "dbg",  "name": "Debug · PMU · ETM",          "kind": "debug" }
     ],
     "shared": [
       { "id": "l2",  "name": "L2 Cache (128 KB–2 MB, 16-way)", "kind": "mem" },
-      { "id": "scu", "name": "Snoop Control Unit (SCU)",       "kind": "coherency" },
-      { "id": "gic", "name": "GIC CPU interface",              "kind": "interrupt" },
-      { "id": "tmr", "name": "Generic Timer",                  "kind": "timer" }
+      { "id": "scu", "name": "Snoop Control Unit (SCU)",            "kind": "coherency" },
+      { "id": "gic", "name": "GIC CPU interface",                   "kind": "interrupt" },
+      { "id": "tmr", "name": "Generic Timer",                       "kind": "timer" }
     ],
     "interfaces": [
-      { "name": "ACE master",  "role": "master", "width": 128, "desc": "AMBA 4 ACE coherent memory interface (illustrative 128-bit)" },
-      { "name": "ACP",         "role": "slave",  "width": 128, "desc": "Accelerator Coherency Port (optional)" },
-      { "name": "GIC",         "role": "io",     "desc": "Interrupt distributor connection" },
-      { "name": "Debug APB",   "role": "slave",  "desc": "CoreSight debug access" },
-      { "name": "ATB trace",   "role": "master", "desc": "ETM instruction trace out" }
+      { "name": "ACE master", "role": "master", "width": 128, "desc": "AMBA 4 ACE coherent memory interface (illustrative 128-bit)" },
+      { "name": "ACP",        "role": "slave",  "width": 128, "desc": "Accelerator Coherency Port (optional)" },
+      { "name": "GIC",        "role": "io",                   "desc": "Interrupt distributor connection" },
+      { "name": "Debug APB",  "role": "slave",                "desc": "CoreSight debug access" },
+      { "name": "ATB trace",  "role": "master",               "desc": "ETM instruction trace out" }
     ]
   },
   "registers": {
@@ -352,11 +467,11 @@ const DEFAULT = {
         "name": "MIDR_EL1", "encoding": "S3_0_C0_C0_0", "access": "RO", "reset": "0x410FD03x",
         "desc": "Main ID Register — identifies the implementer and part.",
         "fields": [
-          { "name": "Implementer", "msb": 31, "lsb": 24, "reset": "0x41", "desc": "0x41 = ARM Limited (fixed)" },
-          { "name": "Variant",     "msb": 23, "lsb": 20, "desc": "rNpM variant (illustrative)" },
-          { "name": "Architecture","msb": 19, "lsb": 16, "reset": "0xF",  "desc": "0xF = defined by CPUID scheme (ARMv8)" },
-          { "name": "PartNum",     "msb": 15, "lsb": 4,  "reset": "0xD03","desc": "0xD03 = Cortex-A53 (fixed)" },
-          { "name": "Revision",    "msb": 3,  "lsb": 0,  "desc": "rNpM revision (illustrative)" }
+          { "name": "Implementer",  "msb": 31, "lsb": 24, "reset": "0x41",  "desc": "0x41 = ARM Limited (fixed)" },
+          { "name": "Variant",      "msb": 23, "lsb": 20,                   "desc": "rNpM variant (illustrative)" },
+          { "name": "Architecture", "msb": 19, "lsb": 16, "reset": "0xF",   "desc": "0xF = defined by CPUID scheme (ARMv8)" },
+          { "name": "PartNum",      "msb": 15, "lsb": 4,  "reset": "0xD03", "desc": "0xD03 = Cortex-A53 (fixed)" },
+          { "name": "Revision",     "msb": 3,  "lsb": 0,                   "desc": "rNpM revision (illustrative)" }
         ]
       },
       {
@@ -392,12 +507,12 @@ const DEFAULT = {
           { "name": "FPEN", "msb": 21, "lsb": 20, "desc": "FP/SIMD trap control (0b11 = no trap)" }
         ]
       },
-      { "name": "TTBR0_EL1",      "encoding": "S3_0_C2_C0_0", "access": "RW", "desc": "Translation Table Base Register 0 (EL1)." },
-      { "name": "TTBR1_EL1",      "encoding": "S3_0_C2_C0_1", "access": "RW", "desc": "Translation Table Base Register 1 (EL1)." },
-      { "name": "TCR_EL1",        "encoding": "S3_0_C2_C0_2", "access": "RW", "desc": "Translation Control Register (EL1)." },
-      { "name": "ESR_EL1",        "encoding": "S3_0_C5_C2_0", "access": "RW", "desc": "Exception Syndrome Register (EL1)." },
-      { "name": "FAR_EL1",        "encoding": "S3_0_C6_C0_0", "access": "RW", "desc": "Fault Address Register (EL1)." },
-      { "name": "VBAR_EL1",       "encoding": "S3_0_C12_C0_0","access": "RW", "desc": "Vector Base Address Register (EL1)." },
+      { "name": "TTBR0_EL1",      "encoding": "S3_0_C2_C0_0",  "access": "RW", "desc": "Translation Table Base Register 0 (EL1)." },
+      { "name": "TTBR1_EL1",      "encoding": "S3_0_C2_C0_1",  "access": "RW", "desc": "Translation Table Base Register 1 (EL1)." },
+      { "name": "TCR_EL1",        "encoding": "S3_0_C2_C0_2",  "access": "RW", "desc": "Translation Control Register (EL1)." },
+      { "name": "ESR_EL1",        "encoding": "S3_0_C5_C2_0",  "access": "RW", "desc": "Exception Syndrome Register (EL1)." },
+      { "name": "FAR_EL1",        "encoding": "S3_0_C6_C0_0",  "access": "RW", "desc": "Fault Address Register (EL1)." },
+      { "name": "VBAR_EL1",       "encoding": "S3_0_C12_C0_0", "access": "RW", "desc": "Vector Base Address Register (EL1)." },
       {
         "name": "CTR_EL0", "encoding": "S3_3_C0_C0_1", "access": "RO",
         "desc": "Cache Type Register — minimum cache line sizes and policies.",
@@ -435,6 +550,82 @@ const DEFAULT = {
       { "name": "CCSIDR_EL1",     "encoding": "S3_1_C0_C0_0",  "access": "RO", "desc": "Current Cache Size ID Register." }
     ]
   },
+  "programmers_model": {
+    "execution_states": ["AArch64 — A64 instruction set, 64-bit", "AArch32 — A32/T32 instruction sets, 32-bit (compatible)"],
+    "exception_levels": [
+      { "el": "EL0", "use": "Application / unprivileged" },
+      { "el": "EL1", "use": "OS kernel" },
+      { "el": "EL2", "use": "Hypervisor (optional)" },
+      { "el": "EL3", "use": "Secure monitor / firmware" }
+    ],
+    "security_states": ["Secure", "Non-secure (TrustZone)"],
+    "register_file": [
+      { "name": "X0–X30",            "desc": "31 general-purpose 64-bit registers (W0–W30 = 32-bit views)" },
+      { "name": "SP_ELx",               "desc": "Stack pointer, banked per exception level" },
+      { "name": "PC",                   "desc": "Program counter" },
+      { "name": "V0–V31",            "desc": "32 × 128-bit SIMD/FP registers" },
+      { "name": "SPSR_ELx / ELR_ELx",  "desc": "Saved program status / exception link, per EL" }
+    ]
+  },
+  "mmu": {
+    "va_size": "48-bit virtual address",
+    "pa_size": "40-bit physical address",
+    "granules": ["4 KB", "64 KB"],
+    "granule_note": "16 KB granule not supported (illustrative)",
+    "translation_regimes": [
+      "EL0/EL1 stage 1 — TTBR0_EL1 (low) / TTBR1_EL1 (high), TCR_EL1",
+      "EL2 stage 1 — TTBR0_EL2 (optional)",
+      "EL1&0 stage 2 — VTTBR_EL2 (virtualization, optional)"
+    ],
+    "tlb": "Per-core L1 instruction & data micro-TLBs backed by a unified L2 TLB (illustrative)"
+  },
+  "caches": {
+    "rows": [
+      { "cache": "L1 Instruction", "size": "8–64 KB (illustrative 32 KB)", "ways": "2",  "line": "64 B", "policy": "VIPT, read-allocate" },
+      { "cache": "L1 Data",        "size": "8–64 KB (illustrative 32 KB)", "ways": "4",  "line": "64 B", "policy": "PIPT, write-back, read/write-allocate" },
+      { "cache": "L2 Unified",     "size": "128 KB–2 MB",                 "ways": "16", "line": "64 B", "policy": "write-back, inclusive of L1 (illustrative)" }
+    ],
+    "coherency": "Snoop Control Unit (SCU) keeps L1 D-caches coherent across cores (MOESI-style states)."
+  },
+  "interrupts": {
+    "types": ["IRQ — normal interrupt", "FIQ — fast interrupt", "SError — system error abort"],
+    "gic": "GICv3/v4 system-register CPU interface (optional)",
+    "vectors": "Vector table base in VBAR_EL1; 16 entries (4 groups × 4 exception types)"
+  },
+  "power": {
+    "domains": ["Per-core", "Cluster / L2"],
+    "modes": [
+      { "mode": "Run",               "desc": "Normal operation" },
+      { "mode": "Standby (WFI/WFE)", "desc": "Clocks gated, full state retained" },
+      { "mode": "Dormant",           "desc": "Logic powered down, caches retained (illustrative)" },
+      { "mode": "Shutdown",          "desc": "Power domain off, no state retained" }
+    ]
+  },
+  "pmu_events": {
+    "note": "Architecturally-defined common PMUv3 event numbers (subset).",
+    "events": [
+      { "num": "0x00", "name": "SW_INCR",          "desc": "Software increment" },
+      { "num": "0x03", "name": "L1D_CACHE_REFILL", "desc": "L1 data cache refill" },
+      { "num": "0x04", "name": "L1D_CACHE",        "desc": "L1 data cache access" },
+      { "num": "0x08", "name": "INST_RETIRED",     "desc": "Instruction architecturally executed" },
+      { "num": "0x10", "name": "BR_MIS_PRED",      "desc": "Mispredicted branch" },
+      { "num": "0x11", "name": "CPU_CYCLES",       "desc": "Cycle count" },
+      { "num": "0x12", "name": "BR_PRED",          "desc": "Predictable branch speculatively executed" },
+      { "num": "0x17", "name": "L2D_CACHE_REFILL", "desc": "L2 data cache refill" }
+    ]
+  },
+  "pipeline": {
+    "stages": 8,
+    "type": "in-order, dual-issue, symmetric integer pipeline",
+    "note": "8-stage integer pipeline with a separate NEON/FP pipeline; static + dynamic branch prediction. Exact stage breakdown is illustrative."
+  },
+  "config_signals": [
+    { "name": "CFGEND",       "desc": "Reset endianness (initial SCTLR.EE)" },
+    { "name": "VINITHI",      "desc": "High exception vectors at reset" },
+    { "name": "AA64nAA32",    "desc": "Reset execution state at EL3 (AArch64 vs AArch32)" },
+    { "name": "CP15SDISABLE", "desc": "Disable Secure CP15 register writes" },
+    { "name": "CLUSTERIDAFF", "desc": "Cluster affinity value (MPIDR Aff1/Aff2)" }
+  ],
   "timing": {
     "title": "ACE/AXI read burst — 2-beat (illustrative AMBA 4)",
     "note": "AR address handshake (ARVALID·ARREADY), then R data channel (RVALID·RREADY), RLAST on the final beat.",
@@ -451,9 +642,9 @@ const DEFAULT = {
   }
 };
 
-let SPEC=null;
+let SPEC = null;
 
-/* ---- shared helpers (match sibling idiom) ---- */
+/* ---- shared helpers ---- */
 function svgEl(tag,attrs){const e=document.createElementNS(SVGNS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);return e;}
 function txt(cls,x,y,s,extra){const t=svgEl('text',Object.assign({class:cls,x,y},extra||{}));t.textContent=s;return t;}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
@@ -461,7 +652,7 @@ function clearSvg(id){const s=document.getElementById(id);s.innerHTML='';return 
 function el(id){return document.getElementById(id);}
 function regList(){return (SPEC.registers&&SPEC.registers.register_list)||[];}
 
-/* kind → human label + accent color (used for legend + hover) */
+/* kind meta (block diagram + legend) */
 const KINDS={
   frontend :{lbl:'frontend', col:'#58a6ff'},
   exec     :{lbl:'execute',  col:'#3fb950'},
@@ -478,24 +669,25 @@ const KINDS={
 function renderOverview(){
   const o=SPEC.overview||{}, cfg=o.config||{};
   el('disclaimerTxt').textContent=SPEC._disclaimer||'';
-  el('ovLead').textContent=o.type+' · '+(o.doc||'');
+  el('ovLead').textContent=(o.type||'')+' · '+(o.doc||'');
   const facts=[
-    ['name', o.name, true],
-    ['type', o.type, false],
-    ['architecture', cfg.architecture, true],
-    ['cores / cluster', cfg.cores_per_cluster, false],
-    ['pipeline', cfg.pipeline, false],
-    ['physical addr', cfg.phys_addr, true],
-    ['endianness', cfg.endianness, false]
+    ['name',            o.name,             true ],
+    ['type',            o.type,             false],
+    ['architecture',    cfg.architecture,   true ],
+    ['cores / cluster', cfg.cores_per_cluster,false],
+    ['pipeline',        cfg.pipeline,       false],
+    ['physical addr',   cfg.phys_addr,      true ],
+    ['endianness',      cfg.endianness,     false]
   ];
   el('ovFacts').innerHTML=facts.map(([k,v,a])=>
-    '<div class="fact"><div class="fk">'+esc(k)+'</div><div class="fv'+(a?' acc':'')+'">'+esc(v||'—')+'</div></div>'
+    '<div class="fact"><div class="fk">'+esc(k)+'</div>'+
+    '<div class="fv'+(a?' acc':'')+'">'+esc(v||'—')+'</div></div>'
   ).join('');
   el('ovDesc').textContent=o.description||'';
 }
 
 /* ============================================================
-   02 · TABLE OF CONTENTS  (expandable chapter list)
+   02 · TABLE OF CONTENTS
    ============================================================ */
 function renderToc(){
   const toc=SPEC.toc||[];
@@ -506,53 +698,46 @@ function renderToc(){
         '<span class="ct">'+esc(c.title)+'</span>'+
         '<span class="cx">▶</span>'+
       '</div>'+
-      '<div class="topics"><ul>'+
-        (c.topics||[]).map(t=>'<li>'+esc(t)+'</li>').join('')+
-      '</ul></div>'+
+      '<div class="topics"><ul>'+(c.topics||[]).map(t=>'<li>'+esc(t)+'</li>').join('')+'</ul></div>'+
     '</li>'
   ).join('');
   el('tocList').querySelectorAll('.crow').forEach(row=>{
-    row.addEventListener('click',()=>{
-      el('toc_'+row.getAttribute('data-i')).classList.toggle('open');
-    });
+    row.addEventListener('click',()=>el('toc_'+row.getAttribute('data-i')).classList.toggle('open'));
   });
 }
 
 /* ============================================================
-   03 · FEATURES  (grouped cards, multi-column)
+   03 · FEATURES
    ============================================================ */
-function emItalic(s){ // wrap "illustrative" / "optional" hints in <em>
-  return esc(s).replace(/(illustrative|optional)/gi,'<em>$1</em>');
-}
+function emItalic(s){return esc(s).replace(/(illustrative|optional)/gi,'<em>$1</em>');}
 function renderFeatures(){
-  const groups=SPEC.features||[];
-  el('featGrid').innerHTML=groups.map(g=>
+  el('featGrid').innerHTML=(SPEC.features||[]).map(g=>
     '<div class="featcard"><div class="fh">◆ '+esc(g.group)+'</div>'+
     '<ul>'+(g.items||[]).map(it=>'<li>'+emItalic(it)+'</li>').join('')+'</ul></div>'
   ).join('');
 }
 
 /* ============================================================
-   04 · BLOCK DIAGRAM  (MPCore cluster — hand-built SVG)
+   04 · BLOCK DIAGRAM
    ============================================================ */
-let A_PORTS={};
 function archInfo(html){el('archInfo').innerHTML=html;}
 function archReset(){archInfo('Hover a block (name · kind) or an interface (role · width · desc).');}
 
 function renderBlock(){
-  const b=SPEC.block||{};
+  if(!SPEC.block) return;
+  const b=SPEC.block;
   const svg=clearSvg('archSvg');
   const W=940, H=560;
-  svg.setAttribute('width',W);svg.setAttribute('height',H);svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
-  svg.innerHTML='<defs><marker id="a_ah" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#8b949e"/></marker></defs>';
-  A_PORTS={};
+  svg.setAttribute('width',W); svg.setAttribute('height',H);
+  svg.setAttribute('viewBox','0 0 '+W+' '+H);
+  svg.innerHTML='<defs><marker id="a_ah" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">'+
+    '<path d="M0,0 L9,4.5 L0,9 Z" fill="#8b949e"/></marker></defs>';
 
-  // cluster boundary
   const BX=150, BY=22, BW=W-300, BH=H-150;
   svg.appendChild(svgEl('rect',{class:'boundary',x:BX,y:BY,width:BW,height:BH,rx:10}));
-  svg.appendChild(txt('boundaryLbl',BX+12,BY-7,(b.cluster||'MPCore cluster')+'  ·  '+(b.cores||1)+' core'+((b.cores||1)>1?'s (1–4)':'')));
+  svg.appendChild(txt('boundaryLbl',BX+12,BY-7,(b.cluster||'MPCore cluster')+
+    '  ·  '+(b.cores||1)+' core'+((b.cores||1)>1?'s (1–4)':'')));
 
-  // ---- ghosted cores behind the detailed one (Core 3..1) ----
   const nCores=Math.min(b.cores||1,4);
   const coreX=BX+22, coreY=BY+34, coreW=BW-44, coreH=270;
   for(let g=nCores-1;g>=1;g--){
@@ -560,69 +745,53 @@ function renderBlock(){
     svg.appendChild(svgEl('rect',{class:'grp ghost',x:coreX+off,y:coreY+off,width:coreW,height:coreH,rx:8}));
     svg.appendChild(txt('coreLbl',coreX+coreW-58+off,coreY+15+off,'Core '+g,{class:'coreLbl ghost'}));
   }
-  // detailed Core 0 frame
   svg.appendChild(svgEl('rect',{class:'grp',x:coreX,y:coreY,width:coreW,height:coreH,rx:8}));
   svg.appendChild(txt('coreLbl',coreX+8,coreY+15,'Core 0  (detailed)'));
 
-  // per-core blocks: 2 cols x 4 rows inside the core frame
   const per=b.per_core||[];
   const cols=2, padIn=14, gx=14, gy=12;
-  const innerW=coreW-padIn*2, innerH=coreH-padIn-26;
+  const innerW=coreW-padIn*2;
   const bw=(innerW-gx*(cols-1))/cols;
   const rows=Math.ceil(per.length/cols);
+  const innerH=coreH-padIn-26;
   const bh=(innerH-gy*(rows-1))/rows;
   per.forEach((blk,i)=>{
     const c=i%cols, r=Math.floor(i/cols);
-    const x=coreX+padIn+c*(bw+gx), y=coreY+26+r*(bh+gy);
-    drawBlk(svg,blk,x,y,bw,bh);
+    drawBlk(svg,blk,coreX+padIn+c*(bw+gx),coreY+26+r*(bh+gy),bw,bh);
   });
 
-  // ---- shared blocks (below cores, full cluster width) ----
   const shared=b.shared||[];
   const shY=coreY+coreH+18, shN=shared.length;
   const shGap=12, shPad=22;
   const shW=(BW-shPad*2-shGap*(shN-1))/shN, shH=58;
   svg.appendChild(txt('grpLbl',BX+shPad,shY-6,'shared (cluster-level)'));
   shared.forEach((blk,i)=>{
-    const x=BX+shPad+i*(shW+shGap), y=shY;
-    drawBlk(svg,blk,x,y,shW,shH);
+    const x=BX+shPad+i*(shW+shGap);
+    drawBlk(svg,blk,x,shY,shW,shH);
+    const mx=x+shW/2;
+    svg.appendChild(svgEl('line',{class:'aedge',x1:mx,y1:shY,x2:mx,y2:coreY+coreH+9}));
   });
 
-  // connect each shared block up to the core frame (coherency fabric hint)
-  shared.forEach((blk,i)=>{
-    const x=BX+shPad+i*(shW+shGap)+shW/2;
-    aedge(svg,[[x,shY],[x,coreY+coreH+9]],'aedge');
-  });
-
-  // ---- external interfaces on the boundary edges ----
-  const ifaces=b.interfaces||[];
-  // place: master ACE + ATB on right, slaves (ACP, Debug APB) on left, GIC io on left too
-  const left=[], right=[];
-  ifaces.forEach(f=>{ (f.role==='master'?right:left).push(f); });
+  const ifaces=b.interfaces||[], left=[], right=[];
+  ifaces.forEach(f=>(f.role==='master'?right:left).push(f));
   layoutIfaces(svg,left,'left',BX,BY,BH);
   layoutIfaces(svg,right,'right',BX+BW,BY,BH);
-
-  // legend
   buildLegend();
 }
-
 function drawBlk(svg,blk,x,y,w,h){
   const kind=blk.kind||'frontend';
   const r=svgEl('rect',{class:'blk '+kind,x,y,width:w,height:h,rx:6});
   r.addEventListener('mouseenter',()=>{r.classList.add('hot');showBlk(blk);});
   r.addEventListener('mouseleave',()=>{r.classList.remove('hot');archReset();});
   svg.appendChild(r);
-  // title: id (uppercase) + wrapped name
-  svg.appendChild(txt('blkTitle',x+w/2,y+(w<150?18:20),(blk.id||'').toUpperCase()));
-  wrapText(svg,blk.name||'',x+w/2,y+(w<150?32:36),w-12,'blkSub',8.5,3);
+  svg.appendChild(txt('blkTitle',x+w/2,y+18,(blk.id||'').toUpperCase()));
+  wrapSvgText(svg,blk.name||'',x+w/2,y+32,w-12,'blkSub',8.5,3);
 }
 function showBlk(blk){
   const k=KINDS[blk.kind]||{lbl:blk.kind,col:'var(--fg)'};
-  archInfo('<b>'+esc(blk.name||blk.id)+'</b> · id <code>'+esc(blk.id)+'</code> · kind '+
-    '<b style="color:'+k.col+'">'+esc(k.lbl)+'</b>');
+  archInfo('<b>'+esc(blk.name||blk.id)+'</b> · id <code>'+esc(blk.id)+
+    '</code> · kind <b style="color:'+k.col+'">'+esc(k.lbl)+'</b>');
 }
-
-/* external interface ports stacked on a boundary edge */
 function layoutIfaces(svg,list,side,edgeX,by,bh){
   if(!list.length) return;
   const pw=96, ph=24, gap=14;
@@ -631,73 +800,67 @@ function layoutIfaces(svg,list,side,edgeX,by,bh){
   list.forEach(f=>{
     const x=(side==='left')?edgeX-pw:edgeX;
     const r=svgEl('rect',{class:'port '+(f.role||'io'),x,y,width:pw,height:ph,rx:4});
-    attachIface(r,f); svg.appendChild(r);
+    r.addEventListener('mouseenter',()=>{
+      r.classList.add('hot');
+      archInfo('<b>'+esc(f.name)+'</b> · role <b>'+esc(f.role||'io')+'</b>'+
+        (f.width?' · width <b>'+f.width+'</b>-bit':'')+
+        '<br>'+esc(f.desc||''));
+    });
+    r.addEventListener('mouseleave',()=>{r.classList.remove('hot');archReset();});
+    svg.appendChild(r);
     svg.appendChild(txt('portLbl '+(f.role||'io'),x+7,y+11,f.name));
-    const sub=(f.role||'io')+(f.width?(' '+f.width+'b'):'');
-    svg.appendChild(txt('portW',x+7,y+20,sub));
-    // stub line into the boundary
-    if(side==='left') svg.appendChild(svgEl('line',{class:'aedge',x1:x+pw,y1:y+ph/2,x2:edgeX+30,y2:y+ph/2,'stroke-dasharray':'3 3'}));
-    else              svg.appendChild(svgEl('line',{class:'aedge',x1:x,y1:y+ph/2,x2:edgeX-30,y2:y+ph/2,'stroke-dasharray':'3 3'}));
+    svg.appendChild(txt('portW',x+7,y+20,(f.role||'io')+(f.width?' '+f.width+'b':'')));
+    if(side==='left')
+      svg.appendChild(svgEl('line',{class:'aedge',x1:x+pw,y1:y+ph/2,x2:edgeX+30,y2:y+ph/2,'stroke-dasharray':'3 3'}));
+    else
+      svg.appendChild(svgEl('line',{class:'aedge',x1:x,y1:y+ph/2,x2:edgeX-30,y2:y+ph/2,'stroke-dasharray':'3 3'}));
     y+=ph+gap;
   });
 }
-function attachIface(r,f){
-  r.addEventListener('mouseenter',()=>{
-    r.classList.add('hot');
-    archInfo('<b>'+esc(f.name)+'</b> · role <b>'+esc(f.role||'io')+'</b>'+
-      (f.width?(' · width <b>'+f.width+'</b>-bit'):'')+'<br>'+esc(f.desc||''));
-  });
-  r.addEventListener('mouseleave',()=>{r.classList.remove('hot');archReset();});
-}
-function aedge(svg,pts,cls){
-  const d='M'+pts.map(p=>p[0]+','+p[1]).join(' L');
-  svg.appendChild(svgEl('path',{class:cls,d,'marker-end':'url(#a_ah)'}));
-}
 function buildLegend(){
   const used=new Set();
-  (SPEC.block.per_core||[]).concat(SPEC.block.shared||[]).forEach(b=>used.add(b.kind));
+  ((SPEC.block&&SPEC.block.per_core)||[]).concat((SPEC.block&&SPEC.block.shared)||[]).forEach(b=>used.add(b.kind));
   el('blkLegend').innerHTML='<span style="color:var(--mute)">kind:</span>'+
     [...used].map(k=>{const m=KINDS[k]||{lbl:k,col:'var(--mute)'};
       return '<span class="li"><span class="dot" style="border-color:'+m.col+'"></span>'+esc(m.lbl)+'</span>';
     }).join('')+
-    '<span class="li"><span class="dot" style="border-color:#3a5a3f;border-radius:1px"></span>master iface</span>'+
-    '<span class="li"><span class="dot" style="border-color:#3a5170;border-radius:1px"></span>slave iface</span>'+
-    '<span class="li"><span class="dot" style="border-color:#5a4a18;border-radius:1px"></span>io iface</span>';
+    '<span class="li"><span class="dot" style="border-color:#3a5a3f;border-radius:1px"></span>master</span>'+
+    '<span class="li"><span class="dot" style="border-color:#3a5170;border-radius:1px"></span>slave</span>'+
+    '<span class="li"><span class="dot" style="border-color:#5a4a18;border-radius:1px"></span>io</span>';
 }
-
-/* shared text-wrapper (matches ssot-explorer wrapText idiom, n-line) */
-function wrapText(svg,str,cx,y,maxW,cls,fontPx,maxLines){
-  const words=String(str).split(/\s+/);const lines=[];let cur='';
-  const charW=fontPx*0.58;const maxChars=Math.max(6,Math.floor(maxW/charW));
-  words.forEach(w=>{ if((cur+' '+w).trim().length>maxChars){lines.push(cur.trim());cur=w;} else cur+=' '+w; });
+function wrapSvgText(svg,str,cx,y,maxW,cls,fontPx,maxLines){
+  const words=String(str).split(/\s+/), lines=[];let cur='';
+  const maxC=Math.max(6,Math.floor(maxW/(fontPx*0.58)));
+  words.forEach(w=>{ if((cur+' '+w).trim().length>maxC){lines.push(cur.trim());cur=w;} else cur+=' '+w; });
   if(cur.trim())lines.push(cur.trim());
   const lim=maxLines||3;
-  lines.slice(0,lim).forEach((ln,i)=>{ if(i===lim-1 && lines.length>lim) ln=ln.replace(/\s\S*$/,'…'); svg.appendChild(txt(cls,cx,y+i*11,ln,{'text-anchor':'middle'})); });
+  lines.slice(0,lim).forEach((ln,i)=>{
+    if(i===lim-1&&lines.length>lim) ln=ln.replace(/\s\S*$/,'…');
+    svg.appendChild(txt(cls,cx,y+i*11,ln,{'text-anchor':'middle'}));
+  });
 }
 
 /* ============================================================
-   05 · REGISTER MAP  (table + 32-bit field strip w/ tabs)
+   05 · REGISTER MAP
    ============================================================ */
 const B_W=860, B_H=92, B_X=6, B_Y=18, B_STRIPH=36;
 let CUR_REG=null;
 function renderRegisters(){
   el('regNote').textContent=(SPEC.registers&&SPEC.registers.note)||'';
   const regs=regList();
-  // table
   const tb=el('regTable').querySelector('tbody');
   tb.innerHTML=regs.map((r,i)=>{
     const hasF=Array.isArray(r.fields)&&r.fields.length;
     return '<tr class="'+(hasF?'hasfields':'')+'" data-i="'+i+'">'+
-      '<td><code>'+esc(r.encoding)+'</code></td><td><b>'+esc(r.name)+'</b></td>'+
+      '<td><code>'+esc(r.encoding)+'</code></td>'+
+      '<td><b>'+esc(r.name)+'</b></td>'+
       '<td><span class="acctag '+esc((r.access||'').toLowerCase())+'">'+esc(r.access)+'</span></td>'+
-      '<td><code>'+esc(r.reset||'—')+'</code></td><td>'+esc(r.desc||'')+'</td></tr>';
+      '<td><code>'+esc(r.reset||'—')+'</code></td>'+
+      '<td>'+esc(r.desc||'')+'</td></tr>';
   }).join('');
-  // clicking a fielded register row selects its strip
   tb.querySelectorAll('tr.hasfields').forEach(tr=>{
     tr.addEventListener('click',()=>selectReg(regs[+tr.getAttribute('data-i')].name));
   });
-
-  // tabs: only the registers that have fields
   const fielded=regs.filter(r=>Array.isArray(r.fields)&&r.fields.length);
   el('regTabs').innerHTML=fielded.map(r=>
     '<button class="rtab" data-name="'+esc(r.name)+'">'+esc(r.name)+'</button>'
@@ -705,110 +868,315 @@ function renderRegisters(){
   el('regTabs').querySelectorAll('.rtab').forEach(btn=>{
     btn.addEventListener('click',()=>selectReg(btn.getAttribute('data-name')));
   });
-
   selectReg(fielded.length?fielded[0].name:null);
 }
-
 function selectReg(name){
   CUR_REG=name;
   el('regTabs').querySelectorAll('.rtab').forEach(b=>b.classList.toggle('on',b.getAttribute('data-name')===name));
   el('regTable').querySelectorAll('tbody tr').forEach(tr=>tr.classList.remove('hot'));
-  const regs=regList();
-  const reg=regs.find(r=>r.name===name);
-  const idx=regs.findIndex(r=>r.name===name);
+  const regs=regList(), idx=regs.findIndex(r=>r.name===name);
   const tr=el('regTable').querySelector('tbody tr[data-i="'+idx+'"]');
   if(tr) tr.classList.add('hot');
-  drawBitStrip(reg);
+  drawBitStrip(regs.find(r=>r.name===name));
 }
-
 function drawBitStrip(reg){
   const svg=clearSvg('bitSvg');
   if(!reg||!reg.fields){el('bitInfo').innerHTML='This register has no published field map in the dataset.';return;}
   const totalBits=32;
-  svg.setAttribute('width',B_W);svg.setAttribute('height',B_H);svg.setAttribute('viewBox',`0 0 ${B_W} ${B_H}`);
-  svg.innerHTML='<defs><pattern id="b_hatch" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#30363d" stroke-width="1.6"/></pattern></defs>';
-  const stripW=B_W-2*B_X;
-  const bitW=stripW/totalBits;
-  // strip outline
+  svg.setAttribute('width',B_W); svg.setAttribute('height',B_H);
+  svg.setAttribute('viewBox','0 0 '+B_W+' '+B_H);
+  svg.innerHTML='<defs><pattern id="b_hatch" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">'+
+    '<line x1="0" y1="0" x2="0" y2="6" stroke="#30363d" stroke-width="1.6"/></pattern></defs>';
+  const stripW=B_W-2*B_X, bitW=stripW/totalBits;
   svg.appendChild(svgEl('rect',{x:B_X,y:B_Y,width:stripW,height:B_STRIPH,fill:'none',stroke:'#30363d','stroke-width':1,rx:3}));
-
-  // build a per-bit occupancy map (msb-left) so reserved gaps can be filled
-  const occ=new Array(totalBits).fill(null); // index by bit number
-  (reg.fields||[]).forEach(f=>{ for(let b=f.lsb;b<=f.msb;b++) if(b>=0&&b<totalBits) occ[b]=f; });
-
-  // helper: x for left edge of a bit index (msb on left)
+  const occ=new Array(totalBits).fill(null);
+  (reg.fields||[]).forEach(f=>{for(let b=f.lsb;b<=f.msb;b++)if(b>=0&&b<totalBits)occ[b]=f;});
   const bitX=bit=>B_X+(totalBits-1-bit)*bitW;
-
-  // draw named fields
-  (reg.fields||[]).forEach(f=>{
-    const bits=f.msb-f.lsb+1;
-    const fx=bitX(f.msb);          // left edge = msb side
-    const fw=bits*bitW;
-    drawStripe(svg,fx,fw,false,f);
-  });
-
-  // fill reserved gaps (contiguous runs of unoccupied bits)
+  (reg.fields||[]).forEach(f=>drawStripe(svg,bitX(f.msb),(f.msb-f.lsb+1)*bitW,false,f));
   let b=totalBits-1;
   while(b>=0){
     if(occ[b]===null){
-      let hi=b; while(b>=0 && occ[b]===null) b--; let lo=b+1;
-      const fx=bitX(hi), fw=(hi-lo+1)*bitW;
-      drawStripe(svg,fx,fw,true,{name:'RES'+hi+'_'+lo,msb:hi,lsb:lo,access:'reserved',desc:'Reserved (RES0 / implementation-defined)'});
+      let hi=b; while(b>=0&&occ[b]===null)b--; let lo=b+1;
+      drawStripe(svg,bitX(hi),(hi-lo+1)*bitW,true,
+        {name:'RES'+hi+'_'+lo,msb:hi,lsb:lo,access:'reserved',desc:'Reserved (RES0 / implementation-defined)'});
     } else b--;
   }
-
-  // tick labels every 4 bits along the bottom (msb..lsb)
-  for(let bit=totalBits-1;bit>=0;bit-=4){
-    const x=bitX(bit)+bitW/2;
-    svg.appendChild(txt('cyc',x,B_Y+B_STRIPH+14,String(bit)));
-  }
-  el('bitInfo').innerHTML='<span class="bn">'+esc(reg.name)+'</span> <span class="acctag '+esc((reg.access||'').toLowerCase())+'">'+esc(reg.access)+'</span> · '+esc(reg.encoding)+' — hover a field stripe for detail.';
+  for(let bit=totalBits-1;bit>=0;bit-=4)
+    svg.appendChild(txt('cyc',bitX(bit)+bitW/2,B_Y+B_STRIPH+14,String(bit)));
+  el('bitInfo').innerHTML='<span class="bn">'+esc(reg.name)+'</span> '+
+    '<span class="acctag '+esc((reg.access||'').toLowerCase())+'">'+esc(reg.access)+'</span>'+
+    ' · '+esc(reg.encoding)+' — hover a field stripe for detail.';
 }
-
 function drawStripe(svg,fx,fw,isRes,f){
+  const g=svgEl('g',{class:'field'}); g.style.cursor='pointer';
   const fill=isRes?'url(#b_hatch)':'#0b1827';
   const stroke=isRes?'#30363d':'#58a6ff';
-  const g=svgEl('g',{class:'field'});g.style.cursor='pointer';
   const fr=svgEl('rect',{x:fx,y:B_Y,width:Math.max(fw-1,1),height:B_STRIPH,fill,stroke,'stroke-width':1.2,rx:2});
   g.appendChild(fr);
-  if(fw>26 && !isRes){
+  if(fw>26&&!isRes){
     const ft=svgEl('text',{x:fx+fw/2,y:B_Y+B_STRIPH/2+4,'text-anchor':'middle','font-size':10,fill:'#58a6ff','font-weight':700});
-    ft.textContent=f.name;g.appendChild(ft);
-  } else if(fw>40 && isRes){
+    ft.textContent=f.name; g.appendChild(ft);
+  } else if(fw>40&&isRes){
     const ft=svgEl('text',{x:fx+fw/2,y:B_Y+B_STRIPH/2+4,'text-anchor':'middle','font-size':9,fill:'#8b949e'});
-    ft.textContent='reserved';g.appendChild(ft);
+    ft.textContent='reserved'; g.appendChild(ft);
   }
   g.addEventListener('mouseenter',()=>showBit(f,isRes));
-  g.addEventListener('mouseleave',()=>{const r=regList().find(x=>x.name===CUR_REG);if(r)el('bitInfo').innerHTML='<span class="bn">'+esc(r.name)+'</span> <span class="acctag '+esc((r.access||'').toLowerCase())+'">'+esc(r.access)+'</span> · '+esc(r.encoding)+' — hover a field stripe for detail.';});
+  g.addEventListener('mouseleave',()=>{
+    const r=regList().find(x=>x.name===CUR_REG);
+    if(r) el('bitInfo').innerHTML='<span class="bn">'+esc(r.name)+'</span> '+
+      '<span class="acctag '+esc((r.access||'').toLowerCase())+'">'+esc(r.access)+'</span>'+
+      ' · '+esc(r.encoding)+' — hover a field stripe for detail.';
+  });
   svg.appendChild(g);
 }
 function showBit(f,isRes){
-  const acc=isRes?'reserved':((f.access||CurAcc()||'').toLowerCase());
+  const acc=isRes?'reserved':((f.access||(()=>{const r=regList().find(x=>x.name===CUR_REG);return r?r.access:'';})()||'').toLowerCase());
   el('bitInfo').innerHTML=
-    '<span class="bn">'+esc(f.name)+'</span> <span class="acctag '+esc(acc||'reserved')+'">'+esc(acc||'reserved')+'</span>'+
+    '<span class="bn">'+esc(f.name)+'</span> '+
+    '<span class="acctag '+(acc||'reserved')+'">'+esc(acc||'reserved')+'</span>'+
     '<div class="bm" style="margin-top:5px">bits <b>['+f.msb+':'+f.lsb+']</b> · width <b>'+(f.msb-f.lsb+1)+'</b>'+
-      (f.reset!==undefined?(' · reset <b>'+esc(f.reset)+'</b>'):'')+'</div>'+
+      (f.reset!==undefined?' · reset <b>'+esc(f.reset)+'</b>':'')+'</div>'+
     '<div class="bm" style="margin-top:3px">'+esc(f.desc||'')+'</div>';
 }
-function CurAcc(){const r=regList().find(x=>x.name===CUR_REG);return r?r.access:'';}
 
 /* ============================================================
-   06 · TIMING  (WaveDrom-style — reuses timing-diagram parseWave/draw)
+   06 · PROGRAMMERS MODEL
+   ============================================================ */
+function renderProgModel(){
+  const pm=SPEC.programmers_model;
+  if(!pm){el('pmPanel').innerHTML='';return;}
+
+  // execution states pills
+  const stateHtml='<div class="infobox"><div class="ik">Execution States</div>'+
+    '<div class="pill-list">'+
+      (pm.execution_states||[]).map(s=>'<span class="pill acc">'+esc(s)+'</span>').join('')+
+    '</div></div>';
+
+  // security states
+  const secHtml='<div class="infobox"><div class="ik">Security States (TrustZone)</div>'+
+    '<div class="pill-list">'+
+      (pm.security_states||[]).map(s=>'<span class="pill warn">'+esc(s)+'</span>').join('')+
+    '</div></div>';
+
+  // EL ladder
+  const elHtml='<div><div style="font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Exception Levels (EL0 → EL3)</div>'+
+    '<div class="el-ladder">'+
+      (pm.exception_levels||[]).slice().reverse().map((e,i,arr)=>
+        '<div class="el-row">'+
+          '<div class="el-badge">'+esc(e.el)+'</div>'+
+          (i<arr.length-1?'<div class="el-sep"></div>':'<div class="el-sep" style="background:var(--ok)"></div>')+
+          '<div class="el-desc">'+esc(e.use)+'</div>'+
+        '</div>'
+      ).join('')+
+    '</div></div>';
+
+  // register file table
+  const rfHtml='<div><div style="font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Register File</div>'+
+    '<table><thead><tr><th>registers</th><th>description</th></tr></thead><tbody>'+
+      (pm.register_file||[]).map(r=>
+        '<tr><td><code>'+esc(r.name)+'</code></td><td>'+esc(r.desc)+'</td></tr>'
+      ).join('')+
+    '</tbody></table></div>';
+
+  el('pmPanel').innerHTML=
+    '<div class="two-col" style="margin-bottom:12px">'+stateHtml+secHtml+'</div>'+
+    '<div class="two-col">'+elHtml+rfHtml+'</div>';
+}
+
+/* ============================================================
+   07 · MMU
+   ============================================================ */
+function renderMmu(){
+  const m=SPEC.mmu;
+  if(!m){el('mmuPanel').innerHTML='';return;}
+
+  const factsHtml='<div class="three-col">'+
+    ['VA size:va_size','PA size:pa_size','TLB:tlb'].map(s=>{
+      const [lbl,key]=s.split(':');
+      return '<div class="infobox"><div class="ik">'+lbl+'</div><div class="iv">'+esc(m[key]||'—')+'</div></div>';
+    }).join('')+
+  '</div>';
+
+  const granulesHtml='<div style="margin-top:12px"><div style="font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Page granules</div>'+
+    '<div class="pill-list">'+
+      (m.granules||[]).map(g=>'<span class="pill ok">'+esc(g)+'</span>').join('')+
+    '</div>'+
+    (m.granule_note?'<div class="sidenote" style="margin-top:6px"><b>note:</b> '+esc(m.granule_note)+'</div>':'')+'</div>';
+
+  const regimesHtml='<div style="margin-top:14px"><div style="font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Translation regimes</div>'+
+    '<table><thead><tr><th>#</th><th>regime</th></tr></thead><tbody>'+
+      (m.translation_regimes||[]).map((r,i)=>
+        '<tr><td style="color:var(--accent);font-weight:700">'+(i+1)+'</td><td>'+esc(r)+'</td></tr>'
+      ).join('')+
+    '</tbody></table></div>';
+
+  el('mmuPanel').innerHTML=factsHtml+granulesHtml+regimesHtml;
+}
+
+/* ============================================================
+   08 · CACHES
+   ============================================================ */
+function renderCaches(){
+  const c=SPEC.caches;
+  if(!c){el('cachePanel').innerHTML='';return;}
+
+  const tableHtml='<table><thead><tr>'+
+    '<th>cache</th><th>size</th><th>ways</th><th>line size</th><th>policy</th>'+
+    '</tr></thead><tbody>'+
+      (c.rows||[]).map(r=>
+        '<tr>'+
+          '<td><b>'+esc(r.cache)+'</b></td>'+
+          '<td>'+esc(r.size)+'</td>'+
+          '<td style="color:var(--accent)">'+esc(r.ways)+'</td>'+
+          '<td>'+esc(r.line)+'</td>'+
+          '<td style="color:var(--mute)">'+esc(r.policy)+'</td>'+
+        '</tr>'
+      ).join('')+
+    '</tbody></table>';
+
+  const cohHtml=c.coherency
+    ? '<div class="infobox" style="margin-top:12px"><div class="ik">Coherency</div>'+
+        '<div class="iv">'+esc(c.coherency)+'</div></div>'
+    : '';
+
+  el('cachePanel').innerHTML=tableHtml+cohHtml;
+}
+
+/* ============================================================
+   09 · INTERRUPTS
+   ============================================================ */
+function renderInterrupts(){
+  const it=SPEC.interrupts;
+  if(!it){el('intPanel').innerHTML='';return;}
+
+  const typesHtml='<div class="infobox"><div class="ik">Interrupt types</div>'+
+    '<div class="pill-list">'+
+      (it.types||[]).map(t=>'<span class="pill">'+esc(t)+'</span>').join('')+
+    '</div></div>';
+
+  const gicHtml='<div class="infobox"><div class="ik">GIC interface</div>'+
+    '<div class="iv">'+esc(it.gic||'—')+'</div></div>';
+
+  const vecHtml='<div class="infobox"><div class="ik">Vector table</div>'+
+    '<div class="iv">'+esc(it.vectors||'—')+'</div></div>';
+
+  el('intPanel').innerHTML='<div class="three-col">'+typesHtml+gicHtml+vecHtml+'</div>';
+}
+
+/* ============================================================
+   10 · POWER
+   ============================================================ */
+const POWER_MODE_CLASSES=['mode-run','mode-stby','mode-dorm','mode-off'];
+function renderPower(){
+  const pw=SPEC.power;
+  if(!pw){el('powerPanel').innerHTML='';return;}
+
+  const domainsHtml='<div class="infobox" style="margin-bottom:12px">'+
+    '<div class="ik">Power domains</div>'+
+    '<div class="pill-list">'+
+      (pw.domains||[]).map(d=>'<span class="pill acc">'+esc(d)+'</span>').join('')+
+    '</div></div>';
+
+  const modesHtml='<table><thead><tr><th>mode</th><th>description</th></tr></thead><tbody>'+
+    (pw.modes||[]).map((m,i)=>
+      '<tr class="'+(POWER_MODE_CLASSES[i]||'')+'">'+
+        '<td><b>'+esc(m.mode)+'</b></td>'+
+        '<td>'+esc(m.desc)+'</td>'+
+      '</tr>'
+    ).join('')+
+  '</tbody></table>';
+
+  el('powerPanel').innerHTML=domainsHtml+modesHtml;
+}
+
+/* ============================================================
+   11 · PMU EVENTS
+   ============================================================ */
+function renderPmu(){
+  const pmu=SPEC.pmu_events;
+  if(!pmu){el('pmuPanel').innerHTML='';el('pmuNote').textContent='';return;}
+  el('pmuNote').textContent=pmu.note||'';
+  el('pmuPanel').innerHTML='<table><thead><tr>'+
+    '<th>event #</th><th>name</th><th>description</th>'+
+    '</tr></thead><tbody>'+
+      (pmu.events||[]).map(e=>
+        '<tr>'+
+          '<td class="ev-num"><code>'+esc(e.num)+'</code></td>'+
+          '<td style="color:var(--ok);font-weight:700">'+esc(e.name)+'</td>'+
+          '<td>'+esc(e.desc)+'</td>'+
+        '</tr>'
+      ).join('')+
+    '</tbody></table>';
+}
+
+/* ============================================================
+   12 · PIPELINE
+   ============================================================ */
+function renderPipeline(){
+  const p=SPEC.pipeline;
+  if(!p){el('pipePanel').innerHTML='';return;}
+
+  // illustrative named stages for the 8-stage A53 pipeline
+  const STAGES=['IF1','IF2','DEC','ISS','EX1','EX2','WB1','WB2'];
+  const stageStripHtml='<div class="pipe-strip">'+
+    STAGES.map((s,i)=>
+      '<span class="pipe-stage">'+s+'</span>'+
+      (i<STAGES.length-1?'<span class="pipe-arrow">→</span>':'')
+    ).join('')+
+  '</div>';
+
+  const factsHtml='<div class="three-col" style="margin-top:12px">'+
+    '<div class="infobox"><div class="ik">Stages</div>'+
+      '<div class="fv acc" style="font-size:22px;font-weight:700;margin-top:4px">'+esc(String(p.stages||'—'))+'</div>'+
+    '</div>'+
+    '<div class="infobox"><div class="ik">Type</div>'+
+      '<div class="iv">'+esc(p.type||'—')+'</div>'+
+    '</div></div>';
+
+  const noteHtml=p.note
+    ? '<div class="sidenote" style="margin-top:12px"><b>note (illustrative):</b> '+esc(p.note)+'</div>'
+    : '';
+
+  el('pipePanel').innerHTML=
+    '<div style="font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Integer pipeline stages (illustrative)</div>'+
+    stageStripHtml+factsHtml+noteHtml;
+}
+
+/* ============================================================
+   13 · CONFIG SIGNALS
+   ============================================================ */
+function renderConfigSignals(){
+  const cs=SPEC.config_signals;
+  if(!cs||!cs.length){el('cfgPanel').innerHTML='';return;}
+  el('cfgPanel').innerHTML='<table><thead><tr>'+
+    '<th>signal</th><th>description</th>'+
+    '</tr></thead><tbody>'+
+      cs.map(s=>
+        '<tr>'+
+          '<td class="sig-name">'+esc(s.name)+'</td>'+
+          '<td>'+esc(s.desc)+'</td>'+
+        '</tr>'
+      ).join('')+
+    '</tbody></table>';
+}
+
+/* ============================================================
+   14 · TIMING
    ============================================================ */
 const T_LABELW=92, T_CW=58, T_ROWH=44, T_HDR=24, T_AMP=22, T_PADTOP=10;
 function parseWave(wave,data){
-  const cells=[];let prev=null,di=0;
+  const cells=[]; let prev=null, di=0;
   for(const ch of wave){
     if(ch==='.'){cells.push(prev?{...prev,edge:false}:{kind:'level',v:0,edge:false});continue;}
     let c;
-    if(ch==='p'||ch==='n')c={kind:'clock',pol:ch};
-    else if(ch==='1')c={kind:'level',v:1};
-    else if(ch==='0')c={kind:'level',v:0};
-    else if(ch==='=')c={kind:'bus',label:(data&&data[di++])||'='};
-    else if(ch==='x')c={kind:'x'};
-    else if(ch==='z')c={kind:'z'};
+    if(ch==='p'||ch==='n') c={kind:'clock',pol:ch};
+    else if(ch==='1') c={kind:'level',v:1};
+    else if(ch==='0') c={kind:'level',v:0};
+    else if(ch==='=') c={kind:'bus',label:(data&&data[di++])||'='};
+    else if(ch==='x') c={kind:'x'};
+    else if(ch==='z') c={kind:'z'};
     else c={kind:'level',v:0};
-    c.edge=true;cells.push(c);prev=c;
+    c.edge=true; cells.push(c); prev=c;
   }
   return cells;
 }
@@ -820,8 +1188,8 @@ function renderTiming(){
   const n=Math.max(1,...rows.map(r=>r.cells.length));
   const svg=clearSvg('timeSvg');
   const W=T_LABELW+n*T_CW, H=T_HDR+rows.length*T_ROWH+8;
-  svg.setAttribute('width',W);svg.setAttribute('height',H);svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
-
+  svg.setAttribute('width',W); svg.setAttribute('height',H);
+  svg.setAttribute('viewBox','0 0 '+W+' '+H);
   for(let i=0;i<n;i++){
     const x=T_LABELW+i*T_CW;
     svg.appendChild(svgEl('line',{class:'grid',x1:x,y1:T_HDR,x2:x,y2:H-8}));
@@ -830,28 +1198,45 @@ function renderTiming(){
   rows.forEach((row,ri)=>{
     const top=T_HDR+ri*T_ROWH, hiY=top+T_PADTOP, lowY=hiY+T_AMP, midY=(hiY+lowY)/2;
     svg.appendChild(txt('tlbl',8,midY+4,row.name));
-    const parts=[],hatches=[],texts=[];let prevY=lowY;
+    const parts=[],hatches=[],texts=[]; let prevY=lowY;
     row.cells.forEach((c,ci)=>{
-      const x0=T_LABELW+ci*T_CW,x1=x0+T_CW,mid=(x0+x1)/2;
-      if(c.kind==='clock'){parts.push(`M${x0},${lowY} L${x0},${hiY} L${mid},${hiY} L${mid},${lowY} L${x1},${lowY}`);prevY=lowY;}
-      else if(c.kind==='level'){const y=c.v?hiY:lowY;if(c.edge&&prevY!==y)parts.push(`M${x0},${prevY} L${x0},${y}`);parts.push(`M${x0},${y} L${x1},${y}`);prevY=y;}
-      else if(c.kind==='bus'){
-        if(c.edge){let j=ci+1;while(j<row.cells.length&&row.cells[j].kind==='bus'&&!row.cells[j].edge)j++;const rx=T_LABELW+j*T_CW;
-          parts.push(`M${x0},${midY} L${x0+5},${hiY}`);parts.push(`M${x0},${midY} L${x0+5},${lowY}`);
-          parts.push(`M${x0+5},${hiY} L${rx},${hiY}`);parts.push(`M${x0+5},${lowY} L${rx},${lowY}`);
-          texts.push({x:(x0+rx)/2,y:midY+4,t:c.label});}
-        prevY=midY;}
-      else if(c.kind==='x'){parts.push(`M${x0},${hiY} L${x1},${hiY}`);parts.push(`M${x0},${lowY} L${x1},${lowY}`);for(let hx=x0;hx<x1;hx+=6)hatches.push(`M${hx},${hiY} L${Math.min(hx+T_AMP,x1)},${lowY}`);prevY=midY;}
-      else if(c.kind==='z'){parts.push(`M${x0},${midY} L${x1},${midY}`);prevY=midY;}
+      const x0=T_LABELW+ci*T_CW, x1=x0+T_CW, mid=(x0+x1)/2;
+      if(c.kind==='clock'){
+        parts.push('M'+x0+','+lowY+' L'+x0+','+hiY+' L'+mid+','+hiY+' L'+mid+','+lowY+' L'+x1+','+lowY);
+        prevY=lowY;
+      } else if(c.kind==='level'){
+        const y=c.v?hiY:lowY;
+        if(c.edge&&prevY!==y) parts.push('M'+x0+','+prevY+' L'+x0+','+y);
+        parts.push('M'+x0+','+y+' L'+x1+','+y); prevY=y;
+      } else if(c.kind==='bus'){
+        if(c.edge){
+          let j=ci+1;
+          while(j<row.cells.length&&row.cells[j].kind==='bus'&&!row.cells[j].edge) j++;
+          const rx=T_LABELW+j*T_CW;
+          parts.push('M'+x0+','+midY+' L'+(x0+5)+','+hiY);
+          parts.push('M'+x0+','+midY+' L'+(x0+5)+','+lowY);
+          parts.push('M'+(x0+5)+','+hiY+' L'+rx+','+hiY);
+          parts.push('M'+(x0+5)+','+lowY+' L'+rx+','+lowY);
+          texts.push({x:(x0+rx)/2,y:midY+4,t:c.label});
+        }
+        prevY=midY;
+      } else if(c.kind==='x'){
+        parts.push('M'+x0+','+hiY+' L'+x1+','+hiY);
+        parts.push('M'+x0+','+lowY+' L'+x1+','+lowY);
+        for(let hx=x0;hx<x1;hx+=6) hatches.push('M'+hx+','+hiY+' L'+Math.min(hx+T_AMP,x1)+','+lowY);
+        prevY=midY;
+      } else if(c.kind==='z'){
+        parts.push('M'+x0+','+midY+' L'+x1+','+midY); prevY=midY;
+      }
     });
-    if(hatches.length)svg.appendChild(svgEl('path',{class:'hatch',d:hatches.join(' ')}));
+    if(hatches.length) svg.appendChild(svgEl('path',{class:'hatch',d:hatches.join(' ')}));
     svg.appendChild(svgEl('path',{class:'wave',d:parts.join(' ')}));
     texts.forEach(tx=>svg.appendChild(txt('busText',tx.x,tx.y,tx.t)));
   });
 }
 
 /* ============================================================
-   ORCHESTRATION + editor re-render
+   ORCHESTRATION + editor
    ============================================================ */
 function renderAll(spec){
   SPEC=spec;
@@ -860,27 +1245,44 @@ function renderAll(spec){
   renderFeatures();
   renderBlock();
   renderRegisters();
+  renderProgModel();
+  renderMmu();
+  renderCaches();
+  renderInterrupts();
+  renderPower();
+  renderPmu();
+  renderPipeline();
+  renderConfigSignals();
   renderTiming();
 }
 function reRenderAll(){
-  const err=el('err');err.textContent='';err.classList.remove('ok-msg');
+  const err=el('err'); err.textContent=''; err.classList.remove('ok-msg');
   try{
     const spec=JSON.parse(el('spec').value);
     if(!spec.overview||!spec.block) throw new Error('spec needs at least "overview" and "block" keys');
     renderAll(spec);
-    err.textContent='✓ re-rendered all sections';err.classList.add('ok-msg');
+    err.textContent='✓ re-rendered all sections'; err.classList.add('ok-msg');
     setTimeout(()=>{err.textContent='';err.classList.remove('ok-msg');},2200);
   }catch(ex){ err.textContent='JSON / render error: '+ex.message; }
 }
 
-/* scroll-spy: highlight active nav link */
+/* scroll-spy */
 function initScrollSpy(){
   const links=[...document.querySelectorAll('.nav a.lnk')];
-  const map={};links.forEach(a=>map[a.getAttribute('href').slice(1)]=a);
+  const map={}; links.forEach(a=>map[a.getAttribute('href').slice(1)]=a);
   const obs=new IntersectionObserver(entries=>{
-    entries.forEach(e=>{ if(e.isIntersecting){ links.forEach(l=>l.classList.remove('active')); const a=map[e.target.id]; if(a)a.classList.add('active'); } });
-  },{rootMargin:'-45% 0px -50% 0px',threshold:0});
-  ['overview','toc','features','block','registers','timing'].forEach(id=>{const s=el(id);if(s)obs.observe(s);});
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        links.forEach(l=>l.classList.remove('active'));
+        const a=map[e.target.id]; if(a) a.classList.add('active');
+      }
+    });
+  },{rootMargin:'-40% 0px -55% 0px',threshold:0});
+  ['overview','toc','features','block','registers',
+   'prog-model','mmu','caches','interrupts','power',
+   'pmu','pipeline','config-signals','timing'].forEach(id=>{
+    const s=el(id); if(s) obs.observe(s);
+  });
 }
 
 /* boot */
@@ -888,7 +1290,6 @@ el('spec').value=JSON.stringify(DEFAULT,null,2);
 renderAll(DEFAULT);
 initScrollSpy();
 </script>
-
 
 
 

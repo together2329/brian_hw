@@ -152,3 +152,31 @@ def test_direct_dispatch_no_seed_omits_section(tmp_path, monkeypatch):
     jobs = _jobs_from_response(response)
     job = api_jobs._jobs[jobs[0]["job_id"]]
     assert "[USER REQUIREMENT]" not in job["prompt"]
+
+
+def test_job_dispatch_custom_prompt_preserves_ssot_stage_driver(tmp_path, monkeypatch):
+    """POST /api/job/dispatch with a custom ssot-gen prompt must still carry
+    the compact ATLAS pipeline marker.
+
+    Without this, direct real-LLM ssot-gen runs bypass the compact prompt and
+    fall back to the full SSOT template/system prompt path, making tiny smoke
+    tests read tens of thousands of tokens before the first write.
+    """
+    app, api_jobs = _install_dispatch_route(tmp_path, monkeypatch)
+    handler = app.routes[("post", "/api/job/dispatch")]
+
+    request = _StubRequest({
+        "ip": "gray",
+        "workflow": "ssot-gen",
+        "exec_mode": "orchestrator",
+        "prompt": "build a compact AXI4-Lite status block",
+    })
+    response = asyncio.get_event_loop().run_until_complete(handler(request))
+    body = json.loads(response.body.decode("utf-8"))
+    assert body.get("ok") is True, body
+
+    job = api_jobs._jobs[body["job_id"]]
+    prompt = job["prompt"]
+    assert "[ATLAS_PIPELINE_SSOT_DIRECT_WRITE]" in prompt
+    assert "[Orchestrator worker instruction]" in prompt
+    assert "compact AXI4-Lite status block" in prompt

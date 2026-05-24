@@ -518,6 +518,45 @@ def register_sessions_routes(
         except Exception:
             return None
 
+    def _conversation_message_key(msg: dict[str, Any]) -> tuple[str, str, str, str]:
+        role = str(msg.get("role") or "")
+        content = str(msg.get("content") or msg.get("text") or "")
+        tool = str(msg.get("name") or msg.get("tool") or "")
+        msg_id = str(msg.get("id") or "")
+        return role, content, tool, msg_id
+
+    def _merge_conversation_sources(
+        file_messages: list[dict[str, Any]],
+        db_messages: Optional[list[dict[str, Any]]],
+    ) -> tuple[list[dict[str, Any]], str]:
+        """Combine file-backed worker history with DB-backed chat/session rows.
+
+        `/api/session/activate` creates DB runtime sessions even before that
+        session has DB messages.  If an empty DB row wins unconditionally, the
+        real worker `conversation.json` becomes invisible in the UI.
+        """
+        file_clean = [
+            m for m in file_messages
+            if isinstance(m, dict) and m.get("role") != "system"
+        ]
+        db_clean = [
+            m for m in (db_messages or [])
+            if isinstance(m, dict) and m.get("role") != "system"
+        ]
+        if not db_clean:
+            return file_clean, "file"
+        if not file_clean:
+            return db_clean, "db"
+        merged: list[dict[str, Any]] = []
+        seen: set[tuple[str, str, str, str]] = set()
+        for msg in [*file_clean, *db_clean]:
+            key = _conversation_message_key(msg)
+            if key in seen:
+                continue
+            merged.append(msg)
+            seen.add(key)
+        return merged, "file+db"
+
     @app.get("/api/session/history")
     async def api_session_history(request: Request, session: str, limit: int = 200):
         """Read a specific .session/<session>/conversation.json.
@@ -541,40 +580,25 @@ def register_sessions_routes(
         access_error = _authorize_session_request(request, session)
         if access_error is not None:
             return access_error
-        db_msgs = _db_conversation_messages(session, _request_user_id(request))
-        if db_msgs is not None:
-            if limit == 0:
-                db_msgs = []
-            elif limit > 0 and len(db_msgs) > limit:
-                db_msgs = db_msgs[-limit:]
-            db_msgs, chat_merged = _merge_orchestrator_chat_messages(
-                session,
-                db_msgs,
-                _request_user_id(request),
-                limit,
-            )
-            return JSONResponse({
-                "messages": db_msgs,
-                "session": session,
-                "path": "",
-                "exists": True,
-                "source": "db+orchestrator_chat" if chat_merged else "db",
-                "truncated_to": limit,
-            })
         hpath = sdir / "conversation.json"
-        if not hpath.is_file():
+        file_msgs: list[dict[str, Any]] = []
+        if hpath.is_file():
+            try:
+                raw_msgs = json.loads(hpath.read_text(encoding="utf-8"))
+                if isinstance(raw_msgs, list):
+                    file_msgs = [m for m in raw_msgs if isinstance(m, dict)]
+            except Exception as e:
+                db_msgs = _db_conversation_messages(session, _request_user_id(request))
+                if db_msgs is None:
+                    return JSONResponse({"messages": [], "session": session,
+                                         "path": hpath.relative_to(PROJECT_ROOT).as_posix(),
+                                         "error": f"parse: {e}"}, status_code=500)
+        db_msgs = _db_conversation_messages(session, _request_user_id(request))
+        if db_msgs is None and not hpath.is_file():
             return JSONResponse({"messages": [], "session": session,
                                  "path": hpath.relative_to(PROJECT_ROOT).as_posix(),
                                  "exists": False, "source": "file"})
-        try:
-            msgs = json.loads(hpath.read_text(encoding="utf-8"))
-            if not isinstance(msgs, list):
-                msgs = []
-        except Exception as e:
-            return JSONResponse({"messages": [], "session": session,
-                                 "path": hpath.relative_to(PROJECT_ROOT).as_posix(),
-                                 "error": f"parse: {e}"}, status_code=500)
-        msgs = [m for m in msgs if isinstance(m, dict) and m.get("role") != "system"]
+        msgs, source = _merge_conversation_sources(file_msgs, db_msgs)
         # `limit == 0` must return an empty list. The previous form
         # `msgs[-limit:]` becomes `msgs[-0:]` == `msgs[0:]` == full list
         # because Python collapses -0 to 0, so limit=0 paradoxically
@@ -592,8 +616,8 @@ def register_sessions_routes(
         )
         return JSONResponse({"messages": msgs, "session": session,
                              "path": hpath.relative_to(PROJECT_ROOT).as_posix(),
-                             "exists": True,
-                             "source": "file+orchestrator_chat" if chat_merged else "file",
+                             "exists": bool(db_msgs is not None or hpath.is_file()),
+                             "source": f"{source}+orchestrator_chat" if chat_merged else source,
                              "truncated_to": limit})
 
     # ── /api/session/state ─────────────────────────────────────────
@@ -652,15 +676,14 @@ def register_sessions_routes(
             if not conv_path.is_file():
                 conv_path = sdir / "conversation.json"
 
+        file_messages = _read_json(conv_path, [])
+        if not isinstance(file_messages, list):
+            file_messages = []
         db_messages = _db_conversation_messages(session, _request_user_id(request))
-        conversation_source = "db" if db_messages is not None else "file"
-        if db_messages is not None:
-            messages = db_messages
-        else:
-            messages = _read_json(conv_path, [])
-            if not isinstance(messages, list):
-                messages = []
-            messages = [m for m in messages if isinstance(m, dict) and m.get("role") != "system"]
+        messages, conversation_source = _merge_conversation_sources(
+            [m for m in file_messages if isinstance(m, dict)],
+            db_messages,
+        )
         # `full` returns everything; `conversation` and `recent` cap at limit.
         # Same `-0 == 0` guard as /api/session/history above.
         if mode_norm != "full":

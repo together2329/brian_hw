@@ -26,6 +26,8 @@ def _isolate_worker_route_state(monkeypatch):
     # developer shell's production env leak into the route behavior.
     monkeypatch.delenv("ATLAS_WORKFLOW_WORKER_PER_USER", raising=False)
     monkeypatch.delenv("ATLAS_WORKFLOW_WORKER_PER_SESSION", raising=False)
+    monkeypatch.delenv("ATLAS_LAZY_WORKERS", raising=False)
+    monkeypatch.delenv("ATLAS_WORKER_LAZY_START", raising=False)
     try:
         import atlas_api_jobs as jobs
     except Exception:
@@ -153,6 +155,40 @@ def test_workers_route_active_only_skips_idle_worker_fanout(
     assert data["active_only"] is True
     assert data["count"] == 0
     assert data["workers"] == []
+    assert probed_urls == []
+
+
+def test_workers_route_lazy_idle_skips_unspawned_worker_probes(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import urllib.request
+
+    import atlas_api_jobs as jobs
+
+    probed_urls: list[str] = []
+
+    def _fake_urlopen(req, timeout=None):
+        probed_urls.append(getattr(req, "full_url", str(req)))
+        return _JsonResponse({"status": "ok"})
+
+    monkeypatch.setenv("ATLAS_LAZY_WORKERS", "1")
+    monkeypatch.setattr(urllib.request, "urlopen", _fake_urlopen)
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+    with jobs._LAZY_WORKER_LOCK:
+        jobs._LAZY_WORKER_PROCS.clear()
+    with jobs._HEALTH_CACHE_LOCK:
+        jobs._HEALTH_CACHE.clear()
+
+    client = _make_client(tmp_path, monkeypatch)
+    resp = client.get("/api/orchestrator/workers?ip=pl330")
+    assert resp.status_code == 200, resp.text
+
+    data = resp.json()
+    assert data["count"] == 12
+    assert all(worker["status"] == "unreachable" for worker in data["workers"])
+    assert all(worker["error"] == "lazy worker not spawned" for worker in data["workers"])
     assert probed_urls == []
 
 

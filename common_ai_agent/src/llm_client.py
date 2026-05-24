@@ -4464,7 +4464,20 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             yield f"{Color.info('If this persists, please check your network connection.')}\n"
             return
 
-def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=None, stream_prefix=None, spinner_label=None, max_tokens=None, extra_body=None, caller_tag=None, tools=None):
+def call_llm_raw(
+    prompt="",
+    temperature=0.7,
+    model=None,
+    messages=None,
+    stop=None,
+    stream_prefix=None,
+    spinner_label=None,
+    max_tokens=None,
+    extra_body=None,
+    caller_tag=None,
+    tools=None,
+    reasoning_effort=None,
+):
     """
     Call LLM without streaming (for extraction tasks, sub-agents, etc.).
 
@@ -4477,6 +4490,7 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
         stream_prefix: If set, stream output to stdout with this prefix (e.g. "  │ ")
         spinner_label: If set (and stream_prefix is None), show a spinner while waiting
         tools: Optional list of function tool definitions (OpenAI function calling format)
+        reasoning_effort: Optional override for provider reasoning controls
 
     Returns:
         Complete response text. When the model returns a tool_calls response instead of
@@ -4561,6 +4575,7 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
     if tools:
         data["tools"] = tools
         data["tool_choice"] = "auto"
+    _apply_chat_reasoning_controls(data, resolved_model, url, reasoning_effort)
     if extra_body:
         data.update(extra_body)
 
@@ -4591,6 +4606,7 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
             tools=tools,
             max_output_tokens=responses_max,
             base_url=responses_url,
+            reasoning_effort=reasoning_effort,
         )
         responses_data = _apply_responses_extra_body(responses_data, extra_body, responses_url)
         return _collect_responses_raw(
