@@ -399,13 +399,39 @@ def run_agent_session(
                     stop=["Observation:"],
                     model=model,
                 )
+                import config as _cfg_llm
+                _llm_call_cap = getattr(_cfg_llm, "LLM_CALL_WATCHDOG_SEC", 0) or 0
+                _llm_started = time.time()
+                _llm_timed_out = False
                 while not _llm_future.done():
                     if EscapeWatcher.check():
+                        break
+                    # Backstop: a single LLM call must not hang the worker forever.
+                    # Lower layers (stream watchdog, header/idle timeouts) should
+                    # already bound it; this catches anything they miss (wedged
+                    # stream, half-open socket, stuck lock) so the run errors out
+                    # and the orchestrator can retry instead of stalling for hours.
+                    if _llm_call_cap and (time.time() - _llm_started) > _llm_call_cap:
+                        _llm_timed_out = True
+                        try:
+                            import llm_client as _llm_mod
+                            _llm_mod.cancel_current_stream()  # close the wedged stream to release the thread
+                        except Exception:
+                            pass
+                        _llm_future.cancel()
                         break
                     time.sleep(0.1)
                 if EscapeWatcher.check():
                     _llm_future.cancel()
                     break
+                if _llm_timed_out:
+                    return AgentResult(
+                        output=f"LLM call exceeded {_llm_call_cap}s watchdog without responding",
+                        status="error",
+                        error=f"llm_call_watchdog_timeout({_llm_call_cap}s)",
+                        iterations=iteration,
+                        execution_time_ms=int((time.time() - start_time) * 1000),
+                    )
                 collected_content = (_llm_future.result() or "")
             except Exception as e:
                 return AgentResult(

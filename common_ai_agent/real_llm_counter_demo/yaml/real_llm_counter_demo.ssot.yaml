@@ -2,14 +2,10 @@ top_module:
   name: real_llm_counter_demo
   file: rtl/real_llm_counter_demo.sv
   version: 1.0.0
-  type: leaf
-  description: '8-bit saturating up/down counter with valid-ready command input. Supports CLEAR, LOAD, INC, DEC, and HOLD commands. INC saturates at 8''hFF; DEC saturates at 8''h00. Single clock domain, active-low async reset, no bus/CSR/interrupt/CDC/memory interfaces.
-
-    '
+  type: peripheral
+  description: '8-bit saturating up/down counter with valid-ready command input. Commands: CLEAR (000), LOAD (001), INC (010), DEC (011), HOLD (100). INC saturates at 8''hFF; DEC saturates at 8''h00. Single clock domain, active-low async reset. No bus/CSR/interrupt/CDC/memory.'
   target:
     process: generic
-    frequency_hz: 100000000
-    reset: active_low_async
     technology: generic
     clock_freq_mhz: 100
     area_um2: null
@@ -30,10 +26,12 @@ sub_modules:
   - fsm
   - decomposition
   function_model_refs:
-  - function_model.transactions.FM1
-  - function_model.transactions.FM2
-  - function_model.transactions.FM3
-  - function_model.transactions.FM4
+  - function_model.transactions.FM_CLEAR
+  - function_model.transactions.FM_LOAD
+  - function_model.transactions.FM_INC
+  - function_model.transactions.FM_DEC
+  - function_model.transactions.FM_HOLD
+  - function_model.transactions.FM_INVALID
   - function_model.state_variables
   cycle_model_refs:
   - cycle_model
@@ -66,7 +64,25 @@ sub_modules:
   dataflow_refs:
   - dataflow
 decomposition:
-  strategy: manifest_owned_leaf_decomposition
+  strategy: manifest_owned_leaf
+  units:
+  - id: command_decode
+    kind: combinational
+    source_refs:
+    - function_model.transactions
+    rtl_candidates:
+    - real_llm_counter_demo
+    verification_impact:
+    - test_requirements.scenarios
+  - id: counter_datapath
+    kind: sequential
+    source_refs:
+    - function_model.state_variables
+    - function_model.transactions
+    rtl_candidates:
+    - real_llm_counter_demo
+    verification_impact:
+    - test_requirements.scenarios
   owners:
   - module: real_llm_counter_demo
     file: rtl/real_llm_counter_demo.sv
@@ -85,29 +101,49 @@ decomposition:
 rtl_contract:
   owner: ssot-gen
   type: ssot_derived_rule_contract
-  transaction: FM1
+  transaction: FM_INC
   clock: clk
   reset: rst_n
   reset_active: low
-  sample_condition: req_valid && req_ready
+  sample_condition: cmd_valid == 1 and cmd_ready == 1
   input_map:
-    req_data: req_data
-    rsp_ready: rsp_ready
+    cmd: cmd
+    load_value: load_value
   output_map:
-    req_ready: req_ready
-    rsp_valid: rsp_valid
-    rsp_data: rsp_data
-    error: error
-  ready_output: req_ready
-  output_valid: rsp_valid
+    count: count
+    zero: zero
+    max: max
+    accepted_count: accepted_count
+    status: status
+    cmd_ready: cmd_ready
+  ready_output: cmd_ready
   contract_invariants:
-  - RTL-visible behavior implements the referenced function_model transaction.
-  - Input sampling and output observation follow cycle_model handshake and latency rules.
+  - count is always the registered 8-bit saturating counter value.
+  - zero is 1 iff count == 0.
+  - max is 1 iff count == 255.
+  - cmd_ready is always 1.
+  - accepted_count increments on every accepted command (cmd_valid && cmd_ready).
+  - status encodes the last accepted command category.
   output_rules:
-  - name: error
-    port: error
-    expr: error
+  - name: zero
+    port: zero
+    expr: 1 if min(count + 1, 255) == 0 else 0
     width: 1
+    description: zero flag after increment
+  - name: max
+    port: max
+    expr: 1 if min(count + 1, 255) == 255 else 0
+    width: 1
+    description: max flag after increment (set when saturating)
+  - name: count
+    port: count
+    expr: count
+    width: 8
+    description: Externally observable function_model state is driven from the RTL state register.
+  - name: accepted_count
+    port: accepted_count
+    expr: accepted_count
+    width: 32
     description: Externally observable function_model state is driven from the RTL state register.
 parameters:
 - name: WIDTH
@@ -138,82 +174,138 @@ io_list:
   - name: rst_n
     polarity: active_low
     sync_async: async_assert_sync_deassert
-    description: Active-low reset, asynchronous assert and synchronous release
+    description: Active-low async assert, sync deassert reset
     ports:
     - name: rst_n
       width: 1
       direction: input
       description: Primary reset
   interfaces:
-  - name: control_data
+  - name: command_if
     type: native_valid_ready
-    role: target
+    role: sink
     clock_domain: clk
     reset_domain: rst_n
-    description: Generic request/response interface synthesized only as a repair fallback; replace with approved protocol ports before production signoff.
+    description: "Command input interface \u2014 cmd_valid/cmd_ready handshake with cmd[2:0] and load_value[7:0]."
     protocol:
-      acceptance: req_valid && req_ready accepts one request payload.
-      response: rsp_valid marks a response payload, accepted with rsp_ready.
-      stability: Payload/control fields remain stable while valid is high and ready is low.
+      acceptance: cmd_valid == 1 && cmd_ready == 1 accepts one command per clock edge.
+      response: "No response channel \u2014 results appear on dedicated output ports."
+      stability: cmd and load_value remain stable while cmd_valid is high and cmd_ready is low.
+      always_ready: cmd_ready is tied to 1'b1; the sink never applies backpressure.
     ports:
-    - name: req_valid
+    - name: cmd_valid
       width: 1
       direction: input
-      description: Request/control payload valid
-    - name: req_ready
+      description: Command valid strobe
+    - name: cmd_ready
       width: 1
       direction: output
-      description: Request/control payload accepted when high with req_valid
-    - name: req_data
-      width: DATA_WIDTH
+      description: "Command ready \u2014 always 1'b1 (no backpressure)"
+    - name: cmd
+      width: 3
       direction: input
-      description: Generic request/control payload
-    - name: rsp_valid
-      width: 1
-      direction: output
-      description: Response/result payload valid
-    - name: rsp_ready
-      width: 1
+      description: 'Command encoding: 000=CLEAR, 001=LOAD, 010=INC, 011=DEC, 100=HOLD, 101-111=reserved (treated as HOLD)'
+    - name: load_value
+      width: 8
       direction: input
-      description: Response/result accepted when high with rsp_valid
-    - name: rsp_data
-      width: DATA_WIDTH
+      description: Load value sampled when cmd==001 (LOAD) and cmd_valid==1
+  - name: status_out
+    type: native_output
+    role: source
+    clock_domain: clk
+    reset_domain: rst_n
+    description: "Counter state outputs \u2014 count, flags, accepted_count, and status."
+    ports:
+    - name: count
+      width: 8
       direction: output
-      description: Generic response/result payload
-    - name: error
+      description: Current 8-bit counter value
+    - name: zero
       width: 1
       direction: output
-      description: Generic architectural error indication
+      description: Asserted when count == 0
+    - name: max
+      width: 1
+      direction: output
+      description: Asserted when count == 255
+    - name: accepted_count
+      width: 32
+      direction: output
+      description: Total accepted commands (wraps at 2^32-1)
+    - name: status
+      width: 3
+      direction: output
+      description: 'Last accepted command category: 000=CLEAR, 001=LOAD, 010=INC, 011=DEC, 100=HOLD, 101=reserved(=HOLD)'
+    protocol:
+      acceptance: Transfer acceptance follows the declared valid/ready or protocol phase rule.
+      stability: Payload/control fields remain stable until accepted.
+      response: Observable response timing follows cycle_model latency and ordering.
 features:
 - id: F001
   description: "Saturating increment \u2014 count stays at 8'hFF on INC at max."
+  trigger: cmd == 3'b010 and cmd_valid == 1
+  datapath: count_next = min(count + 1, 255)
+  control: Combinational decode, registered update
+  output: count updated, zero/max flags recomputed
   priority: high
 - id: F002
   description: "Saturating decrement \u2014 count stays at 8'h00 on DEC at min."
+  trigger: cmd == 3'b011 and cmd_valid == 1
+  datapath: count_next = max(count - 1, 0)
+  control: Combinational decode, registered update
+  output: count updated, zero/max flags recomputed
   priority: high
 - id: F003
-  description: Valid-ready command interface with always-ready sink.
+  description: CLEAR command forces count to 8'h00.
+  trigger: cmd == 3'b000 and cmd_valid == 1
+  datapath: count_next = 0
+  control: Combinational decode, registered update
+  output: count == 0, zero == 1, max == 0
   priority: high
 - id: F004
-  description: CLEAR command forces count to 8'h00 regardless of current value.
+  description: LOAD command sets count to load_value[7:0].
+  trigger: cmd == 3'b001 and cmd_valid == 1
+  datapath: count_next = load_value
+  control: Combinational decode, registered update
+  output: count == load_value, zero/max recomputed
   priority: high
 - id: F005
-  description: LOAD command sets count to load_value[7:0] unconditionally.
-  priority: high
-- id: F006
   description: HOLD command leaves count unchanged.
+  trigger: cmd == 3'b100 and cmd_valid == 1
+  datapath: count_next = count
+  control: No update
+  output: count unchanged
   priority: medium
+- id: F006
+  description: Invalid/reserved command encodings (101-111) treated as HOLD.
+  trigger: cmd >= 3'b101 and cmd_valid == 1
+  datapath: count_next = count (same as HOLD)
+  control: No update
+  output: count unchanged, status reflects the actual cmd value
+  priority: low
 - id: F007
   description: Zero/max flags are combinational functions of count register.
+  trigger: Every clock edge
+  datapath: zero = (count == 0), max = (count == 255)
+  control: Combinational
+  output: zero and max outputs track count in real time
   priority: medium
 - id: F008
   description: accepted_count tracks total accepted transactions, wraps at 32-bit boundary.
+  trigger: cmd_valid == 1 and cmd_ready == 1
+  datapath: accepted_count_next = accepted_count + 1
+  control: Registered 32-bit wrap counter
+  output: accepted_count output port
   priority: medium
 - id: F009
   description: status output reflects last accepted command category.
+  trigger: cmd_valid == 1 and cmd_ready == 1
+  datapath: status_next = cmd
+  control: Registered 3-bit latch
+  output: status output port
   priority: low
 dataflow:
-  description: "Single-path dataflow: command input \u2192 decode \u2192 next-count logic \u2192 count register \u2192 output flags. No pipelining; all combinational decode and next-state logic resolves in one clock cycle.\n"
+  description: 'Single-path dataflow: command input -> decode -> next-count logic -> count register -> output flags. No pipelining; all combinational decode and next-state logic resolves in one clock cycle.'
   paths:
   - name: command_path
     source: cmd_valid
@@ -228,185 +320,477 @@ dataflow:
     latency_cycles: 0
     throughput: 1
     note: "Combinational \u2014 flags update same cycle as count register."
+  - name: accepted_path
+    source: cmd_valid
+    sink: accepted_count
+    latency_cycles: 1
+    throughput: 1
+  - name: status_path
+    source: cmd
+    sink: status
+    latency_cycles: 1
+    throughput: 1
 function_model:
-  purpose: Cycle-independent behavioral contract for rtl-gen and tb-gen.
+  purpose: Cycle-independent behavioral contract for rtl-gen and tb-gen. Describes what the 8-bit saturating counter computes for each command.
   state_variables:
-  - name: state
-    source: fsm
-    reset: IDLE
-    description: Primary architectural state
-  - name: error
-    source: error_handling
+  - name: count
+    width: 8
     reset: 0
-    description: Architectural error indicator
-  - name: fm2_observed
-    source: function_model.transactions.FM2
-    width: 1
+    description: Current 8-bit counter value.
+  - name: accepted_count
+    width: 32
     reset: 0
-    description: Auto-injected transaction coverage/state marker because the transaction had prose outputs or side effects but no executable output_rules/state_updates.
-  - name: fm3_observed
-    source: function_model.transactions.FM3
-    width: 1
+    description: Total accepted commands (wraps at 2^32-1).
+  - name: last_cmd
+    width: 3
     reset: 0
-    description: Auto-injected transaction coverage/state marker because the transaction had prose outputs or side effects but no executable output_rules/state_updates.
-  - name: fm4_observed
-    source: function_model.transactions.FM4
-    width: 1
-    reset: 0
-    description: Auto-injected transaction coverage/state marker because the transaction had prose outputs or side effects but no executable output_rules/state_updates.
+    description: Last accepted command encoding (mirrored to status output).
   transactions:
-  - id: FM1
-    name: feature_1
+  - id: FM_CLEAR
+    name: clear_counter
     preconditions:
-    - Feature trigger is asserted under legal configuration
+    - cmd_valid == 1
+    - cmd == 0
     inputs:
-    - Inputs described by io_list and dataflow
+    - 'cmd_valid: 1'
+    - 'cmd: 0 (CLEAR)'
     outputs:
-    - Architectural output matches feature definition
-    - name: error
-      port: error
+    - count == 0 on next cycle
+    - zero == 1, max == 0
+    - name: zero
+      port: zero
+      expr: '1'
+      description: count is 0 after clear
+    - name: max
+      port: max
       expr: '0'
-      description: 'Auto-injected placeholder rule for observable state ''error'' (repair_ssot_schema rule_expr_completeness pass; advisory: downstream TB/scoreboard treats this as 0 unless overridden).'
-    side_effects:
-    - Architectural state updates according to FSM/control policy
-    error_cases:
-    - condition: Downstream protocol response is non-OKAY or invalid
-      result: Set error status and block signoff until handled
+      description: count is not 255 after clear
+    - name: count
+      port: count
+      expr: count
+      description: Externally observable function_model state is driven from the RTL state register.
+    - name: accepted_count
+      port: accepted_count
+      expr: accepted_count
+      description: Externally observable function_model state is driven from the RTL state register.
+    - state: last_cmd
+      expr: '0'
+      description: Record CLEAR as last command
     output_rules:
-    - name: error
-      port: error
+    - name: zero
+      port: zero
+      expr: '1'
+      width: 1
+      description: count is 0 after clear
+    - name: max
+      port: max
       expr: '0'
       width: 1
-      description: 'Auto-injected placeholder rule for observable state ''error'' (repair_ssot_schema rule_expr_completeness pass; advisory: downstream TB/scoreboard treats this as 0 unless overridden).'
-  - id: FM2
-    name: feature_2
-    preconditions:
-    - Feature trigger is asserted under legal configuration
-    inputs:
-    - Inputs described by io_list and dataflow
-    outputs:
-    - Architectural output matches feature definition
-    - state: fm2_observed
-      expr: '1'
-      description: Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.
-    side_effects:
-    - Architectural state updates according to FSM/control policy
-    error_cases:
-    - condition: Downstream protocol response is non-OKAY or invalid
-      result: Set error status and block signoff until handled
-    output_rules: []
+      description: count is not 255 after clear
+    - name: count
+      port: count
+      expr: count
+      width: 8
+      description: Externally observable function_model state is driven from the RTL state register.
+    - name: accepted_count
+      port: accepted_count
+      expr: accepted_count
+      width: 32
+      description: Externally observable function_model state is driven from the RTL state register.
     state_updates:
-    - name: fm2_observed
-      expr: '1'
-      width: 1
-      description: Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.
-  - id: FM3
-    name: feature_3
-    preconditions:
-    - Feature trigger is asserted under legal configuration
-    inputs:
-    - Inputs described by io_list and dataflow
-    outputs:
-    - Architectural output matches feature definition
-    - state: fm3_observed
-      expr: '1'
-      description: Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.
+    - name: count
+      expr: '0'
+      width: 8
+      description: Reset counter to zero
+    - name: last_cmd
+      expr: '0'
+      width: 3
+      description: Record CLEAR as last command
+    - name: accepted_count
+      expr: (accepted_count + 1) & 0xFFFFFFFF
+      width: 32
+      description: Increment accepted command counter
+    error_cases: []
     side_effects:
-    - Architectural state updates according to FSM/control policy
-    error_cases:
-    - condition: Downstream protocol response is non-OKAY or invalid
-      result: Set error status and block signoff until handled
-    output_rules: []
-    state_updates:
-    - name: fm3_observed
-      expr: '1'
-      width: 1
-      description: Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.
-  - id: FM4
-    name: feature_4
+    - updates only SSOT-declared architectural state, status, events, or output handoff state
+  - id: FM_LOAD
+    name: load_counter
     preconditions:
-    - Feature trigger is asserted under legal configuration
+    - cmd_valid == 1
+    - cmd == 1
     inputs:
-    - Inputs described by io_list and dataflow
+    - 'cmd_valid: 1'
+    - 'cmd: 1 (LOAD)'
+    - 'load_value: 8-bit value'
     outputs:
-    - Architectural output matches feature definition
-    - state: fm4_observed
+    - count == load_value on next cycle
+    - zero == (load_value == 0)
+    - max == (load_value == 255)
+    - name: zero
+      port: zero
+      expr: 1 if load_value == 0 else 0
+      description: zero flag reflects loaded value
+    - name: max
+      port: max
+      expr: 1 if load_value == 255 else 0
+      description: max flag reflects loaded value
+    - name: count
+      port: count
+      expr: count
+      description: Externally observable function_model state is driven from the RTL state register.
+    - name: accepted_count
+      port: accepted_count
+      expr: accepted_count
+      description: Externally observable function_model state is driven from the RTL state register.
+    - state: last_cmd
       expr: '1'
-      description: Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.
-    side_effects:
-    - Architectural state updates according to FSM/control policy
-    error_cases:
-    - condition: Downstream protocol response is non-OKAY or invalid
-      result: Set error status and block signoff until handled
-    output_rules: []
-    state_updates:
-    - name: fm4_observed
-      expr: '1'
+      description: Record LOAD as last command
+    output_rules:
+    - name: zero
+      port: zero
+      expr: 1 if load_value == 0 else 0
       width: 1
-      description: Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.
+      description: zero flag reflects loaded value
+    - name: max
+      port: max
+      expr: 1 if load_value == 255 else 0
+      width: 1
+      description: max flag reflects loaded value
+    - name: count
+      port: count
+      expr: count
+      width: 8
+      description: Externally observable function_model state is driven from the RTL state register.
+    - name: accepted_count
+      port: accepted_count
+      expr: accepted_count
+      width: 32
+      description: Externally observable function_model state is driven from the RTL state register.
+    state_updates:
+    - name: count
+      expr: load_value
+      width: 8
+      description: Set counter to load_value
+    - name: last_cmd
+      expr: '1'
+      width: 3
+      description: Record LOAD as last command
+    - name: accepted_count
+      expr: (accepted_count + 1) & 0xFFFFFFFF
+      width: 32
+      description: Increment accepted command counter
+    error_cases: []
+    side_effects:
+    - updates only SSOT-declared architectural state, status, events, or output handoff state
+  - id: FM_INC
+    name: increment_counter
+    preconditions:
+    - cmd_valid == 1
+    - cmd == 2
+    inputs:
+    - 'cmd_valid: 1'
+    - 'cmd: 2 (INC)'
+    outputs:
+    - count == min(count + 1, 255) on next cycle
+    - zero == (min(count + 1, 255) == 0)
+    - max == (min(count + 1, 255) == 255)
+    - name: zero
+      port: zero
+      expr: 1 if min(count + 1, 255) == 0 else 0
+      description: zero flag after increment
+    - name: max
+      port: max
+      expr: 1 if min(count + 1, 255) == 255 else 0
+      description: max flag after increment (set when saturating)
+    - name: count
+      port: count
+      expr: count
+      description: Externally observable function_model state is driven from the RTL state register.
+    - name: accepted_count
+      port: accepted_count
+      expr: accepted_count
+      description: Externally observable function_model state is driven from the RTL state register.
+    - state: last_cmd
+      expr: '2'
+      description: Record INC as last command
+    output_rules:
+    - name: zero
+      port: zero
+      expr: 1 if min(count + 1, 255) == 0 else 0
+      width: 1
+      description: zero flag after increment
+    - name: max
+      port: max
+      expr: 1 if min(count + 1, 255) == 255 else 0
+      width: 1
+      description: max flag after increment (set when saturating)
+    - name: count
+      port: count
+      expr: count
+      width: 8
+      description: Externally observable function_model state is driven from the RTL state register.
+    - name: accepted_count
+      port: accepted_count
+      expr: accepted_count
+      width: 32
+      description: Externally observable function_model state is driven from the RTL state register.
+    state_updates:
+    - name: count
+      expr: min(count + 1, 255)
+      width: 8
+      description: Increment with saturation at 255
+    - name: last_cmd
+      expr: '2'
+      width: 3
+      description: Record INC as last command
+    - name: accepted_count
+      expr: (accepted_count + 1) & 0xFFFFFFFF
+      width: 32
+      description: Increment accepted command counter
+    error_cases: []
+    side_effects:
+    - updates only SSOT-declared architectural state, status, events, or output handoff state
+  - id: FM_DEC
+    name: decrement_counter
+    preconditions:
+    - cmd_valid == 1
+    - cmd == 3
+    inputs:
+    - 'cmd_valid: 1'
+    - 'cmd: 3 (DEC)'
+    outputs:
+    - count == max(count - 1, 0) on next cycle
+    - zero == (max(count - 1, 0) == 0)
+    - max == (max(count - 1, 0) == 255)
+    - name: zero
+      port: zero
+      expr: 1 if max(count - 1, 0) == 0 else 0
+      description: zero flag after decrement
+    - name: max
+      port: max
+      expr: 1 if max(count - 1, 0) == 255 else 0
+      description: max flag after decrement
+    - name: count
+      port: count
+      expr: count
+      description: Externally observable function_model state is driven from the RTL state register.
+    - name: accepted_count
+      port: accepted_count
+      expr: accepted_count
+      description: Externally observable function_model state is driven from the RTL state register.
+    - state: last_cmd
+      expr: '3'
+      description: Record DEC as last command
+    output_rules:
+    - name: zero
+      port: zero
+      expr: 1 if max(count - 1, 0) == 0 else 0
+      width: 1
+      description: zero flag after decrement
+    - name: max
+      port: max
+      expr: 1 if max(count - 1, 0) == 255 else 0
+      width: 1
+      description: max flag after decrement
+    - name: count
+      port: count
+      expr: count
+      width: 8
+      description: Externally observable function_model state is driven from the RTL state register.
+    - name: accepted_count
+      port: accepted_count
+      expr: accepted_count
+      width: 32
+      description: Externally observable function_model state is driven from the RTL state register.
+    state_updates:
+    - name: count
+      expr: max(count - 1, 0)
+      width: 8
+      description: Decrement with saturation at 0
+    - name: last_cmd
+      expr: '3'
+      width: 3
+      description: Record DEC as last command
+    - name: accepted_count
+      expr: (accepted_count + 1) & 0xFFFFFFFF
+      width: 32
+      description: Increment accepted command counter
+    error_cases: []
+    side_effects:
+    - updates only SSOT-declared architectural state, status, events, or output handoff state
+  - id: FM_HOLD
+    name: hold_counter
+    preconditions:
+    - cmd_valid == 1
+    - cmd == 4
+    inputs:
+    - 'cmd_valid: 1'
+    - 'cmd: 4 (HOLD)'
+    outputs:
+    - count unchanged
+    - zero == (count == 0)
+    - max == (count == 255)
+    - name: zero
+      port: zero
+      expr: 1 if count == 0 else 0
+      description: zero flag unchanged
+    - name: max
+      port: max
+      expr: 1 if count == 255 else 0
+      description: max flag unchanged
+    - name: accepted_count
+      port: accepted_count
+      expr: accepted_count
+      description: Externally observable function_model state is driven from the RTL state register.
+    - state: last_cmd
+      expr: '4'
+      description: Record HOLD as last command
+    output_rules:
+    - name: zero
+      port: zero
+      expr: 1 if count == 0 else 0
+      width: 1
+      description: zero flag unchanged
+    - name: max
+      port: max
+      expr: 1 if count == 255 else 0
+      width: 1
+      description: max flag unchanged
+    - name: accepted_count
+      port: accepted_count
+      expr: accepted_count
+      width: 32
+      description: Externally observable function_model state is driven from the RTL state register.
+    state_updates:
+    - name: last_cmd
+      expr: '4'
+      width: 3
+      description: Record HOLD as last command
+    - name: accepted_count
+      expr: (accepted_count + 1) & 0xFFFFFFFF
+      width: 32
+      description: Increment accepted command counter
+    error_cases: []
+    side_effects:
+    - updates only SSOT-declared architectural state, status, events, or output handoff state
+  - id: FM_INVALID
+    name: invalid_command_as_hold
+    preconditions:
+    - cmd_valid == 1
+    - cmd >= 5
+    inputs:
+    - 'cmd_valid: 1'
+    - 'cmd: 5, 6, or 7 (reserved)'
+    outputs:
+    - count unchanged (same as HOLD)
+    - zero == (count == 0)
+    - max == (count == 255)
+    - name: zero
+      port: zero
+      expr: 1 if count == 0 else 0
+      description: zero flag unchanged
+    - name: max
+      port: max
+      expr: 1 if count == 255 else 0
+      description: max flag unchanged
+    - name: accepted_count
+      port: accepted_count
+      expr: accepted_count
+      description: Externally observable function_model state is driven from the RTL state register.
+    - state: last_cmd
+      expr: cmd
+      description: Record actual cmd value (5-7) in status
+    output_rules:
+    - name: zero
+      port: zero
+      expr: 1 if count == 0 else 0
+      width: 1
+      description: zero flag unchanged
+    - name: max
+      port: max
+      expr: 1 if count == 255 else 0
+      width: 1
+      description: max flag unchanged
+    - name: accepted_count
+      port: accepted_count
+      expr: accepted_count
+      width: 32
+      description: Externally observable function_model state is driven from the RTL state register.
+    state_updates:
+    - name: last_cmd
+      expr: cmd
+      width: 3
+      description: Record actual cmd value (5-7) in status
+    - name: accepted_count
+      expr: (accepted_count + 1) & 0xFFFFFFFF
+      width: 32
+      description: Increment accepted command counter (invalid commands are still accepted)
+    error_cases: []
+    side_effects:
+    - updates only SSOT-declared architectural state, status, events, or output handoff state
   invariants:
-  - No externally visible output changes except through declared interfaces, registers, interrupts, or debug signals.
-  - All state updates are synchronous to the declared clock and return to reset values under the declared reset policy.
-  - Every declared error source has a defined architectural effect and recovery path.
-  - Data movement and ordering follow the dataflow section without bypassing declared buffers or counters.
-  reference_model_hint: tb-gen must build a scoreboard/reference model from function_model transactions and compare expected versus observed results.
+  - count is always in [0, 255].
+  - zero == 1 if and only if count == 0.
+  - max == 1 if and only if count == 255.
+  - cmd_ready is always 1.
+  - accepted_count increments on every cmd_valid && cmd_ready edge.
+  - status == last_cmd after each accepted command.
+  - No bus, no CSR, no memory, no interrupt, no CDC, no multi-clock behavior.
+  reference_model_hint: tb-gen must build a scoreboard/reference model from function_model transactions and compare expected count/zero/max/accepted_count/status versus RTL observed after each accepted command.
 cycle_model:
-  purpose: Cycle/handshake contract for rtl-gen and waveform-based verification.
+  purpose: "Cycle/handshake contract \u2014 single-cycle command acceptance with combinational decode and registered update."
   executable: python
   backend_policy: Use the repo-owned pure-Python deterministic stepper; FunctionalModel remains the behavioral oracle.
   clock: clk
   reset:
     signal: rst_n
     polarity: active_low
-    assertion: rst_n assertion returns architectural state to declared reset values
-    deassertion: Logic may accept transactions after async_assert_sync_deassert deassertion completes
+    assertion: rst_n == 0 asynchronously clears count to 0, accepted_count to 0, last_cmd to 0
+    deassertion: Logic may accept commands on the first rising edge after synchronized deassertion
   latency:
-    control_or_request_accept:
+    command_accept:
       min_cycles: 0
-      max_cycles: null
-      description: Bounded by declared valid/ready or protocol acceptance rules
-    primary_operation:
+      max_cycles: 0
+      description: "cmd_ready is always 1 \u2014 command is accepted on the same edge cmd_valid is asserted."
+    command_effect:
       min_cycles: 1
-      max_cycles: null
-      description: Runs on clk at nominal 100 MHz; max depends on declared backpressure and implementation state
-    response_or_observable_result:
+      max_cycles: 1
+      description: Count/status/accepted_count update on the clock edge after acceptance.
+    flag_update:
       min_cycles: 0
-      max_cycles: null
-      description: Held stable until the declared response/output acceptance condition
+      max_cycles: 0
+      description: "zero and max are combinational \u2014 they reflect the new count value in the same cycle."
   handshake_rules:
-  - signal: req_valid/req_ready
-    rule: req_valid payload remains stable until req_ready is sampled asserted on control_data.
-  - signal: rsp_valid/rsp_ready
-    rule: rsp_valid payload remains stable until rsp_ready is sampled asserted on control_data.
+  - signal: cmd_valid/cmd_ready
+    rule: cmd_valid asserts the command; cmd_ready is always 1 so the command is always accepted on the same rising edge. cmd and load_value must be stable when cmd_valid is high.
   pipeline:
   - stage: S0_ACCEPT
-    cycle: 0..N
-    action: Accept legal request/command/packet/control work under declared handshake rules.
-  - stage: S1_EVALUATE
-    cycle: N..M
-    action: Evaluate function_model transaction and update only declared state.
-  - stage: S2_OBSERVE
-    cycle: M..K
-    action: Publish response/status/output/debug event and hold it stable until accepted.
+    cycle: 0
+    action: Sample cmd, load_value when cmd_valid == 1. Command is accepted unconditionally (cmd_ready == 1).
+  - stage: S1_UPDATE
+    cycle: 1
+    action: Register new count, last_cmd, accepted_count on the rising clock edge after acceptance.
+  - stage: S2_FLAGS
+    cycle: 1
+    action: Combinational zero/max flags reflect the new count value immediately.
   ordering:
-  - Accepted requests update architectural state only on clock edges.
-  - Completion/status/interrupt updates occur after the operation reaches its terminal FSM state.
-  - Backpressure stalls the active handshake stage without corrupting stored state.
-  - Read/dataflow stages must precede dependent write/output stages where declared in dataflow.
+  - Accepted commands update architectural state (count, last_cmd, accepted_count) only on clock edges.
+  - zero and max are combinational functions of count and reflect updates in the same cycle.
+  - "No backpressure \u2014 cmd_ready is always 1."
   backpressure:
-  - Ready/valid deassertion stalls only the affected interface stage; payload and route/control state remain stable.
+  - "No backpressure exists \u2014 cmd_ready is hardwired to 1. This is documented as a design decision."
   performance:
     frequency_mhz: 100
     throughput:
       sustained_beats_per_cycle: 1
-      condition: No backpressure on the active interface
+      condition: One command per clock cycle when cmd_valid is high.
     outstanding:
       max: 1
-      description: Default one accepted operation until the SSOT declares deeper buffering
+      description: Single-cycle acceptance, single-cycle effect.
     depth:
-      pipeline_stages: 3
-      queue_depth: 1
-      description: Default accept/evaluate/observe cycle model depth
+      pipeline_stages: 2
+      queue_depth: 0
+      description: Accept then update; no buffering.
   observability:
   - Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario.
 clock_reset_domains:
@@ -416,37 +800,40 @@ clock_reset_domains:
     frequency_mhz: 100
     reset_scheme: async_assert_sync_deassert
   reset_behavior:
-  - Handshake/control state resets to idle
-  - Observable outputs reset to function_model reset values
+  - count resets to 0
+  - accepted_count resets to 0
+  - last_cmd resets to 0
+  - zero is 1 after reset (count == 0)
+  - max is 0 after reset
+  - cmd_ready is 1 during and after reset
 cdc_requirements:
   required: false
-  rationale: Single clock/reset domain in the repaired draft; update SSOT if additional clocks or resets are introduced
+  rationale: "Single clock/reset domain \u2014 no CDC required."
   checks:
-  - No crossing paths expected; update SSOT if additional clocks or resets are introduced
+  - No crossing paths expected.
 rdc_requirements:
   required: false
-  rationale: Single clock/reset domain in the repaired draft; update SSOT if additional clocks or resets are introduced
+  rationale: "Single clock/reset domain \u2014 no RDC required."
   checks:
-  - No crossing paths expected; update SSOT if additional clocks or resets are introduced
+  - No crossing paths expected.
 registers:
   no_registers: true
-  policy: No firmware-visible registers are implied by repair; add explicit register_list entries before rtl-gen implements CSR behavior.
+  policy: No firmware-visible registers. Counter state is accessed only through the native command interface and output ports.
   register_list: []
 memory:
   instances: []
   addressing:
-    policy: No SSOT-approved internal memory instances; add explicit memories before rtl-gen may implement storage behavior.
-  storage_policy: No storage behavior is implied by repair. rtl-gen may only implement memory described by SSOT facts.
+    policy: No internal memory instances.
+  storage_policy: No storage behavior beyond the count/accepted_count/last_cmd registers.
 interrupts:
   present: false
   sources: []
-  rationale: No interrupt output is implied by repair; add interrupt sources explicitly before rtl-gen implements IRQ behavior
+  rationale: "No interrupt output \u2014 all state visible through output ports."
 fsm:
   no_fsm: true
-  reason: This IP uses combinational next-state decode from the command input with no sequential FSM. The status output encodes a soft command-category but there are no FSM states or transitions.
-  policy: No FSM is required; command decode is purely combinational on cmd[2:0] and count_reg. status output is a registered category of the last accepted command, not a true FSM state.
+  reason: "The counter uses purely combinational next-state decode from the command input. There is no sequential FSM \u2014 count is updated directly each cycle based on cmd. status/last_cmd is a simple registered latch of the last accepted cmd value."
   style: none
-  description: "No explicit FSM \u2014 the counter uses combinational next-state decode from the command input directly. The status output encodes a soft state category but there is no sequential FSM.\n"
+  description: "No explicit FSM \u2014 combinational command decode drives registered counter update."
 timing:
   clock_domains:
   - name: clk
@@ -459,16 +846,11 @@ timing:
     period_ns: 10.0
     uncertainty_ns: 0.2
   latency_budget:
-    register_access:
-      min: 0
-      max: null
-      measured_from: valid && ready
-      measured_to: response valid && ready
-    primary_operation:
+    command_accept_to_count_update:
       min: 1
-      max: null
-      measured_from: start/request accepted
-      measured_to: done/response accepted
+      max: 1
+      measured_from: cmd_valid && cmd_ready rising edge
+      measured_to: count register updated
   sta_expectations:
     setup_wns_ns_min: 0.0
     hold_wns_ns_min: 0.0
@@ -490,23 +872,19 @@ power:
     - All declared IP functionality active
   clock_gating:
     required: false
-    rationale: No explicit integrated clock-gating requirement in approved SSOT
+    rationale: No explicit integrated clock-gating requirement.
   upf_required: false
 security:
   classification: non_secure_leaf_ip
   assets:
-  - name: configuration_state
-    protection: CSR/configuration updates must be deterministic and reset-safe
-  - name: data_integrity
-    protection: Data/control outputs must match function_model transactions
+  - name: counter_state
+    protection: "Counter value is deterministic from command sequence \u2014 no secret state."
   threat_model:
-  - threat: invalid configuration or address
-    mitigation: error_handling declares detection, architectural effect, and recovery
-  - threat: silent data/control corruption
-    mitigation: test_requirements scoreboard checks every declared functional transaction
-  privilege_model: System-level access control is owned by the integrating bus/firewall unless explicitly declared here.
+  - threat: Invalid command injection via cmd[2:0]
+    mitigation: "Reserved encodings (5-7) are treated as HOLD \u2014 no state corruption possible."
+  privilege_model: "No privilege model \u2014 open command interface."
 error_handling:
-  description: "Invalid command encodings (5-7) are treated as HOLD \u2014 count remains unchanged and accepted_count still increments. No error output is provided.\n"
+  description: "Invalid command encodings (5-7) are treated as HOLD \u2014 count remains unchanged and accepted_count still increments. No error output signal is provided."
   invalid_cmd_action: treat_as_hold
   error_sources:
   - id: ERR_PROTOCOL
@@ -515,47 +893,95 @@ error_handling:
   propagation:
   - Errors update status/debug observability and propagate through declared response/interrupt mechanisms.
   recovery:
-  - action: reset or software clear
+  - action: reset
     clears:
-    - error/status indicators
-    preserves:
-    - configuration unless reset policy states otherwise
+    - count, accepted_count, last_cmd
+    preserves: []
 debug_observability:
   description: All internal state is observable through output ports (count, zero, max, accepted_count, status).
   waveform_must_probe:
   - clk
   - rst_n
-  - fsm_state
-  - start_or_request
-  - done_or_response
-  - error_status
-  - irq_or_status_outputs
+  - cmd_valid
+  - cmd_ready
+  - cmd
+  - load_value
+  - count
+  - zero
+  - max
+  - accepted_count
+  - status
   trace_events:
-  - name: operation_start
-    trigger: start/request accepted
-  - name: operation_complete
-    trigger: done/response accepted
-  - name: error_detected
-    trigger: any error_handling.error_sources condition
+  - name: command_accepted
+    trigger: cmd_valid && cmd_ready rising edge
+  - name: counter_updated
+    trigger: count register changes on clk edge
   status_outputs:
-  - status/debug signals declared in io_list or registers
+  - "count[7:0] \u2014 current counter value"
+  - "zero \u2014 count == 0"
+  - "max \u2014 count == 255"
+  - "accepted_count[31:0] \u2014 total accepted commands"
+  - "status[2:0] \u2014 last accepted command category"
 integration:
   bus_interfaces: []
   sideband_signals: []
   bus_attachment:
     interfaces:
-    - control_data
-    address_ownership: SoC assigns base addresses and external routing not owned by this leaf IP
+    - command_if
+    - status_out
+    address_ownership: "No bus \u2014 native port-level integration."
   dependencies:
     external_modules: []
     external_clocks:
     - clk
     external_resets:
     - rst_n
-  connections: []
-  connection_contract_status: missing machine-readable module wiring; child RTL drafts may proceed from owner packets, but top integration/signoff must stay blocked until SSOT authors integration.connections or sub_modules[].connections with module/port/signal records
+  connections:
+  - module: real_llm_counter_demo
+    port: clk
+    signal: system_clk
+    direction: input
+  - module: real_llm_counter_demo
+    port: rst_n
+    signal: system_rst_n
+    direction: input
+  - module: real_llm_counter_demo
+    port: cmd_valid
+    signal: producer_cmd_valid
+    direction: input
+  - module: real_llm_counter_demo
+    port: cmd
+    signal: producer_cmd
+    direction: input
+  - module: real_llm_counter_demo
+    port: load_value
+    signal: producer_load_value
+    direction: input
+  - module: real_llm_counter_demo
+    port: count
+    signal: counter_count
+    direction: output
+  - module: real_llm_counter_demo
+    port: zero
+    signal: counter_zero
+    direction: output
+  - module: real_llm_counter_demo
+    port: max
+    signal: counter_max
+    direction: output
+  - module: real_llm_counter_demo
+    port: accepted_count
+    signal: counter_accepted_count
+    direction: output
+  - module: real_llm_counter_demo
+    port: status
+    signal: counter_status
+    direction: output
+  connection_contract_status: "Complete \u2014 all ports mapped to integration signals."
   integration_notes:
-  - Integrator must connect every declared io_list port and honor timing/reset assumptions.
+  - Connect cmd_valid/cmd/cmd_ready/load_value to the command producer.
+  - Connect count/zero/max/accepted_count/status to downstream consumers.
+  - "cmd_ready is always 1 \u2014 no backpressure handling needed."
 dft:
   scan_style: none
   scan_required: false
@@ -563,13 +989,10 @@ dft:
     reset: rst_n
     clocks:
     - clk
-    primary_inputs: all io_list inputs controllable in testbench
+    primary_inputs: All io_list inputs controllable in testbench.
   observability:
-    required_internal_points:
-    - fsm_state
-    - status
-    - error_status
-    outputs: all io_list outputs observable
+    required_internal_points: []
+    outputs: All io_list outputs observable.
   mbist_required: false
 synthesis:
   target_library: generic
@@ -598,7 +1021,7 @@ synthesis:
     process: ss
     temperature_c: 100
     voltage_v: 1.4
-  library_policy: Use the SKY130_LIB environment variable to locate the SS corner Liberty file for the declared sky130_fd_sc_hd target library; synthesis and STA must stop if the file is unreadable or does not match the declared corner.
+  library_policy: Use SKY130_LIB env var for SS corner Liberty.
   ppa_targets:
     area_um2_max: null
     power_mw_max: null
@@ -629,20 +1052,20 @@ coding_rules:
   file_extension: .sv
   parameter_header: rtl/real_llm_counter_demo_param.vh
   conventions:
-  - Use .sv filenames with the project SystemVerilog subset
-  - Use input logic/output logic ANSI ports and internal single-driver logic
-  - Put shared parameter declarations in rtl/<ip>_param.vh when needed; include it inside consuming modules
-  - Do not create *_pkg.sv or use typedef/enum/always_ff/always_comb/package/import/interface/modport/function/task/for/while constructs
-  - No inferred latches; every combinational branch assigns all outputs
-  - No parameterized part-selects inside procedural blocks; use helper wires/continuous assigns
-  - No ad-hoc lint suppressions without SSOT waiver and DUT-only lint evidence
+  - Use .sv filenames with the project SystemVerilog subset.
+  - Use input logic / output logic ANSI ports and internal single-driver logic.
+  - Put shared parameter declarations in rtl/<ip>_param.vh when needed; include it inside consuming modules.
+  - 'BANNED: typedef / enum / always_ff / always_comb / always_latch / package / endpackage / import / interface / modport / function / endfunction / task / endtask / for / while / *_pkg.sv'
+  - No inferred latches; every combinational branch assigns all outputs.
+  - 'Active-low async reset pattern: always @(posedge clk or negedge rst_n).'
+  - Parameterize widths (no hardcoded numbers except default parameter values).
   lint_waivers: []
 reuse_modules: []
 custom:
   assumptions:
   - cmd encoding values 5-7 are treated as HOLD (no-op).
   - "cmd_ready is always 1'b1 \u2014 the sink never applies backpressure."
-  - No CDC, no multi-clock, no bus/CSR, no memory arrays.
+  - No CDC, no multi-clock, no bus/CSR, no memory arrays, no interrupts.
   - load_value is only sampled when cmd==LOAD and cmd_valid==1.
   - accepted_count wraps naturally at 2^32-1; no overflow flag.
   - Reset is asynchronous active-low; deassertion is synchronous to clk.
@@ -653,7 +1076,7 @@ custom:
   optional_behavior_policy:
     resolution: non_required_optional_items_disabled_unless_ssot_marks_required_or_parameterized
     owner: ssot-gen deterministic repair
-    rule: Rows marked required:false or prose-only optional verification aids do not add RTL behavior. Any optional functional behavior must be converted by ssot-gen into required behavior or an explicit parameter/register policy before rtl-gen signoff.
+    rule: Rows marked required:false or prose-only optional verification aids do not add RTL behavior.
 dir_structure:
   yaml_dir: yaml/
   output_dirs:
@@ -682,113 +1105,328 @@ filelist:
 test_requirements:
   scenarios:
   - id: SC01
-    name: reset contract
-    stimulus: Assert and release the declared reset while all external interfaces remain idle.
-    expected: Architectural state, status, outputs, and debug observability match function_model reset outputs.
-    checker: Reset checker compares all declared reset-visible state against function_model and cycle_model reset rules.
+    name: reset_contract
+    stimulus: Assert rst_n low, then release. Keep cmd_valid low during reset.
+    expected: count == 0, accepted_count == 0, status == 0, zero == 1, max == 0, cmd_ready == 1 after reset deasserts.
+    checker: Reset checker compares all outputs against function_model reset values.
     coverage:
     - function_model.reset
     - cycle_model.reset
+    stimulus_machine_spec:
+      timeline:
+      - cycle: 0
+        assign:
+          rst_n: 0
+      - cycle: 5
+        assign:
+          rst_n: 1
+      - cycle: 6
+        wait: 1
   - id: SC02
-    name: primary approved behavior
-    stimulus: Drive a legal request, transaction, command, packet, or CSR operation from function_model primary preconditions.
-    expected: Externally observable result/status/side effects match the function_model primary transaction.
-    checker: FL-vs-RTL scoreboard compares observable outputs and state updates from the locked function_model.
+    name: clear_command
+    stimulus: After reset, drive cmd_valid=1, cmd=000 (CLEAR) for one cycle.
+    expected: count == 0 on next cycle, zero == 1, max == 0, accepted_count == 1, status == 000.
+    checker: Scoreboard compares count/zero/max/accepted_count/status against FM_CLEAR transaction.
     coverage:
-    - function_model.primary
-    - features
-    - dataflow
+    - function_model.transactions.FM_CLEAR
+    stimulus_machine_spec:
+      timeline:
+      - cycle: 0
+        assign:
+          cmd_valid: 1
+          cmd: 0
+      - cycle: 1
+        assign:
+          cmd_valid: 0
   - id: SC03
-    name: cycle handshake and backpressure
-    stimulus: Apply legal stalls or delayed handshakes on every declared cycle_model interface phase.
-    expected: Payloads remain stable, ordering is preserved, and completion timing respects cycle_model latency/backpressure rules.
-    checker: Protocol monitor and scoreboard check cycle_model.handshake_rules, ordering, and latency budget.
+    name: load_command
+    stimulus: Drive cmd_valid=1, cmd=001 (LOAD), load_value=0x42 for one cycle.
+    expected: count == 0x42 on next cycle, zero == 0, max == 0, accepted_count increments, status == 001.
+    checker: Scoreboard compares against FM_LOAD transaction.
     coverage:
-    - cycle_model.handshake_rules
-    - cycle_model.ordering
-    - backpressure
+    - function_model.transactions.FM_LOAD
+    stimulus_machine_spec:
+      timeline:
+      - cycle: 0
+        assign:
+          cmd_valid: 1
+          cmd: 1
+          load_value: 66
+      - cycle: 1
+        assign:
+          cmd_valid: 0
   - id: SC04
-    name: error and recovery policy
-    stimulus: Inject each declared error_handling.error_sources condition where the interface can represent it.
-    expected: Error/status/response/recovery behavior follows error_handling without corrupting unrelated architectural state.
-    checker: Negative checker compares error result and recovery state against function_model error_cases.
+    name: increment_command
+    stimulus: After loading count=10, drive cmd_valid=1, cmd=010 (INC).
+    expected: count == 11, zero == 0, max == 0, accepted_count increments, status == 010.
+    checker: Scoreboard compares against FM_INC transaction.
     coverage:
-    - error_handling.error_sources
-    - function_model.error_cases
+    - function_model.transactions.FM_INC
+    stimulus_machine_spec:
+      timeline:
+      - cycle: 0
+        assign:
+          cmd_valid: 1
+          cmd: 1
+          load_value: 10
+      - cycle: 1
+        assign:
+          cmd_valid: 1
+          cmd: 2
+      - cycle: 2
+        assign:
+          cmd_valid: 0
   - id: SC05
-    name: debug and trace observability
-    stimulus: Run nominal and error flows while sampling every debug_observability waveform/status/trace point.
-    expected: Debug/status/trace events reflect committed SSOT-visible state without exposing unsupported behavior.
-    checker: Waveform/trace checker validates debug_observability entries and traceability.yaml_to_output rows.
+    name: increment_saturation
+    stimulus: Load count=255, then drive cmd_valid=1, cmd=010 (INC).
+    expected: count stays 255 (saturates), max == 1, zero == 0.
+    checker: 'Scoreboard verifies saturation: count_next == min(255+1, 255) == 255.'
     coverage:
-    - debug_observability
-    - traceability
+    - function_model.transactions.FM_INC
+    - features.F001
+    stimulus_machine_spec:
+      timeline:
+      - cycle: 0
+        assign:
+          cmd_valid: 1
+          cmd: 1
+          load_value: 255
+      - cycle: 1
+        assign:
+          cmd_valid: 1
+          cmd: 2
+      - cycle: 2
+        assign:
+          cmd_valid: 0
   - id: SC06
-    name: function_model transaction FM1
-    stimulus: Drive preconditions for function_model transaction `FM1`.
-    expected: Outputs and side effects match `FM1` exactly.
-    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    name: decrement_command
+    stimulus: After loading count=10, drive cmd_valid=1, cmd=011 (DEC).
+    expected: count == 9, zero == 0, max == 0, accepted_count increments, status == 011.
+    checker: Scoreboard compares against FM_DEC transaction.
     coverage:
-    - function_model.transactions.FM1
+    - function_model.transactions.FM_DEC
+    stimulus_machine_spec:
+      timeline:
+      - cycle: 0
+        assign:
+          cmd_valid: 1
+          cmd: 1
+          load_value: 10
+      - cycle: 1
+        assign:
+          cmd_valid: 1
+          cmd: 3
+      - cycle: 2
+        assign:
+          cmd_valid: 0
   - id: SC07
-    name: function_model transaction FM2
-    stimulus: Drive preconditions for function_model transaction `FM2`.
-    expected: Outputs and side effects match `FM2` exactly.
-    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    name: decrement_saturation
+    stimulus: With count=0, drive cmd_valid=1, cmd=011 (DEC).
+    expected: count stays 0 (saturates), zero == 1, max == 0.
+    checker: 'Scoreboard verifies saturation: count_next == max(0-1, 0) == 0.'
     coverage:
-    - function_model.transactions.FM2
+    - function_model.transactions.FM_DEC
+    - features.F002
+    stimulus_machine_spec:
+      timeline:
+      - cycle: 0
+        assign:
+          cmd_valid: 1
+          cmd: 0
+      - cycle: 1
+        assign:
+          cmd_valid: 1
+          cmd: 3
+      - cycle: 2
+        assign:
+          cmd_valid: 0
   - id: SC08
-    name: function_model transaction FM3
-    stimulus: Drive preconditions for function_model transaction `FM3`.
-    expected: Outputs and side effects match `FM3` exactly.
-    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    name: hold_command
+    stimulus: Load count=0x55, then drive cmd_valid=1, cmd=100 (HOLD).
+    expected: count unchanged at 0x55, accepted_count increments, status == 100.
+    checker: Scoreboard compares against FM_HOLD transaction.
     coverage:
-    - function_model.transactions.FM3
+    - function_model.transactions.FM_HOLD
+    stimulus_machine_spec:
+      timeline:
+      - cycle: 0
+        assign:
+          cmd_valid: 1
+          cmd: 1
+          load_value: 85
+      - cycle: 1
+        assign:
+          cmd_valid: 1
+          cmd: 4
+      - cycle: 2
+        assign:
+          cmd_valid: 0
   - id: SC09
-    name: function_model transaction FM4
-    stimulus: Drive preconditions for function_model transaction `FM4`.
-    expected: Outputs and side effects match `FM4` exactly.
-    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    name: invalid_command_as_hold
+    stimulus: Drive cmd_valid=1, cmd=101 (reserved/invalid).
+    expected: count unchanged, accepted_count increments, status == 101.
+    checker: Scoreboard compares against FM_INVALID transaction.
     coverage:
-    - function_model.transactions.FM4
-  scoreboard_checks: 9
+    - function_model.transactions.FM_INVALID
+    - error_handling.invalid_cmd_action
+    stimulus_machine_spec:
+      timeline:
+      - cycle: 0
+        assign:
+          cmd_valid: 1
+          cmd: 5
+      - cycle: 1
+        assign:
+          cmd_valid: 0
+  - id: SC10
+    name: accepted_count_wrap
+    stimulus: Drive 2^32 commands, verify accepted_count wraps to 0.
+    expected: accepted_count wraps from 0xFFFFFFFF to 0x00000000.
+    checker: Scoreboard tracks expected accepted_count with modular arithmetic.
+    coverage:
+    - features.F008
+    stimulus_machine_spec:
+      assign:
+        cmd_valid: 1
+        cmd: 4
+  - id: SC11
+    name: back_to_back_commands
+    stimulus: Drive cmd_valid=1 continuously with alternating INC/DEC commands.
+    expected: Count updates every cycle, accepted_count increments every cycle.
+    checker: Scoreboard verifies per-cycle count evolution.
+    coverage:
+    - cycle_model.throughput
+    stimulus_machine_spec:
+      timeline:
+      - cycle: 0
+        assign:
+          cmd_valid: 1
+          cmd: 2
+      - cycle: 1
+        assign:
+          cmd_valid: 1
+          cmd: 3
+      - cycle: 2
+        assign:
+          cmd_valid: 1
+          cmd: 2
+      - cycle: 3
+        assign:
+          cmd_valid: 0
+  - id: SC12
+    name: zero_max_flags_corner_cases
+    stimulus: LOAD 0, check zero=1,max=0. LOAD 255, check zero=0,max=1. LOAD 128, check zero=0,max=0.
+    expected: Flags correctly track count value at all corner cases.
+    checker: Flag checker verifies zero == (count==0) and max == (count==255).
+    coverage:
+    - features.F007
+    stimulus_machine_spec:
+      timeline:
+      - cycle: 0
+        assign:
+          cmd_valid: 1
+          cmd: 1
+          load_value: 0
+      - cycle: 1
+        assign:
+          cmd_valid: 1
+          cmd: 1
+          load_value: 255
+      - cycle: 2
+        assign:
+          cmd_valid: 1
+          cmd: 1
+          load_value: 128
+      - cycle: 3
+        assign:
+          cmd_valid: 0
+  scoreboard_checks: 12
   coverage_goals:
     function:
       target_pct: 100
       model: function_model
-      description: Behavioral coverage for function_model transactions, state updates, outputs, errors, and debug/status observability.
+      description: Behavioral coverage for all counter commands and saturation.
       bins:
-      - id: FCOV_PRIMARY_TRANSACTION
-        source_ref: function_model.transactions
+      - id: FCOV_CLEAR
+        source_ref: function_model.transactions.FM_CLEAR
         class: transaction
-        description: Primary function_model transaction observed with RTL scoreboard evidence
+        description: CLEAR command executed and count == 0 observed
+      - id: FCOV_LOAD
+        source_ref: function_model.transactions.FM_LOAD
+        class: transaction
+        description: LOAD command executed and count == load_value observed
+      - id: FCOV_INC
+        source_ref: function_model.transactions.FM_INC
+        class: transaction
+        description: INC command executed and count incremented observed
+      - id: FCOV_INC_SATURATE
+        source_ref: function_model.transactions.FM_INC
+        class: transaction
+        description: "INC at max (255) \u2014 saturation holds count at 255"
+      - id: FCOV_DEC
+        source_ref: function_model.transactions.FM_DEC
+        class: transaction
+        description: DEC command executed and count decremented observed
+      - id: FCOV_DEC_SATURATE
+        source_ref: function_model.transactions.FM_DEC
+        class: transaction
+        description: "DEC at min (0) \u2014 saturation holds count at 0"
+      - id: FCOV_HOLD
+        source_ref: function_model.transactions.FM_HOLD
+        class: transaction
+        description: HOLD command executed and count unchanged observed
+      - id: FCOV_INVALID
+        source_ref: function_model.transactions.FM_INVALID
+        class: transaction
+        description: Invalid command (5-7) treated as HOLD
+      - id: FCOV_ZERO_FLAG
+        source_ref: function_model.transactions
+        class: flag
+        description: zero flag asserted when count == 0
+      - id: FCOV_MAX_FLAG
+        source_ref: function_model.transactions
+        class: flag
+        description: max flag asserted when count == 255
     cycle:
       target_pct: 100
       model: cycle_model
-      description: Cycle coverage for cycle_model latency, pipeline stages, ordering, handshake rules, backpressure, and FSM transitions.
+      description: Cycle coverage for command acceptance, state update, and flag timing.
       bins:
-      - id: CCOV_PRIMARY_CYCLE_RULE
-        source_ref: cycle_model
-        class: cycle_rule
-        description: Primary cycle_model rule observed with RTL waveform/checker evidence
+      - id: CCOV_CMD_ACCEPT
+        source_ref: cycle_model.pipeline.S0_ACCEPT
+        class: pipeline_stage
+        description: Command accepted on cmd_valid/cmd_ready handshake
+      - id: CCOV_STATE_UPDATE
+        source_ref: cycle_model.pipeline.S1_UPDATE
+        class: pipeline_stage
+        description: State update observed on clock edge after acceptance
+      - id: CCOV_FLAG_COMBINATIONAL
+        source_ref: cycle_model.pipeline.S2_FLAGS
+        class: pipeline_stage
+        description: zero/max flags update combinationally with count
+      - id: CCOV_BACK_TO_BACK
+        source_ref: cycle_model.performance.throughput
+        class: throughput
+        description: Back-to-back commands at full throughput
     functional: 'Legacy alias: coverage_goals.function and coverage_goals.cycle must both close.'
-    evidence: Tool-instrumented structural metrics are optional unless an explicit SSOT metric goal with matching tool evidence is added.
+    code: line >= 90%, branch >= 85%, toggle >= 80%
     scenario: All SSOT scenarios pass with executable cocotb/pyuvm checkers and FL-vs-RTL scoreboard evidence
 quality_gates:
   ssot:
-    pass: check_ssot_disk.sh exits 0 and ATLAS SSOT progress is fully approved
+    pass: check_ssot_disk.sh exits 0 and verify_ssot.py --mode engineering returns zero blockers.
     evidence:
     - check_ssot_disk.sh PASS
-    - ATLAS /api/progress ssot all sections approved
+    - verify_ssot.py PASS
   rtl:
-    pass: All expected RTL files exist, are production-ready, compile, and lint within warning budget
+    pass: RTL implements function_model and cycle_model, compiles, lints, and matches locked FL/CL authority.
     evidence:
-    - list/<ip>.f
+    - list/real_llm_counter_demo.f
     - compile log
     - lint log
+    - FL-vs-RTL scoreboard/audit
   rtl_gen:
     profile: standard
-    pass: rtl-gen execution_policy.pass_allowed is true, every required SSOT-derived RTL TODO is closed, and provenance proves common_ai_agent rtl-gen authored the RTL without fixed-template fallback behavior
+    pass: rtl-gen execution_policy.pass_allowed is true, every required SSOT-derived RTL TODO is closed.
     evidence:
     - rtl/rtl_authoring_plan.json
     - logs/rtl-gen/rtl_todo_plan.json
@@ -796,480 +1434,103 @@ quality_gates:
     - rtl_compile.json
     - lint/dut_lint.json
   dv:
-    pass: Every SSOT test_requirements scenario has an executable checker and FL-vs-RTL equivalence goal
+    pass: Every SSOT test_requirements scenario has an executable checker and FL-vs-RTL equivalence goal.
     evidence:
     - verify/equivalence_goals.json
     - sim/scoreboard_events.jsonl
     - tb/cocotb tests
-    - scenario implementation map
   coverage:
-    pass: Functional coverage passes and any explicitly requested structural metrics have matching evidence or approved waivers
+    pass: Functional and cycle coverage goals pass.
     evidence:
     - coverage report
     - coverage waiver list if any
   eda:
-    pass: Synthesis/STA/DFT expectations have reports or approved waivers
+    pass: Synthesis/STA expectations have reports or approved waivers.
     evidence:
-    - syn/sta/dft reports
+    - syn/sta reports
   signoff:
-    pass: SSOT, FL/equivalence, RTL, lint, DV, sim, coverage, and EDA gates pass with fresh artifacts
+    pass: SSOT, FL/equivalence, RTL, lint, DV, sim, coverage, and EDA gates pass.
     evidence:
     - ATLAS progress signoff PASS
 traceability:
   yaml_to_output:
+  - yaml: top_module.name
+    output: ALL files (module name)
+  - yaml: parameters
+    output: rtl/real_llm_counter_demo_param.vh
+  - yaml: io_list.interfaces
+    output: rtl/real_llm_counter_demo.sv (port list)
   - yaml: function_model
-    output: RTL behavior and TB reference model
+    output: rtl/real_llm_counter_demo.sv + tb/cocotb scoreboard/reference model
   - yaml: cycle_model
-    output: RTL handshake/pipeline timing and waveform checks
-  - yaml: function_model/cycle_model/test_requirements
-    output: verify/equivalence_goals.json and FL-vs-RTL scoreboard contracts
+    output: rtl/real_llm_counter_demo.sv timing logic + waveform checks
   - yaml: timing
     output: STA constraints and latency pass/fail criteria
-  - yaml: security
-    output: Threat mitigations and negative tests
   - yaml: error_handling
-    output: Fault RTL paths and DV error scenarios
-  - yaml: debug_observability
-    output: VCD probes and sim_debug inspection
+    output: RTL invalid-cmd handling and DV invalid-cmd scenarios
+  - yaml: test_requirements.scenarios
+    output: tb/cocotb/test_real_llm_counter_demo.py
   - yaml: quality_gates
     output: ATLAS progress/signoff criteria
+  - yaml: function_model/cycle_model/test_requirements
+    output: verify/equivalence_goals.json and FL-vs-RTL scoreboard contracts
+  - yaml: security
+    output: Threat mitigations and negative tests
+  - yaml: debug_observability
+    output: VCD probes and sim_debug inspection
 workflow_todos:
+  ssot-gen:
+  - id: SSOT_WRITE_VALIDATE_FROM_EVIDENCE
+    content: Write and validate the canonical SSOT YAML from approved evidence
+    detail: Repair SSOT with explicit counter ports, transactions, and behavior. Remove all generic repair markers.
+    command: /to-ssot real_llm_counter_demo
+    script: $ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py
+    run_command: python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/repair_ssot_schema.py" real_llm_counter_demo --root "$ATLAS_PROJECT_ROOT" --mode engineering && python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py" real_llm_counter_demo --root "$ATLAS_PROJECT_ROOT" --mode engineering
+    instructions:
+    - Verify all interface ports match the native command interface spec.
+    - Verify all transactions have machine-readable output_rules and state_updates.
+    - Run repair_ssot_schema.py and verify_ssot.py after the YAML edit.
+    criteria:
+    - 'SSOT YAML exists with correct ports: cmd_valid, cmd_ready, cmd[2:0], load_value[7:0], count[7:0], zero, max, accepted_count[31:0], status[2:0].'
+    - Transactions FM_CLEAR, FM_LOAD, FM_INC, FM_DEC, FM_HOLD, FM_INVALID all have output_rules and state_updates.
+    - verify_ssot.py --mode engineering returns zero blockers.
+    source_refs:
+    - req/
+    - yaml/real_llm_counter_demo.ssot.yaml
+    priority: high
+    required: true
   rtl-gen:
-  - id: RTL_IMPLEMENT_SSOT_CONTRACT
-    content: Implement the complete SSOT RTL contract without fixed-template fallback behavior
-    detail: Use the current SSOT as the only source for ports, parameters, function_model, cycle_model, registers, dataflow, error/security/debug behavior, decomposition ownership, and quality gates.
+  - id: RTL_IMPLEMENT_COUNTER
+    content: Implement the 8-bit saturating counter from SSOT
+    detail: Translate function_model transactions (CLEAR, LOAD, INC, DEC, HOLD, INVALID) into RTL with saturating arithmetic, accepted_count wrap counter, and combinational zero/max flags.
+    command: /ssot-rtl real_llm_counter_demo
+    script: $ATLAS_WORKFLOW_ROOT/rtl-gen/scripts/derive_rtl_todos.py
+    run_command: python3 "$ATLAS_WORKFLOW_ROOT/rtl-gen/scripts/derive_rtl_todos.py" real_llm_counter_demo --root "$ATLAS_PROJECT_ROOT" --audit-rtl
+    instructions:
+    - Implement only behavior traced to function_model transactions.
+    - Use active-low async reset pattern.
+    - cmd_ready is hardwired to 1.
+    - count_next = 0 for CLEAR, load_value for LOAD, min(count+1,255) for INC, max(count-1,0) for DEC, count for HOLD/INVALID.
     criteria:
-    - Generated RTL drives only SSOT-approved externally visible behavior
-    - No placeholder heartbeat, tie-off, alive-only, or comment-only implementation is used as evidence
-    - derive_rtl_todos.py --audit-rtl reports every required TODO as pass
+    - RTL ports match io_list exactly.
+    - Count saturates at 0 and 255.
+    - accepted_count wraps at 2^32.
+    - zero == (count == 0), max == (count == 255) combinationally.
     source_refs:
-    - top_module
-    - function_model
+    - function_model.transactions
+    - io_list.interfaces
     - cycle_model
-    - quality_gates.rtl
-    - quality_gates.rtl_gen
-    owner_module: real_llm_counter_demo
-    owner_file: rtl/real_llm_counter_demo.sv
-    priority: high
-    required: true
-  - id: RTL_MODULE_REAL_LLM_COUNTER_DEMO_BEHAVIOR_CONTRACT
-    content: Implement or account for SSOT module slice `real_llm_counter_demo_behavior_contract`
-    detail: Conceptual owner for SSOT function-model behavior implemented by the generated RTL.
-    criteria:
-    - Owned SSOT refs are implemented in the owner RTL file or explicitly mapped to the top integration module
-    - Module slice has traceability evidence in rtl_todo_plan.json
-    - No function/cycle/register/dataflow/FSM task owned by this slice remains orphaned
-    source_refs:
-    - function_model
-    - cycle_model
-    - features
-    - test_requirements
-    - dataflow
-    - fsm
-    - decomposition
-    - function_model.transactions.FM1
-    - function_model.transactions.FM2
-    - function_model.transactions.FM3
-    - function_model.transactions.FM4
-    - function_model.state_variables
-    - cycle_model
-    - features
-    - dataflow
-    - fsm
-    owner_module: real_llm_counter_demo
-    owner_file: rtl/real_llm_counter_demo.sv
-    priority: high
-    required: true
-  - id: RTL_MODULE_REAL_LLM_COUNTER_DEMO
-    content: Implement or account for SSOT module slice `real_llm_counter_demo`
-    detail: Top-level integration module matching SSOT top_module
-    criteria:
-    - Owned SSOT refs are implemented in the owner RTL file or explicitly mapped to the top integration module
-    - Module slice has traceability evidence in rtl_todo_plan.json
-    - No function/cycle/register/dataflow/FSM task owned by this slice remains orphaned
-    source_refs:
-    - top_module
-    - io_list
-    - decomposition
-    - integration
-    - dataflow
-    owner_module: real_llm_counter_demo
-    owner_file: rtl/real_llm_counter_demo.sv
-    priority: high
-    required: true
-  - id: RTL_FM_TX_FM1
-    content: Implement FunctionalModel transaction `FM1` in RTL
-    detail: 'Preconditions: Feature trigger is asserted under legal configuration. Outputs: Architectural output matches feature definition; name=error; description=Auto-injected placeholder rule for observable state ''error'' (repair_ssot_schema rule_expr_comple.... Side effects: Architectural state updates according to FSM/control policy. Error cases: condition=Downstream protocol response is non-OKAY or invalid.'
-    criteria:
-    - RTL samples the transaction only under the approved preconditions
-    - All listed outputs are driven with machine-checkable behavior or SSOT-approved status/error mapping
-    - All side effects and error cases have observable state, status, or handoff evidence
-    source_refs:
-    - function_model.transactions[0]
-    - function_model.transactions.FM1
-    owner_module: real_llm_counter_demo
-    owner_file: rtl/real_llm_counter_demo.sv
-    priority: high
-    required: true
-  - id: RTL_OUTPUT_RULE_ERROR
-    content: Drive output rule `error` from FunctionalModel expression
-    detail: 'Expression: 0'
-    criteria:
-    - RTL output `error` follows the SSOT expression
-    - Expression inputs are mapped through rtl_contract.input_map or declared ports
-    - FL-vs-RTL scoreboard can compare this observable without changing SSOT
-    source_refs:
-    - function_model.transactions[0].output_rules[0]
-    owner_module: real_llm_counter_demo
-    owner_file: rtl/real_llm_counter_demo.sv
-    priority: high
-    required: true
-  - id: RTL_FM_TX_FM2
-    content: Implement FunctionalModel transaction `FM2` in RTL
-    detail: 'Preconditions: Feature trigger is asserted under legal configuration. Outputs: Architectural output matches feature definition; description=Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectu.... Side effects: Architectural state updates according to FSM/control policy. Error cases: condition=Downstream protocol response is non-OKAY or invalid.'
-    criteria:
-    - RTL samples the transaction only under the approved preconditions
-    - All listed outputs are driven with machine-checkable behavior or SSOT-approved status/error mapping
-    - All side effects and error cases have observable state, status, or handoff evidence
-    source_refs:
-    - function_model.transactions[1]
-    - function_model.transactions.FM2
-    owner_module: real_llm_counter_demo
-    owner_file: rtl/real_llm_counter_demo.sv
-    priority: high
-    required: true
-  - id: RTL_STATE_UPDATE_FM2_OBSERVED
-    content: Implement state update `fm2_observed` from FunctionalModel expression
-    detail: 'Expression: 1'
-    criteria:
-    - RTL updates the state only on the approved sample condition
-    - Reset value and width match function_model.state_variables
-    - Debug/status visibility remains consistent with SSOT traceability
-    source_refs:
-    - function_model.transactions[1].state_updates[0]
-    owner_module: real_llm_counter_demo
-    owner_file: rtl/real_llm_counter_demo.sv
-    priority: high
-    required: true
-  - id: RTL_FM_TX_FM3
-    content: Implement FunctionalModel transaction `FM3` in RTL
-    detail: 'Preconditions: Feature trigger is asserted under legal configuration. Outputs: Architectural output matches feature definition; description=Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectu.... Side effects: Architectural state updates according to FSM/control policy. Error cases: condition=Downstream protocol response is non-OKAY or invalid.'
-    criteria:
-    - RTL samples the transaction only under the approved preconditions
-    - All listed outputs are driven with machine-checkable behavior or SSOT-approved status/error mapping
-    - All side effects and error cases have observable state, status, or handoff evidence
-    source_refs:
-    - function_model.transactions[2]
-    - function_model.transactions.FM3
-    owner_module: real_llm_counter_demo
-    owner_file: rtl/real_llm_counter_demo.sv
-    priority: high
-    required: true
-  - id: RTL_STATE_UPDATE_FM3_OBSERVED
-    content: Implement state update `fm3_observed` from FunctionalModel expression
-    detail: 'Expression: 1'
-    criteria:
-    - RTL updates the state only on the approved sample condition
-    - Reset value and width match function_model.state_variables
-    - Debug/status visibility remains consistent with SSOT traceability
-    source_refs:
-    - function_model.transactions[2].state_updates[0]
-    owner_module: real_llm_counter_demo
-    owner_file: rtl/real_llm_counter_demo.sv
-    priority: high
-    required: true
-  - id: RTL_FM_TX_FM4
-    content: Implement FunctionalModel transaction `FM4` in RTL
-    detail: 'Preconditions: Feature trigger is asserted under legal configuration. Outputs: Architectural output matches feature definition; description=Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectu.... Side effects: Architectural state updates according to FSM/control policy. Error cases: condition=Downstream protocol response is non-OKAY or invalid.'
-    criteria:
-    - RTL samples the transaction only under the approved preconditions
-    - All listed outputs are driven with machine-checkable behavior or SSOT-approved status/error mapping
-    - All side effects and error cases have observable state, status, or handoff evidence
-    source_refs:
-    - function_model.transactions[3]
-    - function_model.transactions.FM4
-    owner_module: real_llm_counter_demo
-    owner_file: rtl/real_llm_counter_demo.sv
-    priority: high
-    required: true
-  - id: RTL_STATE_UPDATE_FM4_OBSERVED
-    content: Implement state update `fm4_observed` from FunctionalModel expression
-    detail: 'Expression: 1'
-    criteria:
-    - RTL updates the state only on the approved sample condition
-    - Reset value and width match function_model.state_variables
-    - Debug/status visibility remains consistent with SSOT traceability
-    source_refs:
-    - function_model.transactions[3].state_updates[0]
-    owner_module: real_llm_counter_demo
-    owner_file: rtl/real_llm_counter_demo.sv
-    priority: high
-    required: true
-  - id: RTL_CYCLE_handshake_rules_ITEM_0
-    content: Implement cycle_model handshake rule 0
-    detail: rule=req_valid payload remains stable until req_ready is sampled asserted on control_data.
-    criteria:
-    - RTL timing/handshake behavior follows this cycle_model entry
-    - Signals remain stable or advance only under the approved protocol phase
-    - The behavior is visible to waveform/sim-debug or scoreboard checks
-    source_refs:
-    - cycle_model.handshake_rules[0]
-    owner_module: real_llm_counter_demo
-    owner_file: rtl/real_llm_counter_demo.sv
-    priority: high
-    required: true
-  - id: RTL_CYCLE_handshake_rules_1
-    content: Implement cycle_model handshake rule 1
-    detail: rule=rsp_valid payload remains stable until rsp_ready is sampled asserted on control_data.
-    criteria:
-    - RTL timing/handshake behavior follows this cycle_model entry
-    - Signals remain stable or advance only under the approved protocol phase
-    - The behavior is visible to waveform/sim-debug or scoreboard checks
-    source_refs:
-    - cycle_model.handshake_rules[1]
-    owner_module: real_llm_counter_demo
-    owner_file: rtl/real_llm_counter_demo.sv
-    priority: high
-    required: true
-  - id: RTL_CYCLE_pipeline_ITEM_0
-    content: Implement cycle_model pipeline stage 0
-    detail: action=Accept legal request/command/packet/control work under declared handshake rules.
-    criteria:
-    - RTL timing/handshake behavior follows this cycle_model entry
-    - Signals remain stable or advance only under the approved protocol phase
-    - The behavior is visible to waveform/sim-debug or scoreboard checks
-    source_refs:
-    - cycle_model.pipeline[0]
-    owner_module: real_llm_counter_demo
-    owner_file: rtl/real_llm_counter_demo.sv
-    priority: high
-    required: true
-  - id: RTL_CYCLE_pipeline_1
-    content: Implement cycle_model pipeline stage 1
-    detail: action=Evaluate function_model transaction and update only declared state.
-    criteria:
-    - RTL timing/handshake behavior follows this cycle_model entry
-    - Signals remain stable or advance only under the approved protocol phase
-    - The behavior is visible to waveform/sim-debug or scoreboard checks
-    source_refs:
-    - cycle_model.pipeline[1]
-    owner_module: real_llm_counter_demo
-    owner_file: rtl/real_llm_counter_demo.sv
-    priority: high
-    required: true
-  - id: RTL_CYCLE_pipeline_2
-    content: Implement cycle_model pipeline stage 2
-    detail: action=Publish response/status/output/debug event and hold it stable until accepted.
-    criteria:
-    - RTL timing/handshake behavior follows this cycle_model entry
-    - Signals remain stable or advance only under the approved protocol phase
-    - The behavior is visible to waveform/sim-debug or scoreboard checks
-    source_refs:
-    - cycle_model.pipeline[2]
-    owner_module: real_llm_counter_demo
-    owner_file: rtl/real_llm_counter_demo.sv
-    priority: high
-    required: true
-  - id: RTL_CYCLE_ordering_ITEM_0
-    content: Implement cycle_model ordering rule 0
-    detail: Accepted requests update architectural state only on clock edges.
-    criteria:
-    - RTL timing/handshake behavior follows this cycle_model entry
-    - Signals remain stable or advance only under the approved protocol phase
-    - The behavior is visible to waveform/sim-debug or scoreboard checks
-    source_refs:
-    - cycle_model.ordering[0]
-    owner_module: real_llm_counter_demo
-    owner_file: rtl/real_llm_counter_demo.sv
-    priority: high
-    required: true
-  - id: RTL_CYCLE_ordering_1
-    content: Implement cycle_model ordering rule 1
-    detail: Completion/status/interrupt updates occur after the operation reaches its terminal FSM state.
-    criteria:
-    - RTL timing/handshake behavior follows this cycle_model entry
-    - Signals remain stable or advance only under the approved protocol phase
-    - The behavior is visible to waveform/sim-debug or scoreboard checks
-    source_refs:
-    - cycle_model.ordering[1]
-    owner_module: real_llm_counter_demo
-    owner_file: rtl/real_llm_counter_demo.sv
-    priority: high
-    required: true
-  - id: RTL_CYCLE_ordering_2
-    content: Implement cycle_model ordering rule 2
-    detail: Backpressure stalls the active handshake stage without corrupting stored state.
-    criteria:
-    - RTL timing/handshake behavior follows this cycle_model entry
-    - Signals remain stable or advance only under the approved protocol phase
-    - The behavior is visible to waveform/sim-debug or scoreboard checks
-    source_refs:
-    - cycle_model.ordering[2]
-    owner_module: real_llm_counter_demo
-    owner_file: rtl/real_llm_counter_demo.sv
-    priority: high
-    required: true
-  - id: RTL_CYCLE_ordering_3
-    content: Implement cycle_model ordering rule 3
-    detail: Read/dataflow stages must precede dependent write/output stages where declared in dataflow.
-    criteria:
-    - RTL timing/handshake behavior follows this cycle_model entry
-    - Signals remain stable or advance only under the approved protocol phase
-    - The behavior is visible to waveform/sim-debug or scoreboard checks
-    source_refs:
-    - cycle_model.ordering[3]
-    owner_module: real_llm_counter_demo
-    owner_file: rtl/real_llm_counter_demo.sv
-    priority: high
-    required: true
-  - id: RTL_CYCLE_backpressure_ITEM_0
-    content: Implement cycle_model backpressure rule 0
-    detail: Ready/valid deassertion stalls only the affected interface stage; payload and route/control state remain stable.
-    criteria:
-    - RTL timing/handshake behavior follows this cycle_model entry
-    - Signals remain stable or advance only under the approved protocol phase
-    - The behavior is visible to waveform/sim-debug or scoreboard checks
-    source_refs:
-    - cycle_model.backpressure[0]
-    owner_module: real_llm_counter_demo
-    owner_file: rtl/real_llm_counter_demo.sv
-    priority: high
-    required: true
-  - id: RTL_SCENARIO_SUPPORT_SC01
-    content: Expose RTL behavior needed by SSOT scenario `SC01`
-    detail: 'Stimulus: Assert and release the declared reset while all external interfaces remain idle.. Expected: Architectural state, status, outputs, and debug observability match function_model reset outputs..'
-    criteria:
-    - RTL has observable behavior for the scenario checker without weakening expected results
-    - Scenario coverage can be closed by tb-gen using function_model/cycle_model
-    - If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass
-    source_refs:
-    - test_requirements.scenarios[0]
-    owner_module: real_llm_counter_demo
-    owner_file: rtl/real_llm_counter_demo.sv
-    priority: normal
-    required: true
-  - id: RTL_SCENARIO_SUPPORT_SC02
-    content: Expose RTL behavior needed by SSOT scenario `SC02`
-    detail: 'Stimulus: Drive a legal request, transaction, command, packet, or CSR operation from function_model primary preconditions.. Expected: Externally observable result/status/side effects match the function_model primary transaction..'
-    criteria:
-    - RTL has observable behavior for the scenario checker without weakening expected results
-    - Scenario coverage can be closed by tb-gen using function_model/cycle_model
-    - If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass
-    source_refs:
-    - test_requirements.scenarios[1]
-    owner_module: real_llm_counter_demo
-    owner_file: rtl/real_llm_counter_demo.sv
-    priority: normal
-    required: true
-  - id: RTL_SCENARIO_SUPPORT_SC03
-    content: Expose RTL behavior needed by SSOT scenario `SC03`
-    detail: 'Stimulus: Apply legal stalls or delayed handshakes on every declared cycle_model interface phase.. Expected: Payloads remain stable, ordering is preserved, and completion timing respects cycle_model latency/backpressure rules..'
-    criteria:
-    - RTL has observable behavior for the scenario checker without weakening expected results
-    - Scenario coverage can be closed by tb-gen using function_model/cycle_model
-    - If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass
-    source_refs:
-    - test_requirements.scenarios[2]
-    owner_module: real_llm_counter_demo
-    owner_file: rtl/real_llm_counter_demo.sv
-    priority: normal
-    required: true
-  - id: RTL_SCENARIO_SUPPORT_SC04
-    content: Expose RTL behavior needed by SSOT scenario `SC04`
-    detail: 'Stimulus: Inject each declared error_handling.error_sources condition where the interface can represent it.. Expected: Error/status/response/recovery behavior follows error_handling without corrupting unrelated architectural state..'
-    criteria:
-    - RTL has observable behavior for the scenario checker without weakening expected results
-    - Scenario coverage can be closed by tb-gen using function_model/cycle_model
-    - If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass
-    source_refs:
-    - test_requirements.scenarios[3]
-    owner_module: real_llm_counter_demo
-    owner_file: rtl/real_llm_counter_demo.sv
-    priority: normal
-    required: true
-  - id: RTL_SCENARIO_SUPPORT_SC05
-    content: Expose RTL behavior needed by SSOT scenario `SC05`
-    detail: 'Stimulus: Run nominal and error flows while sampling every debug_observability waveform/status/trace point.. Expected: Debug/status/trace events reflect committed SSOT-visible state without exposing unsupported behavior..'
-    criteria:
-    - RTL has observable behavior for the scenario checker without weakening expected results
-    - Scenario coverage can be closed by tb-gen using function_model/cycle_model
-    - If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass
-    source_refs:
-    - test_requirements.scenarios[4]
-    owner_module: real_llm_counter_demo
-    owner_file: rtl/real_llm_counter_demo.sv
-    priority: normal
-    required: true
-  - id: RTL_SCENARIO_SUPPORT_SC06
-    content: Expose RTL behavior needed by SSOT scenario `SC06`
-    detail: 'Stimulus: Drive preconditions for function_model transaction `FM1`.. Expected: Outputs and side effects match `FM1` exactly..'
-    criteria:
-    - RTL has observable behavior for the scenario checker without weakening expected results
-    - Scenario coverage can be closed by tb-gen using function_model/cycle_model
-    - If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass
-    source_refs:
-    - test_requirements.scenarios[5]
-    owner_module: real_llm_counter_demo
-    owner_file: rtl/real_llm_counter_demo.sv
-    priority: normal
-    required: true
-  - id: RTL_SCENARIO_SUPPORT_SC07
-    content: Expose RTL behavior needed by SSOT scenario `SC07`
-    detail: 'Stimulus: Drive preconditions for function_model transaction `FM2`.. Expected: Outputs and side effects match `FM2` exactly..'
-    criteria:
-    - RTL has observable behavior for the scenario checker without weakening expected results
-    - Scenario coverage can be closed by tb-gen using function_model/cycle_model
-    - If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass
-    source_refs:
-    - test_requirements.scenarios[6]
-    owner_module: real_llm_counter_demo
-    owner_file: rtl/real_llm_counter_demo.sv
-    priority: normal
-    required: true
-  - id: RTL_SCENARIO_SUPPORT_SC08
-    content: Expose RTL behavior needed by SSOT scenario `SC08`
-    detail: 'Stimulus: Drive preconditions for function_model transaction `FM3`.. Expected: Outputs and side effects match `FM3` exactly..'
-    criteria:
-    - RTL has observable behavior for the scenario checker without weakening expected results
-    - Scenario coverage can be closed by tb-gen using function_model/cycle_model
-    - If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass
-    source_refs:
-    - test_requirements.scenarios[7]
-    owner_module: real_llm_counter_demo
-    owner_file: rtl/real_llm_counter_demo.sv
-    priority: normal
-    required: true
-  - id: RTL_SCENARIO_SUPPORT_SC09
-    content: Expose RTL behavior needed by SSOT scenario `SC09`
-    detail: 'Stimulus: Drive preconditions for function_model transaction `FM4`.. Expected: Outputs and side effects match `FM4` exactly..'
-    criteria:
-    - RTL has observable behavior for the scenario checker without weakening expected results
-    - Scenario coverage can be closed by tb-gen using function_model/cycle_model
-    - If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass
-    source_refs:
-    - test_requirements.scenarios[8]
-    owner_module: real_llm_counter_demo
-    owner_file: rtl/real_llm_counter_demo.sv
-    priority: normal
-    required: true
-  - id: RTL_CLOSE_GATE_TODOS
-    content: Close all rtl_gate.rtl_gen quality-gate TODOs with fresh evidence
-    detail: Run dynamic TODO audit, DUT compile, DUT-only lint, and static traceability checks after the final RTL edit. The gate TODOs are pass/fail work items, not summary prose.
-    criteria:
-    - SSOT authority, workflow TODO format, owner traceability, static RTL evidence, compile, lint, and closure gate TODOs pass
-    - rtl_compile.json and lint/dut_lint.json are fresh and clean
-    - open_required_todos is zero
-    source_refs:
-    - quality_gates.rtl
-    - quality_gates.rtl_gen
-    - workflow_todos.rtl-gen
-    - generation_flow
     owner_module: real_llm_counter_demo
     owner_file: rtl/real_llm_counter_demo.sv
     priority: high
     required: true
   tb-gen: []
   sim_debug: []
+  coverage: []
+  syn: []
+  pnr: []
+  sta: []
+  sta-post: []
 generation_flow:
   steps:
   - name: verify_ssot
@@ -1290,5 +1551,3 @@ generation_flow:
   - name: handoff_sim_debug
     command: /wf sim_debug
     description: Run simulation, waveform, and coverage inspection
-ssot_version: '1.0'
-ip: real_llm_counter_demo

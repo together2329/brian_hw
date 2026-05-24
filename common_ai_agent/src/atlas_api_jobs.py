@@ -3630,10 +3630,15 @@ def register_jobs_routes(
         user = request.scope.get("user") or {}
         return str(user.get("id") or "").strip()
 
+    def _request_is_admin(request: Request) -> bool:
+        user = request.scope.get("user") or {}
+        return str(user.get("role") or "").strip().lower() == "admin"
+
     def _job_visible_to_request(
         job: dict[str, Any],
         request_user: str,
         request_db_user: str,
+        request_is_admin: bool = False,
     ) -> bool:
         """Return True if *job* belongs to the authenticated user.
 
@@ -3644,6 +3649,8 @@ def register_jobs_routes(
         that orphaned entries don't leak across accounts.
         """
         if not _multi_user_enabled():
+            return True
+        if request_is_admin:
             return True
         if not request_user and not request_db_user:
             return False
@@ -3672,19 +3679,22 @@ def register_jobs_routes(
     def _pipeline_session_prefix(request: Request, ip: str, pipeline_id: str) -> str:
         return _pipeline_session_prefix_for_owner(_request_username(request), ip, pipeline_id)
 
-    def _assert_ip_access(db_user_id: str, ip: str) -> bool:
+    def _assert_ip_access(db_user_id: str, ip: str, request_is_admin: bool = False) -> bool:
         """Return True if db_user_id may access ip.
 
         An IP is owned by the user whose workspace holds the earliest
         workflow_run for that IP name. If no workflow_run exists yet the IP
         is unclaimed and any authenticated user may claim it. If workflow_runs
         exist, the requesting user must be the owner of the workspace that
-        holds those runs, or have an explicit ip_permissions grant.
+        holds those runs, have an explicit ip_permissions grant, or be an
+        authenticated admin user.
 
         Only enforced when multi-user mode is on and the request carries a real
         user identity (not empty / local-admin).
         """
         if not _multi_user_enabled():
+            return True
+        if request_is_admin:
             return True
         if not db_user_id or db_user_id == "local-admin":
             return True

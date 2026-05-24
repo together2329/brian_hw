@@ -1239,6 +1239,15 @@ LLM_CONN_MAX_IDLE_SEC = int(os.getenv("LLM_CONN_MAX_IDLE_SEC", "45"))
 # raised back to the full budget for the streaming body read once headers land.
 LLM_HEADERS_TIMEOUT = int(os.getenv("LLM_HEADERS_TIMEOUT", "120"))
 
+# Agent-side backstop: max wall-clock for a single LLM call (the worker runs
+# call_llm_raw in a thread and polls the future). If the call never returns for
+# ANY reason the lower-layer timeouts miss — a wedged stream, a half-open socket,
+# a stuck lock — the agent would otherwise wait forever (observed: a worker idle
+# for 50+ min, no progress). This caps the wait; on expiry the agent cancels the
+# active stream and surfaces an error so the orchestrator can retry instead of
+# hanging. Must exceed a legitimate slow call (incl. internal retries). 0 disables.
+LLM_CALL_WATCHDOG_SEC = int(os.getenv("LLM_CALL_WATCHDOG_SEC", "2400"))
+
 # Maximum output tokens per LLM response (0 = no limit)
 # MAX_OUTPUT_TOKENS: per-LLM-call output budget. Tool-call args (e.g.
 # todo_write([...10 detailed tasks])) eat from this budget too, so a

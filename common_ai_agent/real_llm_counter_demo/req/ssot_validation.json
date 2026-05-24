@@ -5,26 +5,11 @@
   "ssot": "real_llm_counter_demo/yaml/real_llm_counter_demo.ssot.yaml",
   "ok": true,
   "blockers": [],
-  "warnings": [
-    {
-      "severity": "warning",
-      "id": "ssot.extra_top_level_section",
-      "path": "ssot_version",
-      "message": "Extra top-level section 'ssot_version' is not part of the canonical schema.",
-      "fix": "Move project-specific data under custom unless a downstream gate explicitly owns this section."
-    },
-    {
-      "severity": "warning",
-      "id": "ssot.extra_top_level_section",
-      "path": "ip",
-      "message": "Extra top-level section 'ip' is not part of the canonical schema.",
-      "fix": "Move project-specific data under custom unless a downstream gate explicitly owns this section."
-    }
-  ],
+  "warnings": [],
   "check_ssot_disk": {
     "ok": true,
     "returncode": 0,
-    "stdout": "[check_ssot_disk] PASS: real_llm_counter_demo/yaml/real_llm_counter_demo.ssot.yaml = 55085B, 34 sections, 0 TBDs, mode=engineering\n",
+    "stdout": "[check_ssot_disk] PASS: real_llm_counter_demo/yaml/real_llm_counter_demo.ssot.yaml = 50960B, 34 sections, 0 TBDs, mode=engineering\n",
     "stderr": ""
   },
   "preview_contract": "strict"
