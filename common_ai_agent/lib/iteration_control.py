@@ -175,6 +175,10 @@ def detect_completion_signal(content: str) -> bool:
         r'===\s*TASK\s+COMPLETED\s*===',
         r'===\s*COMPLETED\s*===',
         r'===\s*DONE\s*===',
+        # Worker/coordinator prompts require this exact terminal marker.
+        # Treat only a line-start marker as completion so incidental prose
+        # such as "include Final Answer later" does not stop the loop.
+        r'(?im)^\s*Final Answer\s*:',
         r'"status"\s*:\s*"completed"',
         r'"status"\s*:\s*"done"',
     ]
