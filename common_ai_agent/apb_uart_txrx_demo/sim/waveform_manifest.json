@@ -1,0 +1,63 @@
+{
+  "schema_version": "waveform_manifest.v1",
+  "ip": "apb_uart_txrx_demo",
+  "waveform": {
+    "path": "apb_uart_txrx_demo/sim/waves/apb_uart_txrx_demo.vcd",
+    "relative_path": "sim/waves/apb_uart_txrx_demo.vcd",
+    "exists": true,
+    "size_bytes": 74044,
+    "format": "VCD"
+  },
+  "generation": {
+    "command": "cd apb_uart_txrx_demo && ./sim/run_sim.sh",
+    "testbench": "apb_uart_txrx_demo/sim/tb_apb_uart_txrx_demo.sv",
+    "dumpfile_source_line": "tb_apb_uart_txrx_demo.sv:324 $dumpfile(\"sim/waves/apb_uart_txrx_demo.vcd\")",
+    "dumpvars_source_line": "tb_apb_uart_txrx_demo.sv:325 $dumpvars(0, tb_apb_uart_txrx_demo)",
+    "testbench_only": true,
+    "dut_source_modified_for_waveforms": false
+  },
+  "fresh_sim_evidence": {
+    "sim_log": "apb_uart_txrx_demo/sim/sim.log",
+    "sim_results": "apb_uart_txrx_demo/sim/sim_results.json",
+    "sim_pass": {
+      "passed": true,
+      "scoreboard_pass": 30,
+      "scoreboard_fail": 0,
+      "scenario_count": 12
+    }
+  },
+  "signal_observability": {
+    "required_top_level": {
+      "pclk": true,
+      "preset_n": true,
+      "psel": true,
+      "penable": true,
+      "pwrite": true,
+      "paddr": true,
+      "pwdata": true,
+      "prdata": true,
+      "pready": true,
+      "pslverr": true,
+      "uart_tx": true,
+      "uart_rx": true,
+      "irq": true
+    },
+    "internal_debug": {
+      "ctrl_enable": true,
+      "ctrl_tx_irq_en": true,
+      "ctrl_rx_irq_en": true,
+      "ctrl_err_irq_en": true,
+      "ctrl_tx_break": true,
+      "baud_div_reg": true,
+      "tx_state": true,
+      "rx_state": true,
+      "rx_valid_reg": true,
+      "rx_data_reg": true,
+      "frame_err_reg": true,
+      "overrun_err_reg": true,
+      "irq_tx_done_reg": true,
+      "irq_error_reg": true
+    }
+  },
+  "status": "pass"
+}

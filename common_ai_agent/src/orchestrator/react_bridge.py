@@ -78,11 +78,19 @@ class _ChatPersister:
         self._display_name = "orchestrator"
         self._lock = threading.Lock()
 
-    def _record(self, *, content: str, role: str, display_name: str = "") -> None:
+    def _record(
+        self,
+        *,
+        content: str,
+        role: str,
+        display_name: str = "",
+        emit_live: bool = True,
+    ) -> None:
         text = (content or "").strip()
         if not text:
             return
-        self._emit_live(content=text, role=role, display_name=display_name)
+        if emit_live:
+            self._emit_live(content=text, role=role, display_name=display_name)
         try:
             with self._lock:
                 self._db.record_chat_message(
@@ -95,10 +103,24 @@ class _ChatPersister:
         except Exception:
             pass
 
-    def _emit_live(self, *, content: str, role: str, display_name: str = "") -> None:
+    def _emit_live(
+        self,
+        *,
+        content: str,
+        role: str,
+        display_name: str = "",
+        extra: Optional[Dict[str, Any]] = None,
+    ) -> None:
         emitter = _live_event_emitter
         if not callable(emitter):
             return
+        payload = {
+            "role": role,
+            "content": content,
+            "display_name": display_name or self._display_name,
+        }
+        if isinstance(extra, dict):
+            payload.update(extra)
         try:
             emitter(
                 self._session_id,
@@ -106,18 +128,23 @@ class _ChatPersister:
                     "created_at": time.time(),
                     "ip": self._ip_name,
                     "source": "live",
-                    "payload": {
-                        "role": role,
-                        "content": content,
-                        "display_name": display_name or self._display_name,
-                    },
+                    "payload": payload,
                 },
             )
         except Exception:
             pass
 
-    def flush_assistant_turn(self, content: str) -> None:
-        self._record(content=content, role="assistant")
+    def flush_assistant_turn(self, content: str, *, emit_live: bool = True) -> None:
+        self._record(content=content, role="assistant", emit_live=emit_live)
+
+    def emit_assistant_delta(self, content: str, *, stream_id: str) -> None:
+        if not content:
+            return
+        self._emit_live(
+            content=content,
+            role="assistant_delta",
+            extra={"stream_id": stream_id},
+        )
 
     def flush_thought(self, content: str) -> None:
         self._record(content=content, role="thought")
