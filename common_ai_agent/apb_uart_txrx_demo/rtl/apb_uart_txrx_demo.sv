@@ -1,3 +1,4 @@
+`timescale 1ns/1ps
 // apb_uart_txrx_demo.sv — APB3 UART TX/RX demo
 module apb_uart_txrx_demo #(
   parameter integer APB_ADDR_WIDTH = 8,

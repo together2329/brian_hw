@@ -27,7 +27,10 @@ import pytest
 
 from core.atlas_db import AtlasDB
 from src.orchestrator.loop import OrchestratorContext
-from src.orchestrator.react_bridge import build_orchestrator_deps
+from src.orchestrator.react_bridge import (
+    build_orchestrator_deps,
+    register_live_event_emitter,
+)
 from src.orchestrator.runner import OrchestratorRunner
 
 
@@ -136,3 +139,48 @@ class TestProductionLlmCall:
         assert row["workspace_id"] == "ws1"
         assert row["ip_id"] == "ip1"
         assert row["session_id"] == "s1"
+
+    def test_streams_assistant_deltas_without_live_duplicate(
+        self, db, ctx, monkeypatch
+    ):
+        """Assistant content should reach the browser during generation.
+
+        The final assistant row is still written to DB for reconnect replay,
+        but it must not emit a second live assistant bubble after deltas have
+        already streamed.
+        """
+
+        def fake_stream(messages, stop=None, model=None, tools=None, **_):
+            import src.llm_client as _llm
+            _llm.last_input_tokens = 1
+            _llm.last_output_tokens = 2
+            _llm.last_cache_creation_tokens = 0
+            _llm.last_cache_read_tokens = 0
+            yield "hello "
+            yield "world"
+
+        events = []
+
+        def emit(session_id, event):
+            events.append((session_id, event))
+
+        import src.llm_client as _llm
+        monkeypatch.setattr(_llm, "chat_completion_stream", fake_stream)
+        register_live_event_emitter(emit)
+        try:
+            bridge = build_orchestrator_deps(ctx=ctx, runner=ctx.runner, db=db)
+            assert list(bridge.deps.llm_call_fn(
+                messages=[{"role": "user", "content": "ping"}], stop=None,
+            )) == ["hello ", "world"]
+        finally:
+            register_live_event_emitter(None)
+
+        payloads = [event["payload"] for _sid, event in events]
+        roles = [p["role"] for p in payloads]
+        assert roles == ["assistant_delta", "assistant_delta"]
+        assert "".join(p["content"] for p in payloads) == "hello world"
+
+        messages = list(reversed(db.list_chat_messages(ctx.ip_id, limit=10)))
+        assert [(m["payload"]["role"], m["payload"]["content"]) for m in messages] == [
+            ("assistant", "hello world")
+        ]

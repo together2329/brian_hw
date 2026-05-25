@@ -41,22 +41,6 @@
       "uart_tx": true,
       "uart_rx": true,
       "irq": true
-    },
-    "internal_debug": {
-      "ctrl_enable": true,
-      "ctrl_tx_irq_en": true,
-      "ctrl_rx_irq_en": true,
-      "ctrl_err_irq_en": true,
-      "ctrl_tx_break": true,
-      "baud_div_reg": true,
-      "tx_state": true,
-      "rx_state": true,
-      "rx_valid_reg": true,
-      "rx_data_reg": true,
-      "frame_err_reg": true,
-      "overrun_err_reg": true,
-      "irq_tx_done_reg": true,
-      "irq_error_reg": true
     }
   },
   "status": "pass"
