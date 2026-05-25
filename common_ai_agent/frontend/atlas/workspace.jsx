@@ -4456,16 +4456,26 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     setWorkerProgress(null);
     let dead = false;
 
-    const toEntry = (e) => {
+    const toEntry = (e, job = {}) => {
+      const mapper = window.AtlasOrchestratorChatLogic?.feedEntryFromWorkerLogEntry;
+      if (typeof mapper === 'function') return mapper(e, job);
       const type = String(e.type || e.role || '').toLowerCase();
       const text = String(e.content || '').trim();
       if (!text) return null;
       const createdAt = Number(e.timestamp || 0) * 1000 || 0;
-      if (type === 'response' || type === 'assistant') return { kind: 'agent', text, createdAt };
-      if (type === 'action') return { kind: 'action', text, createdAt };
-      if (type === 'observation' || type === 'obs') return { kind: 'obs', text, createdAt };
+      const worker = {
+        job_id: String(job.job_id || ''),
+        run_id: String(job.run_id || ''),
+        workflow: String(job.workflow || job.stage_id || wf || ''),
+        stage_id: String(job.stage_id || ''),
+        status: String(job.status || ''),
+        worker: String(job.worker || ''),
+      };
+      if (type === 'response' || type === 'assistant') return { kind: 'agent', text, createdAt, live: true, worker };
+      if (type === 'action') return { kind: 'action', text, createdAt, live: true, worker };
+      if (type === 'observation' || type === 'obs') return { kind: 'obs', text, createdAt, live: true, worker };
       // task / plan / context / system / thought → thought (truncate noisy context)
-      return { kind: 'thought', text: text.length > 1200 ? text.slice(0, 1200) + ' …' : text, createdAt };
+      return { kind: 'thought', text: text.length > 1200 ? text.slice(0, 1200) + ' …' : text, createdAt, live: true, worker };
     };
 
     const findJobId = async () => {
@@ -4513,7 +4523,12 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
             workerLogSeenRef.current.add(idx);
             if (idx + 1 > maxIdx) maxIdx = idx + 1;
           }
-          const fe = toEntry(e);
+          const fe = toEntry(e, {
+            ...jb,
+            job_id: jb.job_id || jid,
+            workflow: jb.workflow || wf,
+            status: jb.status || d.status || '',
+          });
           if (fe) fresh.push(fe);
         }
         workerLogSinceRef.current = maxIdx;

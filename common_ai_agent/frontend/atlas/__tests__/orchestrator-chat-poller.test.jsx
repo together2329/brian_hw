@@ -173,6 +173,50 @@ describe('orchestrator chat poll mapping', () => {
     });
   });
 
+  it('maps raw IPC stdout tool prefixes into action and observation entries', () => {
+    const job = { job_id: 'j2', run_id: 'ipc-j2', workflow: 'ssot-gen', status: 'running' };
+
+    expect(feedEntryFromWorkerLogEntry({
+      index: 4,
+      type: 'log',
+      role: 'stdout',
+      content: '⏺ Read(path="counter/yaml/counter.ssot.yaml")',
+      timestamp: 1716400007,
+    }, job)).toMatchObject({
+      kind: 'action',
+      tool: 'Read',
+      args: '(path="counter/yaml/counter.ssot.yaml")',
+      live: true,
+      worker: { job_id: 'j2', workflow: 'ssot-gen' },
+    });
+
+    expect(feedEntryFromWorkerLogEntry({
+      index: 5,
+      type: 'log',
+      role: 'stdout',
+      content: '⎿  2 lines',
+      timestamp: 1716400008,
+    }, job)).toMatchObject({
+      kind: 'obs',
+      text: '⎿  2 lines',
+      live: true,
+      worker: { job_id: 'j2', workflow: 'ssot-gen' },
+    });
+  });
+
+  it('coalesces adjacent live observation fragments from the same worker', () => {
+    const worker = { job_id: 'j2', run_id: 'ipc-j2', workflow: 'ssot-gen' };
+    const entries = coalesceFeedEntries([], [
+      { kind: 'action', text: '⏺ Read(path="counter/yaml/counter.ssot.yaml")', tool: 'Read', live: true, worker },
+      { kind: 'obs', text: '⎿  2 lines', tool: 'ssot-gen', live: true, worker },
+      { kind: 'obs', text: '│ 1 top_module:', tool: 'ssot-gen', live: true, worker },
+      { kind: 'obs', text: '│ 2   name: counter', tool: 'ssot-gen', live: true, worker },
+    ]);
+
+    expect(entries.map(e => e.kind)).toEqual(['action', 'obs']);
+    expect(entries[1].text).toBe('⎿  2 lines\n│ 1 top_module:\n│ 2   name: counter');
+  });
+
   it('coalesces repeated live Thinking placeholders instead of stacking rows', () => {
     expect(isThinkingPlaceholderText('* Thinking...')).toBe(true);
     expect(isThinkingPlaceholderText('✣ Thinking…')).toBe(true);

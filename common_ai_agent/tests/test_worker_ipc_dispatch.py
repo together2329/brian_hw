@@ -309,6 +309,50 @@ def test_ipc_job_log_streams_stdout_before_response(tmp_path: Path, monkeypatch)
         assert jobs._jobs["j1"]["worker_log_entries"] == 2
 
 
+def test_ipc_job_log_groups_stdout_tool_events(tmp_path: Path, monkeypatch) -> None:
+    import atlas_api_jobs as jobs
+
+    client = _make_client(tmp_path, monkeypatch)
+    log_path = tmp_path / ".session" / "workers-ipc" / "j2" / "worker.log"
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    log_path.write_text(
+        "\n".join([
+            "THOUGHT (4)",
+            "┃ Checking files",
+            '⏺ Read(path="counter/yaml/counter.ssot.yaml")',
+            "⎿  2 lines",
+            "│ 1 top_module:",
+            "│ 2   name: counter",
+        ]) + "\n",
+        encoding="utf-8",
+    )
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+        jobs._jobs["j2"] = {
+            "job_id": "j2",
+            "run_id": "ipc-j2",
+            "worker": "ipc://u/orchestrator/ssot-gen",
+            "worker_transport": "ipc",
+            "workflow": "ssot-gen",
+            "status": "running",
+            "project_root": str(tmp_path),
+            "worker_log_path": ".session/workers-ipc/j2/worker.log",
+            "worker_response_path": ".session/workers-ipc/j2/response.json",
+            "started_at": 1716400006,
+        }
+
+    resp = client.get("/api/job/j2/log")
+
+    assert resp.status_code == 200, resp.text
+    entries = resp.json()["entries"]
+    assert [entry["type"] for entry in entries] == ["log", "action", "observation"]
+    assert entries[0]["content"] == "THOUGHT (4)\nChecking files"
+    assert entries[1]["tool"] == "Read"
+    assert entries[2]["role"] == "tool"
+    assert "│ 1 top_module:" in entries[2]["content"]
+    assert "│ 2   name: counter" in entries[2]["content"]
+
+
 def test_ipc_timeout_retries_same_job_id_after_killing_attempt(tmp_path: Path, monkeypatch) -> None:
     import atlas_api_jobs as jobs
 

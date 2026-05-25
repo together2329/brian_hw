@@ -114,7 +114,23 @@ export function feedEntryFromWorkerLogEntry(entry, job = {}) {
     return { kind: 'agent', text: content, createdAt, live: true, worker };
   }
   if (type === 'log' || type === 'stdout' || type === 'stderr' || role === 'stdout' || role === 'stderr') {
-    return { kind: 'thought', text: content, createdAt, live: true, worker };
+    const parsed = toolEntryFromDisplayLine(content);
+    if (parsed) {
+      return {
+        kind: 'action',
+        text: parsed.text || content,
+        tool: parsed.tool,
+        args: parsed.args,
+        createdAt,
+        live: true,
+        worker,
+      };
+    }
+    if (/^[⎿└├│]/.test(content)) {
+      return { kind: 'obs', text: content, tool, createdAt, live: true, worker };
+    }
+    const text = content.replace(/^┃\s?/, '').trim();
+    return { kind: 'thought', text, createdAt, live: true, worker };
   }
   if (type === 'done') {
     return { kind: 'agent', text: content, createdAt, live: true, worker };
@@ -161,6 +177,20 @@ export function compactThoughtText(text, maxLines = MAX_THOUGHT_LINES) {
 export function coalesceFeedEntries(existing = [], incoming = []) {
   const out = Array.isArray(existing) ? existing.slice() : [];
   const fresh = Array.isArray(incoming) ? incoming : [incoming];
+  const shouldMergeObs = (prev, entry) => {
+    if (!prev || prev.kind !== 'obs' || !entry || entry.kind !== 'obs') return false;
+    const prevWorker = prev.worker || {};
+    const nextWorker = entry.worker || {};
+    const workerKeys = ['job_id', 'run_id', 'workflow', 'stage_id'];
+    for (const key of workerKeys) {
+      const a = String(prevWorker[key] || '');
+      const b = String(nextWorker[key] || '');
+      if (a && b && a !== b) return false;
+    }
+    const prevTool = String(prev.tool || '');
+    const nextTool = String(entry.tool || '');
+    return !prevTool || !nextTool || prevTool === nextTool;
+  };
 
   for (const raw of fresh) {
     if (!raw || typeof raw !== 'object') continue;
@@ -219,6 +249,18 @@ export function coalesceFeedEntries(existing = [], incoming = []) {
           text: mergedText,
         };
       }
+      continue;
+    }
+    if (shouldMergeObs(prev, entry)) {
+      const prevText = String(prev.text || '').trim();
+      const nextText = String(entry.text || '').trim();
+      if (!nextText) continue;
+      out[out.length - 1] = {
+        ...prev,
+        ...entry,
+        text: prevText ? `${prevText}\n${nextText}` : nextText,
+        tool: prev.tool || entry.tool,
+      };
       continue;
     }
 

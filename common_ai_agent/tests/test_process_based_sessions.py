@@ -264,6 +264,59 @@ def test_process_bridge_autostart_seeds_output_cursor():
     assert fake.spawned == ["admin/default/default"]
 
 
+def test_process_bridge_warm_activation_spawns_worker_without_prompt():
+    class FakeManager:
+        def __init__(self):
+            self.live = set()
+            self.spawned = []
+            self.sent = []
+
+        def is_alive(self, session_id):
+            return session_id in self.live
+
+        def latest_output_id(self, session_id):
+            assert session_id == "admin/spi_core/ssot-gen"
+            return "old-warm-output-row"
+
+        def spawn(self, session_id):
+            self.spawned.append(session_id)
+            self.live.add(session_id)
+            return True
+
+        def get_pid(self, session_id):
+            return 4321 if session_id in self.live else 0
+
+        def send_input(self, session_id, msg_type, payload=None):
+            self.sent.append((session_id, msg_type, payload))
+            return "unexpected-input-row"
+
+    bridge = _MultiUserBridge(single_user=False, use_processes=True)
+    fake = FakeManager()
+    bridge._process_manager = fake
+
+    bridge.activate_session("admin/spi_core/ssot-gen", warm=True)
+
+    session = bridge.get_session("admin/spi_core/ssot-gen")
+    assert bridge._process_output_cursors["admin/spi_core/ssot-gen"] == "old-warm-output-row"
+    assert fake.spawned == ["admin/spi_core/ssot-gen"]
+    assert fake.sent == []
+    assert session.agent_alive is True
+    assert session.agent_running is False
+
+    events = []
+    while True:
+        try:
+            events.append(session._outbox.get_nowait())
+        except Exception:
+            break
+    assert any(
+        event.get("type") == "agent_state"
+        and event.get("alive") is True
+        and event.get("running") is False
+        for event in events
+    )
+
+
 def test_spawn_multiple_sessions(dummy_worker_script):
     db_path = _temp_db()
     manager = DummyProcessManager(db_path=db_path, dummy_script_path=dummy_worker_script)

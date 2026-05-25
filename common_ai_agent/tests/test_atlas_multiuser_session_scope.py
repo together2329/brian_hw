@@ -756,6 +756,82 @@ def test_process_session_activate_terminates_previous_worker(tmp_path, monkeypat
     assert app.state.bridge.get_session("alice/spi_core/rtl-gen").agent_alive is False
 
 
+def test_single_worker_session_activate_warms_chat_process(tmp_path, monkeypatch):
+    import atlas_api_jobs as jobs
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "1")
+    monkeypatch.setenv("ATLAS_EXEC_MODE", "single-worker")
+    monkeypatch.setenv("ATLAS_DEFAULT_EXEC_MODE", "single-worker")
+    monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODE", "0")
+    monkeypatch.setenv("ATLAS_SINGLE_MAIN_LOOP", "1")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+    monkeypatch.setattr(
+        jobs,
+        "schedule_worker_warmup",
+        lambda **_kwargs: {"enabled": False, "reason": "test"},
+    )
+
+    calls = []
+
+    class FakeProcessManager:
+        def __init__(self):
+            self.live = set()
+
+        def is_alive(self, session_id):
+            return session_id in self.live
+
+        def latest_output_id(self, session_id):
+            return None
+
+        def spawn(self, session_id):
+            calls.append(("spawn", session_id))
+            self.live.add(session_id)
+            return True
+
+        def get_pid(self, session_id):
+            return 4321 if session_id in self.live else 0
+
+        def list_active(self):
+            return list(self.live)
+
+        def kill(self, session_id):
+            calls.append(("kill", session_id))
+            self.live.discard(session_id)
+            return True
+
+        def poll_output(self, session_id, since_id=None):
+            return []
+
+        def stop_all(self):
+            self.live.clear()
+
+    app = atlas_ui.create_app()
+    app.state.bridge._process_manager = FakeProcessManager()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    response = _activate(client, "alice", "spi_core", "ssot-gen")
+
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["session_worker_warmup"] == {
+        "enabled": True,
+        "mode": "process",
+        "session_id": "alice/spi_core/ssot-gen",
+        "status": "started",
+        "alive": True,
+        "pid": 4321,
+    }
+    assert ("spawn", "alice/spi_core/ssot-gen") in calls
+    session = app.state.bridge.get_session("alice/spi_core/ssot-gen")
+    assert session.agent_alive is True
+    assert session.agent_running is False
+
+
 def test_process_session_activate_does_not_mutate_main_env(tmp_path, monkeypatch):
     import os
 

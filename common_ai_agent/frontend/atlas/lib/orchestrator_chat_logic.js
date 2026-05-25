@@ -118,7 +118,28 @@
       return { kind: 'agent', text: content, createdAt: createdAt, live: true, worker: worker };
     }
     if (type === 'log' || type === 'stdout' || type === 'stderr' || role === 'stdout' || role === 'stderr') {
-      return { kind: 'thought', text: content, createdAt: createdAt, live: true, worker: worker };
+      var parsedLog = toolEntryFromDisplayLine(content);
+      if (parsedLog) {
+        return {
+          kind: 'action',
+          text: parsedLog.text || content,
+          tool: parsedLog.tool,
+          args: parsedLog.args,
+          createdAt: createdAt,
+          live: true,
+          worker: worker,
+        };
+      }
+      if (/^[⎿└├│]/.test(content)) {
+        return { kind: 'obs', text: content, tool: tool, createdAt: createdAt, live: true, worker: worker };
+      }
+      return {
+        kind: 'thought',
+        text: content.replace(/^┃\s?/, '').trim(),
+        createdAt: createdAt,
+        live: true,
+        worker: worker,
+      };
     }
     if (type === 'done') {
       return { kind: 'agent', text: content, createdAt: createdAt, live: true, worker: worker };
@@ -165,6 +186,21 @@
   function coalesceFeedEntries(existing, incoming) {
     var out = Array.isArray(existing) ? existing.slice() : [];
     var fresh = Array.isArray(incoming) ? incoming : [incoming];
+    var shouldMergeObs = function (prev, entry) {
+      if (!prev || prev.kind !== 'obs' || !entry || entry.kind !== 'obs') return false;
+      var prevWorker = prev.worker || {};
+      var nextWorker = entry.worker || {};
+      var workerKeys = ['job_id', 'run_id', 'workflow', 'stage_id'];
+      for (var i = 0; i < workerKeys.length; i++) {
+        var key = workerKeys[i];
+        var a = String(prevWorker[key] || '');
+        var b = String(nextWorker[key] || '');
+        if (a && b && a !== b) return false;
+      }
+      var prevTool = String(prev.tool || '');
+      var nextTool = String(entry.tool || '');
+      return !prevTool || !nextTool || prevTool === nextTool;
+    };
 
     fresh.forEach(function (raw) {
       if (!raw || typeof raw !== 'object') return;
@@ -218,6 +254,16 @@
             text: mergedText,
           });
         }
+        return;
+      }
+      if (shouldMergeObs(prev, entry)) {
+        var prevObsText = String(prev.text || '').trim();
+        var nextObsText = String(entry.text || '').trim();
+        if (!nextObsText) return;
+        out[out.length - 1] = Object.assign({}, prev, entry, {
+          text: prevObsText ? prevObsText + '\n' + nextObsText : nextObsText,
+          tool: prev.tool || entry.tool,
+        });
         return;
       }
 
