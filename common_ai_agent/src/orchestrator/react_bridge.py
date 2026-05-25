@@ -640,6 +640,8 @@ def build_orchestrator_deps(*, ctx: Any, runner: Any, db: Any) -> OrchestratorRe
         schemas = tool_schemas() if getattr(config, "ENABLE_NATIVE_TOOL_CALLS", False) else None
         content_buf: list[str] = []
         reasoning_buf: list[str] = []
+        stream_id = f"{ctx.run_id}:{time.time_ns()}"
+        streamed_content = False
         try:
             for chunk in llm_client.chat_completion_stream(
                 messages=messages,
@@ -650,6 +652,8 @@ def build_orchestrator_deps(*, ctx: Any, runner: Any, db: Any) -> OrchestratorRe
             ):
                 if isinstance(chunk, str):
                     content_buf.append(chunk)
+                    streamed_content = True
+                    chat_writer.emit_assistant_delta(chunk, stream_id=stream_id)
                 elif (
                     isinstance(chunk, tuple)
                     and len(chunk) == 2
@@ -659,7 +663,10 @@ def build_orchestrator_deps(*, ctx: Any, runner: Any, db: Any) -> OrchestratorRe
                 yield chunk
         finally:
             chat_writer.flush_thought("".join(reasoning_buf))
-            chat_writer.flush_assistant_turn("".join(content_buf))
+            chat_writer.flush_assistant_turn(
+                "".join(content_buf),
+                emit_live=not streamed_content,
+            )
             try:
                 tokens_input = int(getattr(llm_client, "last_input_tokens", 0) or 0)
                 tokens_output = int(getattr(llm_client, "last_output_tokens", 0) or 0)
