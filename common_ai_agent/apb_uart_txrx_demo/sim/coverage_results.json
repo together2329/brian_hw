@@ -1,0 +1,69 @@
+{
+  "schema_version": "coverage_results.v1",
+  "ip": "apb_uart_txrx_demo",
+  "source": "directed_systemverilog_testbench",
+  "fresh_evidence": {
+    "sim_log": "apb_uart_txrx_demo/sim/sim.log",
+    "sim_results": "apb_uart_txrx_demo/sim/sim_results.json",
+    "scoreboard_events": "apb_uart_txrx_demo/sim/scoreboard_events.csv",
+    "waveform": "apb_uart_txrx_demo/sim/waves/apb_uart_txrx_demo.vcd",
+    "sim_results_summary": {
+      "passed": true,
+      "scoreboard_pass": 30,
+      "scoreboard_fail": 0,
+      "scenario_count": 12
+    }
+  },
+  "directed_scenarios": {
+    "required": 12,
+    "hit": 12,
+    "ids": [
+      "SC_APB_RESET",
+      "SC_APB_RW",
+      "SC_APB_INVALID",
+      "SC_TX_ONE_BYTE",
+      "SC_TX_BACK_TO_BACK",
+      "SC_TX_IRQ",
+      "SC_RX_ONE_BYTE",
+      "SC_RX_BACK_TO_BACK",
+      "SC_RX_FRAMING_ERROR",
+      "SC_RX_OVERRUN",
+      "SC_RX_IRQ",
+      "SC_BAUD_VARIANTS"
+    ]
+  },
+  "bins": [
+    {"id":"FCOV_APB_REGS", "description":"APB read/write every implemented register/reset-visible register behavior", "status":"hit", "evidence":["SC_APB_RESET: CTRL_RESET/STATUS_RESET/BAUD_RESET", "SC_APB_RW: CTRL_MASK/BAUD_ZERO_COERCE", "SC_TX_IRQ: IRQ_STATUS read/write", "SC_RX_ONE_BYTE: RXDATA read", "SC_TX_ONE_BYTE: TXDATA write"]},
+    {"id":"FCOV_INVALID_APB", "description":"Invalid APB access", "status":"hit", "evidence":["SC_APB_INVALID: INVALID_WRITE_ERR", "SC_APB_INVALID: INVALID_READ_ERR", "SC_APB_INVALID: INVALID_PRESERVE"]},
+    {"id":"FCOV_TX_ZERO", "description":"TX byte class 0x00", "status":"hit", "evidence":["SC_TX_BACK_TO_BACK: TX_B2B_FIRST actual=0x00000000"]},
+    {"id":"FCOV_TX_FF", "description":"TX byte class 0xff", "status":"hit", "evidence":["SC_TX_BACK_TO_BACK: TX_B2B_SECOND actual=0x000000ff"]},
+    {"id":"FCOV_TX_RANDOM_WALKING", "description":"TX walking/random representative values", "status":"hit", "evidence":["SC_TX_ONE_BYTE: TX_DECODE_A5", "SC_TX_IRQ: TXDATA 0x55", "SC_BAUD_VARIANTS: TX_BAUD8 0x5a"]},
+    {"id":"FCOV_RX_ZERO", "description":"RX byte class 0x00", "status":"hit", "evidence":["SC_RX_BACK_TO_BACK: RX_B2B_FIRST actual=0x00000000"]},
+    {"id":"FCOV_RX_FF", "description":"RX byte class 0xff", "status":"hit", "evidence":["SC_RX_BACK_TO_BACK: RX_B2B_SECOND actual=0x000000ff"]},
+    {"id":"FCOV_RX_RANDOM_WALKING", "description":"RX walking/random representative values", "status":"hit", "evidence":["SC_RX_ONE_BYTE: RX_DATA_3C", "SC_RX_IRQ: RX byte 0x77", "SC_BAUD_VARIANTS: RX_BAUD8 0xa6"]},
+    {"id":"FCOV_TX_BUSY_EMPTY", "description":"TX busy/empty transitions", "status":"hit", "evidence":["SC_TX_ONE_BYTE serial decode completes after TXDATA", "SC_TX_BACK_TO_BACK readiness polling waits for tx_empty before second byte"]},
+    {"id":"FCOV_RX_VALID_SET_CLEAR", "description":"RX valid set and clear", "status":"hit", "evidence":["SC_RX_ONE_BYTE: RX_VALID_SET", "SC_RX_ONE_BYTE: RX_VALID_CLEAR"]},
+    {"id":"FCOV_TX_IRQ", "description":"TX interrupt source", "status":"hit", "evidence":["SC_TX_IRQ: TX_IRQ_ASSERT", "SC_TX_IRQ: TX_IRQ_STATUS", "SC_TX_IRQ: TX_IRQ_CLEAR"]},
+    {"id":"FCOV_RX_IRQ", "description":"RX interrupt source", "status":"hit", "evidence":["SC_RX_IRQ: RX_IRQ_ASSERT", "SC_RX_IRQ: RX_IRQ_CLEAR"]},
+    {"id":"FCOV_ERROR_IRQ", "description":"Error interrupt source", "status":"hit", "evidence":["SC_RX_FRAMING_ERROR: ERR_IRQ_FRAME"]},
+    {"id":"FCOV_FRAMING_ERROR", "description":"Framing error", "status":"hit", "evidence":["SC_RX_FRAMING_ERROR: FRAME_ERR_STATUS"]},
+    {"id":"FCOV_OVERRUN_ERROR", "description":"Overrun error", "status":"hit", "evidence":["SC_RX_OVERRUN: OVERRUN_STATUS", "SC_RX_OVERRUN: OVERRUN_PRESERVE"]},
+    {"id":"CCOV_BAUD_MIN", "description":"Baud divisor minimum/coerced to 1", "status":"hit", "evidence":["SC_APB_RW: BAUD_ZERO_COERCE"]},
+    {"id":"CCOV_BAUD_DEFAULT", "description":"Baud divisor default 4", "status":"hit", "evidence":["SC_APB_RESET: BAUD_RESET", "Most directed TX/RX scenarios run at divisor 4"]},
+    {"id":"CCOV_BAUD_ALT", "description":"Alternate baud divisor", "status":"hit", "evidence":["SC_BAUD_VARIANTS: TX_BAUD8", "SC_BAUD_VARIANTS: RX_BAUD8"]},
+    {"id":"CCOV_TX_BACK_TO_BACK", "description":"Back-to-back TX scenario", "status":"hit", "evidence":["SC_TX_BACK_TO_BACK: TX_B2B_FIRST/TX_B2B_SECOND"]},
+    {"id":"CCOV_RX_BACK_TO_BACK", "description":"Back-to-back RX scenario", "status":"hit", "evidence":["SC_RX_BACK_TO_BACK: RX_B2B_FIRST/RX_B2B_SECOND"]},
+    {"id":"CCOV_APB_ACCESS", "description":"APB setup/access completion", "status":"hit", "evidence":["APB read/write tasks used in all scenarios; pslverr checked for legal and illegal accesses"]},
+    {"id":"CCOV_TX_STATES", "description":"TX idle/start/data/stop states", "status":"hit", "evidence":["SC_TX_ONE_BYTE and SC_TX_BACK_TO_BACK decoded complete 8N1 frames"]},
+    {"id":"CCOV_RX_STATES", "description":"RX idle/start/data/stop states", "status":"hit", "evidence":["SC_RX_ONE_BYTE and SC_RX_BACK_TO_BACK injected complete 8N1 frames"]}
+  ],
+  "waivers": [],
+  "summary": {
+    "total_bins": 23,
+    "hit_bins": 23,
+    "waived_bins": 0,
+    "missed_bins": 0,
+    "effective_coverage_pct": 100.0,
+    "signoff_status": "pass"
+  }
+}
