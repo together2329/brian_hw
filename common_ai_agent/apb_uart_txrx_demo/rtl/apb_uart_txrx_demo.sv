@@ -73,7 +73,7 @@ module apb_uart_txrx_demo #(
   end
 
   always_comb begin
-    unique case (addr8)
+    case (addr8)
       A_CTRL:       prdata = {26'b0, ctrl_tx_break, 1'b0, ctrl_err_irq_en, ctrl_rx_irq_en, ctrl_tx_irq_en, ctrl_enable};
       A_STATUS:     prdata = {26'b0, irq_pending, overrun_err_reg, frame_err_reg, tx_busy, tx_empty, rx_valid_reg};
       A_BAUD_DIV:   prdata = {{(32-BAUD_DIV_WIDTH){1'b0}}, baud_div_reg};
@@ -114,7 +114,7 @@ module apb_uart_txrx_demo #(
       uart_rx_q2 <= uart_rx_q1;
 
       if (write_xfer && !pslverr) begin
-        unique case (addr8)
+        case (addr8)
           A_CTRL: begin
             ctrl_enable     <= pwdata[0];
             ctrl_tx_irq_en  <= pwdata[1];
@@ -143,7 +143,7 @@ module apb_uart_txrx_demo #(
       end
 
       // TX FSM
-      unique case (tx_state)
+      case (tx_state)
         TX_IDLE: begin
           tx_line_reg <= 1'b1;
           tx_cnt <= '0;
@@ -188,7 +188,7 @@ module apb_uart_txrx_demo #(
       endcase
 
       // RX FSM: falling edge, half-bit confirm, then full-bit data samples.
-      unique case (rx_state)
+      case (rx_state)
         RX_IDLE: begin
           rx_cnt <= '0;
           rx_bit_idx <= 3'd0;

@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import subprocess
 import sys
 import time
 from datetime import datetime, timezone
@@ -369,11 +370,13 @@ def wait_job(job_id: str) -> ToolResult:
     return {"ok": True, "job": snapshot}, summary
 
 
-def _resolve_read_file_path(
+def _resolve_local_path(
     *,
     ip: str,
     path: str,
     project_root: Optional[Path] = None,
+    allow_wiki: bool = True,
+    allow_missing: bool = False,
 ) -> Tuple[Optional[Path], str]:
     pr = Path(project_root) if project_root else Path(
         os.environ.get("ATLAS_PROJECT_ROOT") or "."
@@ -385,23 +388,128 @@ def _resolve_read_file_path(
         return None, "path must be a safe relative path"
 
     ip_dir = (pr / ip).resolve()
-    allowed_roots = [
-        ip_dir,
-        (pr / "doc" / "wiki").resolve(),
-        (pr / ".omx" / "wiki").resolve(),
-    ]
+    allowed_roots = [ip_dir]
+    if allow_wiki:
+        allowed_roots.extend([(pr / "doc" / "wiki").resolve(), (pr / ".omx" / "wiki").resolve()])
     if requested.parts and requested.parts[0] == ip:
         candidate = (pr / requested).resolve()
     else:
         candidate = (ip_dir / requested).resolve()
-        if not candidate.exists():
+        if not candidate.exists() and allow_wiki:
             project_candidate = (pr / requested).resolve()
             if any(_is_relative_to(project_candidate, root) for root in allowed_roots):
                 candidate = project_candidate
 
     if not any(_is_relative_to(candidate, root) for root in allowed_roots):
         return None, "path is outside the active IP or wiki roots"
+    if not allow_missing and not candidate.exists():
+        return None, "path not found"
     return candidate, ""
+
+
+def _relative_display(path: Path, project_root: Optional[Path]) -> str:
+    pr = Path(project_root) if project_root else Path(os.environ.get("ATLAS_PROJECT_ROOT") or ".")
+    try:
+        return str(path.relative_to(pr.resolve()))
+    except Exception:
+        return path.name
+
+
+def _tool_text_header(path: str, meta: str = "") -> str:
+    suffix = f" {meta}" if meta else ""
+    return f"path: {path}{suffix}\n---\n"
+
+
+def _dump_readable(value: Any, cap: int = 20_000) -> str:
+    try:
+        import yaml  # type: ignore
+
+        if isinstance(value, (dict, list)):
+            text = yaml.safe_dump(value, sort_keys=False, allow_unicode=True)
+        else:
+            text = str(value)
+    except Exception:
+        if isinstance(value, (dict, list)):
+            text = json.dumps(value, ensure_ascii=False, indent=2)
+        else:
+            text = str(value)
+    return _truncate(text, cap)
+
+
+def _yaml_selector_parts(selector: str) -> list[Any]:
+    parts: list[Any] = []
+    for raw in str(selector or "").split("."):
+        token = raw.strip()
+        if not token:
+            continue
+        match = re.match(r"^[^\[\]]+", token)
+        if match:
+            parts.append(match.group(0))
+        for idx in re.findall(r"\[(\d+)\]", token):
+            parts.append(int(idx))
+    return parts
+
+
+def _select_path(value: Any, selector: str) -> Tuple[bool, Any]:
+    cur = value
+    for part in _yaml_selector_parts(selector):
+        if isinstance(part, int):
+            if not isinstance(cur, list) or part >= len(cur):
+                return False, None
+            cur = cur[part]
+        else:
+            if not isinstance(cur, dict) or part not in cur:
+                return False, None
+            cur = cur[part]
+    return True, cur
+
+
+def list_dir(
+    *,
+    ip: str,
+    path: str = ".",
+    project_root: Optional[Path] = None,
+    max_entries: int = 200,
+) -> ToolResult:
+    """List a directory under the active IP or project wiki."""
+    path_obj, error = _resolve_local_path(ip=ip, path=path or ".", project_root=project_root)
+    if path_obj is None:
+        return {"ok": False, "error": error, "path": path}, error
+    if not path_obj.is_dir():
+        return {"ok": False, "error": "path is not a directory", "path": path}, "path is not a directory"
+    cap = max(1, min(int(max_entries or 200), 1000))
+    entries = []
+    try:
+        children = sorted(path_obj.iterdir(), key=lambda p: (not p.is_dir(), p.name.lower()))
+        for child in children[:cap]:
+            info: Dict[str, Any] = {
+                "name": child.name + ("/" if child.is_dir() else ""),
+                "type": "dir" if child.is_dir() else "file",
+            }
+            if child.is_file():
+                try:
+                    info["size"] = child.stat().st_size
+                except OSError:
+                    pass
+            entries.append(info)
+    except Exception as exc:
+        err = f"{type(exc).__name__}: {exc}"
+        return {"ok": False, "error": err, "path": path}, err
+    result = {
+        "ok": True,
+        "ip": ip,
+        "path": path,
+        "resolved": str(path_obj),
+        "entries": entries,
+        "truncated": len(entries) == cap,
+    }
+    body = "\n".join(
+        f"- {entry['name']}" + (f" {entry['size']}B" if "size" in entry else "")
+        for entry in entries
+    )
+    if len(entries) == cap:
+        body += "\n...[truncated]"
+    return result, _tool_text_header(path) + body
 
 
 def read_file(
@@ -415,6 +523,7 @@ def read_file(
     start_line: int = 0,
     end_line: int = 0,
     max_chars: int = 20_000,
+    yaml_path: str = "",
 ) -> ToolResult:
     """Read a safe local file for direct user Q&A.
 
@@ -422,7 +531,7 @@ def read_file(
     file the orchestrator needs, optionally narrowed to a matching section or
     line range. Scope is limited to the active IP plus project wiki roots.
     """
-    path_obj, error = _resolve_read_file_path(ip=ip, path=path, project_root=project_root)
+    path_obj, error = _resolve_local_path(ip=ip, path=path, project_root=project_root)
     if path_obj is None:
         return {"ok": False, "error": error, "path": path}, error
     if not path_obj.exists():
@@ -435,6 +544,34 @@ def read_file(
     except Exception as exc:
         err = f"{type(exc).__name__}: {exc}"
         return {"ok": False, "error": err, "path": path}, err
+
+    selector = str(yaml_path or "").strip()
+    if selector:
+        cap = max(1_000, min(int(max_chars or 20_000), 100_000))
+        try:
+            import yaml  # type: ignore
+
+            doc = yaml.safe_load(text)
+        except Exception as exc:
+            err = f"yaml parse failed: {type(exc).__name__}: {exc}"
+            return {"ok": False, "error": err, "path": path, "yaml_path": selector}, err
+        found, selected_value = _select_path(doc, selector)
+        if not found:
+            err = f"yaml_path not found: {selector}"
+            return {"ok": False, "error": err, "path": path, "yaml_path": selector}, err
+        rendered = _dump_readable(selected_value, cap=cap)
+        result = {
+            "ok": True,
+            "ip": ip,
+            "path": str(path),
+            "resolved": str(path_obj),
+            "mode": "yaml_path",
+            "yaml_path": selector,
+            "data": selected_value,
+            "content": rendered,
+            "truncated": len(rendered) >= cap,
+        }
+        return result, _tool_text_header(path, f"yaml_path={selector}") + rendered
 
     lines = text.splitlines()
     selected = text
@@ -482,18 +619,233 @@ def read_file(
         "truncated": truncated,
         "content": selected,
     }
-    summary = _safe_json(
-        {
-            "path": str(path),
-            "mode": mode,
-            "line_start": line_start,
-            "line_end": line_end,
-            "truncated": truncated,
-            "content": selected,
-        },
-        cap=cap,
-    )
+    meta = f"mode={mode} lines={line_start}-{line_end}"
+    if truncated:
+        meta += " truncated=true"
+    summary = _tool_text_header(path, meta) + selected
     return result, summary
+
+
+def grep_file(
+    *,
+    ip: str,
+    pattern: str,
+    path: str = ".",
+    project_root: Optional[Path] = None,
+    case_sensitive: bool = False,
+    regex: bool = False,
+    max_matches: int = 80,
+    max_chars: int = 20_000,
+) -> ToolResult:
+    """Search files under the active IP or wiki roots."""
+    path_obj, error = _resolve_local_path(ip=ip, path=path or ".", project_root=project_root)
+    if path_obj is None:
+        return {"ok": False, "error": error, "path": path}, error
+    needle = str(pattern or "")
+    if not needle:
+        return {"ok": False, "error": "pattern is required"}, "pattern is required"
+    flags = 0 if case_sensitive else re.IGNORECASE
+    compiled = None
+    if regex:
+        try:
+            compiled = re.compile(needle, flags)
+        except re.error as exc:
+            return {"ok": False, "error": f"invalid regex: {exc}"}, f"invalid regex: {exc}"
+    else:
+        cmp_needle = needle if case_sensitive else needle.lower()
+
+    def _candidate_files(root: Path):
+        if root.is_file():
+            yield root
+            return
+        for dirpath, dirnames, filenames in os.walk(root):
+            dirnames[:] = [d for d in dirnames if d not in {".git", ".session", "__pycache__", "node_modules"}]
+            for filename in filenames:
+                yield Path(dirpath) / filename
+
+    matches = []
+    cap = max(1, min(int(max_matches or 80), 1000))
+    for file_path in _candidate_files(path_obj):
+        if len(matches) >= cap:
+            break
+        try:
+            text = file_path.read_text(encoding="utf-8", errors="replace")
+        except Exception:
+            continue
+        for line_no, line in enumerate(text.splitlines(), 1):
+            hit = bool(compiled.search(line)) if compiled is not None else (
+                cmp_needle in (line if case_sensitive else line.lower())
+            )
+            if not hit:
+                continue
+            matches.append(
+                {
+                    "path": _relative_display(file_path, project_root),
+                    "line": line_no,
+                    "text": line[:500],
+                }
+            )
+            if len(matches) >= cap:
+                break
+    result = {
+        "ok": True,
+        "ip": ip,
+        "path": path,
+        "pattern": pattern,
+        "matches": matches,
+        "truncated": len(matches) == cap,
+    }
+    body = "\n".join(f"{m['path']}:{m['line']}: {m['text']}" for m in matches)
+    if len(matches) == cap:
+        body += "\n...[truncated]"
+    return result, _truncate(_tool_text_header(path, f"pattern={pattern}") + body, max(1_000, min(int(max_chars or 20_000), 100_000)))
+
+
+def write_file(
+    *,
+    ip: str,
+    path: str,
+    content: str,
+    project_root: Optional[Path] = None,
+    create_dirs: bool = True,
+    overwrite: bool = True,
+) -> ToolResult:
+    """Write a file under the active IP directory only."""
+    path_obj, error = _resolve_local_path(
+        ip=ip,
+        path=path,
+        project_root=project_root,
+        allow_wiki=False,
+        allow_missing=True,
+    )
+    if path_obj is None:
+        return {"ok": False, "error": error, "path": path}, error
+    if path_obj.exists() and not overwrite:
+        return {"ok": False, "error": "file exists", "path": path}, "file exists"
+    try:
+        if create_dirs:
+            path_obj.parent.mkdir(parents=True, exist_ok=True)
+        path_obj.write_text(str(content or ""), encoding="utf-8")
+    except Exception as exc:
+        err = f"{type(exc).__name__}: {exc}"
+        return {"ok": False, "error": err, "path": path}, err
+    result = {"ok": True, "ip": ip, "path": path, "bytes": len(str(content or "").encode("utf-8"))}
+    return result, f"wrote {result['bytes']} bytes to {path}"
+
+
+def replace_in_file(
+    *,
+    ip: str,
+    path: str,
+    old: str,
+    new: str,
+    project_root: Optional[Path] = None,
+    replace_all: bool = False,
+) -> ToolResult:
+    """Replace text in a file under the active IP directory only."""
+    path_obj, error = _resolve_local_path(ip=ip, path=path, project_root=project_root, allow_wiki=False)
+    if path_obj is None:
+        return {"ok": False, "error": error, "path": path}, error
+    old_text = str(old or "")
+    if old_text == "":
+        return {"ok": False, "error": "old text is required", "path": path}, "old text is required"
+    try:
+        original = path_obj.read_text(encoding="utf-8", errors="replace")
+    except Exception as exc:
+        err = f"{type(exc).__name__}: {exc}"
+        return {"ok": False, "error": err, "path": path}, err
+    count = original.count(old_text)
+    if count <= 0:
+        return {"ok": False, "error": "old text not found", "path": path}, "old text not found"
+    limit = count if replace_all else 1
+    updated = original.replace(old_text, str(new or ""), limit)
+    try:
+        path_obj.write_text(updated, encoding="utf-8")
+    except Exception as exc:
+        err = f"{type(exc).__name__}: {exc}"
+        return {"ok": False, "error": err, "path": path}, err
+    result = {
+        "ok": True,
+        "ip": ip,
+        "path": path,
+        "replacements": limit,
+        "remaining_matches": max(0, count - limit),
+    }
+    return result, f"replaced {limit} occurrence(s) in {path}; remaining_matches={max(0, count - limit)}"
+
+
+def run_command(
+    *,
+    ip: str,
+    command: str,
+    project_root: Optional[Path] = None,
+    cwd: str = ".",
+    timeout: int = 60,
+    max_chars: int = 20_000,
+) -> ToolResult:
+    """Run a shell command with cwd constrained to the active IP directory."""
+    cwd_obj, error = _resolve_local_path(
+        ip=ip,
+        path=cwd or ".",
+        project_root=project_root,
+        allow_wiki=False,
+    )
+    if cwd_obj is None:
+        return {"ok": False, "error": error, "cwd": cwd}, error
+    if not cwd_obj.is_dir():
+        return {"ok": False, "error": "cwd is not a directory", "cwd": cwd}, "cwd is not a directory"
+    cmd = str(command or "").strip()
+    if not cmd:
+        return {"ok": False, "error": "command is required"}, "command is required"
+    timeout_s = max(1, min(int(timeout or 60), 300))
+    cap = max(1_000, min(int(max_chars or 20_000), 100_000))
+    try:
+        completed = subprocess.run(
+            cmd,
+            cwd=str(cwd_obj),
+            shell=True,
+            text=True,
+            capture_output=True,
+            timeout=timeout_s,
+        )
+        stdout = _truncate(completed.stdout or "", cap // 2)
+        stderr = _truncate(completed.stderr or "", cap // 2)
+        result = {
+            "ok": completed.returncode == 0,
+            "ip": ip,
+            "cwd": cwd,
+            "command": cmd,
+            "returncode": completed.returncode,
+            "stdout": stdout,
+            "stderr": stderr,
+        }
+        summary = (
+            f"returncode: {completed.returncode}\n"
+            f"cwd: {cwd}\n"
+            f"command: {cmd}\n"
+            "--- stdout ---\n"
+            f"{stdout}\n"
+            "--- stderr ---\n"
+            f"{stderr}"
+        )
+        return result, _truncate(summary, cap)
+    except subprocess.TimeoutExpired as exc:
+        result = {
+            "ok": False,
+            "ip": ip,
+            "cwd": cwd,
+            "command": cmd,
+            "error": f"timeout after {timeout_s}s",
+            "stdout": _truncate(exc.stdout or "", cap // 2),
+            "stderr": _truncate(exc.stderr or "", cap // 2),
+        }
+        return result, _truncate(
+            f"timeout after {timeout_s}s\n--- stdout ---\n{result['stdout']}\n--- stderr ---\n{result['stderr']}",
+            cap,
+        )
+    except Exception as exc:
+        err = f"{type(exc).__name__}: {exc}"
+        return {"ok": False, "error": err, "command": cmd}, err
 
 
 def read_artifact(ip: str, stage: str, project_root: Optional[Path] = None) -> ToolResult:
