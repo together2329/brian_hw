@@ -369,6 +369,133 @@ def wait_job(job_id: str) -> ToolResult:
     return {"ok": True, "job": snapshot}, summary
 
 
+def _resolve_read_file_path(
+    *,
+    ip: str,
+    path: str,
+    project_root: Optional[Path] = None,
+) -> Tuple[Optional[Path], str]:
+    pr = Path(project_root) if project_root else Path(
+        os.environ.get("ATLAS_PROJECT_ROOT") or "."
+    )
+    requested = Path(str(path or "").strip())
+    if not requested.parts:
+        return None, "path is required"
+    if requested.is_absolute() or ".." in requested.parts:
+        return None, "path must be a safe relative path"
+
+    ip_dir = (pr / ip).resolve()
+    allowed_roots = [
+        ip_dir,
+        (pr / "doc" / "wiki").resolve(),
+        (pr / ".omx" / "wiki").resolve(),
+    ]
+    if requested.parts and requested.parts[0] == ip:
+        candidate = (pr / requested).resolve()
+    else:
+        candidate = (ip_dir / requested).resolve()
+        if not candidate.exists():
+            project_candidate = (pr / requested).resolve()
+            if any(_is_relative_to(project_candidate, root) for root in allowed_roots):
+                candidate = project_candidate
+
+    if not any(_is_relative_to(candidate, root) for root in allowed_roots):
+        return None, "path is outside the active IP or wiki roots"
+    return candidate, ""
+
+
+def read_file(
+    *,
+    ip: str,
+    path: str,
+    project_root: Optional[Path] = None,
+    contains: str = "",
+    before: int = 2,
+    after: int = 80,
+    start_line: int = 0,
+    end_line: int = 0,
+    max_chars: int = 20_000,
+) -> ToolResult:
+    """Read a safe local file for direct user Q&A.
+
+    This is intentionally simpler than ``read_artifact``: it reads exactly the
+    file the orchestrator needs, optionally narrowed to a matching section or
+    line range. Scope is limited to the active IP plus project wiki roots.
+    """
+    path_obj, error = _resolve_read_file_path(ip=ip, path=path, project_root=project_root)
+    if path_obj is None:
+        return {"ok": False, "error": error, "path": path}, error
+    if not path_obj.exists():
+        return {"ok": False, "error": "file not found", "path": path}, "file not found"
+    if not path_obj.is_file():
+        return {"ok": False, "error": "path is not a file", "path": path}, "path is not a file"
+
+    try:
+        text = path_obj.read_text(encoding="utf-8", errors="replace")
+    except Exception as exc:
+        err = f"{type(exc).__name__}: {exc}"
+        return {"ok": False, "error": err, "path": path}, err
+
+    lines = text.splitlines()
+    selected = text
+    line_start = 1
+    line_end = len(lines)
+    mode = "full"
+
+    needle = str(contains or "").strip()
+    if needle:
+        match_idx = next((idx for idx, line in enumerate(lines) if needle in line), -1)
+        if match_idx < 0:
+            selected = ""
+            line_start = 0
+            line_end = 0
+            mode = "contains_not_found"
+        else:
+            left = max(0, match_idx - max(0, int(before)))
+            right = min(len(lines), match_idx + max(0, int(after)) + 1)
+            selected = "\n".join(lines[left:right])
+            line_start = left + 1
+            line_end = right
+            mode = "contains"
+    elif start_line or end_line:
+        start = max(1, int(start_line or 1))
+        end = int(end_line or start + 120)
+        end = max(start, min(end, len(lines)))
+        selected = "\n".join(lines[start - 1:end])
+        line_start = start
+        line_end = end
+        mode = "lines"
+
+    cap = max(1_000, min(int(max_chars or 20_000), 100_000))
+    truncated = len(selected) > cap
+    if truncated:
+        selected = selected[: cap - 20] + "\n...[truncated]"
+
+    result = {
+        "ok": True,
+        "ip": ip,
+        "path": str(path),
+        "resolved": str(path_obj),
+        "mode": mode,
+        "line_start": line_start,
+        "line_end": line_end,
+        "truncated": truncated,
+        "content": selected,
+    }
+    summary = _safe_json(
+        {
+            "path": str(path),
+            "mode": mode,
+            "line_start": line_start,
+            "line_end": line_end,
+            "truncated": truncated,
+            "content": selected,
+        },
+        cap=cap,
+    )
+    return result, summary
+
+
 def read_artifact(ip: str, stage: str, project_root: Optional[Path] = None) -> ToolResult:
     """Read canonical evidence for ``stage`` under ``<ip>/...``.
 

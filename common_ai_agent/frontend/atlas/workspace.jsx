@@ -2275,7 +2275,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
   React.useEffect(() => {
     let cancelled = false;
     const poll = () => {
-      fetch('/healthz', { cache: 'no-store' })
+      fetch('/healthz?cost=0', { cache: 'no-store' })
         .then(r => r.ok ? r.json() : null)
         .then(j => {
           if (cancelled || !j || !healthMatchesCurrentUser(j)) return;
@@ -6210,25 +6210,6 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
               ))}
             </div>
           )}
-          {/* Status strip directly above the input — at-a-glance state
-              the user doesn't have to look up at the chat header for. */}
-          {(() => {
-            const tokenTotal = Number(workspaceTelemetry.tokensIn || 0) + Number(workspaceTelemetry.tokensOut || 0);
-            return (
-              <div className="workspace-telemetry-strip">
-                <span className="workspace-telemetry-chip" data-role="token-count">
-                  tok <b>{formatWorkspaceTelemetryNumber(tokenTotal)}</b>
-                </span>
-                <span className="workspace-telemetry-chip" data-role="cost">
-                  cost <b>{formatWorkspaceUsd(workspaceTelemetry.costUsd)}</b>
-                  {workspaceTelemetry.lastCostDelta > 0 ? <span className="workspace-telemetry-dim"> +{formatWorkspaceUsd(workspaceTelemetry.lastCostDelta)}</span> : null}
-                </span>
-                {workspaceTelemetry.model ? (
-                  <span className="workspace-telemetry-model" title={workspaceTelemetry.model}>{workspaceTelemetry.model}</span>
-                ) : null}
-              </div>
-            );
-          })()}
           {(() => {
             const backendDown = !window.backend || backendState === 'missing' ||
               backendState === 'closed' || backendState === 'error';
@@ -6696,6 +6677,33 @@ const _pipelineStateSummary = (obsText) => {
   } catch (_) { return ''; }
 };
 
+const _artifactReadSummary = (obsText) => {
+  const d = _parseJsonObject(obsText);
+  if (!d) return '';
+  const files = Array.isArray(d.files) ? d.files.filter(Boolean) : [];
+  const missing = Array.isArray(d.missing) ? d.missing.filter(Boolean) : [];
+  const previews = Array.isArray(d.previews) ? d.previews.filter(p => p && typeof p === 'object') : [];
+  const preview = previews.find(p => p.exists) || previews[0] || {};
+  const head = String(preview.head || '');
+  const grab = (re) => {
+    const m = head.match(re);
+    return m ? String(m[1] || '').trim() : '';
+  };
+  const topName = grab(/(?:^|\n)\s*name:\s*([^\n]+)/);
+  const topFile = grab(/(?:^|\n)\s*file:\s*([^\n]+)/);
+  const modules = Array.from(head.matchAll(/(?:^|\n)\s*-\s*name:\s*([^\n]+)/g))
+    .map(m => String(m[1] || '').trim())
+    .filter(Boolean)
+    .slice(0, 3);
+  const parts = [];
+  if (files.length) parts.push(files.slice(0, 2).join(', '));
+  if (topName) parts.push(`top ${topName}`);
+  if (topFile) parts.push(topFile);
+  if (modules.length) parts.push(`modules ${modules.join(', ')}`);
+  if (missing.length) parts.push(`missing ${missing.length}`);
+  return parts.join(' · ');
+};
+
 // Readable one-line summary of an orchestrator tool CALL's args, so the chat
 // shows "⏸ until job ab12… / your reply · <reason>" instead of raw
 // `wake_on={"job_ids":[...],"user_message":true,...}, reason="..."`.
@@ -6737,8 +6745,12 @@ const _StandardToolCardRaw = ({ action, obs, summaryMode = true, tool }) => {
   // eye finds it. Otherwise use the tool theme color.
   const obsTextRaw = obs ? (summaryMode ? _cleanTodoToolText(obs.text || '', obs.tool) : (obs.text || '')) : '';
   const obsText = obsTextRaw.replace(/\x1b\[[\d;]*m/g, '');
-  const isStateRead = String(tool || '').toLowerCase() === 'read_pipeline_state';
+  const toolName = String(tool || '').toLowerCase();
+  const isStateRead = toolName === 'read_pipeline_state';
+  const isArtifactRead = toolName === 'read_artifact' || toolName === 'read_evidence';
   const stateSummary = isStateRead && obs ? _pipelineStateSummary(obsText) : '';
+  const artifactSummary = isArtifactRead && obs ? _artifactReadSummary(obsText) : '';
+  const resultSummary = stateSummary || artifactSummary;
   const status = obs ? _obsStatus(obsText) : 'neutral';
   const borderColor = status === 'err' ? '#f85149' : theme.color;
   const rawArgsText = action && action.text
@@ -6774,18 +6786,21 @@ const _StandardToolCardRaw = ({ action, obs, summaryMode = true, tool }) => {
   const showFullArgsByDefault = !!tool && /^(run_command|todo_update|dispatch_workflow)$/i.test(tool);
   const obsLines = obs ? obsText.split('\n') : [];
   const obsIsMulti = obsLines.length > 1;
+  const obsIsLarge = obsText.length > 1200 || obsLines.length > 12;
+  const isCompactRead = isStateRead || isArtifactRead;
   // Command and todo updates are useful as the primary payload, so show
   // their arguments by default while keeping the result body collapsible.
   // Threshold: > 100 chars or contains a newline.
   const argsIsLong = !!argsText && (argsText.length > 100 || /\n/.test(argsText));
-  // read_pipeline_state dumps a big JSON blob — default it COLLAPSED in
-  // summary mode (a compact summary shows in the header; click to expand raw).
-  const [obsOpen, setObsOpen] = React.useState(((!!obs && !isStateRead) || !summaryMode) || isReplaceTool);
+  // Large read tools dump JSON/escaped YAML. Keep those collapsed by default
+  // and show a short human summary in the card header.
+  const defaultObsOpen = ((!!obs && !isCompactRead && !obsIsLarge) || !summaryMode) || isReplaceTool;
+  const [obsOpen, setObsOpen] = React.useState(defaultObsOpen);
   React.useEffect(() => {
-    setObsOpen(((!!obs && !isStateRead) || !summaryMode) || isReplaceTool);
-  }, [obs, summaryMode, isReplaceTool, isStateRead]);
+    setObsOpen(defaultObsOpen);
+  }, [defaultObsOpen]);
   const showArgsExpanded = obsOpen || showFullArgsByDefault;
-  const headClickable = (!!obs && obsIsMulti) || argsIsLong || (isStateRead && !!obs);
+  const headClickable = (!!obs && obsIsMulti) || argsIsLong || (isCompactRead && !!obs) || obsIsLarge;
   const toggleObs = () => { if (headClickable) setObsOpen(v => !v); };
   return (
     <div className="tool-card has-hover-affordance"
@@ -6832,12 +6847,12 @@ const _StandardToolCardRaw = ({ action, obs, summaryMode = true, tool }) => {
             }}
           >{displayArgs}</span>
         )}
-        {isStateRead && stateSummary && !obsOpen && (
-          <span className="tool-card-args" style={{ color: 'var(--fg-mute)', flexBasis: '100%', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{stateSummary}</span>
+        {resultSummary && !obsOpen && (
+          <span className="tool-card-args" style={{ color: 'var(--fg-mute)', flexBasis: '100%', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{resultSummary}</span>
         )}
         {status === 'err' && <span className="tool-card-status" style={{ color: '#f85149' }}>✗</span>}
         {status === 'ok'  && <span className="tool-card-status" style={{ color: '#3fb950' }}>✓</span>}
-        {(obsIsMulti || argsIsLong || (isStateRead && !!obs)) ? (
+        {(obsIsMulti || argsIsLong || (isCompactRead && !!obs) || obsIsLarge) ? (
           <>
             {obsIsMulti && (
               <span className="mute" style={{ fontSize: 'var(--ui-small-font-size)', color: 'var(--fg)' }}>
@@ -17794,7 +17809,7 @@ const AgentStatusPanel = ({ intent, workflow, activeIp = '', onCollapse }) => {
     const onDataChanged = () => syncContext();
     syncContext();
     poll();
-    const timer = setInterval(poll, 2500);
+    const timer = setInterval(poll, 30000);
     window.addEventListener('atlas-data-changed', onDataChanged);
     window.addEventListener('atlas-session-loaded', onDataChanged);
     return () => {

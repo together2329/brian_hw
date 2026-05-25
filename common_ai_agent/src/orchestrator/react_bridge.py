@@ -3,13 +3,13 @@
 Phase 3.5 spike. Builds a ``ReactLoopDeps`` that runs the orchestrator on top
 of the production ReAct loop, inheriting compression / per-IP context
 injection / streaming UI, while keeping orchestrator-specific concerns
-(9-schema tool surface, step persistence, yield_run interrupt) in this file.
+(minimal tool surface, step persistence, yield_run interrupt) in this file.
 
 Key design decisions (from `[[orchestrator-loop-on-react-loop-plan]]`):
 
-- ``available_tools`` is REPLACED — not merged — with exactly 10 orchestrator
-  callables (including import_document). yield_run is a separate LLM-visible
-  wrapper, not as a ``dispatch_tool``-resolvable callable.
+- ``available_tools`` is REPLACED — not merged — with the small orchestrator
+  callable set. yield_run is a separate LLM-visible wrapper, not as a
+  ``dispatch_tool``-resolvable callable.
 - No ``src.main`` import. Production helpers come from ``core/*`` modules.
 - ``orchestrator_inject_fn`` is built with the explicit ``OrchestratorContext``,
   not the env/contextvar-bound legacy factory, so background threads work.
@@ -29,7 +29,6 @@ from typing import Any, Callable, Dict, Optional, Tuple
 
 from src.orchestrator import tools as orch_tools
 from src.orchestrator.budgets import BudgetTracker
-from src.orchestrator.classify import classify_failure
 from src.orchestrator.profile import ORCHESTRATOR_MODEL, ORCHESTRATOR_REASONING_EFFORT
 from src.orchestrator.prompts import SYSTEM_PROMPT, build_system_prompt, tool_schemas
 from src.orchestrator.ui_formatter import format_tool_call
@@ -327,20 +326,18 @@ def _bind_orchestrator_tools(
     def _wait_job(**kw):
         return orch_tools.wait_job(kw.get("job_id", ""))
 
-    def _read_artifact(**kw):
-        return orch_tools.read_artifact(
+    def _read_file(**kw):
+        return orch_tools.read_file(
             ip=kw.get("ip", ctx.ip_name),
-            stage=kw.get("stage", ""),
+            path=kw.get("path", ""),
             project_root=ctx.project_root,
+            contains=kw.get("contains", ""),
+            before=int(kw.get("before", 2) or 0),
+            after=int(kw.get("after", 80) or 0),
+            start_line=int(kw.get("start_line", 0) or 0),
+            end_line=int(kw.get("end_line", 0) or 0),
+            max_chars=int(kw.get("max_chars", 20_000) or 20_000),
         )
-
-    def _classify_failure(**kw):
-        decision = classify_failure(
-            kw.get("stage", ""),
-            evidence=kw.get("evidence"),
-            error_text=kw.get("error_text", ""),
-        )
-        return decision, json.dumps(decision)
 
     def _ask_user(**kw):
         return orch_tools.ask_user(
@@ -353,38 +350,6 @@ def _bind_orchestrator_tools(
             context=kw.get("context"),
         )
 
-    def _write_handoff(**kw):
-        return orch_tools.write_handoff(
-            ip=kw.get("ip", ctx.ip_name),
-            workflow=kw.get("workflow", ""),
-            payload=kw.get("payload") or {},
-            reason=kw.get("reason", ""),
-            user_id=ctx.user_id,
-            session_id=ctx.session_id,
-            pipeline_run_id=ctx.run_id,
-            orchestrator_run_id=ctx.run_id,
-            project_root=ctx.project_root,
-        )
-
-    def _mark_downstream_stale(**kw):
-        result, summary = orch_tools.mark_downstream_stale(
-            db=db,
-            ip_id=ctx.ip_id,
-            from_stage=kw.get("from_stage", ""),
-            run_id=ctx.run_id,
-            session_id=ctx.session_id,
-        )
-        if isinstance(result, dict) and result.get("ok"):
-            for stale_stage in result.get("stale") or []:
-                stage = str(stale_stage)
-                budgets.reset(stage)
-                budgets.reset(stage.replace("-", "_"))
-                if stage == "tb":
-                    budgets.reset("tb-gen")
-                elif stage == "sim-debug":
-                    budgets.reset("sim_debug")
-        return result, summary
-
     def _import_document(**kw):
         return orch_tools.import_document(
             ip=ctx.ip_name,
@@ -394,16 +359,11 @@ def _bind_orchestrator_tools(
 
     return {
         "read_pipeline_state":   _wrap("read_pipeline_state",   _read_pipeline_state),
+        "read_file":             _wrap("read_file",             _read_file),
         "dispatch_workflow":     _wrap("dispatch_workflow",     _dispatch_workflow),
         "wait_job":              _wrap("wait_job",              _wait_job),
-        "read_artifact":         _wrap("read_artifact",         _read_artifact),
-        "classify_failure":      _wrap("classify_failure",      _classify_failure),
         "ask_user":              _wrap("ask_user",              _ask_user),
-        "write_handoff":         _wrap("write_handoff",         _write_handoff),
-        "mark_downstream_stale": _wrap("mark_downstream_stale", _mark_downstream_stale),
         "import_document":       _wrap("import_document",       _import_document),
-        "web_search":            _wrap("web_search",            lambda **kw: orch_tools.web_search(query=kw.get("query", ""), limit=kw.get("limit", 5))),
-        "web_fetch":             _wrap("web_fetch",             lambda **kw: orch_tools.web_fetch(url=kw.get("url", ""), formats=kw.get("formats", "markdown"))),
     }
 
 

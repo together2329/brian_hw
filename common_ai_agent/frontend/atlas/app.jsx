@@ -2070,10 +2070,6 @@ const App = () => {
                     onClick={() => setNameEntry(null)}>×</button>
           </form>
         )}
-        <label className="dir-select-wrap" title={activeDbSessionTitle || 'Runtime DB session for this user/IP/workflow'}>
-          <span>session</span>
-          <output className="dir-session-readonly">{activeDbSessionLabel}</output>
-        </label>
         <label className="dir-select-wrap" title="Select ip_id. Namespace is user/ip_id/workflow.">
           <span>ip_id</span>
           <select
@@ -2276,7 +2272,6 @@ const App = () => {
         exitAll={exitAll}
       />
       <div className="app-main">
-        <TitleBar ip="" screen={screen} onScreen={setScreen} />
         <div style={{ flex: 1, overflow: 'hidden' }}>
           {screen === 'dashboard' && window.AtlasUserDashboard
             ? <ErrorBoundary label="Dashboard">

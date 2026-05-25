@@ -48,33 +48,20 @@ Model-stage vocabulary:
   names. Use dispatch_workflow(workflow="fl-model-gen", stages=[...]).
 
 Hard rules:
-- Never claim a stage passed without fresh artifact evidence (use read_artifact).
+- For direct content questions ("register list?", "what is in the SSOT?",
+  "show me the ports", "why did lint fail?"), read the exact local file with
+  read_file and answer from that evidence. Do NOT dispatch a worker and do NOT
+  use stage-level artifact previews for these questions.
+- read_file is the default evidence tool for local IP files and wiki notes.
+  Use `contains` or a line range when only one section is needed.
+- read_pipeline_state is for status and routing decisions, not for answering
+  detailed document questions.
+- Never claim a stage passed without checking current state and, if needed,
+  the exact evidence file with read_file.
 - Never silently retry past the budget; call ask_user or finalize as blocked.
-- Never invent owner classifications — call classify_failure to map failures.
-- If sim_debug reports `classification=stale_oracle` or
-  `owner=fl-model-gen`, route to the `equivalence` stage before blaming RTL
-  or TB; that stage runs the fl-model-gen worker's `/ssot-equiv-goals` path.
-- A `stale_oracle` refresh fixes the COMPARISON basis, NOT the RTL. When you
-  re-run `equivalence` to refresh the oracle for a sim mismatch, do NOT call
-  mark_downstream_stale from `equivalence`, and do NOT re-dispatch `rtl-gen` —
-  the RTL did not change, and re-authoring already-passing RTL just burns the
-  retry budget and loses synthesis. After equivalence refreshes, re-run
-  `sim_debug` then `sim` to re-compare. Re-author RTL ONLY when a fresh
-  classify_failure names `rtl-gen` as the owner of a real RTL defect.
-- `sim/fl_rtl_compare.json` and `sim/mismatch_classification.json` are
-  sim_debug outputs. If read_artifact reports `freshness_status=stale_artifact`
-  for either file, or shows it older than `sim/scoreboard_events.jsonl`,
-  `sim/results.xml`, or `verify/equivalence_goals.json`, do not route from
-  that stale owner data. Dispatch `sim_debug` first to refresh compare and
-  classification evidence.
-- After every new `sim` run that reports scoreboard mismatches or
-  PASS_OR_ESCALATE evidence, dispatch `sim_debug` before owner repair routing.
-- If no worker is available for a workflow, use write_handoff (durable queue).
-- When an upstream artifact ACTUALLY changes (a new SSOT, freshly authored
-  RTL), call mark_downstream_stale before re-dispatch. Do NOT mark RTL / syn /
-  pnr stale merely because you refreshed equivalence or oracle goals for sim
-  comparison — that needlessly discards passing RTL and synthesis and re-opens
-  the rtl-gen loop.
+- For repair/build requests, dispatch the relevant worker. If ownership is
+  unclear from current state and exact local evidence, ask one short question
+  instead of running a speculative repair loop.
 - Do not ask the user for permission before reversible pipeline repair work
   (rerun a failed workflow, reconcile generated manifest/filelist evidence,
   refresh stale lint/compile evidence, or dispatch an upstream repair worker).
@@ -90,8 +77,11 @@ Hard rules:
   pending/running.
 
 You have these tools:
-1. read_pipeline_state — every stage's state, jobs, artifacts.
-2. dispatch_workflow — start one OR many workers (ssot-gen, rtl-gen, lint,
+1. read_pipeline_state — every stage's state and active jobs.
+2. read_file — read a safe local file under the active IP or project wiki.
+   Use this for normal user questions. Narrow with `contains`, `start_line`,
+   or `end_line` when possible.
+3. dispatch_workflow — start one OR many workers (ssot-gen, rtl-gen, lint,
    tb-gen, sim, sim_debug, coverage, goal-audit, syn, sta, pnr, sta-post).
    Model stages use workflow="fl-model-gen" with stages=["fl-model"],
    ["cl-model"], or ["equivalence"].
@@ -104,23 +94,16 @@ You have these tools:
        all evidence → goal-audit
    Prefer one dispatch_workflow(stages=[...], schedule="dag") over multiple
    separate calls whenever stages are independent.
-3. wait_job — non-blocking snapshot of one job. Use this for ACTIVE polling
+4. wait_job — non-blocking snapshot of one job. Use this for ACTIVE polling
    when you need a status before deciding anything else this turn.
-   For passive waiting after fan-out, prefer yield_run (tool 9) — it sleeps
+   For passive waiting after fan-out, prefer yield_run — it sleeps
    the loop until an interrupt arrives (worker complete, user message, timer)
    so you do not burn LLM iterations or hit the 50-step / 30-min cap.
-4. read_artifact — read canonical evidence for one stage.
-5. classify_failure — owner classification for a failed stage.
-6. ask_user — pause the run and surface a question to the user chat.
-7. write_handoff — durable queue when no live worker is bound.
-8. mark_downstream_stale — invalidate downstream evidence after an upstream change.
-9. yield_run — park the run until a watched event fires (job done, user message, timer).
-10. import_document — extract text from a PDF or text file into req/ for ssot-gen.
+5. ask_user — pause the run and surface a question to the user chat.
+6. yield_run — park the run until a watched event fires (job done, user message, timer).
+7. import_document — extract text from a PDF or text file into req/ for ssot-gen.
     Call this BEFORE dispatch_workflow(ssot-gen) when the user provides a document path.
     Returns a requirement_source_id to include in the ssot-gen dispatch payload.
-11. web_search — search the web for current information (EDA tool changes, IEEE standards,
-    vendor docs, anything beyond training cutoff). Pass query and optional limit.
-12. web_fetch — fetch a URL and return its content as markdown.
 
 End-state contract:
 - Call dispatch_workflow with workflow="__final__" and payload={"state": "completed"|
@@ -139,7 +122,7 @@ def build_system_prompt(extra_context: str = "") -> str:
 
 
 def tool_schemas() -> List[Dict[str, Any]]:
-    """OpenAI-compatible function-calling schemas for the 12 orchestrator tools."""
+    """OpenAI-compatible function-calling schemas for the minimal orchestrator tools."""
     return [
         {
             "type": "function",
@@ -153,6 +136,39 @@ def tool_schemas() -> List[Dict[str, Any]]:
                         "include_jobs": {"type": "boolean", "default": True},
                     },
                     "required": ["ip"],
+                },
+            },
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "read_file",
+                "description": (
+                    "Read a safe local file under the active IP directory or project wiki. "
+                    "Use this for direct user questions about SSOT, RTL, logs, docs, or wiki notes."
+                ),
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "ip": {"type": "string"},
+                        "path": {
+                            "type": "string",
+                            "description": (
+                                "Relative path. Paths under the active IP may omit the IP prefix, "
+                                "e.g. yaml/<ip>.ssot.yaml."
+                            ),
+                        },
+                        "contains": {
+                            "type": "string",
+                            "description": "Optional substring to return the surrounding section.",
+                        },
+                        "before": {"type": "integer", "default": 2},
+                        "after": {"type": "integer", "default": 80},
+                        "start_line": {"type": "integer", "default": 0},
+                        "end_line": {"type": "integer", "default": 0},
+                        "max_chars": {"type": "integer", "default": 20000},
+                    },
+                    "required": ["ip", "path"],
                 },
             },
         },
@@ -215,37 +231,6 @@ def tool_schemas() -> List[Dict[str, Any]]:
         {
             "type": "function",
             "function": {
-                "name": "read_artifact",
-                "description": "Read canonical evidence files for a stage, or a safe relative artifact path under the IP.",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "ip": {"type": "string"},
-                        "stage": {"type": "string"},
-                    },
-                    "required": ["ip", "stage"],
-                },
-            },
-        },
-        {
-            "type": "function",
-            "function": {
-                "name": "classify_failure",
-                "description": "Map a failed stage + evidence to an owner and repair workflow.",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "stage": {"type": "string"},
-                        "evidence": {"type": "object"},
-                        "error_text": {"type": "string"},
-                    },
-                    "required": ["stage"],
-                },
-            },
-        },
-        {
-            "type": "function",
-            "function": {
                 "name": "ask_user",
                 "description": "Pause the run and ask the user a question in the chat stream.",
                 "parameters": {
@@ -255,23 +240,6 @@ def tool_schemas() -> List[Dict[str, Any]]:
                         "context": {"type": "object"},
                     },
                     "required": ["question"],
-                },
-            },
-        },
-        {
-            "type": "function",
-            "function": {
-                "name": "write_handoff",
-                "description": "Enqueue a durable handoff JSON when no live worker is bound.",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "workflow": {"type": "string"},
-                        "ip": {"type": "string"},
-                        "payload": {"type": "object"},
-                        "reason": {"type": "string"},
-                    },
-                    "required": ["workflow", "ip", "reason"],
                 },
             },
         },
@@ -316,21 +284,6 @@ def tool_schemas() -> List[Dict[str, Any]]:
         {
             "type": "function",
             "function": {
-                "name": "mark_downstream_stale",
-                "description": "Mark downstream stages stale after an upstream artifact change.",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "ip": {"type": "string"},
-                        "from_stage": {"type": "string"},
-                    },
-                    "required": ["ip", "from_stage"],
-                },
-            },
-        },
-        {
-            "type": "function",
-            "function": {
                 "name": "import_document",
                 "description": (
                     "Import a PDF or text document as the requirement source for an IP. "
@@ -351,55 +304,6 @@ def tool_schemas() -> List[Dict[str, Any]]:
                         },
                     },
                     "required": ["ip", "path"],
-                },
-            },
-        },
-        {
-            "type": "function",
-            "function": {
-                "name": "web_search",
-                "description": (
-                    "Search the web for current information. Use when the user's question "
-                    "requires data that may not be in the codebase or the orchestrator's "
-                    "training cutoff (e.g. recent EDA tool changes, IEEE standard updates, "
-                    "vendor docs)."
-                ),
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "query": {
-                            "type": "string",
-                            "description": "Search query string.",
-                        },
-                        "limit": {
-                            "type": "integer",
-                            "default": 5,
-                            "description": "Maximum number of results (1-20, default 5).",
-                        },
-                    },
-                    "required": ["query"],
-                },
-            },
-        },
-        {
-            "type": "function",
-            "function": {
-                "name": "web_fetch",
-                "description": "Fetch a URL and return its content as markdown.",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "url": {
-                            "type": "string",
-                            "description": "URL to fetch.",
-                        },
-                        "formats": {
-                            "type": "string",
-                            "default": "markdown",
-                            "description": "Return format (default: 'markdown').",
-                        },
-                    },
-                    "required": ["url"],
                 },
             },
         },
