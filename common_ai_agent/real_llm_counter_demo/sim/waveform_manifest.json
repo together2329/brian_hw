@@ -1,0 +1,323 @@
+{
+  "schema_version": 1,
+  "ip": "real_llm_counter_demo",
+  "type": "waveform_debug_observability_evidence",
+  "waveform": {
+    "path": "real_llm_counter_demo/sim/waves/real_llm_counter_demo.vcd",
+    "size_bytes": 20282,
+    "mtime_epoch": 1779667479.7363925,
+    "date": "Mon May 25 09:04:39 2026",
+    "version": "Icarus Verilog",
+    "timescale": "1ps",
+    "total_lines": 890
+  },
+  "passing_run": {
+    "sim_results": "real_llm_counter_demo/sim/sim_results.json",
+    "sim_log": "real_llm_counter_demo/sim/sim.log",
+    "sim_results_passed": true,
+    "scoreboard_pass": 37,
+    "scoreboard_fail": 0,
+    "sim_log_vcd_line": "VCD info: dumpfile sim/waves/real_llm_counter_demo.vcd opened for output.",
+    "sim_log_result_line": "[TB][RESULT] PASS scoreboard_pass=37 scoreboard_fail=0",
+    "sim_results_waveform_field": "sim/waves/real_llm_counter_demo.vcd"
+  },
+  "required_debug_observability_signals": {
+    "clk": {
+      "found": true,
+      "definitions": [
+        {
+          "line": 23,
+          "scope": "tb_real_llm_counter_demo",
+          "type": "reg",
+          "width": 1,
+          "code": "-",
+          "name": "clk",
+          "raw": "$var reg 1 - clk $end"
+        },
+        {
+          "line": 61,
+          "scope": "tb_real_llm_counter_demo.dut",
+          "type": "wire",
+          "width": 1,
+          "code": "-",
+          "name": "clk",
+          "raw": "$var wire 1 - clk $end"
+        }
+      ],
+      "found_in_dut_scope": true,
+      "found_in_tb_scope": true
+    },
+    "rst_n": {
+      "found": true,
+      "definitions": [
+        {
+          "line": 30,
+          "scope": "tb_real_llm_counter_demo",
+          "type": "reg",
+          "width": 1,
+          "code": "4",
+          "name": "rst_n",
+          "raw": "$var reg 1 4 rst_n $end"
+        },
+        {
+          "line": 67,
+          "scope": "tb_real_llm_counter_demo.dut",
+          "type": "wire",
+          "width": 1,
+          "code": "4",
+          "name": "rst_n",
+          "raw": "$var wire 1 4 rst_n $end"
+        }
+      ],
+      "found_in_dut_scope": true,
+      "found_in_tb_scope": true
+    },
+    "cmd_valid": {
+      "found": true,
+      "definitions": [
+        {
+          "line": 25,
+          "scope": "tb_real_llm_counter_demo",
+          "type": "reg",
+          "width": 1,
+          "code": "/",
+          "name": "cmd_valid",
+          "raw": "$var reg 1 / cmd_valid $end"
+        },
+        {
+          "line": 64,
+          "scope": "tb_real_llm_counter_demo.dut",
+          "type": "wire",
+          "width": 1,
+          "code": "/",
+          "name": "cmd_valid",
+          "raw": "$var wire 1 / cmd_valid $end"
+        }
+      ],
+      "found_in_dut_scope": true,
+      "found_in_tb_scope": true
+    },
+    "cmd_ready": {
+      "found": true,
+      "definitions": [
+        {
+          "line": 11,
+          "scope": "tb_real_llm_counter_demo",
+          "type": "wire",
+          "width": 1,
+          "code": "!",
+          "name": "cmd_ready",
+          "raw": "$var wire 1 ! cmd_ready $end"
+        },
+        {
+          "line": 63,
+          "scope": "tb_real_llm_counter_demo.dut",
+          "type": "wire",
+          "width": 1,
+          "code": "!",
+          "name": "cmd_ready",
+          "raw": "$var wire 1 ! cmd_ready $end"
+        }
+      ],
+      "found_in_dut_scope": true,
+      "found_in_tb_scope": true
+    },
+    "cmd": {
+      "found": true,
+      "definitions": [
+        {
+          "line": 24,
+          "scope": "tb_real_llm_counter_demo",
+          "type": "reg",
+          "width": 3,
+          "code": ".",
+          "name": "cmd",
+          "raw": "$var reg 3 . cmd [2:0] $end"
+        },
+        {
+          "line": 62,
+          "scope": "tb_real_llm_counter_demo.dut",
+          "type": "wire",
+          "width": 3,
+          "code": "R",
+          "name": "cmd",
+          "raw": "$var wire 3 R cmd [2:0] $end"
+        }
+      ],
+      "found_in_dut_scope": true,
+      "found_in_tb_scope": true
+    },
+    "load_value": {
+      "found": true,
+      "definitions": [
+        {
+          "line": 26,
+          "scope": "tb_real_llm_counter_demo",
+          "type": "reg",
+          "width": 8,
+          "code": "0",
+          "name": "load_value",
+          "raw": "$var reg 8 0 load_value [7:0] $end"
+        },
+        {
+          "line": 66,
+          "scope": "tb_real_llm_counter_demo.dut",
+          "type": "wire",
+          "width": 8,
+          "code": "T",
+          "name": "load_value",
+          "raw": "$var wire 8 T load_value [7:0] $end"
+        }
+      ],
+      "found_in_dut_scope": true,
+      "found_in_tb_scope": true
+    },
+    "count": {
+      "found": true,
+      "definitions": [
+        {
+          "line": 15,
+          "scope": "tb_real_llm_counter_demo",
+          "type": "wire",
+          "width": 8,
+          "code": "%",
+          "name": "count",
+          "raw": "$var wire 8 % count [7:0] $end"
+        },
+        {
+          "line": 65,
+          "scope": "tb_real_llm_counter_demo.dut",
+          "type": "wire",
+          "width": 8,
+          "code": "S",
+          "name": "count",
+          "raw": "$var wire 8 S count [7:0] $end"
+        }
+      ],
+      "found_in_dut_scope": true,
+      "found_in_tb_scope": true
+    },
+    "zero": {
+      "found": true,
+      "definitions": [
+        {
+          "line": 12,
+          "scope": "tb_real_llm_counter_demo",
+          "type": "wire",
+          "width": 1,
+          "code": "\"",
+          "name": "zero",
+          "raw": "$var wire 1 \" zero $end"
+        },
+        {
+          "line": 69,
+          "scope": "tb_real_llm_counter_demo.dut",
+          "type": "wire",
+          "width": 1,
+          "code": "\"",
+          "name": "zero",
+          "raw": "$var wire 1 \" zero $end"
+        }
+      ],
+      "found_in_dut_scope": true,
+      "found_in_tb_scope": true
+    },
+    "max": {
+      "found": true,
+      "definitions": [
+        {
+          "line": 14,
+          "scope": "tb_real_llm_counter_demo",
+          "type": "wire",
+          "width": 1,
+          "code": "$",
+          "name": "max",
+          "raw": "$var wire 1 $ max $end"
+        },
+        {
+          "line": 70,
+          "scope": "tb_real_llm_counter_demo.dut",
+          "type": "wire",
+          "width": 1,
+          "code": "$",
+          "name": "max",
+          "raw": "$var wire 1 $ max $end"
+        }
+      ],
+      "found_in_dut_scope": true,
+      "found_in_tb_scope": true
+    },
+    "accepted_count": {
+      "found": true,
+      "definitions": [
+        {
+          "line": 16,
+          "scope": "tb_real_llm_counter_demo",
+          "type": "wire",
+          "width": 32,
+          "code": "&",
+          "name": "accepted_count",
+          "raw": "$var wire 32 & accepted_count [31:0] $end"
+        },
+        {
+          "line": 60,
+          "scope": "tb_real_llm_counter_demo.dut",
+          "type": "wire",
+          "width": 32,
+          "code": "Q",
+          "name": "accepted_count",
+          "raw": "$var wire 32 Q accepted_count [31:0] $end"
+        }
+      ],
+      "found_in_dut_scope": true,
+      "found_in_tb_scope": true
+    },
+    "status": {
+      "found": true,
+      "definitions": [
+        {
+          "line": 13,
+          "scope": "tb_real_llm_counter_demo",
+          "type": "wire",
+          "width": 3,
+          "code": "#",
+          "name": "status",
+          "raw": "$var wire 3 # status [2:0] $end"
+        },
+        {
+          "line": 68,
+          "scope": "tb_real_llm_counter_demo.dut",
+          "type": "wire",
+          "width": 3,
+          "code": "U",
+          "name": "status",
+          "raw": "$var wire 3 U status [2:0] $end"
+        }
+      ],
+      "found_in_dut_scope": true,
+      "found_in_tb_scope": true
+    }
+  },
+  "all_required_signals_present": true,
+  "dump_enablement": {
+    "testbench": "real_llm_counter_demo/sim/tb_real_llm_counter_demo.sv",
+    "dump_directive_lines": [
+      {
+        "line": 313,
+        "text": "        $dumpfile(\"sim/waves/real_llm_counter_demo.vcd\");"
+      },
+      {
+        "line": 314,
+        "text": "        $dumpvars(0, tb_real_llm_counter_demo);"
+      }
+    ],
+    "dump_scope": "$dumpvars(0, tb_real_llm_counter_demo) captures the full testbench and DUT instance hierarchy."
+  },
+  "dut_behavior_change_assessment": {
+    "rtl_file": "real_llm_counter_demo/rtl/real_llm_counter_demo.sv",
+    "rtl_contains_dump_directives": false,
+    "rtl_git_diff_clean": true,
+    "rtl_git_diff_stdout": "",
+    "conclusion": "Waveform generation is testbench-only; no VCD/dump instrumentation or diff was found in the DUT RTL."
+  }
+}
