@@ -420,50 +420,6 @@ def _tool_text_header(path: str, meta: str = "") -> str:
     return f"path: {path}{suffix}\n---\n"
 
 
-def _dump_readable(value: Any, cap: int = 20_000) -> str:
-    try:
-        import yaml  # type: ignore
-
-        if isinstance(value, (dict, list)):
-            text = yaml.safe_dump(value, sort_keys=False, allow_unicode=True)
-        else:
-            text = str(value)
-    except Exception:
-        if isinstance(value, (dict, list)):
-            text = json.dumps(value, ensure_ascii=False, indent=2)
-        else:
-            text = str(value)
-    return _truncate(text, cap)
-
-
-def _yaml_selector_parts(selector: str) -> list[Any]:
-    parts: list[Any] = []
-    for raw in str(selector or "").split("."):
-        token = raw.strip()
-        if not token:
-            continue
-        match = re.match(r"^[^\[\]]+", token)
-        if match:
-            parts.append(match.group(0))
-        for idx in re.findall(r"\[(\d+)\]", token):
-            parts.append(int(idx))
-    return parts
-
-
-def _select_path(value: Any, selector: str) -> Tuple[bool, Any]:
-    cur = value
-    for part in _yaml_selector_parts(selector):
-        if isinstance(part, int):
-            if not isinstance(cur, list) or part >= len(cur):
-                return False, None
-            cur = cur[part]
-        else:
-            if not isinstance(cur, dict) or part not in cur:
-                return False, None
-            cur = cur[part]
-    return True, cur
-
-
 def list_dir(
     *,
     ip: str,
@@ -517,19 +473,13 @@ def read_file(
     ip: str,
     path: str,
     project_root: Optional[Path] = None,
-    contains: str = "",
-    before: int = 2,
-    after: int = 80,
-    start_line: int = 0,
-    end_line: int = 0,
     max_chars: int = 20_000,
-    yaml_path: str = "",
 ) -> ToolResult:
     """Read a safe local file for direct user Q&A.
 
-    This is intentionally simpler than ``read_artifact``: it reads exactly the
-    file the orchestrator needs, optionally narrowed to a matching section or
-    line range. Scope is limited to the active IP plus project wiki roots.
+    This mirrors the default agent read_file shape: provide a path, get file
+    content back. Use grep_file/read_lines for targeted reads on large files.
+    Scope is limited to the active IP plus project wiki roots.
     """
     path_obj, error = _resolve_local_path(ip=ip, path=path, project_root=project_root)
     if path_obj is None:
@@ -545,65 +495,8 @@ def read_file(
         err = f"{type(exc).__name__}: {exc}"
         return {"ok": False, "error": err, "path": path}, err
 
-    selector = str(yaml_path or "").strip()
-    if selector:
-        cap = max(1_000, min(int(max_chars or 20_000), 100_000))
-        try:
-            import yaml  # type: ignore
-
-            doc = yaml.safe_load(text)
-        except Exception as exc:
-            err = f"yaml parse failed: {type(exc).__name__}: {exc}"
-            return {"ok": False, "error": err, "path": path, "yaml_path": selector}, err
-        found, selected_value = _select_path(doc, selector)
-        if not found:
-            err = f"yaml_path not found: {selector}"
-            return {"ok": False, "error": err, "path": path, "yaml_path": selector}, err
-        rendered = _dump_readable(selected_value, cap=cap)
-        result = {
-            "ok": True,
-            "ip": ip,
-            "path": str(path),
-            "resolved": str(path_obj),
-            "mode": "yaml_path",
-            "yaml_path": selector,
-            "data": selected_value,
-            "content": rendered,
-            "truncated": len(rendered) >= cap,
-        }
-        return result, _tool_text_header(path, f"yaml_path={selector}") + rendered
-
-    lines = text.splitlines()
-    selected = text
-    line_start = 1
-    line_end = len(lines)
-    mode = "full"
-
-    needle = str(contains or "").strip()
-    if needle:
-        match_idx = next((idx for idx, line in enumerate(lines) if needle in line), -1)
-        if match_idx < 0:
-            selected = ""
-            line_start = 0
-            line_end = 0
-            mode = "contains_not_found"
-        else:
-            left = max(0, match_idx - max(0, int(before)))
-            right = min(len(lines), match_idx + max(0, int(after)) + 1)
-            selected = "\n".join(lines[left:right])
-            line_start = left + 1
-            line_end = right
-            mode = "contains"
-    elif start_line or end_line:
-        start = max(1, int(start_line or 1))
-        end = int(end_line or start + 120)
-        end = max(start, min(end, len(lines)))
-        selected = "\n".join(lines[start - 1:end])
-        line_start = start
-        line_end = end
-        mode = "lines"
-
     cap = max(1_000, min(int(max_chars or 20_000), 100_000))
+    selected = "\n".join(f"{idx:>5} | {line}" for idx, line in enumerate(text.splitlines(), 1))
     truncated = len(selected) > cap
     if truncated:
         selected = selected[: cap - 20] + "\n...[truncated]"
@@ -613,17 +506,52 @@ def read_file(
         "ip": ip,
         "path": str(path),
         "resolved": str(path_obj),
-        "mode": mode,
-        "line_start": line_start,
-        "line_end": line_end,
+        "mode": "full",
         "truncated": truncated,
         "content": selected,
     }
-    meta = f"mode={mode} lines={line_start}-{line_end}"
-    if truncated:
-        meta += " truncated=true"
-    summary = _tool_text_header(path, meta) + selected
+    summary = _tool_text_header(path, "truncated=true" if truncated else "") + selected
     return result, summary
+
+
+def read_lines(
+    *,
+    ip: str,
+    path: str,
+    start_line: int,
+    end_line: int,
+    project_root: Optional[Path] = None,
+    max_chars: int = 20_000,
+) -> ToolResult:
+    """Read a specific line range under the active IP or project wiki."""
+    path_obj, error = _resolve_local_path(ip=ip, path=path, project_root=project_root)
+    if path_obj is None:
+        return {"ok": False, "error": error, "path": path}, error
+    if not path_obj.is_file():
+        return {"ok": False, "error": "path is not a file", "path": path}, "path is not a file"
+    try:
+        lines = path_obj.read_text(encoding="utf-8", errors="replace").splitlines()
+    except Exception as exc:
+        err = f"{type(exc).__name__}: {exc}"
+        return {"ok": False, "error": err, "path": path}, err
+    start = max(1, int(start_line or 1))
+    end = max(start, min(int(end_line or start), len(lines)))
+    selected = "\n".join(f"{idx:>5} | {lines[idx - 1]}" for idx in range(start, end + 1))
+    cap = max(1_000, min(int(max_chars or 20_000), 100_000))
+    truncated = len(selected) > cap
+    if truncated:
+        selected = selected[: cap - 20] + "\n...[truncated]"
+    result = {
+        "ok": True,
+        "ip": ip,
+        "path": str(path),
+        "resolved": str(path_obj),
+        "start_line": start,
+        "end_line": end,
+        "truncated": truncated,
+        "content": selected,
+    }
+    return result, _tool_text_header(path, f"lines={start}-{end}") + selected
 
 
 def grep_file(
@@ -632,8 +560,8 @@ def grep_file(
     pattern: str,
     path: str = ".",
     project_root: Optional[Path] = None,
-    case_sensitive: bool = False,
-    regex: bool = False,
+    context_lines: int = 2,
+    recursive: bool = False,
     max_matches: int = 80,
     max_chars: int = 20_000,
 ) -> ToolResult:
@@ -644,19 +572,19 @@ def grep_file(
     needle = str(pattern or "")
     if not needle:
         return {"ok": False, "error": "pattern is required"}, "pattern is required"
-    flags = 0 if case_sensitive else re.IGNORECASE
-    compiled = None
-    if regex:
-        try:
-            compiled = re.compile(needle, flags)
-        except re.error as exc:
-            return {"ok": False, "error": f"invalid regex: {exc}"}, f"invalid regex: {exc}"
-    else:
-        cmp_needle = needle if case_sensitive else needle.lower()
+    try:
+        compiled = re.compile(needle)
+    except re.error as exc:
+        return {"ok": False, "error": f"invalid regex: {exc}"}, f"invalid regex: {exc}"
 
     def _candidate_files(root: Path):
         if root.is_file():
             yield root
+            return
+        if not bool(recursive):
+            for child in root.iterdir():
+                if child.is_file():
+                    yield child
             return
         for dirpath, dirnames, filenames in os.walk(root):
             dirnames[:] = [d for d in dirnames if d not in {".git", ".session", "__pycache__", "node_modules"}]
@@ -672,17 +600,22 @@ def grep_file(
             text = file_path.read_text(encoding="utf-8", errors="replace")
         except Exception:
             continue
-        for line_no, line in enumerate(text.splitlines(), 1):
-            hit = bool(compiled.search(line)) if compiled is not None else (
-                cmp_needle in (line if case_sensitive else line.lower())
-            )
-            if not hit:
+        split = text.splitlines()
+        for line_no, line in enumerate(split, 1):
+            if not compiled.search(line):
                 continue
+            ctx = max(0, min(int(context_lines or 0), 20))
+            left = max(1, line_no - ctx)
+            right = min(len(split), line_no + ctx)
             matches.append(
                 {
                     "path": _relative_display(file_path, project_root),
                     "line": line_no,
                     "text": line[:500],
+                    "context": [
+                        {"line": idx, "text": split[idx - 1][:500]}
+                        for idx in range(left, right + 1)
+                    ],
                 }
             )
             if len(matches) >= cap:
@@ -707,8 +640,7 @@ def write_file(
     path: str,
     content: str,
     project_root: Optional[Path] = None,
-    create_dirs: bool = True,
-    overwrite: bool = True,
+    append: bool = False,
 ) -> ToolResult:
     """Write a file under the active IP directory only."""
     path_obj, error = _resolve_local_path(
@@ -720,45 +652,51 @@ def write_file(
     )
     if path_obj is None:
         return {"ok": False, "error": error, "path": path}, error
-    if path_obj.exists() and not overwrite:
-        return {"ok": False, "error": "file exists", "path": path}, "file exists"
     try:
-        if create_dirs:
-            path_obj.parent.mkdir(parents=True, exist_ok=True)
-        path_obj.write_text(str(content or ""), encoding="utf-8")
+        path_obj.parent.mkdir(parents=True, exist_ok=True)
+        if append:
+            with path_obj.open("a", encoding="utf-8") as fh:
+                fh.write(str(content or ""))
+        else:
+            path_obj.write_text(str(content or ""), encoding="utf-8")
     except Exception as exc:
         err = f"{type(exc).__name__}: {exc}"
         return {"ok": False, "error": err, "path": path}, err
-    result = {"ok": True, "ip": ip, "path": path, "bytes": len(str(content or "").encode("utf-8"))}
-    return result, f"wrote {result['bytes']} bytes to {path}"
+    action = "appended" if append else "wrote"
+    result = {"ok": True, "ip": ip, "path": path, "bytes": len(str(content or "").encode("utf-8")), "append": bool(append)}
+    return result, f"{action} {result['bytes']} bytes to {path}"
 
 
 def replace_in_file(
     *,
     ip: str,
     path: str,
-    old: str,
-    new: str,
+    old_text: str = "",
+    new_text: str = "",
     project_root: Optional[Path] = None,
-    replace_all: bool = False,
+    count: int = -1,
+    old: str = "",
+    new: str = "",
 ) -> ToolResult:
     """Replace text in a file under the active IP directory only."""
     path_obj, error = _resolve_local_path(ip=ip, path=path, project_root=project_root, allow_wiki=False)
     if path_obj is None:
         return {"ok": False, "error": error, "path": path}, error
-    old_text = str(old or "")
-    if old_text == "":
+    target = str(old_text or old or "")
+    replacement = str(new_text if new_text != "" else new or "")
+    if target == "":
         return {"ok": False, "error": "old text is required", "path": path}, "old text is required"
     try:
         original = path_obj.read_text(encoding="utf-8", errors="replace")
     except Exception as exc:
         err = f"{type(exc).__name__}: {exc}"
         return {"ok": False, "error": err, "path": path}, err
-    count = original.count(old_text)
-    if count <= 0:
+    matches = original.count(target)
+    if matches <= 0:
         return {"ok": False, "error": "old text not found", "path": path}, "old text not found"
-    limit = count if replace_all else 1
-    updated = original.replace(old_text, str(new or ""), limit)
+    limit = int(count if count is not None else -1)
+    replace_count = matches if limit < 0 else min(limit, matches)
+    updated = original.replace(target, replacement, replace_count)
     try:
         path_obj.write_text(updated, encoding="utf-8")
     except Exception as exc:
@@ -768,10 +706,10 @@ def replace_in_file(
         "ok": True,
         "ip": ip,
         "path": path,
-        "replacements": limit,
-        "remaining_matches": max(0, count - limit),
+        "replacements": replace_count,
+        "remaining_matches": max(0, matches - replace_count),
     }
-    return result, f"replaced {limit} occurrence(s) in {path}; remaining_matches={max(0, count - limit)}"
+    return result, f"replaced {replace_count} occurrence(s) in {path}; remaining_matches={max(0, matches - replace_count)}"
 
 
 def run_command(
