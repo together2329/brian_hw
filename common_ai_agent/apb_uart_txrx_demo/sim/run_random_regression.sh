@@ -22,7 +22,7 @@ rm -f sim/random/random_regression_summary.json \
       sim/tb_apb_uart_txrx_demo_random.vvp
 
 iverilog -g2012 -Wall -o sim/tb_apb_uart_txrx_demo_random.vvp \
-  rtl/apb_uart_txrx_demo.sv \
+  -c list/apb_uart_txrx_demo.f \
   sim/tb_apb_uart_txrx_demo_random.sv
 
 summary_tmp=sim/random/random_regression_summary.tmp

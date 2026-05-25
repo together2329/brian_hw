@@ -12,4 +12,4 @@ SCENARIO SC_RX_OVERRUN
 SCENARIO SC_RX_IRQ
 SCENARIO SC_BAUD_VARIANTS
 SIM PASS scoreboard_pass=30 scenarios=12
-sim/tb_apb_uart_txrx_demo.sv:351: $finish called at 9975000 (1ps)
+sim/tb_apb_uart_txrx_demo.sv:351: $finish called at 10005000 (1ps)

@@ -17,6 +17,8 @@ from fastapi import FastAPI
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 
+from core.atlas_exec_policy import EXEC_MODE_SINGLE, current_exec_mode
+
 
 def register_sessions_routes(
     app: FastAPI,
@@ -57,6 +59,19 @@ def register_sessions_routes(
     def _multi_user_enabled() -> bool:
         raw = os.environ.get("ATLAS_MULTI_USER", "1").strip().lower()
         return raw not in ("0", "false", "no", "off")
+
+    def _env_flag(name: str, default: bool = False) -> bool:
+        raw = os.environ.get(name)
+        if raw is None or not str(raw).strip():
+            return default
+        return str(raw).strip().lower() in ("1", "true", "yes", "on")
+
+    def _session_worker_keepalive_enabled(process_mode: bool) -> bool:
+        if not process_mode:
+            return False
+        if os.environ.get("ATLAS_SESSION_WORKER_KEEPALIVE") is not None:
+            return _env_flag("ATLAS_SESSION_WORKER_KEEPALIVE", False)
+        return current_exec_mode(os.environ) == EXEC_MODE_SINGLE
 
     # ── /api/session/activate ──────────────────────────────────────
     @app.post("/api/session/activate")
@@ -198,10 +213,16 @@ def register_sessions_routes(
                     bridge.emit("agent_state", running=False, session_id=canonical)
             except Exception:
                 pass
+        session_worker_warmup: dict[str, Any] = {}
+        keep_session_worker_hot = _session_worker_keepalive_enabled(process_mode)
         try:
             bridge.activate_session(canonical)
         except Exception:
-            pass
+            session_worker_warmup = {
+                "enabled": False,
+                "reason": "activation_failed",
+                "error": "bridge.activate_session failed",
+            }
         atlas_active_session_cv.set(canonical)
         atlas_active_ip_cv.set(ip)
         # Mirror to os.environ only for in-process chat_loop mode — main.py's
@@ -374,6 +395,13 @@ def register_sessions_routes(
             )
         except Exception as exc:
             worker_warmup = {"enabled": False, "error": str(exc)}
+        if keep_session_worker_hot and "error" not in session_worker_warmup:
+            try:
+                warm_fn = getattr(bridge, "warm_session", None)
+                if callable(warm_fn):
+                    session_worker_warmup = warm_fn(canonical)
+            except Exception as exc:
+                session_worker_warmup = {"enabled": False, "error": str(exc)}
         return JSONResponse({
             "ok": True,
             "active_session": canonical,
@@ -393,6 +421,10 @@ def register_sessions_routes(
             "preserve_running": preserve_running,
             "process_scoped": process_mode,
             "worker_warmup": worker_warmup,
+            "session_worker_warmup": session_worker_warmup or {
+                "enabled": False,
+                "reason": "disabled",
+            },
         })
 
     # ── /api/session/history ───────────────────────────────────────

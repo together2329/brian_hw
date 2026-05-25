@@ -1,20 +1,19 @@
 {
-  "schema_version": "waveform_manifest.v1",
+  "schema_version": "waveform_manifest.v2",
   "ip": "apb_uart_txrx_demo",
   "waveform": {
     "path": "apb_uart_txrx_demo/sim/waves/apb_uart_txrx_demo.vcd",
     "relative_path": "sim/waves/apb_uart_txrx_demo.vcd",
     "exists": true,
-    "size_bytes": 74044,
+    "size_bytes": 81858,
     "format": "VCD"
   },
   "generation": {
     "command": "cd apb_uart_txrx_demo && ./sim/run_sim.sh",
     "testbench": "apb_uart_txrx_demo/sim/tb_apb_uart_txrx_demo.sv",
-    "dumpfile_source_line": "tb_apb_uart_txrx_demo.sv:324 $dumpfile(\"sim/waves/apb_uart_txrx_demo.vcd\")",
-    "dumpvars_source_line": "tb_apb_uart_txrx_demo.sv:325 $dumpvars(0, tb_apb_uart_txrx_demo)",
     "testbench_only": true,
-    "dut_source_modified_for_waveforms": false
+    "dut_source_modified_for_waveforms": false,
+    "rtl_style": "decomposed_modules"
   },
   "fresh_sim_evidence": {
     "sim_log": "apb_uart_txrx_demo/sim/sim.log",
@@ -41,6 +40,13 @@
       "uart_tx": true,
       "uart_rx": true,
       "irq": true
+    },
+    "decomposed_instances": {
+      "u_baud_div_eff": true,
+      "u_irq": true,
+      "u_tx": true,
+      "u_rx": true,
+      "u_regs": true
     }
   },
   "status": "pass"

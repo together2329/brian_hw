@@ -17,7 +17,7 @@ rm -f sim/tb_apb_uart_txrx_demo.vvp \
       sim/waves/apb_uart_txrx_demo.vcd
 
 iverilog -g2012 -Wall -o sim/tb_apb_uart_txrx_demo.vvp \
-  rtl/apb_uart_txrx_demo.sv \
+  -c list/apb_uart_txrx_demo.f \
   sim/tb_apb_uart_txrx_demo.sv
 
 set +e

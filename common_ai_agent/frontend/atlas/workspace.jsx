@@ -10805,8 +10805,190 @@ const extractSignalPorts = (section) => [
   description: blockField(block, 'description', 220),
 }));
 
+const _pinTypeFromPort = (port, fallbackType = 'signal') => {
+  const text = `${port?.name || ''} ${port?.description || ''} ${port?.protocol || ''} ${fallbackType || ''}`.toLowerCase();
+  if (/(^|[^a-z])(clk|clock|pclk|hclk|aclk|sclk)([^a-z]|$)/.test(text)) return 'clock';
+  if (/(^|[^a-z])(rst|reset|resetn|aresetn|presetn|preset_n)([^a-z]|$)/.test(text)) return 'reset';
+  if (/(apb|paddr|psel|penable|pwrite|pwdata|prdata|pready|pslverr|pstrb|pprot)/.test(text)) {
+    return port?.protocol || 'apb';
+  }
+  if (/(axi|ahb|wishbone|tilelink|amba|bus)/.test(text)) {
+    return port?.protocol || (fallbackType && fallbackType !== 'signal' ? fallbackType : 'bus');
+  }
+  if (/(irq|interrupt|nmi)/.test(text)) return 'irq';
+  return fallbackType || port?.protocol || 'signal';
+};
+
+const _portFromBlock = (block, defaults = {}) => {
+  const name = blockField(block, 'name') || block?.mapKey || defaults.name || '';
+  const direction = blockField(block, 'direction') || blockField(block, 'dir') || blockField(block, 'mode') || defaults.direction || '';
+  const width = blockField(block, 'width') || blockField(block, 'bits') || blockField(block, 'range') || defaults.width || '';
+  const description = blockField(block, 'description', 220) || defaults.description || '';
+  const protocol = blockField(block, 'protocol') || defaults.protocol || '';
+  const type = blockField(block, 'type') || _pinTypeFromPort({ name, description, protocol }, defaults.type || protocol || 'signal');
+  return {
+    name,
+    direction,
+    width,
+    description,
+    protocol,
+    type,
+    role: blockField(block, 'role') || defaults.role || direction,
+    clock_domain: blockField(block, 'clock_domain') || defaults.clock_domain || '',
+    reset_domain: blockField(block, 'reset_domain') || defaults.reset_domain || '',
+  };
+};
+
+const _dedupePins = (pins) => {
+  const seen = new Set();
+  return (pins || []).filter(pin => {
+    const name = String(pin?.name || '').trim();
+    if (!name) return false;
+    const key = name.toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
+
+const extractFlatIoPorts = (ioSection) => {
+  const blocks = [
+    ...listBlocksFromSection(ioSection),
+    ...mapBlocksFromSection(ioSection),
+  ];
+  return blocks
+    .map(block => _portFromBlock(block))
+    .filter(port => port.name && (port.direction || port.width));
+};
+
+const extractClockResetInterfaces = (ioSection) => {
+  const clocks = listBlocksFromSection(ioSection, 'clock_domains').map(block => {
+    const name = blockField(block, 'name') || block?.mapKey || 'clock';
+    return {
+      name,
+      type: 'clock',
+      role: 'input',
+      description: blockField(block, 'description', 220),
+      ports: extractSignalPorts(block),
+    };
+  });
+  const resets = listBlocksFromSection(ioSection, 'resets').map(block => {
+    const name = blockField(block, 'name') || block?.mapKey || 'reset';
+    return {
+      name,
+      type: 'reset',
+      role: 'input',
+      description: blockField(block, 'description', 220),
+      ports: extractSignalPorts(block),
+    };
+  });
+  return [...clocks, ...resets];
+};
+
+const extractIoDiagramPins = (ioSection) => {
+  const flatPins = extractFlatIoPorts(ioSection).map(port => ({
+    ...port,
+    pin: true,
+    ports: [],
+  }));
+  const clockPins = listBlocksFromSection(ioSection, 'clock_domains').flatMap(block => {
+    const domainName = blockField(block, 'name') || block?.mapKey || 'clock';
+    const description = blockField(block, 'description', 220);
+    const ports = extractSignalPorts(block);
+    const rows = ports.length ? ports : [{ name: domainName, direction: 'input', width: '1', description }];
+    return rows.map(port => ({
+      ...port,
+      name: port.name || domainName,
+      direction: port.direction || 'input',
+      width: port.width || '1',
+      description: port.description || description,
+      type: 'clock',
+      role: 'input',
+      clock_domain: domainName,
+      pin: true,
+      ports: [],
+    }));
+  });
+  const resetPins = listBlocksFromSection(ioSection, 'resets').flatMap(block => {
+    const resetName = blockField(block, 'name') || block?.mapKey || 'reset';
+    const description = blockField(block, 'description', 220);
+    const ports = extractSignalPorts(block);
+    const rows = ports.length ? ports : [{ name: resetName, direction: 'input', width: '1', description }];
+    return rows.map(port => ({
+      ...port,
+      name: port.name || resetName,
+      direction: port.direction || 'input',
+      width: port.width || '1',
+      description: port.description || description,
+      type: 'reset',
+      role: 'input',
+      reset_domain: resetName,
+      pin: true,
+      ports: [],
+    }));
+  });
+  const ifacePins = listBlocksFromSection(ioSection, 'interfaces').flatMap(block => {
+    const iface = interfaceFromBlock(block);
+    return (iface.ports || []).map(port => {
+      const protocol = iface.type || port.protocol || '';
+      const description = port.description || iface.description || '';
+      return {
+        ...port,
+        description,
+        protocol,
+        type: _pinTypeFromPort({ ...port, description, protocol }, protocol || 'signal'),
+        role: iface.role || port.direction || '',
+        clock_domain: blockField(block, 'clock_domain'),
+        reset_domain: blockField(block, 'reset_domain'),
+        interfaceName: iface.name,
+        pin: true,
+        ports: [],
+      };
+    });
+  });
+  return _dedupePins([...clockPins, ...resetPins, ...ifacePins, ...flatPins]);
+};
+
+const extractInterruptPins = (section) => {
+  const blocks = [
+    ...listBlocksFromSection(section, 'interrupt_list'),
+    ...listBlocksFromSection(section, 'list'),
+    ...listBlocksFromSection(section),
+  ];
+  return blocks
+    .map(block => ({
+      name: blockField(block, 'name') || blockField(block, 'id') || '',
+      direction: blockField(block, 'direction') || 'output',
+      width: blockField(block, 'width') || '1',
+      description: blockField(block, 'description', 220),
+      type: 'irq',
+      role: 'source',
+      pin: true,
+      ports: [],
+    }))
+    .filter(pin => pin.name);
+};
+
+const extractReviewPins = (ioSection, interruptsSection) =>
+  _dedupePins([
+    ...extractIoDiagramPins(ioSection),
+    ...extractInterruptPins(interruptsSection),
+  ]);
+
 const extractReviewInterfaces = (sections, ioSection) => {
-  const canonical = extractInterfaces(ioSection);
+  const flatPorts = extractFlatIoPorts(ioSection);
+  const flatIoInterface = flatPorts.length ? [{
+    name: 'top_io',
+    type: 'pins',
+    role: 'external',
+    description: 'Top-level pins declared directly under io_list.',
+    ports: flatPorts,
+  }] : [];
+  const canonical = [
+    ...extractClockResetInterfaces(ioSection),
+    ...extractInterfaces(ioSection),
+    ...flatIoInterface,
+  ];
   const generic = (sections || [])
     .filter(section => section !== ioSection && /(interfaces?|bus_?interfaces?|busInterfaces|interrupts?)$/i.test(section.key || ''))
     .flatMap(section => {
@@ -12046,7 +12228,7 @@ const _ifaceKind = (name, type) => {
   const t = `${name || ''} ${type || ''}`.toLowerCase();
   if (/(^|[^a-z])(clk|clock|cks)([^a-z]|$)/.test(t)) return 'clock';
   if (/(^|[^a-z])(rst|reset|aresetn)([^a-z]|$)/.test(t)) return 'reset';
-  if (/(apb|axi|ahb|wishbone|tilelink|amba|bus|register|reg_if|reg-if)/.test(t)) return 'bus';
+  if (/(apb|axi|ahb|wishbone|tilelink|amba|bus|register|reg_if|reg-if|paddr|psel|penable|pwrite|pwdata|prdata|pready|pslverr|pstrb|pprot)/.test(t)) return 'bus';
   if (/(irq|interrupt|nmi)/.test(t)) return 'irq';
   return 'data';
 };
@@ -12290,7 +12472,7 @@ const _maxNestingDepth = (modules) => {
   return best;
 };
 
-const BlockDiagram = ({ topName, modules, contractByModule = {}, interfaces = [], clockSection, parameters = [] }) => {
+const BlockDiagram = ({ topName, modules, contractByModule = {}, interfaces = [], diagramPins = [], clockSection, parameters = [] }) => {
   const list = Array.isArray(modules) ? modules : [];
   if (!list.length) return null;
   // Multi-open: clicking a pin row toggles ITS drawer without closing
@@ -12320,10 +12502,21 @@ const BlockDiagram = ({ topName, modules, contractByModule = {}, interfaces = []
   // edge of the frame (clock/reset → left, bus → right, irq → right,
   // data pads → bottom).
   const buckets = { clock: [], reset: [], bus: [], irq: [], data: [] };
-  (interfaces || []).forEach(iface => {
+  const pinRows = Array.isArray(diagramPins) ? diagramPins.filter(pin => pin && pin.name) : [];
+  const ifaceRows = Array.isArray(interfaces) ? interfaces.filter(iface => iface && (iface.name || iface.description)) : [];
+  const diagramRows = pinRows.length
+    ? [
+        ...pinRows,
+        ...ifaceRows.filter(iface => !(Array.isArray(iface.ports) && iface.ports.length)),
+      ]
+    : ifaceRows;
+  diagramRows.forEach(iface => {
     const kind = _ifaceKind(iface.name, iface.type);
     (buckets[kind] || buckets.data).push({ ...iface, kind });
   });
+  const hasPortDrawerOverflow = diagramRows.some(iface => (
+    !iface.pin && Array.isArray(iface.ports) && iface.ports.length > 8
+  ));
   // Synthesize default clock/reset chips from the clock_reset_domains
   // section if no explicit interface entries exist for them.
   if (!buckets.clock.length && clockSection) {
@@ -12347,17 +12540,28 @@ const BlockDiagram = ({ topName, modules, contractByModule = {}, interfaces = []
                   ? [...(iface.inputs || []).map(n => ({ name: n, dir: 'in' })),
                      ...(iface.outputs || []).map(n => ({ name: n, dir: 'out' }))]
                   : [];
+    const hasDrawer = !iface.pin && ports.length;
     const visible = showAllSignals ? ports : ports.slice(0, 8);
-    // "APB4 S" / "CLK S" / "custom S" — short type tag + role abbrev.
-    const typeStr = (iface.type || '').trim() || iface.kind || 'custom';
-    const role = (iface.role || '').toLowerCase().startsWith('mast') ? 'M' : 'S';
+    const typeStr = (iface.type || '').trim() || iface.kind || (iface.pin ? 'pin' : 'custom');
+    const pinDir = iface.direction || iface.dir || (ports.length === 1 ? (ports[0].direction || ports[0].dir) : '');
+    const pinWidth = iface.width || (ports.length === 1 ? ports[0].width : '');
+    const pinWidthText = _formatWidth(pinWidth);
+    const metaParts = [typeStr].filter(Boolean);
+    if (iface.pin) {
+      if (pinDir) metaParts.push(pinDir);
+      if (pinWidthText) metaParts.push(pinWidthText);
+    } else {
+      const role = (iface.role || '').toLowerCase().startsWith('mast') ? 'M' : 'S';
+      metaParts.push(role);
+    }
     return (
       <div key={id} style={{ display: 'flex', flexDirection: 'column' }}>
         <div
-          role="button"
-          tabIndex={0}
-          onClick={() => toggleIface(id)}
+          role={hasDrawer ? 'button' : undefined}
+          tabIndex={hasDrawer ? 0 : undefined}
+          onClick={() => { if (hasDrawer) toggleIface(id); }}
           onKeyDown={(e) => {
+            if (!hasDrawer) return;
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
               toggleIface(id);
@@ -12366,7 +12570,7 @@ const BlockDiagram = ({ topName, modules, contractByModule = {}, interfaces = []
           title={iface.description || iface.role || iface.type || iface.name}
           style={{
             display: 'flex', alignItems: 'center', gap: 0,
-            cursor: 'pointer', userSelect: 'none',
+            cursor: hasDrawer ? 'pointer' : 'default', userSelect: 'none',
             padding: '2px 0',
           }}
         >
@@ -12377,7 +12581,7 @@ const BlockDiagram = ({ topName, modules, contractByModule = {}, interfaces = []
             fontSize: 'var(--ui-control-font-size)',
           }}>
             <span style={{ color: 'var(--fg)', fontWeight: 600 }}>{iface.name || iface.type}</span>
-            <span style={{ color: 'var(--fg-mute)' }}> · {typeStr} {role}</span>
+            <span style={{ color: 'var(--fg-mute)' }}> · {metaParts.join(' ')}</span>
           </span>
           <span style={{ width: 22, height: 1.5, background: color, flexShrink: 0 }} />
           <span style={{
@@ -12386,7 +12590,7 @@ const BlockDiagram = ({ topName, modules, contractByModule = {}, interfaces = []
             flexShrink: 0,
             border: `1px solid ${color}`,
           }} />
-          {ports.length ? (
+          {hasDrawer ? (
             <span style={{
               marginLeft: 4, fontSize: 9,
               color: 'var(--fg-mute)',
@@ -12395,7 +12599,7 @@ const BlockDiagram = ({ topName, modules, contractByModule = {}, interfaces = []
             </span>
           ) : null}
         </div>
-        {isOpen && ports.length ? (
+        {isOpen && hasDrawer ? (
           <div style={{
             margin: '4px 0 4px 8px',
             border: `1px solid ${color}`,
@@ -12573,14 +12777,16 @@ const BlockDiagram = ({ topName, modules, contractByModule = {}, interfaces = []
             {showParams ? '▾ params' : '▸ params'}
           </button>
         ) : null}
-        <button
-          type="button"
-          className="mini-btn"
-          onClick={() => setShowAllSignals(v => !v)}
-          title="toggle full port list on every interface"
-        >
-          {showAllSignals ? '▾ collapse all' : '▸ show all'}
-        </button>
+        {hasPortDrawerOverflow ? (
+          <button
+            type="button"
+            className="mini-btn"
+            onClick={() => setShowAllSignals(v => !v)}
+            title="toggle full port list on every interface"
+          >
+            {showAllSignals ? '▾ collapse all' : '▸ show all'}
+          </button>
+        ) : null}
       </div>
 
       {/* Two-column layout: external pin labels (left) connect to the
@@ -12847,6 +13053,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
   })();
 
   const interfaces = extractReviewInterfaces(sections, io);
+  const diagramPins = extractReviewPins(io, interruptsSection);
   const parsedFeatures = extractFeatures(featuresSection);
   const featureSections = (sections || []).filter(section => (
     section !== featuresSection
@@ -13195,13 +13402,14 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
     <>
       {header}
       <div style={{ display: 'grid', gap: 10 }}>
-        <DigestCard title="Block Diagram" meta={`${topName} → ${submods.length} submodules · ${interfaces.length} interfaces`}>
+        <DigestCard title="Block Diagram" meta={`${topName} → ${submods.length} submodules · ${diagramPins.length ? `${diagramPins.length} pins` : `${interfaces.length} interfaces`}`}>
           {submods.length ? (
             <BlockDiagram
               topName={topName}
               modules={submods}
               contractByModule={contractByModule}
               interfaces={interfaces}
+              diagramPins={diagramPins}
               clockSection={clockSection}
               parameters={parameters}
             />

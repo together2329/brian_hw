@@ -1,29 +1,27 @@
 {
-  "schema_version": "static_signoff.v1",
+  "schema_version": "static_signoff.v2",
   "ip": "apb_uart_txrx_demo",
   "checks": {
     "ssot_validation": "PASS: verify_ssot starter blockers=0 warnings=canonical_order",
-    "iverilog_directed_compile": "PASS: verify/static_directed_compile.vvp built",
-    "iverilog_random_compile": "PASS: verify/static_random_compile.vvp built",
-    "verilator_lint": "PASS: verify/verilator_lint.log status 0",
-    "yosys_check": "PASS_WITH_WARNINGS: verify/yosys_check.log status 0; warnings from synthesized bit-select temp wires, directed/random sims pass",
+    "iverilog_directed_compile": "PASS after decomposition",
+    "iverilog_random_compile": "PASS after decomposition",
+    "verilator_lint": "PASS status 0 after decomposition",
+    "yosys_check": "PASS status 0 after decomposition",
     "ports_present": true,
     "offsets_present": true,
     "reset_constants_present": true,
-    "artifacts_readable": true
+    "artifacts_readable": true,
+    "decomposed_modules_present": true,
+    "filelist_decomposed": true,
+    "directed_pass": true,
+    "random_pass": true
   },
   "waivers": [
     {
       "tool": "pyslang sv_compile combined TB+DUT",
       "issue": "reported stale unique-case/time-scale warnings after source repair in multi-file invocation; single RTL compile has 0 errors and iverilog/verilator pass",
       "rationale": "Ground-truth grep shows no `unique case`; RTL has `timescale`; executable simulator and Verilator pass."
-    },
-    {
-      "tool": "yosys check",
-      "issue": "bit-select temp wire warnings at RX shift assignment",
-      "rationale": "Yosys status 0; directed RX one-byte/back-to-back/framing/overrun and random RX smoke pass; tracked as low-risk synthesis warning."
     }
   ],
-  "status": "pass",
-  "missing_artifacts": []
+  "status": "pass"
 }

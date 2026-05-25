@@ -609,6 +609,24 @@ class AtlasDB:
     # a tiny lock overhead but the SQLite call dominates.
     _WRITE_LOCK = threading.RLock()
 
+    # Schema bootstrap is idempotent but not free: the full DDL script
+    # (~80 CREATE statements) plus the preflight/migration PRAGMA scans cost
+    # ~3 ms per run under _WRITE_LOCK. Hot paths build `with AtlasDB(...)`
+    # thousands of times, so re-running it on every construction serialized
+    # the LLM loop behind redundant re-initialization. Track which db files
+    # this process has already initialized and skip the work after the first
+    # pass. Guarded by _WRITE_LOCK (set mutation happens inside the lock).
+    _INITIALIZED_PATHS: set = set()
+
+    # Per-thread connection cache keyed by db_path. Opening + WAL-configuring
+    # a connection costs ~0.4 ms; hot paths build `with AtlasDB(...)` thousands
+    # of times, so each block paid that to open and then close again. Reusing
+    # one connection per (thread, db_path) drops the per-block cost to ~0.002 ms.
+    # Thread-local (not a single shared connection) so a connection is only ever
+    # touched by its owning thread — cursors returned from _execute() can be
+    # iterated after the lock releases without colliding with another thread.
+    _TLS = threading.local()
+
     def __init__(self, db_path: str = None):
         if db_path is None:
             db_path = os.environ.get("ATLAS_DB_PATH") or str(Path.home() / ".common_ai_agent" / "atlas.db")
@@ -621,32 +639,41 @@ class AtlasDB:
         self.init_db()
 
     def _connect(self) -> sqlite3.Connection:
-        """Open (or re-open) the SQLite connection."""
-        if self._conn is None:
+        """Return this thread's connection for db_path, opening it once."""
+        cache = getattr(AtlasDB._TLS, "conns", None)
+        if cache is None:
+            cache = {}
+            AtlasDB._TLS.conns = cache
+        conn = cache.get(self.db_path)
+        if conn is not None:
+            self._conn = conn
+            return conn
+        try:
+            timeout_s = float(os.environ.get("ATLAS_SQLITE_TIMEOUT", "30") or 30)
+        except Exception:
+            timeout_s = 30.0
+        conn = sqlite3.connect(
+            self.db_path,
+            check_same_thread=False,
+            timeout=timeout_s,
+        )
+        conn.row_factory = sqlite3.Row
+        # WAL mode allows concurrent reads + single queued writer (no reader/writer blocking).
+        # busy_timeout must be set before journal_mode because multiple
+        # worker processes can initialize the same DB at once.
+        conn.execute(f"PRAGMA busy_timeout={int(timeout_s * 1000)}")
+        deadline = time.monotonic() + timeout_s
+        while True:
             try:
-                timeout_s = float(os.environ.get("ATLAS_SQLITE_TIMEOUT", "30") or 30)
-            except Exception:
-                timeout_s = 30.0
-            self._conn = sqlite3.connect(
-                self.db_path,
-                check_same_thread=False,
-                timeout=timeout_s,
-            )
-            self._conn.row_factory = sqlite3.Row
-            # WAL mode allows concurrent reads + single queued writer (no reader/writer blocking).
-            # busy_timeout must be set before journal_mode because multiple
-            # worker processes can initialize the same DB at once.
-            self._conn.execute(f"PRAGMA busy_timeout={int(timeout_s * 1000)}")
-            deadline = time.monotonic() + timeout_s
-            while True:
-                try:
-                    self._conn.execute("PRAGMA journal_mode=WAL")
-                    break
-                except sqlite3.OperationalError as exc:
-                    if "database is locked" not in str(exc).lower() or time.monotonic() >= deadline:
-                        raise
-                    time.sleep(0.05)
-        return self._conn
+                conn.execute("PRAGMA journal_mode=WAL")
+                break
+            except sqlite3.OperationalError as exc:
+                if "database is locked" not in str(exc).lower() or time.monotonic() >= deadline:
+                    raise
+                time.sleep(0.05)
+        cache[self.db_path] = conn
+        self._conn = conn
+        return conn
 
     def _execute(self, sql: str, parameters: tuple = ()) -> sqlite3.Cursor:
         """Execute SQL inside the lock."""
@@ -709,13 +736,20 @@ class AtlasDB:
     # ---------- Lifecycle ----------
 
     def init_db(self):
-        """Create tables and indexes if they don't exist."""
+        """Create tables and indexes if they don't exist.
+
+        Runs the full schema bootstrap once per db file per process; later
+        calls return immediately (see _INITIALIZED_PATHS).
+        """
         with self._lock:
+            if self.db_path in AtlasDB._INITIALIZED_PATHS:
+                return
             conn = self._connect()
             self._preflight_legacy_schema(conn)
             conn.executescript(SCHEMA_SQL)
             self._run_lightweight_migrations(conn)
             conn.commit()
+            AtlasDB._INITIALIZED_PATHS.add(self.db_path)
 
     def _preflight_legacy_schema(self, conn: sqlite3.Connection) -> None:
         """Add columns needed by indexes before running idempotent DDL.
@@ -1035,18 +1069,26 @@ class AtlasDB:
             raise
 
     def close(self):
-        """Close the underlying connection."""
+        """Close and evict this thread's cached connection for db_path."""
         with self._lock:
-            if self._conn is not None:
-                self._conn.close()
-                self._conn = None
+            cache = getattr(AtlasDB._TLS, "conns", None)
+            conn = cache.pop(self.db_path, None) if cache else None
+            if conn is None:
+                conn = self._conn
+            if conn is not None:
+                try:
+                    conn.close()
+                except Exception:
+                    pass
+            self._conn = None
 
     def __enter__(self):
-        self.init_db()
+        # __init__ already ran init_db(); no need to repeat it on every `with`.
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.close()
+        # Keep the thread-local connection cached for reuse; explicit close()
+        # or process exit releases it. Closing here would defeat reuse.
         return False
 
     # ---------- Users ----------

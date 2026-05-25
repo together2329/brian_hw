@@ -7393,25 +7393,82 @@ def register_jobs_routes(
             if not raw_lines:
                 return None
             start = max(0, len(raw_lines) - 1000)
+            if since > 0:
+                start = max(start, int(since))
             ansi_re = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
-            normalized = []
+            action_re = re.compile(r"^[▶⏺]\s*([A-Za-z_][\w.-]*)")
+            thought_re = re.compile(r"^(?:THOUGHT|REASONING)(?:\s|\(|:|$)|^───|^✽|^⚡")
+            obs_prefixes = ("⎿", "└", "├", "│")
+            normalized: list[dict[str, Any]] = []
+            current: dict[str, Any] | None = None
+
+            def _flush_current() -> None:
+                nonlocal current
+                if not current:
+                    return
+                lines = [str(line).rstrip() for line in current.get("lines") or []]
+                content = "\n".join(line for line in lines if line).strip()
+                if content:
+                    item = {
+                        "index": int(current.get("last_index") or current.get("index") or 0),
+                        "type": current.get("type") or "log",
+                        "role": current.get("role") or "stdout",
+                        "content": content[:12000],
+                        "timestamp": job.get("started_at") or 0,
+                        "source": "ipc-stdout",
+                    }
+                    if current.get("tool"):
+                        item["tool"] = current["tool"]
+                    normalized.append(item)
+                current = None
+
+            def _start_group(kind: str, role: str, offset: int, line: str) -> None:
+                nonlocal current
+                current = {
+                    "index": offset,
+                    "last_index": offset,
+                    "type": kind,
+                    "role": role,
+                    "lines": [line],
+                }
+
             for offset, line in enumerate(raw_lines[start:], start=start):
                 clean = ansi_re.sub("", str(line or "")).strip()
                 if not clean:
                     continue
-                normalized.append({
-                    "index": offset,
-                    "type": "log",
-                    "role": "stdout",
-                    "content": clean[:1200],
-                    "timestamp": job.get("started_at") or 0,
-                    "source": "ipc-stdout",
-                })
-            if since > 0:
-                normalized = [
-                    e for e in normalized
-                    if int(e.get("index") or 0) >= since
-                ]
+                action = action_re.match(clean)
+                if action:
+                    _flush_current()
+                    normalized.append({
+                        "index": offset,
+                        "type": "action",
+                        "role": "assistant",
+                        "content": clean[:1200],
+                        "tool": str(action.group(1) or "").strip() or "tool",
+                        "timestamp": job.get("started_at") or 0,
+                        "source": "ipc-stdout",
+                    })
+                    continue
+                if clean.startswith(obs_prefixes):
+                    if not current or current.get("type") != "observation":
+                        _flush_current()
+                        _start_group("observation", "tool", offset, clean)
+                    else:
+                        current.setdefault("lines", []).append(clean)
+                        current["last_index"] = offset
+                    continue
+                if current and current.get("type") == "observation" and not thought_re.match(clean) and not clean.startswith("┃"):
+                    current.setdefault("lines", []).append(clean)
+                    current["last_index"] = offset
+                    continue
+                thought_line = clean[1:].strip() if clean.startswith("┃") else clean
+                if not current or current.get("type") != "log":
+                    _flush_current()
+                    _start_group("log", "stdout", offset, thought_line)
+                else:
+                    current.setdefault("lines", []).append(thought_line)
+                    current["last_index"] = offset
+            _flush_current()
             if tail > 0:
                 normalized = normalized[-tail:]
             if not normalized:
