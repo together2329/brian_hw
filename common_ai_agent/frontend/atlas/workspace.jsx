@@ -150,6 +150,29 @@ const coalesceAtlasFeedEntries = (current, entries) => {
   const out = Array.isArray(current) ? current.slice() : [];
   for (const raw of list) {
     if (!raw || typeof raw !== 'object') continue;
+    if (raw.kind === 'agent_delta') {
+      const deltaText = String(raw.text || '');
+      if (!deltaText) continue;
+      const streamId = String(raw.streamId || raw.stream_id || '');
+      const prevAgent = out[out.length - 1];
+      if (prevAgent && prevAgent.kind === 'agent' && String(prevAgent.streamId || '') === streamId) {
+        out[out.length - 1] = {
+          ...prevAgent,
+          ...raw,
+          kind: 'agent',
+          text: String(prevAgent.text || '') + deltaText,
+          streamId,
+        };
+      } else {
+        out.push({
+          ...raw,
+          kind: 'agent',
+          text: deltaText,
+          streamId,
+        });
+      }
+      continue;
+    }
     const entry = raw.kind === 'thought'
       ? { ...raw, text: compactAtlasThoughtText(raw.text) }
       : raw;

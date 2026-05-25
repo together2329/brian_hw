@@ -24,6 +24,33 @@ describe('orchestrator chat poll mapping', () => {
     });
   });
 
+  it('streams assistant delta rows into one agent feed entry', () => {
+    const first = feedEntryFromChatMessage({
+      id: 'd1',
+      created_at: 1716400000,
+      payload: { role: 'assistant_delta', content: 'Hello ', stream_id: 's1' },
+    });
+    const second = feedEntryFromChatMessage({
+      id: 'd2',
+      created_at: 1716400001,
+      payload: { role: 'assistant_delta', content: 'world', stream_id: 's1' },
+    });
+
+    expect(first).toMatchObject({
+      kind: 'agent_delta',
+      text: 'Hello ',
+      streamId: 's1',
+    });
+
+    const entries = coalesceFeedEntries([], [first, second]);
+    expect(entries).toHaveLength(1);
+    expect(entries[0]).toMatchObject({
+      kind: 'agent',
+      text: 'Hello world',
+      streamId: 's1',
+    });
+  });
+
   it('renders DB-restored raw tool rows as real tool-card action entries', () => {
     const entry = feedEntryFromChatMessage({
       id: 'm2',
