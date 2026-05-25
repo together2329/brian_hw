@@ -831,6 +831,11 @@ def test_single_worker_session_activate_warms_chat_process(tmp_path, monkeypatch
     assert session.agent_alive is True
     assert session.agent_running is False
 
+    health = client.get("/healthz?cost=0")
+    assert health.status_code == 200, health.text
+    assert health.json()["agent_alive"] is True
+    assert health.json()["agent_running"] is False
+
 
 def test_process_session_activate_does_not_mutate_main_env(tmp_path, monkeypatch):
     import os
@@ -1084,6 +1089,114 @@ def test_ip_create_endpoint_uses_orchestrator_workflow_in_orchestrator_mode(tmp_
         assert session["ip"] == "mctp"
         assert session["workflow"] == "orchestrator"
         assert session["summary"]["workflow"] == "orchestrator"
+
+
+@pytest.mark.parametrize(
+    ("exec_mode", "orchestrator_mode", "expected_workflow", "alice_ip", "bob_ip"),
+    [
+        ("single-worker", "0", "ssot-gen", "alice_gpio", "bob_timer"),
+        ("orchestrator", "1", "orchestrator", "alice_mctp", "bob_bridge"),
+    ],
+)
+def test_ip_create_endpoint_allows_each_user_to_create_one_ip_per_exec_mode(
+    tmp_path,
+    monkeypatch,
+    exec_mode,
+    orchestrator_mode,
+    expected_workflow,
+    alice_ip,
+    bob_ip,
+):
+    import src.atlas_ui as atlas_ui
+    from core.atlas_db import AtlasDB
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_DB_PATH", str(tmp_path / "atlas.db"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_EXEC_MODE", exec_mode)
+    monkeypatch.setenv("ATLAS_DEFAULT_EXEC_MODE", exec_mode)
+    monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODE", orchestrator_mode)
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    alice = TestClient(app)
+    bob = TestClient(app)
+    _register(alice, "alice")
+    _register(bob, "bob")
+
+    alice_response = alice.post("/api/ip/create", json={"name": alice_ip})
+    bob_response = bob.post("/api/ip/create", json={"name": bob_ip})
+
+    assert alice_response.status_code == 200, alice_response.text
+    assert bob_response.status_code == 200, bob_response.text
+    alice_payload = alice_response.json()
+    bob_payload = bob_response.json()
+    assert alice_payload["session"] == f"alice/{alice_ip}/{expected_workflow}"
+    assert bob_payload["session"] == f"bob/{bob_ip}/{expected_workflow}"
+    assert alice_payload["workflow"] == expected_workflow
+    assert bob_payload["workflow"] == expected_workflow
+    assert alice_payload["exec_mode"] == exec_mode
+    assert bob_payload["exec_mode"] == exec_mode
+
+    for owner, ip in (("alice", alice_ip), ("bob", bob_ip)):
+        assert (tmp_path / ip / "yaml" / f"{ip}.ssot.yaml").is_file()
+        assert (
+            tmp_path
+            / ".session"
+            / owner
+            / ip
+            / expected_workflow
+            / "conversation.json"
+        ).is_file()
+
+    alice_list = alice.get("/api/ip/list")
+    bob_list = bob.get("/api/ip/list")
+    assert alice_list.status_code == 200, alice_list.text
+    assert bob_list.status_code == 200, bob_list.text
+    assert {item["name"] for item in alice_list.json()["items"]} == {alice_ip}
+    assert {item["name"] for item in bob_list.json()["items"]} == {bob_ip}
+    assert alice_list.json()["items"][0]["workflows"] == [expected_workflow]
+    assert bob_list.json()["items"][0]["workflows"] == [expected_workflow]
+
+    owner_mismatch = alice.get(
+        "/api/ip/list",
+        params={"session_id": f"bob/{bob_ip}/{expected_workflow}"},
+    )
+    assert owner_mismatch.status_code == 403, owner_mismatch.text
+
+    with AtlasDB() as db:
+        alice_user = db.get_user_by_username("alice")
+        bob_user = db.get_user_by_username("bob")
+        assert alice_user is not None
+        assert bob_user is not None
+
+        alice_session = db.get_session(f"alice/{alice_ip}/{expected_workflow}")
+        bob_session = db.get_session(f"bob/{bob_ip}/{expected_workflow}")
+        assert alice_session is not None
+        assert bob_session is not None
+        assert alice_session["user_id"] == alice_user["id"]
+        assert bob_session["user_id"] == bob_user["id"]
+        assert alice_session["owner"] == "alice"
+        assert bob_session["owner"] == "bob"
+        assert alice_session["ip"] == alice_ip
+        assert bob_session["ip"] == bob_ip
+        assert alice_session["workflow"] == expected_workflow
+        assert bob_session["workflow"] == expected_workflow
+
+        rows = db._fetchall(
+            """
+            SELECT i.ip_name, w.owner_user_id
+            FROM ip_blocks i
+            JOIN workspaces w ON w.id = i.workspace_id
+            WHERE i.ip_name IN (?, ?)
+            """,
+            (alice_ip, bob_ip),
+        )
+        assert {row["ip_name"]: row["owner_user_id"] for row in rows} == {
+            alice_ip: alice_user["id"],
+            bob_ip: bob_user["id"],
+        }
 
 
 def test_model_scoped_session_dirs_are_opt_in(tmp_path, monkeypatch):

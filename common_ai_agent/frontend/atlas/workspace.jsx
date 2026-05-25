@@ -143,6 +143,18 @@ const compactAtlasThoughtText = (text, maxLines = 80) => {
   ].join('\n');
 };
 
+const cleanAtlasTerminalText = (text) => {
+  const fn = window.AtlasOrchestratorChatLogic?.cleanTerminalControlText;
+  if (typeof fn === 'function') return fn(text);
+  return String(text || '').replace(/\x1b\[[\d;]*m/g, '');
+};
+
+const workerLocalTodosFromAtlasFeed = (feed, workflow) => {
+  const fn = window.AtlasOrchestratorChatLogic?.workerLocalTodosFromFeed;
+  if (typeof fn === 'function') return fn(feed, workflow);
+  return [];
+};
+
 const coalesceAtlasFeedEntries = (current, entries) => {
   const fn = window.AtlasOrchestratorChatLogic?.coalesceFeedEntries;
   if (typeof fn === 'function') return fn(current, entries);
@@ -635,7 +647,7 @@ const _todoTallyLine = (tally) =>
     .join(' · ');
 
 const _cleanTodoToolText = (text, tool) => {
-  let txt = String(text || '').trim();
+  let txt = cleanAtlasTerminalText(text).trim();
   if (!TODO_TOOL_RE.test(String(tool || ''))) return txt;
 
   const tally = _todoStatusTally(txt);
@@ -2338,6 +2350,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
                 costIp: acceptCounters ? (j.cost_ip || effectiveRoute.ip || prev.costIp || '') : (effectiveRoute.ip || ''),
                 costCalls: acceptCounters && j.cost_calls != null ? Number(j.cost_calls || 0) : keep(Number(prev.costCalls || 0)),
                 model: j.model || j.base_model || prev.model || '',
+                agentAlive: typeof j.agent_alive === 'boolean' ? j.agent_alive : !!prev.agentAlive,
+                agentRunning: typeof j.agent_running === 'boolean' ? j.agent_running : !!prev.agentRunning,
               };
             })(),
           }));
@@ -2368,6 +2382,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     lastCostDelta: 0,
     model: '',
     activeSession: '',
+    agentAlive: false,
+    agentRunning: false,
   });
   React.useEffect(() => {
     const syncContextUsage = () => {
@@ -3058,6 +3074,20 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     }
     return null;
   }, [feed, qaState, flowMatchesCurrentSession]);
+
+  const workerLocalTodos = React.useMemo(() => {
+    if (String(workflow || '') === 'orchestrator') return [];
+    return workerLocalTodosFromAtlasFeed(feed, workflow);
+  }, [feed, workflow]);
+  const atlasTodoCount = Array.isArray(window.TODOS) ? window.TODOS.length : 0;
+  const todoPanelOverride = (
+    String(workflow || '') !== 'orchestrator'
+    && atlasTodoCount === 0
+    && workerLocalTodos.length > 0
+  ) ? workerLocalTodos : null;
+  const todoPanelSourceLabel = todoPanelOverride
+    ? `${workflow || 'worker'} worker-local`
+    : '';
 
   // Tabbed center layout — auto-switch to Q&A tab when ask_user fires,
   // and back to chat after the user submits.  Classic layout ignores
@@ -4061,7 +4091,18 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     }));
     subs.push(window.backend.subscribe('agent_state', (m) => {
       if (!workspaceEventMatchesActiveSession(m, { requireSession: true })) return;
+      if (typeof m.alive === 'boolean' || typeof m.running === 'boolean') {
+        setWorkspaceTelemetry(prev => ({
+          ...prev,
+          agentAlive: typeof m.alive === 'boolean' ? m.alive : prev.agentAlive,
+          agentRunning: typeof m.running === 'boolean' ? m.running : prev.agentRunning,
+        }));
+        if (typeof m.alive === 'boolean') {
+          try { window.ATLAS_AGENT_ALIVE = !!m.alive; } catch (_) {}
+        }
+      }
       if (m.running === false) {
+        if (m.alive === true && !backendRunStartedRef.current && !streamingRef.current) return;
         if (awaitingRunStartRef.current && !backendRunStartedRef.current) return;
         turnEnd();
       } else if (m.running === true) {
@@ -6251,12 +6292,30 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
           {(() => {
             const backendDown = !window.backend || backendState === 'missing' ||
               backendState === 'closed' || backendState === 'error';
+            const terminalWorkerStatuses = new Set(['passed', 'done', 'completed', 'failed', 'error', 'cancelled', 'blocked']);
+            const activeOrchWorker = workflow === 'orchestrator'
+              ? (Array.isArray(orchWorkers) ? orchWorkers.find(w =>
+                Number(w.running_count || 0) > 0 ||
+                Number(w.pending_count || 0) > 0 ||
+                Number(w.queued_count || 0) > 0
+              ) : null)
+              : null;
+            const workerProgressStatus = String(workerProgress?.status || '').toLowerCase();
+            const activeWorkerProgress = workflow !== 'orchestrator' && workerProgress && !terminalWorkerStatuses.has(workerProgressStatus);
+            const liveWorkerWorkflow = String(
+              (activeOrchWorker && activeOrchWorker.workflow) ||
+              (activeWorkerProgress && workerProgress.workflow) ||
+              'worker'
+            ).trim();
+            const liveWorkerActive = !!(activeOrchWorker || activeWorkerProgress);
             const s = backendDown
               ? { icon: '!', text: backendState === 'missing' ? 'Backend adapter missing' : 'Backend disconnected', color: 'var(--err)', bg: 'color-mix(in oklch, var(--err) 12%, transparent)' }
               : backendState === 'connecting'
                 ? { icon: '·', text: 'Backend connecting', color: 'var(--warn)', bg: 'color-mix(in oklch, var(--warn) 10%, transparent)' }
                 : pendingQcard
               ? { icon: '⏸', text: 'Waiting on you · answer the ask_user above', color: 'var(--warn)', bg: 'color-mix(in oklch, var(--warn) 14%, transparent)' }
+              : liveWorkerActive
+                ? { icon: '▶', text: `Worker running · ${liveWorkerWorkflow}`, color: 'var(--warn)', bg: 'color-mix(in oklch, var(--warn) 14%, transparent)' }
               : streaming
                 ? { icon: '◉', text: 'Agent running', color: 'var(--accent)', bg: 'color-mix(in oklch, var(--accent) 16%, transparent)', spin: true }
                 : ssotApproval && ssotApproval.approved
@@ -6346,6 +6405,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       {effRightW > 0 ? (
         <div className={'ws-right-panel' + (isMobile ? (rightDrawerOpen ? ' drawer-open' : '') : '')} style={{ display: 'flex', flexDirection: 'column', gap: 12, overflow: 'hidden', minWidth: 0 }}>
         <AgentStatusPanel intent={intent} workflow={workflow} activeIp={activeIp}
+                          agentAlive={!!workspaceTelemetry.agentAlive}
+                          agentRunning={!!workspaceTelemetry.agentRunning}
                           onCollapse={toggleRight} />
         <div className="box" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <div className="box-h" style={{ padding: 0 }}>
@@ -6355,7 +6416,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
             <RightTab id="git"  cur={rightTab} onTab={setRightTab}>Git</RightTab>
           </div>
           {rightTab === 'progress' && <ProgressPanel />}
-          {rightTab === 'todo' && <TodoPanel />}
+          {rightTab === 'todo' && <TodoPanel todosOverride={todoPanelOverride} sourceLabel={todoPanelSourceLabel} />}
           {rightTab === 'chat' && <OrchestratorChatPanel activeIp={activeIp} />}
           {rightTab === 'git'  && <GitPanel activeIp={activeIp} />}
         </div>
@@ -6443,11 +6504,11 @@ const ObsCard = ({ entry, embedded, summaryMode = true, hintText = '' }) => {
   React.useEffect(() => {
     setOpen(!summaryMode || isReplaceTool);
   }, [summaryMode, isReplaceTool]);
-  let txt = summaryMode ? _cleanTodoToolText(entry.text || '', entry.tool) : (entry.text || '');
+  let txt = summaryMode ? _cleanTodoToolText(entry.text || '', entry.tool) : cleanAtlasTerminalText(entry.text || '');
   // Strip ANSI escape sequences leaked from terminal-style backends
   // (e.g. `\x1b[1m`, `\x1b[38;5;71m`, `\x1b[0m`) so they don't show as
   // raw `[1m`, `[96m`, etc. in the chat feed.
-  txt = txt.replace(/\x1b\[[\d;]*m/g, '');
+  txt = cleanAtlasTerminalText(txt).replace(/\x1b\[[\d;]*m/g, '');
 
   const lines = txt.split('\n');
   const isMulti = lines.length > 1;
@@ -6781,8 +6842,8 @@ const _StandardToolCardRaw = ({ action, obs, summaryMode = true, tool }) => {
   const theme = _toolTheme(tool);
   // If the obs indicates an error, override the border to red so the
   // eye finds it. Otherwise use the tool theme color.
-  const obsTextRaw = obs ? (summaryMode ? _cleanTodoToolText(obs.text || '', obs.tool) : (obs.text || '')) : '';
-  const obsText = obsTextRaw.replace(/\x1b\[[\d;]*m/g, '');
+  const obsTextRaw = obs ? (summaryMode ? _cleanTodoToolText(obs.text || '', obs.tool) : cleanAtlasTerminalText(obs.text || '')) : '';
+  const obsText = cleanAtlasTerminalText(obsTextRaw).replace(/\x1b\[[\d;]*m/g, '');
   const toolName = String(tool || '').toLowerCase();
   const isStateRead = toolName === 'read_pipeline_state';
   const isArtifactRead = toolName === 'read_artifact' || toolName === 'read_evidence';
@@ -10866,38 +10927,44 @@ const _dedupePins = (pins) => {
   });
 };
 
-const extractFlatIoPorts = (ioSection) => {
-  const blocks = [
-    ...listBlocksFromSection(ioSection),
-    ...mapBlocksFromSection(ioSection),
-  ];
-  return blocks
-    .map(block => _portFromBlock(block))
-    .filter(port => port.name && (port.direction || port.width));
+const listRootIoItems = (section) => {
+  if (!section) return [];
+  const lines = ssotPreviewLines(section.text);
+  const rootIndent = lines[0] ? indentOf(lines[0]) : 0;
+  const itemIndent = rootIndent + 2;
+  const blocks = [];
+  let cur = null;
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    const ind = indentOf(line);
+    if (ind <= rootIndent) break;
+    if (trimmed.startsWith('- ') && ind === itemIndent) {
+      if (cur) blocks.push(cur);
+      cur = { startLineOffset: i, lines: [line] };
+      continue;
+    }
+    if (!cur) continue;
+    if (ind <= itemIndent) {
+      blocks.push(cur);
+      cur = null;
+      continue;
+    }
+    cur.lines.push(line);
+  }
+  if (cur) blocks.push(cur);
+  return blocks.map(block => ({
+    text: block.lines.join('\n'),
+    startLineOffset: block.startLineOffset,
+    startLine: section.startLine + block.startLineOffset,
+  }));
 };
 
-const extractClockResetInterfaces = (ioSection) => {
-  const clocks = listBlocksFromSection(ioSection, 'clock_domains').map(block => {
-    const name = blockField(block, 'name') || block?.mapKey || 'clock';
-    return {
-      name,
-      type: 'clock',
-      role: 'input',
-      description: blockField(block, 'description', 220),
-      ports: extractSignalPorts(block),
-    };
-  });
-  const resets = listBlocksFromSection(ioSection, 'resets').map(block => {
-    const name = blockField(block, 'name') || block?.mapKey || 'reset';
-    return {
-      name,
-      type: 'reset',
-      role: 'input',
-      description: blockField(block, 'description', 220),
-      ports: extractSignalPorts(block),
-    };
-  });
-  return [...clocks, ...resets];
+const extractFlatIoPorts = (ioSection) => {
+  return listRootIoItems(ioSection)
+    .map(block => _portFromBlock(block))
+    .filter(port => port.name && (port.direction || port.width));
 };
 
 const extractIoDiagramPins = (ioSection) => {
@@ -10906,104 +10973,13 @@ const extractIoDiagramPins = (ioSection) => {
     pin: true,
     ports: [],
   }));
-  const clockPins = listBlocksFromSection(ioSection, 'clock_domains').flatMap(block => {
-    const domainName = blockField(block, 'name') || block?.mapKey || 'clock';
-    const description = blockField(block, 'description', 220);
-    const ports = extractSignalPorts(block);
-    const rows = ports.length ? ports : [{ name: domainName, direction: 'input', width: '1', description }];
-    return rows.map(port => ({
-      ...port,
-      name: port.name || domainName,
-      direction: port.direction || 'input',
-      width: port.width || '1',
-      description: port.description || description,
-      type: 'clock',
-      role: 'input',
-      clock_domain: domainName,
-      pin: true,
-      ports: [],
-    }));
-  });
-  const resetPins = listBlocksFromSection(ioSection, 'resets').flatMap(block => {
-    const resetName = blockField(block, 'name') || block?.mapKey || 'reset';
-    const description = blockField(block, 'description', 220);
-    const ports = extractSignalPorts(block);
-    const rows = ports.length ? ports : [{ name: resetName, direction: 'input', width: '1', description }];
-    return rows.map(port => ({
-      ...port,
-      name: port.name || resetName,
-      direction: port.direction || 'input',
-      width: port.width || '1',
-      description: port.description || description,
-      type: 'reset',
-      role: 'input',
-      reset_domain: resetName,
-      pin: true,
-      ports: [],
-    }));
-  });
-  const ifacePins = listBlocksFromSection(ioSection, 'interfaces').flatMap(block => {
-    const iface = interfaceFromBlock(block);
-    return (iface.ports || []).map(port => {
-      const protocol = iface.type || port.protocol || '';
-      const description = port.description || iface.description || '';
-      return {
-        ...port,
-        description,
-        protocol,
-        type: _pinTypeFromPort({ ...port, description, protocol }, protocol || 'signal'),
-        role: iface.role || port.direction || '',
-        clock_domain: blockField(block, 'clock_domain'),
-        reset_domain: blockField(block, 'reset_domain'),
-        interfaceName: iface.name,
-        pin: true,
-        ports: [],
-      };
-    });
-  });
-  return _dedupePins([...clockPins, ...resetPins, ...ifacePins, ...flatPins]);
+  return _dedupePins(flatPins);
 };
 
-const extractInterruptPins = (section) => {
-  const blocks = [
-    ...listBlocksFromSection(section, 'interrupt_list'),
-    ...listBlocksFromSection(section, 'list'),
-    ...listBlocksFromSection(section),
-  ];
-  return blocks
-    .map(block => ({
-      name: blockField(block, 'name') || blockField(block, 'id') || '',
-      direction: blockField(block, 'direction') || 'output',
-      width: blockField(block, 'width') || '1',
-      description: blockField(block, 'description', 220),
-      type: 'irq',
-      role: 'source',
-      pin: true,
-      ports: [],
-    }))
-    .filter(pin => pin.name);
-};
-
-const extractReviewPins = (ioSection, interruptsSection) =>
-  _dedupePins([
-    ...extractIoDiagramPins(ioSection),
-    ...extractInterruptPins(interruptsSection),
-  ]);
+const extractReviewPins = (ioSection) => extractIoDiagramPins(ioSection);
 
 const extractReviewInterfaces = (sections, ioSection) => {
-  const flatPorts = extractFlatIoPorts(ioSection);
-  const flatIoInterface = flatPorts.length ? [{
-    name: 'top_io',
-    type: 'pins',
-    role: 'external',
-    description: 'Top-level pins declared directly under io_list.',
-    ports: flatPorts,
-  }] : [];
-  const canonical = [
-    ...extractClockResetInterfaces(ioSection),
-    ...extractInterfaces(ioSection),
-    ...flatIoInterface,
-  ];
+  const canonical = extractInterfaces(ioSection);
   const generic = (sections || [])
     .filter(section => section !== ioSection && /(interfaces?|bus_?interfaces?|busInterfaces|interrupts?)$/i.test(section.key || ''))
     .flatMap(section => {
@@ -11129,6 +11105,21 @@ const extractRegisters = (section) => {
     })),
   }));
 };
+
+const _isRegisterPlaceholderValue = (value) => {
+  const text = stripYamlScalar(value).trim();
+  return !text || /^(-|--|tbd|todo|unknown|placeholder|null|none|n\/a|na)$/i.test(text);
+};
+
+const _hasRegisterDetail = (value) => !_isRegisterPlaceholderValue(value);
+
+const _hasMeaningfulRegisterField = (field) => !!field && (
+  _hasRegisterDetail(field.bits)
+  || _hasRegisterDetail(field.name)
+  || _hasRegisterDetail(field.access)
+  || _hasRegisterDetail(field.reset)
+  || _hasRegisterDetail(field.description)
+);
 
 const _stateNameFromBlock = (block) => {
   const first = String((block && block.text) || '').split(/\r?\n/)[0] || '';
@@ -12522,7 +12513,7 @@ const BlockDiagram = ({ topName, modules, contractByModule = {}, interfaces = []
   const diagramRows = pinRows.length
     ? [
         ...pinRows,
-        ...ifaceRows.filter(iface => !(Array.isArray(iface.ports) && iface.ports.length)),
+        ...ifaceRows,
       ]
     : ifaceRows;
   diagramRows.forEach(iface => {
@@ -13673,61 +13664,50 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
       {header}
       <DigestCard title="Register Map" meta={`${registers.length} registers`}>
         {registers.length ? (
-          <div style={{ display: 'grid', gap: 12 }}>
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
-              gap: 8,
-            }}>
+          <div style={{ display: 'grid', gap: 8 }}>
+            <div className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 10 }}>
               {[
-                ['registers', registers.length],
-                ['addr width', registerConfig.addrWidth || '-'],
-                ['data width', registerConfig.dataWidth || registers.find(r => r.width)?.width || '-'],
-                ['byte addr', registerConfig.byteAddressable || '-'],
-              ].map(([label, value]) => (
-                <div key={`reg-summary-${label}`} style={{
-                  border: '1px solid var(--line)',
-                  borderRadius: 4,
-                  padding: '7px 9px',
-                  background: 'var(--bg-3)',
-                  minWidth: 0,
-                }}>
-                  <div className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 9, textTransform: 'uppercase' }}>{label}</div>
-                  <div style={{ marginTop: 2, color: 'var(--fg)', fontFamily: 'var(--mono)', fontWeight: 800, wordBreak: 'break-word' }}>{String(value || '-')}</div>
-                </div>
-              ))}
+                `${registers.length} register${registers.length === 1 ? '' : 's'}`,
+                _hasRegisterDetail(registerConfig.addrWidth) ? `addr ${registerConfig.addrWidth}` : '',
+                _hasRegisterDetail(registerConfig.dataWidth) ? `data ${registerConfig.dataWidth}` : '',
+                _hasRegisterDetail(registerConfig.byteAddressable) ? `byte ${registerConfig.byteAddressable}` : '',
+              ].filter(Boolean).join(' · ')}
             </div>
-            {registers.map((reg, i) => (
+            {registers.map((reg, i) => {
+              const meaningfulFields = (reg.fields || []).filter(_hasMeaningfulRegisterField);
+              const hasExpandedDetail = meaningfulFields.length > 0;
+              const tags = [
+                _hasRegisterDetail(reg.access) && `access ${reg.access}`,
+                _hasRegisterDetail(reg.reset) && `reset ${reg.reset}`,
+                _hasRegisterDetail(reg.width) && `${reg.width}b`,
+              ].filter(Boolean);
+              return (
               <div key={`reg-${reg.name || ''}-${i}`} style={{
                 border: '1px solid var(--line)',
                 borderLeft: '3px solid var(--accent)',
                 borderRadius: 4,
                 background: 'var(--bg-2)',
-                padding: 10,
+                padding: hasExpandedDetail ? 10 : '8px 10px',
                 minWidth: 0,
               }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '92px minmax(0, 1fr)', gap: 10, alignItems: 'start' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '76px minmax(0, 1fr)', gap: 10, alignItems: 'center' }}>
                   <div style={{
                     fontFamily: 'var(--mono)',
                     color: 'var(--cyan)',
                     fontWeight: 900,
                     border: '1px solid var(--line-2)',
                     borderRadius: 4,
-                    padding: '5px 7px',
+                    padding: '4px 7px',
                     textAlign: 'center',
                     background: 'var(--bg-1)',
                     whiteSpace: 'nowrap',
                   }}>
-                    {reg.offset || '--'}
+                    {_hasRegisterDetail(reg.offset) ? reg.offset : '--'}
                   </div>
                   <div style={{ minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
                       <span style={{ fontWeight: 900, color: 'var(--fg)', fontSize: 14, fontFamily: 'var(--mono)', wordBreak: 'break-word' }}>{reg.name}</span>
-                      {[
-                        reg.access && `access ${reg.access}`,
-                        reg.reset && `reset ${reg.reset}`,
-                        reg.width && `${reg.width}b`,
-                      ].filter(Boolean).map(tag => (
+                      {tags.map(tag => (
                         <span key={`${reg.name}-${tag}`} className="mute" style={{
                           fontFamily: 'var(--mono)',
                           fontSize: 10,
@@ -13739,15 +13719,17 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
                         }}>{tag}</span>
                       ))}
                     </div>
-                    {reg.description ? (
+                    {_hasRegisterDetail(reg.description) ? (
                       <div className="mute" style={{ marginTop: 5, lineHeight: 1.5, wordBreak: 'break-word' }}>{linkifyReferences(reg.description, refTokenMap, onJump)}</div>
+                    ) : !hasExpandedDetail ? (
+                      <div className="mute" style={{ marginTop: 3, fontFamily: 'var(--mono)', fontSize: 10 }}>details pending</div>
                     ) : null}
                   </div>
                 </div>
-                {reg.fields && reg.fields.length ? (
-                  <RegisterBitMap width={reg.width || 32} fields={reg.fields} />
+                {hasExpandedDetail ? (
+                  <RegisterBitMap width={reg.width || 32} fields={meaningfulFields} />
                 ) : null}
-                {reg.fields && reg.fields.length ? (
+                {hasExpandedDetail ? (
                   <div style={{ marginTop: 8, overflowX: 'auto' }}>
                     <div style={{
                       minWidth: 620,
@@ -13770,7 +13752,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
                           padding: '5px 7px',
                         }}>{label}</div>
                       ))}
-                      {reg.fields.map((f, fi) => (
+                      {meaningfulFields.map((f, fi) => (
                         <React.Fragment key={`rf-${reg.name || i}-${f.name || ''}-${fi}`}>
                           {[
                             { value: f.bits || '-', color: 'var(--cyan)' },
@@ -13796,7 +13778,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
                   </div>
                 ) : null}
               </div>
-            ))}
+            );})}
           </div>
         ) : noRegisterPolicy ? (
           <DigestKV rows={[['policy', noRegisterPolicy]]} />
@@ -15100,14 +15082,15 @@ const ProgressPanel = () => {
   );
 };
 
-const TodoPanel = () => {
+const TodoPanel = ({ todosOverride = null, sourceLabel = '' } = {}) => {
   const [view, setView] = React.useState('compact'); // compact | detail | graph
   const [openId, setOpenId] = React.useState(null);
   // Per-group collapse state in compact view: {approved: true, ...}
   // means that group is collapsed. Defaults set via collapsedDefault
   // inside the render so they're not duplicated.
   const [collapsedTodoGroups, setCollapsedTodoGroups] = React.useState({});
-  const todos = window.TODOS;
+  const usingOverride = Array.isArray(todosOverride);
+  const todos = usingOverride ? todosOverride : (Array.isArray(window.TODOS) ? window.TODOS : []);
   // "Done" counter spans every terminal state (done/approved/completed)
   // — without this, the counter showed 0/7 for tasks the agent had
   // explicitly approved because raw 'approved' status now flows
@@ -15344,14 +15327,26 @@ const TodoPanel = () => {
             <AtlasStatusBadge key={k} status={k} label={c.label} count={counts[k]} compact soft />
           );
         })}
-        <span style={{ flex: 1 }} />
-        <span title="Clear all todos"
-          onClick={() => { if (confirm('Clear all todos?')) window.atlasData.clearTodos(); }}
-          style={{
-            cursor: 'pointer', fontSize: 10, padding: '2px 8px',
-            border: '1px solid var(--line)', color: 'var(--fg-mute)',
+        {usingOverride && sourceLabel ? (
+          <span style={{
+            fontFamily: 'var(--mono)',
+            fontSize: 10,
+            padding: '2px 7px',
+            border: '1px solid var(--line)',
+            color: 'var(--fg-mute)',
             borderRadius: 2,
-          }}>✕ clear</span>
+          }}>{sourceLabel}</span>
+        ) : null}
+        <span style={{ flex: 1 }} />
+        {!usingOverride && (
+          <span title="Clear all todos"
+            onClick={() => { if (confirm('Clear all todos?')) window.atlasData.clearTodos(); }}
+            style={{
+              cursor: 'pointer', fontSize: 10, padding: '2px 8px',
+              border: '1px solid var(--line)', color: 'var(--fg-mute)',
+              borderRadius: 2,
+            }}>✕ clear</span>
+        )}
         <span className="mute" style={{ fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase' }}>view</span>
         <Tab id="compact" label="list" />
         <Tab id="detail" label="detail" />
@@ -17917,7 +17912,7 @@ const ConvModeSelector = () => {
 };
 
 // ── ATLAS status panel ─────────────────────────────────────────────
-const AgentStatusPanel = ({ intent, workflow, activeIp = '', onCollapse }) => {
+const AgentStatusPanel = ({ intent, workflow, activeIp = '', agentAlive = false, agentRunning = false, onCollapse }) => {
   // Live context — populated by /healthz + WS 'context' events.
   const [liveContext, setLiveContext] = React.useState(() => Object.assign({}, window.CONTEXT || {}));
   const _ctx = liveContext;
@@ -18336,6 +18331,9 @@ const AgentStatusPanel = ({ intent, workflow, activeIp = '', onCollapse }) => {
         {/* ── orchestrator workers (live lazy-spawn state) ──────── */}
         {(() => {
           const _wl = window.AtlasWorkersLogic;
+          const singleWorkerMode = atlasUiExecMode() === 'single-worker';
+          const sessionWorkerAlive = !!agentAlive;
+          const sessionWorkerLabel = agentRunning ? 'running' : (sessionWorkerAlive ? 'hot' : 'cold');
           const { total, upCount } = _wl
             ? _wl.summarizeWorkers(liveWorkers)
             : { total: liveWorkers.length, upCount: liveWorkers.filter(w => String(w.status || '') === 'ok').length };
@@ -18392,18 +18390,24 @@ const AgentStatusPanel = ({ intent, workflow, activeIp = '', onCollapse }) => {
                 marginTop: 14, marginBottom: 6,
                 display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap',
               }}
-                title="Live state of orchestrator workers (port + status). Lazy-spawned on first dispatch."
+                title={singleWorkerMode
+                  ? 'Live state of the single session worker process.'
+                  : 'Live state of orchestrator workers (port + status). Lazy-spawned on first dispatch.'}
               >
-                <span style={{ color: 'var(--accent)', fontWeight: 700 }}>▸ workers</span>
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>· orch</span>
+                <span style={{ color: 'var(--accent)', fontWeight: 700 }}>▸ {singleWorkerMode ? 'agent' : 'workers'}</span>
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>· {singleWorkerMode ? 'single' : 'orch'}</span>
                 <span style={{ flex: 1 }} />
                 <span className={upCount > 0 ? 'ok' : 'mute'} style={{ fontSize: 9 }}>
-                  {workersError ? '!' : `${upCount}/${total} up`}
+                  {workersError ? '!' : (singleWorkerMode ? sessionWorkerLabel : `${upCount}/${total} up`)}
                 </span>
               </div>
               {total === 0 ? (
                 <div className="mute" style={{ fontSize: 10, padding: '4px 0 10px', textAlign: 'center' }}>
-                  {workersError || 'no workers yet — dispatch a workflow to spawn'}
+                  {workersError || (
+                    singleWorkerMode
+                      ? (agentRunning ? 'session worker running' : (sessionWorkerAlive ? 'session worker hot — no workflow workers needed' : 'warming session worker'))
+                      : 'no workers yet — dispatch a workflow to spawn'
+                  )}
                 </div>
               ) : (
                 <div style={{

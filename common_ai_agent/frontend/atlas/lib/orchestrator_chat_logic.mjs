@@ -2,9 +2,49 @@
 
 const MAX_THOUGHT_LINES = 80;
 const THOUGHT_COMPACTION_MARKER_RE = /^\.\.\. \(\d+ older thought lines hidden for speed\)$/;
+const RUNTIME_HOUSEKEEPING_TOOLS = new Set(['read_pipeline_state', 'yield_run']);
+
+export function cleanTerminalControlText(text) {
+  return String(text || '')
+    // Keep terminal-title payloads because Codex uses them for compact live
+    // status such as "[1/6] ▶ in_progress | ...".
+    .replace(/\x1b\]0;([^\x07\x1b]*)(?:\x07|\x1b\\)/g, (_m, title) => String(title || ''))
+    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '')
+    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
+    .replace(/\x1b[@-Z\\-_]/g, '')
+    .split('\n')
+    .map((line) => {
+      let clean = String(line || '');
+      clean = clean.replace(/^\s*(?:[\u2612\uFFFD])?\]0;/, '');
+      clean = clean.replace(/[\x07\x1b\\]+$/g, '');
+      if (/^\s*(?:\[\d+\s*\/\s*\d+\]|[▶⏸👀✅❌]|\[\s?\]|\[>\]|\[\.]|\[v\]|\[x\])/.test(clean)) {
+        clean = clean.replace(/[\u2612\uFFFD]+$/g, '');
+      }
+      return clean.trimEnd();
+    })
+    .join('\n');
+}
+
+function isRuntimeHousekeepingTool(tool) {
+  return RUNTIME_HOUSEKEEPING_TOOLS.has(String(tool || '').trim().toLowerCase());
+}
+
+function isRuntimeHousekeepingLine(line) {
+  const text = String(line || '').trim().replace(/^⏳\s*/, '');
+  if (!text) return false;
+  return /^streaming[.\u2026]*\s+\d+s\?\s+idle\s+\(limit\s+\d+s\?\)$/i.test(text);
+}
+
+function stripRuntimeHousekeepingLines(text) {
+  return cleanTerminalControlText(text)
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line && !isRuntimeHousekeepingLine(line))
+    .join('\n');
+}
 
 export function toolEntryFromDisplayLine(content) {
-  const text = String(content || '').trim();
+  const text = cleanTerminalControlText(content).trim();
   if (!text) return null;
   const call = text.match(/^[▶⏺]\s*([A-Za-z_][\w.-]*)\s*(?:\(([\s\S]*)\))?\s*$/)
     || text.match(/^([A-Za-z_][\w.-]*)\s*\(([\s\S]*)\)\s*$/);
@@ -28,7 +68,7 @@ export function feedEntryFromChatMessage(message) {
   const payload = (message && message.payload) || {};
   const role = String(payload.role || '').toLowerCase();
   const rawContent = payload.content == null ? '' : String(payload.content);
-  const content = rawContent.trim();
+  const content = cleanTerminalControlText(rawContent).trim();
   if (role === 'assistant_delta') {
     if (!rawContent) return null;
     const created = Number((message && message.created_at) || 0);
@@ -48,11 +88,14 @@ export function feedEntryFromChatMessage(message) {
     return { kind: 'agent', text: content, createdAt };
   }
   if (role === 'thought' || role === 'reasoning') {
-    return { kind: 'thought', text: content, createdAt };
+    const cleanText = stripRuntimeHousekeepingLines(content);
+    if (!cleanText) return null;
+    return { kind: 'thought', text: cleanText, createdAt };
   }
   if (role === 'tool') {
     const parsed = toolEntryFromDisplayLine(content);
     if (!parsed) return null;
+    if (isRuntimeHousekeepingTool(parsed.tool)) return null;
     return {
       kind: 'action',
       text: parsed.text || content,
@@ -62,6 +105,7 @@ export function feedEntryFromChatMessage(message) {
     };
   }
   if (role === 'tool_result' || role === 'observation' || role === 'obs') {
+    if (isRuntimeHousekeepingTool(payloadTool)) return null;
     return {
       kind: 'obs',
       text: content,
@@ -73,7 +117,7 @@ export function feedEntryFromChatMessage(message) {
 }
 
 export function feedEntryFromWorkerLogEntry(entry, job = {}) {
-  const content = String((entry && (entry.content ?? entry.text)) || '').trim();
+  const content = cleanTerminalControlText(String((entry && (entry.content ?? entry.text)) || '')).trim();
   if (!content) return null;
   const type = String((entry && entry.type) || '').toLowerCase();
   const role = String((entry && entry.role) || '').toLowerCase();
@@ -97,6 +141,7 @@ export function feedEntryFromWorkerLogEntry(entry, job = {}) {
 
   if (type === 'action' || (role === 'assistant' && /^Action:/.test(content))) {
     const parsed = toolEntryFromDisplayLine(content);
+    if (parsed && isRuntimeHousekeepingTool(parsed.tool)) return null;
     return {
       kind: 'action',
       text: content,
@@ -108,6 +153,7 @@ export function feedEntryFromWorkerLogEntry(entry, job = {}) {
     };
   }
   if (type === 'observation' || role === 'tool') {
+    if (isRuntimeHousekeepingTool(tool)) return null;
     return { kind: 'obs', text: content, tool, createdAt, live: true, worker };
   }
   if (type === 'response' || role === 'assistant') {
@@ -116,6 +162,7 @@ export function feedEntryFromWorkerLogEntry(entry, job = {}) {
   if (type === 'log' || type === 'stdout' || type === 'stderr' || role === 'stdout' || role === 'stderr') {
     const parsed = toolEntryFromDisplayLine(content);
     if (parsed) {
+      if (isRuntimeHousekeepingTool(parsed.tool)) return null;
       return {
         kind: 'action',
         text: parsed.text || content,
@@ -127,15 +174,94 @@ export function feedEntryFromWorkerLogEntry(entry, job = {}) {
       };
     }
     if (/^[⎿└├│]/.test(content)) {
+      if (isRuntimeHousekeepingTool(tool)) return null;
       return { kind: 'obs', text: content, tool, createdAt, live: true, worker };
     }
-    const text = content.replace(/^┃\s?/, '').trim();
+    const text = stripRuntimeHousekeepingLines(content.replace(/^┃\s?/, '').trim());
+    if (!text) return null;
     return { kind: 'thought', text, createdAt, live: true, worker };
   }
   if (type === 'done') {
     return { kind: 'agent', text: content, createdAt, live: true, worker };
   }
   return null;
+}
+
+const WORKER_TODO_STATUS_MARKS = {
+  '⏸': 'pending',
+  '▶': 'in_progress',
+  '👀': 'completed',
+  '✅': 'approved',
+  '❌': 'rejected',
+  '[ ]': 'pending',
+  '[>]': 'in_progress',
+  '[.]': 'completed',
+  '[v]': 'approved',
+  '[x]': 'rejected',
+};
+
+function workerTodoState(glyph, status) {
+  const mark = WORKER_TODO_STATUS_MARKS[String(glyph || '').trim()];
+  const raw = String(status || '').trim().toLowerCase().replace(/[\s-]+/g, '_');
+  if (mark) return mark;
+  if (raw === 'in_progress' || raw === 'inprogress' || raw === 'active' || raw === 'running') return 'in_progress';
+  if (raw === 'done' || raw === 'completed') return 'completed';
+  if (raw === 'approved') return 'approved';
+  if (raw === 'rejected' || raw === 'blocked' || raw === 'failed' || raw === 'error') return 'rejected';
+  return 'pending';
+}
+
+function workerTodoId(workflow, title, ordinal) {
+  const slug = String(title || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9가-힣]+/gi, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 56);
+  return `worker-${String(workflow || 'worker').replace(/[^a-z0-9_-]+/gi, '-')}-${slug || ordinal}`;
+}
+
+function parseWorkerTodoLine(line, workflow, ordinal) {
+  const row = cleanTerminalControlText(line)
+    .replace(/^[⎿└├│]\s*/, '')
+    .replace(/^[-*•]\s*/, '')
+    .trim();
+  if (!row || /^total:/i.test(row) || /^\d+\s+tasks?\b/i.test(row)) return null;
+  const match = row.match(/^(?:\[(\d+)\s*\/\s*(\d+)\]\s*)?(?:(⏸|▶|👀|✅|❌|\[\s?\]|\[>\]|\[\.]|\[v\]|\[x\])\s*)?(?:(pending|in[_\s-]?progress|inprogress|active|running|completed|done|approved|rejected|blocked|failed|error)\s*)?(?:\|\s*)?(.+?)\s*$/i);
+  if (!match) return null;
+  const hasTodoMarker = !!(match[1] || match[4] || (match[3] && row.includes('|')));
+  if (!hasTodoMarker) return null;
+  const title = String(match[5] || '').trim();
+  if (!title || /^[-─]+$/.test(title) || /^todo\b/i.test(title)) return null;
+  const idx = match[1] || ordinal;
+  const state = workerTodoState(match[3], match[4]);
+  return {
+    id: workerTodoId(workflow, title, idx),
+    state,
+    section: 'worker-local',
+    title,
+    detail: 'Worker-local task from the live worker transcript.',
+    sourceRefs: [],
+    criteria: [],
+    deps: [],
+  };
+}
+
+export function workerLocalTodosFromFeed(feed, workflow = 'worker') {
+  const list = Array.isArray(feed) ? feed : [];
+  const byTitle = new Map();
+  let ordinal = 0;
+  for (const entry of list) {
+    const text = cleanTerminalControlText(entry && entry.text);
+    if (!text) continue;
+    for (const line of text.split(/\r?\n/)) {
+      ordinal += 1;
+      const todo = parseWorkerTodoLine(line, workflow, ordinal);
+      if (!todo) continue;
+      const key = todo.title.toLowerCase();
+      byTitle.set(key, todo);
+    }
+  }
+  return Array.from(byTitle.values());
 }
 
 export function isThinkingPlaceholderLine(line) {
@@ -177,16 +303,31 @@ export function compactThoughtText(text, maxLines = MAX_THOUGHT_LINES) {
 export function coalesceFeedEntries(existing = [], incoming = []) {
   const out = Array.isArray(existing) ? existing.slice() : [];
   const fresh = Array.isArray(incoming) ? incoming : [incoming];
-  const shouldMergeObs = (prev, entry) => {
-    if (!prev || prev.kind !== 'obs' || !entry || entry.kind !== 'obs') return false;
-    const prevWorker = prev.worker || {};
-    const nextWorker = entry.worker || {};
+  const sameWorkerContext = (prev, entry) => {
+    const prevWorker = prev && prev.worker ? prev.worker : {};
+    const nextWorker = entry && entry.worker ? entry.worker : {};
     const workerKeys = ['job_id', 'run_id', 'workflow', 'stage_id'];
     for (const key of workerKeys) {
       const a = String(prevWorker[key] || '');
       const b = String(nextWorker[key] || '');
       if (a && b && a !== b) return false;
     }
+    return true;
+  };
+  const looksLikeThoughtStart = (text) => {
+    const first = String(text || '').split('\n').map((line) => line.trim()).find(Boolean) || '';
+    return /^(?:THOUGHT|REASONING)(?:\s|\(|:|$)|^[-─]{2,}\s|^Let me\b|^I\s+\b|^\*\s+in\s+\d/i.test(first);
+  };
+  const shouldMergeStdoutContinuationIntoObs = (prev, entry) => {
+    if (!prev || prev.kind !== 'obs' || !entry || entry.kind !== 'thought') return false;
+    if (!prev.live || !entry.live) return false;
+    if (!sameWorkerContext(prev, entry)) return false;
+    if (looksLikeThoughtStart(entry.text)) return false;
+    return true;
+  };
+  const shouldMergeObs = (prev, entry) => {
+    if (!prev || prev.kind !== 'obs' || !entry || entry.kind !== 'obs') return false;
+    if (!sameWorkerContext(prev, entry)) return false;
     const prevTool = String(prev.tool || '');
     const nextTool = String(entry.tool || '');
     return !prevTool || !nextTool || prevTool === nextTool;
@@ -235,6 +376,19 @@ export function coalesceFeedEntries(existing = [], incoming = []) {
     }
 
     const prev = out[out.length - 1];
+    if (shouldMergeStdoutContinuationIntoObs(prev, entry)) {
+      const prevText = String(prev.text || '').trim();
+      const nextText = String(entry.text || '').trim();
+      if (!nextText) continue;
+      out[out.length - 1] = {
+        ...prev,
+        ...entry,
+        kind: 'obs',
+        text: prevText ? `${prevText}\n${nextText}` : nextText,
+        tool: prev.tool || entry.tool,
+      };
+      continue;
+    }
     if (isThought && prev && prev.kind === 'thought') {
       const prevText = String(prev.text || '').trim();
       const nextText = String(entry.text || '').trim();

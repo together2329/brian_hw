@@ -3858,6 +3858,17 @@ def create_app():
                 info["session_dir"] = str(getattr(_cfg, "SESSION_DIR", "") or "")
                 info["todo_file"] = str(getattr(_cfg, "TODO_FILE", "") or "")
                 info["history_file"] = str(getattr(_cfg, "HISTORY_FILE", "") or "")
+            try:
+                if active_session_path:
+                    _session_obj = bridge.get_session(active_session_path)
+                    info["agent_running"] = bool(getattr(_session_obj, "agent_running", False))
+                    info["agent_alive"] = bool(getattr(_session_obj, "agent_alive", False))
+                else:
+                    info["agent_running"] = bool(bridge.agent_running)
+                    info["agent_alive"] = bool(bridge.agent_alive)
+            except Exception:
+                info["agent_running"] = bool(getattr(bridge, "agent_running", False))
+                info["agent_alive"] = bool(getattr(bridge, "agent_alive", False))
             # Per-model pricing (USD / 1M tokens) — input / cache / output.
             # Try the displayed/runtime model first, then fall back to
             # LLM_BASE_NAME for opaque deployment aliases.

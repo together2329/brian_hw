@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
+  cleanTerminalControlText,
   compactThoughtText,
   coalesceFeedEntries,
   feedEntryFromChatMessage,
@@ -7,6 +8,7 @@ import {
   isThinkingPlaceholderText,
   toolEntryFromDisplayLine,
   visibleThoughtLines,
+  workerLocalTodosFromFeed,
 } from '../lib/orchestrator_chat_logic.mjs';
 
 describe('orchestrator chat poll mapping', () => {
@@ -57,16 +59,16 @@ describe('orchestrator chat poll mapping', () => {
       created_at: 1716400001,
       payload: {
         role: 'tool',
-        display_name: 'read_pipeline_state',
-        content: '⏺ read_pipeline_state(ip="new_axi", include_jobs=true)',
+        display_name: 'read_artifact',
+        content: '⏺ read_artifact(ip="new_axi", stage="ssot")',
       },
     });
 
     expect(entry).toEqual({
       kind: 'action',
-      text: '⏺ read_pipeline_state(ip="new_axi", include_jobs=true)',
-      tool: 'read_pipeline_state',
-      args: '(ip="new_axi", include_jobs=true)',
+      text: '⏺ read_artifact(ip="new_axi", stage="ssot")',
+      tool: 'read_artifact',
+      args: '(ip="new_axi", stage="ssot")',
       createdAt: 1716400001000,
     });
   });
@@ -91,13 +93,13 @@ describe('orchestrator chat poll mapping', () => {
       created_at: 1716400002,
       payload: {
         role: 'tool_result',
-        display_name: 'read_pipeline_state',
+        display_name: 'read_artifact',
         content: '└─ {"ok":true}',
       },
     })).toEqual({
       kind: 'obs',
       text: '└─ {"ok":true}',
-      tool: 'read_pipeline_state',
+      tool: 'read_artifact',
       createdAt: 1716400002000,
     });
   });
@@ -173,6 +175,52 @@ describe('orchestrator chat poll mapping', () => {
     });
   });
 
+  it('hides runtime wait bookkeeping from the chat feed', () => {
+    expect(feedEntryFromChatMessage({
+      id: 'm-runtime-tool',
+      payload: {
+        role: 'tool',
+        content: 'read_pipeline_state(ip="NEW_MCTP")',
+      },
+    })).toBeNull();
+
+    expect(feedEntryFromChatMessage({
+      id: 'm-runtime-result',
+      payload: {
+        role: 'tool_result',
+        display_name: 'yield_run',
+        content: '└ parked',
+      },
+    })).toBeNull();
+
+    expect(feedEntryFromWorkerLogEntry({
+      type: 'log',
+      role: 'stdout',
+      content: '⏳ streaming… 110s? idle (limit 1200s?)',
+    }, { workflow: 'ssot-gen' })).toBeNull();
+  });
+
+  it('cleans terminal title control text without losing worker todo status', () => {
+    expect(cleanTerminalControlText('\x1b]0;[1/6] ▶ in_progress | Check rtl\x07')).toBe('[1/6] ▶ in_progress | Check rtl');
+    expect(cleanTerminalControlText('☒]0;[1/6] ▶ in_progress | Check rtl☒')).toBe('[1/6] ▶ in_progress | Check rtl');
+  });
+
+  it('derives worker-local todos from the live worker feed', () => {
+    const todos = workerLocalTodosFromFeed([
+      { kind: 'action', text: '▶ Todo (6 tasks)', worker: { workflow: 'ssot-gen' } },
+      { kind: 'action', text: '▶ ssot-gen running' },
+      { kind: 'obs', text: '☒]0;[1/6] ▶ in_progress | Check for rtl_blocked.json and existing SSOT state☒' },
+      { kind: 'thought', text: 'THOUGHT (2)\nChecking existing artifacts' },
+    ], 'ssot-gen');
+
+    expect(todos).toEqual([expect.objectContaining({
+      id: expect.stringContaining('worker-ssot-gen-'),
+      state: 'in_progress',
+      section: 'worker-local',
+      title: 'Check for rtl_blocked.json and existing SSOT state',
+    })]);
+  });
+
   it('maps raw IPC stdout tool prefixes into action and observation entries', () => {
     const job = { job_id: 'j2', run_id: 'ipc-j2', workflow: 'ssot-gen', status: 'running' };
 
@@ -215,6 +263,51 @@ describe('orchestrator chat poll mapping', () => {
 
     expect(entries.map(e => e.kind)).toEqual(['action', 'obs']);
     expect(entries[1].text).toBe('⎿  2 lines\n│ 1 top_module:\n│ 2   name: counter');
+  });
+
+  it('keeps raw list continuation lines inside the observation card', () => {
+    const job = { job_id: 'j-list', run_id: 'ipc-list', workflow: 'ssot-gen', status: 'running' };
+    const entries = coalesceFeedEntries([], [
+      feedEntryFromWorkerLogEntry({
+        type: 'log',
+        role: 'stdout',
+        content: '⏺ List(path="/Users/brian/Desktop/Project/ROOT_IP/NEW_MCTP")',
+      }, job),
+      feedEntryFromWorkerLogEntry({
+        type: 'log',
+        role: 'stdout',
+        content: '└ 14 entries',
+      }, job),
+      feedEntryFromWorkerLogEntry({
+        type: 'log',
+        role: 'stdout',
+        content: '.git/',
+      }, job),
+      feedEntryFromWorkerLogEntry({
+        type: 'log',
+        role: 'stdout',
+        content: 'rtl/',
+      }, job),
+      feedEntryFromWorkerLogEntry({
+        type: 'log',
+        role: 'stdout',
+        content: '└ Total: 13 directories, 1 files',
+      }, job),
+    ]);
+
+    expect(entries.map(e => e.kind)).toEqual(['action', 'obs']);
+    expect(entries[1].text).toBe('└ 14 entries\n.git/\nrtl/\n└ Total: 13 directories, 1 files');
+  });
+
+  it('does not merge a real thought header into the previous observation card', () => {
+    const worker = { job_id: 'j2', run_id: 'ipc-j2', workflow: 'ssot-gen' };
+    const entries = coalesceFeedEntries([], [
+      { kind: 'obs', text: '└ 14 entries', tool: 'ssot-gen', live: true, worker },
+      { kind: 'thought', text: 'THOUGHT (2)\nLet me check yaml/', live: true, worker },
+    ]);
+
+    expect(entries.map(e => e.kind)).toEqual(['obs', 'thought']);
+    expect(entries[1].text).toBe('THOUGHT (2)\nLet me check yaml/');
   });
 
   it('coalesces repeated live Thinking placeholders instead of stacking rows', () => {

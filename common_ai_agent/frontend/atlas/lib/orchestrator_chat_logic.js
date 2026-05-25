@@ -4,9 +4,52 @@
 (function () {
   var MAX_THOUGHT_LINES = 80;
   var THOUGHT_COMPACTION_MARKER_RE = /^\.\.\. \(\d+ older thought lines hidden for speed\)$/;
+  var RUNTIME_HOUSEKEEPING_TOOLS = {
+    read_pipeline_state: true,
+    yield_run: true,
+  };
+
+  function cleanTerminalControlText(text) {
+    return String(text || '')
+      // Keep terminal-title payloads because Codex uses them for compact live
+      // status such as "[1/6] ▶ in_progress | ...".
+      .replace(/\x1b\]0;([^\x07\x1b]*)(?:\x07|\x1b\\)/g, function (_m, title) { return String(title || ''); })
+      .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '')
+      .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
+      .replace(/\x1b[@-Z\\-_]/g, '')
+      .split('\n')
+      .map(function (line) {
+        var clean = String(line || '');
+        clean = clean.replace(/^\s*(?:[\u2612\uFFFD])?\]0;/, '');
+        clean = clean.replace(/[\x07\x1b\\]+$/g, '');
+        if (/^\s*(?:\[\d+\s*\/\s*\d+\]|[▶⏸👀✅❌]|\[\s?\]|\[>\]|\[\.]|\[v\]|\[x\])/.test(clean)) {
+          clean = clean.replace(/[\u2612\uFFFD]+$/g, '');
+        }
+        return clean.trimEnd();
+      })
+      .join('\n');
+  }
+
+  function isRuntimeHousekeepingTool(tool) {
+    return !!RUNTIME_HOUSEKEEPING_TOOLS[String(tool || '').trim().toLowerCase()];
+  }
+
+  function isRuntimeHousekeepingLine(line) {
+    var text = String(line || '').trim().replace(/^⏳\s*/, '');
+    if (!text) return false;
+    return /^streaming[.\u2026]*\s+\d+s\?\s+idle\s+\(limit\s+\d+s\?\)$/i.test(text);
+  }
+
+  function stripRuntimeHousekeepingLines(text) {
+    return cleanTerminalControlText(text)
+      .split('\n')
+      .map(function (line) { return line.trim(); })
+      .filter(function (line) { return line && !isRuntimeHousekeepingLine(line); })
+      .join('\n');
+  }
 
   function toolEntryFromDisplayLine(content) {
-    var text = String(content || '').trim();
+    var text = cleanTerminalControlText(content).trim();
     if (!text) return null;
     var call = text.match(/^[▶⏺]\s*([A-Za-z_][\w.-]*)\s*(?:\(([\s\S]*)\))?\s*$/)
       || text.match(/^([A-Za-z_][\w.-]*)\s*\(([\s\S]*)\)\s*$/);
@@ -30,7 +73,7 @@
     var payload = (message && message.payload) || {};
     var role = String(payload.role || '').toLowerCase();
     var rawContent = payload.content == null ? '' : String(payload.content);
-    var content = rawContent.trim();
+    var content = cleanTerminalControlText(rawContent).trim();
     if (role === 'assistant_delta') {
       if (!rawContent) return null;
       return {
@@ -51,11 +94,14 @@
       return { kind: 'agent', text: content, createdAt: createdAt };
     }
     if (role === 'thought' || role === 'reasoning') {
-      return { kind: 'thought', text: content, createdAt: createdAt };
+      var cleanText = stripRuntimeHousekeepingLines(content);
+      if (!cleanText) return null;
+      return { kind: 'thought', text: cleanText, createdAt: createdAt };
     }
     if (role === 'tool') {
       var parsed = toolEntryFromDisplayLine(content);
       if (!parsed) return null;
+      if (isRuntimeHousekeepingTool(parsed.tool)) return null;
       return {
         kind: 'action',
         text: parsed.text || content,
@@ -65,6 +111,7 @@
       };
     }
     if (role === 'tool_result' || role === 'observation' || role === 'obs') {
+      if (isRuntimeHousekeepingTool(payloadTool)) return null;
       return {
         kind: 'obs',
         text: content,
@@ -77,7 +124,7 @@
 
   function feedEntryFromWorkerLogEntry(entry, job) {
     job = job || {};
-    var content = String((entry && (entry.content != null ? entry.content : entry.text)) || '').trim();
+    var content = cleanTerminalControlText(String((entry && (entry.content != null ? entry.content : entry.text)) || '')).trim();
     if (!content) return null;
     var type = String((entry && entry.type) || '').toLowerCase();
     var role = String((entry && entry.role) || '').toLowerCase();
@@ -101,6 +148,7 @@
 
     if (type === 'action' || (role === 'assistant' && /^Action:/.test(content))) {
       var parsed = toolEntryFromDisplayLine(content);
+      if (parsed && isRuntimeHousekeepingTool(parsed.tool)) return null;
       return {
         kind: 'action',
         text: content,
@@ -112,6 +160,7 @@
       };
     }
     if (type === 'observation' || role === 'tool') {
+      if (isRuntimeHousekeepingTool(tool)) return null;
       return { kind: 'obs', text: content, tool: tool, createdAt: createdAt, live: true, worker: worker };
     }
     if (type === 'response' || role === 'assistant') {
@@ -120,6 +169,7 @@
     if (type === 'log' || type === 'stdout' || type === 'stderr' || role === 'stdout' || role === 'stderr') {
       var parsedLog = toolEntryFromDisplayLine(content);
       if (parsedLog) {
+        if (isRuntimeHousekeepingTool(parsedLog.tool)) return null;
         return {
           kind: 'action',
           text: parsedLog.text || content,
@@ -131,11 +181,14 @@
         };
       }
       if (/^[⎿└├│]/.test(content)) {
+        if (isRuntimeHousekeepingTool(tool)) return null;
         return { kind: 'obs', text: content, tool: tool, createdAt: createdAt, live: true, worker: worker };
       }
+      var cleanLogText = stripRuntimeHousekeepingLines(content.replace(/^┃\s?/, '').trim());
+      if (!cleanLogText) return null;
       return {
         kind: 'thought',
-        text: content.replace(/^┃\s?/, '').trim(),
+        text: cleanLogText,
         createdAt: createdAt,
         live: true,
         worker: worker,
@@ -145,6 +198,83 @@
       return { kind: 'agent', text: content, createdAt: createdAt, live: true, worker: worker };
     }
     return null;
+  }
+
+  var WORKER_TODO_STATUS_MARKS = {
+    '⏸': 'pending',
+    '▶': 'in_progress',
+    '👀': 'completed',
+    '✅': 'approved',
+    '❌': 'rejected',
+    '[ ]': 'pending',
+    '[>]': 'in_progress',
+    '[.]': 'completed',
+    '[v]': 'approved',
+    '[x]': 'rejected',
+  };
+
+  function workerTodoState(glyph, status) {
+    var mark = WORKER_TODO_STATUS_MARKS[String(glyph || '').trim()];
+    var raw = String(status || '').trim().toLowerCase().replace(/[\s-]+/g, '_');
+    if (mark) return mark;
+    if (raw === 'in_progress' || raw === 'inprogress' || raw === 'active' || raw === 'running') return 'in_progress';
+    if (raw === 'done' || raw === 'completed') return 'completed';
+    if (raw === 'approved') return 'approved';
+    if (raw === 'rejected' || raw === 'blocked' || raw === 'failed' || raw === 'error') return 'rejected';
+    return 'pending';
+  }
+
+  function workerTodoId(workflow, title, ordinal) {
+    var slug = String(title || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9가-힣]+/gi, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 56);
+    return 'worker-' + String(workflow || 'worker').replace(/[^a-z0-9_-]+/gi, '-') + '-' + (slug || ordinal);
+  }
+
+  function parseWorkerTodoLine(line, workflow, ordinal) {
+    var row = cleanTerminalControlText(line)
+      .replace(/^[⎿└├│]\s*/, '')
+      .replace(/^[-*•]\s*/, '')
+      .trim();
+    if (!row || /^total:/i.test(row) || /^\d+\s+tasks?\b/i.test(row)) return null;
+    var match = row.match(/^(?:\[(\d+)\s*\/\s*(\d+)\]\s*)?(?:(⏸|▶|👀|✅|❌|\[\s?\]|\[>\]|\[\.]|\[v\]|\[x\])\s*)?(?:(pending|in[_\s-]?progress|inprogress|active|running|completed|done|approved|rejected|blocked|failed|error)\s*)?(?:\|\s*)?(.+?)\s*$/i);
+    if (!match) return null;
+    var hasTodoMarker = !!(match[1] || match[4] || (match[3] && row.indexOf('|') >= 0));
+    if (!hasTodoMarker) return null;
+    var title = String(match[5] || '').trim();
+    if (!title || /^[-─]+$/.test(title) || /^todo\b/i.test(title)) return null;
+    var idx = match[1] || ordinal;
+    var state = workerTodoState(match[3], match[4]);
+    return {
+      id: workerTodoId(workflow, title, idx),
+      state: state,
+      section: 'worker-local',
+      title: title,
+      detail: 'Worker-local task from the live worker transcript.',
+      sourceRefs: [],
+      criteria: [],
+      deps: [],
+    };
+  }
+
+  function workerLocalTodosFromFeed(feed, workflow) {
+    workflow = workflow || 'worker';
+    var list = Array.isArray(feed) ? feed : [];
+    var byTitle = new Map();
+    var ordinal = 0;
+    list.forEach(function (entry) {
+      var text = cleanTerminalControlText(entry && entry.text);
+      if (!text) return;
+      text.split(/\r?\n/).forEach(function (line) {
+        ordinal += 1;
+        var todo = parseWorkerTodoLine(line, workflow, ordinal);
+        if (!todo) return;
+        byTitle.set(todo.title.toLowerCase(), todo);
+      });
+    });
+    return Array.from(byTitle.values());
   }
 
   function isThinkingPlaceholderLine(line) {
@@ -186,10 +316,9 @@
   function coalesceFeedEntries(existing, incoming) {
     var out = Array.isArray(existing) ? existing.slice() : [];
     var fresh = Array.isArray(incoming) ? incoming : [incoming];
-    var shouldMergeObs = function (prev, entry) {
-      if (!prev || prev.kind !== 'obs' || !entry || entry.kind !== 'obs') return false;
-      var prevWorker = prev.worker || {};
-      var nextWorker = entry.worker || {};
+    var sameWorkerContext = function (prev, entry) {
+      var prevWorker = prev && prev.worker ? prev.worker : {};
+      var nextWorker = entry && entry.worker ? entry.worker : {};
       var workerKeys = ['job_id', 'run_id', 'workflow', 'stage_id'];
       for (var i = 0; i < workerKeys.length; i++) {
         var key = workerKeys[i];
@@ -197,6 +326,22 @@
         var b = String(nextWorker[key] || '');
         if (a && b && a !== b) return false;
       }
+      return true;
+    };
+    var looksLikeThoughtStart = function (text) {
+      var first = String(text || '').split('\n').map(function (line) { return line.trim(); }).find(Boolean) || '';
+      return /^(?:THOUGHT|REASONING)(?:\s|\(|:|$)|^[-─]{2,}\s|^Let me\b|^I\s+\b|^\*\s+in\s+\d/i.test(first);
+    };
+    var shouldMergeStdoutContinuationIntoObs = function (prev, entry) {
+      if (!prev || prev.kind !== 'obs' || !entry || entry.kind !== 'thought') return false;
+      if (!prev.live || !entry.live) return false;
+      if (!sameWorkerContext(prev, entry)) return false;
+      if (looksLikeThoughtStart(entry.text)) return false;
+      return true;
+    };
+    var shouldMergeObs = function (prev, entry) {
+      if (!prev || prev.kind !== 'obs' || !entry || entry.kind !== 'obs') return false;
+      if (!sameWorkerContext(prev, entry)) return false;
       var prevTool = String(prev.tool || '');
       var nextTool = String(entry.tool || '');
       return !prevTool || !nextTool || prevTool === nextTool;
@@ -242,6 +387,17 @@
       }
 
       var prev = out[out.length - 1];
+      if (shouldMergeStdoutContinuationIntoObs(prev, entry)) {
+        var prevContinuationText = String(prev.text || '').trim();
+        var nextContinuationText = String(entry.text || '').trim();
+        if (!nextContinuationText) return;
+        out[out.length - 1] = Object.assign({}, prev, entry, {
+          kind: 'obs',
+          text: prevContinuationText ? prevContinuationText + '\n' + nextContinuationText : nextContinuationText,
+          tool: prev.tool || entry.tool,
+        });
+        return;
+      }
       if (isThought && prev && prev.kind === 'thought') {
         var prevText = String(prev.text || '').trim();
         var nextText = String(entry.text || '').trim();
@@ -367,8 +523,10 @@
   }
 
   var api = {
+    cleanTerminalControlText: cleanTerminalControlText,
     feedEntryFromChatMessage: feedEntryFromChatMessage,
     feedEntryFromWorkerLogEntry: feedEntryFromWorkerLogEntry,
+    workerLocalTodosFromFeed: workerLocalTodosFromFeed,
     toolEntryFromDisplayLine: toolEntryFromDisplayLine,
     handoffFields: handoffFields,
     handoffStatusColor: handoffStatusColor,
