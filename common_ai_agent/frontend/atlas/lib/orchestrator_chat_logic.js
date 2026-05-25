@@ -29,7 +29,19 @@
   function feedEntryFromChatMessage(message) {
     var payload = (message && message.payload) || {};
     var role = String(payload.role || '').toLowerCase();
-    var content = String(payload.content || '').trim();
+    var rawContent = payload.content == null ? '' : String(payload.content);
+    var content = rawContent.trim();
+    if (role === 'assistant_delta') {
+      if (!rawContent) return null;
+      return {
+        kind: 'agent_delta',
+        text: rawContent,
+        streamId: String(payload.stream_id || payload.streamId || ''),
+        createdAt: Number((message && message.created_at) || 0) > 0
+          ? Number((message && message.created_at) || 0) * 1000
+          : 0,
+      };
+    }
     if (!content) return null;
     var created = Number((message && message.created_at) || 0);
     var createdAt = created > 0 ? created * 1000 : 0;
@@ -156,6 +168,26 @@
 
     fresh.forEach(function (raw) {
       if (!raw || typeof raw !== 'object') return;
+      if (raw.kind === 'agent_delta') {
+        var deltaText = String(raw.text || '');
+        if (!deltaText) return;
+        var streamId = String(raw.streamId || raw.stream_id || '');
+        var prevAgent = out[out.length - 1];
+        if (prevAgent && prevAgent.kind === 'agent' && String(prevAgent.streamId || '') === streamId) {
+          out[out.length - 1] = Object.assign({}, prevAgent, raw, {
+            kind: 'agent',
+            text: String(prevAgent.text || '') + deltaText,
+            streamId: streamId,
+          });
+        } else {
+          out.push(Object.assign({}, raw, {
+            kind: 'agent',
+            text: deltaText,
+            streamId: streamId,
+          }));
+        }
+        return;
+      }
       var entry = raw.kind === 'thought'
         ? Object.assign({}, raw, { text: compactThoughtText(raw.text) })
         : raw;

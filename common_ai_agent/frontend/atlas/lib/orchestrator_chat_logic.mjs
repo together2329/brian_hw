@@ -27,7 +27,18 @@ export function toolEntryFromDisplayLine(content) {
 export function feedEntryFromChatMessage(message) {
   const payload = (message && message.payload) || {};
   const role = String(payload.role || '').toLowerCase();
-  const content = String(payload.content || '').trim();
+  const rawContent = payload.content == null ? '' : String(payload.content);
+  const content = rawContent.trim();
+  if (role === 'assistant_delta') {
+    if (!rawContent) return null;
+    const created = Number((message && message.created_at) || 0);
+    return {
+      kind: 'agent_delta',
+      text: rawContent,
+      streamId: String(payload.stream_id || payload.streamId || ''),
+      createdAt: created > 0 ? created * 1000 : 0,
+    };
+  }
   if (!content) return null;
   const created = Number((message && message.created_at) || 0);
   const createdAt = created > 0 ? created * 1000 : 0;
@@ -153,6 +164,29 @@ export function coalesceFeedEntries(existing = [], incoming = []) {
 
   for (const raw of fresh) {
     if (!raw || typeof raw !== 'object') continue;
+    if (raw.kind === 'agent_delta') {
+      const deltaText = String(raw.text || '');
+      if (!deltaText) continue;
+      const streamId = String(raw.streamId || raw.stream_id || '');
+      const prevAgent = out[out.length - 1];
+      if (prevAgent && prevAgent.kind === 'agent' && String(prevAgent.streamId || '') === streamId) {
+        out[out.length - 1] = {
+          ...prevAgent,
+          ...raw,
+          kind: 'agent',
+          text: String(prevAgent.text || '') + deltaText,
+          streamId,
+        };
+      } else {
+        out.push({
+          ...raw,
+          kind: 'agent',
+          text: deltaText,
+          streamId,
+        });
+      }
+      continue;
+    }
     const entry = raw.kind === 'thought'
       ? { ...raw, text: compactThoughtText(raw.text) }
       : raw;
