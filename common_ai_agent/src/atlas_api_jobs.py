@@ -94,6 +94,73 @@ _LAZY_WORKER_IDLE_TTL_SEC = float(
 # Monotonic timestamp of last observed busy moment per worker URL.
 # Populated when worker is spawned; updated by reaper probes.
 _LAZY_WORKER_LAST_BUSY: dict[str, float] = {}
+_WARM_WORKER_LOCK = threading.Lock()
+_WARM_WORKER_INFLIGHT: set[str] = set()
+_IPC_WORKER_LOCK = threading.Lock()
+_IPC_WORKER_PROCS: dict[str, subprocess.Popen] = {}
+
+
+def _env_int(name: str, default: int, *, minimum: int = 0) -> int:
+    try:
+        value = int(str(os.environ.get(name, default)).strip() or default)
+    except Exception:
+        value = default
+    return max(minimum, value)
+
+
+def _env_float(name: str, default: float, *, minimum: float = 0.0) -> float:
+    try:
+        value = float(str(os.environ.get(name, default)).strip() or default)
+    except Exception:
+        value = default
+    return max(minimum, value)
+
+
+def _ipc_worker_global_limit() -> int:
+    return _env_int("ATLAS_IPC_WORKER_MAX_CONCURRENT", 4, minimum=1)
+
+
+def _ipc_worker_user_limit() -> int:
+    return _env_int("ATLAS_IPC_WORKER_MAX_PER_USER", 2, minimum=1)
+
+
+def _ipc_worker_workflow_limit() -> int:
+    return _env_int("ATLAS_IPC_WORKER_MAX_PER_WORKFLOW", 2, minimum=1)
+
+
+def _ipc_worker_queue_limit() -> int:
+    # 0 disables admission control. The default is deliberately high: the
+    # limiter below controls live subprocess pressure, while this prevents a
+    # broken UI/client from enqueueing unbounded work.
+    return _env_int("ATLAS_IPC_WORKER_QUEUE_LIMIT", 128, minimum=0)
+
+
+def _ipc_worker_timeout_sec(job: dict[str, Any] | None = None) -> float:
+    workflow = str((job or {}).get("workflow") or "").strip()
+    if workflow:
+        suffix = _workflow_env_suffix(workflow)
+        for key in (
+            f"ATLAS_IPC_WORKER_TIMEOUT_{suffix}",
+            f"ATLAS_WORKER_TIMEOUT_{suffix}",
+        ):
+            raw = os.environ.get(key)
+            if raw is not None and str(raw).strip():
+                return _env_float(key, 1800.0, minimum=0.0)
+    return _env_float("ATLAS_IPC_WORKER_TIMEOUT_SEC", 1800.0, minimum=0.0)
+
+
+def _ipc_worker_max_attempts(job: dict[str, Any] | None = None) -> int:
+    workflow = str((job or {}).get("workflow") or "").strip()
+    if workflow:
+        suffix = _workflow_env_suffix(workflow)
+        for key in (
+            f"ATLAS_IPC_WORKER_MAX_ATTEMPTS_{suffix}",
+            f"ATLAS_WORKER_MAX_ATTEMPTS_{suffix}",
+        ):
+            raw = os.environ.get(key)
+            if raw is not None and str(raw).strip():
+                return _env_int(key, 2, minimum=1)
+    return _env_int("ATLAS_IPC_WORKER_MAX_ATTEMPTS", 2, minimum=1)
 
 
 def _dispatch_logger() -> logging.Logger:
@@ -515,6 +582,8 @@ def _record_job_db_start(job: dict[str, Any]) -> None:
                 "job_id": job.get("job_id") or "",
                 "user_id": owner_name,
                 "worker_session": job.get("session") or "",
+                "worker": job.get("worker") or "",
+                "worker_transport": job.get("worker_transport") or "",
                 "model": job.get("model") or "",
                 "toolchain": job.get("toolchain") or "",
                 "run_mode": job.get("run_mode") or "",
@@ -584,6 +653,10 @@ def _record_job_db_running(job: dict[str, Any]) -> None:
                 payload={
                     "job_id": job.get("job_id") or "",
                     "worker_run_id": job.get("run_id") or "",
+                    "worker": job.get("worker") or "",
+                    "worker_transport": job.get("worker_transport") or "",
+                    "attempt": job.get("attempt") or 1,
+                    "max_attempts": job.get("max_attempts") or _ipc_worker_max_attempts(job),
                     "pipeline_run_id": job.get("pipeline_run_id") or job.get("pipeline_id") or "",
                     "model": job.get("model") or "",
                     "toolchain": job.get("toolchain") or "",
@@ -630,6 +703,8 @@ def _finish_job_db_run(job: dict[str, Any], status: str | None = None, error_sum
                 payload={
                     "job_id": job.get("job_id") or "",
                     "worker_run_id": job.get("run_id") or "",
+                    "worker": job.get("worker") or "",
+                    "worker_transport": job.get("worker_transport") or "",
                     "pipeline_run_id": job.get("pipeline_run_id") or job.get("pipeline_id") or "",
                     "status": final_status,
                     "result_summary": job.get("result_summary") or "",
@@ -936,6 +1011,7 @@ def _summarize_worker_progress(ip_jobs: list[dict[str, Any]]) -> dict[str, Any]:
             "stage_id": job.get("stage_id") or "",
             "status": job.get("status") or "",
             "worker": job.get("worker") or "",
+            "worker_transport": job.get("worker_transport") or "",
             "model": job.get("model") or "",
             "toolchain": job.get("toolchain") or "",
             "user_id": job.get("user_id") or "",
@@ -1657,6 +1733,24 @@ def _workflow_specific_worker_url(workflow: str) -> str:
     return ""
 
 
+def _worker_transport(value: str = "") -> str:
+    raw = (
+        str(value or "").strip()
+        or os.environ.get("ATLAS_WORKER_TRANSPORT", "").strip()
+        or os.environ.get("ATLAS_WORKER_DISPATCH_TRANSPORT", "").strip()
+        or os.environ.get("ATLAS_WORKER_DISPATCH_MODE", "").strip()
+    ).lower().replace("_", "-")
+    if raw in {"ipc", "process", "subprocess", "portless"}:
+        return "ipc"
+    if raw in {"http", "url", "legacy-http"}:
+        return "http"
+    return "http"
+
+
+def _worker_transport_is_ipc(value: str = "") -> bool:
+    return _worker_transport(value) == "ipc"
+
+
 def _worker_url_is_shared_default(workflow: str, worker_url: str) -> bool:
     default_url = os.environ.get("WORKER_URL_DEFAULT", "").strip().rstrip("/")
     if not default_url or not worker_url:
@@ -1765,6 +1859,26 @@ def _session_scoped_worker_url(
     return ""
 
 
+def _resolve_worker_ipc_address_for_job(
+    workflow: str,
+    *,
+    session_name: str = "",
+    user_id: str = "",
+    db_user_id: str = "",
+    exec_mode: str = "",
+) -> str:
+    wf = str(workflow or "").strip() or "worker"
+    _owner_name, partition_key = _workflow_worker_owner_keys(
+        session_name=session_name,
+        user_id=user_id,
+        db_user_id=db_user_id,
+    )
+    safe_partition = _safe_worker_key_part(partition_key, "local-admin")
+    effective_exec = _normalize_exec_mode(exec_mode) or _current_exec_mode()
+    lane = "single" if effective_exec == EXEC_MODE_SINGLE else "orchestrator"
+    return f"ipc://{safe_partition}/{lane}/{wf}"
+
+
 def _resolve_worker_url(workflow: str) -> str:
     """Same precedence as core.delegate_runner.HTTPWorkerDelegate."""
     if _current_exec_mode() == EXEC_MODE_SINGLE:
@@ -1807,6 +1921,238 @@ def _lazy_workers_enabled() -> bool:
         or ""
     ).strip().lower()
     return raw in {"1", "true", "yes", "on"}
+
+
+def _env_flag(name: str, default: bool = False) -> bool:
+    raw = os.environ.get(name)
+    if raw is None or not str(raw).strip():
+        return default
+    return str(raw).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _split_workflow_csv(raw: str, fallback: tuple[str, ...]) -> list[str]:
+    value = str(raw or "").strip()
+    if not value:
+        return list(fallback)
+    out: list[str] = []
+    for item in re.split(r"[,\s]+", value):
+        wf = str(item or "").strip()
+        if wf and wf in _DEFAULT_WORKER_PORTS and wf not in out:
+            out.append(wf)
+    return out
+
+
+def _worker_warm_pool_enabled() -> bool:
+    if _worker_transport_is_ipc():
+        return False
+    if _current_exec_mode() != EXEC_MODE_ORCHESTRATOR:
+        return False
+    if not _lazy_workers_enabled():
+        return False
+    return _env_flag("ATLAS_WORKER_WARM_POOL", False)
+
+
+def _warm_policy_workflows(active_workflow: str = "") -> list[str]:
+    """Return workflows worth pre-starting for one active user/IP lane."""
+
+    workflows = _split_workflow_csv(
+        os.environ.get("ATLAS_WORKER_WARM_ALWAYS", ""),
+        ("ssot-gen", "rtl-gen"),
+    )
+    active = str(active_workflow or "").strip()
+    conditional: dict[str, tuple[str, ...]] = {
+        "ssot-gen": ("lint",),
+        "rtl-gen": ("lint", "tb-gen"),
+        "tb-gen": ("sim",),
+    }
+    for wf in conditional.get(active, ()):
+        if wf in _DEFAULT_WORKER_PORTS and wf not in workflows:
+            workflows.append(wf)
+    return workflows
+
+
+def _warm_worker_owner_from_session(session_name: str, owner: str = "") -> str:
+    if owner:
+        return str(owner).strip()
+    parts = [p for p in str(session_name or "").strip("/").split("/") if p]
+    return parts[0] if parts else ""
+
+
+def _warm_worker_job(
+    *,
+    workflow: str,
+    ip: str,
+    owner: str,
+    db_user_id: str,
+    project_root_value: str,
+    run_mode: str,
+    exec_mode: str,
+) -> dict[str, Any]:
+    session_name = f"{owner}/{ip}/{workflow}" if owner else f"{ip}/{workflow}"
+    worker_owner, worker_partition = _workflow_worker_owner_keys(
+        session_name=session_name,
+        user_id=owner,
+        db_user_id=db_user_id,
+    )
+    worker_url = _resolve_worker_url_for_job(
+        workflow,
+        session_name=session_name,
+        user_id=owner,
+        db_user_id=db_user_id,
+        exec_mode=exec_mode or EXEC_MODE_ORCHESTRATOR,
+    )
+    return {
+        "job_id": f"warm-{workflow}",
+        "worker": worker_url,
+        "worker_owner": worker_owner,
+        "worker_partition": worker_partition,
+        "workflow": workflow,
+        "session": session_name,
+        "project_root": project_root_value,
+        "model": _worker_model_for(workflow),
+        "reasoning_effort": _worker_reasoning_effort_for(workflow),
+        "run_mode": run_mode or _current_run_mode(),
+        "exec_mode": exec_mode or EXEC_MODE_ORCHESTRATOR,
+    }
+
+
+def _schedule_warm_worker(
+    job: dict[str, Any],
+    *,
+    reason: str = "",
+    background: bool = True,
+) -> dict[str, Any]:
+    worker_url = str(job.get("worker") or "").strip().rstrip("/")
+    workflow = str(job.get("workflow") or "").strip()
+    if not worker_url:
+        return {"workflow": workflow, "status": "skipped", "reason": "missing_worker"}
+    if _lazy_worker_proc_alive(worker_url):
+        return {"workflow": workflow, "worker": worker_url, "status": "ready"}
+    with _WARM_WORKER_LOCK:
+        if worker_url in _WARM_WORKER_INFLIGHT:
+            return {"workflow": workflow, "worker": worker_url, "status": "inflight"}
+        _WARM_WORKER_INFLIGHT.add(worker_url)
+
+    def _run() -> None:
+        try:
+            _LOG.info(
+                f"[warm-worker] background workflow={workflow or '-'} "
+                f"url={worker_url} reason={reason or '-'}"
+            )
+            _ensure_lazy_worker(job)
+        except Exception as exc:
+            _LOG.info(
+                f"[warm-worker] background failed workflow={workflow or '-'} "
+                f"url={worker_url} error={exc}"
+            )
+        finally:
+            with _WARM_WORKER_LOCK:
+                _WARM_WORKER_INFLIGHT.discard(worker_url)
+
+    if not background:
+        try:
+            _LOG.info(
+                f"[warm-worker] sync workflow={workflow or '-'} "
+                f"url={worker_url} reason={reason or '-'}"
+            )
+            _ensure_lazy_worker(job)
+            return {"workflow": workflow, "worker": worker_url, "status": "scheduled"}
+        except Exception as exc:
+            return {
+                "workflow": workflow,
+                "worker": worker_url,
+                "status": "error",
+                "error": str(exc),
+            }
+        finally:
+            with _WARM_WORKER_LOCK:
+                _WARM_WORKER_INFLIGHT.discard(worker_url)
+
+    thread = threading.Thread(
+        target=_run,
+        name=f"atlas-warm-{workflow or 'worker'}",
+        daemon=True,
+    )
+    thread.start()
+    return {"workflow": workflow, "worker": worker_url, "status": "scheduled"}
+
+
+def schedule_worker_warmup(
+    *,
+    ip: str,
+    owner: str = "",
+    db_user_id: str = "",
+    session_name: str = "",
+    active_workflow: str = "",
+    workflows: list[str] | tuple[str, ...] | None = None,
+    project_root_value: str | Path = "",
+    run_mode: str = "",
+    exec_mode: str = "",
+    reason: str = "",
+    background: bool = True,
+) -> dict[str, Any]:
+    """Pre-start likely next workflow processes without dispatching a job."""
+
+    if not _worker_warm_pool_enabled():
+        return {"enabled": False, "reason": "disabled", "scheduled": []}
+    ip_name = str(ip or "").strip()
+    if not ip_name or ip_name.lower() == "default":
+        return {"enabled": True, "reason": "no_active_ip", "scheduled": []}
+    owner_name = _warm_worker_owner_from_session(session_name, owner)
+    if not owner_name or owner_name.lower() == "default":
+        return {"enabled": True, "reason": "no_active_owner", "scheduled": []}
+    selected = list(workflows or _warm_policy_workflows(active_workflow))
+    project_root_text = str(project_root_value or os.environ.get("ATLAS_PROJECT_ROOT") or ".")
+    effective_exec = _normalize_exec_mode(exec_mode) or EXEC_MODE_ORCHESTRATOR
+    effective_run = _normalize_run_mode(run_mode) or _current_run_mode()
+    scheduled: list[dict[str, Any]] = []
+    for wf in selected:
+        workflow = str(wf or "").strip()
+        if workflow not in _DEFAULT_WORKER_PORTS:
+            scheduled.append({
+                "workflow": workflow,
+                "status": "skipped",
+                "reason": "unknown_workflow",
+            })
+            continue
+        job = _warm_worker_job(
+            workflow=workflow,
+            ip=ip_name,
+            owner=owner_name,
+            db_user_id=db_user_id,
+            project_root_value=project_root_text,
+            run_mode=effective_run,
+            exec_mode=effective_exec,
+        )
+        scheduled.append(_schedule_warm_worker(job, reason=reason, background=background))
+    return {
+        "enabled": True,
+        "reason": reason or "policy",
+        "ip": ip_name,
+        "owner": owner_name,
+        "active_workflow": str(active_workflow or ""),
+        "scheduled": scheduled,
+    }
+
+
+def _schedule_worker_warmup_for_job(job: dict[str, Any], *, reason: str) -> None:
+    try:
+        session_name = str(job.get("session") or "")
+        owner = str(job.get("user_id") or "").strip() or _warm_worker_owner_from_session(session_name)
+        schedule_worker_warmup(
+            ip=str(job.get("ip") or ""),
+            owner=owner,
+            db_user_id=str(job.get("db_user_id") or ""),
+            session_name=session_name,
+            active_workflow=str(job.get("workflow") or ""),
+            project_root_value=str(job.get("project_root") or ""),
+            run_mode=str(job.get("run_mode") or ""),
+            exec_mode=str(job.get("exec_mode") or ""),
+            reason=reason,
+            background=True,
+        )
+    except Exception as exc:
+        _LOG.info(f"[warm-worker] policy error reason={reason}: {exc}")
 
 
 def _env_float(name: str, default: float, *, minimum: float = 0.0) -> float:
@@ -2346,6 +2692,20 @@ def _worker_launch_command(
     tools operate on the same IP directory the UI is showing.
     """
 
+    if str(worker_url or "").strip().startswith("ipc://"):
+        model_arg = f" --model {shlex.quote(model)}" if model else ""
+        effort_arg = f" --effort {shlex.quote(reasoning_effort)}" if reasoning_effort else ""
+        return (
+            f"cd {shlex.quote(str(project_root))} && "
+            f"ATLAS_PROJECT_ROOT={shlex.quote(str(project_root))} "
+            f"ATLAS_WORKER_TRANSPORT=ipc "
+            f"EXECUTION_NO_ACTION_GUARD=false "
+            f"PYTHONPATH={shlex.quote(str(_SOURCE_ROOT))}:$PYTHONPATH "
+            "python3 -m src.atlas_worker_ipc "
+            "--request <job-request.json> --response <job-response.json>"
+            f"{model_arg}{effort_arg}"
+        )
+
     port = worker_url.rsplit(":", 1)[-1].split("/", 1)[0]
     py_path = str(_SOURCE_ROOT / "src" / "main.py")
     model_arg = f" --model {shlex.quote(model)}" if model else ""
@@ -2555,66 +2915,431 @@ def _default_todo_template_for_job(workflow: str, stage_id: str, ip: str) -> str
     return ""
 
 
+def _job_uses_ipc_worker(job: dict[str, Any]) -> bool:
+    transport = str(job.get("worker_transport") or "").strip()
+    worker = str(job.get("worker") or "").strip()
+    return _worker_transport_is_ipc(transport) or worker.startswith("ipc://")
+
+
+def _worker_run_payload(job: dict[str, Any]) -> dict[str, Any]:
+    context = job["prompt"].split("\n\n", 1)[0]
+    if job.get("rtl_version_id"):
+        context += (
+            "\n[RTL VERSION CONTEXT]\n"
+            f"- rtl_version_id: {job.get('rtl_version_id')}\n"
+            f"- rtl_version: {job.get('rtl_version') or '(external)'}\n"
+            f"- rtl_sha256_tree: {job.get('rtl_sha256_tree') or ''}\n"
+            f"- rtl_git_tag: {job.get('rtl_git_tag') or ''}\n"
+        )
+    artifact_versions = _artifact_versions_map(job)
+    if artifact_versions:
+        context += "\n[ARTIFACT VERSION CONTEXT]\n"
+        for artifact_type in sorted(artifact_versions):
+            item = artifact_versions[artifact_type]
+            context += (
+                f"- {artifact_type}: {item.get('version') or ''} "
+                f"({item.get('id') or ''})"
+            )
+            if item.get("git_tag"):
+                context += f" tag={item['git_tag']}"
+            if item.get("sha256_tree"):
+                context += f" tree={item['sha256_tree']}"
+            context += "\n"
+    body = {
+        "task":     job["prompt"],
+        "workflow": job["workflow"],
+        "session":  job.get("session", ""),
+        "model":    job.get("model", ""),
+        "reasoning_effort": job.get("reasoning_effort", ""),
+        "toolchain": job.get("toolchain", ""),
+        "run_mode": job.get("run_mode", ""),
+        "exec_mode": job.get("exec_mode", ""),
+        "context":  context,
+        "project_root": job.get("project_root", ""),
+        "source_root": job.get("source_root", ""),
+        "sync":     False,
+        "job_id":    job.get("job_id", ""),
+        "stage_id":  job.get("stage_id", ""),
+        "pipeline_id": job.get("pipeline_id", ""),
+        "pipeline_run_id": job.get("pipeline_run_id") or job.get("pipeline_id", ""),
+        "pipeline_index": job.get("pipeline_index", 0),
+        "scope_path": job.get("scope_path", ""),
+        "user_id":   job.get("user_id", ""),
+        "db_user_id": job.get("db_user_id", ""),
+        "db_session_id": job.get("db_session_id", ""),
+        "trigger_source": job.get("trigger_source", ""),
+        "orchestrator_run_id": job.get("orchestrator_run_id", ""),
+        "worker_transport": job.get("worker_transport", ""),
+    }
+    if job.get("template"):
+        body["template"] = job["template"]
+    if job.get("ip"):
+        body["ip"] = job["ip"]
+    if job.get("rtl_version_id"):
+        body["rtl_version_id"] = job["rtl_version_id"]
+    if artifact_versions:
+        body["artifact_versions"] = list(artifact_versions.values())
+    return body
+
+
+def _ipc_worker_paths(job: dict[str, Any], run_id: str) -> dict[str, Path]:
+    project_root = Path(job.get("project_root") or os.environ.get("ATLAS_PROJECT_ROOT") or ".").resolve()
+    safe_job_id = re.sub(r"[^A-Za-z0-9_.-]+", "_", str(job.get("job_id") or run_id or "job"))
+    run_dir = project_root / ".session" / "workers-ipc" / safe_job_id
+    return {
+        "run_dir": run_dir,
+        "request": run_dir / "request.json",
+        "response": run_dir / "response.json",
+        "log": run_dir / "worker.log",
+    }
+
+
+def _rel_path_for_job(path: Path, job: dict[str, Any]) -> str:
+    try:
+        root = Path(job.get("project_root") or os.environ.get("ATLAS_PROJECT_ROOT") or ".").resolve()
+        return path.resolve().relative_to(root).as_posix()
+    except Exception:
+        return str(path)
+
+
+def _ipc_worker_env(job: dict[str, Any]) -> dict[str, str]:
+    env = os.environ.copy()
+    project_root_value = str(job.get("project_root") or env.get("ATLAS_PROJECT_ROOT") or ".")
+    env["ATLAS_PROJECT_ROOT"] = project_root_value
+    env["ATLAS_SOURCE_ROOT"] = str(_SOURCE_ROOT)
+    env.setdefault("ATLAS_WORKFLOW_ROOT", str(_WORKFLOW_ROOT))
+    env["ATLAS_EXEC_MODE"] = str(job.get("exec_mode") or EXEC_MODE_ORCHESTRATOR)
+    env["ATLAS_ORCHESTRATOR_MODE"] = "1"
+    env["ATLAS_SINGLE_MAIN_LOOP"] = "0"
+    env["ATLAS_WORKER_TRANSPORT"] = "ipc"
+    env.setdefault("EXECUTION_NO_ACTION_GUARD", "false")
+    env.setdefault("AGENT_SERVER_MAX_CONCURRENT", "1")
+    py_path = str(_SOURCE_ROOT)
+    env["PYTHONPATH"] = f"{py_path}{os.pathsep}{env.get('PYTHONPATH', '')}".rstrip(os.pathsep)
+    return env
+
+
+def _normalize_worker_result_status(data: dict[str, Any], returncode: int) -> str:
+    status = str(data.get("status") or "").strip().lower()
+    if status in {"completed", "error", "cancelled", "blocked"}:
+        return status
+    result = data.get("result")
+    if isinstance(result, dict):
+        nested = str(result.get("status") or "").strip().lower()
+        if nested in {"completed", "error", "cancelled", "blocked"}:
+            return nested
+    return "completed" if returncode == 0 else "error"
+
+
+def _read_ipc_response(response_path: Path) -> dict[str, Any]:
+    if not response_path.is_file():
+        return {}
+    try:
+        data = json.loads(response_path.read_text(encoding="utf-8", errors="replace"))
+    except Exception as exc:
+        return {"status": "error", "error": f"unreadable IPC response: {exc}"}
+    return data if isinstance(data, dict) else {"status": "error", "error": "non-dict IPC response"}
+
+
+def _terminate_ipc_process(proc: subprocess.Popen, *, grace_sec: float = 5.0) -> None:
+    try:
+        if proc.poll() is None:
+            proc.terminate()
+    except Exception:
+        return
+    deadline = time.monotonic() + max(0.1, grace_sec)
+    while time.monotonic() < deadline:
+        try:
+            if proc.poll() is not None:
+                return
+        except Exception:
+            return
+        time.sleep(0.05)
+    try:
+        if proc.poll() is None:
+            proc.kill()
+    except Exception:
+        pass
+
+
+def _schedule_ipc_retry_locked(job: dict[str, Any], reason: str) -> bool:
+    attempts = int(job.get("attempt") or 1)
+    max_attempts = int(job.get("max_attempts") or _ipc_worker_max_attempts(job))
+    if attempts >= max_attempts:
+        return False
+    previous = list(job.get("previous_run_ids") or [])
+    current_run_id = str(job.get("run_id") or "").strip()
+    if current_run_id and current_run_id not in previous:
+        previous.append(current_run_id)
+    next_attempt = attempts + 1
+    now = time.time()
+    job["attempt"] = next_attempt
+    job["retry_count"] = next_attempt - 1
+    job["max_attempts"] = max_attempts
+    job["previous_run_ids"] = previous
+    job["last_retry_reason"] = reason
+    job["status"] = "queued"
+    job["queue_reason"] = "retry_timeout" if "timeout" in reason.lower() else "retry_dispatch"
+    job["queued_at"] = now
+    job["started_at"] = 0.0
+    job["finished_at"] = 0.0
+    job["run_id"] = ""
+    job["worker_pid"] = ""
+    job["error"] = ""
+    job["_last_polled"] = 0.0
+    job.pop("returncode", None)
+    return True
+
+
+def _record_job_db_retry(job: dict[str, Any], reason: str) -> None:
+    run_id = str(job.get("workflow_run_id") or "")
+    if not run_id:
+        return
+    try:
+        from core.atlas_db import AtlasDB
+
+        project_root = Path(job.get("project_root") or ".").resolve()
+        with AtlasDB(_atlas_job_db_path(project_root)) as db:
+            db._execute(
+                "UPDATE workflow_runs SET status = ?, updated_at = ? WHERE id = ?",
+                ("running", time.time(), run_id),
+            )
+            db.record_trace_event(
+                event_type="worker_retry",
+                payload={
+                    "job_id": job.get("job_id") or "",
+                    "attempt": job.get("attempt") or 1,
+                    "max_attempts": job.get("max_attempts") or _ipc_worker_max_attempts(job),
+                    "reason": reason,
+                    "worker": job.get("worker") or "",
+                    "worker_transport": job.get("worker_transport") or "",
+                    "previous_run_ids": job.get("previous_run_ids") or [],
+                },
+                session_id=str(job.get("db_session_id") or ""),
+                workspace_id=str(job.get("db_workspace_id") or ""),
+                ip_id=str(job.get("db_ip_id") or ""),
+                workflow=str(job.get("workflow") or ""),
+                run_id=run_id,
+                stage_id=str(job.get("stage_id") or ""),
+                actor_user_id=str(job.get("db_user_id") or ""),
+                idempotency_key=f"worker-retry:{job.get('job_id')}:{job.get('attempt')}",
+            )
+    except Exception as exc:
+        job["db_error"] = str(exc)
+
+
+def _watch_ipc_worker(job_id: str, run_id: str, response_path: Path, proc: subprocess.Popen) -> None:
+    timed_out = False
+    try:
+        timeout_s = _ipc_worker_timeout_sec(_jobs.get(job_id, {}) if job_id else {})
+        if timeout_s > 0:
+            try:
+                returncode = proc.wait(timeout=timeout_s)
+            except TypeError:
+                returncode = proc.wait()
+        else:
+            returncode = proc.wait()
+    except subprocess.TimeoutExpired:
+        timed_out = True
+        _terminate_ipc_process(proc)
+        try:
+            returncode = proc.poll()
+        except Exception:
+            returncode = -9
+        if returncode is None:
+            returncode = -9
+    except Exception:
+        returncode = -1
+    finally:
+        with _IPC_WORKER_LOCK:
+            current = _IPC_WORKER_PROCS.get(run_id)
+            if current is proc:
+                _IPC_WORKER_PROCS.pop(run_id, None)
+
+    data = _read_ipc_response(response_path)
+    now = time.time()
+    with _jobs_lock:
+        live = _jobs.get(job_id)
+    if not live:
+        return
+    if str(live.get("run_id") or "") != run_id:
+        _LOG.info(
+            f"[dispatch-ipc] stale watcher ignored job={job_id or '-'} "
+            f"run_id={run_id} current={live.get('run_id') or '-'}"
+        )
+        return
+    if str(live.get("status") or "") == "cancelled":
+        _finish_job_db_run(live, "cancelled")
+        _advance_pipeline_from(live)
+        return
+
+    if timed_out:
+        reason = f"IPC worker timeout after {_ipc_worker_timeout_sec(live):.1f}s"
+        retry_scheduled = False
+        with _jobs_lock:
+            if _jobs.get(job_id) is live:
+                retry_scheduled = _schedule_ipc_retry_locked(live, reason)
+        if retry_scheduled:
+            _LOG.info(
+                f"[dispatch-ipc] retry job={job_id or '-'} "
+                f"attempt={live.get('attempt')} reason={reason}"
+            )
+            _record_job_db_retry(live, reason)
+            _drain_ready_worker_queue()
+            return
+        live["status"] = "error"
+        live["finished_at"] = now
+        live["returncode"] = returncode
+        live["error"] = f"{reason}; retry budget exhausted"
+        _finish_job_db_run(live, "error", live["error"])
+        _advance_pipeline_from(live)
+        return
+
+    status = _normalize_worker_result_status(data, returncode)
+    result = data.get("result") if isinstance(data.get("result"), dict) else data
+    live["status"] = status
+    live["finished_at"] = now
+    live["returncode"] = returncode
+    live["files_modified"] = result.get("files_modified") or data.get("files_modified") or []
+    live["files_examined"] = result.get("files_examined") or data.get("files_examined") or []
+    live["iterations"] = result.get("iterations") or data.get("iterations") or live.get("iterations") or 0
+    summary = result.get("result") or data.get("summary") or data.get("result_summary") or ""
+    live["result_summary"] = str(summary or "")[:600]
+    error_text = result.get("error") or data.get("error") or ""
+    if status == "error" and not error_text:
+        error_text = f"IPC worker exited with returncode {returncode}"
+    live["error"] = str(error_text or "")
+    if data.get("started_at"):
+        try:
+            live["worker_started_at"] = float(data.get("started_at"))
+        except Exception:
+            pass
+    if data.get("finished_at"):
+        try:
+            live["worker_finished_at"] = float(data.get("finished_at"))
+        except Exception:
+            pass
+    if live.get("started_at") and live.get("finished_at"):
+        live["duration_ms"] = int(max(0.0, live["finished_at"] - live["started_at"]) * 1000)
+    try:
+        entries = data.get("entries") if isinstance(data.get("entries"), list) else []
+        live["worker_log_entries"] = len(entries)
+    except Exception:
+        pass
+
+    if live.get("status") == "completed":
+        _enforce_completion_evidence_gate(live, Path(live.get("project_root") or ".").resolve())
+        if live.get("status") == "completed":
+            _ensure_stage_artifact_version_for_job(live, Path(live.get("project_root") or ".").resolve())
+    _finish_job_db_run(live, live.get("status"), live.get("error") or None)
+    _advance_pipeline_from(live)
+
+
+def _dispatch_job_to_ipc_worker(job: dict[str, Any]) -> None:
+    job_id_text = str(job.get("job_id") or uuid.uuid4().hex[:12])
+    attempt = max(1, int(job.get("attempt") or 1))
+    run_id = f"ipc-{job_id_text}" if attempt <= 1 else f"ipc-{job_id_text}-r{attempt}"
+    paths = _ipc_worker_paths(job, run_id)
+    try:
+        paths["run_dir"].mkdir(parents=True, exist_ok=True)
+        try:
+            paths["response"].unlink()
+        except FileNotFoundError:
+            pass
+        except OSError:
+            pass
+        body = _worker_run_payload(job)
+        body["sync"] = True
+        body["run_id"] = run_id
+        body["attempt"] = attempt
+        body["max_attempts"] = job.get("max_attempts") or _ipc_worker_max_attempts(job)
+        body["idempotency_key"] = job.get("idempotency_key") or job_id_text
+        paths["request"].write_text(
+            json.dumps(body, indent=2, ensure_ascii=False, default=str),
+            encoding="utf-8",
+        )
+        cmd = [
+            sys.executable,
+            "-m",
+            "src.atlas_worker_ipc",
+            "--request",
+            str(paths["request"]),
+            "--response",
+            str(paths["response"]),
+            "--run-id",
+            run_id,
+        ]
+        log_fh = paths["log"].open("ab")
+        try:
+            proc = subprocess.Popen(
+                cmd,
+                cwd=str(job.get("project_root") or _SOURCE_ROOT),
+                env=_ipc_worker_env(job),
+                stdout=log_fh,
+                stderr=subprocess.STDOUT,
+            )
+        finally:
+            try:
+                log_fh.close()
+            except Exception:
+                pass
+        with _IPC_WORKER_LOCK:
+            _IPC_WORKER_PROCS[run_id] = proc
+        _LOG.info(
+            f"[dispatch-ipc] job={job.get('job_id') or '-'} "
+            f"workflow={job.get('workflow') or '-'} "
+            f"worker={job.get('worker') or '-'} pid={proc.pid} "
+            f"run_id={run_id} attempt={attempt}"
+        )
+        with _jobs_lock:
+            live = _jobs.get(job["job_id"], job)
+            live["run_id"] = run_id
+            live["status"] = "running"
+            live["started_at"] = time.time()
+            live["error"] = ""
+            live["attempt"] = attempt
+            live["max_attempts"] = body["max_attempts"]
+            live["idempotency_key"] = body["idempotency_key"]
+            live["worker_pid"] = proc.pid
+            live["worker_request_path"] = _rel_path_for_job(paths["request"], live)
+            live["worker_response_path"] = _rel_path_for_job(paths["response"], live)
+            live["worker_log_path"] = _rel_path_for_job(paths["log"], live)
+            _record_job_db_running(live)
+        watcher = threading.Thread(
+            target=_watch_ipc_worker,
+            args=(str(job.get("job_id") or ""), run_id, paths["response"], proc),
+            name=f"atlas-ipc-worker-{str(job.get('workflow') or 'worker')}",
+            daemon=True,
+        )
+        watcher.start()
+    except Exception as exc:
+        _LOG.info(
+            f"[dispatch-ipc] FAIL job={job.get('job_id') or '-'} "
+            f"workflow={job.get('workflow') or '-'} error={exc}"
+        )
+        retry_scheduled = False
+        with _jobs_lock:
+            live = _jobs.get(job["job_id"], job)
+            reason = f"IPC worker dispatch failed at {job.get('worker')}: {exc}"
+            retry_scheduled = _schedule_ipc_retry_locked(live, reason)
+            if not retry_scheduled:
+                live["status"] = "error"
+                live["error"] = reason
+                live["finished_at"] = time.time()
+                _finish_job_db_run(live, "error", live["error"])
+        if retry_scheduled:
+            _record_job_db_retry(live, reason)
+            _drain_ready_worker_queue()
+
+
 def _dispatch_job_to_worker(job: dict[str, Any]) -> None:
+    if _job_uses_ipc_worker(job):
+        _dispatch_job_to_ipc_worker(job)
+        return
     try:
         import urllib.request as _u
         _ensure_lazy_worker(job)
-        context = job["prompt"].split("\n\n", 1)[0]
-        if job.get("rtl_version_id"):
-            context += (
-                "\n[RTL VERSION CONTEXT]\n"
-                f"- rtl_version_id: {job.get('rtl_version_id')}\n"
-                f"- rtl_version: {job.get('rtl_version') or '(external)'}\n"
-                f"- rtl_sha256_tree: {job.get('rtl_sha256_tree') or ''}\n"
-                f"- rtl_git_tag: {job.get('rtl_git_tag') or ''}\n"
-            )
-        artifact_versions = _artifact_versions_map(job)
-        if artifact_versions:
-            context += "\n[ARTIFACT VERSION CONTEXT]\n"
-            for artifact_type in sorted(artifact_versions):
-                item = artifact_versions[artifact_type]
-                context += (
-                    f"- {artifact_type}: {item.get('version') or ''} "
-                    f"({item.get('id') or ''})"
-                )
-                if item.get("git_tag"):
-                    context += f" tag={item['git_tag']}"
-                if item.get("sha256_tree"):
-                    context += f" tree={item['sha256_tree']}"
-                context += "\n"
-        body = {
-            "task":     job["prompt"],
-            "workflow": job["workflow"],
-            "session":  job.get("session", ""),
-            "model":    job.get("model", ""),
-            "reasoning_effort": job.get("reasoning_effort", ""),
-            "toolchain": job.get("toolchain", ""),
-            "run_mode": job.get("run_mode", ""),
-            "exec_mode": job.get("exec_mode", ""),
-            "context":  context,
-            "project_root": job.get("project_root", ""),
-            "source_root": job.get("source_root", ""),
-            "sync":     False,
-            "job_id":    job.get("job_id", ""),
-            "stage_id":  job.get("stage_id", ""),
-            "pipeline_id": job.get("pipeline_id", ""),
-            "pipeline_run_id": job.get("pipeline_run_id") or job.get("pipeline_id", ""),
-            "pipeline_index": job.get("pipeline_index", 0),
-            "scope_path": job.get("scope_path", ""),
-            "user_id":   job.get("user_id", ""),
-            "db_user_id": job.get("db_user_id", ""),
-            "db_session_id": job.get("db_session_id", ""),
-            "trigger_source": job.get("trigger_source", ""),
-            "orchestrator_run_id": job.get("orchestrator_run_id", ""),
-        }
-        if job.get("template"):
-            body["template"] = job["template"]
-        if job.get("ip"):
-            body["ip"] = job["ip"]
-        if job.get("rtl_version_id"):
-            body["rtl_version_id"] = job["rtl_version_id"]
-        if artifact_versions:
-            body["artifact_versions"] = list(artifact_versions.values())
+        body = _worker_run_payload(job)
         payload = json.dumps(body).encode("utf-8")
         req = _u.Request(
             f"{job['worker'].rstrip('/')}/run",
@@ -2638,6 +3363,7 @@ def _dispatch_job_to_worker(job: dict[str, Any]) -> None:
             live["started_at"] = time.time()
             live["error"]      = ""
             _record_job_db_running(live)
+        _schedule_worker_warmup_for_job(job, reason="job_running")
     except Exception as e:
         _LOG.info(
             f"[dispatch] FAIL job={job.get('job_id') or '-'} "
@@ -2657,6 +3383,138 @@ _WORKER_BUSY_STATES = {"pending", "running"}
 
 def _worker_url_key_for_job(job: dict[str, Any]) -> str:
     return str(job.get("worker") or "").strip().rstrip("/")
+
+
+def _ipc_job_owner_key(job: dict[str, Any]) -> str:
+    return (
+        str(job.get("db_user_id") or "").strip()
+        or str(job.get("user_id") or "").strip()
+        or str(job.get("worker_owner") or "").strip()
+        or "local-admin"
+    )
+
+
+def _ipc_queue_depth_locked() -> int:
+    active = {"queued", "pending", "running"}
+    return sum(
+        1 for job in _jobs.values()
+        if _job_uses_ipc_worker(job)
+        and str(job.get("status") or "") in active
+    )
+
+
+def _ipc_running_counts_locked(job: dict[str, Any]) -> dict[str, int]:
+    owner = _ipc_job_owner_key(job)
+    workflow = str(job.get("workflow") or "").strip()
+    counts = {"global": 0, "user": 0, "workflow": 0}
+    for other in _jobs.values():
+        if not _job_uses_ipc_worker(other):
+            continue
+        if str(other.get("status") or "") not in _WORKER_BUSY_STATES:
+            continue
+        counts["global"] += 1
+        if _ipc_job_owner_key(other) == owner:
+            counts["user"] += 1
+        if workflow and str(other.get("workflow") or "").strip() == workflow:
+            counts["workflow"] += 1
+    return counts
+
+
+def _ipc_start_blocker_locked(job: dict[str, Any]) -> str:
+    if not _job_uses_ipc_worker(job):
+        return ""
+    counts = _ipc_running_counts_locked(job)
+    if counts["global"] >= _ipc_worker_global_limit():
+        return "ipc_global_limit"
+    if counts["user"] >= _ipc_worker_user_limit():
+        return "ipc_user_limit"
+    if counts["workflow"] >= _ipc_worker_workflow_limit():
+        return "ipc_workflow_limit"
+    return ""
+
+
+def _ipc_runtime_limits_payload() -> dict[str, Any]:
+    return {
+        "max_concurrent": _ipc_worker_global_limit(),
+        "max_per_user": _ipc_worker_user_limit(),
+        "max_per_workflow": _ipc_worker_workflow_limit(),
+        "queue_limit": _ipc_worker_queue_limit(),
+        "timeout_sec": _ipc_worker_timeout_sec({}),
+        "max_attempts": _ipc_worker_max_attempts({}),
+    }
+
+
+def ipc_worker_snapshot() -> dict[str, Any]:
+    """Live IPC worker queue/process state for admin and diagnostics."""
+    now = time.time()
+    with _jobs_lock:
+        jobs = [_public_job(job) for job in _jobs.values() if _job_uses_ipc_worker(job)]
+        running_jobs = [
+            job for job in jobs
+            if str(job.get("status") or "") in _WORKER_BUSY_STATES
+        ]
+        queued_jobs = [
+            job for job in jobs
+            if str(job.get("status") or "") == "queued"
+        ]
+        status_counts: dict[str, int] = {}
+        workflow_counts: dict[str, int] = {}
+        user_counts: dict[str, int] = {}
+        for job in jobs:
+            status = str(job.get("status") or "unknown")
+            workflow = str(job.get("workflow") or "unknown")
+            owner = _ipc_job_owner_key(job)
+            status_counts[status] = status_counts.get(status, 0) + 1
+            workflow_counts[workflow] = workflow_counts.get(workflow, 0) + 1
+            user_counts[owner] = user_counts.get(owner, 0) + 1
+    with _IPC_WORKER_LOCK:
+        procs = [
+            {
+                "run_id": run_id,
+                "pid": proc.pid,
+                "alive": proc.poll() is None,
+                "returncode": proc.poll(),
+            }
+            for run_id, proc in _IPC_WORKER_PROCS.items()
+        ]
+    limits = _ipc_runtime_limits_payload()
+    queue_depth = len(running_jobs) + len(queued_jobs)
+    return {
+        "transport": "ipc",
+        "limits": limits,
+        "queue_depth": queue_depth,
+        "available_slots": max(0, int(limits["max_concurrent"]) - len(running_jobs)),
+        "running_count": len(running_jobs),
+        "queued_count": len(queued_jobs),
+        "status_counts": status_counts,
+        "workflow_counts": workflow_counts,
+        "user_counts": user_counts,
+        "processes": procs,
+        "jobs": sorted(
+            jobs,
+            key=lambda item: float(item.get("started_at") or item.get("queued_at") or 0),
+            reverse=True,
+        )[:100],
+        "sampled_at": now,
+    }
+
+
+def worker_runtime_snapshot(project_root_path: Path | str | None = None) -> dict[str, Any]:
+    """Combined dispatch runtime view for admin surfaces."""
+    transport = _worker_transport()
+    lazy = lazy_worker_snapshot() if transport == "http" else []
+    return {
+        "transport": transport,
+        "project_root": str(project_root_path or os.environ.get("ATLAS_PROJECT_ROOT") or ""),
+        "lazy_workers_enabled": _lazy_workers_enabled(),
+        "warm_pool_enabled": _worker_warm_pool_enabled(),
+        "ipc": ipc_worker_snapshot(),
+        "http": {
+            "lazy_workers": lazy,
+            "spawn_parallel": _env_int("ATLAS_LAZY_WORKER_SPAWN_PARALLEL", 4, minimum=1),
+            "idle_ttl_sec": _LAZY_WORKER_IDLE_TTL_SEC,
+        },
+    }
 
 
 def _worker_busy_locked(worker_url: str, *, exclude_job_id: str = "") -> bool:
@@ -2737,6 +3595,13 @@ def _start_job_when_worker_free(job: dict[str, Any]) -> dict[str, Any]:
             return live
         if not _prepare_queued_job_locked(live):
             return live
+        ipc_blocker = _ipc_start_blocker_locked(live)
+        if ipc_blocker:
+            live["status"] = "queued"
+            live["queue_reason"] = ipc_blocker
+            live["queued_at"] = live.get("queued_at") or time.time()
+            live["started_at"] = 0.0
+            return live
         if _worker_busy_locked(
             str(live.get("worker") or ""),
             exclude_job_id=str(live.get("job_id") or ""),
@@ -2774,6 +3639,11 @@ def _drain_ready_worker_queue() -> None:
         for candidate in candidates:
             if not _prepare_queued_job_locked(candidate):
                 continue
+            ipc_blocker = _ipc_start_blocker_locked(candidate)
+            if ipc_blocker:
+                candidate["queue_reason"] = ipc_blocker
+                candidate["queued_at"] = candidate.get("queued_at") or time.time()
+                continue
             if _worker_busy_locked(
                 str(candidate.get("worker") or ""),
                 exclude_job_id=str(candidate.get("job_id") or ""),
@@ -2806,6 +3676,8 @@ def _advance_pipeline_from(job: dict[str, Any]) -> None:
 
     pipeline_id = job.get("pipeline_id") or ""
     if not pipeline_id:
+        if job_status == "completed":
+            _schedule_worker_warmup_for_job(job, reason="job_completed")
         _drain_ready_worker_queue()
         return
     if job.get("status") in ("error", "cancelled", "blocked"):
@@ -2818,6 +3690,7 @@ def _advance_pipeline_from(job: dict[str, Any]) -> None:
         return
     else:
         _ensure_stage_artifact_version_for_job(job, Path(job.get("project_root") or ".").resolve())
+        _schedule_worker_warmup_for_job(job, reason="job_completed")
     _drain_ready_worker_queue()
 
 
@@ -3171,6 +4044,9 @@ def _rtl_gate_failure_reason(ip_dir: Path, ip: str) -> str:
             details.append(f"blocking_questions={blocking_questions}")
         return f"{ip}/{rel} " + " ".join(details)
 
+    if _rtl_current_completion_evidence_passes(ip_dir, ip):
+        return ""
+
     stage_doc, error = _read_json("logs/stage_engine/ssot-rtl.json")
     if error:
         return error
@@ -3197,6 +4073,109 @@ def _rtl_gate_failure_reason(ip_dir: Path, ip: str) -> str:
         if reason:
             return reason
     return ""
+
+
+def _json_passed(path: Path, *, allow_zero_warnings: bool = False) -> bool:
+    if not path.is_file():
+        return False
+    try:
+        doc = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return False
+    if not isinstance(doc, dict):
+        return False
+    if doc.get("passed") is True:
+        return True
+    try:
+        returncode = int(doc.get("returncode") or 0)
+    except Exception:
+        returncode = 1
+    try:
+        errors = int(doc.get("errors", doc.get("error_count", 0)) or 0)
+    except Exception:
+        errors = 1
+    try:
+        warnings = int(doc.get("warnings", doc.get("warning_count", 0)) or 0)
+    except Exception:
+        warnings = 1
+    if returncode != 0 or errors != 0:
+        return False
+    return (warnings == 0) if allow_zero_warnings else True
+
+
+def _rtl_current_completion_evidence_passes(ip_dir: Path, ip: str | None = None) -> bool:
+    """Current disk evidence can supersede stale preflight blockers/logs."""
+
+    rtl_dir = ip_dir / "rtl"
+    filelist = ip_dir / "list" / f"{ip or ip_dir.name}.f"
+    if not filelist.is_file() or not rtl_dir.is_dir():
+        return False
+    rtl_sources = sorted(p for p in rtl_dir.glob("*.sv") if p.is_file())
+    if not rtl_sources:
+        return False
+    if not _json_passed(rtl_dir / "rtl_compile.json"):
+        return False
+    if not _json_passed(ip_dir / "lint" / "dut_lint.json", allow_zero_warnings=True):
+        return False
+    todo_path = rtl_dir / "rtl_todo_plan.json"
+    if not todo_path.is_file():
+        return False
+    try:
+        todo_doc = json.loads(todo_path.read_text(encoding="utf-8"))
+    except Exception:
+        return False
+    if not isinstance(todo_doc, dict):
+        return False
+    gate = todo_doc.get("gate") if isinstance(todo_doc.get("gate"), dict) else {}
+    completion = todo_doc.get("todo_completion") if isinstance(todo_doc.get("todo_completion"), dict) else {}
+    if str(gate.get("status") or "").strip().lower() != "pass":
+        return False
+    if gate.get("all_required_todos_pass") is not True and completion.get("all_required_todos_pass") is not True:
+        return False
+    try:
+        open_required = int(gate.get("open_required_todos") or completion.get("open_required_tasks") or 0)
+    except Exception:
+        open_required = 1
+    try:
+        static_missing = int(gate.get("static_missing") or 0)
+    except Exception:
+        static_missing = 1
+    try:
+        blockers = int(gate.get("blocking_questions") or 0)
+    except Exception:
+        blockers = 1
+    return open_required == 0 and static_missing == 0 and blockers == 0
+
+
+def _refresh_completed_stage_evidence(job: dict[str, Any], project_root: Path) -> None:
+    """Refresh deterministic stage logs after an LLM worker finishes."""
+
+    if job.get("_stage_evidence_refreshed"):
+        return
+    stage = str(job.get("stage_id") or job.get("workflow") or "").strip()
+    workflow = str(job.get("workflow") or "").strip()
+    if stage not in {"rtl", "rtl-gen"} and workflow != "rtl-gen":
+        return
+    ip = str(job.get("ip") or "").strip()
+    if not ip or ".." in ip or "/" in ip:
+        return
+    job["_stage_evidence_refreshed"] = True
+    try:
+        from src.workflow_stage_engine import WorkflowStageEngine
+    except ModuleNotFoundError:
+        from workflow_stage_engine import WorkflowStageEngine  # type: ignore
+    try:
+        workflow_root = _workflow_root_for_project(project_root)
+        tool_root = _tool_project_root_for_ip(project_root, ip)
+        result = WorkflowStageEngine(
+            tool_root,
+            source_root=workflow_root.parent,
+            run_mode=_current_run_mode(),
+        ).run_stage("ssot-rtl", ip)
+        job["stage_evidence_status"] = result.status
+        job["stage_evidence_summary"] = result.headline
+    except Exception as exc:
+        job["stage_evidence_refresh_error"] = f"{type(exc).__name__}: {exc}"
 
 
 def _job_artifact_failure(
@@ -3258,11 +4237,12 @@ def _job_artifact_failure(
         return False, ""
     if stage == "rtl" or workflow == "rtl-gen":
         rtl_dir = ip_dir / "rtl"
+        current_rtl_pass = _rtl_current_completion_evidence_passes(ip_dir, ip)
         gate_reason = _rtl_gate_failure_reason(ip_dir, ip)
         if gate_reason:
             return True, gate_reason
         blocked_path = rtl_dir / "rtl_blocked.json"
-        if blocked_path.is_file():
+        if blocked_path.is_file() and not current_rtl_pass:
             try:
                 blocked_doc = json.loads(blocked_path.read_text(encoding="utf-8"))
             except Exception:
@@ -3370,6 +4350,7 @@ def _job_requires_completion_evidence(job: dict[str, Any]) -> bool:
 def _enforce_completion_evidence_gate(job: dict[str, Any], project_root: Path) -> None:
     if job.get("status") != "completed" or not _job_requires_completion_evidence(job):
         return
+    _refresh_completed_stage_evidence(job, project_root)
     failed, failure_reason = _job_artifact_failure(job, project_root)
     if failed:
         job["status"] = "error"
@@ -3412,6 +4393,7 @@ def _refresh_tracked_jobs(project_root_path: Path | None = None) -> tuple[list[d
         # miss the eventual "completed" transition entirely.
         if (
             job.get("run_id")
+            and not _job_uses_ipc_worker(job)
             and job["status"] in ("running", "pending")
             and (now - job.get("_last_polled", 0)) > 1.5
         ):
@@ -3777,13 +4759,28 @@ def register_jobs_routes(
             user_id=user_id,
             db_user_id=db_user_id,
         )
-        worker_url = worker_override or _resolve_worker_url_for_job(
-            workflow,
-            session_name=session_name,
-            user_id=user_id,
-            db_user_id=db_user_id,
-            exec_mode=exec_mode,
-        )
+        transport = _worker_transport()
+        if worker_override:
+            if worker_override.startswith("ipc://"):
+                transport = "ipc"
+            elif worker_override.startswith(("http://", "https://")):
+                transport = "http"
+        if transport == "ipc":
+            worker_url = worker_override or _resolve_worker_ipc_address_for_job(
+                workflow,
+                session_name=session_name,
+                user_id=user_id,
+                db_user_id=db_user_id,
+                exec_mode=exec_mode,
+            )
+        else:
+            worker_url = worker_override or _resolve_worker_url_for_job(
+                workflow,
+                session_name=session_name,
+                user_id=user_id,
+                db_user_id=db_user_id,
+                exec_mode=exec_mode,
+            )
         boundary = (
             f"[ATLAS ARCHITECT WORKFLOW CONTEXT]\n"
             f"- ip: {ip or '(soc)'}\n"
@@ -3815,6 +4812,7 @@ def register_jobs_routes(
             "job_id":         uuid.uuid4().hex[:12],
             "run_id":         "",
             "worker":         worker_url,
+            "worker_transport": transport,
             "worker_owner":   worker_owner,
             "worker_partition": worker_partition,
             "workflow":       workflow,
@@ -3836,6 +4834,11 @@ def register_jobs_routes(
             "started_at":     0.0,
             "status":         "queued",
             "queue_reason":   "ready" if auto_start else "dependency_wait",
+            "attempt":        1,
+            "retry_count":    0,
+            "max_attempts":   _ipc_worker_max_attempts({"workflow": workflow}) if transport == "ipc" else 1,
+            "idempotency_key": "",
+            "previous_run_ids": [],
             "iterations":     0,
             "files_modified": [],
             "result_summary": "",
@@ -3856,9 +4859,25 @@ def register_jobs_routes(
             "db_session_id":   db_session_id,
             "workflow_run_id": "",
         }
+        job["idempotency_key"] = job["job_id"]
+        if transport == "ipc":
+            with _jobs_lock:
+                queue_limit = _ipc_worker_queue_limit()
+                queue_depth = _ipc_queue_depth_locked()
+            if queue_limit and queue_depth >= queue_limit:
+                job["status"] = "error"
+                job["queue_reason"] = "ipc_queue_full"
+                job["error"] = (
+                    f"IPC worker queue full: {queue_depth}/{queue_limit} "
+                    "queued or active jobs"
+                )
+                job["finished_at"] = now
         _record_job_db_start(job)
         with _jobs_lock:
             _jobs[job["job_id"]] = job
+        if job.get("status") == "error":
+            _finish_job_db_run(job, "error", job.get("error") or None)
+            return job
         if auto_start:
             _start_job_when_worker_free(job)
         return job
@@ -3867,11 +4886,11 @@ def register_jobs_routes(
 
     @app.post("/api/job/dispatch")
     async def api_job_dispatch(request: Request):
-        """Dispatch a workflow onto an IP via an HTTP worker.
+        """Dispatch a workflow onto an IP via a worker process.
 
         Body: `{workflow: 'rtl-gen', ip: 'counter', prompt?: '...',
                 model?: '...', session?: 'counter/rtl-gen',
-                worker?: 'http://127.0.0.1:8001'}`
+                worker?: 'http://127.0.0.1:8001' | 'ipc://owner/lane/wf'}`
 
         Defaults the prompt to a workflow-specific template so the user
         can just click the block menu without typing.  Returns
@@ -3919,7 +4938,7 @@ def register_jobs_routes(
             return JSONResponse({"error": "exec_mode must be single-worker or orchestrator"}, status_code=400)
         if not session_name:
             return JSONResponse({"error": f"invalid session {session_raw!r}"}, status_code=400)
-        if worker_override and not re.match(r"^https?://[A-Za-z0-9_.:\-/]+$", worker_override):
+        if worker_override and not re.match(r"^(?:https?|ipc)://[A-Za-z0-9_.:@+\-/]+$", worker_override):
             return JSONResponse({"error": f"invalid worker {worker_override!r}"}, status_code=400)
 
         stage_id = stage_raw or (_PIPELINE_BY_WORKFLOW.get(workflow) or {}).get("id", workflow)
@@ -3954,6 +4973,7 @@ def register_jobs_routes(
                 "workflow_run_id": first.get("workflow_run_id", ""),
                 "db_session_id": first.get("db_session_id", ""),
                 "worker_command": first.get("worker_command", ""),
+                "worker_transport": first.get("worker_transport", ""),
             })
             return JSONResponse(payload)
         job = _make_job_record(
@@ -3985,6 +5005,7 @@ def register_jobs_routes(
             "workflow_run_id": job.get("workflow_run_id", ""),
             "db_session_id":   job.get("db_session_id", ""),
             "worker_command": job["worker_command"],
+            "worker_transport": job.get("worker_transport", ""),
             "trigger_source":  job.get("trigger_source", ""),
             "status":         job["status"],
         })
@@ -5611,6 +6632,39 @@ def register_jobs_routes(
             return JSONResponse({"error": str(e)}, status_code=500)
         return JSONResponse({"ip": ip, "cleared": bool(ok)})
 
+    # ── /api/orchestrator/workers/warm ────────────────────────────────
+
+    @app.post("/api/orchestrator/workers/warm")
+    async def api_orchestrator_workers_warm(request: Request):
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        body = body or {}
+        request_user = _request_username(request)
+        request_db_user = _request_db_user_id(request)
+        if _multi_user_enabled() and not request_user and not request_db_user:
+            return JSONResponse({"error": "login required"}, status_code=401)
+        owner = str(body.get("owner") or body.get("session_id") or request_user or "").strip()
+        if _multi_user_enabled() and request_user and owner and owner != request_user:
+            return JSONResponse({"error": "session owner mismatch"}, status_code=403)
+        raw_workflows = body.get("workflows")
+        workflows = raw_workflows if isinstance(raw_workflows, list) else None
+        result = schedule_worker_warmup(
+            ip=str(body.get("ip") or "").strip(),
+            owner=owner or request_user,
+            db_user_id=request_db_user,
+            session_name=str(body.get("session") or "").strip(),
+            active_workflow=str(body.get("workflow") or body.get("active_workflow") or "").strip(),
+            workflows=workflows,
+            project_root_value=str(project_root()),
+            run_mode=str(body.get("run_mode") or "").strip(),
+            exec_mode=str(body.get("exec_mode") or "").strip(),
+            reason="api_orchestrator_workers_warm",
+            background=True,
+        )
+        return JSONResponse(result)
+
     # ── /api/orchestrator/workers ─────────────────────────────────────
     #
     # Aggregated live worker status — orchestrator's view of its workers.
@@ -5698,6 +6752,7 @@ def register_jobs_routes(
                     "job_id": job.get("job_id") or "",
                     "run_id": job.get("run_id") or "",
                     "worker": job.get("worker") or "",
+                    "worker_transport": job.get("worker_transport") or "",
                     "worker_owner": job.get("worker_owner") or "",
                     "pipeline_id": job.get("pipeline_id") or "",
                     "pipeline_run_id": job.get("pipeline_run_id") or job.get("pipeline_id") or "",
@@ -5706,15 +6761,28 @@ def register_jobs_routes(
                     "stage_id": job.get("stage_id") or "",
                     "ip": job.get("ip") or "",
                     "status": job.get("status") or "",
+                    "queue_reason": job.get("queue_reason") or "",
+                    "attempt": job.get("attempt") or 1,
+                    "retry_count": job.get("retry_count") or 0,
+                    "max_attempts": job.get("max_attempts") or 1,
+                    "last_retry_reason": job.get("last_retry_reason") or "",
                     "model": job.get("model") or "",
                     "session": job.get("session") or "",
                     "started_at": job.get("started_at") or 0,
+                    "worker_pid": job.get("worker_pid") or 0,
+                    "worker_log_path": job.get("worker_log_path") or "",
+                    "worker_request_path": job.get("worker_request_path") or "",
+                    "worker_response_path": job.get("worker_response_path") or "",
+                    "worker_log_entries": job.get("worker_log_entries") or 0,
+                    "result_summary": (job.get("result_summary") or "")[-300:],
+                    "error": job.get("error") or "",
                 })
             return sorted(out, key=lambda item: float(item.get("started_at") or 0), reverse=True)
 
         async def _gather() -> list[dict[str, Any]]:
             loop = asyncio.get_event_loop()
             tasks = []
+            transport = _worker_transport()
             visible_by_workflow = {
                 wf: _visible_worker_jobs(wf)
                 for wf in workflows
@@ -5736,29 +6804,54 @@ def register_jobs_routes(
                     user_id=request_user,
                     db_user_id=request_db_user,
                 )
-                url = (
-                    str(((active_list[0] if active_list else {}) or {}).get("worker") or "").strip()
-                    or _resolve_worker_url_for_job(
-                        wf,
-                        session_name=default_session,
-                        user_id=request_user,
-                        db_user_id=request_db_user,
-                        exec_mode="orchestrator",
+                if transport == "ipc":
+                    url = (
+                        str(((active_list[0] if active_list else {}) or {}).get("worker") or "").strip()
+                        or _resolve_worker_ipc_address_for_job(
+                            wf,
+                            session_name=default_session,
+                            user_id=request_user,
+                            db_user_id=request_db_user,
+                            exec_mode="orchestrator",
+                        )
                     )
-                )
-                idle_health = _idle_lazy_worker_health(url, active_list)
-                if idle_health is not None:
-                    tasks.append((wf, url, expected_worker_owner, idle_health, None))
-                else:
                     tasks.append((
-                        wf, url, expected_worker_owner, None,
-                        loop.run_in_executor(None, _probe, url),
+                        wf,
+                        url,
+                        expected_worker_owner,
+                        {
+                            "status": "ok" if active_list else "idle",
+                            "workflow": wf,
+                            "transport": "ipc",
+                        },
+                        None,
                     ))
+                else:
+                    url = (
+                        str(((active_list[0] if active_list else {}) or {}).get("worker") or "").strip()
+                        or _resolve_worker_url_for_job(
+                            wf,
+                            session_name=default_session,
+                            user_id=request_user,
+                            db_user_id=request_db_user,
+                            exec_mode="orchestrator",
+                        )
+                    )
+                    idle_health = _idle_lazy_worker_health(url, active_list)
+                    if idle_health is not None:
+                        tasks.append((wf, url, expected_worker_owner, idle_health, None))
+                    else:
+                        tasks.append((
+                            wf, url, expected_worker_owner, None,
+                            loop.run_in_executor(None, _probe, url),
+                        ))
             out = []
             for wf, url, expected_worker_owner, eager_health, t in tasks:
                 health = eager_health if eager_health is not None else await t
                 health_owner = str(health.get("owner") or "").strip()
                 owner_mismatch = (
+                    _worker_transport() != "ipc"
+                    and
                     _workflow_worker_per_owner_enabled("orchestrator")
                     and str(health.get("status") or "") == "ok"
                     and bool(expected_worker_owner)
@@ -5818,6 +6911,7 @@ def register_jobs_routes(
                 out.append({
                     "workflow": wf,
                     "url": url,
+                    "transport": health.get("transport") or _worker_transport(),
                     "status": status,
                     "health_status": health_status,
                     "bound_workflow": bound_workflow,
@@ -5895,6 +6989,7 @@ def register_jobs_routes(
             "workers": workers,
             "count": len(workers),
             "active_only": active_only,
+            "runtime": worker_runtime_snapshot(project_root()),
         })
 
     # ── /api/pipeline/run_policy ────────────────────────────────────
@@ -6241,6 +7336,121 @@ def register_jobs_routes(
                 "job":           {k: v for k, v in job.items() if not k.startswith("_")},
             }
 
+        def _ipc_response_log():
+            rel = str(job.get("worker_response_path") or "").strip()
+            if not rel:
+                return None
+            path = Path(rel)
+            if not path.is_absolute():
+                path = pr / rel
+            if not path.is_file():
+                return None
+            data = _read_ipc_response(path)
+            entries = data.get("entries") if isinstance(data.get("entries"), list) else []
+            normalized = []
+            for i, item in enumerate(entries):
+                if not isinstance(item, dict):
+                    continue
+                normalized.append({
+                    "index": item.get("index", i),
+                    "type": item.get("type") or "response",
+                    "role": item.get("role") or "",
+                    "content": str(item.get("content") or ""),
+                    "timestamp": item.get("timestamp") or job.get("finished_at") or job.get("started_at") or 0,
+                    "source": "ipc",
+                })
+            if since > 0:
+                normalized = [
+                    e for e in normalized
+                    if int(e.get("index") or 0) >= since
+                ]
+            if tail > 0:
+                normalized = normalized[-tail:]
+            return {
+                "run_id": job.get("run_id") or "",
+                "status": data.get("status") or job.get("status") or "unknown",
+                "total_entries": len(entries),
+                "entries": normalized,
+                "source": "ipc",
+                "response_path": _rel_path_for_job(path, job),
+                "job": {k: v for k, v in job.items() if not k.startswith("_")},
+            }
+
+        def _ipc_stdout_log():
+            rel = str(job.get("worker_log_path") or "").strip()
+            if not rel:
+                return None
+            path = Path(rel)
+            if not path.is_absolute():
+                path = pr / rel
+            if not path.is_file():
+                return None
+            try:
+                text = path.read_text(encoding="utf-8", errors="replace")
+            except Exception:
+                return None
+            raw_lines = text.splitlines()
+            if not raw_lines:
+                return None
+            start = max(0, len(raw_lines) - 1000)
+            ansi_re = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
+            normalized = []
+            for offset, line in enumerate(raw_lines[start:], start=start):
+                clean = ansi_re.sub("", str(line or "")).strip()
+                if not clean:
+                    continue
+                normalized.append({
+                    "index": offset,
+                    "type": "log",
+                    "role": "stdout",
+                    "content": clean[:1200],
+                    "timestamp": job.get("started_at") or 0,
+                    "source": "ipc-stdout",
+                })
+            if since > 0:
+                normalized = [
+                    e for e in normalized
+                    if int(e.get("index") or 0) >= since
+                ]
+            if tail > 0:
+                normalized = normalized[-tail:]
+            if not normalized:
+                return None
+            with _jobs_lock:
+                live = _jobs.get(job_id)
+                if live is not None:
+                    live["worker_log_entries"] = len(raw_lines)
+            return {
+                "run_id": job.get("run_id") or "",
+                "status": job.get("status") or "unknown",
+                "total_entries": len(raw_lines),
+                "entries": normalized,
+                "source": "ipc-stdout",
+                "log_path": _rel_path_for_job(path, job),
+                "worker_log_pending": True,
+                "job": {k: v for k, v in job.items() if not k.startswith("_")},
+            }
+
+        if _job_uses_ipc_worker(job):
+            ipc_log = _ipc_response_log()
+            if ipc_log is not None:
+                return JSONResponse(ipc_log)
+            stdout_log = _ipc_stdout_log()
+            if stdout_log is not None:
+                return JSONResponse(stdout_log)
+            fallback = _session_history_log()
+            if fallback is not None:
+                fallback["worker_log_error"] = "IPC response not ready"
+                return JSONResponse(fallback)
+            return JSONResponse({
+                "run_id": job.get("run_id") or "",
+                "status": job.get("status") or "unknown",
+                "total_entries": 0,
+                "entries": [],
+                "source": "ipc",
+                "job": {k: v for k, v in job.items() if not k.startswith("_")},
+            })
+
         try:
             import urllib.parse as _p
             import urllib.request as _u
@@ -6268,6 +7478,20 @@ def register_jobs_routes(
             return JSONResponse({"error": "job not found"}, status_code=404)
         if job["status"] != "running":
             return JSONResponse({"error": f"job already {job['status']}"}, status_code=400)
+        if _job_uses_ipc_worker(job):
+            run_id = str(job.get("run_id") or "")
+            with _IPC_WORKER_LOCK:
+                proc = _IPC_WORKER_PROCS.get(run_id)
+            if proc is not None and proc.poll() is None:
+                try:
+                    proc.terminate()
+                except Exception as exc:
+                    return JSONResponse({"error": f"cancel failed: {exc}"}, status_code=502)
+            with _jobs_lock:
+                job["status"] = "cancelled"
+                job["finished_at"] = time.time()
+                _finish_job_db_run(job, "cancelled")
+            return JSONResponse({"ok": True, "transport": "ipc"})
         try:
             import urllib.request as _u
             req = _u.Request(

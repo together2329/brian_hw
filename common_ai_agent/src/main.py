@@ -1335,13 +1335,14 @@ def run_react_agent(messages, tracker, task_description, mode='interactive', pre
     """Wrapper: delegates to core.react_loop with main.py live dependencies injected."""
     # In TUI mode suppress stderr spinner so it doesn't bleed through Textual's display
     _is_tui = _textual_emit_content_fn is not None
+    effective_available_tools = tools.filtered_available_tools()
     # Native tool call mode: pass tools schemas to LLM API
     _native_tools = None
     if getattr(config, "ENABLE_NATIVE_TOOL_CALLS", False):
         try:
             from core.tool_schema import get_tool_schemas
             _compact = getattr(config, "TOOL_SCHEMA_COMPACT", False)
-            _native_tools = get_tool_schemas(list(tools.AVAILABLE_TOOLS.keys()), compact=_compact)
+            _native_tools = get_tool_schemas(list(effective_available_tools.keys()), compact=_compact)
         except Exception:
             pass
     if _native_tools:
@@ -1390,7 +1391,7 @@ def run_react_agent(messages, tracker, task_description, mode='interactive', pre
         procedural_memory=procedural_memory,
         graph_lite=graph_lite,
         hook_registry=hook_registry,
-        available_tools=tools.filtered_available_tools(),
+        available_tools=effective_available_tools,
         inject_strategy_fn=_maybe_inject_exploration_strategy,
         save_snapshot_fn=_save_conv_snapshot,
         load_snapshot_fn=_load_conv_snapshot,

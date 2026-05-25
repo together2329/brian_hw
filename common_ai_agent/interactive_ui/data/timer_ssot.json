@@ -1,0 +1,745 @@
+{
+  "overview": {
+    "name": "fresh_web_timer_ip",
+    "type": "peripheral",
+    "version": "1.0",
+    "description": "32-bit general-purpose timer peripheral with APB4 register interface. Supports free-running, periodic auto-reload, and one-shot operating modes with a programmable prescaler, compare/match output, and level-sensitive interrupt.",
+    "target": {
+      "technology": "generic",
+      "clock_freq_mhz": 100,
+      "area_um2": null,
+      "power_mw": null
+    }
+  },
+  "clock_reset": {
+    "clock": "pclk",
+    "freq_mhz": 100,
+    "reset": "presetn",
+    "reset_polarity": "active_low",
+    "reset_type": "async_assert_sync_deassert"
+  },
+  "features": [
+    {
+      "name": "free_running_mode",
+      "trigger": "CTRL.enable=1 and CTRL.mode=FREE_RUN",
+      "datapath": "Counter increments from 0 on each (prescaled) clock tick. Wraps to 0 at (2^TIMER_WIDTH - 1) and continues.",
+      "control": "CTRL.enable gates counting. psel/penable register writes update CTRL.VALUE snapshot.",
+      "output": "timer_match pulses for one cycle when counter == CMP. timer_irq asserts when match and INTEN enabled."
+    },
+    {
+      "name": "periodic_auto_reload_mode",
+      "trigger": "CTRL.enable=1 and CTRL.mode=PERIODIC",
+      "datapath": "Counter increments from 0. When counter == CMP, counter reloads to LOAD on next tick, timer_match pulses, and interrupt fires.",
+      "control": "Same as free-running; reload uses LOAD register.",
+      "output": "timer_match pulses on match; counter resets to LOAD on tick after match."
+    },
+    {
+      "name": "one_shot_mode",
+      "trigger": "CTRL.enable=1 and CTRL.mode=ONE_SHOT",
+      "datapath": "Counter increments from 0. When counter == CMP, counting stops (CTRL.enable auto-clears), timer_match pulses, and interrupt fires.",
+      "control": "CTRL.enable auto-clears on match. Software must re-arm.",
+      "output": "timer_match pulses once; counter holds at CMP value."
+    },
+    {
+      "name": "prescaler",
+      "trigger": "CTRL.prescale_enable=1",
+      "datapath": "PRESCALE register divides pclk by PRESCALE+1 before advancing counter.",
+      "control": "PRESCALE register writable via APB.",
+      "output": "Slower counter advancement."
+    }
+  ],
+  "parameters": [
+    {
+      "name": "TIMER_WIDTH",
+      "default": 32,
+      "type": "int",
+      "description": "Counter width in bits",
+      "drives": [
+        "fresh_web_timer_ip.sv"
+      ]
+    },
+    {
+      "name": "PRESCALE_WIDTH",
+      "default": 16,
+      "type": "int",
+      "description": "Prescaler counter width in bits",
+      "drives": [
+        "fresh_web_timer_ip.sv"
+      ]
+    }
+  ],
+  "interrupts": {
+    "sources": [
+      {
+        "name": "MATCH_IRQ",
+        "bit": 0,
+        "type": "level",
+        "enable_reg": "INTEN.match_en",
+        "status_reg": "INTSTAT.match",
+        "clear": "W1C",
+        "description": "Timer match interrupt"
+      }
+    ],
+    "output": {
+      "signal": "timer_irq",
+      "polarity": "active_high",
+      "type": "level"
+    }
+  },
+  "interfaces": [
+    {
+      "name": "apb_slave",
+      "type": "APB4",
+      "role": "slave",
+      "protocol": {
+        "setup_phase": "psel=1, penable=0 captures address/control.",
+        "access_phase": "psel=1, penable=1 completes when pready=1.",
+        "read_rule": "prdata is valid in the completing access phase for reads.",
+        "write_rule": "pwdata/pstrb are sampled in the completing access phase for writes.",
+        "error_rule": "pslverr asserted with pready=1 only for illegal/unsupported access."
+      },
+      "ports": [
+        {
+          "name": "paddr",
+          "width": 12,
+          "dir": "input",
+          "desc": "APB address"
+        },
+        {
+          "name": "psel",
+          "width": 1,
+          "dir": "input",
+          "desc": "APB select"
+        },
+        {
+          "name": "penable",
+          "width": 1,
+          "dir": "input",
+          "desc": "APB enable"
+        },
+        {
+          "name": "pwrite",
+          "width": 1,
+          "dir": "input",
+          "desc": "APB write"
+        },
+        {
+          "name": "pwdata",
+          "width": 32,
+          "dir": "input",
+          "desc": "APB write data"
+        },
+        {
+          "name": "pstrb",
+          "width": 4,
+          "dir": "input",
+          "desc": "APB strobes"
+        },
+        {
+          "name": "prdata",
+          "width": 32,
+          "dir": "output",
+          "desc": "APB read data"
+        },
+        {
+          "name": "pready",
+          "width": 1,
+          "dir": "output",
+          "desc": "APB ready"
+        },
+        {
+          "name": "pslverr",
+          "width": 1,
+          "dir": "output",
+          "desc": "APB error"
+        }
+      ]
+    },
+    {
+      "name": "timer_outputs",
+      "type": "custom",
+      "role": "target",
+      "protocol": {
+        "match_output": "timer_match asserts when counter equals compare value and timer is enabled.",
+        "interrupt": "timer_irq asserts when match interrupt is enabled and pending; deasserts on W1C clear."
+      },
+      "ports": [
+        {
+          "name": "timer_match",
+          "width": 1,
+          "dir": "output",
+          "desc": "Timer compare/match output"
+        },
+        {
+          "name": "timer_irq",
+          "width": 1,
+          "dir": "output",
+          "desc": "Timer interrupt (level)"
+        }
+      ]
+    }
+  ],
+  "blocks": [],
+  "dataflow": [],
+  "registers": {
+    "config": {
+      "register_width": 32,
+      "addr_width": 12,
+      "byte_addressable": true,
+      "num_channels": 1
+    },
+    "bit_order": "lsb0",
+    "register_list": [
+      {
+        "name": "CTRL",
+        "offset": "0x0",
+        "width": 32,
+        "access": "rw",
+        "reset": 0,
+        "category": "control",
+        "desc": "Timer control register",
+        "write_side_effects": [
+          "Writing enable=1 starts the counter on the next clock edge.",
+          "Writing enable=0 stops the counter immediately.",
+          "Mode bits take effect on the next counter tick."
+        ],
+        "fields": [
+          {
+            "name": "enable",
+            "msb": 0,
+            "lsb": 0,
+            "access": "rw",
+            "reset": 0,
+            "effect": "Start/stop counter",
+            "desc": "Timer enable"
+          },
+          {
+            "name": "mode",
+            "msb": 2,
+            "lsb": 1,
+            "access": "rw",
+            "reset": 0,
+            "effect": "Set operating mode",
+            "desc": "0=FREE_RUN, 1=PERIODIC, 2=ONE_SHOT"
+          },
+          {
+            "name": "prescale_enable",
+            "msb": 3,
+            "lsb": 3,
+            "access": "rw",
+            "reset": 0,
+            "effect": "Enable/disable prescaler",
+            "desc": "Prescaler enable"
+          },
+          {
+            "name": "reserved_31_4",
+            "msb": 31,
+            "lsb": 4,
+            "access": "reserved",
+            "reset": 0,
+            "effect": "ignore",
+            "desc": "Reserved"
+          }
+        ]
+      },
+      {
+        "name": "LOAD",
+        "offset": "0x4",
+        "width": 32,
+        "access": "rw",
+        "reset": 0,
+        "category": "control",
+        "desc": "Reload value for periodic mode",
+        "write_side_effects": [],
+        "fields": [
+          {
+            "name": "load_value",
+            "msb": 31,
+            "lsb": 0,
+            "access": "rw",
+            "reset": 0,
+            "effect": "Set periodic reload value",
+            "desc": "Counter reload value"
+          }
+        ]
+      },
+      {
+        "name": "VALUE",
+        "offset": "0x8",
+        "width": 32,
+        "access": "ro",
+        "reset": 0,
+        "category": "status",
+        "desc": "Current counter value (read-only snapshot)",
+        "write_side_effects": [],
+        "fields": [
+          {
+            "name": "counter_value",
+            "msb": 31,
+            "lsb": 0,
+            "access": "ro",
+            "reset": 0,
+            "effect": null,
+            "desc": "Current counter value"
+          }
+        ]
+      },
+      {
+        "name": "CMP",
+        "offset": "0xC",
+        "width": 32,
+        "access": "rw",
+        "reset": 4294967295,
+        "category": "control",
+        "desc": "Compare/match value",
+        "write_side_effects": [],
+        "fields": [
+          {
+            "name": "compare_value",
+            "msb": 31,
+            "lsb": 0,
+            "access": "rw",
+            "reset": 4294967295,
+            "effect": "Set match threshold",
+            "desc": "Compare value (match when counter == this)"
+          }
+        ]
+      },
+      {
+        "name": "PRESCALE",
+        "offset": "0x10",
+        "width": 32,
+        "access": "rw",
+        "reset": 0,
+        "category": "control",
+        "desc": "Prescaler divisor value. Counter advances when prescale_counter reaches this value. 0 means no prescaling (divide by 1).",
+        "write_side_effects": [],
+        "fields": [
+          {
+            "name": "prescale_value",
+            "msb": 15,
+            "lsb": 0,
+            "access": "rw",
+            "reset": 0,
+            "effect": "Set prescale divisor",
+            "desc": "Prescale divisor (0=divide-by-1)"
+          },
+          {
+            "name": "reserved_31_16",
+            "msb": 31,
+            "lsb": 16,
+            "access": "reserved",
+            "reset": 0,
+            "effect": "ignore",
+            "desc": "Reserved"
+          }
+        ]
+      },
+      {
+        "name": "INTSTAT",
+        "offset": "0x14",
+        "width": 32,
+        "access": "rw",
+        "reset": 0,
+        "category": "status",
+        "desc": "Interrupt status register (W1C for match bit)",
+        "write_side_effects": [
+          "Writing 1 to match bit clears the pending match interrupt."
+        ],
+        "fields": [
+          {
+            "name": "match",
+            "msb": 0,
+            "lsb": 0,
+            "access": "rw",
+            "reset": 0,
+            "effect": "W1C: write 1 to clear match interrupt",
+            "desc": "Match interrupt pending"
+          },
+          {
+            "name": "reserved_31_1",
+            "msb": 31,
+            "lsb": 1,
+            "access": "reserved",
+            "reset": 0,
+            "effect": "ignore",
+            "desc": "Reserved"
+          }
+        ]
+      },
+      {
+        "name": "INTEN",
+        "offset": "0x18",
+        "width": 32,
+        "access": "rw",
+        "reset": 0,
+        "category": "control",
+        "desc": "Interrupt enable register",
+        "write_side_effects": [],
+        "fields": [
+          {
+            "name": "match_en",
+            "msb": 0,
+            "lsb": 0,
+            "access": "rw",
+            "reset": 0,
+            "effect": "Enable/disable match interrupt",
+            "desc": "Match interrupt enable"
+          },
+          {
+            "name": "reserved_31_1",
+            "msb": 31,
+            "lsb": 1,
+            "access": "reserved",
+            "reset": 0,
+            "effect": "ignore",
+            "desc": "Reserved"
+          }
+        ]
+      }
+    ]
+  },
+  "function_model": {
+    "purpose": "Executable behavioral contract for the timer IP. Describes counter advancement, mode transitions, match detection, and interrupt generation.",
+    "state_variables": [
+      {
+        "name": "counter",
+        "source": "registers.VALUE.data",
+        "reset": 0,
+        "description": "Current counter value"
+      },
+      {
+        "name": "prescale_counter",
+        "source": null,
+        "reset": 0,
+        "description": "Internal prescaler tick counter"
+      },
+      {
+        "name": "enable",
+        "source": "registers.CTRL.enable",
+        "reset": 0,
+        "description": "Timer enable bit"
+      },
+      {
+        "name": "mode",
+        "source": "registers.CTRL.mode",
+        "reset": 0,
+        "description": "Operating mode: 0=FREE_RUN, 1=PERIODIC, 2=ONE_SHOT"
+      },
+      {
+        "name": "prescale_enable",
+        "source": "registers.CTRL.prescale_enable",
+        "reset": 0,
+        "description": "Prescaler enable bit"
+      },
+      {
+        "name": "match_flag",
+        "source": "registers.INTSTAT.match",
+        "reset": 0,
+        "description": "Match event pending flag"
+      }
+    ],
+    "transactions": [
+      {
+        "id": "TM_TICK",
+        "name": "timer_tick",
+        "preconditions": [
+          "enable == 1",
+          "prescale_enable == 0 or (prescale_enable == 1 and prescale_counter == registers.PRESCALE.data)"
+        ],
+        "preconditions_expr": "enable == 1 and (prescale_enable == 0 or prescale_counter == registers.PRESCALE.data)",
+        "inputs": [],
+        "output_rules": [],
+        "state_updates": [
+          {
+            "name": "counter",
+            "expr": "0 if (mode == 2 and counter == registers.CMP.data) else (0 if counter == (1 << TIMER_WIDTH) - 1 else counter + 1)",
+            "width": "TIMER_WIDTH"
+          },
+          {
+            "name": "prescale_counter",
+            "expr": "0 if prescale_counter == registers.PRESCALE.data else prescale_counter + 1",
+            "width": "PRESCALE_WIDTH"
+          }
+        ],
+        "side_effects": [
+          "updates only SSOT-declared architectural state, status, events, or output handoff state"
+        ],
+        "outputs": [
+          "observable outputs/status match the approved SSOT behavior",
+          {
+            "state": "counter",
+            "expr": "0 if (mode == 2 and counter == registers.CMP.data) else (0 if counter == (1 << TIMER_WIDTH) - 1 else counter + 1)",
+            "description": "Mirrored from executable state_updates for SSOT validator completeness."
+          },
+          {
+            "state": "prescale_counter",
+            "expr": "0 if prescale_counter == registers.PRESCALE.data else prescale_counter + 1",
+            "description": "Mirrored from executable state_updates for SSOT validator completeness."
+          }
+        ]
+      },
+      {
+        "id": "TM_MATCH",
+        "name": "match_detect",
+        "preconditions": [
+          "counter == registers.CMP.data",
+          "enable == 1"
+        ],
+        "preconditions_expr": "counter == registers.CMP.data and enable == 1",
+        "inputs": [],
+        "output_rules": [
+          {
+            "name": "timer_match",
+            "expr": "1",
+            "width": 1,
+            "port": "timer_match"
+          },
+          {
+            "name": "timer_irq",
+            "expr": "1",
+            "width": 1,
+            "port": "timer_irq",
+            "repair_note": "Removed self-referential output fallback; transaction precondition/sample_condition owns rule applicability."
+          }
+        ],
+        "state_updates": [
+          {
+            "name": "match_flag",
+            "expr": "1",
+            "width": 1
+          },
+          {
+            "name": "enable",
+            "expr": "0 if mode == 2 else enable",
+            "width": 1
+          },
+          {
+            "name": "counter",
+            "expr": "registers.LOAD.data if mode == 1 else counter",
+            "width": "TIMER_WIDTH"
+          }
+        ],
+        "side_effects": [
+          "timer_match pulse is one cycle wide",
+          "In PERIODIC mode, counter reloads from LOAD on next tick after match",
+          "In ONE_SHOT mode, enable auto-clears on match"
+        ],
+        "outputs": [
+          "observable outputs/status match the approved SSOT behavior",
+          {
+            "name": "timer_match",
+            "port": "timer_match",
+            "expr": "1",
+            "description": "Mirrored from executable output_rules for SSOT validator completeness."
+          },
+          {
+            "name": "timer_irq",
+            "port": "timer_irq",
+            "expr": "1",
+            "description": "Mirrored from executable output_rules for SSOT validator completeness."
+          },
+          {
+            "state": "match_flag",
+            "expr": "1",
+            "description": "Mirrored from executable state_updates for SSOT validator completeness."
+          },
+          {
+            "state": "enable",
+            "expr": "0 if mode == 2 else enable",
+            "description": "Mirrored from executable state_updates for SSOT validator completeness."
+          },
+          {
+            "state": "counter",
+            "expr": "registers.LOAD.data if mode == 1 else counter",
+            "description": "Mirrored from executable state_updates for SSOT validator completeness."
+          }
+        ]
+      },
+      {
+        "id": "TM_IDLE",
+        "name": "idle_cycle",
+        "preconditions": [
+          "transaction is accepted under cycle_model rules"
+        ],
+        "preconditions_expr": "True",
+        "inputs": [],
+        "output_rules": [
+          {
+            "name": "timer_match",
+            "expr": "0",
+            "width": 1,
+            "port": "timer_match"
+          }
+        ],
+        "state_updates": [],
+        "side_effects": [
+          "updates only SSOT-declared architectural state, status, events, or output handoff state"
+        ],
+        "outputs": [
+          "observable outputs/status match the approved SSOT behavior",
+          {
+            "name": "timer_match",
+            "port": "timer_match",
+            "expr": "0",
+            "description": "Mirrored from executable output_rules for SSOT validator completeness."
+          }
+        ]
+      }
+    ],
+    "invariants": [
+      "counter never exceeds (2^TIMER_WIDTH - 1)",
+      "timer_irq asserts only when match_flag == 1 and registers.INTEN.match_en == 1",
+      "match_flag is cleared only by W1C write to INTSTAT.match",
+      "PSEL/PENABLE register writes take effect immediately on APB access phase"
+    ]
+  },
+  "cycle_model": {
+    "purpose": "Cycle/handshake contract for the timer IP. APB is zero-wait-state; counter/match timing is cycle-accurate.",
+    "clock": "pclk",
+    "reset": {
+      "assertion": "presetn low asynchronously clears counter, prescale_counter, match_flag, enable; all registers reset.",
+      "deassertion": "State usable on the first rising edge after synchronized deassertion."
+    },
+    "latency": {
+      "register_read": {
+        "min_cycles": 0,
+        "max_cycles": 1,
+        "description": "Zero-wait-state APB read: pready=1 same cycle as access phase."
+      },
+      "register_write": {
+        "min_cycles": 0,
+        "max_cycles": 1,
+        "description": "Zero-wait-state APB write: pready=1 same cycle as access phase."
+      },
+      "match_to_irq": {
+        "min_cycles": 1,
+        "max_cycles": 1,
+        "description": "timer_irq asserts on the next rising edge after match detection."
+      }
+    },
+    "handshake_rules": [
+      {
+        "signal": "pready",
+        "rule": "Always 1 for implemented addresses; no wait states."
+      },
+      {
+        "signal": "pslverr",
+        "rule": "Asserted with pready=1 for reads/writes to unimplemented addresses."
+      }
+    ],
+    "pipeline": [
+      {
+        "stage": "T0_REGISTER",
+        "cycle": 0,
+        "action": "APB setup/access phase samples or returns register data."
+      },
+      {
+        "stage": "T1_PRESCALE",
+        "cycle": 0,
+        "action": "Prescale counter increments on every rising pclk when prescaler enabled."
+      },
+      {
+        "stage": "T2_COUNTER",
+        "cycle": 0,
+        "action": "Counter increments when prescale tick fires and enable=1."
+      },
+      {
+        "stage": "T3_COMPARE",
+        "cycle": 0,
+        "action": "Counter compared against CMP; match detected combinationally."
+      },
+      {
+        "stage": "T4_OUTPUT",
+        "cycle": 1,
+        "action": "timer_match pulse and timer_irq update on next rising edge after match."
+      }
+    ],
+    "ordering": [
+      "Counter increment and compare happen in the same cycle; match output is registered.",
+      "APB register writes to CTRL.enable or LOAD take effect on the next counter tick, not the same cycle as the write."
+    ]
+  },
+  "fsm": {
+    "timer_control": {
+      "states": [
+        "DISABLED",
+        "COUNTING",
+        "MATCHED"
+      ],
+      "transitions": [
+        {
+          "from": "DISABLED",
+          "to": "COUNTING",
+          "condition": "CTRL.enable written to 1"
+        },
+        {
+          "from": "COUNTING",
+          "to": "MATCHED",
+          "condition": "counter == CMP"
+        },
+        {
+          "from": "MATCHED",
+          "to": "COUNTING",
+          "condition": "mode == FREE_RUN or mode == PERIODIC"
+        },
+        {
+          "from": "MATCHED",
+          "to": "DISABLED",
+          "condition": "mode == ONE_SHOT"
+        },
+        {
+          "from": "COUNTING",
+          "to": "DISABLED",
+          "condition": "CTRL.enable written to 0"
+        },
+        {
+          "from": "MATCHED",
+          "to": "DISABLED",
+          "condition": "CTRL.enable written to 0"
+        }
+      ],
+      "note": "Conceptual FSM for verification; may be implemented as implicit state in RTL."
+    }
+  },
+  "timing_expected": {
+    "title": "EXPECTED \u00b7 APB write 0x1 \u2192 CTRL @ 0x0",
+    "note": "Setup phase (PSEL=1, PENABLE=0) then access phase (PENABLE=1); zero-wait PREADY (illustrative).",
+    "signals": [
+      {
+        "name": "PCLK",
+        "wave": "ppppp"
+      },
+      {
+        "name": "PSEL",
+        "wave": "01.0."
+      },
+      {
+        "name": "PENABLE",
+        "wave": "0.10."
+      },
+      {
+        "name": "PWRITE",
+        "wave": "x1.x."
+      },
+      {
+        "name": "PADDR",
+        "wave": "x=.x.",
+        "data": [
+          "0x0"
+        ]
+      },
+      {
+        "name": "PWDATA",
+        "wave": "x=.x.",
+        "data": [
+          "0x1"
+        ]
+      },
+      {
+        "name": "PREADY",
+        "wave": "1...."
+      }
+    ]
+  }
+}

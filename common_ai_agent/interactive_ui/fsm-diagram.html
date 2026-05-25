@@ -425,6 +425,12 @@ document.getElementById('spec').value=JSON.stringify(DEFAULT,null,2);
 
 
 
+
+
+
+
+
+
 <script>
 /* ── light/dark theme toggle v2 — re-themes var() CSS, hardcoded CSS-rule hex, and inline/SVG hex; survives re-render ── */
 (function(){
@@ -459,7 +465,7 @@ document.getElementById('spec').value=JSON.stringify(DEFAULT,null,2);
   function sweepEls(root,m,re){ sweepNode(root,m,re); const a=root.querySelectorAll?root.querySelectorAll('*'):[]; for(const el of a) sweepNode(el,m,re); }
   function sweepStyles(m,re){ for(const s of document.querySelectorAll('style')){ if(s.id==='__themeOverride')continue; const t=s.textContent; if(t&&t.indexOf('#')>=0){const n=swap(t,m,re); if(n!==t)s.textContent=n;} } }
 
-  let light = localStorage.getItem('iui-theme')==='light', obs=null;
+  let light = localStorage.getItem('iui-theme')!=='dark', obs=null;
   function apply(){
     const m=light?L:D, re=reFor(m);
     document.documentElement.dataset.theme = light?'light':'dark';

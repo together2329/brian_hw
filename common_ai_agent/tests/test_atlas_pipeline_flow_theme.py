@@ -22,7 +22,8 @@ def test_atlas_windows_font_mode_is_local_first() -> None:
 
     assert "ATLAS_FONT_MODE_OPTIONS" in app
     assert "{ key: 'windows', label: 'Windows' }" in app
-    assert "atlasIsWindowsPlatform()" in app
+    assert "normalizeAtlasFontMode" in app
+    assert "localStorage.getItem('atlasFontModeUserSet')" in app
     assert '[data-font="windows"]' in css
     assert "--windows-sans" in css
     assert "--windows-mono" in css
@@ -57,6 +58,9 @@ def test_atlas_worker_sidebar_polls_current_ip_scope() -> None:
     assert "const workerIp = (() => {" in workspace
     assert "workspaceFetchWorkerSnapshot({ ip: workerIp, activeOnly: true })" in workspace
     assert "}, [activeIp]);" in workspace
+    assert "Current context window of the selected/live worker session" in workspace
+    assert "user/IP" in workspace
+    assert "activeJobs.slice(0, 4)" in workspace
 
 
 def test_atlas_worker_panels_share_cached_worker_snapshot_fetch() -> None:
@@ -116,7 +120,7 @@ def test_atlas_conversation_hydration_rejects_stale_session_payloads() -> None:
     # selectors or replace the current chat feed.
     assert "eventSession !== liveSession" in app
     assert "ev.type === 'atlas-conversation-loaded' || ev.type === 'atlas-session-loaded'" in app
-    assert "if (session && activeNow && session !== activeNow) return;" in workspace
+    assert "if (session && activeNow && session !== activeNow && (!viewNow || session !== viewNow)) return;" in workspace
 
 
 def test_atlas_conversation_hydration_accepts_text_only_messages() -> None:

@@ -833,6 +833,12 @@ class AtlasDB:
                 "ip_id": "TEXT",
                 "workflow": "TEXT",
                 "todo_id": "TEXT",
+                "tokens_input": "INT DEFAULT 0",
+                "tokens_output": "INT DEFAULT 0",
+                "tokens_reasoning": "INT DEFAULT 0",
+                "cache_read_tokens": "INT DEFAULT 0",
+                "cache_write_tokens": "INT DEFAULT 0",
+                "cost_usd": "REAL DEFAULT 0",
                 "created_at": "REAL",
             },
             "artifacts": {
@@ -3912,6 +3918,103 @@ class AtlasDB:
         else:
             rows = self._fetchall("SELECT * FROM llm_calls ORDER BY created_at ASC")
         return [dict(row) for row in rows]
+
+    def summarize_llm_usage_for_user_ip(
+        self,
+        *,
+        user_id: str = "",
+        username: str = "",
+        ip: str = "",
+    ) -> Dict[str, Any]:
+        """Aggregate LLM usage for one visible user/IP scope.
+
+        Runtime worker calls sometimes store the runtime namespace in
+        llm_calls.session_id (``owner/ip/workflow``), while DB-backed workflow
+        rows may store an internal IP id. Join sessions when possible and keep
+        the namespace-prefix fallback so live/local worker accounting still
+        resolves to the active user's IP.
+        """
+        uid = str(user_id or "").strip()
+        owner = str(username or "").strip()
+        ip_name = str(ip or "").strip()
+
+        def like_escape(value: str) -> str:
+            return (
+                str(value or "")
+                .replace("\\", "\\\\")
+                .replace("%", "\\%")
+                .replace("_", "\\_")
+            )
+
+        clauses: list[str] = []
+        values: list[Any] = []
+        user_clauses: list[str] = []
+        if uid:
+            user_clauses.append("s.user_id = ?")
+            values.append(uid)
+        if owner:
+            if ip_name:
+                user_clauses.append(
+                    "(l.session_id = ? OR l.session_id LIKE ? ESCAPE '\\')"
+                )
+                values.extend([
+                    f"{owner}/{ip_name}",
+                    f"{like_escape(owner)}/{like_escape(ip_name)}/%",
+                ])
+            else:
+                user_clauses.append("l.session_id LIKE ? ESCAPE '\\'")
+                values.append(f"{like_escape(owner)}/%")
+        if user_clauses:
+            clauses.append("(" + " OR ".join(user_clauses) + ")")
+
+        if ip_name:
+            session_ip_pattern = (
+                f"{like_escape(owner)}/{like_escape(ip_name)}/%"
+                if owner else f"%/{like_escape(ip_name)}/%"
+            )
+            clauses.append(
+                "("
+                "l.ip_id = ? OR s.ip_id = ? OR s.ip = ? "
+                "OR l.session_id LIKE ? ESCAPE '\\'"
+                ")"
+            )
+            values.extend([ip_name, ip_name, ip_name, session_ip_pattern])
+
+        where = " AND ".join(clauses) if clauses else "1 = 1"
+        row = self._fetchone(
+            f"""
+            SELECT COUNT(*) AS calls,
+                   COALESCE(SUM(tokens_input), 0) AS tokens_input,
+                   COALESCE(SUM(cache_read_tokens), 0) AS cache_read_tokens,
+                   COALESCE(SUM(tokens_output), 0) AS tokens_output,
+                   COALESCE(SUM(tokens_reasoning), 0) AS tokens_reasoning,
+                   COALESCE(SUM(cost_usd), 0.0) AS cost_usd
+              FROM (
+                    SELECT DISTINCT l.id,
+                           l.tokens_input,
+                           l.cache_read_tokens,
+                           l.tokens_output,
+                           l.tokens_reasoning,
+                           l.cost_usd
+                      FROM llm_calls l
+                      LEFT JOIN sessions s
+                        ON s.id = l.session_id
+                        OR s.namespace = l.session_id
+                        OR s.session_uid = l.session_id
+                     WHERE {where}
+                   ) scoped
+            """,
+            tuple(values),
+        )
+        data = dict(row) if row is not None else {}
+        return {
+            "calls": int(data.get("calls") or 0),
+            "tokens_input": int(data.get("tokens_input") or 0),
+            "cache_read_tokens": int(data.get("cache_read_tokens") or 0),
+            "tokens_output": int(data.get("tokens_output") or 0),
+            "tokens_reasoning": int(data.get("tokens_reasoning") or 0),
+            "cost_usd": float(data.get("cost_usd") or 0.0),
+        }
 
     def register_artifact(
         self,

@@ -146,6 +146,8 @@ def test_admin_dashboard_serves_login_shell_without_login(tmp_path, monkeypatch)
     assert "Active User Focus" in bundle.text
     assert "IP Workload" in bundle.text
     assert "Workflow Load" in bundle.text
+    assert "Runtime Settings" in bundle.text
+    assert "IPC Jobs" in bundle.text
 
 
 def test_legacy_local_admin_mode_keeps_passwordless_access(tmp_path, monkeypatch):
@@ -173,6 +175,93 @@ def test_legacy_local_admin_mode_keeps_passwordless_access(tmp_path, monkeypatch
     assert bundle.status_code == 200, bundle.text[:200]
     assert "window.AdminPage = AdminPage" in bundle.text
     assert "React.createElement" in bundle.text
+
+
+def test_admin_runtime_reports_ipc_limits_jobs_and_scm_override(tmp_path, monkeypatch):
+    import atlas_api_jobs as jobs
+    import src.atlas_ui as atlas_ui
+
+    override = tmp_path / "perforce-scm-tab.jsx"
+    override.write_text("window.SCMTab = function P4Tab(){ return null; };\n", encoding="utf-8")
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_ADMIN_AUTH_MODE", "local")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.setenv("ATLAS_WORKER_TRANSPORT", "ipc")
+    monkeypatch.setenv("ATLAS_IPC_WORKER_MAX_CONCURRENT", "1")
+    monkeypatch.setenv("ATLAS_IPC_WORKER_MAX_PER_USER", "1")
+    monkeypatch.setenv("ATLAS_IPC_WORKER_MAX_PER_WORKFLOW", "1")
+    monkeypatch.setenv("ATLAS_IPC_WORKER_QUEUE_LIMIT", "3")
+    monkeypatch.setenv("ATLAS_IPC_WORKER_TIMEOUT_SEC", "7")
+    monkeypatch.setenv("ATLAS_IPC_WORKER_MAX_ATTEMPTS", "2")
+    monkeypatch.setenv("ATLAS_SCM_PROVIDER", "perforce")
+    monkeypatch.setenv("ATLAS_SCM_UI_OVERRIDE_PERFORCE", str(override))
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "SOURCE_ROOT", tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    running = {
+        "job_id": "running-job",
+        "run_id": "ipc-running-job",
+        "worker": "ipc://user-a/orchestrator/rtl-gen",
+        "worker_transport": "ipc",
+        "workflow": "rtl-gen",
+        "ip": "ip_a",
+        "status": "running",
+        "attempt": 1,
+        "max_attempts": 2,
+        "db_user_id": "user-a",
+        "started_at": 10,
+    }
+    queued = {
+        "job_id": "queued-job",
+        "worker": "ipc://user-a/orchestrator/sim",
+        "worker_transport": "ipc",
+        "workflow": "sim",
+        "ip": "ip_a",
+        "status": "queued",
+        "queue_reason": "ipc_global_limit",
+        "attempt": 2,
+        "retry_count": 1,
+        "max_attempts": 2,
+        "last_retry_reason": "IPC worker timeout after 7.0s",
+        "db_user_id": "user-a",
+        "queued_at": 20,
+    }
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+        jobs._jobs[running["job_id"]] = running
+        jobs._jobs[queued["job_id"]] = queued
+
+    try:
+        client = TestClient(atlas_ui.create_app())
+        response = client.get("/api/admin/runtime")
+        assert response.status_code == 200, response.text
+        data = response.json()
+
+        worker_runtime = data["worker_runtime"]
+        assert worker_runtime["transport"] == "ipc"
+        assert worker_runtime["ipc"]["limits"] == {
+            "max_concurrent": 1,
+            "max_per_user": 1,
+            "max_per_workflow": 1,
+            "queue_limit": 3,
+            "timeout_sec": 7.0,
+            "max_attempts": 2,
+        }
+        assert worker_runtime["ipc"]["running_count"] == 1
+        assert worker_runtime["ipc"]["queued_count"] == 1
+        assert worker_runtime["ipc"]["available_slots"] == 0
+        assert {job["job_id"] for job in worker_runtime["ipc"]["jobs"]} == {
+            "running-job",
+            "queued-job",
+        }
+        assert data["scm"]["provider"] == "perforce"
+        assert data["scm"]["ui_override"]["enabled"] is True
+        assert data["scm"]["ui_override"]["kind"] == "local"
+        assert data["scm"]["ui_override"]["exists"] is True
+    finally:
+        with jobs._jobs_lock:
+            jobs._jobs.clear()
 
 
 def test_non_admin_user_cannot_call_admin_api(tmp_path, monkeypatch):

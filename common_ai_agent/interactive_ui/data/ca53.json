@@ -188,6 +188,7 @@
       "va_bits": 48,
       "pa_bits": 40,
       "ttbr": "TTBR0_EL1",
+      "ttbr_base": "0x0000000040000000",
       "entries_per_table": 512,
       "levels": [
         { "level": "L0", "hi": 47, "lo": 39, "desc": "Level 0 table index (512 GB/entry)" },
@@ -196,6 +197,29 @@
         { "level": "L3", "hi": 20, "lo": 12, "desc": "Level 3 table index (4 KB page)" }
       ],
       "offset": { "hi": 11, "lo": 0, "desc": "Page offset (within 4 KB page)" }
+    },
+    "descriptor": {
+      "note": "AArch64 stage-1 translation-table descriptor (4 KB granule). Bits[1:0] select the type.",
+      "types": [
+        { "code": "0b11", "kind": "Table (levels 0–2) / Page (level 3)" },
+        { "code": "0b01", "kind": "Block (levels 1–2)" },
+        { "code": "0b00", "kind": "Invalid" }
+      ],
+      "fields": [
+        { "name": "UpperAttr", "hi": 63, "lo": 52, "desc": "Upper attributes (PXN[53], UXN/XN[54], …)" },
+        { "name": "OutputAddr", "hi": 47, "lo": 12, "desc": "Next-table address or output block/page base" },
+        { "name": "LowerAttr", "hi": 11, "lo": 2, "desc": "nG[11], AF[10], SH[9:8], AP[7:6], NS[5], AttrIndx[4:2]" },
+        { "name": "Type", "hi": 1, "lo": 0, "desc": "0b11=table/page, 0b01=block, 0b00/x0=invalid" }
+      ],
+      "attrs": [
+        { "name": "AttrIndx", "bits": "[4:2]", "desc": "Index into MAIR_EL1 (memory type)" },
+        { "name": "NS",       "bits": "[5]",   "desc": "Non-secure" },
+        { "name": "AP",       "bits": "[7:6]", "desc": "Data access permissions" },
+        { "name": "SH",       "bits": "[9:8]", "desc": "Shareability" },
+        { "name": "AF",       "bits": "[10]",  "desc": "Access flag" },
+        { "name": "nG",       "bits": "[11]",  "desc": "Not-global" }
+      ],
+      "example": "0x0000000080601703"
     }
   },
   "caches": {

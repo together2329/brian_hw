@@ -34,6 +34,13 @@
     <div class="src">data/gpio_ssot.json · ssot_to_explorer.py</div>
   </a>
 
+  <a class="card" href="timer-datasheet.html" style="grid-column:1/-1;border-color:var(--ok);">
+    <div class="ic">⏱</div>
+    <h2>Timer IP datasheet (SSOT-driven) <span class="tag">real SSOT</span></h2>
+    <p>실제 프로젝트 IP <code>fresh_web_timer_ip</code>의 SSOT에서 자동 생성한 리치 데이터시트 — features(free-run/periodic/one-shot/prescaler) · 블록 다이어그램 · 레지스터 맵 7개(전부 비트필드) · FSM(DISABLED→COUNTING→MATCHED) · function model · interrupts · APB4 타이밍. CA53 기법을 실제 SSOT 데이터에 적용.</p>
+    <div class="src">data/timer_ssot.json · ssot_to_explorer.py</div>
+  </a>
+
   <a class="card" href="ca53-trm.html" style="grid-column:1/-1;border-color:var(--warn);">
     <div class="ic">⌬</div>
     <h2>Cortex-A53 TRM (illustrative) <span class="tag" style="color:var(--warn);">real-IP scale</span></h2>
@@ -94,6 +101,12 @@
 
 
 
+
+
+
+
+
+
 <script>
 /* ── light/dark theme toggle v2 — re-themes var() CSS, hardcoded CSS-rule hex, and inline/SVG hex; survives re-render ── */
 (function(){
@@ -128,7 +141,7 @@
   function sweepEls(root,m,re){ sweepNode(root,m,re); const a=root.querySelectorAll?root.querySelectorAll('*'):[]; for(const el of a) sweepNode(el,m,re); }
   function sweepStyles(m,re){ for(const s of document.querySelectorAll('style')){ if(s.id==='__themeOverride')continue; const t=s.textContent; if(t&&t.indexOf('#')>=0){const n=swap(t,m,re); if(n!==t)s.textContent=n;} } }
 
-  let light = localStorage.getItem('iui-theme')==='light', obs=null;
+  let light = localStorage.getItem('iui-theme')!=='dark', obs=null;
   function apply(){
     const m=light?L:D, re=reFor(m);
     document.documentElement.dataset.theme = light?'light':'dark';

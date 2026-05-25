@@ -44,7 +44,7 @@ for (const name of FILES) {
 
 // Full-document pages (tables + multiple diagrams), not a single diagram —
 // capture each as a full-page PNG (also an E2E load test in real Chrome).
-for (const name of ['ssot-explorer', 'ca53-trm']) {
+for (const name of ['ssot-explorer', 'ca53-trm', 'timer-datasheet']) {
   const page = await ctx.newPage();
   const errs = [];
   page.on('pageerror', e => errs.push(String(e)));

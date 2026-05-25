@@ -7,7 +7,7 @@
     "DFT_TOOL": "openroad",
     "DFT_BACKEND": "openroad_internal",
     "DFT_ATPG_TOOL": "fault",
-    "WORKFLOW_DISABLED_TOOLS": "ask_user,record_ssot_qa"
+    "WORKFLOW_DISABLED_TOOLS": "ask_user,record_ssot_qa,dispatch_workflow"
   },
   "skills": {
     "force_activate": [

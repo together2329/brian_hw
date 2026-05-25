@@ -122,6 +122,28 @@ const workspaceFetchWorkerSnapshot = async (opts = {}) => {
   if (!r.ok) throw new Error(`workers ${r.status}`);
   return r.json();
 };
+const atlasBootScmProvider = () => {
+  const boot = window.ATLAS_BOOT_CONFIG || {};
+  const provider = String(boot.scm_provider || '').trim().toLowerCase();
+  return provider && provider !== 'auto' ? provider : 'git';
+};
+const atlasResolveScmTab = (provider) => {
+  const key = String(provider || '').trim().toLowerCase();
+  const overrides = window.AtlasSCMTabOverrides || window.SCM_TAB_OVERRIDES || {};
+  if (key && typeof overrides[key] === 'function') return overrides[key];
+  if (key && typeof overrides[key.toUpperCase()] === 'function') return overrides[key.toUpperCase()];
+  if (typeof window.AtlasSCMTab === 'function') return window.AtlasSCMTab;
+  if (typeof window.SCMTab === 'function') return window.SCMTab;
+  return typeof window.GitTab === 'function' ? window.GitTab : null;
+};
+const atlasScmTabLabel = (provider, component) => {
+  const labels = window.AtlasSCMTabLabels || window.SCM_TAB_LABELS || {};
+  const key = String(provider || '').trim().toLowerCase();
+  if (key && labels[key]) return String(labels[key]);
+  if (window.AtlasSCMTabLabel) return String(window.AtlasSCMTabLabel);
+  if (component && component !== window.GitTab) return key === 'perforce' ? 'perforce' : 'scm';
+  return key === 'perforce' ? 'perforce' : 'git';
+};
 const INPUT_HISTORY_LIMIT = 200;
 const QA_HISTORY_LIMIT = 50;
 const QA_HISTORY_LEGACY_STORAGE_KEY = 'atlasQaHistory';
@@ -1992,6 +2014,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
                 tokensCache: j.tokens_cache != null ? stable('tokensCache', j.tokens_cache) : Number(prev.tokensCache || 0),
                 tokensOut: j.tokens_out != null ? stable('tokensOut', j.tokens_out) : Number(prev.tokensOut || 0),
                 costUsd: j.cost_usd != null ? stable('costUsd', j.cost_usd) : Number(prev.costUsd || 0),
+                costScope: j.cost_scope || prev.costScope || '',
+                costUser: j.cost_user || prev.costUser || '',
+                costIp: j.cost_ip || prev.costIp || '',
+                costCalls: j.cost_calls != null ? Number(j.cost_calls || 0) : Number(prev.costCalls || 0),
                 model: j.model || j.base_model || prev.model || '',
               };
             })(),
@@ -2016,6 +2042,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     tokensCache: 0,
     tokensOut: 0,
     costUsd: 0,
+    costScope: '',
+    costUser: '',
+    costIp: '',
+    costCalls: 0,
     lastCostDelta: 0,
     model: '',
     activeSession: '',
@@ -2041,6 +2071,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
             tokensCache: ctx.tokensCache != null ? stable('tokensCache', ctx.tokensCache) : Number(prev.tokensCache || 0),
             tokensOut: ctx.tokensOut != null ? stable('tokensOut', ctx.tokensOut) : Number(prev.tokensOut || 0),
             costUsd: ctx.costUsd != null ? stable('costUsd', ctx.costUsd) : Number(prev.costUsd || 0),
+            costScope: ctx.costScope || prev.costScope || '',
+            costUser: ctx.costUser || prev.costUser || '',
+            costIp: ctx.costIp || prev.costIp || '',
+            costCalls: ctx.costCalls != null ? Number(ctx.costCalls || 0) : Number(prev.costCalls || 0),
             model: ctx.model || prev.model || '',
           };
         })(),
@@ -4620,9 +4654,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     }
     return (
       <div style={{
-        position: 'sticky', top: 0, zIndex: 3, display: 'flex', alignItems: 'center', gap: 8,
-        padding: '5px 10px', marginBottom: 8, fontFamily: 'var(--mono)', fontSize: 11,
-        background: 'var(--panel, #0f1118)', borderBottom: '1px solid var(--line)',
+        display: 'flex', alignItems: 'center', gap: 8,
+        padding: '5px 10px', margin: '0 0 6px', fontFamily: 'var(--mono)', fontSize: 11,
+        background: 'var(--panel, #0f1118)', border: '1px solid var(--line)',
+        borderRadius: 2,
       }}>
         <span style={{ color: col }}>{running ? '▶' : done ? '✓' : '✗'}</span>
         <b>{wp.workflow}</b>
@@ -4635,7 +4670,6 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
   };
   const renderChatPane = (style = {}) => (
     <div ref={feedRef} style={{ flex: 1, minHeight: 0, overflow: 'auto', padding: '14px 18px', ...style }}>
-      {renderWorkerProgress()}
       {renderFeedEntries()}
       <LiveAgentPreview text={streamText} />
     </div>
@@ -4716,6 +4750,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
           <span className="mute" style={{ color: 'var(--fg-dim)', marginLeft: 'auto' }}>click → detail</span>
         </div>
       ) : null}
+      {renderWorkerProgress()}
     <div className="prompt-row">
       <span className="ps" style={{ color: 'var(--fg-mute)' }}>❯</span>
       {atlasUiOrchestratorMode() && !pendingQcard ? (
@@ -4770,6 +4805,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         ? `(file tree error — ${window.FILE_TREE_ERROR})`
         : (window.FILE_TREE_LOADING ? '(loading file tree...)' : '(empty — select an IP or refresh)'))
     : '(select IP_ID to show files)';
+  const scmProvider = atlasBootScmProvider();
+  const ScmTabComponent = atlasResolveScmTab(scmProvider);
+  const scmTabLabel = atlasScmTabLabel(scmProvider, ScmTabComponent);
 
   return (
     <div style={{
@@ -5284,7 +5322,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
             <span
               className="tab-chip"
               onClick={() => setMainTab('git')}
-              title="Git: per-IP status, commit history graph, diff + explicit revert"
+              title="SCM: per-IP source-control status, history, diff, and submit actions"
               style={{
                 cursor: 'pointer',
                 padding: '2px 8px', borderRadius: 2, marginLeft: 4,
@@ -5293,7 +5331,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
                 border: '1px solid ' + (mainTab === 'git' ? 'var(--accent)' : 'transparent'),
                 fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 'var(--ui-control-font-size)',
               }}
-            >git</span>
+            >{scmTabLabel}</span>
             <span className="mute" style={{ margin: '0 6px' }}>·</span>
             {mainTab === 'chat' ? (
               // Everything in the previous chain (intent badge, workflow
@@ -5503,13 +5541,18 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
               </div>
             )
           ) : mainTab === 'git' ? (
-            window.GitTab ? (
-              <ErrorBoundary label="Git">
-                <window.GitTab initialIp={activeIp} />
+            ScmTabComponent ? (
+              <ErrorBoundary label={scmTabLabel}>
+                <ScmTabComponent
+                  initialIp={activeIp}
+                  activeIp={activeIp}
+                  provider={scmProvider}
+                  fallbackTab={window.GitTab}
+                />
               </ErrorBoundary>
             ) : (
               <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fg-mute)' }}>
-                Git · loading…
+                {scmTabLabel} · loading…
               </div>
             )
             ) : (
@@ -17217,6 +17260,10 @@ const AgentStatusPanel = ({ intent, workflow, activeIp = '', onCollapse }) => {
             tokensCache: j.tokens_cache,
             tokensOut: j.tokens_out,
             costUsd: j.cost_usd,
+            costScope: j.cost_scope || '',
+            costUser: j.cost_user || '',
+            costIp: j.cost_ip || '',
+            costCalls: j.cost_calls != null ? Number(j.cost_calls || 0) : 0,
             pricing: j.pricing || null,
             activeSession: j.active_session || '',
           });
@@ -17430,13 +17477,14 @@ const AgentStatusPanel = ({ intent, workflow, activeIp = '', onCollapse }) => {
         )}
         {/* Context with bar */}
         <div style={{ display: 'grid', gridTemplateColumns: '64px 1fr', gap: 8, marginBottom: 4, marginTop: 6 }}>
-          <span className="mute">Context</span>
+          <span className="mute" title="Current context window of the selected/live worker session">Context</span>
           <span>
             <span style={{ color: 'var(--fg)', display: 'inline-block', minWidth: 48, textAlign: 'right' }}>
               {ctxUsedLabel}
             </span>
             <span className="mute"> / {ctxMaxLabel} · </span>
             <span className={pct > 70 ? 'warn' : 'ok'} style={{ display: 'inline-block', minWidth: 30, textAlign: 'right' }}>{pct}%</span>
+            <span className="mute" style={{ fontSize: 9, marginLeft: 4 }}>worker</span>
           </span>
         </div>
         <div style={{ marginLeft: 72, marginBottom: 10, height: 4, background: 'var(--bg-2)', borderRadius: 1, overflow: 'hidden' }}>
@@ -17471,7 +17519,12 @@ const AgentStatusPanel = ({ intent, workflow, activeIp = '', onCollapse }) => {
           return (
             <>
               <div className="mute" style={{ fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>
-                Cost {_ctx.pricing && (
+                Cost
+                <span className="mute" style={{ fontSize: 9, fontWeight: 400, letterSpacing: 0, textTransform: 'none', marginLeft: 4 }}>
+                  · {(_ctx.costScope === 'user_ip' ? `user/IP${_ctx.costIp ? ` ${_ctx.costIp}` : ''}` : 'worker session')}
+                  {_ctx.costCalls ? ` · ${_ctx.costCalls} calls` : ''}
+                </span>
+                {_ctx.pricing && (
                   <span className="mute" style={{ fontSize: 9, fontWeight: 400, letterSpacing: 0, textTransform: 'none', marginLeft: 4 }}>
                     @ ${pi}/${pc}/${po} per 1M
                   </span>
@@ -17533,6 +17586,23 @@ const AgentStatusPanel = ({ intent, workflow, activeIp = '', onCollapse }) => {
             t === 'queued'  ? { color: 'var(--fg-mute)',glyph: '◌', bg: 'color-mix(in oklch, var(--fg-mute) 9%, transparent)', border: 'var(--line)' } :
                               { color: 'var(--fg-mute)',glyph: '○', bg: 'transparent',                                          border: 'var(--line)' }
           );
+          const activeJobs = liveWorkers.flatMap(w => (
+            Array.isArray(w.active_jobs)
+              ? w.active_jobs.map(j => Object.assign({ worker_workflow: w.workflow }, j))
+              : []
+          ));
+          const jobLine = (job) => {
+            const bits = [
+              job.status || 'running',
+              job.queue_reason || '',
+              job.attempt && job.max_attempts && Number(job.max_attempts) > 1
+                ? `try ${job.attempt}/${job.max_attempts}`
+                : '',
+              job.worker_log_entries ? `${job.worker_log_entries} log` : '',
+              job.worker_pid ? `pid ${job.worker_pid}` : '',
+            ].filter(Boolean);
+            return bits.join(' · ');
+          };
           return (
             <>
               <div className="mute" style={{
@@ -17592,6 +17662,69 @@ const AgentStatusPanel = ({ intent, workflow, activeIp = '', onCollapse }) => {
                   })}
                 </div>
               )}
+              {activeJobs.length > 0 ? (
+                <div style={{
+                  borderTop: '1px solid var(--line)',
+                  paddingTop: 8,
+                  marginBottom: 12,
+                  fontSize: 10,
+                  fontFamily: 'var(--mono)',
+                }}>
+                  <div className="mute" style={{
+                    fontSize: 9,
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                    marginBottom: 5,
+                  }}>now</div>
+                  {activeJobs.slice(0, 4).map(job => (
+                    <button
+                      key={job.job_id || `${job.worker_workflow}-${job.run_id}`}
+                      type="button"
+                      onClick={() => {
+                        try {
+                          window.openPipelineWorkflowWorkspace?.({
+                            ip: String(job.ip || activeIp || '').trim(),
+                            workflow: job.workflow || job.worker_workflow,
+                          });
+                        } catch (_) {}
+                      }}
+                      title={[
+                        job.session || '',
+                        job.worker || '',
+                        job.worker_log_path ? `log: ${job.worker_log_path}` : '',
+                        job.result_summary || job.error || '',
+                      ].filter(Boolean).join('\n')}
+                      style={{
+                        width: '100%',
+                        display: 'grid',
+                        gridTemplateColumns: '12px minmax(0, 1fr)',
+                        gap: 6,
+                        alignItems: 'start',
+                        textAlign: 'left',
+                        padding: '4px 0',
+                        border: 0,
+                        borderBottom: '1px solid color-mix(in oklch, var(--line) 70%, transparent)',
+                        background: 'transparent',
+                        color: 'var(--fg)',
+                        cursor: 'pointer',
+                        fontFamily: 'var(--mono)',
+                      }}
+                    >
+                      <span style={{ color: job.status === 'queued' ? 'var(--fg-mute)' : 'var(--accent)' }}>
+                        {job.status === 'queued' ? '◌' : '▶'}
+                      </span>
+                      <span style={{ minWidth: 0 }}>
+                        <span style={{ display: 'block', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {job.workflow || job.worker_workflow || 'worker'}
+                        </span>
+                        <span className="mute" style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {jobLine(job)}
+                        </span>
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              ) : null}
             </>
           );
         })()}

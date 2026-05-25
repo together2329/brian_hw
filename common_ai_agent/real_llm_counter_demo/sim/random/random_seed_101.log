@@ -1,0 +1,4 @@
+[run_random] run seed=101: vvp sim/build/tb_real_llm_counter_demo_random.vvp +SEED=101 +TXNS=64 +MAX_GAP=2 +RESET_PROB_PER_MILLE=20
+[RANDOM_TB][INFO] seed=101 txns=64 max_gap=2 reset_prob_per_mille=20
+[RANDOM_TB][RESULT] PASS seed=101 txns=64 scoreboard_pass=152 scoreboard_fail=0 accepted_txns=64 resets=2 back_to_back=10
+sim/tb_real_llm_counter_demo_random.sv:452: $finish called at 1526000 (1ps)

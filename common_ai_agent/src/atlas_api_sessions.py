@@ -355,6 +355,25 @@ def register_sessions_routes(
             print(f"[Session] activate→db session upsert({canonical!r}) failed: {exc}",
                   flush=True)
         session_payload = _session_context_payload(session_row) if session_row else {}
+        worker_warmup: dict[str, Any] = {}
+        try:
+            try:
+                from atlas_api_jobs import schedule_worker_warmup  # noqa: WPS433
+            except ImportError:
+                from src.atlas_api_jobs import schedule_worker_warmup  # type: ignore  # noqa: WPS433
+
+            worker_warmup = schedule_worker_warmup(
+                ip=ip,
+                owner=sid,
+                db_user_id=user_id,
+                session_name=canonical,
+                active_workflow=wf,
+                project_root_value=str(_root),
+                reason="session_activate",
+                background=True,
+            )
+        except Exception as exc:
+            worker_warmup = {"enabled": False, "error": str(exc)}
         return JSONResponse({
             "ok": True,
             "active_session": canonical,
@@ -373,6 +392,7 @@ def register_sessions_routes(
             "halted": halted,
             "preserve_running": preserve_running,
             "process_scoped": process_mode,
+            "worker_warmup": worker_warmup,
         })
 
     # ── /api/session/history ───────────────────────────────────────

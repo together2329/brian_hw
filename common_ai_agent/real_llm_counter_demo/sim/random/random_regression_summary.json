@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "ip": "real_llm_counter_demo",
+  "type": "constrained_random_regression_summary",
+  "compile_log": "sim/random/random_compile.log",
+  "txns_per_seed": 64,
+  "max_gap": 2,
+  "reset_prob_per_mille": 20,
+  "seeds": [
+    {"seed": 101, "passed": true, "scoreboard_pass": 152, "scoreboard_fail": 0, "accepted_txns": 64, "log": "sim/random/random_seed_101.log", "results": "sim/random/random_seed_101_results.json", "scoreboard_csv": "sim/random/random_seed_101_scoreboard_events.csv"}
+  ],
+  "seed_count": 1,
+  "total_scoreboard_pass": 152,
+  "total_scoreboard_fail": 0,
+  "passed": true
+}

@@ -8,7 +8,7 @@
   },
   "env": {
     "_comment": "Pulled from .env: CHAT_RESPONDER_MODEL (default gpt-5.3-codex), CHAT_RESPONDER_EFFORT (default low), CHAT_RESPONDER_POLL_SECONDS, CHAT_RESPONDER_MIN_INTERVAL_SECONDS, CHAT_RESPONDER_MAX_OUTPUT_TOKENS.",
-    "WORKFLOW_DISABLED_TOOLS": "ask_user,record_ssot_qa"
+    "WORKFLOW_DISABLED_TOOLS": "ask_user,record_ssot_qa,dispatch_workflow"
   },
   "prompt": {
     "system_prompt_mode": "replace",

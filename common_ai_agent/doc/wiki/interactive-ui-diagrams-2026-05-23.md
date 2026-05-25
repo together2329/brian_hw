@@ -12,6 +12,7 @@ Open `interactive_ui/index.html` for the gallery.
 | file | what | data | interaction |
 |------|------|------|-------------|
 | `ssot-explorer.html` | **all SSOT sections in one IP datasheet** | `data/gpio_ssot.json` | nav + per-section diagrams, function-model live evaluator, editable master spec |
+| `timer-datasheet.html` | **SSOT-driven rich datasheet** for real IP `fresh_web_timer_ip` (CA53-level treatment on real SSOT) | `data/timer_ssot.json` (← `ssot_to_explorer.py`) | features(4 modes) · block · 7-register map (all bit-field strips) · timer_control FSM · function model · interrupts · APB4 timing |
 | `ca53-trm.html` | **Cortex-A53 TRM-style datasheet (illustrative)** — real-IP-scale demo | `data/ca53.json` | TOC(13ch) · features · MPCore block diagram · 23-reg system-register map (6 bit-field strips) · programmers model · MMU · caches · interrupts · power · PMU events · pipeline · config signals · ACE read-burst timing. Public ARMv8-A facts, NOT a copy of ARM's TRM. |
 | `chat-feel-demo.html` | chat UX: DB-dump vs typing-stream | static | replay |
 | `timing-diagram.html` | WaveDrom-style waveform | editable JSON | hover readout, ▶ sweep |

@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "ip": "real_llm_counter_demo",
+  "type": "constrained_random_sim_results",
+  "tool": "iverilog_vvp",
+  "seed": 101,
+  "requested_txns": 64,
+  "max_gap": 2,
+  "reset_prob_per_mille": 20,
+  "passed": true,
+  "scoreboard_pass": 152,
+  "scoreboard_fail": 0,
+  "accepted_txns": 64,
+  "idle_checks": 84,
+  "reset_count": 2,
+  "back_to_back_count": 10,
+  "scoreboard_events_csv": "sim/random/current_scoreboard_events.csv",
+  "command_counts": {
+    "cmd_0_clear": 3,
+    "cmd_1_load": 12,
+    "cmd_2_inc": 9,
+    "cmd_3_dec": 10,
+    "cmd_4_hold": 12,
+    "cmd_5_invalid": 4,
+    "cmd_6_invalid": 6,
+    "cmd_7_invalid": 8
+  },
+  "coverage_hints": {
+    "all_cmd_encodings_seen": true,
+    "invalid_commands_seen": true,
+    "load_boundary_0_seen": true,
+    "load_boundary_128_seen": true,
+    "load_boundary_255_seen": true,
+    "zero_flag_seen": true,
+    "max_flag_seen": true,
+    "inc_saturation_seen": true,
+    "dec_saturation_seen": true
+  }
+}

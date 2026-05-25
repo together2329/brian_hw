@@ -115,6 +115,11 @@ from core.atlas_exec_policy import (
     initial_workflow_for_exec_mode,
     normalize_exec_mode,
 )
+from core.scm import (
+    configured_scm_provider,
+    resolve_scm_adapter,
+    scm_provider_allows_missing_git_dir,
+)
 
 # ── Paths ──────────────────────────────────────────────────────────
 HERE         = Path(__file__).resolve().parent
@@ -3146,6 +3151,63 @@ def create_app():
     )
     _inline_cache: dict[str, dict[str, Any]] = {}
 
+    def _scm_ui_override_ref() -> str:
+        provider = configured_scm_provider()
+        suffix = provider.upper()
+        return (
+            os.environ.get(f"ATLAS_SCM_UI_OVERRIDE_{suffix}", "").strip()
+            or os.environ.get(f"ATLAS_{suffix}_SCM_UI_OVERRIDE", "").strip()
+            or os.environ.get("ATLAS_SCM_UI_OVERRIDE", "").strip()
+        )
+
+    def _scm_ui_override_is_url(ref: str) -> bool:
+        return bool(re.match(r"^https?://", str(ref or ""), re.I))
+
+    def _scm_ui_override_path(ref: str) -> Path:
+        path = Path(ref).expanduser()
+        if not path.is_absolute():
+            path = SOURCE_ROOT / path
+        return path.resolve()
+
+    def _scm_ui_override_local_path() -> Path | None:
+        ref = _scm_ui_override_ref()
+        if not ref or _scm_ui_override_is_url(ref):
+            return None
+        return _scm_ui_override_path(ref)
+
+    def _scm_ui_override_version() -> str:
+        path = _scm_ui_override_local_path()
+        if path is not None:
+            try:
+                st = path.stat()
+                return str(st.st_mtime_ns)
+            except OSError:
+                return str(int(time.time()))
+        return str(int(time.time()))
+
+    def _scm_ui_override_script_tag() -> str:
+        ref = _scm_ui_override_ref()
+        if not ref:
+            return ""
+        if _scm_ui_override_is_url(ref):
+            src = ref
+        else:
+            src = f"/api/scm/ui/override.js?v={_scm_ui_override_version()}"
+        return (
+            '<script type="text/babel" data-presets="react" '
+            'data-atlas-scm-ui-override="1" '
+            f'src="{html_lib.escape(src, quote=True)}"></script>'
+        )
+
+    def _inject_scm_ui_override(html: str) -> str:
+        tag = _scm_ui_override_script_tag()
+        if not tag:
+            return html
+        marker = '<script type="text/babel" data-filename="workspace.jsx"'
+        if marker in html:
+            return html.replace(marker, tag + "\n" + marker, 1)
+        return html.replace("</body>", tag + "\n</body>", 1)
+
     def _inline_html_cached(template_name: str) -> str:
         """Return the inlined HTML for a frontend template, cached by
         max mtime of (template + every referenced .jsx/.js asset)."""
@@ -3199,6 +3261,8 @@ def create_app():
             "exec_policy": policy,
             "multi_user": os.environ.get("ATLAS_MULTI_USER", "1"),
             "multi_user_proc": os.environ.get("ATLAS_MULTI_USER_PROC", "1"),
+            "scm_provider": configured_scm_provider(),
+            "scm_ui_override": bool(_scm_ui_override_ref()),
         }
         script = (
             "<script>window.ATLAS_BOOT_CONFIG="
@@ -3206,7 +3270,8 @@ def create_app():
             + ";window.ATLAS_DEFAULT_RUN_MODE=window.ATLAS_BOOT_CONFIG.run_mode;"
             + "window.ATLAS_DEFAULT_EXEC_MODE=window.ATLAS_BOOT_CONFIG.exec_mode;</script>"
         )
-        return html.replace("</head>", script + "\n</head>", 1)
+        html = html.replace("</head>", script + "\n</head>", 1)
+        return _inject_scm_ui_override(html)
 
     _asset_cache: dict[str, dict[str, Any]] = {}
 
@@ -3263,6 +3328,28 @@ def create_app():
     async def vendor_asset(asset_path: str):
         return _cached_frontend_asset_response(f"vendor/{asset_path}")
 
+    @app.get("/api/scm/ui/override.js")
+    async def api_scm_ui_override_js():
+        ref = _scm_ui_override_ref()
+        if not ref:
+            return JSONResponse({"ok": False, "error": "SCM UI override is not configured"}, status_code=404)
+        if _scm_ui_override_is_url(ref):
+            return JSONResponse({"ok": False, "error": "SCM UI override is configured as a remote URL"}, status_code=404)
+        path = _scm_ui_override_path(ref)
+        if path.suffix.lower() not in (".js", ".jsx"):
+            return JSONResponse({"ok": False, "error": "SCM UI override must be .js or .jsx"}, status_code=400)
+        if not path.is_file():
+            return JSONResponse({"ok": False, "error": "SCM UI override file not found"}, status_code=404)
+        try:
+            body = path.read_text(encoding="utf-8")
+        except OSError as exc:
+            return JSONResponse({"ok": False, "error": str(exc)}, status_code=500)
+        return Response(
+            content=body,
+            media_type="text/babel; charset=utf-8",
+            headers={"Cache-Control": "no-store, max-age=0"},
+        )
+
     @app.get("/lobby")
     async def lobby():
         return HTMLResponse(_html_with_atlas_boot_config("lobby.html"))
@@ -3293,6 +3380,12 @@ def create_app():
                     latest = max(latest, f.stat().st_mtime)
         except OSError:
             pass
+        override_path = _scm_ui_override_local_path()
+        if override_path is not None:
+            try:
+                latest = max(latest, override_path.stat().st_mtime)
+            except OSError:
+                pass
         return JSONResponse({"mtime": latest, "started": _BACKEND_STARTED_AT})
 
     @app.get("/api/pdk/status")
@@ -3745,10 +3838,14 @@ def create_app():
                     }
             except Exception:
                 pass
-            # Live cumulative token + cost totals (from session cost.json).
+            # Live worker context comes from the selected worker/session
+            # cost.json. Cost rows below are overwritten from DB as a
+            # user+IP aggregate so one IP's spend stays visible across
+            # orchestrator/worker workflow switches.
             # Hot path: /healthz polls every few seconds and the disk
             # read used to block the asyncio loop. Push the read into
             # a thread; the surrounding logic stays cheap.
+            worker_cost_seen = False
             try:
                 import json as _json
                 from pathlib import Path as _P
@@ -3777,13 +3874,17 @@ def create_app():
                     return None
                 d = await asyncio.to_thread(_pick_cost)
                 if d is not None:
+                    worker_cost_seen = True
                     # cost.json schema written by both lib/textual_ui.py
                     # and atlas_ui._emit_token:
                     #   {in_tok, cache_tok, out_tok, sum_tok, cost_usd,
                     #    model, updated_at}
-                    info["tokens_in"]    = d.get("in_tok",    d.get("input",  0))
-                    info["tokens_cache"] = d.get("cache_tok", d.get("cached", 0))
-                    info["tokens_out"]   = d.get("out_tok",   d.get("output", 0))
+                    worker_tokens_in = d.get("in_tok",    d.get("input",  0))
+                    worker_tokens_cache = d.get("cache_tok", d.get("cached", 0))
+                    worker_tokens_out = d.get("out_tok",   d.get("output", 0))
+                    info["worker_tokens_in"] = worker_tokens_in
+                    info["worker_tokens_cache"] = worker_tokens_cache
+                    info["worker_tokens_out"] = worker_tokens_out
                     # Current context window usage = the LAST turn's
                     # input tokens. Cumulative tokens make sense for cost
                     # ledger but not for "Context X / max" because a 200K
@@ -3796,25 +3897,67 @@ def create_app():
                     # from the live pricing if cost_usd isn't on disk.
                     disk_cost = d.get("cost_usd")
                     if disk_cost is not None:
-                        info["cost_usd"] = float(disk_cost)
+                        info["worker_cost_usd"] = float(disk_cost)
                     elif info["pricing"]:
-                        ti = info["tokens_in"]    or 0
-                        tc = info["tokens_cache"] or 0
-                        to = info["tokens_out"]   or 0
+                        ti = worker_tokens_in or 0
+                        tc = worker_tokens_cache or 0
+                        to = worker_tokens_out or 0
                         ti_billable = max(0, ti - tc)
-                        info["cost_usd"] = (
+                        info["worker_cost_usd"] = (
                             ti_billable * info["pricing"]["input"]  / 1_000_000
                             + tc        * info["pricing"]["cache"]  / 1_000_000
                             + to        * info["pricing"]["output"] / 1_000_000
                         )
                 else:
-                    info["tokens_in"] = 0
-                    info["tokens_cache"] = 0
-                    info["tokens_out"] = 0
+                    info["worker_tokens_in"] = 0
+                    info["worker_tokens_cache"] = 0
+                    info["worker_tokens_out"] = 0
                     info["tokens"] = 0
-                    info["cost_usd"] = 0.0
+                    info["worker_cost_usd"] = 0.0
             except Exception:
                 pass
+            info.setdefault("worker_tokens_in", 0)
+            info.setdefault("worker_tokens_cache", 0)
+            info.setdefault("worker_tokens_out", 0)
+            info.setdefault("worker_cost_usd", 0.0)
+
+            info["tokens_in"] = 0
+            info["tokens_cache"] = 0
+            info["tokens_out"] = 0
+            info["cost_usd"] = 0.0
+            info["cost_scope"] = "user_ip"
+            info["cost_user"] = username_norm or ""
+            info["cost_ip"] = str(info.get("active_ip") or "")
+            info["cost_calls"] = 0
+            try:
+                active_ip_name = str(info.get("active_ip") or "").strip()
+                if active_ip_name and active_ip_name != "default":
+                    with AtlasDB() as _db:
+                        usage = _db.summarize_llm_usage_for_user_ip(
+                            user_id=str(user.get("id") or "") if user else "",
+                            username=username_norm,
+                            ip=active_ip_name,
+                        )
+                    info["tokens_in"] = usage.get("tokens_input", 0)
+                    info["tokens_cache"] = usage.get("cache_read_tokens", 0)
+                    info["tokens_out"] = usage.get("tokens_output", 0)
+                    info["cost_usd"] = usage.get("cost_usd", 0.0)
+                    info["cost_calls"] = usage.get("calls", 0)
+                elif worker_cost_seen:
+                    # No active IP means there is no user+IP aggregate key.
+                    # Keep legacy local visibility for default sessions only.
+                    info["cost_scope"] = "worker_session_fallback"
+                    info["tokens_in"] = info.get("worker_tokens_in", 0)
+                    info["tokens_cache"] = info.get("worker_tokens_cache", 0)
+                    info["tokens_out"] = info.get("worker_tokens_out", 0)
+                    info["cost_usd"] = info.get("worker_cost_usd", 0.0)
+            except Exception:
+                if worker_cost_seen:
+                    info["cost_scope"] = "worker_session_fallback"
+                    info["tokens_in"] = info.get("worker_tokens_in", 0)
+                    info["tokens_cache"] = info.get("worker_tokens_cache", 0)
+                    info["tokens_out"] = info.get("worker_tokens_out", 0)
+                    info["cost_usd"] = info.get("worker_cost_usd", 0.0)
         else:
             import os as _os
             info["model"] = _os.environ.get("LLM_MODEL_NAME", "") or _os.environ.get("MODEL_NAME", "")
@@ -4938,6 +5081,26 @@ def create_app():
                     )
         except Exception as exc:
             return JSONResponse({"error": f"failed to scaffold IP: {exc}"}, status_code=500)
+        worker_warmup: dict[str, Any] = {}
+        try:
+            try:
+                from atlas_api_jobs import schedule_worker_warmup  # noqa: WPS433
+            except ImportError:
+                from src.atlas_api_jobs import schedule_worker_warmup  # type: ignore  # noqa: WPS433
+
+            worker_warmup = schedule_worker_warmup(
+                ip=name,
+                owner=username,
+                db_user_id=user_id,
+                session_name=session_namespace,
+                active_workflow=workflow,
+                project_root_value=str(PROJECT_ROOT),
+                exec_mode=requested_exec_mode or _current_atlas_exec_mode(),
+                reason="ip_create",
+                background=True,
+            )
+        except Exception as exc:
+            worker_warmup = {"enabled": False, "error": str(exc)}
         return JSONResponse({"ok": True,
                              "ip": name,
                              "created": True,
@@ -4950,7 +5113,8 @@ def create_app():
                              "policy": exec_policy_payload(requested_exec_mode or _current_atlas_exec_mode(), env=os.environ),
                              "session_uid": str(db_session.get("session_uid") or ""),
                              "workspace_id": str(workspace_row.get("id") or ""),
-                             "ip_block_id": str(ip_row.get("id") or "")})
+                             "ip_block_id": str(ip_row.get("id") or ""),
+                             "worker_warmup": worker_warmup})
 
     def _resolve_ip_path(name: str) -> Path | tuple[None, JSONResponse]:
         """Validate a path-segment-style IP name and return its on-disk dir.
@@ -4967,7 +5131,10 @@ def create_app():
             return None, JSONResponse({"error": "outside project root"}, status_code=400)
         if not target.is_dir():
             return None, JSONResponse({"error": "ip not found"}, status_code=404)
-        if not (target / ".git").is_dir():
+        if (
+            not scm_provider_allows_missing_git_dir(configured_scm_provider())
+            and not (target / ".git").is_dir()
+        ):
             return None, JSONResponse({"error": "ip has no .git — create via /new-ip first"}, status_code=409)
         return target
 
@@ -4985,20 +5152,23 @@ def create_app():
             return err
         target = resolved
         try:
-            import subprocess as _sp
-            _sp.run(["git", "add", "--", "."], cwd=str(target),
-                    capture_output=True, timeout=15, check=False)
-            out = _sp.run(["git", "commit", "--allow-empty", "-m", message],
-                          cwd=str(target), capture_output=True,
-                          timeout=15, check=False)
-            head = _sp.run(["git", "rev-parse", "HEAD"], cwd=str(target),
-                           capture_output=True, timeout=5, check=False)
+            adapter = resolve_scm_adapter(target)
+            out = await asyncio.to_thread(
+                adapter.submit,
+                message,
+                add_all=True,
+                allow_empty=True,
+            )
+            status = await asyncio.to_thread(adapter.status)
             return JSONResponse({
-                "ok": out.returncode == 0,
+                "ok": out.ok,
                 "ip": name,
-                "hash": head.stdout.decode("utf-8", "replace").strip()[:12],
-                "stdout": out.stdout.decode("utf-8", "replace"),
-                "stderr": out.stderr.decode("utf-8", "replace"),
+                "hash": str(status.get("head_full") or status.get("head") or "")[:12],
+                "stdout": out.stdout,
+                "stderr": out.stderr,
+                "error": out.error,
+                "provider": out.provider,
+                "returncode": out.returncode,
             })
         except Exception as exc:
             return JSONResponse({"error": str(exc)}, status_code=500)
@@ -5012,26 +5182,24 @@ def create_app():
             return err
         target = resolved
         try:
-            import subprocess as _sp
             limit = max(1, min(int(limit or 50), 500))
-            sep = "\x1f"
-            fmt = sep.join(["%H", "%h", "%an", "%at", "%s"])
-            out = _sp.run(
-                ["git", "log", f"--pretty=format:{fmt}", f"-n{limit}"],
-                cwd=str(target), capture_output=True, timeout=10, check=False,
-            )
-            commits = []
-            for line in out.stdout.decode("utf-8", "replace").splitlines():
-                parts = line.split(sep)
-                if len(parts) >= 5:
-                    commits.append({
-                        "hash":   parts[0],
-                        "short":  parts[1],
-                        "author": parts[2],
-                        "time":   float(parts[3]) if parts[3].isdigit() else 0,
-                        "subject": parts[4],
-                    })
-            return JSONResponse({"ip": name, "commits": commits})
+            adapter = resolve_scm_adapter(target)
+            log = await asyncio.to_thread(adapter.log, limit)
+            commits = [{
+                "hash": str(item.get("sha") or item.get("hash") or ""),
+                "short": str(item.get("short") or ""),
+                "author": str(item.get("author") or ""),
+                "time": float(item.get("time") or 0),
+                "subject": str(item.get("subject") or ""),
+            } for item in log.get("commits", [])]
+            payload = {
+                "ip": name,
+                "commits": commits,
+                "provider": log.get("provider", adapter.provider),
+            }
+            if not log.get("ok", True):
+                payload["error"] = log.get("error") or "scm log failed"
+            return JSONResponse(payload)
         except Exception as exc:
             return JSONResponse({"error": str(exc)}, status_code=500)
 
@@ -5167,36 +5335,18 @@ def create_app():
             return err
         target = resolved
         try:
-            import subprocess as _sp
             limit = max(1, min(int(limit or 80), 1000))
-            graph = _sp.run(
-                ["git", "log", "--graph", "--oneline", "--decorate", "--all",
-                 "--date=relative", f"-n{limit}",
-                 "--pretty=format:%h %s%d (%cr)"],
-                cwd=str(target), capture_output=True, timeout=10, check=False,
-            )
-            structured = _sp.run(
-                ["git", "log", f"-n{limit}",
-                 "--pretty=format:%H\x1f%h\x1f%an\x1f%at\x1f%s\x1f%P"],
-                cwd=str(target), capture_output=True, timeout=10, check=False,
-            )
-            commits = []
-            for line in structured.stdout.decode("utf-8", "replace").splitlines():
-                parts = line.split("\x1f")
-                if len(parts) >= 5:
-                    commits.append({
-                        "hash":    parts[0],
-                        "short":   parts[1],
-                        "author":  parts[2],
-                        "time":    float(parts[3]) if parts[3].isdigit() else 0,
-                        "subject": parts[4],
-                        "parents": (parts[5].split() if len(parts) >= 6 else []),
-                    })
-            return JSONResponse({
+            adapter = resolve_scm_adapter(target)
+            graph = await asyncio.to_thread(adapter.graph, limit)
+            payload = {
                 "ip": name,
-                "graph": graph.stdout.decode("utf-8", "replace"),
-                "commits": commits,
-            })
+                "graph": graph.get("graph", ""),
+                "commits": graph.get("commits", []),
+                "provider": graph.get("provider", adapter.provider),
+            }
+            if not graph.get("ok", True):
+                payload["error"] = graph.get("error") or "scm graph failed"
+            return JSONResponse(payload)
         except Exception as exc:
             return JSONResponse({"error": str(exc)}, status_code=500)
 
@@ -5208,30 +5358,29 @@ def create_app():
         except Exception:
             body = {}
         target_hash = str((body or {}).get("hash") or "").strip()
-        if not re.match(r"^[0-9a-f]{7,40}$", target_hash, re.I):
-            return JSONResponse({"error": "invalid hash"}, status_code=400)
         resolved = _resolve_ip_path(name)
         if isinstance(resolved, tuple):
             _, err = resolved
             return err
         target = resolved
         try:
-            import subprocess as _sp
-            verify = _sp.run(["git", "cat-file", "-e", target_hash],
-                             cwd=str(target), capture_output=True, timeout=5, check=False)
-            if verify.returncode != 0:
-                return JSONResponse({"error": "hash not in this ip's history"}, status_code=404)
-            # Use `git reset --hard` so the working tree and HEAD both
-            # snap to the requested commit. Caller has been warned via
-            # UI confirmation; auto-commits will resume from this point.
-            out = _sp.run(["git", "reset", "--hard", target_hash],
-                          cwd=str(target), capture_output=True, timeout=15, check=False)
+            adapter = resolve_scm_adapter(target)
+            if adapter.provider == "git" and not re.match(r"^[0-9a-f]{7,40}$", target_hash, re.I):
+                return JSONResponse({"error": "invalid hash"}, status_code=400)
+            if adapter.provider != "git" and not re.match(r"^[0-9A-Za-z._/@#:+-]{1,160}$", target_hash):
+                return JSONResponse({"error": "invalid revision"}, status_code=400)
+            out = await asyncio.to_thread(adapter.hard_reset, target_hash)
+            if out.returncode == 404:
+                return JSONResponse({"error": out.error or "revision not in this ip's history"}, status_code=404)
             return JSONResponse({
-                "ok": out.returncode == 0,
+                "ok": out.ok,
                 "ip": name,
                 "hash": target_hash,
-                "stdout": out.stdout.decode("utf-8", "replace"),
-                "stderr": out.stderr.decode("utf-8", "replace"),
+                "stdout": out.stdout,
+                "stderr": out.stderr,
+                "error": out.error,
+                "provider": out.provider,
+                "returncode": out.returncode,
             })
         except Exception as exc:
             return JSONResponse({"error": str(exc)}, status_code=500)
@@ -16676,6 +16825,39 @@ def create_app():
             return JSONResponse({"error": "Admin role required"}, status_code=403)
         return JSONResponse({"error": "Admin login required"}, status_code=401)
 
+    def _admin_runtime_payload() -> dict[str, Any]:
+        try:
+            from atlas_api_jobs import worker_runtime_snapshot  # noqa: WPS433
+        except ImportError:
+            from src.atlas_api_jobs import worker_runtime_snapshot  # type: ignore  # noqa: WPS433
+
+        override_ref = _scm_ui_override_ref()
+        override_local = _scm_ui_override_local_path()
+        scm_override: dict[str, Any] = {
+            "enabled": bool(override_ref),
+            "kind": "remote" if _scm_ui_override_is_url(override_ref) else ("local" if override_ref else ""),
+            "ref": override_ref,
+        }
+        if override_local is not None:
+            scm_override.update({
+                "path": str(override_local),
+                "exists": override_local.is_file(),
+                "mtime": override_local.stat().st_mtime if override_local.is_file() else None,
+            })
+        return {
+            "worker_runtime": worker_runtime_snapshot(PROJECT_ROOT),
+            "scm": {
+                "provider": configured_scm_provider(),
+                "ui_override": scm_override,
+            },
+            "atlas": {
+                "run_mode": os.environ.get("ATLAS_RUN_MODE", "engineering"),
+                "exec_mode": _current_atlas_exec_mode(),
+                "multi_user": os.environ.get("ATLAS_MULTI_USER", "1"),
+                "multi_user_proc": os.environ.get("ATLAS_MULTI_USER_PROC", "1"),
+            },
+        }
+
     @app.get("/api/admin/auth/status")
     async def api_admin_auth_status(request: Request):
         try:
@@ -16739,6 +16921,16 @@ def create_app():
                 return JSONResponse(build_admin_usage_payload(db))
         except Exception as e:
             print(f"api_admin_usage error: {e}")
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.get("/api/admin/runtime")
+    async def api_admin_runtime(request: Request):
+        if _admin_required(request) is None:
+            return _admin_denied(request)
+        try:
+            return JSONResponse(_admin_runtime_payload())
+        except Exception as e:
+            print(f"api_admin_runtime error: {e}")
             return JSONResponse({"error": str(e)}, status_code=500)
 
     @app.post("/api/admin/chat")
@@ -18339,7 +18531,19 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
         os.environ.get("ATLAS_SINGLE_WORKER_EAGER", "").strip().lower()
         in ("1", "true", "yes", "on")
     )
-    if _single_worker_mode and _single_worker_eager:
+    if not (
+        os.environ.get("ATLAS_WORKER_TRANSPORT", "").strip()
+        or os.environ.get("ATLAS_WORKER_DISPATCH_TRANSPORT", "").strip()
+        or os.environ.get("ATLAS_WORKER_DISPATCH_MODE", "").strip()
+    ):
+        os.environ["ATLAS_WORKER_TRANSPORT"] = "ipc"
+    _worker_transport_mode = (
+        os.environ.get("ATLAS_WORKER_TRANSPORT", "").strip().lower().replace("_", "-")
+        or os.environ.get("ATLAS_WORKER_DISPATCH_TRANSPORT", "").strip().lower().replace("_", "-")
+        or os.environ.get("ATLAS_WORKER_DISPATCH_MODE", "").strip().lower().replace("_", "-")
+    )
+    _worker_transport_ipc = _worker_transport_mode in ("ipc", "process", "subprocess", "portless")
+    if _single_worker_mode and _single_worker_eager and not _worker_transport_ipc:
         os.environ["ATLAS_LAZY_WORKERS"] = "0"
         import urllib.request as _urllib_req
         _sw_port = 5601
@@ -18385,24 +18589,44 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
 
         _atexit.register(_terminate_single_worker)
     elif _single_worker_mode:
-        # Lazy single-worker: defer the main.py worker spawn until the first
-        # job dispatch. WORKER_URL_DEFAULT is pinned to 5601 so that
-        # _worker_url_is_shared_default() returns True and the lazy
-        # spawn picks up --all-workflows, matching the eager path.
-        os.environ["ATLAS_LAZY_WORKERS"] = "1"
-        os.environ.setdefault("WORKER_URL_DEFAULT", "http://127.0.0.1:5601")
-        print(
-            "[single-worker] lazy mode: worker on port 5601 will spawn on "
-            "first job dispatch (set ATLAS_SINGLE_WORKER_EAGER=1 to spawn "
-            "at server startup like before)"
-        )
+        if _worker_transport_ipc:
+            os.environ["ATLAS_LAZY_WORKERS"] = "0"
+            print(
+                "[single-worker] portless process dispatch enabled; "
+                "workflow jobs run as IPC subprocesses without worker HTTP port 5601 "
+                "(set ATLAS_WORKER_TRANSPORT=http to use the legacy worker port)"
+            )
+        else:
+            # Lazy single-worker: defer the main.py worker spawn until the first
+            # job dispatch. WORKER_URL_DEFAULT is pinned to 5601 so that
+            # _worker_url_is_shared_default() returns True and the lazy
+            # spawn picks up --all-workflows, matching the eager path.
+            os.environ["ATLAS_LAZY_WORKERS"] = "1"
+            os.environ.setdefault("WORKER_URL_DEFAULT", "http://127.0.0.1:5601")
+            print(
+                "[single-worker] lazy mode: worker on port 5601 will spawn on "
+                "first job dispatch (set ATLAS_SINGLE_WORKER_EAGER=1 to spawn "
+                "at server startup like before)"
+            )
     else:
-        os.environ.setdefault("ATLAS_LAZY_WORKERS", "1")
-        print(
-            "[orchestrator-mode] lazy worker start enabled; "
-            "workflow workers launch on first dispatch "
-            "(set ATLAS_LAZY_WORKERS=0 to require an external fleet)"
-        )
+        if _worker_transport_ipc:
+            os.environ["ATLAS_LAZY_WORKERS"] = "0"
+            os.environ["ATLAS_WORKER_WARM_POOL"] = "0"
+            print(
+                "[orchestrator-mode] portless process dispatch enabled; "
+                "workflow jobs run as IPC subprocesses behind the Atlas port "
+                "(set ATLAS_WORKER_TRANSPORT=http for the legacy internal worker ports)"
+            )
+        else:
+            os.environ.setdefault("ATLAS_LAZY_WORKERS", "1")
+            os.environ.setdefault("ATLAS_WORKER_WARM_POOL", "1")
+            print(
+                "[orchestrator-mode] lazy worker start enabled; "
+                "workflow workers launch on first dispatch "
+                "(set ATLAS_LAZY_WORKERS=0 to require an external fleet); "
+                "warm pool keeps frequent workers ready "
+                "(set ATLAS_WORKER_WARM_POOL=0 to disable)"
+            )
 
     uvicorn.run(app, host=host, port=port, log_level="warning", loop="asyncio", http="h11")
 

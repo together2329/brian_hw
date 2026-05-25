@@ -640,6 +640,16 @@ def _ensure_sub_modules(doc: dict[str, Any], ip: str) -> list[dict[str, Any]]:
             # LLM duplicates that conflict with the top declaration.
             if row.get("name") == ip and top_name != ip:
                 continue
+            ownership = str(row.get("ownership") or "manifest").lower()
+            if (
+                not _is_live(row.get("file"))
+                and row_name
+                and row_name != top_name
+                and ownership not in {"child_ssot", "external", "blackbox", "conceptual", "verification", "coverage"}
+            ):
+                row["ownership"] = row.get("ownership") or "manifest"
+                row["ssot_gen"] = row.get("ssot_gen", True)
+                row["file"] = f"rtl/{row_name}.sv"
             fixed.append(row)
         # Only auto-append a wrapper sub_module entry when the SSOT top name
         # equals the IP name (legacy convention). When they differ — for

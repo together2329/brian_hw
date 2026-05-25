@@ -4,7 +4,7 @@
   "env": {
     "CMUX_ENABLE": "true",
     "MAX_ITERATIONS": "40",
-    "WORKFLOW_DISABLED_TOOLS": "ask_user,record_ssot_qa"
+    "WORKFLOW_DISABLED_TOOLS": "ask_user,record_ssot_qa,dispatch_workflow"
   },
   "skills": {
     "force_activate": [],

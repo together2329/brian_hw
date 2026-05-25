@@ -77,6 +77,10 @@ def test_git_api_targets_explicit_ip_repo(tmp_path: Path, monkeypatch):
     assert "ip initial" in show["diff"]
     assert "root initial" not in show["diff"]
 
+    show_alias = client.get(f"/api/scm/show?ip=alpha&revision={status['head_full']}").json()
+    assert show_alias["provider"] == "git"
+    assert show_alias["revision"] == status["head_full"]
+
     diff = client.get("/api/git/diff?ip=alpha&path=foo.txt").json()
     assert diff["ip"] == "alpha"
     assert "-one" in diff["diff"]
@@ -93,6 +97,22 @@ def test_git_api_targets_explicit_ip_repo(tmp_path: Path, monkeypatch):
     latest_root = _run_git(root_repo, "log", "-1", "--pretty=%s").stdout.strip()
     assert latest_ip == "ip checkpoint"
     assert latest_root == "root initial"
+
+    graph = client.get("/api/ip/alpha/git/graph?limit=20").json()
+    assert graph["provider"] == "git"
+    assert graph["commits"][0]["subject"] == "ip checkpoint"
+
+    ip_log = client.get("/api/ip/alpha/git/log?limit=20").json()
+    assert ip_log["provider"] == "git"
+    assert ip_log["commits"][0]["subject"] == "ip checkpoint"
+
+    revert = client.post(
+        "/api/ip/alpha/git/revert",
+        json={"hash": status["head_full"]},
+    ).json()
+    assert revert["ok"] is True, revert
+    assert revert["provider"] == "git"
+    assert _run_git(ip_repo, "log", "-1", "--pretty=%s").stdout.strip() == "ip initial"
 
     push = client.post("/api/git/push", json={"ip": "alpha"}).json()
     assert push["branch"] == "ipbranch"
@@ -119,3 +139,19 @@ def test_git_api_does_not_fallback_to_root_for_ip_without_git(tmp_path: Path, mo
         assert response.json()["error"] == "ip has no .git"
 
     assert _run_git(tmp_path, "log", "-1", "--pretty=%s").stdout.strip() == "root initial"
+
+
+def test_scm_api_alias_accepts_perforce_workspace_without_git_dir(tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("ATLAS_SCM_PROVIDER", "perforce")
+    (tmp_path / "beta").mkdir()
+
+    client = _authenticated_client(_create_app(tmp_path, monkeypatch))
+
+    response = client.get("/api/scm/status?ip=beta")
+    assert response.status_code == 200
+    status = response.json()
+    assert status["provider"] == "perforce"
+    assert status["ip"] == "beta"
+    assert status["cwd"] == str(tmp_path / "beta")
+    assert status["files"] == []
+    assert "not implemented" in status["error"]

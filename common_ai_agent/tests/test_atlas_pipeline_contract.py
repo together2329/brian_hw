@@ -573,6 +573,89 @@ def test_coverage_blocked_artifact_is_not_reported_as_pass(tmp_path: Path) -> No
     assert "cov/coverage.json status=blocked" in reason
 
 
+def test_rtl_current_pass_evidence_supersedes_stale_blocked_artifacts(tmp_path: Path) -> None:
+    ip = "rtl_stale_blocker_ip"
+    ip_dir = tmp_path / ip
+    for subdir in ("rtl", "lint", "list", "logs/stage_engine"):
+        (ip_dir / subdir).mkdir(parents=True, exist_ok=True)
+    (ip_dir / "list" / f"{ip}.f").write_text(f"rtl/{ip}.sv\n", encoding="utf-8")
+    (ip_dir / "rtl" / f"{ip}.sv").write_text(
+        (
+            f"module {ip}(input logic clk, output logic y);\n"
+            "  logic [31:0] counter;\n"
+            "  logic parity;\n"
+            "  always @(posedge clk) begin\n"
+            "    counter <= counter + 32'd1;\n"
+            "    parity <= ^counter;\n"
+            "  end\n"
+            "  assign y = parity | counter[0];\n"
+            "endmodule\n"
+            "// extra structural text keeps the disk-truth size gate realistic\n"
+            "// without relying on a generated canned artifact marker.\n"
+        ),
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl" / "rtl_compile.json").write_text(
+        json.dumps({"passed": True, "returncode": 0, "errors": 0}),
+        encoding="utf-8",
+    )
+    (ip_dir / "lint" / "dut_lint.json").write_text(
+        json.dumps({"passed": True, "returncode": 0, "errors": 0, "warnings": 0}),
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl" / "rtl_todo_plan.json").write_text(
+        json.dumps(
+            {
+                "gate": {
+                    "status": "pass",
+                    "all_required_todos_pass": True,
+                    "open_required_todos": 0,
+                    "static_missing": 0,
+                    "blocking_questions": 0,
+                },
+                "todo_completion": {"all_required_todos_pass": True},
+            }
+        ),
+        encoding="utf-8",
+    )
+    (ip_dir / "logs" / "stage_engine" / "ssot-rtl.json").write_text(
+        json.dumps(
+            {
+                "status": "blocked",
+                "headline": "[RTL BLOCKED] stale preflight",
+                "metadata": {
+                    "rtl_todo_plan": {
+                        "gate": {
+                            "status": "fail",
+                            "open_required_todos": 12,
+                            "all_required_todos_pass": False,
+                        }
+                    }
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl" / "rtl_blocked.json").write_text(
+        json.dumps(
+            {
+                "status": "blocked",
+                "reason": "stale preflight blocker",
+                "questions": [{"id": "LLM_RTL_IMPLEMENTATION_REQUIRED"}],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    failed, reason = jobs._job_artifact_failure(
+        {"ip": ip, "stage_id": "rtl", "workflow": "rtl-gen"},
+        tmp_path,
+    )
+
+    assert failed is False
+    assert reason == ""
+
+
 def test_rtl_completion_registers_version_and_fans_out_context(
     tmp_path: Path,
     monkeypatch,

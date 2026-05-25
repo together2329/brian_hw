@@ -159,6 +159,62 @@ def create_admin_app(project_root: Path):
             return JSONResponse({"error": "Admin role required"}, status_code=403)
         return JSONResponse({"error": "Admin login required"}, status_code=401)
 
+    def _scm_ui_override_ref() -> str:
+        try:
+            from core.scm import configured_scm_provider
+            provider = configured_scm_provider()
+        except Exception:
+            provider = os.environ.get("ATLAS_SCM_PROVIDER", "auto").strip().lower() or "auto"
+        suffix = provider.upper()
+        return (
+            os.environ.get(f"ATLAS_SCM_UI_OVERRIDE_{suffix}", "").strip()
+            or os.environ.get(f"ATLAS_{suffix}_SCM_UI_OVERRIDE", "").strip()
+            or os.environ.get("ATLAS_SCM_UI_OVERRIDE", "").strip()
+        )
+
+    def _scm_ui_override_is_url(ref: str) -> bool:
+        return bool(re.match(r"^https?://", str(ref or ""), re.I))
+
+    def _admin_runtime_payload() -> dict:
+        try:
+            from atlas_api_jobs import worker_runtime_snapshot  # noqa: WPS433
+        except ImportError:
+            from src.atlas_api_jobs import worker_runtime_snapshot  # type: ignore  # noqa: WPS433
+        try:
+            from core.scm import configured_scm_provider
+            provider = configured_scm_provider()
+        except Exception:
+            provider = os.environ.get("ATLAS_SCM_PROVIDER", "auto").strip().lower() or "auto"
+        override_ref = _scm_ui_override_ref()
+        override_path = None
+        override_exists = None
+        if override_ref and not _scm_ui_override_is_url(override_ref):
+            path = Path(override_ref).expanduser()
+            if not path.is_absolute():
+                path = project_root / path
+            override_path = str(path.resolve())
+            override_exists = path.is_file()
+        return {
+            "worker_runtime": worker_runtime_snapshot(project_root),
+            "scm": {
+                "provider": provider,
+                "ui_override": {
+                    "enabled": bool(override_ref),
+                    "kind": "remote" if _scm_ui_override_is_url(override_ref) else ("local" if override_ref else ""),
+                    "ref": override_ref,
+                    "path": override_path,
+                    "exists": override_exists,
+                },
+            },
+            "atlas": {
+                "run_mode": os.environ.get("ATLAS_RUN_MODE", "engineering"),
+                "exec_mode": os.environ.get("ATLAS_EXEC_MODE") or os.environ.get("ATLAS_DEFAULT_EXEC_MODE", ""),
+                "multi_user": os.environ.get("ATLAS_MULTI_USER", "1"),
+                "multi_user_proc": os.environ.get("ATLAS_MULTI_USER_PROC", "1"),
+            },
+            "note": "Standalone admin sees its own process memory; use the main Atlas /admin for live in-process job queues.",
+        }
+
     @app.get("/admin")
     async def admin_page(request: Request):
         frontend = project_root / "frontend" / "atlas"
@@ -234,6 +290,12 @@ def create_admin_app(project_root: Path):
         with AtlasDB() as db:
             from core.atlas_admin_usage import build_admin_usage_payload
             return JSONResponse(build_admin_usage_payload(db))
+
+    @app.get("/api/admin/runtime")
+    async def api_admin_runtime(request: Request):
+        if _admin_required(request) is None:
+            return _admin_denied(request)
+        return JSONResponse(_admin_runtime_payload())
 
     @app.get("/api/admin/feedback")
     async def api_admin_feedback(request: Request):

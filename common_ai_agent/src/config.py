@@ -1223,6 +1223,14 @@ STREAM_INACTIVITY_TIMEOUT = int(os.getenv("STREAM_INACTIVITY_TIMEOUT", "180"))
 # STREAM_API_TIMEOUT so a turn may not outlive its own read budget.
 STREAM_TURN_HARD_TIMEOUT = int(os.getenv("STREAM_TURN_HARD_TIMEOUT", str(STREAM_API_TIMEOUT)))
 
+# Run-level backstop for the react loop (lazy workers run via core/react_loop.py).
+# If the loop receives NO new stream chunk for this many seconds, force-cancel the
+# stream and abort the turn. This is a coarse fallback for the rare case where the
+# inner stream watchdog fails to unblock a stuck `for chunk` consumer. Must be
+# generous enough never to false-trip a legitimately slow reasoning turn — a real
+# turn never goes 15 min with zero chunks. 0 disables.
+REACT_LOOP_STALL_SEC = int(os.getenv("REACT_LOOP_STALL_SEC", "900"))
+
 # Max idle time a pooled keep-alive connection may sit unused before we treat it
 # as stale and open a fresh one. Long agent tasks (e.g. rtl-gen) leave big gaps
 # between LLM calls while reading files / thinking locally; provider load

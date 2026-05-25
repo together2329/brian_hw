@@ -126,4 +126,19 @@ describe('orchestrator chat poll mapping', () => {
       content: '[ATLAS ARCHITECT WORKFLOW CONTEXT]\n- ip: mctp_axi',
     }, { workflow: 'rtl-gen' })).toBeNull();
   });
+
+  it('maps IPC stdout log lines while the worker is still running', () => {
+    expect(feedEntryFromWorkerLogEntry({
+      index: 3,
+      type: 'log',
+      role: 'stdout',
+      content: '[worker] reading mctp/yaml/mctp.ssot.yaml',
+      timestamp: 1716400006,
+    }, { job_id: 'j2', run_id: 'ipc-j2', workflow: 'ssot-gen', status: 'running' })).toMatchObject({
+      kind: 'thought',
+      text: '[worker] reading mctp/yaml/mctp.ssot.yaml',
+      live: true,
+      worker: { job_id: 'j2', workflow: 'ssot-gen' },
+    });
+  });
 });

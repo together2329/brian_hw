@@ -1398,6 +1398,57 @@ def test_repair_ssot_schema_collapses_leaf_manifest_to_top_only(tmp_path: Path):
     assert loaded["sub_modules"][0]["function_model_refs"]
 
 
+def test_repair_ssot_schema_assigns_files_to_manifest_children(tmp_path: Path):
+    ip = "repair_manifest_child_files_ip"
+    doc = _base_ssot_doc(ip)
+    doc["sub_modules"] = [
+        {
+            "name": f"{ip}_regs",
+            "ownership": "manifest",
+            "implements": ["registers.register_list"],
+            "source_sections": ["registers"],
+            "register_refs": ["registers.register_list"],
+        },
+        {
+            "name": f"{ip}_datapath",
+            "ownership": "manifest",
+            "implements": ["function_model.transactions", "cycle_model"],
+            "source_sections": ["function_model", "cycle_model"],
+            "function_model_refs": ["function_model.transactions.FM_PRIMARY"],
+            "cycle_model_refs": ["cycle_model"],
+        },
+        {
+            "name": ip,
+            "file": f"rtl/{ip}.sv",
+            "ownership": "manifest",
+            "wiring_only": True,
+            "description": "top integration",
+        },
+    ]
+    doc["decomposition"] = {
+        "units": [
+            {"id": "regs", "rtl_candidates": [f"{ip}_regs"]},
+            {"id": "datapath", "rtl_candidates": [f"{ip}_datapath"]},
+        ],
+        "source_refs": ["sub_modules", "function_model", "cycle_model"],
+    }
+    doc["filelist"] = {"rtl": [f"rtl/{ip}.sv"]}
+    _write_ssot_doc(tmp_path, ip, doc)
+
+    repaired = _run_repair_ssot(tmp_path, ip, ["--mode", "engineering"])
+
+    assert repaired.returncode == 0, repaired.stdout + repaired.stderr
+    loaded = yaml.safe_load((tmp_path / ip / "yaml" / f"{ip}.ssot.yaml").read_text(encoding="utf-8"))
+    by_name = {row["name"]: row for row in loaded["sub_modules"]}
+    assert by_name[f"{ip}_regs"]["file"] == f"rtl/{ip}_regs.sv"
+    assert by_name[f"{ip}_datapath"]["file"] == f"rtl/{ip}_datapath.sv"
+    assert loaded["filelist"]["rtl"] == [
+        f"rtl/{ip}_regs.sv",
+        f"rtl/{ip}_datapath.sv",
+        f"rtl/{ip}.sv",
+    ]
+
+
 def test_repair_ssot_schema_records_optional_behavior_policy(tmp_path: Path):
     ip = "repair_optional_policy_ip"
     doc = _base_ssot_doc(ip)

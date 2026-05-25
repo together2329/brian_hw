@@ -102,6 +102,9 @@
     if (type === 'response' || role === 'assistant') {
       return { kind: 'agent', text: content, createdAt: createdAt, live: true, worker: worker };
     }
+    if (type === 'log' || type === 'stdout' || type === 'stderr' || role === 'stdout' || role === 'stderr') {
+      return { kind: 'thought', text: content, createdAt: createdAt, live: true, worker: worker };
+    }
     if (type === 'done') {
       return { kind: 'agent', text: content, createdAt: createdAt, live: true, worker: worker };
     }

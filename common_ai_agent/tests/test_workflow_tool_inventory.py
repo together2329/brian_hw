@@ -297,31 +297,19 @@ class TestWorkflowToolInventory(unittest.TestCase):
         dispatch_workflow is orchestrator-only. If a worker has it, it can
         accidentally start nested pipeline dispatches.
         """
-        # NOTE: dispatch_workflow IS in AVAILABLE_TOOLS (for text-mode
-        # orchestrator), but workspace.json doesn't filter it out either.
-        # This test documents the current state and will FAIL if the situation
-        # is ambiguous — see assertion message for guidance.
         violations = []
         for wf in _CANONICAL_WORKER_WORKFLOWS:
             inv = self._inventory(wf)
             if "dispatch_workflow" in inv:
                 violations.append(wf)
 
-        if violations:
-            # This is a WARNING-level finding: dispatch_workflow is technically
-            # available to all workers in text mode, but the orchestrator loop
-            # in src/orchestrator/react_bridge.py uses a separate tool set.
-            # We document rather than hard-fail so the team can decide whether
-            # to add dispatch_workflow to per-workflow WORKFLOW_DISABLED_TOOLS.
-            import warnings
-            warnings.warn(
-                f"dispatch_workflow is exposed to worker workflows {violations}. "
-                f"These workers can call back into the pipeline. "
-                f"If unintended, add 'dispatch_workflow' to WORKFLOW_DISABLED_TOOLS "
-                f"in the relevant workspace.json files.",
-                stacklevel=2,
-            )
-            # Record but do not fail — this is a policy decision, not a bug.
+        self.assertEqual(
+            violations,
+            [],
+            f"dispatch_workflow is exposed to worker workflows {violations}. "
+            "Workers must finish their own scope and let the orchestrator "
+            "decide cross-workflow dispatches.",
+        )
 
     def test_orchestrator_workspace_disables_ask_user(self):
         """Orchestrator workspace should disable ask_user (it has its own ask_user tool)."""

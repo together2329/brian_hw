@@ -16,6 +16,7 @@ function AdminPage() {
   const [feedback, setFeedback] = React.useState([]);
   const [memoryRules, setMemoryRules] = React.useState([]);
   const [inputHistory, setInputHistory] = React.useState([]);
+  const [runtime, setRuntime] = React.useState(null);
   const [adminChatMessages, setAdminChatMessages] = React.useState([
     {
       role: 'assistant',
@@ -79,19 +80,20 @@ function AdminPage() {
     try {
       setLoading(true);
       setError(null);
-      const [usersResp, sessionsResp, usageResp, fbResp] = await Promise.all([
+      const [usersResp, sessionsResp, usageResp, fbResp, runtimeResp] = await Promise.all([
         fetch('/api/admin/users'),
         fetch('/api/admin/sessions'),
         fetch('/api/admin/usage'),
         fetch('/api/admin/feedback'),
+        fetch('/api/admin/runtime'),
       ]);
-      if ([usersResp, sessionsResp, usageResp, fbResp].some((r) => r.status === 401)) {
+      if ([usersResp, sessionsResp, usageResp, fbResp, runtimeResp].some((r) => r.status === 401)) {
         setAuthUser(null);
         setAuthStatus((prev) => ({ ...(prev || {}), login_required: true, authenticated: false }));
         setAuthError('Admin login required');
         return;
       }
-      if ([usersResp, sessionsResp, usageResp, fbResp].some((r) => r.status === 403)) {
+      if ([usersResp, sessionsResp, usageResp, fbResp, runtimeResp].some((r) => r.status === 403)) {
         setError('Admin role required');
         return;
       }
@@ -108,6 +110,7 @@ function AdminPage() {
       const sessionsData = await sessionsResp.json();
       const usageData = usageResp.ok ? await usageResp.json() : { users: [] };
       const fbData = fbResp.ok ? await fbResp.json() : { feedback: [] };
+      const runtimeData = runtimeResp.ok ? await runtimeResp.json() : null;
       setUsers(usersData.users || []);
       setSessions(sessionsData.sessions || []);
       setUsage(usageData.users || []);
@@ -125,6 +128,7 @@ function AdminPage() {
       setMemoryRules(usageData.memory_rules || []);
       setInputHistory(usageData.input_history || []);
       setFeedback(fbData.feedback || []);
+      setRuntime(runtimeData);
     } catch (e) {
       setError(String(e));
     } finally {
@@ -243,6 +247,7 @@ function AdminPage() {
     setFeedback([]);
     setMemoryRules([]);
     setInputHistory([]);
+    setRuntime(null);
     setLoading(false);
   };
 
@@ -1027,6 +1032,13 @@ function AdminPage() {
     pendingHuman: Array.from(askUserOpened).filter((flow) => !askUserAnswered.has(flow)).length,
     pendingFeedback: filteredFeedback.filter((row) => row.status !== 'resolved').length,
   };
+  const workerRuntime = (runtime && runtime.worker_runtime) || {};
+  const ipcRuntime = workerRuntime.ipc || {};
+  const ipcLimits = ipcRuntime.limits || {};
+  const ipcJobs = Array.isArray(ipcRuntime.jobs) ? ipcRuntime.jobs : [];
+  const runtimeScm = (runtime && runtime.scm) || {};
+  const runtimeAtlas = (runtime && runtime.atlas) || {};
+  const runtimeTransport = workerRuntime.transport || 'unknown';
   const setFilter = (key, value) => setFilters((prev) => ({ ...prev, [key]: value }));
   const clearFilters = () => setFilters({ range: 'all', ip: '', workspace: '', workflow: '', user: '' });
   const loginRequired = authChecked && authStatus && authStatus.login_required && !authStatus.authenticated;
@@ -1169,6 +1181,9 @@ function AdminPage() {
               </button>
               <button style={tabStyle(activeTab === 'memory')} onClick={() => setActiveTab('memory')}>
                 Memory ({filteredMemoryRules.length})
+              </button>
+              <button style={tabStyle(activeTab === 'runtime')} onClick={() => setActiveTab('runtime')}>
+                Runtime
               </button>
               <button style={tabStyle(activeTab === 'feedback')} onClick={() => setActiveTab('feedback')}>
                 Feedback ({filteredFeedback.filter(f => f.status !== 'resolved').length}/{filteredFeedback.length})
@@ -2471,6 +2486,116 @@ function AdminPage() {
                     )}
                   </tbody>
                 </table>
+              </div>
+            )}
+
+            {activeTab === 'runtime' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div style={overviewGridStyle}>
+                  <div style={metricCardStyle()}>
+                    <div style={metricLabelStyle}>Worker Transport</div>
+                    <div style={metricValueStyle}>{runtimeTransport}</div>
+                  </div>
+                  <div style={metricCardStyle()}>
+                    <div style={metricLabelStyle}>IPC Running</div>
+                    <div style={metricValueStyle}>{fmt(ipcRuntime.running_count || 0)}</div>
+                  </div>
+                  <div style={metricCardStyle((ipcRuntime.queued_count || 0) ? 'danger' : 'default')}>
+                    <div style={metricLabelStyle}>IPC Queued</div>
+                    <div style={metricValueStyle}>{fmt(ipcRuntime.queued_count || 0)}</div>
+                  </div>
+                  <div style={metricCardStyle()}>
+                    <div style={metricLabelStyle}>IPC Slots</div>
+                    <div style={metricValueStyle}>{fmt(ipcRuntime.available_slots || 0)}</div>
+                  </div>
+                  <div style={metricCardStyle()}>
+                    <div style={metricLabelStyle}>SCM Provider</div>
+                    <div style={metricValueStyle}>{runtimeScm.provider || 'auto'}</div>
+                  </div>
+                  <div style={metricCardStyle((runtimeScm.ui_override && runtimeScm.ui_override.enabled) ? 'default' : 'danger')}>
+                    <div style={metricLabelStyle}>SCM UI Override</div>
+                    <div style={metricValueStyle}>{runtimeScm.ui_override && runtimeScm.ui_override.enabled ? 'on' : 'off'}</div>
+                  </div>
+                </div>
+
+                <div style={tableWrapStyle}>
+                  <div style={widgetHeaderStyle}>
+                    <div style={widgetTitleStyle}>Runtime Settings</div>
+                    <div style={widgetMetaStyle}>{runtimeAtlas.exec_mode || 'mode unknown'}</div>
+                  </div>
+                  <table style={tableStyle}>
+                    <tbody>
+                      <tr>
+                        <th style={thStyle}>Run Mode</th>
+                        <td style={tdStyle}>{runtimeAtlas.run_mode || '—'}</td>
+                        <th style={thStyle}>Exec Mode</th>
+                        <td style={tdStyle}>{runtimeAtlas.exec_mode || '—'}</td>
+                      </tr>
+                      <tr>
+                        <th style={thStyle}>IPC Max</th>
+                        <td style={tdStyle}>{fmt(ipcLimits.max_concurrent)} total · {fmt(ipcLimits.max_per_user)} per user · {fmt(ipcLimits.max_per_workflow)} per workflow</td>
+                        <th style={thStyle}>Queue / Timeout</th>
+                        <td style={tdStyle}>{fmt(ipcLimits.queue_limit)} queue · {fmt(ipcLimits.timeout_sec)}s · {fmt(ipcLimits.max_attempts)} attempts</td>
+                      </tr>
+                      <tr>
+                        <th style={thStyle}>SCM Override</th>
+                        <td style={{ ...tdStyle, wordBreak: 'break-word' }}>
+                          {runtimeScm.ui_override && runtimeScm.ui_override.ref ? runtimeScm.ui_override.ref : '—'}
+                        </td>
+                        <th style={thStyle}>Override File</th>
+                        <td style={tdStyle}>
+                          {runtimeScm.ui_override && runtimeScm.ui_override.kind
+                            ? `${runtimeScm.ui_override.kind}${runtimeScm.ui_override.exists === false ? ' missing' : ''}`
+                            : '—'}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  {runtime && runtime.note ? (
+                    <div style={{ ...tdStyle, color: '#8893a3' }}>{runtime.note}</div>
+                  ) : null}
+                </div>
+
+                <div style={tableWrapStyle}>
+                  <div style={widgetHeaderStyle}>
+                    <div style={widgetTitleStyle}>IPC Jobs</div>
+                    <div style={widgetMetaStyle}>live queue and retry state</div>
+                  </div>
+                  <table style={tableStyle}>
+                    <thead>
+                      <tr>
+                        <th style={thStyle}>Job</th>
+                        <th style={thStyle}>Workflow</th>
+                        <th style={thStyle}>IP</th>
+                        <th style={thStyle}>Status</th>
+                        <th style={thStyle}>Queue</th>
+                        <th style={thStyle}>Attempt</th>
+                        <th style={thStyle}>Owner</th>
+                        <th style={thStyle}>Worker</th>
+                        <th style={thStyle}>Error</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {ipcJobs.length === 0 ? (
+                        <tr><td colSpan={9} style={{ ...tdStyle, ...emptyStateStyle }}>No IPC worker jobs in this process.</td></tr>
+                      ) : ipcJobs.map((job, index) => (
+                        <tr key={rowKey('runtime-ipc-job', index, job.job_id, job.run_id)}>
+                          <td style={tdStyle} title={job.job_id || ''}>{shortId(job.job_id)}</td>
+                          <td style={tdStyle}>{job.workflow || '—'}</td>
+                          <td style={tdStyle}>{job.ip || '—'}</td>
+                          <td style={tdStyle}><span style={statusPillStyle(job.status)}>{job.status || 'unknown'}</span></td>
+                          <td style={tdStyle}>{job.queue_reason || '—'}</td>
+                          <td style={tdStyle}>{fmt(job.attempt || 1)} / {fmt(job.max_attempts || 1)}</td>
+                          <td style={tdStyle}>{job.user_id || job.db_user_id || job.worker_owner || '—'}</td>
+                          <td style={{ ...tdStyle, maxWidth: 280, wordBreak: 'break-word' }}>{job.worker || '—'}</td>
+                          <td style={{ ...tdStyle, maxWidth: 320, whiteSpace: 'normal' }}>
+                            {job.last_retry_reason || job.error || '—'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
 

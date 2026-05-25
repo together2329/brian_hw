@@ -7,7 +7,7 @@
   "env": {
     "ENABLE_TODO_TRACKING": "true",
     "COMPRESSION_TOOL_CALL_PATHS": "10",
-    "WORKFLOW_DISABLED_TOOLS": "ask_user,record_ssot_qa"
+    "WORKFLOW_DISABLED_TOOLS": "ask_user,record_ssot_qa,dispatch_workflow"
   },
   "execution_mode": "sequential",
   "default_delegate": ""

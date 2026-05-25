@@ -44,6 +44,8 @@ const requirementFor = (ip, username) => [
 
 const terminal = new Set(['completed', 'done', 'passed', 'error', 'failed', 'blocked', 'cancelled']);
 
+const readJson = (file) => JSON.parse(readFileSync(file, 'utf8'));
+
 const { browser, page: firstPage } = await launch({ viewport: { width: 1700, height: 1050 }, dsf: 1 });
 const contexts = [];
 const pages = [firstPage];
@@ -170,6 +172,19 @@ const verifyRtlArtifacts = (user) => {
     ? readdirSync(rtlDir).filter(name => /\.(sv|v)$/.test(name)).sort()
     : [];
   assert(rtlFiles.length > 0, `${user.username} RTL sources exist (${rtlFiles.join(', ') || 'none'})`);
+  const filelistEntries = existsSync(filelistPath)
+    ? readFileSync(filelistPath, 'utf8')
+      .split(/\r?\n/)
+      .map(line => line.replace(/\/\/.*$/, '').replace(/#.*$/, '').trim())
+      .filter(line => /\.(sv|v)$/.test(line))
+      .map(line => line.replace(/^\.\//, ''))
+    : [];
+  for (const rtlFile of rtlFiles) {
+    assert(
+      filelistEntries.includes(`rtl/${rtlFile}`),
+      `${user.username} RTL filelist includes rtl/${rtlFile}`,
+    );
+  }
   const topPath = path.join(rtlDir, `${user.ip}.sv`);
   assert(existsSync(topPath), `${user.username} top RTL exists: ${topPath}`);
   if (existsSync(topPath)) {
@@ -180,9 +195,21 @@ const verifyRtlArtifacts = (user) => {
   assert(existsSync(compilePath), `${user.username} RTL compile report exists`);
   assert(existsSync(lintPath), `${user.username} DUT lint report exists`);
   assert(existsSync(stagePath), `${user.username} ssot-rtl stage report exists`);
+  if (existsSync(compilePath)) {
+    const compile = readJson(compilePath);
+    assert(compile.passed === true, `${user.username} RTL compile passed`);
+    const reported = new Set((compile.rtl_files || []).map(String));
+    for (const entry of filelistEntries) {
+      assert(reported.has(entry), `${user.username} compile report covers ${entry}`);
+    }
+  }
+  if (existsSync(lintPath)) {
+    const lint = readJson(lintPath);
+    assert(lint.passed === true, `${user.username} DUT lint passed`);
+  }
   if (existsSync(stagePath)) {
-    const stageText = readFileSync(stagePath, 'utf8');
-    assert(/"status"\s*:\s*"pass"/.test(stageText), `${user.username} ssot-rtl stage report status=pass`);
+    const stage = readJson(stagePath);
+    assert(stage.status === 'pass', `${user.username} ssot-rtl stage report status=pass (got ${stage.status || 'missing'})`);
   }
 };
 

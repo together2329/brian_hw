@@ -1,0 +1,3 @@
+[run_random] ip_dir=/Users/brian/Desktop/Project/brian_hw/common_ai_agent/real_llm_counter_demo
+[run_random] compile: iverilog -g2012 -Irtl -s tb_real_llm_counter_demo_random -o sim/build/tb_real_llm_counter_demo_random.vvp -f list/real_llm_counter_demo.f sim/tb_real_llm_counter_demo_random.sv
+[run_random] seeds=101 txns=64 max_gap=2 reset_prob_per_mille=20

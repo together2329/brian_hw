@@ -1097,6 +1097,10 @@
             tokensCache: (d.tokens_cache != null) ? stable('tokensCache', d.tokens_cache) : keep(Number(_prev.tokensCache || 0)),
             tokensOut: (d.tokens_out != null) ? stable('tokensOut', d.tokens_out) : keep(Number(_prev.tokensOut || 0)),
             costUsd: (d.cost_usd != null) ? stable('costUsd', d.cost_usd) : keep(Number(_prev.costUsd || 0)),
+            costScope: d.cost_scope || _prev.costScope || '',
+            costUser: d.cost_user || _prev.costUser || '',
+            costIp: d.cost_ip || _prev.costIp || '',
+            costCalls: d.cost_calls != null ? Number(d.cost_calls || 0) : Number(_prev.costCalls || 0),
           };
         })(),
         frontend:    d.frontend  || '',
@@ -1303,6 +1307,23 @@
         if (!eventSession) return !opts.requireSession;
         return eventSession === activeSession;
       };
+      const eventMatchesActiveCostScope = (m) => {
+        if (eventMatchesActiveSession(m, { requireSession: true })) return true;
+        const ctx = window.CONTEXT || {};
+        if (ctx.costScope !== 'user_ip') return false;
+        const eventSession = normalizeSessionName(
+          (m && (m.session_id || m.session || m.namespace)) || ''
+        );
+        const parts = eventSession.split('/').filter(Boolean);
+        if (parts.length < 3) return false;
+        const owner = parts[0] || '';
+        const ip = parts[parts.length - 2] || '';
+        return !!(
+          ip
+          && ip === String(ctx.costIp || ctx.activeIp || '').trim()
+          && (!ctx.costUser || owner === ctx.costUser)
+        );
+      };
       // 'hello' fires on every WS connect (initial + every reconnect
       // after a transient drop). Re-run /healthz so the UI's session/
       // ip/workflow chips and URL params re-sync to whatever the
@@ -1384,7 +1405,7 @@
       // Live cost — agent fires per-LLM-call. We accumulate into CONTEXT
       // so the sidebar reflects spend without waiting for the 5 s poll.
       window.backend.subscribe('cost', (m) => {
-        if (!eventMatchesActiveSession(m, { requireSession: true })) return;
+        if (!eventMatchesActiveCostScope(m)) return;
         const ctx = window.CONTEXT;
         ctx.tokensIn    = (ctx.tokensIn    || 0) + (m.input  || 0);
         ctx.tokensCache = (ctx.tokensCache || 0) + (m.cached || 0);

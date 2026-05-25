@@ -323,6 +323,7 @@ def test_session_history_and_state_forbid_cross_user_namespace_reads(tmp_path, m
 
 def test_healthz_context_cost_is_scoped_to_active_namespace(tmp_path, monkeypatch):
     import src.atlas_ui as atlas_ui
+    from core.atlas_db import AtlasDB
 
     monkeypatch.setenv("HOME", str(tmp_path / "home"))
     monkeypatch.setenv("ATLAS_MULTI_USER", "1")
@@ -351,6 +352,16 @@ def test_healthz_context_cost_is_scoped_to_active_namespace(tmp_path, monkeypatc
         }),
         encoding="utf-8",
     )
+    with AtlasDB() as db:
+        db.record_llm_call(
+            session_id="alice/ip_alpha/rtl-gen",
+            ip_id="ip_alpha",
+            workflow="rtl-gen",
+            tokens_input=100,
+            tokens_output=20,
+            cache_read_tokens=10,
+            cost_usd=0.01,
+        )
 
     beta = _activate(client, "alice", "ip_beta", "rtl-gen")
     assert beta.status_code == 200, beta.text
@@ -368,13 +379,34 @@ def test_healthz_context_cost_is_scoped_to_active_namespace(tmp_path, monkeypatc
         }),
         encoding="utf-8",
     )
+    with AtlasDB() as db:
+        db.record_llm_call(
+            session_id="alice/ip_beta/rtl-gen",
+            ip_id="ip_beta",
+            workflow="rtl-gen",
+            tokens_input=200,
+            tokens_output=40,
+            cache_read_tokens=30,
+            cost_usd=0.02,
+        )
+        db.record_llm_call(
+            session_id="alice/ip_beta/ssot-gen",
+            ip_id="ip_beta",
+            workflow="ssot-gen",
+            tokens_input=50,
+            tokens_output=5,
+            cache_read_tokens=0,
+            cost_usd=0.03,
+        )
 
     beta_health = client.get("/healthz")
     assert beta_health.status_code == 200, beta_health.text
     assert beta_health.json()["active_session"] == "alice/ip_beta/rtl-gen"
     assert beta_health.json()["tokens"] == 200
-    assert beta_health.json()["tokens_in"] == 200
-    assert beta_health.json()["cost_usd"] == 0.02
+    assert beta_health.json()["tokens_in"] == 250
+    assert beta_health.json()["cost_usd"] == 0.05
+    assert beta_health.json()["cost_scope"] == "user_ip"
+    assert beta_health.json()["cost_ip"] == "ip_beta"
 
     alpha_again = _activate(client, "alice", "ip_alpha", "rtl-gen")
     assert alpha_again.status_code == 200, alpha_again.text
@@ -397,6 +429,7 @@ def test_healthz_context_cost_is_scoped_to_active_namespace(tmp_path, monkeypatc
 
 def test_healthz_does_not_share_cost_with_numeric_user_owner(tmp_path, monkeypatch):
     import src.atlas_ui as atlas_ui
+    from core.atlas_db import AtlasDB
 
     monkeypatch.setenv("HOME", str(tmp_path / "home"))
     monkeypatch.setenv("ATLAS_MULTI_USER", "1")
@@ -426,6 +459,15 @@ def test_healthz_does_not_share_cost_with_numeric_user_owner(tmp_path, monkeypat
         }),
         encoding="utf-8",
     )
+    with AtlasDB() as db:
+        db.record_llm_call(
+            session_id="brian/ip_brian/rtl-gen",
+            ip_id="ip_brian",
+            workflow="rtl-gen",
+            tokens_input=777,
+            tokens_output=333,
+            cost_usd=9.99,
+        )
 
     numeric_before_activate = numeric.get("/healthz")
     assert numeric_before_activate.status_code == 200, numeric_before_activate.text
@@ -452,6 +494,16 @@ def test_healthz_does_not_share_cost_with_numeric_user_owner(tmp_path, monkeypat
         }),
         encoding="utf-8",
     )
+    with AtlasDB() as db:
+        db.record_llm_call(
+            session_id="20766/ip_207/rtl-gen",
+            ip_id="ip_207",
+            workflow="rtl-gen",
+            tokens_input=12,
+            tokens_output=4,
+            cache_read_tokens=3,
+            cost_usd=0.07,
+        )
 
     numeric_after_activate = numeric.get("/healthz")
     assert numeric_after_activate.status_code == 200, numeric_after_activate.text

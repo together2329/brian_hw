@@ -69,22 +69,31 @@ def registers(ssot):
     return {"config": regs.get("config"), "bit_order": regs.get("bit_order"), "register_list": out}
 
 
-def expected_timing(ssot, reg="DATA", data="0x55"):
-    """Same expected APB single-write waveform that ssot_to_wavespec.py emits."""
-    offset = "0x0"
-    for r in (ssot.get("registers") or {}).get("register_list", []) or []:
-        if r.get("name") == reg:
-            offset = as_hex(r.get("offset", 0))
-    return {"title": f"EXPECTED · APB write {data}→{reg}@{offset}", "signals": [
-        {"name": "PCLK", "wave": "ppppp"},
-        {"name": "PSEL", "wave": "01.0."},
-        {"name": "PENABLE", "wave": "0.10."},
-        {"name": "PWRITE", "wave": "x1.x."},
-        {"name": "PADDR", "wave": "x=.x.", "data": [offset]},
-        {"name": "PWDATA", "wave": "x=.x.", "data": [data]},
-        {"name": "PREADY", "wave": "1...."},
-        {"name": "gpio_out", "wave": "=.=..", "data": ["0x0", data]},
-    ]}
+def expected_timing(ssot, reg=None, data="0x1"):
+    """IP-agnostic expected APB(4) single-write waveform from the register map."""
+    regs = (ssot.get("registers") or {}).get("register_list", []) or []
+    target = None
+    if reg:
+        target = next((r for r in regs if r.get("name") == reg), None)
+    if target is None:
+        target = next((r for r in regs if (r.get("access") or "").lower() in ("rw", "wo", "w")), None)
+    if target is None and regs:
+        target = regs[0]
+    name = target.get("name") if target else "REG"
+    offset = as_hex(target.get("offset", 0)) if target else "0x0"
+    return {
+        "title": f"EXPECTED · APB write {data} → {name} @ {offset}",
+        "note": "Setup phase (PSEL=1, PENABLE=0) then access phase (PENABLE=1); zero-wait PREADY (illustrative).",
+        "signals": [
+            {"name": "PCLK", "wave": "ppppp"},
+            {"name": "PSEL", "wave": "01.0."},
+            {"name": "PENABLE", "wave": "0.10."},
+            {"name": "PWRITE", "wave": "x1.x."},
+            {"name": "PADDR", "wave": "x=.x.", "data": [offset]},
+            {"name": "PWDATA", "wave": "x=.x.", "data": [data]},
+            {"name": "PREADY", "wave": "1...."},
+        ],
+    }
 
 
 def main(argv=None):
@@ -111,6 +120,9 @@ def main(argv=None):
             "clock": dom.get("name"), "freq_mhz": dom.get("frequency_mhz"),
             "reset": rst.get("signal"), "reset_polarity": rst.get("polarity"), "reset_type": rst.get("type"),
         },
+        "features": ssot.get("features", []),
+        "parameters": ssot.get("parameters", []),
+        "interrupts": ssot.get("interrupts", {}),
         "interfaces": interfaces(ssot),
         "blocks": blocks(ssot),
         "dataflow": (ssot.get("dataflow") or {}).get("sequence", []),

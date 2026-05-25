@@ -1159,14 +1159,7 @@ class WorkflowStageEngine:
             isinstance(q, dict) and str(q.get("id") or "") in llm_rtl_blockers
             for q in blocked_questions
         )
-        if blocked_doc:
-            if llm_only_blocked:
-                status = "blocked"
-                headline = "[RTL BLOCKED] rtl-gen waiting for LLM-authored RTL"
-            else:
-                status = "human_gate"
-                headline = "[SSOT QUESTION] rtl-gen BLOCKED"
-        elif (
+        evidence_pass = (
             derive_run.returncode == 0
             and preflight_run.returncode == 0
             and compile_rc == 0
@@ -1176,7 +1169,28 @@ class WorkflowStageEngine:
             and todo_completion.get("all_required_todos_pass") is True
             and rtl_progress.get("status") == "pass"
             and int(rtl_progress.get("manifest_mismatches") or 0) == 0
-        ):
+        )
+        if evidence_pass and blocked_doc:
+            # `rtl_blocked.json` can be emitted by preflight before the LLM
+            # worker writes RTL. Once compile/lint/TODO evidence is current
+            # and passing, treat that blocker as stale so the stage log is not
+            # left in a false blocked state.
+            try:
+                blocked_path.unlink()
+            except Exception:
+                pass
+            blocked_doc = {}
+            blocked_questions = []
+            llm_only_blocked = False
+
+        if blocked_doc:
+            if llm_only_blocked:
+                status = "blocked"
+                headline = "[RTL BLOCKED] rtl-gen waiting for LLM-authored RTL"
+            else:
+                status = "human_gate"
+                headline = "[SSOT QUESTION] rtl-gen BLOCKED"
+        elif evidence_pass:
             status = "pass"
             headline = "[RTL RESULT] PASS - generated RTL and DUT-only compile/lint evidence"
         elif preflight_run.returncode == 0:

@@ -195,11 +195,13 @@ class TestAgentRegistry(unittest.TestCase):
     def test_native_agents_registered(self):
         registry = AgentRegistry()
 
-        # Native agents should be present
+        # Native agents should be present. plan/execute/review were unified into
+        # the workflow agent (see "Plan 시스템 제거" refactor) — assert the
+        # current native set.
         self.assertIsNotNone(registry.get("explore"))
-        self.assertIsNotNone(registry.get("plan"))
-        self.assertIsNotNone(registry.get("execute"))
-        self.assertIsNotNone(registry.get("review"))
+        self.assertIsNotNone(registry.get("workflow"))
+        self.assertIsNotNone(registry.get("task"))
+        self.assertIsNotNone(registry.get("orchestrator"))
         self.assertIsNotNone(registry.get("build"))
 
     def test_native_agent_properties(self):
@@ -233,7 +235,7 @@ class TestAgentRegistry(unittest.TestCase):
 
         names = [a.name for a in subagents]
         self.assertIn("explore", names)
-        self.assertIn("plan", names)
+        self.assertIn("workflow", names)
 
     def test_get_default(self):
         registry = AgentRegistry()
@@ -314,13 +316,13 @@ class TestIntegration(unittest.TestCase):
         self.assertIn("grep_file", allowed)
         self.assertNotIn("write_file", allowed)
 
-    def test_execute_agent_tools(self):
-        execute = get_agent_config("execute")
+    def test_workflow_agent_full_access(self):
+        # The workflow agent unifies the former execute + review agents and is
+        # granted full tool access, expressed as the "*" wildcard.
+        workflow = get_agent_config("workflow")
 
-        allowed = execute.get_allowed_tools()
-        self.assertIn("write_file", allowed)
-        self.assertIn("replace_in_file", allowed)
-        self.assertIn("run_command", allowed)
+        allowed = workflow.get_allowed_tools()
+        self.assertIn("*", allowed)
 
 
 if __name__ == "__main__":

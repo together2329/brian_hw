@@ -6,7 +6,7 @@
     "AGENT_SERVER_VERBOSE": "true",
     "ENABLE_WEB_TOOLS": "false",
     "ENABLE_VERILOG_TOOLS": "false",
-    "WORKFLOW_DISABLED_TOOLS": "ask_user,record_ssot_qa"
+    "WORKFLOW_DISABLED_TOOLS": "ask_user,record_ssot_qa,dispatch_workflow"
   },
   "skills": {
     "force_activate": [],

@@ -314,6 +314,7 @@
         <span style="color:var(--mute)">access: <span class="acctag rw">RW</span> read/write · <span class="acctag ro">RO</span> read-only</span>
       </div>
       <div class="bitinfo" id="bitInfo">Hover a field stripe above for bit-level detail.</div>
+      <div id="bitFieldsTable" style="margin-top:14px;"></div>
     </div>
   </section>
 
@@ -627,6 +628,7 @@ const DEFAULT = {
       "va_bits": 48,
       "pa_bits": 40,
       "ttbr": "TTBR0_EL1",
+      "ttbr_base": "0x0000000040000000",
       "entries_per_table": 512,
       "levels": [
         { "level": "L0", "hi": 47, "lo": 39, "desc": "Level 0 table index (512 GB/entry)" },
@@ -635,6 +637,29 @@ const DEFAULT = {
         { "level": "L3", "hi": 20, "lo": 12, "desc": "Level 3 table index (4 KB page)" }
       ],
       "offset": { "hi": 11, "lo": 0, "desc": "Page offset (within 4 KB page)" }
+    },
+    "descriptor": {
+      "note": "AArch64 stage-1 translation-table descriptor (4 KB granule). Bits[1:0] select the type.",
+      "types": [
+        { "code": "0b11", "kind": "Table (levels 0–2) / Page (level 3)" },
+        { "code": "0b01", "kind": "Block (levels 1–2)" },
+        { "code": "0b00", "kind": "Invalid" }
+      ],
+      "fields": [
+        { "name": "UpperAttr",  "hi": 63, "lo": 52, "desc": "Upper attributes (PXN[53], UXN/XN[54], …)" },
+        { "name": "OutputAddr", "hi": 47, "lo": 12, "desc": "Next-table address or output block/page base" },
+        { "name": "LowerAttr",  "hi": 11, "lo": 2,  "desc": "nG[11], AF[10], SH[9:8], AP[7:6], NS[5], AttrIndx[4:2]" },
+        { "name": "Type",       "hi": 1,  "lo": 0,  "desc": "0b11=table/page, 0b01=block, 0b00/x0=invalid" }
+      ],
+      "attrs": [
+        { "name": "AttrIndx", "bits": "[4:2]", "desc": "Index into MAIR_EL1 (memory type)" },
+        { "name": "NS",       "bits": "[5]",   "desc": "Non-secure" },
+        { "name": "AP",       "bits": "[7:6]", "desc": "Data access permissions" },
+        { "name": "SH",       "bits": "[9:8]", "desc": "Shareability" },
+        { "name": "AF",       "bits": "[10]",  "desc": "Access flag" },
+        { "name": "nG",       "bits": "[11]",  "desc": "Not-global" }
+      ],
+      "example": "0x0000000080601703"
     }
   },
   "caches": {
@@ -1030,62 +1055,113 @@ function selectReg(name){
 }
 function drawBitStrip(reg){
   const svg=clearSvg('bitSvg');
-  if(!reg||!reg.fields){el('bitInfo').innerHTML='This register has no published field map in the dataset.';return;}
+  if(!reg||!reg.fields){el('bitInfo').innerHTML='This register has no published field map in the dataset.';if(el('bitFieldsTable'))el('bitFieldsTable').innerHTML='';return;}
   const totalBits=32;
   svg.setAttribute('width',B_W); svg.setAttribute('height',B_H);
   svg.setAttribute('viewBox','0 0 '+B_W+' '+B_H);
-  svg.innerHTML='<defs><pattern id="b_hatch" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">'+
-    '<line x1="0" y1="0" x2="0" y2="6" stroke="#30363d" stroke-width="1.6"/></pattern></defs>';
+  /* defs: hatch pattern + one clipPath per named field segment */
+  let defsHtml='<defs><pattern id="b_hatch" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">'+
+    '<line x1="0" y1="0" x2="0" y2="6" stroke="#30363d" stroke-width="1.6"/></pattern>';
   const stripW=B_W-2*B_X, bitW=stripW/totalBits;
+  const bitX=bit=>B_X+(totalBits-1-bit)*bitW;
+  (reg.fields||[]).forEach((f,fi)=>{
+    const fw=(f.msb-f.lsb+1)*bitW, fx=bitX(f.msb);
+    defsHtml+='<clipPath id="bcp_'+fi+'"><rect x="'+(fx+1)+'" y="'+B_Y+'" width="'+Math.max(fw-2,1)+'" height="'+B_STRIPH+'"/></clipPath>';
+  });
+  defsHtml+='</defs>';
+  svg.innerHTML=defsHtml;
   svg.appendChild(svgEl('rect',{x:B_X,y:B_Y,width:stripW,height:B_STRIPH,fill:'none',stroke:'#30363d','stroke-width':1,rx:3}));
   const occ=new Array(totalBits).fill(null);
   (reg.fields||[]).forEach(f=>{for(let b=f.lsb;b<=f.msb;b++)if(b>=0&&b<totalBits)occ[b]=f;});
-  const bitX=bit=>B_X+(totalBits-1-bit)*bitW;
-  (reg.fields||[]).forEach(f=>drawStripe(svg,bitX(f.msb),(f.msb-f.lsb+1)*bitW,false,f));
+  (reg.fields||[]).forEach((f,fi)=>drawStripe(svg,bitX(f.msb),(f.msb-f.lsb+1)*bitW,false,f,'bcp_'+fi));
   let b=totalBits-1;
   while(b>=0){
     if(occ[b]===null){
       let hi=b; while(b>=0&&occ[b]===null)b--; let lo=b+1;
       drawStripe(svg,bitX(hi),(hi-lo+1)*bitW,true,
-        {name:'RES'+hi+'_'+lo,msb:hi,lsb:lo,access:'reserved',desc:'Reserved (RES0 / implementation-defined)'});
+        {name:'RES'+hi+'_'+lo,msb:hi,lsb:lo,access:'reserved',desc:'Reserved (RES0 / implementation-defined)'},null);
     } else b--;
   }
   for(let bit=totalBits-1;bit>=0;bit-=4)
     svg.appendChild(txt('cyc',bitX(bit)+bitW/2,B_Y+B_STRIPH+14,String(bit)));
   el('bitInfo').innerHTML='<span class="bn">'+esc(reg.name)+'</span> '+
     '<span class="acctag '+esc((reg.access||'').toLowerCase())+'">'+esc(reg.access)+'</span>'+
-    ' · '+esc(reg.encoding)+' — hover a field stripe for detail.';
+    (reg.encoding?' · '+esc(reg.encoding):'')+' — hover a field stripe above, or see table below.';
+  /* ---- fields table (authoritative readable view, no SVG clipping) ---- */
+  const tbl=el('bitFieldsTable');
+  if(tbl){
+    const named=(reg.fields||[]).filter(f=>(f.access||'').toLowerCase()!=='reserved'&&f.name&&!f.name.startsWith('RES'));
+    if(named.length){
+      tbl.innerHTML=
+        '<div style="font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Fields — '+esc(reg.name)+'</div>'+
+        '<table class="bf-table"><thead><tr>'+
+          '<th>Field</th><th>Bits [msb:lsb]</th><th>Access</th><th>Reset</th><th>Description</th>'+
+        '</tr></thead><tbody>'+
+        named.map(f=>{
+          const acc=(f.access||'RO').toUpperCase();
+          const tagCls=acc==='RO'?'ro':acc==='RW'?'rw':'reserved';
+          const resetVal=f.reset!==undefined?esc(String(f.reset)):'—';
+          return '<tr>'+
+            '<td><b style="color:var(--fg)">'+esc(f.name)+'</b></td>'+
+            '<td style="color:var(--mute)"><code>['+f.msb+':'+f.lsb+']</code></td>'+
+            '<td><span class="acctag '+tagCls+'">'+acc+'</span></td>'+
+            '<td style="color:var(--mute)"><code>'+resetVal+'</code></td>'+
+            '<td style="color:var(--fg)">'+esc(f.desc||'')+'</td>'+
+          '</tr>';
+        }).join('')+
+        '</tbody></table>';
+    } else {
+      tbl.innerHTML='';
+    }
+  }
 }
-function drawStripe(svg,fx,fw,isRes,f){
+function drawStripe(svg,fx,fw,isRes,f,clipId){
   const g=svgEl('g',{class:'field'}); g.style.cursor='pointer';
   const fill=isRes?'url(#b_hatch)':'#0b1827';
   const stroke=isRes?'#30363d':'#58a6ff';
   const fr=svgEl('rect',{x:fx,y:B_Y,width:Math.max(fw-1,1),height:B_STRIPH,fill,stroke,'stroke-width':1.2,rx:2});
   g.appendChild(fr);
-  if(fw>26&&!isRes){
-    const ft=svgEl('text',{x:fx+fw/2,y:B_Y+B_STRIPH/2+4,'text-anchor':'middle','font-size':10,fill:'#58a6ff','font-weight':700});
-    ft.textContent=f.name; g.appendChild(ft);
-  } else if(fw>40&&isRes){
-    const ft=svgEl('text',{x:fx+fw/2,y:B_Y+B_STRIPH/2+4,'text-anchor':'middle','font-size':9,fill:'#8b949e'});
+  if(!isRes&&clipId){
+    /* estimate fit at ~6.5px/char for font-size:10; only render if text fits with padding */
+    const label=f.name;
+    const estW=label.length*6.5;
+    if(estW<fw-6){
+      const ft=svgEl('text',{x:fx+fw/2,y:B_Y+B_STRIPH/2+4,'text-anchor':'middle','font-size':10,
+        fill:'var(--accent)','font-weight':700,'clip-path':'url(#'+clipId+')'});
+      ft.textContent=label;
+      g.appendChild(ft);
+      svg.appendChild(g);
+      try{
+        const tl=ft.getComputedTextLength();
+        if(tl>fw-4){ g.removeChild(ft); }
+      }catch(e){/* ignore in non-browser env */}
+      g.addEventListener('mouseenter',()=>showBit(f,false));
+      g.addEventListener('mouseleave',()=>bitStripMouseLeave());
+      return;
+    }
+  } else if(isRes&&fw>40){
+    const ft=svgEl('text',{x:fx+fw/2,y:B_Y+B_STRIPH/2+4,'text-anchor':'middle','font-size':9,
+      fill:'var(--mute)'});
     ft.textContent='reserved'; g.appendChild(ft);
   }
   g.addEventListener('mouseenter',()=>showBit(f,isRes));
-  g.addEventListener('mouseleave',()=>{
-    const r=regList().find(x=>x.name===CUR_REG);
-    if(r) el('bitInfo').innerHTML='<span class="bn">'+esc(r.name)+'</span> '+
-      '<span class="acctag '+esc((r.access||'').toLowerCase())+'">'+esc(r.access)+'</span>'+
-      ' · '+esc(r.encoding)+' — hover a field stripe for detail.';
-  });
+  g.addEventListener('mouseleave',()=>bitStripMouseLeave());
   svg.appendChild(g);
+}
+function bitStripMouseLeave(){
+  const r=regList().find(x=>x.name===CUR_REG);
+  if(r) el('bitInfo').innerHTML='<span class="bn">'+esc(r.name)+'</span> '+
+    '<span class="acctag '+esc((r.access||'').toLowerCase())+'">'+esc(r.access)+'</span>'+
+    (r.encoding?' · '+esc(r.encoding):'')+' — hover a field stripe above, or see table below.';
 }
 function showBit(f,isRes){
   const acc=isRes?'reserved':((f.access||(()=>{const r=regList().find(x=>x.name===CUR_REG);return r?r.access:'';})()||'').toLowerCase());
   el('bitInfo').innerHTML=
-    '<span class="bn">'+esc(f.name)+'</span> '+
+    '<span class="bn" style="color:var(--fg)">'+esc(f.name)+'</span> '+
     '<span class="acctag '+(acc||'reserved')+'">'+esc(acc||'reserved')+'</span>'+
     '<div class="bm" style="margin-top:5px">bits <b>['+f.msb+':'+f.lsb+']</b> · width <b>'+(f.msb-f.lsb+1)+'</b>'+
       (f.reset!==undefined?' · reset <b>'+esc(f.reset)+'</b>':'')+'</div>'+
-    '<div class="bm" style="margin-top:3px">'+esc(f.desc||'')+'</div>';
+    '<div class="bm" style="margin-top:3px;color:var(--fg)">'+esc(f.desc||'')+'</div>';
 }
 
 /* ============================================================
@@ -1163,6 +1239,9 @@ function renderMmu(){
 
   /* page-table-walk interactive diagram */
   if(SPEC.mmu&&SPEC.mmu.walk) renderWalkDiagram(SPEC.mmu.walk);
+
+  /* descriptor figure + decoder */
+  if(SPEC.mmu&&SPEC.mmu.descriptor) renderDescriptorDiagram(SPEC.mmu.descriptor);
 }
 
 /* --- MMU: page-table-walk SVG -------------------------------- */
@@ -1190,10 +1269,16 @@ function renderWalkDiagram(w){
     '<div class="isvg-ctrl">'+
       '<label>48-bit VA (hex)</label>'+
       '<input type="text" id="walkVaInput" value="0x0000804020001000" spellcheck="false">'+
+      '<button id="walkTranslateBtn" style="font-size:11px;padding:4px 13px;background:var(--panel);color:var(--ok);'+
+        'border:1px solid var(--ok);border-radius:5px;cursor:pointer;font-weight:700;margin-left:6px;">&#9654; Translate</button>'+
+      '<button id="walkResetBtn" style="font-size:11px;padding:4px 11px;background:var(--panel);color:var(--mute);'+
+        'border:1px solid var(--line);border-radius:5px;cursor:pointer;margin-left:4px;">&#9632; reset</button>'+
       '<span class="isvg-err" id="walkErr"></span>'+
     '</div>'+
     '<div class="stage"><svg id="walkSvg" style="overflow:visible"></svg></div>'+
-    '<div class="isvg-readout" id="walkReadout"></div>';
+    '<div class="isvg-readout" id="walkReadout"></div>'+
+    '<div id="walkTranslatePanel" style="display:none;margin-top:12px;border:1px solid var(--line);border-radius:8px;'+
+      'background:var(--panel);padding:12px;font-size:11.5px;"></div>';
 
   el('mmuPanel').appendChild(wrap);
 
@@ -1357,6 +1442,397 @@ function renderWalkDiagram(w){
   const inp=document.getElementById('walkVaInput');
   updateWalk(inp.value);
   inp.addEventListener('input',()=>updateWalk(inp.value));
+
+  /* ------- Translate animation wiring ------- */
+  const translateBtn=document.getElementById('walkTranslateBtn');
+  const resetBtn2=document.getElementById('walkResetBtn');
+
+  function walkAnimReset(){
+    if(_walkRaf){cancelAnimationFrame(_walkRaf);_walkRaf=null;}
+    /* restore box strokes to default colours */
+    const boxRects=document.getElementById('walkSvg').querySelectorAll('rect[data-wkbox]');
+    boxRects.forEach(r=>{ r.setAttribute('stroke',r.dataset.wkDefaultStroke||'#30363d'); r.setAttribute('stroke-width','1.4'); });
+    const panel=document.getElementById('walkTranslatePanel');
+    if(panel){panel.style.display='none';panel.innerHTML='';}
+  }
+
+  resetBtn2.addEventListener('click',walkAnimReset);
+
+  translateBtn.addEventListener('click',function(){
+    walkAnimReset();
+    const vaStr=document.getElementById('walkVaInput').value;
+    runTranslateAnim(w, vaStr);
+  });
+
+  /* tag box rects with data attrs for animation highlight */
+  (function tagBoxRects(){
+    const allRects=document.getElementById('walkSvg').querySelectorAll('rect');
+    /* boxes are: TTBR(0), L0(1), L1(2), L2(3), L3(4), PA(5) */
+    const boxColors=[
+      {stroke:'#3a5170'},{stroke:'#3a5170'},{stroke:'#1d4326'},
+      {stroke:'#5a4a18'},{stroke:'#5b2a6b'},{stroke:'#1d4326'}
+    ];
+    let boxIdx=0;
+    allRects.forEach(r=>{
+      /* box rects have rx=5; bar rects have rx=3 */
+      if(r.getAttribute('rx')==='5' && boxIdx<6){
+        r.dataset.wkbox=boxIdx;
+        r.dataset.wkDefaultStroke=r.getAttribute('stroke');
+        boxIdx++;
+      }
+    });
+  })();
+
+  /* ------- core animation function ------- */
+  function runTranslateAnim(w, vaStr){
+    const panel=document.getElementById('walkTranslatePanel');
+    const errEl=document.getElementById('walkErr');
+    const clean=vaStr.replace(/[\s_]/g,'');
+    let va;
+    try{ va=BigInt(clean); } catch(e){ errEl.textContent='invalid hex'; return; }
+    if(va<0n||va>=BigInt(2)**48n){ errEl.textContent='value exceeds 48 bits'; return; }
+    errEl.textContent='';
+
+    panel.style.display='block';
+    panel.innerHTML=
+      '<div style="font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">'+
+        'End-to-end translation walk &mdash; <em style="color:var(--warn);font-style:normal">illustrative / synthesized descriptors</em>'+
+      '</div>'+
+      '<div id="wkAnimRows" style="display:flex;flex-direction:column;gap:6px;"></div>'+
+      '<div id="wkAnimFinal" style="margin-top:12px;display:none;border-top:1px solid var(--line);padding-top:10px;"></div>';
+
+    /* parse TTBR base */
+    const ttbrRaw=(w.ttbr_base||'0x0000000040000000').replace(/[\s_]/g,'');
+    let tableBase;
+    try{ tableBase=BigInt(ttbrRaw)&0xFFFFFFFFF000n; } catch(e){ tableBase=0x40000000n; }
+
+    const walkLevels=w.levels||[];
+    const PHASE_MS=520; /* ms per level */
+    let phase=0; /* 0=highlight TTBR box, 1..4=walk L0..L3, 5=done */
+    let t0=null;
+    const levelResults=[];
+
+    /* colours matching LCOLS/LTXT */
+    const LACC=['#58a6ff','#3fb950','#d29922','#bc8cff'];
+    const LBG=['#10243e','#0c1c11','#1c1708','#190f1f'];
+    const LSTROKE=['#3a5170','#1d4326','#5a4a18','#5b2a6b'];
+
+    /* synthesize a deterministic descriptor for each level */
+    function synthDesc(level, index, isLast){
+      /* For L0..L2 (level<3): TABLE descriptor (bits[1:0]=11, bits[1:0] are table indicator) */
+      /* For L3 (isLast): PAGE descriptor (bits[1:0]=11, block/page at L3) */
+      /* nextBase for table: pick an address that varies per level+index but is page-aligned */
+      const nextBase=((0x41n+BigInt(level)*0x7n+BigInt(index)&0x1FFn)<<12n)|
+                      (BigInt(level+1)*0x100000n);
+      const pageBase=((0x80n+BigInt(index)&0x1FFn)<<12n)|(BigInt(0x600000n));
+      const base=isLast?pageBase:nextBase;
+      /* build a plausible descriptor:
+         bits[47:12]=output addr page frame, AF=1(bit10), SH=0b11(bits9:8), AP=0b00(bits7:6),
+         AttrIndx=0b100(bits4:2), type=0b11(bits1:0) */
+      const oaf=(base&0xFFFFFFF000n); /* OA bits [47:12] */
+      const attrs=0n|(1n<<10n)|(3n<<8n)|(0n<<6n)|(4n<<2n)|3n; /* AF|SH=11|AP=00|AttrIndx=4|type=3 */
+      return (oaf|attrs);
+    }
+
+    function highlightBox(boxIdx, accent){
+      const allRects=document.getElementById('walkSvg').querySelectorAll('rect[data-wkbox]');
+      allRects.forEach(r=>{
+        const bi=parseInt(r.dataset.wkbox);
+        if(bi===boxIdx){
+          r.setAttribute('stroke',accent);
+          r.setAttribute('stroke-width','2.5');
+        } else {
+          r.setAttribute('stroke',r.dataset.wkDefaultStroke||'#30363d');
+          r.setAttribute('stroke-width','1.4');
+        }
+      });
+    }
+
+    function appendRow(level, index, descAddr, descriptor, typeStr, nextStr, acc){
+      const rows=document.getElementById('wkAnimRows');
+      if(!rows) return;
+      const row=document.createElement('div');
+      row.style.cssText='display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap;padding:7px 10px;'+
+        'border:1px solid '+LSTROKE[level]+';border-radius:6px;background:'+LBG[level]+';';
+      row.innerHTML=
+        '<div style="min-width:28px;font-weight:700;color:'+acc+'">'+esc('L'+level)+'</div>'+
+        '<div style="flex:1;min-width:0;">'+
+          '<div style="color:var(--mute);font-size:10px;margin-bottom:2px">'+
+            'index=<b style="color:'+acc+'">'+index+'</b> &nbsp; '+
+            'desc_addr=<code style="color:var(--accent)">0x'+descAddr.toString(16).toUpperCase().padStart(12,'0')+'</code>'+
+          '</div>'+
+          '<div style="font-size:10px;color:var(--mute)">'+
+            'descriptor=<code style="color:var(--fg)">0x'+descriptor.toString(16).toUpperCase().padStart(16,'0')+'</code> '+
+            '&nbsp; type=<span style="color:'+acc+'">'+esc(typeStr)+'</span>'+
+          '</div>'+
+          '<div style="font-size:10px;color:var(--mute);margin-top:2px">'+nextStr+'</div>'+
+        '</div>';
+      rows.appendChild(row);
+    }
+
+    function tick(ts){
+      if(t0===null) t0=ts;
+      const elapsed=ts-t0;
+
+      if(phase===0){
+        /* highlight TTBR box (box index 0) */
+        highlightBox(0,'#58a6ff');
+        if(elapsed<PHASE_MS){ _walkRaf=requestAnimationFrame(tick); return; }
+        phase=1; t0=ts; _walkRaf=requestAnimationFrame(tick); return;
+      }
+
+      if(phase>=1 && phase<=4){
+        const li=phase-1; /* level index 0..3 */
+        const lv=walkLevels[li];
+        const isLast=(li===3);
+        /* highlight corresponding walk box (TTBR=0, L0=1, L1=2, L2=3, L3=4) */
+        highlightBox(li+1, LACC[li]);
+
+        if(elapsed<PHASE_MS){ _walkRaf=requestAnimationFrame(tick); return; }
+
+        /* compute this level's values */
+        const width=BigInt(lv.hi-lv.lo+1);
+        const mask=(1n<<width)-1n;
+        const index=Number((va>>BigInt(lv.lo))&mask);
+        const descAddr=tableBase+(BigInt(index)*8n);
+        const descriptor=synthDesc(li, index, isLast);
+        const oaf=(descriptor>>12n)&0xFFFFFFFn; /* output addr frame [39:12] */
+        const nextBase=(oaf<<12n);
+
+        levelResults.push({li, index, descAddr, descriptor, nextBase, isLast});
+
+        const typeStr=isLast?'Page (L3, 4KB)':'Table';
+        const nextStr=isLast
+          ?'page_base = 0x'+nextBase.toString(16).toUpperCase().padStart(10,'0')
+          :'next_table_base = 0x'+nextBase.toString(16).toUpperCase().padStart(12,'0');
+
+        appendRow(li, index, descAddr, descriptor, typeStr, nextStr, LACC[li]);
+
+        if(!isLast) tableBase=nextBase;
+
+        phase++; t0=ts; _walkRaf=requestAnimationFrame(tick); return;
+      }
+
+      if(phase===5){
+        /* final PA */
+        highlightBox(5,'#3fb950');
+        const L3=levelResults[3];
+        const pageBase=L3?L3.nextBase:0n;
+        const offset=va&0xFFFn;
+        const finalPA=pageBase|offset;
+
+        const finalDiv=document.getElementById('wkAnimFinal');
+        if(finalDiv){
+          finalDiv.style.display='block';
+          finalDiv.innerHTML=
+            '<div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;">'+
+              '<div style="flex:1;min-width:220px;">'+
+                '<div style="font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Translation result</div>'+
+                '<table style="font-size:11px;width:auto;min-width:300px;border-collapse:collapse;">'+
+                  '<tr><td style="color:var(--mute);padding:3px 14px 3px 0;border:0">VA (input)</td>'+
+                      '<td style="color:var(--fg);font-weight:700;border:0"><code>0x'+va.toString(16).toUpperCase().padStart(16,'0')+'</code></td></tr>'+
+                  '<tr><td style="color:var(--mute);padding:3px 14px 3px 0;border:0">page_base</td>'+
+                      '<td style="color:var(--accent);font-weight:700;border:0"><code>0x'+pageBase.toString(16).toUpperCase().padStart(10,'0')+'</code></td></tr>'+
+                  '<tr><td style="color:var(--mute);padding:3px 14px 3px 0;border:0">offset[11:0]</td>'+
+                      '<td style="color:var(--mute);font-weight:700;border:0"><code>0x'+offset.toString(16).toUpperCase().padStart(3,'0')+'</code></td></tr>'+
+                '</table>'+
+              '</div>'+
+              '<div style="background:#0d2615;border:2px solid var(--ok);border-radius:8px;padding:12px 20px;min-width:200px;">'+
+                '<div style="font-size:10px;color:var(--ok);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Physical Address</div>'+
+                '<div style="font-size:20px;font-weight:700;color:var(--ok);letter-spacing:.04em;font-family:inherit;">'+
+                  '0x'+finalPA.toString(16).toUpperCase().padStart(10,'0')+
+                '</div>'+
+                '<div style="font-size:10px;color:var(--mute);margin-top:4px">'+
+                  'low 12 bits = 0x'+offset.toString(16).padStart(3,'0')+' &check; matches VA offset'+
+                '</div>'+
+              '</div>'+
+            '</div>';
+        }
+        _walkRaf=null;
+        return; /* done — do NOT reschedule */
+      }
+    }
+
+    _walkRaf=requestAnimationFrame(tick);
+  }
+}
+
+/* --- MMU: descriptor bit-field bar + live decoder ----------- */
+function renderDescriptorDiagram(d){
+  /* 4 fields ordered MSB→LSB for display: UpperAttr, OutputAddr, LowerAttr, Type */
+  const FIELD_STYLE=[
+    {col:'#5b2a6b',fill:'#190f1f',txt:'#bc8cff'}, /* UpperAttr  — purple */
+    {col:'#3a5170',fill:'#10243e',txt:'#58a6ff'}, /* OutputAddr — blue   */
+    {col:'#1d4326',fill:'#0c1c11',txt:'#3fb950'}, /* LowerAttr  — green  */
+    {col:'#5a4a18',fill:'#1c1708',txt:'#d29922'}  /* Type       — amber  */
+  ];
+
+  const totalBits=64;
+  const fields=d.fields||[];   /* [{name,hi,lo,desc}] */
+  const SVG_W=860, BAR_Y=30, BAR_H=38;
+  const SVG_H=BAR_Y+BAR_H+56;
+  const BAR_X=10, BAR_W=SVG_W-20;
+
+  /* build wrapper */
+  const wrap=document.createElement('div');
+  wrap.className='isvg-wrap';
+  wrap.style.marginTop='18px';
+
+  /* types table HTML */
+  const typesHtml='<div style="margin-bottom:14px">'+
+    '<div style="font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Descriptor types (bits[1:0])</div>'+
+    '<table><thead><tr><th>code</th><th>kind</th></tr></thead><tbody>'+
+      (d.types||[]).map(t=>
+        '<tr><td><code style="color:var(--warn)">'+esc(t.code)+'</code></td>'+
+        '<td>'+esc(t.kind)+'</td></tr>'
+      ).join('')+
+    '</tbody></table></div>';
+
+  /* attrs table HTML */
+  const attrsHtml='<div style="margin-bottom:14px">'+
+    '<div style="font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Lower attribute fields</div>'+
+    '<table><thead><tr><th>field</th><th>bits</th><th>description</th></tr></thead><tbody>'+
+      (d.attrs||[]).map(a=>
+        '<tr><td><b style="color:var(--ok)">'+esc(a.name)+'</b></td>'+
+        '<td><code>'+esc(a.bits)+'</code></td>'+
+        '<td style="color:var(--mute)">'+esc(a.desc)+'</td></tr>'
+      ).join('')+
+    '</tbody></table></div>';
+
+  wrap.innerHTML=
+    '<div style="font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">'+
+      'Figure: AArch64 stage-1 translation-table descriptor (4 KB granule)'+
+    '</div>'+
+    typesHtml+
+    '<div class="isvg-ctrl">'+
+      '<label>64-bit descriptor (hex)</label>'+
+      '<input type="text" id="descInput" value="'+esc(d.example||'0x0000000080601703')+'" spellcheck="false" style="width:220px">'+
+      '<span class="isvg-err" id="descErr"></span>'+
+    '</div>'+
+    '<div class="stage"><svg id="descSvg" style="overflow:visible"></svg></div>'+
+    '<div class="isvg-readout" id="descReadout" style="margin-top:10px;flex-wrap:wrap;gap:8px;display:flex;"></div>'+
+    '<div style="margin-top:14px">'+attrsHtml+'</div>'+
+    (d.note?'<div class="sidenote"><b>note:</b> '+esc(d.note)+'</div>':'');
+
+  el('mmuPanel').appendChild(wrap);
+
+  /* build SVG */
+  const svg=document.getElementById('descSvg');
+  svg.setAttribute('width',SVG_W);
+  svg.setAttribute('height',SVG_H);
+  svg.setAttribute('viewBox','0 0 '+SVG_W+' '+SVG_H);
+
+  /* header label */
+  const hdr=svgEl('text',{x:BAR_X,y:18,fill:'#8b949e','font-size':10});
+  hdr.textContent='Descriptor[63:0]'; svg.appendChild(hdr);
+
+  /* draw field bars; keep highlight rect refs */
+  const hlRects=[];
+  fields.forEach((f,i)=>{
+    const st=FIELD_STYLE[i%FIELD_STYLE.length];
+    const segBits=f.hi-f.lo+1;
+    const x=BAR_X+((totalBits-1-f.hi)/totalBits)*BAR_W;
+    const w2=(segBits/totalBits)*BAR_W;
+
+    const r=svgEl('rect',{x,y:BAR_Y,width:w2,height:BAR_H,rx:3,
+      fill:st.fill,stroke:st.col,'stroke-width':1.5});
+    svg.appendChild(r);
+    hlRects.push({r,x,w:w2,st});
+
+    /* field name */
+    const nt=svgEl('text',{x:x+w2/2,y:BAR_Y+13,'text-anchor':'middle','font-size':9.5,
+      fill:st.txt,'font-weight':700,'pointer-events':'none'});
+    nt.textContent=f.name; svg.appendChild(nt);
+
+    /* bit range */
+    const bt=svgEl('text',{x:x+w2/2,y:BAR_Y+25,'text-anchor':'middle','font-size':8.5,
+      fill:'#8b949e','pointer-events':'none'});
+    bt.textContent='['+f.hi+':'+f.lo+']'; svg.appendChild(bt);
+
+    /* value overlay — updated on input */
+    const vt=svgEl('text',{x:x+w2/2,y:BAR_Y+36,'text-anchor':'middle','font-size':8,
+      fill:st.txt,'font-weight':700,'pointer-events':'none'});
+    vt.id='descFieldVal'+i; svg.appendChild(vt);
+
+    /* bit boundary ticks */
+    [f.hi,f.lo].forEach(bit=>{
+      const tx=BAR_X+((totalBits-1-bit)/totalBits)*BAR_W;
+      svg.appendChild(svgEl('line',{x1:tx,y1:BAR_Y+BAR_H,x2:tx,y2:BAR_Y+BAR_H+5,
+        stroke:'#30363d','stroke-width':1}));
+      const tl=svgEl('text',{x:tx,y:BAR_Y+BAR_H+16,'text-anchor':'middle',
+        'font-size':8,fill:'#8b949e'});
+      tl.textContent=String(bit); svg.appendChild(tl);
+    });
+  });
+
+  /* --- decode helper --- */
+  function bits(v,hi,lo){
+    const w=BigInt(hi-lo+1);
+    return Number((v>>BigInt(lo))&((1n<<w)-1n));
+  }
+
+  function decodeDescriptor(raw){
+    const errEl=document.getElementById('descErr');
+    const clean=raw.replace(/[\s_]/g,'');
+    let v;
+    try{ v=BigInt(clean); }catch(e){ errEl.textContent='invalid hex'; return; }
+    if(v<0n||v>=2n**64n){ errEl.textContent='exceeds 64 bits'; return; }
+    errEl.textContent='';
+
+    /* field value overlays */
+    fields.forEach((f,i)=>{
+      const fv=document.getElementById('descFieldVal'+i);
+      if(!fv) return;
+      const val=bits(v,f.hi,f.lo);
+      const hex='0x'+val.toString(16).toUpperCase();
+      fv.textContent=hex;
+    });
+
+    /* highlight active fields */
+    hlRects.forEach(({r,st})=>{
+      r.setAttribute('fill',st.fill);
+      r.setAttribute('stroke',st.col);
+    });
+
+    /* decode key fields */
+    const typeVal  =bits(v,1,0);
+    const outAddr  =bits(v,47,12);
+    const attrIndx =bits(v,4,2);
+    const ns       =bits(v,5,5);
+    const ap       =bits(v,7,6);
+    const sh       =bits(v,9,8);
+    const af       =bits(v,10,10);
+    const ng       =bits(v,11,11);
+
+    const typeMap={3:'Table / Page (0b11)',1:'Block (0b01)',0:'Invalid (0b00)'};
+    const typeName=typeMap[typeVal]||'Invalid (0b'+typeVal.toString(2)+')';
+    const outHex='0x'+(outAddr*4096).toString(16).toUpperCase().padStart(8,'0');
+
+    const ro=document.getElementById('descReadout');
+    if(!ro) return;
+
+    const pills=[
+      {label:'Type',    val:typeName,       col:typeVal===3?'var(--ok)':typeVal===1?'var(--warn)':'var(--bad)'},
+      {label:'OutputAddr', val:outHex,      col:'var(--accent)'},
+      {label:'AttrIndx',val:String(attrIndx),col:'var(--ok)'},
+      {label:'NS',      val:String(ns),      col:'var(--mute)'},
+      {label:'AP',      val:'0b'+ap.toString(2).padStart(2,'0'), col:'var(--mute)'},
+      {label:'SH',      val:'0b'+sh.toString(2).padStart(2,'0'), col:'var(--mute)'},
+      {label:'AF',      val:String(af),      col:af?'var(--ok)':'var(--bad)'},
+      {label:'nG',      val:String(ng),      col:'var(--mute)'}
+    ];
+
+    ro.innerHTML=pills.map(p=>
+      '<div class="isvg-field">'+
+        '<div class="if-name" style="color:var(--mute)">'+esc(p.label)+'</div>'+
+        '<div class="if-val" style="color:'+p.col+'">'+esc(p.val)+'</div>'+
+      '</div>'
+    ).join('');
+  }
+
+  const inp2=document.getElementById('descInput');
+  decodeDescriptor(inp2.value);
+  inp2.addEventListener('input',()=>decodeDescriptor(inp2.value));
 }
 
 /* ============================================================
@@ -1530,6 +2006,9 @@ function renderCacheAddrDiagram(idx){
   /* ---- cache-array animation ---- */
   if(SPEC.caches&&SPEC.caches.indexing) renderCacheArrayAnim(idx,fields,totalBits);
 }
+
+/* module-level RAF handle for MMU translation animation */
+let _walkRaf=null;
 
 /* --- Cache array SVG + access animation --------------------- */
 let _cacheRaf=null;
@@ -1907,52 +2386,103 @@ function renderGicFlow(flow){
       l.setAttribute('stroke','#8b949e');
       l.setAttribute('marker-end','url(#gic_ah)');
     });
-    document.getElementById('gicReadout').textContent='';
+    const ro=document.getElementById('gicReadout');
+    if(ro) ro.textContent='';
   }
 
-  /* --- animation: one segment per call, ~300ms each --- */
+  /* --- animation: per-box segments, PMR-gated at CPU interface (box index 3) --- */
+  /* CPU interface is box index 3 (0-based): source/GICD/GICR/ICC/Core */
+  const ICC_IDX=3; /* index of "CPU interface" box — gate here */
+
   function gicAnimate(group){
     gicReset();
-    const SEG_MS=300;          /* ms per segment */
-    let step=0;                /* 0..nBoxes-1 = highlight box; nBoxes-1 extra = show result */
+    const SEG_MS=300;
+    /* read PMR / priority inputs */
+    const prioEl=document.getElementById('gicPriority');
+    const pmrEl=document.getElementById('gicPMR');
+    const prio=Math.max(0,Math.min(255,parseInt((prioEl&&prioEl.value)||'128',16)||0));
+    const pmr =Math.max(0,Math.min(255,parseInt((pmrEl&&pmrEl.value)||'240',16)||0));
+    const blocked=(prio>=pmr);
+    /* if blocked, only animate up to ICC_IDX; otherwise all nBoxes */
+    const lastBox=blocked?ICC_IDX:nBoxes-1;
+
+    /* phase: 0..lastBox = highlight box i for SEG_MS ms each */
+    let phase=0;
     let t0=null;
 
     function tick(ts){
       if(!t0) t0=ts;
       const elapsed=ts-t0;
-      const seg=Math.min(Math.floor(elapsed/SEG_MS), nBoxes-1);
 
-      /* light boxes up to current seg */
-      for(let i=0;i<=seg;i++){
-        const hs=HOT_STYLES[Math.min(i,HOT_STYLES.length-1)];
-        boxRects[i].setAttribute('fill',hs.fill);
-        boxRects[i].setAttribute('stroke',hs.stroke);
-        if(i>0) {
-          arrowLines[i-1].setAttribute('stroke','var(--accent)');
-          arrowLines[i-1].setAttribute('marker-end','url(#gic_ah_hot)');
+      if(phase<=lastBox){
+        /* light all boxes up to current phase */
+        for(let i=0;i<=phase;i++){
+          const hs=HOT_STYLES[Math.min(i,HOT_STYLES.length-1)];
+          boxRects[i].setAttribute('fill',hs.fill);
+          boxRects[i].setAttribute('stroke',hs.stroke);
+          if(i>0){
+            arrowLines[i-1].setAttribute('stroke','var(--accent)');
+            arrowLines[i-1].setAttribute('marker-end','url(#gic_ah_hot)');
+          }
         }
+        if(elapsed<SEG_MS){
+          /* still in this phase — keep looping */
+          _gicRaf=requestAnimationFrame(tick);
+          return;
+        }
+        /* phase complete — advance */
+        phase++;
+        t0=ts;
+        _gicRaf=requestAnimationFrame(tick);
+        return;
       }
 
-      if(seg<nBoxes-1){
-        _gicRaf=requestAnimationFrame(tick);
+      /* all phases done — show result */
+      const ro=document.getElementById('gicReadout');
+      if(blocked){
+        /* flash ICC box bad */
+        boxRects[ICC_IDX].setAttribute('fill','#1a0505');
+        boxRects[ICC_IDX].setAttribute('stroke','var(--bad)');
+        if(ro) ro.innerHTML=
+          '<b style="color:var(--bad)">masked by PMR</b>'+
+          ' — prio <b style="color:var(--warn)">0x'+prio.toString(16).toUpperCase()+'</b>'+
+          ' ≥ PMR <b style="color:var(--fg)">0x'+pmr.toString(16).toUpperCase()+'</b>'+
+          ' &nbsp;<span style="color:var(--mute);font-size:10px">(interrupt suppressed)</span>';
       } else {
-        /* reached core box — show signal readout */
         const sig=group.signal||'IRQ';
         const isFiq=sig.includes('FIQ')&&!sig.includes('IRQ');
         const sigCol=isFiq?'var(--warn)':'var(--accent)';
-        const ro=document.getElementById('gicReadout');
         if(ro) ro.innerHTML=
           '<b style="color:var(--fg)">'+esc(group.group)+'</b>'+
+          ' · prio <b style="color:var(--ok)">0x'+prio.toString(16).toUpperCase()+'</b>'+
+          ' &lt; PMR <b style="color:var(--fg)">0x'+pmr.toString(16).toUpperCase()+'</b>'+
           ' → signal <b style="color:'+sigCol+'">'+esc(sig)+'</b> taken'+
           ' &nbsp;<span style="color:var(--mute);font-size:10px">'+esc(group.desc||'')+'</span>';
-        _gicRaf=null;
       }
+      _gicRaf=null;
     }
     _gicRaf=requestAnimationFrame(tick);
   }
 
-  /* --- build control buttons --- */
+  /* --- build PMR / priority inputs + group buttons --- */
   const ctrl=document.getElementById('gicControls');
+
+  /* priority + PMR row */
+  const pmrRow=document.createElement('div');
+  pmrRow.style.cssText='display:flex;gap:10px;align-items:center;flex-wrap:wrap;width:100%;margin-bottom:4px;';
+  pmrRow.innerHTML=
+    '<label style="font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:.05em;">Priority (hex 00–FF)</label>'+
+    '<input id="gicPriority" type="text" value="80" maxlength="2" style="width:52px;background:var(--bg);color:var(--warn);'+
+      'border:1px solid var(--line);border-radius:5px;padding:3px 7px;font-family:inherit;font-size:12px;font-weight:700;">'+
+    '<label style="font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:.05em;">PMR threshold</label>'+
+    '<input id="gicPMR" type="text" value="F0" maxlength="2" style="width:52px;background:var(--bg);color:var(--fg);'+
+      'border:1px solid var(--line);border-radius:5px;padding:3px 7px;font-family:inherit;font-size:12px;">'+
+    '<span style="font-size:10px;color:var(--mute)">passes if priority &lt; PMR</span>';
+  ctrl.appendChild(pmrRow);
+
+  /* group inject buttons */
+  const btnRow=document.createElement('div');
+  btnRow.style.cssText='display:flex;gap:8px;align-items:center;flex-wrap:wrap;';
   const groups=(SPEC.interrupts&&SPEC.interrupts.groups)||[];
   groups.forEach(g=>{
     const isFiq=(g.signal||'').includes('FIQ')&&!(g.signal||'').includes('IRQ');
@@ -1963,7 +2493,7 @@ function renderGicFlow(flow){
     btn.addEventListener('mouseenter',()=>btn.style.borderColor=isFiq?'var(--warn)':'var(--accent)');
     btn.addEventListener('mouseleave',()=>btn.style.borderColor='var(--line)');
     btn.addEventListener('click',()=>gicAnimate(g));
-    ctrl.appendChild(btn);
+    btnRow.appendChild(btn);
   });
 
   /* reset button */
@@ -1972,7 +2502,8 @@ function renderGicFlow(flow){
     'border:1px solid var(--line);border-radius:5px;cursor:pointer;';
   rst.textContent='⏹ reset';
   rst.addEventListener('click',gicReset);
-  ctrl.appendChild(rst);
+  btnRow.appendChild(rst);
+  ctrl.appendChild(btnRow);
 }
 
 /* ============================================================
@@ -2323,6 +2854,12 @@ initScrollSpy();
 
 
 
+
+
+
+
+
+
 <script>
 /* ── light/dark theme toggle v2 — re-themes var() CSS, hardcoded CSS-rule hex, and inline/SVG hex; survives re-render ── */
 (function(){
@@ -2357,7 +2894,7 @@ initScrollSpy();
   function sweepEls(root,m,re){ sweepNode(root,m,re); const a=root.querySelectorAll?root.querySelectorAll('*'):[]; for(const el of a) sweepNode(el,m,re); }
   function sweepStyles(m,re){ for(const s of document.querySelectorAll('style')){ if(s.id==='__themeOverride')continue; const t=s.textContent; if(t&&t.indexOf('#')>=0){const n=swap(t,m,re); if(n!==t)s.textContent=n;} } }
 
-  let light = localStorage.getItem('iui-theme')==='light', obs=null;
+  let light = localStorage.getItem('iui-theme')!=='dark', obs=null;
   function apply(){
     const m=light?L:D, re=reFor(m);
     document.documentElement.dataset.theme = light?'light':'dark';

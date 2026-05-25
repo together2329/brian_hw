@@ -8,7 +8,7 @@
     "PNR_PDK": "sky130_fd_sc_hd",
     "PNR_LEF_NAME": "sky130_fd_sc_hd_merged.lef",
     "PNR_TLEF_NAME": "sky130_fd_sc_hd.tlef",
-    "WORKFLOW_DISABLED_TOOLS": "ask_user,record_ssot_qa"
+    "WORKFLOW_DISABLED_TOOLS": "ask_user,record_ssot_qa,dispatch_workflow"
   },
   "skills": {
     "force_activate": [

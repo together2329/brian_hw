@@ -12,6 +12,7 @@ from __future__ import annotations
 import os
 import re
 import sys
+import threading
 import time
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
@@ -389,6 +390,41 @@ def _repair_truncated_tool_args(raw: str, exc: Exception) -> dict:
         except Exception:
             continue
     return {}
+
+
+def _make_react_stall_watchdog(
+    last_chunk_ref: List[float],
+    stall_s: float,
+    on_stall: Callable[[], None],
+) -> Tuple["threading.Event", List[bool], "threading.Thread"]:
+    """Run-level backstop watchdog for the react loop's stream consumption.
+
+    Spawns a daemon thread that polls every 5s. If ``stall_s`` is positive and no
+    new stream chunk has been observed for longer than ``stall_s`` (tracked via the
+    mutable ``last_chunk_ref[0]`` timestamp the consumer bumps on every chunk), it
+    records the stall, invokes ``on_stall`` (e.g. cancel_current_stream) to unblock
+    a stuck ``for chunk`` consumer, and exits.
+
+    Returns (stop_event, fired_ref, thread). The caller must set ``stop_event`` once
+    consumption finishes so the thread exits, and inspect ``fired_ref[0]`` to detect
+    a stall. When ``stall_s`` is falsy the watchdog never fires (no-op).
+    """
+    stop_event = threading.Event()
+    fired = [False]
+
+    def _watch() -> None:
+        while not stop_event.wait(5):
+            if stall_s and (time.time() - last_chunk_ref[0]) > stall_s:
+                fired[0] = True
+                try:
+                    on_stall()
+                except Exception:
+                    pass
+                break
+
+    thread = threading.Thread(target=_watch, daemon=True)
+    thread.start()
+    return stop_event, fired, thread
 
 
 # ---------------------------------------------------------------------------
@@ -1039,8 +1075,23 @@ def run_react_agent_impl(
         _thinking_stopped = False
 
         _native_calls = []  # populated when ENABLE_NATIVE_TOOL_CALLS=true
+
+        # Run-level stall backstop: if the inner stream watchdog fails to unblock a
+        # stuck `for chunk` consumer, a daemon thread force-cancels the active
+        # stream after REACT_LOOP_STALL_SEC of zero chunks. No-op on healthy turns.
+        _last_chunk_ts = [time.time()]
+        _rl_stall_s = getattr(cfg, "REACT_LOOP_STALL_SEC", 900) or 0
+
+        def _rl_on_stall() -> None:
+            from llm_client import cancel_current_stream
+            cancel_current_stream()
+
+        _rl_stop_event, _rl_stall_fired, _rl_watchdog = _make_react_stall_watchdog(
+            _last_chunk_ts, _rl_stall_s, _rl_on_stall,
+        )
         try:
             for chunk in deps.llm_call_fn(llm_messages, stop=_stop_seqs):
+                _last_chunk_ts[0] = time.time()
                 if not _thinking_stopped and _thinking_spinner:
                     if hasattr(_thinking_spinner, "stop"):
                         _thinking_spinner.stop()
@@ -1081,6 +1132,24 @@ def run_react_agent_impl(
             if not _parser.collected:
                 print(f"\n  LLM call failed: {e}")
                 break
+        finally:
+            _rl_stop_event.set()
+
+        # Run-level stall backstop fired: the stream was force-cancelled because no
+        # chunk arrived for REACT_LOOP_STALL_SEC. Abort this turn the same way an
+        # ESC abort does (see _aborted handling below) so the run returns a
+        # blocked/error result instead of hanging.
+        if _rl_stall_fired[0]:
+            if _thinking_spinner and not _thinking_stopped:
+                if hasattr(_thinking_spinner, "stop"):
+                    _thinking_spinner.stop()
+                _thinking_stopped = True
+            print(
+                f"\n  react-loop stall backstop fired: no stream chunk for "
+                f"{_rl_stall_s}s — aborting turn",
+                flush=True,
+            )
+            _aborted = True
 
         # Guarantee spinner is stopped
         if _thinking_spinner and not _thinking_stopped:
