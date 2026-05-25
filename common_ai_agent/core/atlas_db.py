@@ -494,6 +494,7 @@ CREATE TABLE IF NOT EXISTS llm_calls (
 );
 CREATE INDEX IF NOT EXISTS idx_llm_calls_context ON llm_calls(workspace_id, ip_id, workflow, created_at);
 CREATE INDEX IF NOT EXISTS idx_llm_calls_session ON llm_calls(session_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_llm_calls_ip_created ON llm_calls(ip_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_llm_calls_todo ON llm_calls(todo_id, created_at);
 
 -- artifacts (metadata/pointers only; content remains in filesystem/git/object storage)
@@ -990,6 +991,10 @@ class AtlasDB:
         conn.execute(
             """CREATE INDEX IF NOT EXISTS idx_trace_events_chat_room
                   ON trace_events(event_type, ip_id, created_at)"""
+        )
+        conn.execute(
+            """CREATE INDEX IF NOT EXISTS idx_llm_calls_ip_created
+                  ON llm_calls(ip_id, created_at)"""
         )
         conn.execute(
             """CREATE INDEX IF NOT EXISTS idx_user_memory_rules_user_scope
@@ -3946,65 +3951,140 @@ class AtlasDB:
                 .replace("_", "\\_")
             )
 
-        clauses: list[str] = []
-        values: list[Any] = []
-        user_clauses: list[str] = []
+        def prefix_upper_bound(value: str) -> str:
+            if not value:
+                return ""
+            return value[:-1] + chr(ord(value[-1]) + 1)
+
+        # No authenticated owner means legacy/local-admin visibility. Keep it
+        # simple and avoid the old OR-join that made /healthz CPU-bound.
+        if ip_name and not uid and not owner:
+            row = self._fetchone(
+                """
+                SELECT COUNT(*) AS calls,
+                       COALESCE(SUM(tokens_input), 0) AS tokens_input,
+                       COALESCE(SUM(cache_read_tokens), 0) AS cache_read_tokens,
+                       COALESCE(SUM(tokens_output), 0) AS tokens_output,
+                       COALESCE(SUM(tokens_reasoning), 0) AS tokens_reasoning,
+                       COALESCE(SUM(cost_usd), 0.0) AS cost_usd
+                  FROM llm_calls
+                 WHERE ip_id = ?
+                    OR session_id LIKE ? ESCAPE '\\'
+                """,
+                (ip_name, f"%/{like_escape(ip_name)}/%"),
+            )
+            data = dict(row) if row is not None else {}
+            return {
+                "calls": int(data.get("calls") or 0),
+                "tokens_input": int(data.get("tokens_input") or 0),
+                "cache_read_tokens": int(data.get("cache_read_tokens") or 0),
+                "tokens_output": int(data.get("tokens_output") or 0),
+                "tokens_reasoning": int(data.get("tokens_reasoning") or 0),
+                "cost_usd": float(data.get("cost_usd") or 0.0),
+            }
+
+        runtime_exact = f"{owner}/{ip_name}" if owner and ip_name else ""
+        runtime_prefix = (
+            f"{owner}/{ip_name}/"
+            if owner and ip_name
+            else (f"{owner}/" if owner else "")
+        )
+        runtime_upper = prefix_upper_bound(runtime_prefix)
+
+        session_user_clauses: list[str] = []
+        session_user_values: list[Any] = []
         if uid:
-            user_clauses.append("s.user_id = ?")
-            values.append(uid)
+            session_user_clauses.append("user_id = ?")
+            session_user_values.append(uid)
         if owner:
-            if ip_name:
-                user_clauses.append(
-                    "(l.session_id = ? OR l.session_id LIKE ? ESCAPE '\\')"
-                )
-                values.extend([
-                    f"{owner}/{ip_name}",
-                    f"{like_escape(owner)}/{like_escape(ip_name)}/%",
-                ])
-            else:
-                user_clauses.append("l.session_id LIKE ? ESCAPE '\\'")
-                values.append(f"{like_escape(owner)}/%")
-        if user_clauses:
-            clauses.append("(" + " OR ".join(user_clauses) + ")")
+            owner_prefix = f"{owner}/"
+            session_user_clauses.append("owner = ?")
+            session_user_values.append(owner)
+            session_user_clauses.append("namespace = ?")
+            session_user_values.append(owner)
+            session_user_clauses.append("(namespace >= ? AND namespace < ?)")
+            session_user_values.extend([owner_prefix, prefix_upper_bound(owner_prefix)])
 
+        session_ip_clauses: list[str] = []
+        session_ip_values: list[Any] = []
         if ip_name:
-            session_ip_pattern = (
-                f"{like_escape(owner)}/{like_escape(ip_name)}/%"
-                if owner else f"%/{like_escape(ip_name)}/%"
-            )
-            clauses.append(
-                "("
-                "l.ip_id = ? OR s.ip_id = ? OR s.ip = ? "
-                "OR l.session_id LIKE ? ESCAPE '\\'"
-                ")"
-            )
-            values.extend([ip_name, ip_name, ip_name, session_ip_pattern])
+            session_ip_clauses.extend(["ip_id = ?", "ip = ?"])
+            session_ip_values.extend([ip_name, ip_name])
+            if runtime_exact:
+                session_ip_clauses.append("namespace = ?")
+                session_ip_values.append(runtime_exact)
+            if runtime_prefix:
+                session_ip_clauses.append("(namespace >= ? AND namespace < ?)")
+                session_ip_values.extend([runtime_prefix, runtime_upper])
 
-        where = " AND ".join(clauses) if clauses else "1 = 1"
+        session_clauses: list[str] = []
+        session_values: list[Any] = []
+        if session_user_clauses:
+            session_clauses.append("(" + " OR ".join(session_user_clauses) + ")")
+            session_values.extend(session_user_values)
+        if session_ip_clauses:
+            session_clauses.append("(" + " OR ".join(session_ip_clauses) + ")")
+            session_values.extend(session_ip_values)
+        session_where = " AND ".join(session_clauses) if session_clauses else "0 = 1"
+
         row = self._fetchone(
             f"""
-            SELECT COUNT(*) AS calls,
-                   COALESCE(SUM(tokens_input), 0) AS tokens_input,
-                   COALESCE(SUM(cache_read_tokens), 0) AS cache_read_tokens,
-                   COALESCE(SUM(tokens_output), 0) AS tokens_output,
-                   COALESCE(SUM(tokens_reasoning), 0) AS tokens_reasoning,
-                   COALESCE(SUM(cost_usd), 0.0) AS cost_usd
-              FROM (
-                    SELECT DISTINCT l.id,
+            WITH target_sessions AS (
+                    SELECT id, namespace, session_uid
+                      FROM sessions
+                     WHERE {session_where}
+                 ),
+                 target_keys(key) AS (
+                    SELECT id FROM target_sessions WHERE id IS NOT NULL AND id != ''
+                    UNION
+                    SELECT namespace FROM target_sessions WHERE namespace IS NOT NULL AND namespace != ''
+                    UNION
+                    SELECT session_uid FROM target_sessions WHERE session_uid IS NOT NULL AND session_uid != ''
+                 ),
+                 scoped AS (
+                    SELECT l.id,
                            l.tokens_input,
                            l.cache_read_tokens,
                            l.tokens_output,
                            l.tokens_reasoning,
                            l.cost_usd
                       FROM llm_calls l
-                      LEFT JOIN sessions s
-                        ON s.id = l.session_id
-                        OR s.namespace = l.session_id
-                        OR s.session_uid = l.session_id
-                     WHERE {where}
-                   ) scoped
+                     WHERE ? != '' AND l.session_id = ?
+                    UNION
+                    SELECT l.id,
+                           l.tokens_input,
+                           l.cache_read_tokens,
+                           l.tokens_output,
+                           l.tokens_reasoning,
+                           l.cost_usd
+                      FROM llm_calls l
+                     WHERE ? != '' AND l.session_id >= ? AND l.session_id < ?
+                    UNION
+                    SELECT l.id,
+                           l.tokens_input,
+                           l.cache_read_tokens,
+                           l.tokens_output,
+                           l.tokens_reasoning,
+                           l.cost_usd
+                      FROM llm_calls l
+                     WHERE l.session_id IN (SELECT key FROM target_keys)
+                 )
+            SELECT COUNT(*) AS calls,
+                   COALESCE(SUM(tokens_input), 0) AS tokens_input,
+                   COALESCE(SUM(cache_read_tokens), 0) AS cache_read_tokens,
+                   COALESCE(SUM(tokens_output), 0) AS tokens_output,
+                   COALESCE(SUM(tokens_reasoning), 0) AS tokens_reasoning,
+                   COALESCE(SUM(cost_usd), 0.0) AS cost_usd
+              FROM scoped
             """,
-            tuple(values),
+            tuple([
+                *session_values,
+                runtime_exact,
+                runtime_exact,
+                runtime_prefix,
+                runtime_prefix,
+                runtime_upper,
+            ]),
         )
         data = dict(row) if row is not None else {}
         return {

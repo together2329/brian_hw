@@ -48,6 +48,7 @@ This section is additive; it does not replace the reading order below.
 | SSOT export reverse direction 2026-05-19 (`/api/ssot/export?ip=&format=md|docx|html` renders `<ip>/yaml/<ip>.ssot.yaml` → `<ip>/doc/<ip>_ssot.<ext>` deterministically; md via yaml walker, html via python-`markdown`, docx via python-docx; pdf deferred — see [[ssot-conversion-flow-20260519]] `## Export (reverse direction)`) | [[ssot-conversion-flow-20260519]] |
 | DAG pipeline payload, worker command map, and signoff evidence checklist | [[atlas-dag-ip-flow-runbook]] |
 | Clean interactive `ask_user` discovery protocol | [[interactive-ask-user-ip-discovery]] |
+| Parked `workspace.jsx` decomposition plan | [[workspace-jsx-decomposition-plan]] |
 
 Current practical rule: final product-flow claims should be validated through
 the same ATLAS UI/API/worker path users run, not only through headless runs.
@@ -124,6 +125,7 @@ be loaded on a different machine and inspected without recreating the DB.
 ## Open Improvements
 
 - [[workflow-improvement-candidates]] — parking lot for design candidates not yet decided (reference RTL reuse incl. legacy-extend / style-match / pin-compat cases, sectional SSOT-gen, multi-LLM reviewer pattern, stage repair convergence budget, requirements authoring guide). Captured 2026-05-17 from [[atcuart100-pipeline-run]]. None promoted to code yet; do not treat as normative.
+- [[workspace-jsx-decomposition-plan]] — parked frontend refactor plan for splitting `frontend/atlas/workspace.jsx` after routing/session work settles. Status: proposed, P0-gated, not implemented.
 
 ## Hard Rules
 

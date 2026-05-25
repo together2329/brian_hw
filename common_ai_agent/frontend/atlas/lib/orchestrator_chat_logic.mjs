@@ -1,5 +1,8 @@
 // orchestrator_chat_logic.mjs — ES module twin of orchestrator_chat_logic.js for vitest.
 
+const MAX_THOUGHT_LINES = 80;
+const THOUGHT_COMPACTION_MARKER_RE = /^\.\.\. \(\d+ older thought lines hidden for speed\)$/;
+
 export function toolEntryFromDisplayLine(content) {
   const text = String(content || '').trim();
   if (!text) return null;
@@ -106,6 +109,89 @@ export function feedEntryFromWorkerLogEntry(entry, job = {}) {
     return { kind: 'agent', text: content, createdAt, live: true, worker };
   }
   return null;
+}
+
+export function isThinkingPlaceholderLine(line) {
+  let normalized = String(line || '').trim();
+  for (let i = 0; i < 3; i++) {
+    normalized = normalized
+      .replace(/^[^A-Za-z0-9]+/, '')
+      .replace(/^(?:thought|reasoning)\b\s*[:\])\-–—]*/i, '')
+      .trim();
+  }
+  normalized = normalized
+    .replace(/^[^A-Za-z0-9]+/, '')
+    .replace(/[.\u2026\s]+$/g, '')
+    .toLowerCase();
+  return normalized === 'thinking';
+}
+
+export function isThinkingPlaceholderText(text) {
+  const lines = String(text || '').split('\n').map((line) => line.trim()).filter(Boolean);
+  return !!lines.length && lines.every(isThinkingPlaceholderLine);
+}
+
+export function visibleThoughtLines(text) {
+  const lines = String(text || '').split('\n').map((line) => line.trim()).filter(Boolean);
+  if (!lines.length) return [];
+  const real = lines.filter((line) => !isThinkingPlaceholderLine(line) && !THOUGHT_COMPACTION_MARKER_RE.test(line));
+  return real;
+}
+
+export function compactThoughtText(text, maxLines = MAX_THOUGHT_LINES) {
+  const lines = visibleThoughtLines(text);
+  if (lines.length <= maxLines) return lines.join('\n');
+  return [
+    `... (${lines.length - maxLines} older thought lines hidden for speed)`,
+    ...lines.slice(-maxLines),
+  ].join('\n');
+}
+
+export function coalesceFeedEntries(existing = [], incoming = []) {
+  const out = Array.isArray(existing) ? existing.slice() : [];
+  const fresh = Array.isArray(incoming) ? incoming : [incoming];
+
+  for (const raw of fresh) {
+    if (!raw || typeof raw !== 'object') continue;
+    const entry = raw.kind === 'thought'
+      ? { ...raw, text: compactThoughtText(raw.text) }
+      : raw;
+    if (entry.kind === 'thought' && !String(entry.text || '').trim()) continue;
+    const isThought = entry.kind === 'thought';
+    const incomingPlaceholder = isThought && isThinkingPlaceholderText(entry.text);
+    const last = out[out.length - 1];
+    const lastPlaceholder = last && last.kind === 'thought' && isThinkingPlaceholderText(last.text);
+
+    if (incomingPlaceholder) {
+      continue;
+    }
+
+    if (lastPlaceholder) {
+      out.pop();
+    }
+
+    const prev = out[out.length - 1];
+    if (isThought && prev && prev.kind === 'thought') {
+      const prevText = String(prev.text || '').trim();
+      const nextText = String(entry.text || '').trim();
+      if (!nextText) continue;
+      if (prevText === nextText) {
+        out[out.length - 1] = { ...prev, ...entry, text: prev.text };
+      } else {
+        const mergedText = compactThoughtText(prevText ? `${prevText}\n${nextText}` : nextText);
+        out[out.length - 1] = {
+          ...prev,
+          ...entry,
+          text: mergedText,
+        };
+      }
+      continue;
+    }
+
+    out.push(entry);
+  }
+
+  return out;
 }
 
 // --- Orchestrator handoff formatting (dispatch_workflow / write_handoff) ---

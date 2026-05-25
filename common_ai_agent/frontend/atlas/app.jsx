@@ -183,10 +183,20 @@ const PipelineRunningChip = ({ onClick }) => {
 const OrchInlineStatus = ({ activeIp }) => {
   const [status, setStatus] = React.useState(null);
 
+  const execMode = normalizeAtlasExecMode(
+    (atlasBootConfig().exec_policy && atlasBootConfig().exec_policy.exec_mode)
+    || (atlasBootConfig().policy && atlasBootConfig().policy.exec_mode)
+    || atlasBootConfig().exec_mode
+    || window.ATLAS_EXEC_MODE
+    || window.ATLAS_DEFAULT_EXEC_MODE
+    || 'single'
+  );
+  const isOrch = execMode === 'orchestrator';
+
   React.useEffect(() => {
     let cancelled = false;
     const poll = async () => {
-      if (!activeIp || activeIp === 'default') { setStatus(null); return; }
+      if (!isOrch || !activeIp || activeIp === 'default') { setStatus(null); return; }
       try {
         const [runRes, traceRes] = await Promise.all([
           fetch(`/api/orchestrator/active_run?ip=${encodeURIComponent(activeIp)}`),
@@ -204,19 +214,9 @@ const OrchInlineStatus = ({ activeIp }) => {
       }
     };
     poll();
-    const id = setInterval(poll, 1500);
+    const id = setInterval(poll, 5000);
     return () => { cancelled = true; clearInterval(id); };
-  }, [activeIp]);
-
-  const execMode = normalizeAtlasExecMode(
-    (atlasBootConfig().exec_policy && atlasBootConfig().exec_policy.exec_mode)
-    || (atlasBootConfig().policy && atlasBootConfig().policy.exec_mode)
-    || atlasBootConfig().exec_mode
-    || window.ATLAS_EXEC_MODE
-    || window.ATLAS_DEFAULT_EXEC_MODE
-    || 'single'
-  );
-  const isOrch = execMode === 'orchestrator';
+  }, [activeIp, isOrch]);
   const workerCount = status && status.run && typeof status.run.running_count === 'number'
     ? status.run.running_count : 0;
   const lastKind = status && status.lastEvent
@@ -367,11 +367,9 @@ const App = () => {
   }, []);
   const newIpInitialWorkflow = React.useCallback(() => {
     const policy = atlasPolicyConfig();
-    return normalizeSession(policy.initial_workflow || '') || (
-      normalizeAtlasExecMode(execMode || policy.exec_mode || window.ATLAS_EXEC_MODE || window.ATLAS_DEFAULT_EXEC_MODE) === 'orchestrator'
-        ? 'orchestrator'
-        : 'ssot-gen'
-    );
+    const mode = normalizeAtlasExecMode(execMode || policy.exec_mode || window.ATLAS_EXEC_MODE || window.ATLAS_DEFAULT_EXEC_MODE);
+    if (mode === 'orchestrator') return 'orchestrator';
+    return normalizeSession(policy.initial_workflow || '') || 'ssot-gen';
   }, [execMode, normalizeSession]);
   const preserveRunningForCurrentMode = React.useCallback(() => {
     const policy = atlasPolicyConfig();
@@ -451,6 +449,9 @@ const App = () => {
     initialBootstrapNamespace || (holdInitialDashboardActivation ? '' : `${activeSessionId}/default/default`)
   );
   const [activeIp, setActiveIp] = React.useState(initialSplit.ipId || WORKFLOW_DEFAULT);
+  React.useEffect(() => {
+    window.ACTIVE_IP = activeIp || WORKFLOW_DEFAULT;
+  }, [activeIp]);
   const [activeDbSession, setActiveDbSession] = React.useState(() => ({
     dbSessionId: String(window.ATLAS_DB_SESSION_ID || '').trim(),
     sessionUid: String(window.ATLAS_SESSION_UID || '').trim(),
@@ -742,7 +743,7 @@ const App = () => {
         health: 'pending', sessions: 'pending', llm: 'pending',
       }));
       if (!bootEverReadyRef.current) setBootHidden(false);
-      fetch('/healthz', { cache: 'no-store' })
+      fetch('/healthz?cost=0', { cache: 'no-store' })
         .then(r => mark('health', r.ok ? 'done' : 'fail'))
         .catch(() => mark('health', 'fail'));
       fetch('/api/session/list', { cache: 'no-store' })
@@ -798,7 +799,7 @@ const App = () => {
       fetch('/api/session/list', { cache: 'no-store' })
         .then(r => mark('sessions', r.ok ? 'done' : 'fail'))
         .catch(() => mark('sessions', 'fail'));
-      fetch('/healthz', { cache: 'no-store' })
+      fetch('/healthz?cost=0', { cache: 'no-store' })
         .then(r => mark('health', r.ok ? 'done' : 'fail'))
         .catch(() => mark('health', 'fail'));
       fetch('/api/llm/ping', { cache: 'no-store' })
@@ -957,6 +958,7 @@ const App = () => {
     }
     syncNamespaceUrl(namespace, owner, ip, wf);
     setActiveSessionId(owner);
+    window.ACTIVE_IP = ip;
     setActiveIp(ip);
     setActiveNamespace(namespace);
     window.ACTIVE_SESSION = namespace;
@@ -1544,7 +1546,12 @@ const App = () => {
       const createResponse = await fetch('/api/ip/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: ip, kind: 'TBD', exec_mode: requestedExecMode }),
+        body: JSON.stringify({
+          name: ip,
+          kind: 'TBD',
+          exec_mode: requestedExecMode,
+          workflow: requestedWorkflow,
+        }),
       });
       try { createPayload = await createResponse.json(); } catch (_) { createPayload = {}; }
       if (!createResponse.ok) {
@@ -1560,7 +1567,8 @@ const App = () => {
     }
     const createdNamespace = normalizeSession(createPayload.session || '');
     const createdParts = splitSessionNamespace(createdNamespace);
-    const workflow = normalizeSession(createPayload.workflow || createdParts.workflow || requestedWorkflow) || requestedWorkflow;
+    const payloadWorkflow = normalizeSession(createPayload.workflow || createdParts.workflow || requestedWorkflow) || requestedWorkflow;
+    const workflow = requestedExecMode === 'orchestrator' ? 'orchestrator' : payloadWorkflow;
     // Local state first so the dropdown and scope reflect the new IP
     // immediately after the scaffold exists.
     setIpOptions(prev => Array.from(new Set([ip].concat(prev || []))));
@@ -2111,16 +2119,11 @@ const App = () => {
                     onClick={() => setNameEntry(null)}>×</button>
           </form>
         )}
-        <label className="dir-select-wrap" title="Active workflow segment of the session namespace. Picking one activates the backend workspace and re-pins config.TODO_FILE accordingly.">
+        <label className="dir-select-wrap" title="Workflow indicator. Use the left Workflow rail to switch.">
           <span>workflow</span>
-          <select
-            className="dir-select"
-            value={currentWorkflow() || WORKFLOW_DEFAULT}
-            onChange={e => selectWorkflow(e.currentTarget.value)}>
-            {WORKFLOW_OPTIONS.map(wf => (
-              <option key={wf} value={wf}>{wf}</option>
-            ))}
-          </select>
+          <output className="dir-select readonly">
+            {execMode === 'orchestrator' ? 'orchestrator' : (currentWorkflow() || WORKFLOW_DEFAULT)}
+          </output>
         </label>
         <button className="dir-btn"
                 title={activeIp
@@ -2260,7 +2263,7 @@ const App = () => {
             createIp(nameEntry.value).then(ok => { if (ok !== false) setNameEntry(null); });
           }
         }}
-        workflow={currentWorkflow()}
+        workflow={execMode === 'orchestrator' ? 'orchestrator' : currentWorkflow()}
         workflowOptions={WORKFLOW_OPTIONS}
         onSelectWorkflow={selectWorkflow}
         onOpenLeftDrawer={() => {
@@ -2447,12 +2450,11 @@ const MobileKebabMenu = ({ open, onClose, stopAgent, exitAll }) => {
 const MobileHeader = ({
   activeIp, ipOptions, onSelectIp, onCreateIp,
   nameEntry, nameEntryInputRef, onNameEntryChange, onNameEntryCancel, onNameEntryCommit,
-  workflow, workflowOptions, onSelectWorkflow,
+  workflow,
   onOpenLeftDrawer, onOpenRightDrawer,
   stopAgent, exitAll,
 }) => {
   const [ipPickerOpen,       setIpPickerOpen]       = React.useState(false);
-  const [workflowPickerOpen, setWorkflowPickerOpen] = React.useState(false);
   const [kebabOpen,          setKebabOpen]           = React.useState(false);
 
   // Wire workspace.jsx's existing drawer state through CustomEvents so the
@@ -2513,8 +2515,8 @@ const MobileHeader = ({
       {/* ── Workflow chip ── */}
       <button
         className="mob-header-wf"
-        aria-label={`Workflow: ${wfLabel}. Tap to change.`}
-        onClick={() => setWorkflowPickerOpen(true)}
+        aria-label={`Workflow: ${wfLabel}. Open sidebar to change.`}
+        onClick={onOpenLeftDrawer}
       >{wfLabel.toUpperCase().slice(0, 6)}</button>
 
       {/* ── Kebab ── */}
@@ -2532,13 +2534,6 @@ const MobileHeader = ({
         onSelect={onSelectIp}
         onCreateIp={onCreateIp}
         onClose={() => setIpPickerOpen(false)}
-      />
-      <MobileWorkflowPicker
-        open={workflowPickerOpen}
-        workflow={workflow}
-        workflowOptions={workflowOptions}
-        onSelect={onSelectWorkflow}
-        onClose={() => setWorkflowPickerOpen(false)}
       />
       <MobileKebabMenu
         open={kebabOpen}

@@ -154,6 +154,36 @@ PROJECT_ROOT = Path(os.getcwd()).resolve()
 # Backwards compat alias — older code references ROOT.
 ROOT         = SOURCE_ROOT
 
+_HEALTHZ_COST_CACHE: dict[tuple[str, str, str, str], tuple[float, dict[str, Any]]] = {}
+_HEALTHZ_COST_CACHE_LOCK = threading.RLock()
+
+
+def _healthz_cost_cache_ttl() -> float:
+    try:
+        return max(0.0, float(os.environ.get("ATLAS_HEALTHZ_COST_CACHE_TTL", "30") or 30))
+    except Exception:
+        return 30.0
+
+
+def _healthz_cost_cache_get(key: tuple[str, str, str, str]) -> dict[str, Any] | None:
+    ttl = _healthz_cost_cache_ttl()
+    if ttl <= 0:
+        return None
+    now = time.monotonic()
+    with _HEALTHZ_COST_CACHE_LOCK:
+        hit = _HEALTHZ_COST_CACHE.get(key)
+        if hit and (now - hit[0]) < ttl:
+            return dict(hit[1])
+    return None
+
+
+def _healthz_cost_cache_set(key: tuple[str, str, str, str], value: dict[str, Any]) -> None:
+    ttl = _healthz_cost_cache_ttl()
+    if ttl <= 0:
+        return
+    with _HEALTHZ_COST_CACHE_LOCK:
+        _HEALTHZ_COST_CACHE[key] = (time.monotonic(), dict(value))
+
 _REASONING_EFFORT_OPTIONS = ("none", "low", "medium", "high", "xhigh")
 _REASONING_EFFORT_ALIASES = {
     "none": "none",
@@ -3671,6 +3701,9 @@ def create_app():
         username = user.get("username") if user else None
         info["user_session"] = username
         username_norm = normalize_session_name(str(username or ""))
+        include_cost = str(request.query_params.get("cost", "1") or "1").strip().lower() not in {
+            "0", "false", "no", "lite",
+        }
         request_active_session = ""
         if username_norm:
             try:
@@ -3805,7 +3838,7 @@ def create_app():
             info["db_session_id"] = ""
             info["session_uid"] = ""
             info["session_label"] = ""
-            if active_session_path and user:
+            if include_cost and active_session_path and user:
                 try:
                     with AtlasDB() as _db:
                         _row = _db.get_session_for_user(str(user.get("id") or ""), active_session_path)
@@ -3931,19 +3964,25 @@ def create_app():
             info["cost_calls"] = 0
             try:
                 active_ip_name = str(info.get("active_ip") or "").strip()
-                if active_ip_name and active_ip_name != "default":
-                    with AtlasDB() as _db:
-                        usage = _db.summarize_llm_usage_for_user_ip(
-                            user_id=str(user.get("id") or "") if user else "",
-                            username=username_norm,
-                            ip=active_ip_name,
-                        )
+                if include_cost and active_ip_name and active_ip_name != "default":
+                    db_path = os.environ.get("ATLAS_DB_PATH") or str(Path.home() / ".common_ai_agent" / "atlas.db")
+                    user_id = str(user.get("id") or "") if user else ""
+                    cache_key = (db_path, user_id, username_norm, active_ip_name)
+                    usage = _healthz_cost_cache_get(cache_key)
+                    if usage is None:
+                        with AtlasDB() as _db:
+                            usage = _db.summarize_llm_usage_for_user_ip(
+                                user_id=user_id,
+                                username=username_norm,
+                                ip=active_ip_name,
+                            )
+                        _healthz_cost_cache_set(cache_key, usage)
                     info["tokens_in"] = usage.get("tokens_input", 0)
                     info["tokens_cache"] = usage.get("cache_read_tokens", 0)
                     info["tokens_out"] = usage.get("tokens_output", 0)
                     info["cost_usd"] = usage.get("cost_usd", 0.0)
                     info["cost_calls"] = usage.get("calls", 0)
-                elif worker_cost_seen:
+                elif include_cost and worker_cost_seen:
                     # No active IP means there is no user+IP aggregate key.
                     # Keep legacy local visibility for default sessions only.
                     info["cost_scope"] = "worker_session_fallback"

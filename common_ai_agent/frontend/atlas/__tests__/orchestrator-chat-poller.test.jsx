@@ -1,8 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import {
+  compactThoughtText,
+  coalesceFeedEntries,
   feedEntryFromChatMessage,
   feedEntryFromWorkerLogEntry,
+  isThinkingPlaceholderText,
   toolEntryFromDisplayLine,
+  visibleThoughtLines,
 } from '../lib/orchestrator_chat_logic.mjs';
 
 describe('orchestrator chat poll mapping', () => {
@@ -140,5 +144,41 @@ describe('orchestrator chat poll mapping', () => {
       live: true,
       worker: { job_id: 'j2', workflow: 'ssot-gen' },
     });
+  });
+
+  it('coalesces repeated live Thinking placeholders instead of stacking rows', () => {
+    expect(isThinkingPlaceholderText('* Thinking...')).toBe(true);
+    expect(isThinkingPlaceholderText('✣ Thinking…')).toBe(true);
+    expect(isThinkingPlaceholderText('THOUGHT * Thinking...')).toBe(true);
+    expect(isThinkingPlaceholderText('reading mctp/yaml/mctp.ssot.yaml')).toBe(false);
+    expect(visibleThoughtLines('✣ Thinking…\n✦ Thinking…')).toEqual([]);
+
+    const entries = coalesceFeedEntries([], [
+      { kind: 'thought', text: '* Thinking...', live: true, createdAt: 1 },
+      { kind: 'thought', text: '✣ Thinking…\n✦ Thinking…', live: true, createdAt: 2 },
+      { kind: 'thought', text: 'reading mctp/yaml/mctp.ssot.yaml', live: true, createdAt: 3 },
+      { kind: 'action', text: '▶ read_artifact stage="ssot"', tool: 'read_artifact', live: true, createdAt: 4 },
+      { kind: 'thought', text: 'Answering RTL blockers\n✣ Thinking…\n✦ Thinking…', live: true, createdAt: 5 },
+      { kind: 'obs', text: '{"ok":true}', tool: 'read_artifact', live: true, createdAt: 6 },
+    ]);
+
+    expect(entries.map(e => e.kind)).toEqual(['thought', 'action', 'thought', 'obs']);
+    expect(entries[0].text).toBe('reading mctp/yaml/mctp.ssot.yaml');
+    expect(entries[2].text).toBe('Answering RTL blockers');
+  });
+
+  it('caps coalesced thought logs so live worker chat stays responsive', () => {
+    const longThought = Array.from({ length: 120 }, (_, i) => `line ${i + 1}`).join('\n');
+
+    expect(compactThoughtText(longThought).split('\n')).toHaveLength(81);
+
+    const entries = coalesceFeedEntries([{ kind: 'thought', text: longThought, live: true }], [
+      { kind: 'thought', text: 'line 121', live: true },
+    ]);
+
+    expect(entries).toHaveLength(1);
+    expect(entries[0].text).toContain('older thought lines hidden for speed');
+    expect(entries[0].text).toContain('line 121');
+    expect(entries[0].text).not.toContain('line 1\n');
   });
 });

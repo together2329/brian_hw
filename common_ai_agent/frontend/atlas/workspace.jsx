@@ -107,6 +107,177 @@ const refreshChatSession = (session, opts) => {
   return null;
 };
 
+const atlasIsThinkingPlaceholderText = (text) => {
+  const fn = window.AtlasOrchestratorChatLogic?.isThinkingPlaceholderText;
+  if (typeof fn === 'function') return fn(text);
+  const lines = String(text || '').split('\n').map(l => l.trim()).filter(Boolean);
+  if (!lines.length) return false;
+  return lines.every(line => (
+    line
+      .replace(/^[^A-Za-z0-9]+/, '')
+      .replace(/^(?:thought|reasoning)\b\s*[:\])\-–—]*/i, '')
+      .replace(/^[^A-Za-z0-9]+/, '')
+      .trim()
+      .replace(/[.\u2026\s]+$/g, '')
+      .toLowerCase() === 'thinking'
+  ));
+};
+
+const visibleAtlasThoughtLines = (text) => {
+  const fn = window.AtlasOrchestratorChatLogic?.visibleThoughtLines;
+  if (typeof fn === 'function') return fn(text);
+  const lines = String(text || '').split('\n').map(l => l.trim()).filter(Boolean);
+  if (!lines.length) return [];
+  const real = lines.filter(line => !atlasIsThinkingPlaceholderText(line) && !/^\.\.\. \(\d+ older thought lines hidden for speed\)$/.test(line));
+  return real;
+};
+
+const compactAtlasThoughtText = (text, maxLines = 80) => {
+  const fn = window.AtlasOrchestratorChatLogic?.compactThoughtText;
+  if (typeof fn === 'function') return fn(text, maxLines);
+  const lines = visibleAtlasThoughtLines(text);
+  if (lines.length <= maxLines) return lines.join('\n');
+  return [
+    `... (${lines.length - maxLines} older thought lines hidden for speed)`,
+    ...lines.slice(-maxLines),
+  ].join('\n');
+};
+
+const coalesceAtlasFeedEntries = (current, entries) => {
+  const fn = window.AtlasOrchestratorChatLogic?.coalesceFeedEntries;
+  if (typeof fn === 'function') return fn(current, entries);
+  const list = Array.isArray(entries) ? entries : [entries];
+  const out = Array.isArray(current) ? current.slice() : [];
+  for (const raw of list) {
+    if (!raw || typeof raw !== 'object') continue;
+    const entry = raw.kind === 'thought'
+      ? { ...raw, text: compactAtlasThoughtText(raw.text) }
+      : raw;
+    if (entry.kind === 'thought' && !String(entry.text || '').trim()) continue;
+    const thought = entry.kind === 'thought';
+    const placeholder = thought && atlasIsThinkingPlaceholderText(entry.text);
+    const last = out[out.length - 1];
+    const lastPlaceholder = last && last.kind === 'thought' && atlasIsThinkingPlaceholderText(last.text);
+    if (placeholder) {
+      continue;
+    }
+    if (lastPlaceholder) out.pop();
+    const prev = out[out.length - 1];
+    if (thought && prev && prev.kind === 'thought') {
+      const prevText = String(prev.text || '').trim();
+      const nextText = String(entry.text || '').trim();
+      if (nextText && prevText !== nextText) out[out.length - 1] = { ...prev, ...entry, text: compactAtlasThoughtText(prevText ? `${prevText}\n${nextText}` : nextText) };
+      else if (nextText) out[out.length - 1] = { ...prev, ...entry, text: prev.text };
+      continue;
+    }
+    out.push(entry);
+  }
+  return out;
+};
+
+const trimAtlasFeedState = (items, maxEntries = 600) => {
+  const list = Array.isArray(items) ? items.filter(Boolean) : [];
+  if (list.length <= maxEntries) return list;
+  const tail = list.slice(-maxEntries);
+  // Keep pending interactive cards even if a very noisy worker log would push
+  // them out of the retained window.
+  const protectedEntries = list
+    .slice(0, -maxEntries)
+    .filter(e => e && (e.kind === 'qcard' || e.kind === 'ssot_approval'));
+  return [...protectedEntries, ...tail];
+};
+
+const orchestratorFlowToolName = (entry) => _normalizeToolName(entry && entry.tool || '').toLowerCase();
+const orchestratorFlowArg = (entry, name) => {
+  const raw = entry && entry.argsRaw;
+  if (raw && typeof raw === 'object' && raw[name] != null) return String(raw[name]).trim();
+  const text = String((entry && (entry.args || entry.text)) || '');
+  const re = new RegExp('(?:^|[,\\s(])' + name + '\\s*=\\s*(?:"([^"]*)"|\'([^\']*)\'|([^,\\s)]+))');
+  const match = text.match(re);
+  return match ? String(match[1] || match[2] || match[3] || '').trim() : '';
+};
+
+const orchestratorFlowFromFeed = (feed = [], workers = [], activeIp = '') => {
+  const items = Array.isArray(feed) ? feed : [];
+  const lastUserIndex = (() => {
+    for (let i = items.length - 1; i >= 0; i--) {
+      if (items[i] && items[i].kind === 'user') return i;
+    }
+    return -1;
+  })();
+  const recent = lastUserIndex >= 0 ? items.slice(lastUserIndex) : [];
+  const userText = lastUserIndex >= 0 ? String(items[lastUserIndex]?.text || '').trim() : '';
+  const liveWorkers = (Array.isArray(workers) ? workers : []).filter(w => (
+    Number(w.running_count || 0) > 0 ||
+    Number(w.pending_count || 0) > 0 ||
+    Number(w.queued_count || 0) > 0
+  ));
+  const actions = recent.filter(e => e && e.kind === 'action');
+  const hasCheck = actions.some(e => orchestratorFlowToolName(e) === 'read_pipeline_state');
+  const hasWait = actions.some(e => orchestratorFlowToolName(e) === 'yield_run' || orchestratorFlowToolName(e) === 'wait_job');
+  const dispatchActions = actions.filter(e => (
+    orchestratorFlowToolName(e) === 'dispatch_workflow' ||
+    /\bdispatch\b/i.test(String(e.text || ''))
+  ));
+  const dispatched = dispatchActions
+    .map(e => orchestratorFlowArg(e, 'workflow') || String(e.tool || '').trim())
+    .filter(Boolean);
+  const workerNames = liveWorkers
+    .map(w => String(w.workflow || '').trim())
+    .filter(Boolean);
+  const targets = Array.from(new Set([...dispatched, ...workerNames])).filter(Boolean);
+  const hasSignal = userText || hasCheck || dispatchActions.length || liveWorkers.length || hasWait;
+  if (!hasSignal) return null;
+  const workerRunning = liveWorkers.some(w => Number(w.running_count || 0) > 0);
+  const workerPending = liveWorkers.some(w => Number(w.pending_count || 0) > 0);
+  const workerQueued = liveWorkers.some(w => Number(w.queued_count || 0) > 0);
+  const workerStatus = workerRunning ? 'running' : workerPending ? 'starting' : workerQueued ? 'queued' : '';
+  const steps = [];
+  if (userText) {
+    steps.push({
+      key: 'user',
+      label: 'You',
+      detail: userText.length > 44 ? `${userText.slice(0, 44)}...` : userText,
+      tone: 'done',
+    });
+  }
+  steps.push({
+    key: 'orchestrator',
+    label: 'Orchestrator',
+    detail: hasCheck || dispatchActions.length || hasWait ? 'routing' : 'deciding',
+    tone: hasCheck || dispatchActions.length || hasWait ? 'done' : 'active',
+  });
+  if (hasCheck) {
+    steps.push({ key: 'check', label: 'Check state', detail: activeIp || 'ip', tone: 'done' });
+  }
+  if (dispatchActions.length || targets.length) {
+    steps.push({
+      key: 'dispatch',
+      label: 'Dispatch',
+      detail: targets.length ? targets.join(', ') : 'worker',
+      tone: liveWorkers.length ? 'done' : 'active',
+    });
+  }
+  if (liveWorkers.length) {
+    steps.push({
+      key: 'worker',
+      label: targets.length ? targets.join(', ') : 'worker',
+      detail: workerStatus || 'active',
+      tone: workerRunning ? 'active' : workerPending || workerQueued ? 'pending' : 'done',
+      workflow: targets[0] || workerNames[0] || '',
+    });
+  }
+  if (hasWait || liveWorkers.length) {
+    steps.push({
+      key: 'wait',
+      label: 'Wait result',
+      detail: liveWorkers.length ? 'worker running' : 'yielded',
+      tone: liveWorkers.length ? 'active' : 'pending',
+    });
+  }
+  return { steps, activeWorkflow: targets[0] || '', activeIp };
+};
+
 const workspaceFetchWorkerSnapshot = async (opts = {}) => {
   const api = window.atlasData || {};
   if (typeof api.fetchWorkerSnapshot === 'function') {
@@ -968,6 +1139,49 @@ const healthMatchesCurrentUser = (payload) => {
   return !(current && response && current !== response);
 };
 
+const uiSessionRoute = (session) => {
+  const route = window.AtlasSessionRouting || {};
+  if (typeof route.sessionRoute === 'function') {
+    try { return route.sessionRoute(session); } catch (_) {}
+  }
+  const parts = normalizeUiSession(session).split('/').filter(Boolean);
+  const ip = parts.length >= 3 ? parts[parts.length - 2] : '';
+  return {
+    owner: parts[0] || '',
+    ip: ip && ip !== 'default' && ip !== 'soc' ? ip : '',
+    workflow: parts.length >= 3 ? (parts[parts.length - 1] || '') : '',
+  };
+};
+
+const uiHealthCountersMatchBrowserRoute = (payload) => {
+  const route = window.AtlasSessionRouting || {};
+  const browserSession = normalizeUiSession(window.ACTIVE_SESSION || '');
+  const payloadSession = normalizeUiSession((payload && payload.active_session) || '');
+  if (typeof route.healthCountersMatchRoute === 'function') {
+    try { return route.healthCountersMatchRoute({ browserSession, payloadSession }); } catch (_) {}
+  }
+  if (!browserSession || !payloadSession || browserSession === payloadSession) return true;
+  const browser = uiSessionRoute(browserSession);
+  const incoming = uiSessionRoute(payloadSession);
+  const sameOwner = !browser.owner || !incoming.owner || browser.owner === incoming.owner || incoming.owner === 'local-admin';
+  return !browser.ip || (!!incoming.ip && incoming.ip === browser.ip && sameOwner);
+};
+
+const uiEffectiveHealthSession = (payload) => {
+  const route = window.AtlasSessionRouting || {};
+  const browserSession = normalizeUiSession(window.ACTIVE_SESSION || '');
+  const payloadSession = normalizeUiSession((payload && payload.active_session) || '');
+  if (typeof route.shouldUseBrowserSession === 'function') {
+    try {
+      return route.shouldUseBrowserSession({ browserSession, payloadSession })
+        ? browserSession
+        : (payloadSession || browserSession);
+    } catch (_) {}
+  }
+  if (!browserSession || !payloadSession || browserSession === payloadSession) return payloadSession || browserSession;
+  return uiHealthCountersMatchBrowserRoute(payload) ? payloadSession : browserSession;
+};
+
 const atlasUiExecMode = () => String(
   window.ATLAS_EXEC_MODE
   || window.ATLAS_DEFAULT_EXEC_MODE
@@ -1030,6 +1244,41 @@ const KNOWN_WORKFLOW_PATH_SEGMENTS = new Set([
   'sta-post',
   'goal-audit',
 ]);
+
+const atlasRoutingApi = () => window.AtlasSessionRouting || {};
+const routeSessionIp = (session) => {
+  const api = atlasRoutingApi();
+  if (typeof api.sessionIpFromSession === 'function') {
+    return api.sessionIpFromSession(session);
+  }
+  const parts = normalizeUiSession(session).split('/').filter(Boolean);
+  const ip = parts.length >= 3 ? parts[parts.length - 2] : '';
+  const lowered = ip.toLowerCase();
+  return ip && /^[A-Za-z][A-Za-z0-9_.-]*$/.test(ip) && !KNOWN_WORKFLOW_PATH_SEGMENTS.has(lowered) && lowered !== 'soc' && lowered !== 'user' ? ip : '';
+};
+const routeScopeIp = (scope) => {
+  const api = atlasRoutingApi();
+  if (typeof api.scopeIp === 'function') return api.scopeIp(scope);
+  const parts = normalizeUiSession(scope).split('/').filter(Boolean);
+  const ip = parts[parts.length - 1] || '';
+  const lowered = ip.toLowerCase();
+  return ip && /^[A-Za-z][A-Za-z0-9_.-]*$/.test(ip) && !KNOWN_WORKFLOW_PATH_SEGMENTS.has(lowered) && lowered !== 'soc' && lowered !== 'user' ? ip : '';
+};
+const activeIpForRoute = (sessions = []) => {
+  const api = atlasRoutingApi();
+  if (typeof api.activeIpForRouting === 'function') {
+    return api.activeIpForRouting({
+      sessions,
+      activeIp: window.ACTIVE_IP || '',
+      scopePath: window.SCOPE_PATH || '',
+    });
+  }
+  for (const session of sessions) {
+    const ip = routeSessionIp(session);
+    if (ip) return ip;
+  }
+  return routeScopeIp(window.ACTIVE_IP || '') || routeScopeIp(window.SCOPE_PATH || '');
+};
 
 const persistAtlasPreviewPath = (path) => {
   const value = String(path || '').trim();
@@ -1566,7 +1815,14 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
   }, []);
   const sessionForInputRoute = React.useCallback((ip, wf) => {
     const workflowName = normalizeUiSession(wf || 'orchestrator') || 'orchestrator';
-    const ipName = normalizeUiSession(ip || '') || 'default';
+    const ipName = normalizeUiSession(
+      ip || activeIpForRoute([
+        window.ACTIVE_SESSION,
+        activeSessionRef.current,
+        activeSession,
+        activeNamespace,
+      ]) || ''
+    ) || 'default';
     const parts = normalizeUiSession(window.ACTIVE_SESSION || activeSessionRef.current || activeSession || '').split('/').filter(Boolean);
     const owner = normalizeUiSession((window.ATLAS_USER && window.ATLAS_USER.username) || '') || parts[0] || 'default';
     return resolveSession(
@@ -1574,26 +1830,38 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         ? window.atlasData.sessionFor(ipName, workflowName)
         : `${owner}/${ipName}/${workflowName}`,
     );
-  }, [activeSession, resolveSession]);
+  }, [activeNamespace, activeSession, resolveSession]);
   const setOrchestratorInputRoute = React.useCallback((ip = '') => {
+    const routeIp = ip || activeIpForRoute([
+      window.ACTIVE_SESSION,
+      activeSessionRef.current,
+      activeSession,
+      activeNamespace,
+    ]);
     setInputRoute({
       type: 'orchestrator-chat',
       workflow: 'orchestrator',
-      session: sessionForInputRoute(ip, 'orchestrator'),
+      session: sessionForInputRoute(routeIp, 'orchestrator'),
     });
-  }, [sessionForInputRoute, setInputRoute]);
+  }, [activeNamespace, activeSession, sessionForInputRoute, setInputRoute]);
   const setWorkflowDispatchInputRoute = React.useCallback((wf, ip = '') => {
     const workflowName = normalizeUiSession(wf || '');
     if (!workflowName || workflowName === 'default' || workflowName === 'orchestrator') {
       setOrchestratorInputRoute(ip);
       return;
     }
+    const routeIp = ip || activeIpForRoute([
+      window.ACTIVE_SESSION,
+      activeSessionRef.current,
+      activeSession,
+      activeNamespace,
+    ]);
     setInputRoute({
       type: 'workflow-dispatch',
       workflow: workflowName,
-      session: sessionForInputRoute(ip, workflowName),
+      session: sessionForInputRoute(routeIp, workflowName),
     });
-  }, [sessionForInputRoute, setInputRoute, setOrchestratorInputRoute]);
+  }, [activeNamespace, activeSession, sessionForInputRoute, setInputRoute, setOrchestratorInputRoute]);
   const setChatViewSession = React.useCallback((sid) => {
     const normalized = normalizeUiSession(sid || '');
     chatViewSessionRef.current = normalized;
@@ -1622,7 +1890,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       .map(e => ({ ...e, live: e.live !== false }));
     if (!fresh.length) return;
     liveFeedStartedRef.current = true;
-    setFeed(f => [...f, ...fresh]);
+    setFeed(f => trimAtlasFeedState(coalesceAtlasFeedEntries(f, fresh)));
   }, []);
   React.useEffect(() => { activeSessionRef.current = activeSession; }, [activeSession]);
   React.useEffect(() => {
@@ -1632,17 +1900,16 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     window.ACTIVE_SESSION = sid;
     activeSessionRef.current = sid;
     setActiveSession(sid);
-    try { localStorage.setItem('atlasActiveSession', sid); } catch (_) {}
-    // Leaving the orchestrator chat for a worker session: that worker session's
-    // conversation.json is usually empty (the worker writes its transcript
-    // elsewhere), so /api/session/state fires no hydration event and the
-    // orchestrator feed would linger as stale content. Clear it explicitly;
-    // the worker-log poll (and any real history) repopulate.
-    const prevWf = String(prevSid || '').split('/').pop();
     const newWf = sid.split('/').pop();
-    if (prevWf === 'orchestrator' && newWf && newWf !== 'orchestrator') {
+    setChatViewSession(newWf && newWf !== 'orchestrator' ? sid : '');
+    try { localStorage.setItem('atlasActiveSession', sid); } catch (_) {}
+    // A namespace change means a different IP/workflow transcript. Clear the
+    // visible feed immediately so worker-to-worker switches don't keep showing
+    // stale SSOT/RTL chat while the new conversation or worker log hydrates.
+    if (sid !== prevSid) {
       liveFeedStartedRef.current = false;
       hydratedConversationSessionRef.current = sid;
+      workerLogCursorsRef.current.clear();
       setFeed(NORMAL_FEED);
     }
     if (window.backend) {
@@ -1651,8 +1918,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         else if (typeof window.backend.connect === 'function') window.backend.connect(sid);
       } catch (_) {}
     }
-    refreshChatSession(sid);
-  }, [activeNamespace]);
+    refreshChatSession(sid, { force: true });
+  }, [activeNamespace, setChatViewSession]);
 
   const refreshFeed = (newIntent /*, newWorkflow */) => {
     // Do not reset the conversation on mode/workflow switches. The
@@ -1667,12 +1934,24 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       ? window.atlasData.sessionFor(scopePath || window.SCOPE_PATH || '', wf || '')
       : 'default';
     const sid = resolveSession(rawSid);
+    const prevSid = normalizeUiSession(activeSessionRef.current || window.ACTIVE_SESSION || '');
     window.ACTIVE_SESSION = sid;
+    activeSessionRef.current = sid;
+    const ip = routeSessionIp(sid);
+    if (ip) window.ACTIVE_IP = ip;
+    const sessionWorkflow = workflowFromSession(sid);
+    setChatViewSession(sessionWorkflow && sessionWorkflow !== 'orchestrator' ? sid : '');
+    if (sid !== prevSid) {
+      liveFeedStartedRef.current = false;
+      hydratedConversationSessionRef.current = sid;
+      workerLogCursorsRef.current.clear();
+      setFeed(NORMAL_FEED);
+    }
     setActiveSession(sid);
     try { localStorage.setItem('atlasActiveSession', sid); } catch (_) {}
-    refreshChatSession(sid);
+    refreshChatSession(sid, { force: sid !== prevSid });
     return sid;
-  }, []);
+  }, [resolveSession, setChatViewSession]);
 
   const sendPrompt = React.useCallback((text, sessionOverride) => {
     if (window.backend) {
@@ -1688,13 +1967,12 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
           )
       ).trim();
       const promptScope = (() => {
-        const scoped = normalizeUiSession(window.SCOPE_PATH || '');
-        if (scoped && scoped !== 'default') return scoped;
-        const activeIp = String(window.ACTIVE_IP || '').trim();
-        if (activeIp && activeIp !== 'default') return activeIp;
-        const parts = normalizeUiSession(window.ACTIVE_SESSION || activeSessionRef.current || '').split('/').filter(Boolean);
-        const ip = parts.length >= 3 ? parts[1] : '';
-        return ip && ip !== 'default' ? ip : '';
+        return activeIpForRoute([
+          window.ACTIVE_SESSION,
+          activeSessionRef.current,
+          activeSession,
+          activeNamespace,
+        ]);
       })();
       const canonicalSession = (window.atlasData && window.atlasData.sessionFor)
         ? window.atlasData.sessionFor(promptScope, promptWorkflow)
@@ -1820,10 +2098,15 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     if (orchestratorMode) {
       const viewWorkflow = next || 'orchestrator';
       const parts = normalizeUiSession(activeSession || window.ACTIVE_SESSION || '').split('/').filter(Boolean);
-      const scopedIp = String(window.SCOPE_PATH || window.ACTIVE_IP || '').trim();
+      const routeIp = activeIpForRoute([
+        window.ACTIVE_SESSION,
+        activeSessionRef.current,
+        activeSession,
+        activeNamespace,
+      ]);
       const owner = normalizeUiSession((window.ATLAS_USER && window.ATLAS_USER.username) || '') || parts[0] || 'default';
-      const ip = (scopedIp && scopedIp !== 'default')
-        ? scopedIp
+      const ip = (routeIp && routeIp !== 'default')
+        ? routeIp
         : ((parts.length >= 3 && parts[1]) ? parts[1] : 'default');
       const sessionFor = (wf) => resolveSession(
         (window.atlasData && window.atlasData.sessionFor)
@@ -1996,15 +2279,28 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         .then(r => r.ok ? r.json() : null)
         .then(j => {
           if (cancelled || !j || !healthMatchesCurrentUser(j)) return;
+          const effectiveSession = uiEffectiveHealthSession(j);
+          const acceptCounters = uiHealthCountersMatchBrowserRoute(j);
+          const effectiveRoute = uiSessionRoute(effectiveSession);
           setWorkspaceTelemetry(prev => ({
             ...prev,
             ...(() => {
-              const nextSession = normalizeUiSession(j.active_session || '');
+              const nextSession = normalizeUiSession(effectiveSession || '');
               const prevSession = normalizeUiSession(prev.activeSession || '');
+              const prevRoute = uiSessionRoute(prevSession);
+              const prevIp = prevRoute.ip || String(prev.costIp || '').trim();
               const changed = !!(nextSession && prevSession && nextSession !== prevSession);
+              const resetCounters = changed || !!(
+                !acceptCounters
+                && effectiveRoute.ip
+                && prevIp
+                && prevIp !== effectiveRoute.ip
+              );
+              const keep = (value) => (resetCounters ? 0 : value);
               const stable = (key, value) => {
+                if (!acceptCounters) return keep(Number(prev[key] || 0));
                 const next = Number(value || 0);
-                if (changed) return next;
+                if (resetCounters) return next;
                 const old = Number(prev[key] || 0);
                 return Number.isFinite(next) ? Math.max(old, next) : old;
               };
@@ -2014,10 +2310,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
                 tokensCache: j.tokens_cache != null ? stable('tokensCache', j.tokens_cache) : Number(prev.tokensCache || 0),
                 tokensOut: j.tokens_out != null ? stable('tokensOut', j.tokens_out) : Number(prev.tokensOut || 0),
                 costUsd: j.cost_usd != null ? stable('costUsd', j.cost_usd) : Number(prev.costUsd || 0),
-                costScope: j.cost_scope || prev.costScope || '',
-                costUser: j.cost_user || prev.costUser || '',
-                costIp: j.cost_ip || prev.costIp || '',
-                costCalls: j.cost_calls != null ? Number(j.cost_calls || 0) : Number(prev.costCalls || 0),
+                costScope: acceptCounters ? (j.cost_scope || prev.costScope || '') : (prev.costScope || (effectiveRoute.ip ? 'user_ip' : '')),
+                costUser: acceptCounters ? (j.cost_user || prev.costUser || '') : (effectiveRoute.owner || prev.costUser || ''),
+                costIp: acceptCounters ? (j.cost_ip || effectiveRoute.ip || prev.costIp || '') : (effectiveRoute.ip || ''),
+                costCalls: acceptCounters && j.cost_calls != null ? Number(j.cost_calls || 0) : keep(Number(prev.costCalls || 0)),
                 model: j.model || j.base_model || prev.model || '',
               };
             })(),
@@ -2026,7 +2322,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         .catch(() => {});
     };
     poll();
-    const id = setInterval(poll, 2500);
+    const id = setInterval(poll, 30000);
     return () => { cancelled = true; clearInterval(id); };
   }, []);
   const [backendState, setBackendState] = React.useState(() => {
@@ -2186,18 +2482,71 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
   }, []);
 
   const currentSession = React.useMemo(
-    () => resolveSession(activeSession, window.ACTIVE_SESSION),
-    [activeSession, resolveSession],
+    () => resolveSession(window.ACTIVE_SESSION, activeNamespace, activeSession),
+    [activeNamespace, activeSession, resolveSession],
   );
 
   const activeIp = (() => {
-    const parts = normalizeUiSession(currentSession || window.ACTIVE_SESSION).split('/').filter(Boolean);
-    if (parts.length >= 3 && parts[1] && parts[1] !== 'default') return parts[1];
-    const explicit = String(window.ACTIVE_IP || '').trim();
-    if (explicit && explicit !== 'default') return explicit;
-    const scoped = String(window.SCOPE_PATH || '').split('/').filter(Boolean).pop() || '';
-    return /^[A-Za-z][A-Za-z0-9_]*$/.test(scoped) && scoped !== 'default' ? scoped : '';
+    return activeIpForRoute([
+      window.ACTIVE_SESSION,
+      activeNamespace,
+      currentSession,
+      activeSession,
+    ]);
   })();
+
+  React.useEffect(() => {
+    // Single Worker mode binds the selected workflow to the active chat
+    // session. Without this, the top bar can say rtl-gen while the center feed
+    // is still hydrated from the previous ssot-gen namespace.
+    if (atlasUiOrchestratorMode()) return;
+    const wf = normalizeUiSession(workflow || '');
+    if (!wf || wf === 'default' || wf === 'orchestrator') return;
+    const ip = activeIp
+      || routeScopeIp(window.SCOPE_PATH || '')
+      || activeIpForRoute([
+        window.ACTIVE_SESSION,
+        activeSessionRef.current,
+        activeSession,
+        activeNamespace,
+      ]);
+    if (!ip || ip.toLowerCase() === 'default') return;
+
+    const targetSession = sessionForInputRoute(ip, wf);
+    if (!targetSession) return;
+    setWorkflowDispatchInputRoute(wf, ip);
+    const current = normalizeUiSession(window.ACTIVE_SESSION || activeSessionRef.current || activeSession || '');
+    if (targetSession === current) {
+      setChatViewSession(targetSession);
+      return;
+    }
+
+    window.ACTIVE_SESSION = targetSession;
+    window.ACTIVE_IP = ip;
+    activeSessionRef.current = targetSession;
+    setActiveSession(targetSession);
+    setChatViewSession(targetSession);
+    liveFeedStartedRef.current = false;
+    hydratedConversationSessionRef.current = targetSession;
+    workerLogCursorsRef.current.clear();
+    setFeed(NORMAL_FEED);
+    try { localStorage.setItem('atlasActiveSession', targetSession); } catch (_) {}
+    if (window.backend) {
+      try {
+        if (typeof window.backend.switchSession === 'function') window.backend.switchSession(targetSession);
+        else if (typeof window.backend.connect === 'function') window.backend.connect(targetSession);
+      } catch (_) {}
+    }
+    refreshChatSession(targetSession, { force: true });
+  }, [
+    activeIp,
+    activeNamespace,
+    activeSession,
+    sessionForInputRoute,
+    setChatViewSession,
+    setWorkflowDispatchInputRoute,
+    workflow,
+  ]);
 
   const activeSsotIp = React.useCallback(() => {
     if (activeIp) return activeIp;
@@ -2481,13 +2830,21 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       }
       if (ev.detail === 'SCOPE_PATH') {
         const activeWorkflow = workflowFromSession(window.ACTIVE_SESSION || '');
-        activateSession(window.SCOPE_PATH || '', activeWorkflow || (window.CONTEXT && window.CONTEXT.workspace) || '');
+        const scopedIp = routeScopeIp(window.SCOPE_PATH || '');
+        const routeIp = activeIpForRoute([
+          window.ACTIVE_SESSION,
+          activeSessionRef.current,
+          activeSession,
+          activeNamespace,
+        ]);
+        if (routeIp && scopedIp && scopedIp !== routeIp) return;
+        activateSession(routeIp || scopedIp || '', activeWorkflow || (window.CONTEXT && window.CONTEXT.workspace) || '');
       }
     };
     onData({ detail: 'CONTEXT' });
     window.addEventListener('atlas-data-changed', onData);
     return () => window.removeEventListener('atlas-data-changed', onData);
-  }, [activateSession, activeIp, setOrchestratorInputRoute, setWorkflowDispatchInputRoute, workflow]);
+  }, [activateSession, activeIp, activeNamespace, activeSession, setOrchestratorInputRoute, setWorkflowDispatchInputRoute, workflow]);
 
   React.useEffect(() => {
     const onSessionSwitched = (ev) => {
@@ -2647,7 +3004,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
           const viewWorkflow = workflowFromSession(viewDisplaySession) || 'worker';
           return [{ kind: 'agent', text: `No ${viewWorkflow} worker transcript yet.`, createdAt: Date.now() }];
         }
-        return newFeed;
+        return trimAtlasFeedState(newFeed);
       });
     };
     window.addEventListener('atlas-conversation-loaded', onConvLoaded);
@@ -3481,14 +3838,15 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       _reasonBuf.lines = [];
       if (!newLines.length) return;
       const chunk = newLines.join('\n');
+      if (atlasIsThinkingPlaceholderText(chunk)) return;
       liveFeedStartedRef.current = true;
       setFeed(l => {
-        const last = l[l.length - 1];
-        if (last && last.kind === 'thought') {
-          return [...l.slice(0, -1),
-                  { ...last, live: true, text: last.text + '\n' + chunk, createdAt: last.createdAt || Date.now() }];
-        }
-        return [...l, { kind: 'thought', text: chunk, createdAt: Date.now(), live: true }];
+        return trimAtlasFeedState(coalesceAtlasFeedEntries(l, {
+          kind: 'thought',
+          text: chunk,
+          createdAt: Date.now(),
+          live: true,
+        }));
       });
     };
     subs.push(window.backend.subscribe('reasoning', (m) => {
@@ -3517,13 +3875,13 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       // tool action+obs cards with a full-width separator.
       const iterMatch = t.match(/^──\s*Iter\s+(\d+)\s*\/\s*(\d+)\s*\[([^\]]+)\]/);
       if (iterMatch) {
-        setFeed(l => [...l, {
+        setFeed(l => trimAtlasFeedState([...l, {
           kind: 'iter_marker',
           n: parseInt(iterMatch[1], 10),
           max: parseInt(iterMatch[2], 10),
           model: iterMatch[3].trim(),
           createdAt: Date.now(),
-        }]);
+        }]));
         return;
       }
       // Finalize any pending streaming text first so the tool-call entry
@@ -3910,7 +4268,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
           if (entry) fresh.unshift({ ...entry, recovered: true });
         }
         if (typeof d.next_since === 'number') orchSinceRef.current = d.next_since;
-        if (fresh.length) { setFeed(f => [...f, ...fresh]); setStreaming(false); }
+        if (fresh.length) { setFeed(f => trimAtlasFeedState(coalesceAtlasFeedEntries(f, fresh))); setStreaming(false); }
       } catch (_) {}
     };
     // With an open WebSocket, orchestrator rows arrive via
@@ -4096,7 +4454,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
           : (d && Array.isArray(d.active)) ? d.active : [];
         const match = active.find(j => String(j.workflow || '') === wf)
           || active.find(j => String(j.stage_id || '') === wf)
-          || active.find(j => wf.startsWith(String(j.stage_id || ' ')));
+          || active.find(j => {
+            const stageId = String(j.stage_id || '');
+            return !!stageId && wf.startsWith(stageId);
+          });
         return match ? String(match.job_id || '') : '';
       } catch (_) { return ''; }
     };
@@ -4603,12 +4964,27 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     // sometimes leave .tool empty on one side, causing a standalone
     // "OBS" row to leak into the feed).
     const out = [];
-    const entrySummaryMode = (...entries) => (
-      entries.some(e => e && e.live) ? false : chatFeedSummary
-    );
-    for (let i = 0; i < feed.length; i++) {
-      const cur = feed[i];
-      const nxt = feed[i + 1];
+    const entrySummaryMode = (...entries) => {
+      // Live worker thoughts can contain long retry logs, directory listings,
+      // and model scratchpad output. Keep tool results expanded when live, but
+      // keep thoughts collapsed so the chat remains a readable flow surface.
+      if (entries.some(e => e && e.kind === 'thought')) return true;
+      return entries.some(e => e && e.live) ? false : chatFeedSummary;
+    };
+    const MAX_RENDERED_FEED_ENTRIES = 240;
+    const renderFeed = feed.length > MAX_RENDERED_FEED_ENTRIES
+      ? [
+        {
+          kind: 'agent',
+          text: `Showing latest ${MAX_RENDERED_FEED_ENTRIES} of ${feed.length} chat events. Older entries are hidden in this view for speed.`,
+          _feedWindowNotice: true,
+        },
+        ...feed.slice(-MAX_RENDERED_FEED_ENTRIES),
+      ]
+      : feed;
+    for (let i = 0; i < renderFeed.length; i++) {
+      const cur = renderFeed[i];
+      const nxt = renderFeed[i + 1];
       if (cur && cur.kind === 'action' && nxt && nxt.kind === 'obs') {
         out.push(<ToolCard key={i} action={cur} obs={nxt} summaryMode={entrySummaryMode(cur, nxt)} />);
         i++;
@@ -4691,6 +5067,111 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     const inputRouteTitle = inputRouteType === 'workflow-dispatch'
       ? `This input creates a ${inputRouteWorkflow} workflow job; runtime stays on orchestrator.`
       : 'This input goes to the orchestrator chat loop.';
+    const flowState = workflow === 'orchestrator'
+      ? orchestratorFlowFromFeed(feed, orchWorkers, activeIp)
+      : null;
+    const flowTone = (tone) => {
+      if (tone === 'active') return { color: 'var(--accent)', glyph: '▶', border: 'var(--accent)' };
+      if (tone === 'done') return { color: 'var(--ok)', glyph: '✓', border: 'var(--ok)' };
+      return { color: 'var(--fg-mute)', glyph: '◌', border: 'var(--line-2)' };
+    };
+    const renderOrchestratorFlowStrip = () => {
+      if (!flowState || !Array.isArray(flowState.steps) || flowState.steps.length < 2) return null;
+      return (
+        <div
+          className="orchestrator-flow-strip"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '7px 12px',
+            margin: '0 0 6px',
+            border: '1px solid var(--line)',
+            background: 'color-mix(in oklch, var(--bg-2) 88%, transparent)',
+            fontFamily: 'var(--mono)',
+            fontSize: 11,
+            minHeight: 34,
+            overflow: 'hidden',
+          }}
+          title="Current orchestrator flow for the latest chat request"
+        >
+          <span style={{ color: 'var(--fg-mute)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            Flow
+          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, overflow: 'hidden' }}>
+            {flowState.steps.map((step, idx) => {
+              const tone = flowTone(step.tone);
+              const clickable = step.key === 'worker' && step.workflow;
+              const body = (
+                <>
+                  <span style={{ color: tone.color }}>{tone.glyph}</span>
+                  <span style={{ fontWeight: 700, color: 'var(--fg)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {step.label}
+                  </span>
+                  {step.detail ? (
+                    <span className="mute" style={{ color: 'var(--fg-mute)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {step.detail}
+                    </span>
+                  ) : null}
+                </>
+              );
+              return (
+                <React.Fragment key={step.key || idx}>
+                  {idx > 0 ? <span style={{ color: 'var(--fg-dim)' }}>→</span> : null}
+                  {clickable ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        try {
+                          window.openPipelineWorkflowWorkspace?.({
+                            ip: String(activeIp || '').trim(),
+                            workflow: step.workflow,
+                          });
+                        } catch (_) {}
+                      }}
+                      title={`Open ${step.workflow} worker detail`}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 5,
+                        minWidth: 0,
+                        maxWidth: 220,
+                        padding: '3px 8px',
+                        border: `1px solid ${tone.border}`,
+                        borderRadius: 4,
+                        background: 'var(--bg-2)',
+                        color: 'var(--fg)',
+                        cursor: 'pointer',
+                        fontFamily: 'var(--mono)',
+                        fontSize: 11,
+                      }}
+                    >
+                      {body}
+                    </button>
+                  ) : (
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 5,
+                        minWidth: 0,
+                        maxWidth: step.key === 'user' ? 260 : 190,
+                        padding: '3px 8px',
+                        border: `1px solid ${tone.border}`,
+                        borderRadius: 4,
+                        background: 'var(--bg)',
+                      }}
+                    >
+                      {body}
+                    </span>
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </div>
+        </div>
+      );
+    };
     return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
       {orchestratorIdle ? (
@@ -4713,6 +5194,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
           </span>
         </div>
       ) : null}
+      {renderOrchestratorFlowStrip()}
       {workflow === 'orchestrator' && orchWorkers.length > 0 ? (
         <div style={{
           display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6,
@@ -5885,21 +6367,25 @@ const CollapsibleThought = ({ text, summaryMode = true }) => {
   // chain-of-thought lines are usually scaffolding the user doesn't
   // need to read. Visual clamp also catches long wrapped lines.
   const TAIL_LINES = 3;
+  const visibleLines = visibleAtlasThoughtLines(text);
+  const placeholderOnly = atlasIsThinkingPlaceholderText(text);
+  const displayText = visibleLines.join('\n');
   const [open, setOpen] = React.useState(!summaryMode);
-  const lines = text.split('\n').filter(l => l.trim());
+  if (!displayText.trim()) return null;
+  const lines = visibleLines;
   const tail = lines.slice(-TAIL_LINES);
   const hidden = Math.max(0, lines.length - TAIL_LINES);
-  const collapsed = summaryMode && !open;
+  const collapsed = placeholderOnly || (summaryMode && !open);
   return (
     <div
       className="react-block thought"
-      style={{ cursor: 'pointer', opacity: 0.62 /* dim */ }}
-      onClick={() => setOpen(o => !o)}
-      title={collapsed ? 'click to expand full reasoning' : 'click to collapse'}
+      style={{ cursor: placeholderOnly ? 'default' : 'pointer', opacity: 0.62 /* dim */ }}
+      onClick={placeholderOnly ? undefined : () => setOpen(o => !o)}
+      title={placeholderOnly ? 'waiting for model output' : (collapsed ? 'click to expand full reasoning' : 'click to collapse')}
     >
       <span className="rb-tag">
-        thought{lines.length > 1 && ` (${lines.length})`}
-        {collapsed && hidden > 0 && (
+        thought{!placeholderOnly && lines.length > 1 && ` (${lines.length})`}
+        {!placeholderOnly && collapsed && hidden > 0 && (
           <span className="mute" style={{ marginLeft: 6, fontSize: 10, fontWeight: 400 }}>
             · +{hidden} earlier · click to expand
           </span>
@@ -5912,7 +6398,7 @@ const CollapsibleThought = ({ text, summaryMode = true }) => {
         WebkitLineClamp: collapsed ? TAIL_LINES : undefined,
         overflow: collapsed ? 'hidden' : 'visible',
       }}>
-        {collapsed ? tail.join('\n') : text}
+        {collapsed ? tail.join('\n') : displayText}
       </span>
     </div>
   );
@@ -6245,16 +6731,7 @@ const _orchToolArgsSummary = (tool, argsText) => {
   return '';
 };
 
-const _ToolCardRaw = ({ action, obs, summaryMode = true }) => {
-  const tool = _normalizeToolName((action && action.tool) || (obs && obs.tool) || '');
-  // Orchestrator handoffs get a dedicated labeled card instead of the raw
-  // "key={json}" args line — see HandoffCard.
-  // dispatch_workflow / write_handoff are ALWAYS orchestrator tool calls — use
-  // the labeled HandoffCard even for live entries (raw rendering is for worker
-  // ReAct steps, whose tool is the workflow name, never these).
-  if (tool === 'dispatch_workflow' || tool === 'write_handoff') {
-    return <HandoffCard action={action} obs={obs} tool={tool} />;
-  }
+const _StandardToolCardRaw = ({ action, obs, summaryMode = true, tool }) => {
   const theme = _toolTheme(tool);
   // If the obs indicates an error, override the border to red so the
   // eye finds it. Otherwise use the tool theme color.
@@ -6383,6 +6860,27 @@ const _ToolCardRaw = ({ action, obs, summaryMode = true }) => {
         />
       )}
     </div>
+  );
+};
+const StandardToolCard = React.memo(_StandardToolCardRaw);
+
+const _ToolCardRaw = ({ action, obs, summaryMode = true }) => {
+  const tool = _normalizeToolName((action && action.tool) || (obs && obs.tool) || '');
+  // Orchestrator handoffs get a dedicated labeled card instead of the raw
+  // "key={json}" args line — see HandoffCard.
+  // dispatch_workflow / write_handoff are ALWAYS orchestrator tool calls — use
+  // the labeled HandoffCard even for live entries (raw rendering is for worker
+  // ReAct steps, whose tool is the workflow name, never these).
+  if (tool === 'dispatch_workflow' || tool === 'write_handoff') {
+    return <HandoffCard action={action} obs={obs} tool={tool} />;
+  }
+  return (
+    <StandardToolCard
+      action={action}
+      obs={obs}
+      summaryMode={summaryMode}
+      tool={tool}
+    />
   );
 };
 // Memoized so a single new feed entry doesn't re-render every prior
@@ -17224,16 +17722,23 @@ const AgentStatusPanel = ({ intent, workflow, activeIp = '', onCollapse }) => {
     const sameSession = !prevSession || !effectiveSession
       || prevSession === effectiveSession
       || (_sessTail(prevSession) && _sessTail(prevSession) === _sessTail(effectiveSession));
-    if (effectiveSession) merged.activeSession = effectiveSession;
+	    if (effectiveSession) merged.activeSession = effectiveSession;
 
-    const counters = ['tokens', 'tokensIn', 'tokensCache', 'tokensOut', 'costUsd'];
-    if (preserveBrowser && prevSession) {
-      counters.forEach(key => {
-        if (prevCtx[key] !== undefined && prevCtx[key] !== null) merged[key] = numericValue(prevCtx[key], 0);
-      });
-    } else if (sameSession) {
-      counters.forEach(key => {
-        const next = numericValue(merged[key], NaN);
+	    const counters = ['tokens', 'tokensIn', 'tokensCache', 'tokensOut', 'costUsd'];
+	    const incomingCostIp = String(clean.costIp || globalCtx.costIp || '').trim();
+	    const prevCostIp = String(prevCtx.costIp || '').trim();
+	    const costIpChanged = !!(incomingCostIp && prevCostIp && incomingCostIp !== prevCostIp);
+	    if (preserveBrowser && prevSession) {
+	      counters.forEach(key => {
+	        if (prevCtx[key] !== undefined && prevCtx[key] !== null) merged[key] = numericValue(prevCtx[key], 0);
+	      });
+	    } else if (costIpChanged) {
+	      counters.forEach(key => {
+	        merged[key] = numericValue(clean[key], 0);
+	      });
+	    } else if (sameSession) {
+	      counters.forEach(key => {
+	        const next = numericValue(merged[key], NaN);
         const prevVal = numericValue(prevCtx[key], 0);
         merged[key] = Number.isFinite(next) ? Math.max(prevVal, next) : prevVal;
       });
@@ -17250,24 +17755,40 @@ const AgentStatusPanel = ({ intent, workflow, activeIp = '', onCollapse }) => {
       if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
       fetch('/healthz', { cache: 'no-store' })
         .then(r => r.ok ? r.json() : null)
-        .then(j => {
-          if (!j || !healthMatchesCurrentUser(j)) return;
-          syncContext({
-            model: j.model || j.base_model || '',
-            maxTokens: j.max_context,
-            tokens: j.tokens,
-            tokensIn: j.tokens_in,
-            tokensCache: j.tokens_cache,
-            tokensOut: j.tokens_out,
-            costUsd: j.cost_usd,
-            costScope: j.cost_scope || '',
-            costUser: j.cost_user || '',
-            costIp: j.cost_ip || '',
-            costCalls: j.cost_calls != null ? Number(j.cost_calls || 0) : 0,
-            pricing: j.pricing || null,
-            activeSession: j.active_session || '',
-          });
-        })
+	        .then(j => {
+	          if (!j || !healthMatchesCurrentUser(j)) return;
+	          const effectiveSession = uiEffectiveHealthSession(j);
+	          const acceptCounters = uiHealthCountersMatchBrowserRoute(j);
+	          const effectiveRoute = uiSessionRoute(effectiveSession);
+	          const counterPatch = acceptCounters ? {
+	            tokens: j.tokens,
+	            tokensIn: j.tokens_in,
+	            tokensCache: j.tokens_cache,
+	            tokensOut: j.tokens_out,
+	            costUsd: j.cost_usd,
+	            costScope: j.cost_scope || '',
+	            costUser: j.cost_user || '',
+	            costIp: j.cost_ip || '',
+	            costCalls: j.cost_calls != null ? Number(j.cost_calls || 0) : 0,
+	          } : {
+	            tokens: 0,
+	            tokensIn: 0,
+	            tokensCache: 0,
+	            tokensOut: 0,
+	            costUsd: 0,
+	            costScope: effectiveRoute.ip ? 'user_ip' : '',
+	            costUser: effectiveRoute.owner || '',
+	            costIp: effectiveRoute.ip || '',
+	            costCalls: 0,
+	          };
+	          syncContext({
+	            model: j.model || j.base_model || '',
+	            maxTokens: j.max_context,
+	            ...counterPatch,
+	            pricing: j.pricing || null,
+	            activeSession: effectiveSession || '',
+	          });
+	        })
         .catch(() => {});
     };
     const onDataChanged = () => syncContext();

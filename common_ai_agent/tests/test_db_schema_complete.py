@@ -77,7 +77,7 @@ _EXPECTED_INDEXES = {
     "idx_trace_events_context", "idx_trace_events_run",
     "idx_trace_events_correlation", "idx_trace_events_session",
     "idx_trace_events_chat_room",        # added 2026-05-15
-    "idx_llm_calls_context", "idx_llm_calls_session", "idx_llm_calls_todo",
+    "idx_llm_calls_context", "idx_llm_calls_session", "idx_llm_calls_ip_created", "idx_llm_calls_todo",
     "idx_artifacts_run", "idx_artifacts_rtl_version",
 }
 

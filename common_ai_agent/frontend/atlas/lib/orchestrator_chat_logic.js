@@ -2,6 +2,9 @@
 // For ES module imports (vitest), see orchestrator_chat_logic.mjs.
 
 (function () {
+  var MAX_THOUGHT_LINES = 80;
+  var THOUGHT_COMPACTION_MARKER_RE = /^\.\.\. \(\d+ older thought lines hidden for speed\)$/;
+
   function toolEntryFromDisplayLine(content) {
     var text = String(content || '').trim();
     if (!text) return null;
@@ -111,6 +114,87 @@
     return null;
   }
 
+  function isThinkingPlaceholderLine(line) {
+    var normalized = String(line || '').trim();
+    for (var i = 0; i < 3; i++) {
+      normalized = normalized
+        .replace(/^[^A-Za-z0-9]+/, '')
+        .replace(/^(?:thought|reasoning)\b\s*[:\])\-–—]*/i, '')
+        .trim();
+    }
+    normalized = normalized
+      .replace(/^[^A-Za-z0-9]+/, '')
+      .replace(/[.\u2026\s]+$/g, '')
+      .toLowerCase();
+    return normalized === 'thinking';
+  }
+
+  function isThinkingPlaceholderText(text) {
+    var lines = String(text || '').split('\n').map(function (line) { return line.trim(); }).filter(Boolean);
+    return !!lines.length && lines.every(isThinkingPlaceholderLine);
+  }
+
+  function visibleThoughtLines(text) {
+    var lines = String(text || '').split('\n').map(function (line) { return line.trim(); }).filter(Boolean);
+    if (!lines.length) return [];
+    var real = lines.filter(function (line) { return !isThinkingPlaceholderLine(line) && !THOUGHT_COMPACTION_MARKER_RE.test(line); });
+    return real;
+  }
+
+  function compactThoughtText(text, maxLines) {
+    maxLines = maxLines || MAX_THOUGHT_LINES;
+    var lines = visibleThoughtLines(text);
+    if (lines.length <= maxLines) return lines.join('\n');
+    return ['... (' + (lines.length - maxLines) + ' older thought lines hidden for speed)']
+      .concat(lines.slice(-maxLines))
+      .join('\n');
+  }
+
+  function coalesceFeedEntries(existing, incoming) {
+    var out = Array.isArray(existing) ? existing.slice() : [];
+    var fresh = Array.isArray(incoming) ? incoming : [incoming];
+
+    fresh.forEach(function (raw) {
+      if (!raw || typeof raw !== 'object') return;
+      var entry = raw.kind === 'thought'
+        ? Object.assign({}, raw, { text: compactThoughtText(raw.text) })
+        : raw;
+      if (entry.kind === 'thought' && !String(entry.text || '').trim()) return;
+      var isThought = entry.kind === 'thought';
+      var incomingPlaceholder = isThought && isThinkingPlaceholderText(entry.text);
+      var last = out[out.length - 1];
+      var lastPlaceholder = last && last.kind === 'thought' && isThinkingPlaceholderText(last.text);
+
+      if (incomingPlaceholder) {
+        return;
+      }
+
+      if (lastPlaceholder) {
+        out.pop();
+      }
+
+      var prev = out[out.length - 1];
+      if (isThought && prev && prev.kind === 'thought') {
+        var prevText = String(prev.text || '').trim();
+        var nextText = String(entry.text || '').trim();
+        if (!nextText) return;
+        if (prevText === nextText) {
+          out[out.length - 1] = Object.assign({}, prev, entry, { text: prev.text });
+        } else {
+          var mergedText = compactThoughtText(prevText ? prevText + '\n' + nextText : nextText);
+          out[out.length - 1] = Object.assign({}, prev, entry, {
+            text: mergedText,
+          });
+        }
+        return;
+      }
+
+      out.push(entry);
+    });
+
+    return out;
+  }
+
   // --- Orchestrator handoff formatting (dispatch_workflow / write_handoff) ---
   function hParseJsonObject(text) {
     if (text && typeof text === 'object' && !Array.isArray(text)) return text;
@@ -210,6 +294,11 @@
     toolEntryFromDisplayLine: toolEntryFromDisplayLine,
     handoffFields: handoffFields,
     handoffStatusColor: handoffStatusColor,
+    isThinkingPlaceholderLine: isThinkingPlaceholderLine,
+    isThinkingPlaceholderText: isThinkingPlaceholderText,
+    visibleThoughtLines: visibleThoughtLines,
+    compactThoughtText: compactThoughtText,
+    coalesceFeedEntries: coalesceFeedEntries,
   };
 
   if (typeof window !== 'undefined') {

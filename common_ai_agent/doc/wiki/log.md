@@ -1,5 +1,14 @@
 # Wiki Log
 
+## 2026-05-25
+
+- Added [[workspace-jsx-decomposition-plan]] as the parked, P0-gated plan for
+  splitting `frontend/atlas/workspace.jsx`. It records the accepted review
+  corrections: use explicit `window.AtlasWorkspace*` namespaces, split P1 into
+  primitives and session-switcher, keep `AgentStatusPanel` out of P1 because it
+  owns polling/cost/settings, extract SSOT QA cards before feed, and wait for
+  concurrent session-routing frontend work to settle before implementation.
+
 ## 2026-05-19
 
 - [[atlas-e2e-validation-20260519]] E2E validation: single-worker dispatch PARTIAL (LLM slow), parallel dispatch PARTIAL PASS (65ms simultaneous launch), orchestrator chat PASS (trigger_source + orchestrator_run_id linkage verified). All three executed live via http://127.0.0.1:62196 with glm-5.1 orchestrator + deepseek-v4-pro / kimi-k2-thinking per-workflow workers.

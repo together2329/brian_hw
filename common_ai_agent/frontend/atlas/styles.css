@@ -648,6 +648,16 @@ html[data-platform="windows"] .app {
   text-transform: none;
 }
 .dir-select::-ms-expand { display: none; }  /* hide legacy IE/Edge arrow */
+.dir-select.readonly {
+  display: inline-flex;
+  align-items: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background-image: none;
+  color: var(--fg-dim);
+  pointer-events: none;
+}
 .dir-session-readonly {
   max-width: 128px;
   min-width: 78px;

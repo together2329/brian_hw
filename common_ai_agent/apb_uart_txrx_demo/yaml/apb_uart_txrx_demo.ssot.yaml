@@ -1,0 +1,253 @@
+top_module:
+  name: apb_uart_txrx_demo
+  file: rtl/apb_uart_txrx_demo.sv
+  version: 0.1.0-challenge
+  type: peripheral
+  description: "Small APB3-attached UART with fixed 8N1 TX/RX, programmable baud divisor, one-byte TX/RX holding registers, status/error/interrupt registers, and verification-first TX/RX challenge scope."
+  reference_spec: "apb_uart_txrx_demo/req/apb_uart_txrx_demo_requirements.md"
+
+parameters:
+  - name: APB_ADDR_WIDTH
+    default: 8
+    type: int
+    description: "APB byte address width."
+  - name: BAUD_DIV_WIDTH
+    default: 16
+    type: int
+    description: "Baud divisor width in pclk cycles per UART bit."
+  - name: RESET_POLARITY
+    default: active_low
+    type: enum
+    values: [active_low]
+    description: "preset_n reset polarity."
+
+io_list:
+  clock_domains:
+    - name: pclk
+      ports:
+        - { name: pclk, width: 1, direction: input, description: "APB/UART core clock" }
+  resets:
+    - name: preset_n
+      polarity: active_low
+      sync_async: async_assert_sync_deassert
+      ports:
+        - { name: preset_n, width: 1, direction: input, description: "Active-low reset" }
+  interfaces:
+    - name: apb_slave
+      type: APB3
+      role: slave
+      description: "Zero wait-state APB register interface."
+      protocol:
+        setup_phase: "psel && !penable"
+        access_phase: "psel && penable"
+        complete: "psel && penable && pready"
+        ready_policy: "pready is constant 1"
+        error_policy: "pslverr pulses for invalid address or unsupported access."
+      ports:
+        - { name: psel, width: 1, direction: input }
+        - { name: penable, width: 1, direction: input }
+        - { name: pwrite, width: 1, direction: input }
+        - { name: paddr, width: APB_ADDR_WIDTH, direction: input }
+        - { name: pwdata, width: 32, direction: input }
+        - { name: prdata, width: 32, direction: output }
+        - { name: pready, width: 1, direction: output }
+        - { name: pslverr, width: 1, direction: output }
+    - name: uart_serial
+      type: UART
+      role: serial
+      description: "Fixed 8N1 UART serial pins."
+      ports:
+        - { name: uart_tx, width: 1, direction: output, idle_value: 1, description: "UART TX output, idle high" }
+        - { name: uart_rx, width: 1, direction: input, idle_value: 1, description: "UART RX input, idle high" }
+    - name: interrupt
+      type: custom
+      role: source
+      ports:
+        - { name: irq, width: 1, direction: output, polarity: active_high }
+
+registers:
+  config:
+    register_width: 32
+    byte_addressable: true
+    reserved_bit_behavior: "Reserved bits read as 0 and ignore writes."
+  register_list:
+    - name: CTRL
+      offset: 0x00
+      access: rw
+      reset: 0x00000001
+      fields:
+        - { name: enable, bits: [0,0], access: rw, reset: 1, description: "UART enable" }
+        - { name: tx_irq_en, bits: [1,1], access: rw, reset: 0 }
+        - { name: rx_irq_en, bits: [2,2], access: rw, reset: 0 }
+        - { name: err_irq_en, bits: [3,3], access: rw, reset: 0 }
+        - { name: rx_clear, bits: [4,4], access: wo, reset: 0, description: "Self-clearing RX valid clear" }
+        - { name: tx_break, bits: [5,5], access: rw, reset: 0, description: "Force TX low while set" }
+    - name: STATUS
+      offset: 0x04
+      access: ro_w1c_errors
+      reset: 0x00000002
+      fields:
+        - { name: rx_valid, bits: [0,0], access: ro, reset: 0 }
+        - { name: tx_empty, bits: [1,1], access: ro, reset: 1 }
+        - { name: tx_busy, bits: [2,2], access: ro, reset: 0 }
+        - { name: frame_err, bits: [3,3], access: w1c, reset: 0 }
+        - { name: overrun_err, bits: [4,4], access: w1c, reset: 0 }
+        - { name: irq_pending, bits: [5,5], access: ro, reset: 0 }
+    - name: BAUD_DIV
+      offset: 0x08
+      access: rw
+      reset: 0x00000004
+      fields:
+        - { name: divisor, bits: [15,0], access: rw, reset: 4, description: "Cycles per UART bit; write 0 coerces to 1" }
+    - name: TXDATA
+      offset: 0x0C
+      access: wo
+      reset: 0x00000000
+      fields:
+        - { name: txdata, bits: [7,0], access: wo, reset: 0, description: "APB write launches TX when enabled and idle" }
+    - name: RXDATA
+      offset: 0x10
+      access: ro_pop
+      reset: 0x00000000
+      fields:
+        - { name: rxdata, bits: [7,0], access: ro_pop, reset: 0, description: "APB read returns received byte and clears rx_valid" }
+    - name: IRQ_STATUS
+      offset: 0x14
+      access: ro_w1c
+      reset: 0x00000000
+      fields:
+        - { name: tx_done, bits: [0,0], access: w1c, reset: 0 }
+        - { name: rx_valid_irq, bits: [1,1], access: ro, reset: 0 }
+        - { name: error, bits: [2,2], access: w1c, reset: 0 }
+
+features:
+  - id: F_APB
+    name: apb_register_access
+    description: "APB zero-wait register reads/writes, invalid access error, reset readback."
+  - id: F_TX
+    name: uart_transmit_8n1
+    description: "TXDATA write emits idle-high 8N1 frame with start/data/stop timing."
+  - id: F_RX
+    name: uart_receive_8n1
+    description: "RX input frame is sampled and made visible through RXDATA/status."
+  - id: F_IRQ
+    name: interrupt_generation
+    description: "TX done, RX valid, and error sources drive level irq when enabled."
+  - id: F_ERR
+    name: rx_error_handling
+    description: "Framing and overrun errors are sticky until cleared."
+
+function_model:
+  state_variables:
+    - { name: ctrl, reset: 0x01, width: 6 }
+    - { name: baud_div, reset: 4, width: 16 }
+    - { name: tx_busy, reset: 0, width: 1 }
+    - { name: tx_shift_byte, reset: 0, width: 8 }
+    - { name: rx_valid, reset: 0, width: 1 }
+    - { name: rx_data, reset: 0, width: 8 }
+    - { name: frame_err, reset: 0, width: 1 }
+    - { name: overrun_err, reset: 0, width: 1 }
+    - { name: irq_status, reset: 0, width: 3 }
+  transactions:
+    - id: FM_APB_WRITE
+      name: apb_write
+      preconditions: ["psel", "penable", "pwrite"]
+      effects: "Decode address; update CTRL/BAUD_DIV/TXDATA/IRQ clear fields; invalid address asserts pslverr."
+    - id: FM_APB_READ
+      name: apb_read
+      preconditions: ["psel", "penable", "!pwrite"]
+      effects: "Return selected register; RXDATA read clears rx_valid."
+    - id: FM_TX_FRAME
+      name: tx_frame
+      preconditions: ["CTRL.enable", "TXDATA write accepted"]
+      outputs: "uart_tx frame: start 0, 8 data bits LSB-first, stop 1."
+    - id: FM_RX_FRAME
+      name: rx_frame
+      preconditions: ["CTRL.enable", "start bit on uart_rx"]
+      effects: "Capture byte into RXDATA or set overrun; set frame_err on bad stop."
+    - id: FM_IRQ_UPDATE
+      name: irq_update
+      effects: "irq = enabled pending tx_done/rx_valid/error."
+  invariants:
+    - "pready == 1"
+    - "uart_tx == 1 when idle and tx_break == 0"
+    - "BAUD_DIV effective divisor is never 0"
+    - "Invalid APB access does not change architectural registers."
+
+cycle_model:
+  clock: pclk
+  reset: { signal: preset_n, polarity: active_low }
+  handshake_rules:
+    - { name: apb_access, rule: "Access completes on psel && penable; pready is 1." }
+    - { name: tx_launch, rule: "Accepted TXDATA write when enabled and idle starts TX in the next cycle." }
+    - { name: rx_capture, rule: "RX samples at bit centers based on BAUD_DIV." }
+  latency:
+    apb_access: { min_cycles: 0, max_cycles: 0 }
+    tx_frame_bits: { min_cycles: 10, max_cycles: 10, units: "UART bits for 8N1" }
+    rx_frame_bits: { min_cycles: 10, max_cycles: 10, units: "UART bits for 8N1" }
+  fsm:
+    tx_states: [TX_IDLE, TX_START, TX_DATA, TX_STOP]
+    rx_states: [RX_IDLE, RX_START, RX_DATA, RX_STOP]
+
+interrupts:
+  output: { signal: irq, polarity: active_high }
+  sources:
+    - { name: TX_DONE, enable: CTRL.tx_irq_en, pending: IRQ_STATUS.tx_done, clear: "W1C IRQ_STATUS.tx_done" }
+    - { name: RX_VALID, enable: CTRL.rx_irq_en, pending: STATUS.rx_valid, clear: "Read RXDATA or CTRL.rx_clear" }
+    - { name: ERROR, enable: CTRL.err_irq_en, pending: "STATUS.frame_err || STATUS.overrun_err || IRQ_STATUS.error", clear: "W1C STATUS errors and IRQ_STATUS.error" }
+
+error_handling:
+  sources:
+    - { name: invalid_apb_address, detect: "APB access offset not in register_list", effect: "pslverr=1 for access; no state update" }
+    - { name: tx_write_while_busy, detect: "TXDATA write when tx_busy", effect: "pslverr=1; byte rejected" }
+    - { name: framing_error, detect: "RX stop bit sampled low", effect: "STATUS.frame_err=1; IRQ_STATUS.error=1" }
+    - { name: overrun_error, detect: "RX frame completes while rx_valid=1", effect: "STATUS.overrun_err=1; IRQ_STATUS.error=1; old RXDATA preserved" }
+
+debug_observability:
+  recommended_wave_signals: [pclk, preset_n, psel, penable, pwrite, paddr, pwdata, prdata, pready, pslverr, uart_tx, uart_rx, irq, ctrl_reg, status, baud_div, tx_state, rx_state]
+
+test_requirements:
+  scenarios:
+    - { id: SC_APB_RESET, name: reset_readback, expected: "Registers reset and uart_tx idles high." }
+    - { id: SC_APB_RW, name: apb_rw, expected: "CTRL/BAUD_DIV write-read behavior and reserved bits." }
+    - { id: SC_APB_INVALID, name: invalid_apb, expected: "pslverr asserted and state preserved." }
+    - { id: SC_TX_ONE_BYTE, name: tx_one_byte, expected: "TX serial monitor decodes expected 8N1 byte." }
+    - { id: SC_TX_BACK_TO_BACK, name: tx_back_to_back, expected: "Two TX bytes are emitted with readiness respected." }
+    - { id: SC_TX_IRQ, name: tx_interrupt, expected: "tx_done and irq assert/clear correctly." }
+    - { id: SC_RX_ONE_BYTE, name: rx_one_byte, expected: "Injected RX byte is readable through RXDATA." }
+    - { id: SC_RX_BACK_TO_BACK, name: rx_back_to_back, expected: "Two RX frames are received with reads between them." }
+    - { id: SC_RX_FRAMING_ERROR, name: rx_framing_error, expected: "Bad stop sets frame_err and error irq." }
+    - { id: SC_RX_OVERRUN, name: rx_overrun, expected: "Second unread RX frame sets overrun and preserves first byte." }
+    - { id: SC_RX_IRQ, name: rx_interrupt, expected: "rx_valid source drives irq when enabled and clears after read." }
+    - { id: SC_BAUD_VARIANTS, name: baud_variants, expected: "TX/RX behavior holds for default and alternate divisors." }
+  coverage_goals:
+    function:
+      target_pct: 100
+      bins:
+        - { id: FCOV_APB_REGS, description: "Read/write all implemented registers" }
+        - { id: FCOV_TX_CLASSES, description: "TX 0x00, 0xff, random/walking bytes" }
+        - { id: FCOV_RX_CLASSES, description: "RX 0x00, 0xff, random/walking bytes" }
+        - { id: FCOV_IRQ, description: "TX, RX, and error irq sources" }
+        - { id: FCOV_ERRORS, description: "Framing and overrun errors" }
+    cycle:
+      target_pct: 100
+      bins:
+        - { id: CCOV_APB_ACCESS, description: "APB setup/access completion" }
+        - { id: CCOV_TX_STATES, description: "TX idle/start/data/stop" }
+        - { id: CCOV_RX_STATES, description: "RX idle/start/data/stop" }
+        - { id: CCOV_BAUD_DIV, description: "Default and alternate baud divisors" }
+
+filelist:
+  rtl:
+    - rtl/apb_uart_txrx_demo.sv
+  sim: []
+
+quality_gates:
+  rtl:
+    pass: "DUT compiles/lints and implements APB, TX, RX, status, irq, and error behavior."
+  sim:
+    pass: "Directed APB/TX/RX/error/irq scenarios pass with scoreboard_fail=0."
+  random:
+    pass: "Constrained-random APB/UART smoke passes with reproducible seed and scoreboard_fail=0."
+  coverage:
+    pass: "All required bins hit or explicitly waived with rationale."

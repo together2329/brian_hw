@@ -509,6 +509,52 @@
     return !(current && response && current !== response);
   }
 
+  function routeSessionInfo(session) {
+    const route = window.AtlasSessionRouting || {};
+    if (typeof route.sessionRoute === 'function') {
+      try { return route.sessionRoute(session); } catch (_) {}
+    }
+    const parts = normalizeSessionName(session).split('/').filter(Boolean);
+    const ip = parts.length >= 3 ? parts[parts.length - 2] : '';
+    return {
+      owner: parts[0] || '',
+      ip: activeIpFromSession(session) || ip,
+      workflow: parts.length >= 3 ? (parts[parts.length - 1] || '') : '',
+    };
+  }
+
+  function browserSessionOverridesHealth(payload) {
+    const route = window.AtlasSessionRouting || {};
+    const browserSession = normalizeSessionName(window.ACTIVE_SESSION || '');
+    const payloadSession = normalizeSessionName((payload && payload.active_session) || '');
+    if (typeof route.shouldUseBrowserSession === 'function') {
+      try {
+        return route.shouldUseBrowserSession({ browserSession, payloadSession });
+      } catch (_) {}
+    }
+    if (!browserSession || !payloadSession || browserSession === payloadSession) return false;
+    const browser = routeSessionInfo(browserSession);
+    const incoming = routeSessionInfo(payloadSession);
+    const sameOwner = !browser.owner || !incoming.owner || browser.owner === incoming.owner || incoming.owner === 'local-admin';
+    return !!browser.ip && (!incoming.ip || browser.ip !== incoming.ip || !sameOwner);
+  }
+
+  function healthCountersMatchBrowserRoute(payload) {
+    const route = window.AtlasSessionRouting || {};
+    const browserSession = normalizeSessionName(window.ACTIVE_SESSION || '');
+    const payloadSession = normalizeSessionName((payload && payload.active_session) || '');
+    if (typeof route.healthCountersMatchRoute === 'function') {
+      try {
+        return route.healthCountersMatchRoute({ browserSession, payloadSession });
+      } catch (_) {}
+    }
+    if (!browserSession || !payloadSession || browserSession === payloadSession) return true;
+    const browser = routeSessionInfo(browserSession);
+    const incoming = routeSessionInfo(payloadSession);
+    const sameOwner = !browser.owner || !incoming.owner || browser.owner === incoming.owner || incoming.owner === 'local-admin';
+    return !browser.ip || (!!incoming.ip && incoming.ip === browser.ip && sameOwner);
+  }
+
   function readUrlNamespace() {
     let params;
     try { params = new URLSearchParams(window.location.search || ''); }
@@ -555,6 +601,13 @@
   function setActiveSessionName(session) {
     const sid = normalizeSessionName(session) || 'default';
     window.ACTIVE_SESSION = sid;
+    try {
+      const route = window.AtlasSessionRouting || {};
+      const ip = typeof route.sessionIpFromSession === 'function'
+        ? route.sessionIpFromSession(sid)
+        : activeIpFromSession(sid);
+      window.ACTIVE_IP = ip || '';
+    } catch (_) {}
     try { localStorage.setItem('atlasActiveSession', sid); } catch (_) {}
     return sid;
   }
@@ -1058,36 +1111,60 @@
         }
       } catch (_) {}
       const _prev = window.CONTEXT || {};
-      const activeWorkflow = activeWorkflowFromSession();
+      const browserSession = normalizeSessionName(window.ACTIVE_SESSION || '');
+      const healthSession = normalizeSessionName(d.active_session || '');
+      const healthOverride = browserSessionOverridesHealth(d);
+      const effectiveSession = healthOverride ? browserSession : (healthSession || browserSession);
+      const acceptHealthCounters = healthCountersMatchBrowserRoute(d);
+      const effectiveRoute = routeSessionInfo(effectiveSession);
+      const activeWorkflow = activeWorkflowFromSession(effectiveSession);
       const backendWorkspace = normalizeSessionName(d.workspace || '');
       if (typeof d.chat_feed_summary === 'boolean') {
         window.ATLAS_CHAT_FEED_SUMMARY = d.chat_feed_summary;
       }
-      // The backend is the source of truth for active_ip — it was either
-      // pinned by the `-ip` CLI arg or by a slash command. If the
-      // browser's localStorage SCOPE_PATH is stale (e.g. cached from a
-      // previous run that targeted a different IP) it would otherwise
-      // keep showing the wrong workspace in the file-tree footer and
-      // the @-mention base. Sync SCOPE_PATH to the backend IP whenever
-      // the two diverge.
+      // Keep SCOPE_PATH aligned with the active namespace IP. During a fast
+      // new-IP switch the browser namespace can be newer than /healthz for a
+      // few ticks, so prefer the IP embedded in ACTIVE_SESSION and only fall
+      // back to the backend IP when the browser has no real IP yet.
       const backendActiveIp = String(d.active_ip || '').trim();
-      if (backendActiveIp && backendActiveIp !== 'default' && backendActiveIp !== window.SCOPE_PATH) {
-        window.SCOPE_PATH = backendActiveIp;
-        try { localStorage.setItem('atlasScopePath', backendActiveIp); } catch (_) {}
+      const browserActiveIp = activeIpFromSession();
+      const routeActiveIp = effectiveRoute.ip || browserActiveIp || backendActiveIp;
+      if (routeActiveIp && routeActiveIp !== 'default') {
+        window.ACTIVE_IP = routeActiveIp;
+      }
+      if (routeActiveIp && routeActiveIp !== 'default' && routeActiveIp !== window.SCOPE_PATH) {
+        window.SCOPE_PATH = routeActiveIp;
+        try { localStorage.setItem('atlasScopePath', routeActiveIp); } catch (_) {}
         window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'SCOPE_PATH' }));
       }
-      window.ATLAS_DB_SESSION_ID = String(d.db_session_id || '').trim();
-      window.ATLAS_SESSION_UID = String(d.session_uid || '').trim();
-      window.ATLAS_SESSION_LABEL = String(d.session_label || '').trim();
+      const healthMetaApplies = !healthSession || !effectiveSession || healthSession === effectiveSession;
+      if (healthMetaApplies) {
+        window.ATLAS_DB_SESSION_ID = String(d.db_session_id || '').trim();
+        window.ATLAS_SESSION_UID = String(d.session_uid || '').trim();
+        window.ATLAS_SESSION_LABEL = String(d.session_label || '').trim();
+      }
+      const effectiveWorkspace = healthOverride
+        ? (activeWorkflow || _prev.workspace || '')
+        : ((backendWorkspace && backendWorkspace !== 'default') ? backendWorkspace : (activeWorkflow || backendWorkspace || ''));
       window.CONTEXT = Object.assign({}, _prev, {
         ...(() => {
-          const nextActiveSession = String(d.active_session || '').trim();
+          const nextActiveSession = String(effectiveSession || '').trim();
           const prevActiveSession = String(_prev.activeSession || '').trim();
+          const prevRoute = routeSessionInfo(prevActiveSession);
+          const prevIp = prevRoute.ip || String(_prev.costIp || '').trim();
           const scopeChanged = !!(nextActiveSession && prevActiveSession && nextActiveSession !== prevActiveSession);
-          const keep = (value) => (scopeChanged ? 0 : value);
+          const rejectedDifferentIp = !!(
+            !acceptHealthCounters
+            && routeActiveIp
+            && prevIp
+            && prevIp !== routeActiveIp
+          );
+          const resetCounters = scopeChanged || rejectedDifferentIp;
+          const keep = (value) => (resetCounters ? 0 : value);
           const stable = (key, value) => {
+            if (!acceptHealthCounters) return keep(Number(_prev[key] || 0));
             const next = Number(value || 0);
-            if (scopeChanged) return next;
+            if (resetCounters) return next;
             const prev = Number(_prev[key] || 0);
             return Number.isFinite(next) ? Math.max(prev, next) : prev;
           };
@@ -1097,10 +1174,10 @@
             tokensCache: (d.tokens_cache != null) ? stable('tokensCache', d.tokens_cache) : keep(Number(_prev.tokensCache || 0)),
             tokensOut: (d.tokens_out != null) ? stable('tokensOut', d.tokens_out) : keep(Number(_prev.tokensOut || 0)),
             costUsd: (d.cost_usd != null) ? stable('costUsd', d.cost_usd) : keep(Number(_prev.costUsd || 0)),
-            costScope: d.cost_scope || _prev.costScope || '',
-            costUser: d.cost_user || _prev.costUser || '',
-            costIp: d.cost_ip || _prev.costIp || '',
-            costCalls: d.cost_calls != null ? Number(d.cost_calls || 0) : Number(_prev.costCalls || 0),
+            costScope: acceptHealthCounters ? (d.cost_scope || _prev.costScope || '') : (_prev.costScope || (routeActiveIp ? 'user_ip' : '')),
+            costUser: acceptHealthCounters ? (d.cost_user || _prev.costUser || '') : (effectiveRoute.owner || _prev.costUser || ''),
+            costIp: acceptHealthCounters ? (d.cost_ip || routeActiveIp || _prev.costIp || '') : (routeActiveIp || ''),
+            costCalls: acceptHealthCounters && d.cost_calls != null ? Number(d.cost_calls || 0) : keep(Number(_prev.costCalls || 0)),
           };
         })(),
         frontend:    d.frontend  || '',
@@ -1111,15 +1188,15 @@
         reasoningEffort: d.reasoning_effort || '',
         modelOptions: Array.isArray(d.model_options) ? d.model_options : [],
         selectedModelKey: d.selected_model_key || '',
-        activeSession: d.active_session || '',
-        dbSessionId: d.db_session_id || '',
-        sessionUid: d.session_uid || '',
-        sessionLabel: d.session_label || '',
-        activeIp:      d.active_ip      || '',
-        activeWorkflow: d.active_workflow || '',
+        activeSession: effectiveSession || '',
+        dbSessionId: healthMetaApplies ? (d.db_session_id || '') : (_prev.dbSessionId || ''),
+        sessionUid: healthMetaApplies ? (d.session_uid || '') : (_prev.sessionUid || ''),
+        sessionLabel: healthMetaApplies ? (d.session_label || '') : (_prev.sessionLabel || ''),
+        activeIp:      routeActiveIp || '',
+        activeWorkflow: activeWorkflow || d.active_workflow || '',
         maxTokens:   d.max_context    || _prev.maxTokens || 0,
         iterMax:     d.max_iterations || _prev.iterMax    || 0,
-        workspace:   (backendWorkspace && backendWorkspace !== 'default') ? backendWorkspace : (activeWorkflow || backendWorkspace || ''),
+        workspace:   effectiveWorkspace,
         projectRoot: d.project_root || '',
         cwd:         d.cwd || '',
         pricing:     d.pricing || null,    // {input, cache, output} USD/1M

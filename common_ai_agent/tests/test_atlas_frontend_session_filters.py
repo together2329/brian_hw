@@ -48,3 +48,41 @@ def test_orchestrator_exec_mode_pins_orchestrator_workflow_first():
     assert "const next = currentWorkflow === w ? defaultWorkflowForExecMode() : w;" in workspace_src
     assert "next !== 'orchestrator'" in workspace_src
     assert "return <OrchestratorWorkflowPane activeIp={activeIp} />;" in workspace_src
+
+
+def test_workspace_chat_routing_prefers_active_session_ip_over_stale_scope():
+    workspace_src = (PROJECT_ROOT / "frontend" / "atlas" / "workspace.jsx").read_text(encoding="utf-8")
+    data_src = (PROJECT_ROOT / "frontend" / "atlas" / "data.jsx").read_text(encoding="utf-8")
+
+    assert "() => resolveSession(window.ACTIVE_SESSION, activeNamespace, activeSession)" in workspace_src
+    assert "return activeIpForRoute([\n      window.ACTIVE_SESSION,\n      activeNamespace," in workspace_src
+    assert "const promptScope = (() => {\n        return activeIpForRoute([" in workspace_src
+    assert "const scoped = normalizeUiSession(window.SCOPE_PATH || '');" not in workspace_src
+    assert "const browserActiveIp = activeIpFromSession();" in data_src
+    assert "const routeActiveIp = effectiveRoute.ip || browserActiveIp || backendActiveIp;" in data_src
+
+
+def test_health_context_preserves_browser_ip_when_backend_reports_other_ip():
+    data_src = (PROJECT_ROOT / "frontend" / "atlas" / "data.jsx").read_text(encoding="utf-8")
+    workspace_src = (PROJECT_ROOT / "frontend" / "atlas" / "workspace.jsx").read_text(encoding="utf-8")
+    routing_src = (PROJECT_ROOT / "frontend" / "atlas" / "lib" / "session_routing.js").read_text(encoding="utf-8")
+
+    assert "function browserSessionOverridesHealth(payload)" in data_src
+    assert "const effectiveSession = healthOverride ? browserSession : (healthSession || browserSession);" in data_src
+    assert "const acceptHealthCounters = healthCountersMatchBrowserRoute(d);" in data_src
+    assert "const healthMetaApplies = !healthSession || !effectiveSession || healthSession === effectiveSession;" in data_src
+
+    assert "const uiEffectiveHealthSession = (payload) =>" in workspace_src
+    assert "const acceptCounters = uiHealthCountersMatchBrowserRoute(j);" in workspace_src
+    assert "costIpChanged" in workspace_src
+
+    assert "function shouldUseBrowserSession(cfg)" in routing_src
+    assert "function healthCountersMatchRoute(cfg)" in routing_src
+
+
+def test_new_ip_creation_keeps_orchestrator_mode_on_orchestrator_session():
+    app_src = (PROJECT_ROOT / "frontend" / "atlas" / "app.jsx").read_text(encoding="utf-8")
+
+    assert "if (mode === 'orchestrator') return 'orchestrator';" in app_src
+    assert "workflow: requestedWorkflow" in app_src
+    assert "const workflow = requestedExecMode === 'orchestrator' ? 'orchestrator' : payloadWorkflow;" in app_src

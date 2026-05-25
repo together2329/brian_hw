@@ -63,6 +63,24 @@ def test_atlas_worker_sidebar_polls_current_ip_scope() -> None:
     assert "activeJobs.slice(0, 4)" in workspace
 
 
+def test_atlas_orchestrator_chat_exposes_flow_strip() -> None:
+    workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace.jsx").read_text()
+
+    assert "orchestratorFlowFromFeed" in workspace
+    assert "renderOrchestratorFlowStrip" in workspace
+    assert "Current orchestrator flow for the latest chat request" in workspace
+    assert "Check state" in workspace
+    assert "Dispatch" in workspace
+    assert "Wait result" in workspace
+
+
+def test_atlas_live_worker_thought_logs_default_collapsed() -> None:
+    workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace.jsx").read_text()
+
+    assert "Live worker thoughts can contain long retry logs" in workspace
+    assert "if (entries.some(e => e && e.kind === 'thought')) return true;" in workspace
+
+
 def test_atlas_worker_panels_share_cached_worker_snapshot_fetch() -> None:
     atlas_dir = PROJECT_ROOT / "frontend" / "atlas"
     data = (atlas_dir / "data.jsx").read_text()
@@ -108,6 +126,31 @@ def test_atlas_prompt_send_prefers_current_ip_workflow_session() -> None:
     assert "window.atlasData.sessionFor(promptScope, promptWorkflow)" in workspace
     assert "canonicalSession,\n        window.ACTIVE_SESSION" in workspace
     assert "activeSession,\n        activeNamespace" in workspace
+
+
+def test_atlas_single_worker_workflow_switch_owns_chat_session() -> None:
+    workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace.jsx").read_text()
+
+    # In Single Worker mode the workflow selector is not just a visual filter:
+    # selecting rtl-gen must activate <user>/<ip>/rtl-gen and hydrate that chat,
+    # otherwise the SSOT transcript remains visible under an RTL label.
+    assert "Single Worker mode binds the selected workflow to the active chat" in workspace
+    assert "if (atlasUiOrchestratorMode()) return;" in workspace
+    assert "const targetSession = sessionForInputRoute(ip, wf);" in workspace
+    assert "setChatViewSession(targetSession);" in workspace
+    assert "refreshChatSession(targetSession, { force: true });" in workspace
+
+
+def test_atlas_live_worker_feed_is_bounded_for_responsiveness() -> None:
+    workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace.jsx").read_text()
+    logic = (PROJECT_ROOT / "frontend" / "atlas" / "lib" / "orchestrator_chat_logic.mjs").read_text()
+
+    assert "const MAX_RENDERED_FEED_ENTRIES = 240;" in workspace
+    assert "Older entries are hidden in this view for speed." in workspace
+    assert "const trimAtlasFeedState = (items, maxEntries = 600)" in workspace
+    assert "trimAtlasFeedState(coalesceAtlasFeedEntries" in workspace
+    assert "const MAX_THOUGHT_LINES = 80;" in logic
+    assert "older thought lines hidden for speed" in logic
 
 
 def test_atlas_conversation_hydration_rejects_stale_session_payloads() -> None:
