@@ -75,6 +75,7 @@ class _ChatPersister:
         self._ip_name = getattr(ctx, "ip_name", "") or ""
         self._session_id = getattr(ctx, "session_id", "") or ""
         self._user_id = getattr(ctx, "user_id", "") or ""
+        self._project_root = getattr(ctx, "project_root", "") or "."
         self._display_name = "orchestrator"
         self._lock = threading.Lock()
 
@@ -100,6 +101,16 @@ class _ChatPersister:
                     display_name=display_name or self._display_name,
                     role=role,
                 )
+        except Exception:
+            pass
+        # Local .session mirror (UI reads this; DB write above stays as the
+        # control-path/consume-ledger source). Keyed by (owner, ip name).
+        try:
+            from core.local_chat_store import append_chat
+            append_chat(
+                self._project_root, self._user_id, self._ip_name, text,
+                role=role, display_name=display_name or self._display_name,
+            )
         except Exception:
             pass
 

@@ -21,12 +21,13 @@ _EXPECTED_STAGE_IDS = [
 
 
 def _make_client(tmp_path: Path, monkeypatch) -> TestClient:
+    monkeypatch.chdir(tmp_path)
+
     import src.atlas_ui as atlas_ui
 
     monkeypatch.setenv("HOME", str(tmp_path / "home"))
     monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
     monkeypatch.setenv("ATLAS_DB_PATH", str(tmp_path / "atlas.db"))
-    monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(atlas_ui, "SOURCE_ROOT", tmp_path)
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
 
@@ -340,9 +341,8 @@ def test_pipeline_state_locked_reason_names_missing_upstream(tmp_path: Path, mon
 def test_pipeline_state_includes_orchestrator_block_enabled_by_default(
     tmp_path: Path, monkeypatch
 ) -> None:
-    """The orchestrator/handoffs_by_workflow keys are always present in the
-    response, and Pipeline defaults to orchestrator mode unless explicitly disabled."""
-    monkeypatch.delenv("ATLAS_ORCHESTRATOR_MODE", raising=False)
+    """The orchestrator/handoffs_by_workflow keys are present when orchestrator is enabled."""
+    monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODE", "1")
     ip = "orch_off_ip"
     (tmp_path / ip).mkdir()
     client = _make_client(tmp_path, monkeypatch)
@@ -637,6 +637,36 @@ def test_pipeline_state_evidence_failure_overrides_completed_db_row(
     assert "setup WNS=-3.5" in sta_post["error_summary"]
 
 
+def test_pipeline_state_scaffold_rtl_not_failed_before_rtl_gen_runs(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """A brand-new IP carries create_ip's scaffold rtl/<ip>.sv (a TODO/placeholder
+    stub) plus list/<ip>.f, but no rtl-gen verdict artifact. That must NOT read as
+    rtl=failed — rtl-gen was never dispatched. Regression for the "fresh IP shows
+    red rtl" UX confusion."""
+    ip = "scaffold_rtl_ip"
+    ip_dir = tmp_path / ip
+    rtl_dir = ip_dir / "rtl"
+    list_dir = ip_dir / "list"
+    rtl_dir.mkdir(parents=True)
+    list_dir.mkdir(parents=True)
+    # scaffold stub with a placeholder marker, exactly like create_ip seeds
+    (rtl_dir / f"{ip}.sv").write_text(
+        f"module {ip}(input logic clk);\n  // TODO: replace with Jinja2 / LLM output\nendmodule\n",
+        encoding="utf-8",
+    )
+    (list_dir / f"{ip}.f").write_text(f"../rtl/{ip}.sv\n", encoding="utf-8")
+    # NOTE: deliberately no rtl_compile.json / logs/stage_engine/ssot-rtl.json
+    # (no verdict) → rtl-gen has not actually run.
+
+    client = _make_client(tmp_path, monkeypatch)
+    data = client.get(f"/api/pipeline/state?ip={ip}").json()
+    rtl = data["stages"]["rtl"]
+    assert rtl["state"] != "failed", f"scaffold rtl wrongly marked failed: {rtl}"
+    # ssot never passed, so rtl is gated upstream — locked (not failed).
+    assert rtl["state"] in ("locked", "idle", "ready"), rtl
+
+
 def test_orchestrator_mode_get_reflects_env(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODE", "1")
     client = _make_client(tmp_path, monkeypatch)
@@ -711,7 +741,7 @@ def test_orchestrator_mode_post_rejects_bad_body(tmp_path: Path, monkeypatch) ->
 def test_pipeline_run_policy_get_post_and_state_payload(tmp_path: Path, monkeypatch) -> None:
     import os
 
-    monkeypatch.delenv("ATLAS_RUN_MODE", raising=False)
+    monkeypatch.setenv("ATLAS_RUN_MODE", "engineering")
     monkeypatch.delenv("ATLAS_ORCHESTRATOR_MODE", raising=False)
     monkeypatch.delenv("ATLAS_EXEC_MODE", raising=False)
     monkeypatch.delenv("ATLAS_DEFAULT_EXEC_MODE", raising=False)
@@ -724,7 +754,7 @@ def test_pipeline_run_policy_get_post_and_state_payload(tmp_path: Path, monkeypa
     assert base.status_code == 200
     assert base.json()["run_mode"] == "engineering"
     assert base.json()["exec_mode"] == "single-worker"
-    assert base.json()["initial_workflow"] == "ssot-gen"
+    assert base.json()["initial_workflow"] == "default"
     assert base.json()["policy"]["worker_strategy"] == "single-main-loop"
 
     r = client.post("/api/pipeline/run_policy", json={
@@ -899,6 +929,7 @@ def test_pipeline_state_allows_admin_to_inspect_user_owned_ip(
     from core.atlas_db import AtlasDB
 
     monkeypatch.setenv("ATLAS_ADMIN_USERS", "admin")
+    monkeypatch.setenv("ATLAS_SESSION_DB_SYNC", "1")
     ip = "admin_view_ip"
     (tmp_path / ip).mkdir()
 
