@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "ip": "real_llm_counter_demo",
+  "tool": "iverilog_vvp",
+  "passed": true,
+  "scoreboard_pass": 37,
+  "scoreboard_fail": 0,
+  "scoreboard_events_csv": "sim/scoreboard_events.csv",
+  "waveform": "sim/waves/real_llm_counter_demo.vcd",
+  "coverage_hits": {
+    "SC01_executed": 1,
+    "SC02_executed": 1,
+    "SC03_executed": 1,
+    "SC04_executed": 1,
+    "SC05_executed": 1,
+    "SC06_executed": 1,
+    "SC07_executed": 1,
+    "SC08_executed": 1,
+    "SC09_executed": 1,
+    "SC10_executed": 1,
+    "SC11_executed": 1,
+    "SC12_executed": 1,
+    "function_clear_counter": 1,
+    "function_load_counter": 1,
+    "function_increment_counter": 1,
+    "function_decrement_counter": 1,
+    "function_hold_counter": 1,
+    "function_invalid_command_as_hold": 1,
+    "cycle_cmd_valid_cmd_ready": 1,
+    "latency_command_accept_at_min": 1,
+    "latency_command_accept_at_max": 1,
+    "latency_command_effect_at_min": 1,
+    "latency_command_effect_at_max": 1,
+    "latency_flag_update_at_min": 1,
+    "latency_flag_update_at_max": 1
+  },
+  "directed_scenarios": [
+    "EQ_RESET", "EQ_CLEAR", "EQ_LOAD", "EQ_LOAD_BOUNDARY", "EQ_INC", "EQ_INC_SATURATE", "EQ_DEC", "EQ_DEC_SATURATE", "EQ_HOLD", "EQ_INVALID", "EQ_ACCEPTED_COUNT_WRAP", "EQ_BACK_TO_BACK", "EQ_FLAGS", "EQ_CMD_READY_ALWAYS", "EQ_CYCLE_TIMING"
+  ],
+  "accepted_count_wrap_method": "hierarchical force/release of dut.accepted_count_reg to 32'hffffffff before one accepted HOLD command"
+}

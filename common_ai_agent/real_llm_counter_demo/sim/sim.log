@@ -1,0 +1,43 @@
+[run_sim] ip_dir=/Users/brian/Desktop/Project/brian_hw/common_ai_agent/real_llm_counter_demo
+[run_sim] compile: iverilog -g2012 -Irtl -s tb_real_llm_counter_demo -o sim/build/tb_real_llm_counter_demo.vvp -f list/real_llm_counter_demo.f sim/tb_real_llm_counter_demo.sv
+[run_sim] run: vvp sim/build/tb_real_llm_counter_demo.vvp
+VCD info: dumpfile sim/waves/real_llm_counter_demo.vcd opened for output.
+[TB][PASS] EQ_RESET_asserted count=0 accepted=0 status=0 zero=1 max=0
+[TB][PASS] EQ_RESET_deasserted count=0 accepted=0 status=0 zero=1 max=0
+[TB][PASS] EQ_LOAD_BOUNDARY_0 count=0 accepted=1 status=1 zero=1 max=0
+[TB][PASS] EQ_LOAD_BOUNDARY_0_idle count=0 accepted=1 status=1 zero=1 max=0
+[TB][PASS] EQ_LOAD_BOUNDARY_128 count=128 accepted=2 status=1 zero=0 max=0
+[TB][PASS] EQ_LOAD_BOUNDARY_128_idle count=128 accepted=2 status=1 zero=0 max=0
+[TB][PASS] EQ_LOAD_BOUNDARY_255 count=255 accepted=3 status=1 zero=0 max=1
+[TB][PASS] EQ_LOAD_BOUNDARY_255_idle count=255 accepted=3 status=1 zero=0 max=1
+[TB][PASS] EQ_INC_SATURATE count=255 accepted=4 status=2 zero=0 max=1
+[TB][PASS] EQ_INC_SATURATE_idle count=255 accepted=4 status=2 zero=0 max=1
+[TB][PASS] EQ_CLEAR count=0 accepted=5 status=0 zero=1 max=0
+[TB][PASS] EQ_CLEAR_idle count=0 accepted=5 status=0 zero=1 max=0
+[TB][PASS] EQ_DEC_SATURATE count=0 accepted=6 status=3 zero=1 max=0
+[TB][PASS] EQ_DEC_SATURATE_idle count=0 accepted=6 status=3 zero=1 max=0
+[TB][PASS] EQ_LOAD count=66 accepted=7 status=1 zero=0 max=0
+[TB][PASS] EQ_LOAD_idle count=66 accepted=7 status=1 zero=0 max=0
+[TB][PASS] EQ_INC count=67 accepted=8 status=2 zero=0 max=0
+[TB][PASS] EQ_INC_idle count=67 accepted=8 status=2 zero=0 max=0
+[TB][PASS] EQ_DEC count=66 accepted=9 status=3 zero=0 max=0
+[TB][PASS] EQ_DEC_idle count=66 accepted=9 status=3 zero=0 max=0
+[TB][PASS] EQ_HOLD count=66 accepted=10 status=4 zero=0 max=0
+[TB][PASS] EQ_HOLD_idle count=66 accepted=10 status=4 zero=0 max=0
+[TB][PASS] EQ_INVALID_5 count=66 accepted=11 status=5 zero=0 max=0
+[TB][PASS] EQ_INVALID_5_idle count=66 accepted=11 status=5 zero=0 max=0
+[TB][PASS] EQ_INVALID_6 count=66 accepted=12 status=6 zero=0 max=0
+[TB][PASS] EQ_INVALID_6_idle count=66 accepted=12 status=6 zero=0 max=0
+[TB][PASS] EQ_INVALID_7 count=66 accepted=13 status=7 zero=0 max=0
+[TB][PASS] EQ_INVALID_7_idle count=66 accepted=13 status=7 zero=0 max=0
+[TB][PASS] EQ_BACK_TO_BACK_INC count=67 accepted=14 status=2 zero=0 max=0
+[TB][PASS] EQ_BACK_TO_BACK_DEC count=66 accepted=15 status=3 zero=0 max=0
+[TB][PASS] EQ_BACK_TO_BACK_INC2 count=67 accepted=16 status=2 zero=0 max=0
+[TB][PASS] EQ_BACK_TO_BACK_INC2_idle count=67 accepted=16 status=2 zero=0 max=0
+[TB][PASS] EQ_ACCEPTED_COUNT_PRELOAD_FORCE count=67 accepted=4294967295 status=2 zero=0 max=0
+[TB][PASS] EQ_ACCEPTED_COUNT_PRELOAD_RELEASE count=67 accepted=4294967295 status=2 zero=0 max=0
+[TB][PASS] EQ_ACCEPTED_COUNT_WRAP count=67 accepted=0 status=4 zero=0 max=0
+[TB][PASS] EQ_ACCEPTED_COUNT_WRAP_idle count=67 accepted=0 status=4 zero=0 max=0
+[TB][PASS] EQ_ACCEPTED_COUNT_WRAP_POSTCHECK count=67 accepted=0 status=4 zero=0 max=0
+[TB][RESULT] PASS scoreboard_pass=37 scoreboard_fail=0
+sim/tb_real_llm_counter_demo.sv:400: $finish called at 351000 (1ps)
