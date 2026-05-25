@@ -1,0 +1,168 @@
+{
+  "schema_version": 1,
+  "ip": "real_llm_counter_demo",
+  "type": "post_sim_static_signoff_checks",
+  "artifact_location_policy": "All check artifacts live under verify/ and .session/, not under synthesizable rtl/.",
+  "rtl_under_check": "real_llm_counter_demo/rtl/real_llm_counter_demo.sv",
+  "filelist": "real_llm_counter_demo/list/real_llm_counter_demo.f",
+  "checks": [
+    {
+      "name": "cmd_ready_always_high",
+      "description": "cmd_ready must be tied high for always-ready valid/ready protocol.",
+      "passed": true,
+      "evidence": [
+        "assign cmd_ready = 1'b1"
+      ],
+      "refs": [
+        "io_list.interfaces.command_if.protocol.always_ready",
+        "equivalence_goals.EQ_CMD_READY_ALWAYS"
+      ]
+    },
+    {
+      "name": "reset_contract",
+      "description": "Active-low reset must clear count/status/accepted_count.",
+      "passed": true,
+      "evidence": [
+        "count_reg <= SAT_MIN_VAL",
+        "accepted_count_reg <= 32'd0",
+        "last_cmd_reg <= 3'd0",
+        "async reset sensitivity",
+        "active-low reset branch"
+      ],
+      "refs": [
+        "clock_reset_domains.reset_behavior",
+        "equivalence_goals.EQ_RESET"
+      ]
+    },
+    {
+      "name": "counter_range_is_width_limited",
+      "description": "Counter range must be constrained to the 8-bit SSOT width and saturation constants.",
+      "passed": true,
+      "evidence": [
+        "WIDTH parameter is 8",
+        "count port is WIDTH bits",
+        "count_reg is WIDTH bits",
+        "SAT_MAX_VAL is all ones",
+        "SAT_MIN_VAL is all zeros",
+        "count output driven by count_reg"
+      ],
+      "refs": [
+        "parameters.WIDTH",
+        "parameters.SAT_MIN",
+        "parameters.SAT_MAX"
+      ]
+    },
+    {
+      "name": "increment_saturates_at_max",
+      "description": "INC at SAT_MAX must hold SAT_MAX rather than wrap.",
+      "passed": true,
+      "evidence": [
+        "CMD_INC: count_next = (count_reg == SAT_MAX_VAL) ? SAT_MAX_VAL : count_reg + 1'b1"
+      ],
+      "refs": [
+        "features.F001",
+        "equivalence_goals.EQ_INC_SATURATE"
+      ]
+    },
+    {
+      "name": "decrement_saturates_at_min",
+      "description": "DEC at SAT_MIN must hold SAT_MIN rather than wrap.",
+      "passed": true,
+      "evidence": [
+        "CMD_DEC: count_next = (count_reg == SAT_MIN_VAL) ? SAT_MIN_VAL : count_reg - 1'b1"
+      ],
+      "refs": [
+        "features.F002",
+        "equivalence_goals.EQ_DEC_SATURATE"
+      ]
+    },
+    {
+      "name": "accepted_count_increments_on_accept",
+      "description": "When cmd_valid accepts a command, accepted_count_reg increments by one and wraps naturally at 32 bits.",
+      "passed": true,
+      "evidence": [
+        "else if (cmd_valid) accepted_count_reg <= accepted_count_reg + 32'd1"
+      ],
+      "refs": [
+        "features.F008",
+        "equivalence_goals.EQ_ACCEPTED_COUNT_WRAP"
+      ]
+    },
+    {
+      "name": "flags_are_combinational_functions_of_count",
+      "description": "zero/max must be combinational functions of count_reg at SAT_MIN/SAT_MAX.",
+      "passed": true,
+      "evidence": [
+        "assign zero = (count_reg == SAT_MIN_VAL)",
+        "assign max = (count_reg == SAT_MAX_VAL)"
+      ],
+      "refs": [
+        "features.F007",
+        "equivalence_goals.EQ_FLAGS"
+      ]
+    }
+  ],
+  "tool_availability": {
+    "iverilog": "/opt/homebrew/bin/iverilog",
+    "vvp": "/opt/homebrew/bin/vvp",
+    "verilator": "/opt/homebrew/bin/verilator",
+    "yosys": "/opt/homebrew/bin/yosys",
+    "sby": null,
+    "svlint": null
+  },
+  "tool_runs": [
+    {
+      "name": "post_sim_dut_compile_iverilog",
+      "available": true,
+      "command": "/opt/homebrew/bin/iverilog -g2012 -Irtl -s real_llm_counter_demo -o verify/build/postsim_dut_compile.vvp -f list/real_llm_counter_demo.f",
+      "cwd": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/real_llm_counter_demo",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "post_sim_dut_lint_verilator",
+      "available": true,
+      "command": "/opt/homebrew/bin/verilator --lint-only -Wall -Irtl -f list/real_llm_counter_demo.f --top-module real_llm_counter_demo",
+      "cwd": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/real_llm_counter_demo",
+      "returncode": 0,
+      "stdout": "- V e r i l a t i o n   R e p o r t: Verilator 5.046 2026-02-28 rev vUNKNOWN-built20260228\n- Verilator: Built from 0.035 MB sources in 2 modules, into 0.022 MB in 3 C++ files needing 0.000 MB\n- Verilator: Walltime 0.047 s (elab=0.008, cvt=0.011, bld=0.000); cpu 0.014 s on 1 threads; allocated 10.750 MB\n",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "yosys_static_elaboration_check",
+      "available": true,
+      "command": "/opt/homebrew/bin/yosys -q -p read_verilog -sv rtl/real_llm_counter_demo.sv; hierarchy -check -top real_llm_counter_demo; proc; opt; check -assert",
+      "cwd": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/real_llm_counter_demo",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "passed": true
+    }
+  ],
+  "waivers": [
+    {
+      "item": "symbiyosys_full_formal_proof",
+      "rationale": "sby/SymbiYosys is not installed in this environment; lightweight static property checks plus yosys elaboration, iverilog compile, verilator lint, and passing scoreboard simulation are used instead.",
+      "scope": "optional formal only; no waiver for required simulation/lint/compile evidence"
+    },
+    {
+      "item": "svlint_style_check",
+      "rationale": "svlint is not installed; verilator lint and existing pyslang/verilator DUT lint are used for available static lint coverage.",
+      "scope": "optional extra lint tool only"
+    }
+  ],
+  "summary": {
+    "static_property_checks": 7,
+    "static_property_failures": [],
+    "all_static_properties_passed": true,
+    "available_tool_runs": 3,
+    "available_tool_failures": [],
+    "all_available_tools_passed": true,
+    "post_sim_compile_clean": true,
+    "post_sim_lint_clean": true,
+    "signoff_pass": true
+  }
+}
