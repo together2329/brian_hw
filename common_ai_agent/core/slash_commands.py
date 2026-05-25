@@ -2462,10 +2462,118 @@ class SlashCommandRegistry:
         line = _re.sub(r"\$(\d+\.\d+)", rf"{_GRN}$\1{_RESET}", line)
         return line
 
+    @staticmethod
+    def _normalize_atlas_session(value: Optional[str]) -> str:
+        import re as _re
+        clean = str(value or "").strip().strip("/")
+        clean = _re.sub(r"/+", "/", clean)
+        clean = _re.sub(r"[^A-Za-z0-9_.\-/]+", "_", clean)
+        return clean
+
+    def _active_atlas_session(self) -> str:
+        for env_name in ("ATLAS_ACTIVE_SESSION", "ATLAS_SESSION_APPLIED"):
+            session = self._normalize_atlas_session(os.environ.get(env_name))
+            if session and session not in {"default", "default/default", "default/default/default"}:
+                return session
+        return ""
+
+    def _messages_atlas_session(self, messages: Optional[list[dict]]) -> str:
+        """Return the Atlas session marker embedded in a system prompt, if any."""
+        if not messages:
+            return ""
+        raw = messages[0].get("content") if isinstance(messages[0], dict) else ""
+        if isinstance(raw, list):
+            text = "\n".join(
+                str(block.get("text") or "")
+                for block in raw
+                if isinstance(block, dict)
+            )
+        elif isinstance(raw, dict):
+            text = "\n".join(str(raw.get(k) or "") for k in ("static", "dynamic", "text", "content"))
+        else:
+            text = str(raw or "")
+        import re as _re
+        match = _re.search(r"\[ACTIVE_SESSION:\s*([^\]\n]+)\]", text)
+        return self._normalize_atlas_session(match.group(1)) if match else ""
+
+    def _summarize_context_system_prompt(self, content: str) -> str:
+        """Show system-prompt identity without dumping the whole worker prompt."""
+        import re as _re
+        text = str(content or "")
+        fields = [
+            ("ACTIVE_SESSION", "Active session"),
+            ("ACTIVE_IP", "Active IP"),
+            ("ACTIVE_WORKSPACE", "Workflow"),
+            ("PROJECT_ROOT", "Project root"),
+            ("IP_ROOT", "IP root"),
+        ]
+        lines = []
+        for key, label in fields:
+            match = _re.search(rf"\[{key}:\s*([^\]\n]+)\]", text)
+            if match:
+                lines.append(f"{label}: {match.group(1).strip()}")
+        line_count = len(text.splitlines())
+        char_count = len(text)
+        if lines:
+            lines.append(f"System prompt hidden ({line_count} lines, {char_count} chars).")
+            return "\n".join(lines)
+        if char_count > 1000 or line_count > 12:
+            return f"System prompt hidden ({line_count} lines, {char_count} chars)."
+        return text.strip()
+
+    def _hydrate_active_context_tracker(self, tracker) -> Optional[Path]:
+        """Bind /context output to the active Atlas local session, not stale globals."""
+        active_session = self._active_atlas_session()
+        tracker_messages = getattr(tracker, "messages", None)
+        tracker_session = self._messages_atlas_session(tracker_messages)
+        should_reload = not tracker_messages
+        if active_session:
+            should_reload = should_reload or tracker_session != active_session
+        if not should_reload:
+            return None
+        saved_messages, saved_path = self._load_saved_context_messages()
+        if not saved_messages:
+            if active_session:
+                tracker.messages = []
+                try:
+                    tracker.update_system_prompt("")
+                    tracker.update_messages([], exclude_system=True)
+                except Exception:
+                    pass
+            return saved_path
+        tracker.messages = saved_messages
+        try:
+            if saved_messages and saved_messages[0].get("role") == "system":
+                tracker.update_system_prompt(saved_messages[0].get("content", ""))
+            tracker.update_messages(saved_messages, exclude_system=True)
+        except Exception:
+            pass
+        return saved_path
+
     def _format_full_context(self, tracker) -> str:
         """Format the full conversation history for verbose display."""
+        self._hydrate_active_context_tracker(tracker)
         if not hasattr(tracker, 'messages') or not tracker.messages:
-            return "\n\033[33m[System] No message history available in context.\033[0m\n"
+            saved_messages, saved_path = self._load_saved_context_messages()
+            if saved_messages:
+                tracker.messages = saved_messages
+                try:
+                    if saved_messages and saved_messages[0].get("role") == "system":
+                        tracker.update_system_prompt(saved_messages[0].get("content", ""))
+                    tracker.update_messages(saved_messages, exclude_system=True)
+                except Exception:
+                    pass
+                return self._format_full_context(tracker)
+            # `-v` shows the LIVE window only; a fresh session (just logged in,
+            # /clear'd, or no turns yet) is legitimately empty. Don't imply data
+            # loss — point to the durable log if one exists on disk.
+            _saved = saved_path or next((p for p in (Path('full_conversation.json'),
+                                                     Path('conversation_history.json'))
+                                         if p.exists() and p.stat().st_size > 0), None)
+            hint = ("  Saved history exists — use \033[1m/context -v -full\033[0m to view it."
+                    if _saved else "")
+            return ("\n\033[33m[System] Current context window is empty "
+                    "(no messages this session yet).\033[0m\n" + (hint + "\n" if hint else ""))
 
         from lib.display import Color
         
@@ -2520,6 +2628,9 @@ class SlashCommandRegistry:
             else:
                 content = str(raw_content).strip() if raw_content is not None else ""
 
+            if role == "SYSTEM":
+                content = self._summarize_context_system_prompt(content)
+
             # For assistant messages with tool_calls and no text, show what was called
             tool_calls = msg.get("tool_calls", [])
             if role == "ASSISTANT" and not content and tool_calls:
@@ -2572,6 +2683,44 @@ class SlashCommandRegistry:
         lines.append("\n\033[2m" + "=" * 60 + "\033[0m")
         return "\n".join(lines) + "\n"
 
+    def _load_saved_context_messages(self) -> tuple[list[dict], Optional[Path]]:
+        """Load the active local session conversation for /context fallback."""
+        import json as _json
+        import sys as _sys
+
+        _config = _sys.modules.get('config') or _sys.modules.get('src.config')
+        candidates: list[Path] = []
+        project_root = Path(os.environ.get('ATLAS_PROJECT_ROOT') or Path.cwd()).expanduser()
+        for env_name in ('ATLAS_ACTIVE_SESSION', 'ATLAS_SESSION_APPLIED'):
+            session = self._normalize_atlas_session(os.environ.get(env_name))
+            if session:
+                candidates.append(project_root / '.session' / session / 'conversation.json')
+        if _config is not None:
+            history_file = str(getattr(_config, 'HISTORY_FILE', '') or '').strip()
+            session_dir = str(getattr(_config, 'SESSION_DIR', '') or '').strip()
+            if session_dir:
+                candidates.append(Path(session_dir) / 'conversation.json')
+            if history_file:
+                candidates.append(Path(history_file))
+        seen: set[str] = set()
+        for path in candidates:
+            try:
+                key = str(path.expanduser().resolve())
+            except Exception:
+                key = str(path)
+            if key in seen:
+                continue
+            seen.add(key)
+            try:
+                if not path.is_file() or path.stat().st_size <= 0:
+                    continue
+                raw = _json.loads(path.read_text(encoding='utf-8'))
+                if isinstance(raw, list):
+                    return raw, path
+            except Exception:
+                continue
+        return [], None
+
     def _format_full_history(self) -> str:
         """Format the full conversation history from full_conversation.json."""
         import json as _json
@@ -2579,12 +2728,30 @@ class SlashCommandRegistry:
         try:
             _config = _sys.modules.get('config')
             _session_dir = getattr(_config, 'SESSION_DIR', '') if _config else ''
-            if not _session_dir:
-                return "\n\033[33m[System] No session directory — run with a project name.\033[0m\n"
-            _full_path = Path(_session_dir) / 'full_conversation.json'
-            if not _full_path.exists():
-                # fallback: show current context with a note
-                return "\n\033[33m[System] full_conversation.json not found — showing current context only.\033[0m\n"
+            _history_file = getattr(_config, 'HISTORY_FILE', 'conversation_history.json') if _config else 'conversation_history.json'
+            # History lives per-session under SESSION_DIR, but a session started
+            # without a project name has no SESSION_DIR. Rather than dead-ending,
+            # fall back to the durable copies in the working directory so the
+            # user still sees their saved history. Search in priority order.
+            _candidates = []
+            _project_root = Path(os.environ.get('ATLAS_PROJECT_ROOT') or Path.cwd()).expanduser()
+            for _env_name in ('ATLAS_ACTIVE_SESSION', 'ATLAS_SESSION_APPLIED'):
+                _session = self._normalize_atlas_session(os.environ.get(_env_name))
+                if _session:
+                    _session_root = _project_root / '.session' / _session
+                    _candidates.append(_session_root / 'full_conversation.json')
+                    _candidates.append(_session_root / 'conversation.json')
+            if _session_dir:
+                _candidates.append(Path(_session_dir) / 'full_conversation.json')
+            _candidates.append(Path('full_conversation.json'))
+            _candidates.append(Path(_history_file))
+            _full_path = next((p for p in _candidates if p.exists() and p.stat().st_size > 0), None)
+            if _full_path is None:
+                _looked = ", ".join(str(p) for p in _candidates)
+                return ("\n\033[33m[System] No saved history found (looked in: "
+                        f"{_looked}).\033[0m\n"
+                        "\033[2mHistory is written per session under .session/<project>/ — "
+                        "start with a project name to persist a session log.\033[0m\n")
             with open(_full_path, 'r', encoding='utf-8') as f:
                 messages = _json.load(f)
         except Exception as e:
@@ -2611,6 +2778,8 @@ class SlashCommandRegistry:
             content = content.strip()
             if not content:
                 continue
+            if role == "SYSTEM":
+                content = self._summarize_context_system_prompt(content)
             _role_colors = {"SYSTEM": "\033[2;33m", "USER": "\033[1;36m",
                             "ASSISTANT": "\033[1;32m", "TOOL": "\033[2;35m"}
             _rc = _role_colors.get(role, "\033[0m")
@@ -2640,6 +2809,8 @@ class SlashCommandRegistry:
 
             # Get actual token count from last API call
             actual_total = llm_client.last_input_tokens if llm_client.last_input_tokens > 0 else None
+
+            self._hydrate_active_context_tracker(tracker)
 
             # Debug output
             debug_lines = []
@@ -2675,7 +2846,8 @@ class SlashCommandRegistry:
             # --- VERBOSE MODE ---
             # /context -v        → current active context window
             # /context -v -full  → full conversation history (full_conversation.json)
-            if 'verbose' in args or '-v' in args:
+            verbose_context = 'verbose' in args or '-v' in args
+            if verbose_context:
                 if '-full' in args or '--full' in args:
                     output += self._format_full_history()
                 else:
@@ -2685,17 +2857,18 @@ class SlashCommandRegistry:
             if debug_lines:
                 output = "".join(debug_lines) + output
 
-            # Add Rules section (.UPD_RULE.md)
-            output += self._fmt_rules_section()
+            if not (verbose_context and self._active_atlas_session()):
+                # Add Rules section (.UPD_RULE.md)
+                output += self._fmt_rules_section()
 
-            # Add Skills section
-            output += self._fmt_skills_section()
+                # Add Skills section
+                output += self._fmt_skills_section()
 
-            # Tips (emoji-safe)
-            tip = _icon("💡", "[i]")
-            output += f"\n{tip} Tip: Use /clear to free up context"
-            output += f"\n{tip} Tip: Use /compact to summarize old messages"
-            output += f"\n{tip} Tip: /context -v (current window)  /context -v -full (full history)\n"
+                # Tips (emoji-safe)
+                tip = _icon("💡", "[i]")
+                output += f"\n{tip} Tip: Use /clear to free up context"
+                output += f"\n{tip} Tip: Use /compact to summarize old messages"
+                output += f"\n{tip} Tip: /context -v (current window)  /context -v -full (full history)\n"
 
             return output
         except Exception as e:

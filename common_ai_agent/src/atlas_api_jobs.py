@@ -3932,7 +3932,16 @@ def _job_artifact_recovery(
         filelist  = ip_dir / "list" / f"{ip}.f"
         rtl_dir   = ip_dir / "rtl"
         rtl_files = list(rtl_dir.glob("*.sv")) + list(rtl_dir.glob("*.v")) if rtl_dir.is_dir() else []
-        return bool(filelist.is_file() and rtl_files), f"recovered from artifact: {ip}/list/{ip}.f"
+        # create_ip scaffolds list/<ip>.f + a placeholder rtl/<ip>.sv before
+        # rtl-gen ever runs, so their mere presence is not "passed" — that would
+        # paint a fresh IP green. Require a real rtl-gen verdict artifact
+        # (compile report or stage-engine result), matching the failure-side
+        # gate, so an ungenerated scaffold reads as locked/idle instead.
+        rtl_ran = (
+            (rtl_dir / "rtl_compile.json").is_file()
+            or (ip_dir / "logs" / "stage_engine" / "ssot-rtl.json").is_file()
+        )
+        return bool(rtl_ran and filelist.is_file() and rtl_files), f"recovered from artifact: {ip}/list/{ip}.f"
     if stage == "lint" or workflow == "lint":
         return _any_file("lint/dut_lint.json", "lint/lint_report.json")
     if stage == "tb" or workflow == "tb-gen":
@@ -4237,6 +4246,17 @@ def _job_artifact_failure(
         return False, ""
     if stage == "rtl" or workflow == "rtl-gen":
         rtl_dir = ip_dir / "rtl"
+        # rtl-gen has only "run" once it emits a verdict artifact. A brand-new
+        # IP carries create_ip's scaffold (rtl/<ip>.sv with a TODO/placeholder
+        # plus list/<ip>.f) but no verdict — flagging that as a failure makes a
+        # fresh IP show rtl=failed before rtl-gen is ever dispatched (the
+        # validator can't tell "ran and failed" from "never ran"). Gate the
+        # placeholder + disk-validator checks on real verdict evidence; the
+        # gate-status check below still reads ssot-rtl.json on its own.
+        rtl_ran = (
+            (rtl_dir / "rtl_compile.json").is_file()
+            or (ip_dir / "logs" / "stage_engine" / "ssot-rtl.json").is_file()
+        )
         current_rtl_pass = _rtl_current_completion_evidence_passes(ip_dir, ip)
         gate_reason = _rtl_gate_failure_reason(ip_dir, ip)
         if gate_reason:
@@ -4271,7 +4291,7 @@ def _job_artifact_failure(
                 except Exception:
                     rel = path.relative_to(ip_dir).as_posix()
                     return True, f"unreadable RTL source: {ip}/{rel}"
-            if placeholder_hits:
+            if placeholder_hits and rtl_ran:
                 return True, "placeholder RTL markers: " + ", ".join(placeholder_hits[:6])
         has_rtl_evidence = (
             rtl_dir.is_dir()
@@ -4281,7 +4301,7 @@ def _job_artifact_failure(
             or (ip_dir / "logs" / "stage_engine" / "ssot-rtl.json").is_file()
         )
         checker = _workflow_root_for_project(project_root) / "rtl-gen" / "scripts" / "check_rtl_disk.sh"
-        if has_rtl_evidence and checker.is_file():
+        if rtl_ran and has_rtl_evidence and checker.is_file():
             try:
                 proc = subprocess.run(
                     ["bash", str(checker), ip],
@@ -5888,6 +5908,21 @@ def register_jobs_routes(
                         workflow="orchestrator",
                         actor_user_id=db_user_id,
                     )
+            # Local .session mirror — the UI reads this; the DB writes above stay
+            # as the chat_consumed/inject control-path source. Keyed by
+            # (owner=db_user_id, ip name) to match _ChatPersister in the worker.
+            try:
+                from core.local_chat_store import append_chat
+                if message:
+                    append_chat(pr, db_user_id, ip, message,
+                                role="user", display_name=str(user.get("username") or ""),
+                                workspace_id=str(workspace["id"] or ""))
+                if reply:
+                    append_chat(pr, db_user_id, ip, reply,
+                                role="assistant", display_name="ATLAS",
+                                workspace_id=str(workspace["id"] or ""))
+            except Exception:
+                pass
         except Exception:
             return
 
@@ -6599,19 +6634,12 @@ def register_jobs_routes(
             limit = max(1, min(500, limit))
         except Exception:
             limit = 100
+        # Pure local read — no DB at all. ``user_id`` (from _request_db_user_id)
+        # is already the canonical UUID the writers keyed on, so chat is read
+        # straight from .session/<owner>/<ip>/chat.jsonl.
         try:
-            from core.atlas_db import AtlasDB
-            pr = project_root()
-            db_path = _atlas_job_db_path(pr)
-            db_user_id = user_id
-            with AtlasDB(db_path) as db:
-                workspace = db.upsert_workspace(
-                    pr.name or "default",
-                    owner_user_id=db_user_id,
-                    local_path=str(pr),
-                )
-                ip_row = db.upsert_ip_block(workspace["id"], ip)
-                rows = db.list_chat_messages(ip_id=ip_row["id"], limit=limit, since=since)
+            from core.local_chat_store import read_chat
+            rows = read_chat(project_root(), user_id, ip, limit=limit, since=since)
         except Exception as exc:
             return JSONResponse({"error": str(exc)}, status_code=500)
         # rows are newest-first; reverse for chronological order
