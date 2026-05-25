@@ -624,6 +624,86 @@ def test_multiuser_dispatch_uses_separate_worker_process_urls_per_user(
     jobs._SESSION_WORKER_KEYS_BY_PORT.clear()
 
 
+def test_multiuser_single_worker_dispatch_scopes_worker_urls_per_user(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import urllib.request
+
+    import atlas_api_jobs as jobs
+
+    _clear_worker_url_env(monkeypatch)
+    monkeypatch.setenv("ATLAS_WORKFLOW_WORKER_PER_USER", "1")
+    monkeypatch.setenv("ATLAS_LAZY_WORKERS", "0")
+    monkeypatch.setenv("ATLAS_EXEC_MODE", "single-worker")
+    monkeypatch.setenv("ATLAS_SINGLE_MAIN_LOOP", "0")
+    monkeypatch.setenv("ATLAS_WORKFLOW_WORKER_PORT_BASE", "6000")
+    monkeypatch.setenv("ATLAS_WORKFLOW_WORKER_PORT_SPAN", "200")
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+    jobs._SESSION_WORKER_PORTS.clear()
+    jobs._SESSION_WORKER_KEYS_BY_PORT.clear()
+
+    for ip in ("ip_a", "ip_b"):
+        (tmp_path / ip).mkdir(parents=True)
+
+    run_calls: list[dict] = []
+
+    def _fake_urlopen(req, timeout=None):
+        url = getattr(req, "full_url", str(req))
+        if url.endswith("/run"):
+            payload = json.loads((getattr(req, "data", b"") or b"{}").decode("utf-8"))
+            run_calls.append({"url": url, "payload": payload})
+            return _JsonResponse({"run_id": f"run_{len(run_calls)}"})
+        if url.endswith("/health"):
+            return _JsonResponse({
+                "status": "ok",
+                "workflow": "ssot-gen",
+                "model": "gpt-5.5",
+                "owner": "",
+            })
+        if "/status/" in url:
+            return _JsonResponse({"status": "running"})
+        return _JsonResponse({"status": "ok"})
+
+    monkeypatch.setattr(urllib.request, "urlopen", _fake_urlopen)
+
+    client = _make_client(tmp_path, monkeypatch)
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "1")
+    first = client.post("/api/job/dispatch", json={
+        "workflow": "ssot-gen",
+        "ip": "ip_a",
+        "exec_mode": "single-worker",
+    })
+    assert first.status_code == 200, first.text
+
+    reg_v = client.post("/api/auth/register", json={"username": "v", "password": "pw"})
+    assert reg_v.status_code == 200, reg_v.text
+    second = client.post("/api/job/dispatch", json={
+        "workflow": "ssot-gen",
+        "ip": "ip_b",
+        "exec_mode": "single-worker",
+    })
+    assert second.status_code == 200, second.text
+
+    first_body = first.json()
+    second_body = second.json()
+    assert first_body["status"] == "running"
+    assert second_body["status"] == "running"
+    assert first_body["worker"] != second_body["worker"]
+    assert first_body["worker"] != "http://127.0.0.1:5601"
+    assert second_body["worker"] != "http://127.0.0.1:5601"
+    assert len(run_calls) == 2
+    assert run_calls[0]["payload"]["session"].startswith("u/ip_a/")
+    assert run_calls[1]["payload"]["session"].startswith("v/ip_b/")
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+    jobs._SESSION_WORKER_PORTS.clear()
+    jobs._SESSION_WORKER_KEYS_BY_PORT.clear()
+
+
 def test_same_user_different_sessions_use_separate_worker_processes(
     tmp_path: Path,
     monkeypatch,

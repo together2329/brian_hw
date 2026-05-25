@@ -159,7 +159,7 @@ def test_dispatch_workflow_direct_fallback_scopes_worker_url_by_active_user(monk
     assert second["worker_url"] == calls[1]["worker"]
 
 
-def test_dispatch_workflow_direct_fallback_uses_single_worker_policy(monkeypatch):
+def test_dispatch_workflow_direct_fallback_scopes_single_worker_policy(monkeypatch):
     _clear_worker_env(monkeypatch)
     monkeypatch.setenv("ATLAS_EXEC_MODE", "single-worker")
     monkeypatch.setattr(tools, "_dispatch_workflow_callback", None)
@@ -183,8 +183,8 @@ def test_dispatch_workflow_direct_fallback_uses_single_worker_policy(monkeypatch
 
     assert data["ok"] is True
     assert data["exec_mode"] == "single-worker"
-    assert data["worker_url"] == "http://127.0.0.1:5601"
-    assert calls[0]["worker"] == "http://127.0.0.1:5601"
+    _assert_scoped_worker_url(data["worker_url"], "http://127.0.0.1:5601")
+    assert calls[0]["worker"] == data["worker_url"]
     assert calls[0]["exec_mode"] == "single-worker"
 
 

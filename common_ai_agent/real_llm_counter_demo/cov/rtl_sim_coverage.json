@@ -1,0 +1,874 @@
+{
+  "schema_version": 1,
+  "ip": "real_llm_counter_demo",
+  "type": "rtl_sim_functional_coverage_results",
+  "generated_from": {
+    "coverage_plan": "real_llm_counter_demo/cov/fcov_plan.json",
+    "sim_results": "real_llm_counter_demo/sim/sim_results.json",
+    "scoreboard_events_csv": "real_llm_counter_demo/sim/scoreboard_events.csv",
+    "sim_log": "real_llm_counter_demo/sim/sim.log",
+    "waveform": "real_llm_counter_demo/sim/waves/real_llm_counter_demo.vcd"
+  },
+  "fresh_simulation_evidence": {
+    "source_sim_passed": true,
+    "scoreboard_fail": 0,
+    "scoreboard_events": 37,
+    "scoreboard_failed_events": 0,
+    "sim_log_result_line": "[TB][RESULT] PASS scoreboard_pass=37 scoreboard_fail=0",
+    "artifact_mtimes_epoch": {
+      "real_llm_counter_demo/sim/sim_results.json": 1779667479.736305,
+      "real_llm_counter_demo/sim/scoreboard_events.csv": 1779667479.7363427,
+      "real_llm_counter_demo/sim/sim.log": 1779667479.7369273,
+      "real_llm_counter_demo/sim/waves/real_llm_counter_demo.vcd": 1779667479.7363925
+    },
+    "artifact_sizes_bytes": {
+      "real_llm_counter_demo/sim/sim_results.json": 1466,
+      "real_llm_counter_demo/sim/scoreboard_events.csv": 2205,
+      "real_llm_counter_demo/sim/sim.log": 3194,
+      "real_llm_counter_demo/sim/waves/real_llm_counter_demo.vcd": 20282
+    }
+  },
+  "summary": {
+    "plan_total_bins": 30,
+    "hit_bins": 25,
+    "waived_bins": 5,
+    "missed_bins": 0,
+    "raw_hit_coverage_pct": 83.33,
+    "effective_hit_or_waived_coverage_pct": 100.0,
+    "required_bins": 25,
+    "required_hit_or_waived_bins": 25,
+    "required_hit_or_waived_coverage_pct": 100.0,
+    "status_by_class": {
+      "scenario": {
+        "hit": 12
+      },
+      "transaction_type": {
+        "hit": 6
+      },
+      "error": {
+        "waived": 1
+      },
+      "protocol_handshake": {
+        "hit": 1
+      },
+      "latency_bin": {
+        "hit": 6,
+        "waived": 4
+      }
+    },
+    "signoff_pass": true
+  },
+  "waivers": [
+    {
+      "bin_id": "error_error_0",
+      "type": "plan_unreachable_for_ip",
+      "rationale": "fcov_plan generated an ERR_PROTOCOL bin for downstream non-OKAY/invalid response, but this IP's SSOT says the command interface has no response channel and error_handling says invalid command encodings 5-7 are treated as HOLD with no error output signal. Equivalent behavior is covered by function_invalid_command_as_hold and SC09.",
+      "ssot_refs": [
+        "io_list.interfaces.command_if.protocol.response: No response channel \u2014 results appear on dedicated output ports",
+        "error_handling.description: Invalid command encodings (5-7) are treated as HOLD; no error output signal is provided",
+        "equivalence_goals.EQ_INVALID"
+      ]
+    },
+    {
+      "bin_id": "latency_command_accept_gt_max",
+      "type": "negative_latency_bin",
+      "rationale": "This is an illegal/negative bin for command_accept latency > 0 cycles. SSOT requires min=max=0 and passing evidence hits both at_min and at_max; intentionally not hit in a passing signoff simulation.",
+      "ssot_refs": [
+        "cycle_model.latency.command_accept.min_cycles=0",
+        "cycle_model.latency.command_accept.max_cycles=0",
+        "equivalence_goals.EQ_CYCLE_TIMING"
+      ]
+    },
+    {
+      "bin_id": "latency_command_effect_lt_min",
+      "type": "negative_latency_bin",
+      "rationale": "This is an illegal/negative bin for command_effect latency < 1 cycle. SSOT requires min=max=1 and passing evidence hits both at_min and at_max; intentionally not hit in a passing signoff simulation.",
+      "ssot_refs": [
+        "cycle_model.latency.command_effect.min_cycles=1",
+        "cycle_model.latency.command_effect.max_cycles=1",
+        "equivalence_goals.EQ_CYCLE_TIMING"
+      ]
+    },
+    {
+      "bin_id": "latency_command_effect_gt_max",
+      "type": "negative_latency_bin",
+      "rationale": "This is an illegal/negative bin for command_effect latency > 1 cycle. SSOT requires min=max=1 and passing evidence hits both at_min and at_max; intentionally not hit in a passing signoff simulation.",
+      "ssot_refs": [
+        "cycle_model.latency.command_effect.min_cycles=1",
+        "cycle_model.latency.command_effect.max_cycles=1",
+        "equivalence_goals.EQ_CYCLE_TIMING"
+      ]
+    },
+    {
+      "bin_id": "latency_flag_update_gt_max",
+      "type": "negative_latency_bin",
+      "rationale": "This is an illegal/negative bin for flag_update latency > 0 cycles. SSOT requires min=max=0 and passing evidence hits both at_min and at_max; intentionally not hit in a passing signoff simulation.",
+      "ssot_refs": [
+        "cycle_model.latency.flag_update.min_cycles=0",
+        "cycle_model.latency.flag_update.max_cycles=0",
+        "equivalence_goals.EQ_FLAGS"
+      ]
+    }
+  ],
+  "bins": [
+    {
+      "id": "SC01_executed",
+      "class": "scenario",
+      "description": "reset_contract",
+      "status": "hit",
+      "hit_count": 1,
+      "required_for_signoff": true,
+      "source": "test_requirements.scenarios[0]",
+      "evidence": [
+        {
+          "artifact": "real_llm_counter_demo/sim/scoreboard_events.csv",
+          "line": 2,
+          "label": "EQ_RESET_asserted",
+          "event_id": 1,
+          "pass": 1,
+          "dut_count": 0,
+          "ref_count": 0,
+          "dut_status": 0,
+          "ref_status": 0,
+          "dut_cmd_ready": 1
+        }
+      ],
+      "waiver": null
+    },
+    {
+      "id": "SC02_executed",
+      "class": "scenario",
+      "description": "clear_command",
+      "status": "hit",
+      "hit_count": 1,
+      "required_for_signoff": true,
+      "source": "test_requirements.scenarios[1]",
+      "evidence": [
+        {
+          "artifact": "real_llm_counter_demo/sim/scoreboard_events.csv",
+          "line": 12,
+          "label": "EQ_CLEAR",
+          "event_id": 11,
+          "pass": 1,
+          "dut_count": 0,
+          "ref_count": 0,
+          "dut_status": 0,
+          "ref_status": 0,
+          "dut_cmd_ready": 1
+        }
+      ],
+      "waiver": null
+    },
+    {
+      "id": "SC03_executed",
+      "class": "scenario",
+      "description": "load_command",
+      "status": "hit",
+      "hit_count": 1,
+      "required_for_signoff": true,
+      "source": "test_requirements.scenarios[2]",
+      "evidence": [
+        {
+          "artifact": "real_llm_counter_demo/sim/scoreboard_events.csv",
+          "line": 16,
+          "label": "EQ_LOAD",
+          "event_id": 15,
+          "pass": 1,
+          "dut_count": 66,
+          "ref_count": 66,
+          "dut_status": 1,
+          "ref_status": 1,
+          "dut_cmd_ready": 1
+        }
+      ],
+      "waiver": null
+    },
+    {
+      "id": "SC04_executed",
+      "class": "scenario",
+      "description": "increment_command",
+      "status": "hit",
+      "hit_count": 1,
+      "required_for_signoff": true,
+      "source": "test_requirements.scenarios[3]",
+      "evidence": [
+        {
+          "artifact": "real_llm_counter_demo/sim/scoreboard_events.csv",
+          "line": 18,
+          "label": "EQ_INC",
+          "event_id": 17,
+          "pass": 1,
+          "dut_count": 67,
+          "ref_count": 67,
+          "dut_status": 2,
+          "ref_status": 2,
+          "dut_cmd_ready": 1
+        }
+      ],
+      "waiver": null
+    },
+    {
+      "id": "SC05_executed",
+      "class": "scenario",
+      "description": "increment_saturation",
+      "status": "hit",
+      "hit_count": 1,
+      "required_for_signoff": true,
+      "source": "test_requirements.scenarios[4]",
+      "evidence": [
+        {
+          "artifact": "real_llm_counter_demo/sim/scoreboard_events.csv",
+          "line": 10,
+          "label": "EQ_INC_SATURATE",
+          "event_id": 9,
+          "pass": 1,
+          "dut_count": 255,
+          "ref_count": 255,
+          "dut_status": 2,
+          "ref_status": 2,
+          "dut_cmd_ready": 1
+        }
+      ],
+      "waiver": null
+    },
+    {
+      "id": "SC06_executed",
+      "class": "scenario",
+      "description": "decrement_command",
+      "status": "hit",
+      "hit_count": 1,
+      "required_for_signoff": true,
+      "source": "test_requirements.scenarios[5]",
+      "evidence": [
+        {
+          "artifact": "real_llm_counter_demo/sim/scoreboard_events.csv",
+          "line": 20,
+          "label": "EQ_DEC",
+          "event_id": 19,
+          "pass": 1,
+          "dut_count": 66,
+          "ref_count": 66,
+          "dut_status": 3,
+          "ref_status": 3,
+          "dut_cmd_ready": 1
+        }
+      ],
+      "waiver": null
+    },
+    {
+      "id": "SC07_executed",
+      "class": "scenario",
+      "description": "decrement_saturation",
+      "status": "hit",
+      "hit_count": 1,
+      "required_for_signoff": true,
+      "source": "test_requirements.scenarios[6]",
+      "evidence": [
+        {
+          "artifact": "real_llm_counter_demo/sim/scoreboard_events.csv",
+          "line": 14,
+          "label": "EQ_DEC_SATURATE",
+          "event_id": 13,
+          "pass": 1,
+          "dut_count": 0,
+          "ref_count": 0,
+          "dut_status": 3,
+          "ref_status": 3,
+          "dut_cmd_ready": 1
+        }
+      ],
+      "waiver": null
+    },
+    {
+      "id": "SC08_executed",
+      "class": "scenario",
+      "description": "hold_command",
+      "status": "hit",
+      "hit_count": 1,
+      "required_for_signoff": true,
+      "source": "test_requirements.scenarios[7]",
+      "evidence": [
+        {
+          "artifact": "real_llm_counter_demo/sim/scoreboard_events.csv",
+          "line": 22,
+          "label": "EQ_HOLD",
+          "event_id": 21,
+          "pass": 1,
+          "dut_count": 66,
+          "ref_count": 66,
+          "dut_status": 4,
+          "ref_status": 4,
+          "dut_cmd_ready": 1
+        }
+      ],
+      "waiver": null
+    },
+    {
+      "id": "SC09_executed",
+      "class": "scenario",
+      "description": "invalid_command_as_hold",
+      "status": "hit",
+      "hit_count": 1,
+      "required_for_signoff": true,
+      "source": "test_requirements.scenarios[8]",
+      "evidence": [
+        {
+          "artifact": "real_llm_counter_demo/sim/scoreboard_events.csv",
+          "line": 24,
+          "label": "EQ_INVALID_5",
+          "event_id": 23,
+          "pass": 1,
+          "dut_count": 66,
+          "ref_count": 66,
+          "dut_status": 5,
+          "ref_status": 5,
+          "dut_cmd_ready": 1
+        }
+      ],
+      "waiver": null
+    },
+    {
+      "id": "SC10_executed",
+      "class": "scenario",
+      "description": "accepted_count_wrap",
+      "status": "hit",
+      "hit_count": 1,
+      "required_for_signoff": true,
+      "source": "test_requirements.scenarios[9]",
+      "evidence": [
+        {
+          "artifact": "real_llm_counter_demo/sim/scoreboard_events.csv",
+          "line": 36,
+          "label": "EQ_ACCEPTED_COUNT_WRAP",
+          "event_id": 35,
+          "pass": 1,
+          "dut_count": 67,
+          "ref_count": 67,
+          "dut_status": 4,
+          "ref_status": 4,
+          "dut_cmd_ready": 1
+        }
+      ],
+      "waiver": null
+    },
+    {
+      "id": "SC11_executed",
+      "class": "scenario",
+      "description": "back_to_back_commands",
+      "status": "hit",
+      "hit_count": 1,
+      "required_for_signoff": true,
+      "source": "test_requirements.scenarios[10]",
+      "evidence": [
+        {
+          "artifact": "real_llm_counter_demo/sim/scoreboard_events.csv",
+          "line": 31,
+          "label": "EQ_BACK_TO_BACK_DEC",
+          "event_id": 30,
+          "pass": 1,
+          "dut_count": 66,
+          "ref_count": 66,
+          "dut_status": 3,
+          "ref_status": 3,
+          "dut_cmd_ready": 1
+        }
+      ],
+      "waiver": null
+    },
+    {
+      "id": "SC12_executed",
+      "class": "scenario",
+      "description": "zero_max_flags_corner_cases",
+      "status": "hit",
+      "hit_count": 1,
+      "required_for_signoff": true,
+      "source": "test_requirements.scenarios[11]",
+      "evidence": [
+        {
+          "artifact": "real_llm_counter_demo/sim/scoreboard_events.csv",
+          "line": 4,
+          "label": "EQ_LOAD_BOUNDARY_0",
+          "event_id": 3,
+          "pass": 1,
+          "dut_count": 0,
+          "ref_count": 0,
+          "dut_status": 1,
+          "ref_status": 1,
+          "dut_cmd_ready": 1
+        },
+        {
+          "artifact": "real_llm_counter_demo/sim/scoreboard_events.csv",
+          "line": 8,
+          "label": "EQ_LOAD_BOUNDARY_255",
+          "event_id": 7,
+          "pass": 1,
+          "dut_count": 255,
+          "ref_count": 255,
+          "dut_status": 1,
+          "ref_status": 1,
+          "dut_cmd_ready": 1
+        }
+      ],
+      "waiver": null
+    },
+    {
+      "id": "function_clear_counter",
+      "class": "transaction_type",
+      "description": "FM_CLEAR \u2014 clear_counter",
+      "status": "hit",
+      "hit_count": 1,
+      "required_for_signoff": true,
+      "source": "function_model.transactions[0]",
+      "evidence": [
+        {
+          "artifact": "real_llm_counter_demo/sim/scoreboard_events.csv",
+          "line": 12,
+          "label": "EQ_CLEAR",
+          "event_id": 11,
+          "pass": 1,
+          "dut_count": 0,
+          "ref_count": 0,
+          "dut_status": 0,
+          "ref_status": 0,
+          "dut_cmd_ready": 1
+        }
+      ],
+      "waiver": null
+    },
+    {
+      "id": "function_load_counter",
+      "class": "transaction_type",
+      "description": "FM_LOAD \u2014 load_counter",
+      "status": "hit",
+      "hit_count": 1,
+      "required_for_signoff": true,
+      "source": "function_model.transactions[1]",
+      "evidence": [
+        {
+          "artifact": "real_llm_counter_demo/sim/scoreboard_events.csv",
+          "line": 16,
+          "label": "EQ_LOAD",
+          "event_id": 15,
+          "pass": 1,
+          "dut_count": 66,
+          "ref_count": 66,
+          "dut_status": 1,
+          "ref_status": 1,
+          "dut_cmd_ready": 1
+        }
+      ],
+      "waiver": null
+    },
+    {
+      "id": "function_increment_counter",
+      "class": "transaction_type",
+      "description": "FM_INC \u2014 increment_counter",
+      "status": "hit",
+      "hit_count": 1,
+      "required_for_signoff": true,
+      "source": "function_model.transactions[2]",
+      "evidence": [
+        {
+          "artifact": "real_llm_counter_demo/sim/scoreboard_events.csv",
+          "line": 18,
+          "label": "EQ_INC",
+          "event_id": 17,
+          "pass": 1,
+          "dut_count": 67,
+          "ref_count": 67,
+          "dut_status": 2,
+          "ref_status": 2,
+          "dut_cmd_ready": 1
+        }
+      ],
+      "waiver": null
+    },
+    {
+      "id": "function_decrement_counter",
+      "class": "transaction_type",
+      "description": "FM_DEC \u2014 decrement_counter",
+      "status": "hit",
+      "hit_count": 1,
+      "required_for_signoff": true,
+      "source": "function_model.transactions[3]",
+      "evidence": [
+        {
+          "artifact": "real_llm_counter_demo/sim/scoreboard_events.csv",
+          "line": 20,
+          "label": "EQ_DEC",
+          "event_id": 19,
+          "pass": 1,
+          "dut_count": 66,
+          "ref_count": 66,
+          "dut_status": 3,
+          "ref_status": 3,
+          "dut_cmd_ready": 1
+        }
+      ],
+      "waiver": null
+    },
+    {
+      "id": "function_hold_counter",
+      "class": "transaction_type",
+      "description": "FM_HOLD \u2014 hold_counter",
+      "status": "hit",
+      "hit_count": 1,
+      "required_for_signoff": true,
+      "source": "function_model.transactions[4]",
+      "evidence": [
+        {
+          "artifact": "real_llm_counter_demo/sim/scoreboard_events.csv",
+          "line": 22,
+          "label": "EQ_HOLD",
+          "event_id": 21,
+          "pass": 1,
+          "dut_count": 66,
+          "ref_count": 66,
+          "dut_status": 4,
+          "ref_status": 4,
+          "dut_cmd_ready": 1
+        }
+      ],
+      "waiver": null
+    },
+    {
+      "id": "function_invalid_command_as_hold",
+      "class": "transaction_type",
+      "description": "FM_INVALID \u2014 invalid_command_as_hold",
+      "status": "hit",
+      "hit_count": 1,
+      "required_for_signoff": true,
+      "source": "function_model.transactions[5]",
+      "evidence": [
+        {
+          "artifact": "real_llm_counter_demo/sim/scoreboard_events.csv",
+          "line": 24,
+          "label": "EQ_INVALID_5",
+          "event_id": 23,
+          "pass": 1,
+          "dut_count": 66,
+          "ref_count": 66,
+          "dut_status": 5,
+          "ref_status": 5,
+          "dut_cmd_ready": 1
+        },
+        {
+          "artifact": "real_llm_counter_demo/sim/scoreboard_events.csv",
+          "line": 26,
+          "label": "EQ_INVALID_6",
+          "event_id": 25,
+          "pass": 1,
+          "dut_count": 66,
+          "ref_count": 66,
+          "dut_status": 6,
+          "ref_status": 6,
+          "dut_cmd_ready": 1
+        },
+        {
+          "artifact": "real_llm_counter_demo/sim/scoreboard_events.csv",
+          "line": 28,
+          "label": "EQ_INVALID_7",
+          "event_id": 27,
+          "pass": 1,
+          "dut_count": 66,
+          "ref_count": 66,
+          "dut_status": 7,
+          "ref_status": 7,
+          "dut_cmd_ready": 1
+        }
+      ],
+      "waiver": null
+    },
+    {
+      "id": "error_error_0",
+      "class": "error",
+      "description": "{'id': 'ERR_PROTOCOL', 'condition': 'Downstream protocol response is non-OKAY or invalid', 'architectural_effect': 'Set error status and block signoff until handled'}",
+      "status": "waived",
+      "hit_count": 0,
+      "required_for_signoff": false,
+      "source": "error_handling.error_sources[0]",
+      "evidence": [],
+      "waiver": {
+        "type": "plan_unreachable_for_ip",
+        "rationale": "fcov_plan generated an ERR_PROTOCOL bin for downstream non-OKAY/invalid response, but this IP's SSOT says the command interface has no response channel and error_handling says invalid command encodings 5-7 are treated as HOLD with no error output signal. Equivalent behavior is covered by function_invalid_command_as_hold and SC09.",
+        "ssot_refs": [
+          "io_list.interfaces.command_if.protocol.response: No response channel \u2014 results appear on dedicated output ports",
+          "error_handling.description: Invalid command encodings (5-7) are treated as HOLD; no error output signal is provided",
+          "equivalence_goals.EQ_INVALID"
+        ]
+      }
+    },
+    {
+      "id": "cycle_cmd_valid_cmd_ready",
+      "class": "protocol_handshake",
+      "description": "cmd_valid asserts the command; cmd_ready is always 1 so the command is always accepted on the same rising edge. cmd and load_value must be stable when cmd_valid is high.",
+      "status": "hit",
+      "hit_count": 1,
+      "required_for_signoff": true,
+      "source": "cycle_model.handshake_rules[0]",
+      "evidence": [
+        {
+          "artifact": "real_llm_counter_demo/sim/scoreboard_events.csv",
+          "line": 30,
+          "label": "EQ_BACK_TO_BACK_INC",
+          "event_id": 29,
+          "pass": 1,
+          "dut_count": 67,
+          "ref_count": 67,
+          "dut_status": 2,
+          "ref_status": 2,
+          "dut_cmd_ready": 1
+        },
+        {
+          "artifact": "real_llm_counter_demo/sim/sim.log",
+          "note": "cmd_ready is checked on every scoreboard event and all pass; CSV dut_cmd_ready column is 1 for all 37 events."
+        }
+      ],
+      "waiver": null
+    },
+    {
+      "id": "latency_command_accept_at_min",
+      "class": "latency_bin",
+      "description": "command_accept latency == 0 cycles",
+      "status": "hit",
+      "hit_count": 1,
+      "required_for_signoff": true,
+      "source": "cycle_model.latency.command_accept",
+      "evidence": [
+        {
+          "artifact": "real_llm_counter_demo/sim/scoreboard_events.csv",
+          "line": 30,
+          "label": "EQ_BACK_TO_BACK_INC",
+          "event_id": 29,
+          "pass": 1,
+          "dut_count": 67,
+          "ref_count": 67,
+          "dut_status": 2,
+          "ref_status": 2,
+          "dut_cmd_ready": 1
+        },
+        {
+          "artifact": "real_llm_counter_demo/sim/sim.log",
+          "note": "Accepted command observed on each asserted cmd_valid edge; no wait/backpressure because cmd_ready=1."
+        }
+      ],
+      "waiver": null
+    },
+    {
+      "id": "latency_command_accept_at_max",
+      "class": "latency_bin",
+      "description": "command_accept latency == 0 cycles",
+      "status": "hit",
+      "hit_count": 1,
+      "required_for_signoff": true,
+      "source": "cycle_model.latency.command_accept",
+      "evidence": [
+        {
+          "artifact": "real_llm_counter_demo/sim/scoreboard_events.csv",
+          "line": 31,
+          "label": "EQ_BACK_TO_BACK_DEC",
+          "event_id": 30,
+          "pass": 1,
+          "dut_count": 66,
+          "ref_count": 66,
+          "dut_status": 3,
+          "ref_status": 3,
+          "dut_cmd_ready": 1
+        },
+        {
+          "artifact": "real_llm_counter_demo/sim/sim.log",
+          "note": "Back-to-back accepted commands show max command_accept latency of 0 cycles."
+        }
+      ],
+      "waiver": null
+    },
+    {
+      "id": "latency_command_accept_gt_max",
+      "class": "latency_bin",
+      "description": "command_accept latency > 0 cycles",
+      "status": "waived",
+      "hit_count": 0,
+      "required_for_signoff": false,
+      "source": "cycle_model.latency.command_accept",
+      "evidence": [],
+      "waiver": {
+        "type": "negative_latency_bin",
+        "rationale": "This is an illegal/negative bin for command_accept latency > 0 cycles. SSOT requires min=max=0 and passing evidence hits both at_min and at_max; intentionally not hit in a passing signoff simulation.",
+        "ssot_refs": [
+          "cycle_model.latency.command_accept.min_cycles=0",
+          "cycle_model.latency.command_accept.max_cycles=0",
+          "equivalence_goals.EQ_CYCLE_TIMING"
+        ]
+      }
+    },
+    {
+      "id": "latency_command_effect_lt_min",
+      "class": "latency_bin",
+      "description": "command_effect latency < 1 cycles",
+      "status": "waived",
+      "hit_count": 0,
+      "required_for_signoff": false,
+      "source": "cycle_model.latency.command_effect",
+      "evidence": [],
+      "waiver": {
+        "type": "negative_latency_bin",
+        "rationale": "This is an illegal/negative bin for command_effect latency < 1 cycle. SSOT requires min=max=1 and passing evidence hits both at_min and at_max; intentionally not hit in a passing signoff simulation.",
+        "ssot_refs": [
+          "cycle_model.latency.command_effect.min_cycles=1",
+          "cycle_model.latency.command_effect.max_cycles=1",
+          "equivalence_goals.EQ_CYCLE_TIMING"
+        ]
+      }
+    },
+    {
+      "id": "latency_command_effect_at_min",
+      "class": "latency_bin",
+      "description": "command_effect latency == 1 cycles",
+      "status": "hit",
+      "hit_count": 1,
+      "required_for_signoff": true,
+      "source": "cycle_model.latency.command_effect",
+      "evidence": [
+        {
+          "artifact": "real_llm_counter_demo/sim/scoreboard_events.csv",
+          "line": 18,
+          "label": "EQ_INC",
+          "event_id": 17,
+          "pass": 1,
+          "dut_count": 67,
+          "ref_count": 67,
+          "dut_status": 2,
+          "ref_status": 2,
+          "dut_cmd_ready": 1
+        },
+        {
+          "artifact": "real_llm_counter_demo/sim/sim.log",
+          "note": "State effect checked one clock edge after command drive by TB scoreboard."
+        }
+      ],
+      "waiver": null
+    },
+    {
+      "id": "latency_command_effect_at_max",
+      "class": "latency_bin",
+      "description": "command_effect latency == 1 cycles",
+      "status": "hit",
+      "hit_count": 1,
+      "required_for_signoff": true,
+      "source": "cycle_model.latency.command_effect",
+      "evidence": [
+        {
+          "artifact": "real_llm_counter_demo/sim/scoreboard_events.csv",
+          "line": 31,
+          "label": "EQ_BACK_TO_BACK_DEC",
+          "event_id": 30,
+          "pass": 1,
+          "dut_count": 66,
+          "ref_count": 66,
+          "dut_status": 3,
+          "ref_status": 3,
+          "dut_cmd_ready": 1
+        },
+        {
+          "artifact": "real_llm_counter_demo/sim/sim.log",
+          "note": "Back-to-back state updates every cycle demonstrate max command_effect latency of 1 cycle."
+        }
+      ],
+      "waiver": null
+    },
+    {
+      "id": "latency_command_effect_gt_max",
+      "class": "latency_bin",
+      "description": "command_effect latency > 1 cycles",
+      "status": "waived",
+      "hit_count": 0,
+      "required_for_signoff": false,
+      "source": "cycle_model.latency.command_effect",
+      "evidence": [],
+      "waiver": {
+        "type": "negative_latency_bin",
+        "rationale": "This is an illegal/negative bin for command_effect latency > 1 cycle. SSOT requires min=max=1 and passing evidence hits both at_min and at_max; intentionally not hit in a passing signoff simulation.",
+        "ssot_refs": [
+          "cycle_model.latency.command_effect.min_cycles=1",
+          "cycle_model.latency.command_effect.max_cycles=1",
+          "equivalence_goals.EQ_CYCLE_TIMING"
+        ]
+      }
+    },
+    {
+      "id": "latency_flag_update_at_min",
+      "class": "latency_bin",
+      "description": "flag_update latency == 0 cycles",
+      "status": "hit",
+      "hit_count": 1,
+      "required_for_signoff": true,
+      "source": "cycle_model.latency.flag_update",
+      "evidence": [
+        {
+          "artifact": "real_llm_counter_demo/sim/scoreboard_events.csv",
+          "line": 4,
+          "label": "EQ_LOAD_BOUNDARY_0",
+          "event_id": 3,
+          "pass": 1,
+          "dut_count": 0,
+          "ref_count": 0,
+          "dut_status": 1,
+          "ref_status": 1,
+          "dut_cmd_ready": 1
+        },
+        {
+          "artifact": "real_llm_counter_demo/sim/sim.log",
+          "note": "zero/max flags checked in same post-edge sample as count."
+        }
+      ],
+      "waiver": null
+    },
+    {
+      "id": "latency_flag_update_at_max",
+      "class": "latency_bin",
+      "description": "flag_update latency == 0 cycles",
+      "status": "hit",
+      "hit_count": 1,
+      "required_for_signoff": true,
+      "source": "cycle_model.latency.flag_update",
+      "evidence": [
+        {
+          "artifact": "real_llm_counter_demo/sim/scoreboard_events.csv",
+          "line": 8,
+          "label": "EQ_LOAD_BOUNDARY_255",
+          "event_id": 7,
+          "pass": 1,
+          "dut_count": 255,
+          "ref_count": 255,
+          "dut_status": 1,
+          "ref_status": 1,
+          "dut_cmd_ready": 1
+        },
+        {
+          "artifact": "real_llm_counter_demo/sim/sim.log",
+          "note": "max flag checked in same post-edge sample as count."
+        }
+      ],
+      "waiver": null
+    },
+    {
+      "id": "latency_flag_update_gt_max",
+      "class": "latency_bin",
+      "description": "flag_update latency > 0 cycles",
+      "status": "waived",
+      "hit_count": 0,
+      "required_for_signoff": false,
+      "source": "cycle_model.latency.flag_update",
+      "evidence": [],
+      "waiver": {
+        "type": "negative_latency_bin",
+        "rationale": "This is an illegal/negative bin for flag_update latency > 0 cycles. SSOT requires min=max=0 and passing evidence hits both at_min and at_max; intentionally not hit in a passing signoff simulation.",
+        "ssot_refs": [
+          "cycle_model.latency.flag_update.min_cycles=0",
+          "cycle_model.latency.flag_update.max_cycles=0",
+          "equivalence_goals.EQ_FLAGS"
+        ]
+      }
+    }
+  ]
+}

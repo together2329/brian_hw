@@ -1697,7 +1697,7 @@ def _workflow_worker_per_owner_enabled(exec_mode: str = "") -> bool:
         return False
 
     effective_exec = _normalize_exec_mode(exec_mode) or _current_exec_mode()
-    if effective_exec != EXEC_MODE_ORCHESTRATOR:
+    if effective_exec not in {EXEC_MODE_ORCHESTRATOR, EXEC_MODE_SINGLE}:
         return False
     return True
 
@@ -2198,6 +2198,12 @@ def _ensure_lazy_worker(job: dict[str, Any]) -> None:
                 env["ATLAS_EXEC_MODE"] = "orchestrator"
                 env["ATLAS_ORCHESTRATOR_MODE"] = "1"
                 env["ATLAS_SINGLE_MAIN_LOOP"] = "0"
+                # Workflow workers complete by returning a final handoff after
+                # producing artifacts and passing gates. The interactive
+                # no-action guard is useful in UI chat, but in worker runs it
+                # can re-prompt after a valid Final Answer and leave the job
+                # stuck in running.
+                env.setdefault("EXECUTION_NO_ACTION_GUARD", "false")
                 # A workflow worker process owns one user/session/workflow lane.
                 # Parallelism comes from separate worker processes; each
                 # individual process stays single-run to avoid process-global
@@ -2347,6 +2353,7 @@ def _worker_launch_command(
     return (
         f"cd {shlex.quote(str(project_root))} && "
         f"ATLAS_PROJECT_ROOT={shlex.quote(str(project_root))} "
+        f"EXECUTION_NO_ACTION_GUARD=false "
         f"PYTHONPATH={shlex.quote(str(_SOURCE_ROOT))}:$PYTHONPATH "
         f"python3 {shlex.quote(py_path)} --serve --port {shlex.quote(port)} "
         f"--workflow {shlex.quote(workflow)} "
