@@ -272,6 +272,18 @@
     glyph: 'OR',
   };
 
+  // General-purpose chat workflow (workflow/default/). The single-worker
+  // counterpart to the orchestrator entry — gives single-worker mode a free
+  // conversation window (like the textual UI's general window) instead of
+  // only stage workflows.
+  const DEFAULT_FLOW_STAGE = {
+    id: 'default',
+    label: 'default',
+    cmd: '/workflow default',
+    color: 'var(--fg)',
+    glyph: 'GP',
+  };
+
   function atlasExecMode() {
     return String(
       window.ATLAS_EXEC_MODE
@@ -283,11 +295,14 @@
 
   function flowStagesForExecMode(stages) {
     const base = Array.isArray(stages) ? stages : DEFAULT_FLOW_STAGES;
-    const deduped = base.filter((s) => s && s.id !== ORCHESTRATOR_FLOW_STAGE.id);
+    const deduped = base.filter((s) => s
+      && s.id !== ORCHESTRATOR_FLOW_STAGE.id
+      && s.id !== DEFAULT_FLOW_STAGE.id);
     if (atlasExecMode() === 'orchestrator') {
       return [ORCHESTRATOR_FLOW_STAGE].concat(deduped);
     }
-    return deduped;
+    // single-worker: lead with the general-purpose 'default' chat workflow.
+    return [DEFAULT_FLOW_STAGE].concat(deduped);
   }
 
   // Workflow stage badges. Seed the canonical IP flow immediately so the

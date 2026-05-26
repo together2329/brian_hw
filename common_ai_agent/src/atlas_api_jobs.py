@@ -2664,11 +2664,26 @@ def _ensure_lazy_worker_for_direct_dispatch(
     if not (url.startswith("http://") or url.startswith("https://")):
         url = _resolve_worker_url(wf or url)
     pr = str(project_root_value or os.environ.get("ATLAS_PROJECT_ROOT") or ".")
+    # Scope the worker session to the active <owner>/<ip>/<workflow> so its
+    # conversation/todo land under .session/<owner>/<ip>/<workflow>/ (matching
+    # the pipeline-dispatch path) instead of a flat, IP-blind "direct/<wf>".
+    # The flat form dropped owner+ip, so every IP shared one conversation dir
+    # and context never matched the active IP. Fall back to "direct" only when
+    # no active IP is known.
+    _active_ip = os.environ.get("ATLAS_ACTIVE_IP", "").strip()
+    _active_session = os.environ.get("ATLAS_ACTIVE_SESSION", "").strip()
+    _owner = _active_session.split("/", 1)[0].strip() if _active_session else ""
+    if _owner and _owner not in ("default", "local-admin") and _active_ip:
+        _session = f"{_owner}/{_active_ip}/{wf}" if wf else f"{_owner}/{_active_ip}"
+    elif _active_ip:
+        _session = f"{_active_ip}/{wf}" if wf else _active_ip
+    else:
+        _session = f"direct/{wf}" if wf else "direct"
     job = {
         "job_id": f"direct-{wf or 'worker'}",
         "worker": url,
         "workflow": wf,
-        "session": f"direct/{wf}" if wf else "direct",
+        "session": _session,
         "project_root": pr,
         "model": _worker_model_for(wf),
         "reasoning_effort": _worker_reasoning_effort_for(wf),
