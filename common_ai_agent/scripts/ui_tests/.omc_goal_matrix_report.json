@@ -1,0 +1,1681 @@
+{
+  "results": [
+    {
+      "ok": true,
+      "msg": "user goalmtx_orchestrator_17797423050 authenticated",
+      "ctx": {
+        "reg": 200,
+        "me": 200
+      }
+    },
+    {
+      "ok": true,
+      "msg": "created IP gm_orchestrator_17797423050 (exec_mode=orchestrator)",
+      "ctx": {
+        "status": 200,
+        "body": {
+          "ok": true,
+          "ip": "gm_orchestrator_17797423050",
+          "created": true,
+          "path": "gm_orchestrator_17797423050",
+          "ssot_path": "gm_orchestrator_17797423050/yaml/gm_orchestrator_17797423050.ssot.yaml",
+          "paths": [
+            "gm_orchestrator_17797423050/doc",
+            "gm_orchestrator_17797423050/req",
+            "gm_orchestrator_17797423050/yaml",
+            "gm_orchestrator_17797423050/rtl",
+            "gm_orchestrator_17797423050/list",
+            "gm_orchestrator_17797423050/tb/cocotb",
+            "gm_orchestrator_17797423050/tc",
+            "gm_orchestrator_17797423050/sim",
+            "gm_orchestrator_17797423050/cov",
+            "gm_orchestrator_17797423050/lint",
+            "gm_orchestrator_17797423050/wiki"
+          ],
+          "session": "goalmtx_orchestrator_17797423050/gm_orchestrator_17797423050/ssot-gen",
+          "workflow": "ssot-gen",
+          "exec_mode": "orchestrator",
+          "policy": {
+            "exec_mode": "orchestrator",
+            "initial_workflow": "orchestrator",
+            "dispatch_schedule": "serial",
+            "worker_strategy": "workflow-workers",
+            "single_worker_url": "http://127.0.0.1:5601",
+            "preserve_running_on_workflow_switch": true,
+            "allow_orchestrator_namespace": true
+          },
+          "session_uid": "22a1934b49894ecc8f4e7ea216df3259",
+          "workspace_id": "389ec6fc7f86416597ef1eac02b614fe",
+          "ip_block_id": "cb55f5f3703f47ac91055d6b0381da50",
+          "worker_warmup": {
+            "enabled": false,
+            "reason": "disabled",
+            "scheduled": []
+          }
+        }
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_orchestrator_17797423050: orchestrator chat accepted",
+      "ctx": {
+        "status": 200,
+        "body": {
+          "ok": true,
+          "ip": "gm_orchestrator_17797423050",
+          "run_id": "76589fca44a743a08c75ae9519d09051",
+          "status": "started",
+          "model": "gpt-5.5",
+          "reasoning_effort": "low"
+        }
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_orchestrator_17797423050: chat messages persisted (1)",
+      "ctx": {
+        "count": 1
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_orchestrator_17797423050: stage ssot -> passed(artifact)",
+      "ctx": {
+        "state": "passed(artifact)"
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_orchestrator_17797423050: jobs log readable",
+      "ctx": {
+        "status": 200,
+        "job_count": 1
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_orchestrator_17797423050: agent log messages present (not just user)",
+      "ctx": {
+        "roles": [
+          "assistant",
+          "tool",
+          "tool_result",
+          "user"
+        ]
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_orchestrator_17797423050: SSOT artifact on disk",
+      "ctx": {
+        "path": "/Users/brian/Desktop/Project/ROOT_IP/gm_orchestrator_17797423050/yaml/gm_orchestrator_17797423050.ssot.yaml"
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_orchestrator_17797423050: SSOT artifact is REAL (not draft scaffold)",
+      "ctx": {
+        "bytes": 8320,
+        "tbd_count": 0,
+        "has_function_model": true,
+        "draft": false
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_orchestrator_17797423050: chat grew/persisted after run (8)",
+      "ctx": {
+        "before": 1,
+        "after": 8
+      }
+    },
+    {
+      "ok": true,
+      "msg": "user goalmtx_singleworker_17797426191 authenticated",
+      "ctx": {
+        "reg": 200,
+        "me": 200
+      }
+    },
+    {
+      "ok": true,
+      "msg": "created IP gm_singleworker_17797426191 (exec_mode=single-worker)",
+      "ctx": {
+        "status": 200,
+        "body": {
+          "ok": true,
+          "ip": "gm_singleworker_17797426191",
+          "created": true,
+          "path": "gm_singleworker_17797426191",
+          "ssot_path": "gm_singleworker_17797426191/yaml/gm_singleworker_17797426191.ssot.yaml",
+          "paths": [
+            "gm_singleworker_17797426191/doc",
+            "gm_singleworker_17797426191/req",
+            "gm_singleworker_17797426191/yaml",
+            "gm_singleworker_17797426191/rtl",
+            "gm_singleworker_17797426191/list",
+            "gm_singleworker_17797426191/tb/cocotb",
+            "gm_singleworker_17797426191/tc",
+            "gm_singleworker_17797426191/sim",
+            "gm_singleworker_17797426191/cov",
+            "gm_singleworker_17797426191/lint",
+            "gm_singleworker_17797426191/wiki"
+          ],
+          "session": "goalmtx_singleworker_17797426191/gm_singleworker_17797426191/ssot-gen",
+          "workflow": "ssot-gen",
+          "exec_mode": "single-worker",
+          "policy": {
+            "exec_mode": "single-worker",
+            "initial_workflow": "ssot-gen",
+            "dispatch_schedule": "serial",
+            "worker_strategy": "single-main-loop",
+            "single_worker_url": "http://127.0.0.1:5601",
+            "preserve_running_on_workflow_switch": false,
+            "allow_orchestrator_namespace": false
+          },
+          "session_uid": "066c8cb0a9254e84842d9128c3691fcb",
+          "workspace_id": "92edd14f05774cfc9e9eb9e3db9a01fb",
+          "ip_block_id": "813e3a3bc23d4246b664f80391bae5ac",
+          "worker_warmup": {
+            "enabled": false,
+            "reason": "disabled",
+            "scheduled": []
+          }
+        }
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_singleworker_17797426191: single-worker pipeline dispatched",
+      "ctx": {
+        "status": 200,
+        "body": {
+          "ok": true,
+          "pipeline_id": "db1c1dbd6323",
+          "pipeline_run_id": "db1c1dbd6323",
+          "user_id": "goalmtx_singleworker_17797426191",
+          "schedule": "serial",
+          "requested_schedule": "serial",
+          "run_mode": "starter",
+          "exec_mode": "single-worker",
+          "ip": "gm_singleworker_17797426191",
+          "stages": [
+            {
+              "id": "ssot",
+              "workflow": "ssot-gen",
+              "label": "SSOT gen"
+            }
+          ],
+          "jobs": [
+            {
+              "job_id": "5c0d1a91d31f",
+              "run_id": "ipc-5c0d1a91d31f",
+              "worker": "ipc://01d9da6e6da14be7a9de3bb51bc5b4ac_goalmtx_singleworker_17797426191_gm_singleworker_17797426191_pipeline_db1c1dbd6323_01-ssot-gen/single/ssot-gen",
+              "worker_transport": "ipc",
+              "worker_owner": "goalmtx_singleworker_17797426191",
+              "worker_partition": "01d9da6e6da14be7a9de3bb51bc5b4ac_goalmtx_singleworker_17797426191_gm_singleworker_17797426191_pipeline_db1c1dbd6323_01-ssot-gen",
+              "workflow": "ssot-gen",
+              "stage_id": "ssot",
+              "template": "atlas-pipeline-ssot",
+              "ip": "gm_singleworker_17797426191",
+              "model": "deepseek-v4-pro",
+              "reasoning_effort": "",
+              "toolchain": "",
+              "session": "goalmtx_singleworker_17797426191/gm_singleworker_17797426191/pipeline/db1c1dbd6323/01-ssot-gen",
+              "session_dir": ".session/goalmtx_singleworker_17797426191/gm_singleworker_17797426191/pipeline/db1c1dbd6323/01-ssot-gen",
+              "scope_path": "gm_singleworker_17797426191",
+              "project_root": "/Users/brian/Desktop/Project/ROOT_IP",
+              "source_root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+              "worker_command": "cd /Users/brian/Desktop/Project/ROOT_IP && ATLAS_PROJECT_ROOT=/Users/brian/Desktop/Project/ROOT_IP ATLAS_WORKER_TRANSPORT=ipc EXECUTION_NO_ACTION_GUARD=false PYTHONPATH=/Users/brian/Desktop/Project/brian_hw/common_ai_agent:$PYTHONPATH python3 -m src.atlas_worker_ipc --request <job-request.json> --response <job-response.json> --model deepseek-v4-pro",
+              "prompt": "[ATLAS ARCHITECT WORKFLOW CONTEXT]\n- ip: gm_singleworker_17797426191\n- workflow: ssot-gen\n- stage_id: ssot\n- pipeline_id: db1c1dbd6323\n- pipeline_run_id: db1c1dbd6323\n- session_namespace: .session/goalmtx_singleworker_17797426191/gm_singleworker_17797426191/pipeline/db1c1dbd6323/01-ssot-gen\n- project_root: /Users/brian/Desktop/Project/ROOT_IP\n- source_root: /Users/brian/Desktop/Project/brian_hw/common_ai_agent\n- run_mode: starter\n- exec_mode: single-worker\n- model: deepseek-v4-pro\n- reasoning_effort: (default)\n- scope_path: gm_singleworker_17797426191\n- write_boundary: only modify files under gm_singleworker_17797426191/, except workflow-owned status/session files under .session/goalmtx_singleworker_17797426191/gm_singleworker_17797426191/pipeline/db1c1dbd6323/01-ssot-gen/. Do not edit other IP directories or unrelated workflows.\n- parallelism: assume other IP/workflow jobs may be running; never revert or overwrite their files.\n\nanswer the gm_singleworker_17797426191/rtl/rtl_blocked.json questions inline so SSOT-gen records them; then run /resolve-rtl-blockers gm_singleworker_17797426191 --use-recommended-defaults; then run /repair-ssot gm_singleworker_17797426191; then python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" gm_singleworker_17797426191 --root \"$ATLAS_PROJECT_ROOT\" --mode engineering. This is an RTL blocker repair pass; do not rewrite the IP from scratch.\n\n[Orchestrator worker instruction]\n[ATLAS_PIPELINE_SSOT_DIRECT_WRITE]\ncreate or refresh gm_singleworker_17797426191/yaml/gm_singleworker_17797426191.ssot.yaml as the canonical SSOT for IP `gm_singleworker_17797426191`. Use the orchestrator chat goal as the source requirement. This is an ATLAS pipeline worker run, not an exploratory interview: do not read, grep, or list repository files before writing the SSOT unless the write path is impossible. If no architect handoff or imported requirement exists yet, bootstrap a complete engineering draft from the visible goal instead of searching indefinitely. The first successful content-changing tool call should write gm_singleworker_17797426191/yaml/gm_singleworker_17797426191.ssot.yaml with concrete draft sections, including machine-readable function_model output_rules/state_updates and sub_modules ownership refs. Also write gm_singleworker_17797426191/req/gm_singleworker_17797426191_requirements.md (at least 1000 bytes, no TODO/TBD markers) and gm_singleworker_17797426191/req/approval_manifest.json using either the strict requirement_approval_manifest schema (type/ip/approved_by/approved_at_utc/source/source_sha256/target/target_sha256) or, for starter-mode chat goals without a review packet, a starter approval manifest with approval_mode=starter, status=approved, artifact=req/<ip>_requirements.md, bytes, and all requirement quality checks true. Then run python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/repair_ssot_schema.py\" gm_singleworker_17797426191 --root \"$ATLAS_PROJECT_ROOT\" --mode engineering and python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" gm_singleworker_17797426191 --root \"$ATLAS_PROJECT_ROOT\" --mode engineering. Do not leave live `custom.tbd` or TBD-key sections in the final SSOT; convert out-of-scope ideas to `custom.future_considerations` or concrete assumptions. If gm_singleworker_17797426191/rtl/rtl_blocked.json exists, answer each blocker inline so SSOT-gen can incorporate the decisions, then rerun /repair-ssot and validation before handing back to rtl-gen. Finish with an [SSOT HANDOFF] summarizing assumptions, remaining TBDs, validation evidence, and downstream RTL/TB obligations.\n\n[ATLAS RUN POLICY]\n- run_mode: starter\n- exec_mode: single-worker\n\n\n[USER REQUIREMENT]\nGenerate the SSOT, then RTL, then run the cocotb simulation. Auto-advance every stage, never pause for confirmation. Keep the design a compact 8-bit synchronous up counter with synchronous reset and an enable.",
+              "created_at": 1779742620.9484658,
+              "queued_at": 1779742620.9484658,
+              "started_at": 1779742621.00643,
+              "status": "running",
+              "queue_reason": "",
+              "attempt": 1,
+              "retry_count": 0,
+              "max_attempts": 2,
+              "idempotency_key": "5c0d1a91d31f",
+              "previous_run_ids": [],
+              "iterations": 0,
+              "files_modified": [],
+              "result_summary": "",
+              "error": "",
+              "pipeline_id": "db1c1dbd6323",
+              "pipeline_index": 0,
+              "depends_on": [],
+              "pipeline_schedule": "serial",
+              "rtl_version_id": "",
+              "run_mode": "starter",
+              "exec_mode": "single-worker",
+              "pipeline_run_id": "db1c1dbd6323",
+              "trigger_source": "pipeline_button",
+              "orchestrator_run_id": "",
+              "user_id": "goalmtx_singleworker_17797426191",
+              "db_user_id": "01d9da6e6da14be7a9de3bb51bc5b4ac",
+              "db_session_id": "a4bf49bda7bc48a9ad2b68ae380ef204",
+              "workflow_run_id": "e30f10c40dc9484a9e5c6204464c6b63",
+              "db_workspace_id": "92edd14f05774cfc9e9eb9e3db9a01fb",
+              "db_ip_id": "813e3a3bc23d4246b664f80391bae5ac",
+              "worker_pid": 32929,
+              "worker_request_path": ".session/workers-ipc/5c0d1a91d31f/request.json",
+              "worker_response_path": ".session/workers-ipc/5c0d1a91d31f/response.json",
+              "worker_log_path": ".session/workers-ipc/5c0d1a91d31f/worker.log"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_singleworker_17797426191: chat messages persisted (2)",
+      "ctx": {
+        "count": 2
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_singleworker_17797426191: stage ssot -> passed(artifact)",
+      "ctx": {
+        "state": "passed(artifact)"
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_singleworker_17797426191: jobs log readable",
+      "ctx": {
+        "status": 200,
+        "job_count": 1
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_singleworker_17797426191: agent log messages present (not just user)",
+      "ctx": {
+        "roles": [
+          "assistant",
+          "user"
+        ]
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_singleworker_17797426191: SSOT artifact on disk",
+      "ctx": {
+        "path": "/Users/brian/Desktop/Project/ROOT_IP/gm_singleworker_17797426191/yaml/gm_singleworker_17797426191.ssot.yaml"
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_singleworker_17797426191: SSOT artifact is REAL (not draft scaffold)",
+      "ctx": {
+        "bytes": 6873,
+        "tbd_count": 0,
+        "has_function_model": true,
+        "draft": false
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_singleworker_17797426191: chat grew/persisted after run (2)",
+      "ctx": {
+        "before": 2,
+        "after": 2
+      }
+    },
+    {
+      "ok": true,
+      "msg": "switch back to gm_orchestrator_17797423050: chat isolated/preserved",
+      "ctx": {
+        "prev_count": 0
+      }
+    },
+    {
+      "ok": true,
+      "msg": "user goalmtx_orchestrator_17797426962 authenticated",
+      "ctx": {
+        "reg": 200,
+        "me": 200
+      }
+    },
+    {
+      "ok": true,
+      "msg": "created IP gm_orchestrator_17797426962 (exec_mode=orchestrator)",
+      "ctx": {
+        "status": 200,
+        "body": {
+          "ok": true,
+          "ip": "gm_orchestrator_17797426962",
+          "created": true,
+          "path": "gm_orchestrator_17797426962",
+          "ssot_path": "gm_orchestrator_17797426962/yaml/gm_orchestrator_17797426962.ssot.yaml",
+          "paths": [
+            "gm_orchestrator_17797426962/doc",
+            "gm_orchestrator_17797426962/req",
+            "gm_orchestrator_17797426962/yaml",
+            "gm_orchestrator_17797426962/rtl",
+            "gm_orchestrator_17797426962/list",
+            "gm_orchestrator_17797426962/tb/cocotb",
+            "gm_orchestrator_17797426962/tc",
+            "gm_orchestrator_17797426962/sim",
+            "gm_orchestrator_17797426962/cov",
+            "gm_orchestrator_17797426962/lint",
+            "gm_orchestrator_17797426962/wiki"
+          ],
+          "session": "goalmtx_orchestrator_17797426962/gm_orchestrator_17797426962/ssot-gen",
+          "workflow": "ssot-gen",
+          "exec_mode": "orchestrator",
+          "policy": {
+            "exec_mode": "orchestrator",
+            "initial_workflow": "orchestrator",
+            "dispatch_schedule": "serial",
+            "worker_strategy": "workflow-workers",
+            "single_worker_url": "http://127.0.0.1:5601",
+            "preserve_running_on_workflow_switch": true,
+            "allow_orchestrator_namespace": true
+          },
+          "session_uid": "389bf1eac52648b8b1488f3cb7971f30",
+          "workspace_id": "0fd3b66515f1407e905eda4313813cdd",
+          "ip_block_id": "5ce13e8161d649fbb303b21b1c213470",
+          "worker_warmup": {
+            "enabled": false,
+            "reason": "disabled",
+            "scheduled": []
+          }
+        }
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_orchestrator_17797426962: orchestrator chat accepted",
+      "ctx": {
+        "status": 200,
+        "body": {
+          "ok": true,
+          "ip": "gm_orchestrator_17797426962",
+          "run_id": "77e5e7d10ccb4c16a7b87630d6916f34",
+          "status": "started",
+          "model": "gpt-5.5",
+          "reasoning_effort": "low"
+        }
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_orchestrator_17797426962: chat messages persisted (1)",
+      "ctx": {
+        "count": 1
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_orchestrator_17797426962: stage ssot -> passed(artifact)",
+      "ctx": {
+        "state": "passed(artifact)"
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_orchestrator_17797426962: jobs log readable",
+      "ctx": {
+        "status": 200,
+        "job_count": 1
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_orchestrator_17797426962: agent log messages present (not just user)",
+      "ctx": {
+        "roles": [
+          "assistant",
+          "tool",
+          "tool_result",
+          "user"
+        ]
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_orchestrator_17797426962: SSOT artifact on disk",
+      "ctx": {
+        "path": "/Users/brian/Desktop/Project/ROOT_IP/gm_orchestrator_17797426962/yaml/gm_orchestrator_17797426962.ssot.yaml"
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_orchestrator_17797426962: SSOT artifact is REAL (not draft scaffold)",
+      "ctx": {
+        "bytes": 7891,
+        "tbd_count": 0,
+        "has_function_model": true,
+        "draft": false
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_orchestrator_17797426962: chat grew/persisted after run (10)",
+      "ctx": {
+        "before": 1,
+        "after": 10
+      }
+    },
+    {
+      "ok": true,
+      "msg": "switch back to gm_singleworker_17797426191: chat isolated/preserved",
+      "ctx": {
+        "prev_count": 0
+      }
+    },
+    {
+      "ok": true,
+      "msg": "user goalmtx_singleworker_17797431033 authenticated",
+      "ctx": {
+        "reg": 200,
+        "me": 200
+      }
+    },
+    {
+      "ok": true,
+      "msg": "created IP gm_singleworker_17797431033 (exec_mode=single-worker)",
+      "ctx": {
+        "status": 200,
+        "body": {
+          "ok": true,
+          "ip": "gm_singleworker_17797431033",
+          "created": true,
+          "path": "gm_singleworker_17797431033",
+          "ssot_path": "gm_singleworker_17797431033/yaml/gm_singleworker_17797431033.ssot.yaml",
+          "paths": [
+            "gm_singleworker_17797431033/doc",
+            "gm_singleworker_17797431033/req",
+            "gm_singleworker_17797431033/yaml",
+            "gm_singleworker_17797431033/rtl",
+            "gm_singleworker_17797431033/list",
+            "gm_singleworker_17797431033/tb/cocotb",
+            "gm_singleworker_17797431033/tc",
+            "gm_singleworker_17797431033/sim",
+            "gm_singleworker_17797431033/cov",
+            "gm_singleworker_17797431033/lint",
+            "gm_singleworker_17797431033/wiki"
+          ],
+          "session": "goalmtx_singleworker_17797431033/gm_singleworker_17797431033/ssot-gen",
+          "workflow": "ssot-gen",
+          "exec_mode": "single-worker",
+          "policy": {
+            "exec_mode": "single-worker",
+            "initial_workflow": "ssot-gen",
+            "dispatch_schedule": "serial",
+            "worker_strategy": "single-main-loop",
+            "single_worker_url": "http://127.0.0.1:5601",
+            "preserve_running_on_workflow_switch": false,
+            "allow_orchestrator_namespace": false
+          },
+          "session_uid": "875bbd08d2cb4afaaec39e625a14510e",
+          "workspace_id": "cc986168af0a4282964e45075e4add37",
+          "ip_block_id": "bb261edc3ab5446495ed1864f4138576",
+          "worker_warmup": {
+            "enabled": false,
+            "reason": "disabled",
+            "scheduled": []
+          }
+        }
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_singleworker_17797431033: single-worker pipeline dispatched",
+      "ctx": {
+        "status": 200,
+        "body": {
+          "ok": true,
+          "pipeline_id": "b357592c38e4",
+          "pipeline_run_id": "b357592c38e4",
+          "user_id": "goalmtx_singleworker_17797431033",
+          "schedule": "serial",
+          "requested_schedule": "serial",
+          "run_mode": "starter",
+          "exec_mode": "single-worker",
+          "ip": "gm_singleworker_17797431033",
+          "stages": [
+            {
+              "id": "ssot",
+              "workflow": "ssot-gen",
+              "label": "SSOT gen"
+            }
+          ],
+          "jobs": [
+            {
+              "job_id": "3ed92c556995",
+              "run_id": "",
+              "worker": "ipc://a2c0968ecfc340fa9fffc55a580d96b7_goalmtx_singleworker_17797431033_gm_singleworker_17797431033_pipeline_b357592c38e4_01-ssot-gen/single/ssot-gen",
+              "worker_transport": "ipc",
+              "worker_owner": "goalmtx_singleworker_17797431033",
+              "worker_partition": "a2c0968ecfc340fa9fffc55a580d96b7_goalmtx_singleworker_17797431033_gm_singleworker_17797431033_pipeline_b357592c38e4_01-ssot-gen",
+              "workflow": "ssot-gen",
+              "stage_id": "ssot",
+              "template": "atlas-pipeline-ssot",
+              "ip": "gm_singleworker_17797431033",
+              "model": "deepseek-v4-pro",
+              "reasoning_effort": "",
+              "toolchain": "",
+              "session": "goalmtx_singleworker_17797431033/gm_singleworker_17797431033/pipeline/b357592c38e4/01-ssot-gen",
+              "session_dir": ".session/goalmtx_singleworker_17797431033/gm_singleworker_17797431033/pipeline/b357592c38e4/01-ssot-gen",
+              "scope_path": "gm_singleworker_17797431033",
+              "project_root": "/Users/brian/Desktop/Project/ROOT_IP",
+              "source_root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+              "worker_command": "cd /Users/brian/Desktop/Project/ROOT_IP && ATLAS_PROJECT_ROOT=/Users/brian/Desktop/Project/ROOT_IP ATLAS_WORKER_TRANSPORT=ipc EXECUTION_NO_ACTION_GUARD=false PYTHONPATH=/Users/brian/Desktop/Project/brian_hw/common_ai_agent:$PYTHONPATH python3 -m src.atlas_worker_ipc --request <job-request.json> --response <job-response.json> --model deepseek-v4-pro",
+              "prompt": "[ATLAS ARCHITECT WORKFLOW CONTEXT]\n- ip: gm_singleworker_17797431033\n- workflow: ssot-gen\n- stage_id: ssot\n- pipeline_id: b357592c38e4\n- pipeline_run_id: b357592c38e4\n- session_namespace: .session/goalmtx_singleworker_17797431033/gm_singleworker_17797431033/pipeline/b357592c38e4/01-ssot-gen\n- project_root: /Users/brian/Desktop/Project/ROOT_IP\n- source_root: /Users/brian/Desktop/Project/brian_hw/common_ai_agent\n- run_mode: starter\n- exec_mode: single-worker\n- model: deepseek-v4-pro\n- reasoning_effort: (default)\n- scope_path: gm_singleworker_17797431033\n- write_boundary: only modify files under gm_singleworker_17797431033/, except workflow-owned status/session files under .session/goalmtx_singleworker_17797431033/gm_singleworker_17797431033/pipeline/b357592c38e4/01-ssot-gen/. Do not edit other IP directories or unrelated workflows.\n- parallelism: assume other IP/workflow jobs may be running; never revert or overwrite their files.\n\nanswer the gm_singleworker_17797431033/rtl/rtl_blocked.json questions inline so SSOT-gen records them; then run /resolve-rtl-blockers gm_singleworker_17797431033 --use-recommended-defaults; then run /repair-ssot gm_singleworker_17797431033; then python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" gm_singleworker_17797431033 --root \"$ATLAS_PROJECT_ROOT\" --mode engineering. This is an RTL blocker repair pass; do not rewrite the IP from scratch.\n\n[Orchestrator worker instruction]\n[ATLAS_PIPELINE_SSOT_DIRECT_WRITE]\ncreate or refresh gm_singleworker_17797431033/yaml/gm_singleworker_17797431033.ssot.yaml as the canonical SSOT for IP `gm_singleworker_17797431033`. Use the orchestrator chat goal as the source requirement. This is an ATLAS pipeline worker run, not an exploratory interview: do not read, grep, or list repository files before writing the SSOT unless the write path is impossible. If no architect handoff or imported requirement exists yet, bootstrap a complete engineering draft from the visible goal instead of searching indefinitely. The first successful content-changing tool call should write gm_singleworker_17797431033/yaml/gm_singleworker_17797431033.ssot.yaml with concrete draft sections, including machine-readable function_model output_rules/state_updates and sub_modules ownership refs. Also write gm_singleworker_17797431033/req/gm_singleworker_17797431033_requirements.md (at least 1000 bytes, no TODO/TBD markers) and gm_singleworker_17797431033/req/approval_manifest.json using either the strict requirement_approval_manifest schema (type/ip/approved_by/approved_at_utc/source/source_sha256/target/target_sha256) or, for starter-mode chat goals without a review packet, a starter approval manifest with approval_mode=starter, status=approved, artifact=req/<ip>_requirements.md, bytes, and all requirement quality checks true. Then run python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/repair_ssot_schema.py\" gm_singleworker_17797431033 --root \"$ATLAS_PROJECT_ROOT\" --mode engineering and python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" gm_singleworker_17797431033 --root \"$ATLAS_PROJECT_ROOT\" --mode engineering. Do not leave live `custom.tbd` or TBD-key sections in the final SSOT; convert out-of-scope ideas to `custom.future_considerations` or concrete assumptions. If gm_singleworker_17797431033/rtl/rtl_blocked.json exists, answer each blocker inline so SSOT-gen can incorporate the decisions, then rerun /repair-ssot and validation before handing back to rtl-gen. Finish with an [SSOT HANDOFF] summarizing assumptions, remaining TBDs, validation evidence, and downstream RTL/TB obligations.\n\n[ATLAS RUN POLICY]\n- run_mode: starter\n- exec_mode: single-worker\n\n\n[USER REQUIREMENT]\nGenerate the SSOT, then RTL, then run the cocotb simulation. Auto-advance every stage, never pause for confirmation. Keep the design a compact 8-bit synchronous up counter with synchronous reset and an enable.",
+              "created_at": 1779743104.76192,
+              "queued_at": 1779743104.76192,
+              "started_at": 0.0,
+              "status": "queued",
+              "queue_reason": "ipc_workflow_limit",
+              "attempt": 1,
+              "retry_count": 0,
+              "max_attempts": 2,
+              "idempotency_key": "3ed92c556995",
+              "previous_run_ids": [],
+              "iterations": 0,
+              "files_modified": [],
+              "result_summary": "",
+              "error": "",
+              "pipeline_id": "b357592c38e4",
+              "pipeline_index": 0,
+              "depends_on": [],
+              "pipeline_schedule": "serial",
+              "rtl_version_id": "",
+              "run_mode": "starter",
+              "exec_mode": "single-worker",
+              "pipeline_run_id": "b357592c38e4",
+              "trigger_source": "pipeline_button",
+              "orchestrator_run_id": "",
+              "user_id": "goalmtx_singleworker_17797431033",
+              "db_user_id": "a2c0968ecfc340fa9fffc55a580d96b7",
+              "db_session_id": "9077394a191b425e96f9e2439dbf16d9",
+              "workflow_run_id": "463d3bed6b2b49bba2c566f079c6175b",
+              "db_workspace_id": "cc986168af0a4282964e45075e4add37",
+              "db_ip_id": "bb261edc3ab5446495ed1864f4138576"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_singleworker_17797431033: chat messages persisted (2)",
+      "ctx": {
+        "count": 2
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_singleworker_17797431033: stage ssot -> passed(artifact)",
+      "ctx": {
+        "state": "passed(artifact)"
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_singleworker_17797431033: jobs log readable",
+      "ctx": {
+        "status": 200,
+        "job_count": 1
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_singleworker_17797431033: agent log messages present (not just user)",
+      "ctx": {
+        "roles": [
+          "assistant",
+          "user"
+        ]
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_singleworker_17797431033: SSOT artifact on disk",
+      "ctx": {
+        "path": "/Users/brian/Desktop/Project/ROOT_IP/gm_singleworker_17797431033/yaml/gm_singleworker_17797431033.ssot.yaml"
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_singleworker_17797431033: SSOT artifact is REAL (not draft scaffold)",
+      "ctx": {
+        "bytes": 10697,
+        "tbd_count": 0,
+        "has_function_model": true,
+        "draft": false
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_singleworker_17797431033: chat grew/persisted after run (2)",
+      "ctx": {
+        "before": 2,
+        "after": 2
+      }
+    },
+    {
+      "ok": true,
+      "msg": "switch back to gm_orchestrator_17797426962: chat isolated/preserved",
+      "ctx": {
+        "prev_count": 0
+      }
+    },
+    {
+      "ok": true,
+      "msg": "user goalmtx_orchestrator_17797435424 authenticated",
+      "ctx": {
+        "reg": 200,
+        "me": 200
+      }
+    },
+    {
+      "ok": true,
+      "msg": "created IP gm_orchestrator_17797435424 (exec_mode=orchestrator)",
+      "ctx": {
+        "status": 200,
+        "body": {
+          "ok": true,
+          "ip": "gm_orchestrator_17797435424",
+          "created": true,
+          "path": "gm_orchestrator_17797435424",
+          "ssot_path": "gm_orchestrator_17797435424/yaml/gm_orchestrator_17797435424.ssot.yaml",
+          "paths": [
+            "gm_orchestrator_17797435424/doc",
+            "gm_orchestrator_17797435424/req",
+            "gm_orchestrator_17797435424/yaml",
+            "gm_orchestrator_17797435424/rtl",
+            "gm_orchestrator_17797435424/list",
+            "gm_orchestrator_17797435424/tb/cocotb",
+            "gm_orchestrator_17797435424/tc",
+            "gm_orchestrator_17797435424/sim",
+            "gm_orchestrator_17797435424/cov",
+            "gm_orchestrator_17797435424/lint",
+            "gm_orchestrator_17797435424/wiki"
+          ],
+          "session": "goalmtx_orchestrator_17797435424/gm_orchestrator_17797435424/ssot-gen",
+          "workflow": "ssot-gen",
+          "exec_mode": "orchestrator",
+          "policy": {
+            "exec_mode": "orchestrator",
+            "initial_workflow": "orchestrator",
+            "dispatch_schedule": "serial",
+            "worker_strategy": "workflow-workers",
+            "single_worker_url": "http://127.0.0.1:5601",
+            "preserve_running_on_workflow_switch": true,
+            "allow_orchestrator_namespace": true
+          },
+          "session_uid": "bb9a6890fe1141449ecb2ac9ec6caf06",
+          "workspace_id": "17d1caee53654d2d91730be06b74beeb",
+          "ip_block_id": "f126d6490bff4bba8f41774427acccaa",
+          "worker_warmup": {
+            "enabled": false,
+            "reason": "disabled",
+            "scheduled": []
+          }
+        }
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_orchestrator_17797435424: orchestrator chat accepted",
+      "ctx": {
+        "status": 200,
+        "body": {
+          "ok": true,
+          "ip": "gm_orchestrator_17797435424",
+          "run_id": "de01eeef29ee4b108e7a60d9d5e63a30",
+          "status": "started",
+          "model": "gpt-5.5",
+          "reasoning_effort": "low"
+        }
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_orchestrator_17797435424: chat messages persisted (1)",
+      "ctx": {
+        "count": 1
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_orchestrator_17797435424: stage ssot -> passed(artifact)",
+      "ctx": {
+        "state": "passed(artifact)"
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_orchestrator_17797435424: jobs log readable",
+      "ctx": {
+        "status": 200,
+        "job_count": 2
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_orchestrator_17797435424: agent log messages present (not just user)",
+      "ctx": {
+        "roles": [
+          "assistant",
+          "thought",
+          "tool",
+          "tool_result",
+          "user"
+        ]
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_orchestrator_17797435424: SSOT artifact on disk",
+      "ctx": {
+        "path": "/Users/brian/Desktop/Project/ROOT_IP/gm_orchestrator_17797435424/yaml/gm_orchestrator_17797435424.ssot.yaml"
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_orchestrator_17797435424: SSOT artifact is REAL (not draft scaffold)",
+      "ctx": {
+        "bytes": 9724,
+        "tbd_count": 1,
+        "has_function_model": true,
+        "draft": false
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_orchestrator_17797435424: chat grew/persisted after run (45)",
+      "ctx": {
+        "before": 1,
+        "after": 45
+      }
+    },
+    {
+      "ok": true,
+      "msg": "switch back to gm_singleworker_17797431033: chat isolated/preserved",
+      "ctx": {
+        "prev_count": 0
+      }
+    },
+    {
+      "ok": true,
+      "msg": "user goalmtx_singleworker_17797440625 authenticated",
+      "ctx": {
+        "reg": 200,
+        "me": 200
+      }
+    },
+    {
+      "ok": true,
+      "msg": "created IP gm_singleworker_17797440625 (exec_mode=single-worker)",
+      "ctx": {
+        "status": 200,
+        "body": {
+          "ok": true,
+          "ip": "gm_singleworker_17797440625",
+          "created": true,
+          "path": "gm_singleworker_17797440625",
+          "ssot_path": "gm_singleworker_17797440625/yaml/gm_singleworker_17797440625.ssot.yaml",
+          "paths": [
+            "gm_singleworker_17797440625/doc",
+            "gm_singleworker_17797440625/req",
+            "gm_singleworker_17797440625/yaml",
+            "gm_singleworker_17797440625/rtl",
+            "gm_singleworker_17797440625/list",
+            "gm_singleworker_17797440625/tb/cocotb",
+            "gm_singleworker_17797440625/tc",
+            "gm_singleworker_17797440625/sim",
+            "gm_singleworker_17797440625/cov",
+            "gm_singleworker_17797440625/lint",
+            "gm_singleworker_17797440625/wiki"
+          ],
+          "session": "goalmtx_singleworker_17797440625/gm_singleworker_17797440625/ssot-gen",
+          "workflow": "ssot-gen",
+          "exec_mode": "single-worker",
+          "policy": {
+            "exec_mode": "single-worker",
+            "initial_workflow": "ssot-gen",
+            "dispatch_schedule": "serial",
+            "worker_strategy": "single-main-loop",
+            "single_worker_url": "http://127.0.0.1:5601",
+            "preserve_running_on_workflow_switch": false,
+            "allow_orchestrator_namespace": false
+          },
+          "session_uid": "43613123d7d7416b8f284d0042cb912d",
+          "workspace_id": "dc40bcdb2eff46578906dd5e33673b8c",
+          "ip_block_id": "e4b28f3327204277911ccfcb9e9835b9",
+          "worker_warmup": {
+            "enabled": false,
+            "reason": "disabled",
+            "scheduled": []
+          }
+        }
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_singleworker_17797440625: single-worker pipeline dispatched",
+      "ctx": {
+        "status": 200,
+        "body": {
+          "ok": true,
+          "pipeline_id": "e9bf0ceee77f",
+          "pipeline_run_id": "e9bf0ceee77f",
+          "user_id": "goalmtx_singleworker_17797440625",
+          "schedule": "serial",
+          "requested_schedule": "serial",
+          "run_mode": "starter",
+          "exec_mode": "single-worker",
+          "ip": "gm_singleworker_17797440625",
+          "stages": [
+            {
+              "id": "ssot",
+              "workflow": "ssot-gen",
+              "label": "SSOT gen"
+            }
+          ],
+          "jobs": [
+            {
+              "job_id": "7bc79a028455",
+              "run_id": "",
+              "worker": "ipc://0e2357170b044b0caf2b15f932fdb7d9_goalmtx_singleworker_17797440625_gm_singleworker_17797440625_pipeline_e9bf0ceee77f_01-ssot-gen/single/ssot-gen",
+              "worker_transport": "ipc",
+              "worker_owner": "goalmtx_singleworker_17797440625",
+              "worker_partition": "0e2357170b044b0caf2b15f932fdb7d9_goalmtx_singleworker_17797440625_gm_singleworker_17797440625_pipeline_e9bf0ceee77f_01-ssot-gen",
+              "workflow": "ssot-gen",
+              "stage_id": "ssot",
+              "template": "atlas-pipeline-ssot",
+              "ip": "gm_singleworker_17797440625",
+              "model": "deepseek-v4-pro",
+              "reasoning_effort": "",
+              "toolchain": "",
+              "session": "goalmtx_singleworker_17797440625/gm_singleworker_17797440625/pipeline/e9bf0ceee77f/01-ssot-gen",
+              "session_dir": ".session/goalmtx_singleworker_17797440625/gm_singleworker_17797440625/pipeline/e9bf0ceee77f/01-ssot-gen",
+              "scope_path": "gm_singleworker_17797440625",
+              "project_root": "/Users/brian/Desktop/Project/ROOT_IP",
+              "source_root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+              "worker_command": "cd /Users/brian/Desktop/Project/ROOT_IP && ATLAS_PROJECT_ROOT=/Users/brian/Desktop/Project/ROOT_IP ATLAS_WORKER_TRANSPORT=ipc EXECUTION_NO_ACTION_GUARD=false PYTHONPATH=/Users/brian/Desktop/Project/brian_hw/common_ai_agent:$PYTHONPATH python3 -m src.atlas_worker_ipc --request <job-request.json> --response <job-response.json> --model deepseek-v4-pro",
+              "prompt": "[ATLAS ARCHITECT WORKFLOW CONTEXT]\n- ip: gm_singleworker_17797440625\n- workflow: ssot-gen\n- stage_id: ssot\n- pipeline_id: e9bf0ceee77f\n- pipeline_run_id: e9bf0ceee77f\n- session_namespace: .session/goalmtx_singleworker_17797440625/gm_singleworker_17797440625/pipeline/e9bf0ceee77f/01-ssot-gen\n- project_root: /Users/brian/Desktop/Project/ROOT_IP\n- source_root: /Users/brian/Desktop/Project/brian_hw/common_ai_agent\n- run_mode: starter\n- exec_mode: single-worker\n- model: deepseek-v4-pro\n- reasoning_effort: (default)\n- scope_path: gm_singleworker_17797440625\n- write_boundary: only modify files under gm_singleworker_17797440625/, except workflow-owned status/session files under .session/goalmtx_singleworker_17797440625/gm_singleworker_17797440625/pipeline/e9bf0ceee77f/01-ssot-gen/. Do not edit other IP directories or unrelated workflows.\n- parallelism: assume other IP/workflow jobs may be running; never revert or overwrite their files.\n\nanswer the gm_singleworker_17797440625/rtl/rtl_blocked.json questions inline so SSOT-gen records them; then run /resolve-rtl-blockers gm_singleworker_17797440625 --use-recommended-defaults; then run /repair-ssot gm_singleworker_17797440625; then python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" gm_singleworker_17797440625 --root \"$ATLAS_PROJECT_ROOT\" --mode engineering. This is an RTL blocker repair pass; do not rewrite the IP from scratch.\n\n[Orchestrator worker instruction]\n[ATLAS_PIPELINE_SSOT_DIRECT_WRITE]\ncreate or refresh gm_singleworker_17797440625/yaml/gm_singleworker_17797440625.ssot.yaml as the canonical SSOT for IP `gm_singleworker_17797440625`. Use the orchestrator chat goal as the source requirement. This is an ATLAS pipeline worker run, not an exploratory interview: do not read, grep, or list repository files before writing the SSOT unless the write path is impossible. If no architect handoff or imported requirement exists yet, bootstrap a complete engineering draft from the visible goal instead of searching indefinitely. The first successful content-changing tool call should write gm_singleworker_17797440625/yaml/gm_singleworker_17797440625.ssot.yaml with concrete draft sections, including machine-readable function_model output_rules/state_updates and sub_modules ownership refs. Also write gm_singleworker_17797440625/req/gm_singleworker_17797440625_requirements.md (at least 1000 bytes, no TODO/TBD markers) and gm_singleworker_17797440625/req/approval_manifest.json using either the strict requirement_approval_manifest schema (type/ip/approved_by/approved_at_utc/source/source_sha256/target/target_sha256) or, for starter-mode chat goals without a review packet, a starter approval manifest with approval_mode=starter, status=approved, artifact=req/<ip>_requirements.md, bytes, and all requirement quality checks true. Then run python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/repair_ssot_schema.py\" gm_singleworker_17797440625 --root \"$ATLAS_PROJECT_ROOT\" --mode engineering and python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" gm_singleworker_17797440625 --root \"$ATLAS_PROJECT_ROOT\" --mode engineering. Do not leave live `custom.tbd` or TBD-key sections in the final SSOT; convert out-of-scope ideas to `custom.future_considerations` or concrete assumptions. If gm_singleworker_17797440625/rtl/rtl_blocked.json exists, answer each blocker inline so SSOT-gen can incorporate the decisions, then rerun /repair-ssot and validation before handing back to rtl-gen. Finish with an [SSOT HANDOFF] summarizing assumptions, remaining TBDs, validation evidence, and downstream RTL/TB obligations.\n\n[ATLAS RUN POLICY]\n- run_mode: starter\n- exec_mode: single-worker\n\n\n[USER REQUIREMENT]\nGenerate the SSOT, then RTL, then run the cocotb simulation. Auto-advance every stage, never pause for confirmation. Keep the design a compact 8-bit synchronous up counter with synchronous reset and an enable.",
+              "created_at": 1779744064.712287,
+              "queued_at": 1779744064.712287,
+              "started_at": 0.0,
+              "status": "queued",
+              "queue_reason": "ipc_workflow_limit",
+              "attempt": 1,
+              "retry_count": 0,
+              "max_attempts": 2,
+              "idempotency_key": "7bc79a028455",
+              "previous_run_ids": [],
+              "iterations": 0,
+              "files_modified": [],
+              "result_summary": "",
+              "error": "",
+              "pipeline_id": "e9bf0ceee77f",
+              "pipeline_index": 0,
+              "depends_on": [],
+              "pipeline_schedule": "serial",
+              "rtl_version_id": "",
+              "run_mode": "starter",
+              "exec_mode": "single-worker",
+              "pipeline_run_id": "e9bf0ceee77f",
+              "trigger_source": "pipeline_button",
+              "orchestrator_run_id": "",
+              "user_id": "goalmtx_singleworker_17797440625",
+              "db_user_id": "0e2357170b044b0caf2b15f932fdb7d9",
+              "db_session_id": "3a2dc1bd8af044439b1fca8251290eae",
+              "workflow_run_id": "6fade210c61c4177a242c7a6ba26437f",
+              "db_workspace_id": "dc40bcdb2eff46578906dd5e33673b8c",
+              "db_ip_id": "e4b28f3327204277911ccfcb9e9835b9"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_singleworker_17797440625: chat messages persisted (2)",
+      "ctx": {
+        "count": 2
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_singleworker_17797440625: stage ssot -> passed(artifact)",
+      "ctx": {
+        "state": "passed(artifact)"
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_singleworker_17797440625: jobs log readable",
+      "ctx": {
+        "status": 200,
+        "job_count": 1
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_singleworker_17797440625: agent log messages present (not just user)",
+      "ctx": {
+        "roles": [
+          "assistant",
+          "user"
+        ]
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_singleworker_17797440625: SSOT artifact on disk",
+      "ctx": {
+        "path": "/Users/brian/Desktop/Project/ROOT_IP/gm_singleworker_17797440625/yaml/gm_singleworker_17797440625.ssot.yaml"
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_singleworker_17797440625: SSOT artifact is REAL (not draft scaffold)",
+      "ctx": {
+        "bytes": 7676,
+        "tbd_count": 0,
+        "has_function_model": true,
+        "draft": false
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_singleworker_17797440625: chat grew/persisted after run (2)",
+      "ctx": {
+        "before": 2,
+        "after": 2
+      }
+    },
+    {
+      "ok": true,
+      "msg": "switch back to gm_orchestrator_17797435424: chat isolated/preserved",
+      "ctx": {
+        "prev_count": 0
+      }
+    },
+    {
+      "ok": true,
+      "msg": "user goalmtx_orchestrator_17797446536 authenticated",
+      "ctx": {
+        "reg": 200,
+        "me": 200
+      }
+    },
+    {
+      "ok": true,
+      "msg": "created IP gm_orchestrator_17797446536 (exec_mode=orchestrator)",
+      "ctx": {
+        "status": 200,
+        "body": {
+          "ok": true,
+          "ip": "gm_orchestrator_17797446536",
+          "created": true,
+          "path": "gm_orchestrator_17797446536",
+          "ssot_path": "gm_orchestrator_17797446536/yaml/gm_orchestrator_17797446536.ssot.yaml",
+          "paths": [
+            "gm_orchestrator_17797446536/doc",
+            "gm_orchestrator_17797446536/req",
+            "gm_orchestrator_17797446536/yaml",
+            "gm_orchestrator_17797446536/rtl",
+            "gm_orchestrator_17797446536/list",
+            "gm_orchestrator_17797446536/tb/cocotb",
+            "gm_orchestrator_17797446536/tc",
+            "gm_orchestrator_17797446536/sim",
+            "gm_orchestrator_17797446536/cov",
+            "gm_orchestrator_17797446536/lint",
+            "gm_orchestrator_17797446536/wiki"
+          ],
+          "session": "goalmtx_orchestrator_17797446536/gm_orchestrator_17797446536/ssot-gen",
+          "workflow": "ssot-gen",
+          "exec_mode": "orchestrator",
+          "policy": {
+            "exec_mode": "orchestrator",
+            "initial_workflow": "orchestrator",
+            "dispatch_schedule": "serial",
+            "worker_strategy": "workflow-workers",
+            "single_worker_url": "http://127.0.0.1:5601",
+            "preserve_running_on_workflow_switch": true,
+            "allow_orchestrator_namespace": true
+          },
+          "session_uid": "b5cb962e5739457ea75dcaac4f2f09a7",
+          "workspace_id": "5932b4e3eef0431ab6143674b7da18ac",
+          "ip_block_id": "69f5e55dd9b44c20ac72b1080fcae9f5",
+          "worker_warmup": {
+            "enabled": false,
+            "reason": "disabled",
+            "scheduled": []
+          }
+        }
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_orchestrator_17797446536: orchestrator chat accepted",
+      "ctx": {
+        "status": 200,
+        "body": {
+          "ok": true,
+          "ip": "gm_orchestrator_17797446536",
+          "run_id": "9f7ee65127a2418b8f2a635f77201835",
+          "status": "started",
+          "model": "gpt-5.5",
+          "reasoning_effort": "low"
+        }
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_orchestrator_17797446536: chat messages persisted (1)",
+      "ctx": {
+        "count": 1
+      }
+    },
+    {
+      "ok": false,
+      "msg": "gm_orchestrator_17797446536: stage ssot -> timeout(running)",
+      "ctx": {
+        "state": "timeout(running)"
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_orchestrator_17797446536: jobs log readable",
+      "ctx": {
+        "status": 200,
+        "job_count": 1
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_orchestrator_17797446536: agent log messages present (not just user)",
+      "ctx": {
+        "roles": [
+          "assistant",
+          "tool",
+          "tool_result",
+          "user"
+        ]
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_orchestrator_17797446536: SSOT artifact on disk",
+      "ctx": {
+        "path": "/Users/brian/Desktop/Project/ROOT_IP/gm_orchestrator_17797446536/yaml/gm_orchestrator_17797446536.ssot.yaml"
+      }
+    },
+    {
+      "ok": false,
+      "msg": "gm_orchestrator_17797446536: SSOT artifact is REAL (not draft scaffold)",
+      "ctx": {
+        "bytes": 2898,
+        "tbd_count": 111,
+        "has_function_model": true,
+        "draft": true
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_orchestrator_17797446536: chat grew/persisted after run (9)",
+      "ctx": {
+        "before": 1,
+        "after": 9
+      }
+    },
+    {
+      "ok": true,
+      "msg": "switch back to gm_singleworker_17797440625: chat isolated/preserved",
+      "ctx": {
+        "prev_count": 0
+      }
+    },
+    {
+      "ok": true,
+      "msg": "user goalmtx_singleworker_17797452647 authenticated",
+      "ctx": {
+        "reg": 200,
+        "me": 200
+      }
+    },
+    {
+      "ok": true,
+      "msg": "created IP gm_singleworker_17797452647 (exec_mode=single-worker)",
+      "ctx": {
+        "status": 200,
+        "body": {
+          "ok": true,
+          "ip": "gm_singleworker_17797452647",
+          "created": true,
+          "path": "gm_singleworker_17797452647",
+          "ssot_path": "gm_singleworker_17797452647/yaml/gm_singleworker_17797452647.ssot.yaml",
+          "paths": [
+            "gm_singleworker_17797452647/doc",
+            "gm_singleworker_17797452647/req",
+            "gm_singleworker_17797452647/yaml",
+            "gm_singleworker_17797452647/rtl",
+            "gm_singleworker_17797452647/list",
+            "gm_singleworker_17797452647/tb/cocotb",
+            "gm_singleworker_17797452647/tc",
+            "gm_singleworker_17797452647/sim",
+            "gm_singleworker_17797452647/cov",
+            "gm_singleworker_17797452647/lint",
+            "gm_singleworker_17797452647/wiki"
+          ],
+          "session": "goalmtx_singleworker_17797452647/gm_singleworker_17797452647/ssot-gen",
+          "workflow": "ssot-gen",
+          "exec_mode": "single-worker",
+          "policy": {
+            "exec_mode": "single-worker",
+            "initial_workflow": "ssot-gen",
+            "dispatch_schedule": "serial",
+            "worker_strategy": "single-main-loop",
+            "single_worker_url": "http://127.0.0.1:5601",
+            "preserve_running_on_workflow_switch": false,
+            "allow_orchestrator_namespace": false
+          },
+          "session_uid": "059e34940b75482ea0634bbcafcfcc88",
+          "workspace_id": "bb6fb18725b04b37b6e2b81981c85811",
+          "ip_block_id": "7b5c83bee69f456fbeaa4c015dccd467",
+          "worker_warmup": {
+            "enabled": false,
+            "reason": "disabled",
+            "scheduled": []
+          }
+        }
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_singleworker_17797452647: single-worker pipeline dispatched",
+      "ctx": {
+        "status": 200,
+        "body": {
+          "ok": true,
+          "pipeline_id": "a04bde539efd",
+          "pipeline_run_id": "a04bde539efd",
+          "user_id": "goalmtx_singleworker_17797452647",
+          "schedule": "serial",
+          "requested_schedule": "serial",
+          "run_mode": "starter",
+          "exec_mode": "single-worker",
+          "ip": "gm_singleworker_17797452647",
+          "stages": [
+            {
+              "id": "ssot",
+              "workflow": "ssot-gen",
+              "label": "SSOT gen"
+            }
+          ],
+          "jobs": [
+            {
+              "job_id": "a0a0047ecd9e",
+              "run_id": "",
+              "worker": "ipc://538073fe4b824d7392bf63e0a6db8e01_goalmtx_singleworker_17797452647_gm_singleworker_17797452647_pipeline_a04bde539efd_01-ssot-gen/single/ssot-gen",
+              "worker_transport": "ipc",
+              "worker_owner": "goalmtx_singleworker_17797452647",
+              "worker_partition": "538073fe4b824d7392bf63e0a6db8e01_goalmtx_singleworker_17797452647_gm_singleworker_17797452647_pipeline_a04bde539efd_01-ssot-gen",
+              "workflow": "ssot-gen",
+              "stage_id": "ssot",
+              "template": "atlas-pipeline-ssot",
+              "ip": "gm_singleworker_17797452647",
+              "model": "deepseek-v4-pro",
+              "reasoning_effort": "",
+              "toolchain": "",
+              "session": "goalmtx_singleworker_17797452647/gm_singleworker_17797452647/pipeline/a04bde539efd/01-ssot-gen",
+              "session_dir": ".session/goalmtx_singleworker_17797452647/gm_singleworker_17797452647/pipeline/a04bde539efd/01-ssot-gen",
+              "scope_path": "gm_singleworker_17797452647",
+              "project_root": "/Users/brian/Desktop/Project/ROOT_IP",
+              "source_root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+              "worker_command": "cd /Users/brian/Desktop/Project/ROOT_IP && ATLAS_PROJECT_ROOT=/Users/brian/Desktop/Project/ROOT_IP ATLAS_WORKER_TRANSPORT=ipc EXECUTION_NO_ACTION_GUARD=false PYTHONPATH=/Users/brian/Desktop/Project/brian_hw/common_ai_agent:$PYTHONPATH python3 -m src.atlas_worker_ipc --request <job-request.json> --response <job-response.json> --model deepseek-v4-pro",
+              "prompt": "[ATLAS ARCHITECT WORKFLOW CONTEXT]\n- ip: gm_singleworker_17797452647\n- workflow: ssot-gen\n- stage_id: ssot\n- pipeline_id: a04bde539efd\n- pipeline_run_id: a04bde539efd\n- session_namespace: .session/goalmtx_singleworker_17797452647/gm_singleworker_17797452647/pipeline/a04bde539efd/01-ssot-gen\n- project_root: /Users/brian/Desktop/Project/ROOT_IP\n- source_root: /Users/brian/Desktop/Project/brian_hw/common_ai_agent\n- run_mode: starter\n- exec_mode: single-worker\n- model: deepseek-v4-pro\n- reasoning_effort: (default)\n- scope_path: gm_singleworker_17797452647\n- write_boundary: only modify files under gm_singleworker_17797452647/, except workflow-owned status/session files under .session/goalmtx_singleworker_17797452647/gm_singleworker_17797452647/pipeline/a04bde539efd/01-ssot-gen/. Do not edit other IP directories or unrelated workflows.\n- parallelism: assume other IP/workflow jobs may be running; never revert or overwrite their files.\n\nanswer the gm_singleworker_17797452647/rtl/rtl_blocked.json questions inline so SSOT-gen records them; then run /resolve-rtl-blockers gm_singleworker_17797452647 --use-recommended-defaults; then run /repair-ssot gm_singleworker_17797452647; then python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" gm_singleworker_17797452647 --root \"$ATLAS_PROJECT_ROOT\" --mode engineering. This is an RTL blocker repair pass; do not rewrite the IP from scratch.\n\n[Orchestrator worker instruction]\n[ATLAS_PIPELINE_SSOT_DIRECT_WRITE]\ncreate or refresh gm_singleworker_17797452647/yaml/gm_singleworker_17797452647.ssot.yaml as the canonical SSOT for IP `gm_singleworker_17797452647`. Use the orchestrator chat goal as the source requirement. This is an ATLAS pipeline worker run, not an exploratory interview: do not read, grep, or list repository files before writing the SSOT unless the write path is impossible. If no architect handoff or imported requirement exists yet, bootstrap a complete engineering draft from the visible goal instead of searching indefinitely. The first successful content-changing tool call should write gm_singleworker_17797452647/yaml/gm_singleworker_17797452647.ssot.yaml with concrete draft sections, including machine-readable function_model output_rules/state_updates and sub_modules ownership refs. Also write gm_singleworker_17797452647/req/gm_singleworker_17797452647_requirements.md (at least 1000 bytes, no TODO/TBD markers) and gm_singleworker_17797452647/req/approval_manifest.json using either the strict requirement_approval_manifest schema (type/ip/approved_by/approved_at_utc/source/source_sha256/target/target_sha256) or, for starter-mode chat goals without a review packet, a starter approval manifest with approval_mode=starter, status=approved, artifact=req/<ip>_requirements.md, bytes, and all requirement quality checks true. Then run python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/repair_ssot_schema.py\" gm_singleworker_17797452647 --root \"$ATLAS_PROJECT_ROOT\" --mode engineering and python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" gm_singleworker_17797452647 --root \"$ATLAS_PROJECT_ROOT\" --mode engineering. Do not leave live `custom.tbd` or TBD-key sections in the final SSOT; convert out-of-scope ideas to `custom.future_considerations` or concrete assumptions. If gm_singleworker_17797452647/rtl/rtl_blocked.json exists, answer each blocker inline so SSOT-gen can incorporate the decisions, then rerun /repair-ssot and validation before handing back to rtl-gen. Finish with an [SSOT HANDOFF] summarizing assumptions, remaining TBDs, validation evidence, and downstream RTL/TB obligations.\n\n[ATLAS RUN POLICY]\n- run_mode: starter\n- exec_mode: single-worker\n\n\n[USER REQUIREMENT]\nGenerate the SSOT, then RTL, then run the cocotb simulation. Auto-advance every stage, never pause for confirmation. Keep the design a compact 8-bit synchronous up counter with synchronous reset and an enable.",
+              "created_at": 1779745266.61106,
+              "queued_at": 1779745266.61106,
+              "started_at": 0.0,
+              "status": "queued",
+              "queue_reason": "ipc_workflow_limit",
+              "attempt": 1,
+              "retry_count": 0,
+              "max_attempts": 2,
+              "idempotency_key": "a0a0047ecd9e",
+              "previous_run_ids": [],
+              "iterations": 0,
+              "files_modified": [],
+              "result_summary": "",
+              "error": "",
+              "pipeline_id": "a04bde539efd",
+              "pipeline_index": 0,
+              "depends_on": [],
+              "pipeline_schedule": "serial",
+              "rtl_version_id": "",
+              "run_mode": "starter",
+              "exec_mode": "single-worker",
+              "pipeline_run_id": "a04bde539efd",
+              "trigger_source": "pipeline_button",
+              "orchestrator_run_id": "",
+              "user_id": "goalmtx_singleworker_17797452647",
+              "db_user_id": "538073fe4b824d7392bf63e0a6db8e01",
+              "db_session_id": "37924f3f2bb04331b71de55d9fdc92a2",
+              "workflow_run_id": "4b37dbd5a41c4f6098e958b9559a9022",
+              "db_workspace_id": "bb6fb18725b04b37b6e2b81981c85811",
+              "db_ip_id": "7b5c83bee69f456fbeaa4c015dccd467"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_singleworker_17797452647: chat messages persisted (2)",
+      "ctx": {
+        "count": 2
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_singleworker_17797452647: stage ssot -> passed(artifact)",
+      "ctx": {
+        "state": "passed(artifact)"
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_singleworker_17797452647: jobs log readable",
+      "ctx": {
+        "status": 200,
+        "job_count": 1
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_singleworker_17797452647: agent log messages present (not just user)",
+      "ctx": {
+        "roles": [
+          "assistant",
+          "user"
+        ]
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_singleworker_17797452647: SSOT artifact on disk",
+      "ctx": {
+        "path": "/Users/brian/Desktop/Project/ROOT_IP/gm_singleworker_17797452647/yaml/gm_singleworker_17797452647.ssot.yaml"
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_singleworker_17797452647: SSOT artifact is REAL (not draft scaffold)",
+      "ctx": {
+        "bytes": 5606,
+        "tbd_count": 0,
+        "has_function_model": true,
+        "draft": false
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_singleworker_17797452647: chat grew/persisted after run (2)",
+      "ctx": {
+        "before": 2,
+        "after": 2
+      }
+    },
+    {
+      "ok": true,
+      "msg": "switch back to gm_orchestrator_17797446536: chat isolated/preserved",
+      "ctx": {
+        "prev_count": 0
+      }
+    },
+    {
+      "ok": true,
+      "msg": "user goalmtx_orchestrator_17797457008 authenticated",
+      "ctx": {
+        "reg": 200,
+        "me": 200
+      }
+    },
+    {
+      "ok": true,
+      "msg": "created IP gm_orchestrator_17797457008 (exec_mode=orchestrator)",
+      "ctx": {
+        "status": 200,
+        "body": {
+          "ok": true,
+          "ip": "gm_orchestrator_17797457008",
+          "created": true,
+          "path": "gm_orchestrator_17797457008",
+          "ssot_path": "gm_orchestrator_17797457008/yaml/gm_orchestrator_17797457008.ssot.yaml",
+          "paths": [
+            "gm_orchestrator_17797457008/doc",
+            "gm_orchestrator_17797457008/req",
+            "gm_orchestrator_17797457008/yaml",
+            "gm_orchestrator_17797457008/rtl",
+            "gm_orchestrator_17797457008/list",
+            "gm_orchestrator_17797457008/tb/cocotb",
+            "gm_orchestrator_17797457008/tc",
+            "gm_orchestrator_17797457008/sim",
+            "gm_orchestrator_17797457008/cov",
+            "gm_orchestrator_17797457008/lint",
+            "gm_orchestrator_17797457008/wiki"
+          ],
+          "session": "goalmtx_orchestrator_17797457008/gm_orchestrator_17797457008/ssot-gen",
+          "workflow": "ssot-gen",
+          "exec_mode": "orchestrator",
+          "policy": {
+            "exec_mode": "orchestrator",
+            "initial_workflow": "orchestrator",
+            "dispatch_schedule": "serial",
+            "worker_strategy": "workflow-workers",
+            "single_worker_url": "http://127.0.0.1:5601",
+            "preserve_running_on_workflow_switch": true,
+            "allow_orchestrator_namespace": true
+          },
+          "session_uid": "2d7263ad0c5a43d78537796432e3ced8",
+          "workspace_id": "485d8a7b85334388a01208145e84ad81",
+          "ip_block_id": "add8f9282fdd4dd98322142d32ade2e6",
+          "worker_warmup": {
+            "enabled": false,
+            "reason": "disabled",
+            "scheduled": []
+          }
+        }
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_orchestrator_17797457008: orchestrator chat accepted",
+      "ctx": {
+        "status": 200,
+        "body": {
+          "ok": true,
+          "ip": "gm_orchestrator_17797457008",
+          "run_id": "abc5d48579f943b29efdf615f1a71c53",
+          "status": "started",
+          "model": "gpt-5.5",
+          "reasoning_effort": "low"
+        }
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_orchestrator_17797457008: chat messages persisted (1)",
+      "ctx": {
+        "count": 1
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_orchestrator_17797457008: stage ssot -> passed(artifact)",
+      "ctx": {
+        "state": "passed(artifact)"
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_orchestrator_17797457008: jobs log readable",
+      "ctx": {
+        "status": 200,
+        "job_count": 2
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_orchestrator_17797457008: agent log messages present (not just user)",
+      "ctx": {
+        "roles": [
+          "assistant",
+          "tool",
+          "tool_result",
+          "user"
+        ]
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_orchestrator_17797457008: SSOT artifact on disk",
+      "ctx": {
+        "path": "/Users/brian/Desktop/Project/ROOT_IP/gm_orchestrator_17797457008/yaml/gm_orchestrator_17797457008.ssot.yaml"
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_orchestrator_17797457008: SSOT artifact is REAL (not draft scaffold)",
+      "ctx": {
+        "bytes": 4559,
+        "tbd_count": 0,
+        "has_function_model": true,
+        "draft": false
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_orchestrator_17797457008: chat grew/persisted after run (13)",
+      "ctx": {
+        "before": 1,
+        "after": 13
+      }
+    },
+    {
+      "ok": true,
+      "msg": "switch back to gm_singleworker_17797452647: chat isolated/preserved",
+      "ctx": {
+        "prev_count": 0
+      }
+    },
+    {
+      "ok": true,
+      "msg": "user goalmtx_singleworker_17797461199 authenticated",
+      "ctx": {
+        "reg": 200,
+        "me": 200
+      }
+    },
+    {
+      "ok": true,
+      "msg": "created IP gm_singleworker_17797461199 (exec_mode=single-worker)",
+      "ctx": {
+        "status": 200,
+        "body": {
+          "ok": true,
+          "ip": "gm_singleworker_17797461199",
+          "created": true,
+          "path": "gm_singleworker_17797461199",
+          "ssot_path": "gm_singleworker_17797461199/yaml/gm_singleworker_17797461199.ssot.yaml",
+          "paths": [
+            "gm_singleworker_17797461199/doc",
+            "gm_singleworker_17797461199/req",
+            "gm_singleworker_17797461199/yaml",
+            "gm_singleworker_17797461199/rtl",
+            "gm_singleworker_17797461199/list",
+            "gm_singleworker_17797461199/tb/cocotb",
+            "gm_singleworker_17797461199/tc",
+            "gm_singleworker_17797461199/sim",
+            "gm_singleworker_17797461199/cov",
+            "gm_singleworker_17797461199/lint",
+            "gm_singleworker_17797461199/wiki"
+          ],
+          "session": "goalmtx_singleworker_17797461199/gm_singleworker_17797461199/ssot-gen",
+          "workflow": "ssot-gen",
+          "exec_mode": "single-worker",
+          "policy": {
+            "exec_mode": "single-worker",
+            "initial_workflow": "ssot-gen",
+            "dispatch_schedule": "serial",
+            "worker_strategy": "single-main-loop",
+            "single_worker_url": "http://127.0.0.1:5601",
+            "preserve_running_on_workflow_switch": false,
+            "allow_orchestrator_namespace": false
+          },
+          "session_uid": "340da15527044cf2b14eec4256cbe96b",
+          "workspace_id": "05a40cd89c2d420ca258db7e946cd743",
+          "ip_block_id": "cab12e0a5b1f4d1bb38b6eef2f35fb48",
+          "worker_warmup": {
+            "enabled": false,
+            "reason": "disabled",
+            "scheduled": []
+          }
+        }
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_singleworker_17797461199: single-worker pipeline dispatched",
+      "ctx": {
+        "status": 200,
+        "body": {
+          "ok": true,
+          "pipeline_id": "ac075b8f523e",
+          "pipeline_run_id": "ac075b8f523e",
+          "user_id": "goalmtx_singleworker_17797461199",
+          "schedule": "serial",
+          "requested_schedule": "serial",
+          "run_mode": "starter",
+          "exec_mode": "single-worker",
+          "ip": "gm_singleworker_17797461199",
+          "stages": [
+            {
+              "id": "ssot",
+              "workflow": "ssot-gen",
+              "label": "SSOT gen"
+            }
+          ],
+          "jobs": [
+            {
+              "job_id": "5c362abafef5",
+              "run_id": "",
+              "worker": "ipc://686e645f03304a9a82e9f70eeb177de9_goalmtx_singleworker_17797461199_gm_singleworker_17797461199_pipeline_ac075b8f523e_01-ssot-gen/single/ssot-gen",
+              "worker_transport": "ipc",
+              "worker_owner": "goalmtx_singleworker_17797461199",
+              "worker_partition": "686e645f03304a9a82e9f70eeb177de9_goalmtx_singleworker_17797461199_gm_singleworker_17797461199_pipeline_ac075b8f523e_01-ssot-gen",
+              "workflow": "ssot-gen",
+              "stage_id": "ssot",
+              "template": "atlas-pipeline-ssot",
+              "ip": "gm_singleworker_17797461199",
+              "model": "deepseek-v4-pro",
+              "reasoning_effort": "",
+              "toolchain": "",
+              "session": "goalmtx_singleworker_17797461199/gm_singleworker_17797461199/pipeline/ac075b8f523e/01-ssot-gen",
+              "session_dir": ".session/goalmtx_singleworker_17797461199/gm_singleworker_17797461199/pipeline/ac075b8f523e/01-ssot-gen",
+              "scope_path": "gm_singleworker_17797461199",
+              "project_root": "/Users/brian/Desktop/Project/ROOT_IP",
+              "source_root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+              "worker_command": "cd /Users/brian/Desktop/Project/ROOT_IP && ATLAS_PROJECT_ROOT=/Users/brian/Desktop/Project/ROOT_IP ATLAS_WORKER_TRANSPORT=ipc EXECUTION_NO_ACTION_GUARD=false PYTHONPATH=/Users/brian/Desktop/Project/brian_hw/common_ai_agent:$PYTHONPATH python3 -m src.atlas_worker_ipc --request <job-request.json> --response <job-response.json> --model deepseek-v4-pro",
+              "prompt": "[ATLAS ARCHITECT WORKFLOW CONTEXT]\n- ip: gm_singleworker_17797461199\n- workflow: ssot-gen\n- stage_id: ssot\n- pipeline_id: ac075b8f523e\n- pipeline_run_id: ac075b8f523e\n- session_namespace: .session/goalmtx_singleworker_17797461199/gm_singleworker_17797461199/pipeline/ac075b8f523e/01-ssot-gen\n- project_root: /Users/brian/Desktop/Project/ROOT_IP\n- source_root: /Users/brian/Desktop/Project/brian_hw/common_ai_agent\n- run_mode: starter\n- exec_mode: single-worker\n- model: deepseek-v4-pro\n- reasoning_effort: (default)\n- scope_path: gm_singleworker_17797461199\n- write_boundary: only modify files under gm_singleworker_17797461199/, except workflow-owned status/session files under .session/goalmtx_singleworker_17797461199/gm_singleworker_17797461199/pipeline/ac075b8f523e/01-ssot-gen/. Do not edit other IP directories or unrelated workflows.\n- parallelism: assume other IP/workflow jobs may be running; never revert or overwrite their files.\n\nanswer the gm_singleworker_17797461199/rtl/rtl_blocked.json questions inline so SSOT-gen records them; then run /resolve-rtl-blockers gm_singleworker_17797461199 --use-recommended-defaults; then run /repair-ssot gm_singleworker_17797461199; then python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" gm_singleworker_17797461199 --root \"$ATLAS_PROJECT_ROOT\" --mode engineering. This is an RTL blocker repair pass; do not rewrite the IP from scratch.\n\n[Orchestrator worker instruction]\n[ATLAS_PIPELINE_SSOT_DIRECT_WRITE]\ncreate or refresh gm_singleworker_17797461199/yaml/gm_singleworker_17797461199.ssot.yaml as the canonical SSOT for IP `gm_singleworker_17797461199`. Use the orchestrator chat goal as the source requirement. This is an ATLAS pipeline worker run, not an exploratory interview: do not read, grep, or list repository files before writing the SSOT unless the write path is impossible. If no architect handoff or imported requirement exists yet, bootstrap a complete engineering draft from the visible goal instead of searching indefinitely. The first successful content-changing tool call should write gm_singleworker_17797461199/yaml/gm_singleworker_17797461199.ssot.yaml with concrete draft sections, including machine-readable function_model output_rules/state_updates and sub_modules ownership refs. Also write gm_singleworker_17797461199/req/gm_singleworker_17797461199_requirements.md (at least 1000 bytes, no TODO/TBD markers) and gm_singleworker_17797461199/req/approval_manifest.json using either the strict requirement_approval_manifest schema (type/ip/approved_by/approved_at_utc/source/source_sha256/target/target_sha256) or, for starter-mode chat goals without a review packet, a starter approval manifest with approval_mode=starter, status=approved, artifact=req/<ip>_requirements.md, bytes, and all requirement quality checks true. Then run python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/repair_ssot_schema.py\" gm_singleworker_17797461199 --root \"$ATLAS_PROJECT_ROOT\" --mode engineering and python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" gm_singleworker_17797461199 --root \"$ATLAS_PROJECT_ROOT\" --mode engineering. Do not leave live `custom.tbd` or TBD-key sections in the final SSOT; convert out-of-scope ideas to `custom.future_considerations` or concrete assumptions. If gm_singleworker_17797461199/rtl/rtl_blocked.json exists, answer each blocker inline so SSOT-gen can incorporate the decisions, then rerun /repair-ssot and validation before handing back to rtl-gen. Finish with an [SSOT HANDOFF] summarizing assumptions, remaining TBDs, validation evidence, and downstream RTL/TB obligations.\n\n[ATLAS RUN POLICY]\n- run_mode: starter\n- exec_mode: single-worker\n\n\n[USER REQUIREMENT]\nGenerate the SSOT, then RTL, then run the cocotb simulation. Auto-advance every stage, never pause for confirmation. Keep the design a compact 8-bit synchronous up counter with synchronous reset and an enable.",
+              "created_at": 1779746122.107533,
+              "queued_at": 1779746122.107533,
+              "started_at": 0.0,
+              "status": "queued",
+              "queue_reason": "ipc_workflow_limit",
+              "attempt": 1,
+              "retry_count": 0,
+              "max_attempts": 2,
+              "idempotency_key": "5c362abafef5",
+              "previous_run_ids": [],
+              "iterations": 0,
+              "files_modified": [],
+              "result_summary": "",
+              "error": "",
+              "pipeline_id": "ac075b8f523e",
+              "pipeline_index": 0,
+              "depends_on": [],
+              "pipeline_schedule": "serial",
+              "rtl_version_id": "",
+              "run_mode": "starter",
+              "exec_mode": "single-worker",
+              "pipeline_run_id": "ac075b8f523e",
+              "trigger_source": "pipeline_button",
+              "orchestrator_run_id": "",
+              "user_id": "goalmtx_singleworker_17797461199",
+              "db_user_id": "686e645f03304a9a82e9f70eeb177de9",
+              "db_session_id": "bbda8708e4794846a7a5ded4ab433da3",
+              "workflow_run_id": "144911f3a68b437daa644f7eb0cb6814",
+              "db_workspace_id": "05a40cd89c2d420ca258db7e946cd743",
+              "db_ip_id": "cab12e0a5b1f4d1bb38b6eef2f35fb48"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_singleworker_17797461199: chat messages persisted (2)",
+      "ctx": {
+        "count": 2
+      }
+    },
+    {
+      "ok": false,
+      "msg": "gm_singleworker_17797461199: stage ssot -> timeout(idle)",
+      "ctx": {
+        "state": "timeout(idle)"
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_singleworker_17797461199: jobs log readable",
+      "ctx": {
+        "status": 200,
+        "job_count": 1
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_singleworker_17797461199: agent log messages present (not just user)",
+      "ctx": {
+        "roles": [
+          "assistant",
+          "user"
+        ]
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_singleworker_17797461199: SSOT artifact on disk",
+      "ctx": {
+        "path": "/Users/brian/Desktop/Project/ROOT_IP/gm_singleworker_17797461199/yaml/gm_singleworker_17797461199.ssot.yaml"
+      }
+    },
+    {
+      "ok": false,
+      "msg": "gm_singleworker_17797461199: SSOT artifact is REAL (not draft scaffold)",
+      "ctx": {
+        "bytes": 2899,
+        "tbd_count": 111,
+        "has_function_model": true,
+        "draft": true
+      }
+    },
+    {
+      "ok": true,
+      "msg": "gm_singleworker_17797461199: chat grew/persisted after run (2)",
+      "ctx": {
+        "before": 2,
+        "after": 2
+      }
+    },
+    {
+      "ok": true,
+      "msg": "switch back to gm_orchestrator_17797457008: chat isolated/preserved",
+      "ctx": {
+        "prev_count": 0
+      }
+    }
+  ],
+  "elapsed_s": 4426.482814073563,
+  "base": "http://192.168.45.139:3000",
+  "stages": [
+    "ssot"
+  ],
+  "modes": [
+    "orchestrator",
+    "single-worker"
+  ]
+}

@@ -101,15 +101,18 @@
 
   function liveConnect(sessionId) {
     const targetSessionId = String(sessionId || currentSessionId || '');
+    const sessionChanged = targetSessionId !== currentSessionId;
     if (
-      targetSessionId &&
-      currentSessionId &&
-      targetSessionId !== currentSessionId &&
+      sessionChanged &&
       ws &&
       (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.CLOSING)
     ) {
       try { ws.onclose = null; ws.onerror = null; ws.onmessage = null; ws.onopen = null; ws.close(); } catch (_) {}
       ws = null;
+    }
+    if (sessionChanged) {
+      clearPendingAcks();
+      liveQueue = [];
     }
     currentSessionId = targetSessionId;
     if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
@@ -199,9 +202,14 @@
   function liveSwitchSession(sessionId) {
     const targetSessionId = String(sessionId || '').trim();
     if (!targetSessionId) return;
+    if (targetSessionId !== currentSessionId) {
+      liveConnect(targetSessionId);
+      return;
+    }
     currentSessionId = targetSessionId;
     if (!ws || ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING) {
       liveConnect(targetSessionId);
+      return;
     }
     _rawSend({ type: 'session_switch', session_id: targetSessionId });
   }

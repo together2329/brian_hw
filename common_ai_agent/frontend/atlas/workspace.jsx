@@ -2731,7 +2731,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
   // 'import_export' owns document upload/import and SSOT export. The
   // user lands on 'chat' by default; preview / split / SSOT-tab modes
   // are entered explicitly by clicking tabs or double-clicking files.
-  const [mainTab, setMainTab] = React.useState('chat');    // chat | ssot | doc | qa | checklist | import_export | split | preview | sim_summary | debug | coverage | workflow_report | git | git_native
+  const [mainTab, setMainTab] = React.useState('chat');    // chat | ssot | doc | qa | checklist | import_export | split | preview | sim_summary | debug | coverage | workflow_report | git | git_native | todo
   const [previewPath, setPreviewPath] = React.useState(() => {
     try {
       const saved = localStorage.getItem('atlasPreviewPath');
@@ -6365,6 +6365,38 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
                 }}
               >git</span>
             )}
+            {(() => {
+              const _allTodos = Array.isArray(window.TODOS) ? window.TODOS : [];
+              const _doneTodos = _allTodos.filter(t => ['done', 'approved', 'completed'].includes(t.state)).length;
+              const _openTodos = _allTodos.length - _doneTodos;
+              return (
+                <span
+                  className="tab-chip"
+                  onClick={() => setMainTab('todo')}
+                  title="TODO: view and edit todos (add / modify / remove / clear) for this session"
+                  style={{
+                    cursor: 'pointer',
+                    padding: '2px 8px', borderRadius: 2, marginLeft: 4,
+                    color: mainTab === 'todo' ? 'var(--accent)' : 'var(--fg-mute)',
+                    background: mainTab === 'todo' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
+                    border: '1px solid ' + (mainTab === 'todo' ? 'var(--accent)' : 'transparent'),
+                    fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 'var(--ui-control-font-size)',
+                  }}
+                >
+                  todo
+                  {_allTodos.length > 0 && (
+                    <span style={{
+                      marginLeft: 5,
+                      padding: '0 5px',
+                      borderRadius: 8,
+                      background: 'color-mix(in oklch, var(--accent) 20%, transparent)',
+                      color: 'var(--accent)',
+                      fontSize: 'calc(var(--ui-control-font-size) - 1px)',
+                    }}>{_openTodos}/{_allTodos.length}</span>
+                  )}
+                </span>
+              );
+            })()}
             <span className="mute" style={{ margin: '0 6px' }}>·</span>
             {mainTab === 'chat' ? (
               // Everything in the previous chain (intent badge, workflow
@@ -6412,6 +6444,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
             ) : mainTab === 'git_native' ? (
               <span className="mute trunc" style={{ fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', maxWidth: 380 }}>
                 built-in Git · {activeIp || 'no IP'}
+              </span>
+            ) : mainTab === 'todo' ? (
+              <span className="mute trunc" style={{ fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', maxWidth: 380 }}>
+                TODO editor · add / modify / remove / clear
               </span>
             ) : (
               <span className="mute trunc" style={{ fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', maxWidth: 380 }}
@@ -6616,6 +6652,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
                 git · loading…
               </div>
             )
+          ) : mainTab === 'todo' ? (
+            <ErrorBoundary label="TodoEditor">
+              <TodoEditorPane />
+            </ErrorBoundary>
             ) : (
             /* mainTab === 'qa' — SSOT-GEN QA board or active ask_user */
             <div style={{
@@ -15692,6 +15732,291 @@ const ProgressPanel = () => {
           </div>
         )}
       </Section>
+    </div>
+  );
+};
+
+// Editable TODO tab — full-column pane that mirrors the session todo.json
+// (.session/<session>/todo.json) and supports add / modify / remove / clear
+// via the /api/todos/{add,update,remove,clear} endpoints. Source of truth is
+// the local session file, not the DB mirror.
+const TODO_EDITOR_STATES = ['pending', 'in_progress', 'completed', 'approved', 'rejected'];
+
+const TodoEditorPane = () => {
+  // Re-render on data-layer refreshes so live agent edits + our mutations show.
+  const [, bump] = React.useReducer(x => x + 1, 0);
+  React.useEffect(() => {
+    const h = (ev) => { if (!ev.detail || ev.detail === 'TODOS' || ev.detail === 'SESSION_STATE') bump(); };
+    window.addEventListener('atlas-data-changed', h);
+    if (window.atlasData && window.atlasData.refreshTodos) window.atlasData.refreshTodos({ force: true });
+    return () => window.removeEventListener('atlas-data-changed', h);
+  }, []);
+
+  const todos = Array.isArray(window.TODOS) ? window.TODOS : [];
+  const [busy, setBusy] = React.useState(false);
+  const [err, setErr] = React.useState('');
+  // Add-form local state
+  const [newContent, setNewContent] = React.useState('');
+  const [newDetail, setNewDetail] = React.useState('');
+  const [newCriteria, setNewCriteria] = React.useState('');
+  const [newPriority, setNewPriority] = React.useState('medium');
+
+  const api = window.atlasData || {};
+  const criteriaText = (c) => Array.isArray(c) ? c.join('\n') : String(c || '');
+
+  const runMutation = async (fn) => {
+    setBusy(true);
+    setErr('');
+    try {
+      await fn();
+    } catch (e) {
+      setErr(String(e && e.message ? e.message : e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleAdd = () => {
+    const content = newContent.trim();
+    if (!content) { setErr('Content is required to add a todo.'); return; }
+    runMutation(async () => {
+      if (!api.addTodo) throw new Error('addTodo unavailable');
+      await api.addTodo({ content, detail: newDetail, criteria: newCriteria, priority: newPriority });
+      setNewContent(''); setNewDetail(''); setNewCriteria(''); setNewPriority('medium');
+    });
+  };
+
+  const handleSaveRow = (index, fields) => {
+    runMutation(async () => {
+      if (!api.updateTodo) throw new Error('updateTodo unavailable');
+      await api.updateTodo(index, fields);
+    });
+  };
+
+  const handleRemove = (index) => {
+    if (!window.confirm('Remove this todo?')) return;
+    runMutation(async () => {
+      if (!api.removeTodo) throw new Error('removeTodo unavailable');
+      await api.removeTodo(index);
+    });
+  };
+
+  const handleClearAll = () => {
+    if (!todos.length) return;
+    if (!window.confirm('Clear ALL todos for this session? This cannot be undone.')) return;
+    runMutation(async () => {
+      if (!api.clearTodos) throw new Error('clearTodos unavailable');
+      await api.clearTodos();
+    });
+  };
+
+  const fieldLabel = {
+    color: 'var(--cyan)', fontSize: 10, letterSpacing: '0.08em',
+    textTransform: 'uppercase', fontWeight: 700, marginBottom: 3,
+  };
+  const inputStyle = {
+    width: '100%', boxSizing: 'border-box', padding: '5px 8px',
+    background: 'var(--bg)', color: 'var(--fg)',
+    border: '1px solid var(--line)', borderRadius: 3,
+    fontFamily: 'var(--mono)', fontSize: 'var(--ui-font-size)',
+  };
+
+  return (
+    <div style={{ flex: 1, minHeight: 0, overflow: 'auto', padding: '14px 18px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+        <div style={{ fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--fg)' }}>
+          Todos ({todos.length})
+        </div>
+        <span style={{ flex: 1 }} />
+        <button
+          className="btn"
+          disabled={busy || !todos.length}
+          onClick={handleClearAll}
+          style={{
+            cursor: (busy || !todos.length) ? 'default' : 'pointer',
+            padding: '3px 10px', borderRadius: 3,
+            border: '1px solid var(--err)', color: 'var(--err)',
+            background: 'transparent', fontSize: 'var(--ui-control-font-size)',
+            opacity: (busy || !todos.length) ? 0.5 : 1,
+          }}
+        >Clear all</button>
+      </div>
+
+      {err && (
+        <div style={{
+          marginBottom: 10, padding: '6px 10px', borderRadius: 3,
+          border: '1px solid var(--err)', color: 'var(--err)',
+          fontFamily: 'var(--mono)', fontSize: 'var(--ui-font-size)',
+        }}>{err}</div>
+      )}
+
+      {/* Add-todo form */}
+      <div className="digest-card" style={{
+        border: '1px solid var(--line)', borderRadius: 4, padding: 12, marginBottom: 16,
+        display: 'grid', gap: 8,
+      }}>
+        <div style={fieldLabel}>+ Add todo</div>
+        <input
+          style={inputStyle}
+          placeholder="content (required)"
+          value={newContent}
+          disabled={busy}
+          onChange={(e) => setNewContent(e.target.value)}
+        />
+        <textarea
+          style={{ ...inputStyle, minHeight: 48, resize: 'vertical' }}
+          placeholder="detail (구현 방법, optional)"
+          value={newDetail}
+          disabled={busy}
+          onChange={(e) => setNewDetail(e.target.value)}
+        />
+        <textarea
+          style={{ ...inputStyle, minHeight: 48, resize: 'vertical' }}
+          placeholder="criteria — one per line (완료 기준, optional)"
+          value={newCriteria}
+          disabled={busy}
+          onChange={(e) => setNewCriteria(e.target.value)}
+        />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <select
+            style={{ ...inputStyle, width: 'auto' }}
+            value={newPriority}
+            disabled={busy}
+            onChange={(e) => setNewPriority(e.target.value)}
+          >
+            {['high', 'medium', 'low'].map(p => <option key={p} value={p}>{p}</option>)}
+          </select>
+          <span style={{ flex: 1 }} />
+          <button
+            className="btn"
+            disabled={busy || !newContent.trim()}
+            onClick={handleAdd}
+            style={{
+              cursor: (busy || !newContent.trim()) ? 'default' : 'pointer',
+              padding: '4px 14px', borderRadius: 3,
+              border: '1px solid var(--accent)', color: 'var(--accent)',
+              background: 'transparent', fontWeight: 700,
+              fontSize: 'var(--ui-control-font-size)',
+              opacity: (busy || !newContent.trim()) ? 0.5 : 1,
+            }}
+          >+ Add todo</button>
+        </div>
+      </div>
+
+      {/* Per-todo editable rows */}
+      {todos.length === 0 ? (
+        <div style={{ color: 'var(--fg-mute)', fontStyle: 'italic', padding: '20px 0', textAlign: 'center' }}>
+          No todos for this session yet. Add one above.
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gap: 12 }}>
+          {todos.map((todo, index) => (
+            <TodoEditorRow
+              key={todo.id || index}
+              index={index}
+              todo={todo}
+              busy={busy}
+              criteriaText={criteriaText(todo.criteria)}
+              fieldLabel={fieldLabel}
+              inputStyle={inputStyle}
+              onSave={(fields) => handleSaveRow(index, fields)}
+              onRemove={() => handleRemove(index)}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const TodoEditorRow = ({ index, todo, busy, criteriaText, fieldLabel, inputStyle, onSave, onRemove }) => {
+  const [content, setContent] = React.useState(todo.title || '');
+  const [detail, setDetail] = React.useState(todo.detail || '');
+  const [criteria, setCriteria] = React.useState(criteriaText);
+  const [state, setState] = React.useState(todo.state || 'pending');
+
+  // Re-sync local fields when the underlying todo changes (e.g. live refresh).
+  React.useEffect(() => { setContent(todo.title || ''); }, [todo.title]);
+  React.useEffect(() => { setDetail(todo.detail || ''); }, [todo.detail]);
+  React.useEffect(() => { setCriteria(criteriaText); }, [criteriaText]);
+  React.useEffect(() => { setState(todo.state || 'pending'); }, [todo.state]);
+
+  const dirty = (
+    content !== (todo.title || '')
+    || detail !== (todo.detail || '')
+    || criteria !== criteriaText
+    || state !== (todo.state || 'pending')
+  );
+
+  const meta = atlasStatusMeta(state);
+  const stateOptions = TODO_EDITOR_STATES.includes(state)
+    ? TODO_EDITOR_STATES
+    : [state, ...TODO_EDITOR_STATES];
+
+  return (
+    <div className="digest-card" style={{
+      border: '1px solid var(--line)', borderRadius: 4, padding: 12,
+      display: 'grid', gap: 8,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)' }}>#{index + 1}</span>
+        <span style={{ color: meta.color }}>{meta.glyph}</span>
+        <select
+          style={{ ...inputStyle, width: 'auto' }}
+          value={state}
+          disabled={busy}
+          onChange={(e) => setState(e.target.value)}
+        >
+          {stateOptions.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <span style={{ flex: 1 }} />
+        <button
+          className="btn"
+          disabled={busy || !dirty || !content.trim()}
+          onClick={() => onSave({ content, detail, criteria, state })}
+          style={{
+            cursor: (busy || !dirty || !content.trim()) ? 'default' : 'pointer',
+            padding: '3px 12px', borderRadius: 3,
+            border: '1px solid var(--accent)', color: 'var(--accent)',
+            background: 'transparent', fontSize: 'var(--ui-control-font-size)',
+            opacity: (busy || !dirty || !content.trim()) ? 0.5 : 1,
+          }}
+        >Save</button>
+        <button
+          className="btn"
+          disabled={busy}
+          onClick={onRemove}
+          style={{
+            cursor: busy ? 'default' : 'pointer',
+            padding: '3px 12px', borderRadius: 3,
+            border: '1px solid var(--err)', color: 'var(--err)',
+            background: 'transparent', fontSize: 'var(--ui-control-font-size)',
+            opacity: busy ? 0.5 : 1,
+          }}
+        >Remove</button>
+      </div>
+      <div>
+        <div style={fieldLabel}>Content</div>
+        <input style={inputStyle} value={content} disabled={busy} onChange={(e) => setContent(e.target.value)} />
+      </div>
+      <div>
+        <div style={fieldLabel}>Detail</div>
+        <textarea
+          style={{ ...inputStyle, minHeight: 52, resize: 'vertical' }}
+          value={detail}
+          disabled={busy}
+          onChange={(e) => setDetail(e.target.value)}
+        />
+      </div>
+      <div>
+        <div style={fieldLabel}>Criteria (one per line)</div>
+        <textarea
+          style={{ ...inputStyle, minHeight: 52, resize: 'vertical' }}
+          value={criteria}
+          disabled={busy}
+          onChange={(e) => setCriteria(e.target.value)}
+        />
+      </div>
     </div>
   );
 };

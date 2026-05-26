@@ -1289,6 +1289,39 @@
         return refreshTodos({ force: true });
       });
     },
+    addTodo: (fields) => {
+      const session = normalizeSessionName(window.ACTIVE_SESSION || '');
+      return fetch('/api/todos/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session, ...(fields || {}) }),
+      }).then(() => {
+        invalidateSessionState(session);
+        return refreshTodos({ force: true });
+      });
+    },
+    updateTodo: (index, fields) => {
+      const session = normalizeSessionName(window.ACTIVE_SESSION || '');
+      return fetch('/api/todos/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session, index, ...(fields || {}) }),
+      }).then(() => {
+        invalidateSessionState(session);
+        return refreshTodos({ force: true });
+      });
+    },
+    removeTodo: (index) => {
+      const session = normalizeSessionName(window.ACTIVE_SESSION || '');
+      return fetch('/api/todos/remove', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session, index }),
+      }).then(() => {
+        invalidateSessionState(session);
+        return refreshTodos({ force: true });
+      });
+    },
     fetchFile: (path) =>
       fetch('/api/file?path=' + encodeURIComponent(path)).then(r => r.json()),
     fetchSsot: (path) =>

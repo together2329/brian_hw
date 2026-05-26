@@ -1,4 +1,5 @@
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Optional
@@ -879,6 +880,105 @@ def test_todos_api_uses_requested_session_file(tmp_path, monkeypatch):
     assert client.get("/api/todos", params={"session": "alice/ip22/ssot-gen"}).json()["todos"][0]["content"] == "ssot todo"
 
 
+def test_todos_crud_add_update_remove_clear_round_trip(tmp_path, monkeypatch):
+    """add → update → remove → clear round-trip on a session todo file,
+    asserting both the on-disk file and GET /api/todos reflect each change."""
+    import json as _json
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    session = "alice/ip22/default"
+    session_dir = tmp_path / ".session" / "alice" / "ip22" / "default"
+    session_dir.mkdir(parents=True)
+    todo_file = session_dir / "todo.json"
+    todo_file.write_text(json.dumps({"todos": []}), encoding="utf-8")
+
+    def _get_todos():
+        resp = client.get("/api/todos", params={"session": session})
+        assert resp.status_code == 200, resp.text
+        return resp.json()["todos"]
+
+    def _disk_todos():
+        return _json.loads(todo_file.read_text(encoding="utf-8"))["todos"]
+
+    # ── ADD ──────────────────────────────────────────────────────────────
+    add_resp = client.post("/api/todos/add", json={
+        "session": session,
+        "content": "first todo",
+        "detail": "implement the thing",
+        "criteria": "compiles\npasses tests",
+        "priority": "high",
+    })
+    assert add_resp.status_code == 200, add_resp.text
+    todos = _get_todos()
+    assert len(todos) == 1
+    assert todos[0]["content"] == "first todo"
+    assert todos[0]["detail"] == "implement the thing"
+    assert "compiles" in todos[0]["criteria"]
+    assert todos[0]["priority"] == "high"
+    assert _disk_todos()[0]["content"] == "first todo"
+
+    # Reject empty content (400)
+    bad_add = client.post("/api/todos/add", json={"session": session, "content": "   "})
+    assert bad_add.status_code == 400, bad_add.text
+    assert len(_get_todos()) == 1
+
+    # Add a second so update/remove indices are meaningful
+    add2 = client.post("/api/todos/add", json={"session": session, "content": "second todo"})
+    assert add2.status_code == 200, add2.text
+    assert len(_get_todos()) == 2
+
+    # ── UPDATE ───────────────────────────────────────────────────────────
+    upd_resp = client.post("/api/todos/update", json={
+        "session": session,
+        "index": 0,
+        "content": "first todo edited",
+        "detail": "new approach",
+        "criteria": "criterion A\ncriterion B",
+        "state": "in_progress",
+    })
+    assert upd_resp.status_code == 200, upd_resp.text
+    todos = _get_todos()
+    assert todos[0]["content"] == "first todo edited"
+    assert todos[0]["detail"] == "new approach"
+    assert "criterion A" in todos[0]["criteria"]
+    assert todos[0]["status"] == "in_progress"
+    # untouched field on second todo stays the same
+    assert todos[1]["content"] == "second todo"
+    assert _disk_todos()[0]["content"] == "first todo edited"
+    assert _disk_todos()[0]["status"] == "in_progress"
+
+    # bad index → 400
+    bad_upd = client.post("/api/todos/update", json={"session": session, "index": 99, "content": "x"})
+    assert bad_upd.status_code == 400, bad_upd.text
+
+    # ── REMOVE ───────────────────────────────────────────────────────────
+    rm_resp = client.post("/api/todos/remove", json={"session": session, "index": 0})
+    assert rm_resp.status_code == 200, rm_resp.text
+    todos = _get_todos()
+    assert len(todos) == 1
+    assert todos[0]["content"] == "second todo"
+    assert len(_disk_todos()) == 1
+
+    bad_rm = client.post("/api/todos/remove", json={"session": session, "index": 5})
+    assert bad_rm.status_code == 400, bad_rm.text
+
+    # ── CLEAR ────────────────────────────────────────────────────────────
+    clr_resp = client.post("/api/todos/clear", json={"session": session})
+    assert clr_resp.status_code == 200, clr_resp.text
+    assert _get_todos() == []
+    assert _disk_todos() == []
+
+
 def test_process_session_activate_does_not_mutate_main_env(tmp_path, monkeypatch):
     import os
 
@@ -1516,6 +1616,9 @@ def test_websocket_prompt_explicit_session_rebinds_before_queueing(tmp_path, mon
         assert default_session._inbox.empty()
         assert len(default_session.clients) == 0
         assert len(target_session.clients) == 1
+        assert os.environ["ATLAS_ACTIVE_SESSION"] == target_session_id
+        assert os.environ["ATLAS_ACTIVE_IP"] == "ip_alpha"
+        assert os.environ["ATLAS_DEFAULT_WORKFLOW"] == "rtl-gen"
 
         ws.send_json({
             "type": "prompt",

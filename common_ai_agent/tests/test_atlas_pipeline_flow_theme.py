@@ -159,6 +159,7 @@ def test_atlas_background_file_refresh_is_quiet() -> None:
 
 def test_atlas_prompt_send_prefers_current_ip_workflow_session() -> None:
     workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace.jsx").read_text()
+    backend = (PROJECT_ROOT / "frontend" / "atlas" / "backend.js").read_text()
 
     # The first message after an IP/workflow switch used to prefer stale
     # activeNamespace over the visible IP/workflow, so it could run in
@@ -169,6 +170,10 @@ def test_atlas_prompt_send_prefers_current_ip_workflow_session() -> None:
     assert "activeSession,\n        activeNamespace" in workspace
     assert "const activeSessionWorkflow = workflowFromSession(" in workspace
     assert "activeSessionWorkflow\n            || routeWorkflow\n            || workflow" in workspace
+    assert "const sessionChanged = targetSessionId !== currentSessionId;" in backend
+    assert "clearPendingAcks();" in backend
+    assert "liveQueue = [];" in backend
+    assert "if (targetSessionId !== currentSessionId) {\n      liveConnect(targetSessionId);\n      return;\n    }" in backend
 
 
 def test_atlas_single_worker_workflow_switch_owns_chat_session() -> None:

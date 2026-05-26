@@ -7503,6 +7503,159 @@ def create_app():
                 pass
         return JSONResponse({"ok": True, "session": session_name})
 
+    def _sync_live_tracker_from_session(session_todo: "Path | None") -> None:
+        """Reload main.todo_tracker from the session file when it points at
+        the same path the editing endpoints just wrote. Mirrors the live-sync
+        the clear endpoint performs so an in-flight agent loop sees edits."""
+        if session_todo is None:
+            return
+        try:
+            import main as _main  # noqa: WPS433
+            from lib.todo_tracker import TodoTracker as _TT
+            tt = getattr(_main, "todo_tracker", None)
+            persist = getattr(tt, "_persist_path", None) if tt is not None else None
+            live_path = Path(persist) if persist else None
+            if (
+                tt is not None
+                and hasattr(tt, "todos")
+                and _same_todo_path(live_path, session_todo)
+            ):
+                fresh = _TT.load(session_todo)
+                tt.todos = fresh.todos
+                if hasattr(tt, "current_index"):
+                    tt.current_index = fresh.current_index
+                if hasattr(tt, "save"):
+                    try: tt.save()
+                    except Exception: pass
+        except Exception:
+            pass
+
+    @app.post("/api/todos/add")
+    async def api_todos_add(request: Request):
+        """Append one todo to the requested session's todo file."""
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        body = body or {}
+        session_name, denied = _todo_session_for_request(
+            request,
+            str(body.get("session") or request.query_params.get("session") or ""),
+        )
+        if denied is not None:
+            return denied
+        if not session_name:
+            return JSONResponse({"error": "no active session"}, status_code=400)
+        content = str(body.get("content") or "").strip()
+        if not content:
+            return JSONResponse({"error": "content is required"}, status_code=400)
+        session_todo = PROJECT_ROOT / ".session" / session_name / "todo.json"
+        try:
+            from lib.todo_tracker import TodoTracker
+            tracker = TodoTracker.load(session_todo)
+            existing = tracker.to_dict().get("todos", [])
+            existing.append({
+                "content": content,
+                "activeForm": str(body.get("activeForm") or "").strip() or content,
+                "status": "pending",
+                "priority": str(body.get("priority") or "medium"),
+                "detail": str(body.get("detail") or ""),
+                "criteria": str(body.get("criteria") or ""),
+            })
+            tracker.add_todos(existing)
+            tracker.save()
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+        _sync_live_tracker_from_session(session_todo)
+        return JSONResponse(_gate_for_workflow(tracker.to_dict(), session_name))
+
+    @app.post("/api/todos/update")
+    async def api_todos_update(request: Request):
+        """Modify the todo at 0-based `index` in the requested session."""
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        body = body or {}
+        session_name, denied = _todo_session_for_request(
+            request,
+            str(body.get("session") or request.query_params.get("session") or ""),
+        )
+        if denied is not None:
+            return denied
+        if not session_name:
+            return JSONResponse({"error": "no active session"}, status_code=400)
+        try:
+            index = int(body.get("index"))
+        except (TypeError, ValueError):
+            return JSONResponse({"error": "index must be an integer"}, status_code=400)
+        session_todo = PROJECT_ROOT / ".session" / session_name / "todo.json"
+        try:
+            from lib.todo_tracker import TodoTracker
+            tracker = TodoTracker.load(session_todo)
+            if not (0 <= index < len(tracker.todos)):
+                return JSONResponse({"error": "index out of range"}, status_code=400)
+            todo = tracker.todos[index]
+            if "content" in body and body.get("content") is not None:
+                new_content = str(body.get("content")).strip()
+                if not new_content:
+                    return JSONResponse({"error": "content cannot be empty"}, status_code=400)
+                todo.content = new_content
+            if "detail" in body and body.get("detail") is not None:
+                todo.detail = str(body.get("detail"))
+            if "criteria" in body and body.get("criteria") is not None:
+                todo.criteria = str(body.get("criteria"))
+            if "priority" in body and body.get("priority") is not None:
+                todo.priority = str(body.get("priority"))
+            if "activeForm" in body and body.get("activeForm") is not None:
+                todo.active_form = str(body.get("activeForm"))
+            if "state" in body and body.get("state") is not None:
+                from lib.todo_tracker import STATUS_ALIASES
+                raw_state = str(body.get("state")).strip()
+                todo.status = STATUS_ALIASES.get(raw_state, raw_state)
+            tracker.save()
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+        _sync_live_tracker_from_session(session_todo)
+        return JSONResponse(_gate_for_workflow(tracker.to_dict(), session_name))
+
+    @app.post("/api/todos/remove")
+    async def api_todos_remove(request: Request):
+        """Remove the todo at 0-based `index` in the requested session."""
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        body = body or {}
+        session_name, denied = _todo_session_for_request(
+            request,
+            str(body.get("session") or request.query_params.get("session") or ""),
+        )
+        if denied is not None:
+            return denied
+        if not session_name:
+            return JSONResponse({"error": "no active session"}, status_code=400)
+        try:
+            index = int(body.get("index"))
+        except (TypeError, ValueError):
+            return JSONResponse({"error": "index must be an integer"}, status_code=400)
+        session_todo = PROJECT_ROOT / ".session" / session_name / "todo.json"
+        try:
+            from lib.todo_tracker import TodoTracker
+            tracker = TodoTracker.load(session_todo)
+            if not (0 <= index < len(tracker.todos)):
+                return JSONResponse({"error": "index out of range"}, status_code=400)
+            del tracker.todos[index]
+            if tracker.current_index == index:
+                tracker.current_index = -1
+            elif tracker.current_index > index:
+                tracker.current_index -= 1
+            tracker.save()
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+        _sync_live_tracker_from_session(session_todo)
+        return JSONResponse(_gate_for_workflow(tracker.to_dict(), session_name))
+
     def _tracker_stage(name: str) -> str:
         # `derive_rtl_todos.py` writes tracker name as "<ip>-rtl"; other
         # generators follow the same `<ip>-<stage>` convention so we can
@@ -17577,12 +17730,23 @@ def create_app():
         session = normalize_session_name(str(session_id or ""))
         if not session:
             return
+        parts = [part for part in session.split("/") if part]
+        owner = parts[0].strip() if len(parts) >= 1 else ""
+        ip = parts[1].strip() if len(parts) >= 2 else ""
+        workflow = parts[2].strip() if len(parts) >= 3 else ""
         _atlas_active_session_cv.set(session)
+        if ip:
+            _atlas_active_ip_cv.set(ip)
         if mirror_env:
             os.environ["ATLAS_ACTIVE_SESSION"] = session
-            owner = session.split("/", 1)[0].strip()
             if owner:
                 os.environ["ATLAS_MEMORY_USER"] = owner
+                os.environ["ATLAS_DEFAULT_SESSION_ID"] = owner
+            if ip:
+                os.environ["ATLAS_ACTIVE_IP"] = ip
+            if workflow:
+                os.environ["ATLAS_DEFAULT_WORKFLOW"] = workflow
+                os.environ["ACTIVE_WORKSPACE"] = workflow
         if not apply_main:
             return
         try:
