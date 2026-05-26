@@ -1,8 +1,0 @@
-cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/ssot-gen/scripts/repair_ssot_schema.py gray_counter --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/test_pipeline_gpt53
-cwd: /Users/brian/Desktop/Project/brian_hw/common_ai_agent
-returncode: 0
-reason: canonicalize_llm_repair_2
-stdout:
-[repair_ssot_schema] wrote gray_counter/yaml/gray_counter.ssot.yaml
-[repair_ssot_schema] sections: 35/35
-[repair_ssot_schema] next: bash workflow/ssot-gen/scripts/check_ssot_disk.sh gray_counter

@@ -1,1 +1,0 @@
-Prepare tb-gen for gray_counter using gray_counter/verify/equivalence_goals.json, gray_counter/model/functional_model.py, and gray_counter/rtl/rtl_contract.json. Do not duplicate expected behavior by hand; scoreboard must call FunctionalModel.

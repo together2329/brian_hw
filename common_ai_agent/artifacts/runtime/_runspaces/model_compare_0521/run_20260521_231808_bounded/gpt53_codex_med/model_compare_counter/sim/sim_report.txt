@@ -1,6 +1,0 @@
-TESTS=1 PASS=1 FAIL=0
-results=model_compare_counter/sim/results.xml
-scoreboard=model_compare_counter/sim/scoreboard_events.jsonl
-coverage_functional=model_compare_counter/cov/coverage_functional.json
-waveforms=model_compare_counter/sim/model_compare_counter.vcd
-0 errors, 0 warnings

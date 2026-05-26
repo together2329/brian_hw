@@ -1,6 +1,0 @@
-{
-  "schema_version": "ssot_downstream_blockers.v1",
-  "ip": "model_compare_counter",
-  "ssot": "model_compare_counter/yaml/model_compare_counter.ssot.yaml",
-  "issues": []
-}

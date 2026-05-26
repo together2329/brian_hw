@@ -1,1 +1,0 @@
-Aggregate rtl-gen packet-mode completion log: per-packet LLM calls authored the RTL slices, and ssot-rtl accepted the resulting DUT compile/lint/audit evidence.

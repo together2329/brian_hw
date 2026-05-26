@@ -1,6 +1,0 @@
-{
-  "schema_version": "ssot_downstream_blockers.v1",
-  "ip": "rv32i_min",
-  "ssot": "rv32i_min/yaml/rv32i_min.ssot.yaml",
-  "issues": []
-}

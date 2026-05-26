@@ -1,8 +1,0 @@
-2026-05-22T06:30:21 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=model_compare_counter/tb/cocotb/test_runner.py
-2026-05-22T06:32:49 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=model_compare_counter/tb/cocotb/test_runner.py
-2026-05-22T06:34:23 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=model_compare_counter/tb/cocotb/test_runner.py
-2026-05-22T06:36:19 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=model_compare_counter/tb/cocotb/test_runner.py
-2026-05-22T06:37:25 sim=PASS errors=0 warnings=0 pass=1 fail=0 tb=model_compare_counter/tb/cocotb/test_runner.py
-2026-05-22T06:37:41 sim=PASS errors=0 warnings=0 pass=1 fail=0 tb=model_compare_counter/tb/cocotb/test_runner.py
-2026-05-22T06:42:53 sim=PASS errors=0 warnings=0 pass=1 fail=0 tb=model_compare_counter/tb/cocotb/test_runner.py
-2026-05-22T06:43:52 sim=PASS errors=0 warnings=0 pass=1 fail=0 tb=model_compare_counter/tb/cocotb/test_runner.py

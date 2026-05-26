@@ -1,3 +1,0 @@
-rtl/rv32i_min.sv:102: error: parameter `INST_ALIGN` not found in `rv32i_min.u_rv32i_min_core`.
-rtl/rv32i_min.sv:101: error: parameter `RESET_PC` not found in `rv32i_min.u_rv32i_min_core`.
-3 error(s) during elaboration.

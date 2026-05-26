@@ -1,6 +1,0 @@
-TESTS=1 PASS=1 FAIL=0
-results=gray_counter/sim/results.xml
-scoreboard=gray_counter/sim/scoreboard_events.jsonl
-coverage_functional=gray_counter/cov/coverage_functional.json
-waveforms=gray_counter/sim/gray_counter.vcd
-0 errors, 0 warnings

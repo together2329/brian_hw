@@ -1,2 +1,0 @@
-rtl/model_compare_counter_core.sv
-rtl/model_compare_counter.sv

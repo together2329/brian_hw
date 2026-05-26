@@ -1,5 +1,0 @@
-cmd: bash /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/ssot-gen/scripts/check_ssot_disk.sh rv32i_min
-cwd: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/triple_llm_test/codex
-returncode: 0
-stdout:
-[check_ssot_disk] PASS: rv32i_min/yaml/rv32i_min.ssot.yaml = 39990B, 36 sections, 0 TBDs
