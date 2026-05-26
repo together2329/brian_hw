@@ -961,6 +961,43 @@
     }
   }
 
+  async function todoJsonRequest(url, opts = {}) {
+    const r = await fetch(url, {
+      ...(opts || {}),
+      credentials: 'include',
+    });
+    let payload = null;
+    let text = '';
+    try {
+      text = await r.text();
+      payload = text ? JSON.parse(text) : {};
+    } catch (_) {
+      payload = null;
+    }
+    if (!r.ok || (payload && payload.error)) {
+      const message = (payload && (payload.error || payload.detail))
+        || text
+        || r.statusText
+        || `HTTP ${r.status}`;
+      throw new Error(message);
+    }
+    return payload || {};
+  }
+
+  function applyTodoPayload(payload) {
+    if (payload && Array.isArray(payload.todos)) {
+      window.TODOS = normalizeTodos(payload.todos);
+      window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'TODOS' }));
+    }
+  }
+
+  async function refreshTodosAfterMutation(session, payload) {
+    applyTodoPayload(payload);
+    invalidateSessionState(session);
+    await refreshTodos({ force: true });
+    return payload;
+  }
+
   async function refreshTodos(opts = {}) {
     try {
       if (window.ACTIVE_SESSION) {
@@ -1280,47 +1317,35 @@
     },
     clearTodos: () => {
       const session = normalizeSessionName(window.ACTIVE_SESSION || '');
-      return fetch('/api/todos/clear', {
+      return todoJsonRequest('/api/todos/clear', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ session }),
-      }).then(() => {
-        invalidateSessionState(session);
-        return refreshTodos({ force: true });
-      });
+      }).then((payload) => refreshTodosAfterMutation(session, payload));
     },
     addTodo: (fields) => {
       const session = normalizeSessionName(window.ACTIVE_SESSION || '');
-      return fetch('/api/todos/add', {
+      return todoJsonRequest('/api/todos/add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ session, ...(fields || {}) }),
-      }).then(() => {
-        invalidateSessionState(session);
-        return refreshTodos({ force: true });
-      });
+      }).then((payload) => refreshTodosAfterMutation(session, payload));
     },
     updateTodo: (index, fields) => {
       const session = normalizeSessionName(window.ACTIVE_SESSION || '');
-      return fetch('/api/todos/update', {
+      return todoJsonRequest('/api/todos/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ session, index, ...(fields || {}) }),
-      }).then(() => {
-        invalidateSessionState(session);
-        return refreshTodos({ force: true });
-      });
+      }).then((payload) => refreshTodosAfterMutation(session, payload));
     },
     removeTodo: (index) => {
       const session = normalizeSessionName(window.ACTIVE_SESSION || '');
-      return fetch('/api/todos/remove', {
+      return todoJsonRequest('/api/todos/remove', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ session, index }),
-      }).then(() => {
-        invalidateSessionState(session);
-        return refreshTodos({ force: true });
-      });
+      }).then((payload) => refreshTodosAfterMutation(session, payload));
     },
     fetchFile: (path) =>
       fetch('/api/file?path=' + encodeURIComponent(path)).then(r => r.json()),

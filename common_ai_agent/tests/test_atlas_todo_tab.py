@@ -45,6 +45,9 @@ def test_workspace_and_data_wire_todo_crud_endpoints() -> None:
     assert "/api/todos/update" in data
     assert "/api/todos/remove" in data
     assert "/api/todos/clear" in data
+    assert "async function todoJsonRequest" in data
+    assert "throw new Error(message)" in data
+    assert "refreshTodosAfterMutation(session, payload)" in data
 
     # Editor pane calls into those helpers
     assert "api.addTodo(" in workspace
