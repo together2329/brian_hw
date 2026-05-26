@@ -5722,6 +5722,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
   const scmProvider = atlasBootScmProvider();
   const ScmTabComponent = atlasResolveScmTab(scmProvider);
   const scmTabLabel = atlasScmTabLabel(scmProvider, ScmTabComponent);
+  // Keep the built-in Git tab available as a companion even when the primary
+  // SCM tab is a deployment-specific provider such as Perforce/P4V.
   const showBuiltinGitTab = !!(
     typeof window.GitTab === 'function'
     && (scmProvider !== 'git' || ScmTabComponent !== window.GitTab)

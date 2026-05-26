@@ -65,6 +65,7 @@ def test_workspace_uses_provider_aware_scm_tab_override_contract():
     assert "showBuiltinGitTab" in src
     assert "setMainTab('git_native')" in src
     assert 'provider="git"' in src
+    assert "scmProvider !== 'perforce'" not in src
 
 
 def test_builtin_git_tab_can_force_git_provider():
