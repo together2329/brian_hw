@@ -1222,6 +1222,45 @@ html[data-platform="windows"] .app {
   to { transform: rotate(360deg); }
 }
 
+.left-workflow-box {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.left-workflow-list {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding-bottom: 4px;
+}
+
+.left-stack-splitter {
+  flex: 0 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: row-resize;
+  background: transparent;
+  border-top: 1px solid transparent;
+  border-bottom: 1px solid transparent;
+  outline: none;
+}
+
+.left-stack-splitter:hover,
+.left-stack-splitter:focus-visible {
+  background: color-mix(in oklch, var(--accent) 16%, transparent);
+  border-color: var(--line-2);
+}
+
+.left-stack-splitter-grip {
+  width: 40px;
+  height: 3px;
+  background: var(--line-2);
+  border-radius: 3px;
+}
+
 /* slash menu */
 .slash-menu {
   position: absolute;

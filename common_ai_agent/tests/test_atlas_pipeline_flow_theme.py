@@ -184,6 +184,22 @@ def test_atlas_workflow_switch_shows_readiness_overlay() -> None:
     assert ".workflow-ready-step[data-state=\"active\"]" in styles
 
 
+def test_atlas_left_workflow_ip_panels_are_vertically_resizable() -> None:
+    workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace.jsx").read_text()
+    styles = (PROJECT_ROOT / "frontend" / "atlas" / "styles.css").read_text()
+
+    assert "const useVerticalResizable = (initial, storageKey, minH, maxH) =>" in workspace
+    assert "const HorizontalSplitter = ({ height, onResize, onReset, title }) =>" in workspace
+    assert "atlasLeftWorkflowH" in workspace
+    assert "useVerticalResizable(178, 'atlasLeftWorkflowH', 126, 540)" in workspace
+    assert "aria-label=\"Resize Workflow and IP panels\"" in workspace
+    assert "className=\"box left-workflow-box\"" in workspace
+    assert "className=\"left-workflow-list\"" in workspace
+    assert "<HorizontalSplitter" in workspace
+    assert ".left-stack-splitter" in styles
+    assert ".left-workflow-list" in styles
+
+
 def test_atlas_ssot_qa_does_not_seed_nine_default_boxes() -> None:
     workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace.jsx").read_text()
     atlas_ui = (PROJECT_ROOT / "src" / "atlas_ui.py").read_text()

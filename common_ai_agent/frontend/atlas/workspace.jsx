@@ -1116,6 +1116,26 @@ const useResizable = (initial, storageKey, minW, maxW, restoreCollapsed = true) 
   return [w, set, toggle];
 };
 
+const useVerticalResizable = (initial, storageKey, minH, maxH) => {
+  const clamp = React.useCallback((value) => Math.max(minH, Math.min(maxH, value)), [minH, maxH]);
+  const [h, setH] = React.useState(() => {
+    try {
+      const raw = parseInt(localStorage.getItem(storageKey), 10);
+      if (Number.isFinite(raw)) return clamp(raw);
+    } catch (_) {}
+    return initial;
+  });
+  React.useEffect(() => {
+    try { localStorage.setItem(storageKey, String(h)); } catch (_) {}
+  }, [h, storageKey]);
+  const set = React.useCallback((next) => {
+    if (!Number.isFinite(next)) return;
+    setH(clamp(next));
+  }, [clamp]);
+  const reset = React.useCallback(() => setH(initial), [initial]);
+  return [h, set, reset];
+};
+
 // Splitter: 4px-wide drag handle. drag → resize via onResize(width).
 // Double-click → onToggle(). Side='left' resizes the LEFT column
 // (drag right widens), side='right' resizes the RIGHT column (drag
@@ -1159,6 +1179,57 @@ const Splitter = ({ width, side, onResize, onToggle, title }) => {
       onMouseEnter={(e) => { e.currentTarget.style.background = 'color-mix(in oklch, var(--accent) 30%, transparent)'; }}
       onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
     />
+  );
+};
+
+const HorizontalSplitter = ({ height, onResize, onReset, title }) => {
+  const drag = React.useRef(null);
+  const step = 18;
+  const onMouseDown = (e) => {
+    e.preventDefault();
+    drag.current = { y: e.clientY, h0: height };
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'row-resize';
+    const onMove = (ev) => {
+      if (!drag.current) return;
+      onResize(drag.current.h0 + (ev.clientY - drag.current.y));
+    };
+    const onUp = () => {
+      drag.current = null;
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  };
+  const onKeyDown = (e) => {
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      onResize(height - step);
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      onResize(height + step);
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onReset();
+    }
+  };
+  return (
+    <div
+      className="left-stack-splitter"
+      role="separator"
+      aria-orientation="horizontal"
+      aria-label="Resize Workflow and IP panels"
+      tabIndex={0}
+      title={title || 'drag to resize Workflow/IP split · double-click to reset'}
+      onMouseDown={onMouseDown}
+      onDoubleClick={onReset}
+      onKeyDown={onKeyDown}
+    >
+      <span className="left-stack-splitter-grip" aria-hidden="true" />
+    </div>
   );
 };
 
@@ -1859,6 +1930,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
   const [leftW,  setLeftW,  toggleLeft]  = useResizable(230, 'atlasLeftW',  160, 480, false);
   const [rightW, setRightW, toggleRight] = useResizable(360, 'atlasRightW', 260, 600);
   const [splitRightW, setSplitRightW] = useResizable(520, 'atlasSplitRightW', 300, 900, false);
+  const [leftWorkflowH, setLeftWorkflowH, resetLeftWorkflowH] = useVerticalResizable(178, 'atlasLeftWorkflowH', 126, 540);
 
   // Mobile drawer state — left/right panels slide in over content on narrow viewports.
   const [leftDrawerOpen,  setLeftDrawerOpen]  = React.useState(false);
@@ -5634,8 +5706,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       )}
       {/* LEFT — Mode/Workflow + Files (collapsed when leftW===0 OR sim_debug) */}
       {effLeftW > 0 ? (
-        <div className={'ws-left-panel' + (isMobile ? (leftDrawerOpen ? ' drawer-open' : '') : '')} style={{ display: 'flex', flexDirection: 'column', gap: 12, overflow: 'hidden', minWidth: 0 }}>
-        <div className="box">
+        <div className={'ws-left-panel' + (isMobile ? (leftDrawerOpen ? ' drawer-open' : '') : '')} style={{ display: 'flex', flexDirection: 'column', gap: 8, overflow: 'hidden', minWidth: 0 }}>
+        <div className="box left-workflow-box" style={{ flex: `0 0 ${leftWorkflowH}px` }}>
           <div className="box-h">
             <span>▸ mode</span>
             <span style={{ flex: 1 }} />
@@ -5676,7 +5748,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
               {atlasUiOrchestratorMode() ? '· orchestrator first' : '· optional · click to toggle'}
             </span>
           </div>
-          <div style={{ paddingBottom: 4 }}>
+          <div className="left-workflow-list">
             {window.FLOW_STAGES.map((s, i) => {
               const active = (workflow || 'default') === s.id;
               return (
@@ -5703,6 +5775,13 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
             })}
           </div>
         </div>
+
+        <HorizontalSplitter
+          height={leftWorkflowH}
+          onResize={setLeftWorkflowH}
+          onReset={resetLeftWorkflowH}
+          title="drag to resize Workflow/IP split · double-click to reset"
+        />
 
         <div className="box" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           <div className="box-h">
