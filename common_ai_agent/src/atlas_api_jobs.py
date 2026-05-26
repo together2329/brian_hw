@@ -2734,6 +2734,13 @@ def _default_workflow_prompt(workflow: str, ip: str, stage_id: str = "") -> str:
             "visible goal instead of searching indefinitely. The first successful content-changing "
             f"tool call should write {ip}/yaml/{ip}.ssot.yaml with concrete draft sections, including "
             "machine-readable function_model output_rules/state_updates and sub_modules ownership refs. "
+            "For starter-mode hardware IP goals, first classify the visible goal into concrete protocol "
+            "families (for example AXI4-Lite, AXI4-Stream, APB, packet parser/formatter, FIFO/DMA, or mixed). "
+            "For AXI/APB/packet IP, the SSOT must include explicit interface signals and handshake timing, "
+            "a register map/control-status model, packet field assumptions, buffering/backpressure behavior, "
+            "error/interrupt/status behavior, reset semantics, function_model transactions, cycle_model latency "
+            "or ready/valid rules, scoreboard checks, coverage goals, and traceable verification goals. "
+            "Do not default to APB/register-only behavior unless the user goal says APB/register-only. "
             f"Also write {ip}/req/{ip}_requirements.md (at least 1000 bytes, no TODO/TBD markers) "
             f"and {ip}/req/approval_manifest.json using either the strict requirement_approval_manifest "
             "schema (type/ip/approved_by/approved_at_utc/source/source_sha256/target/target_sha256) "
@@ -2742,6 +2749,8 @@ def _default_workflow_prompt(workflow: str, ip: str, stage_id: str = "") -> str:
             "requirement quality checks true. "
             f"Then run python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/repair_ssot_schema.py\" {ip} --root \"$ATLAS_PROJECT_ROOT\" --mode engineering "
             f"and python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" {ip} --root \"$ATLAS_PROJECT_ROOT\" --mode engineering. "
+            "Use scripts as schema repair/validation/measurement gates only; do not rely on scripts to invent "
+            "or silently rewrite the IP behavior that the worker should author from the goal. "
             "Do not leave live `custom.tbd` or TBD-key sections in the final SSOT; convert out-of-scope ideas "
             "to `custom.future_considerations` or concrete assumptions. "
             f"If {ip}/rtl/rtl_blocked.json exists, answer each blocker inline so SSOT-gen can incorporate "
@@ -2789,7 +2798,12 @@ def _default_workflow_prompt(workflow: str, ip: str, stage_id: str = "") -> str:
         "sta": f"run /sta-auto {ip}; generate SDC and run pre-route STA on the synthesized netlist",
         "pnr": f"run /pnr-auto {ip}; run floorplan, place, CTS, route, and SPEF handoff generation",
         "sta-post": f"run /sta-post-auto {ip}; run post-route STA using routed netlist plus SPEF",
-        "goal-audit": f"run /goal-audit {ip}; audit SSOT, model, RTL, TB, sim, coverage, and EDA handoff evidence",
+        "goal-audit": (
+            f"run /goal-audit {ip}; audit SSOT, model, RTL, TB, sim, coverage, and EDA handoff evidence. "
+            "Pass only on fresh raw evidence from the actual gates (compile/lint/sim/scoreboard/coverage/audit logs); "
+            "fail stale, placeholder, generated-only, or summary-only artifacts instead of silently accepting them. "
+            "Report exact files, counts, hashes/timestamps where available, and the first failing gate if any."
+        ),
     }
     if stage_id in stage_prompt_for:
         return stage_prompt_for[stage_id]

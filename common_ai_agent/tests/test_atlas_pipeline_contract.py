@@ -72,6 +72,31 @@ def test_rtl_workflow_prompt_requires_final_stage_driver_after_repairs() -> None
     assert "standalone compile/lint evidence alone" in prompt
 
 
+def test_ssot_starter_prompt_strengthens_axi_apb_packet_contracts() -> None:
+    prompt = jobs._default_workflow_prompt("ssot-gen", "mctp_axi", "ssot")
+
+    assert "classify the visible goal into concrete protocol families" in prompt
+    assert "AXI4-Lite" in prompt
+    assert "AXI4-Stream" in prompt
+    assert "APB" in prompt
+    assert "packet parser/formatter" in prompt
+    assert "interface signals and handshake timing" in prompt
+    assert "register map/control-status model" in prompt
+    assert "buffering/backpressure behavior" in prompt
+    assert "scoreboard checks" in prompt
+    assert "Do not default to APB/register-only behavior" in prompt
+    assert "scripts as schema repair/validation/measurement gates only" in prompt
+
+
+def test_goal_audit_prompt_rejects_summary_only_generated_evidence() -> None:
+    prompt = jobs._default_workflow_prompt("sim_debug", "mctp_axi", "goal-audit")
+
+    assert "fresh raw evidence from the actual gates" in prompt
+    assert "compile/lint/sim/scoreboard/coverage/audit logs" in prompt
+    assert "fail stale, placeholder, generated-only, or summary-only artifacts" in prompt
+    assert "first failing gate" in prompt
+
+
 def test_ssot_gen_rtl_blocker_prompt_uses_resolver_driver() -> None:
     prompt = jobs._workflow_prompt_with_stage_driver(
         workflow="ssot-gen",

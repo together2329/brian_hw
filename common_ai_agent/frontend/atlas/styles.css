@@ -1512,6 +1512,44 @@ html[data-platform="windows"] .app {
   height: 1px; background: var(--line);
   margin: 4px 0; opacity: 0.45;
 }
+.tool-raw-trace {
+  margin: 5px 0 2px;
+  font-family: var(--mono);
+  font-size: var(--ui-small-font-size);
+  color: var(--fg-mute);
+}
+.tool-raw-trace summary {
+  cursor: pointer;
+  user-select: none;
+  width: max-content;
+  color: var(--fg-dim);
+}
+.tool-raw-trace[open] summary {
+  margin-bottom: 4px;
+  color: var(--fg-mute);
+}
+.worker-status-entry {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 5px 0;
+  padding: 3px 0 3px 10px;
+  border-left: 3px solid var(--line-2);
+  font-family: var(--mono);
+  font-size: var(--ui-small-font-size);
+  color: var(--fg-mute);
+  position: relative;
+}
+.worker-status-dot {
+  font-size: 10px;
+  line-height: 1;
+}
+.worker-status-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 /* Orchestrator handoff card (dispatch_workflow / write_handoff) — clean
    labeled key/value layout instead of raw JSON args. */
