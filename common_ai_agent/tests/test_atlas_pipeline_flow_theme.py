@@ -207,6 +207,8 @@ def test_atlas_single_worker_workflow_switch_owns_chat_session() -> None:
     # otherwise the SSOT transcript remains visible under an RTL label.
     assert "const defaultWorkflowForExecMode = () => atlasUiOrchestratorMode() ? 'orchestrator' : 'default';" in workspace
     assert "const initialInputRouteForExecMode = () =>" in workspace
+    assert "const sessionForExecMode = (session) =>" in workspace
+    assert "if (!atlasUiOrchestratorMode() && workflowFromSession(session) === 'orchestrator') return;" in workspace
     assert "type: atlasUiOrchestratorMode() ? 'orchestrator-chat' : 'workflow-chat'," in workspace
     assert "requestedType === 'workflow-chat'" in workspace
     assert "type: atlasUiOrchestratorMode() ? 'workflow-dispatch' : 'workflow-chat'," in workspace

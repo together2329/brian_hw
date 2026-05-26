@@ -838,14 +838,19 @@ const App = () => {
     }
   }, [bootDisplayDone]);
 
+  const workflowForExecMode = React.useCallback((workflow) => {
+    const wf = normalizeSession(workflow || WORKFLOW_DEFAULT) || WORKFLOW_DEFAULT;
+    if (execMode !== 'orchestrator' && wf === 'orchestrator') return WORKFLOW_DEFAULT;
+    if (execMode === 'orchestrator' && wf === WORKFLOW_DEFAULT) return 'orchestrator';
+    return wf;
+  }, [execMode, normalizeSession]);
+
   const currentWorkflow = React.useCallback(() => {
     const wf = splitActiveNamespace().workflow
       || normalizeSession(window.CONTEXT && window.CONTEXT.workspace)
       || '';
-    if ((!wf || wf === WORKFLOW_DEFAULT) && execMode === 'orchestrator') return 'orchestrator';
-    if (wf === 'orchestrator' && execMode !== 'orchestrator') return WORKFLOW_DEFAULT;
-    return wf || WORKFLOW_DEFAULT;
-  }, [execMode, normalizeSession, splitActiveNamespace]);
+    return workflowForExecMode(wf || WORKFLOW_DEFAULT);
+  }, [normalizeSession, splitActiveNamespace, workflowForExecMode]);
 
   const namespaceFor = React.useCallback((sessionId, ipId, workflow) => {
     const owner = loggedInOwner()
@@ -943,7 +948,7 @@ const App = () => {
     userPickAtRef.current = Date.now();
     const owner = loggedInOwner() || normalizeSession(sessionId) || 'default';
     const ip = normalizeSession(ipId || WORKFLOW_DEFAULT) || WORKFLOW_DEFAULT;
-    const wf = normalizeSession(workflow || WORKFLOW_DEFAULT) || WORKFLOW_DEFAULT;
+    const wf = workflowForExecMode(workflow || WORKFLOW_DEFAULT);
     const preserveRunning = !!(opts && opts.preserveRunning);
     const namespace = namespaceFor(owner, ip, wf);
     const prev = window.ACTIVE_SESSION || '';
@@ -1033,7 +1038,7 @@ const App = () => {
     };
     _activateAndDispatch();
     return namespace;
-  }, [activateBackendWorkflow, applySessionMeta, loggedInOwner, namespaceFor, normalizeSession, setAgentRunningState, splitSessionNamespace, syncNamespaceUrl]);
+  }, [activateBackendWorkflow, applySessionMeta, loggedInOwner, namespaceFor, normalizeSession, setAgentRunningState, splitSessionNamespace, syncNamespaceUrl, workflowForExecMode]);
 
   React.useEffect(() => {
     window.activateAtlasNamespace = activateNamespace;
@@ -1052,6 +1057,16 @@ const App = () => {
     const owner = loggedInOwner() || parsed.sessionId || activeSessionId || 'default';
     const ip = (parsed.ipId === 'soc' ? WORKFLOW_DEFAULT : parsed.ipId) || activeIp || WORKFLOW_DEFAULT;
     activateNamespace(owner, ip, 'orchestrator', true, { preserveRunning: true });
+  }, [authState, execMode, activeNamespace, activeIp, activeSessionId, activateNamespace, loggedInOwner, normalizeSession, splitActiveNamespace]);
+
+  React.useEffect(() => {
+    if (authState !== 'authed' || execMode === 'orchestrator') return;
+    const parsed = splitActiveNamespace();
+    const parsedWf = normalizeSession(parsed.workflow || '');
+    if (parsedWf !== 'orchestrator') return;
+    const owner = loggedInOwner() || parsed.sessionId || activeSessionId || 'default';
+    const ip = (parsed.ipId === 'soc' ? WORKFLOW_DEFAULT : parsed.ipId) || activeIp || WORKFLOW_DEFAULT;
+    activateNamespace(owner, ip, WORKFLOW_DEFAULT, true);
   }, [authState, execMode, activeNamespace, activeIp, activeSessionId, activateNamespace, loggedInOwner, normalizeSession, splitActiveNamespace]);
 
   // Synthetic / reserved namespace segments that should never show
@@ -1411,11 +1426,16 @@ const App = () => {
         : { sessionId: '', ipId: '', workflow: '' };
       const owner = loggedInOwner() || normalizeSession(parsed.sessionId || sessionId);
       const nextIp = parsed.ipId === 'soc' ? WORKFLOW_DEFAULT : (parsed.ipId || activeIp || WORKFLOW_DEFAULT);
-      const nextWorkflow = parsed.workflow || currentWorkflow() || WORKFLOW_DEFAULT;
-      const nextNamespace = currentNamespace || namespaceFor(owner, nextIp, nextWorkflow);
+      const nextWorkflow = workflowForExecMode(parsed.workflow || currentWorkflow() || WORKFLOW_DEFAULT);
+      const nextNamespace = currentNamespace && parsed.workflow === nextWorkflow
+        ? currentNamespace
+        : namespaceFor(owner, nextIp, nextWorkflow);
       setActiveSessionId(owner);
       setActiveNamespace(nextNamespace);
       setActiveIp(nextIp);
+      window.ACTIVE_SESSION = nextNamespace;
+      window.ACTIVE_IP = nextIp;
+      try { localStorage.setItem('atlasActiveSession', nextNamespace); } catch (_) {}
       if (ev?.detail?.session_uid || ev?.detail?.db_session_id || ev?.detail?.session_label) {
         applySessionMeta(ev.detail, nextNamespace);
       }
@@ -1429,7 +1449,7 @@ const App = () => {
     };
     window.addEventListener('atlas-session-switched', onSwitch);
     return () => window.removeEventListener('atlas-session-switched', onSwitch);
-  }, [activeIp, activeNamespace, applySessionMeta, currentWorkflow, loggedInOwner, namespaceFor, normalizeSession, refreshTopTargets, splitSessionNamespace, syncNamespaceUrl]);
+  }, [activeIp, activeNamespace, applySessionMeta, currentWorkflow, loggedInOwner, namespaceFor, normalizeSession, refreshTopTargets, splitSessionNamespace, syncNamespaceUrl, workflowForExecMode]);
 
   const selectSessionId = (rawSessionId) => {
     const authOwner = loggedInOwner();
@@ -1451,7 +1471,7 @@ const App = () => {
     // an IP keeps whatever workflow segment was already active. Use
     // the workflow dropdown explicitly to change it.
     const parsed = splitActiveNamespace();
-    const cur = parsed.workflow || currentWorkflow();
+    const cur = workflowForExecMode(parsed.workflow || currentWorkflow());
     const wf = isWorkflowSegment(cur) ? cur : WORKFLOW_DEFAULT;
     const owner = loggedInOwner() || parsed.sessionId || activeSessionId || 'default';
     activateNamespace(owner, ip, wf, true);

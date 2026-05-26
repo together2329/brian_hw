@@ -1713,6 +1713,18 @@ const workflowFromSession = (session) => {
   return (window.FLOW_STAGES || []).some(s => s.id === last) ? last : '';
 };
 
+const sessionForExecMode = (session) => {
+  const sid = normalizeUiSession(session || '');
+  const parts = sid.split('/').filter(Boolean);
+  if (parts.length >= 3) {
+    const workflow = workflowForExecMode(parts[parts.length - 1] || '');
+    if (workflow && workflow !== parts[parts.length - 1]) {
+      return normalizeUiSession(`${parts[0]}/${parts[parts.length - 2]}/${workflow}`);
+    }
+  }
+  return sid;
+};
+
 const SessionSwitcher = ({ currentSession, streaming, onSwitch }) => {
   const [open, setOpen] = React.useState(false);
   const [options, setOptions] = React.useState([]);
@@ -3211,7 +3223,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
   React.useEffect(() => {
     const onSessionSwitched = (ev) => {
       const detail = ev?.detail || {};
-      const sid = normalizeUiSession(detail.namespace || detail.session || '');
+      const sid = sessionForExecMode(detail.namespace || detail.session || '');
       if (!sid) return;
       window.ACTIVE_SESSION = sid;
       activeSessionRef.current = sid;
@@ -3262,6 +3274,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       const session = normalizeUiSession(ev.detail && ev.detail.session || '');
       const activeNow = normalizeUiSession(window.ACTIVE_SESSION || activeSessionRef.current || '');
       const viewNow = normalizeUiSession(chatViewSessionRef.current || '');
+      if (!atlasUiOrchestratorMode() && workflowFromSession(session) === 'orchestrator') return;
       if (session && activeNow && session !== activeNow && (!viewNow || session !== viewNow)) return;
       const telemetry = workspaceTelemetryFromMessages(msgs);
       if (telemetry.count || telemetry.result) {
