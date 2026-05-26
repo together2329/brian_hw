@@ -1412,6 +1412,34 @@ class SlashCommandRegistry:
 
         return "\n".join(lines)
 
+    def _format_context_memory_rules(self) -> str:
+        """Show active /memory rules inside verbose /context output."""
+        try:
+            memory = self._memory_store()
+            active = self._current_workflow_name()
+            items = memory.flat_rules(workflow=active, show_all=False) if hasattr(memory, "flat_rules") else []
+        except Exception as exc:
+            return f"\n\033[33m[Memory Rules] unavailable: {exc}\033[0m\n"
+
+        lines = [
+            "\n\033[2m" + "=" * 60 + "\033[0m",
+            "\033[1m Memory Rules\033[0m",
+            "\033[2m" + "=" * 60 + "\033[0m",
+            f"  User: {getattr(memory, 'user', '') or 'global'}",
+            f"  Active workflow: {active}",
+            f"  Source: {memory.storage_label() if hasattr(memory, 'storage_label') else memory.memory_rules_file}",
+        ]
+        if not items:
+            lines.append("  (none)")
+        else:
+            for idx, item in enumerate(items, 1):
+                scope = str(item.get("scope") or "global")
+                wf_name = str(item.get("workflow") or "")
+                label = "global" if scope == "global" else f"workflow:{wf_name or '-'}"
+                lines.append(f"  {idx}. [{label}] {item.get('rule') or ''}")
+        lines.append("\033[2m" + "=" * 60 + "\033[0m")
+        return "\n".join(lines) + "\n"
+
     def _cmd_memory(self, args: str) -> str:
         """Manage high-priority memory rules."""
         import shlex
@@ -3022,6 +3050,7 @@ class SlashCommandRegistry:
                     output += self._format_full_history()
                 else:
                     output += self._format_full_context(tracker)
+                output += self._format_context_memory_rules()
 
             # Add debug info if requested
             if debug_lines:

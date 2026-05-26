@@ -58,9 +58,11 @@ def test_ssot_qa_workbench_has_first_class_actions_and_no_history_panel():
     assert "checklistOnly={true}" in src
     assert "importExportOnly={true}" in src
     assert "무엇을 만들까?" in src
-    assert "채워야 하는 9칸" in src
-    assert "Answer Percent" in src
-    assert "답변 진행률" in src
+    assert "Q&A 카드" in src
+    assert "Q&A readiness" in src
+    assert "Q&A 준비 상태" in src
+    assert "채워야 하는 9칸" not in src
+    assert "Answer Percent" not in src
     assert "SSOT 3단계 흐름" in src
     assert "2. Deep Interview" in src
     assert "3. To SSOT" in src
@@ -379,7 +381,7 @@ ssot:
     assert any(item["id"] == "ssot.wrapper_key" for item in report["blockers"])
 
 
-def test_ssot_qa_api_reports_remaining_required_decisions(tmp_path, monkeypatch):
+def test_ssot_qa_api_does_not_seed_default_required_decisions(tmp_path, monkeypatch):
     import src.atlas_ui as atlas_ui
 
     monkeypatch.setenv("HOME", str(tmp_path / "home"))
@@ -412,10 +414,11 @@ def test_ssot_qa_api_reports_remaining_required_decisions(tmp_path, monkeypatch)
 
     assert response.status_code == 200, response.text
     requirements = response.json()["requirements"]
-    assert requirements["total"] >= 9
-    assert requirements["filled"] == 2
-    assert requirements["missing"] == requirements["total"] - 2
-    assert "register_map" in requirements["missing_keys"]
+    assert requirements["total"] == 0
+    assert requirements["filled"] == 0
+    assert requirements["missing"] == 0
+    assert requirements["items"] == []
+    assert "register_map" not in requirements["missing_keys"]
 
 
 def test_new_ip_tbd_scaffold_does_not_fill_ssot_answer_percent(tmp_path, monkeypatch):
@@ -442,10 +445,10 @@ def test_new_ip_tbd_scaffold_does_not_fill_ssot_answer_percent(tmp_path, monkeyp
     response = client.get(f"/api/ssot/qa?ip={ip}")
     assert response.status_code == 200, response.text
     requirements = response.json()["requirements"]
-    assert requirements["total"] >= 9
+    assert requirements["total"] == 0
     assert requirements["filled"] == 0
-    assert requirements["missing"] == requirements["total"]
-    assert set(requirements["missing_keys"]) >= {"purpose", "bus_interface", "test_expectation"}
+    assert requirements["missing"] == 0
+    assert requirements["missing_keys"] == []
 
 
 def test_ssot_import_upload_saves_attachment_and_returns_import_command(tmp_path, monkeypatch):

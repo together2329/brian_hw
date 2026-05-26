@@ -1423,6 +1423,54 @@ def test_websocket_slash_command_executes_without_agent_prompt(tmp_path, monkeyp
     assert session._inbox.empty()
 
 
+def test_websocket_context_verbose_reads_active_root_session_conversation(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+    from core.context_tracker import reset_tracker
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "SOURCE_ROOT", tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+    reset_tracker(max_tokens=200000)
+
+    session_id = "alice/ip_alpha/default"
+    session_dir = tmp_path / ".session" / "alice" / "ip_alpha" / "default"
+    session_dir.mkdir(parents=True)
+    (session_dir / "conversation.json").write_text(
+        json.dumps(
+            [
+                {"role": "system", "content": f"[ACTIVE_SESSION: {session_id}]\n[PROJECT_ROOT: {tmp_path}]"},
+                {"role": "user", "content": "root session context question"},
+                {"role": "assistant", "content": "root session context answer"},
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    with client.websocket_connect(f"/ws/agent?session_id={session_id}") as ws:
+        assert ws.receive_json()["type"] == "hello"
+        ws.send_json({"type": "prompt", "text": "/context -v", "msg_id": "ctx-1"})
+
+        output = ""
+        for _ in range(5):
+            msg = ws.receive_json()
+            if msg.get("type") == "slash_output":
+                output = str(msg.get("text") or "")
+                break
+
+    assert "root session context question" in output
+    assert "root session context answer" in output
+    assert "No message history available" not in output
+    assert "Current context window is empty" not in output
+
+
 def test_websocket_prompt_explicit_session_rebinds_before_queueing(tmp_path, monkeypatch):
     import queue
     import src.atlas_ui as atlas_ui

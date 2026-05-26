@@ -170,6 +170,31 @@ def test_atlas_single_worker_workflow_switch_owns_chat_session() -> None:
     assert "body: JSON.stringify({ session })" in data
 
 
+def test_atlas_workflow_switch_shows_readiness_overlay() -> None:
+    workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace.jsx").read_text()
+    styles = (PROJECT_ROOT / "frontend" / "atlas" / "styles.css").read_text()
+
+    assert "const WorkflowReadyOverlay = ({ state }) =>" in workspace
+    assert "beginWorkflowReady(next, sid, ip)" in workspace
+    assert "session_worker_warmup" in workspace
+    assert "Ready to receive input" in workspace
+    assert "disabled={!!workflowReady}" in workspace
+    assert "<WorkflowReadyOverlay state={workflowReady} />" in workspace
+    assert ".workflow-ready-overlay" in styles
+    assert ".workflow-ready-step[data-state=\"active\"]" in styles
+
+
+def test_atlas_ssot_qa_does_not_seed_nine_default_boxes() -> None:
+    workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace.jsx").read_text()
+    atlas_ui = (PROJECT_ROOT / "src" / "atlas_ui.py").read_text()
+
+    assert "'9 boxes to fill'" not in workspace
+    assert "'채워야 하는 9칸'" not in workspace
+    assert "Do not seed default questions" in workspace
+    assert "they must not seed the UI with synthetic required boxes" in atlas_ui
+    assert "\"total\": len(requirement_rows)" in atlas_ui
+
+
 def test_atlas_live_worker_feed_is_bounded_for_responsiveness() -> None:
     workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace.jsx").read_text()
     logic = (PROJECT_ROOT / "frontend" / "atlas" / "lib" / "orchestrator_chat_logic.mjs").read_text()

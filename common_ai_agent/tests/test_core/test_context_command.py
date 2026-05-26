@@ -130,5 +130,37 @@ def test_context_verbose_finds_session_from_nested_cwd(tmp_path, monkeypatch):
     assert "nested cwd answer" in result
     assert "Current context window is empty" not in result
 
+
+def test_context_verbose_shows_active_memory_rules(tmp_path, monkeypatch):
+    from core.context_tracker import reset_tracker
+    from core.slash_commands import SlashCommandRegistry
+
+    session = "alice/ip_alpha/ssot-gen"
+    _write_session_messages(tmp_path, session, [
+        {"role": "system", "content": f"[ACTIVE_SESSION: {session}]"},
+        {"role": "user", "content": "context memory question"},
+        {"role": "assistant", "content": "context memory answer"},
+    ])
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.setenv("ATLAS_ACTIVE_SESSION", session)
+    monkeypatch.setenv("ACTIVE_WORKSPACE", "ssot-gen")
+    monkeypatch.delenv("ATLAS_DB_PATH", raising=False)
+    monkeypatch.delenv("ATLAS_MEMORY_DB_PATH", raising=False)
+    monkeypatch.delenv("ATLAS_MEMORY_BACKEND", raising=False)
+    monkeypatch.setattr(config, "MEMORY_DIR", str(tmp_path / "memory"), raising=False)
+    reset_tracker(max_tokens=200000)
+
+    registry = SlashCommandRegistry()
+    registry.execute("/memory add Keep answers concise")
+    registry.execute("/memory workflow add Resolve TBDs before generation")
+
+    result = registry.execute("/context -v")
+
+    assert "Memory Rules" in result
+    assert "User: alice" in result
+    assert "Active workflow: ssot-gen" in result
+    assert "[global] Keep answers concise" in result
+    assert "[workflow:ssot-gen] Resolve TBDs before generation" in result
+
 if __name__ == "__main__":
     test_context_visualization()

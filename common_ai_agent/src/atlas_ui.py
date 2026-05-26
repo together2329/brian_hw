@@ -10493,37 +10493,6 @@ def create_app():
         decisions = _ssot_decisions(ip, state)
         items = _load_ssot_qa_items(ip, session)
         required_index = {key: idx for idx, (key, _label) in enumerate(_SSOT_REQUIRED_DECISIONS)}
-        seen_keys = {str(item.get("decision_key") or "") for item in items}
-        for key, label in _SSOT_REQUIRED_DECISIONS:
-            if key in seen_keys:
-                continue
-            answer = str(decisions.get(key) or "").strip()
-            if not answer:
-                continue
-            section_id, section_title = _ssot_qa_section(key)
-            items.append({
-                "ip": ip,
-                "workflow": "ssot-gen",
-                "kind": state.get("kind") or "TBD",
-                "flow_id": f"decision:{key}",
-                "source": "ssot-decision",
-                "section_id": section_id,
-                "section_title": section_title,
-                "decision_key": key,
-                "decision_label": label,
-                "question": label,
-                "subtitle": key,
-                "question_kind": "derived",
-                "options": [],
-                "order": required_index.get(key, 999),
-                "status": "approved",
-                "status_group": "approved",
-                "answer": answer,
-                "selected": [],
-                "custom": "",
-                "created_at": state.get("created_at") or 0,
-                "updated_at": state.get("updated_at") or 0,
-            })
         for item in items:
             key = str(item.get("decision_key") or "")
             answer = str(item.get("answer") or decisions.get(key) or "").strip()
@@ -10564,17 +10533,28 @@ def create_app():
         ]
         approved = sum(1 for item in items if item.get("status_group") == "approved")
         pending = sum(1 for item in items if item.get("status_group") != "approved")
-        missing_requirements = _missing_ssot_decisions(ip, state)
-        missing_set = set(missing_requirements)
-        requirements = [
-            {
+        # Q&A is now driven only by real recorded questions/answers. The
+        # nine SSOT decision names still guide /new-ip and /to-ssot prompts,
+        # but they must not seed the UI with synthetic required boxes.
+        requirement_rows: list[dict[str, Any]] = []
+        requirement_missing_keys: list[str] = []
+        seen_requirement_keys: set[str] = set()
+        for idx, item in enumerate(items):
+            key = str(item.get("decision_key") or item.get("flow_id") or "").strip()
+            if not key:
+                key = _qa_slug(str(item.get("question") or item.get("subtitle") or ""), f"qa_{idx + 1}")
+            if key in seen_requirement_keys:
+                continue
+            seen_requirement_keys.add(key)
+            is_approved = item.get("status_group") == "approved"
+            if not is_approved:
+                requirement_missing_keys.append(key)
+            requirement_rows.append({
                 "key": key,
-                "label": label,
-                "status": "missing" if key in missing_set else "filled",
-                "answer": decisions.get(key, ""),
-            }
-            for key, label in _SSOT_REQUIRED_DECISIONS
-        ]
+                "label": str(item.get("decision_label") or item.get("question") or key),
+                "status": "filled" if is_approved else "missing",
+                "answer": str(item.get("answer") or ""),
+            })
         imported_files: list[dict[str, Any]] = []
         seen_import_paths: set[str] = set()
 
@@ -10690,11 +10670,11 @@ def create_app():
             "sections": sections,
             "summary": {"total": approved + pending, "approved": approved, "pending": pending},
             "requirements": {
-                "total": len(_SSOT_REQUIRED_DECISIONS),
-                "filled": len(_SSOT_REQUIRED_DECISIONS) - len(missing_requirements),
-                "missing": len(missing_requirements),
-                "items": requirements,
-                "missing_keys": missing_requirements,
+                "total": len(requirement_rows),
+                "filled": sum(1 for row in requirement_rows if row.get("status") == "filled"),
+                "missing": len(requirement_missing_keys),
+                "items": requirement_rows,
+                "missing_keys": requirement_missing_keys,
             },
             "items": items,
             "imports": imported_files,

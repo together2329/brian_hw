@@ -1225,6 +1225,64 @@ const atlasUiExecMode = () => String(
 ).trim().toLowerCase();
 const atlasUiOrchestratorMode = () => atlasUiExecMode() === 'orchestrator';
 const defaultWorkflowForExecMode = () => atlasUiOrchestratorMode() ? 'orchestrator' : 'default';
+const WORKFLOW_READY_TIMEOUT_MS = 7000;
+const WORKFLOW_READY_PHASES = ['route', 'session', 'backend', 'worker', 'ready'];
+const WORKFLOW_READY_STEPS = [
+  { key: 'route', label: 'Route' },
+  { key: 'session', label: 'Session' },
+  { key: 'backend', label: 'Backend' },
+  { key: 'worker', label: 'Worker' },
+  { key: 'ready', label: 'Ready' },
+];
+
+const workflowReadyPhaseIndex = (phase) => {
+  const idx = WORKFLOW_READY_PHASES.indexOf(String(phase || ''));
+  return idx >= 0 ? idx : 0;
+};
+
+const WorkflowReadyOverlay = ({ state }) => {
+  if (!state) return null;
+  const phase = String(state.phase || 'route');
+  const activeIdx = workflowReadyPhaseIndex(phase);
+  const failed = phase === 'error';
+  return (
+    <div className="workflow-ready-overlay" role="status" aria-live="polite">
+      <div className="workflow-ready-card" data-state={failed ? 'error' : phase}>
+        <div className="workflow-ready-header">
+          <span className="workflow-ready-spinner" aria-hidden="true" />
+          <div>
+            <div className="workflow-ready-title">
+              {failed ? 'Workflow switch failed' : 'Preparing workflow'}
+            </div>
+            <div className="workflow-ready-target">
+              <code>{state.target || 'default'}</code>
+              {state.ip ? <span> / ip=<code>{state.ip}</code></span> : null}
+            </div>
+          </div>
+        </div>
+        <div className="workflow-ready-message">
+          {state.message || (failed ? 'Activation error' : 'Waiting for worker readiness')}
+        </div>
+        <div className="workflow-ready-steps">
+          {WORKFLOW_READY_STEPS.map((step, idx) => {
+            const stepState = failed && idx >= activeIdx
+              ? 'error'
+              : (idx < activeIdx ? 'done' : (idx === activeIdx ? 'active' : 'pending'));
+            return (
+              <span key={step.key} className="workflow-ready-step" data-state={stepState}>
+                <span className="workflow-ready-dot" />
+                <span>{step.label}</span>
+              </span>
+            );
+          })}
+        </div>
+        {state.session ? (
+          <div className="workflow-ready-session">{state.session}</div>
+        ) : null}
+      </div>
+    </div>
+  );
+};
 
 // URL `?ip=` wins over localStorage on the READ direction so deep links
 // like /?ip=cmux_url_test pick up the requested IP even when a previous
@@ -1706,6 +1764,83 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
   //   workflow: null | 'ssot' | 'rtl_gen' | 'lint' | 'tb_gen'
   const [intent, setIntent] = React.useState('normal');
   const [workflow, setWorkflow] = React.useState(() => defaultWorkflowForExecMode());
+  const [workflowReady, setWorkflowReady] = React.useState(null);
+  const workflowReadySeqRef = React.useRef(0);
+  const workflowReadyTimeoutRef = React.useRef(null);
+  const workflowReadyClearRef = React.useRef(null);
+
+  const clearWorkflowReadyTimers = React.useCallback(() => {
+    if (workflowReadyTimeoutRef.current) {
+      clearTimeout(workflowReadyTimeoutRef.current);
+      workflowReadyTimeoutRef.current = null;
+    }
+    if (workflowReadyClearRef.current) {
+      clearTimeout(workflowReadyClearRef.current);
+      workflowReadyClearRef.current = null;
+    }
+  }, []);
+  const dismissWorkflowReady = React.useCallback((seq, delay = 650) => {
+    if (workflowReadyClearRef.current) {
+      clearTimeout(workflowReadyClearRef.current);
+      workflowReadyClearRef.current = null;
+    }
+    workflowReadyClearRef.current = setTimeout(() => {
+      setWorkflowReady(current => (current && current.seq === seq ? null : current));
+      workflowReadyClearRef.current = null;
+    }, delay);
+  }, []);
+  const updateWorkflowReady = React.useCallback((seq, patch) => {
+    if (!seq) return;
+    setWorkflowReady(current => (
+      current && current.seq === seq
+        ? { ...current, ...(patch || {}) }
+        : current
+    ));
+  }, []);
+  const finishWorkflowReady = React.useCallback((seq, patch = {}, delay = 650) => {
+    if (!seq) return;
+    if (workflowReadyTimeoutRef.current) {
+      clearTimeout(workflowReadyTimeoutRef.current);
+      workflowReadyTimeoutRef.current = null;
+    }
+    updateWorkflowReady(seq, { phase: 'ready', message: 'Ready to receive input', ...(patch || {}) });
+    dismissWorkflowReady(seq, delay);
+  }, [dismissWorkflowReady, updateWorkflowReady]);
+  const failWorkflowReady = React.useCallback((seq, message) => {
+    if (!seq) return;
+    if (workflowReadyTimeoutRef.current) {
+      clearTimeout(workflowReadyTimeoutRef.current);
+      workflowReadyTimeoutRef.current = null;
+    }
+    updateWorkflowReady(seq, { phase: 'error', message: message || 'Workflow activation failed' });
+    dismissWorkflowReady(seq, 1800);
+  }, [dismissWorkflowReady, updateWorkflowReady]);
+  const beginWorkflowReady = React.useCallback((target, session, ip = '') => {
+    const seq = workflowReadySeqRef.current + 1;
+    workflowReadySeqRef.current = seq;
+    clearWorkflowReadyTimers();
+    setWorkflowReady({
+      seq,
+      target: target || defaultWorkflowForExecMode(),
+      session: normalizeUiSession(session || ''),
+      ip: String(ip || '').trim(),
+      phase: 'route',
+      message: 'Switching chat route',
+      startedAt: Date.now(),
+    });
+    workflowReadyTimeoutRef.current = setTimeout(() => {
+      setWorkflowReady(current => (
+        current && current.seq === seq
+          ? { ...current, phase: 'ready', message: 'Ready timeout reached; input is enabled' }
+          : current
+      ));
+      dismissWorkflowReady(seq, 1000);
+      workflowReadyTimeoutRef.current = null;
+    }, WORKFLOW_READY_TIMEOUT_MS);
+    return seq;
+  }, [clearWorkflowReadyTimers, dismissWorkflowReady]);
+
+  React.useEffect(() => () => clearWorkflowReadyTimers(), [clearWorkflowReadyTimers]);
 
   React.useEffect(() => {
     const nextWorkflow = String(activeWorkflow || '').trim();
@@ -2164,6 +2299,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       );
       const orchestratorSid = sessionFor('orchestrator');
       const activeNow = normalizeUiSession(window.ACTIVE_SESSION || activeSessionRef.current || '');
+      const viewSid = viewWorkflow === 'orchestrator' ? orchestratorSid : sessionFor(viewWorkflow);
+      const readySeq = beginWorkflowReady(viewWorkflow, viewSid, ip);
 
       // In orchestrator execution the backend websocket and prompt target must
       // stay on the orchestrator session. Worker chips are a transcript/artifact
@@ -2181,6 +2318,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
           } catch (_) {}
         }
       }
+      updateWorkflowReady(readySeq, { phase: 'session', message: 'View session selected' });
 
       setWorkflow(viewWorkflow);
       window.CONTEXT = Object.assign({}, window.CONTEXT || {}, {
@@ -2193,15 +2331,16 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         setOrchestratorInputRoute(ip);
         setChatViewSession('');
         refreshChatSession(orchestratorSid, { force: true });
+        finishWorkflowReady(readySeq, { message: 'Orchestrator view ready' });
         return;
       }
-      const viewSid = sessionFor(viewWorkflow);
       liveFeedStartedRef.current = false;
       hydratedConversationSessionRef.current = viewSid;
       setChatViewSession(viewSid);
       setWorkflowDispatchInputRoute(viewWorkflow, ip);
       requestAnimationFrame(() => setMainTab('chat'));
       refreshChatSession(viewSid, { force: true, viewOnly: true });
+      finishWorkflowReady(readySeq, { message: 'Worker view ready' });
       return;
     }
     setWorkflow(next);
@@ -2211,8 +2350,13 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     const parts = (activeSession || window.ACTIVE_SESSION || '').split('/');
     const owner = normalizeUiSession((window.ATLAS_USER && window.ATLAS_USER.username) || '') || parts[0] || 'default';
     const ip = window.SCOPE_PATH || parts[1] || 'default';
+    const readySeq = beginWorkflowReady(next, sid, ip);
+    updateWorkflowReady(readySeq, { phase: 'session', message: 'Session selected' });
     let activated = false;
+    let activationPayload = null;
+    let activationReadyFailed = false;
     try {
+      updateWorkflowReady(readySeq, { phase: 'backend', message: 'Activating backend session' });
       const res = await fetch('/api/session/activate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -2222,14 +2366,56 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
           workflow: next,
         }),
       });
+      activationPayload = await res.json().catch(() => null);
       activated = !!(res && res.ok);
+      if (!activated) {
+        updateWorkflowReady(readySeq, { phase: 'backend', message: 'Backend activation fallback queued' });
+      } else {
+        const warm = activationPayload && activationPayload.session_worker_warmup;
+        const warmStatus = warm && String(warm.status || '').trim();
+        const warmAlive = warm && warm.alive === true;
+        const warmEnabled = warm && warm.enabled !== false;
+        updateWorkflowReady(readySeq, {
+          phase: 'worker',
+          message: warmEnabled
+            ? `Session worker ${warmStatus || (warmAlive ? 'ready' : 'warming')}`
+            : 'Backend session active',
+        });
+        if (warmEnabled && warm.alive === false && warmStatus === 'error') {
+          activationReadyFailed = true;
+          failWorkflowReady(readySeq, warm.error || 'Session worker failed to start');
+        } else if (warmAlive || !warmEnabled) {
+          updateWorkflowReady(readySeq, {
+            phase: 'worker',
+            message: warmAlive ? 'Session worker hot; ready to receive input' : 'Backend route ready',
+          });
+        }
+      }
     } catch (_) {}
     if (window.backend) {
+      updateWorkflowReady(readySeq, { phase: 'worker', message: 'Binding websocket to workflow session' });
       if (window.backend.switchSession) window.backend.switchSession(sid);
       else if (window.backend.connect) window.backend.connect(sid);
       if (!activated && next !== 'orchestrator') {
         sendPrompt(`/wf ${next}`, sid);
       }
+    }
+    if (activationReadyFailed) {
+      return;
+    }
+    if (!activated) {
+      if (window.backend) {
+        finishWorkflowReady(readySeq, { message: 'Fallback route queued; input route ready' }, 1200);
+      } else {
+        failWorkflowReady(readySeq, 'Backend is not connected');
+      }
+    } else if (activationPayload) {
+      const warm = activationPayload.session_worker_warmup;
+      finishWorkflowReady(readySeq, {
+        message: warm && warm.alive === true
+          ? 'Session worker hot; ready to receive input'
+          : 'Workflow session ready',
+      });
     }
   };
   React.useEffect(() => {
@@ -5358,6 +5544,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       ) : null}
       <textarea ref={inputRef} value={input}
         rows={1}
+        disabled={!!workflowReady}
         onChange={e => {
           inputHistoryIndexRef.current = null;
           inputHistoryDraftRef.current = '';
@@ -5370,9 +5557,11 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
           el.style.height = Math.min(el.scrollHeight, 192) + 'px';
         }}
         onKeyDown={onKey}
-        placeholder={pendingQcard
-          ? 'Answer pending Q&A here · "/" for commands'
-          : 'Type a message · "/" for commands · "@" for files · ⌥↵ newline'}
+        placeholder={workflowReady
+          ? `Preparing ${workflowReady.target || 'workflow'}...`
+          : (pendingQcard
+              ? 'Answer pending Q&A here · "/" for commands'
+              : 'Type a message · "/" for commands · "@" for files · ⌥↵ newline')}
         autoFocus
       />
       <span className="mute" style={{ fontSize: 11 }}>
@@ -5411,6 +5600,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       padding: 16,
       height: '100%', overflow: 'hidden',
     }}>
+      <WorkflowReadyOverlay state={workflowReady} />
       {/* Mobile: hint banner, drawer toggles, and backdrop */}
       {isMobile && !mobileHintDismissed && (
         <div className="atlas-mobile-hint" style={{ gridColumn: '1 / -1' }}>
@@ -7617,9 +7807,10 @@ const SsotQaBoard = ({
   const requirementTotal = Number(requirements.total || requirementItems.length || 0);
   const requirementMissing = Number(requirements.missing ?? missingRequirementKeys.length ?? 0);
   const requirementFilled = Number(requirements.filled ?? Math.max(0, requirementTotal - requirementMissing));
+  const noRecordedQa = requirementTotal <= 0;
   const requirementPct = requirementTotal > 0
     ? Math.max(0, Math.min(100, Math.round((requirementFilled / requirementTotal) * 100)))
-    : 0;
+    : 100;
   const hasIp = !!data?.ip;
   const activeSessionNorm = normalizeUiSession(activeSession || data?.session || '');
   const activeOwner = activeSessionNorm.split('/').filter(Boolean)[0] || '';
@@ -7641,16 +7832,19 @@ const SsotQaBoard = ({
         title: 'Q&A Session',
         subtitle: 'Answer questions here. The answers fill the SSOT promise sheet.',
         checklistTitle: 'Validation',
-        checklistSubtitle: 'Track answer completion and the validator gate before generation.',
+        checklistSubtitle: 'Track real Q&A blockers and the validator gate before generation.',
         legend: 'SSOT = design promise sheet. RTL = hardware code.',
-        rtlReadiness: 'Answer Percent',
+        rtlReadiness: 'Q&A readiness',
         nextAction: 'What to do now',
-        needTitle: '9 boxes to fill',
-        missingTitle: 'Empty boxes now',
-        missingEmpty: 'No empty boxes.',
-        readyToGenerate: 'Answer sheet is approved. Run validation before RTL generation.',
-        needsSsotApproval: 'All answer boxes are filled. Press To SSOT to write the SSOT, then run validation.',
-        blockedByMissing: 'Answer sheet is incomplete because some boxes are empty.',
+        needTitle: 'Q&A cards',
+        missingTitle: 'Open Q&A now',
+        missingEmpty: 'No open Q&A.',
+        noQaShort: 'No Q&A',
+        noQaNeeded: 'No real Q&A blockers are recorded. Do not seed default questions.',
+        noQaNextAction: 'If evidence is enough, stop or run To SSOT. Ask Q&A only for a real blocker.',
+        readyToGenerate: 'Recorded Q&A is approved. Run validation before RTL generation.',
+        needsSsotApproval: 'Recorded Q&A is complete. Press To SSOT to write the SSOT, then run validation.',
+        blockedByMissing: 'Recorded Q&A is incomplete because some cards are still open.',
         feedTitle: 'Three-step SSOT flow',
         actionChatTitle: 'Optional notes = Chat',
         actionChatDetail: 'Use chat only for extra context.',
@@ -7725,16 +7919,19 @@ const SsotQaBoard = ({
         title: 'Q&A Session',
         subtitle: '여기는 질문에 답하는 곳입니다. 답변이 SSOT 약속장의 빈칸을 채웁니다.',
         checklistTitle: 'Validation',
-        checklistSubtitle: '답변 진행률과 validator gate를 같이 봅니다.',
+        checklistSubtitle: '실제 Q&A blocker와 validator gate를 같이 봅니다.',
         legend: 'SSOT = 설계 약속장. RTL = 실제 회로 코드.',
-        rtlReadiness: '답변 진행률',
+        rtlReadiness: 'Q&A 준비 상태',
         nextAction: '지금 할 일',
-        needTitle: '채워야 하는 9칸',
-        missingTitle: '지금 비어 있는 칸',
-        missingEmpty: '비어 있는 칸이 없습니다.',
-        readyToGenerate: '답변장은 승인됐습니다. RTL 생성 전 validation을 실행하세요.',
-        needsSsotApproval: '9칸은 다 찼습니다. To SSOT로 SSOT를 만들고 validation을 실행하세요.',
-        blockedByMissing: '아직 빈칸이 있어서 답변장이 완성되지 않았습니다.',
+        needTitle: 'Q&A 카드',
+        missingTitle: '현재 열린 Q&A',
+        missingEmpty: '열린 Q&A가 없습니다.',
+        noQaShort: 'Q&A 없음',
+        noQaNeeded: '실제 Q&A blocker가 기록되지 않았습니다. 기본 질문을 만들지 않습니다.',
+        noQaNextAction: '근거가 충분하면 Stop 또는 To SSOT로 가세요. Q&A는 진짜 blocker일 때만 만듭니다.',
+        readyToGenerate: '기록된 Q&A는 승인됐습니다. RTL 생성 전 validation을 실행하세요.',
+        needsSsotApproval: '기록된 Q&A는 완료됐습니다. To SSOT로 SSOT를 만들고 validation을 실행하세요.',
+        blockedByMissing: '아직 열린 Q&A 카드가 있어서 답변장이 완성되지 않았습니다.',
         feedTitle: 'SSOT 3단계 흐름',
         actionChatTitle: '선택 메모 = Chat',
         actionChatDetail: '추가 맥락이 있을 때만 씁니다.',
@@ -7863,18 +8060,22 @@ const SsotQaBoard = ({
     label: requirementLabel(key),
     help: requirementHelp[key] || requirementLabel(key),
   }));
-  const readyForRtl = requirementTotal > 0 && requirementMissing === 0 && !!data?.approved;
-  const filledButNeedsSsot = requirementTotal > 0 && requirementMissing === 0 && !data?.approved;
-  const rtlReadinessText = readyForRtl
+  const readyForRtl = !noRecordedQa && requirementMissing === 0 && !!data?.approved;
+  const filledButNeedsSsot = !noRecordedQa && requirementMissing === 0 && !data?.approved;
+  const rtlReadinessText = noRecordedQa
+    ? t.noQaNeeded
+    : (readyForRtl
     ? t.readyToGenerate
-    : (filledButNeedsSsot ? t.needsSsotApproval : t.blockedByMissing);
-  const nextActionText = requirementMissing > 0
+    : (filledButNeedsSsot ? t.needsSsotApproval : t.blockedByMissing));
+  const nextActionText = noRecordedQa
+    ? t.noQaNextAction
+    : (requirementMissing > 0
     ? (uiLang === 'en'
-      ? `${requirementMissing} decision${requirementMissing === 1 ? '' : 's'} are missing. Flow: Import, Deep Interview, To SSOT.`
-      : `${requirementMissing}개 결정이 부족합니다. 흐름은 Import, Deep Interview, To SSOT입니다.`)
+      ? `${requirementMissing} Q&A card${requirementMissing === 1 ? '' : 's'} are still open. Flow: Import, Deep Interview, To SSOT.`
+      : `${requirementMissing}개 Q&A 카드가 아직 열려 있습니다. 흐름은 Import, Deep Interview, To SSOT입니다.`)
     : (data?.approved
       ? (uiLang === 'en' ? 'SSOT is ready. RTL generation can use it.' : 'SSOT가 준비됐습니다. RTL 생성에 사용할 수 있습니다.')
-      : (uiLang === 'en' ? 'Run To SSOT to document the filled decisions.' : 'To SSOT로 채워진 결정을 문서화하세요.'));
+      : (uiLang === 'en' ? 'Run To SSOT to document the completed Q&A.' : 'To SSOT로 완료된 Q&A를 문서화하세요.')));
   const uploadDoneText = (count) => (
     uiLang === 'en'
       ? `${count} file${count === 1 ? '' : 's'} saved under ${data.ip}/req/imports/; /import started.`
@@ -8714,7 +8915,12 @@ const SsotQaBoard = ({
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <div style={{ color: 'var(--fg)', fontSize: 16, fontWeight: 800 }}>{t.checklistTitle}</div>
               <code className="acc">{data.ip}</code>
-              <AtlasStatusBadge status={readyForRtl ? 'approved' : (requirementMissing ? 'pending' : 'draft')} label={readyForRtl ? t.approved : (requirementMissing ? t.missing : t.draft)} compact soft />
+              <AtlasStatusBadge
+                status={readyForRtl ? 'approved' : (requirementMissing ? 'pending' : 'draft')}
+                label={readyForRtl ? t.approved : (requirementMissing ? t.missing : (noRecordedQa ? t.noQaShort : t.draft))}
+                compact
+                soft
+              />
             </div>
             <div style={{ marginTop: 5, color: 'var(--fg-mute)', fontSize: 12, lineHeight: 1.45, maxWidth: 820 }}>
               {t.checklistSubtitle}
@@ -8744,7 +8950,7 @@ const SsotQaBoard = ({
                 {requirementPct}%
               </div>
               <div style={{ color: 'var(--fg-mute)', fontSize: 12 }}>
-                {requirementFilled}/{requirementTotal || 0} {t.filled}
+                {noRecordedQa ? t.noQaShort : `${requirementFilled}/${requirementTotal || 0} ${t.filled}`}
               </div>
             </div>
             <div style={{
