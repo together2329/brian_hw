@@ -1296,6 +1296,21 @@ const atlasUiExecMode = () => String(
 ).trim().toLowerCase();
 const atlasUiOrchestratorMode = () => atlasUiExecMode() === 'orchestrator';
 const defaultWorkflowForExecMode = () => atlasUiOrchestratorMode() ? 'orchestrator' : 'default';
+const workflowForExecMode = (wf) => {
+  const normalized = normalizeUiSession(wf || '');
+  if (atlasUiOrchestratorMode()) {
+    return (!normalized || normalized === 'default') ? 'orchestrator' : normalized;
+  }
+  return (!normalized || normalized === 'orchestrator') ? 'default' : normalized;
+};
+const initialInputRouteForExecMode = () => {
+  const wf = defaultWorkflowForExecMode();
+  return {
+    type: atlasUiOrchestratorMode() ? 'orchestrator-chat' : 'workflow-chat',
+    workflow: wf,
+    session: '',
+  };
+};
 
 // Legacy histories may contain an old "[scope] ...\n\n" user-message prefix.
 // Keep stripping it for display; new sends put scope/path rules in the
@@ -2032,11 +2047,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
   const activeSessionRef = React.useRef(activeSession);
   const [chatViewSessionState, setChatViewSessionState] = React.useState('');
   const chatViewSessionRef = React.useRef('');
-  const [inputRouteState, setInputRouteState] = React.useState({
-    type: 'orchestrator-chat',
-    workflow: 'orchestrator',
-    session: '',
-  });
+  const [inputRouteState, setInputRouteState] = React.useState(() => initialInputRouteForExecMode());
   const inputRouteRef = React.useRef(inputRouteState);
   const hydratedConversationSessionRef = React.useRef(activeSession);
   const liveFeedStartedRef = React.useRef(false);
@@ -2045,14 +2056,16 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     const requestedType = String((route && route.type) || '').trim();
     const type = requestedType === 'workflow-dispatch'
       ? 'workflow-dispatch'
+      : requestedType === 'workflow-chat'
+        ? 'workflow-chat'
       : 'orchestrator-chat';
-    const workflow = type === 'workflow-dispatch'
-      ? normalizeUiSession((route && route.workflow) || '')
-      : 'orchestrator';
+    const workflow = type === 'orchestrator-chat'
+      ? 'orchestrator'
+      : workflowForExecMode((route && route.workflow) || '');
     const session = normalizeUiSession((route && route.session) || '');
     const next = {
       type,
-      workflow: type === 'workflow-dispatch' ? workflow : 'orchestrator',
+      workflow,
       session,
     };
     const prev = inputRouteRef.current || {};
@@ -2099,11 +2112,11 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
   }, [activeNamespace, activeSession, sessionForInputRoute, setInputRoute]);
   const setWorkflowDispatchInputRoute = React.useCallback((wf, ip = '') => {
     const workflowName = normalizeUiSession(wf || '');
-    if (workflowName === 'orchestrator' || (!workflowName && atlasUiOrchestratorMode())) {
+    if (atlasUiOrchestratorMode() && (workflowName === 'orchestrator' || !workflowName)) {
       setOrchestratorInputRoute(ip);
       return;
     }
-    const effectiveWorkflow = workflowName || defaultWorkflowForExecMode();
+    const effectiveWorkflow = workflowForExecMode(workflowName || defaultWorkflowForExecMode());
     const routeIp = ip || activeIpForRoute([
       window.ACTIVE_SESSION,
       activeSessionRef.current,
@@ -2111,7 +2124,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       activeNamespace,
     ]);
     setInputRoute({
-      type: 'workflow-dispatch',
+      type: atlasUiOrchestratorMode() ? 'workflow-dispatch' : 'workflow-chat',
       workflow: effectiveWorkflow,
       session: sessionForInputRoute(routeIp, effectiveWorkflow),
     });
@@ -2442,6 +2455,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     const parts = (activeSession || window.ACTIVE_SESSION || '').split('/');
     const owner = normalizeUiSession((window.ATLAS_USER && window.ATLAS_USER.username) || '') || parts[0] || 'default';
     const ip = window.SCOPE_PATH || parts[1] || 'default';
+    setWorkflowDispatchInputRoute(next, ip);
+    setChatViewSession(sid);
     const readySeq = beginWorkflowReady(next, sid, ip);
     updateWorkflowReady(readySeq, { phase: 'session', message: 'Session selected' });
     let activated = false;
@@ -3888,7 +3903,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       return;
     }
 
-    const isOrch = atlasUiOrchestratorMode() || String(workflow || '') === 'orchestrator';
+    const isOrch = atlasUiOrchestratorMode();
     const orchIp = String(activeIp || '').trim();
     const inputRoute = inputRouteRef.current || {};
     const dispatchWorkflow = inputRoute.type === 'workflow-dispatch'
@@ -5441,16 +5456,18 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     const currentInputRoute = inputRouteState || inputRouteRef.current || {};
     const inputRouteType = currentInputRoute.type === 'workflow-dispatch'
       ? 'workflow-dispatch'
-      : 'orchestrator-chat';
-    const inputRouteWorkflow = inputRouteType === 'workflow-dispatch'
-      ? (currentInputRoute.workflow || 'workflow')
-      : 'orchestrator';
+      : currentInputRoute.type === 'workflow-chat' || !atlasUiOrchestratorMode()
+        ? 'workflow-chat'
+        : 'orchestrator-chat';
+    const inputRouteWorkflow = inputRouteType === 'orchestrator-chat'
+      ? 'orchestrator'
+      : workflowForExecMode(currentInputRoute.workflow || workflow || defaultWorkflowForExecMode());
     const inputRouteLabel = inputRouteType === 'workflow-dispatch'
       ? `dispatch:${inputRouteWorkflow}`
-      : 'ask:orchestrator';
+      : `ask:${inputRouteWorkflow}`;
     const inputRouteTitle = inputRouteType === 'workflow-dispatch'
       ? `This input creates a ${inputRouteWorkflow} workflow job; runtime stays on orchestrator.`
-      : 'This input goes to the orchestrator chat loop.';
+      : `This input goes to the ${inputRouteWorkflow} chat loop.`;
     const flowState = workflow === 'orchestrator'
       ? orchestratorFlowFromFeed(feed, orchWorkers, activeIp)
       : null;

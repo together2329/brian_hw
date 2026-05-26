@@ -206,6 +206,12 @@ def test_atlas_single_worker_workflow_switch_owns_chat_session() -> None:
     # selecting rtl-gen must activate <user>/<ip>/rtl-gen and hydrate that chat,
     # otherwise the SSOT transcript remains visible under an RTL label.
     assert "const defaultWorkflowForExecMode = () => atlasUiOrchestratorMode() ? 'orchestrator' : 'default';" in workspace
+    assert "const initialInputRouteForExecMode = () =>" in workspace
+    assert "type: atlasUiOrchestratorMode() ? 'orchestrator-chat' : 'workflow-chat'," in workspace
+    assert "requestedType === 'workflow-chat'" in workspace
+    assert "type: atlasUiOrchestratorMode() ? 'workflow-dispatch' : 'workflow-chat'," in workspace
+    assert "const isOrch = atlasUiOrchestratorMode();" in workspace
+    assert ": `ask:${inputRouteWorkflow}`;" in workspace
     assert "Single Worker mode binds the selected workflow to the active chat" in workspace
     assert "if (atlasUiOrchestratorMode()) return;" in workspace
     assert "const targetSession = sessionForInputRoute(ip, wf);" in workspace
