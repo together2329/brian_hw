@@ -176,6 +176,28 @@ def test_atlas_prompt_send_prefers_current_ip_workflow_session() -> None:
     assert "if (targetSessionId !== currentSessionId) {\n      liveConnect(targetSessionId);\n      return;\n    }" in backend
 
 
+def test_atlas_prompt_send_does_not_repeat_scope_preamble() -> None:
+    atlas_dir = PROJECT_ROOT / "frontend" / "atlas"
+    workspace = (atlas_dir / "workspace.jsx").read_text()
+    architect = (atlas_dir / "soc-architect.jsx").read_text()
+    main = (PROJECT_ROOT / "src" / "main.py").read_text()
+
+    assert "confine every file read" not in workspace
+    assert "confine every file read" not in architect
+    assert "sendPrompt(raw);" in workspace
+    assert "text," in architect
+    assert "[PATH_SCOPE: Keep file reads, writes, edits" in main
+
+
+def test_atlas_prompt_ack_is_sent_before_slow_session_setup() -> None:
+    atlas_ui = (PROJECT_ROOT / "src" / "atlas_ui.py").read_text()
+
+    ack_pos = atlas_ui.index('"type": "agent_received"')
+    setup_pos = atlas_ui.index("if _session_raw:\n                        try:")
+    assert ack_pos < setup_pos
+    assert "slow worker startup cannot trigger a duplicate send" in atlas_ui
+
+
 def test_atlas_single_worker_workflow_switch_owns_chat_session() -> None:
     workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace.jsx").read_text()
     data = (PROJECT_ROOT / "frontend" / "atlas" / "data.jsx").read_text()

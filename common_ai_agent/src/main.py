@@ -401,6 +401,13 @@ def _setup_workspace(name: str) -> None:
                             f"req/, list/, sim/, sdc/, lint/, doc/, wiki/) live under "
                             f"{_active_ip}/. Use relative paths from IP_ROOT or "
                             f"prefix project-root paths with {_active_ip}/.]\n"
+                            f"[PATH_SCOPE: Keep file reads, writes, edits, grep/find "
+                            f"searches, and run_command cwd/paths inside {_active_ip}/ "
+                            f"unless the user explicitly names another project path. "
+                            f"If a path already starts with {_active_ip}/, use it once "
+                            f"and do not rewrite it as {_active_ip}/{_active_ip}/... . "
+                            f"For SSOT, the canonical path is "
+                            f"{_active_ip}/yaml/{_active_ip}.ssot.yaml.]\n"
                             + ssot_format_block
                             + rtl_format_block +
                             f"[NO_QA_FOR_DERIVABLE_FACTS: Do not ask the user a "

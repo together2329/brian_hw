@@ -14,9 +14,10 @@ def test_workspace_renders_editable_todo_tab() -> None:
     assert "_openTodos}/{_allTodos.length" in workspace
 
     # Editable pane is rendered in the center column
-    assert "<TodoEditorPane />" in workspace
-    assert "const TodoEditorPane = ()" in workspace
+    assert "<TodoEditorPane todosOverride={todoPanelOverride} sourceLabel={todoPanelSourceLabel} />" in workspace
+    assert "const TodoEditorPane = ({ todosOverride = null, sourceLabel = '' } = {})" in workspace
     assert "const TodoEditorRow = (" in workspace
+    assert "const TodoReadonlyRow = (" in workspace
 
     # Per-todo editable fields: state select, content, detail, criteria
     assert "TODO_EDITOR_STATES" in workspace
@@ -50,6 +51,16 @@ def test_workspace_and_data_wire_todo_crud_endpoints() -> None:
     assert "api.updateTodo(" in workspace
     assert "api.removeTodo(" in workspace
     assert "api.clearTodos(" in workspace
+
+
+def test_workspace_uses_one_todo_view_for_tab_and_sidebar() -> None:
+    workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace.jsx").read_text()
+
+    assert "const todoPanelOverride = (" in workspace
+    assert "const usingOverride = Array.isArray(todosOverride)" in workspace
+    assert "const _allTodos = Array.isArray(todoPanelOverride)" in workspace
+    assert "<TodoEditorPane todosOverride={todoPanelOverride} sourceLabel={todoPanelSourceLabel} />" in workspace
+    assert "<TodoPanel todosOverride={todoPanelOverride} sourceLabel={todoPanelSourceLabel} />" in workspace
 
 
 def test_atlas_ui_exposes_todo_crud_endpoints() -> None:

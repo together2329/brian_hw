@@ -317,6 +317,112 @@ def test_process_bridge_warm_activation_spawns_worker_without_prompt():
     )
 
 
+def test_process_bridge_reports_worker_death_after_prompt_before_output_poll():
+    class FakeManager:
+        def __init__(self):
+            self.live = False
+            self.spawned = []
+            self.cleaned = False
+
+        def is_alive(self, session_id):
+            return self.live
+
+        def latest_output_id(self, session_id):
+            return None
+
+        def spawn(self, session_id):
+            self.spawned.append(session_id)
+            self.live = True
+            return True
+
+        def send_input(self, session_id, msg_type, payload=None):
+            self.live = False
+            return "queued-input-row"
+
+        def cleanup_zombies(self):
+            if self.spawned and not self.live and not self.cleaned:
+                self.cleaned = True
+                return [self.spawned[-1]]
+            return []
+
+        def list_active(self):
+            return [self.spawned[-1]] if self.live and self.spawned else []
+
+        def poll_output(self, session_id, since_id=None):
+            return []
+
+    bridge = _MultiUserBridge(single_user=False, use_processes=True)
+    fake = FakeManager()
+    bridge._process_manager = fake
+
+    bridge.submit_prompt_for_session("admin/spi_core/default", "hi")
+    session = bridge.get_session("admin/spi_core/default")
+    assert session.agent_running is True
+
+    bridge._poll_process_outputs()
+
+    assert session.agent_running is False
+    assert session.agent_alive is False
+    events = []
+    while True:
+        try:
+            events.append(session._outbox.get_nowait())
+        except Exception:
+            break
+    assert any(
+        event.get("type") == "agent_state"
+        and event.get("running") is False
+        and event.get("alive") is False
+        for event in events
+    )
+    assert any(event.get("type") == "worker_exited" for event in events)
+    assert any(event.get("type") == "done" for event in events)
+
+
+def test_process_bridge_reports_prompt_delivery_failure():
+    class FakeManager:
+        def __init__(self):
+            self.spawned = []
+
+        def is_alive(self, session_id):
+            return False
+
+        def latest_output_id(self, session_id):
+            return None
+
+        def spawn(self, session_id):
+            self.spawned.append(session_id)
+            return True
+
+        def send_input(self, session_id, msg_type, payload=None):
+            return None
+
+        def cleanup_zombies(self):
+            return list(self.spawned)
+
+    bridge = _MultiUserBridge(single_user=False, use_processes=True)
+    fake = FakeManager()
+    bridge._process_manager = fake
+
+    bridge.submit_prompt_for_session("admin/spi_core/default", "hi")
+
+    session = bridge.get_session("admin/spi_core/default")
+    assert session.agent_running is False
+    assert session.agent_alive is False
+    events = []
+    while True:
+        try:
+            events.append(session._outbox.get_nowait())
+        except Exception:
+            break
+    assert any(event.get("type") == "worker_exited" for event in events)
+    assert any(
+        event.get("type") == "error"
+        and "input was not delivered" in event.get("message", "")
+        for event in events
+    )
+
+
 def test_spawn_multiple_sessions(dummy_worker_script):
     db_path = _temp_db()
     manager = DummyProcessManager(db_path=db_path, dummy_script_path=dummy_worker_script)

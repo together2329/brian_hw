@@ -1872,6 +1872,95 @@ def _ssot_html_insert_after_top_module(html_body: str, block_diagram: str) -> st
     return html_body[:insert_at] + block_diagram + html_body[insert_at:]
 
 
+def _ssot_resolve_custom_file(rel: str) -> "Path | None":
+    """Resolve an IP-relative custom-block file path safely under PROJECT_ROOT.
+
+    Rejects paths that escape PROJECT_ROOT (no `..` traversal) and missing files.
+    """
+    from pathlib import Path
+    rel = str(rel or "").strip()
+    if not rel:
+        return None
+    try:
+        p = (PROJECT_ROOT / rel).resolve()
+        p.relative_to(PROJECT_ROOT.resolve())
+    except (ValueError, OSError):
+        return None
+    return p if p.is_file() else None
+
+
+def _ssot_html_render_custom_block(blk: dict, ip: str) -> str:
+    """Render one SSOT custom_block (markdown | mermaid | html; inline | file).
+
+    The block source lives in the SSOT, so the datasheet survives regeneration.
+    File refs are read at render time and constrained to PROJECT_ROOT. html files
+    are embedded via an <iframe src=/api/file/raw> for natural style isolation
+    (trusted, user-authored — no hard sandbox in Phase 1).
+    """
+    if not isinstance(blk, dict):
+        return ""
+    btype = str(blk.get("type") or "markdown").strip().lower()
+    title = str(blk.get("title") or "").strip()
+    title_html = f"<h3>{_ssot_html_escape(title)}</h3>" if title else ""
+    inline = blk.get("inline")
+    file_rel = str(blk.get("file") or "").strip()
+
+    if btype == "html":
+        if file_rel:
+            if _ssot_resolve_custom_file(file_rel) is None:
+                body = f"<p class=\"doc-empty\">custom html file not found: {_ssot_html_escape(file_rel)}</p>"
+            else:
+                from urllib.parse import quote
+                body = (
+                    f"<iframe src=\"/api/file/raw?path={quote(file_rel)}\" "
+                    "style=\"width:100%;min-height:420px;border:1px solid #ddd;border-radius:6px;\" "
+                    f"title=\"{_ssot_html_escape(title or file_rel)}\"></iframe>"
+                )
+        elif isinstance(inline, str) and inline.strip():
+            body = inline  # trusted, user-authored HTML embedded as-is
+        else:
+            body = "<p class=\"doc-empty\">empty html block</p>"
+        return f"<section class=\"diagram-card\">{title_html}{body}</section>"
+
+    # markdown / mermaid → need the text content (inline or file)
+    content = ""
+    if isinstance(inline, str) and inline.strip():
+        content = inline
+    elif file_rel:
+        target = _ssot_resolve_custom_file(file_rel)
+        if target is None:
+            return (f"<section class=\"diagram-card\">{title_html}"
+                    f"<p class=\"doc-empty\">custom file not found: {_ssot_html_escape(file_rel)}</p></section>")
+        try:
+            content = target.read_text(encoding="utf-8")
+        except Exception:
+            content = ""
+    if btype == "mermaid":
+        # Escaped so HTML can't inject; the browser decodes entities back to the
+        # raw diagram source in textContent before mermaid renders it.
+        body = f"<pre class=\"mermaid\">{_ssot_html_escape(content)}</pre>"
+    else:
+        try:
+            import markdown as _cbmod  # type: ignore
+            body = _cbmod.markdown(content, extensions=["tables", "fenced_code"])
+        except Exception:
+            body = f"<pre>{_ssot_html_escape(content)}</pre>"
+    return f"<section class=\"diagram-card\">{title_html}{body}</section>"
+
+
+def _ssot_html_custom_blocks_for(data: dict, anchor_key: str, ip: str) -> str:
+    """Render all custom_blocks anchored after `anchor_key`, in order."""
+    blocks = data.get("custom_blocks") if isinstance(data, dict) else None
+    if not isinstance(blocks, list):
+        return ""
+    out = [
+        _ssot_html_render_custom_block(blk, ip)
+        for blk in blocks
+        if isinstance(blk, dict) and str(blk.get("after") or "").strip() == anchor_key
+    ]
+    return "".join(out)
+
+
 def _ssot_to_html(md_text: str, ip: str, data: dict | None = None) -> str:
     import markdown as _mod  # type: ignore
 
@@ -1948,6 +2037,14 @@ def _ssot_to_html(md_text: str, ip: str, data: dict | None = None) -> str:
         # rich register-map tables (per-register props + bit-field tables).
         registers_html = _ssot_html_registers(data)
         html_body = _ssot_html_insert_after_section(html_body, "Registers", registers_html)
+        # (c) Custom blocks: inject user-authored content (markdown / mermaid /
+        # html; inline or file ref) after its anchor section. Source lives in
+        # SSOT (data["custom_blocks"]) so it survives regeneration.
+        if isinstance(data.get("custom_blocks"), list):
+            for _key, _label in _SSOT_EXPORT_SECTION_ORDER:
+                _cb = _ssot_html_custom_blocks_for(data, _key, ip)
+                if _cb:
+                    html_body = _ssot_html_insert_after_section(html_body, _label, _cb)
 
     mermaid_head = (
         "<script src=\"/vendor/mermaid.min.js\"></script>"
@@ -7554,14 +7651,29 @@ def create_app():
             from lib.todo_tracker import TodoTracker
             tracker = TodoTracker.load(session_todo)
             existing = tracker.to_dict().get("todos", [])
-            existing.append({
+            new_todo = {
                 "content": content,
                 "activeForm": str(body.get("activeForm") or "").strip() or content,
                 "status": "pending",
                 "priority": str(body.get("priority") or "medium"),
                 "detail": str(body.get("detail") or ""),
                 "criteria": str(body.get("criteria") or ""),
-            })
+            }
+            # Optional `index` inserts the todo in the MIDDLE at that 0-based
+            # position; out-of-range or omitted index appends to the end.
+            raw_index = body.get("index")
+            if raw_index is None or str(raw_index).strip() == "":
+                existing.append(new_todo)
+            else:
+                try:
+                    pos = int(raw_index)
+                except (TypeError, ValueError):
+                    pos = len(existing)
+                if pos < 0:
+                    pos = 0
+                if pos > len(existing):
+                    pos = len(existing)
+                existing.insert(pos, new_todo)
             tracker.add_todos(existing)
             tracker.save()
         except Exception as e:
@@ -10885,6 +10997,75 @@ def create_app():
         if finish and not getattr(client_session, "agent_running", False):
             client_session.emit("agent_state", running=False)
         client_session.emit("flush")
+
+    def _handle_quick_file_list_command(text: str, client_session: Any) -> bool:
+        """Answer trivial file-list requests without a ReAct/LLM turn."""
+        raw = str(text or "").strip()
+        if raw.startswith("/"):
+            return False
+        match = re.match(
+            r"^(?:(?:i\s+need\s+to\s+do|please|pls)\s+)?"
+            r"(?P<cmd>ls|list|lsit|dir)"
+            r"(?:\s+(?:files?|directory|dir))?"
+            r"(?:\s+(?P<path>[^\n]+?))?"
+            r"\s*[?.!]*$",
+            raw,
+            flags=re.IGNORECASE,
+        )
+        if not match:
+            return False
+
+        path_arg = str(match.group("path") or "").strip().strip("'\"`")
+        if path_arg.lower() in {"", ".", "files", "file", "directory", "dir"}:
+            path_arg = ""
+        if "\x00" in path_arg:
+            _emit_slash_output(client_session, "Invalid path.")
+            return True
+
+        try:
+            ip = _command_ip("", client_session)
+            base = _ip_root(ip) if _valid_ip_name(ip) else PROJECT_ROOT
+            if path_arg:
+                rel = Path(path_arg)
+                if rel.is_absolute() or ".." in rel.parts:
+                    _emit_slash_output(client_session, "Only project-relative paths are supported.")
+                    return True
+                if _valid_ip_name(ip) and rel.parts and rel.parts[0] == ip:
+                    target = (PROJECT_ROOT / rel).resolve(strict=False)
+                else:
+                    target = (base / rel).resolve(strict=False)
+            else:
+                target = base.resolve(strict=False)
+
+            project_resolved = PROJECT_ROOT.resolve(strict=False)
+            try:
+                target.relative_to(project_resolved)
+            except ValueError:
+                _emit_slash_output(client_session, "Path is outside the project root.")
+                return True
+
+            if not target.exists():
+                _emit_slash_output(client_session, f"Not found: {target.relative_to(project_resolved)}")
+                return True
+            if not target.is_dir():
+                rel_label = target.relative_to(project_resolved).as_posix()
+                _emit_slash_output(client_session, f"{rel_label} is a file, not a directory.")
+                return True
+
+            children = sorted(target.iterdir(), key=lambda p: (not p.is_dir(), p.name.lower()))
+            limit = 80
+            rel_label = target.relative_to(project_resolved).as_posix() or "."
+            lines = [f"{rel_label}/"]
+            for child in children[:limit]:
+                lines.append(child.name + ("/" if child.is_dir() else ""))
+            if len(children) > limit:
+                lines.append(f"... {len(children) - limit} more")
+            lines.append(f"\n{len(children)} entries")
+            _emit_slash_output(client_session, "\n".join(lines))
+            return True
+        except Exception as exc:
+            _emit_slash_output(client_session, f"List failed: {exc}")
+            return True
 
     def _apply_slash_model_switch(target: str, client_session: Any) -> str:
         try:
@@ -18399,6 +18580,7 @@ def create_app():
                 if t in ("prompt", "send") and msg.get("text"):
                     _txt = msg["text"].strip()
                     _session_raw = str(msg.get("session") or "").strip()
+                    _session = session.session_id
                     if _session_raw:
                         _session = _prompt_target_session(_session_raw, msg)
                         if not _session:
@@ -18410,6 +18592,28 @@ def create_app():
                             if session is None:
                                 continue
                             set_atlas_bridge_session_id(session.session_id)
+                    # Idempotent submit + ack:
+                    # The frontend retransmits a prompt with the same
+                    # msg_id if it doesn't see an `agent_received`
+                    # ack within ~3s. Send the ack directly on this
+                    # websocket before any session setup/spawn work so
+                    # slow worker startup cannot trigger a duplicate send.
+                    _msg_id = str(msg.get("msg_id") or "").strip()
+                    _txt_preview = str(msg.get("text") or "")[:80].replace("\n", " ")
+                    try:
+                        await websocket.send_json({
+                            "type": "agent_received",
+                            "msg_id": _msg_id,
+                            "text_preview": _txt_preview,
+                            "session_id": session.session_id,
+                        })
+                    except Exception as exc:
+                        if not _is_websocket_disconnect(exc):
+                            session.emit("error", message=f"ack failed: {exc}")
+                        continue
+                    if _msg_id and session.msg_id_seen(_msg_id):
+                        continue
+                    if _session_raw:
                         try:
                             if bridge._using_processes():
                                 _setup_session_proxy(_session, mirror_env=False, apply_main=False)
@@ -18418,21 +18622,6 @@ def create_app():
                         except Exception as exc:
                             session.emit("error", message=f"session setup failed: {exc}")
                             continue
-                    # Idempotent submit + ack:
-                    # The frontend retransmits a prompt with the same
-                    # msg_id if it doesn't see an `agent_received`
-                    # ack within ~3s. We always emit the ack so the
-                    # frontend cancels its retry timer; we only call
-                    # submit_prompt the first time.
-                    _msg_id = str(msg.get("msg_id") or "").strip()
-                    _txt_preview = str(msg.get("text") or "")[:80].replace("\n", " ")
-                    session.emit(
-                        "agent_received",
-                        msg_id=_msg_id,
-                        text_preview=_txt_preview,
-                    )
-                    if _msg_id and session.msg_id_seen(_msg_id):
-                        continue
                     import os as _os
                     # ── Mode-flip slashes need to apply mid-loop ──
                     # `/mode normal` and `/plan` typed while the agent is
@@ -18469,6 +18658,8 @@ def create_app():
                     if _handle_to_ssot_gate(_txt, client_session=session):
                         continue
                     if _run_stage_command(_txt, client_session=session):
+                        continue
+                    if _handle_quick_file_list_command(_txt, client_session=session):
                         continue
                     if _execute_generic_slash_command(_txt, session):
                         continue

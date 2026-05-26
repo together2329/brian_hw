@@ -2643,6 +2643,49 @@ class SlashCommandRegistry:
     def _has_visible_context_messages(messages: list[dict]) -> bool:
         return any(m.get("role") != "system" for m in messages if isinstance(m, dict))
 
+    @staticmethod
+    def _context_int_env(name: str, default: int, *, minimum: int = 0) -> int:
+        raw = str(os.environ.get(name, "") or "").strip()
+        if not raw:
+            return default
+        try:
+            value = int(raw)
+        except ValueError:
+            return default
+        return max(minimum, value)
+
+    def _verbose_context_limits(self) -> tuple[int, int]:
+        return (
+            self._context_int_env("CONTEXT_VERBOSE_MESSAGE_LIMIT", 32, minimum=0),
+            self._context_int_env("CONTEXT_VERBOSE_MESSAGE_MAX_CHARS", 3000, minimum=200),
+        )
+
+    def _visible_context_messages(self, messages: list[dict]) -> tuple[list[dict], int]:
+        message_limit, _ = self._verbose_context_limits()
+        if message_limit == 0 or len(messages) <= message_limit:
+            return list(messages), 0
+
+        head: list[dict] = []
+        if messages and isinstance(messages[0], dict) and messages[0].get("role") == "system":
+            head = [messages[0]]
+        tail_limit = max(1, message_limit - len(head))
+        tail = messages[-tail_limit:]
+        if head and tail and tail[0] is head[0]:
+            visible = tail
+        else:
+            visible = head + tail
+        return visible, max(0, len(messages) - len(visible))
+
+    def _truncate_verbose_content(self, content: str) -> tuple[str, bool]:
+        _, char_limit = self._verbose_context_limits()
+        if len(content) <= char_limit:
+            return content, False
+        return (
+            content[:char_limit].rstrip()
+            + f"\n... truncated {len(content) - char_limit:,} chars in this message ...",
+            True,
+        )
+
     def _latest_context_file(self, filename: str, roots: list[Path]) -> Optional[Path]:
         """Find the newest non-empty context file under known roots."""
         candidates: list[tuple[float, Path]] = []
@@ -2825,7 +2868,14 @@ class SlashCommandRegistry:
         except Exception:
             pass
 
-        for i, msg in enumerate(tracker.messages):
+        visible_messages, hidden_count = self._visible_context_messages(tracker.messages)
+        if hidden_count:
+            lines.append(
+                f"\n\033[2m... {hidden_count:,} older message(s) hidden "
+                "(use /context -v -full for durable history) ...\033[0m"
+            )
+
+        for i, msg in enumerate(visible_messages):
             role = msg.get("role", "unknown").upper()
             raw_content = msg.get("content", "")
 
@@ -2853,6 +2903,8 @@ class SlashCommandRegistry:
 
             if role == "SYSTEM":
                 content = self._summarize_context_system_prompt(content)
+            else:
+                content, _ = self._truncate_verbose_content(content)
 
             # For assistant messages with tool_calls and no text, show what was called
             tool_calls = msg.get("tool_calls", [])

@@ -143,6 +143,36 @@ def test_html_register_map_bit_field_tables(tmp_path, monkeypatch, ip):
     assert ">Register List<" not in html, "markdown register table should be replaced"
 
 
+def test_custom_blocks_render_after_anchor_sections(tmp_path, monkeypatch):
+    """SSOT custom_blocks (markdown/mermaid; inline or file) inject after their
+    anchor section in the HTML datasheet; path traversal is rejected."""
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+    (tmp_path / "demo" / "doc").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "demo" / "doc" / "flow.mmd").write_text(
+        "stateDiagram-v2\n[*] --> A\nA --> B\n", encoding="utf-8")
+    data = {
+        "top_module": {"name": "demo", "description": "demo top"},
+        "registers": {"register_list": [
+            {"name": "R0", "offset": 0, "fields": [{"name": "en", "lsb": 0, "width": 1}]},
+        ]},
+        "custom_blocks": [
+            {"after": "top_module", "title": "Arch note", "type": "markdown", "inline": "**bold** note"},
+            {"after": "registers", "title": "Flow", "type": "mermaid", "file": "demo/doc/flow.mmd"},
+            {"after": "top_module", "type": "html", "file": "../escape.html"},
+        ],
+    }
+    md = atlas_ui._ssot_to_markdown(data, "demo")
+    html = atlas_ui._ssot_to_html(md, "demo", data)
+    # markdown block rendered and placed after the Top Module heading.
+    assert "<strong>bold</strong>" in html
+    assert html.find("Top Module") < html.find("Arch note")
+    # mermaid FILE embedded as a mermaid block after the Registers section.
+    assert 'class="mermaid"' in html and "stateDiagram-v2" in html
+    assert html.find("Registers") < html.find("Flow")
+    # path traversal (../) is rejected -> "not found", never embedded.
+    assert "not found" in html
+
+
 @pytest.mark.parametrize("ip", SAMPLE_IPS)
 def test_render_docx_is_valid_zip(tmp_path, monkeypatch, ip):
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)

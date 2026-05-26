@@ -3782,26 +3782,10 @@ window.ArchitectChat = function ArchitectChat({ view, selModule, selCluster, onD
       return;
     }
     setStreaming(true);
-    // Mirror Workspace's scope-prefix behaviour: when an IP scope is
-    // active (set automatically by drilling into a module on the
-    // diagram), prepend a directive so the agent confines its tools
-    // to that directory. Slash commands and short confirmations
-    // bypass the prefix.
-    const isConfirmation = /^(y|yc|yes|n|no|confirm|cancel|ok|proceed)$/i.test(text);
-    const scope = (window.SCOPE_PATH || '').trim();
-    let outbound = text;
-    if (scope && !text.startsWith('/') && !isConfirmation) {
-      outbound = (
-        `[scope] You MUST confine every file read, write, edit, grep, ` +
-        `find, and run_command to paths inside "${scope}". Do not touch ` +
-        `files outside this directory unless I explicitly say so.\n\n` +
-        text
-      );
-    }
     if (window.backend) {
       window.backend.send({
         type: 'prompt',
-        text: outbound,
+        text,
         session: window.ACTIVE_SESSION || '',
         ui_lang: window.ATLAS_UI_LANG || 'en',
       });

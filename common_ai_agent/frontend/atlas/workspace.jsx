@@ -1297,10 +1297,9 @@ const atlasUiExecMode = () => String(
 const atlasUiOrchestratorMode = () => atlasUiExecMode() === 'orchestrator';
 const defaultWorkflowForExecMode = () => atlasUiOrchestratorMode() ? 'orchestrator' : 'default';
 
-// When a SCOPE_PATH is set, submitMsg prepends a "[scope] You MUST confine …\n\n"
-// directive to the prompt sent to the agent. That directive is intentionally
-// persisted to .session/conversation.json and shown by /context, but it is
-// noise in the chat feed. Strip it for DISPLAY ONLY (storage / /context keep it).
+// Legacy histories may contain an old "[scope] ...\n\n" user-message prefix.
+// Keep stripping it for display; new sends put scope/path rules in the
+// workflow system prompt instead of repeating them in every user turn.
 const stripScopeDirective = (t) => {
   if (typeof t === 'string' && t.startsWith('[scope] ')) {
     const i = t.indexOf('\n\n');
@@ -4065,32 +4064,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     awaitingRunStartRef.current = true;
     backendRunStartedRef.current = false;
     setStreamText('');
-    // Prepend a scope-restriction directive so the agent is forced to
-    // operate inside the user's selected directory. Slash commands
-    // bypass the prefix because they hit the local dispatcher first.
-    // Confirmation tokens (y / yc / yes / n / cancel / ok …) ALSO
-    // bypass — chat_loop's plan-confirmation handler does an exact
-    // `inp.lower().strip() in ("y", "yes", ...)` match, and the
-    // "[scope] You MUST..." prefix breaks that comparison so plan
-    // mode never exits even after the user types `y`. Keep these
-    // short tokens unprefixed.
-    const isConfirmation = /^(y|yc|yes|n|no|confirm|cancel|ok|proceed|ㅇㅇ|ㄴㄴ|확인|진행|취소|네|예|아니오)$/i.test(raw);
-    const scope = (window.SCOPE_PATH || '').trim();
-    let outbound = raw;
-    if (scope && !raw.startsWith('/') && !isConfirmation) {
-      outbound = (
-        `[scope] You MUST confine every file read, write, edit, grep, ` +
-        `find, and run_command to paths inside "${scope}". Do not touch ` +
-        `files outside this directory unless I explicitly say so. The workspace ` +
-        `root is still the project root: if a requested path already starts ` +
-        `with "${scope}/", use it exactly once and never rewrite it as ` +
-        `"${scope}/${scope}/...". For SSOT, the canonical path is ` +
-        `"${scope}/yaml/${scope}.ssot.yaml", not ` +
-        `"${scope}/${scope}/yaml/${scope}.ssot.yaml".\n\n` +
-        raw
-      );
-    }
-    sendPrompt(outbound);
+    // Keep the submitted user message clean. Active IP/path scope is already
+    // injected into the workflow system prompt by the backend.
+    sendPrompt(raw);
   };
 
   // Subscribe to backend events and translate them into feed entries.
@@ -6366,7 +6342,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
               >git</span>
             )}
             {(() => {
-              const _allTodos = Array.isArray(window.TODOS) ? window.TODOS : [];
+              const _allTodos = Array.isArray(todoPanelOverride)
+                ? todoPanelOverride
+                : (Array.isArray(window.TODOS) ? window.TODOS : []);
               const _doneTodos = _allTodos.filter(t => ['done', 'approved', 'completed'].includes(t.state)).length;
               const _openTodos = _allTodos.length - _doneTodos;
               return (
@@ -6654,7 +6632,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
             )
           ) : mainTab === 'todo' ? (
             <ErrorBoundary label="TodoEditor">
-              <TodoEditorPane />
+              <TodoEditorPane todosOverride={todoPanelOverride} sourceLabel={todoPanelSourceLabel} />
             </ErrorBoundary>
             ) : (
             /* mainTab === 'qa' — SSOT-GEN QA board or active ask_user */
@@ -15742,7 +15720,7 @@ const ProgressPanel = () => {
 // the local session file, not the DB mirror.
 const TODO_EDITOR_STATES = ['pending', 'in_progress', 'completed', 'approved', 'rejected'];
 
-const TodoEditorPane = () => {
+const TodoEditorPane = ({ todosOverride = null, sourceLabel = '' } = {}) => {
   // Re-render on data-layer refreshes so live agent edits + our mutations show.
   const [, bump] = React.useReducer(x => x + 1, 0);
   React.useEffect(() => {
@@ -15752,7 +15730,9 @@ const TodoEditorPane = () => {
     return () => window.removeEventListener('atlas-data-changed', h);
   }, []);
 
-  const todos = Array.isArray(window.TODOS) ? window.TODOS : [];
+  const usingOverride = Array.isArray(todosOverride);
+  const sessionTodos = Array.isArray(window.TODOS) ? window.TODOS : [];
+  const todos = usingOverride ? todosOverride : sessionTodos;
   const [busy, setBusy] = React.useState(false);
   const [err, setErr] = React.useState('');
   // Add-form local state
@@ -15801,7 +15781,17 @@ const TodoEditorPane = () => {
     });
   };
 
+  // Insert a placeholder todo at `index` (in the MIDDLE, before this row);
+  // the new row appears in place and is edited inline.
+  const handleInsertAbove = (index) => {
+    runMutation(async () => {
+      if (!api.addTodo) throw new Error('addTodo unavailable');
+      await api.addTodo({ content: 'New task', index });
+    });
+  };
+
   const handleClearAll = () => {
+    if (usingOverride) return;
     if (!todos.length) return;
     if (!window.confirm('Clear ALL todos for this session? This cannot be undone.')) return;
     runMutation(async () => {
@@ -15828,16 +15818,26 @@ const TodoEditorPane = () => {
           Todos ({todos.length})
         </div>
         <span style={{ flex: 1 }} />
+        {usingOverride && sourceLabel ? (
+          <span style={{
+            fontFamily: 'var(--mono)',
+            fontSize: 10,
+            padding: '2px 7px',
+            border: '1px solid var(--line)',
+            color: 'var(--fg-mute)',
+            borderRadius: 2,
+          }}>{sourceLabel}</span>
+        ) : null}
         <button
           className="btn"
-          disabled={busy || !todos.length}
+          disabled={busy || usingOverride || !todos.length}
           onClick={handleClearAll}
           style={{
-            cursor: (busy || !todos.length) ? 'default' : 'pointer',
+            cursor: (busy || usingOverride || !todos.length) ? 'default' : 'pointer',
             padding: '3px 10px', borderRadius: 3,
             border: '1px solid var(--err)', color: 'var(--err)',
             background: 'transparent', fontSize: 'var(--ui-control-font-size)',
-            opacity: (busy || !todos.length) ? 0.5 : 1,
+            opacity: (busy || usingOverride || !todos.length) ? 0.5 : 1,
           }}
         >Clear all</button>
       </div>
@@ -15911,17 +15911,28 @@ const TodoEditorPane = () => {
       ) : (
         <div style={{ display: 'grid', gap: 12 }}>
           {todos.map((todo, index) => (
-            <TodoEditorRow
-              key={todo.id || index}
-              index={index}
-              todo={todo}
-              busy={busy}
-              criteriaText={criteriaText(todo.criteria)}
-              fieldLabel={fieldLabel}
-              inputStyle={inputStyle}
-              onSave={(fields) => handleSaveRow(index, fields)}
-              onRemove={() => handleRemove(index)}
-            />
+            usingOverride ? (
+              <TodoReadonlyRow
+                key={todo.id || index}
+                index={index}
+                todo={todo}
+                criteriaText={criteriaText(todo.criteria)}
+                fieldLabel={fieldLabel}
+              />
+            ) : (
+              <TodoEditorRow
+                key={todo.id || index}
+                index={index}
+                todo={todo}
+                busy={busy}
+                criteriaText={criteriaText(todo.criteria)}
+                fieldLabel={fieldLabel}
+                inputStyle={inputStyle}
+                onSave={(fields) => handleSaveRow(index, fields)}
+                onRemove={() => handleRemove(index)}
+                onInsertAbove={() => handleInsertAbove(index)}
+              />
+            )
           ))}
         </div>
       )}
@@ -15929,7 +15940,38 @@ const TodoEditorPane = () => {
   );
 };
 
-const TodoEditorRow = ({ index, todo, busy, criteriaText, fieldLabel, inputStyle, onSave, onRemove }) => {
+const TodoReadonlyRow = ({ index, todo, criteriaText, fieldLabel }) => {
+  const meta = atlasStatusMeta(todo.state || 'pending');
+  const detail = String(todo.detail || '').trim();
+  const criteria = String(criteriaText || '').trim();
+  return (
+    <div className="digest-card" style={{
+      border: '1px solid var(--line)', borderRadius: 4, padding: 12,
+      display: 'grid', gap: 8,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+        <span style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)' }}>#{index + 1}</span>
+        <AtlasStatusBadge status={todo.state || 'pending'} label={meta.label} compact soft />
+        {todo.section ? <span className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 11 }}>{todo.section}</span> : null}
+        <span style={{ color: 'var(--fg)', fontWeight: 700, overflowWrap: 'anywhere' }}>{todo.title || 'todo'}</span>
+      </div>
+      {detail ? (
+        <div>
+          <div style={fieldLabel}>Detail</div>
+          <div style={{ color: 'var(--fg-dim)', lineHeight: 1.6, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{detail}</div>
+        </div>
+      ) : null}
+      {criteria ? (
+        <div>
+          <div style={fieldLabel}>Criteria</div>
+          <div style={{ color: 'var(--fg-dim)', lineHeight: 1.6, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{criteria}</div>
+        </div>
+      ) : null}
+    </div>
+  );
+};
+
+const TodoEditorRow = ({ index, todo, busy, criteriaText, fieldLabel, inputStyle, onSave, onRemove, onInsertAbove }) => {
   const [content, setContent] = React.useState(todo.title || '');
   const [detail, setDetail] = React.useState(todo.detail || '');
   const [criteria, setCriteria] = React.useState(criteriaText);
@@ -15959,6 +16001,13 @@ const TodoEditorRow = ({ index, todo, busy, criteriaText, fieldLabel, inputStyle
       display: 'grid', gap: 8,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        {onInsertAbove ? (
+          <button type="button" className="mini-btn" disabled={busy}
+            title="Insert a new todo above this one (add in the middle)"
+            onClick={onInsertAbove}
+            style={{ fontFamily: 'var(--mono)', fontSize: 11, padding: '1px 5px', cursor: busy ? 'wait' : 'pointer' }}
+          >⊕↑</button>
+        ) : null}
         <span style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)' }}>#{index + 1}</span>
         <span style={{ color: meta.color }}>{meta.glyph}</span>
         <select

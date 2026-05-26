@@ -32,6 +32,7 @@ This section is additive; it does not replace the reading order below.
 | Evidence approval and TodoTracker behavior | [[golden-todo-evidence]] |
 | When to update wiki during development | [[wiki-curation-policy]] |
 | How agent autonomously implements a new IP end-to-end | [[agent-autonomous-ip-implementation-pattern]] |
+| Default-agent conversational IP creation flow for non-expert users | [[default-agent-ip-flow]] |
 | Full orchestrator workflow bring-up history (system_prompt, multi-model worker spawn, trace, UI orchestra view) | [[orchestrator-workflow-bring-up-20260517]] |
 | pytest collection crash fix (pytest_pymtl3 stale hook) and canonical PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 invocation | [[atlas-pytest-hygiene]] |
 | Side-by-side LLM provider comparison on the same SSOT input | [[triple-llm-rv32i-experiment]] |
@@ -61,6 +62,7 @@ regression.
 2. [[workflow-ownership-and-boundaries]] — who owns each artifact and what must not be edited directly.
 3. [[ssot-qa-workbench]] — SSOT authoring UX: import, interview, requirement progress, and To SSOT. Internal pass mechanism: [[ssot-gen-pass-pipeline]] — LLM → deterministic canonicalize → validator → LLM-repair loop, with the actual progress-log signatures and `ATLAS_HEADLESS_LLM_TIMEOUT` knob.
 4. [[full-flow-pipeline]] — SSOT to signoff stage order and commands.
+4a. [[default-agent-ip-flow]] — conversational front-door flow where the default agent hides stage jargon and directly performs read/edit/run/signoff loops for IP creation.
 5. [[run-mode-and-provenance-policy]] — why `Starter` / `Engineering` / `Signoff` are work-maturity modes, why `Exec Mode` is separate, and how clean SSOT YAML pairs with resolved SSOT plus sidecar provenance.
 6. [[rtl-gen-ssot-contract]] — why rtl-gen must follow SSOT exactly before downstream stages run.
 7. [[workflow-feedback-and-scheduling]] — worker-aware serial/DAG scheduling and workflow repair feedback.

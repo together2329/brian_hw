@@ -328,8 +328,16 @@ class _MultiUserBridge:
         manager = self._process_manager
         if manager is None:
             return
-        for session_id in manager.list_active():
+        dead_sessions: list[str] = []
+        cleanup = getattr(manager, "cleanup_zombies", None)
+        if callable(cleanup):
+            try:
+                dead_sessions = [str(session_id) for session_id in cleanup()]
+            except Exception:
+                dead_sessions = []
+        for session_id in list(dict.fromkeys([*manager.list_active(), *dead_sessions])):
             since_id = self._process_output_cursors.get(session_id)
+            saw_lifecycle_end = False
             for msg in manager.poll_output(session_id, since_id=since_id):
                 msg_session_id = str(msg.get("session_id") or session_id)
                 session = self._ensure_session(msg_session_id)
@@ -348,6 +356,7 @@ class _MultiUserBridge:
                     session.agent_alive = False
                     session.agent_running = False
                     event.setdefault("alive", False)
+                    saw_lifecycle_end = True
                 if session.session_id != "default":
                     event.setdefault("session_id", session.session_id)
                 if event["type"] == "ask_user":
@@ -372,6 +381,13 @@ class _MultiUserBridge:
                 if event["type"] == "tool_result":
                     self._maybe_emit_file_changed(session, event)
                 self._process_output_cursors[msg_session_id] = msg.get("id")
+            if session_id in dead_sessions and not saw_lifecycle_end:
+                session = self._ensure_session(session_id)
+                if session.agent_alive or session.agent_running:
+                    self._emit_process_dead(
+                        session,
+                        reason="process exited before producing worker_exited",
+                    )
 
     def _maybe_emit_file_changed(self, session: "_SessionBridge", event: dict) -> None:
         tool = str(event.get("tool") or "")
@@ -453,6 +469,13 @@ class _MultiUserBridge:
             session.agent_running = True
         session.emit("agent_state", running=bool(session.agent_running), alive=alive)
         return alive
+
+    def _emit_process_dead(self, session: "_SessionBridge", *, reason: str) -> None:
+        session.agent_running = False
+        session.agent_alive = False
+        session.emit("agent_state", running=False, alive=False)
+        session.emit("worker_exited", session_id=session.session_id, reason=reason)
+        session.emit("done")
 
     def _ensure_session(self, session_id: str | None) -> _SessionBridge:
         session_id = self._normalize_session_id(session_id)
@@ -707,6 +730,25 @@ class _MultiUserBridge:
             self._spawn_process_session(session, running=True)
         msg_id = manager.send_input(session.session_id, msg_type, payload or {})
         session.touch()
+        if msg_id is None:
+            cleanup = getattr(manager, "cleanup_zombies", None)
+            if callable(cleanup):
+                try:
+                    cleanup()
+                except Exception:
+                    pass
+            if spawn and msg_type in {"prompt", "interrupt"}:
+                self._emit_process_dead(
+                    session,
+                    reason=f"{msg_type} input was not delivered",
+                )
+                session.emit(
+                    "error",
+                    message=(
+                        "session worker is not available; "
+                        "input was not delivered"
+                    ),
+                )
         return msg_id is not None
 
     def queue_prompt_for_session(self, session_id: str | None, text: str) -> None:

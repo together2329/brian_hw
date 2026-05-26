@@ -99,6 +99,10 @@
           var tag = String(ev.target.tagName || '').toLowerCase();
           var url = ev.target.src || ev.target.href;
           if (tag === 'img' && /^data:image\//i.test(String(url || ''))) return;
+          // Prism autoloader best-effort grammar fetches: a missing language
+          // grammar just means that code block renders without highlighting —
+          // never fatal, so don't alarm the user with a banner.
+          if (tag === 'script' && /\/vendor\/prism-components\/prism-[\w-]+\.min\.js/i.test(String(url || ''))) return;
           if (tag === 'script') append('script load failed', url);
           else if (tag === 'link') append('stylesheet load failed', url);
           else if (tag === 'img') append('image load failed', url);
