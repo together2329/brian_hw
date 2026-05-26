@@ -4140,6 +4140,62 @@ def create_app():
             "truncated": truncated, "content": content,
         })
 
+    def _safe_ip_file_delete_target(ip: str, path: str) -> tuple[Path | None, str | None]:
+        clean_ip = str(ip or "").strip().strip("/")
+        clean_path = str(path or "").strip().strip("/")
+        if not clean_ip or not clean_path:
+            return None, "ip and path are required"
+        ip_parts = [part for part in clean_ip.split("/") if part]
+        path_parts = [part for part in clean_path.split("/") if part]
+        if not ip_parts or not path_parts:
+            return None, "ip and path are required"
+        if any(part in {".", ".."} for part in path_parts):
+            return None, "invalid path"
+        if any(part.startswith(".") for part in path_parts):
+            return None, "hidden/internal files cannot be deleted from the UI"
+        if any(part in {".", ".."} or not re.match(r"^[A-Za-z0-9_.-]+$", part) for part in ip_parts):
+            return None, "invalid ip"
+        if path_parts[:len(ip_parts)] != ip_parts:
+            return None, "path is outside the selected IP"
+
+        project_root = PROJECT_ROOT.resolve()
+        ip_root = PROJECT_ROOT.joinpath(*ip_parts)
+        candidate = PROJECT_ROOT.joinpath(*path_parts)
+        try:
+            resolved_ip = ip_root.resolve()
+            resolved_target = candidate.resolve()
+            resolved_ip.relative_to(project_root)
+            resolved_target.relative_to(resolved_ip)
+        except (OSError, ValueError):
+            return None, "path outside project root"
+        if resolved_target == resolved_ip:
+            return None, "cannot delete the IP root"
+        if not resolved_ip.is_dir():
+            return None, "IP not found"
+        if candidate.is_dir():
+            return None, "directory delete is not supported from the UI"
+        if not candidate.is_file():
+            return None, "file not found"
+        return candidate, None
+
+    @app.delete("/api/file")
+    async def api_file_delete(ip: str = "", path: str = ""):
+        target, error = _safe_ip_file_delete_target(ip, path)
+        if target is None:
+            status = 404 if error in {"IP not found", "file not found"} else 400
+            return JSONResponse({"error": error or "not found"}, status_code=status)
+        clean_ip = str(ip or "").strip().strip("/")
+        clean_path = str(path or "").strip().strip("/")
+        try:
+            await asyncio.to_thread(target.unlink)
+        except OSError as exc:
+            return JSONResponse({"error": str(exc)}, status_code=500)
+        try:
+            bridge.emit("file_changed", path=clean_path, tool="delete_file", ip=clean_ip, deleted=True)
+        except Exception:
+            pass
+        return JSONResponse({"deleted": True, "ip": clean_ip, "path": clean_path})
+
     @app.get("/api/file/raw")
     async def api_file_raw(path: str):
         """Serve a file's raw bytes with a guessed content-type.

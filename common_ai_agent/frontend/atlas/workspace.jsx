@@ -2718,6 +2718,21 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       return null;
     }
   });
+  const [fileContextMenu, setFileContextMenu] = React.useState(null);
+  React.useEffect(() => {
+    const close = () => setFileContextMenu(null);
+    const onKey = (event) => {
+      if (event && event.key === 'Escape') close();
+    };
+    window.addEventListener('click', close);
+    window.addEventListener('resize', close);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('click', close);
+      window.removeEventListener('resize', close);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, []);
   // Git diff display: when the GitPanel emits atlas-git-show with a
   // commit sha, the center pane swaps in GitDiffPane to render the
   // unified diff instead of the file preview. Setting it back to null
@@ -5660,6 +5675,36 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         ? `(file tree error — ${window.FILE_TREE_ERROR})`
         : (window.FILE_TREE_LOADING ? '(loading file tree...)' : '(empty — select an IP or refresh)'))
     : '(select IP_ID to show files)';
+  const deleteIpTreeFile = React.useCallback(async (path, ip) => {
+    const cleanPath = String(path || '').trim();
+    const cleanIp = String(ip || filePanelIp || '').trim();
+    if (!cleanPath || !cleanIp) return;
+    const ok = window.confirm(`Delete ${cleanPath}? This cannot be undone.`);
+    if (!ok) return;
+    try {
+      const params = new URLSearchParams({ ip: cleanIp, path: cleanPath });
+      const response = await fetch(`/api/file?${params.toString()}`, {
+        method: 'DELETE',
+        cache: 'no-store',
+        credentials: 'include',
+      });
+      let data = {};
+      try { data = await response.json(); } catch (_) {}
+      if (!response.ok) throw new Error(data.error || data.detail || `HTTP ${response.status}`);
+      atlasResourceCache('file').delete(cleanPath);
+      if (previewPath === cleanPath) {
+        setPreviewPath('');
+        persistAtlasPreviewPath('');
+        setMainTab('chat');
+      }
+      window.dispatchEvent(new CustomEvent('atlas-file-changed', {
+        detail: { path: cleanPath, ip: cleanIp, deleted: true },
+      }));
+      await window.atlasData?.refreshFileTree?.(cleanIp, { recursive: true, quiet: true });
+    } catch (error) {
+      window.alert(`Delete failed: ${String(error && error.message || error)}`);
+    }
+  }, [filePanelIp, previewPath]);
   const scmProvider = atlasBootScmProvider();
   const ScmTabComponent = atlasResolveScmTab(scmProvider);
   const scmTabLabel = atlasScmTabLabel(scmProvider, ScmTabComponent);
@@ -5673,6 +5718,27 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       height: '100%', overflow: 'hidden',
     }}>
       <WorkflowReadyOverlay state={workflowReady} />
+      {fileContextMenu && (
+        <div
+          className="file-context-menu"
+          style={{ left: fileContextMenu.x, top: fileContextMenu.y }}
+          onClick={(event) => event.stopPropagation()}
+          onContextMenu={(event) => event.preventDefault()}
+        >
+          <button
+            type="button"
+            className="file-context-menu-danger"
+            title={fileContextMenu.path}
+            onClick={() => {
+              const item = fileContextMenu;
+              setFileContextMenu(null);
+              deleteIpTreeFile(item.path, item.ip);
+            }}
+          >
+            Delete
+          </button>
+        </div>
+      )}
       {/* Mobile: hint banner, drawer toggles, and backdrop */}
       {isMobile && !mobileHintDismissed && (
         <div className="atlas-mobile-hint" style={{ gridColumn: '1 / -1' }}>
@@ -5917,6 +5983,16 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
                   }}
                   onMouseEnter={() => {
                     if (n.type === 'file') readAtlasAsyncResource('file', fullPath).catch(() => {});
+                  }}
+                  onContextMenu={(event) => {
+                    if (n.type !== 'file') return;
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const menuWidth = 148;
+                    const menuHeight = 40;
+                    const x = Math.max(8, Math.min(event.clientX, window.innerWidth - menuWidth - 8));
+                    const y = Math.max(8, Math.min(event.clientY, window.innerHeight - menuHeight - 8));
+                    setFileContextMenu({ x, y, path: fullPath, name: displayName, ip: filePanelIp });
                   }}
                   title={fullPath + (n.type === 'file' ? ' (click to preview)' : ' (click to fold/unfold)')}
                 >

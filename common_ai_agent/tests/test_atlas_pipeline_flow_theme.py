@@ -117,6 +117,24 @@ def test_atlas_workspace_lands_on_chat_and_reports_worker_done_state() -> None:
     assert "Preferred visible language:" not in atlas_ui
 
 
+def test_atlas_ip_file_tree_exposes_right_click_delete() -> None:
+    atlas_dir = PROJECT_ROOT / "frontend" / "atlas"
+    workspace = (atlas_dir / "workspace.jsx").read_text()
+    css = (atlas_dir / "styles.css").read_text()
+    atlas_ui = (PROJECT_ROOT / "src" / "atlas_ui.py").read_text()
+
+    assert "fileContextMenu" in workspace
+    assert "onContextMenu={(event) => {" in workspace
+    assert "method: 'DELETE'" in workspace
+    assert "new URLSearchParams({ ip: cleanIp, path: cleanPath })" in workspace
+    assert "atlasResourceCache('file').delete(cleanPath)" in workspace
+    assert "file-context-menu" in css
+    assert "file-context-menu-danger" in css
+    assert '@app.delete("/api/file")' in atlas_ui
+    assert "path is outside the selected IP" in atlas_ui
+    assert "directory delete is not supported from the UI" in atlas_ui
+
+
 def test_atlas_session_switches_hydrate_chat_history_without_full_reload() -> None:
     data = (PROJECT_ROOT / "frontend" / "atlas" / "data.jsx").read_text()
     workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace.jsx").read_text()

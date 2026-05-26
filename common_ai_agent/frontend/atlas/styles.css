@@ -898,6 +898,37 @@ html[data-platform="windows"] .app {
 }
 .frow .fr-icon { color: var(--fg-mute); font-size: var(--ui-control-font-size); }
 
+.file-context-menu {
+  position: fixed;
+  z-index: 5000;
+  min-width: 140px;
+  padding: 4px;
+  background: var(--panel);
+  border: 1px solid var(--line-strong);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+}
+
+.file-context-menu button {
+  display: block;
+  width: 100%;
+  padding: 6px 10px;
+  border: 0;
+  background: transparent;
+  color: var(--fg);
+  font-family: var(--mono);
+  font-size: var(--ui-control-font-size);
+  text-align: left;
+  cursor: pointer;
+}
+
+.file-context-menu button:hover {
+  background: color-mix(in oklch, var(--fg) 8%, transparent);
+}
+
+.file-context-menu .file-context-menu-danger {
+  color: var(--err);
+}
+
 /* code-ish */
 .code {
   font-family: var(--code-font);
