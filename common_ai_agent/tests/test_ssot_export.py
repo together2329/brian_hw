@@ -116,6 +116,34 @@ def test_render_html(tmp_path, monkeypatch, ip):
 
 
 @pytest.mark.parametrize("ip", SAMPLE_IPS)
+def test_html_register_map_bit_field_tables(tmp_path, monkeypatch, ip):
+    """The datasheet HTML must render the register map as clean bit-field tables."""
+    import re as _re
+
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+    _copy_sample_ssot(ip, tmp_path)
+    data = atlas_ui._load_ssot_yaml(ip)
+    # Both samples ship registers with fields; guard the precondition.
+    registers = data.get("registers")
+    assert isinstance(registers, dict) and registers.get("register_list"), (
+        f"sample {ip} unexpectedly lacks registers.register_list"
+    )
+
+    md = atlas_ui._ssot_to_markdown(data, ip)
+    html = atlas_ui._ssot_to_html(md, ip, data)
+
+    # Rich register-map section replaces the plain markdown register table.
+    assert "<h3>Register Map</h3>" in html, "Register Map section missing from html"
+    # Bit-field table headers.
+    assert "<th>Field</th><th>Bits</th>" in html, "Field/Bits table headers missing"
+    assert "<table class=\"register-fields\">" in html, "register-fields table missing"
+    # A multi-bit field must render as an `msb:lsb` range cell (e.g. 2:0 / 31:0).
+    assert _re.search(r"<td>\d+:\d+</td>", html), "expected an msb:lsb bit range cell"
+    # The plain markdown "Register List" sub-table body must be replaced.
+    assert ">Register List<" not in html, "markdown register table should be replaced"
+
+
+@pytest.mark.parametrize("ip", SAMPLE_IPS)
 def test_render_docx_is_valid_zip(tmp_path, monkeypatch, ip):
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
     _copy_sample_ssot(ip, tmp_path)

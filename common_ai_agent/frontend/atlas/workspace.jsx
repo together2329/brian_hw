@@ -2223,13 +2223,22 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
 
   const sendPrompt = React.useCallback((text, sessionOverride) => {
     if (window.backend) {
+      const activeSessionWorkflow = workflowFromSession(
+        window.ACTIVE_SESSION
+        || activeSessionRef.current
+        || activeSession
+        || activeNamespace
+        || ''
+      );
+      const routeWorkflow = normalizeUiSession((inputRouteRef.current || {}).workflow || '');
       const promptWorkflow = String(
         atlasUiOrchestratorMode()
           ? 'orchestrator'
           : (
-            workflow
+            activeSessionWorkflow
+            || routeWorkflow
+            || workflow
             || activeWorkflow
-            || workflowFromSession(window.ACTIVE_SESSION || activeSessionRef.current || activeNamespace || '')
             || defaultWorkflowForExecMode()
             || ''
           )
@@ -5745,6 +5754,40 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
           onClick={(event) => event.stopPropagation()}
           onContextMenu={(event) => event.preventDefault()}
         >
+          <button
+            type="button"
+            className="file-context-menu-item"
+            title={`Download ${fileContextMenu.path}`}
+            onClick={() => {
+              const item = fileContextMenu;
+              setFileContextMenu(null);
+              // Fetch the raw bytes and force a save-as (the /api/file/raw
+              // endpoint serves inline, so a blob + download attribute is what
+              // turns it into a per-file download).
+              (async () => {
+                try {
+                  const res = await fetch(
+                    `/api/file/raw?path=${encodeURIComponent(item.path)}`,
+                    { cache: 'no-store', credentials: 'include' },
+                  );
+                  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                  const blob = await res.blob();
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = String(item.name || (item.path || '').split('/').pop() || 'file');
+                  document.body.appendChild(a);
+                  a.click();
+                  a.remove();
+                  setTimeout(() => URL.revokeObjectURL(url), 1000);
+                } catch (error) {
+                  window.alert(`Download failed: ${String((error && error.message) || error)}`);
+                }
+              })();
+            }}
+          >
+            Download
+          </button>
           <button
             type="button"
             className="file-context-menu-danger"

@@ -1563,6 +1563,220 @@ def _ssot_html_timing_section(data: dict) -> str:
     return f"<section class=\"diagram-card\"><h3>Timing Diagram</h3>{body}</section>"
 
 
+def _ssot_pick(item: dict, *keys: str) -> Any:
+    """First present value among `keys` (treats 0/False as present; skips empty)."""
+    for key in keys:
+        val = item.get(key)
+        if val is None or val == "" or val == [] or val == {}:
+            continue
+        return val
+    return None
+
+
+def _ssot_html_field_bits(field: dict) -> tuple[str, int | None]:
+    """Return (display, lsb) for a register field, deriving the bit range defensively.
+
+    `display` is `msb:lsb` for a range, a single number for 1-bit fields, or "".
+    `lsb` is the integer low bit when known (used for sorting); None otherwise.
+    """
+    # Explicit range string / list (bits | bit_range | range).
+    for key in ("bits", "bit_range", "range"):
+        raw = field.get(key)
+        if raw in (None, "", [], {}):
+            continue
+        if isinstance(raw, (list, tuple)) and len(raw) == 2:
+            try:
+                msb, lsb = int(raw[0]), int(raw[1])
+                disp = str(msb) if msb == lsb else f"{msb}:{lsb}"
+                return disp, min(msb, lsb)
+            except (TypeError, ValueError):
+                pass
+        disp = _ssot_md_bit_range(raw)
+        lsb: int | None = None
+        m = re.match(r"^(\d+)(?::(\d+))?$", disp)
+        if m:
+            hi = int(m.group(1))
+            lo = int(m.group(2)) if m.group(2) is not None else hi
+            lsb = min(hi, lo)
+        return disp, lsb
+    # msb / lsb pair.
+    msb_v, lsb_v = field.get("msb"), field.get("lsb")
+    if msb_v is not None and lsb_v is not None:
+        try:
+            msb, lsb = int(msb_v), int(lsb_v)
+            disp = str(msb) if msb == lsb else f"{msb}:{lsb}"
+            return disp, min(msb, lsb)
+        except (TypeError, ValueError):
+            pass
+    # lsb + width (msb = lsb + width - 1).
+    if lsb_v is not None and field.get("width") is not None:
+        try:
+            lsb = int(lsb_v)
+            width = int(field.get("width"))
+            msb = lsb + width - 1
+            disp = str(msb) if msb == lsb else f"{msb}:{lsb}"
+            return disp, lsb
+        except (TypeError, ValueError):
+            pass
+    # Single bit position.
+    bit_v = field.get("bit")
+    if bit_v is not None:
+        try:
+            b = int(bit_v)
+            return str(b), b
+        except (TypeError, ValueError):
+            return _ssot_md_scalar(bit_v), None
+    return "", None
+
+
+def _ssot_html_register_field_table(reg: dict) -> str:
+    """Bit-field table: Field | Bits | Access | Reset | Description (msb first)."""
+    fields = reg.get("fields")
+    if not isinstance(fields, list) or not fields:
+        return ""
+    parsed: list[tuple[int, int | None, dict, str]] = []
+    for order, field in enumerate(fields):
+        if not isinstance(field, dict):
+            continue
+        bits_disp, lsb = _ssot_html_field_bits(field)
+        parsed.append((order, lsb, field, bits_disp))
+    if not parsed:
+        return ""
+    # Sort by lsb descending (msb first) when positions are known; preserve
+    # declaration order for fields whose position is unknown.
+    if all(p[1] is not None for p in parsed):
+        parsed.sort(key=lambda p: p[1], reverse=True)  # type: ignore[arg-type]
+    rows: list[str] = []
+    for _order, _lsb, field, bits_disp in parsed:
+        reset = _ssot_pick(field, "reset", "reset_value", "default")
+        rows.append(
+            "<tr>"
+            f"<td>{_ssot_html_escape(field.get('name') or field.get('id') or '')}</td>"
+            f"<td>{_ssot_html_escape(bits_disp)}</td>"
+            f"<td>{_ssot_html_escape(field.get('access') or field.get('rw') or '')}</td>"
+            f"<td>{_ssot_html_escape('' if reset is None else reset)}</td>"
+            f"<td>{_ssot_html_escape(field.get('description') or field.get('desc') or '')}</td>"
+            "</tr>"
+        )
+    return (
+        "<table class=\"register-fields\"><thead><tr>"
+        "<th>Field</th><th>Bits</th><th>Access</th><th>Reset</th><th>Description</th>"
+        "</tr></thead><tbody>"
+        + "".join(rows)
+        + "</tbody></table>"
+    )
+
+
+def _ssot_html_register_block(reg: dict, idx: int) -> str:
+    """Per-register properties table + bit-field table."""
+    if not isinstance(reg, dict):
+        return ""
+    name = reg.get("name") or reg.get("id") or f"register_{idx}"
+    prop_keys = [
+        (("offset", "address", "addr"), "Offset"),
+        (("width", "size"), "Width"),
+        (("access", "rw"), "Access"),
+        (("reset", "reset_value", "default"), "Reset value"),
+    ]
+    prop_rows: list[str] = []
+    for keys, label in prop_keys:
+        val = _ssot_pick(reg, *keys)
+        if val is None:
+            continue
+        if label in ("Offset", "Reset value"):
+            val = _ssot_html_hex(val)
+        prop_rows.append(
+            f"<tr><th>{_ssot_html_escape(label)}</th>"
+            f"<td>{_ssot_html_escape(val)}</td></tr>"
+        )
+    description = reg.get("description") or reg.get("desc") or ""
+    desc_html = (
+        f"<p class=\"reg-desc\">{_ssot_html_escape(description)}</p>" if description else ""
+    )
+    prop_html = (
+        "<table class=\"register-props\"><tbody>" + "".join(prop_rows) + "</tbody></table>"
+        if prop_rows else ""
+    )
+    field_html = _ssot_html_register_field_table(reg)
+    return (
+        "<div class=\"register-block\">"
+        f"<h4>{_ssot_html_escape(name)}</h4>"
+        f"{desc_html}{prop_html}{field_html}"
+        "</div>"
+    )
+
+
+def _ssot_html_hex(value: Any) -> str:
+    """Format integer-like values as 0x-hex; pass through other scalars."""
+    if isinstance(value, bool):
+        return str(value)
+    if isinstance(value, int):
+        return f"0x{value:X}"
+    if isinstance(value, str):
+        text = value.strip()
+        if re.match(r"^(0[xX])?[0-9a-fA-F]+$", text) and not text.lower().startswith("0x"):
+            try:
+                return f"0x{int(text):X}" if text.isdigit() else text
+            except ValueError:
+                return text
+        return text
+    return _ssot_md_scalar(value)
+
+
+def _ssot_html_registers(data: dict) -> str:
+    """Render the `registers` section as clean register-map tables.
+
+    Each register becomes a properties table plus a bit-field table. The
+    whole thing is wrapped in the same `diagram-card` styling used by the
+    FSM / timing sections so the datasheet stays visually consistent.
+    """
+    registers = data.get("registers") if isinstance(data, dict) else None
+    reg_list: list = []
+    if isinstance(registers, dict):
+        raw = registers.get("register_list")
+        if isinstance(raw, list):
+            reg_list = raw
+    elif isinstance(registers, list):
+        reg_list = registers
+
+    reg_list = [r for r in reg_list if isinstance(r, dict)]
+    if not reg_list:
+        return (
+            "<section class=\"diagram-card\">"
+            "<h3>Register Map</h3>"
+            "<p class=\"doc-empty\">No registers specified in SSOT.</p>"
+            "</section>"
+        )
+    blocks = "".join(_ssot_html_register_block(reg, idx) for idx, reg in enumerate(reg_list, start=1))
+    return "<section class=\"diagram-card\"><h3>Register Map</h3>" + blocks + "</section>"
+
+
+def _ssot_html_insert_after_section(html_body: str, heading_text: str, html: str) -> str:
+    """Insert `html` after the `<h2>heading_text</h2>` section, replacing its body.
+
+    The markdown `## <heading_text>` renders as `<h2 ...>heading_text</h2>`.
+    Everything between that heading and the next `<h2` is the section body;
+    it is replaced by `html` (so the plain markdown register table is dropped
+    in favour of the rich tables). If the heading is absent, append `html` so
+    it never disappears.
+    """
+    import re as _re
+
+    if not html:
+        return html_body
+    heading = _re.search(
+        rf"<h2\b[^>]*>\s*{_re.escape(heading_text)}\s*</h2>", html_body, _re.IGNORECASE
+    )
+    if not heading:
+        return html_body + html
+    next_h2 = _re.search(r"<h2\b", html_body[heading.end():], _re.IGNORECASE)
+    if next_h2:
+        body_end = heading.end() + next_h2.start()
+    else:
+        body_end = len(html_body)
+    return html_body[:heading.end()] + html + html_body[body_end:]
+
+
 def _ssot_html_design_views(data: dict, ip: str) -> str:
     if not isinstance(data, dict):
         return ""
@@ -1687,6 +1901,12 @@ def _ssot_to_html(md_text: str, ip: str, data: dict | None = None) -> str:
         ".diagram-card { margin: 1em 0; padding: 1em; border: 1px solid #e3e7ef; "
         "border-radius: 8px; background: #fff; } "
         ".diagram-card h3 { margin-top: 0; } "
+        ".register-block { margin: .8em 0 1.1em; } "
+        ".register-block h4 { margin: .2em 0; } "
+        ".reg-desc { color: #475569; margin: .1em 0 .55em; } "
+        ".register-props { margin: .35em 0 .55em; } "
+        ".register-props th { width: 9em; text-align: left; } "
+        ".register-fields { width: 100%; } "
         ".block-graph { display: grid; grid-template-columns: minmax(120px, 1fr) minmax(280px, 2fr) minmax(120px, 1fr); "
         "gap: 1em; align-items: center; } "
         ".iface-column { display: grid; gap: .6em; } "
@@ -1724,6 +1944,10 @@ def _ssot_to_html(md_text: str, ip: str, data: dict | None = None) -> str:
     if isinstance(data, dict):
         block_diagram = _ssot_html_block_diagram(data)
         html_body = _ssot_html_insert_after_top_module(html_body, block_diagram)
+        # (b) Replace the plain markdown "Registers" section body with the
+        # rich register-map tables (per-register props + bit-field tables).
+        registers_html = _ssot_html_registers(data)
+        html_body = _ssot_html_insert_after_section(html_body, "Registers", registers_html)
 
     mermaid_head = (
         "<script src=\"/vendor/mermaid.min.js\"></script>"

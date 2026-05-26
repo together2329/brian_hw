@@ -167,6 +167,8 @@ def test_atlas_prompt_send_prefers_current_ip_workflow_session() -> None:
     assert "window.atlasData.sessionFor(promptScope, promptWorkflow)" in workspace
     assert "canonicalSession,\n        window.ACTIVE_SESSION" in workspace
     assert "activeSession,\n        activeNamespace" in workspace
+    assert "const activeSessionWorkflow = workflowFromSession(" in workspace
+    assert "activeSessionWorkflow\n            || routeWorkflow\n            || workflow" in workspace
 
 
 def test_atlas_single_worker_workflow_switch_owns_chat_session() -> None:

@@ -6073,6 +6073,71 @@ def _scaffold_ip_workflow(base, name, created_dirs, created_files, skipped_files
             created_files.append(os.path.relpath(dst))
 
 
+def refresh_ip_wiki(name=None, root="."):
+    """Re-overwrite an existing IP's wiki with the central workflow knowledge.
+
+    scaffold_ip copies the workflow knowledge pages + runbook into <ip>/wiki/
+    once and then PRESERVES them, so an IP created earlier never picks up later
+    edits to the central workflow/wiki/ip_knowledge/ pages. This forces a
+    refresh: it OVERWRITES the copied stage knowledge pages and regenerates
+    workflow-runbook.md, then rebuilds <ip>/wiki/_graph.json.
+
+    The IP's own pages (index.md / log.md / notes.md from ssot-gen and any
+    hand-written .md) are left untouched — only the central-sourced knowledge
+    pages and the generated runbook are overwritten.
+    """
+    import re as _re
+    import shutil as _shutil
+    import subprocess as _sp
+    from pathlib import Path
+
+    if not isinstance(name, str) or not name.strip():
+        return "[refresh_ip_wiki: 'name' is required]"
+    name = name.strip()
+    if not _re.match(r"^[A-Za-z][A-Za-z0-9_]*$", name):
+        return f"[refresh_ip_wiki: invalid name {name!r} — letters, digits, underscore only]"
+
+    base = Path(os.path.abspath(os.path.join(root, name)))
+    if not base.is_dir():
+        return f"[refresh_ip_wiki: IP not found at {base} — create it with /new-ip first]"
+
+    wiki_dir = base / "wiki"
+    wiki_dir.mkdir(parents=True, exist_ok=True)
+
+    central = _central_workflow_root()
+    knowledge_src = central / "wiki" / "ip_knowledge"
+    written: list[str] = []
+    if knowledge_src.is_dir():
+        for page in sorted(knowledge_src.glob("*.md")):
+            _shutil.copy2(page, wiki_dir / page.name)  # overwrite
+            written.append(page.name)
+
+    # Regenerate the runbook from the current template.
+    (wiki_dir / "workflow-runbook.md").write_text(
+        _render_ip_workflow_runbook(name), encoding="utf-8"
+    )
+    written.append("workflow-runbook.md")
+
+    # Rebuild the IP wiki graph so wiki_query(ip=name) reflects the refresh.
+    rebuilt = False
+    builder = central / "wiki" / "build_graph.py"
+    if builder.is_file():
+        try:
+            _sp.run(
+                ["python3", str(builder), "--ip", name, "--project-root", str(base.parent)],
+                check=False, capture_output=True, timeout=30,
+            )
+            rebuilt = True
+        except Exception:
+            pass
+
+    preview = ", ".join(written[:6]) + ("…" if len(written) > 6 else "")
+    return (
+        f"✓ Refreshed {name}/wiki — overwrote {len(written)} file(s): {preview}"
+        + (" + rebuilt graph index" if rebuilt else "")
+    )
+
+
 def scaffold_ip(name=None, root="."):
     """Create the canonical IP directory layout in the project root.
 

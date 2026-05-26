@@ -203,6 +203,10 @@ class SlashCommandRegistry:
         self.register('git', self._cmd_git,
                      'Git 작업: /git diff, /git clear')
 
+        self.register('refresh-wiki', self._cmd_refresh_wiki,
+                     'IP wiki 덮어쓰기 갱신(중앙 workflow 지식 페이지 + runbook 재복사): /refresh-wiki [ip]',
+                     aliases=['wiki-refresh'])
+
         self.register('permission', self._cmd_permission,
                      '권한 설정: /permission rm|mv on|off  (run_command 내 rm/mv 허용 여부)',
                      aliases=['perm'])
@@ -3135,6 +3139,25 @@ class SlashCommandRegistry:
             return "\n".join(lines) + "\n"
         except Exception:
             return ""
+
+    def _cmd_refresh_wiki(self, args: str) -> str:
+        """Overwrite an IP's wiki with the central workflow knowledge pages +
+        runbook (re-copy so an existing IP picks up updated knowledge).
+        /refresh-wiki [ip]  — defaults to the active IP."""
+        import os as _os
+        parts = (args or "").strip().split()
+        ip = parts[0] if parts else _os.environ.get("ATLAS_ACTIVE_IP", "").strip()
+        if not ip:
+            return "Usage: /refresh-wiki <ip>  (no active IP — pass an IP name)"
+        root = _os.environ.get("ATLAS_PROJECT_ROOT", "").strip() or _os.getcwd()
+        try:
+            from core.tools import refresh_ip_wiki
+        except Exception:
+            try:
+                from tools import refresh_ip_wiki  # type: ignore
+            except Exception as exc:
+                return f"refresh-wiki unavailable: {exc}"
+        return refresh_ip_wiki(ip, root)
 
     def _cmd_clear(self, args: str) -> str:
         """Clear conversation history. /clear [N|all]"""
