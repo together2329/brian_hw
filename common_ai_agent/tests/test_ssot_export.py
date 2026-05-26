@@ -29,6 +29,8 @@ def _copy_sample_ssot(src_ip: str, dst_root: Path, dst_ip: str | None = None) ->
     project root from the working repo).
     """
     src = REPO_ROOT / src_ip / "yaml" / f"{src_ip}.ssot.yaml"
+    if not src.is_file():
+        src = REPO_ROOT / "ip_examples" / src_ip / "yaml" / f"{src_ip}.ssot.yaml"
     assert src.is_file(), f"sample ssot missing: {src}"
     ip = dst_ip or src_ip
     dest_dir = dst_root / ip / "yaml"
@@ -78,10 +80,27 @@ def test_render_html(tmp_path, monkeypatch, ip):
     _copy_sample_ssot(ip, tmp_path)
     data = atlas_ui._load_ssot_yaml(ip)
     md = atlas_ui._ssot_to_markdown(data, ip)
-    html = atlas_ui._ssot_to_html(md, ip)
+    html = atlas_ui._ssot_to_html(md, ip, data)
     assert html.startswith("<!DOCTYPE html>"), "html missing doctype"
     assert "<h1" in html and f">{ip}</h1>" in html, "h1 tag with ip name missing"
     assert "<table>" in html, "expected at least one table"
+
+    # FSM must render as a real mermaid stateDiagram (both samples have an fsm).
+    assert "fsm" in data, f"sample {ip} unexpectedly lacks an fsm section"
+    assert 'class="mermaid"' in html, "FSM should render as a mermaid block"
+    assert "stateDiagram" in html, "mermaid block should be a stateDiagram"
+    # Mermaid runtime must be wired up in the exported head.
+    assert "/vendor/mermaid.min.js" in html, "mermaid script not injected"
+    assert "mermaid.initialize" in html, "mermaid init script not injected"
+
+    # Block diagram must appear AFTER the Top Module heading, not before it.
+    import re as _re
+
+    top_match = _re.search(r"<h2\b[^>]*>\s*Top Module\s*</h2>", html, _re.IGNORECASE)
+    assert top_match, "Top Module heading missing from html"
+    block_idx = html.find("<h3>Block Diagram</h3>")
+    assert block_idx != -1, "Block Diagram section missing from html"
+    assert block_idx > top_match.start(), "Block Diagram must be placed after Top Module heading"
 
 
 @pytest.mark.parametrize("ip", SAMPLE_IPS)

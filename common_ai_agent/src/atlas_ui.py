@@ -1316,6 +1316,84 @@ def _ssot_fsm_machines(value: Any) -> list[dict]:
     return machines
 
 
+def _ssot_mermaid_state_id(value: Any) -> str:
+    """Map an arbitrary state name to a mermaid-safe identifier.
+
+    Mermaid state ids must be simple tokens — keep alnum/underscore,
+    replace everything else with underscore, and prefix a leading
+    digit so the token never starts with a number.
+    """
+    import re as _re
+
+    raw = "" if value is None else str(value)
+    token = _re.sub(r"[^0-9A-Za-z_]", "_", raw).strip("_")
+    if not token:
+        token = "s"
+    if token[0].isdigit():
+        token = f"s_{token}"
+    return token
+
+
+def _ssot_mermaid_label(value: Any) -> str:
+    """Sanitize an edge label so it can't break mermaid syntax."""
+    import re as _re
+
+    raw = "" if value is None else str(value)
+    raw = raw.replace("-->", "to").replace('"', "'")
+    raw = _re.sub(r"[\r\n]+", " ", raw)
+    raw = raw.replace(":", " -").replace(";", ",")
+    return _re.sub(r"\s+", " ", raw).strip()
+
+
+def _ssot_html_fsm_mermaid(machine: dict, reset_state: str, transitions_raw: list) -> str:
+    """Build a mermaid stateDiagram-v2 from a machine's transitions.
+
+    Returns "" when there are no usable transitions so the caller can
+    fall back to the rail/table-only rendering.
+    """
+    edges: list[str] = []
+    id_map: dict[str, str] = {}
+
+    def state_id(name: Any) -> str:
+        label = "" if name is None else str(name)
+        ident = _ssot_mermaid_state_id(label)
+        if ident not in id_map and label and label != ident:
+            id_map[ident] = label
+        else:
+            id_map.setdefault(ident, label)
+        return ident
+
+    for item in transitions_raw:
+        if not isinstance(item, dict):
+            continue
+        src = item.get("from") or item.get("source") or item.get("current") or ""
+        dst = item.get("to") or item.get("dest") or item.get("target") or item.get("next") or ""
+        if not src or not dst:
+            continue
+        cond = item.get("condition") or item.get("event") or item.get("trigger") or ""
+        src_id = state_id(src)
+        dst_id = state_id(dst)
+        label = _ssot_mermaid_label(cond)
+        if label:
+            edges.append(f"    {src_id} --> {dst_id} : {_ssot_html_escape(label)}")
+        else:
+            edges.append(f"    {src_id} --> {dst_id}")
+
+    if not edges:
+        return ""
+
+    lines = ["stateDiagram-v2"]
+    # Stable, deterministic alias declarations for ids whose label differs.
+    for ident, label in id_map.items():
+        if label and label != ident:
+            lines.append(f"    {ident} : {_ssot_html_escape(label)}")
+    if reset_state:
+        lines.append(f"    [*] --> {state_id(reset_state)}")
+    lines.extend(edges)
+    body = "\n".join(lines)
+    return f"<pre class=\"mermaid\">{body}</pre>"
+
+
 def _ssot_html_fsm_section(data: dict) -> str:
     machines = _ssot_fsm_machines(data.get("fsm"))
     if not machines:
@@ -1348,12 +1426,6 @@ def _ssot_html_fsm_section(data: dict) -> str:
                     seen.add(str(state))
                     states.append(str(state))
 
-        rail = "".join(
-            f"<span class=\"fsm-state{' reset' if state == reset_state else ''}\">{_ssot_html_escape(state)}</span>"
-            + ("<span class=\"fsm-arrow\">&rarr;</span>" if pos < len(states) - 1 else "")
-            for pos, state in enumerate(states[:12])
-        ) or "<span class=\"doc-empty small\">no states declared</span>"
-
         rows: list[str] = []
         for item in transitions_raw:
             if isinstance(item, dict):
@@ -1375,11 +1447,27 @@ def _ssot_html_fsm_section(data: dict) -> str:
             if rows else "<p class=\"doc-empty small\">no transitions declared</p>"
         )
         reset_html = f"<p class=\"reset-note\">reset: {_ssot_html_escape(reset_state)}</p>" if reset_state else ""
+
+        mermaid = _ssot_html_fsm_mermaid(machine, str(reset_state), transitions_raw)
+        if mermaid:
+            # Real diagram + transition table as complement below it.
+            diagram_html = mermaid
+        else:
+            # No transitions: fall back to the textual state rail.
+            diagram_html = "<div class=\"fsm-rail\">" + (
+                "".join(
+                    f"<span class=\"fsm-state{' reset' if state == reset_state else ''}\">{_ssot_html_escape(state)}</span>"
+                    + ("<span class=\"fsm-arrow\">&rarr;</span>" if pos < len(states) - 1 else "")
+                    for pos, state in enumerate(states[:12])
+                )
+                or "<span class=\"doc-empty small\">no states declared</span>"
+            ) + "</div>"
+
         chunks.append(
             "<div class=\"fsm-machine\">"
             f"<h4>{name}</h4>"
             f"{reset_html}"
-            f"<div class=\"fsm-rail\">{rail}</div>"
+            f"{diagram_html}"
             f"{table}"
             "</div>"
         )
@@ -1478,11 +1566,12 @@ def _ssot_html_timing_section(data: dict) -> str:
 def _ssot_html_design_views(data: dict, ip: str) -> str:
     if not isinstance(data, dict):
         return ""
+    # Design Views groups the datasheet diagrams (FSM + Timing). The block
+    # diagram is injected separately, directly under the Top Module section.
     return (
         "<section class=\"design-views\">"
         "<h2>Design Views</h2>"
         f"<p class=\"design-note\">Derived deterministically from <code>{_ssot_html_escape(ip)}/yaml/{_ssot_html_escape(ip)}.ssot.yaml</code>.</p>"
-        f"{_ssot_html_block_diagram(data)}"
         f"{_ssot_html_fsm_section(data)}"
         f"{_ssot_html_timing_section(data)}"
         "</section>"
@@ -1543,6 +1632,32 @@ def _ssot_to_markdown(data: dict, ip: str) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
+def _ssot_html_insert_after_top_module(html_body: str, block_diagram: str) -> str:
+    """Insert `block_diagram` right after the rendered Top Module section.
+
+    The markdown `## Top Module` heading renders (via the toc extension) as
+    an `<h2 ...>Top Module</h2>`. Find that heading, then insert the block
+    diagram just before the next `<h2` (i.e. at the end of the Top Module
+    section's content). If the heading isn't found, place the block diagram
+    at the very top of the body so it never crashes / disappears.
+    """
+    import re as _re
+
+    if not block_diagram:
+        return html_body
+
+    heading = _re.search(r"<h2\b[^>]*>\s*Top Module\s*</h2>", html_body, _re.IGNORECASE)
+    if not heading:
+        return block_diagram + html_body
+
+    next_h2 = _re.search(r"<h2\b", html_body[heading.end():], _re.IGNORECASE)
+    if next_h2:
+        insert_at = heading.end() + next_h2.start()
+    else:
+        insert_at = len(html_body)
+    return html_body[:insert_at] + block_diagram + html_body[insert_at:]
+
+
 def _ssot_to_html(md_text: str, ip: str, data: dict | None = None) -> str:
     import markdown as _mod  # type: ignore
 
@@ -1598,18 +1713,30 @@ def _ssot_to_html(md_text: str, ip: str, data: dict | None = None) -> str:
         ".wave-cell.high { background: #dff7e7; border-top: 3px solid #16a34a; } "
         ".wave-cell.low { background: #f8fafc; border-bottom: 3px solid #64748b; } "
         ".wave-cell.mark { background: #fff7d6; } "
+        ".mermaid { margin: .6em 0 .9em; } "
         "@media (max-width: 760px) { .block-graph { grid-template-columns: 1fr; } "
         ".wave-table { table-layout: auto; } }"
     )
     safe_ip = str(ip).replace("<", "&lt;").replace(">", "&gt;")
     design_views = _ssot_html_design_views(data, ip) if isinstance(data, dict) else ""
+
+    # (a) Place the block diagram directly under the Top Module section.
+    if isinstance(data, dict):
+        block_diagram = _ssot_html_block_diagram(data)
+        html_body = _ssot_html_insert_after_top_module(html_body, block_diagram)
+
+    mermaid_head = (
+        "<script src=\"/vendor/mermaid.min.js\"></script>"
+        "<script>mermaid.initialize({ startOnLoad: true, theme: 'neutral' });</script>"
+    )
     return (
         "<!DOCTYPE html>\n"
         "<html><head><meta charset=\"utf-8\">"
         f"<title>{safe_ip} — SSOT</title>"
-        f"<style>{css}</style></head><body>"
-        f"{design_views}"
+        f"<style>{css}</style>"
+        f"{mermaid_head}</head><body>"
         f"{html_body}"
+        f"{design_views}"
         "</body></html>"
     )
 
