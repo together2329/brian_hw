@@ -2317,11 +2317,30 @@ def run_react_agent_impl(
                 except Exception:
                     pass
 
-            if todo_tracker and not todo_tracker.is_all_processed() and todo_tracker.todos:
+            _has_incomplete_todos = bool(
+                todo_tracker and not todo_tracker.is_all_processed() and todo_tracker.todos
+            )
+            _active_todo = todo_tracker.get_current_todo() if _has_incomplete_todos else None
+            if _has_incomplete_todos and _active_todo is None:
+                visible = deps.strip_thinking_fn(collected_content).strip()
+                if visible:
+                    # Stale session todo state can leave current_index at -1 while
+                    # old todos remain on disk. In that case this is a normal chat
+                    # answer, not an execution turn that must call a tool.
+                    break
+                elif final_answer_attempts < 1:
+                    final_answer_attempts += 1
+                    messages.append({
+                        "role": "user",
+                        "content": "Please provide your final answer to the user based on your research so far.",
+                    })
+                else:
+                    break
+            elif _has_incomplete_todos:
                 if getattr(cfg, "EXECUTION_NO_ACTION_GUARD", True):
                     _execution_no_action_retries += 1
                     _retry_limit = int(getattr(cfg, "EXECUTION_NO_ACTION_RETRY_LIMIT", 3))
-                    _cur = todo_tracker.get_current_todo()
+                    _cur = _active_todo
                     _idx1 = (todo_tracker.current_index + 1) if _cur else 0
                     _total = len(todo_tracker.todos)
                     _content = _cur.content if _cur else "(no active task)"

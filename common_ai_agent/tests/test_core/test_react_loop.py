@@ -4,6 +4,7 @@ Phase 6: extract pure helpers and ReactLoopDeps from run_react_agent in main.py
 """
 import unittest
 from unittest.mock import MagicMock, patch
+import sys
 import types
 
 
@@ -275,6 +276,69 @@ class TestRunReactAgentImpl(unittest.TestCase):
             msgs, _ = self._call(cfg=cfg)
         except Exception as e:
             self.fail(f"Unexpected exception with ENABLE_TODO_TRACKING=False: {e}")
+
+    def test_stale_todo_without_current_accepts_text_reply(self):
+        """Stale todo files must not make normal chat replies hit the action guard."""
+        from core.react_loop import run_react_agent_impl
+
+        class _Todo:
+            content = "stale task"
+            detail = "old session state"
+            criteria = "not active"
+            status = "pending"
+
+        class _StaleTodoTracker:
+            todos = [_Todo()]
+            current_index = -1
+
+            def is_all_processed(self):
+                return False
+
+            def get_current_todo(self):
+                return None
+
+            def check_rejection_livelock(self, max_rejections=50):
+                return None
+
+        calls = {"count": 0}
+
+        def text_reply(messages, stop=None, **kwargs):
+            calls["count"] += 1
+            yield "Hi, I'm here."
+
+        emitted = []
+        cfg = _make_cfg(
+            ENABLE_TODO_TRACKING=True,
+            EXECUTION_NO_ACTION_GUARD=True,
+            EXECUTION_NO_ACTION_RETRY_LIMIT=3,
+            TODO_FILE="/tmp/nonexistent-atlas-todo.json",
+        )
+        deps = self._make_deps(
+            cfg=cfg,
+            llm_call_fn=text_reply,
+            detect_completion_fn=lambda _text: False,
+            emit_content_fn=lambda line: emitted.append(line),
+            emit_flush_fn=lambda: None,
+        )
+        messages = [{"role": "system", "content": "system"}, {"role": "user", "content": "hi"}]
+        tracker = self._make_tracker()
+
+        with patch.dict(sys.modules, {"main": types.SimpleNamespace(todo_tracker=_StaleTodoTracker())}):
+            msgs, _ = run_react_agent_impl(
+                messages=messages,
+                tracker=tracker,
+                task_description="chat",
+                deps=deps,
+            )
+
+        self.assertEqual(calls["count"], 1)
+        self.assertTrue(any(
+            m.get("role") == "assistant" and "Hi, I'm here." in m.get("content", "")
+            for m in msgs
+        ))
+        rendered = "\n".join(str(line) for line in emitted)
+        self.assertNotIn("Runtime guard nudged execution", rendered)
+        self.assertNotIn("no-action guard", rendered)
 
     def test_preface_disabled_skips_orchestrator(self):
         """preface_enabled=False must not call orchestrator."""
