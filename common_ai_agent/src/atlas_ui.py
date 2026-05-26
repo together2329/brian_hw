@@ -1235,41 +1235,78 @@ def _ssot_html_block_diagram(data: dict) -> str:
 
     left_ifaces: list[dict] = []
     right_ifaces: list[dict] = []
-    for iface in interfaces:
-        role = str(iface.get("role") or iface.get("direction") or iface.get("type") or "").lower()
+
+    def iface_port_dirs(iface: dict) -> set[str]:
         ports = iface.get("ports")
-        has_output = False
-        if isinstance(ports, list):
-            has_output = any(
-                isinstance(port, dict)
-                and str(port.get("direction") or "").lower() in {"output", "out"}
-                for port in ports
-            )
-        if role in {"master", "source", "output", "out"} or has_output:
+        if not isinstance(ports, list):
+            return set()
+        dirs: set[str] = set()
+        for port in ports:
+            if not isinstance(port, dict):
+                continue
+            direction = str(port.get("direction") or "").strip().lower()
+            if direction:
+                dirs.add(direction)
+        return dirs
+
+    def iface_side(iface: dict) -> str:
+        role = str(iface.get("role") or iface.get("direction") or "").strip().lower()
+        if role in {"master", "source", "output", "out", "producer"}:
+            return "right"
+        if role in {"slave", "sink", "input", "in", "consumer"}:
+            return "left"
+
+        dirs = iface_port_dirs(iface)
+        if dirs and dirs <= {"input", "in"}:
+            return "left"
+        if dirs and dirs <= {"output", "out"}:
+            return "right"
+        typ = str(iface.get("type") or iface.get("protocol") or "").strip().lower()
+        if any(token in typ for token in ("axi", "apb", "ace", "chi")):
+            return "right"
+        return "left"
+
+    def iface_flow(iface: dict) -> str:
+        role = str(iface.get("role") or iface.get("direction") or "").strip().lower()
+        if role in {"master", "slave"}:
+            return "bi"
+        if role in {"source", "output", "out", "producer"}:
+            return "out"
+        if role in {"sink", "input", "in", "consumer"}:
+            return "in"
+
+        dirs = iface_port_dirs(iface)
+        if "inout" in dirs or (dirs & {"input", "in"} and dirs & {"output", "out"}):
+            return "bi"
+        if dirs and dirs <= {"input", "in"}:
+            return "in"
+        if dirs and dirs <= {"output", "out"}:
+            return "out"
+        return "bi"
+
+    for iface in interfaces:
+        if iface_side(iface) == "right":
             right_ifaces.append(iface)
         else:
             left_ifaces.append(iface)
 
-    def iface_chip(iface: dict, side: str) -> str:
+    def iface_link(iface: dict, side: str) -> str:
         name = _ssot_html_escape(iface.get("name") or "(interface)")
         typ = _ssot_html_escape(iface.get("type") or iface.get("protocol") or iface.get("role") or "")
-        arrow = "&rarr;" if side == "left" else "&larr;"
         ports = iface.get("ports")
         count = len(ports) if isinstance(ports, list) else 0
         meta = " · ".join(part for part in (typ, f"{count} ports" if count else "") if part)
         meta_html = f"<small>{meta}</small>" if meta else ""
+        label = f"<div class=\"iface-label\"><strong>{name}</strong>{meta_html}</div>"
+        wire = "<span class=\"iface-wire\" aria-hidden=\"true\"></span>"
+        body = f"{label}{wire}" if side == "left" else f"{wire}{label}"
         return (
-            f"<div class=\"iface-chip\"><span class=\"iface-arrow\">{arrow}</span>"
-            f"<strong>{name}</strong>"
-            f"{meta_html}</div>"
+            f"<div class=\"iface-link {side} flow-{iface_flow(iface)}\">"
+            f"{body}</div>"
         )
 
-    left_html = "".join(iface_chip(item, "left") for item in left_ifaces)
-    right_html = "".join(iface_chip(item, "right") for item in right_ifaces)
-    if not left_html:
-        left_html = "<div class=\"doc-empty small\">no input-side interface declared</div>"
-    if not right_html:
-        right_html = "<div class=\"doc-empty small\">no output-side interface declared</div>"
+    left_html = "".join(iface_link(item, "left") for item in left_ifaces)
+    right_html = "".join(iface_link(item, "right") for item in right_ifaces)
 
     if submods:
         module_html = "".join(
@@ -1996,13 +2033,23 @@ def _ssot_to_html(md_text: str, ip: str, data: dict | None = None) -> str:
         ".register-props { margin: .35em 0 .55em; } "
         ".register-props th { width: 9em; text-align: left; } "
         ".register-fields { width: 100%; } "
-        ".block-graph { display: grid; grid-template-columns: minmax(120px, 1fr) minmax(280px, 2fr) minmax(120px, 1fr); "
-        "gap: 1em; align-items: center; } "
-        ".iface-column { display: grid; gap: .6em; } "
-        ".iface-chip { border: 1px solid #b8c5dd; border-radius: 6px; padding: .55em .7em; background: #f7faff; } "
-        ".iface-chip strong { display: block; } "
-        ".iface-chip small, .module-node small { display: block; color: #64748b; margin-top: .2em; } "
-        ".iface-arrow { color: #315fdc; font-weight: 700; margin-right: .35em; } "
+        ".block-graph { display: grid; grid-template-columns: minmax(170px, 1fr) minmax(280px, 2fr) minmax(170px, 1fr); "
+        "gap: 0; align-items: center; } "
+        ".iface-column { display: grid; gap: .75em; align-content: center; } "
+        ".iface-link { display: grid; align-items: center; min-height: 3em; } "
+        ".iface-link.left { grid-template-columns: minmax(120px, 1fr) minmax(44px, .35fr); } "
+        ".iface-link.right { grid-template-columns: minmax(44px, .35fr) minmax(120px, 1fr); } "
+        ".iface-label { color: #1f2937; padding: .2em .45em; line-height: 1.25; } "
+        ".iface-link.left .iface-label { text-align: right; } "
+        ".iface-label strong { display: block; font-weight: 800; } "
+        ".iface-label small, .module-node small { display: block; color: #64748b; margin-top: .2em; } "
+        ".iface-wire { display: block; position: relative; height: 2px; min-width: 42px; background: #315fdc; } "
+        ".iface-wire::before, .iface-wire::after { content: \"\"; display: none; position: absolute; top: 50%; "
+        "width: .55em; height: .55em; border-top: 2px solid #315fdc; border-right: 2px solid #315fdc; } "
+        ".iface-link.flow-out.left .iface-wire::before, .iface-link.flow-in.right .iface-wire::before, "
+        ".iface-link.flow-bi .iface-wire::before { display: block; left: 0; transform: translateY(-50%) rotate(225deg); } "
+        ".iface-link.flow-in.left .iface-wire::after, .iface-link.flow-out.right .iface-wire::after, "
+        ".iface-link.flow-bi .iface-wire::after { display: block; right: 0; transform: translateY(-50%) rotate(45deg); } "
         ".top-node { border: 2px solid #315fdc; border-radius: 10px; padding: 1em; background: #f4f7ff; text-align: center; } "
         ".top-title { font-weight: 800; font-size: 1.15em; } "
         ".top-desc { color: #475569; margin-top: .3em; } "
@@ -2023,7 +2070,9 @@ def _ssot_to_html(md_text: str, ip: str, data: dict | None = None) -> str:
         ".wave-cell.low { background: #f8fafc; border-bottom: 3px solid #64748b; } "
         ".wave-cell.mark { background: #fff7d6; } "
         ".mermaid { margin: .6em 0 .9em; } "
-        "@media (max-width: 760px) { .block-graph { grid-template-columns: 1fr; } "
+        "@media (max-width: 760px) { .block-graph { grid-template-columns: 1fr; gap: .8em; } "
+        ".iface-link.left, .iface-link.right { grid-template-columns: minmax(44px, .25fr) minmax(120px, 1fr); } "
+        ".iface-link.left .iface-wire { order: 1; } .iface-link.left .iface-label { order: 2; } "
         ".wave-table { table-layout: auto; } }"
     )
     safe_ip = str(ip).replace("<", "&lt;").replace(">", "&gt;")

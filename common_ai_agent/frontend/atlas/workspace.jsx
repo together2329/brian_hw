@@ -149,12 +149,6 @@ const cleanAtlasTerminalText = (text) => {
   return String(text || '').replace(/\x1b\[[\d;]*m/g, '');
 };
 
-const workerLocalTodosFromAtlasFeed = (feed, workflow) => {
-  const fn = window.AtlasOrchestratorChatLogic?.workerLocalTodosFromFeed;
-  if (typeof fn === 'function') return fn(feed, workflow);
-  return [];
-};
-
 const coalesceAtlasFeedEntries = (current, entries) => {
   const fn = window.AtlasOrchestratorChatLogic?.coalesceFeedEntries;
   if (typeof fn === 'function') return fn(current, entries);
@@ -3411,19 +3405,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     return null;
   }, [feed, qaState, flowMatchesCurrentSession]);
 
-  const workerLocalTodos = React.useMemo(() => {
-    if (String(workflow || '') === 'orchestrator') return [];
-    return workerLocalTodosFromAtlasFeed(feed, workflow);
-  }, [feed, workflow]);
-  const atlasTodoCount = Array.isArray(window.TODOS) ? window.TODOS.length : 0;
-  const todoPanelOverride = (
-    String(workflow || '') !== 'orchestrator'
-    && atlasTodoCount === 0
-    && workerLocalTodos.length > 0
-  ) ? workerLocalTodos : null;
-  const todoPanelSourceLabel = todoPanelOverride
-    ? `${workflow || 'worker'} worker-local`
-    : '';
+  // TODO tab/right panel mirror only the active session todo.json surfaced
+  // through /api/todos. Worker-local todo_update transcript lines are chat
+  // history, not authoritative task state for the UI counters.
 
   // Tabbed center layout — auto-switch to Q&A tab when ask_user fires,
   // and back to chat after the user submits.  Classic layout ignores
@@ -6372,9 +6356,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
               >git</span>
             )}
             {(() => {
-              const _allTodos = Array.isArray(todoPanelOverride)
-                ? todoPanelOverride
-                : (Array.isArray(window.TODOS) ? window.TODOS : []);
+              const _allTodos = Array.isArray(window.TODOS) ? window.TODOS : [];
               const _doneTodos = _allTodos.filter(t => ['done', 'approved', 'completed'].includes(t.state)).length;
               const _openTodos = _allTodos.length - _doneTodos;
               return (
@@ -6662,7 +6644,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
             )
           ) : mainTab === 'todo' ? (
             <ErrorBoundary label="TodoEditor">
-              <TodoEditorPane todosOverride={todoPanelOverride} sourceLabel={todoPanelSourceLabel} />
+              <TodoEditorPane />
             </ErrorBoundary>
             ) : (
             /* mainTab === 'qa' — SSOT-GEN QA board or active ask_user */
@@ -6973,7 +6955,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
             <RightTab id="git"  cur={rightTab} onTab={setRightTab}>Git</RightTab>
           </div>
           {rightTab === 'progress' && <ProgressPanel />}
-          {rightTab === 'todo' && <TodoPanel todosOverride={todoPanelOverride} sourceLabel={todoPanelSourceLabel} />}
+          {rightTab === 'todo' && <TodoPanel />}
           {rightTab === 'chat' && <OrchestratorChatPanel activeIp={activeIp} />}
           {rightTab === 'git'  && <GitPanel activeIp={activeIp} />}
         </div>
@@ -15750,7 +15732,7 @@ const ProgressPanel = () => {
 // the local session file, not the DB mirror.
 const TODO_EDITOR_STATES = ['pending', 'in_progress', 'completed', 'approved', 'rejected'];
 
-const TodoEditorPane = ({ todosOverride = null, sourceLabel = '' } = {}) => {
+const TodoEditorPane = () => {
   // Re-render on data-layer refreshes so live agent edits + our mutations show.
   const [, bump] = React.useReducer(x => x + 1, 0);
   React.useEffect(() => {
@@ -15760,9 +15742,7 @@ const TodoEditorPane = ({ todosOverride = null, sourceLabel = '' } = {}) => {
     return () => window.removeEventListener('atlas-data-changed', h);
   }, []);
 
-  const usingOverride = Array.isArray(todosOverride);
-  const sessionTodos = Array.isArray(window.TODOS) ? window.TODOS : [];
-  const todos = usingOverride ? todosOverride : sessionTodos;
+  const todos = Array.isArray(window.TODOS) ? window.TODOS : [];
   const [busy, setBusy] = React.useState(false);
   const [err, setErr] = React.useState('');
   // Add-form local state
@@ -15821,7 +15801,6 @@ const TodoEditorPane = ({ todosOverride = null, sourceLabel = '' } = {}) => {
   };
 
   const handleClearAll = () => {
-    if (usingOverride) return;
     if (!todos.length) return;
     if (!window.confirm('Clear ALL todos for this session? This cannot be undone.')) return;
     runMutation(async () => {
@@ -15848,26 +15827,16 @@ const TodoEditorPane = ({ todosOverride = null, sourceLabel = '' } = {}) => {
           Todos ({todos.length})
         </div>
         <span style={{ flex: 1 }} />
-        {usingOverride && sourceLabel ? (
-          <span style={{
-            fontFamily: 'var(--mono)',
-            fontSize: 10,
-            padding: '2px 7px',
-            border: '1px solid var(--line)',
-            color: 'var(--fg-mute)',
-            borderRadius: 2,
-          }}>{sourceLabel}</span>
-        ) : null}
         <button
           className="btn"
-          disabled={busy || usingOverride || !todos.length}
+          disabled={busy || !todos.length}
           onClick={handleClearAll}
           style={{
-            cursor: (busy || usingOverride || !todos.length) ? 'default' : 'pointer',
+            cursor: (busy || !todos.length) ? 'default' : 'pointer',
             padding: '3px 10px', borderRadius: 3,
             border: '1px solid var(--err)', color: 'var(--err)',
             background: 'transparent', fontSize: 'var(--ui-control-font-size)',
-            opacity: (busy || usingOverride || !todos.length) ? 0.5 : 1,
+            opacity: (busy || !todos.length) ? 0.5 : 1,
           }}
         >Clear all</button>
       </div>
@@ -15941,62 +15910,21 @@ const TodoEditorPane = ({ todosOverride = null, sourceLabel = '' } = {}) => {
       ) : (
         <div style={{ display: 'grid', gap: 12 }}>
           {todos.map((todo, index) => (
-            usingOverride ? (
-              <TodoReadonlyRow
-                key={todo.id || index}
-                index={index}
-                todo={todo}
-                criteriaText={criteriaText(todo.criteria)}
-                fieldLabel={fieldLabel}
-              />
-            ) : (
-              <TodoEditorRow
-                key={todo.id || index}
-                index={index}
-                todo={todo}
-                busy={busy}
-                criteriaText={criteriaText(todo.criteria)}
-                fieldLabel={fieldLabel}
-                inputStyle={inputStyle}
-                onSave={(fields) => handleSaveRow(index, fields)}
-                onRemove={() => handleRemove(index)}
-                onInsertAbove={() => handleInsertAbove(index)}
-              />
-            )
+            <TodoEditorRow
+              key={todo.id || index}
+              index={index}
+              todo={todo}
+              busy={busy}
+              criteriaText={criteriaText(todo.criteria)}
+              fieldLabel={fieldLabel}
+              inputStyle={inputStyle}
+              onSave={(fields) => handleSaveRow(index, fields)}
+              onRemove={() => handleRemove(index)}
+              onInsertAbove={() => handleInsertAbove(index)}
+            />
           ))}
         </div>
       )}
-    </div>
-  );
-};
-
-const TodoReadonlyRow = ({ index, todo, criteriaText, fieldLabel }) => {
-  const meta = atlasStatusMeta(todo.state || 'pending');
-  const detail = String(todo.detail || '').trim();
-  const criteria = String(criteriaText || '').trim();
-  return (
-    <div className="digest-card" style={{
-      border: '1px solid var(--line)', borderRadius: 4, padding: 12,
-      display: 'grid', gap: 8,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-        <span style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)' }}>#{index + 1}</span>
-        <AtlasStatusBadge status={todo.state || 'pending'} label={meta.label} compact soft />
-        {todo.section ? <span className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 11 }}>{todo.section}</span> : null}
-        <span style={{ color: 'var(--fg)', fontWeight: 700, overflowWrap: 'anywhere' }}>{todo.title || 'todo'}</span>
-      </div>
-      {detail ? (
-        <div>
-          <div style={fieldLabel}>Detail</div>
-          <div style={{ color: 'var(--fg-dim)', lineHeight: 1.6, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{detail}</div>
-        </div>
-      ) : null}
-      {criteria ? (
-        <div>
-          <div style={fieldLabel}>Criteria</div>
-          <div style={{ color: 'var(--fg-dim)', lineHeight: 1.6, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{criteria}</div>
-        </div>
-      ) : null}
     </div>
   );
 };
@@ -16100,15 +16028,14 @@ const TodoEditorRow = ({ index, todo, busy, criteriaText, fieldLabel, inputStyle
   );
 };
 
-const TodoPanel = ({ todosOverride = null, sourceLabel = '' } = {}) => {
+const TodoPanel = () => {
   const [view, setView] = React.useState('compact'); // compact | detail | graph
   const [openId, setOpenId] = React.useState(null);
   // Per-group collapse state in compact view: {approved: true, ...}
   // means that group is collapsed. Defaults set via collapsedDefault
   // inside the render so they're not duplicated.
   const [collapsedTodoGroups, setCollapsedTodoGroups] = React.useState({});
-  const usingOverride = Array.isArray(todosOverride);
-  const todos = usingOverride ? todosOverride : (Array.isArray(window.TODOS) ? window.TODOS : []);
+  const todos = Array.isArray(window.TODOS) ? window.TODOS : [];
   // "Done" counter spans every terminal state (done/approved/completed)
   // — without this, the counter showed 0/7 for tasks the agent had
   // explicitly approved because raw 'approved' status now flows
@@ -16345,26 +16272,14 @@ const TodoPanel = ({ todosOverride = null, sourceLabel = '' } = {}) => {
             <AtlasStatusBadge key={k} status={k} label={c.label} count={counts[k]} compact soft />
           );
         })}
-        {usingOverride && sourceLabel ? (
-          <span style={{
-            fontFamily: 'var(--mono)',
-            fontSize: 10,
-            padding: '2px 7px',
-            border: '1px solid var(--line)',
-            color: 'var(--fg-mute)',
-            borderRadius: 2,
-          }}>{sourceLabel}</span>
-        ) : null}
         <span style={{ flex: 1 }} />
-        {!usingOverride && (
-          <span title="Clear all todos"
-            onClick={() => { if (confirm('Clear all todos?')) window.atlasData.clearTodos(); }}
-            style={{
-              cursor: 'pointer', fontSize: 10, padding: '2px 8px',
-              border: '1px solid var(--line)', color: 'var(--fg-mute)',
-              borderRadius: 2,
-            }}>✕ clear</span>
-        )}
+        <span title="Clear all todos"
+          onClick={() => { if (confirm('Clear all todos?')) window.atlasData.clearTodos(); }}
+          style={{
+            cursor: 'pointer', fontSize: 10, padding: '2px 8px',
+            border: '1px solid var(--line)', color: 'var(--fg-mute)',
+            borderRadius: 2,
+          }}>✕ clear</span>
         <span className="mute" style={{ fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase' }}>view</span>
         <Tab id="compact" label="list" />
         <Tab id="detail" label="detail" />

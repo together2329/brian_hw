@@ -115,6 +115,48 @@ def test_render_html(tmp_path, monkeypatch, ip):
     assert block_idx < top_match.end() + next_h2.start(), "Block Diagram must stay inside Top Module section"
 
 
+def test_block_diagram_renders_interfaces_as_arrow_lanes():
+    data = {
+        "top_module": {"name": "demo_dma", "description": "demo top"},
+        "sub_modules": [{"name": "csr"}, {"name": "mm2s"}, {"name": "s2mm"}],
+        "io_list": {
+            "interfaces": [
+                {
+                    "name": "s_axi_lite",
+                    "type": "AXI4-Lite",
+                    "role": "slave",
+                    "ports": [
+                        {"name": "awvalid", "direction": "input"},
+                        {"name": "rdata", "direction": "output"},
+                    ],
+                },
+                {
+                    "name": "m_axi_mm2s",
+                    "type": "AXI4",
+                    "role": "master",
+                    "ports": [
+                        {"name": "arvalid", "direction": "output"},
+                        {"name": "rdata", "direction": "input"},
+                    ],
+                },
+                {
+                    "name": "irq_out",
+                    "type": "custom",
+                    "ports": [{"name": "irq", "direction": "output"}],
+                },
+            ],
+        },
+    }
+
+    html = atlas_ui._ssot_html_block_diagram(data)
+
+    assert "iface-link left flow-bi" in html
+    assert "iface-link right flow-bi" in html
+    assert "iface-link right flow-out" in html
+    assert "iface-chip" not in html
+    assert "no input-side interface declared" not in html
+
+
 @pytest.mark.parametrize("ip", SAMPLE_IPS)
 def test_html_register_map_bit_field_tables(tmp_path, monkeypatch, ip):
     """The datasheet HTML must render the register map as clean bit-field tables."""
