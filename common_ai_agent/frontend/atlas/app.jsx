@@ -71,7 +71,12 @@ const ATLAS_EXEC_MODE_OPTIONS = [
   { key: 'single-worker', label: 'Single Worker' },
   { key: 'orchestrator', label: 'Orchestrator' },
 ];
-const DEFAULT_ATLAS_EXEC_MODE = 'orchestrator';
+const DEFAULT_ATLAS_EXEC_MODE = 'single-worker';
+// Temporary hard lock — mirrors core/atlas_exec_policy.EXEC_MODE_LOCKED.
+// While true, the UI boots single-worker and the exec picker is disabled so
+// users can't switch to orchestrator. Flip both (here + the policy module)
+// to re-enable selection.
+const ATLAS_EXEC_MODE_LOCKED = true;
 const ATLAS_FONT_MODE_OPTIONS = [
   { key: 'windows', label: 'Windows' },
   { key: 'sans', label: 'Sans' },
@@ -113,7 +118,7 @@ const atlasPolicyConfig = () => {
   const policy = cfg.exec_policy || cfg.policy || {};
   return {
     exec_mode: mode,
-    initial_workflow: policy.initial_workflow || (mode === 'orchestrator' ? 'orchestrator' : 'ssot-gen'),
+    initial_workflow: policy.initial_workflow || (mode === 'orchestrator' ? 'orchestrator' : 'default'),
     preserve_running_on_workflow_switch:
       typeof policy.preserve_running_on_workflow_switch === 'boolean'
         ? policy.preserve_running_on_workflow_switch
@@ -280,6 +285,7 @@ const App = () => {
     catch (_) { return 'engineering'; }
   });
   const [execMode, setExecMode] = React.useState(() => {
+    if (ATLAS_EXEC_MODE_LOCKED) return 'single-worker';
     try { return normalizeAtlasExecMode(atlasBootConfig().exec_mode || localStorage.getItem('atlasExecMode')); }
     catch (_) { return DEFAULT_ATLAS_EXEC_MODE; }
   });
@@ -369,7 +375,7 @@ const App = () => {
     const policy = atlasPolicyConfig();
     const mode = normalizeAtlasExecMode(execMode || policy.exec_mode || window.ATLAS_EXEC_MODE || window.ATLAS_DEFAULT_EXEC_MODE);
     if (mode === 'orchestrator') return 'orchestrator';
-    return normalizeSession(policy.initial_workflow || '') || 'ssot-gen';
+    return normalizeSession(policy.initial_workflow || '') || 'default';
   }, [execMode, normalizeSession]);
   const preserveRunningForCurrentMode = React.useCallback(() => {
     const policy = atlasPolicyConfig();
@@ -2236,10 +2242,16 @@ const App = () => {
           <span>exec</span>
           <select
             className="dir-select exec"
-            value={execMode}
-            onChange={e => saveRunPolicy(runMode, e.currentTarget.value)}
-            title="Exec Mode chooses single-worker execution or orchestrator-managed workers">
-            {ATLAS_EXEC_MODE_OPTIONS.map(opt => (
+            value={ATLAS_EXEC_MODE_LOCKED ? 'single-worker' : execMode}
+            disabled={ATLAS_EXEC_MODE_LOCKED}
+            onChange={e => { if (!ATLAS_EXEC_MODE_LOCKED) saveRunPolicy(runMode, e.currentTarget.value); }}
+            title={ATLAS_EXEC_MODE_LOCKED
+              ? 'Exec Mode is locked to Single Worker'
+              : 'Exec Mode chooses single-worker execution or orchestrator-managed workers'}>
+            {(ATLAS_EXEC_MODE_LOCKED
+              ? ATLAS_EXEC_MODE_OPTIONS.filter(opt => opt.key === 'single-worker')
+              : ATLAS_EXEC_MODE_OPTIONS
+            ).map(opt => (
               <option key={opt.key} value={opt.key}>{opt.label}</option>
             ))}
           </select>

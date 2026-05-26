@@ -6665,16 +6665,58 @@ def create_app():
                 out["results"] = {"error": f"parse failed: {e}"}
         return JSONResponse(out)
 
+    def _same_todo_path(left: Path | None, right: Path | None) -> bool:
+        if left is None or right is None:
+            return False
+        try:
+            return left.expanduser().resolve() == right.expanduser().resolve()
+        except Exception:
+            return str(left) == str(right)
+
+    def _todo_session_for_request(
+        request: Request,
+        requested: str | None = None,
+    ) -> tuple[str, JSONResponse | None]:
+        session = normalize_session_name(requested or "")
+        if not session:
+            session = _request_active_session_for_user(request)
+        user = request.scope.get("user") or {}
+        username = normalize_session_name(str(user.get("username") or ""))
+        owner = session.split("/", 1)[0] if session else ""
+        if username and owner and owner != username:
+            return "", JSONResponse({"error": "session owner mismatch"}, status_code=403)
+        return session, None
+
     @app.post("/api/todos/clear")
-    async def api_todos_clear():
-        """Wipe both the in-memory tracker and the on-disk file."""
+    async def api_todos_clear(request: Request):
+        """Clear the todo file for the requested active session."""
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        session_name, denied = _todo_session_for_request(
+            request,
+            str((body or {}).get("session") or request.query_params.get("session") or ""),
+        )
+        if denied is not None:
+            return denied
+        session_todo = (
+            PROJECT_ROOT / ".session" / session_name / "todo.json"
+            if session_name else None
+        )
         import os as _os
         _os.environ.pop("TODO_TEMPLATE_LOCK_ADDITIONS", None)
         _os.environ.pop("TODO_TEMPLATE_LOCK_NAME", None)
         try:
             import main as _main  # noqa: WPS433
             tt = getattr(_main, "todo_tracker", None)
-            if tt is not None and hasattr(tt, "todos"):
+            persist = getattr(tt, "_persist_path", None) if tt is not None else None
+            live_path = Path(persist) if persist else None
+            if (
+                tt is not None
+                and hasattr(tt, "todos")
+                and (session_todo is None or _same_todo_path(live_path, session_todo))
+            ):
                 tt.todos = []
                 if hasattr(tt, "current_index"):
                     tt.current_index = -1
@@ -6683,33 +6725,24 @@ def create_app():
                     except Exception: pass
         except Exception:
             pass
-        # Remove the on-disk file too so the legacy fallback can't
-        # re-surface old todos.
-        try:
-            from pathlib import Path as _P
-            for cand in ("current_todos.json",
-                         str(_P.home() / ".common_ai_agent" / "current_todos.json")):
-                p = _P(cand)
-                if p.exists():
-                    try: p.unlink()
-                    except Exception: pass
-        except Exception:
-            pass
-        # Also clear the active session-scoped todo.json — the GET /api/todos
-        # handler prefers that file over the global one (see api_todos: when
-        # active_session has a todo.json, it's the source of truth). Leaving
-        # it in place makes the UI snap back to old cards after refreshTodos.
-        try:
-            from pathlib import Path as _P
-            active = normalize_session_name(_active_session_value())
-            if active:
-                session_todo = PROJECT_ROOT / ".session" / active / "todo.json"
-                if session_todo.exists():
-                    try: session_todo.write_text('{"todos": []}', encoding="utf-8")
-                    except Exception: pass
-        except Exception:
-            pass
-        return JSONResponse({"ok": True})
+        if session_todo is not None:
+            try:
+                session_todo.parent.mkdir(parents=True, exist_ok=True)
+                session_todo.write_text('{"todos": []}', encoding="utf-8")
+            except Exception:
+                pass
+        else:
+            try:
+                from pathlib import Path as _P
+                for cand in ("current_todos.json",
+                             str(_P.home() / ".common_ai_agent" / "current_todos.json")):
+                    p = _P(cand)
+                    if p.exists():
+                        try: p.unlink()
+                        except Exception: pass
+            except Exception:
+                pass
+        return JSONResponse({"ok": True, "session": session_name})
 
     def _tracker_stage(name: str) -> str:
         # `derive_rtl_todos.py` writes tracker name as "<ip>-rtl"; other
@@ -6718,15 +6751,15 @@ def create_app():
         s = (name or "").rsplit("-", 1)
         return s[-1] if len(s) == 2 else ""
 
-    def _active_workflow_stage() -> str:
-        sess = _active_session_value() or ""
+    def _active_workflow_stage(session_name: str = "") -> str:
+        sess = session_name or _active_session_value() or ""
         parts = [p for p in sess.split("/") if p]
         if len(parts) < 3:
             return ""
         wf = parts[-1]
         return wf.split("-")[0] if "-" in wf else wf
 
-    def _gate_for_workflow(d: dict | None) -> dict | None:
+    def _gate_for_workflow(d: dict | None, session_name: str = "") -> dict | None:
         # Tracker carries an SSOT-derived workflow stage in its name.
         # When the user is viewing a different workflow we hide the
         # tracker so a previous /gen-rtl run doesn't keep showing 20
@@ -6734,14 +6767,14 @@ def create_app():
         if not isinstance(d, dict):
             return d
         ts = _tracker_stage(d.get("name", ""))
-        ws = _active_workflow_stage()
+        ws = _active_workflow_stage(session_name)
         if ts and ws and ts != ws:
             return {"todos": [], "auto_hidden": True,
                     "reason": f"tracker '{d.get('name')}' is for {ts}, active workflow is {ws}"}
         return d
 
     @app.get("/api/todos")
-    async def api_todos():
+    async def api_todos(request: Request, session: str = ""):
         # Prefer the live tracker the agent is mutating in main.py — that's
         # the only way to see in-progress changes before they hit disk. Fall
         # back to the on-disk file if main hasn't initialized one yet. When
@@ -6749,19 +6782,13 @@ def create_app():
         # the source of truth; a process-global live tracker may still point at
         # an older HOME-level current_todos.json from another IP.
         candidates: list[Path] = []
-        active_session = normalize_session_name(_active_session_value())
+        active_session, denied = _todo_session_for_request(request, session)
+        if denied is not None:
+            return denied
         active_todo_path = (
             PROJECT_ROOT / ".session" / active_session / "todo.json"
             if active_session else None
         )
-
-        def _same_path(left: Path | None, right: Path | None) -> bool:
-            if left is None or right is None:
-                return False
-            try:
-                return left.expanduser().resolve() == right.expanduser().resolve()
-            except Exception:
-                return str(left) == str(right)
 
         try:
             import main as _main  # noqa: WPS433
@@ -6775,13 +6802,12 @@ def create_app():
             if live is not None and getattr(live, "todos", None):
                 if (
                     not active_todo_path
-                    or not active_todo_path.exists()
-                    or _same_path(live_path, active_todo_path)
+                    or _same_todo_path(live_path, active_todo_path)
                 ):
-                    return JSONResponse(_gate_for_workflow(live.to_dict()))
+                    return JSONResponse(_gate_for_workflow(live.to_dict(), active_session))
             if active_todo_path:
                 candidates.append(active_todo_path)
-            if live_path:
+            elif live_path:
                 candidates.append(live_path)
         except Exception:
             pass
@@ -6799,17 +6825,18 @@ def create_app():
         try:
             import json as _json
             from lib.todo_tracker import TodoTracker
-            try:
-                import config as _cfg
-                cfg_todo = Path(str(getattr(_cfg, "TODO_FILE", "current_todos.json")))
-                candidates.append(cfg_todo if cfg_todo.is_absolute() else PROJECT_ROOT / cfg_todo)
-            except Exception:
-                pass
-            candidates.extend([
-                PROJECT_ROOT / "current_todos.json",
-                Path.cwd() / "current_todos.json",
-                Path.home() / ".common_ai_agent" / "current_todos.json",
-            ])
+            if not active_todo_path:
+                try:
+                    import config as _cfg
+                    cfg_todo = Path(str(getattr(_cfg, "TODO_FILE", "current_todos.json")))
+                    candidates.append(cfg_todo if cfg_todo.is_absolute() else PROJECT_ROOT / cfg_todo)
+                except Exception:
+                    pass
+                candidates.extend([
+                    PROJECT_ROOT / "current_todos.json",
+                    Path.cwd() / "current_todos.json",
+                    Path.home() / ".common_ai_agent" / "current_todos.json",
+                ])
             deduped: list[Path] = []
             seen_paths: set[str] = set()
             for cand in candidates:
@@ -6831,9 +6858,9 @@ def create_app():
             tt = TodoTracker.load(picked)
             d = tt.to_dict()
             if d.get("todos"):
-                return JSONResponse(_gate_for_workflow(d))
+                return JSONResponse(_gate_for_workflow(d, active_session))
             d = _atlas_todo_payload_from_raw(raw, d)
-            return JSONResponse(_gate_for_workflow(d))
+            return JSONResponse(_gate_for_workflow(d, active_session))
         except Exception as e:
             return JSONResponse({"error": str(e)}, status_code=500)
 

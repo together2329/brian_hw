@@ -16,6 +16,16 @@ EXEC_MODE_ORCHESTRATOR = "orchestrator"
 EXEC_MODES = (EXEC_MODE_SINGLE, EXEC_MODE_ORCHESTRATOR)
 SINGLE_WORKER_URL = "http://127.0.0.1:5601"
 
+# Temporary UI lock for the exec-mode picker. While true, app.jsx
+# (ATLAS_EXEC_MODE_LOCKED mirrors this) boots single-worker and disables the
+# picker so users can't switch to orchestrator. The orchestrator code paths
+# stay intact — an explicit ATLAS_ORCHESTRATOR_MODE / ATLAS_EXEC_MODE launch
+# still selects it for deployments and tests — this only hides the choice in
+# the UI. The fresh-launch default is single-worker regardless (see
+# current_exec_mode). Flip both flags to re-expose the picker.
+EXEC_MODE_LOCKED = True
+LOCKED_EXEC_MODE = EXEC_MODE_SINGLE
+
 _TRUTHY = {"1", "true", "yes", "on"}
 _FALSY = {"", "0", "false", "no", "off"}
 
@@ -53,14 +63,15 @@ def normalize_exec_mode(value: Any) -> str:
 def current_exec_mode(
     env: Mapping[str, str] | None = None,
     *,
-    default: str = EXEC_MODE_ORCHESTRATOR,
+    default: str = EXEC_MODE_SINGLE,
 ) -> str:
     """Resolve the effective execution mode from environment-style values.
 
-    Precedence is explicit orchestrator flag, explicit exec-mode values,
-    then the single-main-loop compatibility flag, then the provided default.
-    This preserves a posted run-policy value over stale legacy flags while
-    still letting old `ATLAS_SINGLE_MAIN_LOOP=1` launches select single-worker.
+    Precedence is explicit orchestrator flag, explicit exec-mode values, then
+    the single-main-loop compatibility flag, then the provided default (now
+    single-worker). This preserves a posted run-policy value over stale legacy
+    flags while still letting old `ATLAS_SINGLE_MAIN_LOOP=1` launches select
+    single-worker. A fresh launch with nothing set resolves to single-worker.
     """
 
     source = os.environ if env is None else env
@@ -78,17 +89,17 @@ def current_exec_mode(
         return explicit
     if truthy_value(source.get("ATLAS_SINGLE_MAIN_LOOP")):
         return EXEC_MODE_SINGLE
-    return normalize_exec_mode(default) or EXEC_MODE_ORCHESTRATOR
+    return normalize_exec_mode(default) or EXEC_MODE_SINGLE
 
 
 def initial_workflow_for_exec_mode(exec_mode: Any, explicit: Any = "") -> str:
     requested = str(explicit or "").strip().lower().replace("_", "-")
-    if requested in {"orchestrator", "ssot-gen"}:
+    if requested in {"orchestrator", "default", "ssot-gen"}:
         return requested
     return (
         "orchestrator"
         if normalize_exec_mode(exec_mode) == EXEC_MODE_ORCHESTRATOR
-        else "ssot-gen"
+        else "default"
     )
 
 

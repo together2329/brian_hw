@@ -2464,18 +2464,55 @@ class SlashCommandRegistry:
 
     @staticmethod
     def _normalize_atlas_session(value: Optional[str]) -> str:
+        try:
+            from core.session_names import normalize_session_name
+            normalized = normalize_session_name(str(value or ""))
+            if normalized:
+                return normalized
+        except Exception:
+            pass
         import re as _re
         clean = str(value or "").strip().strip("/")
         clean = _re.sub(r"/+", "/", clean)
         clean = _re.sub(r"[^A-Za-z0-9_.\-/]+", "_", clean)
         return clean
 
+    @staticmethod
+    def _is_default_atlas_session(session: str) -> bool:
+        return session in {"default", "default/default", "default/default/default"}
+
+    def _atlas_session_candidates(self) -> list[str]:
+        candidates: list[str] = []
+
+        def add(value: Optional[str]) -> None:
+            session = self._normalize_atlas_session(value)
+            if session and not self._is_default_atlas_session(session):
+                if session not in candidates:
+                    candidates.append(session)
+
+        try:
+            from core.atlas_multiuser import get_atlas_bridge_session_id
+            add(get_atlas_bridge_session_id())
+        except Exception:
+            pass
+
+        for module_name in ("main", "src.main", "__main__"):
+            module = sys.modules.get(module_name)
+            fn = getattr(module, "_textual_active_session_fn", None) if module else None
+            if callable(fn):
+                try:
+                    add(fn())
+                except Exception:
+                    pass
+
+        for env_name in ("ATLAS_ACTIVE_SESSION", "ATLAS_SESSION_APPLIED", "ATLAS_SESSION_ID"):
+            add(os.environ.get(env_name))
+
+        return candidates
+
     def _active_atlas_session(self) -> str:
-        for env_name in ("ATLAS_ACTIVE_SESSION", "ATLAS_SESSION_APPLIED"):
-            session = self._normalize_atlas_session(os.environ.get(env_name))
-            if session and session not in {"default", "default/default", "default/default/default"}:
-                return session
-        return ""
+        sessions = self._atlas_session_candidates()
+        return sessions[0] if sessions else ""
 
     def _messages_atlas_session(self, messages: Optional[list[dict]]) -> str:
         """Return the Atlas session marker embedded in a system prompt, if any."""
@@ -2495,6 +2532,156 @@ class SlashCommandRegistry:
         import re as _re
         match = _re.search(r"\[ACTIVE_SESSION:\s*([^\]\n]+)\]", text)
         return self._normalize_atlas_session(match.group(1)) if match else ""
+
+    @staticmethod
+    def _context_root_from_session_path(path: Path) -> Optional[Path]:
+        """Return the project root for a path under .session, if identifiable."""
+        try:
+            resolved = path.expanduser().resolve(strict=False)
+        except Exception:
+            resolved = path.expanduser()
+        for parent in (resolved, *resolved.parents):
+            if parent.name == ".session":
+                return parent.parent
+        return None
+
+    def _context_project_roots(self) -> list[Path]:
+        """Candidate roots that may own the active .session tree.
+
+        `/context -v` can be invoked from main.py, Atlas Web command-plane,
+        worker threads, or a shell started below the project. Those paths do
+        not all share a reliable cwd/env mirror, so gather roots from explicit
+        runtime state first and then from nearby filesystem anchors.
+        """
+        roots: list[Path] = []
+        seen: set[str] = set()
+
+        def add_root(value: Any) -> None:
+            if not value:
+                return
+            try:
+                path = Path(value).expanduser()
+            except TypeError:
+                return
+            session_root = self._context_root_from_session_path(path)
+            if session_root is not None:
+                path = session_root
+            try:
+                key = str(path.resolve(strict=False))
+            except Exception:
+                key = str(path)
+            if key and key not in seen:
+                seen.add(key)
+                roots.append(Path(key))
+
+        add_root(os.environ.get("ATLAS_PROJECT_ROOT"))
+
+        for module_name in ("config", "src.config"):
+            cfg = sys.modules.get(module_name)
+            if cfg is None:
+                continue
+            add_root(getattr(cfg, "SESSION_DIR", "") or "")
+            add_root(getattr(cfg, "HISTORY_FILE", "") or "")
+
+        cwd = Path.cwd()
+        add_root(cwd)
+        for parent in cwd.parents:
+            if (parent / ".session").is_dir():
+                add_root(parent)
+
+        add_root(os.environ.get("PWD"))
+        add_root(Path(__file__).resolve().parent.parent)
+        add_root(os.environ.get("ATLAS_SOURCE_ROOT"))
+
+        return roots
+
+    @staticmethod
+    def _read_context_messages(path: Path) -> list[dict]:
+        import json as _json
+        if not path.is_file() or path.stat().st_size <= 0:
+            return []
+        raw = _json.loads(path.read_text(encoding="utf-8"))
+        if isinstance(raw, list):
+            return [m for m in raw if isinstance(m, dict)]
+        if isinstance(raw, dict) and isinstance(raw.get("messages"), list):
+            return [m for m in raw["messages"] if isinstance(m, dict)]
+        return []
+
+    @staticmethod
+    def _has_visible_context_messages(messages: list[dict]) -> bool:
+        return any(m.get("role") != "system" for m in messages if isinstance(m, dict))
+
+    def _latest_context_file(self, filename: str, roots: list[Path]) -> Optional[Path]:
+        """Find the newest non-empty context file under known roots."""
+        candidates: list[tuple[float, Path]] = []
+        seen: set[str] = set()
+        for root in roots:
+            session_root = root / ".session"
+            if not session_root.is_dir():
+                continue
+            try:
+                paths = session_root.rglob(filename)
+            except Exception:
+                continue
+            for path in paths:
+                try:
+                    key = str(path.resolve(strict=False))
+                    if key in seen or path.stat().st_size <= 0:
+                        continue
+                    seen.add(key)
+                    candidates.append((path.stat().st_mtime, path))
+                except Exception:
+                    continue
+        for _, path in sorted(candidates, reverse=True):
+            try:
+                messages = self._read_context_messages(path)
+            except Exception:
+                continue
+            if self._has_visible_context_messages(messages):
+                return path
+        return None
+
+    def _context_file_candidates(self, filename: str) -> list[Path]:
+        candidates: list[Path] = []
+        seen: set[str] = set()
+        roots = self._context_project_roots()
+        sessions = self._atlas_session_candidates()
+
+        def add(path: Optional[Path]) -> None:
+            if path is None:
+                return
+            try:
+                key = str(path.expanduser().resolve(strict=False))
+            except Exception:
+                key = str(path)
+            if key not in seen:
+                seen.add(key)
+                candidates.append(Path(key))
+
+        for root in roots:
+            for session in sessions:
+                add(root / ".session" / session / filename)
+
+        for module_name in ("config", "src.config"):
+            cfg = sys.modules.get(module_name)
+            if cfg is None:
+                continue
+            session_dir = str(getattr(cfg, "SESSION_DIR", "") or "").strip()
+            if session_dir:
+                add(Path(session_dir) / filename)
+            history_file = str(getattr(cfg, "HISTORY_FILE", "") or "").strip()
+            if history_file and filename == "conversation.json":
+                add(Path(history_file))
+            elif history_file and filename == "full_conversation.json":
+                add(Path(history_file).with_name("full_conversation.json"))
+
+        if filename == "conversation.json":
+            add(Path("conversation_history.json"))
+            add(Path("conversation.json"))
+        else:
+            add(Path("full_conversation.json"))
+
+        return candidates
 
     def _summarize_context_system_prompt(self, content: str) -> str:
         """Show system-prompt identity without dumping the whole worker prompt."""
@@ -2567,8 +2754,12 @@ class SlashCommandRegistry:
             # `-v` shows the LIVE window only; a fresh session (just logged in,
             # /clear'd, or no turns yet) is legitimately empty. Don't imply data
             # loss — point to the durable log if one exists on disk.
-            _saved = saved_path or next((p for p in (Path('full_conversation.json'),
-                                                     Path('conversation_history.json'))
+            _saved_candidates = (
+                self._context_file_candidates("full_conversation.json")
+                + self._context_file_candidates("conversation.json")
+                + [Path('conversation_history.json')]
+            )
+            _saved = saved_path or next((p for p in _saved_candidates
                                          if p.exists() and p.stat().st_size > 0), None)
             hint = ("  Saved history exists — use \033[1m/context -v -full\033[0m to view it."
                     if _saved else "")
@@ -2685,75 +2876,54 @@ class SlashCommandRegistry:
 
     def _load_saved_context_messages(self) -> tuple[list[dict], Optional[Path]]:
         """Load the active local session conversation for /context fallback."""
-        import json as _json
-        import sys as _sys
+        for path in self._context_file_candidates("conversation.json"):
+            try:
+                messages = self._read_context_messages(path)
+                if messages:
+                    return messages, path
+            except Exception:
+                continue
 
-        _config = _sys.modules.get('config') or _sys.modules.get('src.config')
-        candidates: list[Path] = []
-        project_root = Path(os.environ.get('ATLAS_PROJECT_ROOT') or Path.cwd()).expanduser()
-        for env_name in ('ATLAS_ACTIVE_SESSION', 'ATLAS_SESSION_APPLIED'):
-            session = self._normalize_atlas_session(os.environ.get(env_name))
-            if session:
-                candidates.append(project_root / '.session' / session / 'conversation.json')
-        if _config is not None:
-            history_file = str(getattr(_config, 'HISTORY_FILE', '') or '').strip()
-            session_dir = str(getattr(_config, 'SESSION_DIR', '') or '').strip()
-            if session_dir:
-                candidates.append(Path(session_dir) / 'conversation.json')
-            if history_file:
-                candidates.append(Path(history_file))
-        seen: set[str] = set()
-        for path in candidates:
-            try:
-                key = str(path.expanduser().resolve())
-            except Exception:
-                key = str(path)
-            if key in seen:
-                continue
-            seen.add(key)
-            try:
-                if not path.is_file() or path.stat().st_size <= 0:
-                    continue
-                raw = _json.loads(path.read_text(encoding='utf-8'))
-                if isinstance(raw, list):
-                    return raw, path
-            except Exception:
-                continue
+        if not self._atlas_session_candidates():
+            latest = self._latest_context_file("conversation.json", self._context_project_roots())
+            if latest is not None:
+                try:
+                    messages = self._read_context_messages(latest)
+                    if messages:
+                        return messages, latest
+                except Exception:
+                    pass
         return [], None
 
     def _format_full_history(self) -> str:
         """Format the full conversation history from full_conversation.json."""
-        import json as _json
-        import sys as _sys
         try:
-            _config = _sys.modules.get('config')
-            _session_dir = getattr(_config, 'SESSION_DIR', '') if _config else ''
-            _history_file = getattr(_config, 'HISTORY_FILE', 'conversation_history.json') if _config else 'conversation_history.json'
-            # History lives per-session under SESSION_DIR, but a session started
-            # without a project name has no SESSION_DIR. Rather than dead-ending,
-            # fall back to the durable copies in the working directory so the
-            # user still sees their saved history. Search in priority order.
-            _candidates = []
-            _project_root = Path(os.environ.get('ATLAS_PROJECT_ROOT') or Path.cwd()).expanduser()
-            for _env_name in ('ATLAS_ACTIVE_SESSION', 'ATLAS_SESSION_APPLIED'):
-                _session = self._normalize_atlas_session(os.environ.get(_env_name))
-                if _session:
-                    _session_root = _project_root / '.session' / _session
-                    _candidates.append(_session_root / 'full_conversation.json')
-                    _candidates.append(_session_root / 'conversation.json')
-            if _session_dir:
-                _candidates.append(Path(_session_dir) / 'full_conversation.json')
-            _candidates.append(Path('full_conversation.json'))
-            _candidates.append(Path(_history_file))
-            _full_path = next((p for p in _candidates if p.exists() and p.stat().st_size > 0), None)
+            _candidates = self._context_file_candidates("full_conversation.json")
+            _candidates.extend(self._context_file_candidates("conversation.json"))
+            _full_path = None
+            messages: list[dict] = []
+            for path in _candidates:
+                try:
+                    loaded = self._read_context_messages(path)
+                except Exception:
+                    continue
+                if loaded:
+                    _full_path = path
+                    messages = loaded
+                    break
+            if _full_path is None and not self._atlas_session_candidates():
+                _full_path = (
+                    self._latest_context_file("full_conversation.json", self._context_project_roots())
+                    or self._latest_context_file("conversation.json", self._context_project_roots())
+                )
+                if _full_path is not None:
+                    messages = self._read_context_messages(_full_path)
             if _full_path is None:
                 _looked = ", ".join(str(p) for p in _candidates)
                 return ("\n\033[33m[System] No saved history found (looked in: "
                         f"{_looked}).\033[0m\n"
                         "\033[2mHistory is written per session under .session/<project>/ — "
                         "start with a project name to persist a session log.\033[0m\n")
-            with open(_full_path, 'r', encoding='utf-8') as f:
-                messages = _json.load(f)
         except Exception as e:
             return f"\n\033[31m[Error] Could not load full history: {e}\033[0m\n"
 

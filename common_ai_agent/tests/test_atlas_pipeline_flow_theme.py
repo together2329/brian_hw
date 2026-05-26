@@ -153,15 +153,21 @@ def test_atlas_prompt_send_prefers_current_ip_workflow_session() -> None:
 
 def test_atlas_single_worker_workflow_switch_owns_chat_session() -> None:
     workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace.jsx").read_text()
+    data = (PROJECT_ROOT / "frontend" / "atlas" / "data.jsx").read_text()
 
     # In Single Worker mode the workflow selector is not just a visual filter:
     # selecting rtl-gen must activate <user>/<ip>/rtl-gen and hydrate that chat,
     # otherwise the SSOT transcript remains visible under an RTL label.
+    assert "const defaultWorkflowForExecMode = () => atlasUiOrchestratorMode() ? 'orchestrator' : 'default';" in workspace
     assert "Single Worker mode binds the selected workflow to the active chat" in workspace
     assert "if (atlasUiOrchestratorMode()) return;" in workspace
     assert "const targetSession = sessionForInputRoute(ip, wf);" in workspace
     assert "setChatViewSession(targetSession);" in workspace
     assert "refreshChatSession(targetSession, { force: true });" in workspace
+    assert "workflowName === 'default' || workflowName === 'orchestrator'" not in workspace
+    assert "const effectiveWorkspace = activeWorkflow ||" in data
+    assert "window.CONTEXT.workspace = activeWorkflow || backendActive || '';" in data
+    assert "body: JSON.stringify({ session })" in data
 
 
 def test_atlas_live_worker_feed_is_bounded_for_responsiveness() -> None:

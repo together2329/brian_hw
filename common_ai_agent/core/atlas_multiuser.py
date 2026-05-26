@@ -566,6 +566,11 @@ class _MultiUserBridge:
         with self._active_lock:
             self._active_session_id = session.session_id
         self._mark_owner_active(session.session_id)
+        if self._process_manager is not None:
+            try:
+                self.warm_session(session.session_id)
+            except Exception:
+                pass
         if peers > 1:
             session.emit("peer_joined", peers=peers, session_id=session.session_id)
         return session.session_id

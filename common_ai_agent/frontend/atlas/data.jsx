@@ -949,13 +949,28 @@
     }
   }
 
-  async function refreshTodos() {
+  function invalidateSessionState(session) {
+    const sid = normalizeSessionName(session || window.ACTIVE_SESSION || '');
+    if (!sid) {
+      sessionStateCache.clear();
+      return;
+    }
+    const needle = 'session=' + encodeURIComponent(sid);
+    for (const key of Array.from(sessionStateCache.keys())) {
+      if (key.indexOf(needle) >= 0) sessionStateCache.delete(key);
+    }
+  }
+
+  async function refreshTodos(opts = {}) {
     try {
       if (window.ACTIVE_SESSION) {
-        const d = await refreshSessionState(window.ACTIVE_SESSION, false);
+        const d = await refreshSessionState(window.ACTIVE_SESSION, false, { force: !!opts.force });
         if (d) return;
       }
-      const r = await fetch('/api/todos');
+      const query = window.ACTIVE_SESSION
+        ? ('?session=' + encodeURIComponent(normalizeSessionName(window.ACTIVE_SESSION)))
+        : '';
+      const r = await fetch('/api/todos' + query, { cache: 'no-store' });
       if (!r.ok) return;
       const d = await r.json();
       // TodoTracker.to_dict() shape:
@@ -1158,9 +1173,7 @@
         window.ATLAS_SESSION_UID = String(d.session_uid || '').trim();
         window.ATLAS_SESSION_LABEL = String(d.session_label || '').trim();
       }
-      const effectiveWorkspace = healthOverride
-        ? (activeWorkflow || _prev.workspace || '')
-        : ((backendWorkspace && backendWorkspace !== 'default') ? backendWorkspace : (activeWorkflow || backendWorkspace || ''));
+      const effectiveWorkspace = activeWorkflow || (healthOverride ? (_prev.workspace || '') : (backendWorkspace || ''));
       window.CONTEXT = Object.assign({}, _prev, {
         ...(() => {
           const nextActiveSession = String(effectiveSession || '').trim();
@@ -1243,7 +1256,7 @@
       window.FLOW_STAGES = flowStagesForExecMode(live.length ? live : DEFAULT_FLOW_STAGES);
       const activeWorkflow = activeWorkflowFromSession();
       const backendActive = normalizeSessionName(d.active || '');
-      window.CONTEXT.workspace = (backendActive && backendActive !== 'default') ? backendActive : (activeWorkflow || backendActive || '');
+      window.CONTEXT.workspace = activeWorkflow || backendActive || '';
       window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'FLOW_STAGES' }));
     } catch (e) { /* ignore */ }
   }
@@ -1265,7 +1278,17 @@
       window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'USER_SESSION_ID' }));
       return sid;
     },
-    clearTodos: () => fetch('/api/todos/clear', { method: 'POST' }).then(refreshTodos),
+    clearTodos: () => {
+      const session = normalizeSessionName(window.ACTIVE_SESSION || '');
+      return fetch('/api/todos/clear', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session }),
+      }).then(() => {
+        invalidateSessionState(session);
+        return refreshTodos({ force: true });
+      });
+    },
     fetchFile: (path) =>
       fetch('/api/file?path=' + encodeURIComponent(path)).then(r => r.json()),
     fetchSsot: (path) =>

@@ -691,7 +691,7 @@ def test_session_activate_halts_only_previous_namespace(tmp_path, monkeypatch):
     assert other.agent_running is True
 
 
-def test_process_session_activate_terminates_previous_worker(tmp_path, monkeypatch):
+def test_process_session_activate_keeps_single_worker_process_warm(tmp_path, monkeypatch):
     import src.atlas_ui as atlas_ui
 
     monkeypatch.setenv("HOME", str(tmp_path / "home"))
@@ -744,16 +744,17 @@ def test_process_session_activate_terminates_previous_worker(tmp_path, monkeypat
     first = _activate(client, "alice", "spi_core", "rtl-gen")
     assert first.status_code == 200, first.text
     assert first.json()["halted"] is False
-    assert calls == []
+    assert calls == [("spawn", "alice/spi_core/rtl-gen")]
+    calls.clear()
     app.state.bridge.get_session("alice/spi_core/rtl-gen").agent_running = True
 
     switched = _activate(client, "alice", "spi_core", "tb-gen")
 
     assert switched.status_code == 200, switched.text
     assert switched.json()["halted"] is True
-    assert ("kill", "alice/spi_core/rtl-gen") in calls
-    assert not any(call[:3] == ("send_input", "alice/spi_core/rtl-gen", "stop") for call in calls)
-    assert app.state.bridge.get_session("alice/spi_core/rtl-gen").agent_alive is False
+    assert ("kill", "alice/spi_core/rtl-gen") not in calls
+    assert any(call[:3] == ("send_input", "alice/spi_core/rtl-gen", "stop") for call in calls)
+    assert app.state.bridge.get_session("alice/spi_core/rtl-gen").agent_alive is True
 
 
 def test_single_worker_session_activate_warms_chat_process(tmp_path, monkeypatch):
@@ -835,6 +836,47 @@ def test_single_worker_session_activate_warms_chat_process(tmp_path, monkeypatch
     assert health.status_code == 200, health.text
     assert health.json()["agent_alive"] is True
     assert health.json()["agent_running"] is False
+
+
+def test_todos_api_uses_requested_session_file(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    default_session = tmp_path / ".session" / "alice" / "ip22" / "default"
+    ssot_session = tmp_path / ".session" / "alice" / "ip22" / "ssot-gen"
+    default_session.mkdir(parents=True)
+    ssot_session.mkdir(parents=True)
+    (default_session / "todo.json").write_text(
+        json.dumps({"todos": [{"content": "default todo", "status": "pending"}]}),
+        encoding="utf-8",
+    )
+    (ssot_session / "todo.json").write_text(
+        json.dumps({"todos": [{"content": "ssot todo", "status": "pending"}]}),
+        encoding="utf-8",
+    )
+
+    default_resp = client.get("/api/todos", params={"session": "alice/ip22/default"})
+    ssot_resp = client.get("/api/todos", params={"session": "alice/ip22/ssot-gen"})
+
+    assert default_resp.status_code == 200, default_resp.text
+    assert ssot_resp.status_code == 200, ssot_resp.text
+    assert default_resp.json()["todos"][0]["content"] == "default todo"
+    assert ssot_resp.json()["todos"][0]["content"] == "ssot todo"
+
+    cleared = client.post("/api/todos/clear", json={"session": "alice/ip22/default"})
+
+    assert cleared.status_code == 200, cleared.text
+    assert client.get("/api/todos", params={"session": "alice/ip22/default"}).json()["todos"] == []
+    assert client.get("/api/todos", params={"session": "alice/ip22/ssot-gen"}).json()["todos"][0]["content"] == "ssot todo"
 
 
 def test_process_session_activate_does_not_mutate_main_env(tmp_path, monkeypatch):

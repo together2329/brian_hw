@@ -15,16 +15,16 @@
       return EXEC_MODE_ORCHESTRATOR;
     }
     if (EXEC_MODES.indexOf(v) >= 0) return v;
-    return fallback || EXEC_MODE_ORCHESTRATOR;
+    return fallback || EXEC_MODE_SINGLE;
   }
 
   function policyFromBootConfig(config) {
     var cfg = config || {};
     var policy = cfg.exec_policy || cfg.policy || {};
-    var mode = normalizeExecMode(policy.exec_mode || cfg.exec_mode, EXEC_MODE_ORCHESTRATOR);
+    var mode = normalizeExecMode(policy.exec_mode || cfg.exec_mode, EXEC_MODE_SINGLE);
     return {
       exec_mode: mode,
-      initial_workflow: policy.initial_workflow || (mode === EXEC_MODE_ORCHESTRATOR ? 'orchestrator' : 'ssot-gen'),
+      initial_workflow: policy.initial_workflow || (mode === EXEC_MODE_ORCHESTRATOR ? 'orchestrator' : 'default'),
       worker_strategy: policy.worker_strategy || (mode === EXEC_MODE_ORCHESTRATOR ? 'workflow-workers' : 'single-main-loop'),
       single_worker_url: policy.single_worker_url || 'http://127.0.0.1:5601',
       preserve_running_on_workflow_switch:
@@ -60,7 +60,7 @@
     var policy = configOrPolicy && configOrPolicy.initial_workflow
       ? configOrPolicy
       : policyFromBootConfig(configOrPolicy || { exec_mode: execMode });
-    return policy.initial_workflow || (normalizeExecMode(execMode || policy.exec_mode) === EXEC_MODE_ORCHESTRATOR ? 'orchestrator' : 'ssot-gen');
+    return policy.initial_workflow || (normalizeExecMode(execMode || policy.exec_mode) === EXEC_MODE_ORCHESTRATOR ? 'orchestrator' : 'default');
   }
 
   function preserveRunning(configOrPolicy, execMode) {

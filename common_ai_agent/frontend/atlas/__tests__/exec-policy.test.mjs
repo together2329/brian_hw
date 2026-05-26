@@ -18,7 +18,7 @@ describe('Atlas exec policy helper', () => {
 
   it('derives new-IP workflow and preservation from boot policy', () => {
     const single = policyFromBootConfig({ exec_mode: 'single-worker' });
-    expect(initialWorkflow(single)).toBe('ssot-gen');
+    expect(initialWorkflow(single)).toBe('default');
     expect(preserveRunning(single)).toBe(false);
 
     const orchestrator = policyFromBootConfig({

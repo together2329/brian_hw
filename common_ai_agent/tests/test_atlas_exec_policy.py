@@ -18,6 +18,14 @@ def test_normalize_exec_mode_accepts_cli_and_ui_aliases() -> None:
     assert normalize_exec_mode("unknown") == ""
 
 
+def test_current_exec_mode_defaults_to_single_worker_when_nothing_set() -> None:
+    # Fresh launch with no exec env resolves to single-worker (the picker is
+    # UI-locked to single-worker; orchestrator stays opt-in via explicit env).
+    assert current_exec_mode({}) == EXEC_MODE_SINGLE
+    # The orchestrator code path is still reachable when explicitly requested.
+    assert current_exec_mode({"ATLAS_ORCHESTRATOR_MODE": "1"}) == EXEC_MODE_ORCHESTRATOR
+
+
 def test_current_exec_mode_prefers_explicit_policy_over_legacy_single_flag() -> None:
     assert current_exec_mode({"ATLAS_SINGLE_MAIN_LOOP": "1"}) == EXEC_MODE_SINGLE
     assert current_exec_mode({
@@ -32,7 +40,8 @@ def test_current_exec_mode_prefers_explicit_policy_over_legacy_single_flag() -> 
 
 def test_exec_mode_controls_initial_workflow_and_auto_schedule() -> None:
     assert initial_workflow_for_exec_mode(EXEC_MODE_ORCHESTRATOR) == "orchestrator"
-    assert initial_workflow_for_exec_mode(EXEC_MODE_SINGLE) == "ssot-gen"
+    assert initial_workflow_for_exec_mode(EXEC_MODE_SINGLE) == "default"
+    assert initial_workflow_for_exec_mode(EXEC_MODE_SINGLE, "ssot-gen") == "ssot-gen"
     assert initial_workflow_for_exec_mode(EXEC_MODE_SINGLE, "orchestrator") == "orchestrator"
     assert schedule_for_exec_mode(EXEC_MODE_SINGLE, "auto", ["a", "b"]) == "serial"
     assert schedule_for_exec_mode(EXEC_MODE_ORCHESTRATOR, "auto", ["a"]) == "serial"
@@ -48,6 +57,6 @@ def test_exec_policy_payload_and_env_application() -> None:
 
     payload = exec_policy_payload(env=env)
     assert payload["exec_mode"] == EXEC_MODE_SINGLE
-    assert payload["initial_workflow"] == "ssot-gen"
+    assert payload["initial_workflow"] == "default"
     assert payload["worker_strategy"] == "single-main-loop"
     assert payload["preserve_running_on_workflow_switch"] is False

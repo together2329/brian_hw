@@ -152,6 +152,7 @@ def register_sessions_routes(
                 return False
 
         process_mode = _using_processes()
+        keep_session_worker_hot = _session_worker_keepalive_enabled(process_mode)
 
         def _active_for_owner(owner: str) -> str:
             try:
@@ -200,7 +201,7 @@ def register_sessions_routes(
         halted = bool(prev and triple_changed and was_running and not preserve_running)
         if halted:
             try:
-                if process_mode:
+                if process_mode and not keep_session_worker_hot:
                     bridge.exit_session(prev or canonical)
                 else:
                     bridge.request_stop_for_session(prev or canonical)
@@ -214,7 +215,6 @@ def register_sessions_routes(
             except Exception:
                 pass
         session_worker_warmup: dict[str, Any] = {}
-        keep_session_worker_hot = _session_worker_keepalive_enabled(process_mode)
         try:
             bridge.activate_session(canonical)
         except Exception:

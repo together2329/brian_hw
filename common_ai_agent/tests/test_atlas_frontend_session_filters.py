@@ -45,7 +45,7 @@ def test_orchestrator_exec_mode_pins_orchestrator_workflow_first():
     assert "atlas-run-policy-changed" in data_src
     assert "refreshWorkflowStagesForPolicy" in data_src
     assert "orchestrator: {" in workspace_src
-    assert "const next = currentWorkflow === w ? defaultWorkflowForExecMode() : w;" in workspace_src
+    assert "const next = (currentWorkflow === w ? defaultWorkflowForExecMode() : w) || defaultWorkflowForExecMode();" in workspace_src
     assert "next !== 'orchestrator'" in workspace_src
     assert "return <OrchestratorWorkflowPane activeIp={activeIp} />;" in workspace_src
 

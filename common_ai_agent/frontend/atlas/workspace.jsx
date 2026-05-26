@@ -1224,7 +1224,7 @@ const atlasUiExecMode = () => String(
   || ''
 ).trim().toLowerCase();
 const atlasUiOrchestratorMode = () => atlasUiExecMode() === 'orchestrator';
-const defaultWorkflowForExecMode = () => atlasUiOrchestratorMode() ? 'orchestrator' : null;
+const defaultWorkflowForExecMode = () => atlasUiOrchestratorMode() ? 'orchestrator' : 'default';
 
 // URL `?ip=` wins over localStorage on the READ direction so deep links
 // like /?ip=cmux_url_test pick up the requested IP even when a previous
@@ -1881,10 +1881,11 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
   }, [activeNamespace, activeSession, sessionForInputRoute, setInputRoute]);
   const setWorkflowDispatchInputRoute = React.useCallback((wf, ip = '') => {
     const workflowName = normalizeUiSession(wf || '');
-    if (!workflowName || workflowName === 'default' || workflowName === 'orchestrator') {
+    if (workflowName === 'orchestrator' || (!workflowName && atlasUiOrchestratorMode())) {
       setOrchestratorInputRoute(ip);
       return;
     }
+    const effectiveWorkflow = workflowName || defaultWorkflowForExecMode();
     const routeIp = ip || activeIpForRoute([
       window.ACTIVE_SESSION,
       activeSessionRef.current,
@@ -1893,8 +1894,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     ]);
     setInputRoute({
       type: 'workflow-dispatch',
-      workflow: workflowName,
-      session: sessionForInputRoute(routeIp, workflowName),
+      workflow: effectiveWorkflow,
+      session: sessionForInputRoute(routeIp, effectiveWorkflow),
     });
   }, [activeNamespace, activeSession, sessionForInputRoute, setInputRoute, setOrchestratorInputRoute]);
   const setChatViewSession = React.useCallback((sid) => {
@@ -1984,6 +1985,19 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     }
     setActiveSession(sid);
     try { localStorage.setItem('atlasActiveSession', sid); } catch (_) {}
+    try {
+      const parts = sid.split('/').filter(Boolean);
+      const owner = parts[0] || '';
+      window.dispatchEvent(new CustomEvent('atlas-session-switched', {
+        detail: {
+          sessionId: owner,
+          namespace: sid,
+          session: sid,
+          ip,
+          workflow: sessionWorkflow || wf || defaultWorkflowForExecMode(),
+        },
+      }));
+    } catch (_) {}
     refreshChatSession(sid, { force: sid !== prevSid });
     return sid;
   }, [resolveSession, setChatViewSession]);
@@ -2104,7 +2118,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     // synchronously; stale queued `/wf` prompts are avoided because they
     // can land late during fast workflow sweeps.
     const currentWorkflow = workflow || '';
-    const next = currentWorkflow === w ? defaultWorkflowForExecMode() : w;
+    const next = (currentWorkflow === w ? defaultWorkflowForExecMode() : w) || defaultWorkflowForExecMode();
     const sessionWorkflow = workflowFromSession(activeSession || window.ACTIVE_SESSION || '');
     if ((next || '') === currentWorkflow && !(next === 'orchestrator' && sessionWorkflow !== 'orchestrator')) return;
     const runningNow = streamingRef.current || window.ATLAS_AGENT_RUNNING === true;
@@ -2190,10 +2204,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       refreshChatSession(viewSid, { force: true, viewOnly: true });
       return;
     }
-    setWorkflow(next || null);
-    window.CONTEXT = Object.assign({}, window.CONTEXT || {}, { workspace: next || '' });
-    refreshFeed(intent, next || null);
-    const sid = activateSession(window.SCOPE_PATH || '', next || '');
+    setWorkflow(next);
+    window.CONTEXT = Object.assign({}, window.CONTEXT || {}, { workspace: next });
+    refreshFeed(intent, next);
+    const sid = activateSession(window.SCOPE_PATH || '', next);
     const parts = (activeSession || window.ACTIVE_SESSION || '').split('/');
     const owner = normalizeUiSession((window.ATLAS_USER && window.ATLAS_USER.username) || '') || parts[0] || 'default';
     const ip = window.SCOPE_PATH || parts[1] || 'default';
@@ -2205,7 +2219,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         body: JSON.stringify({
           owner,
           ip: ip,
-          workflow: next || 'default',
+          workflow: next,
         }),
       });
       activated = !!(res && res.ok);
@@ -2214,7 +2228,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       if (window.backend.switchSession) window.backend.switchSession(sid);
       else if (window.backend.connect) window.backend.connect(sid);
       if (!activated && next !== 'orchestrator') {
-        sendPrompt(next ? `/wf ${next}` : '/workflow default', sid);
+        sendPrompt(`/wf ${next}`, sid);
       }
     }
   };
@@ -2895,7 +2909,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       setActiveSession(sid);
       try { localStorage.setItem('atlasActiveSession', sid); } catch (_) {}
       const nextWorkflow = workflowFromSession(sid);
-      setWorkflow(nextWorkflow && nextWorkflow !== 'default' ? nextWorkflow : defaultWorkflowForExecMode());
+      setWorkflow(nextWorkflow || defaultWorkflowForExecMode());
       if (atlasUiOrchestratorMode()) {
         const ip = ssotIpFromSession(sid) || activeIp || '';
         if (nextWorkflow && nextWorkflow !== 'default' && nextWorkflow !== 'orchestrator') {
@@ -4104,7 +4118,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       turnEnd();
     }));
     subs.push(window.backend.subscribe('agent_state', (m) => {
-      if (!workspaceEventMatchesActiveSession(m, { requireSession: true })) return;
+      const eventSession = normalizeUiSession((m && (m.session_id || m.session || m.namespace)) || '');
+      const matchesSession = workspaceEventMatchesActiveSession(m, { requireSession: true });
+      if (!matchesSession && !(m && m.running === false && !eventSession)) return;
       if (typeof m.alive === 'boolean' || typeof m.running === 'boolean') {
         setWorkspaceTelemetry(prev => ({
           ...prev,
