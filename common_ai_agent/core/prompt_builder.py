@@ -28,8 +28,21 @@ class PromptContext:
     todo_tracker: Any = None
 
 
-MEMORY_OVERRIDE_START = "=== MEMORY OVERRIDES (HIGHEST PRIORITY) ==="
-MEMORY_OVERRIDE_END = "=== END MEMORY OVERRIDES ==="
+MEMORY_OVERRIDE_START = "=== MEMORY RULES ==="
+MEMORY_OVERRIDE_END = "=== END MEMORY RULES ==="
+LEGACY_MEMORY_OVERRIDE_START = "=== MEMORY OVERRIDES (HIGHEST PRIORITY) ==="
+LEGACY_MEMORY_OVERRIDE_END = "=== END MEMORY OVERRIDES ==="
+
+MEMORY_INSERT_MARKERS = (
+    "\n=== PROJECT RULES",
+    "\n## PROJECT RULES",
+    "\n## ABSOLUTE RULES",
+    "\n## RULES",
+    "\n# RULES",
+    "\nRULES:",
+    "\nRULES (",
+    "\nRules:",
+)
 
 
 def active_workflow_name() -> Optional[str]:
@@ -43,7 +56,7 @@ def active_workflow_name() -> Optional[str]:
 
 
 def build_memory_override(memory_system: Any, workflow: Optional[str] = None) -> str:
-    """Build the high-priority memory block injected above other rules."""
+    """Build the durable memory rule block injected into the system prompt."""
     if memory_system is None:
         return ""
     effective_memory = memory_system
@@ -64,8 +77,8 @@ def build_memory_override(memory_system: Any, workflow: Optional[str] = None) ->
     user_scope = getattr(effective_memory, "user", "") or "global"
     return "\n".join([
         MEMORY_OVERRIDE_START,
-        "Priority: apply these memory entries before project rules, workflow rules, workspace prompts, and default coding rules.",
-        "Conflict rule: when a memory entry conflicts with any project/workflow/default rule, the memory entry wins.",
+        "Treat these durable memory entries as user/workflow rules for the active session.",
+        "Conflict rule: newer explicit user messages in the active conversation override stored memory.",
         f"User memory scope: {user_scope}",
         f"Active workflow scope: {scope}",
         "",
@@ -74,29 +87,56 @@ def build_memory_override(memory_system: Any, workflow: Optional[str] = None) ->
     ])
 
 
-def strip_memory_override(prompt: str) -> str:
-    """Remove previously injected memory blocks so rebuilt prompts do not duplicate them."""
+def _strip_memory_block(prompt: str, start_marker: str, end_marker: str) -> str:
     text = prompt or ""
     while True:
-        start = text.find(MEMORY_OVERRIDE_START)
+        start = text.find(start_marker)
         if start < 0:
             return text.strip()
-        end = text.find(MEMORY_OVERRIDE_END, start)
+        end = text.find(end_marker, start)
         if end < 0:
             return text.strip()
-        end += len(MEMORY_OVERRIDE_END)
+        end += len(end_marker)
         text = (text[:start] + text[end:]).strip()
 
 
+def strip_memory_override(prompt: str) -> str:
+    """Remove previously injected memory blocks so rebuilt prompts do not duplicate them."""
+    text = _strip_memory_block(prompt, MEMORY_OVERRIDE_START, MEMORY_OVERRIDE_END)
+    return _strip_memory_block(
+        text,
+        LEGACY_MEMORY_OVERRIDE_START,
+        LEGACY_MEMORY_OVERRIDE_END,
+    )
+
+
+def _memory_insert_index(prompt: str) -> int:
+    """Find the first rule-section boundary so memory follows the system prompt."""
+    candidates: List[int] = []
+    for marker in MEMORY_INSERT_MARKERS:
+        marker_at_start = marker.lstrip("\n")
+        if prompt.startswith(marker_at_start):
+            candidates.append(0)
+        found = prompt.find(marker)
+        if found >= 0:
+            candidates.append(found)
+    return min(candidates) if candidates else -1
+
+
 def apply_memory_override(prompt: str, memory_system: Any, workflow: Optional[str] = None) -> str:
-    """Prepend a fresh memory override block to a prompt."""
+    """Insert a fresh memory rule block after the system prompt and before rules."""
     base = strip_memory_override(prompt)
     override = build_memory_override(memory_system, workflow=workflow)
     if not override:
         return base
     if not base:
         return override
-    return override + "\n\n" + base
+    insert_at = _memory_insert_index(base)
+    if insert_at < 0:
+        return base.rstrip() + "\n\n" + override
+    if insert_at == 0:
+        return override + "\n\n" + base.lstrip()
+    return base[:insert_at].rstrip() + "\n\n" + override + "\n\n" + base[insert_at:].lstrip()
 
 
 # ---------------------------------------------------------------------------
@@ -232,7 +272,7 @@ Write detailed tasks — include file paths, what to change, and expected outcom
     if has_optional:
         context_parts: List[str] = []
 
-        # Memory is injected as a top-of-prompt override below, not as a
+        # Memory is injected into the static system prompt below, not as a
         # normal dynamic section. Keep the debug signal here.
         if ctx.memory_system is not None:
             memory_context = build_memory_override(ctx.memory_system)

@@ -166,7 +166,7 @@ class TestBuildSystemPromptStr(unittest.TestCase):
         self.assertIn("STRING BASE", result)
 
     def test_memory_context_injected_when_present(self):
-        """When memory_system is provided and returns content, it's in the prompt."""
+        """When memory_system is provided, memory follows the base system text."""
 
         class MockMemory:
             def format_all_for_prompt(self, workflow=None):
@@ -180,22 +180,45 @@ class TestBuildSystemPromptStr(unittest.TestCase):
             messages=[{"role": "user", "content": "hello"}],
         )
         self.assertIn("PREFERENCES", result)
-        self.assertTrue(result.startswith(MEMORY_OVERRIDE_START))
+        self.assertTrue(result.startswith("STRING BASE"))
+        self.assertLess(result.index("STRING BASE"), result.index(MEMORY_OVERRIDE_START))
 
-    def test_memory_override_stays_above_workspace_prompt(self):
-        """Re-applying memory after workspace merge keeps it at the top."""
+    def test_memory_override_sits_after_workspace_prompt_before_rules(self):
+        """Re-applying memory after workspace merge keeps system text first."""
 
         class MockMemory:
             def format_all_for_prompt(self, workflow=None):
                 return f"Workflow {workflow}: memory wins"
 
-        prompt = "WORKSPACE RULES\n\n" + MEMORY_OVERRIDE_START + "\nstale\n=== END MEMORY OVERRIDES ===\n\nBASE"
+        prompt = (
+            "WORKSPACE SYSTEM\n\n"
+            "=== MEMORY OVERRIDES (HIGHEST PRIORITY) ===\n"
+            "stale\n"
+            "=== END MEMORY OVERRIDES ===\n\n"
+            "RULES:\n"
+            "- base"
+        )
         result = apply_memory_override(prompt, MockMemory(), workflow="rtl-gen")
 
-        self.assertTrue(result.startswith(MEMORY_OVERRIDE_START))
+        self.assertTrue(result.startswith("WORKSPACE SYSTEM"))
         self.assertIn("Workflow rtl-gen: memory wins", result)
         self.assertNotIn("stale", result)
-        self.assertLess(result.index(MEMORY_OVERRIDE_START), result.index("WORKSPACE RULES"))
+        self.assertLess(result.index("WORKSPACE SYSTEM"), result.index(MEMORY_OVERRIDE_START))
+        self.assertLess(result.index(MEMORY_OVERRIDE_START), result.index("RULES:"))
+
+    def test_memory_override_sits_before_workflow_absolute_rules(self):
+        """Workflow system prompt stays first; memory lands before rule headings."""
+
+        class MockMemory:
+            def format_all_for_prompt(self, workflow=None):
+                return "Memory Rules:\nGlobal:\n1. Keep answers compact"
+
+        prompt = "# SSOT Generator\n\nYou write SSOT YAML.\n\n## ABSOLUTE RULES\n- Do not write RTL"
+        result = apply_memory_override(prompt, MockMemory(), workflow="ssot-gen")
+
+        self.assertTrue(result.startswith("# SSOT Generator"))
+        self.assertLess(result.index("You write SSOT YAML."), result.index(MEMORY_OVERRIDE_START))
+        self.assertLess(result.index(MEMORY_OVERRIDE_START), result.index("## ABSOLUTE RULES"))
 
 
 if __name__ == '__main__':
