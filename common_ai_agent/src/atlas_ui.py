@@ -212,7 +212,6 @@ _RAW_MODEL_OPTION_PREFIX = "model:"
 
 _atlas_active_session_cv = contextvars.ContextVar("atlas_active_session", default="")
 _atlas_active_ip_cv = contextvars.ContextVar("atlas_active_ip", default="")
-_atlas_ui_lang_cv = contextvars.ContextVar("atlas_ui_lang", default="")
 _agent_mode_override_cv = contextvars.ContextVar("agent_mode_override", default="")
 _plan_mode_cv = contextvars.ContextVar("plan_mode", default="false")
 
@@ -672,10 +671,6 @@ def _active_ip_value() -> str:
     return env_value or current
 
 
-def _ui_lang_value() -> str:
-    return _atlas_ui_lang_cv.get() or os.environ.get("ATLAS_UI_LANG", "")
-
-
 def _plan_mode_value() -> str:
     return _plan_mode_cv.get() or os.environ.get("PLAN_MODE", "false")
 
@@ -699,7 +694,6 @@ def _sync_env_to_context() -> None:
     elif not ip_env:
         os.environ["ATLAS_ACTIVE_IP"] = ip_value
 
-    os.environ["ATLAS_UI_LANG"] = _atlas_ui_lang_cv.get()
     os.environ["AGENT_MODE_OVERRIDE"] = _agent_mode_override_cv.get()
     os.environ["PLAN_MODE"] = _plan_mode_cv.get()
 
@@ -9945,7 +9939,7 @@ def create_app():
     def _emit_slash_output(client_session: Any, text: str = "", *, finish: bool = True) -> None:
         cleaned = _clean_slash_output(text)
         if cleaned:
-            client_session.emit("slash_output", text=cleaned)
+            client_session.emit("slash_output", text=cleaned, finish=bool(finish))
         # Slash commands are command-plane operations. They should not
         # leave the chat input in "agent is streaming" state unless the
         # command explicitly queues an agent task below.
@@ -11534,7 +11528,6 @@ def create_app():
             if isinstance(item, dict) and str(item.get("path") or "").strip()
         ]
         missing = _missing_ssot_decisions(ip, state)
-        lang = os.environ.get("ATLAS_UI_LANG") or "English"
         import_context_paths = [
             f"{ip}/wiki/index.md",
             f"{ip}/wiki/_graph.json",
@@ -11555,8 +11548,6 @@ def create_app():
         return "\n".join([
             f"You are ssot-gen for IP `{ip}` in ATLAS UI.",
             f"Session: `{session}`",
-            f"Preferred visible language: {lang}. Default to English when no explicit language is requested.",
-            "",
             "Goal: create IP-specific SSOT Q&A from the current evidence, not from a fixed template.",
             "This is a general-IP flow. Do not assume APB/register-only/simple peripheral structure unless evidence says so.",
             "Use the per-IP wiki as the navigation index. Follow relevant wiki links and graph nodes for import history, notes, requirements, SSOT, RTL, model, verification, and logs.",
@@ -17512,18 +17503,6 @@ def create_app():
                     if _msg_id and session.msg_id_seen(_msg_id):
                         continue
                     import os as _os
-                    _ui_lang_raw = str(msg.get("ui_lang") or _ui_lang_value() or "").strip().lower()
-                    _ui_lang = {
-                        "ko": "ko",
-                        "kr": "ko",
-                        "korean": "ko",
-                        "한국어": "ko",
-                        "en": "en",
-                        "eng": "en",
-                        "english": "en",
-                    }.get(_ui_lang_raw, "")
-                    if _ui_lang:
-                        _atlas_ui_lang_cv.set(_ui_lang)
                     # ── Mode-flip slashes need to apply mid-loop ──
                     # `/mode normal` and `/plan` typed while the agent is
                     # running normally land in the _interrupts queue,
@@ -17640,23 +17619,6 @@ def create_app():
                             "→ todo_update(completed) → verify → todo_update(approved)."
                         )
                         continue
-                    _control_heads = {"approve", "y", "yes", "yc", "confirm", "ok", "proceed", "ㅇㅇ", "확인", "진행"}
-                    _head = (_txt.split(None, 1)[0] if _txt else "").lower()
-                    if _ui_lang and _txt and not _txt.startswith("/") and _head not in _control_heads:
-                        if _ui_lang == "ko":
-                            _txt = (
-                                "[Atlas UI language preference]\n"
-                                "User-visible explanations, status summaries, questions, and reports should be written in Korean as much as possible. "
-                                "Keep code, file paths, commands, signal names, protocol names, and exact identifiers unchanged.\n\n"
-                                + _txt
-                            )
-                        elif _ui_lang == "en":
-                            _txt = (
-                                "[Atlas UI language preference]\n"
-                                "User-visible explanations, status summaries, questions, and reports should be written in English as much as possible. "
-                                "Keep code, file paths, commands, signal names, protocol names, and exact identifiers unchanged.\n\n"
-                                + _txt
-                            )
                     bridge.submit_prompt_for_session(session.session_id, _txt)
                 elif t == "interrupt":
                     bridge.submit_interrupt_for_session(session.session_id, msg.get("text", ""))

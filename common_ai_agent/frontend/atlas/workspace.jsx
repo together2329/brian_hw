@@ -3137,27 +3137,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
   React.useEffect(() => {
     if (lastWorkflowTabRef.current === workflow) return;
     lastWorkflowTabRef.current = workflow;
-    if (workflow === 'sim_debug') {
-      setMainTab('sim_summary');
-      return;
-    }
-    if (workflow === 'coverage') {
-      setMainTab(WORKFLOW_REPORT_TABS[workflow] ? 'workflow_report' : 'coverage');
-      return;
-    }
-    if (workflow === 'ssot-gen') {
-      setMainTab('checklist');
-      return;
-    }
-    if (workflow === 'orchestrator') {
-      setMainTab(t => t === 'workflow_report' ? 'chat' : t);
-      return;
-    }
-    if (WORKFLOW_REPORT_TABS[workflow]) {
-      setMainTab('workflow_report');
-      return;
-    }
-    setMainTab(t => (t === 'sim_summary' || t === 'debug' || t === 'coverage' || t === 'workflow_report' || t === 'checklist') ? 'split' : t);
+    // Workflow switches should land on Chat first. The specialized SSOT,
+    // validation, coverage, and report tabs remain one click away, but they
+    // should not hide the live log when the user changes workspaces.
+    setMainTab('chat');
   }, [workflow]);
   React.useEffect(() => { setAskSel(0); }, [pendingQcard?.flowId, pendingQcardActiveTab]);
 
@@ -3748,6 +3731,25 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       return;
     }
 
+    // Backend slash commands — anything starting with '/' that the
+    // client-side branches above didn't handle (/context, /help, /clear,
+    // /status, /model, …). These are dispatched on the command plane by the
+    // backend slash registry, which replies with `slash_output` and
+    // `agent_state running:false`; only the few that explicitly queue an
+    // agent task (PLAN_AND_RUN / INJECT_PROMPT) emit `agent_state
+    // running:true`. Do NOT arm the agent-run streaming state for them:
+    // awaitingRunStart makes the agent_state handler's guard swallow the
+    // backend's running:false, stranding the "Agent running" banner (worst
+    // for empty-output commands that send no slash_output to clear it). A
+    // stuck banner then makes workflow-chip clicks wrongly prompt "Agent is
+    // running. Stop it?". Send it and let the backend's events drive the
+    // banner — running:true turns it on only when an agent actually runs.
+    if (raw.startsWith('/')) {
+      setFeed(f => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
+      sendPrompt(raw);
+      return;
+    }
+
     setFeed(f => [...f, { kind: 'user', text: raw }]);
     setStreaming(true);
     awaitingRunStartRef.current = true;
@@ -4061,12 +4063,20 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       if (!workspaceEventMatchesActiveSession(m, { requireSession: true })) return;
       const t = m.text || '';
       if (!t) return;
+      const finishSlashTurn = () => {
+        if (m.finish === false) return;
+        awaitingRunStartRef.current = false;
+        backendRunStartedRef.current = false;
+        setStreaming(false);
+      };
       const shown = _unwrapAtlasOutputFence(t);
-      // Fast path — token landed in the buffer before us (new emit order).
+      // Token-buffer duplicate case — token landed before slash_output.
       const buf = streamBufferRef.current;
-      if (buf && (buf.indexOf(t) >= 0 || buf.indexOf(shown) >= 0)) return;
-      // Slow path — flush may have already parked the buffer. Check if the
-      // last agent entry in the feed is a duplicate.
+      if (buf && (buf.indexOf(t) >= 0 || buf.indexOf(shown) >= 0)) {
+        finishSlashTurn();
+        return;
+      }
+      // Feed duplicate case — flush may have already parked the buffer.
       let dup = false;
       setFeed(l => {
         const last = l[l.length - 1];
@@ -4077,9 +4087,13 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         liveFeedStartedRef.current = true;
         return [...l, { kind: 'agent', text: shown, createdAt: Date.now(), fromSlash: true, live: true }];
       });
-      if (dup) return;
+      if (dup) {
+        finishSlashTurn();
+        return;
+      }
       streamBufferRef.current = '';
       setStreamText('');
+      finishSlashTurn();
     }));
     subs.push(window.backend.subscribe('flush', (m) => {
       if (!workspaceEventMatchesActiveSession(m, { requireSession: true })) return;
@@ -5098,8 +5112,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
   const renderWorkerProgress = () => {
     if (workflow === 'orchestrator' || !workerProgress) return null;
     const wp = workerProgress;
-    const done = ['passed', 'done', 'completed'].includes(wp.status);
-    const failed = ['failed', 'error', 'cancelled'].includes(wp.status);
+    const status = String(wp.status || '').toLowerCase();
+    const done = ['passed', 'done', 'completed'].includes(status);
+    const failed = ['failed', 'error', 'cancelled', 'blocked'].includes(status);
     const running = !done && !failed;
     const col = running ? 'var(--accent)' : done ? 'var(--ok, #76c893)' : 'var(--err, #e85d5d)';
     let elapsed = '';
@@ -5116,10 +5131,12 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       }}>
         <span style={{ color: col }}>{running ? '▶' : done ? '✓' : '✗'}</span>
         <b>{wp.workflow}</b>
-        <span style={{ color: col }}>{wp.status}</span>
+        <span style={{ color: col }}>{status || 'running'}</span>
         {elapsed ? <span className="mute" style={{ color: 'var(--fg-mute)' }}>· {elapsed}</span> : null}
         {wp.iterations > 0 ? <span className="mute" style={{ color: 'var(--fg-mute)' }}>· iter {wp.iterations}</span> : null}
-        <span className="mute" style={{ color: 'var(--fg-dim)', marginLeft: 'auto' }}>live worker</span>
+        <span className="mute" style={{ color: 'var(--fg-dim)', marginLeft: 'auto' }}>
+          {running ? 'live worker' : done ? 'worker done' : 'worker stopped'}
+        </span>
       </div>
     );
   };
@@ -5455,7 +5472,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
           </div>
           <div style={{ paddingBottom: 4 }}>
             {window.FLOW_STAGES.map((s, i) => {
-              const active = workflow === s.id;
+              const active = (workflow || 'default') === s.id;
               return (
                 <button key={s.id}
                   type="button"
@@ -5761,11 +5778,12 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
               >Import / Export</span>
             )}
             <span
-              className="tab-chip"
+              className="tab-chip tab-chip-primary"
               onClick={() => setMainTab('chat')}
               style={{
+                order: -100,
                 cursor: 'pointer', padding: '2px 8px', borderRadius: 2,
-                marginLeft: (showSsotImportExportTab || showDebugTab || showCoverageTab || showWorkflowReportTab) ? 4 : 0,
+                marginLeft: 0,
                 color: mainTab === 'chat' ? 'var(--accent)' : 'var(--fg-mute)',
                 background: mainTab === 'chat' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
                 border: '1px solid ' + (mainTab === 'chat' ? 'var(--accent)' : 'transparent'),
@@ -6302,6 +6320,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
               : null;
             const workerProgressStatus = String(workerProgress?.status || '').toLowerCase();
             const activeWorkerProgress = workflow !== 'orchestrator' && workerProgress && !terminalWorkerStatuses.has(workerProgressStatus);
+            const terminalWorkerProgress = workflow !== 'orchestrator' && workerProgress && terminalWorkerStatuses.has(workerProgressStatus);
+            const workerFinishedOk = ['passed', 'done', 'completed'].includes(workerProgressStatus);
             const liveWorkerWorkflow = String(
               (activeOrchWorker && activeOrchWorker.workflow) ||
               (activeWorkerProgress && workerProgress.workflow) ||
@@ -6318,6 +6338,13 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
                 ? { icon: '▶', text: `Worker running · ${liveWorkerWorkflow}`, color: 'var(--warn)', bg: 'color-mix(in oklch, var(--warn) 14%, transparent)' }
               : streaming
                 ? { icon: '◉', text: 'Agent running', color: 'var(--accent)', bg: 'color-mix(in oklch, var(--accent) 16%, transparent)', spin: true }
+              : terminalWorkerProgress
+                ? {
+                    icon: workerFinishedOk ? '✓' : '!',
+                    text: `${workerFinishedOk ? 'Worker done' : 'Worker stopped'} · ${String(workerProgress.workflow || workflow || 'worker')} ${workerProgressStatus}`,
+                    color: workerFinishedOk ? 'var(--ok)' : 'var(--err)',
+                    bg: `color-mix(in oklch, ${workerFinishedOk ? 'var(--ok)' : 'var(--err)'} 12%, transparent)`,
+                  }
                 : ssotApproval && ssotApproval.approved
                   ? { icon: '◆', text: `SSOT ready · run ${ssotApproval.generate_cmd || `/to-ssot ${ssotApproval.ip}`}`, color: 'var(--ok)', bg: 'color-mix(in oklch, var(--ok) 12%, transparent)' }
                   : ssotApproval

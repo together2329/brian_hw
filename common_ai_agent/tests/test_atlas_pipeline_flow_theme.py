@@ -94,6 +94,29 @@ def test_atlas_worker_panels_share_cached_worker_snapshot_fetch() -> None:
     assert "pipelineFetchWorkerSnapshot({ ip, activeOnly: true })" in pipeline
 
 
+def test_atlas_workspace_lands_on_chat_and_reports_worker_done_state() -> None:
+    atlas_dir = PROJECT_ROOT / "frontend" / "atlas"
+    app = (atlas_dir / "app.jsx").read_text()
+    workspace = (atlas_dir / "workspace.jsx").read_text()
+    css = (atlas_dir / "styles.css").read_text()
+    atlas_ui = (PROJECT_ROOT / "src" / "atlas_ui.py").read_text()
+
+    assert "return 'workspace';" in app
+    assert "Workflow switches should land on Chat first." in workspace
+    assert "setMainTab('chat');" in workspace
+    assert "const active = (workflow || 'default') === s.id;" in workspace
+    assert 'className="tab-chip tab-chip-primary"' in workspace
+    assert "order: -100" in workspace
+    assert ".tab-chip.tab-chip-primary" in css
+    assert "flex-wrap: wrap;" in css
+    assert "Worker done" in workspace
+    assert "worker done" in workspace
+    assert "finishSlashTurn" in workspace
+    assert 'client_session.emit("slash_output", text=cleaned, finish=bool(finish))' in atlas_ui
+    assert '"[Atlas UI language preference]\\n"' not in atlas_ui
+    assert "Preferred visible language:" not in atlas_ui
+
+
 def test_atlas_session_switches_hydrate_chat_history_without_full_reload() -> None:
     data = (PROJECT_ROOT / "frontend" / "atlas" / "data.jsx").read_text()
     workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace.jsx").read_text()

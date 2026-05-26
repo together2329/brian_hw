@@ -1594,7 +1594,11 @@ const App = () => {
     if (ok) setNameEntry(null);
   };
 
-  // Top-level screen — 'dashboard' (user landing), 'workspace' (live
+  // Top-level screen — 'workspace' is the default landing surface because
+  // Chat is the primary Atlas interaction. The dashboard remains available
+  // as an explicit screen.
+  //
+  // 'dashboard' (user landing), 'workspace' (live
   // agent + chat + sidebar), or 'pipeline' (stage dispatcher).
   // Old 'architect' value (mock-data SoC view) migrates to 'pipeline'
   // on first load so existing sessions don't get stranded on a screen
@@ -1612,14 +1616,13 @@ const App = () => {
         params.get('wf')
       );
       // Explicit ?view=pipeline / ?view=architect still honored so
-      // deep links keep working. Without URL context, do not restore a
-      // cached workspace/pipeline screen after login; the dashboard should
-      // be the explicit entry point for IP/workflow selection.
+      // deep links keep working. Without URL context, land on Workspace
+      // Chat instead of restoring dashboard/pipeline from a prior visit.
       if (urlView === 'dashboard' || urlView === 'workspace' || urlView === 'pipeline' || urlView === 'architect') return urlView;
       const saved = localStorage.atlasScreen;
       if (hasUrlContext && (saved === 'dashboard' || saved === 'workspace' || saved === 'pipeline' || saved === 'architect')) return saved;
-      return 'dashboard';
-    } catch (_) { return 'dashboard'; }
+      return 'workspace';
+    } catch (_) { return 'workspace'; }
   });
   React.useEffect(() => {
     try { localStorage.atlasScreen = screen; } catch (_) {}

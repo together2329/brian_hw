@@ -710,11 +710,14 @@ html[data-platform="windows"] .app {
   text-transform: uppercase;
   display: flex;
   align-items: center;
+  align-content: center;
+  flex-wrap: wrap;
   gap: 8px;
+  row-gap: 4px;
   min-height: 34px;
   box-sizing: border-box;
   line-height: 1.15;
-  overflow: visible;
+  overflow: hidden;
   flex-shrink: 0;
 }
 .titlebar,
@@ -740,6 +743,12 @@ html[data-platform="windows"] .app {
   white-space: nowrap;
   overflow: visible;
   vertical-align: middle;
+  flex: 0 0 auto;
+}
+.tab-chip.tab-chip-primary {
+  min-width: 74px;
+  height: 24px;
+  padding-inline: 10px;
 }
 
 /* blinking cursor */
