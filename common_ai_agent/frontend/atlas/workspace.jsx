@@ -2703,13 +2703,14 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
   // the contents of the file at previewPath with syntax highlighting;
   // 'split' keeps chat and preview visible side-by-side.
   // 'ssot' shows a reviewer-friendly section-by-section SSOT view.
+  // 'doc' renders the exported SSOT HTML document in-place.
   // 'sim_summary' / 'debug' / 'coverage' / 'workflow_report' are workflow-specific first tabs.
   // 'qa' is the dedicated question-answer pane. 'checklist' is the SSOT
   // validation/readiness pane for ssot-gen, kept separate from Q&A.
   // 'import_export' owns document upload/import and SSOT export. The
   // user lands on 'chat' by default; preview / split / SSOT-tab modes
   // are entered explicitly by clicking tabs or double-clicking files.
-  const [mainTab, setMainTab] = React.useState('chat');    // chat | ssot | qa | checklist | import_export | split | preview | sim_summary | debug | coverage | workflow_report
+  const [mainTab, setMainTab] = React.useState('chat');    // chat | ssot | doc | qa | checklist | import_export | split | preview | sim_summary | debug | coverage | workflow_report
   const [previewPath, setPreviewPath] = React.useState(() => {
     try {
       const saved = localStorage.getItem('atlasPreviewPath');
@@ -3401,6 +3402,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
   const showSsotChecklistTab = workflow === 'ssot-gen';
   const showSsotImportExportTab = workflow === 'ssot-gen';
   const showSsotTab = workflow === 'ssot-gen' || (window.SSOT_FILES || []).length > 0 || isSsotYamlPath(previewPath);
+  const showSsotDocTab = showSsotTab;
   const showSimSummaryTab = workflow === 'sim_debug';
   const showDebugTab = workflow === 'sim_debug';
   const showCoverageTab = workflow === 'coverage';
@@ -6207,6 +6209,21 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
                 }}
               >ssot</span>
             )}
+            {showSsotDocTab && (
+              <span
+                className="tab-chip"
+                onClick={() => setMainTab('doc')}
+                title="Render exported SSOT HTML"
+                style={{
+                  cursor: 'pointer',
+                  padding: '2px 8px', borderRadius: 2, marginLeft: 4,
+                  color: mainTab === 'doc' ? 'var(--magenta)' : 'var(--fg-mute)',
+                  background: mainTab === 'doc' ? 'color-mix(in oklch, var(--magenta) 14%, transparent)' : 'transparent',
+                  border: '1px solid ' + (mainTab === 'doc' ? 'var(--magenta)' : 'transparent'),
+                  fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 'var(--ui-control-font-size)',
+                }}
+              >doc</span>
+            )}
             {showQaTab && workflow !== 'ssot-gen' && (
               <span
                 className="tab-chip"
@@ -6288,6 +6305,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
               <span className="mute trunc" style={{ fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', maxWidth: 380 }}>
                 SSOT section review
               </span>
+            ) : mainTab === 'doc' ? (
+              <span className="mute trunc" style={{ fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', maxWidth: 380 }}>
+                SSOT HTML export preview
+              </span>
             ) : mainTab === 'checklist' ? (
               <span className="mute trunc" style={{ fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', maxWidth: 380 }}>
                 SSOT validation · missing items · SSOT percent · script gate
@@ -6323,7 +6344,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
                 "Running / End of loop / Waiting on you" pill above the
                 input row already conveys this state, and louder, so two
                 redundant indicators just add noise to the tab header. */}
-            {(mainTab === 'preview' || mainTab === 'split' || mainTab === 'ssot' || mainTab === 'checklist' || mainTab === 'import_export') && (
+            {(mainTab === 'preview' || mainTab === 'split' || mainTab === 'ssot' || mainTab === 'doc' || mainTab === 'checklist' || mainTab === 'import_export') && (
               <span style={{ fontSize: 10 }}>
                 <span className="mute" style={{ marginRight: 8 }}>{mainTab === 'split' ? 'chat only' : 'back to chat'}</span>
                 <span onClick={() => setMainTab('chat')} className="acc"
@@ -6432,6 +6453,12 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
             <SsotReviewPane
               uiLang={uiLang}
               initialPath={isSsotYamlPath(previewPath) ? previewPath : ''}
+              onBack={() => setMainTab('chat')}
+            />
+          ) : mainTab === 'doc' ? (
+            <SsotDocPane
+              uiLang={uiLang}
+              ip={activeSsotIp()}
               onBack={() => setMainTab('chat')}
             />
           ) : mainTab === 'sim_summary' ? (
@@ -9231,7 +9258,7 @@ const SsotQaBoard = ({
                   type="button"
                   onClick={() => runSsotCommand(`/to-ssot ${data.ip}`)}
                   title="Run /to-ssot for this IP"
-                  style={{ marginTop: 7, borderColor: 'var(--ok)', color: 'var(--ok)' }}
+                  style={{ marginTop: 7 }}
                 >
                   {t.toSsot}
                 </button>
@@ -9370,7 +9397,7 @@ const SsotQaBoard = ({
               type="button"
               onClick={() => runSsotCommand(`/to-ssot ${data.ip}`)}
               title="Run /to-ssot for this IP"
-              style={{ marginTop: 10, borderColor: 'var(--ok)', color: 'var(--ok)' }}
+              style={{ marginTop: 10 }}
             >
               {t.toSsot}
             </button>
@@ -14397,6 +14424,95 @@ const chooseSsotFile = (files, preferredPath = '') => {
   if (isDefault) return '';
   return paths.find(p => p === `${ipFromContext}.ssot.yaml` || p.includes(`${ipFromContext}/`) || p.includes(`/${ipFromContext}.`))
     || '';
+};
+
+const SsotDocPane = ({ uiLang = 'ko', ip = '', onBack }) => {
+  const [reloadKey, setReloadKey] = React.useState(0);
+  const effectiveIp = String(ip || window.ACTIVE_IP || ssotIpFromSession(window.ACTIVE_SESSION) || '').trim();
+  const qs = effectiveIp ? new URLSearchParams({
+    ip: effectiveIp,
+    format: 'html',
+    inline: '1',
+    v: String(reloadKey),
+  }).toString() : '';
+  const inlineUrl = qs ? `/api/ssot/export?${qs}` : '';
+  const downloadUrl = effectiveIp
+    ? `/api/ssot/export?ip=${encodeURIComponent(effectiveIp)}&format=html`
+    : '';
+  const title = uiLang === 'en' ? 'SSOT Document' : 'SSOT Document';
+  const subtitle = uiLang === 'en'
+    ? 'Rendered from the same HTML export artifact.'
+    : 'HTML export 산출물을 탭 안에서 그대로 렌더링합니다.';
+
+  if (!effectiveIp) {
+    return (
+      <div style={{ flex: 1, minHeight: 0, padding: 18, color: 'var(--fg-mute)', fontFamily: 'var(--mono)' }}>
+        No active IP for SSOT document rendering.
+      </div>
+    );
+  }
+
+  return (
+    <div style={{
+      flex: 1,
+      minHeight: 0,
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden',
+      background: 'var(--bg)',
+    }}>
+      <div style={{
+        padding: '10px 14px',
+        borderBottom: '1px solid var(--line)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        background: 'var(--bg-2)',
+        fontFamily: 'var(--mono)',
+      }}>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div style={{
+            color: 'var(--magenta)',
+            fontWeight: 800,
+            fontSize: 12,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+          }}>{title}</div>
+          <div className="mute trunc" style={{ marginTop: 3, fontSize: 'var(--ui-control-font-size)' }}>
+            {effectiveIp} · {subtitle}
+          </div>
+        </div>
+        <button type="button" className="btn" onClick={() => setReloadKey(k => k + 1)} style={{ fontSize: 10 }}>
+          refresh
+        </button>
+        <button type="button" className="btn" onClick={() => { window.location.href = downloadUrl; }} style={{ fontSize: 10 }}>
+          download
+        </button>
+        <button type="button" className="btn" onClick={onBack} style={{ fontSize: 10 }}>
+          chat
+        </button>
+      </div>
+      <div style={{
+        flex: 1,
+        minHeight: 0,
+        padding: 12,
+        background: 'var(--bg)',
+      }}>
+        <iframe
+          key={inlineUrl}
+          title={`${effectiveIp} SSOT HTML export`}
+          data-testid="ssot-doc-frame"
+          src={inlineUrl}
+          style={{
+            width: '100%',
+            height: '100%',
+            border: '1px solid var(--line)',
+            background: '#fff',
+          }}
+        />
+      </div>
+    </div>
+  );
 };
 
 const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {

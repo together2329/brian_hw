@@ -1182,6 +1182,313 @@ def _ssot_section_is_empty(value: Any) -> bool:
     return False
 
 
+def _ssot_html_escape(value: Any) -> str:
+    import html as _html
+
+    return _html.escape("" if value is None else str(value), quote=True)
+
+
+def _ssot_html_item_name(item: Any, fallback: str = "") -> str:
+    if isinstance(item, dict):
+        for key in ("name", "id", "module", "label", "signal", "path"):
+            val = item.get(key)
+            if val not in (None, "", [], {}):
+                return str(val)
+    if item not in (None, "", [], {}):
+        return str(item)
+    return fallback
+
+
+def _ssot_html_submodules(data: dict) -> list[dict]:
+    raw = data.get("sub_modules")
+    if not isinstance(raw, list):
+        return []
+    modules: list[dict] = []
+    for idx, item in enumerate(raw, start=1):
+        if isinstance(item, dict):
+            modules.append(item)
+        else:
+            modules.append({"name": str(item), "description": f"sub-module {idx}"})
+    return modules
+
+
+def _ssot_html_interfaces(data: dict) -> list[dict]:
+    io_list = data.get("io_list")
+    if isinstance(io_list, dict):
+        interfaces = io_list.get("interfaces")
+        if isinstance(interfaces, list):
+            return [item for item in interfaces if isinstance(item, dict)]
+        ports = io_list.get("ports")
+        if isinstance(ports, list):
+            return [{"name": "ports", "type": "port list", "ports": ports}]
+    if isinstance(io_list, list):
+        return [{"name": "ports", "type": "port list", "ports": io_list}]
+    return []
+
+
+def _ssot_html_block_diagram(data: dict) -> str:
+    top = data.get("top_module") if isinstance(data.get("top_module"), dict) else {}
+    top_name = str(top.get("name") or "TOP")
+    top_desc = str(top.get("description") or top.get("purpose") or "").strip()
+    submods = _ssot_html_submodules(data)
+    interfaces = _ssot_html_interfaces(data)
+
+    left_ifaces: list[dict] = []
+    right_ifaces: list[dict] = []
+    for iface in interfaces:
+        role = str(iface.get("role") or iface.get("direction") or iface.get("type") or "").lower()
+        ports = iface.get("ports")
+        has_output = False
+        if isinstance(ports, list):
+            has_output = any(
+                isinstance(port, dict)
+                and str(port.get("direction") or "").lower() in {"output", "out"}
+                for port in ports
+            )
+        if role in {"master", "source", "output", "out"} or has_output:
+            right_ifaces.append(iface)
+        else:
+            left_ifaces.append(iface)
+
+    def iface_chip(iface: dict, side: str) -> str:
+        name = _ssot_html_escape(iface.get("name") or "(interface)")
+        typ = _ssot_html_escape(iface.get("type") or iface.get("protocol") or iface.get("role") or "")
+        arrow = "&rarr;" if side == "left" else "&larr;"
+        ports = iface.get("ports")
+        count = len(ports) if isinstance(ports, list) else 0
+        meta = " · ".join(part for part in (typ, f"{count} ports" if count else "") if part)
+        meta_html = f"<small>{meta}</small>" if meta else ""
+        return (
+            f"<div class=\"iface-chip\"><span class=\"iface-arrow\">{arrow}</span>"
+            f"<strong>{name}</strong>"
+            f"{meta_html}</div>"
+        )
+
+    left_html = "".join(iface_chip(item, "left") for item in left_ifaces)
+    right_html = "".join(iface_chip(item, "right") for item in right_ifaces)
+    if not left_html:
+        left_html = "<div class=\"doc-empty small\">no input-side interface declared</div>"
+    if not right_html:
+        right_html = "<div class=\"doc-empty small\">no output-side interface declared</div>"
+
+    if submods:
+        module_html = "".join(
+            "<div class=\"module-node\">"
+            f"<strong>{_ssot_html_escape(_ssot_html_item_name(item, f'module_{idx}'))}</strong>"
+            f"<small>{_ssot_html_escape(item.get('description') or item.get('role') or item.get('file') or '')}</small>"
+            "</div>"
+            for idx, item in enumerate(submods, start=1)
+        )
+    else:
+        module_html = "<div class=\"module-node single\"><strong>single block</strong><small>no sub_modules declared</small></div>"
+
+    top_desc_html = f"<div class=\"top-desc\">{_ssot_html_escape(top_desc)}</div>" if top_desc else ""
+    return (
+        "<section class=\"diagram-card\">"
+        "<h3>Block Diagram</h3>"
+        "<div class=\"block-graph\">"
+        f"<div class=\"iface-column\">{left_html}</div>"
+        "<div class=\"top-node\">"
+        f"<div class=\"top-title\">{_ssot_html_escape(top_name)}</div>"
+        f"{top_desc_html}"
+        f"<div class=\"module-grid\">{module_html}</div>"
+        "</div>"
+        f"<div class=\"iface-column\">{right_html}</div>"
+        "</div>"
+        "</section>"
+    )
+
+
+def _ssot_fsm_machines(value: Any) -> list[dict]:
+    machines: list[dict] = []
+    if isinstance(value, dict):
+        raw = value.get("machines") or value.get("fsm_list") or value.get("list")
+        if isinstance(raw, list):
+            machines = [item for item in raw if isinstance(item, dict)]
+        else:
+            for key, item in value.items():
+                if isinstance(item, dict) and (item.get("states") or item.get("transitions")):
+                    machine = dict(item)
+                    machine.setdefault("name", key)
+                    machines.append(machine)
+    elif isinstance(value, list):
+        machines = [item for item in value if isinstance(item, dict)]
+    return machines
+
+
+def _ssot_html_fsm_section(data: dict) -> str:
+    machines = _ssot_fsm_machines(data.get("fsm"))
+    if not machines:
+        return (
+            "<section class=\"diagram-card\">"
+            "<h3>FSM</h3>"
+            "<p class=\"doc-empty\">FSM not specified in SSOT.</p>"
+            "</section>"
+        )
+
+    chunks: list[str] = []
+    for idx, machine in enumerate(machines, start=1):
+        name = _ssot_html_escape(machine.get("name") or f"fsm_{idx}")
+        reset_state = machine.get("reset_state") or machine.get("initial_state") or ""
+        states_raw = machine.get("states") if isinstance(machine.get("states"), list) else []
+        transitions_raw = machine.get("transitions") if isinstance(machine.get("transitions"), list) else []
+        states: list[str] = []
+        seen: set[str] = set()
+        for item in states_raw:
+            state = _ssot_html_item_name(item)
+            if state and state not in seen:
+                seen.add(state)
+                states.append(state)
+        for item in transitions_raw:
+            if not isinstance(item, dict):
+                continue
+            for key in ("from", "source", "current", "to", "dest", "target", "next"):
+                state = item.get(key)
+                if state not in (None, "", [], {}) and str(state) not in seen:
+                    seen.add(str(state))
+                    states.append(str(state))
+
+        rail = "".join(
+            f"<span class=\"fsm-state{' reset' if state == reset_state else ''}\">{_ssot_html_escape(state)}</span>"
+            + ("<span class=\"fsm-arrow\">&rarr;</span>" if pos < len(states) - 1 else "")
+            for pos, state in enumerate(states[:12])
+        ) or "<span class=\"doc-empty small\">no states declared</span>"
+
+        rows: list[str] = []
+        for item in transitions_raw:
+            if isinstance(item, dict):
+                src = item.get("from") or item.get("source") or item.get("current") or ""
+                cond = item.get("condition") or item.get("event") or item.get("trigger") or ""
+                dst = item.get("to") or item.get("dest") or item.get("target") or item.get("next") or ""
+                action = item.get("action") or item.get("output") or item.get("description") or ""
+                rows.append(
+                    "<tr>"
+                    f"<td>{_ssot_html_escape(src)}</td>"
+                    f"<td>{_ssot_html_escape(cond)}</td>"
+                    f"<td>{_ssot_html_escape(dst)}</td>"
+                    f"<td>{_ssot_html_escape(action)}</td>"
+                    "</tr>"
+                )
+        table = (
+            "<table><thead><tr><th>Current</th><th>Condition</th><th>Next</th><th>Action</th></tr></thead>"
+            f"<tbody>{''.join(rows)}</tbody></table>"
+            if rows else "<p class=\"doc-empty small\">no transitions declared</p>"
+        )
+        reset_html = f"<p class=\"reset-note\">reset: {_ssot_html_escape(reset_state)}</p>" if reset_state else ""
+        chunks.append(
+            "<div class=\"fsm-machine\">"
+            f"<h4>{name}</h4>"
+            f"{reset_html}"
+            f"<div class=\"fsm-rail\">{rail}</div>"
+            f"{table}"
+            "</div>"
+        )
+    return "<section class=\"diagram-card\"><h3>FSM</h3>" + "".join(chunks) + "</section>"
+
+
+def _ssot_html_signal_values(signal: dict) -> list[str]:
+    values = signal.get("values")
+    if isinstance(values, list):
+        return [str(item) for item in values[:48]]
+    wave = signal.get("wave") or signal.get("pattern")
+    if isinstance(wave, str) and wave:
+        return list(wave[:48])
+    return []
+
+
+def _ssot_html_timing_section(data: dict) -> str:
+    timing = data.get("timing")
+    cycle_model = data.get("cycle_model") if isinstance(data.get("cycle_model"), dict) else {}
+    diagrams: list[dict] = []
+    if isinstance(timing, dict):
+        for key in ("diagrams", "timing_diagrams", "waveforms", "waves"):
+            raw = timing.get(key)
+            if isinstance(raw, list):
+                for item in raw:
+                    if isinstance(item, dict):
+                        diagrams.append(item)
+                break
+        signals = timing.get("signals")
+        if not diagrams and isinstance(signals, list):
+            diagrams.append({"name": timing.get("name") or "timing", "signals": signals})
+    elif isinstance(timing, list):
+        diagrams = [item for item in timing if isinstance(item, dict)]
+
+    blocks: list[str] = []
+    for idx, diagram in enumerate(diagrams[:6], start=1):
+        name = _ssot_html_escape(diagram.get("name") or diagram.get("id") or f"timing_{idx}")
+        signals = diagram.get("signals") or diagram.get("waveforms") or diagram.get("waves")
+        if not isinstance(signals, list):
+            continue
+        rows = []
+        for signal in signals:
+            if not isinstance(signal, dict):
+                continue
+            vals = _ssot_html_signal_values(signal)
+            if not vals:
+                continue
+            cell_parts = []
+            for v in vals:
+                low_v = str(v).lower()
+                cls = "high" if low_v in {"1", "h", "high", "assert"} else (
+                    "low" if low_v in {"0", "l", "low"} else "mark"
+                )
+                cell_parts.append(f"<td class=\"wave-cell {cls}\">{_ssot_html_escape(v)}</td>")
+            cells = "".join(cell_parts)
+            rows.append(
+                "<tr>"
+                f"<th>{_ssot_html_escape(signal.get('name') or signal.get('signal') or '')}</th>"
+                f"{cells}"
+                "</tr>"
+            )
+        if rows:
+            blocks.append(
+                f"<h4>{name}</h4>"
+                "<table class=\"wave-table\"><tbody>"
+                + "".join(rows)
+                + "</tbody></table>"
+            )
+
+    if not blocks:
+        pipeline = cycle_model.get("pipeline") or cycle_model.get("stages")
+        if isinstance(pipeline, list) and pipeline:
+            rows = []
+            for item in pipeline:
+                if not isinstance(item, dict):
+                    continue
+                rows.append(
+                    "<tr>"
+                    f"<td>{_ssot_html_escape(item.get('cycle') or item.get('phase') or '')}</td>"
+                    f"<td>{_ssot_html_escape(item.get('stage') or item.get('name') or item.get('id') or '')}</td>"
+                    f"<td>{_ssot_html_escape(item.get('action') or item.get('description') or '')}</td>"
+                    f"<td>{_ssot_html_escape(item.get('ready') or item.get('notes') or '')}</td>"
+                    "</tr>"
+                )
+            if rows:
+                blocks.append(
+                    "<h4>Pipeline Timing</h4>"
+                    "<table><thead><tr><th>Cycle</th><th>Stage</th><th>Action</th><th>Ready / Notes</th></tr></thead>"
+                    f"<tbody>{''.join(rows)}</tbody></table>"
+                )
+
+    body = "".join(blocks) if blocks else "<p class=\"doc-empty\">Timing diagram not specified in SSOT.</p>"
+    return f"<section class=\"diagram-card\"><h3>Timing Diagram</h3>{body}</section>"
+
+
+def _ssot_html_design_views(data: dict, ip: str) -> str:
+    if not isinstance(data, dict):
+        return ""
+    return (
+        "<section class=\"design-views\">"
+        "<h2>Design Views</h2>"
+        f"<p class=\"design-note\">Derived deterministically from <code>{_ssot_html_escape(ip)}/yaml/{_ssot_html_escape(ip)}.ssot.yaml</code>.</p>"
+        f"{_ssot_html_block_diagram(data)}"
+        f"{_ssot_html_fsm_section(data)}"
+        f"{_ssot_html_timing_section(data)}"
+        "</section>"
+    )
+
+
 def _ssot_to_markdown(data: dict, ip: str) -> str:
     from datetime import datetime, timezone
 
@@ -1236,7 +1543,7 @@ def _ssot_to_markdown(data: dict, ip: str) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
-def _ssot_to_html(md_text: str, ip: str) -> str:
+def _ssot_to_html(md_text: str, ip: str, data: dict | None = None) -> str:
     import markdown as _mod  # type: ignore
 
     html_body = _mod.markdown(
@@ -1257,14 +1564,51 @@ def _ssot_to_html(md_text: str, ip: str) -> str:
         "pre { background: #f6f8fa; padding: .8em; border-radius: 4px; "
         "overflow-x: auto; } "
         "blockquote { border-left: 3px solid #ccc; margin: 1em 0; "
-        "padding: .3em .8em; color: #555; background: #fafafa; }"
+        "padding: .3em .8em; color: #555; background: #fafafa; } "
+        ".design-views { margin: 1.5em 0 2em; padding: 1em; border: 1px solid #d8dee9; "
+        "border-radius: 8px; background: #fbfcff; } "
+        ".design-note, .doc-empty { color: #5d6778; } "
+        ".doc-empty.small { font-size: .86em; } "
+        ".diagram-card { margin: 1em 0; padding: 1em; border: 1px solid #e3e7ef; "
+        "border-radius: 8px; background: #fff; } "
+        ".diagram-card h3 { margin-top: 0; } "
+        ".block-graph { display: grid; grid-template-columns: minmax(120px, 1fr) minmax(280px, 2fr) minmax(120px, 1fr); "
+        "gap: 1em; align-items: center; } "
+        ".iface-column { display: grid; gap: .6em; } "
+        ".iface-chip { border: 1px solid #b8c5dd; border-radius: 6px; padding: .55em .7em; background: #f7faff; } "
+        ".iface-chip strong { display: block; } "
+        ".iface-chip small, .module-node small { display: block; color: #64748b; margin-top: .2em; } "
+        ".iface-arrow { color: #315fdc; font-weight: 700; margin-right: .35em; } "
+        ".top-node { border: 2px solid #315fdc; border-radius: 10px; padding: 1em; background: #f4f7ff; text-align: center; } "
+        ".top-title { font-weight: 800; font-size: 1.15em; } "
+        ".top-desc { color: #475569; margin-top: .3em; } "
+        ".module-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: .65em; margin-top: 1em; } "
+        ".module-node { border: 1px solid #b8c5dd; border-radius: 6px; padding: .65em; background: #fff; min-height: 3.4em; } "
+        ".module-node.single { max-width: 280px; margin: 0 auto; } "
+        ".fsm-machine { margin: .8em 0 1.1em; } "
+        ".fsm-machine h4 { margin: .2em 0; } "
+        ".reset-note { color: #475569; margin: .1em 0 .6em; } "
+        ".fsm-rail { display: flex; flex-wrap: wrap; align-items: center; gap: .4em; margin: .55em 0 .8em; } "
+        ".fsm-state { border: 1px solid #b8c5dd; border-radius: 999px; padding: .35em .7em; background: #f8fafc; font-family: monospace; } "
+        ".fsm-state.reset { border-color: #16a34a; background: #ecfdf3; } "
+        ".fsm-arrow { color: #64748b; } "
+        ".wave-table { width: 100%; table-layout: fixed; } "
+        ".wave-table th { width: 9em; } "
+        ".wave-cell { text-align: center; font-family: monospace; padding: .25em .35em; } "
+        ".wave-cell.high { background: #dff7e7; border-top: 3px solid #16a34a; } "
+        ".wave-cell.low { background: #f8fafc; border-bottom: 3px solid #64748b; } "
+        ".wave-cell.mark { background: #fff7d6; } "
+        "@media (max-width: 760px) { .block-graph { grid-template-columns: 1fr; } "
+        ".wave-table { table-layout: auto; } }"
     )
     safe_ip = str(ip).replace("<", "&lt;").replace(">", "&gt;")
+    design_views = _ssot_html_design_views(data, ip) if isinstance(data, dict) else ""
     return (
         "<!DOCTYPE html>\n"
         "<html><head><meta charset=\"utf-8\">"
         f"<title>{safe_ip} — SSOT</title>"
         f"<style>{css}</style></head><body>"
+        f"{design_views}"
         f"{html_body}"
         "</body></html>"
     )
@@ -13924,7 +14268,7 @@ def create_app():
         })
 
     @app.get("/api/ssot/export")
-    async def api_ssot_export(ip: str, format: str = "md"):
+    async def api_ssot_export(ip: str, format: str = "md", inline: bool = False):
         """Export the canonical ssot yaml as md/docx/html for human review.
 
         Reverse direction of /api/ssot/import/upload. Writes
@@ -13964,7 +14308,7 @@ def create_app():
                 media = "text/markdown; charset=utf-8"
             elif fmt == "html":
                 md_text = _ssot_to_markdown(data, ip)
-                html_text = _ssot_to_html(md_text, ip)
+                html_text = _ssot_to_html(md_text, ip, data)
                 out_path.write_text(html_text, encoding="utf-8")
                 media = "text/html; charset=utf-8"
             else:
@@ -13980,11 +14324,12 @@ def create_app():
             )
 
         filename = f"{ip}_ssot.{fmt}"
+        disposition = "inline" if inline and fmt == "html" else "attachment"
         return FileResponse(
             str(out_path),
             media_type=media,
             filename=filename,
-            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+            headers={"Content-Disposition": f'{disposition}; filename="{filename}"'},
         )
 
     @app.post("/api/ssot/validate")
