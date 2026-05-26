@@ -110,6 +110,7 @@ _BASE_MODEL_DROPDOWN_KEYS = ('LLM_BASE_NAME', 'LLM_BASE_NAME_2', 'LLM_BASE_NAME_
 _LEGACY_MODEL_DROPDOWN_KEYS = ('LLM_BASE_MODEL', 'LLM_BASE_MODEL_2', 'LLM_BASE_MODEL_3')
 _PROFILE_MODEL_DROPDOWN_PREFIX = "profile:"
 _RAW_MODEL_DROPDOWN_PREFIX = "model:"
+_PENDING_OPENCODE_MODEL_ENV = "LLM_PENDING_OPENCODE_MODEL"
 
 # mtime cache: path -> last seen mtime. reload_env() only does I/O when at
 # least one .env file has changed since the previous successful reload.
@@ -326,6 +327,37 @@ def _model_dropdown_value(index: int) -> str:
     return ""
 
 
+def _looks_like_opencode_model_name(name: str) -> bool:
+    n = (name or "").lower().strip()
+    if n.startswith("openai/"):
+        n = n.split("/", 1)[1]
+    return n.startswith("gpt-5") or ("gpt" in n and "codex" in n)
+
+
+def _activate_dropdown_opencode_model(model: str):
+    if not _looks_like_opencode_model_name(model):
+        return None
+    activate_oauth = globals().get("activate_opencode_oauth")
+    if not callable(activate_oauth):
+        # During module bootstrap this function runs before the OAuth helper
+        # is defined. Defer instead of creating a mixed state like
+        # MODEL_NAME=gpt-5.3-codex with BASE_URL still pointing at GLM/Z.AI.
+        os.environ[_PENDING_OPENCODE_MODEL_ENV] = model
+        return False
+    bare_model = model.split("/", 1)[-1]
+    if activate_oauth(bare_model, runtime_override=False):
+        active_model = str(globals().get("MODEL_NAME") or bare_model)
+        os.environ["LLM_ACTIVE_MODEL_NAME"] = active_model
+        os.environ["LLM_ACTIVE_BASE_NAME"] = active_model
+        os.environ["LLM_ACTIVE_BASE_MODEL"] = active_model
+        os.environ.pop(_PENDING_OPENCODE_MODEL_ENV, None)
+        return True
+    # OAuth was explicitly requested but unavailable. Keep the prior profile
+    # intact rather than routing a Codex model name to a non-Codex endpoint.
+    os.environ.pop(_PENDING_OPENCODE_MODEL_ENV, None)
+    return False
+
+
 def _apply_model_dropdown_selection() -> None:
     if runtime_model_override_active():
         return
@@ -343,16 +375,15 @@ def _apply_model_dropdown_selection() -> None:
     if selected_key.startswith(_RAW_MODEL_DROPDOWN_PREFIX):
         model = selected_key[len(_RAW_MODEL_DROPDOWN_PREFIX):].strip()
         if model:
+            opencode_applied = _activate_dropdown_opencode_model(model)
+            if opencode_applied is not None:
+                return
             globals()['MODEL_NAME'] = model
             os.environ['LLM_MODEL_NAME'] = model
             os.environ['MODEL_NAME'] = model
             os.environ['LLM_ACTIVE_MODEL_NAME'] = model
             os.environ['LLM_ACTIVE_BASE_NAME'] = model
             os.environ['LLM_ACTIVE_BASE_MODEL'] = model
-            is_open = globals().get("is_opencode_model")
-            activate_oauth = globals().get("activate_opencode_oauth")
-            if callable(is_open) and is_open(model) and callable(activate_oauth):
-                activate_oauth(model)
             return
     model = ""
     if selected_key in _MODEL_DROPDOWN_KEYS:
@@ -360,6 +391,9 @@ def _apply_model_dropdown_selection() -> None:
     else:
         return
     if not model:
+        return
+    opencode_applied = _activate_dropdown_opencode_model(model)
+    if opencode_applied is not None:
         return
     globals()['MODEL_NAME'] = model
     os.environ['LLM_MODEL_NAME'] = model
@@ -914,10 +948,7 @@ def deactivate_opencode_oauth() -> None:
 
 def is_opencode_model(name: str) -> bool:
     """Heuristic: should `--model <name>` route through opencode-OAuth?"""
-    n = (name or "").lower().strip()
-    if n.startswith("openai/"):
-        n = n.split("/", 1)[1]
-    return n.startswith("gpt-5") or ("gpt" in n and "codex" in n)
+    return _looks_like_opencode_model_name(name)
 
 
 def _active_profile_blocks_auto_opencode() -> bool:
@@ -1150,8 +1181,10 @@ class _ThreadRuntimeConfigModule(types.ModuleType):
 sys.modules[__name__].__class__ = _ThreadRuntimeConfigModule
 
 
+_apply_model_dropdown_selection()
+
 if USE_OPENCODE_OAUTH and not (CURSOR_AGENT_ENABLE or CLAUDE_CLI_ENABLE):
-    if _active_profile_blocks_auto_opencode():
+    if _active_profile_blocks_auto_opencode() and not runtime_model_override_active():
         USE_OPENCODE_OAUTH = False
         USE_RESPONSES_API = False
         os.environ["USE_OPENCODE_OAUTH"] = "false"

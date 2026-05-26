@@ -1,5 +1,8 @@
 import os
 import sys
+import json
+import shutil
+import subprocess
 from pathlib import Path
 
 from fastapi.testclient import TestClient
@@ -221,6 +224,89 @@ def test_healthz_keeps_cli_model_override_over_stale_dropdown(tmp_path, monkeypa
     assert payload["model"] == "gpt-5.3-codex"
     assert payload["base_model"] == "gpt-5.3-codex"
     assert os.environ["LLM_MODEL_NAME"] == "gpt-5.3-codex"
+
+
+def test_config_boot_codex_dropdown_overrides_glm_profile_without_mixed_endpoint(tmp_path):
+    pkg = tmp_path / "pkg"
+    src_dir = pkg / "src"
+    src_dir.mkdir(parents=True)
+    (src_dir / "__init__.py").write_text("", encoding="utf-8")
+    shutil.copy(PROJECT_ROOT / "src" / "config.py", src_dir / "config.py")
+    shutil.copy(PROJECT_ROOT / "src" / "opencode_backend.py", src_dir / "opencode_backend.py")
+
+    (pkg / ".config").write_text(
+        "\n".join([
+            "USE_OPENCODE_OAUTH=true",
+            "USE_RESPONSES_API=true",
+            "OPENCODE_MODEL=gpt-5.5",
+            "",
+        ]),
+        encoding="utf-8",
+    )
+    (pkg / ".env").write_text(
+        "\n".join([
+            "PROFILE_glm_BASE_URL=https://api.z.ai/api/coding/paas/v4",
+            "PROFILE_glm_API_KEY=glm-key",
+            "PROFILE_glm_MODEL=glm-5.1",
+            "LLM_PROFILE=glm",
+            "LLM_MODEL_CATALOG=gpt-5.5,gpt-5.3-codex,glm=profile:glm",
+            "LLM_SELECTED_MODEL_KEY=model:gpt-5.3-codex",
+            "LLM_ACTIVE_MODEL_NAME=gpt-5.3-codex",
+            "LLM_ACTIVE_BASE_NAME=gpt-5.3-codex",
+            "",
+        ]),
+        encoding="utf-8",
+    )
+    home = tmp_path / "home"
+    auth_path = home / ".local" / "share" / "opencode" / "auth.json"
+    auth_path.parent.mkdir(parents=True)
+    auth_path.write_text(
+        json.dumps({
+            "openai": {
+                "type": "oauth",
+                "access": "test-access-token",
+                "refresh": "test-refresh-token",
+                "expires": 4_102_444_800_000,
+                "accountId": "acct-test",
+            }
+        }),
+        encoding="utf-8",
+    )
+
+    code = (
+        "import json, os; import src.config as c; "
+        "print(json.dumps({"
+        "'model': c.MODEL_NAME, "
+        "'base_url': c.BASE_URL, "
+        "'provider': c.LLM_PROVIDER, "
+        "'use_opencode': c.USE_OPENCODE_OAUTH, "
+        "'responses': c.USE_RESPONSES_API, "
+        "'env_model': os.environ.get('LLM_MODEL_NAME'), "
+        "'env_profile': os.environ.get('LLM_PROFILE')"
+        "}, sort_keys=True))"
+    )
+    env = {
+        "HOME": str(home),
+        "PYTHONPATH": str(pkg),
+        "OPENCODE_AUTH_PATH": str(auth_path),
+    }
+    result = subprocess.run(
+        [sys.executable, "-c", code],
+        cwd=str(pkg),
+        env=env,
+        text=True,
+        capture_output=True,
+        check=True,
+    )
+    payload = json.loads(result.stdout)
+
+    assert payload["model"] == "gpt-5.3-codex"
+    assert payload["env_model"] == "gpt-5.3-codex"
+    assert payload["base_url"] == "https://chatgpt.com/backend-api/codex"
+    assert payload["provider"] == "openai"
+    assert payload["use_opencode"] is True
+    assert payload["responses"] is True
+    assert payload["env_profile"] is None
 
 
 def test_config_resolves_pdk_paths_from_source_root(monkeypatch):

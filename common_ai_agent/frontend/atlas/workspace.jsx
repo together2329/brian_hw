@@ -18978,6 +18978,12 @@ const AgentStatusPanel = ({ intent, workflow, activeIp = '', agentAlive = false,
 	          };
 	          syncContext({
 	            model: j.model || j.base_model || '',
+	            baseModel: j.base_model || '',
+	            baseUrl: j.base_url || '',
+	            provider: j.provider || '',
+	            reasoningEffort: j.reasoning_effort || '',
+	            modelOptions: Array.isArray(j.model_options) ? j.model_options : [],
+	            selectedModelKey: j.selected_model_key || '',
 	            maxTokens: j.max_context,
 	            ...counterPatch,
 	            pricing: j.pricing || null,
