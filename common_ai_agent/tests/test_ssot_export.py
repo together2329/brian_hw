@@ -8,6 +8,7 @@ Run with:
 from __future__ import annotations
 
 import shutil
+import xml.etree.ElementTree as ET
 import zipfile
 from pathlib import Path
 
@@ -57,6 +58,14 @@ def _make_client(tmp_path: Path, monkeypatch) -> TestClient:
     return client
 
 
+def _docx_text(path: Path) -> str:
+    with zipfile.ZipFile(path) as zf:
+        xml = zf.read("word/document.xml")
+    root = ET.fromstring(xml)
+    ns = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
+    return "\n".join(node.text or "" for node in root.findall(".//w:t", ns))
+
+
 # ---------------------------------------------------------------------------
 # Helper-level tests (no FastAPI)
 # ---------------------------------------------------------------------------
@@ -101,6 +110,9 @@ def test_render_html(tmp_path, monkeypatch, ip):
     block_idx = html.find("<h3>Block Diagram</h3>")
     assert block_idx != -1, "Block Diagram section missing from html"
     assert block_idx > top_match.start(), "Block Diagram must be placed after Top Module heading"
+    next_h2 = _re.search(r"<h2\b", html[top_match.end():], _re.IGNORECASE)
+    assert next_h2, "expected another h2 after Top Module"
+    assert block_idx < top_match.end() + next_h2.start(), "Block Diagram must stay inside Top Module section"
 
 
 @pytest.mark.parametrize("ip", SAMPLE_IPS)
@@ -114,6 +126,11 @@ def test_render_docx_is_valid_zip(tmp_path, monkeypatch, ip):
     with zipfile.ZipFile(out_path) as zf:
         names = zf.namelist()
         assert "[Content_Types].xml" in names, "not a valid docx (missing manifest)"
+    text = _docx_text(out_path)
+    block_idx = text.find("Block Diagram")
+    features_idx = text.find("Features")
+    assert block_idx != -1, "Block Diagram heading missing from docx"
+    assert features_idx == -1 or block_idx < features_idx, "Block Diagram should render before Features"
 
 
 def test_ssot_yaml_path_validates_ip(tmp_path, monkeypatch):

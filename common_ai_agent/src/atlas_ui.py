@@ -3258,12 +3258,12 @@ def _ssot_to_docx(data: dict, ip: str, out_path: Path) -> None:
     intro_text = str(top.get("description") or top.get("purpose") or "").strip()
     if intro_text:
         doc.add_paragraph(intro_text)
-    if not _ssot_section_is_empty(data.get("features")):
-        doc.add_heading("Features", level=2)
-        _ssot_docx_render_features(doc, data["features"])
     if not _ssot_section_is_empty(data.get("top_module")) or not _ssot_section_is_empty(data.get("sub_modules")):
         doc.add_heading("Block Diagram", level=2)
         _ssot_docx_render_block_diagram(doc, data)
+    if not _ssot_section_is_empty(data.get("features")):
+        doc.add_heading("Features", level=2)
+        _ssot_docx_render_features(doc, data["features"])
     if (not _ssot_section_is_empty(data.get("features"))
             or not _ssot_section_is_empty(data.get("sub_modules"))
             or not _ssot_section_is_empty(data.get("function_model"))):
