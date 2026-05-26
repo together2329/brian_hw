@@ -1,9 +1,9 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-05-25T10:44:46Z",
+  "generated_at": "2026-05-26T07:47:42Z",
   "root": "doc/wiki",
-  "node_count": 89,
-  "edge_count": 411,
+  "node_count": 90,
+  "edge_count": 414,
   "tags": {
     "atcdmac100": [
       "atcdmac100-document-flow-ui-honesty-20260518"
@@ -15,6 +15,7 @@
     "atlas": [
       "atlas-dag-ip-flow-runbook",
       "atlas-e2e-validation-20260519",
+      "orchestrator-singleworker-e2e-20260526",
       "ssot-rtl-flow-verify-20260519"
     ],
     "atlas-ui": [
@@ -34,6 +35,9 @@
     ],
     "baseline": [
       "hardcoded-strip-honest-baseline-20260520"
+    ],
+    "chat-persistence": [
+      "orchestrator-singleworker-e2e-20260526"
     ],
     "cocotb": [
       "atcwdt200-flow-debugging-lessons"
@@ -61,7 +65,8 @@
     ],
     "e2e": [
       "atlas-e2e-validation-20260519",
-      "e2e-orchestrator-validation-plan"
+      "e2e-orchestrator-validation-plan",
+      "orchestrator-singleworker-e2e-20260526"
     ],
     "evidence": [
       "atcdmac100-document-flow-ui-honesty-20260518",
@@ -90,6 +95,9 @@
     "ip-flow": [
       "atlas-dag-ip-flow-runbook"
     ],
+    "latency": [
+      "orchestrator-singleworker-e2e-20260526"
+    ],
     "lint": [
       "atcwdt200-ssot-rtl-tb-flow-시행착오-2026-05-17"
     ],
@@ -114,6 +122,7 @@
       "orchestrator-chat-only-product-plan",
       "orchestrator-llm-loop-phase3",
       "orchestrator-loop-on-react-loop-plan",
+      "orchestrator-singleworker-e2e-20260526",
       "orchestrator-verification-report",
       "pl330-real-orchestrator-ui-lessons-20260517"
     ],
@@ -181,6 +190,9 @@
     "sim": [
       "atcwdt200-ssot-rtl-tb-flow-시행착오-2026-05-17"
     ],
+    "single-worker": [
+      "orchestrator-singleworker-e2e-20260526"
+    ],
     "ssot": [
       "atcwdt200-ssot-rtl-tb-flow-시행착오-2026-05-17",
       "multi-cycle-production-wiring-20260520",
@@ -189,6 +201,7 @@
     ],
     "ssot-gen": [
       "atlas-e2e-validation-20260519",
+      "orchestrator-singleworker-e2e-20260526",
       "ssot-conversion-flow-20260519"
     ],
     "stimulus": [
@@ -206,9 +219,13 @@
     "to-ssot": [
       "ssot-conversion-flow-20260519"
     ],
+    "ux": [
+      "orchestrator-singleworker-e2e-20260526"
+    ],
     "validation": [
       "atlas-e2e-validation-20260519",
-      "e2e-orchestrator-validation-plan"
+      "e2e-orchestrator-validation-plan",
+      "orchestrator-singleworker-e2e-20260526"
     ],
     "verification": [
       "hardcoded-strip-honest-baseline-20260520",
@@ -325,6 +342,7 @@
     "run": [
       "atcdmac100-document-flow-ui-honesty-20260518",
       "atlas-e2e-validation-20260519",
+      "orchestrator-singleworker-e2e-20260526",
       "pl330-real-orchestrator-ui-lessons-20260517"
     ],
     "runbook": [
@@ -647,7 +665,8 @@
         "full-flow-pipeline"
       ],
       "incoming": [
-        "log"
+        "log",
+        "orchestrator-singleworker-e2e-20260526"
       ],
       "broken_refs": [],
       "updated": "",
@@ -665,6 +684,7 @@
       "incoming": [
         "hardcoded-strip-honest-baseline-20260520",
         "multi-cycle-production-wiring-20260520",
+        "orchestrator-singleworker-e2e-20260526",
         "silent-pass-exposure-tb-stimulus-gap-20260520"
       ],
       "broken_refs": [],
@@ -691,6 +711,7 @@
         "atlas-pipeline-worker-workspace-jump",
         "index",
         "orchestrator-llm-loop-phase3",
+        "orchestrator-singleworker-e2e-20260526",
         "pl330-real-orchestrator-ui-lessons-20260517"
       ],
       "broken_refs": [],
@@ -1877,6 +1898,38 @@
       "summary": "> **Date:** 2026-05-23 > **Context:** Drove a brand-new IP `orch_demo_173125` (\"8-bit synchronous > up counter\") through the orchestrator with a single chat instruction > (\"run to green through PnR\"). The orchestrator dispatched ssot-gen and > then **stalled at SSOT** — never advanced to fl-model. > **Goal at the time:** `pnr까지` (reach place-and-route). >…",
       "path": "doc/wiki/orchestrator-pnr-run-issues-2026-05-23.md",
       "size_bytes": 5291
+    },
+    {
+      "id": "orchestrator-singleworker-e2e-20260526",
+      "title": "Orchestrator + Single-Worker E2E (chat/log/IP) 2026-05-26",
+      "type": "run",
+      "tags": [
+        "atlas",
+        "e2e",
+        "orchestrator",
+        "single-worker",
+        "chat-persistence",
+        "ssot-gen",
+        "latency",
+        "ux",
+        "validation"
+      ],
+      "related": [
+        "atlas-e2e-validation-20260519",
+        "atlas-pipeline-db-state",
+        "atlas-new-ip-recipe"
+      ],
+      "outgoing": [
+        "atlas-e2e-validation-20260519",
+        "atlas-pipeline-db-state",
+        "atlas-new-ip-recipe"
+      ],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Goal: drive both exec modes, switching chats, verifying chat persistence, log visibility, and IP creation (ssot/rtl/sim) ~10×; fix what breaks; UX matters. Harness: `scripts/ui_tests/goal_mode_matrix.py` (stdlib urllib, isolated throwaway users + unique IPs against the live server, in-band finalize to bound billing).",
+      "path": "doc/wiki/orchestrator-singleworker-e2e-20260526.md",
+      "size_bytes": 4325
     },
     {
       "id": "orchestrator-verification-report",

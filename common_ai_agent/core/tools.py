@@ -5902,6 +5902,177 @@ def set_ensure_lazy_worker_callback(cb):
     _ensure_lazy_worker_callback = cb
 
 
+# Pipeline stages copied into each IP folder + documented in its runbook.
+# Order is the canonical SSOT→signoff flow. Only stages that exist in the
+# central workflow/ tree are copied; missing ones are silently skipped.
+_IP_WORKFLOW_STAGES = (
+    "ssot-gen", "fl-model-gen", "rtl-gen", "tb-gen", "sim",
+    "lint", "coverage", "syn", "sta", "pnr", "sta-post",
+)
+
+
+def _central_workflow_root():
+    """Resolve the central workflow/ script tree (single source of stages)."""
+    from pathlib import Path
+    raw = os.path.expandvars((os.environ.get("ATLAS_WORKFLOW_ROOT") or "").strip())
+    if raw and "${" not in raw and os.path.isdir(raw):
+        return Path(raw)
+    home = os.environ.get("COMMON_AI_AGENT_HOME")
+    base = Path(home) if home else Path(__file__).resolve().parents[1]
+    return base / "workflow"
+
+
+def _render_ip_workflow_runbook(name: str) -> str:
+    """Executable per-IP runbook: SSOT→FL→RTL→TB→SIM→LINT→signoff.
+
+    Commands reference the IP-local copy under <ip>/workflow/<stage>/scripts/
+    and run from the project root with `<ip> --root .`. Cross-links the project
+    wiki and (when configured) the external previous-project RTL DB wiki.
+    """
+    rtl_db = resolve_rtl_db_wiki()
+    if rtl_db is not None:
+        rtl_db_line = f"- **Previous-project RTL DB (external link):** [`{rtl_db}`]({rtl_db})"
+    else:
+        rtl_db_line = (
+            "- **Previous-project RTL DB (external link):** _not configured_ — set "
+            "`ATLAS_RTL_DB_WIKI` in `.config` to a prior project's RTL wiki "
+            "(dir or .md) to link reference designs here."
+        )
+    stages = [
+        ("ssot-gen", "SSOT", "Single Source of Truth from spec/import evidence.",
+         f"python3 workflow/ssot-gen/scripts/check_ssot_disk.sh {name}",
+         f"yaml/{name}.ssot.yaml"),
+        ("fl-model-gen", "FL-Model", "Functional/reference model + equivalence goals from SSOT.",
+         f'python3 workflow/fl-model-gen/scripts/check_fl_model_artifacts.py {name} --root .',
+         f"model/, equivalence goals"),
+        ("rtl-gen", "RTL", "Synthesizable RTL authored from SSOT (+ FL equivalence).",
+         f"python3 workflow/rtl-gen/scripts/check_rtl_disk.sh {name}",
+         f"rtl/{name}.sv, list/{name}.f, rtl/rtl_authoring_provenance.json"),
+        ("tb-gen", "TB", "cocotb/pyuvm testbench from SSOT test_requirements.",
+         f"python3 workflow/tb-gen/scripts/sim.sh {name}",
+         f"tb/cocotb/test_{name}.py, tb_manifest.json"),
+        ("sim", "SIM", "Compile + run simulation, scoreboard, report.",
+         f"python3 workflow/sim/scripts/run_sim.py {name} --root .",
+         f"sim/ (waves, logs, results)"),
+        ("lint", "LINT", "RTL lint — fix errors/warnings, emit report.",
+         f"python3 workflow/lint/scripts/dut_lint_report.py {name} --root .",
+         f"lint/ (lint report)"),
+    ]
+    lines = [
+        f"# {name} — Workflow Runbook",
+        "",
+        f"Self-contained, executable flow for IP `{name}`. The full workflow "
+        f"engine is copied into `../workflow/` at scaffold time — every stage's "
+        f"scripts, prompts, `system_prompt.md`, rules, and todo templates, plus "
+        f"the shared `scripts/`/`prompts/` and the flow guides. The IP runs "
+        f"on its own, with no dependency on the central checkout's project wiki. "
+        f"Run commands from the **project root** (the dir containing `{name}/`).",
+        "",
+        "## Pointers (all in-IP — only the RTL DB is an external link)",
+        "- **Stage knowledge graph:** [[workflow-stages]] — per-stage how-to "
+        "(SSOT structure, lint/sim method, scripts, prompts) as a queryable graph "
+        "(`wiki_query(ip=\"" + name + "\")`).",
+        "- **Flow guides (copied):** [`../workflow/GUIDE.md`](../workflow/GUIDE.md) · "
+        "[`../workflow/COMMON_ENGINE_FLOW.md`](../workflow/COMMON_ENGINE_FLOW.md)",
+        "- **Per-stage system prompts (copied):** `../workflow/<stage>/system_prompt.md`",
+        f"- **This IP's wiki graph:** [`_graph.json`](./_graph.json) · "
+        f"[`index.md`](./index.md)",
+        rtl_db_line,
+        "",
+        "## Flow",
+        "",
+        "```",
+        "SSOT → FL-Model → RTL → TB → SIM → LINT → (SYN → STA → PNR → STA-POST)",
+        "```",
+        "",
+    ]
+    for stage, label, purpose, cmd, outputs in stages:
+        lines += [
+            f"### {label} · `{stage}`",
+            f"{purpose}",
+            "",
+            f"- **Scripts:** `workflow/{stage}/scripts/`",
+            f"- **Run:** `{cmd}`",
+            f"- **Outputs:** {outputs}",
+            "",
+        ]
+    lines += [
+        "## Signoff stages",
+        "`coverage`, `syn`, `sta`, `pnr`, `sta-post` scripts are copied under "
+        "`workflow/<stage>/scripts/` as well; drive them after SIM/LINT pass.",
+        "",
+        "## Provenance & versioning",
+        "RTL/TB/SIM runs must reference immutable artifact versions "
+        "(`rtl/rtl_authoring_provenance.json`, etc.). Do not overwrite old run "
+        "results; new SSOT/RTL/TB gets new downstream runs.",
+        "",
+    ]
+    return "\n".join(lines) + "\n"
+
+
+def _scaffold_ip_workflow(base, name, created_dirs, created_files, skipped_files):
+    """Copy pipeline-stage workflow scripts into <ip>/workflow/ and write the
+    per-IP execution runbook into <ip>/wiki/. Best-effort: missing central
+    stages are skipped; existing destinations are preserved (never overwritten).
+    Appends to the caller's created/skipped lists for the status report.
+    """
+    import shutil as _shutil
+    from pathlib import Path
+
+    central = _central_workflow_root()
+    # ip_knowledge is copied FLAT into <ip>/wiki/ below (step 3), so keep it out
+    # of the wholesale <ip>/workflow/ copy to avoid a redundant second copy.
+    _ignore = _shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo", "ip_knowledge")
+
+    # 1) Copy the WHOLE central workflow/ tree into <ip>/workflow/ so the IP is
+    #    runnable on its own — every stage's scripts, prompts, system_prompt.md,
+    #    rules, todo_templates, the shared scripts/ + prompts/, and the flow
+    #    guides (GUIDE.md, COMMON_ENGINE_FLOW.md). Copy per top-level item so an
+    #    existing destination is preserved rather than aborting the whole copy.
+    if central.is_dir():
+        dest_root = Path(base) / "workflow"
+        dest_root.mkdir(parents=True, exist_ok=True)
+        for item in sorted(central.iterdir()):
+            if item.name == "__pycache__" or item.name.endswith((".pyc", ".pyo")):
+                continue
+            dst = dest_root / item.name
+            if dst.exists():
+                skipped_files.append(os.path.relpath(dst))
+                continue
+            if item.is_dir():
+                _shutil.copytree(item, dst, ignore=_ignore)
+                created_dirs.append(os.path.relpath(dst))
+            else:
+                _shutil.copy2(item, dst)
+                created_files.append(os.path.relpath(dst))
+
+    # 2) Write the per-IP workflow runbook into <ip>/wiki/.
+    wiki_dir = Path(base) / "wiki"
+    wiki_dir.mkdir(parents=True, exist_ok=True)
+    runbook = wiki_dir / "workflow-runbook.md"
+    if runbook.exists():
+        skipped_files.append(os.path.relpath(runbook))
+    else:
+        runbook.write_text(_render_ip_workflow_runbook(name), encoding="utf-8")
+        created_files.append(os.path.relpath(runbook))
+
+    # 3) Copy the workflow knowledge-graph pages FLAT into <ip>/wiki/ so
+    #    wiki_query(ip=<name>) surfaces the per-stage knowledge. build_graph
+    #    globs <ip>/wiki/*.md non-recursively, so the pages must sit flat here
+    #    (not a subdir). Only the .md pages are copied — the IP rebuilds its own
+    #    _graph.json. The knowledge index is workflow-stages.md (not index.md)
+    #    to avoid colliding with the ssot-gen-seeded <ip>/wiki/index.md.
+    knowledge_src = central / "wiki" / "ip_knowledge"
+    if knowledge_src.is_dir():
+        for page in sorted(knowledge_src.glob("*.md")):
+            dst = wiki_dir / page.name
+            if dst.exists():
+                skipped_files.append(os.path.relpath(dst))
+                continue
+            _shutil.copy2(page, dst)
+            created_files.append(os.path.relpath(dst))
+
+
 def scaffold_ip(name=None, root="."):
     """Create the canonical IP directory layout in the project root.
 
@@ -6006,6 +6177,14 @@ def scaffold_ip(name=None, root="."):
     except OSError as e:
         return f"[scaffold_ip: filesystem error: {e}]"
 
+    # Per-IP workflow scripts + execution runbook wiki. Non-fatal: a failure
+    # here must not lose the canonical layout already written above.
+    workflow_warn = ""
+    try:
+        _scaffold_ip_workflow(base, name, created_dirs, created_files, skipped_files)
+    except Exception as e:  # noqa: BLE001 — best-effort enrichment
+        workflow_warn = f"  ! workflow scripts/runbook skipped: {e}"
+
     # Display paths relative to the IP base (not cwd) so the listing
     # stays readable even when the user runs from far away.
     def _short(p):
@@ -6025,6 +6204,8 @@ def scaffold_ip(name=None, root="."):
         out.append(f"  · {len(skipped_files)} kept (already existed):")
         for fp in sorted(skipped_files):
             out.append(f"      {_short(fp)}")
+    if workflow_warn:
+        out.append(workflow_warn)
     return "\n".join(out)
 
 
@@ -7221,10 +7402,43 @@ def record_ssot_qa(questions=None, ip=None, session=None, kind="",
         return f"[record_ssot_qa error: {type(e).__name__}: {e}]"
 
 
+def resolve_project_wiki_root(project_root):
+    """Locate the project/dev wiki root.
+
+    The dev wiki lives beside the central workflow/ tree (both under the
+    common_ai_agent source root that --workflow-root / ATLAS_WORKFLOW_ROOT
+    points at), so it is derived from there rather than a dedicated env var.
+    Falls back to <project_root>/doc/wiki when that sibling does not exist.
+    """
+    from pathlib import Path as _Path
+
+    cand = _central_workflow_root().parent / "doc" / "wiki"
+    if cand.is_dir():
+        return cand.resolve()
+    return (_Path(project_root) / "doc" / "wiki").resolve()
+
+
+def resolve_rtl_db_wiki():
+    """Resolve the external 'previous project' RTL database wiki pointer.
+
+    Reads ATLAS_RTL_DB_WIKI (.config). Returns a Path (dir or .md) when set and
+    present on disk, else None. The per-IP workflow runbook links to this so RTL
+    generation can consult prior-project reference designs.
+    """
+    import os as _os
+    from pathlib import Path as _Path
+
+    raw = _os.path.expandvars((_os.environ.get("ATLAS_RTL_DB_WIKI") or "").strip())
+    if not raw or "${" in raw:
+        return None
+    p = _Path(raw).expanduser()
+    return p if p.exists() else None
+
+
 def wiki_query(ip: str = "", topic: str = "", depth: int = 2, max_nodes: int = 12) -> str:
     """Read-only summary of the project wiki or a specific IP knowledge graph.
 
-    ip="" → project wiki at common_ai_agent/doc/wiki/_graph.json.
+    ip="" → project/dev wiki (derived from --workflow-root, default common_ai_agent/doc/wiki)/_graph.json.
     ip="<name>" → <ip>/wiki/_graph.json. Falls back to ATLAS_ACTIVE_IP env.
                   Lazy-builds the graph by invoking
                   workflow/wiki/build_graph.py when the index is missing
@@ -7245,7 +7459,10 @@ def wiki_query(ip: str = "", topic: str = "", depth: int = 2, max_nodes: int = 1
         or _os.environ.get("COMMON_AI_AGENT_HOME")
         or _os.getcwd()
     ).resolve()
-    builder = project_root / "workflow" / "wiki" / "build_graph.py"
+    # Resolve the graph builder via the workflow root (--workflow-root), not
+    # project_root — in split-root setups (--root=IP parent, --workflow-root=
+    # the common_ai_agent checkout) build_graph.py is not under project_root.
+    builder = _central_workflow_root() / "wiki" / "build_graph.py"
 
     ip = (ip or _os.environ.get("ATLAS_ACTIVE_IP") or "").strip()
     if ip:
@@ -7263,7 +7480,7 @@ def wiki_query(ip: str = "", topic: str = "", depth: int = 2, max_nodes: int = 1
             "--quiet",
         ]
     else:
-        wiki_root = project_root / "doc" / "wiki"
+        wiki_root = resolve_project_wiki_root(project_root)
         graph_path = wiki_root / "_graph.json"
         rebuild_cmd = ["python3", str(builder), "--wiki", str(wiki_root), "--quiet"]
 
@@ -7283,7 +7500,7 @@ def wiki_query(ip: str = "", topic: str = "", depth: int = 2, max_nodes: int = 1
                     if needs_build:
                         break
             else:
-                wiki_root = project_root / "doc" / "wiki"
+                wiki_root = resolve_project_wiki_root(project_root)
                 for child in wiki_root.glob("*.md"):
                     if child.is_file() and child.stat().st_mtime > graph_mtime:
                         needs_build = True

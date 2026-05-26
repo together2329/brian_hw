@@ -155,3 +155,33 @@ def test_scm_api_alias_accepts_perforce_workspace_without_git_dir(tmp_path: Path
     assert status["cwd"] == str(tmp_path / "beta")
     assert status["files"] == []
     assert "not implemented" in status["error"]
+
+
+def test_git_provider_override_stays_git_when_default_scm_is_perforce(tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("ATLAS_SCM_PROVIDER", "perforce")
+    ip_repo = tmp_path / "alpha"
+    _init_repo(ip_repo, branch="ipbranch")
+    _ = (ip_repo / "foo.txt").write_text("one\n", encoding="utf-8")
+    _ = _run_git(ip_repo, "add", "foo.txt")
+    _ = _run_git(ip_repo, "commit", "-q", "-m", "ip initial")
+    (tmp_path / "beta").mkdir()
+
+    client = _authenticated_client(_create_app(tmp_path, monkeypatch))
+
+    scm_status = client.get("/api/scm/status?ip=alpha").json()
+    assert scm_status["provider"] == "perforce"
+    assert "not implemented" in scm_status["error"]
+
+    git_status = client.get("/api/git/status?ip=alpha&provider=git").json()
+    assert git_status["provider"] == "git"
+    assert git_status["ip"] == "alpha"
+    assert git_status["branch"] == "ipbranch"
+    assert git_status["cwd"] == str(ip_repo)
+
+    graph = client.get("/api/ip/alpha/git/graph?limit=20&provider=git").json()
+    assert graph["provider"] == "git"
+    assert graph["commits"][0]["subject"] == "ip initial"
+
+    missing_git = client.get("/api/ip/beta/git/graph?limit=20&provider=git")
+    assert missing_git.status_code == 409
+    assert missing_git.json()["error"] == "ip has no .git — create via /new-ip first"

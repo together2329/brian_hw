@@ -39,19 +39,23 @@ def register_git_routes(
     module is imported.
     """
 
-    async def _scm_call(cwd: str | None, method: str, *args, **kwargs):
+    def _request_provider(value: str | None) -> str:
+        provider = str(value or "").strip().lower()
+        return "" if provider in {"", "auto", "default"} else provider
+
+    async def _scm_call(cwd: str | None, method: str, *args, provider: str = "", **kwargs):
         # `cwd` lets callers target the per-IP SCM workspace
         # (PROJECT_ROOT/<ip>) instead of the outer project workspace.
         # The actual provider is resolved per request so a deployment can
         # switch from Git to Perforce via ATLAS_SCM_PROVIDER.
-        adapter = resolve_scm_adapter(cwd or str(project_root()))
+        adapter = resolve_scm_adapter(cwd or str(project_root()), provider=_request_provider(provider) or None)
         func = getattr(adapter, method)
         return await asyncio.to_thread(func, *args, **kwargs)
 
-    def _scm_provider_for_cwd(cwd: str | None):
-        return resolve_scm_adapter(cwd or str(project_root())).provider
+    def _scm_provider_for_cwd(cwd: str | None, provider: str = ""):
+        return resolve_scm_adapter(cwd or str(project_root()), provider=_request_provider(provider) or None).provider
 
-    def _scm_cwd_for_ip(ip: str) -> tuple[str | None, JSONResponse | None, str]:
+    def _scm_cwd_for_ip(ip: str, provider: str = "") -> tuple[str | None, JSONResponse | None, str]:
         """Resolve the cwd for a per-IP SCM workspace.
 
         Empty IP keeps the legacy project-root SCM view. A non-empty IP is
@@ -72,22 +76,22 @@ def register_git_routes(
         if not candidate.is_dir():
             return None, JSONResponse({"error": "ip not found", "ip": clean}, status_code=404), clean
         if (
-            not scm_provider_allows_missing_git_dir(configured_scm_provider())
+            not scm_provider_allows_missing_git_dir(_request_provider(provider) or configured_scm_provider())
             and not (candidate / ".git").is_dir()
         ):
             return None, JSONResponse({"error": "ip has no .git", "ip": clean}, status_code=409), clean
         return str(candidate), None, clean
 
-    def _route_cwd(ip: str) -> tuple[str | None, JSONResponse | None, str]:
-        return _scm_cwd_for_ip(ip or active_ip_value())
+    def _route_cwd(ip: str, provider: str = "") -> tuple[str | None, JSONResponse | None, str]:
+        return _scm_cwd_for_ip(ip or active_ip_value(), provider=provider)
 
     @app.get("/api/scm/status")
     @app.get("/api/git/status")
-    async def api_git_status(ip: str = ""):
-        cwd, error, resolved_ip = _route_cwd(ip)
+    async def api_git_status(ip: str = "", provider: str = ""):
+        cwd, error, resolved_ip = _route_cwd(ip, provider=provider)
         if error is not None:
             return error
-        status = await _scm_call(cwd, "status")
+        status = await _scm_call(cwd, "status", provider=provider)
         payload = {
             "provider": status.get("provider", "git"),
             "branch": status.get("branch", ""),
@@ -106,11 +110,11 @@ def register_git_routes(
 
     @app.get("/api/scm/log")
     @app.get("/api/git/log")
-    async def api_git_log(ip: str = "", limit: int = 60):
-        cwd, error, resolved_ip = _route_cwd(ip)
+    async def api_git_log(ip: str = "", limit: int = 60, provider: str = ""):
+        cwd, error, resolved_ip = _route_cwd(ip, provider=provider)
         if error is not None:
             return error
-        log = await _scm_call(cwd, "log", limit)
+        log = await _scm_call(cwd, "log", limit, provider=provider)
         if not log.get("ok", True):
             return JSONResponse({
                 "error": log.get("error") or "scm log failed",
@@ -128,19 +132,19 @@ def register_git_routes(
 
     @app.get("/api/scm/show")
     @app.get("/api/git/show")
-    async def api_git_show(sha: str = "", revision: str = "", ip: str = ""):
-        cwd, error, resolved_ip = _route_cwd(ip)
+    async def api_git_show(sha: str = "", revision: str = "", ip: str = "", provider: str = ""):
+        cwd, error, resolved_ip = _route_cwd(ip, provider=provider)
         if error is not None:
             return error
         selected_revision = (sha or revision).strip()
-        provider = _scm_provider_for_cwd(cwd)
+        provider_name = _scm_provider_for_cwd(cwd, provider=provider)
         if not selected_revision:
             return JSONResponse({"error": "invalid revision"}, status_code=400)
-        if provider == "git" and not re.match(r"^[0-9a-f]{4,40}$", selected_revision):
+        if provider_name == "git" and not re.match(r"^[0-9a-f]{4,40}$", selected_revision):
             return JSONResponse({"error": "invalid sha"}, status_code=400)
-        if provider != "git" and not re.match(r"^[0-9A-Za-z._/@#:+-]{1,160}$", selected_revision):
+        if provider_name != "git" and not re.match(r"^[0-9A-Za-z._/@#:+-]{1,160}$", selected_revision):
             return JSONResponse({"error": "invalid revision"}, status_code=400)
-        result = await _scm_call(cwd, "show", selected_revision)
+        result = await _scm_call(cwd, "show", selected_revision, provider=provider)
         if not result.ok:
             return JSONResponse({
                 "error": result.error or f"scm show {selected_revision} failed",
@@ -157,11 +161,11 @@ def register_git_routes(
 
     @app.get("/api/scm/diff")
     @app.get("/api/git/diff")
-    async def api_git_diff(path: str = "", staged: int = 0, ip: str = ""):
-        cwd, error, resolved_ip = _route_cwd(ip)
+    async def api_git_diff(path: str = "", staged: int = 0, ip: str = "", provider: str = ""):
+        cwd, error, resolved_ip = _route_cwd(ip, provider=provider)
         if error is not None:
             return error
-        result = await _scm_call(cwd, "diff", path, bool(staged))
+        result = await _scm_call(cwd, "diff", path, bool(staged), provider=provider)
         if not result.ok and not result.stdout:
             return JSONResponse({
                 "error": result.error or "diff failed",
@@ -181,13 +185,14 @@ def register_git_routes(
         body = payload or {}
         message = str(body.get("message", "")).strip()
         add_all = bool((payload or {}).get("add_all", True))
+        provider = str(body.get("provider") or "")
         if not message:
             return JSONResponse({"error": "commit message required"},
                                  status_code=400)
-        cwd, error, resolved_ip = _route_cwd(str(body.get("ip") or ""))
+        cwd, error, resolved_ip = _route_cwd(str(body.get("ip") or ""), provider=provider)
         if error is not None:
             return error
-        result = await _scm_call(cwd, "submit", message, add_all=add_all)
+        result = await _scm_call(cwd, "submit", message, add_all=add_all, provider=provider)
         return JSONResponse({
             "ok": result.ok,
             "stdout": result.stdout,
@@ -202,10 +207,11 @@ def register_git_routes(
     @app.post("/api/git/push")
     async def api_git_push(payload: Optional[dict[str, Any]] = None):
         body = payload or {}
-        cwd, error, resolved_ip = _route_cwd(str(body.get("ip") or ""))
+        provider = str(body.get("provider") or "")
+        cwd, error, resolved_ip = _route_cwd(str(body.get("ip") or ""), provider=provider)
         if error is not None:
             return error
-        status = await _scm_call(cwd, "status")
+        status = await _scm_call(cwd, "status", provider=provider)
         if not status.get("ok", True):
             return JSONResponse({
                 "ok": False,
@@ -221,7 +227,7 @@ def register_git_routes(
         if not branch or branch == "HEAD":
             return JSONResponse({"error": "no current branch (detached HEAD?)"},
                                  status_code=400)
-        result = await _scm_call(cwd, "push", branch)
+        result = await _scm_call(cwd, "push", branch, provider=provider)
         return JSONResponse({
             "ok": result.ok,
             "stdout": result.stdout,

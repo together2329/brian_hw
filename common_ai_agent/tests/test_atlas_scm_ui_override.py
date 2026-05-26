@@ -62,3 +62,14 @@ def test_workspace_uses_provider_aware_scm_tab_override_contract():
     assert "window.SCMTab" in src
     assert "<ScmTabComponent" in src
     assert "fallbackTab={window.GitTab}" in src
+    assert "showBuiltinGitTab" in src
+    assert "setMainTab('git_native')" in src
+    assert 'provider="git"' in src
+
+
+def test_builtin_git_tab_can_force_git_provider():
+    src = (Path(PROJECT_ROOT) / "frontend" / "atlas" / "git-tab.jsx").read_text(encoding="utf-8")
+
+    assert "function GitTab({ initialIp, provider = '' })" in src
+    assert "provider=${encodeURIComponent(forcedProvider)}" in src
+    assert "provider: forcedProvider || undefined" in src

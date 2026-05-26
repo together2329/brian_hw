@@ -5560,7 +5560,11 @@ def create_app():
                              "ip_block_id": str(ip_row.get("id") or ""),
                              "worker_warmup": worker_warmup})
 
-    def _resolve_ip_path(name: str) -> Path | tuple[None, JSONResponse]:
+    def _git_route_provider(value: Any = "") -> str:
+        provider = str(value or "").strip().lower()
+        return "" if provider in {"", "auto", "default"} else provider
+
+    def _resolve_ip_path(name: str, provider: str = "") -> Path | tuple[None, JSONResponse]:
         """Validate a path-segment-style IP name and return its on-disk dir.
 
         Returns a Path on success, or a (None, JSONResponse) tuple on
@@ -5576,7 +5580,7 @@ def create_app():
         if not target.is_dir():
             return None, JSONResponse({"error": "ip not found"}, status_code=404)
         if (
-            not scm_provider_allows_missing_git_dir(configured_scm_provider())
+            not scm_provider_allows_missing_git_dir(_git_route_provider(provider) or configured_scm_provider())
             and not (target / ".git").is_dir()
         ):
             return None, JSONResponse({"error": "ip has no .git — create via /new-ip first"}, status_code=409)
@@ -5590,13 +5594,14 @@ def create_app():
         except Exception:
             body = {}
         message = str((body or {}).get("message") or "").strip() or "commit"
-        resolved = _resolve_ip_path(name)
+        provider = _git_route_provider((body or {}).get("provider"))
+        resolved = _resolve_ip_path(name, provider=provider)
         if isinstance(resolved, tuple):
             _, err = resolved
             return err
         target = resolved
         try:
-            adapter = resolve_scm_adapter(target)
+            adapter = resolve_scm_adapter(target, provider=provider or None)
             out = await asyncio.to_thread(
                 adapter.submit,
                 message,
@@ -5618,16 +5623,17 @@ def create_app():
             return JSONResponse({"error": str(exc)}, status_code=500)
 
     @app.get("/api/ip/{name}/git/log")
-    async def api_ip_git_log(name: str, limit: int = 50):
+    async def api_ip_git_log(name: str, limit: int = 50, provider: str = ""):
         """Return the last N commits of the per-IP repo as JSON."""
-        resolved = _resolve_ip_path(name)
+        provider = _git_route_provider(provider)
+        resolved = _resolve_ip_path(name, provider=provider)
         if isinstance(resolved, tuple):
             _, err = resolved
             return err
         target = resolved
         try:
             limit = max(1, min(int(limit or 50), 500))
-            adapter = resolve_scm_adapter(target)
+            adapter = resolve_scm_adapter(target, provider=provider or None)
             log = await asyncio.to_thread(adapter.log, limit)
             commits = [{
                 "hash": str(item.get("sha") or item.get("hash") or ""),
@@ -5768,19 +5774,20 @@ def create_app():
         return _StarResponse(content=resp_body, status_code=status, headers=headers)
 
     @app.get("/api/ip/{name}/git/graph")
-    async def api_ip_git_graph(name: str, limit: int = 80):
+    async def api_ip_git_graph(name: str, limit: int = 80, provider: str = ""):
         """ASCII graph of the per-IP commit history. Returns the raw
         `git log --graph --oneline --decorate --all` text plus a parsed
         commit list so the frontend can render either a monospaced graph
         or a structured list."""
-        resolved = _resolve_ip_path(name)
+        provider = _git_route_provider(provider)
+        resolved = _resolve_ip_path(name, provider=provider)
         if isinstance(resolved, tuple):
             _, err = resolved
             return err
         target = resolved
         try:
             limit = max(1, min(int(limit or 80), 1000))
-            adapter = resolve_scm_adapter(target)
+            adapter = resolve_scm_adapter(target, provider=provider or None)
             graph = await asyncio.to_thread(adapter.graph, limit)
             payload = {
                 "ip": name,
@@ -5802,13 +5809,14 @@ def create_app():
         except Exception:
             body = {}
         target_hash = str((body or {}).get("hash") or "").strip()
-        resolved = _resolve_ip_path(name)
+        provider = _git_route_provider((body or {}).get("provider"))
+        resolved = _resolve_ip_path(name, provider=provider)
         if isinstance(resolved, tuple):
             _, err = resolved
             return err
         target = resolved
         try:
-            adapter = resolve_scm_adapter(target)
+            adapter = resolve_scm_adapter(target, provider=provider or None)
             if adapter.provider == "git" and not re.match(r"^[0-9a-f]{7,40}$", target_hash, re.I):
                 return JSONResponse({"error": "invalid hash"}, status_code=400)
             if adapter.provider != "git" and not re.match(r"^[0-9A-Za-z._/@#:+-]{1,160}$", target_hash):

@@ -1296,6 +1296,18 @@ const atlasUiExecMode = () => String(
 ).trim().toLowerCase();
 const atlasUiOrchestratorMode = () => atlasUiExecMode() === 'orchestrator';
 const defaultWorkflowForExecMode = () => atlasUiOrchestratorMode() ? 'orchestrator' : 'default';
+
+// When a SCOPE_PATH is set, submitMsg prepends a "[scope] You MUST confine …\n\n"
+// directive to the prompt sent to the agent. That directive is intentionally
+// persisted to .session/conversation.json and shown by /context, but it is
+// noise in the chat feed. Strip it for DISPLAY ONLY (storage / /context keep it).
+const stripScopeDirective = (t) => {
+  if (typeof t === 'string' && t.startsWith('[scope] ')) {
+    const i = t.indexOf('\n\n');
+    if (i >= 0) return t.slice(i + 2);
+  }
+  return t;
+};
 const WORKFLOW_READY_TIMEOUT_MS = 7000;
 const WORKFLOW_READY_PHASES = ['route', 'session', 'backend', 'worker', 'ready'];
 const WORKFLOW_READY_STEPS = [
@@ -2710,7 +2722,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
   // 'import_export' owns document upload/import and SSOT export. The
   // user lands on 'chat' by default; preview / split / SSOT-tab modes
   // are entered explicitly by clicking tabs or double-clicking files.
-  const [mainTab, setMainTab] = React.useState('chat');    // chat | ssot | doc | qa | checklist | import_export | split | preview | sim_summary | debug | coverage | workflow_report
+  const [mainTab, setMainTab] = React.useState('chat');    // chat | ssot | doc | qa | checklist | import_export | split | preview | sim_summary | debug | coverage | workflow_report | git | git_native
   const [previewPath, setPreviewPath] = React.useState(() => {
     try {
       const saved = localStorage.getItem('atlasPreviewPath');
@@ -3250,7 +3262,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
           : Array.isArray(rawContent) ? rawContent.map(c => c.text || '').join('')
           : '';
         if (role === 'user' && content) {
-          newFeed.push({ kind: 'user', text: content });
+          newFeed.push({ kind: 'user', text: stripScopeDirective(content) });
         } else if (role === 'assistant') {
           // assistant message may have content + tool_calls
           if (content && content.trim()) {
@@ -5710,6 +5722,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
   const scmProvider = atlasBootScmProvider();
   const ScmTabComponent = atlasResolveScmTab(scmProvider);
   const scmTabLabel = atlasScmTabLabel(scmProvider, ScmTabComponent);
+  const showBuiltinGitTab = !!(
+    typeof window.GitTab === 'function'
+    && (scmProvider !== 'git' || ScmTabComponent !== window.GitTab)
+  );
 
   return (
     <div style={{
@@ -6289,6 +6305,21 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
                 fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 'var(--ui-control-font-size)',
               }}
             >{scmTabLabel}</span>
+            {showBuiltinGitTab && (
+              <span
+                className="tab-chip"
+                onClick={() => setMainTab('git_native')}
+                title="Git: built-in per-IP Git status, history, diff, and revert actions"
+                style={{
+                  cursor: 'pointer',
+                  padding: '2px 8px', borderRadius: 2, marginLeft: 4,
+                  color: mainTab === 'git_native' ? 'var(--accent)' : 'var(--fg-mute)',
+                  background: mainTab === 'git_native' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
+                  border: '1px solid ' + (mainTab === 'git_native' ? 'var(--accent)' : 'transparent'),
+                  fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 'var(--ui-control-font-size)',
+                }}
+              >git</span>
+            )}
             <span className="mute" style={{ margin: '0 6px' }}>·</span>
             {mainTab === 'chat' ? (
               // Everything in the previous chain (intent badge, workflow
@@ -6332,6 +6363,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
             ) : mainTab === 'workflow_report' ? (
               <span className="mute trunc" style={{ fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', maxWidth: 380 }}>
                 {workflowReportMeta ? workflowReportMeta.title : 'workflow report'} · {activeIp || 'no IP'}
+              </span>
+            ) : mainTab === 'git_native' ? (
+              <span className="mute trunc" style={{ fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', maxWidth: 380 }}>
+                built-in Git · {activeIp || 'no IP'}
               </span>
             ) : (
               <span className="mute trunc" style={{ fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', maxWidth: 380 }}
@@ -6507,10 +6542,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
                 Debug · loading…
               </div>
             )
-          ) : mainTab === 'git' ? (
-            ScmTabComponent ? (
-              <ErrorBoundary label={scmTabLabel}>
-                <ScmTabComponent
+            ) : mainTab === 'git' ? (
+              ScmTabComponent ? (
+                <ErrorBoundary label={scmTabLabel}>
+                  <ScmTabComponent
                   initialIp={activeIp}
                   activeIp={activeIp}
                   provider={scmProvider}
@@ -6520,6 +6555,20 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
             ) : (
               <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fg-mute)' }}>
                 {scmTabLabel} · loading…
+              </div>
+            )
+          ) : mainTab === 'git_native' ? (
+            window.GitTab ? (
+              <ErrorBoundary label="git">
+                <window.GitTab
+                  initialIp={activeIp}
+                  activeIp={activeIp}
+                  provider="git"
+                />
+              </ErrorBoundary>
+            ) : (
+              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fg-mute)' }}>
+                git · loading…
               </div>
             )
             ) : (

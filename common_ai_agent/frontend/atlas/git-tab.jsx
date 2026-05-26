@@ -1,6 +1,6 @@
 // ATLAS Git tab — per-IP commit history (graph + structured list +
 // diff + explicit revert). Registers window.GitTab consumed by workspace.jsx when
-// mainTab === 'git'.
+// mainTab === 'git' or the built-in Git companion tab.
 
 (function () {
   const { useState, useEffect, useRef, useCallback } = React;
@@ -16,7 +16,7 @@
     return d.toLocaleDateString();
   }
 
-  function GitTab({ initialIp }) {
+  function GitTab({ initialIp, provider = '' }) {
     const [ipList, setIpList] = useState([]);
     const [ip, setIp] = useState(initialIp || '');
     const [graph, setGraph] = useState('');
@@ -33,6 +33,12 @@
     const mountedRef = useRef(true);
     const diffReqRef = useRef(0);
     useEffect(() => () => { mountedRef.current = false; }, []);
+    const forcedProvider = String(provider || '').trim().toLowerCase();
+    const withProvider = useCallback((url) => {
+      if (!forcedProvider || forcedProvider === 'auto' || forcedProvider === 'default') return url;
+      const sep = url.includes('?') ? '&' : '?';
+      return `${url}${sep}provider=${encodeURIComponent(forcedProvider)}`;
+    }, [forcedProvider]);
 
     const clearSelection = useCallback(() => {
       diffReqRef.current += 1;
@@ -83,8 +89,8 @@
         return;
       }
       setBusy(true); setErr(null);
-      const graphUrl = `/api/ip/${encodeURIComponent(ip)}/git/graph?limit=120`;
-      const statusUrl = `/api/git/status?ip=${encodeURIComponent(ip)}`;
+      const graphUrl = withProvider(`/api/ip/${encodeURIComponent(ip)}/git/graph?limit=120`);
+      const statusUrl = withProvider(`/api/git/status?ip=${encodeURIComponent(ip)}`);
       const graphReq = fetch(graphUrl, { cache: 'no-store' })
         .then(r => r.ok ? r.json() : r.json().then(j => Promise.reject(j.error || r.status)));
       const statusReq = fetch(statusUrl, { cache: 'no-store' })
@@ -112,7 +118,7 @@
           setErr(String(e));
         })
         .finally(() => mountedRef.current && setBusy(false));
-    }, [ip, clearSelection]);
+    }, [ip, clearSelection, withProvider]);
 
     useEffect(() => { refresh(); }, [refresh]);
 
@@ -123,7 +129,7 @@
       setDiffBody('');
       setDiffErr('');
       setDiffBusy(true);
-      fetch(`/api/git/show?sha=${encodeURIComponent(commit.hash)}&ip=${encodeURIComponent(ip)}`,
+      fetch(withProvider(`/api/git/show?sha=${encodeURIComponent(commit.hash)}&ip=${encodeURIComponent(ip)}`),
             { cache: 'no-store' })
         .then(r => r.ok ? r.json() : r.json().then(j => Promise.reject(j.error || r.status)))
         .then(d => {
@@ -137,7 +143,7 @@
         .finally(() => {
           if (mountedRef.current && diffReqRef.current === reqId) setDiffBusy(false);
         });
-    }, [ip]);
+    }, [ip, withProvider]);
 
     const confirmRevert = useCallback(() => {
       if (!revertTarget || !ip) return;
@@ -145,7 +151,7 @@
       fetch(`/api/ip/${encodeURIComponent(ip)}/git/revert`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ hash: revertTarget.hash }),
+        body: JSON.stringify({ hash: revertTarget.hash, provider: forcedProvider || undefined }),
       })
         .then(r => r.json())
         .then(d => {
@@ -158,7 +164,7 @@
           else setErr(d && (d.error || d.stderr) || 'revert failed');
         })
         .catch(e => { setRevertBusy(false); setErr(String(e)); });
-    }, [revertTarget, ip, refresh, clearSelection]);
+    }, [revertTarget, ip, forcedProvider, refresh, clearSelection]);
 
     const sxFrame = {
       display: 'flex', flexDirection: 'column', height: '100%',
