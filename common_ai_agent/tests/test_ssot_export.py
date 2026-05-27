@@ -185,6 +185,49 @@ def test_html_register_map_bit_field_tables(tmp_path, monkeypatch, ip):
     assert ">Register List<" not in html, "markdown register table should be replaced"
 
 
+def test_bit_ranges_normalize_for_html_and_docx(tmp_path, monkeypatch):
+    """Comma/list bit ranges render as clean msb:lsb ranges in both DOC outputs."""
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+    data = {
+        "top_module": {"name": "demo", "description": "demo top"},
+        "registers": {"register_list": [
+            {
+                "name": "OPC",
+                "offset": "0x00",
+                "fields": [
+                    {
+                        "name": "common_opcode",
+                        "bits": "39, 73",
+                        "access": "ro",
+                        "reset": "0x0",
+                        "description": "Common opcode slice",
+                    },
+                    {
+                        "name": "payload",
+                        "bits": [7, 0],
+                        "access": "rw",
+                        "reset": "0x0",
+                        "description": "Payload bits",
+                    },
+                ],
+            },
+        ]},
+    }
+
+    md = atlas_ui._ssot_to_markdown(data, "demo")
+    html = atlas_ui._ssot_to_html(md, "demo", data)
+
+    assert "<td>73:39</td>" in html
+    assert "<td>35</td>" in html
+    assert "39, 73" not in html
+
+    docx_path = tmp_path / "demo.docx"
+    atlas_ui._ssot_to_docx(data, "demo", docx_path)
+    text = _docx_text(docx_path)
+    assert "73:39" in text
+    assert "39, 73" not in text
+
+
 def test_custom_blocks_render_after_anchor_sections(tmp_path, monkeypatch):
     """SSOT custom_blocks (markdown/mermaid; inline or file) inject after their
     anchor section in the HTML datasheet; path traversal is rejected."""

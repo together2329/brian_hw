@@ -199,7 +199,7 @@
       "SC_BAUD_VARIANTS"
     ]
   },
-  "generated_at": "2026-05-27T00:06:54Z",
+  "generated_at": "2026-05-27T01:07:30Z",
   "ip": "apb_uart_txrx_demo",
   "schema_version": "directed_coverage.v3",
   "scoreboard": {

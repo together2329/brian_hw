@@ -904,21 +904,47 @@ def _ssot_md_scalar(value: Any) -> str:
 
 
 def _ssot_md_bit_range(value: Any) -> str:
-    if value is None:
+    display, _lsb, _width = _ssot_bit_range_info(value)
+    if display:
+        return display
+    if value in (None, "", [], {}):
         return ""
+    return _ssot_md_scalar(value).strip()
+
+
+def _ssot_bit_range_info(value: Any) -> tuple[str, int | None, int | None]:
+    """Normalize an SSOT bit spec into (display, lsb, width).
+
+    SSOT register fields use hardware convention for ranges: `msb:lsb`.
+    This helper accepts the common authoring forms (`[msb, lsb]`,
+    `[lsb, msb]`, `msb:lsb`, `lsb, msb`) and renders them consistently so
+    datasheets do not show ambiguous text like `39, 73`.
+    """
+    if value is None:
+        return "", None, None
+
+    def _range_from_ints(a: int, b: int) -> tuple[str, int, int]:
+        msb, lsb = max(a, b), min(a, b)
+        display = str(msb) if msb == lsb else f"{msb}:{lsb}"
+        return display, lsb, (msb - lsb + 1)
+
     if isinstance(value, (list, tuple)) and len(value) == 2:
-        msb, lsb = value
-        if isinstance(msb, int) and isinstance(lsb, int):
-            return str(msb) if msb == lsb else f"{msb}:{lsb}"
+        try:
+            return _range_from_ints(int(value[0]), int(value[1]))
+        except (TypeError, ValueError):
+            pass
+
     text = _ssot_md_scalar(value).strip()
-    m = re.match(r"^\[?\s*(\d+)\s*(?:,|:|-|\s+)\s*(\d+)\s*\]?$", text)
+    if not text:
+        return "", None, None
+    m = re.match(r"^\[?\s*(\d+)\s*(?:,|:|-|\.\.|\s+)\s*(\d+)\s*\]?$", text)
     if m:
-        msb, lsb = m.group(1), m.group(2)
-        return msb if msb == lsb else f"{msb}:{lsb}"
+        return _range_from_ints(int(m.group(1)), int(m.group(2)))
     m = re.match(r"^\[?\s*(\d+)\s*\]?$", text)
     if m:
-        return m.group(1)
-    return text
+        bit = int(m.group(1))
+        return str(bit), bit, 1
+    return "", None, None
 
 
 def _ssot_md_is_short_scalar(value: Any) -> bool:
@@ -1610,39 +1636,27 @@ def _ssot_pick(item: dict, *keys: str) -> Any:
     return None
 
 
-def _ssot_html_field_bits(field: dict) -> tuple[str, int | None]:
-    """Return (display, lsb) for a register field, deriving the bit range defensively.
+def _ssot_field_bit_info(field: dict) -> tuple[str, int | None, int | None]:
+    """Return (display, lsb, width) for a register field.
 
-    `display` is `msb:lsb` for a range, a single number for 1-bit fields, or "".
-    `lsb` is the integer low bit when known (used for sorting); None otherwise.
+    `display` is `msb:lsb` for a range, a single number for 1-bit fields,
+    or "". `lsb` is used for msb-first sorting; `width` is shown in docs
+    when known.
     """
     # Explicit range string / list (bits | bit_range | range).
     for key in ("bits", "bit_range", "range"):
         raw = field.get(key)
         if raw in (None, "", [], {}):
             continue
-        if isinstance(raw, (list, tuple)) and len(raw) == 2:
-            try:
-                msb, lsb = int(raw[0]), int(raw[1])
-                disp = str(msb) if msb == lsb else f"{msb}:{lsb}"
-                return disp, min(msb, lsb)
-            except (TypeError, ValueError):
-                pass
-        disp = _ssot_md_bit_range(raw)
-        lsb: int | None = None
-        m = re.match(r"^(\d+)(?::(\d+))?$", disp)
-        if m:
-            hi = int(m.group(1))
-            lo = int(m.group(2)) if m.group(2) is not None else hi
-            lsb = min(hi, lo)
-        return disp, lsb
+        disp, lsb, width = _ssot_bit_range_info(raw)
+        return (disp if disp else _ssot_md_scalar(raw), lsb, width)
     # msb / lsb pair.
     msb_v, lsb_v = field.get("msb"), field.get("lsb")
     if msb_v is not None and lsb_v is not None:
         try:
             msb, lsb = int(msb_v), int(lsb_v)
-            disp = str(msb) if msb == lsb else f"{msb}:{lsb}"
-            return disp, min(msb, lsb)
+            disp, low, width = _ssot_bit_range_info([msb, lsb])
+            return disp, low, width
         except (TypeError, ValueError):
             pass
     # lsb + width (msb = lsb + width - 1).
@@ -1652,7 +1666,7 @@ def _ssot_html_field_bits(field: dict) -> tuple[str, int | None]:
             width = int(field.get("width"))
             msb = lsb + width - 1
             disp = str(msb) if msb == lsb else f"{msb}:{lsb}"
-            return disp, lsb
+            return disp, lsb, width
         except (TypeError, ValueError):
             pass
     # Single bit position.
@@ -1660,23 +1674,29 @@ def _ssot_html_field_bits(field: dict) -> tuple[str, int | None]:
     if bit_v is not None:
         try:
             b = int(bit_v)
-            return str(b), b
+            return str(b), b, 1
         except (TypeError, ValueError):
-            return _ssot_md_scalar(bit_v), None
-    return "", None
+            return _ssot_md_scalar(bit_v), None, None
+    return "", None, None
+
+
+def _ssot_html_field_bits(field: dict) -> tuple[str, int | None]:
+    """Compatibility wrapper for callers that only need display + lsb."""
+    display, lsb, _width = _ssot_field_bit_info(field)
+    return display, lsb
 
 
 def _ssot_html_register_field_table(reg: dict) -> str:
-    """Bit-field table: Field | Bits | Access | Reset | Description (msb first)."""
+    """Bit-field table: Field | Bits | Width | Access | Reset | Description."""
     fields = reg.get("fields")
     if not isinstance(fields, list) or not fields:
         return ""
-    parsed: list[tuple[int, int | None, dict, str]] = []
+    parsed: list[tuple[int, int | None, dict, str, int | None]] = []
     for order, field in enumerate(fields):
         if not isinstance(field, dict):
             continue
-        bits_disp, lsb = _ssot_html_field_bits(field)
-        parsed.append((order, lsb, field, bits_disp))
+        bits_disp, lsb, width = _ssot_field_bit_info(field)
+        parsed.append((order, lsb, field, bits_disp, width))
     if not parsed:
         return ""
     # Sort by lsb descending (msb first) when positions are known; preserve
@@ -1684,12 +1704,13 @@ def _ssot_html_register_field_table(reg: dict) -> str:
     if all(p[1] is not None for p in parsed):
         parsed.sort(key=lambda p: p[1], reverse=True)  # type: ignore[arg-type]
     rows: list[str] = []
-    for _order, _lsb, field, bits_disp in parsed:
+    for _order, _lsb, field, bits_disp, width in parsed:
         reset = _ssot_pick(field, "reset", "reset_value", "default")
         rows.append(
             "<tr>"
             f"<td>{_ssot_html_escape(field.get('name') or field.get('id') or '')}</td>"
             f"<td>{_ssot_html_escape(bits_disp)}</td>"
+            f"<td>{_ssot_html_escape('' if width is None else width)}</td>"
             f"<td>{_ssot_html_escape(field.get('access') or field.get('rw') or '')}</td>"
             f"<td>{_ssot_html_escape('' if reset is None else reset)}</td>"
             f"<td>{_ssot_html_escape(field.get('description') or field.get('desc') or '')}</td>"
@@ -1697,7 +1718,7 @@ def _ssot_html_register_field_table(reg: dict) -> str:
         )
     return (
         "<table class=\"register-fields\"><thead><tr>"
-        "<th>Field</th><th>Bits</th><th>Access</th><th>Reset</th><th>Description</th>"
+        "<th>Field</th><th>Bits</th><th>Width</th><th>Access</th><th>Reset</th><th>Description</th>"
         "</tr></thead><tbody>"
         + "".join(rows)
         + "</tbody></table>"
@@ -2033,6 +2054,9 @@ def _ssot_to_html(md_text: str, ip: str, data: dict | None = None) -> str:
         ".register-props { margin: .35em 0 .55em; } "
         ".register-props th { width: 9em; text-align: left; } "
         ".register-fields { width: 100%; } "
+        ".register-fields th:nth-child(2), .register-fields td:nth-child(2), "
+        ".register-fields th:nth-child(3), .register-fields td:nth-child(3) { "
+        "text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; } "
         ".block-graph { display: grid; grid-template-columns: minmax(170px, 1fr) minmax(280px, 2fr) minmax(170px, 1fr); "
         "gap: 0; align-items: center; } "
         ".iface-column { display: grid; gap: .75em; align-content: center; } "
@@ -2766,8 +2790,10 @@ def _ssot_docx_render_register_detail(doc: Any, reg: dict, level: int = 2) -> No
         for f in fields:
             if not isinstance(f, dict):
                 continue
+            bit_display, _lsb, width = _ssot_field_bit_info(f)
             bit_rows.append([
-                _ssot_md_bit_range(f.get("bits") or f.get("bit") or f.get("range") or ""),
+                bit_display,
+                "" if width is None else str(width),
                 _ssot_md_scalar(f.get("name") or ""),
                 _ssot_md_scalar(f.get("access") or ""),
                 _ssot_md_scalar(f.get("reset") or ""),
@@ -2778,7 +2804,7 @@ def _ssot_docx_render_register_detail(doc: Any, reg: dict, level: int = 2) -> No
             field_label.add_run("Bit fields").bold = True
             _ssot_docx_table_from_rows(
                 doc,
-                ["Bits", "Field", "Access", "Reset", "Description"],
+                ["Bits", "Width", "Field", "Access", "Reset", "Description"],
                 bit_rows,
             )
 
