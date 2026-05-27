@@ -57,6 +57,27 @@ def test_session_worker_emits_tool_and_cost_events(tmp_path, monkeypatch):
         worker.close()
 
 
+def test_session_worker_idle_stop_does_not_cancel_next_prompt(tmp_path):
+    from core.session_worker import SessionWorker
+
+    session = "brian/dma/default"
+    worker = SessionWorker(session, str(tmp_path / "atlas.db"))
+    try:
+        stale_stop = worker.db.enqueue_message(session, "in", "stop", {})
+        worker.db.enqueue_message(session, "in", "prompt", {"text": "I need dma"})
+
+        assert worker.input("> ") == "I need dma"
+        assert worker.check_stop() is False
+
+        rows = worker.db._fetchall(
+            "SELECT delivered_at FROM session_queue WHERE id = ?",
+            (stale_stop,),
+        )
+        assert rows[0]["delivered_at"] is not None
+    finally:
+        worker.close()
+
+
 def test_session_worker_record_ssot_qa_writes_pending_review_card(tmp_path, monkeypatch):
     from core.session_worker import SessionWorker
 

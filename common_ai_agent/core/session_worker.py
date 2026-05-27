@@ -393,9 +393,31 @@ class SessionWorker:
             time.sleep(POLL_INTERVAL)
         raise KeyboardInterrupt
 
+    def drain_idle_stops(self) -> int:
+        """Discard STOP messages that arrived while no turn was running.
+
+        A STOP is only meaningful for the currently executing turn. If the
+        user hits stop while the worker is idle, leaving that queue item around
+        causes the next prompt to start, immediately consume the stale STOP via
+        ``check_stop()``, and end with no visible assistant response.
+        """
+
+        drained = 0
+        while True:
+            found_stop = False
+            for msg in self.db.poll_messages(self.session_id, "in", since_id=None, limit=100) or []:
+                if _message_type(msg) != "stop":
+                    continue
+                self.acknowledge(msg)
+                drained += 1
+                found_stop = True
+            if not found_stop:
+                return drained
+
     def input(self, prompt: str = "") -> str:
         if prompt:
             self.emit("input_prompt", {"text": prompt})
+        self.drain_idle_stops()
         msg = self.wait_matching(("prompt", "interrupt"), timeout=None)
         if msg is None:
             raise KeyboardInterrupt
