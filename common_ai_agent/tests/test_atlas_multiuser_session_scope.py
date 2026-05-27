@@ -1804,3 +1804,12 @@ def test_textual_chat_loop_bang_prefix_runs_shell_before_llm_turn():
     assert bang_idx < slash_idx < llm_idx
     assert "_bang_run_command(_shell_command, timeout=60)" in main_py
     assert '_textual_emit_tool_result_fn(_shell_output, "run_command")' in main_py
+
+
+def test_native_textual_slash_output_uses_stdout_capture_only():
+    main_py = (PROJECT_ROOT / "src" / "main.py").read_text(encoding="utf-8")
+    textual_main_py = (PROJECT_ROOT / "src" / "textual_main.py").read_text(encoding="utf-8")
+
+    assert "_textual_native_tui = False" in main_py
+    assert "_agent._textual_native_tui" in textual_main_py
+    assert "_textual_emit_content_fn is not None and not _textual_native_tui" in main_py

@@ -155,6 +155,7 @@ def _run_agent(app: AgentTUI) -> None:
     _agent._textual_emit_token_fn     = lambda in_tok, cache_tok, out_tok: app.post_message(TokenUsage(in_tok, cache_tok, out_tok))
     _agent._textual_esc_check_fn          = app.check_and_reset_interrupt
     _agent._textual_poll_human_input_fn   = app._input_bridge.poll_interrupt
+    _agent._textual_native_tui            = True
 
     # Set agent_running flag so input routing knows to use interrupt queue
     def _set_agent_running(val: bool):

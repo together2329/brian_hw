@@ -139,6 +139,7 @@ _textual_esc_check_fn = None # () → bool: TUI interrupt check
 _textual_poll_human_input_fn = None  # () → str | None: poll mid-run human message
 _textual_set_agent_running_fn = None  # (bool) → None: set agent_running flag on InputBridge
 _textual_emit_slash_output_fn = None  # (text: str) → None: atlas-only safety-net emit for slash command output, bypasses streamBuffer pipeline
+_textual_native_tui = False  # True only for the local Textual app, where stdout is already captured into the chat log.
 _textual_emit_mode_fn = None  # (mode: str) → None: notify frontend that agent_mode flipped (plan_q/plan/normal). Used to sync the UI mode pill when chat_loop's `y`/`yc` confirmation auto-promotes plan→normal — without this signal, the user typed "y", agent started executing, but the sidebar still showed PLAN.
 _textual_active_session_fn = None  # () → str: read the per-thread active session (atlas_ui sets this; falls through to ATLAS_ACTIVE_SESSION env when None). Lets atlas_ui retire the per-request os.environ write that races between concurrent users.
 _textual_active_ip_fn = None       # () → str: same idea for ATLAS_ACTIVE_IP — used by core/tools.py path validators.
@@ -2725,10 +2726,12 @@ def chat_loop():
                         # Regular command output (PLAN_AND_RUN already set user_input above — fall through)
                         if result:
                             print(result)
-                            # Mirror slash output to the web UI — print()
-                            # only hits stdout (and the uvicorn log file in
-                            # atlas mode), which leaves the browser blank.
-                            if _textual_emit_content_fn is not None:
+                            # Mirror slash output to browser/process UIs —
+                            # print() only hits stdout there. The native
+                            # Textual app captures stdout into the chat log,
+                            # so streaming the same payload would render a
+                            # second Markdown panel for commands like /todo.
+                            if _textual_emit_content_fn is not None and not _textual_native_tui:
                                 try:
                                     import re as _re
                                     # Strip ANSI escapes — they show up as
