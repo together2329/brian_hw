@@ -18,6 +18,7 @@ describe('terminal transcript rendering hooks', () => {
 
   it('defines role, token, and separator styles for structured slash output', () => {
     expect(stylesSrc).toContain('.atlas-terminal-transcript');
+    expect(stylesSrc).toContain('background: transparent;');
     expect(stylesSrc).toContain('.att-role-assistant');
     expect(stylesSrc).toContain('.att-chip');
     expect(stylesSrc).toContain('.att-separator');

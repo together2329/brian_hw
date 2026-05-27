@@ -1566,7 +1566,7 @@ html[data-platform="windows"] .app {
 .atlas-terminal-transcript {
   margin: 8px 0 0;
   padding: 12px 14px;
-  background: color-mix(in oklch, var(--code-bg, #111820) 92%, var(--bg, #0b1117));
+  background: transparent;
   border: 1px solid var(--line, #263240);
   border-left: 2px solid var(--accent, #f5c86b);
   border-radius: 4px;
