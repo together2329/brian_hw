@@ -1084,6 +1084,7 @@ const App = () => {
   const refreshTopTargets = React.useCallback(async () => {
     const currentUserSession = loggedInOwner()
       || normalizeSession(window.ATLAS_USER_SESSION_ID || activeSessionId);
+    const ownerScopedRoster = authState === 'authed' && !!currentUserSession;
     const nextSessionIds = new Set([currentUserSession || 'default']);
     const holdActivation = atlasShouldHoldDashboardActivation();
     const nextIps = new Set([WORKFLOW_DEFAULT]);
@@ -1095,8 +1096,8 @@ const App = () => {
     );
     const rememberedParts = splitSessionNamespace(rememberedNamespace);
     const rememberedIp = rememberedParts.ipId === 'soc' ? WORKFLOW_DEFAULT : rememberedParts.ipId;
-    if (acceptIp(rememberedIp)) nextIps.add(rememberedIp);
-    if (acceptIp(activeIp)) nextIps.add(activeIp);
+    if (!ownerScopedRoster && acceptIp(rememberedIp)) nextIps.add(rememberedIp);
+    if (!ownerScopedRoster && acceptIp(activeIp)) nextIps.add(activeIp);
     try {
       const r = await fetch('/api/session/list', { cache: 'no-store' });
       if (r.ok) {
@@ -1124,12 +1125,11 @@ const App = () => {
         }
       }
     } catch (_) {}
-    // PROJECT_ROOT scan — the new authoritative source for IP_ID. The
-    // backend just enumerates first-level dirs that look like IPs
-    // (have yaml/, rtl/, tb/, or sim/) and skips framework dirs. That
-    // matches the user's mental model: "IP_ID lists IPs the backend
-    // is running over, nothing more."
+    // Backend IP roster is authoritative for IP_ID. In multi-user mode this
+    // is DB/session scoped by the authenticated owner; do not mix in stale
+    // browser-local IPs from another login.
     let ipListOk = false;
+    const backendIps = new Set([WORKFLOW_DEFAULT]);
     try {
       const ipOwner = normalizeSession(currentUserSession || '');
       const ipUrl = '/api/ip/list' + (ipOwner ? `?session_id=${encodeURIComponent(ipOwner)}` : '');
@@ -1138,10 +1138,21 @@ const App = () => {
         ipListOk = true;
         const d2 = await r2.json();
         for (const it of (Array.isArray(d2.items) ? d2.items : [])) {
-          if (acceptIp(it.name)) nextIps.add(it.name);
+          const name = normalizeSession(it && it.name);
+          if (acceptIp(name)) {
+            nextIps.add(name);
+            backendIps.add(name);
+          }
         }
       }
     } catch (_) {}
+    const ipAllowedForCurrentUser = (id) => {
+      const ip = normalizeSession(id === 'soc' ? WORKFLOW_DEFAULT : id);
+      if (!ip || ip === WORKFLOW_DEFAULT) return true;
+      if (!acceptIp(ip)) return false;
+      if (!ownerScopedRoster) return true;
+      return ipListOk && backendIps.has(ip);
+    };
 
     let liveNamespace = holdActivation
       ? ''
@@ -1158,6 +1169,15 @@ const App = () => {
         try { localStorage.setItem('atlasActiveSession', liveNamespace); } catch (_) {}
       }
     }
+    let parsedLive = splitSessionNamespace(liveNamespace);
+    if (liveNamespace && !ipAllowedForCurrentUser(parsedLive.ipId)) {
+      const owner = currentUserSession || parsedLive.sessionId || 'default';
+      const wf = parsedLive.workflow || currentWorkflow() || WORKFLOW_DEFAULT;
+      liveNamespace = namespaceFor(owner, WORKFLOW_DEFAULT, wf);
+      parsedLive = splitSessionNamespace(liveNamespace);
+      window.ACTIVE_SESSION = liveNamespace;
+      try { localStorage.setItem('atlasActiveSession', liveNamespace); } catch (_) {}
+    }
     if (!liveNamespace) {
       setSessionIdOptions(Array.from(nextSessionIds).sort((a, b) => {
         if (a === currentUserSession) return -1;
@@ -1173,7 +1193,7 @@ const App = () => {
       });
       setIpOptions(prev => {
         const merged = new Set(sortedIps);
-        if (!ipListOk) (prev || []).forEach(ip => { if (acceptIp(ip)) merged.add(ip); });
+        if (!ipListOk && !ownerScopedRoster) (prev || []).forEach(ip => { if (acceptIp(ip)) merged.add(ip); });
         const next = Array.from(merged).sort((a, b) => {
           if (a === WORKFLOW_DEFAULT) return -1;
           if (b === WORKFLOW_DEFAULT) return 1;
@@ -1184,10 +1204,13 @@ const App = () => {
       });
       setActiveSessionId(currentUserSession || 'default');
       setActiveNamespace('');
-      setActiveIp(activeIp && activeIp !== WORKFLOW_DEFAULT ? activeIp : WORKFLOW_DEFAULT);
+      setActiveIp(
+        ipAllowedForCurrentUser(activeIp) && activeIp && activeIp !== WORKFLOW_DEFAULT
+          ? activeIp
+          : WORKFLOW_DEFAULT
+      );
       return;
     }
-    const parsedLive = splitSessionNamespace(liveNamespace);
     if (parsedLive.sessionId && (!currentUserSession || parsedLive.sessionId === currentUserSession)) {
       nextSessionIds.add(parsedLive.sessionId);
     }
@@ -1212,12 +1235,12 @@ const App = () => {
       return a.localeCompare(b);
     });
     // Expose for inline-code-chip click validation in workspace.jsx so
-    // only IPs that actually exist on disk become clickable. If the backend
-    // roster probe fails during reconnect, keep the previous visible list
-    // instead of making the User IP ID dropdown look empty.
+    // only IPs confirmed by the backend roster become clickable. In
+    // owner-scoped mode a failed roster probe must not preserve another
+    // user's previous browser-local list.
     setIpOptions(prev => {
       const merged = new Set(sortedIps);
-      if (!ipListOk) (prev || []).forEach(ip => { if (acceptIp(ip)) merged.add(ip); });
+      if (!ipListOk && !ownerScopedRoster) (prev || []).forEach(ip => { if (acceptIp(ip)) merged.add(ip); });
       const next = Array.from(merged).sort((a, b) => {
         if (a === WORKFLOW_DEFAULT) return -1;
         if (b === WORKFLOW_DEFAULT) return 1;
@@ -1229,7 +1252,7 @@ const App = () => {
     setActiveSessionId(currentUserSession || parsedLive.sessionId || 'default');
     setActiveNamespace(liveNamespace);
     setActiveIp(parsedLive.ipId === 'soc' ? WORKFLOW_DEFAULT : (parsedLive.ipId || WORKFLOW_DEFAULT));
-  }, [activeIp, activeNamespace, activeSessionId, currentWorkflow, loggedInOwner, namespaceFor, normalizeSession, splitSessionNamespace]);
+  }, [activeIp, activeNamespace, activeSessionId, authState, currentWorkflow, loggedInOwner, namespaceFor, normalizeSession, splitSessionNamespace]);
 
   React.useEffect(() => {
     let timer = null;
@@ -1476,6 +1499,20 @@ const App = () => {
     const owner = loggedInOwner() || parsed.sessionId || activeSessionId || 'default';
     activateNamespace(owner, ip, wf, true);
   };
+
+  // Let the chat command plane (`/ip <name>` / `/use <name>` in workspace.jsx)
+  // drive the same frontend IP switch the dropdown uses, so changing IP from
+  // chat moves the feed / IP indicator / file tree, not just the backend.
+  const selectIpRef = React.useRef(selectIp);
+  selectIpRef.current = selectIp;
+  React.useEffect(() => {
+    const onSelectIp = (e) => {
+      const ip = e && e.detail && e.detail.ip;
+      if (ip) { try { selectIpRef.current(ip); } catch (_) {} }
+    };
+    window.addEventListener('atlas:select-ip', onSelectIp);
+    return () => window.removeEventListener('atlas:select-ip', onSelectIp);
+  }, []);
 
   // Switch workflow segment of the active namespace. default is an
   // explicit workflow segment; /api/session/activate loads the matching
@@ -2110,7 +2147,7 @@ const App = () => {
                 React renders the first option (label "default") even though
                 state holds a real IP like "PL330", which makes the dropdown
                 disagree with the URL/session it is supposed to mirror. */}
-            {activeIp && activeIp !== WORKFLOW_DEFAULT && !ipOptions.includes(activeIp) && (
+            {authState !== 'authed' && activeIp && activeIp !== WORKFLOW_DEFAULT && !ipOptions.includes(activeIp) && (
               <option key={activeIp} value={activeIp}>{activeIp}</option>
             )}
             {ipOptions.filter(ip => ip !== WORKFLOW_DEFAULT).map(ip => (

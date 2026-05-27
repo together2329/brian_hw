@@ -4227,6 +4227,21 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     // running. Stop it?". Send it and let the backend's events drive the
     // banner — running:true turns it on only when an agent actually runs.
     if (raw.startsWith('/')) {
+      // `/ip <name>` | `/use <name>`: drive the FRONTEND IP switch (feed + IP
+      // indicator + file tree follow the new session), not just the backend.
+      // app.jsx listens for atlas:select-ip → selectIp → activateNamespace.
+      // The command still flows to the backend below so the agent's active IP
+      // and the confirmation message stay in sync.
+      try {
+        const _ipm = raw.match(/^\/(?:ip|use)\s+(\S+)/i);
+        if (_ipm && !_ipm[1].startsWith('-')) {
+          const _argIp = _ipm[1];
+          const _cur = String(window.ACTIVE_IP || '');
+          if (_argIp && _argIp.toLowerCase() !== 'default' && _argIp.toLowerCase() !== _cur.toLowerCase()) {
+            window.dispatchEvent(new CustomEvent('atlas:select-ip', { detail: { ip: _argIp } }));
+          }
+        }
+      } catch (_) {}
       if (!backendReadyForPrompt()) {
         holdSubmittedInput(`Input held. Backend is ${promptBackendState()}; it will send automatically if unchanged.`);
         return;
@@ -12153,12 +12168,27 @@ const ssotSectionStatus = (section, statusByKey) => {
   return 'review';
 };
 
+const ssotStatusKey = (status) => normalizeAtlasStatus(status);
+
+const ssotNeedsAttentionStatus = (status) => {
+  const s = ssotStatusKey(status);
+  return ['pending', 'needs_review', 'draft', 'partial', 'todo', 'tbd', 'blocked', 'error', 'rejected', 'failed', 'fail']
+    .includes(s);
+};
+
 const ssotStatusColor = (status) => {
-  const s = String(status || '').toLowerCase();
+  const s = ssotStatusKey(status);
   if (['approved', 'done', 'pass', 'ok'].includes(s)) return 'var(--ok)';
   if (['fail', 'failed', 'error', 'rejected', 'blocked'].includes(s)) return 'var(--err)';
-  if (['pending', 'needs review', 'draft', 'partial', 'todo'].includes(s)) return 'var(--warn)';
+  if (['pending', 'needs_review', 'draft', 'partial', 'todo', 'tbd'].includes(s)) return 'var(--warn)';
   return 'var(--fg-mute)';
+};
+
+const ssotStatusGlyph = (status) => {
+  const s = ssotStatusKey(status);
+  if (['approved', 'done', 'pass', 'ok'].includes(s)) return 'OK';
+  if (ssotNeedsAttentionStatus(status)) return '!';
+  return '·';
 };
 
 const ssotReviewMarkdown = (section, status) => {
@@ -13846,9 +13876,13 @@ const DigestSourceSections = ({ view, sections, statusByKey, t }) => {
       <div style={{ borderTop: '1px solid var(--line)', padding: '10px 12px', display: 'grid', gap: 10 }}>
         {source.map(section => {
           const status = ssotSectionStatus(section, statusByKey);
+          const glyph = ssotStatusGlyph(status);
           return (
             <div key={section.key} style={{ borderLeft: `2px solid ${ssotStatusColor(status)}`, paddingLeft: 10 }}>
               <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', marginBottom: 4 }}>
+                <span style={{ color: ssotStatusColor(status), fontFamily: 'var(--mono)', fontWeight: 900, minWidth: 18 }}>
+                  {glyph}
+                </span>
                 <span style={{ color: 'var(--fg)', fontWeight: 700 }}>{ssotTitleFor(section.key)}</span>
                 <span className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 10 }}>{section.key} · line {section.startLine}</span>
               </div>
@@ -13862,7 +13896,7 @@ const DigestSourceSections = ({ view, sections, statusByKey, t }) => {
   );
 };
 
-const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content = '', selected = '', onJump }) => {
+const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content = '', selected = '', onJump, feedbackMode = false }) => {
   const t = uiLang === 'en'
     ? { sourceSections: 'Source section review', ports: 'ports', fields: 'fields' }
     : { sourceSections: '원본 섹션 리뷰', ports: 'ports', fields: 'fields' };
@@ -14141,7 +14175,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
     .map(section => ssotTitleFor(section.key))
     .slice(0, limit);
 
-  const statusForPresence = (present) => present ? 'approved' : 'pending';
+  const statusForPresence = (present) => present ? 'approved' : 'needs_review';
   const coverageRows = [
     { label: 'Top module', status: statusForPresence(!!top), detail: topName },
     { label: 'Feature map', status: statusForPresence(features.length > 0), detail: `${features.length} features` },
@@ -14730,7 +14764,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
       <>
         {header}
         <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
-          <FoldablePane path={selected} body={content} lang="yaml" lineCount={lineCount} />
+          <FoldablePane path={selected} body={content} lang="yaml" lineCount={lineCount} feedbackMode={feedbackMode} />
         </div>
       </>
     );
@@ -14832,6 +14866,17 @@ const chooseSsotFile = (files, preferredPath = '') => {
 
 const SsotDocPane = ({ uiLang = 'ko', ip = '', onBack }) => {
   const [reloadKey, setReloadKey] = React.useState(0);
+  const [docMode, setDocMode] = React.useState('view');
+  const [feedbackSection, setFeedbackSection] = React.useState('custom');
+  const [feedbackPath, setFeedbackPath] = React.useState('');
+  const [feedbackField, setFeedbackField] = React.useState('');
+  const [feedbackValue, setFeedbackValue] = React.useState('');
+  const [feedbackComment, setFeedbackComment] = React.useState('');
+  const [feedbackBusy, setFeedbackBusy] = React.useState(false);
+  const [feedbackStatus, setFeedbackStatus] = React.useState('');
+  const [docFrameReady, setDocFrameReady] = React.useState(0);
+  const docFrameRef = React.useRef(null);
+  const commentTextareaRef = React.useRef(null);
   const effectiveIp = String(ip || window.ACTIVE_IP || ssotIpFromSession(window.ACTIVE_SESSION) || '').trim();
   const qs = effectiveIp ? new URLSearchParams({
     ip: effectiveIp,
@@ -14847,6 +14892,138 @@ const SsotDocPane = ({ uiLang = 'ko', ip = '', onBack }) => {
   const subtitle = uiLang === 'en'
     ? 'Rendered from the same HTML export artifact.'
     : 'HTML export 산출물을 탭 안에서 그대로 렌더링합니다.';
+  const docSections = React.useMemo(() => {
+    const preferred = ['top_module', 'io_list', 'registers', 'features', 'function_model', 'cycle_model', 'custom'];
+    const seen = new Set();
+    return preferred.concat(Object.keys(SSOT_SECTION_LABELS)).filter(key => {
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, []);
+  const canSubmitFeedback = !!(
+    feedbackComment.trim() || feedbackValue.trim() || feedbackPath.trim() || feedbackField.trim()
+  );
+  const sectionKeyFromDocLabel = React.useCallback((label) => {
+    const norm = (value) => String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+    const needle = norm(label);
+    if (!needle) return 'custom';
+    const matched = docSections.find(key => {
+      const title = SSOT_SECTION_LABELS[key] || ssotTitleFor(key);
+      return norm(title) === needle || norm(key) === needle;
+    });
+    return matched || 'custom';
+  }, [docSections]);
+  const resolveDocDropSection = React.useCallback((node) => {
+    const doc = docFrameRef.current?.contentDocument;
+    if (!doc || !node) return { section: 'custom', label: 'Custom' };
+    let el = node.nodeType === 1 ? node : node.parentElement;
+    let heading = null;
+    const findPreviousH2 = (start) => {
+      let cur = start;
+      while (cur && cur !== doc.body) {
+        let prev = cur;
+        while (prev) {
+          if (String(prev.tagName || '').toUpperCase() === 'H2') return prev;
+          prev = prev.previousElementSibling;
+        }
+        cur = cur.parentElement;
+      }
+      return null;
+    };
+    heading = findPreviousH2(el);
+    if (!heading && el?.closest) heading = el.closest('h2');
+    const label = String(heading?.textContent || '').trim();
+    const section = sectionKeyFromDocLabel(label);
+    return { section, label: label || (SSOT_SECTION_LABELS[section] || ssotTitleFor(section)) };
+  }, [sectionKeyFromDocLabel]);
+  const applyDocDropSection = React.useCallback((target) => {
+    const section = target?.section || 'custom';
+    const label = target?.label || SSOT_SECTION_LABELS[section] || ssotTitleFor(section);
+    setFeedbackSection(section);
+    setFeedbackPath(prev => prev.trim() ? prev : `${section}.review_note`);
+    setFeedbackStatus(uiLang === 'en'
+      ? `drop target: ${label}`
+      : `drop target: ${label}`);
+    requestAnimationFrame(() => commentTextareaRef.current?.focus());
+  }, [uiLang]);
+  const handleDocCommentDragStart = (ev) => {
+    if (docMode !== 'feedback') return;
+    ev.dataTransfer.effectAllowed = 'copy';
+    ev.dataTransfer.setData('text/plain', 'atlas-doc-comment');
+    setFeedbackStatus(uiLang === 'en'
+      ? 'drop comment on a document section'
+      : 'comment를 DOC 섹션 위에 drop 하세요');
+  };
+  React.useEffect(() => {
+    if (docMode !== 'feedback') return undefined;
+    const frame = docFrameRef.current;
+    if (!frame) return undefined;
+    let frameDoc = null;
+    try {
+      frameDoc = frame.contentDocument;
+    } catch (_) {
+      frameDoc = null;
+    }
+    if (!frameDoc || !frameDoc.body) return undefined;
+    const style = frameDoc.createElement('style');
+    style.textContent = [
+      'body.atlas-feedback-drop-mode h2 { cursor: copy; }',
+      'body.atlas-feedback-drop-mode h2:hover { outline: 2px dashed #315fdc; outline-offset: 4px; }',
+    ].join('\n');
+    frameDoc.head.appendChild(style);
+    frameDoc.body.classList.add('atlas-feedback-drop-mode');
+    const onDragOver = (ev) => {
+      ev.preventDefault();
+      if (ev.dataTransfer) ev.dataTransfer.dropEffect = 'copy';
+    };
+    const onDrop = (ev) => {
+      ev.preventDefault();
+      applyDocDropSection(resolveDocDropSection(ev.target));
+    };
+    frameDoc.addEventListener('dragover', onDragOver);
+    frameDoc.addEventListener('drop', onDrop);
+    return () => {
+      frameDoc.removeEventListener('dragover', onDragOver);
+      frameDoc.removeEventListener('drop', onDrop);
+      frameDoc.body?.classList.remove('atlas-feedback-drop-mode');
+      try { style.remove(); } catch (_) {}
+    };
+  }, [docMode, docFrameReady, reloadKey, applyDocDropSection, resolveDocDropSection]);
+  const handleDocFeedbackSubmit = async (ev) => {
+    ev.preventDefault();
+    if (!effectiveIp || !canSubmitFeedback || feedbackBusy) return;
+    setFeedbackBusy(true);
+    setFeedbackStatus('');
+    try {
+      const res = await fetch('/api/ssot/doc-feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ip: effectiveIp,
+          mode: 'feedback',
+          section: feedbackSection,
+          path: feedbackPath,
+          field: feedbackField,
+          value: feedbackValue,
+          comment: feedbackComment,
+        }),
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok || !payload?.ok) throw new Error(payload?.error || `feedback failed (${res.status})`);
+      setFeedbackStatus(uiLang === 'en'
+        ? `applied ${payload.path || payload.section || 'feedback'}`
+        : `${payload.path || payload.section || 'feedback'} 반영 완료`);
+      setFeedbackComment('');
+      setFeedbackValue('');
+      setReloadKey(k => k + 1);
+      window.dispatchEvent(new CustomEvent('atlas-ssot-doc-feedback', { detail: payload }));
+    } catch (err) {
+      setFeedbackStatus(String(err?.message || err || 'feedback failed'));
+    } finally {
+      setFeedbackBusy(false);
+    }
+  };
 
   if (!effectiveIp) {
     return (
@@ -14889,6 +15066,31 @@ const SsotDocPane = ({ uiLang = 'ko', ip = '', onBack }) => {
         <button type="button" className="btn" onClick={() => setReloadKey(k => k + 1)} style={{ fontSize: 10 }}>
           refresh
         </button>
+        <div style={{ display: 'inline-flex', border: '1px solid var(--line)', borderRadius: 3, overflow: 'hidden' }}>
+          {[
+            ['view', 'View Mode'],
+            ['feedback', 'Feedback Mode'],
+          ].map(([mode, label]) => (
+            <button
+              key={mode}
+              type="button"
+              onClick={() => setDocMode(mode)}
+              style={{
+                border: 0,
+                borderRight: mode === 'view' ? '1px solid var(--line)' : 0,
+                background: docMode === mode ? 'var(--accent)' : 'var(--bg)',
+                color: docMode === mode ? 'var(--bg)' : 'var(--fg-mute)',
+                fontFamily: 'var(--mono)',
+                fontSize: 10,
+                fontWeight: 800,
+                padding: '4px 8px',
+                cursor: 'pointer',
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
         <button type="button" className="btn" onClick={() => { window.location.href = downloadUrl; }} style={{ fontSize: 10 }}>
           download
         </button>
@@ -14901,15 +15103,95 @@ const SsotDocPane = ({ uiLang = 'ko', ip = '', onBack }) => {
         minHeight: 0,
         padding: 12,
         background: 'var(--bg)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 10,
       }}>
+        {docMode === 'feedback' ? (
+          <form onSubmit={handleDocFeedbackSubmit} style={{
+            border: '1px solid var(--line)',
+            background: 'var(--bg-2)',
+            borderRadius: 4,
+            padding: 10,
+            display: 'grid',
+            gap: 8,
+            fontFamily: 'var(--mono)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <button type="button" className="btn"
+                draggable={docMode === 'feedback'}
+                onDragStart={handleDocCommentDragStart}
+                title="Drag this comment marker onto a document section"
+                style={{ fontSize: 10, cursor: 'grab' }}>
+                comment
+              </button>
+              <span style={{ flex: 1 }} />
+            </div>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'minmax(130px, 0.7fr) minmax(180px, 1fr) minmax(150px, 0.9fr)',
+              gap: 8,
+            }}>
+              <label style={{ display: 'grid', gap: 4, color: 'var(--fg-mute)', fontSize: 10 }}>
+                anchor
+                <select value={feedbackSection} onChange={e => setFeedbackSection(e.target.value)}
+                  style={{ background: 'var(--bg)', color: 'var(--fg)', border: '1px solid var(--line)', padding: '5px 7px', fontFamily: 'var(--mono)' }}>
+                  {docSections.map(key => (
+                    <option key={key} value={key}>{SSOT_SECTION_LABELS[key] || key}</option>
+                  ))}
+                </select>
+              </label>
+              <label style={{ display: 'grid', gap: 4, color: 'var(--fg-mute)', fontSize: 10 }}>
+                yaml path
+                <input value={feedbackPath} onChange={e => setFeedbackPath(e.target.value)}
+                  placeholder={`${feedbackSection}.review_note`}
+                  style={{ background: 'var(--bg)', color: 'var(--fg)', border: '1px solid var(--line)', padding: '5px 7px', fontFamily: 'var(--mono)' }} />
+              </label>
+              <label style={{ display: 'grid', gap: 4, color: 'var(--fg-mute)', fontSize: 10 }}>
+                custom field
+                <input value={feedbackField} onChange={e => setFeedbackField(e.target.value)}
+                  placeholder="review_note"
+                  style={{ background: 'var(--bg)', color: 'var(--fg)', border: '1px solid var(--line)', padding: '5px 7px', fontFamily: 'var(--mono)' }} />
+              </label>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 0.8fr) minmax(260px, 1.2fr) auto', gap: 8, alignItems: 'end' }}>
+              <label style={{ display: 'grid', gap: 4, color: 'var(--fg-mute)', fontSize: 10 }}>
+                value
+                <input value={feedbackValue} onChange={e => setFeedbackValue(e.target.value)}
+                  placeholder="field value"
+                  style={{ background: 'var(--bg)', color: 'var(--fg)', border: '1px solid var(--line)', padding: '5px 7px', fontFamily: 'var(--mono)' }} />
+              </label>
+              <label style={{ display: 'grid', gap: 4, color: 'var(--fg-mute)', fontSize: 10 }}>
+                comment
+                <textarea ref={commentTextareaRef}
+                  value={feedbackComment} onChange={e => setFeedbackComment(e.target.value)}
+                  rows={2}
+                  placeholder="doc feedback"
+                  style={{ resize: 'vertical', minHeight: 38, background: 'var(--bg)', color: 'var(--fg)', border: '1px solid var(--line)', padding: '5px 7px', fontFamily: 'var(--mono)' }} />
+              </label>
+              <button type="submit" className="btn" disabled={!canSubmitFeedback || feedbackBusy}
+                style={{ fontSize: 10, minWidth: 84 }}>
+                {feedbackBusy ? 'saving' : 'apply'}
+              </button>
+            </div>
+            {feedbackStatus ? (
+              <div style={{ color: /failed|error|invalid/i.test(feedbackStatus) ? 'var(--err)' : 'var(--ok)', fontSize: 10 }}>
+                {feedbackStatus}
+              </div>
+            ) : null}
+          </form>
+        ) : null}
         <iframe
+          ref={docFrameRef}
           key={inlineUrl}
           title={`${effectiveIp} SSOT HTML export`}
           data-testid="ssot-doc-frame"
           src={inlineUrl}
+          onLoad={() => setDocFrameReady(v => v + 1)}
           style={{
             width: '100%',
-            height: '100%',
+            flex: 1,
+            minHeight: 0,
             border: '1px solid var(--line)',
             background: '#fff',
           }}
@@ -14923,6 +15205,7 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
   const files = Array.isArray(window.SSOT_FILES) ? window.SSOT_FILES : [];
   const [selected, setSelected] = React.useState('');
   const [activeKey, setActiveKey] = React.useState('');
+  const [ssotPreviewMode, setSsotPreviewMode] = React.useState('view');
   const lastInitialPath = React.useRef('');
   const importDocRef = React.useRef(null);
   const [importDocBusy, setImportDocBusy] = React.useState(false);
@@ -15242,6 +15525,31 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
             onClick={() => reloadSsot(true)}
             style={{ fontSize: 10 }}
           >{t.reload}</button>
+          <div style={{ display: 'inline-flex', border: '1px solid var(--line)', borderRadius: 2, overflow: 'hidden' }}>
+            {[
+              ['view', 'View Mode'],
+              ['feedback', 'Feedback Mode'],
+            ].map(([mode, label]) => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => setSsotPreviewMode(mode)}
+                style={{
+                  border: 0,
+                  borderRight: mode === 'view' ? '1px solid var(--line)' : 0,
+                  background: ssotPreviewMode === mode ? 'var(--accent)' : 'var(--bg)',
+                  color: ssotPreviewMode === mode ? 'var(--bg)' : 'var(--fg-mute)',
+                  fontFamily: 'var(--mono)',
+                  fontSize: 10,
+                  fontWeight: 800,
+                  padding: '4px 8px',
+                  cursor: 'pointer',
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
           <input
             ref={importDocRef}
             type="file"
@@ -15389,8 +15697,10 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
           {digestViews.map((view, idx) => {
             const sourceSections = sourceSectionsForDigestView(view, sections);
             const gaps = sourceSections.reduce((sum, section) => sum + ((section.summary && section.summary.gaps.length) || 0), 0);
-            const approved = sourceSections.length > 0 && sourceSections.every(section => ssotSectionStatus(section, statusByKey) === 'approved');
-            const status = gaps ? 'needs review' : approved ? 'approved' : 'review';
+            const statuses = sourceSections.map(section => ssotSectionStatus(section, statusByKey));
+            const approved = sourceSections.length > 0 && statuses.every(status => ssotStatusKey(status) === 'approved');
+            const needsAttention = gaps > 0 || statuses.some(ssotNeedsAttentionStatus);
+            const status = needsAttention ? 'needs_review' : approved ? 'approved' : 'review';
             const activeRow = activeView && activeView.id === view.id;
             const color = ssotStatusColor(status);
             const sourceLabel = sourceSections.length
@@ -15416,7 +15726,7 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
                 }}
               >
                 <span style={{ color, fontSize: 12, textAlign: 'center' }}>
-                  {status === 'approved' ? 'OK' : gaps ? '!' : '·'}
+                  {ssotStatusGlyph(status)}
                 </span>
                 <span style={{ minWidth: 0 }}>
                   <span className="trunc" style={{ display: 'block', fontSize: 12, fontWeight: activeRow ? 800 : 600 }}>
@@ -15458,6 +15768,7 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
               uiLang={uiLang}
               content={content}
               selected={selected}
+              feedbackMode={ssotPreviewMode === 'feedback'}
               onJump={(viewId) => setActiveKey(viewId)}
             />
           ) : (
@@ -16215,24 +16526,36 @@ const TodoEditorRow = ({ index, todo, busy, criteriaText, fieldLabel, inputStyle
   const [detail, setDetail] = React.useState(todo.detail || '');
   const [criteria, setCriteria] = React.useState(criteriaText);
   const [state, setState] = React.useState(todo.state || 'pending');
+  const [approvedReason, setApprovedReason] = React.useState(todo.approvedReason || '');
+  const [rejectionReason, setRejectionReason] = React.useState(todo.rejectionReason || '');
 
   // Re-sync local fields when the underlying todo changes (e.g. live refresh).
   React.useEffect(() => { setContent(todo.title || ''); }, [todo.title]);
   React.useEffect(() => { setDetail(todo.detail || ''); }, [todo.detail]);
   React.useEffect(() => { setCriteria(criteriaText); }, [criteriaText]);
   React.useEffect(() => { setState(todo.state || 'pending'); }, [todo.state]);
+  React.useEffect(() => { setApprovedReason(todo.approvedReason || ''); }, [todo.approvedReason]);
+  React.useEffect(() => { setRejectionReason(todo.rejectionReason || ''); }, [todo.rejectionReason]);
 
   const dirty = (
     content !== (todo.title || '')
     || detail !== (todo.detail || '')
     || criteria !== criteriaText
     || state !== (todo.state || 'pending')
+    || approvedReason !== (todo.approvedReason || '')
+    || rejectionReason !== (todo.rejectionReason || '')
   );
 
   const meta = atlasStatusMeta(state);
   const stateOptions = TODO_EDITOR_STATES.includes(state)
     ? TODO_EDITOR_STATES
     : [state, ...TODO_EDITOR_STATES];
+  const notes = Array.isArray(todo.notes)
+    ? todo.notes.map(n => String(n || '').trim()).filter(Boolean)
+    : [];
+  const reasonMissing = (state === 'approved' && !approvedReason.trim())
+    || (state === 'rejected' && !rejectionReason.trim());
+  const saveDisabled = busy || !dirty || !content.trim() || reasonMissing;
 
   return (
     <div className="digest-card" style={{
@@ -16260,14 +16583,22 @@ const TodoEditorRow = ({ index, todo, busy, criteriaText, fieldLabel, inputStyle
         <span style={{ flex: 1 }} />
         <button
           className="btn"
-          disabled={busy || !dirty || !content.trim()}
-          onClick={() => onSave({ content, detail, criteria, state })}
+          disabled={saveDisabled}
+          title={reasonMissing ? 'Reason is required for approved/rejected todos.' : 'Save todo changes'}
+          onClick={() => onSave({
+            content,
+            detail,
+            criteria,
+            state,
+            approved_reason: approvedReason,
+            rejection_reason: rejectionReason,
+          })}
           style={{
-            cursor: (busy || !dirty || !content.trim()) ? 'default' : 'pointer',
+            cursor: saveDisabled ? 'default' : 'pointer',
             padding: '3px 12px', borderRadius: 3,
             border: '1px solid var(--accent)', color: 'var(--accent)',
             background: 'transparent', fontSize: 'var(--ui-control-font-size)',
-            opacity: (busy || !dirty || !content.trim()) ? 0.5 : 1,
+            opacity: saveDisabled ? 0.5 : 1,
           }}
         >Save</button>
         <button
@@ -16305,6 +16636,55 @@ const TodoEditorRow = ({ index, todo, busy, criteriaText, fieldLabel, inputStyle
           onChange={(e) => setCriteria(e.target.value)}
         />
       </div>
+      {state === 'approved' && (
+        <div>
+          <div style={fieldLabel}>Approved Reason</div>
+          <textarea
+            style={{ ...inputStyle, minHeight: 44, resize: 'vertical' }}
+            placeholder="approved reason (required)"
+            value={approvedReason}
+            disabled={busy}
+            onChange={(e) => setApprovedReason(e.target.value)}
+          />
+        </div>
+      )}
+      {state === 'rejected' && (
+        <div>
+          <div style={fieldLabel}>Reject Reason</div>
+          <textarea
+            style={{ ...inputStyle, minHeight: 44, resize: 'vertical' }}
+            placeholder="reject reason (required)"
+            value={rejectionReason}
+            disabled={busy}
+            onChange={(e) => setRejectionReason(e.target.value)}
+          />
+        </div>
+      )}
+      {notes.length > 0 && (
+        <div>
+          <div style={fieldLabel}>To Do Note</div>
+          <div style={{
+            display: 'grid',
+            gap: 4,
+            padding: '6px 8px',
+            background: 'var(--bg)',
+            border: '1px solid var(--line)',
+            borderRadius: 3,
+            color: 'var(--fg-dim)',
+            fontFamily: 'var(--mono)',
+            fontSize: 'var(--ui-font-size)',
+            lineHeight: 1.55,
+            whiteSpace: 'pre-wrap',
+          }}>
+            {notes.map((note, noteIndex) => (
+              <div key={`${noteIndex}-${note}`}>
+                <span style={{ color: 'var(--cyan)' }}>[{noteIndex + 1}]</span>{' '}
+                <span>{note}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -17671,13 +18051,20 @@ const _highlightYamlBlock = (text) =>
 //   • click ▾/▸ on a fold summary → toggle
 //   • click 💬 button on a summary → dispatch atlas-fold-comment
 //   • drag-select on line-number gutter → floating "Comment selection"
-const FoldablePane = ({ path, body, lang, lineCount, focusLine = 0 }) => {
+const FoldablePane = ({ path, body, lang, lineCount, focusLine = 0, feedbackMode = false }) => {
   const [ranges, setRanges] = React.useState([]);
   const [skipped, setSkipped] = React.useState(null);
   const [floating, setFloating] = React.useState(null);  // {top, left, lo, hi}
   const [sel, setSel] = React.useState(null);            // {lo, hi}
   const dragRef = React.useRef({ start: null, end: null, on: false });
   const paneRef = React.useRef(null);
+
+  React.useEffect(() => {
+    if (feedbackMode) return;
+    dragRef.current = { start: null, end: null, on: false };
+    setSel(null);
+    setFloating(null);
+  }, [feedbackMode]);
 
   // Fetch fold ranges per (path, body-length) — body-length acts as a
   // cheap content-changed signal so reloaded files refetch.
@@ -17698,13 +18085,14 @@ const FoldablePane = ({ path, body, lang, lineCount, focusLine = 0 }) => {
 
   // Drag-select handlers wired on the line-number gutter.
   const onLineMouseDown = (ln, ev) => {
+    if (!feedbackMode) return;
     ev.preventDefault();
     dragRef.current = { start: ln, end: ln, on: true };
     setSel({ lo: ln, hi: ln });
     setFloating(null);
   };
   const onLineMouseEnter = (ln) => {
-    if (!dragRef.current.on) return;
+    if (!feedbackMode || !dragRef.current.on) return;
     dragRef.current.end = ln;
     const a = dragRef.current.start, b = ln;
     setSel({ lo: Math.min(a, b), hi: Math.max(a, b) });
@@ -17765,6 +18153,7 @@ const FoldablePane = ({ path, body, lang, lineCount, focusLine = 0 }) => {
   }, [path, body.length, focusLine]);
 
   const dispatchComment = (lo, hi, label) => {
+    if (!feedbackMode) return;
     // Slice the source lines for the selection so the chat prefill
     // carries the actual file content, not just a path/range header.
     // The listener wraps it in a fenced code block so the agent sees
@@ -17852,11 +18241,13 @@ const FoldablePane = ({ path, body, lang, lineCount, focusLine = 0 }) => {
         <span className="fold-range mute" title={c.label}>
           {c.kind} L{c.line_start}-L{c.line_end}
         </span>
-        <button className="fold-comment-btn"
-                onClick={(ev) => { ev.preventDefault(); ev.stopPropagation();
-                                   dispatchComment(c.line_start, c.line_end, c.label); }}>
-          💬 comment
-        </button>
+        {feedbackMode ? (
+          <button className="fold-comment-btn"
+                  onClick={(ev) => { ev.preventDefault(); ev.stopPropagation();
+                                     dispatchComment(c.line_start, c.line_end, c.label); }}>
+            💬 comment
+          </button>
+        ) : null}
       </summary>
     );
   };
@@ -17913,7 +18304,7 @@ const FoldablePane = ({ path, body, lang, lineCount, focusLine = 0 }) => {
         {renderedTree.elements}
         {trail}
       </div>
-      {floating && (
+      {feedbackMode && floating && (
         <button className="fold-floating-comment"
                 style={{ position: 'absolute', left: 4, top: floating.top + 4 }}
                 onClick={() => dispatchComment(floating.lo, floating.hi, '')}>
@@ -18719,6 +19110,7 @@ const PreviewPane = ({ path, onClose, focusLine = 0 }) => {
   const highlightTooLarge = !isMarkdown && body.length > 60000;
   const canHighlight = !isMarkdown && !highlightTooLarge && lang !== 'none';
   const [highlightedHtml, setHighlightedHtml] = React.useState('');
+  const [previewMode, setPreviewMode] = React.useState('view');
   const [binaryReloadKey, setBinaryReloadKey] = React.useState(0);
   const [imageMeta, setImageMeta] = React.useState({ width: 0, height: 0, error: '' });
 
@@ -18820,6 +19212,31 @@ const PreviewPane = ({ path, onClose, focusLine = 0 }) => {
         <span onClick={refreshPreview} style={{ cursor: 'pointer', padding: '1px 6px', border: '1px solid var(--line)', borderRadius: 2 }}>refresh</span>
         {!isBinary && <span onClick={copyAll} style={{ cursor: 'pointer', padding: '1px 6px', border: '1px solid var(--line)', borderRadius: 2 }}>copy</span>}
         <span onClick={copyPath} style={{ cursor: 'pointer', padding: '1px 6px', border: '1px solid var(--line)', borderRadius: 2 }}>copy path</span>
+        <div style={{ display: 'inline-flex', border: '1px solid var(--line)', borderRadius: 2, overflow: 'hidden' }}>
+          {[
+            ['view', 'View Mode'],
+            ['feedback', 'Feedback Mode'],
+          ].map(([mode, label]) => (
+            <button
+              key={mode}
+              type="button"
+              onClick={() => setPreviewMode(mode)}
+              style={{
+                border: 0,
+                borderRight: mode === 'view' ? '1px solid var(--line)' : 0,
+                background: previewMode === mode ? 'var(--accent)' : 'transparent',
+                color: previewMode === mode ? 'var(--bg)' : 'var(--fg-mute)',
+                fontFamily: 'var(--mono)',
+                fontSize: 10,
+                fontWeight: 800,
+                padding: '1px 6px',
+                cursor: 'pointer',
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
       {err && (
         <div style={{
@@ -18888,7 +19305,7 @@ const PreviewPane = ({ path, onClose, focusLine = 0 }) => {
              gutter so drag-select-comment works universally. The
              server's fold extractor returns [] for unknown types,
              so the fold UI stays out of the way. */
-          <FoldablePane path={path} body={body} lang={lang} lineCount={lineCount} focusLine={focusLine} />
+          <FoldablePane path={path} body={body} lang={lang} lineCount={lineCount} focusLine={focusLine} feedbackMode={previewMode === 'feedback'} />
         ) : (
           /* 2-column layout: line numbers (sticky left gutter) +
              code body. Both columns share the SAME font-size and
