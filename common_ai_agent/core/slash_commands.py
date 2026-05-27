@@ -2968,15 +2968,11 @@ class SlashCommandRegistry:
             except Exception:
                 continue
 
-        if not self._atlas_session_candidates():
-            latest = self._latest_context_file("conversation.json", self._context_project_roots())
-            if latest is not None:
-                try:
-                    messages = self._read_context_messages(latest)
-                    if messages:
-                        return messages, latest
-                except Exception:
-                    pass
+        # No cross-session fallback: /context must reflect the ACTIVE session only.
+        # The old "newest non-empty conversation.json across all of .session"
+        # fallback leaked another IP/session's transcript (e.g. a grill-me
+        # ssot-gen session) whenever the active session's conversation was empty.
+        # If the active session has no LLM conversation yet, report empty.
         return [], None
 
     def _format_full_history(self) -> str:
@@ -2995,13 +2991,9 @@ class SlashCommandRegistry:
                     _full_path = path
                     messages = loaded
                     break
-            if _full_path is None and not self._atlas_session_candidates():
-                _full_path = (
-                    self._latest_context_file("full_conversation.json", self._context_project_roots())
-                    or self._latest_context_file("conversation.json", self._context_project_roots())
-                )
-                if _full_path is not None:
-                    messages = self._read_context_messages(_full_path)
+            # No cross-session fallback — active session only (see
+            # _load_saved_context_messages). Empty active history → report empty,
+            # never borrow another session's transcript.
             if _full_path is None:
                 _looked = ", ".join(str(p) for p in _candidates)
                 return ("\n\033[33m[System] No saved history found (looked in: "
