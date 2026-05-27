@@ -24,8 +24,8 @@ module uart_fifo_sync #(
   input  logic                    pop,
 
   output logic [DATA_WIDTH-1:0]   pop_data,
-  output logic                    full,
-  output logic                    empty,
+  output logic                    fifo_full,
+  output logic                    fifo_empty,
   output logic [LEVEL_WIDTH-1:0]  level,
   output logic                    overflow_pulse,
   output logic                    underflow_pulse
@@ -45,10 +45,10 @@ module uart_fifo_sync #(
   wire pop_accept  = pop && (count != LEVEL_ZERO);
   wire push_accept = push && ((count != DEPTH_LEVEL) || pop_accept);
 
-  assign empty = (count == LEVEL_ZERO);
-  assign full  = (count == DEPTH_LEVEL);
+  assign fifo_empty = (count == LEVEL_ZERO);
+  assign fifo_full  = (count == DEPTH_LEVEL);
   assign level = count;
-  assign pop_data = empty ? {DATA_WIDTH{1'b0}} : mem[rd_ptr];
+  assign pop_data = fifo_empty ? {DATA_WIDTH{1'b0}} : mem[rd_ptr];
 
   function automatic [PTR_WIDTH-1:0] ptr_next(input [PTR_WIDTH-1:0] ptr);
     begin
@@ -76,8 +76,8 @@ module uart_fifo_sync #(
         wr_ptr <= {PTR_WIDTH{1'b0}};
         count  <= {LEVEL_WIDTH{1'b0}};
       end else begin
-        overflow_pulse  <= push && full && !pop_accept;
-        underflow_pulse <= pop && empty;
+        overflow_pulse  <= push && fifo_full && !pop_accept;
+        underflow_pulse <= pop && fifo_empty;
 
         if (push_accept) begin
           mem[wr_ptr] <= push_data;
