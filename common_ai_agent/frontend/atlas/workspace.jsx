@@ -19218,7 +19218,11 @@ const PreviewPane = ({ path, onClose, focusLine = 0 }) => {
   const isMarkdown = ['md', 'markdown', 'mdown', 'mkdn'].includes(ext);
   const isImage = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg', 'tif', 'tiff', 'ico'].includes(ext);
   const isPdf = ext === 'pdf';
+  const isHtml = ['html', 'htm'].includes(ext);
   const isDocxLike = ['docx', 'pptx', 'xlsx'].includes(ext);
+  // isHtml is intentionally NOT binary: keep fetching the text body so the
+  // "source" toggle works; the rendered branch loads it in an iframe via
+  // /api/file/raw (served as text/html) and ignores the fetched body.
   const isBinary = isImage || isPdf || isDocxLike;
   const hasGlobPath = !!path && /[*?[\]{}]/.test(path);
   // For binary files (images, pdf, docx) skip the text /api/file fetch —
@@ -19257,6 +19261,7 @@ const PreviewPane = ({ path, onClose, focusLine = 0 }) => {
   const canHighlight = !isMarkdown && !highlightTooLarge && lang !== 'none';
   const [highlightedHtml, setHighlightedHtml] = React.useState('');
   const [previewMode, setPreviewMode] = React.useState('view');
+  const [htmlRendered, setHtmlRendered] = React.useState(true);
   const [binaryReloadKey, setBinaryReloadKey] = React.useState(0);
   const [imageMeta, setImageMeta] = React.useState({ width: 0, height: 0, error: '' });
 
@@ -19343,7 +19348,7 @@ const PreviewPane = ({ path, onClose, focusLine = 0 }) => {
           </>
         ) : (
           <>
-            <span>lang <span style={{ color: 'var(--accent)' }}>{isMarkdown ? 'rendered markdown' : (lang === 'none' ? 'plain' : lang)}</span></span>
+            <span>lang <span style={{ color: 'var(--accent)' }}>{isMarkdown ? 'rendered markdown' : (isHtml && htmlRendered) ? 'rendered html' : (lang === 'none' ? 'plain' : lang)}</span></span>
             <span className="mute">·</span>
             <span>{lineCount} lines</span>
             {sizeLabel && <><span className="mute">·</span><span>{sizeLabel}</span></>}
@@ -19358,31 +19363,59 @@ const PreviewPane = ({ path, onClose, focusLine = 0 }) => {
         <span onClick={refreshPreview} style={{ cursor: 'pointer', padding: '1px 6px', border: '1px solid var(--line)', borderRadius: 2 }}>refresh</span>
         {!isBinary && <span onClick={copyAll} style={{ cursor: 'pointer', padding: '1px 6px', border: '1px solid var(--line)', borderRadius: 2 }}>copy</span>}
         <span onClick={copyPath} style={{ cursor: 'pointer', padding: '1px 6px', border: '1px solid var(--line)', borderRadius: 2 }}>copy path</span>
-        <div style={{ display: 'inline-flex', border: '1px solid var(--line)', borderRadius: 2, overflow: 'hidden' }}>
-          {[
-            ['view', 'View Mode'],
-            ['feedback', 'Feedback Mode'],
-          ].map(([mode, label]) => (
-            <button
-              key={mode}
-              type="button"
-              onClick={() => setPreviewMode(mode)}
-              style={{
-                border: 0,
-                borderRight: mode === 'view' ? '1px solid var(--line)' : 0,
-                background: previewMode === mode ? 'var(--accent)' : 'transparent',
-                color: previewMode === mode ? 'var(--bg)' : 'var(--fg-mute)',
-                fontFamily: 'var(--mono)',
-                fontSize: 10,
-                fontWeight: 800,
-                padding: '1px 6px',
-                cursor: 'pointer',
-              }}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        {isHtml ? (
+          <div style={{ display: 'inline-flex', border: '1px solid var(--line)', borderRadius: 2, overflow: 'hidden' }}>
+            {[['rendered', 'Rendered'], ['source', 'Source']].map(([m, label]) => {
+              const active = (m === 'rendered') === htmlRendered;
+              return (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setHtmlRendered(m === 'rendered')}
+                  style={{
+                    border: 0,
+                    borderRight: m === 'rendered' ? '1px solid var(--line)' : 0,
+                    background: active ? 'var(--accent)' : 'transparent',
+                    color: active ? 'var(--bg)' : 'var(--fg-mute)',
+                    fontFamily: 'var(--mono)',
+                    fontSize: 10,
+                    fontWeight: 800,
+                    padding: '1px 6px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <div style={{ display: 'inline-flex', border: '1px solid var(--line)', borderRadius: 2, overflow: 'hidden' }}>
+            {[
+              ['view', 'View Mode'],
+              ['feedback', 'Feedback Mode'],
+            ].map(([mode, label]) => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => setPreviewMode(mode)}
+                style={{
+                  border: 0,
+                  borderRight: mode === 'view' ? '1px solid var(--line)' : 0,
+                  background: previewMode === mode ? 'var(--accent)' : 'transparent',
+                  color: previewMode === mode ? 'var(--bg)' : 'var(--fg-mute)',
+                  fontFamily: 'var(--mono)',
+                  fontSize: 10,
+                  fontWeight: 800,
+                  padding: '1px 6px',
+                  cursor: 'pointer',
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
       {err && (
         <div style={{
@@ -19442,6 +19475,12 @@ const PreviewPane = ({ path, onClose, focusLine = 0 }) => {
           />
         ) : isDocxLike ? (
           <DocxFallbackPane path={path} ext={ext} />
+        ) : (isHtml && htmlRendered) ? (
+          <iframe
+            src={`/api/file/raw?path=${encodeURIComponent(path)}&v=${encodeURIComponent(String(effectiveMtime || ''))}`}
+            title={path}
+            style={{ width: '100%', height: '100%', border: 0, background: '#fff' }}
+          />
         ) : isMarkdown ? (
           <DeferredMarkdownPreview body={body} sourcePath={path} />
         ) : hasBody ? (

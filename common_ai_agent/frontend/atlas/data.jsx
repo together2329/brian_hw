@@ -251,7 +251,16 @@
   ];
 
   const DEFAULT_WORKFLOW = 'default';
-  const DEFAULT_FLOW_STAGE = { id: DEFAULT_WORKFLOW, label: DEFAULT_WORKFLOW, cmd: '/wf default', color: 'var(--fg-mute)', glyph: 'DF' };
+  // General-purpose chat workflow (workflow/default/). The single-worker
+  // counterpart to the orchestrator entry gives single-worker mode a free
+  // conversation window instead of only stage workflows.
+  const DEFAULT_FLOW_STAGE = {
+    id: DEFAULT_WORKFLOW,
+    label: DEFAULT_WORKFLOW,
+    cmd: '/workflow default',
+    color: 'var(--fg)',
+    glyph: 'GP',
+  };
   const DEFAULT_FLOW_STAGES = [
     DEFAULT_FLOW_STAGE,
     { id: 'ssot-gen',     label: 'ssot-gen',     cmd: '/wf ssot-gen',     color: 'var(--mag)',    glyph: 'SS' },
@@ -273,18 +282,6 @@
     cmd: '/workflow orchestrator',
     color: 'var(--cyan)',
     glyph: 'OR',
-  };
-
-  // General-purpose chat workflow (workflow/default/). The single-worker
-  // counterpart to the orchestrator entry — gives single-worker mode a free
-  // conversation window (like the textual UI's general window) instead of
-  // only stage workflows.
-  const DEFAULT_FLOW_STAGE = {
-    id: 'default',
-    label: 'default',
-    cmd: '/workflow default',
-    color: 'var(--fg)',
-    glyph: 'GP',
   };
 
   function atlasExecMode() {

@@ -94,15 +94,17 @@ def test_export_endpoint_can_render_html_inline(tmp_path, monkeypatch):
     assert "text/html" in resp.headers.get("content-type", "")
     assert resp.headers.get("content-disposition", "").startswith("inline;")
     assert resp.text.startswith("<!DOCTYPE html>")
-    assert "<h2>Design Views</h2>" in resp.text
-    assert "Block Diagram" in resp.text
-    assert "FSM" in resp.text
-    assert 'class="mermaid"' in resp.text
-    assert "../../vendor/mermaid.min.js" in resp.text
-    assert "/vendor/mermaid.min.js" in resp.text
-    assert "window.__ssotRenderMermaid" in resp.text
-    assert "mermaid.run" in resp.text
-    assert "Timing Diagram" in resp.text
+    assert "<h2>Design Views</h2>" not in resp.text
+    assert "Block Diagram" not in resp.text
+    assert ">FSM</h2>" in resp.text
+    assert "reset_state: IDLE" in resp.text
+    assert ">Timing</h2>" in resp.text
+    assert "diagrams:" in resp.text
+    assert 'class="mermaid"' not in resp.text
+    assert "../../vendor/mermaid.min.js" not in resp.text
+    assert "/vendor/mermaid.min.js" not in resp.text
+    assert "window.__ssotRenderMermaid" not in resp.text
+    assert "mermaid.run" not in resp.text
     assert (tmp_path / "inline_doc_ip" / "doc" / "inline_doc_ip_ssot.html").is_file()
 
     asset = client.get("/vendor/mermaid.min.js")

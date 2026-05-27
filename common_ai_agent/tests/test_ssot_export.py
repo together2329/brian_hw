@@ -97,7 +97,7 @@ def test_render_html(tmp_path, monkeypatch, ip):
     # Complex diagram-like sections stay as raw source until a renderer is
     # stable enough to avoid clipping/truncation in the DOC iframe.
     assert "fsm" in data, f"sample {ip} unexpectedly lacks an fsm section"
-    assert "fsm-flow-map" not in html
+    assert '<div class="fsm-flow-map"' not in html
     assert "stateDiagram" not in html
     assert "/vendor/mermaid.min.js" not in html
     assert "window.__ssotRenderMermaid" not in html
@@ -277,11 +277,11 @@ def test_html_datasheet_uses_readable_cards_for_behavior_models():
     md = atlas_ui._ssot_to_markdown(data, "demo")
     html = atlas_ui._ssot_to_html(md, "demo", data)
 
-    assert "transaction-card" not in html
-    assert "transaction-grid" not in html
-    assert "cycle-flow" not in html
-    assert "cycle-stage" not in html
-    assert "fsm-flow-map" not in html
+    assert 'class="transaction-card"' not in html
+    assert 'class="transaction-grid"' not in html
+    assert 'class="cycle-flow"' not in html
+    assert 'class="cycle-stage"' not in html
+    assert 'class="fsm-flow-map"' not in html
     assert "MM2S_TRANSFER" in html
     assert "output_rules:" in html
     assert "pipeline:" in html

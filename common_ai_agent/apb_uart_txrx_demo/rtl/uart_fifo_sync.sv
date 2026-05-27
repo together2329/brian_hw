@@ -2,8 +2,8 @@
 module uart_fifo_sync #(
   parameter integer DATA_WIDTH  = 8,
   parameter integer DEPTH       = 4,
-  parameter integer PTR_WIDTH   = 2,
-  parameter integer LEVEL_WIDTH = 3
+  parameter integer PTR_WIDTH   = (DEPTH <= 1) ? 1 : $clog2(DEPTH),
+  parameter integer LEVEL_WIDTH = (DEPTH <= 1) ? 1 : $clog2(DEPTH + 1)
 ) (
   input  logic                    clk,
   input  logic                    reset_n,
@@ -20,10 +20,10 @@ module uart_fifo_sync #(
 );
   localparam [LEVEL_WIDTH-1:0] LEVEL_ZERO = {LEVEL_WIDTH{1'b0}};
   localparam [LEVEL_WIDTH-1:0] LEVEL_ONE  = {{(LEVEL_WIDTH-1){1'b0}}, 1'b1};
-  localparam [LEVEL_WIDTH-1:0] DEPTH_LEVEL = DEPTH;
+  localparam [LEVEL_WIDTH-1:0] DEPTH_LEVEL = LEVEL_WIDTH'(DEPTH);
   localparam [PTR_WIDTH-1:0] PTR_ZERO = {PTR_WIDTH{1'b0}};
   localparam [PTR_WIDTH-1:0] PTR_ONE  = {{(PTR_WIDTH-1){1'b0}}, 1'b1};
-  localparam [PTR_WIDTH-1:0] PTR_LAST = DEPTH - 1;
+  localparam [PTR_WIDTH-1:0] PTR_LAST = PTR_WIDTH'(DEPTH - 1);
 
   logic [DATA_WIDTH-1:0] mem [0:DEPTH-1];
   logic [PTR_WIDTH-1:0] rd_ptr;
