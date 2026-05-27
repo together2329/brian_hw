@@ -12,8 +12,8 @@
 module uart_fifo_sync #(
   parameter integer DATA_WIDTH  = 8,
   parameter integer DEPTH       = 4,
-  parameter integer PTR_WIDTH   = (DEPTH <= 1) ? 1 : $clog2(DEPTH),
-  parameter integer LEVEL_WIDTH = (DEPTH <= 1) ? 1 : $clog2(DEPTH + 1)
+  parameter integer PTR_WIDTH   = 2,
+  parameter integer LEVEL_WIDTH = 3
 ) (
   input  logic                    clk,
   input  logic                    reset_n,
@@ -41,9 +41,8 @@ module uart_fifo_sync #(
   logic [PTR_WIDTH-1:0] rd_ptr;
   logic [PTR_WIDTH-1:0] wr_ptr;
   logic [LEVEL_WIDTH-1:0] count;
-
-  wire pop_accept  = pop && (count != LEVEL_ZERO);
-  wire push_accept = push && ((count != DEPTH_LEVEL) || pop_accept);
+  logic pop_accept;
+  logic push_accept;
 
   assign fifo_empty = (count == LEVEL_ZERO);
   assign fifo_full  = (count == DEPTH_LEVEL);
@@ -59,6 +58,11 @@ module uart_fifo_sync #(
       end
     end
   endfunction
+
+  always_comb begin
+    pop_accept = pop && !fifo_empty;
+    push_accept = push && (!fifo_full || pop_accept);
+  end
 
   always_ff @(posedge clk or negedge reset_n) begin
     if (!reset_n) begin
@@ -88,8 +92,8 @@ module uart_fifo_sync #(
         end
 
         case ({push_accept, pop_accept})
-          2'b10: count <= count + {{(LEVEL_WIDTH-1){1'b0}}, 1'b1};
-          2'b01: count <= count - {{(LEVEL_WIDTH-1){1'b0}}, 1'b1};
+          2'b10: count <= count + LEVEL_ONE;
+          2'b01: count <= count - LEVEL_ONE;
           default: count <= count;
         endcase
       end

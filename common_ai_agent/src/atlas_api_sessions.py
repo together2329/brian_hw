@@ -213,10 +213,6 @@ def register_sessions_routes(
             except Exception:
                 pass
         session_worker_warmup: dict[str, Any] = {}
-<<<<<<< Updated upstream
-=======
-        keep_session_worker_hot = _session_worker_keepalive_enabled()
->>>>>>> Stashed changes
         try:
             bridge.activate_session(canonical)
         except Exception:

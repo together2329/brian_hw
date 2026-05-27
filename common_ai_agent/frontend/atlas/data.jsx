@@ -298,19 +298,9 @@
 
   function flowStagesForExecMode(stages) {
     const base = Array.isArray(stages) ? stages : DEFAULT_FLOW_STAGES;
-<<<<<<< Updated upstream
     const deduped = base.filter((s) => s
       && s.id !== ORCHESTRATOR_FLOW_STAGE.id
       && s.id !== DEFAULT_FLOW_STAGE.id);
-=======
-    const seen = new Set();
-    const deduped = [DEFAULT_FLOW_STAGE].concat(base)
-      .filter((s) => {
-        if (!s || s.id === ORCHESTRATOR_FLOW_STAGE.id || seen.has(s.id)) return false;
-        seen.add(s.id);
-        return true;
-      });
->>>>>>> Stashed changes
     if (atlasExecMode() === 'orchestrator') {
       return [ORCHESTRATOR_FLOW_STAGE].concat(deduped);
     }

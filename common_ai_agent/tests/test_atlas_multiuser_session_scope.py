@@ -851,20 +851,12 @@ def test_single_worker_session_activate_warms_chat_process(tmp_path, monkeypatch
     assert health.json()["agent_running"] is False
 
 
-<<<<<<< Updated upstream
 def test_todos_api_uses_requested_session_file(tmp_path, monkeypatch):
     import src.atlas_ui as atlas_ui
-=======
-def test_single_worker_session_activate_warms_in_process_chat_worker(tmp_path, monkeypatch):
-    import atlas_api_jobs as jobs
-    import src.atlas_ui as atlas_ui
-    from core.atlas_multiuser import get_atlas_bridge_session_id
->>>>>>> Stashed changes
 
     monkeypatch.setenv("HOME", str(tmp_path / "home"))
     monkeypatch.setenv("ATLAS_MULTI_USER", "1")
     monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
-<<<<<<< Updated upstream
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
 
@@ -997,40 +989,6 @@ def test_todos_crud_add_update_remove_clear_round_trip(tmp_path, monkeypatch):
     assert clr_resp.status_code == 200, clr_resp.text
     assert _get_todos() == []
     assert _disk_todos() == []
-=======
-    monkeypatch.setenv("ATLAS_EXEC_MODE", "single-worker")
-    monkeypatch.setenv("ATLAS_DEFAULT_EXEC_MODE", "single-worker")
-    monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODE", "0")
-    monkeypatch.setenv("ATLAS_SINGLE_MAIN_LOOP", "1")
-    monkeypatch.chdir(tmp_path)
-    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
-    monkeypatch.setattr(
-        jobs,
-        "schedule_worker_warmup",
-        lambda **_kwargs: {"enabled": False, "reason": "test"},
-    )
-
-    starts = []
-    app = atlas_ui.create_app()
-    app.state.bridge.set_agent_starter(lambda: starts.append(get_atlas_bridge_session_id()))
-    client = TestClient(app)
-    _register(client, "alice")
-
-    response = _activate(client, "alice", "spi_core", "default")
-
-    assert response.status_code == 200, response.text
-    assert response.json()["session_worker_warmup"] == {
-        "enabled": True,
-        "mode": "thread",
-        "session_id": "alice/spi_core/default",
-        "status": "started",
-        "alive": True,
-    }
-    assert starts == ["alice/spi_core/default"]
-    session = app.state.bridge.get_session("alice/spi_core/default")
-    assert session.agent_alive is True
-    assert session.agent_running is False
->>>>>>> Stashed changes
 
 
 def test_process_session_activate_does_not_mutate_main_env(tmp_path, monkeypatch):

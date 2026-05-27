@@ -94,11 +94,7 @@ def current_exec_mode(
 
 def initial_workflow_for_exec_mode(exec_mode: Any, explicit: Any = "") -> str:
     requested = str(explicit or "").strip().lower().replace("_", "-")
-<<<<<<< Updated upstream
     if requested in {"orchestrator", "default", "ssot-gen"}:
-=======
-    if requested in {"default", "orchestrator", "ssot-gen"}:
->>>>>>> Stashed changes
         return requested
     return (
         "orchestrator"
