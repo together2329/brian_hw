@@ -72,7 +72,7 @@
     })],
     [/^\/api\/workspaces/, () => ({
       workspaces: [
-        'ssot-gen','fl-model-gen','rtl-gen','tb-gen','sim_debug',
+        'default','ssot-gen','fl-model-gen','rtl-gen','tb-gen','sim_debug',
         'lint','coverage','syn','sta','pnr','architect',
       ],
     })],

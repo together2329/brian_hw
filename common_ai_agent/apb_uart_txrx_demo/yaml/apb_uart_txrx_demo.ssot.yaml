@@ -1,9 +1,9 @@
 top_module:
   name: apb_uart_txrx_demo
   file: rtl/apb_uart_txrx_demo.sv
-  version: 0.1.0-challenge
+  version: 0.2.0-enhanced-v2plus
   type: peripheral
-  description: "Small APB3-attached UART with fixed 8N1 TX/RX, programmable baud divisor, one-byte TX/RX holding registers, status/error/interrupt registers, and verification-first TX/RX challenge scope."
+  description: "Enhanced APB3-attached UART with default 8N1 compatibility, configurable 5/6/7/8-bit framing, optional even/odd parity, 1/2 stop bits, TX/RX FIFOs, thresholds, timeout, loopback, sticky errors, and verification-first signoff scope."
   reference_spec: "apb_uart_txrx_demo/req/apb_uart_txrx_demo_requirements.md"
 
 parameters:
@@ -15,6 +15,10 @@ parameters:
     default: 16
     type: int
     description: "Baud divisor width in pclk cycles per UART bit."
+  - name: FIFO_DEPTH
+    default: 4
+    type: int
+    description: "Depth of TX and RX synchronous FIFOs; default bounded demo depth is four bytes."
   - name: RESET_POLARITY
     default: active_low
     type: enum
@@ -55,10 +59,10 @@ io_list:
     - name: uart_serial
       type: UART
       role: serial
-      description: "Fixed 8N1 UART serial pins."
+      description: "UART serial pins; reset/default protocol is 8N1 and enhanced modes are selected by FRAME_CFG."
       ports:
-        - { name: uart_tx, width: 1, direction: output, idle_value: 1, description: "UART TX output, idle high" }
-        - { name: uart_rx, width: 1, direction: input, idle_value: 1, description: "UART RX input, idle high" }
+        - { name: uart_tx, width: 1, direction: output, idle_value: 1, description: "UART TX output, idle high unless break asserted" }
+        - { name: uart_rx, width: 1, direction: input, idle_value: 1, description: "UART RX input, idle high; ignored while loopback_en is set" }
     - name: interrupt
       type: custom
       role: source
@@ -73,26 +77,36 @@ registers:
   register_list:
     - name: CTRL
       offset: 0x00
-      access: rw
+      access: rw_wo_mixed
       reset: 0x00000001
       fields:
         - { name: enable, bits: [0,0], access: rw, reset: 1, description: "UART enable" }
-        - { name: tx_irq_en, bits: [1,1], access: rw, reset: 0 }
-        - { name: rx_irq_en, bits: [2,2], access: rw, reset: 0 }
-        - { name: err_irq_en, bits: [3,3], access: rw, reset: 0 }
-        - { name: rx_clear, bits: [4,4], access: wo, reset: 0, description: "Self-clearing RX valid clear" }
-        - { name: tx_break, bits: [5,5], access: rw, reset: 0, description: "Force TX low while set" }
+        - { name: tx_irq_en, bits: [1,1], access: rw, reset: 0, description: "Enable TX done/threshold IRQ sources" }
+        - { name: rx_irq_en, bits: [2,2], access: rw, reset: 0, description: "Enable RX valid/threshold IRQ sources" }
+        - { name: err_irq_en, bits: [3,3], access: rw, reset: 0, description: "Enable frame/parity/overrun/break error IRQ sources" }
+        - { name: rx_clear, bits: [4,4], access: wo, reset: 0, description: "Self-clearing RX FIFO clear" }
+        - { name: tx_break, bits: [5,5], access: rw, reset: 0, description: "Force TX low while set and block new frame launches" }
+        - { name: loopback_en, bits: [6,6], access: rw, reset: 0, description: "Route internal TX serial stream into RX sampler" }
+        - { name: timeout_irq_en, bits: [7,7], access: rw, reset: 0, description: "Enable RX timeout IRQ source" }
+        - { name: fifo_irq_en, bits: [8,8], access: rw, reset: 0, description: "Enable TX/RX FIFO threshold IRQ sources" }
     - name: STATUS
       offset: 0x04
       access: ro_w1c_errors
       reset: 0x00000002
       fields:
-        - { name: rx_valid, bits: [0,0], access: ro, reset: 0 }
-        - { name: tx_empty, bits: [1,1], access: ro, reset: 1 }
-        - { name: tx_busy, bits: [2,2], access: ro, reset: 0 }
-        - { name: frame_err, bits: [3,3], access: w1c, reset: 0 }
-        - { name: overrun_err, bits: [4,4], access: w1c, reset: 0 }
-        - { name: irq_pending, bits: [5,5], access: ro, reset: 0 }
+        - { name: rx_valid, bits: [0,0], access: ro, reset: 0, description: "RX FIFO non-empty" }
+        - { name: tx_empty, bits: [1,1], access: ro, reset: 1, description: "TX FIFO empty and TX shifter idle" }
+        - { name: tx_busy, bits: [2,2], access: ro, reset: 0, description: "TX shifter active" }
+        - { name: frame_err, bits: [3,3], access: w1c, reset: 0, description: "Sticky stop/framing error" }
+        - { name: overrun_err, bits: [4,4], access: w1c, reset: 0, description: "Sticky RX FIFO overrun" }
+        - { name: irq_pending, bits: [5,5], access: ro, reset: 0, description: "Combined enabled interrupt pending" }
+        - { name: tx_full, bits: [6,6], access: ro, reset: 0, description: "TX FIFO full" }
+        - { name: rx_full, bits: [7,7], access: ro, reset: 0, description: "RX FIFO full" }
+        - { name: parity_err, bits: [8,8], access: w1c, reset: 0, description: "Sticky parity mismatch" }
+        - { name: break_err, bits: [9,9], access: w1c, reset: 0, description: "Sticky RX break detect" }
+        - { name: rx_timeout, bits: [10,10], access: w1c, reset: 0, description: "Sticky RX timeout" }
+        - { name: tx_threshold, bits: [11,11], access: ro, reset: 0, description: "TX FIFO level <= TX threshold" }
+        - { name: rx_threshold, bits: [12,12], access: ro, reset: 0, description: "RX FIFO level >= RX threshold" }
     - name: BAUD_DIV
       offset: 0x08
       access: rw
@@ -101,153 +115,313 @@ registers:
         - { name: divisor, bits: [15,0], access: rw, reset: 4, description: "Cycles per UART bit; write 0 coerces to 1" }
     - name: TXDATA
       offset: 0x0C
-      access: wo
+      access: wo_push
       reset: 0x00000000
       fields:
-        - { name: txdata, bits: [7,0], access: wo, reset: 0, description: "APB write launches TX when enabled and idle" }
+        - { name: txdata, bits: [7,0], access: wo_push, reset: 0, description: "APB write pushes TX FIFO when enabled and not full" }
     - name: RXDATA
       offset: 0x10
       access: ro_pop
       reset: 0x00000000
       fields:
-        - { name: rxdata, bits: [7,0], access: ro_pop, reset: 0, description: "APB read returns received byte and clears rx_valid" }
+        - { name: rxdata, bits: [7,0], access: ro_pop, reset: 0, description: "APB read returns and pops oldest RX FIFO byte; empty read returns zero" }
     - name: IRQ_STATUS
       offset: 0x14
       access: ro_w1c
       reset: 0x00000000
       fields:
-        - { name: tx_done, bits: [0,0], access: w1c, reset: 0 }
-        - { name: rx_valid_irq, bits: [1,1], access: ro, reset: 0 }
-        - { name: error, bits: [2,2], access: w1c, reset: 0 }
+        - { name: tx_done, bits: [0,0], access: w1c, reset: 0, description: "Sticky TX frame complete" }
+        - { name: rx_valid_irq, bits: [1,1], access: ro, reset: 0, description: "Mirrors RX FIFO non-empty" }
+        - { name: error, bits: [2,2], access: w1c, reset: 0, description: "Sticky aggregate line/FIFO error" }
+        - { name: rx_timeout, bits: [3,3], access: w1c, reset: 0, description: "Sticky RX timeout source" }
+        - { name: tx_threshold, bits: [4,4], access: ro, reset: 0, description: "Mirrors TX FIFO threshold source" }
+        - { name: rx_threshold, bits: [5,5], access: ro, reset: 0, description: "Mirrors RX FIFO threshold source" }
+    - name: FRAME_CFG
+      offset: 0x18
+      access: rw
+      reset: 0x00000003
+      fields:
+        - { name: data_bits_sel, bits: [1,0], access: rw, reset: 3, values: { five: 0, six: 1, seven: 2, eight: 3 }, description: "Active UART data bits; reset selects 8" }
+        - { name: parity_en, bits: [2,2], access: rw, reset: 0, description: "Enable parity bit generation/check" }
+        - { name: parity_odd, bits: [3,3], access: rw, reset: 0, description: "0 even parity, 1 odd parity when parity_en=1" }
+        - { name: stop2, bits: [4,4], access: rw, reset: 0, description: "0 one stop bit, 1 two stop bit-times" }
+    - name: FIFO_CTRL
+      offset: 0x1C
+      access: wo
+      reset: 0x00000000
+      fields:
+        - { name: tx_fifo_clear, bits: [0,0], access: wo, reset: 0, description: "Self-clearing TX FIFO clear" }
+        - { name: rx_fifo_clear, bits: [1,1], access: wo, reset: 0, description: "Self-clearing RX FIFO clear" }
+    - name: FIFO_STATUS
+      offset: 0x20
+      access: ro
+      reset: 0x00050000
+      fields:
+        - { name: tx_level, bits: [7,0], access: ro, reset: 0, description: "TX FIFO queued byte count" }
+        - { name: rx_level, bits: [15,8], access: ro, reset: 0, description: "RX FIFO queued byte count" }
+        - { name: tx_empty, bits: [16,16], access: ro, reset: 1, description: "TX FIFO empty" }
+        - { name: tx_full, bits: [17,17], access: ro, reset: 0, description: "TX FIFO full" }
+        - { name: rx_empty, bits: [18,18], access: ro, reset: 1, description: "RX FIFO empty" }
+        - { name: rx_full, bits: [19,19], access: ro, reset: 0, description: "RX FIFO full" }
+        - { name: tx_threshold, bits: [20,20], access: ro, reset: 0, description: "TX FIFO level <= programmed TX threshold" }
+        - { name: rx_threshold, bits: [21,21], access: ro, reset: 0, description: "RX FIFO level >= programmed RX threshold" }
+    - name: FIFO_THRESH
+      offset: 0x24
+      access: rw
+      reset: 0x00000101
+      fields:
+        - { name: tx_threshold, bits: [7,0], access: rw, reset: 1, description: "TX threshold level" }
+        - { name: rx_threshold, bits: [15,8], access: rw, reset: 1, description: "RX threshold level" }
+    - name: RX_TIMEOUT
+      offset: 0x28
+      access: rw
+      reset: 0x00000000
+      fields:
+        - { name: timeout_cycles, bits: [15,0], access: rw, reset: 0, description: "RX timeout count in pclk cycles; 0 disables" }
+    - name: SCRATCH
+      offset: 0x2C
+      access: rw
+      reset: 0x00000000
+      fields:
+        - { name: scratch, bits: [31,0], access: rw, reset: 0, description: "Software scratch with no UART side effects" }
 
 features:
   - id: F_APB
     name: apb_register_access
-    description: "APB zero-wait register reads/writes, invalid access error, reset readback."
-  - id: F_TX
-    name: uart_transmit_8n1
-    description: "TXDATA write emits idle-high 8N1 frame with start/data/stop timing."
-  - id: F_RX
-    name: uart_receive_8n1
-    description: "RX input frame is sampled and made visible through RXDATA/status."
+    description: "APB zero-wait register reads/writes, invalid access error, reset readback, and reserved-bit masking."
+  - id: F_TX_FRAME_CFG
+    name: configurable_uart_transmit
+    description: "TXDATA FIFO bytes emit frames with 5/6/7/8 data bits, optional even/odd parity, and 1/2 stop bits."
+  - id: F_RX_FRAME_CFG
+    name: configurable_uart_receive
+    description: "RX detects start bits, rejects false starts, majority-votes samples, checks parity/stop bits, and pushes RX FIFO bytes."
+  - id: F_FIFO
+    name: tx_rx_fifo_buffering
+    description: "TX and RX synchronous FIFOs provide ordered buffering, levels, full/empty status, thresholds, and clear controls."
   - id: F_IRQ
     name: interrupt_generation
-    description: "TX done, RX valid, and error sources drive level irq when enabled."
+    description: "TX done, RX valid, FIFO threshold, RX timeout, and error sources drive level irq when enabled."
   - id: F_ERR
     name: rx_error_handling
-    description: "Framing and overrun errors are sticky until cleared."
+    description: "Framing, parity, overrun, break, and timeout errors are sticky until W1C-cleared."
+  - id: F_LOOPBACK
+    name: internal_loopback
+    description: "Loopback mode routes internal TX serial stream into the RX sampler for self-test."
+  - id: F_SCRATCH
+    name: scratch_register
+    description: "Software scratch register has no UART side effects."
+
+memory:
+  instances:
+    - name: tx_fifo
+      kind: sync_fifo
+      width: 8
+      depth_parameter: FIFO_DEPTH
+      clock: pclk
+      reset: preset_n
+      clear_sources: [FIFO_CTRL.tx_fifo_clear]
+      ordering: first_in_first_out
+    - name: rx_fifo
+      kind: sync_fifo
+      width: 8
+      depth_parameter: FIFO_DEPTH
+      clock: pclk
+      reset: preset_n
+      clear_sources: [CTRL.rx_clear, FIFO_CTRL.rx_fifo_clear]
+      ordering: first_in_first_out
 
 function_model:
   state_variables:
-    - { name: ctrl, reset: 0x01, width: 6 }
+    - { name: ctrl, reset: 0x00000001, width: 9 }
     - { name: baud_div, reset: 4, width: 16 }
+    - { name: frame_cfg, reset: 0x00000003, width: 5 }
+    - { name: fifo_thresh, reset: 0x00000101, width: 16 }
+    - { name: rx_timeout_cfg, reset: 0, width: 16 }
+    - { name: scratch, reset: 0, width: 32 }
+    - { name: tx_fifo_level, reset: 0, width: 8 }
+    - { name: rx_fifo_level, reset: 0, width: 8 }
     - { name: tx_busy, reset: 0, width: 1 }
-    - { name: tx_shift_byte, reset: 0, width: 8 }
-    - { name: rx_valid, reset: 0, width: 1 }
-    - { name: rx_data, reset: 0, width: 8 }
     - { name: frame_err, reset: 0, width: 1 }
+    - { name: parity_err, reset: 0, width: 1 }
     - { name: overrun_err, reset: 0, width: 1 }
-    - { name: irq_status, reset: 0, width: 3 }
+    - { name: break_err, reset: 0, width: 1 }
+    - { name: rx_timeout, reset: 0, width: 1 }
+    - { name: irq_status, reset: 0, width: 6 }
   transactions:
     - id: FM_APB_WRITE
       name: apb_write
       preconditions: ["psel", "penable", "pwrite"]
-      effects: "Decode address; update CTRL/BAUD_DIV/TXDATA/IRQ clear fields; invalid address asserts pslverr."
+      effects: "Decode address; update CTRL/BAUD_DIV/FRAME_CFG/FIFO_THRESH/RX_TIMEOUT/SCRATCH, push TX FIFO, clear sticky W1C fields, or assert pslverr for invalid/unsupported access."
     - id: FM_APB_READ
       name: apb_read
       preconditions: ["psel", "penable", "!pwrite"]
-      effects: "Return selected register; RXDATA read clears rx_valid."
+      effects: "Return selected register; RXDATA read pops one RX FIFO byte when present."
     - id: FM_TX_FRAME
       name: tx_frame
-      preconditions: ["CTRL.enable", "TXDATA write accepted"]
-      outputs: "uart_tx frame: start 0, 8 data bits LSB-first, stop 1."
+      preconditions: ["CTRL.enable", "TX FIFO non-empty", "CTRL.tx_break == 0"]
+      outputs: "uart_tx frame: start 0, configured data bits LSB-first, optional parity, configured stop bit-times."
+      side_effects: ["Pop one TX FIFO byte at frame launch", "Set IRQ_STATUS.tx_done when final stop bit completes"]
     - id: FM_RX_FRAME
       name: rx_frame
-      preconditions: ["CTRL.enable", "start bit on uart_rx"]
-      effects: "Capture byte into RXDATA or set overrun; set frame_err on bad stop."
+      preconditions: ["CTRL.enable", "start bit on selected RX input"]
+      effects: "Capture configured data bits into RX FIFO when space exists; set parity/frame/break/overrun errors as applicable."
+    - id: FM_FIFO_CLEAR
+      name: fifo_clear
+      effects: "Clear requested TX/RX FIFO and update levels, empty/full, valid, threshold, and timeout state."
+    - id: FM_TIMEOUT
+      name: rx_timeout
+      effects: "When RX FIFO is non-empty and timeout counter reaches RX_TIMEOUT, set STATUS.rx_timeout and IRQ_STATUS.rx_timeout."
+    - id: FM_LOOPBACK
+      name: loopback
+      effects: "Select TX serial output as RX sampler input while CTRL.loopback_en is set."
     - id: FM_IRQ_UPDATE
       name: irq_update
-      effects: "irq = enabled pending tx_done/rx_valid/error."
+      effects: "irq = enabled pending TX/RX/error/timeout/FIFO-threshold source."
   invariants:
     - "pready == 1"
-    - "uart_tx == 1 when idle and tx_break == 0"
+    - "uart_tx == 1 when idle and CTRL.tx_break == 0"
     - "BAUD_DIV effective divisor is never 0"
-    - "Invalid APB access does not change architectural registers."
+    - "Invalid APB access does not change architectural registers or FIFO contents."
+    - "TX and RX FIFOs preserve first-in first-out ordering."
+    - "Reset/default FRAME_CFG is fixed 8N1-compatible: data_bits_sel=3, parity_en=0, stop2=0."
 
 cycle_model:
   clock: pclk
   reset: { signal: preset_n, polarity: active_low }
   handshake_rules:
     - { name: apb_access, rule: "Access completes on psel && penable; pready is 1." }
-    - { name: tx_launch, rule: "Accepted TXDATA write when enabled and idle starts TX in the next cycle." }
-    - { name: rx_capture, rule: "RX samples at bit centers based on BAUD_DIV." }
+    - { name: tx_fifo_push, rule: "Accepted TXDATA write when enabled and TX FIFO not full pushes one byte." }
+    - { name: rx_fifo_pop, rule: "RXDATA read pops one byte only when RX FIFO is non-empty; empty read returns zero." }
+    - { name: tx_launch, rule: "TX frame launches from TX FIFO when enabled, idle, and break is not asserted." }
+    - { name: rx_capture, rule: "RX samples at baud-derived early/mid/late positions based on BAUD_DIV." }
+    - { name: loopback_select, rule: "loopback_en selects internal TX serial stream as RX sampler input." }
   latency:
     apb_access: { min_cycles: 0, max_cycles: 0 }
-    tx_frame_bits: { min_cycles: 10, max_cycles: 10, units: "UART bits for 8N1" }
-    rx_frame_bits: { min_cycles: 10, max_cycles: 10, units: "UART bits for 8N1" }
+    tx_frame_bits: { min_cycles: 7, max_cycles: 12, units: "UART bit-times depending on data bits, parity, and stop2" }
+    rx_frame_bits: { min_cycles: 7, max_cycles: 12, units: "UART bit-times depending on data bits, parity, and stop2" }
   fsm:
-    tx_states: [TX_IDLE, TX_START, TX_DATA, TX_STOP]
-    rx_states: [RX_IDLE, RX_START, RX_DATA, RX_STOP]
+    tx_states: [TX_IDLE, TX_START, TX_DATA, TX_PARITY, TX_STOP]
+    rx_states: [RX_IDLE, RX_START, RX_DATA, RX_PARITY, RX_STOP]
 
 interrupts:
   output: { signal: irq, polarity: active_high }
   sources:
     - { name: TX_DONE, enable: CTRL.tx_irq_en, pending: IRQ_STATUS.tx_done, clear: "W1C IRQ_STATUS.tx_done" }
-    - { name: RX_VALID, enable: CTRL.rx_irq_en, pending: STATUS.rx_valid, clear: "Read RXDATA or CTRL.rx_clear" }
-    - { name: ERROR, enable: CTRL.err_irq_en, pending: "STATUS.frame_err || STATUS.overrun_err || IRQ_STATUS.error", clear: "W1C STATUS errors and IRQ_STATUS.error" }
+    - { name: RX_VALID, enable: CTRL.rx_irq_en, pending: STATUS.rx_valid, clear: "Read RXDATA until RX FIFO empty or clear RX FIFO" }
+    - { name: ERROR, enable: CTRL.err_irq_en, pending: "STATUS.frame_err || STATUS.parity_err || STATUS.overrun_err || STATUS.break_err || IRQ_STATUS.error", clear: "W1C STATUS errors and IRQ_STATUS.error" }
+    - { name: RX_TIMEOUT, enable: CTRL.timeout_irq_en, pending: IRQ_STATUS.rx_timeout, clear: "W1C STATUS.rx_timeout and IRQ_STATUS.rx_timeout" }
+    - { name: FIFO_THRESHOLD, enable: CTRL.fifo_irq_en, pending: "IRQ_STATUS.tx_threshold || IRQ_STATUS.rx_threshold", clear: "Change FIFO levels/thresholds or disable FIFO IRQ" }
 
 error_handling:
   sources:
-    - { name: invalid_apb_address, detect: "APB access offset not in register_list", effect: "pslverr=1 for access; no state update" }
-    - { name: tx_write_while_busy, detect: "TXDATA write when tx_busy", effect: "pslverr=1; byte rejected" }
-    - { name: framing_error, detect: "RX stop bit sampled low", effect: "STATUS.frame_err=1; IRQ_STATUS.error=1" }
-    - { name: overrun_error, detect: "RX frame completes while rx_valid=1", effect: "STATUS.overrun_err=1; IRQ_STATUS.error=1; old RXDATA preserved" }
+    - { name: invalid_apb_address, detect: "APB access offset not in register_list", effect: "pslverr=1 for access; no state/FIFO update" }
+    - { name: tx_write_disabled, detect: "TXDATA write when CTRL.enable=0", effect: "pslverr=1; byte rejected" }
+    - { name: tx_fifo_full, detect: "TXDATA write when TX FIFO is full", effect: "pslverr=1; byte rejected" }
+    - { name: framing_error, detect: "Configured RX stop bit sampled/voted low", effect: "STATUS.frame_err=1; IRQ_STATUS.error=1; data pushed if FIFO space exists" }
+    - { name: parity_error, detect: "RX parity bit does not match configured even/odd parity", effect: "STATUS.parity_err=1; IRQ_STATUS.error=1; data pushed if FIFO space exists" }
+    - { name: overrun_error, detect: "RX frame completes while RX FIFO is full", effect: "STATUS.overrun_err=1; IRQ_STATUS.error=1; new byte discarded" }
+    - { name: break_error, detect: "RX input remains low through a complete frame window", effect: "STATUS.break_err=1; IRQ_STATUS.error=1" }
+    - { name: rx_timeout, detect: "RX FIFO non-empty without read/new byte for RX_TIMEOUT cycles", effect: "STATUS.rx_timeout=1; IRQ_STATUS.rx_timeout=1" }
 
 debug_observability:
-  recommended_wave_signals: [pclk, preset_n, psel, penable, pwrite, paddr, pwdata, prdata, pready, pslverr, uart_tx, uart_rx, irq, ctrl_reg, status, baud_div, tx_state, rx_state]
+  recommended_wave_signals: [pclk, preset_n, psel, penable, pwrite, paddr, pwdata, prdata, pready, pslverr, uart_tx, uart_rx, irq, ctrl_reg, status, frame_cfg, baud_div, tx_state, rx_state, tx_fifo_level, rx_fifo_level, loopback_en]
 
 test_requirements:
   scenarios:
-    - { id: SC_APB_RESET, name: reset_readback, expected: "Registers reset and uart_tx idles high." }
-    - { id: SC_APB_RW, name: apb_rw, expected: "CTRL/BAUD_DIV write-read behavior and reserved bits." }
-    - { id: SC_APB_INVALID, name: invalid_apb, expected: "pslverr asserted and state preserved." }
-    - { id: SC_TX_ONE_BYTE, name: tx_one_byte, expected: "TX serial monitor decodes expected 8N1 byte." }
-    - { id: SC_TX_BACK_TO_BACK, name: tx_back_to_back, expected: "Two TX bytes are emitted with readiness respected." }
+    - { id: SC_APB_RESET, name: reset_readback, expected: "Registers reset, FIFOs empty, default 8N1 selected, and uart_tx idles high." }
+    - { id: SC_APB_RW, name: apb_rw, expected: "CTRL/BAUD_DIV/FRAME_CFG/FIFO_THRESH/RX_TIMEOUT/SCRATCH write-read behavior and reserved bits." }
+    - { id: SC_APB_INVALID, name: invalid_apb, expected: "pslverr asserted and state/FIFO contents preserved." }
+    - { id: SC_TX_ONE_BYTE, name: tx_one_byte, expected: "Default 8N1 TX serial monitor decodes expected byte." }
+    - { id: SC_TX_BACK_TO_BACK, name: tx_back_to_back, expected: "Two default TX bytes are emitted with readiness respected." }
     - { id: SC_TX_IRQ, name: tx_interrupt, expected: "tx_done and irq assert/clear correctly." }
-    - { id: SC_RX_ONE_BYTE, name: rx_one_byte, expected: "Injected RX byte is readable through RXDATA." }
+    - { id: SC_RX_ONE_BYTE, name: rx_one_byte, expected: "Default 8N1 injected RX byte is readable through RXDATA." }
     - { id: SC_RX_BACK_TO_BACK, name: rx_back_to_back, expected: "Two RX frames are received with reads between them." }
     - { id: SC_RX_FRAMING_ERROR, name: rx_framing_error, expected: "Bad stop sets frame_err and error irq." }
-    - { id: SC_RX_OVERRUN, name: rx_overrun, expected: "Second unread RX frame sets overrun and preserves first byte." }
-    - { id: SC_RX_IRQ, name: rx_interrupt, expected: "rx_valid source drives irq when enabled and clears after read." }
+    - { id: SC_RX_OVERRUN, name: rx_overrun, expected: "RX FIFO full followed by another frame sets overrun and discards newest byte." }
+    - { id: SC_RX_IRQ, name: rx_interrupt, expected: "rx_valid source drives irq when enabled and clears after FIFO drain." }
     - { id: SC_BAUD_VARIANTS, name: baud_variants, expected: "TX/RX behavior holds for default and alternate divisors." }
+    - { id: SC_RX_MAJORITY_NOISE, name: rx_majority_noise, expected: "Majority vote tolerates bounded center-sample noise." }
+    - { id: SC_RX_FALSE_START, name: rx_false_start, expected: "False start is rejected and subsequent good frame is received." }
+    - { id: SC_FRAME_CFG_RW, name: frame_config_rw, expected: "Frame configuration reset/read/write/masking works." }
+    - { id: SC_TX_DATA_WIDTHS, name: tx_data_widths, expected: "TX serializes 7-bit and 5-bit frames with upper bits ignored." }
+    - { id: SC_RX_DATA_WIDTHS, name: rx_data_widths, expected: "RX masks/zero-extends 7-bit and 5-bit received bytes." }
+    - { id: SC_TX_PARITY_EVEN_ODD, name: tx_parity_even_odd, expected: "TX parity bit generation is correct for even and odd parity." }
+    - { id: SC_RX_PARITY_GOOD, name: rx_parity_good, expected: "RX accepts good even/odd parity frames without parity_err." }
+    - { id: SC_RX_PARITY_ERROR, name: rx_parity_error, expected: "Bad parity sets parity_err/error irq while preserving data if FIFO space exists." }
+    - { id: SC_TX_STOP2, name: tx_stop2, expected: "TX emits two stop bit-times when stop2=1." }
+    - { id: SC_RX_STOP2, name: rx_stop2, expected: "RX checks both stop bit-times when stop2=1." }
+    - { id: SC_TX_FIFO_BURST, name: tx_fifo_burst, expected: "Multiple TX FIFO bytes transmit in FIFO order while APB writes occur during busy." }
+    - { id: SC_RX_FIFO_ORDER, name: rx_fifo_order, expected: "Multiple RX frames read back in FIFO order with expected levels." }
+    - { id: SC_TX_FIFO_FULL, name: tx_fifo_full, expected: "Full TX FIFO rejects extra write with pslverr and preserves order." }
+    - { id: SC_FIFO_CLEAR, name: fifo_clear, expected: "TX/RX FIFO clear controls update levels/status." }
+    - { id: SC_FIFO_THRESHOLD_IRQ, name: fifo_threshold_irq, expected: "Threshold status and IRQ behavior match programmed levels." }
+    - { id: SC_RX_TIMEOUT_IRQ, name: rx_timeout_irq, expected: "RX timeout sticky status/IRQ sets and W1C clears." }
+    - { id: SC_LOOPBACK, name: loopback, expected: "Loopback TX byte is received by RX FIFO through internal path." }
+    - { id: SC_BREAK, name: break_handling, expected: "TX break drives line low and RX break sets sticky break error." }
+    - { id: SC_SCRATCH, name: scratch, expected: "Scratch read/write has no UART side effects." }
   coverage_goals:
     function:
       target_pct: 100
       bins:
-        - { id: FCOV_APB_REGS, description: "Read/write all implemented registers" }
-        - { id: FCOV_TX_CLASSES, description: "TX 0x00, 0xff, random/walking bytes" }
-        - { id: FCOV_RX_CLASSES, description: "RX 0x00, 0xff, random/walking bytes" }
-        - { id: FCOV_IRQ, description: "TX, RX, and error irq sources" }
-        - { id: FCOV_ERRORS, description: "Framing and overrun errors" }
+        - { id: FCOV_APB_REGS, description: "Read/write all implemented legacy and enhanced registers" }
+        - { id: FCOV_LEGACY_8N1, description: "Default reset 8N1 compatibility" }
+        - { id: FCOV_DATA_WIDTHS, description: "5/6/7/8 data width modes" }
+        - { id: FCOV_PARITY, description: "None/even/odd parity and parity error" }
+        - { id: FCOV_STOP_BITS, description: "One-stop and two-stop TX/RX behavior" }
+        - { id: FCOV_TX_FIFO, description: "TX FIFO empty/non-empty/full/burst/clear/threshold" }
+        - { id: FCOV_RX_FIFO, description: "RX FIFO empty/non-empty/full/order/clear/threshold" }
+        - { id: FCOV_IRQ, description: "TX, RX, error, timeout, and FIFO threshold irq sources" }
+        - { id: FCOV_ERRORS, description: "Framing, parity, overrun, break, and timeout errors" }
+        - { id: FCOV_LOOPBACK, description: "Internal TX-to-RX loopback" }
     cycle:
       target_pct: 100
       bins:
         - { id: CCOV_APB_ACCESS, description: "APB setup/access completion" }
-        - { id: CCOV_TX_STATES, description: "TX idle/start/data/stop" }
-        - { id: CCOV_RX_STATES, description: "RX idle/start/data/stop" }
-        - { id: CCOV_BAUD_DIV, description: "Default and alternate baud divisors" }
+        - { id: CCOV_TX_STATES, description: "TX idle/start/data/parity/stop states" }
+        - { id: CCOV_RX_STATES, description: "RX idle/start/data/parity/stop states" }
+        - { id: CCOV_BAUD_DIV, description: "Minimum, default, and alternate baud divisors" }
+        - { id: CCOV_MAJORITY_FALSE_START, description: "Majority-vote noise and false-start rejection" }
 
 filelist:
   rtl:
+    - rtl/baud_div_eff.sv
+    - rtl/apb_uart_irq.sv
+    - rtl/uart_fifo_sync.sv
+    - rtl/uart_tx_framed.sv
+    - rtl/uart_rx_framed.sv
+    - rtl/apb_uart_regs.sv
     - rtl/apb_uart_txrx_demo.sv
-  sim: []
+  sim:
+    - sim/tb_apb_uart_txrx_demo.sv
+    - sim/tb_apb_uart_txrx_demo_random.sv
 
 quality_gates:
   rtl:
-    pass: "DUT compiles/lints and implements APB, TX, RX, status, irq, and error behavior."
+    pass: "DUT compiles/lints and implements APB, configurable TX/RX framing, FIFOs, status, irq, timeout, loopback, scratch, and error behavior."
   sim:
-    pass: "Directed APB/TX/RX/error/irq scenarios pass with scoreboard_fail=0."
+    pass: "Directed APB/TX/RX/frame/FIFO/error/irq/timeout/loopback scenarios pass with scoreboard_fail=0."
   random:
-    pass: "Constrained-random APB/UART smoke passes with reproducible seed and scoreboard_fail=0."
+    pass: "Constrained-random APB/UART v2+ smoke passes with reproducible seed and scoreboard_fail=0."
   coverage:
-    pass: "All required bins hit or explicitly waived with rationale."
+    pass: "All required v2+ bins hit or explicitly waived with rationale."
+  waveform:
+    pass: "VCD exists and contains top-level APB/UART/IRQ activity."
+
+traceability:
+  requirements: "apb_uart_txrx_demo/req/apb_uart_txrx_demo_requirements.md"
+  implementation:
+    - rtl/uart_fifo_sync.sv
+    - rtl/uart_tx_framed.sv
+    - rtl/uart_rx_framed.sv
+    - rtl/apb_uart_regs.sv
+    - rtl/apb_uart_irq.sv
+    - rtl/apb_uart_txrx_demo.sv
+  verification:
+    - sim/tb_apb_uart_txrx_demo.sv
+    - sim/tb_apb_uart_txrx_demo_random.sv
+    - sim/run_sim.sh
+    - sim/run_random_regression.sh
+  explicit_non_goals:
+    - "No RTS/CTS hardware flow-control pins in v2+."
+    - "No modem pins or DMA interface in v2+."
+    - "No fractional baud generator or multi-clock CDC beyond the RX synchronizer."

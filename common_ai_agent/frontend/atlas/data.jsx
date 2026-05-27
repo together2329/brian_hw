@@ -250,7 +250,10 @@
     { cmd: '/feedback', alias: 'fb', hint: '(client) send admin-visible feedback: /feedback <message>' },
   ];
 
+  const DEFAULT_WORKFLOW = 'default';
+  const DEFAULT_FLOW_STAGE = { id: DEFAULT_WORKFLOW, label: DEFAULT_WORKFLOW, cmd: '/wf default', color: 'var(--fg-mute)', glyph: 'DF' };
   const DEFAULT_FLOW_STAGES = [
+    DEFAULT_FLOW_STAGE,
     { id: 'ssot-gen',     label: 'ssot-gen',     cmd: '/wf ssot-gen',     color: 'var(--mag)',    glyph: 'SS' },
     { id: 'fl-model-gen', label: 'fl-model-gen', cmd: '/wf fl-model-gen', color: 'var(--cyan)',   glyph: 'FL' },
     { id: 'rtl-gen',      label: 'rtl-gen',      cmd: '/wf rtl-gen',      color: 'var(--accent)', glyph: 'RT' },
@@ -295,9 +298,19 @@
 
   function flowStagesForExecMode(stages) {
     const base = Array.isArray(stages) ? stages : DEFAULT_FLOW_STAGES;
+<<<<<<< Updated upstream
     const deduped = base.filter((s) => s
       && s.id !== ORCHESTRATOR_FLOW_STAGE.id
       && s.id !== DEFAULT_FLOW_STAGE.id);
+=======
+    const seen = new Set();
+    const deduped = [DEFAULT_FLOW_STAGE].concat(base)
+      .filter((s) => {
+        if (!s || s.id === ORCHESTRATOR_FLOW_STAGE.id || seen.has(s.id)) return false;
+        seen.add(s.id);
+        return true;
+      });
+>>>>>>> Stashed changes
     if (atlasExecMode() === 'orchestrator') {
       return [ORCHESTRATOR_FLOW_STAGE].concat(deduped);
     }
@@ -450,7 +463,6 @@
     }));
   }
 
-  const DEFAULT_WORKFLOW = 'default';
   const KNOWN_WORKFLOWS = new Set([
     DEFAULT_WORKFLOW,
     'architect',

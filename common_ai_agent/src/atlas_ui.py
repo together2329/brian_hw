@@ -982,6 +982,86 @@ def _normalized_session_or_empty(value: Any) -> str:
     return session
 
 
+_FAST_IDENTITY_PROMPTS = {
+    "who",
+    "whoareyou",
+    "whoyou",
+    "whoami",
+    "너누구",
+    "누구",
+}
+_FAST_GREETING_PROMPTS = {
+    "hi",
+    "hello",
+    "hey",
+    "안녕",
+    "안녕하세요",
+}
+
+
+def _atlas_fast_prompt_candidate(text: str) -> str:
+    raw = str(text or "").strip()
+    if not raw:
+        return ""
+    if "\n" not in raw:
+        return raw
+    lines = [line.strip() for line in raw.splitlines() if line.strip()]
+    if not lines:
+        return ""
+    if lines[0].startswith("[Atlas UI language preference]") or lines[0].startswith("[scope]"):
+        return lines[-1]
+    return raw
+
+
+def _atlas_fast_prompt_kind(text: str) -> str:
+    raw = _atlas_fast_prompt_candidate(text)
+    if not raw or "\n" in raw or len(raw) > 48:
+        return ""
+    compact = re.sub(r"[\s\?!.。！？,，:;`'\"()\[\]{}<>]+", "", raw.lower())
+    if compact in _FAST_IDENTITY_PROMPTS:
+        return "identity"
+    if compact in _FAST_GREETING_PROMPTS:
+        return "greeting"
+    return ""
+
+
+def _atlas_session_route_parts(session_id: str) -> tuple[str, str, str]:
+    parts = [part for part in normalize_session_name(str(session_id or "")).split("/") if part]
+    while len(parts) < 3:
+        parts.append("default")
+    return parts[0], parts[1], parts[2]
+
+
+def _atlas_fast_identity_response(session_id: str, text: str) -> str:
+    _, ip, workflow = _atlas_session_route_parts(session_id)
+    kind = _atlas_fast_prompt_kind(text)
+    prefix = "Hi. " if kind == "greeting" else ""
+    route = f"ask:{workflow or 'default'}"
+    ip_label = ip or "default"
+    workflow_label = workflow or "default"
+    if workflow_label == "ssot-gen":
+        body = (
+            f"I am the `ssot-gen` workflow agent for `{ip_label}`. "
+            f"This route is `{route}`: I own the YAML contract only, mainly "
+            f"`{ip_label}/yaml/{ip_label}.ssot.yaml`, plus requirement capture, "
+            "schema validation, and `[SSOT HANDOFF]`. RTL, testbench, firmware, "
+            "and simulation stay with downstream workflows."
+        )
+    elif workflow_label == "default":
+        body = (
+            f"I am the default Atlas agent for `{ip_label}`. "
+            f"This route is `{route}`: I can inspect files, update artifacts, "
+            "run validations, answer workspace questions, and route specialized "
+            "work to workflow agents when needed."
+        )
+    else:
+        body = (
+            f"I am the `{workflow_label}` workflow agent for `{ip_label}`. "
+            f"This chat is routed through `{route}`."
+        )
+    return prefix + body
+
+
 def _atlas_emit_session_id() -> str:
     """Resolve the safest session id for backend-to-browser agent events.
 
@@ -12240,6 +12320,27 @@ def create_app():
             path.write_text(json.dumps(msgs, ensure_ascii=False, indent=2), encoding="utf-8")
         except Exception:
             pass
+
+    def _handle_fast_identity_prompt(text: str, client_session: Any) -> bool:
+        """Answer tiny identity/greeting prompts without waking a workflow LLM."""
+        if not _atlas_fast_prompt_kind(text):
+            return False
+        session_id = normalize_session_name(str(getattr(client_session, "session_id", "") or ""))
+        if not session_id:
+            return False
+        user_text = _atlas_fast_prompt_candidate(text)
+        reply = _atlas_fast_identity_response(session_id, user_text)
+        _append_session_message(session_id, "user", user_text)
+        _append_session_message(session_id, "assistant", reply)
+        try:
+            client_session.agent_running = False
+        except Exception:
+            pass
+        client_session.emit("agent_state", running=True)
+        client_session.emit("token", text=reply)
+        client_session.emit("flush")
+        client_session.emit("agent_state", running=False)
+        return True
 
     def _append_active_history(role: str, content: str) -> None:
         """Mirror direct Web workflow command output into the currently

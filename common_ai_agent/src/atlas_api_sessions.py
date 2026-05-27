@@ -66,9 +66,7 @@ def register_sessions_routes(
             return default
         return str(raw).strip().lower() in ("1", "true", "yes", "on")
 
-    def _session_worker_keepalive_enabled(process_mode: bool) -> bool:
-        if not process_mode:
-            return False
+    def _session_worker_keepalive_enabled() -> bool:
         if os.environ.get("ATLAS_SESSION_WORKER_KEEPALIVE") is not None:
             return _env_flag("ATLAS_SESSION_WORKER_KEEPALIVE", False)
         return current_exec_mode(os.environ) == EXEC_MODE_SINGLE
@@ -215,6 +213,10 @@ def register_sessions_routes(
             except Exception:
                 pass
         session_worker_warmup: dict[str, Any] = {}
+<<<<<<< Updated upstream
+=======
+        keep_session_worker_hot = _session_worker_keepalive_enabled()
+>>>>>>> Stashed changes
         try:
             bridge.activate_session(canonical)
         except Exception:
