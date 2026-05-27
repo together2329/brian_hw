@@ -198,6 +198,22 @@ def test_atlas_prompt_ack_is_sent_before_slow_session_setup() -> None:
     assert "slow worker startup cannot trigger a duplicate send" in atlas_ui
 
 
+def test_atlas_prompt_input_waits_for_ack_before_clear() -> None:
+    workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace.jsx").read_text()
+
+    assert "window.backend.subscribe('agent_received'" in workspace
+    assert "sent.ack.then" in workspace
+    assert "Input not confirmed." in workspace
+
+    normal_send = workspace.rindex("const sent = sendPrompt(raw);")
+    normal_tail = workspace[normal_send:workspace.index(
+        "// Keep the submitted user message clean.",
+        normal_send,
+    )]
+    assert normal_tail.index("waitForPromptAck(") < normal_tail.index("clearSubmittedInput();")
+    assert normal_tail.index("waitForPromptAck(") < normal_tail.index("setFeed(f => [...f, { kind: 'user', text: raw }]);")
+
+
 def test_atlas_single_worker_workflow_switch_owns_chat_session() -> None:
     workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace.jsx").read_text()
     data = (PROJECT_ROOT / "frontend" / "atlas" / "data.jsx").read_text()

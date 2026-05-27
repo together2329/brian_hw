@@ -100,7 +100,11 @@ def test_render_html(tmp_path, monkeypatch, ip):
     assert "stateDiagram" in html, "mermaid block should be a stateDiagram"
     # Mermaid runtime must be wired up in the exported head.
     assert "/vendor/mermaid.min.js" in html, "mermaid script not injected"
+    assert "../../vendor/mermaid.min.js" in html, "prefix-safe mermaid path not injected"
     assert "mermaid.initialize" in html, "mermaid init script not injected"
+    assert "startOnLoad:false" in html, "mermaid should be rendered explicitly"
+    assert "mermaid.run" in html, "mermaid run hook not injected"
+    assert "window.__ssotRenderMermaid" in html, "mermaid render hook not injected"
 
     # Block diagram must appear AFTER the Top Module heading, not before it.
     import re as _re

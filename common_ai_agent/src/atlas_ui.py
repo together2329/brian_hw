@@ -2085,6 +2085,53 @@ def _ssot_html_insert_after_top_module(html_body: str, block_diagram: str) -> st
     return html_body[:insert_at] + block_diagram + html_body[insert_at:]
 
 
+def _ssot_html_normalize_mermaid_fences(html_body: str) -> str:
+    """Turn Markdown mermaid code fences into blocks Mermaid actually renders."""
+
+    return re.sub(
+        r'<pre><code class="(?:language-)?mermaid">([\s\S]*?)</code></pre>',
+        r'<pre class="mermaid">\1</pre>',
+        html_body,
+        flags=re.IGNORECASE,
+    )
+
+
+def _ssot_html_mermaid_runtime() -> str:
+    """Load and run Mermaid reliably for exported HTML served under /api/ssot."""
+
+    return (
+        "<script>"
+        "(function(){"
+        "function render(){"
+        "var nodes=document.querySelectorAll('.mermaid');"
+        "if(!nodes.length||!window.mermaid){return;}"
+        "try{"
+        "window.mermaid.initialize({startOnLoad:false,theme:'neutral'});"
+        "var result=window.mermaid.run"
+        "?window.mermaid.run({querySelector:'.mermaid'})"
+        ":window.mermaid.init(undefined,nodes);"
+        "if(result&&typeof result.catch==='function'){"
+        "result.catch(function(err){console.error('SSOT mermaid render failed',err);});"
+        "}"
+        "}catch(err){console.error('SSOT mermaid render failed',err);}"
+        "}"
+        "window.__ssotRenderMermaid=render;"
+        "function whenReady(){"
+        "if(document.readyState==='loading'){"
+        "document.addEventListener('DOMContentLoaded',render,{once:true});"
+        "}else{render();}"
+        "}"
+        "window.__ssotMermaidReady=whenReady;"
+        "document.addEventListener('DOMContentLoaded',render,{once:true});"
+        "window.addEventListener('load',render,{once:true});"
+        "})();"
+        "</script>"
+        "<script src=\"../../vendor/mermaid.min.js\" defer "
+        "onload=\"window.__ssotMermaidReady&&window.__ssotMermaidReady()\" "
+        "onerror=\"this.onerror=null;this.src='/vendor/mermaid.min.js';\"></script>"
+    )
+
+
 def _ssot_resolve_custom_file(rel: str) -> "Path | None":
     """Resolve an IP-relative custom-block file path safely under PROJECT_ROOT.
 
@@ -2181,6 +2228,7 @@ def _ssot_to_html(md_text: str, ip: str, data: dict | None = None) -> str:
         md_text,
         extensions=["tables", "fenced_code", "toc"],
     )
+    html_body = _ssot_html_normalize_mermaid_fences(html_body)
     css = (
         "body { font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", "
         "system-ui, sans-serif; max-width: 980px; margin: 2em auto; "
@@ -2274,10 +2322,7 @@ def _ssot_to_html(md_text: str, ip: str, data: dict | None = None) -> str:
                 if _cb:
                     html_body = _ssot_html_insert_after_section(html_body, _label, _cb)
 
-    mermaid_head = (
-        "<script src=\"/vendor/mermaid.min.js\"></script>"
-        "<script>mermaid.initialize({ startOnLoad: true, theme: 'neutral' });</script>"
-    )
+    mermaid_head = _ssot_html_mermaid_runtime()
     return (
         "<!DOCTYPE html>\n"
         "<html><head><meta charset=\"utf-8\">"

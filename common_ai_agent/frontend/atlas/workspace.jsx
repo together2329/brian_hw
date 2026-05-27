@@ -2296,6 +2296,32 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       const h = Array.from(b, x => x.toString(16).padStart(2, '0'));
       msg_id = `${h.slice(0,4).join('')}-${h.slice(4,6).join('')}-${h.slice(6,8).join('')}-${h.slice(8,10).join('')}-${h.slice(10,16).join('')}`;
     }
+    let cancelAckWait = null;
+    const ack = (() => {
+      if (!window.backend || typeof window.backend.subscribe !== 'function') {
+        return Promise.resolve({ ok: false, error: 'backend ack unavailable' });
+      }
+      return new Promise((resolve) => {
+        let done = false;
+        let unsub = null;
+        let timer = null;
+        const finish = (result) => {
+          if (done) return;
+          done = true;
+          try { if (unsub) unsub(); } catch (_) {}
+          try { clearTimeout(timer); } catch (_) {}
+          resolve(result);
+        };
+        cancelAckWait = () => finish({ ok: false, error: 'send failed before backend acknowledgement' });
+        unsub = window.backend.subscribe('agent_received', (m) => {
+          if (!m || m.msg_id !== msg_id) return;
+          finish({ ok: true, event: m });
+        });
+        timer = setTimeout(() => {
+          finish({ ok: false, error: 'backend did not acknowledge receipt' });
+        }, 7000);
+      });
+    })();
     const msg = {
       type: 'prompt',
       msg_id,
@@ -2308,9 +2334,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     try {
       window.backend.send(msg);
     } catch (e) {
+      try { if (cancelAckWait) cancelAckWait(); } catch (_) {}
       return { ok: false, error: String(e && e.message || e) };
     }
-    return { ok: true, msg_id, session, workflow: promptWorkflow, ip: promptScope };
+    return { ok: true, msg_id, session, workflow: promptWorkflow, ip: promptScope, ack };
   }, [activeNamespace, activeSession, activeWorkflow, resolveSession, uiLang, workflow]);
 
   const switchToDefaultSession = React.useCallback(() => {
@@ -3698,6 +3725,26 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       return backendState || 'unknown';
     };
     const backendReadyForPrompt = () => window.backend && promptBackendState() === 'open';
+    const waitForPromptAck = (sent, onAck, onMiss) => {
+      if (!sent || sent.ok === false) {
+        onMiss(sent?.error || backendState || 'unknown');
+        return;
+      }
+      if (!sent.ack || typeof sent.ack.then !== 'function') {
+        onAck(null);
+        return;
+      }
+      sent.ack.then((ack) => {
+        if (ack && ack.ok) {
+          onAck(ack.event || ack);
+          return;
+        }
+        onMiss((ack && ack.error) || 'backend did not acknowledge receipt');
+      });
+    };
+    const holdUnacknowledgedInput = (reason) => {
+      holdSubmittedInput(`Input not confirmed. ${reason || 'Backend did not acknowledge receipt'}; kept it in the input box.`);
+    };
 
     if (workflowReady) {
       holdSubmittedInput(`Input held. Waiting for \`${workflowReady.target || workflow || 'workflow'}\` to be ready; it will send automatically if unchanged.`);
@@ -4132,8 +4179,14 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         holdSubmittedInput(`Input held. Backend is not ready (${sent?.error || backendState || 'unknown'}); it will send automatically if unchanged.`);
         return;
       }
-      clearSubmittedInput();
-      setFeed(f => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
+      waitForPromptAck(
+        sent,
+        () => {
+          clearSubmittedInput();
+          setFeed(f => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
+        },
+        holdUnacknowledgedInput,
+      );
       return;
     }
 
@@ -4146,12 +4199,18 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       holdSubmittedInput(`Input held. Backend is not ready (${sent?.error || backendState || 'unknown'}); it will send automatically if unchanged.`);
       return;
     }
-    clearSubmittedInput();
-    setFeed(f => [...f, { kind: 'user', text: raw }]);
-    setStreaming(true);
-    awaitingRunStartRef.current = true;
-    backendRunStartedRef.current = false;
-    setStreamText('');
+    waitForPromptAck(
+      sent,
+      () => {
+        clearSubmittedInput();
+        setFeed(f => [...f, { kind: 'user', text: raw }]);
+        setStreaming(true);
+        awaitingRunStartRef.current = true;
+        backendRunStartedRef.current = false;
+        setStreamText('');
+      },
+      holdUnacknowledgedInput,
+    );
     // Keep the submitted user message clean. Active IP/path scope is already
     // injected into the workflow system prompt by the backend.
   };

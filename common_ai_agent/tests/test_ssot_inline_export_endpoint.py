@@ -97,5 +97,14 @@ def test_export_endpoint_can_render_html_inline(tmp_path, monkeypatch):
     assert "<h2>Design Views</h2>" in resp.text
     assert "Block Diagram" in resp.text
     assert "FSM" in resp.text
+    assert 'class="mermaid"' in resp.text
+    assert "../../vendor/mermaid.min.js" in resp.text
+    assert "/vendor/mermaid.min.js" in resp.text
+    assert "window.__ssotRenderMermaid" in resp.text
+    assert "mermaid.run" in resp.text
     assert "Timing Diagram" in resp.text
     assert (tmp_path / "inline_doc_ip" / "doc" / "inline_doc_ip_ssot.html").is_file()
+
+    asset = client.get("/vendor/mermaid.min.js")
+    assert asset.status_code == 200
+    assert "javascript" in asset.headers.get("content-type", "")
