@@ -2803,7 +2803,7 @@ retry loop.
 The canonical, schema-defined argument keys are:
 
   todo_write    →  todos=[...]                (NOT items, list, todo_list, data)
-  todo_add      →  content="...", activeForm="...", priority="..."
+  todo_add      →  content="...", activeForm="...", priority="...", detail="...", criteria="..."
                                               (NOT text, task, description, title, name)
   todo_remove   →  index=<1-based int>        (NOT idx, position, id)
   todo_update   →  index=<int>, status="...", reason="..."
@@ -2815,13 +2815,13 @@ exist only to recover from accidental key drift; emitting the wrong
 key still wastes a turn and may not be recovered if multiple aliases
 collide. Use the canonical names from the start.
 
-WRONG (will work but wastes a turn):
+WRONG (may be recovered, but wastes a turn):
   todo_write(items=[{...}])
-  todo_add(text="run lint")
+  todo_add(text="run lint", detail="Run the lint target", criteria="lint exits 0")
 
 RIGHT:
   todo_write(todos=[{...}])
-  todo_add(content="run lint")
+  todo_add(content="run lint", detail="Run the lint target", criteria="lint exits 0")
 
 ════════════════════════════════════════
 WORKFLOW
@@ -2870,19 +2870,28 @@ todo_write(todos=[...])
   Static command pipeline example:
     todo_write(todos=[
       {"content": "Implemented RTL",   "activeForm": "Implementing RTL",   "priority": "high",
-       "detail": "Write counter.sv with AXI4 interface"},
+       "detail": "Write counter.sv with AXI4 interface",
+       "criteria": "RTL file exists\nAXI4 ports are connected"},
       {"content": "Passed lint",       "activeForm": "Running lint",
+       "detail": "Run Verilator lint on generated RTL",
+       "criteria": "verilator exits 0\nNo lint errors remain",
        "command": "verilator --lint-only rtl/*.sv 2>&1", "on_reject": 1},
       {"content": "Passed simulation", "activeForm": "Running simulation",
+       "detail": "Run the project simulation target",
+       "criteria": "make sim exits 0\nSimulation log has no failures",
        "command": "make sim", "on_reject": 1},
       {"content": "Reviewed results",  "activeForm": "Reviewing results",
+       "detail": "Review lint, simulation, and coverage outputs",
        "criteria": "Lint clean\nSimulation passes\nCoverage > 80%"},
     ])
 
-todo_add(content, activeForm="", priority="medium", detail="", index=None)
+todo_add(content, activeForm="", priority="medium", detail="", criteria="", index=None)
   Append or insert one task. index= is 1-based; omit to append at end.
+  detail and criteria are REQUIRED; do not create placeholder tasks.
   Example:
     todo_add(content="Verified timing constraints", activeForm="Verifying timing constraints",
+             detail="Run STA report checks and inspect WNS/TNS",
+             criteria="STA report exists\nNo setup or hold violations",
              priority="high", index=2)
 
 todo_remove(index)

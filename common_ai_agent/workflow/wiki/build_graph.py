@@ -172,8 +172,24 @@ def _normalize_list(value: Any) -> list[str]:
     return []
 
 
-def _markdown_nodes(wiki_root: Path, path_root: Path) -> dict[str, dict[str, Any]]:
-    files = sorted(p for p in wiki_root.glob("*.md") if p.is_file())
+def _markdown_nodes(wiki_root: Path, path_root: Path, recursive: bool = False) -> dict[str, dict[str, Any]]:
+    if recursive:
+        candidates = [p for p in wiki_root.rglob("*.md") if p.is_file()]
+
+        def _priority(path: Path) -> tuple[int, str]:
+            try:
+                parts = path.relative_to(wiki_root).parts
+            except ValueError:
+                parts = path.parts
+            if parts and parts[0] == "_generated":
+                return (1, str(path))
+            if parts and parts[0] == "user":
+                return (2, str(path))
+            return (0, str(path))
+
+        files = sorted(candidates, key=_priority)
+    else:
+        files = sorted(p for p in wiki_root.glob("*.md") if p.is_file())
     nodes: dict[str, dict[str, Any]] = {}
     for path in files:
         raw = path.read_text(encoding="utf-8")
@@ -614,7 +630,7 @@ def build_ip(ip: str, project_root: Path) -> dict[str, Any]:
         raise SystemExit(f"[wiki/build_graph] IP directory not found: {ip_dir}")
     wiki_dir = ip_dir / "wiki"
     if wiki_dir.is_dir():
-        md_nodes = _markdown_nodes(wiki_dir, project_root)
+        md_nodes = _markdown_nodes(wiki_dir, project_root, recursive=True)
     else:
         md_nodes = {}
     artifact_nodes = _ip_artifact_nodes(ip, ip_dir, project_root)

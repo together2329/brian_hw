@@ -4193,8 +4193,8 @@ def todo_add(content="", activeForm="", priority="medium", detail="", criteria="
         content (str): Task description (required).
         activeForm (str): Display text while in progress (auto-generated if omitted).
         priority (str): "high", "medium", or "low" (default: "medium").
-        detail (str): Implementation details (optional).
-        criteria (str): Completion criteria, newline-separated (optional).
+        detail (str): Implementation details (required).
+        criteria (str): Completion criteria, newline-separated (required).
         index (int, OPTIONAL): 1-based position to insert at. **Leave
             unset to append at the end** (correct 99% of the time).
             Only specify when the new task must run before existing
@@ -4208,10 +4208,10 @@ def todo_add(content="", activeForm="", priority="medium", detail="", criteria="
 
     Example:
         # ✅ Correct — appends after every existing task:
-        todo_add(content="Fix lint errors", priority="low")
-        todo_add(content="Run lint", command="make lint", on_reject=2)
+        todo_add(content="Fix lint errors", detail="Update lint issues.", criteria="lint passes", priority="low")
+        todo_add(content="Run lint", detail="Run lint target.", criteria="make lint passes", command="make lint", on_reject=2)
         # ❌ Wrong — prepends to the top, reorders execution:
-        todo_add(content="Run sim", index=1)
+        todo_add(content="Run sim", detail="Run simulation.", criteria="simulation passes", index=1)
     """
     _locked = _todo_template_lock_error("todo_add")
     if _locked:
@@ -4235,6 +4235,10 @@ def todo_add(content="", activeForm="", priority="medium", detail="", criteria="
 
     if not content:
         return "Error: 'content' is required."
+    if not str(detail or "").strip():
+        return "Error: 'detail' is required."
+    if not str(criteria or "").strip():
+        return "Error: 'criteria' is required."
 
     from lib.todo_tracker import TodoItem, _generate_active_form
     active = activeForm or _generate_active_form(content)
@@ -4244,8 +4248,8 @@ def todo_add(content="", activeForm="", priority="medium", detail="", criteria="
         active_form=active,
         status="pending",
         priority=priority,
-        detail=detail,
-        criteria=criteria,
+        detail=str(detail).strip(),
+        criteria=str(criteria).strip(),
         command=command,
         on_reject=int(on_reject),
         on_success=int(on_success),
@@ -5981,6 +5985,8 @@ _IP_WORKFLOW_STAGES = (
     "ssot-gen", "fl-model-gen", "rtl-gen", "tb-gen", "sim",
     "lint", "coverage", "syn", "sta", "pnr", "sta-post",
 )
+_IP_WIKI_GENERATED_DIR = "_generated"
+_IP_WIKI_USER_DIR = "user"
 
 
 def _central_workflow_root():
@@ -6078,6 +6084,13 @@ def _render_ip_workflow_runbook(name: str) -> str:
         "(`rtl/rtl_authoring_provenance.json`, etc.). Do not overwrite old run "
         "results; new SSOT/RTL/TB gets new downstream runs.",
         "",
+        "## Wiki ownership",
+        f"- Refresh-owned pages live under `wiki/{_IP_WIKI_GENERATED_DIR}/`.",
+        f"- User-authored development notes belong under `wiki/{_IP_WIKI_USER_DIR}/` "
+        "or non-conflicting root `wiki/*.md` pages.",
+        f"- `/refresh-wiki` overwrites only `wiki/{_IP_WIKI_GENERATED_DIR}/`; it "
+        "never overwrites user-authored pages.",
+        "",
     ]
     return "\n".join(lines) + "\n"
 
@@ -6118,26 +6131,35 @@ def _scaffold_ip_workflow(base, name, created_dirs, created_files, skipped_files
                 _shutil.copy2(item, dst)
                 created_files.append(os.path.relpath(dst))
 
-    # 2) Write the per-IP workflow runbook into <ip>/wiki/.
+    # 2) Write generated workflow wiki pages into <ip>/wiki/_generated/.
+    #    User-authored development wiki pages live separately under
+    #    <ip>/wiki/user/ (or non-conflicting root wiki/*.md pages). Refreshes
+    #    overwrite only _generated/ so user notes are never clobbered.
     wiki_dir = Path(base) / "wiki"
+    generated_dir = wiki_dir / _IP_WIKI_GENERATED_DIR
+    user_dir = wiki_dir / _IP_WIKI_USER_DIR
     wiki_dir.mkdir(parents=True, exist_ok=True)
-    runbook = wiki_dir / "workflow-runbook.md"
+    for owned_dir in (generated_dir, user_dir):
+        if owned_dir.exists():
+            skipped_files.append(os.path.relpath(owned_dir))
+        else:
+            owned_dir.mkdir(parents=True, exist_ok=True)
+            created_dirs.append(os.path.relpath(owned_dir))
+
+    runbook = generated_dir / "workflow-runbook.md"
     if runbook.exists():
         skipped_files.append(os.path.relpath(runbook))
     else:
         runbook.write_text(_render_ip_workflow_runbook(name), encoding="utf-8")
         created_files.append(os.path.relpath(runbook))
 
-    # 3) Copy the workflow knowledge-graph pages FLAT into <ip>/wiki/ so
-    #    wiki_query(ip=<name>) surfaces the per-stage knowledge. build_graph
-    #    globs <ip>/wiki/*.md non-recursively, so the pages must sit flat here
-    #    (not a subdir). Only the .md pages are copied — the IP rebuilds its own
-    #    _graph.json. The knowledge index is workflow-stages.md (not index.md)
-    #    to avoid colliding with the ssot-gen-seeded <ip>/wiki/index.md.
+    # 3) Copy the workflow knowledge-graph pages into the generated wiki area.
+    #    build_graph.py reads this subdir recursively for IP graphs. Only the
+    #    .md pages are copied — the IP rebuilds its own _graph.json.
     knowledge_src = central / "wiki" / "ip_knowledge"
     if knowledge_src.is_dir():
         for page in sorted(knowledge_src.glob("*.md")):
-            dst = wiki_dir / page.name
+            dst = generated_dir / page.name
             if dst.exists():
                 skipped_files.append(os.path.relpath(dst))
                 continue
@@ -6146,20 +6168,14 @@ def _scaffold_ip_workflow(base, name, created_dirs, created_files, skipped_files
 
 
 def refresh_ip_wiki(name=None, root="."):
-    """Re-overwrite an existing IP's wiki with the central workflow knowledge.
+    """Refresh generated IP wiki pages without clobbering user wiki pages.
 
-    scaffold_ip copies the workflow knowledge pages + runbook into <ip>/wiki/
-    once and then PRESERVES them, so an IP created earlier never picks up later
-    edits to the central workflow/wiki/ip_knowledge/ pages. This forces a
-    refresh: it OVERWRITES the copied stage knowledge pages and regenerates
-    workflow-runbook.md, then rebuilds <ip>/wiki/_graph.json.
-
-    The IP's own pages (index.md / log.md / notes.md from ssot-gen and any
-    hand-written .md) are left untouched — only the central-sourced knowledge
-    pages and the generated runbook are overwritten.
+    Central workflow knowledge and the generated runbook are refresh-owned and
+    live under <ip>/wiki/_generated/. User-authored development wiki belongs in
+    <ip>/wiki/user/ or non-conflicting root <ip>/wiki/*.md pages. Refreshes only
+    overwrite _generated/ and rebuild <ip>/wiki/_graph.json.
     """
     import re as _re
-    import shutil as _shutil
     import subprocess as _sp
     from pathlib import Path
 
@@ -6174,21 +6190,43 @@ def refresh_ip_wiki(name=None, root="."):
         return f"[refresh_ip_wiki: IP not found at {base} — create it with /new-ip first]"
 
     wiki_dir = base / "wiki"
+    generated_dir = wiki_dir / _IP_WIKI_GENERATED_DIR
+    user_dir = wiki_dir / _IP_WIKI_USER_DIR
     wiki_dir.mkdir(parents=True, exist_ok=True)
+    generated_dir.mkdir(parents=True, exist_ok=True)
+    user_dir.mkdir(parents=True, exist_ok=True)
 
     central = _central_workflow_root()
     knowledge_src = central / "wiki" / "ip_knowledge"
     written: list[str] = []
+    migrated: list[str] = []
+
+    def _preserve_flat_edit(page_name: str, generated_text: str) -> None:
+        flat = wiki_dir / page_name
+        user_copy = user_dir / page_name
+        if not flat.is_file() or user_copy.exists():
+            return
+        try:
+            flat_text = flat.read_text(encoding="utf-8")
+        except Exception:
+            return
+        if flat_text == generated_text:
+            return
+        user_copy.write_text(flat_text, encoding="utf-8")
+        migrated.append(page_name)
+
     if knowledge_src.is_dir():
         for page in sorted(knowledge_src.glob("*.md")):
-            _shutil.copy2(page, wiki_dir / page.name)  # overwrite
-            written.append(page.name)
+            generated_text = page.read_text(encoding="utf-8")
+            _preserve_flat_edit(page.name, generated_text)
+            (generated_dir / page.name).write_text(generated_text, encoding="utf-8")
+            written.append(f"{_IP_WIKI_GENERATED_DIR}/{page.name}")
 
     # Regenerate the runbook from the current template.
-    (wiki_dir / "workflow-runbook.md").write_text(
-        _render_ip_workflow_runbook(name), encoding="utf-8"
-    )
-    written.append("workflow-runbook.md")
+    runbook_text = _render_ip_workflow_runbook(name)
+    _preserve_flat_edit("workflow-runbook.md", runbook_text)
+    (generated_dir / "workflow-runbook.md").write_text(runbook_text, encoding="utf-8")
+    written.append(f"{_IP_WIKI_GENERATED_DIR}/workflow-runbook.md")
 
     # Rebuild the IP wiki graph so wiki_query(ip=name) reflects the refresh.
     rebuilt = False
@@ -6205,7 +6243,8 @@ def refresh_ip_wiki(name=None, root="."):
 
     preview = ", ".join(written[:6]) + ("…" if len(written) > 6 else "")
     return (
-        f"✓ Refreshed {name}/wiki — overwrote {len(written)} file(s): {preview}"
+        f"✓ Refreshed {name}/wiki — overwrote {len(written)} generated file(s): {preview}"
+        + (f"; preserved {len(migrated)} flat edit(s) under wiki/{_IP_WIKI_USER_DIR}/" if migrated else "")
         + (" + rebuilt graph index" if rebuilt else "")
     )
 
@@ -7580,6 +7619,9 @@ def wiki_query(ip: str = "", topic: str = "", depth: int = 2, max_nodes: int = 1
                   Lazy-builds the graph by invoking
                   workflow/wiki/build_graph.py when the index is missing
                   or older than the IP directory.
+    ip="rtl-db" → external previous-project RTL DB wiki configured by
+                  ATLAS_RTL_DB_WIKI. If the env points at a corpus root with
+                  a wiki/ child, the child is used.
     topic = case-insensitive keyword query matched against id / title / tags /
             path / status / digest / summary; empty matches everything.
     depth = 1 (id + title), 2 (+ status digest + meta), 3 (+ summary).
@@ -7602,7 +7644,50 @@ def wiki_query(ip: str = "", topic: str = "", depth: int = 2, max_nodes: int = 1
     builder = _central_workflow_root() / "wiki" / "build_graph.py"
 
     ip = (ip or _os.environ.get("ATLAS_ACTIVE_IP") or "").strip()
-    if ip:
+    scope_kind = "project"
+    scope_label = "scope=project"
+    single_md_path: _Path | None = None
+    graph: dict | None = None
+    external_aliases = {
+        "rtl-db",
+        "rtl_db",
+        "external-rtl-db",
+        "external_rtl_db",
+        "previous-rtl-db",
+        "previous_rtl_db",
+        "andes",
+    }
+    if ip.lower() in external_aliases:
+        scope_kind = "rtl-db"
+        scope_label = "scope=rtl-db"
+        rtl_db = resolve_rtl_db_wiki()
+        if rtl_db is None:
+            return "[wiki_query] ATLAS_RTL_DB_WIKI is not configured or the path does not exist."
+        if rtl_db.is_file():
+            single_md_path = rtl_db
+            graph_path = rtl_db
+            rebuild_cmd: list[str] = []
+        else:
+            candidates = []
+            wiki_child = rtl_db / "wiki"
+            if wiki_child.is_dir():
+                candidates.append(wiki_child)
+            candidates.append(rtl_db)
+            wiki_root = next(
+                (
+                    cand
+                    for cand in candidates
+                    if (cand / "_graph.json").is_file() or any(cand.glob("*.md"))
+                ),
+                candidates[0],
+            )
+            graph_path = wiki_root / "_graph.json"
+            rebuild_cmd = ["python3", str(builder), "--wiki", str(wiki_root), "--quiet"]
+            if not graph_path.is_file() and not any(wiki_root.glob("*.md")):
+                return f"[wiki_query] external RTL DB wiki has no markdown files: {wiki_root}"
+    elif ip:
+        scope_kind = "ip"
+        scope_label = f"ip={ip}"
         ip_root = project_root / ip
         if not ip_root.is_dir():
             return f"[wiki_query] IP directory not found: {ip}"
@@ -7621,41 +7706,70 @@ def wiki_query(ip: str = "", topic: str = "", depth: int = 2, max_nodes: int = 1
         graph_path = wiki_root / "_graph.json"
         rebuild_cmd = ["python3", str(builder), "--wiki", str(wiki_root), "--quiet"]
 
-    needs_build = not graph_path.is_file()
-    if not needs_build:
+    if single_md_path is not None:
         try:
-            graph_mtime = graph_path.stat().st_mtime
-            if ip:
-                for sub in ("wiki", "yaml", "rtl", "sim", "lint", "cov", "verify", "logs", "model"):
-                    sub_dir = project_root / ip / sub
-                    if not sub_dir.is_dir():
-                        continue
-                    for child in sub_dir.rglob("*"):
+            raw = single_md_path.read_text(encoding="utf-8", errors="replace")
+        except Exception as exc:
+            return f"[wiki_query] cannot read {single_md_path}: {exc}"
+        title = single_md_path.stem
+        for line in raw.splitlines():
+            if line.startswith("# "):
+                title = line[2:].strip() or title
+                break
+        summary = " ".join(line.strip() for line in raw.splitlines() if line.strip() and not line.startswith("#"))[:360]
+        graph = {
+            "schema_version": "wiki_graph.v1",
+            "node_count": 1,
+            "edge_count": 0,
+            "nodes": [
+                {
+                    "id": single_md_path.stem.lower(),
+                    "title": title,
+                    "type": "reference",
+                    "tags": ["rtl-db", "external"],
+                    "path": str(single_md_path),
+                    "summary": summary,
+                    "outgoing": [],
+                }
+            ],
+        }
+    else:
+        needs_build = not graph_path.is_file()
+        if not needs_build:
+            try:
+                graph_mtime = graph_path.stat().st_mtime
+                if scope_kind == "ip":
+                    for sub in ("wiki", "yaml", "rtl", "sim", "lint", "cov", "verify", "logs", "model"):
+                        sub_dir = project_root / ip / sub
+                        if not sub_dir.is_dir():
+                            continue
+                        for child in sub_dir.rglob("*"):
+                            if child.is_file() and child.stat().st_mtime > graph_mtime:
+                                needs_build = True
+                                break
+                        if needs_build:
+                            break
+                else:
+                    if scope_kind == "project":
+                        wiki_root = resolve_project_wiki_root(project_root)
+                    for child in wiki_root.glob("*.md"):
                         if child.is_file() and child.stat().st_mtime > graph_mtime:
                             needs_build = True
                             break
-                    if needs_build:
-                        break
-            else:
-                wiki_root = resolve_project_wiki_root(project_root)
-                for child in wiki_root.glob("*.md"):
-                    if child.is_file() and child.stat().st_mtime > graph_mtime:
-                        needs_build = True
-                        break
-        except Exception:
-            needs_build = True
-    if needs_build and builder.is_file():
-        try:
-            _sp.run(rebuild_cmd, check=False, capture_output=True, timeout=30)
-        except Exception:
-            pass
+            except Exception:
+                needs_build = True
+        if needs_build and builder.is_file():
+            try:
+                _sp.run(rebuild_cmd, check=False, capture_output=True, timeout=30)
+            except Exception:
+                pass
 
-    if not graph_path.is_file():
-        return f"[wiki_query] graph index not found: {graph_path.relative_to(project_root) if project_root in graph_path.parents else graph_path}"
-    try:
-        graph = _json.loads(graph_path.read_text(encoding="utf-8"))
-    except Exception as exc:
-        return f"[wiki_query] cannot parse {graph_path.name}: {exc}"
+        if not graph_path.is_file():
+            return f"[wiki_query] graph index not found: {graph_path.relative_to(project_root) if project_root in graph_path.parents else graph_path}"
+        try:
+            graph = _json.loads(graph_path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            return f"[wiki_query] cannot parse {graph_path.name}: {exc}"
 
     depth = max(1, min(3, int(depth) if isinstance(depth, int) else 2))
     max_nodes = max(1, min(40, int(max_nodes) if isinstance(max_nodes, int) else 12))
@@ -7727,9 +7841,8 @@ def wiki_query(ip: str = "", topic: str = "", depth: int = 2, max_nodes: int = 1
     )
     capped = matched[:max_nodes]
 
-    header_scope = f"ip={ip}" if ip else "scope=project"
     lines: list[str] = [
-        f"# wiki_query [{header_scope}] depth={depth} "
+        f"# wiki_query [{scope_label}] depth={depth} "
         f"matches={len(matched)}/{graph.get('node_count', len(nodes))} "
         f"shown={len(capped)}"
     ]
@@ -7769,9 +7882,18 @@ def wiki_query(ip: str = "", topic: str = "", depth: int = 2, max_nodes: int = 1
             f"\n…{len(matched) - len(capped)} more matches truncated. "
             f"Re-query with a narrower topic= or higher max_nodes."
         )
+    if scope_kind == "rtl-db":
+        drill_ip = "rtl-db"
+        rebuild_hint = 'python3 workflow/wiki/build_graph.py --wiki "$ATLAS_RTL_DB_WIKI" --quiet'
+    elif scope_kind == "ip":
+        drill_ip = ip
+        rebuild_hint = f"python3 workflow/wiki/build_graph.py --ip {ip}"
+    else:
+        drill_ip = ""
+        rebuild_hint = "python3 workflow/wiki/build_graph.py --check"
     lines.append(
-        f"\nDrill deeper with `wiki_query(ip={ip!r}, topic=\"<keyword>\", depth=3)` "
-        f"or re-run `python3 workflow/wiki/build_graph.py {'--ip ' + ip if ip else '--check'}`."
+        f"\nDrill deeper with `wiki_query(ip={drill_ip!r}, topic=\"<keyword>\", depth=3)` "
+        f"or re-run `{rebuild_hint}`."
     )
     return "\n".join(lines)
 

@@ -803,7 +803,12 @@ class TestTodoUpdateStateMachine(unittest.TestCase):
             {"content": "T1", "status": "pending"},
             {"content": "T2", "status": "pending"},
         ])
-        result = todo_add(content="Inserted", index=0)
+        result = todo_add(
+            content="Inserted",
+            detail="Insert the compatibility task at the start.",
+            criteria="Task appears before existing items.",
+            index=0,
+        )
         self.assertNotIn("1-based", result)
         self.assertEqual([todo.content for todo in self.tracker.todos], ["Inserted", "T1", "T2"])
 

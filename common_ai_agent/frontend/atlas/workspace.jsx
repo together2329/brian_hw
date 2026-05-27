@@ -15753,6 +15753,7 @@ const TodoEditorPane = () => {
 
   const api = window.atlasData || {};
   const criteriaText = (c) => Array.isArray(c) ? c.join('\n') : String(c || '');
+  const canAddTodo = Boolean(newContent.trim() && newDetail.trim() && newCriteria.trim());
 
   const runMutation = async (fn) => {
     setBusy(true);
@@ -15768,10 +15769,14 @@ const TodoEditorPane = () => {
 
   const handleAdd = () => {
     const content = newContent.trim();
+    const detail = newDetail.trim();
+    const criteria = newCriteria.trim();
     if (!content) { setErr('Content is required to add a todo.'); return; }
+    if (!detail) { setErr('Detail is required to add a todo.'); return; }
+    if (!criteria) { setErr('Criteria is required to add a todo.'); return; }
     runMutation(async () => {
       if (!api.addTodo) throw new Error('addTodo unavailable');
-      await api.addTodo({ content, detail: newDetail, criteria: newCriteria, priority: newPriority });
+      await api.addTodo({ content, detail, criteria, priority: newPriority });
       setNewContent(''); setNewDetail(''); setNewCriteria(''); setNewPriority('medium');
     });
   };
@@ -15791,13 +15796,9 @@ const TodoEditorPane = () => {
     });
   };
 
-  // Insert a placeholder todo at `index` (in the MIDDLE, before this row);
-  // the new row appears in place and is edited inline.
+  // Avoid creating executable placeholder tasks without explicit detail/criteria.
   const handleInsertAbove = (index) => {
-    runMutation(async () => {
-      if (!api.addTodo) throw new Error('addTodo unavailable');
-      await api.addTodo({ content: 'New task', index });
-    });
+    setErr(`Use the add form with content, detail, and criteria before inserting above item ${index + 1}.`);
   };
 
   const handleClearAll = () => {
@@ -15864,14 +15865,14 @@ const TodoEditorPane = () => {
         />
         <textarea
           style={{ ...inputStyle, minHeight: 48, resize: 'vertical' }}
-          placeholder="detail (구현 방법, optional)"
+          placeholder="detail (required)"
           value={newDetail}
           disabled={busy}
           onChange={(e) => setNewDetail(e.target.value)}
         />
         <textarea
           style={{ ...inputStyle, minHeight: 48, resize: 'vertical' }}
-          placeholder="criteria — one per line (완료 기준, optional)"
+          placeholder="criteria — one per line (required)"
           value={newCriteria}
           disabled={busy}
           onChange={(e) => setNewCriteria(e.target.value)}
@@ -15888,10 +15889,10 @@ const TodoEditorPane = () => {
           <span style={{ flex: 1 }} />
           <button
             className="btn"
-            disabled={busy || !newContent.trim()}
+            disabled={busy || !canAddTodo}
             onClick={handleAdd}
             style={{
-              cursor: (busy || !newContent.trim()) ? 'default' : 'pointer',
+              cursor: (busy || !canAddTodo) ? 'default' : 'pointer',
               padding: '4px 14px', borderRadius: 3,
               border: '1px solid var(--accent)', color: 'var(--accent)',
               background: 'transparent', fontWeight: 700,

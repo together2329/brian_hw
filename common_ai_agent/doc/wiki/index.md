@@ -19,6 +19,7 @@ This section is additive; it does not replace the reading order below.
 | How to control the visible in-app browser | [[atlas-browser-control-runbook]] |
 | How Pipeline worker detail opens real workspaces | [[atlas-pipeline-worker-workspace-jump]] |
 | Guide tab + Architect "My IPs" landing (mock SoC removed) | [[guide-tab-and-architect-my-ips-20260527]] |
+| Andes external RTL DB wiki + `ATLAS_RTL_DB_WIKI` pointer | [[andes-rtl-db-wiki-20260527]] |
 | Run Mode / Exec Mode and SSOT provenance policy | [[run-mode-and-provenance-policy]] |
 | Why headless is not product-flow authority | [[pipeline-progress-debugging]] |
 | Current CPU handoff / approval / README status | [[arm-m0-min-current-status]] |

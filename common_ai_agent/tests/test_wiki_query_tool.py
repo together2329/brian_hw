@@ -5,6 +5,8 @@ import os
 import subprocess
 from pathlib import Path
 
+import pytest
+
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
@@ -89,9 +91,57 @@ def test_wiki_query_splits_path_like_terms(tmp_path: Path, monkeypatch) -> None:
     assert "arm_m0_min_user_handoff.md" in result
 
 
+def test_wiki_query_reads_external_rtl_db_wiki_without_ip_scope(tmp_path: Path, monkeypatch) -> None:
+    rtl_root = tmp_path / "andes"
+    wiki_dir = rtl_root / "wiki"
+    wiki_dir.mkdir(parents=True)
+    (wiki_dir / "atcuart100.md").write_text(
+        """---
+id: atcuart100
+title: ATCUART100 UART RTL
+type: reference
+tags: [rtl-db, andes, uart, apb]
+---
+# ATCUART100 UART RTL
+
+External Andes peripheral RTL reference. APB register interface, UART TX/RX,
+interrupt, baud-rate divider, and FIFO control are available in hdl/*.v.
+""",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.setenv("COMMON_AI_AGENT_HOME", str(PROJECT_ROOT))
+    monkeypatch.setenv("ATLAS_RTL_DB_WIKI", str(rtl_root))
+    monkeypatch.delenv("ATLAS_ACTIVE_IP", raising=False)
+
+    from core.tools import wiki_query
+
+    result = wiki_query(ip="rtl-db", topic="andes uart apb", depth=3)
+
+    assert "scope=rtl-db" in result
+    assert "matches=1/1" in result
+    assert "ATCUART100 UART RTL" in result
+    assert "IP directory not found" not in result
+    assert (wiki_dir / "_graph.json").is_file()
+
+
+def test_wiki_query_reports_missing_external_rtl_db_config(monkeypatch) -> None:
+    monkeypatch.delenv("ATLAS_RTL_DB_WIKI", raising=False)
+    monkeypatch.delenv("ATLAS_ACTIVE_IP", raising=False)
+
+    from core.tools import wiki_query
+
+    result = wiki_query(ip="rtl-db", topic="uart")
+
+    assert "ATLAS_RTL_DB_WIKI is not configured" in result
+
+
 def test_real_arm_m0_min_wiki_query_finds_cpu_handoff(monkeypatch) -> None:
     """The real CPU IP wiki should be discoverable through the same tool path
     agents use during handoff or review."""
+    if not (PROJECT_ROOT / "arm_m0_min").is_dir():
+        pytest.skip("arm_m0_min fixture IP is not present in this checkout")
     subprocess.run(
         [
             "python3",
@@ -119,6 +169,8 @@ def test_real_arm_m0_min_wiki_query_finds_cpu_handoff(monkeypatch) -> None:
 
 
 def test_real_arm_m0_min_wiki_query_finds_root_readme(monkeypatch) -> None:
+    if not (PROJECT_ROOT / "arm_m0_min").is_dir():
+        pytest.skip("arm_m0_min fixture IP is not present in this checkout")
     subprocess.run(
         [
             "python3",

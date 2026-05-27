@@ -37,3 +37,26 @@ def test_ip_graph_keeps_sim_node_when_compare_json_is_missing(tmp_path: Path):
     assert "scoreboard_events=present" in nodes["sim"]["digest"]
     assert nodes["coverage"]["broken_refs"] == []
 
+
+def test_ip_graph_reads_generated_and_user_wiki_dirs(tmp_path: Path):
+    ip = "wiki_split_ip"
+    wiki = tmp_path / ip / "wiki"
+    (wiki / "_generated").mkdir(parents=True)
+    (wiki / "user").mkdir()
+    (wiki / "_generated" / "workflow-stages.md").write_text(
+        "---\ntitle: Generated Workflow\n---\n# Generated Workflow\n\nrefresh-owned page\n",
+        encoding="utf-8",
+    )
+    (wiki / "user" / "bringup-note.md").write_text(
+        "---\ntitle: Bringup Note\ntags: [local]\n---\n# Bringup Note\n\nuser-authored page\n",
+        encoding="utf-8",
+    )
+    build_graph = _load_build_graph()
+
+    graph = build_graph.build_ip(ip, tmp_path)
+
+    nodes = {node["id"]: node for node in graph["nodes"]}
+    assert "workflow-stages" in nodes
+    assert nodes["workflow-stages"]["path"] == f"{ip}/wiki/_generated/workflow-stages.md"
+    assert "bringup-note" in nodes
+    assert nodes["bringup-note"]["path"] == f"{ip}/wiki/user/bringup-note.md"

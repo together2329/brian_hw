@@ -10,6 +10,7 @@ import pytest
 
 import core.tools as tools
 from core.tools import (
+    refresh_ip_wiki,
     resolve_project_wiki_root,
     resolve_rtl_db_wiki,
     scaffold_ip,
@@ -76,11 +77,18 @@ def test_scaffold_ip_writes_per_ip_workflow_and_runbook(tmp_path, monkeypatch):
     # __pycache__ is not copied.
     assert not list((ip / "workflow").rglob("__pycache__"))
 
-    runbook = ip / "wiki" / "workflow-runbook.md"
+    generated_wiki = ip / "wiki" / "_generated"
+    user_wiki = ip / "wiki" / "user"
+    assert generated_wiki.is_dir()
+    assert user_wiki.is_dir()
+
+    runbook = generated_wiki / "workflow-runbook.md"
     assert runbook.is_file()
     text = runbook.read_text(encoding="utf-8")
     assert "widget — Workflow Runbook" in text
     assert "SSOT → FL-Model → RTL → TB → SIM → LINT" in text
+    assert "wiki/_generated/" in text
+    assert "wiki/user/" in text
     # Self-contained: the runbook must NOT depend on the central doc/wiki.
     assert "doc/wiki" not in text
     # The only external link is the previous-project RTL DB.
@@ -88,14 +96,15 @@ def test_scaffold_ip_writes_per_ip_workflow_and_runbook(tmp_path, monkeypatch):
     # The runbook points into the per-IP knowledge graph.
     assert "[[workflow-stages]]" in text
 
-    # Knowledge-graph pages are copied FLAT into <ip>/wiki/ (build_graph globs
-    # non-recursively) so wiki_query(ip) surfaces them.
-    assert (ip / "wiki" / "workflow-stages.md").is_file()   # knowledge index
+    # Knowledge-graph pages are copied into the generated wiki area so refreshes
+    # can update them without touching user-authored wiki pages.
+    assert (generated_wiki / "workflow-stages.md").is_file()   # knowledge index
     for stage in ("ssot-gen", "rtl-gen", "lint", "sim"):
-        assert (ip / "wiki" / f"{stage}.md").is_file(), stage
+        assert (generated_wiki / f"{stage}.md").is_file(), stage
+    assert not (ip / "wiki" / "workflow-stages.md").exists()
     # The knowledge index is workflow-stages.md, NOT index.md — so it can't
     # collide with the ssot-gen-seeded <ip>/wiki/index.md.
-    assert not (ip / "wiki" / "index.md").exists()
+    assert not (generated_wiki / "index.md").exists()
     # ip_knowledge is NOT duplicated inside the wholesale <ip>/workflow/ copy.
     assert not (ip / "workflow" / "wiki" / "ip_knowledge").exists()
 
@@ -107,3 +116,32 @@ def test_scaffold_ip_is_idempotent(tmp_path, monkeypatch):
     # Second run preserves everything (nothing created, runbook kept).
     assert "kept (already existed)" in out2
     assert "workflow-runbook.md" in out2
+
+
+def test_refresh_ip_wiki_writes_generated_area_and_preserves_user_pages(tmp_path, monkeypatch):
+    central = tmp_path / "central" / "workflow"
+    knowledge = central / "wiki" / "ip_knowledge"
+    knowledge.mkdir(parents=True)
+    (central / "wiki").mkdir(exist_ok=True)
+    (knowledge / "workflow-stages.md").write_text(
+        "---\ntitle: Generated Workflow\n---\n# Generated Workflow\n\nfresh generated text\n",
+        encoding="utf-8",
+    )
+    (central / "wiki" / "build_graph.py").symlink_to(REPO_ROOT / "workflow" / "wiki" / "build_graph.py")
+    monkeypatch.setenv("ATLAS_WORKFLOW_ROOT", str(central))
+
+    project = tmp_path / "project"
+    ip = project / "demo"
+    (ip / "wiki" / "user").mkdir(parents=True)
+    (ip / "wiki" / "user" / "local-note.md").write_text("# Local Note\n\nkeep me\n", encoding="utf-8")
+    (ip / "wiki" / "workflow-stages.md").write_text("# Local Workflow Edit\n\nuser edit\n", encoding="utf-8")
+
+    out = refresh_ip_wiki("demo", root=str(project))
+
+    assert "overwrote 2 generated file(s)" in out
+    assert "preserved 1 flat edit(s)" in out
+    assert (ip / "wiki" / "_generated" / "workflow-stages.md").read_text(encoding="utf-8").endswith("fresh generated text\n")
+    assert (ip / "wiki" / "_generated" / "workflow-runbook.md").is_file()
+    assert (ip / "wiki" / "user" / "local-note.md").read_text(encoding="utf-8") == "# Local Note\n\nkeep me\n"
+    assert (ip / "wiki" / "user" / "workflow-stages.md").read_text(encoding="utf-8") == "# Local Workflow Edit\n\nuser edit\n"
+    assert (ip / "wiki" / "workflow-stages.md").read_text(encoding="utf-8") == "# Local Workflow Edit\n\nuser edit\n"

@@ -24,6 +24,11 @@ def test_workspace_renders_editable_todo_tab() -> None:
 
     # Controls: add form, per-row remove, clear all
     assert "+ Add todo" in workspace
+    assert "Detail is required to add a todo." in workspace
+    assert "Criteria is required to add a todo." in workspace
+    assert 'placeholder="detail (required)"' in workspace
+    assert 'placeholder="criteria — one per line (required)"' in workspace
+    assert "const canAddTodo =" in workspace
     assert ">Remove<" in workspace
     assert ">Clear all<" in workspace
     assert ">Save<" in workspace
@@ -76,6 +81,13 @@ def test_atlas_ui_exposes_todo_crud_endpoints() -> None:
     # Source of truth is the local session todo.json, read-modify-write via TodoTracker
     assert "_sync_live_tracker_from_session" in atlas_ui
     assert "TodoTracker.load(session_todo)" in atlas_ui
+
+    add_start = atlas_ui.index('@app.post("/api/todos/add")')
+    update_start = atlas_ui.index('@app.post("/api/todos/update")')
+    add_endpoint = atlas_ui[add_start:update_start]
+    assert '"detail is required"' in add_endpoint
+    assert '"criteria is required"' in add_endpoint
+    assert "_sync_live_tracker_from_session(session_todo)" not in add_endpoint
 
 
 def test_web_slash_todo_uses_active_session_todo_file() -> None:

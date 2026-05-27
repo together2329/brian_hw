@@ -322,16 +322,19 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
             "Add a single new task to the list at a specified position.\n"
             "Use instead of todo_write when the list already exists and you just need to insert one task.\n"
             "index is 1-based. Omit index to append at the end.\n"
+            "detail and criteria are required so new tasks are not vague executable placeholders.\n"
             "Examples:\n"
-            "  todo_add(content='Write unit tests', priority='high')\n"
-            "  todo_add(content='Update README', priority='low', index=3)"
+            "  todo_add(content='Write unit tests', detail='Add tests for parser errors', criteria='pytest parser tests pass', priority='high')\n"
+            "  todo_add(content='Update README', detail='Document the new CLI option', criteria='README shows option and example', priority='low', index=3)"
         ),
         {
             "content": {"type": "string", "description": "Task description — use imperative verb + deliverable (e.g. 'Fix login bug in auth.py')"},
+            "detail": {"type": "string", "description": "Required implementation detail — specific approach, files, or constraints"},
+            "criteria": {"type": "string", "description": "Required acceptance criteria, newline-separated when multiple checks are needed"},
             "priority": {"type": "string", "enum": ["high", "medium", "low"], "description": "Task priority (default: medium)"},
             "index": {"type": "integer", "description": "Insert position (1-based). Omit to append at the end."},
         },
-        required=["content"],
+        required=["content", "detail", "criteria"],
     ),
     "todo_remove": _fn(
         "todo_remove",

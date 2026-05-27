@@ -1,9 +1,9 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-05-27T02:26:06Z",
+  "generated_at": "2026-05-27T04:13:20Z",
   "root": "doc/wiki",
-  "node_count": 93,
-  "edge_count": 432,
+  "node_count": 94,
+  "edge_count": 436,
   "tags": {
     "atcdmac100": [
       "atcdmac100-document-flow-ui-honesty-20260518"
@@ -258,6 +258,7 @@
     ],
     "reference": [
       "agent-autonomous-ip-implementation-pattern",
+      "andes-rtl-db-wiki-20260527",
       "apb-uart-real-uart-signoff-20260527",
       "api-error-path-20260519",
       "arm-m0-min-current-status",
@@ -380,6 +381,26 @@
       "summary": "> **작성일**: 2026-05-17 > **대상 IP**: `dma_real` (4-channel DMA controller, APB slave / AHB-Lite master) > **최종 성과**: Simulation 6/6 PASS · Coverage 100% (58/58 bins) · Goal Audit 15/16 > **핵심 질문**: \"사용자가 wiki만 보여주고 '이거 구현해'라고 했을 때, 에이전트는 **무엇을 어떻게** 했는가?\"",
       "path": "doc/wiki/agent-autonomous-ip-implementation-pattern.md",
       "size_bytes": 16813
+    },
+    {
+      "id": "andes-rtl-db-wiki-20260527",
+      "title": "Andes RTL DB Wiki + RTL DB Pointer (2026-05-27)",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "rtl-gen-ssot-contract",
+        "workflow-ownership-and-boundaries",
+        "karpathy-llm-wiki-pattern"
+      ],
+      "incoming": [
+        "index"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "> **Updated**: 2026-05-27 > **Scope**: Generated an LLM knowledge-graph wiki over the external Andes peripheral > RTL corpus (`~/Desktop/andes`) and pointed ATLAS at it as the external \"previous-project > RTL DB\" via `ATLAS_RTL_DB_WIKI`. > **Related**: [[rtl-gen-ssot-contract]] · [[workflow-ownership-and-boundaries]] · [[karpathy-llm-wiki-pattern]]",
+      "path": "doc/wiki/andes-rtl-db-wiki-20260527.md",
+      "size_bytes": 2612
     },
     {
       "id": "apb-uart-real-uart-signoff-20260527",
@@ -1455,6 +1476,7 @@
         "atlas-browser-control-runbook",
         "atlas-pipeline-worker-workspace-jump",
         "guide-tab-and-architect-my-ips-20260527",
+        "andes-rtl-db-wiki-20260527",
         "run-mode-and-provenance-policy",
         "arm-m0-min-current-status",
         "multi-user-worker-isolation",
@@ -1526,7 +1548,7 @@
       "updated": "",
       "summary": "This wiki is the cross-linked operating map for common_ai_agent. It is optimized for long-context LLMs and agent handoffs: read the linked pages in order, then follow the source docs for implementation detail.",
       "path": "doc/wiki/index.md",
-      "size_bytes": 22838
+      "size_bytes": 22932
     },
     {
       "id": "interactive-ask-user-ip-discovery",
@@ -1589,6 +1611,7 @@
         "deterministic-emit-stages"
       ],
       "incoming": [
+        "andes-rtl-db-wiki-20260527",
         "index",
         "log",
         "parallel-todo-sub-agent-workers",
@@ -2368,6 +2391,7 @@
       ],
       "incoming": [
         "agent-autonomous-ip-implementation-pattern",
+        "andes-rtl-db-wiki-20260527",
         "arm-m0-min-pipeline-run",
         "atcuart100-pipeline-run",
         "atcwdt200-pipeline-run-20260517",
@@ -2846,6 +2870,7 @@
       ],
       "incoming": [
         "agent-autonomous-ip-implementation-pattern",
+        "andes-rtl-db-wiki-20260527",
         "apb-uart-real-uart-signoff-20260527",
         "arm-m0-min-pipeline-run",
         "atcuart100-pipeline-run",

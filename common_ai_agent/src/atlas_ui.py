@@ -7721,6 +7721,12 @@ def create_app():
         content = str(body.get("content") or "").strip()
         if not content:
             return JSONResponse({"error": "content is required"}, status_code=400)
+        detail = str(body.get("detail") or "").strip()
+        if not detail:
+            return JSONResponse({"error": "detail is required"}, status_code=400)
+        criteria = str(body.get("criteria") or "").strip()
+        if not criteria:
+            return JSONResponse({"error": "criteria is required"}, status_code=400)
         session_todo = PROJECT_ROOT / ".session" / session_name / "todo.json"
         try:
             from lib.todo_tracker import TodoTracker
@@ -7731,8 +7737,8 @@ def create_app():
                 "activeForm": str(body.get("activeForm") or "").strip() or content,
                 "status": "pending",
                 "priority": str(body.get("priority") or "medium"),
-                "detail": str(body.get("detail") or ""),
-                "criteria": str(body.get("criteria") or ""),
+                "detail": detail,
+                "criteria": criteria,
             }
             # Optional `index` inserts the todo in the MIDDLE at that 0-based
             # position; out-of-range or omitted index appends to the end.
@@ -7753,7 +7759,9 @@ def create_app():
             tracker.save()
         except Exception as e:
             return JSONResponse({"error": str(e)}, status_code=500)
-        _sync_live_tracker_from_session(session_todo)
+        # Adding a todo is an editor action. Do not sync it into the live
+        # in-flight worker tracker here, or an active loop may immediately
+        # consume the new pending task without an explicit "continue" turn.
         return JSONResponse(_gate_for_workflow(tracker.to_dict(), session_name))
 
     @app.post("/api/todos/update")

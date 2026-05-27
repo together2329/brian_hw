@@ -204,7 +204,7 @@ class SlashCommandRegistry:
                      'Git 작업: /git diff, /git clear')
 
         self.register('refresh-wiki', self._cmd_refresh_wiki,
-                     'IP wiki 덮어쓰기 갱신(중앙 workflow 지식 페이지 + runbook 재복사): /refresh-wiki [ip]',
+                     'Refresh generated IP wiki pages under wiki/_generated only: /refresh-wiki [ip]',
                      aliases=['wiki-refresh'])
 
         self.register('permission', self._cmd_permission,
@@ -3193,8 +3193,9 @@ class SlashCommandRegistry:
             return ""
 
     def _cmd_refresh_wiki(self, args: str) -> str:
-        """Overwrite an IP's wiki with the central workflow knowledge pages +
-        runbook (re-copy so an existing IP picks up updated knowledge).
+        """Refresh an IP's generated workflow wiki pages under wiki/_generated/.
+        User-authored wiki pages under wiki/user/ or non-conflicting wiki/*.md
+        are preserved.
         /refresh-wiki [ip]  — defaults to the active IP."""
         import os as _os
         parts = (args or "").strip().split()
