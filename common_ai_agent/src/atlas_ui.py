@@ -15449,6 +15449,7 @@ def create_app():
         md_target = dest_dir / f"{stamp}_{idx}_{basename}.md"
         image_paths: list[Path] = []
         image_seq = 0
+        image_hashes: dict[str, Path] = {}
 
         def _low_information_import_image_reason(blob: bytes, ext: str) -> str:
             normalized_ext = (ext or "png").lower().lstrip(".")
@@ -15498,11 +15499,26 @@ def create_app():
                 ext = "svg"
             elif not re.match(r"^[A-Za-z0-9]+$", ext):
                 ext = "png"
+            # Collapse byte-identical images to one file. Datasheet PDFs repeat
+            # the same page logo/glyph on every page, so PyMuPDF emits dozens of
+            # identical blobs (one SPI import produced the same 161x65 logo 58x,
+            # 129 files -> 62 unique). Dedup by content hash: write+list the
+            # first occurrence, and have later identical blobs reuse the
+            # canonical path (so inline `![](...)` references still resolve)
+            # without spawning a new file, an extra "Extracted Images" entry, or
+            # a redundant vision-describe call.
+            digest = hashlib.sha1(blob).hexdigest() if blob else None
+            if digest is not None:
+                existing = image_hashes.get(digest)
+                if existing is not None:
+                    return existing
             if filter_noise and _low_information_import_image_reason(blob, ext):
                 return None
             img_path = images_dir / f"{stamp}_{idx}_{n}.{ext}"
             img_path.write_bytes(blob)
             image_paths.append(img_path)
+            if digest is not None:
+                image_hashes[digest] = img_path
             return img_path
 
         def _inline_image_rel(path: Path) -> str:

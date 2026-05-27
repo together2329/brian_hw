@@ -17907,6 +17907,11 @@ const DeferredMarkdownPreview = ({ body, sourcePath = '' }) => {
       const src = _normalizeMarkdownImageSrc(rawSrc);
       if (src && src !== rawSrc) img.setAttribute('src', src);
       img.style.maxWidth = '100%';
+      // Imported datasheets embed dozens of figures; without lazy loading the
+      // browser fires every /api/file/raw request at once and the preview
+      // stalls. Defer offscreen images and decode async so scroll stays smooth.
+      if (!img.getAttribute('loading')) img.setAttribute('loading', 'lazy');
+      if (!img.getAttribute('decoding')) img.setAttribute('decoding', 'async');
       if (!sourcePath || !src || /^(https?:|data:|blob:|\/api\/)/i.test(src)) return;
       const rel = src.replace(/^\.\//, '');
       const resolved = rel.startsWith('/') ? rel.slice(1)
