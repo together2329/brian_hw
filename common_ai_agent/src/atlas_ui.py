@@ -2699,7 +2699,14 @@ def _ssot_html_mermaid_runtime() -> str:
         "var nodes=document.querySelectorAll('.mermaid');"
         "if(!nodes.length||!window.mermaid){return;}"
         "try{"
-        "window.mermaid.initialize({startOnLoad:false,theme:'neutral'});"
+        # securityLevel:'loose' is required so flowchart htmlLabels takes effect
+        # (mermaid v11 forces htmlLabels off under the default 'strict' level,
+        # falling back to SVG <text> whose width is measured before fonts settle
+        # — that mis-sizes node boxes and clips labels like "R capture (FIFO)").
+        # HTML labels are foreignObject <div>s that size to their content, so the
+        # box grows to fit the text. useMaxWidth keeps diagrams responsive.
+        "window.mermaid.initialize({startOnLoad:false,theme:'neutral',"
+        "securityLevel:'loose',flowchart:{htmlLabels:true,useMaxWidth:true}});"
         "var result=window.mermaid.run"
         "?window.mermaid.run({querySelector:'.mermaid'})"
         ":window.mermaid.init(undefined,nodes);"

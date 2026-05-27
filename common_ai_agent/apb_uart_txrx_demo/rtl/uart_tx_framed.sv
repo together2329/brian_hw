@@ -29,7 +29,6 @@ module uart_tx_framed #(
   logic [BAUD_DIV_WIDTH-1:0] bit_cnt;
   logic [3:0] data_bits_latched;
   logic       parity_en_latched;
-  logic       parity_odd_latched;
   logic       stop2_latched;
   logic [7:0] shifter;
   logic [2:0] bit_idx;
@@ -83,7 +82,6 @@ module uart_tx_framed #(
       bit_cnt <= {BAUD_DIV_WIDTH{1'b0}};
       data_bits_latched <= 4'd8;
       parity_en_latched <= 1'b0;
-      parity_odd_latched <= 1'b0;
       stop2_latched <= 1'b0;
       shifter <= 8'h00;
       bit_idx <= 3'd0;
@@ -114,7 +112,6 @@ module uart_tx_framed #(
               shifter <= fifo_data;
               data_bits_latched <= cfg_data_bits(cfg_data_bits_sel);
               parity_en_latched <= cfg_parity_en;
-              parity_odd_latched <= cfg_parity_odd;
               stop2_latched <= cfg_stop2;
               parity_bit <= selected_parity(fifo_data, cfg_data_bits(cfg_data_bits_sel), cfg_parity_odd);
               tx_state <= TX_START;
