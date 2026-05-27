@@ -20,5 +20,5 @@
     "stdout": "[check_ssot_disk] PASS: apb_uart_txrx_demo/yaml/apb_uart_txrx_demo.ssot.yaml = 11402B, 3 sections, 0 TBDs, mode=starter\n",
     "stderr": ""
   },
-  "preview_contract": "warn"
+  "preview_contract": "strict"
 }

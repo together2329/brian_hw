@@ -2,25 +2,57 @@
   "checks": {
     "artifacts_readable": true,
     "coverage_pass": true,
+    "coverage_real_uart_bins": true,
     "decomposed_modules_present": true,
     "directed_pass": true,
+    "directed_real_uart_scenarios": true,
     "filelist_decomposed": true,
     "iverilog_directed_compile": "PASS: verify/static_directed_compile.vvp built",
     "iverilog_random_compile": "PASS: verify/static_random_compile.vvp built",
     "offsets_present": true,
     "ports_present": true,
     "random_pass": true,
-    "reset_constants_present": true,
+    "real_uart_rx_rtl_present": true,
     "run_sim_generates_coverage_waveform": true,
+    "scoreboard_no_fail": true,
     "ssot_validation": "PASS: verify_ssot starter blockers=0 warnings=canonical_order",
     "sv_compile": "PASS: pyslang sv_compile over decomposed RTL returned no issues",
     "verilator_lint": "PASS: verify/verilator_lint.log status 0 warnings=0",
     "waveform_pass": true
   },
-  "generated_at": "2026-05-27T00:06:14Z",
+  "coverage_summary": {
+    "effective_coverage_pct": 100.0,
+    "hit_bins": 29,
+    "missed_bins": 0,
+    "signoff_status": "pass",
+    "total_bins": 29,
+    "waived_bins": 0
+  },
+  "directed_summary": {
+    "passed": true,
+    "scenario_count": 14,
+    "scoreboard_fail": 0,
+    "scoreboard_pass": 35
+  },
+  "generated_at": "2026-05-27T01:19:04Z",
   "ip": "apb_uart_txrx_demo",
   "missing_artifacts": [],
-  "schema_version": "static_signoff.v4",
+  "random_summary": {
+    "passed": true,
+    "scoreboard_fail_total": 0,
+    "seed_list": "7",
+    "seeds": [
+      {
+        "passed": true,
+        "scoreboard_fail": 0,
+        "scoreboard_pass": 18,
+        "seed": 7,
+        "txns": 12
+      }
+    ],
+    "txns": 12
+  },
+  "schema_version": "static_signoff.v5-real-uart",
   "status": "pass",
   "verilator_warning_count": 0,
   "verilator_warnings": [],
