@@ -8590,10 +8590,22 @@ def create_app():
                 todo.priority = str(body.get("priority"))
             if "activeForm" in body and body.get("activeForm") is not None:
                 todo.active_form = str(body.get("activeForm"))
+            if "approved_reason" in body and body.get("approved_reason") is not None:
+                todo.approved_reason = str(body.get("approved_reason"))
+            if "approvedReason" in body and body.get("approvedReason") is not None:
+                todo.approved_reason = str(body.get("approvedReason"))
+            if "rejection_reason" in body and body.get("rejection_reason") is not None:
+                todo.rejection_reason = str(body.get("rejection_reason"))
+            if "rejectionReason" in body and body.get("rejectionReason") is not None:
+                todo.rejection_reason = str(body.get("rejectionReason"))
             if "state" in body and body.get("state") is not None:
                 from lib.todo_tracker import STATUS_ALIASES
                 raw_state = str(body.get("state")).strip()
                 todo.status = STATUS_ALIASES.get(raw_state, raw_state)
+            if todo.status == "approved" and not str(getattr(todo, "approved_reason", "") or "").strip():
+                return JSONResponse({"error": "approved_reason is required"}, status_code=400)
+            if todo.status == "rejected" and not str(getattr(todo, "rejection_reason", "") or "").strip():
+                return JSONResponse({"error": "rejection_reason is required"}, status_code=400)
             tracker.save()
         except Exception as e:
             return JSONResponse({"error": str(e)}, status_code=500)
@@ -12821,6 +12833,54 @@ def create_app():
         except Exception:
             pass
 
+    def _parse_ssot_feedback_path(raw: str) -> list[Any]:
+        text = str(raw or "").strip().strip(".")
+        if not text:
+            return []
+        if not re.match(r"^[A-Za-z_][A-Za-z0-9_-]*(?:\.(?:[A-Za-z_][A-Za-z0-9_-]*|[0-9]+))*$", text):
+            raise ValueError(
+                "path must use dot notation, e.g. top_module.review_note or registers.register_list.0.description"
+            )
+        return [int(part) if part.isdigit() else part for part in text.split(".")]
+
+    def _set_ssot_feedback_path(root: dict[str, Any], tokens: list[Any], value: Any) -> None:
+        if not tokens:
+            return
+        cur: Any = root
+        for idx, token in enumerate(tokens):
+            last = idx == len(tokens) - 1
+            nxt = None if last else tokens[idx + 1]
+            if isinstance(token, int):
+                if not isinstance(cur, list):
+                    raise ValueError("numeric path segments require a list parent")
+                while len(cur) <= token:
+                    cur.append([] if isinstance(nxt, int) else {})
+                if last:
+                    cur[token] = value
+                    return
+                if not isinstance(cur[token], (dict, list)):
+                    cur[token] = [] if isinstance(nxt, int) else {}
+                cur = cur[token]
+                continue
+
+            if not isinstance(cur, dict):
+                raise ValueError("mapping path segments require an object parent")
+            if last:
+                cur[token] = value
+                return
+            if token not in cur or not isinstance(cur[token], (dict, list)):
+                cur[token] = [] if isinstance(nxt, int) else {}
+            cur = cur[token]
+
+    def _ssot_feedback_section(raw: str, fallback: str = "custom") -> str:
+        section = str(raw or "").strip()
+        known = {key for key, _label in _SSOT_EXPORT_SECTION_ORDER}
+        return section if section in known else fallback
+
+    def _ssot_feedback_slug(text: str) -> str:
+        slug = re.sub(r"[^A-Za-z0-9_.-]+", "_", str(text or "").strip()).strip("_.-").lower()
+        return slug[:80] or "feedback"
+
     def _full_ssot_tbd_template(ip: str, top_file: str, kind: str) -> dict[str, Any]:
         """Comprehensive TBD skeleton covering every REQUIRED_SECTIONS key.
 
@@ -15917,6 +15977,116 @@ def create_app():
             "paths": paths,
             "errors": errors,
             "command": command,
+        })
+
+    @app.post("/api/ssot/doc-feedback")
+    async def api_ssot_doc_feedback(request: Request):
+        """Apply DOC-tab feedback to the SSOT draft and anchored DOC export."""
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        body = body if isinstance(body, dict) else {}
+        ip = str(body.get("ip") or "").strip()
+        ip = ip if _valid_ip_name(ip) else _active_ssot_ip()
+        if not _valid_ip_name(ip):
+            return JSONResponse({"ok": False, "error": "no active IP found"}, status_code=400)
+
+        path = _ssot_yaml_path(ip)
+        if not path.is_file():
+            return JSONResponse({"ok": False, "error": f"ssot yaml not found for ip {ip!r}"}, status_code=404)
+        doc = _load_ssot_draft(ip)
+        if not isinstance(doc, dict) or not doc:
+            return JSONResponse({"ok": False, "error": f"ssot yaml could not be parsed for ip {ip!r}"}, status_code=400)
+
+        section = _ssot_feedback_section(str(body.get("section") or "custom"))
+        yaml_path = str(body.get("path") or body.get("yaml_path") or "").strip()
+        field = str(body.get("field") or "").strip()
+        value = body.get("value")
+        comment = str(body.get("comment") or "").strip()
+        value_text = "" if value is None else str(value).strip()
+        if not comment and not value_text and not field and not yaml_path:
+            return JSONResponse({"ok": False, "error": "feedback, value, field, or path is required"}, status_code=400)
+
+        if not yaml_path and field:
+            yaml_path = f"{section}.{field}"
+        try:
+            tokens = _parse_ssot_feedback_path(yaml_path) if yaml_path else []
+            if tokens:
+                target_value = value if value_text else comment
+                _set_ssot_feedback_path(doc, tokens, target_value)
+                if isinstance(tokens[0], str):
+                    section = _ssot_feedback_section(tokens[0], section)
+        except ValueError as exc:
+            return JSONResponse({"ok": False, "error": str(exc)}, status_code=400)
+
+        custom = doc.get("custom")
+        if not isinstance(custom, dict):
+            custom = {}
+            doc["custom"] = custom
+        feedback_rows = custom.get("atlas_doc_feedback")
+        if not isinstance(feedback_rows, list):
+            feedback_rows = []
+            custom["atlas_doc_feedback"] = feedback_rows
+
+        ts_ms = int(time.time() * 1000)
+        feedback_id = f"doc_feedback_{ts_ms}_{_ssot_feedback_slug(yaml_path or field or section)}"
+        record = {
+            "id": feedback_id,
+            "section": section,
+            "path": yaml_path,
+            "field": field,
+            "value": value if value is not None else "",
+            "comment": comment,
+            "source": "ssot-doc",
+            "created_at_ms": ts_ms,
+        }
+        feedback_rows.append(record)
+
+        blocks = doc.get("custom_blocks")
+        if not isinstance(blocks, list):
+            blocks = []
+            doc["custom_blocks"] = blocks
+        title_target = field or yaml_path or section
+        inline_lines = []
+        if yaml_path:
+            inline_lines.append(f"- path: `{yaml_path}`")
+        if field and field not in yaml_path:
+            inline_lines.append(f"- field: `{field}`")
+        if value_text:
+            inline_lines.append(f"- value: {value_text}")
+        if comment:
+            if inline_lines:
+                inline_lines.append("")
+            inline_lines.append(comment)
+        blocks.append({
+            "after": section,
+            "title": f"Doc Feedback: {title_target}",
+            "type": "markdown",
+            "inline": "\n".join(inline_lines).strip() or "Feedback recorded.",
+            "source": "ssot-doc",
+            "id": feedback_id,
+        })
+
+        try:
+            _save_ssot_draft(ip, doc)
+        except Exception as exc:
+            return JSONResponse({"ok": False, "error": f"failed to save ssot: {exc}"}, status_code=500)
+
+        try:
+            rel_path = str(path.relative_to(PROJECT_ROOT))
+        except Exception:
+            rel_path = str(path)
+        return JSONResponse({
+            "ok": True,
+            "ip": ip,
+            "section": section,
+            "path": yaml_path,
+            "field": field,
+            "feedback_id": feedback_id,
+            "feedback_count": len(feedback_rows),
+            "ssot_path": rel_path,
+            "doc_url": f"/api/ssot/export?ip={ip}&format=html&inline=1",
         })
 
     @app.get("/api/ssot/export")

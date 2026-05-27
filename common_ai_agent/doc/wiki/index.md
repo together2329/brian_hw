@@ -20,6 +20,7 @@ This section is additive; it does not replace the reading order below.
 | How Pipeline worker detail opens real workspaces | [[atlas-pipeline-worker-workspace-jump]] |
 | Guide tab + Architect "My IPs" landing (mock SoC removed) | [[guide-tab-and-architect-my-ips-20260527]] |
 | Andes external RTL DB wiki + `ATLAS_RTL_DB_WIKI` pointer | [[andes-rtl-db-wiki-20260527]] |
+| SSOT datasheet authoring — demo-grade via custom_blocks / timing mapping / FSM | [[ssot-datasheet-authoring-20260527]] |
 | Run Mode / Exec Mode and SSOT provenance policy | [[run-mode-and-provenance-policy]] |
 | Why headless is not product-flow authority | [[pipeline-progress-debugging]] |
 | Current CPU handoff / approval / README status | [[arm-m0-min-current-status]] |
