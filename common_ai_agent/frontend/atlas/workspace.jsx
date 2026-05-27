@@ -3432,7 +3432,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     : 0;
   const showQaTab = centerLayout === 'tabbed' || workflow === 'ssot-gen' || !!pendingQcard;
   const showSsotChecklistTab = workflow === 'ssot-gen';
-  const showSsotImportExportTab = workflow === 'ssot-gen';
+  const showSsotImportExportTab = workflow === 'ssot-gen' || workflow === 'default';
   const showSsotTab = workflow === 'ssot-gen' || (window.SSOT_FILES || []).length > 0 || isSsotYamlPath(previewPath);
   const showSsotDocTab = showSsotTab;
   const showSimSummaryTab = workflow === 'sim_debug';

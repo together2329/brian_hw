@@ -16,6 +16,14 @@ def test_ssot_doc_tab_renders_inline_html_export():
     assert ">doc</span>" in src
 
 
+def test_default_workflow_shows_ssot_import_export_tab():
+    src = WORKSPACE_JSX.read_text(encoding="utf-8")
+
+    assert "const showSsotImportExportTab = workflow === 'ssot-gen' || workflow === 'default';" in src
+    assert ">Import / Export</span>" in src
+    assert "importExportOnly={true}" in src
+
+
 def test_to_ssot_button_uses_same_plain_mini_button_as_deep_interview():
     src = WORKSPACE_JSX.read_text(encoding="utf-8")
     assert "borderColor: 'var(--ok)', color: 'var(--ok)'" not in src
