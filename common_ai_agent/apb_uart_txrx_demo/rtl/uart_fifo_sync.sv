@@ -37,16 +37,6 @@ module uart_fifo_sync #(
   assign level = count;
   assign pop_data = fifo_empty ? {DATA_WIDTH{1'b0}} : mem[rd_ptr];
 
-  function automatic [PTR_WIDTH-1:0] ptr_next(input [PTR_WIDTH-1:0] ptr);
-    begin
-      if (ptr == PTR_LAST) begin
-        ptr_next = PTR_ZERO;
-      end else begin
-        ptr_next = ptr + PTR_ONE;
-      end
-    end
-  endfunction
-
   always_comb begin
     pop_accept = pop && !fifo_empty;
     push_accept = push && (!fifo_full || pop_accept);
@@ -54,9 +44,9 @@ module uart_fifo_sync #(
 
   always_ff @(posedge clk or negedge reset_n) begin
     if (!reset_n) begin
-      rd_ptr <= {PTR_WIDTH{1'b0}};
-      wr_ptr <= {PTR_WIDTH{1'b0}};
-      count  <= {LEVEL_WIDTH{1'b0}};
+      rd_ptr <= PTR_ZERO;
+      wr_ptr <= PTR_ZERO;
+      count  <= LEVEL_ZERO;
       overflow_pulse  <= 1'b0;
       underflow_pulse <= 1'b0;
     end else begin
@@ -64,19 +54,27 @@ module uart_fifo_sync #(
       underflow_pulse <= 1'b0;
 
       if (clear) begin
-        rd_ptr <= {PTR_WIDTH{1'b0}};
-        wr_ptr <= {PTR_WIDTH{1'b0}};
-        count  <= {LEVEL_WIDTH{1'b0}};
+        rd_ptr <= PTR_ZERO;
+        wr_ptr <= PTR_ZERO;
+        count  <= LEVEL_ZERO;
       end else begin
         overflow_pulse  <= push && fifo_full && !pop_accept;
         underflow_pulse <= pop && fifo_empty;
 
         if (push_accept) begin
           mem[wr_ptr] <= push_data;
-          wr_ptr <= ptr_next(wr_ptr);
+          if (wr_ptr == PTR_LAST) begin
+            wr_ptr <= PTR_ZERO;
+          end else begin
+            wr_ptr <= wr_ptr + PTR_ONE;
+          end
         end
         if (pop_accept) begin
-          rd_ptr <= ptr_next(rd_ptr);
+          if (rd_ptr == PTR_LAST) begin
+            rd_ptr <= PTR_ZERO;
+          end else begin
+            rd_ptr <= rd_ptr + PTR_ONE;
+          end
         end
 
         case ({push_accept, pop_accept})
