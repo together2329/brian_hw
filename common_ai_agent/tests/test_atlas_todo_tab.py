@@ -10,8 +10,8 @@ def test_workspace_renders_editable_todo_tab() -> None:
     # Tab chip next to the Git tab + click wiring to the todo main tab
     assert "setMainTab('todo')" in workspace
     assert "mainTab === 'todo'" in workspace
-    # Open/total count badge on the chip
-    assert "_openTodos}/{_allTodos.length" in workspace
+    # Approved/total count badge on the chip
+    assert "_approvedTodos}/{_allTodos.length" in workspace
 
     # Editable pane is rendered in the center column
     assert "<TodoEditorPane />" in workspace

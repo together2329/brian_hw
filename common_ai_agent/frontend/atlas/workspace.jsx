@@ -6546,13 +6546,12 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
             )}
             {(() => {
               const _allTodos = Array.isArray(window.TODOS) ? window.TODOS : [];
-              const _doneTodos = _allTodos.filter(t => ['done', 'approved', 'completed'].includes(t.state)).length;
-              const _openTodos = _allTodos.length - _doneTodos;
+              const _approvedTodos = _allTodos.filter(t => ['done', 'approved', 'completed'].includes(t.state)).length;
               return (
                 <span
                   className="tab-chip"
                   onClick={() => setMainTab('todo')}
-                  title="TODO: view and edit todos (add / modify / remove / clear) for this session"
+                  title="TODO: approved / total for this session"
                   style={{
                     cursor: 'pointer',
                     padding: '2px 8px', borderRadius: 2, marginLeft: 4,
@@ -6571,7 +6570,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
                       background: 'color-mix(in oklch, var(--accent) 20%, transparent)',
                       color: 'var(--accent)',
                       fontSize: 'calc(var(--ui-control-font-size) - 1px)',
-                    }}>{_openTodos}/{_allTodos.length}</span>
+                    }}>{_approvedTodos}/{_allTodos.length}</span>
                   )}
                 </span>
               );
