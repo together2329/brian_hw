@@ -1823,6 +1823,20 @@ def _ssot_html_timing_section(data: dict) -> str:
     blocks: list[str] = []
     for idx, diagram in enumerate(diagrams[:6], start=1):
         name = _ssot_html_escape(diagram.get("name") or diagram.get("id") or f"timing_{idx}")
+        # Diagram-level reference: which clock the waveform is sampled on, plus an
+        # optional description. Without a reference, signals can't be mapped to RTL.
+        clock = diagram.get("clock") or diagram.get("reference_clock") or diagram.get("clk") or ""
+        desc = diagram.get("description") or diagram.get("note") or ""
+        sub_parts = []
+        if clock:
+            sub_parts.append(f"reference clock: <code>{_ssot_html_escape(clock)}</code>")
+        if desc:
+            sub_parts.append(_ssot_html_escape(desc))
+        subtitle = (
+            f"<p class=\"wave-sub\" style=\"color:var(--fg-mute);font-size:.85em;margin:2px 0 6px;\">"
+            f"{' · '.join(sub_parts)}</p>"
+            if sub_parts else ""
+        )
         signals = diagram.get("signals") or diagram.get("waveforms") or diagram.get("waves")
         if not isinstance(signals, list):
             continue
@@ -1841,15 +1855,43 @@ def _ssot_html_timing_section(data: dict) -> str:
                 )
                 cell_parts.append(f"<td class=\"wave-cell {cls}\">{_ssot_html_escape(v)}</td>")
             cells = "".join(cell_parts)
+            # Source mapping: which module's boundary port OR internal signal this
+            # row is, and its kind (port / reg / wire / logic / comb / ff). Makes the
+            # waveform traceable to the io_list ports or a submodule's internal nets.
+            src_mod = signal.get("module") or signal.get("instance") or ""
+            is_port = bool(signal.get("port"))
+            src_port = (
+                signal.get("port") or signal.get("internal_signal")
+                or signal.get("signal_ref") or signal.get("net") or ""
+            )
+            kind = str(signal.get("kind") or signal.get("type") or ("port" if is_port else "")).strip()
+            label = _ssot_html_escape(
+                signal.get("name") or signal.get("signal") or src_port or ""
+            )
+            ref = ".".join(p for p in (str(src_mod), str(src_port)) if p)
+            tag = f" · {_ssot_html_escape(kind)}" if kind else ""
+            src_html = (
+                f"<span class=\"sig-src\" style=\"display:block;color:var(--fg-mute);font-size:.78em;font-weight:400;\">{_ssot_html_escape(ref)}{tag}</span>"
+                if ref else ""
+            )
+            # Optional per-signal detail/description (what an internal reg means,
+            # encoding, polarity…). Shown as a muted note + row tooltip when present.
+            detail = signal.get("description") or signal.get("detail") or signal.get("note") or ""
+            detail_html = (
+                f"<span class=\"sig-detail\" style=\"display:block;color:var(--fg-mute);font-size:.72em;font-weight:400;font-style:italic;\">{_ssot_html_escape(detail)}</span>"
+                if detail else ""
+            )
+            th_title = f" title=\"{_ssot_html_escape(detail)}\"" if detail else ""
             rows.append(
                 "<tr>"
-                f"<th>{_ssot_html_escape(signal.get('name') or signal.get('signal') or '')}</th>"
+                f"<th style=\"text-align:left;\"{th_title}>{label}{src_html}{detail_html}</th>"
                 f"{cells}"
                 "</tr>"
             )
         if rows:
             blocks.append(
                 f"<h4>{name}</h4>"
+                f"{subtitle}"
                 "<table class=\"wave-table\"><tbody>"
                 + "".join(rows)
                 + "</tbody></table>"
@@ -11381,6 +11423,25 @@ def create_app():
             client_session.emit("agent_state", running=False)
         client_session.emit("flush")
 
+    def _handle_bang_shell_command(text: str, client_session: Any) -> bool:
+        raw = str(text or "").strip()
+        if not raw.startswith("!"):
+            return False
+        command = raw[1:].strip()
+        if not command:
+            output = "Usage: !<shell command>"
+        else:
+            try:
+                from core.tools import run_command as _run_command
+            except Exception:
+                from tools import run_command as _run_command  # type: ignore
+            result = str(_run_command(command, timeout=60) or "")
+            output = f"$ {command}\n{result}".rstrip()
+        client_session.emit("tool_result", text=output, tool="run_command", truncated=False)
+        client_session.emit("agent_state", running=False)
+        client_session.emit("flush")
+        return True
+
     def _apply_slash_model_switch(target: str, client_session: Any) -> str:
         try:
             import src.config as _cfg_model  # noqa: WPS433
@@ -18474,6 +18535,56 @@ def create_app():
             print(f"api_admin_sessions error: {e}")
             return JSONResponse({"error": str(e)}, status_code=500)
 
+    @app.get("/api/admin/ips")
+    async def api_admin_ips(request: Request):
+        if _admin_required(request) is None:
+            return _admin_denied(request)
+        try:
+            with AtlasDB() as db:
+                return JSONResponse({"ips": db.list_all_ip_pointers()})
+        except Exception as e:
+            print(f"api_admin_ips error: {e}")
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.delete("/api/admin/ips/{ip_id}")
+    async def api_admin_delete_ip_pointer(ip_id: str, request: Request):
+        if _admin_required(request) is None:
+            return _admin_denied(request)
+        try:
+            with AtlasDB() as db:
+                if db.get_ip_block(ip_id) is None:
+                    return JSONResponse({"error": "ip pointer not found"}, status_code=404)
+                result = db.delete_ip_pointer(ip_id)
+            return JSONResponse({**result, "filesystem_deleted": False})
+        except Exception as e:
+            print(f"api_admin_delete_ip_pointer error: {e}")
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.delete("/api/admin/users/{user_id}")
+    async def api_admin_delete_user_pointer(user_id: str, request: Request):
+        admin = _admin_required(request)
+        if admin is None:
+            return _admin_denied(request)
+        if str(admin.get("id") or "") == str(user_id or ""):
+            return JSONResponse({"error": "cannot delete the signed-in admin user"}, status_code=400)
+        try:
+            with AtlasDB() as db:
+                user = db.get_user(user_id)
+                if user is None:
+                    return JSONResponse({"error": "user pointer not found"}, status_code=404)
+                if str(user.get("role") or "").lower() == "admin":
+                    remaining = db._fetchone(
+                        "SELECT COUNT(*) AS cnt FROM users WHERE role = 'admin' AND id != ?",
+                        (user_id,),
+                    )
+                    if int(remaining["cnt"] if remaining is not None else 0) <= 0:
+                        return JSONResponse({"error": "cannot delete the last admin user"}, status_code=400)
+                result = db.delete_user_pointer(user_id)
+            return JSONResponse({**result, "filesystem_deleted": False})
+        except Exception as e:
+            print(f"api_admin_delete_user_pointer error: {e}")
+            return JSONResponse({"error": str(e)}, status_code=500)
+
     @app.get("/api/admin/usage")
     async def api_admin_usage(request: Request):
         """Per-user usage aggregation: tokens, cost, message count, model
@@ -19047,6 +19158,8 @@ def create_app():
                     # AGENT_MODE_OVERRIDE in the environment; react_loop
                     # reads it at the top of each iteration.
                     _low = _txt.lower()
+                    if _handle_bang_shell_command(_txt, client_session=session):
+                        continue
                     if _txt.startswith("/"):
                         if _handle_new_ip_command(_txt, client_session=session):
                             continue
