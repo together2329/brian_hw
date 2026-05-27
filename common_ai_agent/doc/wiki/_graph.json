@@ -1,6 +1,6 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-05-27T04:13:20Z",
+  "generated_at": "2026-05-27T04:34:16Z",
   "root": "doc/wiki",
   "node_count": 94,
   "edge_count": 436,
@@ -400,7 +400,7 @@
       "updated": "",
       "summary": "> **Updated**: 2026-05-27 > **Scope**: Generated an LLM knowledge-graph wiki over the external Andes peripheral > RTL corpus (`~/Desktop/andes`) and pointed ATLAS at it as the external \"previous-project > RTL DB\" via `ATLAS_RTL_DB_WIKI`. > **Related**: [[rtl-gen-ssot-contract]] · [[workflow-ownership-and-boundaries]] · [[karpathy-llm-wiki-pattern]]",
       "path": "doc/wiki/andes-rtl-db-wiki-20260527.md",
-      "size_bytes": 2612
+      "size_bytes": 3794
     },
     {
       "id": "apb-uart-real-uart-signoff-20260527",

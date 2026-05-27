@@ -7682,8 +7682,22 @@ def wiki_query(ip: str = "", topic: str = "", depth: int = 2, max_nodes: int = 1
                 candidates[0],
             )
             graph_path = wiki_root / "_graph.json"
-            rebuild_cmd = ["python3", str(builder), "--wiki", str(wiki_root), "--quiet"]
-            if not graph_path.is_file() and not any(wiki_root.glob("*.md")):
+            # External override: ATLAS_RTL_DB_BUILDER points at a converter that
+            # understands THIS wiki's (possibly foreign) structure and writes
+            # <wiki_root>/_graph.json in the wiki_graph.v1 node schema. ATLAS runs
+            # it instead of the built-in build_graph.py. Mirrors ATLAS_SCM_UI_OVERRIDE.
+            ext_builder = _os.path.expandvars((_os.environ.get("ATLAS_RTL_DB_BUILDER") or "").strip())
+            if ext_builder:
+                ext_path = _Path(ext_builder).expanduser()
+                if ext_path.suffix == ".py":
+                    rebuild_cmd = ["python3", str(ext_path), "--wiki", str(wiki_root)]
+                else:
+                    rebuild_cmd = [str(ext_path), "--wiki", str(wiki_root)]
+            else:
+                rebuild_cmd = ["python3", str(builder), "--wiki", str(wiki_root), "--quiet"]
+            # Bail only when there is nothing to read AND no way to produce it:
+            # no graph, no markdown, and no external builder to convert the source.
+            if not graph_path.is_file() and not any(wiki_root.glob("*.md")) and not ext_builder:
                 return f"[wiki_query] external RTL DB wiki has no markdown files: {wiki_root}"
     elif ip:
         scope_kind = "ip"
@@ -7734,8 +7748,16 @@ def wiki_query(ip: str = "", topic: str = "", depth: int = 2, max_nodes: int = 1
             ],
         }
     else:
-        needs_build = not graph_path.is_file()
-        if not needs_build:
+        # External override: ATLAS_RTL_DB_NO_REBUILD=1 → trust the _graph.json the
+        # external system shipped (built by its own pipeline); never (re)build or
+        # clobber it, even if its source files look newer to us.
+        no_rebuild = (
+            scope_kind == "rtl-db"
+            and (_os.environ.get("ATLAS_RTL_DB_NO_REBUILD") or "").strip().lower()
+            in ("1", "true", "yes", "on")
+        )
+        needs_build = (not no_rebuild) and (not graph_path.is_file())
+        if not no_rebuild and not needs_build:
             try:
                 graph_mtime = graph_path.stat().st_mtime
                 if scope_kind == "ip":
@@ -7758,9 +7780,16 @@ def wiki_query(ip: str = "", topic: str = "", depth: int = 2, max_nodes: int = 1
                             break
             except Exception:
                 needs_build = True
-        if needs_build and builder.is_file():
+        # rtl-db may use an external builder (rebuild_cmd already points to it);
+        # other scopes require the built-in builder to exist.
+        if needs_build and rebuild_cmd and (scope_kind == "rtl-db" or builder.is_file()):
             try:
-                _sp.run(rebuild_cmd, check=False, capture_output=True, timeout=30)
+                _sp.run(
+                    rebuild_cmd,
+                    check=False,
+                    capture_output=True,
+                    timeout=60 if scope_kind == "rtl-db" else 30,
+                )
             except Exception:
                 pass
 

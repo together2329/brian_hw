@@ -49,6 +49,22 @@ value into each new IP's `wiki/workflow-runbook.md` as the legacy-RTL link.
 > **Activation:** the value is read from the environment at process start. The live
 > ATLAS server / workers must be **restarted** to pick up the new `ATLAS_RTL_DB_WIKI`.
 
+## Plugging in a *different* external wiki (override)
+
+`wiki_query(ip="rtl-db")` never reads raw RTL — it reads a normalized
+`<wiki_root>/_graph.json` (`wiki_graph.v1`: nodes with `id/title/tags/summary/path/
+outgoing`). So the **lookup is identical across systems**; only the source→graph
+conversion differs. When a foreign RTL DB has a non-ATLAS structure, plug it in with
+two `.env` hooks (no ATLAS code change; same idiom as `ATLAS_SCM_UI_OVERRIDE`):
+
+| Env | Effect |
+| --- | --- |
+| `ATLAS_RTL_DB_BUILDER=/abs/builder.py` | ATLAS runs `<builder> --wiki <root>` instead of `build_graph.py`; the builder understands the foreign structure and writes `<root>/_graph.json`. Contract + working sample: `scripts/example_external_rtl_db_builder.py`. |
+| `ATLAS_RTL_DB_NO_REBUILD=1` | ATLAS reads an externally-produced `_graph.json` as-is and **never (re)builds or clobbers** it — for foreign wikis that ship their own graph (any pipeline), even when their source files look newer. |
+
+Implementation: `core/tools.py::wiki_query` (rtl-db scope). Verified end-to-end by
+`tests/test_wiki_query_tool.py` (`..._external_builder_override...`, `..._no_rebuild_trusts_shipped_graph`).
+
 ## Query
 
 ```sh

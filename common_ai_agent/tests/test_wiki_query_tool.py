@@ -264,3 +264,96 @@ def test_wiki_query_rebuilds_ip_graph_when_wiki_markdown_is_newer(
     assert "matches=0/" in result
     rebuilt = json.loads(graph_path.read_text(encoding="utf-8"))
     assert rebuilt["node_count"] >= 1
+
+
+def test_wiki_query_external_builder_override_for_foreign_wiki(tmp_path: Path, monkeypatch) -> None:
+    """A foreign-structured external wiki (no ATLAS markdown / no _graph.json) is
+    usable via ATLAS_RTL_DB_BUILDER: ATLAS runs the external converter, which emits
+    the normalized _graph.json, and the query renders it."""
+    rtl_root = tmp_path / "foreign"
+    rtl_root.mkdir(parents=True)
+    # deliberately NON-ATLAS structure: a *.txt reference with a tiny header
+    (rtl_root / "uart_ip.txt").write_text(
+        "title: FooCorp UART (foreign format)\n"
+        "tags: uart, apb, dma\n"
+        "related: dma_ip\n\n"
+        "FooCorp UART core with APB regs and DMA handshake. Not ATLAS markdown.\n",
+        encoding="utf-8",
+    )
+    (rtl_root / "dma_ip.txt").write_text(
+        "title: FooCorp DMA\ntags: dma, ahb\n\nMulti-channel DMA master on AHB.\n",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.setenv("COMMON_AI_AGENT_HOME", str(PROJECT_ROOT))
+    monkeypatch.setenv("ATLAS_RTL_DB_WIKI", str(rtl_root))
+    monkeypatch.setenv(
+        "ATLAS_RTL_DB_BUILDER",
+        str(PROJECT_ROOT / "scripts" / "example_external_rtl_db_builder.py"),
+    )
+    monkeypatch.delenv("ATLAS_RTL_DB_NO_REBUILD", raising=False)
+    monkeypatch.delenv("ATLAS_ACTIVE_IP", raising=False)
+
+    from core.tools import wiki_query
+
+    result = wiki_query(ip="rtl-db", topic="uart apb dma", depth=3)
+
+    assert "scope=rtl-db" in result
+    assert "FooCorp UART" in result
+    assert "no markdown files" not in result
+    # the external builder (not the built-in one) produced the normalized graph
+    graph = json.loads((rtl_root / "_graph.json").read_text(encoding="utf-8"))
+    assert {n["id"] for n in graph["nodes"]} == {"uart_ip", "dma_ip"}
+
+
+def test_wiki_query_no_rebuild_trusts_shipped_graph(tmp_path: Path, monkeypatch) -> None:
+    """ATLAS_RTL_DB_NO_REBUILD=1 makes ATLAS read an externally-shipped _graph.json
+    as-is and never rebuild/clobber it, even when source files look newer."""
+    rtl_root = tmp_path / "foreign2"
+    rtl_root.mkdir(parents=True)
+    graph_path = rtl_root / "_graph.json"
+    graph_path.write_text(
+        json.dumps(
+            {
+                "schema_version": "wiki_graph.v1",
+                "node_count": 1,
+                "edge_count": 0,
+                "nodes": [
+                    {
+                        "id": "sentinel_ip",
+                        "title": "Sentinel External IP",
+                        "type": "reference",
+                        "tags": ["rtl-db", "external", "spi"],
+                        "summary": "Shipped by a foreign pipeline; must survive.",
+                        "path": "foreign/sentinel_ip",
+                        "outgoing": [],
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    # an ATLAS-markdown file the built-in builder WOULD parse, made newer than the graph
+    decoy = rtl_root / "decoy.md"
+    decoy.write_text("---\nid: decoy\ntitle: Decoy\n---\n# Decoy\n", encoding="utf-8")
+    os.utime(graph_path, (1_700_000_000, 1_700_000_000))
+    os.utime(decoy, (1_700_000_100, 1_700_000_100))
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.setenv("COMMON_AI_AGENT_HOME", str(PROJECT_ROOT))
+    monkeypatch.setenv("ATLAS_RTL_DB_WIKI", str(rtl_root))
+    monkeypatch.setenv("ATLAS_RTL_DB_NO_REBUILD", "1")
+    monkeypatch.delenv("ATLAS_RTL_DB_BUILDER", raising=False)
+    monkeypatch.delenv("ATLAS_ACTIVE_IP", raising=False)
+
+    from core.tools import wiki_query
+
+    result = wiki_query(ip="rtl-db", topic="spi sentinel", depth=2)
+
+    assert "scope=rtl-db" in result
+    assert "Sentinel External IP" in result
+    # shipped graph untouched: sentinel still the only node, decoy not merged
+    after = json.loads(graph_path.read_text(encoding="utf-8"))
+    assert [n["id"] for n in after["nodes"]] == ["sentinel_ip"]
