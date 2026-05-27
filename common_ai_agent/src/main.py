@@ -1944,6 +1944,38 @@ def chat_loop():
                         except Exception:
                             pass
 
+            if user_input.startswith("!"):
+                _shell_command = user_input[1:].strip()
+                if not _shell_command:
+                    _shell_output = "Usage: !<shell command>"
+                else:
+                    try:
+                        from core.tools import run_command as _bang_run_command
+                    except Exception:
+                        from tools import run_command as _bang_run_command  # type: ignore
+                    _shell_result = str(_bang_run_command(_shell_command, timeout=60) or "")
+                    _shell_output = f"$ {_shell_command}\n{_shell_result}".rstrip()
+                if _textual_emit_tool_result_fn is not None:
+                    try:
+                        _textual_emit_tool_result_fn(_shell_output, "run_command")
+                    except Exception:
+                        pass
+                    if _textual_emit_flush_fn is not None:
+                        try:
+                            _textual_emit_flush_fn()
+                        except Exception:
+                            pass
+                else:
+                    print(f"\n{Color.CYAN}--- bash ---{Color.RESET}")
+                    print(_shell_output)
+                    print(f"{Color.CYAN}------------{Color.RESET}\n")
+                if _textual_set_agent_running_fn is not None:
+                    try:
+                        _textual_set_agent_running_fn(False)
+                    except Exception:
+                        pass
+                continue
+
             # Handle slash commands
             if user_input.startswith('/'):
                 # Update context tracker with current state before executing /context

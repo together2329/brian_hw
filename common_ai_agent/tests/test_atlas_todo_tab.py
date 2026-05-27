@@ -28,6 +28,14 @@ def test_workspace_renders_editable_todo_tab() -> None:
     assert "Criteria is required to add a todo." in workspace
     assert 'placeholder="detail (required)"' in workspace
     assert 'placeholder="criteria — one per line (required)"' in workspace
+    assert "Approved Reason" in workspace
+    assert "Reject Reason" in workspace
+    assert "To Do Note" in workspace
+    assert "approved_reason: approvedReason" in workspace
+    assert "rejection_reason: rejectionReason" in workspace
+    assert 'placeholder="approved reason (required)"' in workspace
+    assert 'placeholder="reject reason (required)"' in workspace
+    assert "const reasonMissing =" in workspace
     assert "const canAddTodo =" in workspace
     assert ">Remove<" in workspace
     assert ">Clear all<" in workspace
@@ -85,9 +93,14 @@ def test_atlas_ui_exposes_todo_crud_endpoints() -> None:
     add_start = atlas_ui.index('@app.post("/api/todos/add")')
     update_start = atlas_ui.index('@app.post("/api/todos/update")')
     add_endpoint = atlas_ui[add_start:update_start]
+    update_endpoint = atlas_ui[update_start:atlas_ui.index('@app.post("/api/todos/remove")')]
     assert '"detail is required"' in add_endpoint
     assert '"criteria is required"' in add_endpoint
     assert "_sync_live_tracker_from_session(session_todo)" not in add_endpoint
+    assert 'todo.approved_reason = str(body.get("approved_reason"))' in update_endpoint
+    assert 'todo.rejection_reason = str(body.get("rejection_reason"))' in update_endpoint
+    assert '"approved_reason is required"' in update_endpoint
+    assert '"rejection_reason is required"' in update_endpoint
 
 
 def test_web_slash_todo_uses_active_session_todo_file() -> None:

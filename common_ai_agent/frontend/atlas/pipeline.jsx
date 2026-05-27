@@ -2242,7 +2242,8 @@ function HierarchyList({ activeIp, onSelect }) {
                    : [];
         setIps(list.map(x => typeof x === 'string' ? x : (x.ip || x.name || x.id || '')).filter(Boolean));
       } catch (_) {
-        if (!dead && activeIp) setIps([activeIp]);
+        const ownerScoped = !!(window.ATLAS_USER && window.ATLAS_USER.username);
+        if (!dead && !ownerScoped && activeIp) setIps([activeIp]);
       }
     })();
     return () => { dead = true; };
@@ -2473,7 +2474,8 @@ function StageStatusRail({ activeIp, onSelectIp, state, simpleSummary, selectedS
                    : [];
         setIps(list.map(x => typeof x === 'string' ? x : (x.ip || x.name || x.id || '')).filter(Boolean));
       } catch (_) {
-        if (!dead && activeIp) setIps([activeIp]);
+        const ownerScoped = !!(window.ATLAS_USER && window.ATLAS_USER.username);
+        if (!dead && !ownerScoped && activeIp) setIps([activeIp]);
       }
     })();
     return () => { dead = true; };

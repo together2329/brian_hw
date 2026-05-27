@@ -1055,12 +1055,41 @@ const DiffOutputPre = ({ text, tool, truncated, hintText = '' }) => {
 
 // Hover-revealed copy button (positioned absolute; parent must be
 // position:relative and apply CSS `:hover .copy-btn{opacity:1}`).
+// Copy that also works over plain-HTTP LAN access. navigator.clipboard only
+// exists in secure contexts (https / localhost); when the app is opened via
+// http://<lan-ip>:3000 it is undefined, so every copy button hit the catch and
+// silently no-op'd. Fall back to a hidden-textarea execCommand('copy').
+const _copyToClipboard = (value) => {
+  const text = String(value == null ? '' : value);
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch (_) {}
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.top = '-1000px';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    ta.setSelectionRange(0, text.length);
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  } catch (_) {
+    return false;
+  }
+};
+
 const CopyBtn = ({ text, label = 'copy' }) => {
   const [copied, setCopied] = React.useState(false);
   const onClick = (e) => {
     e.stopPropagation();
-    try { navigator.clipboard.writeText(text || ''); setCopied(true); setTimeout(() => setCopied(false), 1200); }
-    catch (_) {}
+    if (_copyToClipboard(text)) { setCopied(true); setTimeout(() => setCopied(false), 1200); }
   };
   return (
     <button onClick={onClick} className="copy-btn" type="button"
@@ -15153,9 +15182,31 @@ const SsotDocPane = ({ uiLang = 'ko', ip = '', onBack }) => {
         <button type="button" className="btn" onClick={() => setReloadKey(k => k + 1)} style={{ fontSize: 10 }}>
           refresh
         </button>
-        {/* DOC is view-only: the View/Feedback mode toggle was removed, so docMode
-            stays 'view' and the feedback comment form / drag-drop wiring below
-            stay inert. SSOT review feedback lives in the SSOT review pane, not here. */}
+        <div style={{ display: 'inline-flex', border: '1px solid var(--line)', borderRadius: 2, overflow: 'hidden' }}>
+          {[
+            ['view', 'View Mode'],
+            ['feedback', 'Feedback Mode'],
+          ].map(([mode, label]) => (
+            <button
+              key={mode}
+              type="button"
+              onClick={() => setDocMode(mode)}
+              style={{
+                border: 0,
+                borderRight: mode === 'view' ? '1px solid var(--line)' : 0,
+                background: docMode === mode ? 'var(--accent)' : 'var(--bg)',
+                color: docMode === mode ? 'var(--bg)' : 'var(--fg-mute)',
+                fontFamily: 'var(--mono)',
+                fontSize: 10,
+                fontWeight: 800,
+                padding: '4px 8px',
+                cursor: 'pointer',
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
         <button type="button" className="btn" onClick={() => { window.location.href = downloadUrl; }} style={{ fontSize: 10 }}>
           download
         </button>
@@ -15172,6 +15223,105 @@ const SsotDocPane = ({ uiLang = 'ko', ip = '', onBack }) => {
         flexDirection: 'column',
         gap: 10,
       }}>
+        {docMode === 'feedback' ? (
+          <form
+            onSubmit={handleDocFeedbackSubmit}
+            style={{
+              border: '1px solid var(--line)',
+              background: 'var(--bg-2)',
+              padding: 10,
+              display: 'grid',
+              gap: 8,
+              fontFamily: 'var(--mono)',
+              fontSize: 'var(--ui-control-font-size)',
+            }}
+          >
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(120px, 0.7fr) minmax(160px, 1fr) auto', gap: 8, alignItems: 'center' }}>
+              <select
+                value={feedbackSection}
+                onChange={e => setFeedbackSection(e.target.value)}
+                style={{
+                  background: 'var(--bg)',
+                  color: 'var(--fg)',
+                  border: '1px solid var(--line)',
+                  borderRadius: 2,
+                  fontFamily: 'var(--mono)',
+                  fontSize: 'var(--ui-control-font-size)',
+                  padding: '5px 7px',
+                }}
+              >
+                {docSections.map(section => (
+                  <option key={section} value={section}>{SSOT_SECTION_LABELS[section] || ssotTitleFor(section)}</option>
+                ))}
+              </select>
+              <input
+                value={feedbackPath}
+                onChange={e => {
+                  setFeedbackPath(e.target.value);
+                  setFeedbackField('');
+                }}
+                placeholder="yaml path or custom field"
+                style={{
+                  background: 'var(--bg)',
+                  color: 'var(--fg)',
+                  border: '1px solid var(--line)',
+                  borderRadius: 2,
+                  fontFamily: 'var(--mono)',
+                  fontSize: 'var(--ui-control-font-size)',
+                  padding: '5px 7px',
+                }}
+              />
+              <button
+                type="button"
+                className="btn"
+                draggable={docMode === 'feedback'}
+                onDragStart={handleDocCommentDragStart}
+                style={{ fontSize: 10, cursor: docMode === 'feedback' ? 'grab' : 'default' }}
+              >
+                comment
+              </button>
+            </div>
+            <textarea
+              ref={commentTextareaRef}
+              value={feedbackComment}
+              onChange={e => setFeedbackComment(e.target.value)}
+              placeholder="comment"
+              rows={2}
+              style={{
+                background: 'var(--bg)',
+                color: 'var(--fg)',
+                border: '1px solid var(--line)',
+                borderRadius: 2,
+                fontFamily: 'var(--mono)',
+                fontSize: 'var(--ui-control-font-size)',
+                padding: '7px 8px',
+                resize: 'vertical',
+              }}
+            />
+            <input
+              value={feedbackValue}
+              onChange={e => setFeedbackValue(e.target.value)}
+              placeholder="value to write into the selected yaml path"
+              style={{
+                background: 'var(--bg)',
+                color: 'var(--fg)',
+                border: '1px solid var(--line)',
+                borderRadius: 2,
+                fontFamily: 'var(--mono)',
+                fontSize: 'var(--ui-control-font-size)',
+                padding: '5px 7px',
+              }}
+            />
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
+              <span className="mute" style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {feedbackStatus || ' '}
+              </span>
+              <button type="submit" className="btn primary" disabled={!canSubmitFeedback || feedbackBusy} style={{ fontSize: 10 }}>
+                {feedbackBusy ? 'applying' : 'apply feedback'}
+              </button>
+            </div>
+          </form>
+        ) : null}
         <iframe
           ref={docFrameRef}
           key={inlineUrl}
@@ -19173,8 +19323,8 @@ const PreviewPane = ({ path, onClose, focusLine = 0 }) => {
     }
     reloadPreview(true);
   };
-  const copyPath = () => { try { navigator.clipboard.writeText(path); } catch (_) {} };
-  const copyAll  = () => { try { navigator.clipboard.writeText(body);  } catch (_) {} };
+  const copyPath = () => { _copyToClipboard(path); };
+  const copyAll  = () => { _copyToClipboard(body); };
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
@@ -19488,7 +19638,7 @@ const FileViewer = ({ name, onClose }) => {
   const sizeKb = size > 0 ? (size / 1024).toFixed(1) + ' KB' : '';
 
   const copyPath = () => {
-    try { navigator.clipboard.writeText(name); } catch (_) {}
+    _copyToClipboard(name);
   };
 
   return (

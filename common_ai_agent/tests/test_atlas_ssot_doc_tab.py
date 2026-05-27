@@ -16,6 +16,32 @@ def test_ssot_doc_tab_renders_inline_html_export():
     assert ">doc</span>" in src
 
 
+def test_ssot_doc_tab_has_view_and_feedback_modes():
+    src = WORKSPACE_JSX.read_text(encoding="utf-8")
+
+    assert "const [docMode, setDocMode] = React.useState('view');" in src
+    assert "View Mode" in src
+    assert "Feedback Mode" in src
+    assert "fetch('/api/ssot/doc-feedback'" in src
+    assert "setReloadKey(k => k + 1)" in src
+    assert "docMode === 'feedback'" in src
+    assert "feedbackPath" in src
+    assert "feedbackField" in src
+
+
+def test_ssot_doc_feedback_mode_supports_drag_drop_comment_targeting():
+    src = WORKSPACE_JSX.read_text(encoding="utf-8")
+
+    assert "const docFrameRef = React.useRef(null);" in src
+    assert "const commentTextareaRef = React.useRef(null);" in src
+    assert "const handleDocCommentDragStart = (ev) =>" in src
+    assert "draggable={docMode === 'feedback'}" in src
+    assert "frameDoc.addEventListener('dragover', onDragOver);" in src
+    assert "frameDoc.addEventListener('drop', onDrop);" in src
+    assert "applyDocDropSection(resolveDocDropSection(ev.target));" in src
+    assert "onLoad={() => setDocFrameReady(v => v + 1)}" in src
+
+
 def test_default_workflow_shows_ssot_import_export_tab():
     src = WORKSPACE_JSX.read_text(encoding="utf-8")
 

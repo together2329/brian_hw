@@ -323,6 +323,48 @@ def test_custom_blocks_render_after_anchor_sections(tmp_path, monkeypatch):
     assert "not found" in html
 
 
+def test_ssot_doc_feedback_updates_yaml_and_export(tmp_path, monkeypatch):
+    import yaml
+
+    ip = "doc_feedback_ip"
+    ssot_path = tmp_path / ip / "yaml" / f"{ip}.ssot.yaml"
+    ssot_path.parent.mkdir(parents=True, exist_ok=True)
+    ssot_path.write_text(
+        yaml.safe_dump({
+            "top_module": {"name": ip, "description": "demo top"},
+            "custom": {},
+        }, sort_keys=False),
+        encoding="utf-8",
+    )
+    client = _make_client(tmp_path, monkeypatch)
+
+    response = client.post("/api/ssot/doc-feedback", json={
+        "ip": ip,
+        "section": "top_module",
+        "field": "review_note",
+        "value": "Reset policy needs W1C detail.",
+        "comment": "Please show this near top module.",
+    })
+
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert payload["ok"] is True
+    assert payload["path"] == "top_module.review_note"
+
+    saved = yaml.safe_load(ssot_path.read_text(encoding="utf-8"))
+    assert saved["top_module"]["review_note"] == "Reset policy needs W1C detail."
+    feedback = saved["custom"]["atlas_doc_feedback"]
+    assert feedback[0]["comment"] == "Please show this near top module."
+    blocks = saved["custom_blocks"]
+    assert blocks[-1]["after"] == "top_module"
+    assert "Reset policy needs W1C detail." in blocks[-1]["inline"]
+
+    html_response = client.get(f"/api/ssot/export?ip={ip}&format=html&inline=1")
+    assert html_response.status_code == 200, html_response.text
+    assert "Doc Feedback: review_note" in html_response.text
+    assert "Please show this near top module." in html_response.text
+
+
 @pytest.mark.parametrize("ip", SAMPLE_IPS)
 def test_render_docx_is_valid_zip(tmp_path, monkeypatch, ip):
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)

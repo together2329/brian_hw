@@ -6233,6 +6233,12 @@ def refresh_ip_wiki(name=None, root="."):
     name = name.strip()
     if not _re.match(r"^[A-Za-z][A-Za-z0-9_]*$", name):
         return f"[refresh_ip_wiki: invalid name {name!r} — letters, digits, underscore only]"
+    if name == "default":
+        # "default" is the agent's default workspace, not an IP. A caller that
+        # resolves the active IP to "default" (e.g. no IP selected) must not
+        # scaffold a bogus <root>/default/wiki tree — make it a no-op error.
+        return ("[refresh_ip_wiki: 'default' is not an IP — open/select an IP "
+                "first, or pass /refresh-wiki <ip>]")
 
     base = Path(os.path.abspath(os.path.join(root, name)))
     if not base.is_dir():

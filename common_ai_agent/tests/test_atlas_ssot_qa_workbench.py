@@ -101,6 +101,27 @@ def test_ssot_preview_ignores_yaml_hash_comments_in_digest_parser():
     assert "ch === '#' && !single && !double" in workspace_src
 
 
+def test_ssot_preview_attention_status_uses_bang_glyph():
+    workspace_src = WORKSPACE_JSX.read_text(encoding="utf-8")
+
+    assert "const ssotNeedsAttentionStatus = (status) =>" in workspace_src
+    assert "const ssotStatusGlyph = (status) =>" in workspace_src
+    assert "const statusForPresence = (present) => present ? 'approved' : 'needs_review';" in workspace_src
+    assert "statuses.some(ssotNeedsAttentionStatus)" in workspace_src
+    assert "{ssotStatusGlyph(status)}" in workspace_src
+
+
+def test_preview_feedback_controls_are_mode_gated():
+    workspace_src = WORKSPACE_JSX.read_text(encoding="utf-8")
+
+    assert "feedbackMode = false" in workspace_src
+    assert "feedbackMode && floating" in workspace_src
+    assert "const [previewMode, setPreviewMode] = React.useState('view');" in workspace_src
+    assert "const [ssotPreviewMode, setSsotPreviewMode] = React.useState('view');" in workspace_src
+    assert "feedbackMode={previewMode === 'feedback'}" in workspace_src
+    assert "feedbackMode={ssotPreviewMode === 'feedback'}" in workspace_src
+
+
 def test_import_to_ssot_uses_manifest_and_split_roots():
     atlas_ui_src = ATLAS_UI_PY.read_text(encoding="utf-8")
     gate_start = atlas_ui_src.index("def _handle_to_ssot_gate")
@@ -202,8 +223,9 @@ def test_to_ssot_preview_and_verify_share_canonical_format_contract():
     assert "Quickstart" not in workspace_src
     assert "quickstartSteps" not in workspace_src
     assert "const registerConfig = {" in workspace_src
-    assert "key={`reg-summary-${label}`}" in workspace_src
-    assert "gridTemplateColumns: '86px minmax(120px, 0.9fr) 72px 78px minmax(220px, 2fr)'" in workspace_src
+    assert "const meaningfulFields = (reg.fields || []).filter(_hasMeaningfulRegisterField);" in workspace_src
+    assert "<RegisterBitFieldView" in workspace_src
+    assert "gridTemplateColumns: '82px minmax(0, 1fr) auto'" in workspace_src
 
 
 def test_verify_ssot_script_checks_preview_readable_starter_yaml(tmp_path):

@@ -69,7 +69,8 @@
           if (!mountedRef.current) return;
           const items = Array.isArray(d.items) ? d.items : [];
           const names = items.map(it => it.ip || it.name || '').filter(Boolean);
-          const nextNames = initialIp && !names.includes(initialIp)
+          const ownerScoped = !!(window.ATLAS_USER && window.ATLAS_USER.username);
+          const nextNames = !ownerScoped && initialIp && !names.includes(initialIp)
             ? [initialIp, ...names]
             : names;
           setIpList(nextNames);

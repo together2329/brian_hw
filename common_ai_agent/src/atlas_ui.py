@@ -11843,6 +11843,15 @@ def create_app():
     }
 
     def _valid_ip_name(name: str) -> bool:
+        # "default" is the reserved default workspace/workflow sentinel, never a
+        # real IP. Rejecting it here makes every IP-requiring command
+        # (verify-ssot, to-ssot, grill-me, repair-*, refresh-wiki,
+        # /api/ip/create, …) fall into its existing "no active IP" guard instead
+        # of scaffolding or writing a bogus <root>/default/ tree when no IP is
+        # selected. The codebase already pairs _valid_ip_name with an explicit
+        # `!= "default"` in the SSOT-IP resolvers; this folds that in centrally.
+        if (name or "") == "default":
+            return False
         return bool(re.match(r"^[A-Za-z][A-Za-z0-9_]*$", name or ""))
 
     def _slash_head(text: str) -> str:
@@ -13954,6 +13963,19 @@ def create_app():
             path.mkdir(parents=True, exist_ok=True)
             created.append(f"{ip}/{rel}")
         _scaffold_ip_wiki(ip)
+        # Copy the FULL workflow engine into <ip>/workflow/ (every stage's
+        # scripts, prompts, system_prompt.md, rules, todo templates, shared
+        # scripts/ + prompts/, flow guides) AND generate the wiki/_generated/
+        # runbook + ip_knowledge pages — the same scaffold the tool path runs.
+        # Without this a UI-created IP had no <ip>/workflow/ scripts on disk, so
+        # the runbook's `workflow/<stage>/scripts/...` commands had nothing to
+        # run. Then rebuild the wiki graph. Best-effort: never block creation.
+        try:
+            from core.tools import _scaffold_ip_workflow as _scaffold_wf
+            _scaffold_wf(str(PROJECT_ROOT / ip), ip, [], [], [])
+        except Exception:
+            pass
+        _refresh_ip_wiki_graph(ip)
         # Per-IP git repo. Each IP gets its OWN .git so the agent's
         # write_file / replace_in_file calls can auto-commit and the
         # user has a per-IP history independent of the outer project
@@ -16510,6 +16532,42 @@ def create_app():
         _append_active_history("assistant", "```\n" + msg + "\n```")
         _emit_workflow_result(msg, "approve")
         _emit_ssot_approval_ready(ip, state, [])
+        return True
+
+    def _handle_refresh_wiki_command(text: str, client_session: Any | None = None) -> bool:
+        """/refresh-wiki [ip] — regenerate <ip>/wiki/_generated/ for the ACTIVE IP.
+
+        Handled here (not the generic slash registry) so the IP resolves from the
+        per-session namespace via _command_ip — the registry's _cmd_refresh_wiki
+        reads the process-global ATLAS_ACTIVE_IP env, which in the web server is
+        "default" and produced a bogus <root>/default/wiki tree instead of the
+        IP the user is actually on.
+        """
+        cmd, args = _split_slash(text)
+        if cmd not in ("refresh-wiki", "refresh_wiki"):
+            return False
+        ip = _command_ip(args, client_session=client_session)
+        if not _valid_ip_name(ip) or ip == "default":
+            _emit_workflow_result(
+                "[refresh-wiki] no active IP found\n"
+                "Open/select an IP (or run /new-ip <ip_name>), or pass /refresh-wiki <ip>.",
+                "refresh-wiki",
+            )
+            return True
+        try:
+            from core.tools import refresh_ip_wiki as _refresh_ip_wiki_pages
+        except Exception:
+            try:
+                from tools import refresh_ip_wiki as _refresh_ip_wiki_pages  # type: ignore
+            except Exception as exc:
+                _emit_workflow_result(f"[refresh-wiki] unavailable: {exc}", "refresh-wiki")
+                return True
+        try:
+            result = _refresh_ip_wiki_pages(ip, str(PROJECT_ROOT))
+        except Exception as exc:
+            _emit_workflow_result(f"[refresh-wiki] failed for {ip}: {exc}", "refresh-wiki")
+            return True
+        _emit_workflow_result(str(result), "refresh-wiki")
         return True
 
     def _handle_to_ssot_gate(text: str, client_session: Any | None = None) -> bool:
@@ -19934,6 +19992,9 @@ def create_app():
                             continue
                         if _run_stage_command(_txt, client_session=session):
                             await _accept_handled("stage")
+                            continue
+                        if _handle_refresh_wiki_command(_txt, client_session=session):
+                            await _accept_handled("refresh_wiki")
                             continue
                         if _execute_generic_slash_command(_txt, session):
                             await _accept_handled("slash")
