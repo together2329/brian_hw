@@ -1503,6 +1503,12 @@ def _ssot_md_section_registers(data: Any) -> str:
     return "\n\n".join(p for p in parts if p)
 
 
+def _ssot_md_section_raw_yaml(data: Any) -> str:
+    """Render complex behavioral sections as source, not fragile diagrams."""
+
+    return _ssot_md_yaml_block(data)
+
+
 def _ssot_md_section_generic(data: Any) -> str:
     """Fallback renderer for arbitrary nested structures."""
     if data is None:
@@ -1531,7 +1537,11 @@ _SSOT_MD_SECTION_RENDERERS: dict = {
     "parameters": _ssot_md_section_parameters,
     "io_list": _ssot_md_section_io_list,
     "features": _ssot_md_section_features,
+    "function_model": _ssot_md_section_raw_yaml,
+    "cycle_model": _ssot_md_section_raw_yaml,
     "registers": _ssot_md_section_registers,
+    "fsm": _ssot_md_section_raw_yaml,
+    "timing": _ssot_md_section_raw_yaml,
 }
 
 
@@ -2674,14 +2684,9 @@ def _ssot_html_insert_after_top_module(html_body: str, block_diagram: str) -> st
 
 
 def _ssot_html_normalize_mermaid_fences(html_body: str) -> str:
-    """Turn Markdown mermaid code fences into blocks Mermaid actually renders."""
+    """Keep mermaid fences as readable source in the conservative DOC export."""
 
-    return re.sub(
-        r'<pre><code class="(?:language-)?mermaid">([\s\S]*?)</code></pre>',
-        r'<pre class="mermaid">\1</pre>',
-        html_body,
-        flags=re.IGNORECASE,
-    )
+    return html_body
 
 
 def _ssot_html_mermaid_runtime() -> str:
@@ -2784,9 +2789,11 @@ def _ssot_html_render_custom_block(blk: dict, ip: str) -> str:
         except Exception:
             content = ""
     if btype == "mermaid":
-        # Escaped so HTML can't inject; the browser decodes entities back to the
-        # raw diagram source in textContent before mermaid renders it.
-        body = f"<pre class=\"mermaid\">{_ssot_html_escape(content)}</pre>"
+        body = (
+            "<pre class=\"mermaid-source\"><code>"
+            f"{_ssot_html_escape(content)}"
+            "</code></pre>"
+        )
     else:
         try:
             import markdown as _cbmod  # type: ignore
@@ -2935,6 +2942,7 @@ def _ssot_to_html(md_text: str, ip: str, data: dict | None = None) -> str:
         ".wave-cell.low { background: #f8fafc; border-bottom: 3px solid #64748b; } "
         ".wave-cell.mark { background: #fff7d6; } "
         ".mermaid { margin: .6em 0 .9em; } "
+        ".mermaid-source { margin: .6em 0 .9em; white-space: pre-wrap; overflow-wrap: anywhere; } "
         "@media (min-width: 920px) { .cycle-flow { display: flex; overflow-x: auto; padding-bottom: .2em; } "
         ".cycle-stage { flex: 1 0 190px; } .cycle-arrow { display: inline-flex; align-items: center; color: #64748b; font-weight: 900; } } "
         "@media (max-width: 760px) { .block-graph { grid-template-columns: 1fr; gap: .8em; } "
@@ -2947,23 +2955,13 @@ def _ssot_to_html(md_text: str, ip: str, data: dict | None = None) -> str:
         ".wave-table { table-layout: auto; } }"
     )
     safe_ip = str(ip).replace("<", "&lt;").replace(">", "&gt;")
-    design_views = _ssot_html_design_views(data, ip) if isinstance(data, dict) else ""
 
-    # (a) Place the block diagram directly under the Top Module section.
     if isinstance(data, dict):
-        block_diagram = _ssot_html_block_diagram(data)
-        html_body = _ssot_html_insert_after_top_module(html_body, block_diagram)
-        # (b) Replace dense markdown tables for behavioral sections with
-        # structured cards that keep transaction/cycle semantics readable.
-        function_model_html = _ssot_html_function_model(data)
-        html_body = _ssot_html_insert_after_section(html_body, "Function Model", function_model_html)
-        cycle_model_html = _ssot_html_cycle_model(data)
-        html_body = _ssot_html_insert_after_section(html_body, "Cycle Model", cycle_model_html)
-        # (c) Replace the plain markdown "Registers" section body with the
+        # Replace the plain markdown "Registers" section body with the
         # rich register-map tables (per-register props + bit-field tables).
         registers_html = _ssot_html_registers(data)
         html_body = _ssot_html_insert_after_section(html_body, "Registers", registers_html)
-        # (d) Custom blocks: inject user-authored content (markdown / mermaid /
+        # Custom blocks: inject user-authored content (markdown / mermaid /
         # html; inline or file ref) after its anchor section. Source lives in
         # SSOT (data["custom_blocks"]) so it survives regeneration.
         if isinstance(data.get("custom_blocks"), list):
@@ -2972,7 +2970,7 @@ def _ssot_to_html(md_text: str, ip: str, data: dict | None = None) -> str:
                 if _cb:
                     html_body = _ssot_html_insert_after_section(html_body, _label, _cb)
 
-    mermaid_head = _ssot_html_mermaid_runtime()
+    mermaid_head = _ssot_html_mermaid_runtime() if 'class="mermaid"' in html_body else ""
     return (
         "<!DOCTYPE html>\n"
         "<html><head><meta charset=\"utf-8\">"
@@ -2980,7 +2978,6 @@ def _ssot_to_html(md_text: str, ip: str, data: dict | None = None) -> str:
         f"<style>{css}</style>"
         f"{mermaid_head}</head><body>"
         f"{html_body}"
-        f"{design_views}"
         "</body></html>"
     )
 

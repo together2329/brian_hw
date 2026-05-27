@@ -94,30 +94,23 @@ def test_render_html(tmp_path, monkeypatch, ip):
     assert "<h1" in html and f">{ip}</h1>" in html, "h1 tag with ip name missing"
     assert "<table>" in html, "expected at least one table"
 
-    # FSM uses native HTML transition maps so long labels do not clip in the
-    # DOC iframe/export context.
+    # Complex diagram-like sections stay as raw source until a renderer is
+    # stable enough to avoid clipping/truncation in the DOC iframe.
     assert "fsm" in data, f"sample {ip} unexpectedly lacks an fsm section"
-    assert "fsm-flow-map" in html, "FSM transition map missing from html"
-    assert "stateDiagram" not in html, "FSM should not rely on Mermaid stateDiagram"
-    # Mermaid runtime remains wired for custom_blocks that declare mermaid.
-    assert "/vendor/mermaid.min.js" in html, "mermaid script not injected"
-    assert "../../vendor/mermaid.min.js" in html, "prefix-safe mermaid path not injected"
-    assert "mermaid.initialize" in html, "mermaid init script not injected"
-    assert "startOnLoad:false" in html, "mermaid should be rendered explicitly"
-    assert "mermaid.run" in html, "mermaid run hook not injected"
-    assert "window.__ssotRenderMermaid" in html, "mermaid render hook not injected"
+    assert "fsm-flow-map" not in html
+    assert "stateDiagram" not in html
+    assert "/vendor/mermaid.min.js" not in html
+    assert "window.__ssotRenderMermaid" not in html
+    assert "<pre><code class=\"language-yaml\">" in html
 
-    # Block diagram must appear AFTER the Top Module heading, not before it.
+    # Block diagrams were too easy to render as clipped/broken approximations;
+    # the DOC export prefers the source contract over misleading graphics.
     import re as _re
 
     top_match = _re.search(r"<h2\b[^>]*>\s*Top Module\s*</h2>", html, _re.IGNORECASE)
     assert top_match, "Top Module heading missing from html"
-    block_idx = html.find("<h3>Block Diagram</h3>")
-    assert block_idx != -1, "Block Diagram section missing from html"
-    assert block_idx > top_match.start(), "Block Diagram must be placed after Top Module heading"
-    next_h2 = _re.search(r"<h2\b", html[top_match.end():], _re.IGNORECASE)
-    assert next_h2, "expected another h2 after Top Module"
-    assert block_idx < top_match.end() + next_h2.start(), "Block Diagram must stay inside Top Module section"
+    assert "<h3>Block Diagram</h3>" not in html
+    assert "<h2>Design Views</h2>" not in html
 
 
 def test_block_diagram_renders_interfaces_as_arrow_lanes():
@@ -284,12 +277,15 @@ def test_html_datasheet_uses_readable_cards_for_behavior_models():
     md = atlas_ui._ssot_to_markdown(data, "demo")
     html = atlas_ui._ssot_to_html(md, "demo", data)
 
-    assert "transaction-card" in html
-    assert "transaction-grid" in html
-    assert "cycle-flow" in html
-    assert "cycle-stage" in html
-    assert "fsm-flow-map" in html
-    assert "<th>Output Rules</th>" not in html
+    assert "transaction-card" not in html
+    assert "transaction-grid" not in html
+    assert "cycle-flow" not in html
+    assert "cycle-stage" not in html
+    assert "fsm-flow-map" not in html
+    assert "MM2S_TRANSFER" in html
+    assert "output_rules:" in html
+    assert "pipeline:" in html
+    assert "reset_state: S2MM_IDLE" in html
     assert "stateDiagram-v2" not in html
 
 
@@ -316,8 +312,10 @@ def test_custom_blocks_render_after_anchor_sections(tmp_path, monkeypatch):
     # markdown block rendered and placed after the Top Module heading.
     assert "<strong>bold</strong>" in html
     assert html.find("Top Module") < html.find("Arch note")
-    # mermaid FILE embedded as a mermaid block after the Registers section.
-    assert 'class="mermaid"' in html and "stateDiagram-v2" in html
+    # mermaid FILE is shown as raw source, not auto-rendered into a fragile SVG.
+    assert 'class="mermaid-source"' in html and "stateDiagram-v2" in html
+    assert 'class="mermaid"' not in html
+    assert "../../vendor/mermaid.min.js" not in html
     assert html.find("Registers") < html.find("Flow")
     # path traversal (../) is rejected -> "not found", never embedded.
     assert "not found" in html

@@ -1,14 +1,4 @@
 `timescale 1ns/1ps
-// uart_fifo_sync.sv — small single-clock FIFO for APB UART TX/RX buffering.
-//
-// Semantics:
-// - push is accepted when FIFO is not full, or when full and a valid pop occurs
-//   in the same cycle.
-// - pop is accepted only when FIFO is not empty.
-// - push+pop on an empty FIFO records underflow_pulse for the invalid pop and
-//   still accepts the push; the newly pushed byte is visible on later cycles.
-// - push+pop on a full FIFO preserves full level, returns the oldest byte, and
-//   enqueues the new byte at the tail.
 module uart_fifo_sync #(
   parameter integer DATA_WIDTH  = 8,
   parameter integer DEPTH       = 4,
@@ -18,11 +8,9 @@ module uart_fifo_sync #(
   input  logic                    clk,
   input  logic                    reset_n,
   input  logic                    clear,
-
   input  logic                    push,
   input  logic [DATA_WIDTH-1:0]   push_data,
   input  logic                    pop,
-
   output logic [DATA_WIDTH-1:0]   pop_data,
   output logic                    fifo_full,
   output logic                    fifo_empty,
