@@ -4,6 +4,9 @@ import json
 import shlex
 import sys
 import re
+import threading
+from contextlib import contextmanager
+from pathlib import Path
 
 # Robust library path discovery
 try:
@@ -53,6 +56,40 @@ def _tool_cfg(attr: str, default: int) -> int:
     """Read a tool limit from the live config module."""
     cfg = sys.modules.get('config') or sys.modules.get('src.config')
     return int(getattr(cfg, attr, default))
+
+
+_TODO_RUNTIME = threading.local()
+
+
+def _paths_match(left, right) -> bool:
+    if left is None or right is None:
+        return False
+    try:
+        return Path(left).expanduser().resolve(strict=False) == Path(right).expanduser().resolve(strict=False)
+    except Exception:
+        return str(left) == str(right)
+
+
+@contextmanager
+def scoped_todo_runtime(todo_tracker=None, todo_file=None):
+    """Bind todo tools to a per-run tracker without mutating process globals."""
+    had_tracker = hasattr(_TODO_RUNTIME, "todo_tracker")
+    had_file = hasattr(_TODO_RUNTIME, "todo_file")
+    old_tracker = getattr(_TODO_RUNTIME, "todo_tracker", None)
+    old_file = getattr(_TODO_RUNTIME, "todo_file", None)
+    try:
+        _TODO_RUNTIME.todo_tracker = todo_tracker
+        _TODO_RUNTIME.todo_file = Path(todo_file) if todo_file else None
+        yield
+    finally:
+        if had_tracker:
+            _TODO_RUNTIME.todo_tracker = old_tracker
+        elif hasattr(_TODO_RUNTIME, "todo_tracker"):
+            delattr(_TODO_RUNTIME, "todo_tracker")
+        if had_file:
+            _TODO_RUNTIME.todo_file = old_file
+        elif hasattr(_TODO_RUNTIME, "todo_file"):
+            delattr(_TODO_RUNTIME, "todo_file")
 
 
 _IP_SUBDIRS = frozenset({
@@ -3142,18 +3179,46 @@ def _sync_subagent_todo(output: str):
 def _get_todo_tracker():
     """Helper to lazily load and return the global TodoTracker instance."""
     try:
-        import sys
-        main_module = sys.modules.get('main')
-        if main_module is None:
-            import main as main_module
+        from lib.todo_tracker import TodoTracker
+        import config as _cfg
 
-        if not hasattr(main_module, 'todo_tracker') or main_module.todo_tracker is None:
-            from lib.todo_tracker import TodoTracker
-            from pathlib import Path
-            import config as _cfg
-            main_module.todo_tracker = TodoTracker.load(Path(_cfg.TODO_FILE))
+        override_tracker = getattr(_TODO_RUNTIME, "todo_tracker", None)
+        override_file = getattr(_TODO_RUNTIME, "todo_file", None)
+        desired_path = Path(override_file or getattr(_cfg, "TODO_FILE", "current_todos.json"))
 
-        return main_module.todo_tracker
+        modules = [
+            sys.modules.get("main"),
+            sys.modules.get("src.main"),
+            sys.modules.get("__main__"),
+        ]
+        modules = [m for m in modules if m is not None and hasattr(m, "todo_tracker")]
+
+        if override_tracker is not None:
+            if override_file is None or _paths_match(getattr(override_tracker, "_persist_path", None), desired_path):
+                for module in modules:
+                    module.todo_tracker = override_tracker
+                return override_tracker
+
+        for module in modules:
+            tracker = getattr(module, "todo_tracker", None)
+            if tracker is not None and _paths_match(getattr(tracker, "_persist_path", None), desired_path):
+                return tracker
+
+        tracker = TodoTracker.load(desired_path)
+        if modules:
+            for module in modules:
+                module.todo_tracker = tracker
+        else:
+            try:
+                import src.main as main_module
+            except Exception:
+                try:
+                    import main as main_module
+                except Exception:
+                    main_module = None
+            if main_module is not None:
+                main_module.todo_tracker = tracker
+        return tracker
     except Exception:
         # Silently fail if tracker cannot be accessed
         return None

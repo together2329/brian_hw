@@ -554,16 +554,36 @@ def run_react_agent_impl(
     # like _tools_since_in_progress (gate check counter).
     if getattr(cfg, "ENABLE_TODO_TRACKING", False):
         try:
-            import sys as _sys
-            _main_mod = _sys.modules.get('main')
-            if _main_mod and hasattr(_main_mod, 'todo_tracker') and _main_mod.todo_tracker is not None:
-                todo_tracker = _main_mod.todo_tracker
+            from pathlib import Path
+            desired_todo_path = Path(getattr(cfg, "TODO_FILE", "current_todos.json"))
+
+            def _same_todo_path(path_like) -> bool:
+                try:
+                    return Path(path_like).expanduser().resolve(strict=False) == desired_todo_path.expanduser().resolve(strict=False)
+                except Exception:
+                    return str(path_like) == str(desired_todo_path)
+
+            modules = [
+                sys.modules.get("main"),
+                sys.modules.get("src.main"),
+                sys.modules.get("__main__"),
+            ]
+            modules = [m for m in modules if m is not None and hasattr(m, "todo_tracker")]
+            selected_tracker = None
+            if todo_tracker is not None and _same_todo_path(getattr(todo_tracker, "_persist_path", None)):
+                selected_tracker = todo_tracker
             else:
+                for _module in modules:
+                    candidate = getattr(_module, "todo_tracker", None)
+                    if candidate is not None and _same_todo_path(getattr(candidate, "_persist_path", None)):
+                        selected_tracker = candidate
+                        break
+            if selected_tracker is None:
                 from lib.todo_tracker import TodoTracker
-                from pathlib import Path
-                todo_tracker = TodoTracker.load(Path(cfg.TODO_FILE))
-                if _main_mod:
-                    _main_mod.todo_tracker = todo_tracker
+                selected_tracker = TodoTracker.load(desired_todo_path)
+            for _module in modules:
+                _module.todo_tracker = selected_tracker
+            todo_tracker = selected_tracker
         except Exception:
             todo_tracker = None
     else:

@@ -946,7 +946,7 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
         from core.prompt_builder import PromptContext, apply_memory_override, build_system_prompt
         from core.observation_processor import process_observation
         from core.action_parser import _strip_native_tool_tokens, _strip_thinking_tags
-        from core.tools import AVAILABLE_TOOLS, filtered_available_tools
+        from core.tools import AVAILABLE_TOOLS, filtered_available_tools, scoped_todo_runtime
         from core.tool_dispatcher import dispatch_tool as _dispatch_tool
         from core.parallel_executor import execute_actions_parallel as _execute_actions_parallel_impl
         from core.custom_agents import parse_allowed_tools
@@ -1360,12 +1360,16 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
 
         # ── Execute tool wrapper (bake in AVAILABLE_TOOLS like main.py does) ──
         def _execute_tool_fn(tool_name, args_str="", *, pre_parsed_kwargs=None):
-            return _dispatch_tool(
-                tool_name, args_str,
-                pre_parsed_kwargs=pre_parsed_kwargs,
-                available_tools=effective_available_tools,
-                global_timeout=int(os.getenv("AGENT_SERVER_TOOL_TIMEOUT", "300")),
-            )
+            with scoped_todo_runtime(
+                run_todo_tracker,
+                session_overrides.get("TODO_FILE"),
+            ):
+                return _dispatch_tool(
+                    tool_name, args_str,
+                    pre_parsed_kwargs=pre_parsed_kwargs,
+                    available_tools=effective_available_tools,
+                    global_timeout=int(os.getenv("AGENT_SERVER_TOOL_TIMEOUT", "300")),
+                )
 
         def _execute_parallel_fn(actions, tracker, agent_mode="normal"):
             return _execute_actions_parallel_impl(
