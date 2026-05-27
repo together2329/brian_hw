@@ -238,7 +238,7 @@
       "SC_RX_FALSE_START"
     ]
   },
-  "generated_at": "2026-05-27T01:17:25Z",
+  "generated_at": "2026-05-27T03:39:54Z",
   "ip": "apb_uart_txrx_demo",
   "schema_version": "directed_coverage.v3",
   "scoreboard": {
