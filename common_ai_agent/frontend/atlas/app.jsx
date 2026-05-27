@@ -1644,9 +1644,9 @@ const App = () => {
       // Explicit ?view=pipeline / ?view=architect still honored so
       // deep links keep working. Without URL context, land on Workspace
       // Chat instead of restoring dashboard/pipeline from a prior visit.
-      if (urlView === 'dashboard' || urlView === 'workspace' || urlView === 'pipeline' || urlView === 'architect') return urlView;
+      if (urlView === 'dashboard' || urlView === 'workspace' || urlView === 'pipeline' || urlView === 'architect' || urlView === 'guide') return urlView;
       const saved = localStorage.atlasScreen;
-      if (hasUrlContext && (saved === 'dashboard' || saved === 'workspace' || saved === 'pipeline' || saved === 'architect')) return saved;
+      if (hasUrlContext && (saved === 'dashboard' || saved === 'workspace' || saved === 'pipeline' || saved === 'architect' || saved === 'guide')) return saved;
       return 'workspace';
     } catch (_) { return 'workspace'; }
   });
@@ -2246,6 +2246,9 @@ const App = () => {
         <button className={`dir-btn ${screen === 'architect' ? 'active' : ''}`}
                 title="SoC structure · per-module status grid · block diagram (rich progress view)"
                 onClick={() => setScreen('architect')}>◇ Architect</button>
+        <button className={`dir-btn ${screen === 'guide' ? 'active' : ''}`}
+                title="How to use ATLAS · default mode + per-workflow capabilities"
+                onClick={() => setScreen('guide')}>📖 Guide</button>
         <label className="dir-select-wrap run-policy">
           <span>run</span>
           <select
@@ -2323,7 +2326,9 @@ const App = () => {
             : screen === 'pipeline' && window.AtlasPipeline
             ? <ErrorBoundary label="Pipeline"><window.AtlasPipeline /></ErrorBoundary>
             : screen === 'architect' && window.SocArchitect
-              ? <ErrorBoundary label="Architect"><window.SocArchitect /></ErrorBoundary>
+              ? <ErrorBoundary label="Architect"><window.SocArchitect ipOptions={ipOptions} activeIp={activeIp} /></ErrorBoundary>
+            : screen === 'guide' && window.AtlasGuide
+              ? <ErrorBoundary label="Guide"><window.AtlasGuide /></ErrorBoundary>
               : <ErrorBoundary label="Workspace"><Workspace dir={dir} uiLang={uiLang} activeNamespace={activeNamespace} activeWorkflow={currentWorkflow()} /></ErrorBoundary>}
         </div>
         {/* App-level StatusBar removed — model / tokens / iter / rate /

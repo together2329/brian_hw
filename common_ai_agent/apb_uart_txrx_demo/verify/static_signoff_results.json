@@ -1,27 +1,35 @@
 {
-  "schema_version": "static_signoff.v2",
-  "ip": "apb_uart_txrx_demo",
   "checks": {
-    "ssot_validation": "PASS: verify_ssot starter blockers=0 warnings=canonical_order",
-    "iverilog_directed_compile": "PASS after decomposition",
-    "iverilog_random_compile": "PASS after decomposition",
-    "verilator_lint": "PASS status 0 after decomposition",
-    "yosys_check": "PASS status 0 after decomposition",
-    "ports_present": true,
-    "offsets_present": true,
-    "reset_constants_present": true,
     "artifacts_readable": true,
+    "coverage_pass": true,
     "decomposed_modules_present": true,
-    "filelist_decomposed": true,
     "directed_pass": true,
-    "random_pass": true
+    "filelist_decomposed": true,
+    "iverilog_directed_compile": "PASS: verify/static_directed_compile.vvp built",
+    "iverilog_random_compile": "PASS: verify/static_random_compile.vvp built",
+    "offsets_present": true,
+    "ports_present": true,
+    "random_pass": true,
+    "reset_constants_present": true,
+    "ssot_validation": "PASS: verify_ssot starter blockers=0 warnings=canonical_order",
+    "sv_compile": "PASS: pyslang sv_compile over decomposed RTL returned no issues",
+    "verilator_lint": "PASS: verify/verilator_lint.log status 0 warnings=0",
+    "waveform_pass": true
   },
+  "generated_at": "2026-05-26T23:59:49Z",
+  "ip": "apb_uart_txrx_demo",
+  "missing_artifacts": [],
+  "schema_version": "static_signoff.v3",
+  "status": "pass",
+  "verilator_warning_count": 0,
+  "verilator_warnings": [],
   "waivers": [
     {
-      "tool": "pyslang sv_compile combined TB+DUT",
-      "issue": "reported stale unique-case/time-scale warnings after source repair in multi-file invocation; single RTL compile has 0 errors and iverilog/verilator pass",
-      "rationale": "Ground-truth grep shows no `unique case`; RTL has `timescale`; executable simulator and Verilator pass."
+      "id": "ssot.canonical_order",
+      "message": "Canonical sections are present but not in the standard order.",
+      "path": "$",
+      "rationale": "Non-semantic starter-mode ordering warning; blockers=0 and check_ssot_disk PASS.",
+      "severity": "warning"
     }
-  ],
-  "status": "pass"
+  ]
 }

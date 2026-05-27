@@ -11185,6 +11185,71 @@ def create_app():
         )
         return msg
 
+    @contextlib.contextmanager
+    def _scoped_slash_session_config(active_slash_session: str):
+        """Bind generic slash commands to the active Atlas session files."""
+        if not active_slash_session:
+            yield
+            return
+        import importlib as _importlib
+        import sys as _sys
+
+        cfg_modules = []
+        old_cfg_values: list[tuple[Any, str, bool, Any]] = []
+        old_tt_todo_file: tuple[bool, Any] | None = None
+        try:
+            for cfg_name in ("config", "src.config"):
+                try:
+                    cfg_mod = _importlib.import_module(cfg_name)
+                except Exception:
+                    cfg_mod = _sys.modules.get(cfg_name)
+                if cfg_mod is not None and all(cfg_mod is not m for m in cfg_modules):
+                    cfg_modules.append(cfg_mod)
+            session_dir = PROJECT_ROOT / ".session" / active_slash_session
+            session_dir.mkdir(parents=True, exist_ok=True)
+            session_cfg = {
+                "TODO_FILE": str(session_dir / "todo.json"),
+                "TODO_ERROR_FILE": str(session_dir / "todo_error.json"),
+                "SESSION_DIR": str(session_dir),
+                "ACTIVE_PROJECT": active_slash_session,
+                "ATLAS_ACTIVE_SESSION": active_slash_session,
+            }
+            for cfg_mod in cfg_modules:
+                for key, value in session_cfg.items():
+                    had = hasattr(cfg_mod, key)
+                    old = getattr(cfg_mod, key, None)
+                    old_cfg_values.append((cfg_mod, key, had, old))
+                    setattr(cfg_mod, key, value)
+            try:
+                import lib.todo_tracker as slash_tt
+                old_tt_todo_file = (
+                    hasattr(slash_tt, "TODO_FILE"),
+                    getattr(slash_tt, "TODO_FILE", None),
+                )
+                slash_tt.TODO_FILE = session_dir / "todo.json"
+            except Exception:
+                old_tt_todo_file = None
+            yield
+        finally:
+            if old_tt_todo_file is not None:
+                try:
+                    import lib.todo_tracker as slash_tt
+                    had_tt, old_tt = old_tt_todo_file
+                    if had_tt:
+                        slash_tt.TODO_FILE = old_tt
+                    else:
+                        delattr(slash_tt, "TODO_FILE")
+                except Exception:
+                    pass
+            for cfg_mod, key, had, old in reversed(old_cfg_values):
+                try:
+                    if had:
+                        setattr(cfg_mod, key, old)
+                    else:
+                        delattr(cfg_mod, key)
+                except Exception:
+                    pass
+
     def _execute_generic_slash_command(text: str, client_session: Any) -> bool:
         """Run non-ATLAS slash commands immediately on the command plane."""
         raw = (text or "").strip()
@@ -11196,13 +11261,15 @@ def create_app():
             try:
                 from core.slash_commands import get_registry as _get_slash_registry
                 _old_memory_user = os.environ.get("ATLAS_MEMORY_USER")
-                _owner_for_memory = normalize_session_name(
+                active_slash_session = normalize_session_name(
                     str(getattr(client_session, "session_id", "") or "")
-                ).split("/", 1)[0]
+                )
+                _owner_for_memory = active_slash_session.split("/", 1)[0]
                 if _owner_for_memory:
                     os.environ["ATLAS_MEMORY_USER"] = _owner_for_memory
                 try:
-                    result = _get_slash_registry().execute(raw)
+                    with _scoped_slash_session_config(active_slash_session):
+                        result = _get_slash_registry().execute(raw)
                 finally:
                     if _old_memory_user is None:
                         os.environ.pop("ATLAS_MEMORY_USER", None)

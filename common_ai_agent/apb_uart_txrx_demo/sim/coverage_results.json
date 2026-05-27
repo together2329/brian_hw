@@ -1,0 +1,225 @@
+{
+  "coverage_bins": [
+    {
+      "evidence": "12 SCENARIO_START rows in scoreboard_events.csv",
+      "hit": true,
+      "name": "directed_scenarios_all_12",
+      "required": true,
+      "waived": false
+    },
+    {
+      "evidence": "CTRL_RESET scoreboard row",
+      "hit": true,
+      "name": "apb_ctrl_reset",
+      "required": true,
+      "waived": false
+    },
+    {
+      "evidence": "STATUS_RESET scoreboard row",
+      "hit": true,
+      "name": "apb_status_reset",
+      "required": true,
+      "waived": false
+    },
+    {
+      "evidence": "BAUD_RESET scoreboard row",
+      "hit": true,
+      "name": "apb_baud_reset",
+      "required": true,
+      "waived": false
+    },
+    {
+      "evidence": "CTRL_MASK scoreboard row",
+      "hit": true,
+      "name": "apb_ctrl_reserved_mask",
+      "required": true,
+      "waived": false
+    },
+    {
+      "evidence": "BAUD_ZERO_COERCE scoreboard row",
+      "hit": true,
+      "name": "apb_baud_zero_coerce_min",
+      "required": true,
+      "waived": false
+    },
+    {
+      "evidence": "INVALID_WRITE_ERR scoreboard row",
+      "hit": true,
+      "name": "apb_invalid_write_error",
+      "required": true,
+      "waived": false
+    },
+    {
+      "evidence": "INVALID_READ_ERR scoreboard row",
+      "hit": true,
+      "name": "apb_invalid_read_error",
+      "required": true,
+      "waived": false
+    },
+    {
+      "evidence": "TX_DECODE_A5 scoreboard row",
+      "hit": true,
+      "name": "tx_one_byte_a5_decode",
+      "required": true,
+      "waived": false
+    },
+    {
+      "evidence": "TX_B2B_FIRST scoreboard row",
+      "hit": true,
+      "name": "tx_back_to_back_zero",
+      "required": true,
+      "waived": false
+    },
+    {
+      "evidence": "TX_B2B_SECOND scoreboard row",
+      "hit": true,
+      "name": "tx_back_to_back_ff",
+      "required": true,
+      "waived": false
+    },
+    {
+      "evidence": "TX_IRQ_ASSERT scoreboard row",
+      "hit": true,
+      "name": "tx_irq_assert",
+      "required": true,
+      "waived": false
+    },
+    {
+      "evidence": "TX_IRQ_CLEAR scoreboard row",
+      "hit": true,
+      "name": "tx_irq_clear",
+      "required": true,
+      "waived": false
+    },
+    {
+      "evidence": "RX_VALID_SET scoreboard row",
+      "hit": true,
+      "name": "rx_one_byte_valid_set",
+      "required": true,
+      "waived": false
+    },
+    {
+      "evidence": "RX_DATA_3C scoreboard row",
+      "hit": true,
+      "name": "rx_one_byte_data_3c",
+      "required": true,
+      "waived": false
+    },
+    {
+      "evidence": "RX_VALID_CLEAR scoreboard row",
+      "hit": true,
+      "name": "rx_valid_clear_on_read",
+      "required": true,
+      "waived": false
+    },
+    {
+      "evidence": "RX_B2B_FIRST scoreboard row",
+      "hit": true,
+      "name": "rx_back_to_back_zero",
+      "required": true,
+      "waived": false
+    },
+    {
+      "evidence": "RX_B2B_SECOND scoreboard row",
+      "hit": true,
+      "name": "rx_back_to_back_ff",
+      "required": true,
+      "waived": false
+    },
+    {
+      "evidence": "FRAME_ERR_STATUS scoreboard row",
+      "hit": true,
+      "name": "rx_framing_error_status",
+      "required": true,
+      "waived": false
+    },
+    {
+      "evidence": "ERR_IRQ_FRAME scoreboard row",
+      "hit": true,
+      "name": "rx_error_irq_frame",
+      "required": true,
+      "waived": false
+    },
+    {
+      "evidence": "OVERRUN_STATUS scoreboard row",
+      "hit": true,
+      "name": "rx_overrun_status",
+      "required": true,
+      "waived": false
+    },
+    {
+      "evidence": "OVERRUN_PRESERVE scoreboard row",
+      "hit": true,
+      "name": "rx_overrun_preserve_old_data",
+      "required": true,
+      "waived": false
+    },
+    {
+      "evidence": "RX_IRQ_ASSERT and RX_IRQ_CLEAR scoreboard rows",
+      "hit": true,
+      "name": "rx_irq_assert_clear",
+      "required": true,
+      "waived": false
+    },
+    {
+      "evidence": "TX_BAUD8 and RX_BAUD8 scoreboard rows",
+      "hit": true,
+      "name": "baud_alt8_tx_rx",
+      "required": true,
+      "waived": false
+    }
+  ],
+  "directed_scenarios": {
+    "hit": [
+      "SC_APB_INVALID",
+      "SC_APB_RESET",
+      "SC_APB_RW",
+      "SC_BAUD_VARIANTS",
+      "SC_RX_BACK_TO_BACK",
+      "SC_RX_FRAMING_ERROR",
+      "SC_RX_IRQ",
+      "SC_RX_ONE_BYTE",
+      "SC_RX_OVERRUN",
+      "SC_TX_BACK_TO_BACK",
+      "SC_TX_IRQ",
+      "SC_TX_ONE_BYTE"
+    ],
+    "required": [
+      "SC_APB_RESET",
+      "SC_APB_RW",
+      "SC_APB_INVALID",
+      "SC_TX_ONE_BYTE",
+      "SC_TX_BACK_TO_BACK",
+      "SC_TX_IRQ",
+      "SC_RX_ONE_BYTE",
+      "SC_RX_BACK_TO_BACK",
+      "SC_RX_FRAMING_ERROR",
+      "SC_RX_OVERRUN",
+      "SC_RX_IRQ",
+      "SC_BAUD_VARIANTS"
+    ]
+  },
+  "generated_at": "2026-05-26T23:59:49Z",
+  "ip": "apb_uart_txrx_demo",
+  "schema_version": "directed_coverage.v3",
+  "scoreboard": {
+    "passed": true,
+    "scenario_count": 12,
+    "scoreboard_fail": 0,
+    "scoreboard_pass": 30
+  },
+  "source_artifacts": [
+    "sim/sim.log",
+    "sim/sim_results.json",
+    "sim/scoreboard_events.csv",
+    "sim/waves/apb_uart_txrx_demo.vcd"
+  ],
+  "summary": {
+    "effective_coverage_pct": 100.0,
+    "hit_bins": 24,
+    "missed_bins": 0,
+    "signoff_status": "pass",
+    "total_bins": 24,
+    "waived_bins": 0
+  }
+}

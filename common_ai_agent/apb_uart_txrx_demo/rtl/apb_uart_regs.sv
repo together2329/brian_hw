@@ -56,6 +56,7 @@ module apb_uart_regs #(
   endfunction
 
   wire unsupported = write_xfer && ((addr8 == A_RXDATA) || ((addr8 == A_TXDATA) && tx_busy));
+  wire _unused_pwdata_upper = |pwdata[31:BAUD_DIV_WIDTH];
 
   assign pready = 1'b1;
   assign pslverr = access && (!valid_addr(addr8) || unsupported);

@@ -1137,9 +1137,17 @@ window.ModuleProgressPanel = function ModuleProgressPanel({ module }) {
 // Pulls `/api/soc` and folds the response into a SOC-shaped object
 // the renderers expect. Falls back to the bundled mock if the
 // endpoint is unavailable or returns no clusters.
-function _fetchLiveSoc() {
-  const scoped = String(window.SCOPE_PATH || '').replace(/^\/+|\/+$/g, '');
-  const url = scoped ? `/api/soc?scope=${encodeURIComponent(scoped)}` : '/api/soc';
+function _fetchLiveSoc(ipName) {
+  // Scope to a single IP when the landing grid opens one (`?ip=<name>` →
+  // backend returns just that IP's modules). Otherwise honor any global
+  // SCOPE_PATH the Workspace screen set (`?scope=<path>`).
+  let url = '/api/soc';
+  if (ipName) {
+    url = `/api/soc?ip=${encodeURIComponent(ipName)}`;
+  } else {
+    const scoped = String(window.SCOPE_PATH || '').replace(/^\/+|\/+$/g, '');
+    if (scoped) url = `/api/soc?scope=${encodeURIComponent(scoped)}`;
+  }
   return fetch(url).then(r => {
     if (!r.ok) throw new Error('soc fetch failed');
     return r.json();
@@ -1194,9 +1202,115 @@ function _buildLookup(soc) {
   return lk;
 }
 
+// Empty, shape-valid SoC used when no IP is selected (landing grid) or while
+// a selected IP's `/api/soc` fetch is in flight. Replaces the old aurora_soc
+// mock fallback so the demo SoC never renders for a real user.
+const EMPTY_SOC = { name: '', version: '', clusters: [], busses: [], addrMap: [] };
+
+// ── ArchitectMyIps — landing card grid of the logged-in user's IPs ──
+// The Architect no longer opens on a mock SoC. It opens on the user's own
+// IPs (owner-scoped via `/api/ip/list`, which falls back to the auth cookie's
+// user when no session_id is passed). Clicking a card opens that IP's real
+// SoC diagram. `ips` (name strings from app.jsx ipOptions) seeds an instant
+// paint; the fetch then enriches each card with SSOT/workflow/mtime status.
+function ArchitectMyIps({ ips, activeIp, onOpen }) {
+  const [rows, setRows] = React.useState(null);
+  React.useEffect(() => {
+    let cancelled = false;
+    fetch('/api/ip/list', { cache: 'no-store' })
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => { if (!cancelled && d && Array.isArray(d.items)) setRows(d.items); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  const seed = (Array.isArray(ips) ? ips : [])
+    .map(n => (typeof n === 'string' ? { name: n } : n))
+    .filter(x => x && x.name && x.name !== 'default');
+  const list = (rows && rows.length) ? rows.filter(r => r && r.name && r.name !== 'default') : seed;
+
+  const fmtAgo = (mt) => {
+    const t = Number(mt) || 0;
+    if (!t) return '';
+    const secs = Math.max(0, Date.now() / 1000 - t);
+    if (secs < 90) return 'just now';
+    if (secs < 3600) return `${Math.round(secs / 60)}m ago`;
+    if (secs < 86400) return `${Math.round(secs / 3600)}h ago`;
+    return `${Math.round(secs / 86400)}d ago`;
+  };
+
+  if (!list.length) {
+    return (
+      <div className="arch-screen" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center', color: 'var(--fg-mute)' }}>
+          <div style={{ fontSize: 34, marginBottom: 10, opacity: 0.6 }}>◇</div>
+          <div style={{ fontSize: 15, color: 'var(--fg)', marginBottom: 4 }}>아직 IP가 없습니다</div>
+          <div style={{ fontSize: 12.5 }}>상단 <b>+</b> 또는 <code>/new-ip &lt;name&gt;</code> 로 첫 IP를 만드세요.</div>
+        </div>
+      </div>
+    );
+  }
+
+  const chip = { fontSize: 9, color: 'var(--fg-mute)', border: '1px solid var(--line)', padding: '1px 6px', borderRadius: 999 };
+  const badge = (ok) => ({
+    fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 999,
+    color: ok ? 'var(--bg)' : 'var(--fg-mute)',
+    background: ok ? 'var(--accent)' : 'transparent',
+    border: ok ? '1px solid var(--accent)' : '1px solid var(--line)',
+  });
+
+  return (
+    <div className="arch-screen" style={{ overflowY: 'auto', padding: '24px 28px' }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 16 }}>
+        <h2 style={{ margin: 0, fontSize: 16 }}>My IPs</h2>
+        <span style={{ color: 'var(--fg-mute)', fontSize: 12 }}>
+          {list.length} IP{list.length > 1 ? 's' : ''} · 카드를 클릭하면 SoC 다이어그램이 열립니다
+        </span>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
+        {list.map(ip => {
+          const isActive = ip.name === activeIp;
+          return (
+            <button key={ip.name} type="button" onClick={() => onOpen(ip.name)}
+              style={{
+                textAlign: 'left', cursor: 'pointer', font: 'inherit', color: 'var(--fg)',
+                background: 'color-mix(in oklch, var(--fg) 4%, transparent)',
+                border: `1px solid ${isActive ? 'var(--accent)' : 'var(--line)'}`,
+                borderRadius: 10, padding: '14px 16px',
+              }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontWeight: 700, fontSize: 14 }}>{ip.name}</span>
+                {isActive && (
+                  <span style={{ fontSize: 9, color: 'var(--bg)', background: 'var(--accent)', padding: '1px 6px', borderRadius: 999 }}>active</span>
+                )}
+              </div>
+              <div style={{ marginTop: 8, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                <span style={badge(!!ip.has_ssot)}>{ip.has_ssot ? 'SSOT ✓' : 'SSOT —'}</span>
+                {(Array.isArray(ip.workflows) ? ip.workflows : []).slice(0, 4).map(w => (
+                  <span key={w} style={chip}>{w}</span>
+                ))}
+              </div>
+              {ip.mtime ? (
+                <div style={{ marginTop: 8, fontSize: 11, color: 'var(--fg-mute)' }}>updated {fmtAgo(ip.mtime)}</div>
+              ) : null}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ── SocArchitect — the combined screen ──────────────────────────
-window.SocArchitect = function SocArchitect() {
+window.SocArchitect = function SocArchitect(props = {}) {
+  const ipList = (props.ipOptions && props.ipOptions.length ? props.ipOptions : window.IP_OPTIONS) || [];
   const [tab, setTab] = React.useState('diagram');
+  // Landing: '' = show the "My IPs" card grid; '<name>' = show that IP's SoC
+  // diagram (fetched via `/api/soc?ip=`). selectedIpRef keeps the current
+  // scope available to event-driven refreshes that pass no argument.
+  const [selectedIp, setSelectedIp] = React.useState('');
+  const selectedIpRef = React.useRef('');
+  React.useEffect(() => { selectedIpRef.current = selectedIp; }, [selectedIp]);
   const [view, setView] = React.useState('soc');           // 'soc' | 'cluster:<id>' | 'module:<ref>'
   const [socTopMode, setSocTopMode] = React.useState('if'); // 'if' = I/F only, 'detail' = show aux pins/addr
   const [diagramFocus, setDiagramFocus] = React.useState(false);
@@ -1407,8 +1521,8 @@ window.SocArchitect = function SocArchitect() {
   // useEffect/useMemo that references them — otherwise the deps
   // array hits a TDZ ReferenceError on the first call, the whole
   // component throws, and the screen unmounts.)
-  const soc = (live && live.clusters && live.clusters.length) ? live : window.SOC;
-  const lookup = (live && live.clusters && live.clusters.length) ? _buildLookup(live) : window.SOC_LOOKUP;
+  const soc = (live && live.clusters && live.clusters.length) ? live : EMPTY_SOC;
+  const lookup = (live && live.clusters && live.clusters.length) ? _buildLookup(live) : {};
   const isLive = !!(live && live.clusters && live.clusters.length);
   React.useEffect(() => {
     let cancelled = false;
@@ -1501,8 +1615,12 @@ window.SocArchitect = function SocArchitect() {
     ? `${soc.clusters[0].id}/${soc.clusters[0].modules[0].id}` : '';
   const [selMod, setSelMod] = React.useState(firstRef);
 
-  const refreshSoc = React.useCallback(() => {
-    return _fetchLiveSoc().then(d => {
+  const refreshSoc = React.useCallback((ipName) => {
+    // Event-driven refreshes (tool_result, agent actions) pass no argument →
+    // re-fetch the currently selected IP via the ref. An explicit name (from
+    // opening a card) scopes the fetch to that IP.
+    const target = (ipName === undefined || ipName === null) ? selectedIpRef.current : ipName;
+    return _fetchLiveSoc(target).then(d => {
       setLive(prev => {
         const next = d || prev || false;
         // Diff module refs: anything new gets marked touched. Also flag
@@ -1548,7 +1666,12 @@ window.SocArchitect = function SocArchitect() {
     });
   }, []);
 
-  React.useEffect(() => { refreshSoc(); }, [refreshSoc]);
+  // Fetch the selected IP's SoC when one is open; clear when back on the grid.
+  // (No selection → no unscoped project-wide walk; the grid drives its own data.)
+  React.useEffect(() => {
+    if (selectedIp) refreshSoc(selectedIp);
+    else setLive(null);
+  }, [selectedIp, refreshSoc]);
 
   // Scope-follow: when the user drills into a cluster or module on
   // the diagram, set the global agent scope to that IP's directory so
@@ -2634,11 +2757,28 @@ window.SocArchitect = function SocArchitect() {
     );
   }, []);
 
+  // Landing: no IP selected → show the user's own IPs as a card grid (not the
+  // diagram, and never the demo SoC). All hooks above have run, so this
+  // early return is safe under the rules of hooks.
+  if (!selectedIp) {
+    return (
+      <ArchitectMyIps
+        ips={ipList}
+        activeIp={props.activeIp}
+        onOpen={(name) => setSelectedIp(name)}
+      />
+    );
+  }
+
   return (
     <div className="arch-screen">
       {/* Run bar (scope · stage triggers · totals). Each stage button
           dispatches the matching backend workflow immediately. */}
       <div className="run-bar">
+        <div className="grp">
+          <button className="rb-btn" title="모든 IP 목록으로 돌아가기"
+                  onClick={() => { setSelectedIp(''); setLive(null); }}>← All IPs</button>
+        </div>
         <div className="grp">
           <button className="rb-btn primary"
                   disabled={!selModule}

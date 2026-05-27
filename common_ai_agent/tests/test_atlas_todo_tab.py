@@ -76,3 +76,13 @@ def test_atlas_ui_exposes_todo_crud_endpoints() -> None:
     # Source of truth is the local session todo.json, read-modify-write via TodoTracker
     assert "_sync_live_tracker_from_session" in atlas_ui
     assert "TodoTracker.load(session_todo)" in atlas_ui
+
+
+def test_web_slash_todo_uses_active_session_todo_file() -> None:
+    atlas_ui = (PROJECT_ROOT / "src" / "atlas_ui.py").read_text()
+
+    assert "active_slash_session = normalize_session_name" in atlas_ui
+    assert 'session_dir = PROJECT_ROOT / ".session" / active_slash_session' in atlas_ui
+    assert '"TODO_FILE": str(session_dir / "todo.json")' in atlas_ui
+    assert '"TODO_ERROR_FILE": str(session_dir / "todo_error.json")' in atlas_ui
+    assert 'slash_tt.TODO_FILE = session_dir / "todo.json"' in atlas_ui

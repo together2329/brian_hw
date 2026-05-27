@@ -24,7 +24,8 @@ module apb_uart_txrx_demo #(
   logic [7:0] tx_data;
   logic rx_valid, frame_err, overrun_err, irq_tx_done, irq_error, irq_pending;
   logic rx_valid_pulse, frame_err_pulse, overrun_err_pulse;
-  logic [7:0] rx_data, rx_data_hw;
+  logic [7:0] rx_data_hw;
+  logic [7:0] rx_data_unused;
 
   baud_div_eff #(.BAUD_DIV_WIDTH(BAUD_DIV_WIDTH)) u_baud_div_eff (
     .baud_div_reg(baud_div_reg),
@@ -102,7 +103,7 @@ module apb_uart_txrx_demo #(
     .tx_start(tx_start),
     .tx_data(tx_data),
     .rx_valid(rx_valid),
-    .rx_data(rx_data),
+    .rx_data(rx_data_unused),
     .frame_err(frame_err),
     .overrun_err(overrun_err),
     .irq_tx_done(irq_tx_done),
