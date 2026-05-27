@@ -4713,6 +4713,394 @@ class AtlasDB:
             sessions.append(item)
         return sessions
 
+    @staticmethod
+    def _nonempty_unique(values: List[Any]) -> List[str]:
+        seen: set[str] = set()
+        out: List[str] = []
+        for value in values:
+            text = str(value or "").strip()
+            if not text or text in seen:
+                continue
+            seen.add(text)
+            out.append(text)
+        return out
+
+    @staticmethod
+    def _delete_in_conn(
+        conn: sqlite3.Connection,
+        table: str,
+        column: str,
+        values: List[Any],
+    ) -> int:
+        vals = AtlasDB._nonempty_unique(values)
+        if not vals:
+            return 0
+        placeholders = ",".join("?" for _ in vals)
+        cursor = conn.execute(
+            f"DELETE FROM {table} WHERE {column} IN ({placeholders})",
+            tuple(vals),
+        )
+        return int(cursor.rowcount or 0)
+
+    @staticmethod
+    def _delete_raw_conn(
+        conn: sqlite3.Connection,
+        sql: str,
+        parameters: tuple = (),
+    ) -> int:
+        cursor = conn.execute(sql, parameters)
+        return int(cursor.rowcount or 0)
+
+    @staticmethod
+    def _rows_to_ids(rows: List[sqlite3.Row], key: str = "id") -> List[str]:
+        return AtlasDB._nonempty_unique([row[key] for row in rows if key in row.keys()])
+
+    def list_all_ip_pointers(self) -> List[Dict[str, Any]]:
+        """List Atlas DB IP metadata pointers. Does not inspect filesystem."""
+        rows = self._fetchall(
+            """
+            SELECT
+                i.id, i.workspace_id, i.ip_name, i.ip_type, i.ssot_path,
+                i.status, i.created_at, i.updated_at,
+                w.name AS workspace_name,
+                w.local_path AS workspace_path,
+                w.owner_user_id,
+                u.username AS owner_username,
+                (
+                    SELECT COUNT(*)
+                      FROM sessions s
+                     WHERE s.ip_id = i.id
+                        OR (s.workspace_id = i.workspace_id AND s.ip = i.ip_name)
+                ) AS session_count,
+                (
+                    SELECT COUNT(*)
+                      FROM ip_permissions p
+                     WHERE p.ip_id = i.id
+                ) AS permission_count,
+                (
+                    SELECT COUNT(*)
+                      FROM artifact_versions av
+                     WHERE av.ip_id = i.id
+                ) AS artifact_version_count,
+                (
+                    SELECT COUNT(*)
+                      FROM workflow_runs r
+                     WHERE r.ip_id = i.id
+                ) AS workflow_run_count
+            FROM ip_blocks i
+            LEFT JOIN workspaces w ON w.id = i.workspace_id
+            LEFT JOIN users u ON u.id = w.owner_user_id
+            ORDER BY i.updated_at DESC, i.created_at DESC, i.ip_name
+            """
+        )
+        return [dict(row) for row in rows]
+
+    def _delete_session_metadata_on_conn(
+        self,
+        conn: sqlite3.Connection,
+        session_ids: List[Any],
+    ) -> Dict[str, int]:
+        sessions = self._nonempty_unique(session_ids)
+        counts: Dict[str, int] = {}
+        if not sessions:
+            return counts
+        counts["parts"] = self._delete_in_conn(conn, "parts", "session_id", sessions)
+        counts["messages"] = self._delete_in_conn(conn, "messages", "session_id", sessions)
+        counts["ws_connections"] = self._delete_in_conn(conn, "ws_connections", "session_id", sessions)
+        counts["session_queue"] = self._delete_in_conn(conn, "session_queue", "session_id", sessions)
+        counts["sessions"] = self._delete_in_conn(conn, "sessions", "id", sessions)
+        return counts
+
+    def _delete_ip_pointer_on_conn(
+        self,
+        conn: sqlite3.Connection,
+        ip_id: str,
+    ) -> Dict[str, Any]:
+        row = conn.execute(
+            """
+            SELECT i.*, w.owner_user_id, w.name AS workspace_name, u.username AS owner_username
+              FROM ip_blocks i
+              LEFT JOIN workspaces w ON w.id = i.workspace_id
+              LEFT JOIN users u ON u.id = w.owner_user_id
+             WHERE i.id = ?
+            """,
+            (ip_id,),
+        ).fetchone()
+        if row is None:
+            return {"deleted": False, "reason": "ip not found", "counts": {}}
+
+        ip_name = str(row["ip_name"] or "")
+        workspace_id = str(row["workspace_id"] or "")
+        owner_user_id = str(row["owner_user_id"] or "")
+        owner_username = str(row["owner_username"] or "")
+        counts: Dict[str, int] = {}
+
+        session_rows = conn.execute(
+            """
+            SELECT id
+              FROM sessions
+             WHERE ip_id IN (?, ?)
+                OR (workspace_id = ? AND (ip = ? OR project_id = ?))
+                OR (? != '' AND user_id = ? AND (ip = ? OR project_id = ?))
+                OR (? != '' AND namespace LIKE ?)
+            """,
+            (
+                ip_id,
+                ip_name,
+                workspace_id,
+                ip_name,
+                ip_name,
+                owner_user_id,
+                owner_user_id,
+                ip_name,
+                ip_name,
+                owner_username,
+                f"{owner_username}/{ip_name}/%",
+            ),
+        ).fetchall()
+        session_ids = self._rows_to_ids(session_rows)
+
+        run_rows = conn.execute(
+            """
+            SELECT id
+              FROM workflow_runs
+             WHERE ip_id IN (?, ?)
+                OR session_id IN (
+                    SELECT id FROM sessions
+                     WHERE ip_id IN (?, ?)
+                        OR (workspace_id = ? AND (ip = ? OR project_id = ?))
+                )
+            """,
+            (ip_id, ip_name, ip_id, ip_name, workspace_id, ip_name, ip_name),
+        ).fetchall()
+        run_ids = self._rows_to_ids(run_rows)
+
+        orch_rows = conn.execute(
+            """
+            SELECT id
+              FROM orchestrator_runs
+             WHERE ip_id IN (?, ?)
+                OR session_id IN (
+                    SELECT id FROM sessions
+                     WHERE ip_id IN (?, ?)
+                        OR (workspace_id = ? AND (ip = ? OR project_id = ?))
+                )
+            """,
+            (ip_id, ip_name, ip_id, ip_name, workspace_id, ip_name, ip_name),
+        ).fetchall()
+        orchestrator_run_ids = self._rows_to_ids(orch_rows)
+
+        stage_rows = []
+        if run_ids:
+            placeholders = ",".join("?" for _ in run_ids)
+            stage_rows = conn.execute(
+                f"SELECT id FROM workflow_stages WHERE run_id IN ({placeholders})",
+                tuple(run_ids),
+            ).fetchall()
+        stage_ids = self._rows_to_ids(stage_rows)
+
+        todo_rows = []
+        if run_ids:
+            placeholders = ",".join("?" for _ in run_ids)
+            todo_rows = conn.execute(
+                f"SELECT id FROM workflow_todos WHERE run_id IN ({placeholders})",
+                tuple(run_ids),
+            ).fetchall()
+        todo_ids = self._rows_to_ids(todo_rows)
+
+        version_rows = conn.execute(
+            "SELECT id FROM artifact_versions WHERE ip_id IN (?, ?)",
+            (ip_id, ip_name),
+        ).fetchall()
+        artifact_version_ids = self._rows_to_ids(version_rows)
+
+        rtl_rows = conn.execute(
+            "SELECT id FROM rtl_versions WHERE ip_id IN (?, ?)",
+            (ip_id, ip_name),
+        ).fetchall()
+        rtl_version_ids = self._rows_to_ids(rtl_rows)
+
+        counts["todo_events"] = self._delete_in_conn(conn, "todo_events", "todo_id", todo_ids)
+        counts["workflow_todos"] = self._delete_in_conn(conn, "workflow_todos", "run_id", run_ids)
+        counts["workflow_events"] = self._delete_in_conn(conn, "workflow_events", "run_id", run_ids)
+        counts["workflow_stages"] = self._delete_in_conn(conn, "workflow_stages", "run_id", run_ids)
+        counts["run_artifact_versions"] = (
+            self._delete_in_conn(conn, "run_artifact_versions", "run_id", run_ids)
+            + self._delete_in_conn(conn, "run_artifact_versions", "artifact_version_id", artifact_version_ids)
+        )
+        counts["workflow_runs"] = self._delete_in_conn(conn, "workflow_runs", "id", run_ids)
+        counts["orchestrator_steps"] = self._delete_in_conn(conn, "orchestrator_steps", "run_id", orchestrator_run_ids)
+        counts["orchestrator_runs"] = self._delete_in_conn(conn, "orchestrator_runs", "id", orchestrator_run_ids)
+        counts["trace_events"] = (
+            self._delete_in_conn(conn, "trace_events", "ip_id", [ip_id, ip_name])
+            + self._delete_in_conn(conn, "trace_events", "session_id", session_ids)
+            + self._delete_in_conn(conn, "trace_events", "run_id", run_ids + orchestrator_run_ids)
+        )
+        counts["llm_calls"] = (
+            self._delete_in_conn(conn, "llm_calls", "ip_id", [ip_id, ip_name])
+            + self._delete_in_conn(conn, "llm_calls", "session_id", session_ids)
+            + self._delete_in_conn(conn, "llm_calls", "run_id", run_ids + orchestrator_run_ids)
+        )
+        counts["artifacts"] = (
+            self._delete_in_conn(conn, "artifacts", "ip_id", [ip_id, ip_name])
+            + self._delete_in_conn(conn, "artifacts", "run_id", run_ids + orchestrator_run_ids)
+            + self._delete_in_conn(conn, "artifacts", "orchestrator_run_id", orchestrator_run_ids)
+            + self._delete_in_conn(conn, "artifacts", "rtl_version_id", rtl_version_ids)
+        )
+        counts["artifact_version_edges"] = (
+            self._delete_in_conn(conn, "artifact_version_edges", "parent_version_id", artifact_version_ids)
+            + self._delete_in_conn(conn, "artifact_version_edges", "child_version_id", artifact_version_ids)
+        )
+        counts["rtl_versions"] = self._delete_in_conn(conn, "rtl_versions", "id", rtl_version_ids)
+        counts["artifact_versions"] = self._delete_in_conn(conn, "artifact_versions", "id", artifact_version_ids)
+        counts["ip_permissions"] = self._delete_in_conn(conn, "ip_permissions", "ip_id", [ip_id])
+        session_counts = self._delete_session_metadata_on_conn(conn, session_ids)
+        for key, value in session_counts.items():
+            counts[key] = counts.get(key, 0) + value
+        counts["ip_blocks"] = self._delete_in_conn(conn, "ip_blocks", "id", [ip_id])
+
+        return {
+            "deleted": True,
+            "id": ip_id,
+            "ip_name": ip_name,
+            "workspace_id": workspace_id,
+            "owner_user_id": owner_user_id,
+            "owner_username": owner_username,
+            "counts": counts,
+        }
+
+    def delete_ip_pointer(self, ip_id: str) -> Dict[str, Any]:
+        """Delete one Atlas DB IP pointer and related DB metadata only.
+
+        Filesystem IP directories and `.session` files are intentionally not
+        touched; this only removes Atlas catalog/session/runtime pointers.
+        """
+        with self._lock:
+            conn = self._connect()
+            result = self._delete_ip_pointer_on_conn(conn, str(ip_id or "").strip())
+            if not result.get("deleted"):
+                conn.rollback()
+                return result
+            conn.commit()
+            return result
+
+    def delete_user_pointer(self, user_id: str) -> Dict[str, Any]:
+        """Delete one Atlas DB user pointer and owned DB metadata only."""
+        uid = str(user_id or "").strip()
+        with self._lock:
+            conn = self._connect()
+            user = conn.execute("SELECT * FROM users WHERE id = ?", (uid,)).fetchone()
+            if user is None:
+                conn.rollback()
+                return {"deleted": False, "reason": "user not found", "counts": {}}
+
+            counts: Dict[str, int] = {}
+            ip_rows = conn.execute(
+                """
+                SELECT i.id
+                  FROM ip_blocks i
+                  JOIN workspaces w ON w.id = i.workspace_id
+                 WHERE w.owner_user_id = ?
+                """,
+                (uid,),
+            ).fetchall()
+            deleted_ips = []
+            for ip_row in ip_rows:
+                result = self._delete_ip_pointer_on_conn(conn, str(ip_row["id"]))
+                if result.get("deleted"):
+                    deleted_ips.append(result)
+                    for key, value in (result.get("counts") or {}).items():
+                        counts[key] = counts.get(key, 0) + int(value or 0)
+
+            session_rows = conn.execute(
+                "SELECT id FROM sessions WHERE user_id = ? OR owner = ?",
+                (uid, str(user["username"] or "")),
+            ).fetchall()
+            session_ids = self._rows_to_ids(session_rows)
+            run_rows: List[sqlite3.Row] = []
+            if session_ids:
+                placeholders = ",".join("?" for _ in session_ids)
+                run_rows = conn.execute(
+                    f"SELECT id FROM workflow_runs WHERE session_id IN ({placeholders})",
+                    tuple(session_ids),
+                ).fetchall()
+            run_ids = self._rows_to_ids(run_rows)
+            todo_rows: List[sqlite3.Row] = []
+            if run_ids:
+                placeholders = ",".join("?" for _ in run_ids)
+                todo_rows = conn.execute(
+                    f"SELECT id FROM workflow_todos WHERE run_id IN ({placeholders})",
+                    tuple(run_ids),
+                ).fetchall()
+            todo_ids = self._rows_to_ids(todo_rows)
+            counts["todo_events"] = counts.get("todo_events", 0) + self._delete_in_conn(conn, "todo_events", "todo_id", todo_ids)
+            counts["workflow_todos"] = counts.get("workflow_todos", 0) + self._delete_in_conn(conn, "workflow_todos", "run_id", run_ids)
+            counts["workflow_events"] = counts.get("workflow_events", 0) + self._delete_in_conn(conn, "workflow_events", "run_id", run_ids)
+            counts["workflow_stages"] = counts.get("workflow_stages", 0) + self._delete_in_conn(conn, "workflow_stages", "run_id", run_ids)
+            counts["run_artifact_versions"] = counts.get("run_artifact_versions", 0) + self._delete_in_conn(conn, "run_artifact_versions", "run_id", run_ids)
+            counts["workflow_runs"] = counts.get("workflow_runs", 0) + self._delete_in_conn(conn, "workflow_runs", "id", run_ids)
+
+            orchestrator_rows = conn.execute(
+                """
+                SELECT id
+                  FROM orchestrator_runs
+                 WHERE user_id = ?
+                    OR session_id IN (
+                        SELECT id FROM sessions WHERE user_id = ? OR owner = ?
+                    )
+                """,
+                (uid, uid, str(user["username"] or "")),
+            ).fetchall()
+            orchestrator_run_ids = self._rows_to_ids(orchestrator_rows)
+            counts["orchestrator_steps"] = counts.get("orchestrator_steps", 0) + self._delete_in_conn(
+                conn,
+                "orchestrator_steps",
+                "run_id",
+                orchestrator_run_ids,
+            )
+            counts["orchestrator_runs"] = counts.get("orchestrator_runs", 0) + self._delete_in_conn(
+                conn,
+                "orchestrator_runs",
+                "id",
+                orchestrator_run_ids,
+            )
+            counts["trace_events"] = counts.get("trace_events", 0) + (
+                self._delete_in_conn(conn, "trace_events", "actor_user_id", [uid])
+                + self._delete_in_conn(conn, "trace_events", "session_id", session_ids)
+                + self._delete_in_conn(conn, "trace_events", "run_id", run_ids + orchestrator_run_ids)
+            )
+            counts["llm_calls"] = counts.get("llm_calls", 0) + (
+                self._delete_in_conn(conn, "llm_calls", "session_id", session_ids)
+                + self._delete_in_conn(conn, "llm_calls", "run_id", run_ids + orchestrator_run_ids)
+            )
+            counts["artifacts"] = counts.get("artifacts", 0) + (
+                self._delete_in_conn(conn, "artifacts", "run_id", run_ids + orchestrator_run_ids)
+                + self._delete_in_conn(conn, "artifacts", "orchestrator_run_id", orchestrator_run_ids)
+            )
+            session_counts = self._delete_session_metadata_on_conn(conn, session_ids)
+            for key, value in session_counts.items():
+                counts[key] = counts.get(key, 0) + value
+
+            counts["ip_permissions"] = counts.get("ip_permissions", 0) + self._delete_raw_conn(
+                conn,
+                "DELETE FROM ip_permissions WHERE grantee_user_id = ? OR granted_by_user_id = ?",
+                (uid, uid),
+            )
+            counts["feedback"] = self._delete_in_conn(conn, "feedback", "user_id", [uid])
+            counts["user_memory_rules"] = self._delete_in_conn(conn, "user_memory_rules", "user_id", [uid])
+            counts["custom_agents"] = self._delete_in_conn(conn, "custom_agents", "owner_user_id", [uid])
+            counts["ws_connections"] = counts.get("ws_connections", 0) + self._delete_in_conn(conn, "ws_connections", "user_id", [uid])
+            counts["workspaces"] = self._delete_in_conn(conn, "workspaces", "owner_user_id", [uid])
+            counts["users"] = self._delete_in_conn(conn, "users", "id", [uid])
+            conn.commit()
+            return {
+                "deleted": True,
+                "id": uid,
+                "username": str(user["username"] or ""),
+                "deleted_ips": deleted_ips,
+                "counts": counts,
+            }
+
     def count_sessions_by_user(self) -> Dict[str, int]:
         """Return {user_id: session_count} for all users."""
         rows = self._fetchall(

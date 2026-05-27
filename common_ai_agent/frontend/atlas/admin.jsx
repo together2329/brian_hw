@@ -1,6 +1,7 @@
 function AdminPage() {
   const [users, setUsers] = React.useState([]);
   const [sessions, setSessions] = React.useState([]);
+  const [ips, setIps] = React.useState([]);
   const [usage, setUsage] = React.useState([]);
   const [costContexts, setCostContexts] = React.useState([]);
   const [dateCosts, setDateCosts] = React.useState([]);
@@ -80,25 +81,26 @@ function AdminPage() {
     try {
       setLoading(true);
       setError(null);
-      const [usersResp, sessionsResp, usageResp, fbResp, runtimeResp] = await Promise.all([
+      const [usersResp, sessionsResp, ipsResp, usageResp, fbResp, runtimeResp] = await Promise.all([
         fetch('/api/admin/users'),
         fetch('/api/admin/sessions'),
+        fetch('/api/admin/ips'),
         fetch('/api/admin/usage'),
         fetch('/api/admin/feedback'),
         fetch('/api/admin/runtime'),
       ]);
-      if ([usersResp, sessionsResp, usageResp, fbResp, runtimeResp].some((r) => r.status === 401)) {
+      if ([usersResp, sessionsResp, ipsResp, usageResp, fbResp, runtimeResp].some((r) => r.status === 401)) {
         setAuthUser(null);
         setAuthStatus((prev) => ({ ...(prev || {}), login_required: true, authenticated: false }));
         setAuthError('Admin login required');
         return;
       }
-      if ([usersResp, sessionsResp, usageResp, fbResp, runtimeResp].some((r) => r.status === 403)) {
+      if ([usersResp, sessionsResp, ipsResp, usageResp, fbResp, runtimeResp].some((r) => r.status === 403)) {
         setError('Admin role required');
         return;
       }
-      if (!usersResp.ok || !sessionsResp.ok) {
-        const bad = !usersResp.ok ? usersResp : sessionsResp;
+      if (!usersResp.ok || !sessionsResp.ok || !ipsResp.ok) {
+        const bad = !usersResp.ok ? usersResp : (!sessionsResp.ok ? sessionsResp : ipsResp);
         let detail = `HTTP ${bad.status}`;
         try {
           const body = await bad.json();
@@ -108,11 +110,13 @@ function AdminPage() {
       }
       const usersData = await usersResp.json();
       const sessionsData = await sessionsResp.json();
+      const ipsData = await ipsResp.json();
       const usageData = usageResp.ok ? await usageResp.json() : { users: [] };
       const fbData = fbResp.ok ? await fbResp.json() : { feedback: [] };
       const runtimeData = runtimeResp.ok ? await runtimeResp.json() : null;
       setUsers(usersData.users || []);
       setSessions(sessionsData.sessions || []);
+      setIps(ipsData.ips || []);
       setUsage(usageData.users || []);
       setCostContexts(usageData.cost_by_context || []);
       setDateCosts(usageData.cost_by_date || []);
@@ -233,6 +237,7 @@ function AdminPage() {
     setAuthUser(null);
     setUsers([]);
     setSessions([]);
+    setIps([]);
     setUsage([]);
     setCostContexts([]);
     setDateCosts([]);
@@ -351,6 +356,54 @@ function AdminPage() {
       setSessions((prev) => prev.filter((s) => s.id !== sessionId));
     } catch (e) {
       alert('Failed to delete session: ' + e);
+    } finally {
+      setDeleting(null);
+    }
+  };
+
+  const handleDeleteIpPointer = async (ipId) => {
+    if (!window.confirm('Remove this IP pointer from Atlas DB only? Project files and .session data will not be deleted.')) return;
+    const deletingKey = `ip:${ipId}`;
+    setDeleting(deletingKey);
+    try {
+      const resp = await fetch('/api/admin/ips/' + encodeURIComponent(ipId), {
+        method: 'DELETE',
+      });
+      if (resp.status === 403) {
+        setError('Admin access required');
+        return;
+      }
+      const data = await resp.json();
+      if (!resp.ok) {
+        throw new Error(data.error || 'Delete failed');
+      }
+      await loadAdminData();
+    } catch (e) {
+      alert('Failed to remove IP pointer: ' + e);
+    } finally {
+      setDeleting(null);
+    }
+  };
+
+  const handleDeleteUserPointer = async (userId) => {
+    if (!window.confirm('Remove this user pointer from Atlas DB only? Project files and .session data will not be deleted.')) return;
+    const deletingKey = `user:${userId}`;
+    setDeleting(deletingKey);
+    try {
+      const resp = await fetch('/api/admin/users/' + encodeURIComponent(userId), {
+        method: 'DELETE',
+      });
+      if (resp.status === 403) {
+        setError('Admin access required');
+        return;
+      }
+      const data = await resp.json();
+      if (!resp.ok) {
+        throw new Error(data.error || 'Delete failed');
+      }
+      await loadAdminData();
+    } catch (e) {
+      alert('Failed to remove user pointer: ' + e);
     } finally {
       setDeleting(null);
     }
@@ -853,6 +906,12 @@ function AdminPage() {
     workflow: u.active_workflow || '',
     updated_at: u.active_session_updated_at,
   }));
+  const ipPointerContextRows = ips.map((ip) => ({
+    username: ip.owner_username || ip.owner_user_id || '',
+    ip: ip.ip_name || '',
+    workspace: ip.workspace_name || ip.workspace_id || '',
+    updated_at: ip.updated_at || ip.created_at,
+  }));
   const allContextRows = [
     ...costContexts,
     ...dateCosts,
@@ -869,6 +928,7 @@ function AdminPage() {
     ...inputHistory,
     ...sessionContextRows,
     ...userFocusContextRows,
+    ...ipPointerContextRows,
   ];
   const filterOptions = {
     ips: uniqueOptions(allContextRows, 'ip'),
@@ -901,6 +961,13 @@ function AdminPage() {
     && valueMatches(filters.ip, row.ip || row.project_id || row.title)
     && !filters.workspace
     && valueMatches(filters.workflow, row.workflow || row.latest_workflow)
+  ));
+  const filteredIps = ips.filter((row) => (
+    inRange(row)
+    && valueMatches(filters.user, row.owner_username || row.owner_user_id)
+    && valueMatches(filters.ip, row.ip_name)
+    && valueMatches(filters.workspace, row.workspace_name || row.workspace_id)
+    && !filters.workflow
   ));
   const filteredCostContexts = costContexts.filter(rowMatches);
   const filteredDateCosts = dateCosts.filter(rowMatches);
@@ -1139,6 +1206,9 @@ function AdminPage() {
               </button>
               <button style={tabStyle(activeTab === 'users')} onClick={() => setActiveTab('users')}>
                 Users ({filteredUsers.length})
+              </button>
+              <button style={tabStyle(activeTab === 'ips')} onClick={() => setActiveTab('ips')}>
+                IPs ({filteredIps.length})
               </button>
               <button style={tabStyle(activeTab === 'sessions')} onClick={() => setActiveTab('sessions')}>
                 Sessions ({filteredSessions.length})
@@ -1659,12 +1729,13 @@ function AdminPage() {
                       <th style={thStyle}>Sessions</th>
                       <th style={thStyle}>Active Updated</th>
                       <th style={thStyle}>Created</th>
+                      <th style={thStyle}></th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredUsers.length === 0 ? (
                       <tr>
-                        <td colSpan={9} style={{ ...tdStyle, ...emptyStateStyle }}>No users found.</td>
+                        <td colSpan={10} style={{ ...tdStyle, ...emptyStateStyle }}>No users found.</td>
                       </tr>
                     ) : (
                       filteredUsers.map((u, index) => (
@@ -1696,6 +1767,86 @@ function AdminPage() {
                           <td style={tdStyle}>{u.session_count ?? 0}</td>
                           <td style={tdStyle}>{formatDate(u.active_session_updated_at)}</td>
                           <td style={tdStyle}>{formatDate(u.created_at)}</td>
+                          <td style={tdStyle}>
+                            <button
+                              style={btnDangerStyle}
+                              onClick={() => handleDeleteUserPointer(u.id)}
+                              disabled={deleting === `user:${u.id}` || (authUser && authUser.id === u.id)}
+                              title={(authUser && authUser.id === u.id) ? 'Signed-in admin cannot remove itself' : 'Remove Atlas DB user pointer only'}
+                            >
+                              {deleting === `user:${u.id}` ? 'Removing...' : 'Remove pointer'}
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {activeTab === 'ips' && (
+              <div style={tableWrapStyle}>
+                <table style={tableStyle}>
+                  <thead>
+                    <tr>
+                      <th style={thStyle}>IP</th>
+                      <th style={thStyle}>Owner</th>
+                      <th style={thStyle}>Workspace</th>
+                      <th style={thStyle}>Status</th>
+                      <th style={thStyle}>Sessions</th>
+                      <th style={thStyle}>Permissions</th>
+                      <th style={thStyle}>Artifacts</th>
+                      <th style={thStyle}>Runs</th>
+                      <th style={thStyle}>Updated</th>
+                      <th style={thStyle}></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredIps.length === 0 ? (
+                      <tr>
+                        <td colSpan={10} style={{ ...tdStyle, ...emptyStateStyle }}>No IP pointers found.</td>
+                      </tr>
+                    ) : (
+                      filteredIps.map((ip, index) => (
+                        <tr key={rowKey('ip', index, ip.id, ip.ip_name, ip.workspace_id)}>
+                          <td style={tdStyle}>{ip.ip_name || '—'}</td>
+                          <td style={tdStyle}>{ip.owner_username || ip.owner_user_id || '—'}</td>
+                          <td style={tdStyle}>
+                            {ip.workspace_name || ip.workspace_id || '—'}
+                            {ip.workspace_path ? (
+                              <div style={{ opacity: 0.65, fontSize: 11 }}>{ip.workspace_path}</div>
+                            ) : null}
+                          </td>
+                          <td style={tdStyle}>
+                            <span style={{
+                              fontSize: 10,
+                              fontWeight: 600,
+                              textTransform: 'uppercase',
+                              padding: '2px 6px',
+                              borderRadius: 3,
+                              background: ip.status === 'active' ? '#1c2f25' : '#1c252f',
+                              color: ip.status === 'active' ? '#7dc9a0' : '#a3aebb',
+                              border: '1px solid #2a3540',
+                            }}>
+                              {ip.status || 'unknown'}
+                            </span>
+                          </td>
+                          <td style={tdStyle}>{ip.session_count ?? 0}</td>
+                          <td style={tdStyle}>{ip.permission_count ?? 0}</td>
+                          <td style={tdStyle}>{ip.artifact_version_count ?? 0}</td>
+                          <td style={tdStyle}>{ip.workflow_run_count ?? 0}</td>
+                          <td style={tdStyle}>{formatDate(ip.updated_at || ip.created_at)}</td>
+                          <td style={tdStyle}>
+                            <button
+                              style={btnDangerStyle}
+                              onClick={() => handleDeleteIpPointer(ip.id)}
+                              disabled={deleting === `ip:${ip.id}`}
+                              title="Remove Atlas DB IP pointer only"
+                            >
+                              {deleting === `ip:${ip.id}` ? 'Removing...' : 'Remove pointer'}
+                            </button>
+                          </td>
                         </tr>
                       ))
                     )}

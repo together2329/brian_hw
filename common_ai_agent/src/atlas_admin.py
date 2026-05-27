@@ -273,6 +273,44 @@ def create_admin_app(project_root: Path):
         with AtlasDB() as db:
             return JSONResponse({"sessions": db.list_all_sessions()})
 
+    @app.get("/api/admin/ips")
+    async def api_admin_ips(request: Request):
+        if _admin_required(request) is None:
+            return _admin_denied(request)
+        with AtlasDB() as db:
+            return JSONResponse({"ips": db.list_all_ip_pointers()})
+
+    @app.delete("/api/admin/ips/{ip_id}")
+    async def api_admin_delete_ip_pointer(ip_id: str, request: Request):
+        if _admin_required(request) is None:
+            return _admin_denied(request)
+        with AtlasDB() as db:
+            if db.get_ip_block(ip_id) is None:
+                return JSONResponse({"error": "ip pointer not found"}, status_code=404)
+            result = db.delete_ip_pointer(ip_id)
+        return JSONResponse({**result, "filesystem_deleted": False})
+
+    @app.delete("/api/admin/users/{user_id}")
+    async def api_admin_delete_user_pointer(user_id: str, request: Request):
+        admin = _admin_required(request)
+        if admin is None:
+            return _admin_denied(request)
+        if str(admin.get("id") or "") == str(user_id or ""):
+            return JSONResponse({"error": "cannot delete the signed-in admin user"}, status_code=400)
+        with AtlasDB() as db:
+            user = db.get_user(user_id)
+            if user is None:
+                return JSONResponse({"error": "user pointer not found"}, status_code=404)
+            if str(user.get("role") or "").lower() == "admin":
+                remaining = db._fetchone(
+                    "SELECT COUNT(*) AS cnt FROM users WHERE role = 'admin' AND id != ?",
+                    (user_id,),
+                )
+                if int(remaining["cnt"] if remaining is not None else 0) <= 0:
+                    return JSONResponse({"error": "cannot delete the last admin user"}, status_code=400)
+            result = db.delete_user_pointer(user_id)
+        return JSONResponse({**result, "filesystem_deleted": False})
+
     @app.delete("/api/admin/sessions/{session_id}")
     async def api_admin_delete_session(session_id: str, request: Request):
         if _admin_required(request) is None:

@@ -41,6 +41,8 @@ def test_default_admin_login_creates_fixed_admin(tmp_path, monkeypatch):
 
     users = client.get("/api/admin/users")
     assert users.status_code == 200, users.text
+    ips = client.get("/api/admin/ips")
+    assert ips.status_code == 200, ips.text
 
     page = client.get("/admin")
     assert page.status_code == 200, page.text
@@ -363,6 +365,213 @@ def test_db_admin_sees_team_control_plane_sessions(tmp_path, monkeypatch):
     assert by_id["carol/dma_core/sim_debug"]["owner_username"] == "carol"
     assert by_id["carol/dma_core/sim_debug"]["ip"] == "dma_core"
     assert by_id["carol/dma_core/sim_debug"]["workflow"] == "sim_debug"
+
+
+def test_admin_can_remove_ip_pointer_without_deleting_files(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+    from core.atlas_db import AtlasDB
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_ADMIN_USERS", "lead")
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    lead = TestClient(app)
+    alice = TestClient(app)
+
+    registered = lead.post(
+        "/api/auth/register",
+        json={"username": "lead", "password": "pw"},
+    )
+    assert registered.status_code == 200, registered.text
+    assert registered.json()["user"]["role"] == "admin"
+    response = alice.post(
+        "/api/auth/register",
+        json={"username": "alice", "password": "pw"},
+    )
+    assert response.status_code == 200, response.text
+
+    real_ip_dir = tmp_path / "alice_repo" / "spi_core"
+    real_ip_dir.mkdir(parents=True)
+    with AtlasDB() as db:
+        alice_user = db.get_user_by_username("alice")
+        workspace = db.upsert_workspace(
+            owner_user_id=alice_user["id"],
+            name="alice-ws",
+            local_path=str(real_ip_dir.parent),
+        )
+        ip = db.upsert_ip_block(workspace["id"], "spi_core", ip_type="rtl")
+        session = db.create_session(alice_user["id"], "spi_core", project_id="spi_core")
+        db._execute(
+            """
+            UPDATE sessions
+               SET namespace = ?, owner = ?, workspace_id = ?, ip_id = ?, ip = ?, workflow = ?
+             WHERE id = ?
+            """,
+            (
+                "alice/spi_core/ssot-gen",
+                "alice",
+                workspace["id"],
+                ip["id"],
+                "spi_core",
+                "ssot-gen",
+                session["id"],
+            ),
+        )
+        run = db.start_workflow_run(
+            session_id=session["id"],
+            workspace_id=workspace["id"],
+            ip_id=ip["id"],
+            workflow="ssot-gen",
+            status="running",
+        )
+        todo = db.upsert_workflow_todo(run["id"], title="draft SSOT", status="pending")
+        db.record_todo_event(todo["id"], "in_progress")
+        db.record_llm_call(
+            session_id=session["id"],
+            run_id=run["id"],
+            workspace_id=workspace["id"],
+            ip_id=ip["id"],
+            workflow="ssot-gen",
+            model="gpt-test",
+            tokens_input=5,
+            tokens_output=2,
+            cost_usd=0.01,
+        )
+        db.record_trace_event(
+            "workflow_started",
+            session_id=session["id"],
+            workspace_id=workspace["id"],
+            ip_id=ip["id"],
+            workflow="ssot-gen",
+            run_id=run["id"],
+            actor_user_id=alice_user["id"],
+        )
+        ip_id = ip["id"]
+        session_id = session["id"]
+        run_id = run["id"]
+
+    listed = lead.get("/api/admin/ips")
+    assert listed.status_code == 200, listed.text
+    listed_ips = {row["id"]: row for row in listed.json()["ips"]}
+    assert listed_ips[ip_id]["ip_name"] == "spi_core"
+    assert listed_ips[ip_id]["session_count"] == 1
+    assert listed_ips[ip_id]["workflow_run_count"] == 1
+
+    deleted = lead.delete(f"/api/admin/ips/{ip_id}")
+    assert deleted.status_code == 200, deleted.text
+    body = deleted.json()
+    assert body["deleted"] is True
+    assert body["filesystem_deleted"] is False
+    assert body["counts"]["ip_blocks"] == 1
+    assert body["counts"]["sessions"] == 1
+    assert real_ip_dir.is_dir()
+
+    with AtlasDB() as db:
+        assert db.get_ip_block(ip_id) is None
+        assert db.get_session(session_id) is None
+        assert db._fetchone("SELECT id FROM workflow_runs WHERE id = ?", (run_id,)) is None
+        assert db._fetchone("SELECT id FROM workflow_todos WHERE run_id = ?", (run_id,)) is None
+        assert db._fetchone("SELECT id FROM llm_calls WHERE run_id = ?", (run_id,)) is None
+
+
+def test_admin_can_remove_user_pointer_without_deleting_files(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+    from core.atlas_db import AtlasDB
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_ADMIN_USERS", "lead")
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    lead = TestClient(app)
+    bob = TestClient(app)
+
+    registered = lead.post(
+        "/api/auth/register",
+        json={"username": "lead", "password": "pw"},
+    )
+    assert registered.status_code == 200, registered.text
+    assert registered.json()["user"]["role"] == "admin"
+    response = bob.post(
+        "/api/auth/register",
+        json={"username": "bob", "password": "pw"},
+    )
+    assert response.status_code == 200, response.text
+
+    real_ip_dir = tmp_path / "bob_repo" / "uart_core"
+    real_ip_dir.mkdir(parents=True)
+    with AtlasDB() as db:
+        bob_user = db.get_user_by_username("bob")
+        workspace = db.upsert_workspace(
+            owner_user_id=bob_user["id"],
+            name="bob-ws",
+            local_path=str(real_ip_dir.parent),
+        )
+        ip = db.upsert_ip_block(workspace["id"], "uart_core", ip_type="spec")
+        session = db.create_session(bob_user["id"], "uart_core", project_id="uart_core")
+        db._execute(
+            """
+            UPDATE sessions
+               SET namespace = ?, owner = ?, workspace_id = ?, ip_id = ?, ip = ?, workflow = ?
+             WHERE id = ?
+            """,
+            (
+                "bob/uart_core/default",
+                "bob",
+                workspace["id"],
+                ip["id"],
+                "uart_core",
+                "default",
+                session["id"],
+            ),
+        )
+        run = db.start_workflow_run(
+            session_id=session["id"],
+            workspace_id=workspace["id"],
+            ip_id=ip["id"],
+            workflow="default",
+            status="running",
+        )
+        db.record_trace_event(
+            "chat",
+            session_id=session["id"],
+            workspace_id=workspace["id"],
+            ip_id=ip["id"],
+            workflow="default",
+            run_id=run["id"],
+            actor_user_id=bob_user["id"],
+        )
+        user_id = bob_user["id"]
+        workspace_id = workspace["id"]
+        ip_id = ip["id"]
+        session_id = session["id"]
+
+    self_delete = lead.delete(f"/api/admin/users/{registered.json()['user']['id']}")
+    assert self_delete.status_code == 400, self_delete.text
+
+    deleted = lead.delete(f"/api/admin/users/{user_id}")
+    assert deleted.status_code == 200, deleted.text
+    body = deleted.json()
+    assert body["deleted"] is True
+    assert body["filesystem_deleted"] is False
+    assert body["username"] == "bob"
+    assert body["counts"]["users"] == 1
+    assert body["counts"]["ip_blocks"] == 1
+    assert body["counts"]["sessions"] == 1
+    assert real_ip_dir.is_dir()
+
+    with AtlasDB() as db:
+        assert db.get_user(user_id) is None
+        assert db.get_workspace(workspace_id) is None
+        assert db.get_ip_block(ip_id) is None
+        assert db.get_session(session_id) is None
 
 
 def test_db_admin_sees_user_active_focus_and_work_amount(tmp_path, monkeypatch):
