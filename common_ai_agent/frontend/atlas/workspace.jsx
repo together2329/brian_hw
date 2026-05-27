@@ -2714,6 +2714,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     if (!window.backend) return 'missing';
     return window.backend.getConnectionState ? window.backend.getConnectionState() : 'connecting';
   });
+  const [commandBusy, setCommandBusy] = React.useState(null);
   const [workspaceTelemetry, setWorkspaceTelemetry] = React.useState({
     toolCount: 0,
     lastTool: '',
@@ -3591,7 +3592,12 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     const commands = slashCommands.length
       ? slashCommands
       : (Array.isArray(window.SLASH_COMMANDS) ? window.SLASH_COMMANDS : []);
-    return commands.filter(c => {
+    // Rank, don't just filter: an exact / prefix match on the command name (or
+    // alias) must outrank a command that merely mentions the query in its
+    // description. Otherwise typing "todo" surfaces "/make" and "/man" (their
+    // hints contain "/make todo" / "/man todo") above the actual "/todo".
+    const scored = [];
+    for (const c of commands) {
       const cmd = String(c.cmd || '').replace(/^\//, '').toLowerCase();
       const aliases = [
         c.alias,
@@ -3601,10 +3607,17 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         .map(v => v.trim().toLowerCase())
         .filter(Boolean);
       const text = `${c.hint || ''} ${c.desc || ''} ${c.usage || ''}`.toLowerCase();
-      return cmd.startsWith(q)
-        || aliases.some(a => a.startsWith(q))
-        || (q.length >= 2 && text.includes(q));
-    }).slice(0, 40);
+      let score = -1;
+      if (!q) score = 0;                                        // bare "/" → all
+      else if (cmd === q) score = 100;                          // exact command
+      else if (cmd.startsWith(q)) score = 80;                   // command prefix
+      else if (aliases.some(a => a === q)) score = 70;          // exact alias
+      else if (aliases.some(a => a.startsWith(q))) score = 60;  // alias prefix
+      else if (q.length >= 2 && text.includes(q)) score = 20;   // description only (demoted)
+      if (score >= 0) scored.push({ c, score, cmd });
+    }
+    scored.sort((a, b) => (b.score - a.score) || a.cmd.localeCompare(b.cmd));
+    return scored.slice(0, 40).map(s => s.c);
   }, [input, slashCommands]);
 
   const [showAt, setShowAt] = React.useState(false);
@@ -3687,6 +3700,14 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
   }, [input]);
 
   // ── chat actions ───────────────────────────────────────────────
+  const slashBusyForRaw = (value) => {
+    const head = String(value || '').trim().split(/\s+/, 1)[0].toLowerCase();
+    if (head === '/compact' || head === '/co') {
+      return { kind: 'compact', text: 'Compacting history' };
+    }
+    return null;
+  };
+
   const submitMsg = (cmd) => {
     const raw = (cmd ?? input).trim();
     if (!raw) return;
@@ -4174,18 +4195,24 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         holdSubmittedInput(`Input held. Backend is ${promptBackendState()}; it will send automatically if unchanged.`);
         return;
       }
+      const busyState = slashBusyForRaw(raw);
       const sent = sendPrompt(raw);
       if (!sent || sent.ok === false) {
+        if (busyState) setCommandBusy(null);
         holdSubmittedInput(`Input held. Backend is not ready (${sent?.error || backendState || 'unknown'}); it will send automatically if unchanged.`);
         return;
       }
+      if (busyState) setCommandBusy(busyState);
       waitForPromptAck(
         sent,
         () => {
           clearSubmittedInput();
           setFeed(f => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
         },
-        holdUnacknowledgedInput,
+        (reason) => {
+          if (busyState) setCommandBusy(null);
+          holdUnacknowledgedInput(reason);
+        },
       );
       return;
     }
@@ -4298,6 +4325,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         streamBufferRef.current = '';
         setStreamText('');
         setStreaming(false);
+        setCommandBusy(null);
       }
     }));
     subs.push(window.backend.subscribe('peer_joined', (m) => {
@@ -4486,6 +4514,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     const turnEnd = () => {
       parkBuffer();
       setStreaming(false);
+      setCommandBusy(null);
       awaitingRunStartRef.current = false;
       backendRunStartedRef.current = false;
       // Drop a visible divider in the feed so the user can scroll back
@@ -4524,6 +4553,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         awaitingRunStartRef.current = false;
         backendRunStartedRef.current = false;
         setStreaming(false);
+        setCommandBusy(null);
       };
       const shown = _unwrapAtlasOutputFence(t);
       // Token-buffer duplicate case — token landed before slash_output.
@@ -4589,6 +4619,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       streamBufferRef.current = '';
       setStreamText('');
       setStreaming(false);
+      setCommandBusy(null);
     }));
     // ask_user → register a dynamic flow and append a qcard to the feed.
     // Two payload shapes:
@@ -6237,9 +6268,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         {/* Conversation hydration mode selector — sits below the file
             tree, left of the chat input. Picks which on-disk source
             populates the chat feed on (re)load:
-              • conversation — recent rolling window from conversation.json
+              • conversation — last 30 messages from conversation.json
               • full         — every message from full_conversation.json
-              • recent 50    — last 50 messages of full_conversation.json
+              • recent       — last 30 messages of full_conversation.json
             Default 'conversation'. Saved in localStorage. */}
         <ConvModeSelector />
       </div>
@@ -7002,6 +7033,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
               ? { icon: '!', text: backendState === 'missing' ? 'Backend adapter missing' : 'Backend disconnected', color: 'var(--err)', bg: 'color-mix(in oklch, var(--err) 12%, transparent)' }
               : backendState === 'connecting'
                 ? { icon: '·', text: 'Backend connecting', color: 'var(--warn)', bg: 'color-mix(in oklch, var(--warn) 10%, transparent)' }
+                : commandBusy
+                  ? { icon: '◉', text: commandBusy.text || 'Command running', color: 'var(--accent)', bg: 'color-mix(in oklch, var(--accent) 16%, transparent)', spin: true }
                 : pendingQcard
               ? { icon: '⏸', text: 'Waiting on you · answer the ask_user above', color: 'var(--warn)', bg: 'color-mix(in oklch, var(--warn) 14%, transparent)' }
               : liveWorkerActive
@@ -18998,9 +19031,9 @@ const FileViewer = ({ name, onClose }) => {
 // session refresh / page reload. The mode is persisted in
 // localStorage and read by data.jsx's refreshSessionState which
 // passes it through as a `mode` query param to /api/session/state.
-//   • conversation  — recent rolling window (conversation.json). Default.
+//   • conversation  — last 30 messages from conversation.json. Default.
 //   • full          — every message ever (full_conversation.json).
-//   • recent        — last 50 messages of full_conversation.json.
+//   • recent        — last 30 messages of full_conversation.json.
 const ConvModeSelector = () => {
   const initial = (() => {
     try { return localStorage.getItem('atlasConversationMode') || 'conversation'; }
@@ -19051,7 +19084,7 @@ const ConvModeSelector = () => {
       overflow: 'hidden',
     }}
     title="Conversation hydration source on session reload">
-      <Pill id="conversation" label="recent" title="conversation.json — recent rolling window (default)" />
+      <Pill id="conversation" label="recent" title="conversation.json — last 30 chat messages (default)" />
       <Pill id="full"         label="full"   title="every message from full_conversation.json" />
     </div>
   );

@@ -279,6 +279,19 @@ def test_atlas_submit_holds_input_until_prompt_target_is_ready() -> None:
     assert submit_body.index("if (workflowReady)") < submit_body.index("clearSubmittedInput();\n      const arg")
 
 
+def test_atlas_compact_slash_shows_busy_status() -> None:
+    workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace.jsx").read_text()
+    submit_start = workspace.index("const submitMsg = (cmd) => {")
+    submit_body = workspace[submit_start:workspace.index("  // Subscribe to backend events", submit_start)]
+
+    assert "const [commandBusy, setCommandBusy] = React.useState(null);" in workspace
+    assert "const slashBusyForRaw = (value) => {" in workspace
+    assert "head === '/compact' || head === '/co'" in workspace
+    assert "setCommandBusy(busyState);" in submit_body
+    assert "Compacting history" in workspace
+    assert "setCommandBusy(null);" in workspace
+
+
 def test_atlas_left_workflow_ip_panels_are_vertically_resizable() -> None:
     workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace.jsx").read_text()
     styles = (PROJECT_ROOT / "frontend" / "atlas" / "styles.css").read_text()

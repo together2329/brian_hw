@@ -240,6 +240,82 @@ def _compact_history_file(path: Path, signal: str) -> tuple[str, list[dict[str, 
     return msg, compacted
 
 
+def _default_web_compress_fn(messages: list[dict[str, Any]], **kwargs):
+    """Real LLM compaction — the SAME path the CLI / Textual UI use.
+
+    Delegates to core.compressor.compress_history with the web server's config
+    and streaming LLM client injected (mirrors src/main.py's wrapper). Raises on
+    import/LLM failure so the caller can fall back to the deterministic local
+    compactor.
+    """
+    from core.compressor import compress_history as _impl
+    try:
+        import src.config as _cfg  # noqa: WPS433
+    except Exception:  # pragma: no cover - import path differs by entrypoint
+        import config as _cfg  # type: ignore  # noqa: WPS433
+    try:
+        from src.llm_client import (
+            chat_completion_stream as _stream,
+            estimate_message_tokens as _est,
+            get_actual_tokens as _act,
+        )
+    except Exception:  # pragma: no cover
+        from llm_client import (  # type: ignore
+            chat_completion_stream as _stream,
+            estimate_message_tokens as _est,
+            get_actual_tokens as _act,
+        )
+    return _impl(
+        messages,
+        cfg=_cfg,
+        llm_call_fn=_stream,
+        estimate_tokens_fn=_est,
+        get_actual_tokens_fn=_act,
+        **kwargs,
+    )
+
+
+def _compact_history_llm(
+    path: Path, signal: str, *, compress_fn=None
+) -> tuple[str, list[dict[str, Any]]]:
+    """Apply Web UI /compact using the real LLM compactor (Textual-equivalent).
+
+    Loads the session conversation file, runs `compress_history` (AI summary that
+    preserves working paths / code / todos), and persists the result. `compress_fn`
+    is injectable for tests; it defaults to the live LLM path.
+    """
+    messages = _load_history_json(path)
+    keep_recent, dry_run, instruction = _parse_compact_history_signal(signal)
+    if compress_fn is None:
+        compress_fn = _default_web_compress_fn
+    emitted: list[str] = []
+    compacted = compress_fn(
+        messages,
+        force=True,
+        instruction=(instruction or None),
+        keep_recent=keep_recent,
+        dry_run=dry_run,
+        quiet=True,
+        emit_fn=lambda text: emitted.append(str(text or "")),
+    )
+    if not isinstance(compacted, list) or not compacted:
+        raise RuntimeError("compressor returned no messages")
+    if emitted and "".join(emitted).strip():
+        msg = "".join(emitted).rstrip()
+    elif len(compacted) >= len(messages):
+        msg = (
+            f"History already compact (AI summary): {len(messages)} message(s); "
+            "no reduction needed."
+        )
+    elif dry_run:
+        msg = f"Dry run: AI summary would compact {len(messages)} -> {len(compacted)} message(s)."
+    else:
+        msg = f"Compacted history with AI summary: {len(messages)} -> {len(compacted)} message(s)."
+    if not dry_run:
+        _write_history_json(path, compacted)
+    return msg, compacted
+
+
 def _clear_history_file(path: Path, signal: str) -> tuple[str, list[dict[str, Any]]]:
     messages = _load_history_json(path)
     keep_pairs = 0
@@ -280,6 +356,30 @@ def _max_context_tokens() -> int:
         except Exception:
             _cfg_context = None
     return int(getattr(_cfg_context, "MAX_CONTEXT_TOKENS", 0) or 0) if _cfg_context else 0
+
+
+def _history_context_usage(messages: list[dict[str, Any]]) -> tuple[int, int]:
+    """Return the same context total shape used by the /context tracker."""
+
+    try:
+        from core.context_tracker import get_tracker
+
+        tracker = get_tracker()
+        tracker.messages = messages
+        first_system = next((m for m in messages if m.get("role") == "system"), None)
+        tracker.update_system_prompt(
+            _history_content_text(first_system.get("content")) if first_system else ""
+        )
+        tracker.update_messages(messages, exclude_system=True)
+        return int(tracker.get_total_tokens()), int(getattr(tracker, "max_tokens", 0) or 0)
+    except Exception:
+        return _estimate_history_tokens(messages), _max_context_tokens()
+
+
+def _emit_history_context_update(client_session: Any, messages: list[dict[str, Any]]) -> None:
+    used, max_ctx = _history_context_usage(messages)
+    if max_ctx:
+        client_session.emit("context", used=used, max=max_ctx)
 
 
 def _resolve_workflow_root(raw: str | Path | None = None) -> Path:
@@ -11282,23 +11382,15 @@ def create_app():
         client_session.emit("flush")
 
     def _handle_quick_file_list_command(text: str, client_session: Any) -> bool:
-        """Answer trivial file-list requests without a ReAct/LLM turn."""
+        """Answer explicit slash file-list requests without a ReAct/LLM turn."""
         raw = str(text or "").strip()
-        if raw.startswith("/"):
+        if not raw.startswith("/"):
             return False
-        match = re.match(
-            r"^(?:(?:i\s+need\s+to\s+do|please|pls)\s+)?"
-            r"(?P<cmd>ls|list|lsit|dir)"
-            r"(?:\s+(?:files?|directory|dir))?"
-            r"(?:\s+(?P<path>[^\n]+?))?"
-            r"\s*[?.!]*$",
-            raw,
-            flags=re.IGNORECASE,
-        )
-        if not match:
+        cmd, args = _split_slash(raw)
+        if cmd not in {"ls", "dir", "list-files"}:
             return False
 
-        path_arg = str(match.group("path") or "").strip().strip("'\"`")
+        path_arg = args.strip().strip("'\"`")
         if path_arg.lower() in {"", ".", "files", "file", "directory", "dir"}:
             path_arg = ""
         if "\x00" in path_arg:
@@ -11556,21 +11648,22 @@ def create_app():
             return True
 
         if result.startswith("COMPACT_HISTORY"):
+            _compact_path = _session_json_path(active_slash_session)
             try:
-                message, updated = _compact_history_file(
-                    _session_json_path(active_slash_session),
-                    result,
-                )
-                max_ctx = _max_context_tokens()
-                if max_ctx:
-                    client_session.emit(
-                        "context",
-                        used=_estimate_history_tokens(updated),
-                        max=max_ctx,
-                    )
-                _emit_slash_output(client_session, message)
+                # Real LLM compaction — the same compress_history path the CLI /
+                # Textual UI use (AI summary preserving paths / code / todos).
+                message, updated = _compact_history_llm(_compact_path, result)
             except Exception as exc:
-                _emit_slash_output(client_session, f"Compact failed: {exc}")
+                # LLM unavailable / failed → deterministic local compactor so
+                # /compact still shrinks history instead of breaking.
+                try:
+                    message, updated = _compact_history_file(_compact_path, result)
+                    message = f"{message} (AI summary unavailable: {type(exc).__name__})"
+                except Exception as exc2:
+                    _emit_slash_output(client_session, f"Compact failed: {exc2}")
+                    return True
+            _emit_history_context_update(client_session, updated)
+            _emit_slash_output(client_session, message)
             return True
 
         if result == "CLEAR_HISTORY" or result.startswith("CLEAR_HISTORY:"):
@@ -11579,13 +11672,7 @@ def create_app():
                     _session_json_path(active_slash_session),
                     result,
                 )
-                max_ctx = _max_context_tokens()
-                if max_ctx:
-                    client_session.emit(
-                        "context",
-                        used=_estimate_history_tokens(updated),
-                        max=max_ctx,
-                    )
+                _emit_history_context_update(client_session, updated)
                 _emit_slash_output(client_session, message)
             except Exception as exc:
                 _emit_slash_output(client_session, f"Clear failed: {exc}")
@@ -19021,112 +19108,85 @@ def create_app():
                     # AGENT_MODE_OVERRIDE in the environment; react_loop
                     # reads it at the top of each iteration.
                     _low = _txt.lower()
-                    if _handle_new_ip_command(_txt, client_session=session):
-                        continue
-                    if _handle_ip_command(_txt, client_session=session):
-                        continue
-                    if _handle_session_command(_txt, client_session=session):
-                        continue
-                    if _handle_import_command(_txt, client_session=session):
-                        continue
-                    if _handle_grill_me_command(_txt, client_session=session):
-                        continue
-                    if _handle_approval_command(_txt, client_session=session):
-                        continue
-                    if _handle_verify_ssot_command(_txt, client_session=session):
-                        continue
-                    if _handle_repair_ssot_command(_txt, client_session=session):
-                        continue
-                    if _handle_repair_rtl_command(_txt, client_session=session):
-                        continue
-                    if _handle_repair_equiv_command(_txt, client_session=session):
-                        continue
-                    if _handle_to_ssot_gate(_txt, client_session=session):
-                        continue
-                    if _run_stage_command(_txt, client_session=session):
-                        continue
-                    if _handle_quick_file_list_command(_txt, client_session=session):
-                        continue
-                    if _execute_generic_slash_command(_txt, session):
-                        continue
-                    if _low in ("/plan", "/mode plan", "/mode normal", "/normal"):
-                        is_plan = _low in ("/plan", "/mode plan")
-                        if is_plan:
-                            _agent_mode_override_cv.set("plan_q")
-                            _plan_mode_cv.set("true")
-                            os.environ["AGENT_MODE_OVERRIDE"] = "plan_q"
-                            os.environ["PLAN_MODE"] = "true"
-                        else:
-                            _agent_mode_override_cv.set("normal")
-                            _plan_mode_cv.set("false")
-                            os.environ["AGENT_MODE_OVERRIDE"] = "normal"
-                            os.environ["PLAN_MODE"] = "false"
-                            _os.environ.pop("_PLAN_TODO_WRITE_COUNT", None)
-                        # Immediate UI feedback so the chat reflects the
-                        # mode flip the moment the user clicks the
-                        # NORMAL/PLAN pill (or types /plan), instead of
-                        # waiting for the next turn boundary. Previously
-                        # we deferred the banner to main.py's dispatcher
-                        # which only runs between turns — clicking PLAN
-                        # while the agent was idle left the chat silent
-                        # until the user typed a message.
-                        try:
+                    if _txt.startswith("/"):
+                        if _handle_new_ip_command(_txt, client_session=session):
+                            continue
+                        if _handle_ip_command(_txt, client_session=session):
+                            continue
+                        if _handle_session_command(_txt, client_session=session):
+                            continue
+                        if _handle_import_command(_txt, client_session=session):
+                            continue
+                        if _handle_grill_me_command(_txt, client_session=session):
+                            continue
+                        if _handle_approval_command(_txt, client_session=session):
+                            continue
+                        if _handle_verify_ssot_command(_txt, client_session=session):
+                            continue
+                        if _handle_repair_ssot_command(_txt, client_session=session):
+                            continue
+                        if _handle_repair_rtl_command(_txt, client_session=session):
+                            continue
+                        if _handle_repair_equiv_command(_txt, client_session=session):
+                            continue
+                        if _handle_to_ssot_gate(_txt, client_session=session):
+                            continue
+                        if _run_stage_command(_txt, client_session=session):
+                            continue
+                        if _handle_quick_file_list_command(_txt, client_session=session):
+                            continue
+                        if _execute_generic_slash_command(_txt, session):
+                            continue
+                        if _low in ("/plan", "/mode plan", "/mode normal", "/normal"):
+                            is_plan = _low in ("/plan", "/mode plan")
                             if is_plan:
-                                session.emit("agent", text=(
-                                    "✅ Plan mode — read-only. "
-                                    "The agent will analyze and propose without mutating tools. "
-                                    "Type `apply` or click NORMAL to execute."
-                                ))
+                                _agent_mode_override_cv.set("plan_q")
+                                _plan_mode_cv.set("true")
+                                os.environ["AGENT_MODE_OVERRIDE"] = "plan_q"
+                                os.environ["PLAN_MODE"] = "true"
                             else:
-                                session.emit("agent", text=(
-                                    "✅ Normal mode — tools enabled."
-                                ))
-                            session.emit("flush")
-                        except Exception:
-                            pass
-                        # Two-pronged dispatch:
-                        # (1) AGENT_MODE_OVERRIDE handles the MID-LOOP case
-                        #     (agent currently iterating; react_loop top
-                        #     pops it on the next pass and flips local
-                        #     agent_mode for parallel_executor).
-                        # (2) submit_prompt forwards the slash so main.py's
-                        #     dispatcher can fire AGENT_MODE:normal/plan
-                        #     when the loop is IDLE — that path is what
-                        #     keeps main.py's local agent_mode + the
-                        #     system prompt in messages[0] consistent
-                        #     across turns. Without this submit, the
-                        #     UI's "● NORMAL" pill could click without
-                        #     ever telling main.py to flip — desync.
-                        bridge.submit_prompt_for_session(session.session_id, _txt)
-                        continue
-
-                    # `y` / `yc` / `yes` / `confirm` mid-loop while agent
-                    # is in plan mode → treat as plan confirmation. Without
-                    # this, the input lands in the _interrupts queue and
-                    # gets fed to the LLM as conversational text — the
-                    # plan-confirmation handler in chat_loop only runs
-                    # against _inbox between turns. So `y` after the
-                    # agent shows the [Plan Mode] Plan ready prompt does
-                    # nothing if the agent is still mid-iteration.
-                    if (_plan_mode_value() == "true"
-                            and bridge.agent_running
-                            and _low in ("y", "yes", "yc", "confirm", "ok",
-                                         "proceed", "ㅇㅇ", "확인", "진행")):
-                        _agent_mode_override_cv.set("normal")
-                        _plan_mode_cv.set("false")
-                        _os.environ.pop("_PLAN_TODO_WRITE_COUNT", None)
-                        session.emit("token", text="\n✅ Plan confirmed (mid-loop): tools enabled. Executing.\n")
-                        session.emit("flush")
-                        # Inject an instruction so the agent knows to start
-                        # executing the agreed-upon plan. This goes to
-                        # _interrupts (since agent is running), fed mid-loop.
-                        bridge.submit_prompt_for_session(
-                            session.session_id,
-                            "Confirmed. Execute all tasks in order. "
-                            "For EACH task: todo_update(in_progress) → do work "
-                            "→ todo_update(completed) → verify → todo_update(approved)."
-                        )
-                        continue
+                                _agent_mode_override_cv.set("normal")
+                                _plan_mode_cv.set("false")
+                                os.environ["AGENT_MODE_OVERRIDE"] = "normal"
+                                os.environ["PLAN_MODE"] = "false"
+                                _os.environ.pop("_PLAN_TODO_WRITE_COUNT", None)
+                            # Immediate UI feedback so the chat reflects the
+                            # mode flip the moment the user clicks the
+                            # NORMAL/PLAN pill (or types /plan), instead of
+                            # waiting for the next turn boundary. Previously
+                            # we deferred the banner to main.py's dispatcher
+                            # which only runs between turns — clicking PLAN
+                            # while the agent was idle left the chat silent
+                            # until the user typed a message.
+                            try:
+                                if is_plan:
+                                    session.emit("agent", text=(
+                                        "✅ Plan mode — read-only. "
+                                        "The agent will analyze and propose without mutating tools. "
+                                        "Type `apply` or click NORMAL to execute."
+                                    ))
+                                else:
+                                    session.emit("agent", text=(
+                                        "✅ Normal mode — tools enabled."
+                                    ))
+                                session.emit("flush")
+                            except Exception:
+                                pass
+                            # Two-pronged dispatch:
+                            # (1) AGENT_MODE_OVERRIDE handles the MID-LOOP case
+                            #     (agent currently iterating; react_loop top
+                            #     pops it on the next pass and flips local
+                            #     agent_mode for parallel_executor).
+                            # (2) submit_prompt forwards the slash so main.py's
+                            #     dispatcher can fire AGENT_MODE:normal/plan
+                            #     when the loop is IDLE — that path is what
+                            #     keeps main.py's local agent_mode + the
+                            #     system prompt in messages[0] consistent
+                            #     across turns. Without this submit, the
+                            #     UI's "● NORMAL" pill could click without
+                            #     ever telling main.py to flip — desync.
+                            bridge.submit_prompt_for_session(session.session_id, _txt)
+                            continue
                     bridge.submit_prompt_for_session(session.session_id, _txt)
                 elif t == "interrupt":
                     bridge.submit_interrupt_for_session(session.session_id, msg.get("text", ""))

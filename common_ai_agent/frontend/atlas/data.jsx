@@ -730,6 +730,7 @@
   }
 
   const SESSION_STATE_CACHE_MS = 1200;
+  const CHAT_RECENT_LIMIT = 30;
   const CHAT_SWITCH_LIMIT = 80;
   const WORKER_SNAPSHOT_CACHE_MS = 1500;
   const sessionStateCache = new Map();
@@ -743,7 +744,10 @@
       try { return localStorage.getItem('atlasConversationMode') || 'conversation'; }
       catch (_) { return 'conversation'; }
     })();
-    const limit = (opts && Number(opts.limit)) || (mode === 'recent' ? 50 : 200);
+    const requestedLimit = opts && opts.limit !== undefined ? Number(opts.limit) : NaN;
+    const limit = Number.isFinite(requestedLimit)
+      ? requestedLimit
+      : (mode === 'full' ? 200 : CHAT_RECENT_LIMIT);
     const force = !!(opts && opts.force);
     const url = '/api/session/state'
       + '?session=' + encodeURIComponent(sid)
