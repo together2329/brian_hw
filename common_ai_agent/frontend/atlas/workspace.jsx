@@ -1540,6 +1540,7 @@ const emptyAtlasResource = (path = '') => ({
   path,
   body: '',
   size: 0,
+  mtime: 0,
   truncated: false,
   err: null,
   loading: false,
@@ -1595,6 +1596,7 @@ const readAtlasAsyncResource = (kind, rawPath, force = false) => {
       path,
       body,
       size: d.size || 0,
+      mtime: d.mtime || 0,
       truncated: !!d.truncated,
       err,
       loading: false,
@@ -1608,6 +1610,7 @@ const readAtlasAsyncResource = (kind, rawPath, force = false) => {
       path,
       body: kind === 'ssot' ? `# fetch failed: ${msg}` : `// ${path}\n// fetch failed: ${msg}`,
       size: 0,
+      mtime: 0,
       truncated: false,
       err: msg,
       loading: false,
@@ -1631,6 +1634,39 @@ const cachedAtlasResource = (kind, path) => {
   const key = String(path || '').trim();
   if (!key) return emptyAtlasResource('');
   return atlasResourceCache(kind).get(key)?.data || emptyAtlasResource(key);
+};
+
+const atlasFormatBytes = (value) => {
+  const n = Number(value || 0);
+  if (!Number.isFinite(n) || n <= 0) return '';
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+  return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+};
+
+const atlasImageMimeForExt = (ext) => ({
+  jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif',
+  webp: 'image/webp', bmp: 'image/bmp', svg: 'image/svg+xml',
+  tif: 'image/tiff', tiff: 'image/tiff', ico: 'image/x-icon',
+})[String(ext || '').toLowerCase()] || 'image';
+
+const atlasFileTreeMetaForPath = (rawPath) => {
+  const clean = String(rawPath || '').replace(/^\/+/, '');
+  if (!clean) return {};
+  const parts = clean.split('/').filter(Boolean);
+  const currentIp = String(window.SCOPE_PATH || '').replace(/^\/+|\/+$/g, '');
+  const rel = currentIp && parts[0] === currentIp ? parts.slice(1).join('/') : clean;
+  const candidates = new Set([clean, rel]);
+  if (currentIp && rel) candidates.add(`${currentIp}/${rel}`);
+  const entries = Array.isArray(window.FILE_TREE) ? window.FILE_TREE : [];
+  for (const item of entries) {
+    const name = String(item?.name || '').replace(/^\/+/, '');
+    if (!name) continue;
+    if (candidates.has(name) || (currentIp && candidates.has(`${currentIp}/${name}`))) {
+      return item || {};
+    }
+  }
+  return {};
 };
 
 const useAtlasAsyncResource = (kind, path, options = {}) => {
@@ -18683,6 +18719,12 @@ const PreviewPane = ({ path, onClose, focusLine = 0 }) => {
   const highlightTooLarge = !isMarkdown && body.length > 60000;
   const canHighlight = !isMarkdown && !highlightTooLarge && lang !== 'none';
   const [highlightedHtml, setHighlightedHtml] = React.useState('');
+  const [binaryReloadKey, setBinaryReloadKey] = React.useState(0);
+  const [imageMeta, setImageMeta] = React.useState({ width: 0, height: 0, error: '' });
+
+  React.useEffect(() => {
+    setImageMeta({ width: 0, height: 0, error: '' });
+  }, [path]);
 
   React.useEffect(() => {
     setHighlightedHtml('');
@@ -18724,8 +18766,25 @@ const PreviewPane = ({ path, onClose, focusLine = 0 }) => {
     );
   }
 
-  const lineCount = body.split('\n').length;
-  const sizeKb = size > 0 ? (size / 1024).toFixed(1) + ' KB' : '';
+  const binaryFileMeta = isBinary ? atlasFileTreeMetaForPath(path) : {};
+  const effectiveSize = isBinary ? Number(binaryFileMeta.size || 0) : size;
+  const effectiveMtime = isBinary ? Number(binaryFileMeta.mtime || 0) : Number(resource.mtime || 0);
+  const lineCount = isBinary ? 0 : body.split('\n').length;
+  const sizeLabel = atlasFormatBytes(effectiveSize);
+  const imageDimLabel = imageMeta.width && imageMeta.height
+    ? `${imageMeta.width} x ${imageMeta.height}px`
+    : '';
+  const binaryKindLabel = isImage
+    ? atlasImageMimeForExt(ext)
+    : (isPdf ? 'application/pdf' : `application/${ext || 'octet-stream'}`);
+  const refreshPreview = () => {
+    if (isBinary) {
+      setImageMeta({ width: 0, height: 0, error: '' });
+      setBinaryReloadKey(k => k + 1);
+      return;
+    }
+    reloadPreview(true);
+  };
   const copyPath = () => { try { navigator.clipboard.writeText(path); } catch (_) {} };
   const copyAll  = () => { try { navigator.clipboard.writeText(body);  } catch (_) {} };
 
@@ -18737,18 +18796,29 @@ const PreviewPane = ({ path, onClose, focusLine = 0 }) => {
         display: 'flex', alignItems: 'center', gap: 10, fontSize: 10,
         color: 'var(--fg-mute)', fontFamily: 'var(--mono)',
       }}>
-        <span>lang <span style={{ color: 'var(--accent)' }}>{isMarkdown ? 'rendered markdown' : (lang === 'none' ? 'plain' : lang)}</span></span>
-        <span className="mute">·</span>
-        <span>{lineCount} lines</span>
-        {sizeKb && <><span className="mute">·</span><span>{sizeKb}</span></>}
-        {truncated && <><span className="mute">·</span><span className="warn">truncated at {Math.round((body.length || 0) / 1024)}KB</span></>}
-        {highlightTooLarge && <><span className="mute">·</span><span className="warn">syntax highlight skipped for speed</span></>}
-        {canHighlight && !highlightedHtml && !loading && body && <><span className="mute">·</span><span className="warn">syntax pending</span></>}
-        {hasGlobPath && <><span className="mute">·</span><span className="warn">glob path</span></>}
-        {loading && <AtlasStatusBadge status={hasBody ? 'refreshing' : 'loading'} compact soft />}
+        {isBinary ? (
+          <>
+            <span>file <span style={{ color: 'var(--accent)' }}>{binaryKindLabel}</span></span>
+            {imageDimLabel && <><span className="mute">·</span><span>{imageDimLabel}</span></>}
+            {sizeLabel && <><span className="mute">·</span><span>{sizeLabel}</span></>}
+            {imageMeta.error && <><span className="mute">·</span><span className="warn">{imageMeta.error}</span></>}
+          </>
+        ) : (
+          <>
+            <span>lang <span style={{ color: 'var(--accent)' }}>{isMarkdown ? 'rendered markdown' : (lang === 'none' ? 'plain' : lang)}</span></span>
+            <span className="mute">·</span>
+            <span>{lineCount} lines</span>
+            {sizeLabel && <><span className="mute">·</span><span>{sizeLabel}</span></>}
+            {truncated && <><span className="mute">·</span><span className="warn">truncated at {Math.round((body.length || 0) / 1024)}KB</span></>}
+            {highlightTooLarge && <><span className="mute">·</span><span className="warn">syntax highlight skipped for speed</span></>}
+            {canHighlight && !highlightedHtml && !loading && body && <><span className="mute">·</span><span className="warn">syntax pending</span></>}
+            {hasGlobPath && <><span className="mute">·</span><span className="warn">glob path</span></>}
+            {loading && <AtlasStatusBadge status={hasBody ? 'refreshing' : 'loading'} compact soft />}
+          </>
+        )}
         <span style={{ flex: 1 }} />
-        <span onClick={() => reloadPreview(true)} style={{ cursor: 'pointer', padding: '1px 6px', border: '1px solid var(--line)', borderRadius: 2 }}>refresh</span>
-        <span onClick={copyAll}  style={{ cursor: 'pointer', padding: '1px 6px', border: '1px solid var(--line)', borderRadius: 2 }}>copy</span>
+        <span onClick={refreshPreview} style={{ cursor: 'pointer', padding: '1px 6px', border: '1px solid var(--line)', borderRadius: 2 }}>refresh</span>
+        {!isBinary && <span onClick={copyAll} style={{ cursor: 'pointer', padding: '1px 6px', border: '1px solid var(--line)', borderRadius: 2 }}>copy</span>}
         <span onClick={copyPath} style={{ cursor: 'pointer', padding: '1px 6px', border: '1px solid var(--line)', borderRadius: 2 }}>copy path</span>
       </div>
       {err && (
@@ -18778,12 +18848,28 @@ const PreviewPane = ({ path, onClose, focusLine = 0 }) => {
             padding: 16, display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
             background: 'var(--bg-2)',
           }}>
-            <img
-              src={`/api/file/raw?path=${encodeURIComponent(path)}&v=${resource.mtime || ''}`}
-              alt={path}
-              style={{ maxWidth: '100%', maxHeight: '90vh', background: '#fff', border: '1px solid var(--line)', borderRadius: 2 }}
-              onError={(e) => { e.currentTarget.style.display = 'none'; }}
-            />
+            {imageMeta.error ? (
+              <div style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 12 }}>
+                Image preview failed. Use copy path or download the original import.
+              </div>
+            ) : (
+              <img
+                src={`/api/file/raw?path=${encodeURIComponent(path)}&v=${encodeURIComponent(String(effectiveMtime || binaryReloadKey || ''))}`}
+                alt={path}
+                style={{ maxWidth: '100%', maxHeight: '90vh', background: '#fff', border: '1px solid var(--line)', borderRadius: 2 }}
+                onLoad={(e) => {
+                  setImageMeta({
+                    width: e.currentTarget.naturalWidth || 0,
+                    height: e.currentTarget.naturalHeight || 0,
+                    error: '',
+                  });
+                }}
+                onError={(e) => {
+                  setImageMeta(prev => ({ ...prev, error: 'image load failed' }));
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            )}
           </div>
         ) : isPdf ? (
           <iframe

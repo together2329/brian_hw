@@ -5698,6 +5698,22 @@ def create_app():
             return True
         return False
 
+    def _is_file_tree_hidden_artifact(child: Path, listing_root: Path) -> bool:
+        if _is_internal_artifact(child.name):
+            return True
+        try:
+            rel = child.relative_to(listing_root).as_posix().lower()
+        except ValueError:
+            rel = child.name.lower()
+        # Imported PDF/Office image extraction creates low-value cache files
+        # under req/imports/images. Markdown/DOC previews still reference them
+        # through /api/file/raw, but listing them beside originals makes users
+        # click placeholder masks/backgrounds instead of the source document.
+        return bool(re.search(
+            r"(^|/)req/imports/images/[^/]+\.(?:png|jpe?g|gif|webp|bmp|svg|tiff?|ico)$",
+            rel,
+        ))
+
     def _safe(rel_path):
         rel = (rel_path or "").lstrip("/")
         candidate = (PROJECT_ROOT / rel).resolve()
@@ -5737,7 +5753,7 @@ def create_app():
                     return
                 if child.name in SKIP_DIRS or child.name.startswith("."):
                     continue
-                if child.is_file() and _is_internal_artifact(child.name):
+                if child.is_file() and _is_file_tree_hidden_artifact(child, target):
                     continue
                 try:
                     stat = child.stat()
@@ -15374,7 +15390,41 @@ def create_app():
         image_paths: list[Path] = []
         image_seq = 0
 
-        def _write_image(blob: bytes, ext: str, n: int | None = None) -> Path:
+        def _low_information_import_image_reason(blob: bytes, ext: str) -> str:
+            normalized_ext = (ext or "png").lower().lstrip(".")
+            if normalized_ext in {"svg", "svg+xml"}:
+                return ""
+            if len(blob or b"") > 2048:
+                return ""
+            try:
+                from PIL import Image, ImageStat  # type: ignore
+
+                img = Image.open(io.BytesIO(blob)).convert("RGBA")
+                width, height = img.size
+                if width <= 1 or height <= 1:
+                    return "degenerate extracted image"
+                if width * height > 25000:
+                    return ""
+                thumb = img.copy()
+                thumb.thumbnail((32, 32))
+                colors = thumb.getcolors(maxcolors=4096) or []
+                extrema = ImageStat.Stat(thumb.convert("RGB")).extrema
+                spread = max((hi - lo) for lo, hi in extrema) if extrema else 255
+                if len(colors) <= 2:
+                    return "flat tiny extracted image"
+                if len(colors) <= 4 and spread <= 8:
+                    return "near-flat tiny extracted image"
+            except Exception:
+                return ""
+            return ""
+
+        def _write_image(
+            blob: bytes,
+            ext: str,
+            n: int | None = None,
+            *,
+            filter_noise: bool = False,
+        ) -> Optional[Path]:
             nonlocal image_seq
             if n is None:
                 image_seq += 1
@@ -15388,6 +15438,8 @@ def create_app():
                 ext = "svg"
             elif not re.match(r"^[A-Za-z0-9]+$", ext):
                 ext = "png"
+            if filter_noise and _low_information_import_image_reason(blob, ext):
+                return None
             img_path = images_dir / f"{stamp}_{idx}_{n}.{ext}"
             img_path.write_bytes(blob)
             image_paths.append(img_path)
@@ -15415,7 +15467,8 @@ def create_app():
                 except Exception:
                     return ""
                 ext = str(mime or "image/png").split("/", 1)[-1]
-                return _inline_image_rel(_write_image(blob, ext))
+                saved = _write_image(blob, ext)
+                return _inline_image_rel(saved) if saved else ""
 
             md_re = re.compile(
                 r"!\[([^\]]*)\]\(\s*data:(image/[A-Za-z0-9.+-]+)\s*[:;]\s*base64\s*,"
@@ -15537,7 +15590,12 @@ def create_app():
                             if not extracted or not extracted.get("image"):
                                 continue
                             n += 1
-                            _write_image(extracted["image"], extracted.get("ext") or "png", n)
+                            _write_image(
+                                extracted["image"],
+                                extracted.get("ext") or "png",
+                                n,
+                                filter_noise=True,
+                            )
                     doc.close()
                 except Exception:
                     pass
@@ -15567,7 +15625,7 @@ def create_app():
                             try:
                                 image = shape.image
                                 n += 1
-                                _write_image(image.blob, image.ext or "png", n)
+                                _write_image(image.blob, image.ext or "png", n, filter_noise=True)
                             except Exception:
                                 continue
 
@@ -15654,7 +15712,7 @@ def create_app():
                             content_type = getattr(target, "content_type", "") or ""
                             ext = content_type.split("/")[-1] or "png"
                             n += 1
-                            _write_image(blob, ext, n)
+                            _write_image(blob, ext, n, filter_noise=True)
                 except Exception:
                     pass
 
