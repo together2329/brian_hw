@@ -11,6 +11,7 @@ Strategy:
 import unittest
 from unittest.mock import MagicMock
 import types
+import os
 
 
 # ---------------------------------------------------------------------------
@@ -195,6 +196,84 @@ class TestNormalTurn(unittest.TestCase):
         state = _make_state(agent_mode="plan_q")
         new_state, _ = _call("start plan", state=state, deps=deps)
         self.assertEqual(new_state.agent_mode, "plan")
+
+    def test_stop_paused_chat_suppresses_todo_execution_once(self):
+        class _OpenTodos:
+            todos = [types.SimpleNamespace(status="in_progress")]
+
+            def is_all_processed(self):
+                return False
+
+        observed = {}
+
+        def mock_react(msgs, tracker, task, **kw):
+            observed["suppress"] = os.environ.get("ATLAS_SUPPRESS_TODO_EXECUTION_ONCE")
+            observed["paused"] = os.environ.get("ATLAS_EXECUTION_PAUSED_AFTER_STOP")
+            return msgs + [{"role": "assistant", "content": "Hi!"}], "normal"
+
+        deps = _make_deps(
+            cfg=_make_cfg(ENABLE_TODO_TRACKING=True),
+            run_react_agent_fn=mock_react,
+        )
+        state = _make_state(todo_tracker=_OpenTodos())
+        old_paused = os.environ.get("ATLAS_EXECUTION_PAUSED_AFTER_STOP")
+        old_suppress = os.environ.get("ATLAS_SUPPRESS_TODO_EXECUTION_ONCE")
+        try:
+            os.environ["ATLAS_EXECUTION_PAUSED_AFTER_STOP"] = "1"
+            os.environ.pop("ATLAS_SUPPRESS_TODO_EXECUTION_ONCE", None)
+
+            _call("Hi", state=state, deps=deps)
+
+            self.assertEqual(observed["suppress"], "1")
+            self.assertEqual(observed["paused"], "1")
+        finally:
+            if old_paused is None:
+                os.environ.pop("ATLAS_EXECUTION_PAUSED_AFTER_STOP", None)
+            else:
+                os.environ["ATLAS_EXECUTION_PAUSED_AFTER_STOP"] = old_paused
+            if old_suppress is None:
+                os.environ.pop("ATLAS_SUPPRESS_TODO_EXECUTION_ONCE", None)
+            else:
+                os.environ["ATLAS_SUPPRESS_TODO_EXECUTION_ONCE"] = old_suppress
+
+    def test_stop_paused_continue_resumes_todo_execution(self):
+        class _OpenTodos:
+            todos = [types.SimpleNamespace(status="in_progress")]
+
+            def is_all_processed(self):
+                return False
+
+        observed = {}
+
+        def mock_react(msgs, tracker, task, **kw):
+            observed["suppress"] = os.environ.get("ATLAS_SUPPRESS_TODO_EXECUTION_ONCE")
+            observed["paused"] = os.environ.get("ATLAS_EXECUTION_PAUSED_AFTER_STOP")
+            return msgs + [{"role": "assistant", "content": "resuming"}], "normal"
+
+        deps = _make_deps(
+            cfg=_make_cfg(ENABLE_TODO_TRACKING=True),
+            run_react_agent_fn=mock_react,
+        )
+        state = _make_state(todo_tracker=_OpenTodos())
+        old_paused = os.environ.get("ATLAS_EXECUTION_PAUSED_AFTER_STOP")
+        old_suppress = os.environ.get("ATLAS_SUPPRESS_TODO_EXECUTION_ONCE")
+        try:
+            os.environ["ATLAS_EXECUTION_PAUSED_AFTER_STOP"] = "1"
+            os.environ.pop("ATLAS_SUPPRESS_TODO_EXECUTION_ONCE", None)
+
+            _call("continue", state=state, deps=deps)
+
+            self.assertIsNone(observed["suppress"])
+            self.assertIsNone(observed["paused"])
+        finally:
+            if old_paused is None:
+                os.environ.pop("ATLAS_EXECUTION_PAUSED_AFTER_STOP", None)
+            else:
+                os.environ["ATLAS_EXECUTION_PAUSED_AFTER_STOP"] = old_paused
+            if old_suppress is None:
+                os.environ.pop("ATLAS_SUPPRESS_TODO_EXECUTION_ONCE", None)
+            else:
+                os.environ["ATLAS_SUPPRESS_TODO_EXECUTION_ONCE"] = old_suppress
 
 
 # ---------------------------------------------------------------------------

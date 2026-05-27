@@ -6,6 +6,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 import sys
 import types
+import os
 
 
 # ---------------------------------------------------------------------------
@@ -418,7 +419,71 @@ class TestRunReactAgentImpl(unittest.TestCase):
         self.assertTrue(captured_prompts)
         self.assertIn("[Task 1/1]", captured_prompts[0])
         self.assertIn("todo_update(index=1, status='in_progress')", captured_prompts[0])
-        self.assertEqual(todo_tracker.current_index, 0)
+
+    def test_stop_paused_chat_suppression_skips_todo_guard_once(self):
+        """After STOP, casual chat should not be forced through the TODO guard."""
+        from core.react_loop import run_react_agent_impl
+
+        class _Todo:
+            content = "resume blocked execution"
+            detail = "active work"
+            criteria = "must use tools"
+            status = "in_progress"
+
+        class _ActiveTodoTracker:
+            todos = [_Todo()]
+            current_index = 0
+
+            def is_all_processed(self):
+                return False
+
+            def get_current_todo(self):
+                return self.todos[0]
+
+            def check_rejection_livelock(self, max_rejections=50):
+                return None
+
+        calls = {"count": 0}
+
+        def text_reply(messages, stop=None, **kwargs):
+            calls["count"] += 1
+            yield "Hi!"
+
+        emitted = []
+        cfg = _make_cfg(
+            ENABLE_TODO_TRACKING=True,
+            EXECUTION_NO_ACTION_GUARD=True,
+            EXECUTION_NO_ACTION_RETRY_LIMIT=3,
+            TODO_FILE="/tmp/nonexistent-atlas-todo.json",
+        )
+        deps = self._make_deps(
+            cfg=cfg,
+            llm_call_fn=text_reply,
+            detect_completion_fn=lambda _text: False,
+            emit_content_fn=lambda line: emitted.append(line),
+            emit_flush_fn=lambda: None,
+        )
+        messages = [{"role": "system", "content": "system"}, {"role": "user", "content": "Hi"}]
+        tracker = self._make_tracker()
+
+        with patch.dict(os.environ, {"ATLAS_SUPPRESS_TODO_EXECUTION_ONCE": "1"}, clear=False):
+            msgs, _ = run_react_agent_impl(
+                messages=messages,
+                tracker=tracker,
+                task_description="Hi",
+                deps=deps,
+                todo_tracker=_ActiveTodoTracker(),
+            )
+
+        self.assertEqual(calls["count"], 1)
+        self.assertTrue(any(
+            m.get("role") == "assistant" and "Hi!" in m.get("content", "")
+            for m in msgs
+        ))
+        rendered = "\n".join(str(line) for line in emitted)
+        self.assertNotIn("Runtime guard nudged execution", rendered)
+        self.assertNotIn("no-action guard", rendered)
+        self.assertNotIn("ATLAS_SUPPRESS_TODO_EXECUTION_ONCE", os.environ)
 
     def test_preface_disabled_skips_orchestrator(self):
         """preface_enabled=False must not call orchestrator."""

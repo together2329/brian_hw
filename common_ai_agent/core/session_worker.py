@@ -562,7 +562,14 @@ class SessionWorker:
 
     def check_stop(self) -> bool:
         msg = self.poll_matching(("stop",))
-        return msg is not None
+        if msg is None:
+            return False
+        # A consumed STOP means the user intentionally paused the active
+        # execution loop. Keep that state until the next explicit resume-like
+        # prompt so casual chat does not get reinterpreted as TODO execution.
+        os.environ["ATLAS_EXECUTION_PAUSED_AFTER_STOP"] = "1"
+        os.environ["ATLAS_EXECUTION_PAUSED_SESSION"] = self.session_id
+        return True
 
     def poll_interrupt(self) -> str | None:
         msg = self.poll_matching(("interrupt",))

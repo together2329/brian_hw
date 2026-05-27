@@ -78,6 +78,23 @@ def test_session_worker_idle_stop_does_not_cancel_next_prompt(tmp_path):
         worker.close()
 
 
+def test_session_worker_consumed_stop_marks_execution_paused(tmp_path, monkeypatch):
+    from core.session_worker import SessionWorker
+
+    session = "brian/dma/default"
+    monkeypatch.delenv("ATLAS_EXECUTION_PAUSED_AFTER_STOP", raising=False)
+    monkeypatch.delenv("ATLAS_EXECUTION_PAUSED_SESSION", raising=False)
+    worker = SessionWorker(session, str(tmp_path / "atlas.db"))
+    try:
+        worker.db.enqueue_message(session, "in", "stop", {})
+
+        assert worker.check_stop() is True
+        assert os.environ["ATLAS_EXECUTION_PAUSED_AFTER_STOP"] == "1"
+        assert os.environ["ATLAS_EXECUTION_PAUSED_SESSION"] == session
+    finally:
+        worker.close()
+
+
 def test_session_worker_record_ssot_qa_writes_pending_review_card(tmp_path, monkeypatch):
     from core.session_worker import SessionWorker
 

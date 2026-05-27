@@ -14,6 +14,7 @@ The actual I/O loop (input(), readline) stays in main.py's chat_loop().
 from __future__ import annotations
 
 import time
+import os
 from dataclasses import dataclass, field
 from typing import Any, Callable, List, Optional, Tuple
 
@@ -62,6 +63,57 @@ class ChatLoopDeps:
 
 # "continue" | "break" | "skip"  (Literal not available in Python 3.7)
 Control = str
+
+
+def _todo_has_open_items(todo_tracker: Any) -> bool:
+    if not todo_tracker or not getattr(todo_tracker, "todos", None):
+        return False
+    try:
+        return not bool(todo_tracker.is_all_processed())
+    except Exception:
+        return any(
+            getattr(item, "status", "") not in ("approved", "rejected")
+            for item in getattr(todo_tracker, "todos", [])
+        )
+
+
+def _is_execution_resume_request(user_input: str) -> bool:
+    text = str(user_input or "").strip().lower()
+    if not text:
+        return False
+    exact = {
+        "continue",
+        "keep going",
+        "go ahead",
+        "proceed",
+        "resume",
+        "run",
+        "execute",
+        "start",
+        "진행",
+        "계속",
+        "계속해",
+        "다시",
+        "해",
+        "시작",
+    }
+    if text in exact:
+        return True
+    prefixes = (
+        "continue ",
+        "keep going",
+        "go ahead",
+        "proceed ",
+        "resume ",
+        "run ",
+        "execute ",
+        "start ",
+        "진행 ",
+        "계속 ",
+        "다시 ",
+        "시작 ",
+    )
+    return text.startswith(prefixes)
 
 
 # ---------------------------------------------------------------------------
@@ -169,7 +221,8 @@ def process_chat_turn(
     if getattr(cfg, "ENABLE_TODO_TRACKING", False) and state.todo_tracker:
         inp = user_input.lower().strip()
         if any(x in inp for x in ("keep going", "continue", "진행", "계속")):
-            if state.todo_tracker.unprocess_rejected():
+            unprocess_rejected = getattr(state.todo_tracker, "unprocess_rejected", None)
+            if callable(unprocess_rejected) and unprocess_rejected():
                 reminder = state.todo_tracker.get_continuation_prompt()
                 if reminder:
                     user_input = f"{user_input}\n\n{reminder}"
@@ -189,6 +242,23 @@ def process_chat_turn(
             if deps.context_tracker:
                 deps.context_tracker.update_messages(state.messages, exclude_system=True)
             deps.save_history_fn(state.messages)
+
+    # A STOP during execution pauses the active TODO loop. Until the user sends
+    # an explicit resume-like prompt, let normal text act as normal chat/new
+    # instruction instead of injecting the current TODO and tripping the
+    # no-Action guard.
+    if (
+        os.environ.get("ATLAS_EXECUTION_PAUSED_AFTER_STOP") == "1"
+        and state.agent_mode not in ("plan", "plan_q")
+    ):
+        if _is_execution_resume_request(user_input):
+            os.environ.pop("ATLAS_EXECUTION_PAUSED_AFTER_STOP", None)
+            os.environ.pop("ATLAS_EXECUTION_PAUSED_SESSION", None)
+        elif _todo_has_open_items(state.todo_tracker):
+            os.environ["ATLAS_SUPPRESS_TODO_EXECUTION_ONCE"] = "1"
+        else:
+            os.environ.pop("ATLAS_EXECUTION_PAUSED_AFTER_STOP", None)
+            os.environ.pop("ATLAS_EXECUTION_PAUSED_SESSION", None)
 
     # --- Run ReAct agent (rolling window or normal) ---
     tracker = IterationTracker(max_iterations=getattr(cfg, "MAX_ITERATIONS", 30))

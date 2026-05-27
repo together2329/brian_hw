@@ -546,13 +546,19 @@ def run_react_agent_impl(
     _chat_iter_count = 0
     actions_taken: List[Any] = []
     referenced_node_ids: List[str] = []
+    _suppress_todo_execution = os.environ.pop("ATLAS_SUPPRESS_TODO_EXECUTION_ONCE", "").lower() in (
+        "1", "true", "yes", "on"
+    )
+    _todo_tracking_enabled = bool(getattr(cfg, "ENABLE_TODO_TRACKING", False)) and not _suppress_todo_execution
 
     # --- Todo tracker setup ---
     # IMPORTANT: Use the same tracker instance as tools.py (_get_todo_tracker)
     # to avoid divergence. Never create a separate TodoTracker.load() here,
     # because that creates new TodoItem objects that lose runtime-only attributes
     # like _tools_since_in_progress (gate check counter).
-    if getattr(cfg, "ENABLE_TODO_TRACKING", False):
+    if _suppress_todo_execution:
+        todo_tracker = None
+    elif _todo_tracking_enabled:
         try:
             from pathlib import Path
             desired_todo_path = Path(getattr(cfg, "TODO_FILE", "current_todos.json"))
@@ -2195,7 +2201,7 @@ def run_react_agent_impl(
 
             # Sync todo_tracker: use shared instance from main module to avoid
             # losing runtime-only attributes (_tools_since_in_progress) on reload.
-            if getattr(cfg, "ENABLE_TODO_TRACKING", False):
+            if _todo_tracking_enabled:
                 try:
                     import sys as _sys
                     _main_mod = _sys.modules.get('main')
@@ -2365,7 +2371,7 @@ def run_react_agent_impl(
             if agent_mode in ("plan", "plan_q"):
                 break
 
-            if getattr(cfg, "ENABLE_TODO_TRACKING", False):
+            if _todo_tracking_enabled:
                 try:
                     import sys as _sys
                     _main_mod = _sys.modules.get('main')
