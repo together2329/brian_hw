@@ -166,10 +166,10 @@ def test_atlas_prompt_send_prefers_current_ip_workflow_session() -> None:
     # <user>/default/<workflow> and be filtered out of the current chat.
     assert "const canonicalSession = (window.atlasData && window.atlasData.sessionFor)" in workspace
     assert "window.atlasData.sessionFor(promptScope, promptWorkflow)" in workspace
-    assert "canonicalSession,\n        window.ACTIVE_SESSION" in workspace
-    assert "activeSession,\n        activeNamespace" in workspace
+    assert "canonicalSession,\n      window.ACTIVE_SESSION" in workspace
+    assert "activeSession,\n      activeNamespace" in workspace
     assert "const activeSessionWorkflow = workflowFromSession(" in workspace
-    assert "activeSessionWorkflow\n            || routeWorkflow\n            || workflow" in workspace
+    assert "activeSessionWorkflow\n          || routeWorkflow\n          || workflow" in workspace
     assert "const sessionChanged = targetSessionId !== currentSessionId;" in backend
     assert "clearPendingAcks();" in backend
     assert "liveQueue = [];" in backend
@@ -237,6 +237,30 @@ def test_atlas_workflow_switch_shows_readiness_overlay() -> None:
     assert "<WorkflowReadyOverlay state={workflowReady} />" in workspace
     assert ".workflow-ready-overlay" in styles
     assert ".workflow-ready-step[data-state=\"active\"]" in styles
+
+
+def test_atlas_submit_holds_input_until_prompt_target_is_ready() -> None:
+    workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace.jsx").read_text()
+    submit_start = workspace.index("const submitMsg = (cmd) => {")
+    submit_body = workspace[submit_start:workspace.index("  // Subscribe to backend events", submit_start)]
+
+    assert "const clearSubmittedInput = () => {" in submit_body
+    assert "recordInputHistory(raw);" in submit_body
+    assert "setInput(cur => {" in submit_body
+    assert "curText === raw" in submit_body
+    assert "const holdSubmittedInput = (reason) => {" in submit_body
+    assert "heldSubmitRef.current = { raw, cmd, createdAt: Date.now() };" in submit_body
+    assert "Input held. Waiting for" in submit_body
+    assert "it will send automatically if unchanged" in submit_body
+    assert "backendReadyForPrompt" in submit_body
+    assert "Input held. Backend is" in submit_body
+    assert "submitMsg(latest.cmd ?? latest.raw);" in workspace
+
+    # Regression guard: the textarea must not be cleared before workflow or
+    # backend readiness is checked. Clearing only happens through the accepted
+    # input helper after the target path has been selected.
+    assert "recordInputHistory(raw);\n    setInput('');" not in submit_body
+    assert submit_body.index("if (workflowReady)") < submit_body.index("clearSubmittedInput();\n      const arg")
 
 
 def test_atlas_left_workflow_ip_panels_are_vertically_resizable() -> None:

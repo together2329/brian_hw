@@ -2240,70 +2240,77 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
   }, [resolveSession, setChatViewSession]);
 
   const sendPrompt = React.useCallback((text, sessionOverride) => {
-    if (window.backend) {
-      const activeSessionWorkflow = workflowFromSession(
-        window.ACTIVE_SESSION
-        || activeSessionRef.current
-        || activeSession
-        || activeNamespace
-        || ''
-      );
-      const routeWorkflow = normalizeUiSession((inputRouteRef.current || {}).workflow || '');
-      const promptWorkflow = String(
-        atlasUiOrchestratorMode()
-          ? 'orchestrator'
-          : (
-            activeSessionWorkflow
-            || routeWorkflow
-            || workflow
-            || activeWorkflow
-            || defaultWorkflowForExecMode()
-            || ''
-          )
-      ).trim();
-      const promptScope = (() => {
-        return activeIpForRoute([
-          window.ACTIVE_SESSION,
-          activeSessionRef.current,
-          activeSession,
-          activeNamespace,
-        ]);
-      })();
-      const canonicalSession = (window.atlasData && window.atlasData.sessionFor)
-        ? window.atlasData.sessionFor(promptScope, promptWorkflow)
-        : '';
-      const session = resolveSession(
-        sessionOverride,
-        canonicalSession,
+    if (!window.backend || typeof window.backend.send !== 'function') {
+      return { ok: false, error: 'backend unavailable' };
+    }
+    const activeSessionWorkflow = workflowFromSession(
+      window.ACTIVE_SESSION
+      || activeSessionRef.current
+      || activeSession
+      || activeNamespace
+      || ''
+    );
+    const routeWorkflow = normalizeUiSession((inputRouteRef.current || {}).workflow || '');
+    const promptWorkflow = String(
+      atlasUiOrchestratorMode()
+        ? 'orchestrator'
+        : (
+          activeSessionWorkflow
+          || routeWorkflow
+          || workflow
+          || activeWorkflow
+          || defaultWorkflowForExecMode()
+          || ''
+        )
+    ).trim();
+    const promptScope = (() => {
+      return activeIpForRoute([
         window.ACTIVE_SESSION,
         activeSessionRef.current,
         activeSession,
         activeNamespace,
-      );
-      // crypto.randomUUID is secure-context only (localhost / https).
-      // Accessing it from http://<lan-ip>/ throws — fall back to
-      // getRandomValues, which IS available in non-secure contexts.
-      let msg_id;
-      try {
-        msg_id = window.crypto.randomUUID();
-      } catch (_) {
-        const b = new Uint8Array(16);
-        window.crypto.getRandomValues(b);
-        b[6] = (b[6] & 0x0f) | 0x40;
-        b[8] = (b[8] & 0x3f) | 0x80;
-        const h = Array.from(b, x => x.toString(16).padStart(2, '0'));
-        msg_id = `${h.slice(0,4).join('')}-${h.slice(4,6).join('')}-${h.slice(6,8).join('')}-${h.slice(8,10).join('')}-${h.slice(10,16).join('')}`;
-      }
-      window.backend.send({
-        type: 'prompt',
-        msg_id,
-        text,
-        session,
-        ip: promptScope,
-        workflow: promptWorkflow,
-        ui_lang: window.ATLAS_UI_LANG || uiLang,
-      });
+      ]);
+    })();
+    const canonicalSession = (window.atlasData && window.atlasData.sessionFor)
+      ? window.atlasData.sessionFor(promptScope, promptWorkflow)
+      : '';
+    const session = resolveSession(
+      sessionOverride,
+      canonicalSession,
+      window.ACTIVE_SESSION,
+      activeSessionRef.current,
+      activeSession,
+      activeNamespace,
+    );
+    // crypto.randomUUID is secure-context only (localhost / https).
+    // Accessing it from http://<lan-ip>/ throws — fall back to
+    // getRandomValues, which IS available in non-secure contexts.
+    let msg_id;
+    try {
+      msg_id = window.crypto.randomUUID();
+    } catch (_) {
+      const b = new Uint8Array(16);
+      window.crypto.getRandomValues(b);
+      b[6] = (b[6] & 0x0f) | 0x40;
+      b[8] = (b[8] & 0x3f) | 0x80;
+      const h = Array.from(b, x => x.toString(16).padStart(2, '0'));
+      msg_id = `${h.slice(0,4).join('')}-${h.slice(4,6).join('')}-${h.slice(6,8).join('')}-${h.slice(8,10).join('')}-${h.slice(10,16).join('')}`;
     }
+    const msg = {
+      type: 'prompt',
+      msg_id,
+      text,
+      session,
+      ip: promptScope,
+      workflow: promptWorkflow,
+      ui_lang: window.ATLAS_UI_LANG || uiLang,
+    };
+    try {
+      window.backend.send(msg);
+    } catch (e) {
+      return { ok: false, error: String(e && e.message || e) };
+    }
+    return { ok: true, msg_id, session, workflow: promptWorkflow, ip: promptScope };
   }, [activeNamespace, activeSession, activeWorkflow, resolveSession, uiLang, workflow]);
 
   const switchToDefaultSession = React.useCallback(() => {
@@ -2541,6 +2548,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     return () => window.removeEventListener('atlas-workflow-view-request', onWorkflowViewRequest);
   }, [switchWorkflow]);
   const [input, setInput] = React.useState('');
+  const heldSubmitRef = React.useRef(null);
 
   // Listen for fold/drag-select comment events from PreviewPane so a
   // click on a fold's 💬 button (or "Comment selection" after a line
@@ -3655,12 +3663,52 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
   const submitMsg = (cmd) => {
     const raw = (cmd ?? input).trim();
     if (!raw) return;
-    recordInputHistory(raw);
-    setInput('');
-    setShowSlash(false);
+    const clearSubmittedInput = () => {
+      recordInputHistory(raw);
+      setInput(cur => {
+        const curText = String(cur || '').trim();
+        if (!curText || curText === raw) return '';
+        if (cmd != null && curText.startsWith('/')) return '';
+        return cur;
+      });
+      setShowSlash(false);
+    };
+    const holdSubmittedInput = (reason) => {
+      heldSubmitRef.current = { raw, cmd, createdAt: Date.now() };
+      setInput(cur => {
+        const curText = String(cur || '').trim();
+        return curText ? cur : raw;
+      });
+      setShowSlash(false);
+      setStreaming(false);
+      awaitingRunStartRef.current = false;
+      streamBufferRef.current = '';
+      setStreamText('');
+      setFeed(f => [...f, {
+        kind: 'agent',
+        text: reason,
+        createdAt: Date.now(),
+      }]);
+    };
+    const promptBackendState = () => {
+      if (!window.backend) return 'missing';
+      if (typeof window.backend.getConnectionState === 'function') {
+        return window.backend.getConnectionState() || backendState || 'unknown';
+      }
+      return backendState || 'unknown';
+    };
+    const backendReadyForPrompt = () => window.backend && promptBackendState() === 'open';
 
-    if (pendingQcard && !raw.startsWith('/') && answerPendingFromInput(raw)) {
+    if (workflowReady) {
+      holdSubmittedInput(`Input held. Waiting for \`${workflowReady.target || workflow || 'workflow'}\` to be ready; it will send automatically if unchanged.`);
       return;
+    }
+
+    if (pendingQcard && !raw.startsWith('/')) {
+      if (answerPendingFromInput(raw)) {
+        clearSubmittedInput();
+        return;
+      }
     }
 
     // ── Client-side slash commands ──────────────────────────────
@@ -3669,6 +3717,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     // Handle them here BEFORE sending anything to the backend.
     const sessionMatch = raw.match(/^\/(session|sess)(\s+(.*))?$/);
     if (sessionMatch) {
+      clearSubmittedInput();
       const arg = (sessionMatch[3] || '').trim();
       setFeed(f => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
       const _clearStreaming = () => {
@@ -3702,6 +3751,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
 
     const m = raw.match(/^\/(scope|cd)(\s+(.*))?$/);
     if (m) {
+      clearSubmittedInput();
       const arg = (m[3] || '').trim();
       const cur = window.SCOPE_PATH || '';
       // Same defensive cleanup as the /plan branch — these commands
@@ -3748,6 +3798,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     // canonical command the backend actually handles.
     const modeMatch = raw.match(/^\/(plan|mode\s+plan|mode\s+normal|normal)$/i);
     if (modeMatch) {
+      clearSubmittedInput();
       const target = /^\/(plan|mode\s+plan)$/i.test(raw) ? 'plan' : 'normal';
       const wire = target === 'plan' ? '/plan' : '/mode normal';
       setIntent(target);
@@ -3765,6 +3816,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
 
     const wfMatch = raw.match(/^\/(wf|workflow)(\s+(\S+))?$/i);
     if (wfMatch) {
+      clearSubmittedInput();
       const targetWf = (wfMatch[3] || '').trim();
       setFeed(f => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
       if (targetWf) {
@@ -3783,6 +3835,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
 
     const pipelineMatch = raw.match(/^\/(pipeline|pipe|full-pipeline)(\s+(\S+))?$/i);
     if (pipelineMatch) {
+      clearSubmittedInput();
       const ipName = (pipelineMatch[3] || window.ACTIVE_IP || activeIp || '').trim();
       setFeed(f => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
       const _clearStreaming = () => {
@@ -3829,6 +3882,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     // /commit <msg> — labeled checkpoint in the active IP's per-IP git.
     const commitMatch = raw.match(/^\/commit(\s+([\s\S]+))?$/i);
     if (commitMatch) {
+      clearSubmittedInput();
       const msg = (commitMatch[2] || '').trim() || 'manual checkpoint';
       const ipName = (window.ACTIVE_IP || activeIp || '').trim();
       setFeed(f => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
@@ -3869,6 +3923,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     // submit; the backend tags the row with their user_id.
     const feedbackMatch = raw.match(/^\/feedback(\s+([\s\S]+))?$/i);
     if (feedbackMatch) {
+      clearSubmittedInput();
       const text = (feedbackMatch[2] || '').trim();
       setFeed(f => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
       if (!text) {
@@ -3917,6 +3972,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       && orchIp.toLowerCase() !== 'default'
       && !raw.startsWith('/')
     ) {
+      clearSubmittedInput();
       setFeed(f => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
       setStreaming(true);
       awaitingRunStartRef.current = true;
@@ -3982,6 +4038,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       return;
     }
     if (isOrch && orchIp && orchIp.toLowerCase() !== 'default' && !raw.startsWith('/')) {
+      clearSubmittedInput();
       const sessionParts = normalizeUiSession(window.ACTIVE_SESSION || activeSessionRef.current || activeSession || '').split('/').filter(Boolean);
       const orchOwner = normalizeUiSession((window.ATLAS_USER && window.ATLAS_USER.username) || '') || sessionParts[0] || 'default';
       const orchSession = resolveSession(
@@ -4066,11 +4123,30 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     // running. Stop it?". Send it and let the backend's events drive the
     // banner — running:true turns it on only when an agent actually runs.
     if (raw.startsWith('/')) {
+      if (!backendReadyForPrompt()) {
+        holdSubmittedInput(`Input held. Backend is ${promptBackendState()}; it will send automatically if unchanged.`);
+        return;
+      }
+      const sent = sendPrompt(raw);
+      if (!sent || sent.ok === false) {
+        holdSubmittedInput(`Input held. Backend is not ready (${sent?.error || backendState || 'unknown'}); it will send automatically if unchanged.`);
+        return;
+      }
+      clearSubmittedInput();
       setFeed(f => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
-      sendPrompt(raw);
       return;
     }
 
+    if (!backendReadyForPrompt()) {
+      holdSubmittedInput(`Input held. Backend is ${promptBackendState()}; it will send automatically if unchanged.`);
+      return;
+    }
+    const sent = sendPrompt(raw);
+    if (!sent || sent.ok === false) {
+      holdSubmittedInput(`Input held. Backend is not ready (${sent?.error || backendState || 'unknown'}); it will send automatically if unchanged.`);
+      return;
+    }
+    clearSubmittedInput();
     setFeed(f => [...f, { kind: 'user', text: raw }]);
     setStreaming(true);
     awaitingRunStartRef.current = true;
@@ -4078,8 +4154,31 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     setStreamText('');
     // Keep the submitted user message clean. Active IP/path scope is already
     // injected into the workflow system prompt by the backend.
-    sendPrompt(raw);
   };
+
+  React.useEffect(() => {
+    const held = heldSubmitRef.current;
+    if (!held || workflowReady) return undefined;
+    const state = window.backend && typeof window.backend.getConnectionState === 'function'
+      ? window.backend.getConnectionState()
+      : backendState;
+    if (state !== 'open') return undefined;
+    if (String(input || '').trim() !== held.raw) {
+      heldSubmitRef.current = null;
+      return undefined;
+    }
+    const timer = setTimeout(() => {
+      const latest = heldSubmitRef.current;
+      if (!latest || latest.raw !== held.raw) return;
+      if (String(input || '').trim() !== latest.raw) {
+        heldSubmitRef.current = null;
+        return;
+      }
+      heldSubmitRef.current = null;
+      submitMsg(latest.cmd ?? latest.raw);
+    }, 80);
+    return () => clearTimeout(timer);
+  }, [backendState, input, workflowReady]);
 
   // Subscribe to backend events and translate them into feed entries.
   React.useEffect(() => {
