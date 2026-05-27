@@ -47,4 +47,24 @@ describe('sim debug VCD scoping and annotations', () => {
       { name: 'shift_reg[7:0]', a: '0x0', b: '0xA5' },
     ]);
   });
+
+  it('adds pinned signals beyond the default waveform slice', () => {
+    const signals = Array.from({ length: 30 }, (_, i) => ({
+      id: `s${i}`,
+      name: `sig_${i}`,
+      scope: 'tb.dut',
+      range: '',
+      isBus: false,
+    }));
+    const samples = Object.fromEntries(signals.map(s => [s.id, [[0, '0']]]));
+    const rows = window.simDebugBuildWaveTraceList(
+      { signals, samples },
+      [{ name: 'sig_29', scope: 'tb.dut' }],
+      24,
+    );
+
+    expect(rows).toHaveLength(25);
+    expect(rows.map(r => r.signalName)).toContain('sig_29');
+    expect(rows.filter(r => r.signalName === 'sig_2')).toHaveLength(1);
+  });
 });

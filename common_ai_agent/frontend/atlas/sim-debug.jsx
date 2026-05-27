@@ -129,6 +129,48 @@ const signalAliasKeys = (sig) => {
     .filter(Boolean);
 };
 
+const waveSignalKey = (sig) => {
+  const scope = String(sig?.scope || '').trim();
+  const name = stripSignalRange(sig?.signalName || sig?.name || '');
+  const range = String(sig?.range || '').trim();
+  return `${scope}/${name}${range}`.toLowerCase();
+};
+
+const waveSignalMatches = (sig, name, scope = '') => {
+  const wanted = stripSignalRange(name).toLowerCase();
+  if (!wanted) return false;
+  const sigScope = String(sig?.scope || '').trim();
+  const wantedScope = String(scope || '').trim();
+  if (wantedScope && sigScope !== wantedScope) return false;
+  return signalAliasKeys(sig).includes(wanted);
+};
+
+const waveRowFromVcdSignal = (vcdData, sig) => ({
+  name: sig.name + (sig.range || ''),
+  signalName: sig.name,
+  scope: sig.scope,
+  range: sig.range || '',
+  trace: vcdData.samples[sig.id] || [],
+  isBus: sig.isBus,
+  radix: sig.isBus ? 'HEX' : undefined,
+});
+
+const buildWaveTraceList = (vcdData, pinnedSignals = [], defaultLimit = 24) => {
+  if (!vcdData || !Array.isArray(vcdData.signals) || !vcdData.signals.length) return [];
+  const allRows = vcdData.signals.map(s => waveRowFromVcdSignal(vcdData, s));
+  const rows = allRows.slice(0, defaultLimit);
+  const present = new Set(rows.map(waveSignalKey));
+  for (const pin of pinnedSignals || []) {
+    const found = allRows.find(row => waveSignalMatches(row, pin.name, pin.scope));
+    if (!found) continue;
+    const key = waveSignalKey(found);
+    if (present.has(key)) continue;
+    rows.push(found);
+    present.add(key);
+  }
+  return rows;
+};
+
 const buildVcdLineAnnotations = ({ line, traceList, selectedSig, cursorA, cursorB, limit = 8 }) => {
   if (!Array.isArray(traceList) || traceList.length === 0) return [];
   const byAlias = new Map();
@@ -169,6 +211,7 @@ if (typeof window !== 'undefined') {
   window.simDebugActiveIpFromAtlasRuntime = activeIpFromAtlasRuntime;
   window.simDebugVcdPathBelongsToIp = vcdPathBelongsToIp;
   window.simDebugVcdValueAtTrace = vcdValueAtTrace;
+  window.simDebugBuildWaveTraceList = buildWaveTraceList;
   window.simDebugBuildVcdLineAnnotations = buildVcdLineAnnotations;
 }
 
@@ -803,6 +846,9 @@ window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
   // srcLines / srcCursor. Kept as a stub for any leftover references.
   const [srcRange, setSrcRange] = React.useState({ from: 0, to: 0, hl: [], cur: 0 });
   const [selectedSig, setSelectedSig] = React.useState('mosi');
+  const [selectedSigScope, setSelectedSigScope] = React.useState('');
+  const [wavePinnedSignals, setWavePinnedSignals] = React.useState([]);
+  const [showSignalHierarchy, setShowSignalHierarchy] = React.useState(false);
   const waveWidth = 700;
 
   // ── Live VCD / hierarchy / trace state ──────────────────────────
@@ -1005,33 +1051,22 @@ window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
     }).join('\n');
   }, [hierarchyMeta]);
 
-  // Build the traceList — real VCD signals only. Mock SPI traces
-  // were dropped here per user request: the wave pane should never
-  // show fake data. When no VCD has been parsed yet, return [] and
-  // let the empty-state hint below ("no VCD found / run /sim") tell
-  // the user how to get real signals on screen.
+  // Build the traceList — real VCD signals only. The default view stays
+  // compact (first 24), while Ctrl+W can pin a selected signal beyond
+  // that window into the waveform.
   const traceList = React.useMemo(() => {
-    if (vcdData && vcdData.signals && vcdData.signals.length) {
-      return vcdData.signals.slice(0, 24).map(s => ({
-        name: s.name + (s.range || ''),
-        signalName: s.name,
-        scope: s.scope,
-        // VCD samples come keyed by ID — re-key by display name for
-        // WaveRow which expects [time, value] arrays.
-        trace: vcdData.samples[s.id] || [],
-        isBus: s.isBus,
-        radix: s.isBus ? 'HEX' : undefined,
-      }));
-    }
-    return [];
-  }, [vcdData]);
+    return buildWaveTraceList(vcdData, wavePinnedSignals, 24);
+  }, [vcdData, wavePinnedSignals]);
 
   // Tool-call activations: clicking one in chat re-focuses the side panels.
   const onToolFocus = (toolId, opts) => {
     setActiveTool(toolId);
     if (opts.cursor != null) setWaveCursor(opts.cursor);
     if (opts.range) setSrcRange(opts.range);
-    if (opts.sig) setSelectedSig(opts.sig);
+    if (opts.sig) {
+      setSelectedSig(opts.sig);
+      setSelectedSigScope(opts.scope || '');
+    }
   };
 
   // Compact step block — like V3's but lighter, since panels carry the evidence.
@@ -1195,14 +1230,35 @@ window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
     else setViewRange([ns, ne]);
   }, [effRange, vcdData]);
 
+  const addSelectedSignalToWave = React.useCallback(() => {
+    const name = String(selectedSig || '').trim();
+    if (!name) return;
+    const scope = String(selectedSigScope || '').trim();
+    setWavePinnedSignals(prev => {
+      const already = (prev || []).some(pin =>
+        stripSignalRange(pin.name).toLowerCase() === stripSignalRange(name).toLowerCase()
+        && String(pin.scope || '').trim() === scope
+      );
+      return already ? prev : [...(prev || []), { name, scope }];
+    });
+    setTopTab('wave');
+  }, [selectedSig, selectedSigScope]);
+
   // ── Keyboard shortcuts (Verdi-ish) ───────────────────────────────
   // Active only while sim_debug has focus AND user isn't typing in
   // an input/textarea/contenteditable.
   React.useEffect(() => {
     const onKey = (e) => {
-      if (!vcdData) return;
       const tag = (e.target && e.target.tagName) || '';
       if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target && e.target.isContentEditable)) return;
+      const key = String(e.key || '').toLowerCase();
+      if (e.ctrlKey && !e.metaKey && !e.altKey && key === 'w') {
+        e.preventDefault();
+        e.stopPropagation();
+        if (vcdData) addSelectedSignalToWave();
+        return;
+      }
+      if (!vcdData) return;
       // Don't fight chord shortcuts the IDE may use.
       if (e.metaKey && e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
 
@@ -1216,6 +1272,8 @@ window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
           zoomFit(); break;
         case 'a': case 'A':
           zoomToCursors(); break;
+        case 'h': case 'H':
+          setShowSignalHierarchy(v => !v); break;
         case 'ArrowLeft':
           panBy(e.shiftKey ? -0.5 : -0.25); break;
         case 'ArrowRight':
@@ -1239,9 +1297,9 @@ window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
       }
       if (handled) e.preventDefault();
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [vcdData, effRange, zoomIn, zoomOut, zoomFit, zoomToCursors, panBy]);
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, [vcdData, effRange, zoomIn, zoomOut, zoomFit, zoomToCursors, panBy, addSelectedSignalToWave]);
 
   // ── Source viewer state ──────────────────────────────────────────
   // Replaces the hard-coded mock srcRange. When the user clicks a
@@ -1319,6 +1377,7 @@ window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
   // Wave signal click → /api/trace returns driver file_line; fetch + scroll.
   const onSelectWaveSignal = React.useCallback(async (signalName, signalScope = '') => {
     setSelectedSig(signalName);
+    setSelectedSigScope(signalScope || '');
     if (!signalName || !ipName) return;
     try {
       const r = await fetch(
@@ -1829,20 +1888,29 @@ window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
                   <div style={{ color: 'var(--fg-mute)', fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 4 }}>
                     signals ({vcdData.signals.length})
                   </div>
-                  {vcdData.signals.slice(0, 30).map(s => (
-                    <div
-                      key={s.id}
-                      onClick={() => onSelectWaveSignal(s.name, s.scope)}
-                      style={{
-                        padding: '2px 4px', cursor: 'pointer',
-                        color: selectedSig === s.name ? 'var(--accent)' : 'var(--fg)',
-                        background: selectedSig === s.name ? 'var(--bg-2)' : 'transparent',
-                      }}
-                    >
-                      <span style={{ color: 'var(--fg-mute)' }}>·</span> {s.name}
-                      {s.isBus && <span style={{ color: 'var(--fg-mute)', fontSize: 9 }}> {s.range}</span>}
-                    </div>
-                  ))}
+                  {vcdData.signals.slice(0, 30).map(s => {
+                    const isSelected = selectedSig === s.name && (!selectedSigScope || selectedSigScope === s.scope);
+                    const isPinned = wavePinnedSignals.some(pin => waveSignalMatches(s, pin.name, pin.scope));
+                    return (
+                      <div
+                        key={s.id}
+                        onClick={() => onSelectWaveSignal(s.name, s.scope)}
+                        style={{
+                          padding: '2px 4px', cursor: 'pointer',
+                          color: isSelected ? 'var(--accent)' : 'var(--fg)',
+                          background: isSelected ? 'var(--bg-2)' : 'transparent',
+                          display: 'flex', gap: 4, alignItems: 'center',
+                        }}
+                        title="click to focus, Ctrl+W to add to waveform"
+                      >
+                        <span style={{ color: isPinned ? 'var(--cyan)' : 'var(--fg-mute)' }}>{isPinned ? '◆' : '·'}</span>
+                        <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {showSignalHierarchy && s.scope ? `${s.scope}.` : ''}{s.name}
+                          {s.isBus && <span style={{ color: 'var(--fg-mute)', fontSize: 9 }}> {s.range}</span>}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -1953,6 +2021,8 @@ window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
                       { keys: ['→'],      desc: 'pan right (Shift+→ = bigger step)' },
                       { keys: ['Home'],   desc: 'go to t=0' },
                       { keys: ['End'],    desc: 'go to t=tMax' },
+                      { keys: ['Ctrl + W'], desc: 'add focused signal to waveform' },
+                      { keys: ['h'],      desc: 'toggle signal hierarchy in labels' },
                       { keys: ['Ctrl/⌘ + wheel'], desc: 'zoom around cursor A' },
                       { keys: ['?'],      desc: 'toggle this help' },
                     ].map((row, i) => (
@@ -2117,17 +2187,18 @@ window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
                                 : isIrq   ? '#ff6b6b'      // pink/red
                                 : !t.isBus ? '#4dd0e1'      // cyan for normal scalars
                                 : undefined;
+                    const displayName = showSignalHierarchy && t.scope ? `${t.scope}.${t.name}` : t.name;
                     return (
                       <div key={(t.scope || '') + '/' + t.name + '/' + ti}
                            style={color ? { '--wave-color-override': color } : undefined}>
                         <window.WaveRow
-                          name={t.name}
+                          name={displayName}
                           scope={t.scope}
                           trace={t.trace}
                           width={waveWidth}
                           isBus={t.isBus}
                           radix={t.radix || 'HEX'}
-                          selected={selectedSig === (t.signalName || t.name) || selectedSig === t.name}
+                          selected={waveSignalMatches(t, selectedSig, selectedSigScope)}
                           colorHint={color}
                           onClick={() => onSelectWaveSignal(t.signalName || t.name, t.scope || '')}
                           onEdgeClick={jumpToWaveEdge}
