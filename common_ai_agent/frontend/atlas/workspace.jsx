@@ -10867,6 +10867,103 @@ const RegisterBitMap = ({ width, fields }) => {
   );
 };
 
+const RegisterBitFieldView = ({ width, fields, tokenMap, onJump }) => {
+  const rows = (fields || []).filter(_hasMeaningfulRegisterField);
+  if (!rows.length) return null;
+  const hasParsedBits = rows.some(f => _parseBitRange(f.bits));
+  return (
+    <div data-testid="register-bit-field-view" style={{ marginTop: 8, display: 'grid', gap: 7 }}>
+      {hasParsedBits ? <RegisterBitMap width={width || 32} fields={rows} /> : null}
+      <div style={{ display: 'grid', gap: 4 }}>
+        {rows.map((f, fi) => {
+          const color = _accessColor(f.access);
+          return (
+            <div key={`bf-${f.name || ''}-${f.bits || ''}-${fi}`} style={{
+              display: 'grid',
+              gridTemplateColumns: '82px minmax(0, 1fr) auto',
+              gap: 8,
+              alignItems: 'center',
+              padding: '5px 6px',
+              border: '1px solid var(--line)',
+              borderRadius: 4,
+              background: fi % 2 ? 'var(--bg-1)' : 'transparent',
+              minWidth: 0,
+            }}>
+              <div style={{
+                fontFamily: 'var(--mono)',
+                fontSize: 10,
+                color: 'var(--cyan)',
+                fontWeight: 900,
+                border: '1px solid var(--line-2)',
+                borderRadius: 3,
+                background: 'var(--bg-2)',
+                padding: '3px 5px',
+                textAlign: 'center',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}>
+                {f.bits || '-'}
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{
+                  fontFamily: 'var(--mono)',
+                  fontSize: 11,
+                  fontWeight: 900,
+                  color: 'var(--fg)',
+                  overflowWrap: 'anywhere',
+                }}>
+                  {f.name || 'field'}
+                </div>
+                {_hasRegisterDetail(f.description) ? (
+                  <div className="mute" style={{
+                    marginTop: 2,
+                    fontSize: 11,
+                    lineHeight: 1.35,
+                    overflowWrap: 'anywhere',
+                  }}>
+                    {linkifyReferences(f.description, tokenMap, onJump)}
+                  </div>
+                ) : null}
+              </div>
+              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', justifyContent: 'flex-end', minWidth: 0, maxWidth: 180 }}>
+                {_hasRegisterDetail(f.access) ? (
+                  <span style={{
+                    fontFamily: 'var(--mono)',
+                    fontSize: 9,
+                    color,
+                    border: `1px solid color-mix(in oklch, ${color} 60%, var(--line))`,
+                    background: `color-mix(in oklch, ${color} 12%, transparent)`,
+                    borderRadius: 3,
+                    padding: '2px 5px',
+                    whiteSpace: 'nowrap',
+                    maxWidth: 110,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}>{f.access}</span>
+                ) : null}
+                {_hasRegisterDetail(f.reset) ? (
+                  <span className="mute" style={{
+                    fontFamily: 'var(--mono)',
+                    fontSize: 9,
+                    border: '1px solid var(--line)',
+                    borderRadius: 3,
+                    padding: '2px 5px',
+                    whiteSpace: 'nowrap',
+                    maxWidth: 110,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}>{f.reset}</span>
+                ) : null}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 const SsotScenarioPlayer = ({ scenarios, fsmMachines = [], tokenMap, onJump, onSelectFsmState }) => {
   const [active, setActive] = React.useState(0);
   const [step, setStep] = React.useState(0);
@@ -14381,55 +14478,12 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
                   </div>
                 </div>
                 {hasExpandedDetail ? (
-                  <RegisterBitMap width={reg.width || 32} fields={meaningfulFields} />
-                ) : null}
-                {hasExpandedDetail ? (
-                  <div style={{ marginTop: 8, overflowX: 'auto' }}>
-                    <div style={{
-                      minWidth: 620,
-                      display: 'grid',
-                      gridTemplateColumns: '86px minmax(120px, 0.9fr) 72px 78px minmax(220px, 2fr)',
-                      gap: 0,
-                      fontFamily: 'var(--mono)',
-                      fontSize: 10,
-                      alignItems: 'stretch',
-                      border: '1px solid var(--line)',
-                      borderRadius: 4,
-                      overflow: 'hidden',
-                    }}>
-                      {['BITS', 'FIELD', 'ACCESS', 'RESET', 'DESCRIPTION'].map(label => (
-                        <div key={`reg-head-${reg.name}-${label}`} style={{
-                          color: 'var(--fg-mute)',
-                          fontWeight: 800,
-                          background: 'var(--bg-3)',
-                          borderBottom: '1px solid var(--line)',
-                          padding: '5px 7px',
-                        }}>{label}</div>
-                      ))}
-                      {meaningfulFields.map((f, fi) => (
-                        <React.Fragment key={`rf-${reg.name || i}-${f.name || ''}-${fi}`}>
-                          {[
-                            { value: f.bits || '-', color: 'var(--cyan)' },
-                            { value: f.name || '-', color: 'var(--fg)', weight: 800 },
-                            { value: f.access || '-', muted: true },
-                            { value: f.reset || '-', muted: true },
-                            { value: linkifyReferences(f.description || '', refTokenMap, onJump), muted: true, wrap: true },
-                          ].map((cell, ci) => (
-                            <div key={`rf-cell-${reg.name || i}-${fi}-${ci}`} className={cell.muted ? 'mute' : undefined} style={{
-                              color: cell.color,
-                              fontWeight: cell.weight,
-                              padding: '5px 7px',
-                              borderTop: fi ? '1px solid var(--line)' : 0,
-                              background: fi % 2 ? 'var(--bg-1)' : 'transparent',
-                              minWidth: 0,
-                              whiteSpace: cell.wrap ? 'normal' : 'nowrap',
-                              wordBreak: cell.wrap ? 'break-word' : 'normal',
-                            }}>{cell.value}</div>
-                          ))}
-                        </React.Fragment>
-                      ))}
-                    </div>
-                  </div>
+                  <RegisterBitFieldView
+                    width={reg.width || registerConfig.dataWidth || 32}
+                    fields={meaningfulFields}
+                    tokenMap={refTokenMap}
+                    onJump={onJump}
+                  />
                 ) : null}
               </div>
             );})}

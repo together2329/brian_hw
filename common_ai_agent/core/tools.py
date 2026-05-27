@@ -4,6 +4,7 @@ import json
 import shlex
 import sys
 import re
+import glob
 import threading
 from contextlib import contextmanager
 from pathlib import Path
@@ -315,18 +316,35 @@ def get_file_access_summary() -> str:
 
 
 def _atlas_project_root() -> str:
-    return (
+    root = (
         os.environ.get("ATLAS_PROJECT_ROOT", "")
         or os.environ.get("PROJECT_ROOT", "")
     )
+    return _normalize_tool_path(root) if root else ""
 
 
 def _atlas_ip_root() -> str:
-    return os.environ.get("ATLAS_IP_ROOT", "")
+    root = os.environ.get("ATLAS_IP_ROOT", "")
+    return _normalize_tool_path(root) if root else ""
+
+
+def _normalize_tool_path(path) -> str:
+    """Normalize tool-call path separators before filesystem resolution."""
+    return os.path.expanduser(str(path or "").strip()).replace("\\", "/")
+
+
+def _is_abs_tool_path(path) -> bool:
+    norm = _normalize_tool_path(path)
+    return (
+        os.path.isabs(str(path or ""))
+        or os.path.isabs(norm)
+        or bool(re.match(r"^[A-Za-z]:/", norm))
+        or norm.startswith("//")
+    )
 
 
 def _norm_rel_tool_path(path: str) -> str:
-    norm = str(path or "").replace("\\", "/").strip()
+    norm = _normalize_tool_path(path)
     while norm.startswith("./"):
         norm = norm[2:]
     return norm
@@ -374,7 +392,7 @@ def _atlas_ip_project_candidate(path: str) -> str:
     ``yaml/uart.ssot.yaml`` must resolve under ATLAS_PROJECT_ROOT, even if
     a stale duplicate exists under the server cwd.
     """
-    if not path or os.path.isabs(path):
+    if not path or _is_abs_tool_path(path):
         return ""
     project_root = _atlas_project_root()
     if not project_root:
@@ -415,8 +433,9 @@ def _resolve_asset_path(path):
     """
     if not path:
         return path
+    path = _normalize_tool_path(path)
     # Absolute paths bypass the search entirely.
-    if os.path.isabs(path):
+    if _is_abs_tool_path(path):
         return path
     atlas_ip_candidate = _atlas_ip_project_candidate(path)
     if atlas_ip_candidate:
@@ -439,6 +458,29 @@ def _resolve_asset_path(path):
     return path
 
 
+def _resolve_glob_path(path):
+    """Resolve a glob-capable path while preserving wildcard segments."""
+    if not path:
+        return path
+    path = _normalize_tool_path(path)
+    if _is_abs_tool_path(path):
+        return path
+    atlas_ip_candidate = _atlas_ip_project_candidate(path)
+    if atlas_ip_candidate:
+        return atlas_ip_candidate
+    project_root = _atlas_project_root()
+    if project_root:
+        candidate = os.path.join(project_root, path)
+        if glob.glob(candidate, recursive=True):
+            return candidate
+    home = os.environ.get("COMMON_AI_AGENT_HOME", "")
+    if home:
+        candidate = os.path.join(home, path)
+        if glob.glob(candidate, recursive=True):
+            return candidate
+    return path
+
+
 def _resolve_write_path(path):
     """Write-side counterpart to _resolve_asset_path.
 
@@ -451,7 +493,10 @@ def _resolve_write_path(path):
     Project-level paths (workflow/, .session/, anything outside the
     per-IP layout) fall through untouched and land in cwd.
     """
-    if not path or os.path.isabs(path):
+    if not path:
+        return path
+    path = _normalize_tool_path(path)
+    if _is_abs_tool_path(path):
         return path
     atlas_ip_candidate = _atlas_ip_project_candidate(path)
     if atlas_ip_candidate:
@@ -464,7 +509,7 @@ def _resolve_write_path(path):
     active_ip = (os.environ.get("ATLAS_ACTIVE_IP", "") or "").strip()
     if not active_ip or active_ip == "default":
         return path
-    norm = path.replace("\\", "/").lstrip("./")
+    norm = _norm_rel_tool_path(path)
     first = norm.split("/", 1)[0]
     if first in _IP_SUBDIRS:
         return os.path.join(project_root, active_ip, norm)
@@ -1049,13 +1094,13 @@ def _command_references_active_ip_path(command, active_ip):
     """
     if not command or not active_ip or active_ip == "default":
         return False
-    command_text = str(command)
+    command_text = str(command).replace("\\", "/")
     if "$ATLAS_ACTIVE_IP/" in command_text or "${ATLAS_ACTIVE_IP}/" in command_text:
         return True
     import re as _re
 
     ip_pat = _re.escape(str(active_ip).strip())
-    return bool(_re.search(rf'(?<![A-Za-z0-9_.-])(?:\./)?{ip_pat}/', command_text))
+    return bool(_re.search(rf'(?<![A-Za-z0-9_.-])(?:\./)?{ip_pat}/+', command_text))
 
 
 def run_command(command, timeout=60):
@@ -1339,7 +1384,9 @@ def grep_file(pattern=None, path=None, context_lines=2, recursive=False, **kwarg
     # Fall back to COMMON_AI_AGENT_HOME for bundled assets (templates,
     # rules, schemas) when the user's cwd doesn't have them. Skip if path
     # already contains glob meta — those are user-intended patterns.
-    if not any(c in str(path) for c in ('*', '?', '[')):
+    if any(c in str(path) for c in ('*', '?', '[')):
+        path = _resolve_glob_path(path)
+    else:
         path = _resolve_asset_path(path)
     import subprocess
     import sys
@@ -1696,6 +1743,7 @@ def git_diff(path=None):
     try:
         cmd = "git diff"
         if path:
+            path = _resolve_asset_path(path)
             if not os.path.exists(path):
                 return f"Error: Path '{path}' does not exist."
             cmd += f" {path}"
@@ -5612,11 +5660,12 @@ def read_image(path=None, prompt="Describe this image in detail."):
 
     # Resolve path with fuzzy matching
     import glob as _glob
-    path = os.path.expanduser(path)
     # Normalize multiple spaces to single space
+    path = _normalize_tool_path(path)
     path = re.sub(r'\s+', ' ', path)
     # Strip quotes that LLM sometimes adds
     path = path.strip('"\'')
+    path = _resolve_asset_path(path)
 
     if os.path.isfile(path):
         pass  # exact match, use as-is
@@ -6408,7 +6457,7 @@ def ipxact_import(xml_path=None, ip_name=None, root=".", scaffold=True):
     """
     if not isinstance(xml_path, str) or not xml_path.strip():
         return "[ipxact_import: 'xml_path' is required]"
-    xml_path = os.path.expanduser(xml_path)
+    xml_path = _resolve_asset_path(xml_path)
     if not os.path.isfile(xml_path):
         return f"[ipxact_import: file not found: {xml_path}]"
     try:
@@ -6430,6 +6479,7 @@ def ipxact_import(xml_path=None, ip_name=None, root=".", scaffold=True):
     if not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", name):
         return f"[ipxact_import: invalid ip_name {name!r} — letters, digits, underscore only]"
 
+    root = _normalize_tool_path(root)
     base = os.path.abspath(os.path.join(root, name))
     yaml_path = os.path.join(base, "yaml", f"{name}.ssot.yaml")
 
@@ -7286,7 +7336,7 @@ def read_doc(path):
     except Exception as e:
         return ("[read_doc: markitdown not available — pip install markitdown. "
                 f"Underlying error: {e}]")
-    p = os.path.expanduser(path)
+    p = _resolve_asset_path(path)
     if not os.path.exists(p):
         return f"[read_doc: file not found: {path}]"
     if not os.path.isfile(p):

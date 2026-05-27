@@ -25,7 +25,7 @@ What these tests catch
 2. web_search / web_fetch missing from AVAILABLE_TOOLS (import failure)
 3. Any workflow's WORKFLOW_DISABLED_TOOLS accidentally removing a baseline tool
 4. Orchestrator tool set missing dispatch_workflow
-5. Worker workflows having dispatch_workflow (should NOT — orchestrator-only)
+5. Default chat or worker workflows having orchestrator-only tools
 6. Drift between orchestrator dispatch_workflow workflow-enum and
    _DEFAULT_WORKER_PORTS keys in src/atlas_api_jobs.py
 """
@@ -72,8 +72,8 @@ _BASELINE_TOOLS = {
 # files disable these — they only disable ask_user / record_ssot_qa)
 _WEB_TOOLS = {"web_search", "web_fetch"}
 
-# Tools that belong ONLY to the orchestrator; worker workflows must NOT expose them
-_ORCHESTRATOR_ONLY_TOOLS = {"dispatch_workflow"}
+# Tools that belong ONLY to the orchestrator; default chat must NOT expose them.
+_DEFAULT_ORCHESTRATOR_ONLY_TOOLS = {"dispatch_workflow", "read_pipeline_state"}
 
 
 def _workspace_disabled_tools(workflow: str) -> set:
@@ -309,6 +309,17 @@ class TestWorkflowToolInventory(unittest.TestCase):
             f"dispatch_workflow is exposed to worker workflows {violations}. "
             "Workers must finish their own scope and let the orchestrator "
             "decide cross-workflow dispatches.",
+        )
+
+    def test_default_chat_hides_orchestrator_only_tools(self):
+        """Default chat must not expose orchestrator routing/status tools."""
+        inv = self._inventory("default")
+        exposed = sorted(_DEFAULT_ORCHESTRATOR_ONLY_TOOLS & inv.keys())
+        self.assertEqual(
+            exposed,
+            [],
+            f"default workflow exposes orchestrator-only tools: {exposed}. "
+            "Default chat should answer directly, not inspect or route pipeline runs.",
         )
 
     def test_orchestrator_workspace_disables_ask_user(self):

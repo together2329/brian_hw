@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 from pathlib import Path
 
 import pytest
@@ -60,6 +61,72 @@ class TestDispatchWorkflow:
         assert seen["payload"]["trigger_source"] == "orchestrator_chat"
         assert seen["payload"]["scope"] == ["mod1"]
         assert "j1" in summary
+
+
+class TestLocalFileTools:
+    def test_accepts_backslash_relative_paths(self, tmp_path):
+        ip = "ipA"
+        target = tmp_path / ip / "rtl" / "unit.sv"
+
+        result, summary = orch_tools.write_file(
+            ip=ip,
+            path=r"rtl\unit.sv",
+            content="alpha\nbeta\n",
+            project_root=tmp_path,
+        )
+        assert result["ok"] is True
+        assert target.read_text(encoding="utf-8") == "alpha\nbeta\n"
+        assert r"rtl\unit.sv" in summary
+
+        result, summary = orch_tools.read_file(
+            ip=ip, path=r"rtl\unit.sv", project_root=tmp_path
+        )
+        assert result["ok"] is True
+        assert "alpha" in summary
+
+        result, summary = orch_tools.read_lines(
+            ip=ip,
+            path=r"rtl\unit.sv",
+            start_line=2,
+            end_line=2,
+            project_root=tmp_path,
+        )
+        assert result["ok"] is True
+        assert "beta" in summary
+
+        result, summary = orch_tools.list_dir(ip=ip, path=r"rtl", project_root=tmp_path)
+        assert result["ok"] is True
+        assert "unit.sv" in summary
+
+        result, summary = orch_tools.grep_file(
+            ip=ip,
+            pattern="alpha",
+            path=r"rtl\unit.sv",
+            project_root=tmp_path,
+            context_lines=0,
+        )
+        assert result["ok"] is True
+        assert "alpha" in summary
+
+        result, summary = orch_tools.replace_in_file(
+            ip=ip,
+            path=r"rtl\unit.sv",
+            old_text="beta",
+            new_text="gamma",
+            project_root=tmp_path,
+        )
+        assert result["ok"] is True
+        assert target.read_text(encoding="utf-8") == "alpha\ngamma\n"
+        assert "replaced 1 occurrence" in summary
+
+        result, summary = orch_tools.run_command(
+            ip=ip,
+            cwd=r"rtl",
+            command=f'"{sys.executable}" -c "import os; print(os.path.basename(os.getcwd()))"',
+            project_root=tmp_path,
+        )
+        assert result["ok"] is True
+        assert result["stdout"].strip() == "rtl"
 
 
 class TestWaitJob:
@@ -204,6 +271,20 @@ class TestReadArtifact:
 
         assert result["artifacts"][0]["exists"] is True
         assert result["artifacts"][0]["data"]["reason"] == "missing rtl contract"
+        assert "tb/cocotb/tb_blocked.json" in summary
+
+    def test_reads_backslash_relative_artifact_path(self, tmp_path):
+        ip = "ipA"
+        blocked = tmp_path / ip / "tb" / "cocotb" / "tb_blocked.json"
+        blocked.parent.mkdir(parents=True)
+        blocked.write_text(json.dumps({"reason": "windows path"}), encoding="utf-8")
+
+        result, summary = orch_tools.read_artifact(
+            ip=ip, stage=r"tb\cocotb\tb_blocked.json", project_root=tmp_path
+        )
+
+        assert result["artifacts"][0]["exists"] is True
+        assert result["artifacts"][0]["data"]["reason"] == "windows path"
         assert "tb/cocotb/tb_blocked.json" in summary
 
     def test_summary_includes_json_status_and_classification_preview(self, tmp_path):

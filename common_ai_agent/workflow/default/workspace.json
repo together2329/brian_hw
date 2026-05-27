@@ -8,8 +8,8 @@
   },
   "env": {
     "_comment": "Env vars to override. Shell env > workspace.json > .config > .env",
-    "_disabled_tools_comment": "ask_user is allowed by default; only orchestrator disables it explicitly. record_ssot_qa stays disabled in default and is re-enabled per workflow that needs it (ssot-gen, req-gen, architect). dispatch_workflow is orchestrator-only and hidden from workers.",
-    "WORKFLOW_DISABLED_TOOLS": "record_ssot_qa,dispatch_workflow"
+    "_disabled_tools_comment": "ask_user is allowed by default; only orchestrator disables it explicitly. record_ssot_qa stays disabled in default and is re-enabled per workflow that needs it (ssot-gen, req-gen, architect). dispatch_workflow and read_pipeline_state are orchestrator-only and hidden from default chat.",
+    "WORKFLOW_DISABLED_TOOLS": "record_ssot_qa,dispatch_workflow,read_pipeline_state"
   },
   "prompt": {
     "system_prompt_mode": "append",

@@ -89,6 +89,15 @@ def _is_valid_ip_name(ip: str) -> bool:
     return bool(_IP_NAME_RE.fullmatch(str(ip or "")))
 
 
+def _normalize_relative_tool_path(path: str) -> str:
+    return str(path or "").strip().replace("\\", "/")
+
+
+def _is_absolute_or_drive_path(path: str) -> bool:
+    normalized = _normalize_relative_tool_path(path)
+    return bool(re.match(r"^[A-Za-z]:", normalized)) or normalized.startswith("//")
+
+
 def _is_relative_to(path: Path, root: Path) -> bool:
     try:
         path.relative_to(root)
@@ -381,10 +390,11 @@ def _resolve_local_path(
     pr = Path(project_root) if project_root else Path(
         os.environ.get("ATLAS_PROJECT_ROOT") or "."
     )
-    requested = Path(str(path or "").strip())
+    path_text = _normalize_relative_tool_path(path)
+    requested = Path(path_text)
     if not requested.parts:
         return None, "path is required"
-    if requested.is_absolute() or ".." in requested.parts:
+    if requested.is_absolute() or _is_absolute_or_drive_path(path_text) or ".." in requested.parts:
         return None, "path must be a safe relative path"
 
     ip_dir = (pr / ip).resolve()
@@ -826,9 +836,10 @@ def read_artifact(ip: str, stage: str, project_root: Optional[Path] = None) -> T
         "pnr": ("pnr/out/",),
         "sta-post": ("sta-post/out/",),
     }
-    relatives = artifact_map.get(stage, ())
+    stage_text = _normalize_relative_tool_path(stage)
+    relatives = artifact_map.get(stage_text, ())
     if not relatives:
-        requested = Path(str(stage or ""))
+        requested = Path(stage_text)
         if not requested.is_absolute() and ".." not in requested.parts and requested.parts:
             candidate = ip_dir / requested
             if _is_relative_to(candidate.resolve(), ip_dir.resolve()):

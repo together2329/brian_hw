@@ -165,6 +165,55 @@ def test_replace_tools_prefer_atlas_project_root_for_ip_paths(tmp_path, monkeypa
     assert cwd_yaml.read_text(encoding="utf-8") == "cwd line 1\ncwd line 2\n"
 
 
+def test_file_tools_accept_backslash_ip_paths(tmp_path, monkeypatch):
+    ip = "uart_core"
+    project_root = tmp_path / "served_root"
+    server_cwd = tmp_path / "common_ai_agent"
+    target = project_root / ip / "rtl" / "block.sv"
+    (server_cwd / ip).mkdir(parents=True)
+
+    monkeypatch.chdir(server_cwd)
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(project_root))
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", ip)
+    monkeypatch.setattr(tools, "_git_auto_commit", lambda *args, **kwargs: None)
+
+    tool_path = rf"{ip}\rtl\block.sv"
+    result = tools.write_file(path=tool_path, content="alpha\nbeta\n")
+    assert str(target) in result
+    assert target.read_text(encoding="utf-8") == "alpha\nbeta\n"
+
+    assert "alpha" in tools.read_file(path=tool_path)
+    assert "block.sv" in tools.list_dir(path=rf"{ip}\rtl")
+    assert "alpha" in tools.grep_file(pattern="alpha", path=tool_path, context_lines=0)
+    assert "beta" in tools.read_lines(path=tool_path, start_line=2, end_line=2)
+    assert "block.sv" in tools.find_files(pattern="*.sv", directory=rf"{ip}\rtl")
+
+    result = tools.replace_in_file(path=tool_path, old_text="beta", new_text="gamma")
+    assert str(target) in result
+    assert target.read_text(encoding="utf-8") == "alpha\ngamma\n"
+
+    result = tools.replace_lines(path=tool_path, start_line=1, end_line=1, new_content="delta")
+    assert str(target) in result
+    assert target.read_text(encoding="utf-8") == "delta\ngamma\n"
+
+
+def test_non_ip_file_tools_normalize_backslash_relative_paths(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.delenv("ATLAS_PROJECT_ROOT", raising=False)
+    monkeypatch.delenv("PROJECT_ROOT", raising=False)
+    monkeypatch.delenv("ATLAS_ACTIVE_IP", raising=False)
+    monkeypatch.setattr(tools, "_git_auto_commit", lambda *args, **kwargs: None)
+
+    result = tools.write_file(path=r"notes\artifact.txt", content="local text\n")
+
+    target = tmp_path / "notes" / "artifact.txt"
+    assert "notes/artifact.txt" in result
+    assert target.read_text(encoding="utf-8") == "local text\n"
+    assert not (tmp_path / r"notes\artifact.txt").exists()
+    assert "local text" in tools.read_file(path=r"notes\artifact.txt")
+    assert "artifact.txt" in tools.list_dir(path=r"notes")
+
+
 def test_run_command_runs_inside_active_ip_under_atlas_project_root(tmp_path, monkeypatch):
     ip = "uart_core"
     project_root = tmp_path / "served_root"
@@ -179,6 +228,25 @@ def test_run_command_runs_inside_active_ip_under_atlas_project_root(tmp_path, mo
     result = tools.run_command("pwd", timeout=5)
 
     assert result == str(project_root / ip)
+
+
+def test_run_command_detects_backslash_ip_path_prefix(tmp_path, monkeypatch):
+    ip = "uart_core"
+    project_root = tmp_path / "served_root"
+    server_cwd = tmp_path / "common_ai_agent"
+    (project_root / ip / "rtl").mkdir(parents=True)
+    (server_cwd / ip).mkdir(parents=True)
+
+    monkeypatch.chdir(server_cwd)
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(project_root))
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", ip)
+
+    result = tools.run_command(
+        f'"{sys.executable}" -c "import os; print(os.getcwd())" # {ip}\\rtl\\top.sv',
+        timeout=5,
+    )
+
+    assert Path(result).resolve() == project_root.resolve()
 
 
 def test_run_command_falls_back_to_atlas_project_root_without_active_ip_dir(tmp_path, monkeypatch):
