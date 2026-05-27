@@ -295,6 +295,47 @@ class TestRunReactAgentImpl(unittest.TestCase):
             for m in msgs
         ))
 
+    def test_malformed_action_reprompts_until_parseable_tool_call(self):
+        """`Action:` prose must not be accepted as a completed no-tool reply."""
+        calls = {"count": 0}
+        emitted = []
+        executed = []
+
+        def malformed_then_tool_then_done(messages, stop=None, **kwargs):
+            calls["count"] += 1
+            if calls["count"] == 1:
+                yield "Action: new_axi/tb/cocotb에 임시 VCD dump 모듈을 추가하겠습니다."
+            elif calls["count"] == 2:
+                yield 'Action: run_command(command="echo ok")'
+            else:
+                yield "Final Answer: done."
+
+        def execute_tool(tool_name, args, pre_parsed_kwargs=None):
+            executed.append((tool_name, args))
+            return "ok"
+
+        cfg = _make_cfg(
+            LLM_RETRY_COUNT=0,
+            MALFORMED_ACTION_RETRY_LIMIT=2,
+            REACT_LOOP_STALL_SEC=0,
+        )
+        msgs, _ = self._call(
+            cfg=cfg,
+            llm_call_fn=malformed_then_tool_then_done,
+            execute_tool_fn=execute_tool,
+            emit_content_fn=lambda line: emitted.append(line),
+            emit_flush_fn=lambda: None,
+        )
+
+        self.assertGreaterEqual(calls["count"], 2)
+        self.assertIn(("run_command", 'command="echo ok"'), executed)
+        rendered = "\n".join(str(line) for line in emitted)
+        self.assertIn("malformed Action", rendered)
+        self.assertTrue(any(
+            m.get("role") == "assistant" and "Final Answer: done." in m.get("content", "")
+            for m in msgs
+        ))
+
     def test_no_todo_tracker_when_disabled(self):
         """ENABLE_TODO_TRACKING=False → todo_tracker is None inside loop."""
         cfg = _make_cfg(ENABLE_TODO_TRACKING=False)

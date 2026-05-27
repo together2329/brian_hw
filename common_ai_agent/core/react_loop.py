@@ -665,6 +665,7 @@ def run_react_agent_impl(
     # generic stagnation threshold to fire (~50 turns).
     _text_only_no_progress = 0
     _execution_no_action_retries = 0
+    _malformed_action_retries = 0
     _empty_chat_thinking_retries = 0
 
     # ======================================================================
@@ -1584,6 +1585,65 @@ def run_react_agent_impl(
                 print(f"  {Color.DIM}[DEBUG] collected_content ({len(collected_content)} chars):\n"
                       f"{collected_content}\n[DEBUG END]{Color.RESET}")
 
+        # A line that starts with "Action:" is an execution promise, not a
+        # normal answer. If it is not parseable as Action: tool_name(args), the
+        # loop used to accept it as visible text and stop, which made Atlas look
+        # like it ignored "Do it" after showing an Action-looking sentence.
+        _malformed_action = (
+            not actions
+            and not _use_native
+            and bool(re.search(
+                r'(?im)^\s*(?:\*\*|__)?Action(?:\*\*|__)?\s*:\s*\S+',
+                collected_content or "",
+            ))
+        )
+        if _malformed_action:
+            _malformed_action_retries += 1
+            _retry_limit = int(getattr(cfg, "MALFORMED_ACTION_RETRY_LIMIT", 2))
+            if _malformed_action_retries > _retry_limit:
+                _msg = (
+                    "⏸  Loop stopped — malformed Action: the model emitted "
+                    "`Action:` but no valid `Action: tool_name(args)` call was parsed."
+                )
+                if deps.emit_content_fn:
+                    try:
+                        deps.emit_content_fn(_msg)
+                    except Exception:
+                        pass
+                else:
+                    print(_msg)
+                break
+            if deps.emit_content_fn:
+                try:
+                    deps.emit_content_fn(
+                        f"↻ Runtime guard nudged execution: malformed Action "
+                        f"({_malformed_action_retries}/{_retry_limit})."
+                    )
+                except Exception:
+                    pass
+            else:
+                print(
+                    f"↻ Runtime guard nudged execution: malformed Action "
+                    f"({_malformed_action_retries}/{_retry_limit})."
+                )
+            messages.append({
+                "role": "user",
+                "content": (
+                    "Your previous response started with `Action:` but was not a valid "
+                    "tool call. Do not write prose after `Action:`. If you intend to do "
+                    "work, respond with exactly one valid tool call such as "
+                    '`Action: run_command(command="...")`, '
+                    '`Action: read_file(path="...")`, or '
+                    '`Action: replace_in_file(path="...", old_text="...", new_text="...")`. '
+                    "If no tool is needed, answer normally without `Action:`."
+                ),
+            })
+            if _perf:
+                _iter_total = time.time() - _perf_iter_start
+                print(f"  {Color.DIM}[PERF] === iteration total: {_iter_total:.3f}s ==={Color.RESET}")
+            tracker.increment()
+            continue
+
         # Chat mode 0: respond only
         if getattr(cfg, "EXECUTION_MODE", "agent") == "chat":
             if getattr(cfg, "CHAT_MAX_ITERATIONS", 1) == 0:
@@ -1725,6 +1785,7 @@ def run_react_agent_impl(
             # Real tool activity → clear the text-only watchdog
             _text_only_no_progress = 0
             _execution_no_action_retries = 0
+            _malformed_action_retries = 0
             _empty_chat_thinking_retries = 0  # re-arm the thinking-only guard
             # Track todo ops for plan mode flow control
             # Plan mode: allow research + todo ops together (don't restrict to single todo op)
