@@ -25,8 +25,6 @@ module apb_uart_regs #(
   input  logic                         rx_fifo_full,
   input  logic [FIFO_LEVEL_WIDTH-1:0]  rx_fifo_level,
   input  logic [7:0]                   rx_fifo_data,
-  input  logic                         rx_valid_hw_set,
-  input  logic [7:0]                   rx_data_hw,
   input  logic                         rx_activity_pulse,
   input  logic                         frame_err_hw_set,
   input  logic                         parity_err_hw_set,
@@ -107,15 +105,12 @@ module apb_uart_regs #(
   endfunction
 
   logic [15:0] rx_timeout_counter;
-  logic        legacy_rx_valid_hold;
-  logic [7:0]  legacy_rx_data_hold;
 
   wire [7:0] tx_level_u8 = level_to_u8(tx_fifo_level);
   wire [7:0] rx_level_u8 = level_to_u8(rx_fifo_level);
   wire       rx_fifo_nonempty = !rx_fifo_empty;
-  wire       rx_valid_status = rx_fifo_nonempty || legacy_rx_valid_hold;
-  wire [7:0] rx_read_data = rx_fifo_nonempty ? rx_fifo_data :
-                            (legacy_rx_valid_hold ? legacy_rx_data_hold : 8'h00);
+  wire       rx_valid_status = rx_fifo_nonempty;
+  wire [7:0] rx_read_data = rx_fifo_nonempty ? rx_fifo_data : 8'h00;
   wire       tx_threshold_level = (tx_level_u8 <= tx_threshold);
   wire       rx_threshold_level = rx_fifo_nonempty && (rx_level_u8 >= rx_threshold);
   wire       txdata_write = write_xfer && (addr8 == A_TXDATA);
@@ -126,10 +121,9 @@ module apb_uart_regs #(
   wire       accepted_write = write_xfer && !pslverr;
   wire       accepted_read = read_xfer && !pslverr;
   wire       rx_pop_accept = accepted_read && (addr8 == A_RXDATA) && rx_fifo_nonempty;
-  wire       legacy_rx_pop_accept = accepted_read && (addr8 == A_RXDATA) && !rx_fifo_nonempty && legacy_rx_valid_hold;
   wire       timeout_disabled = (rx_timeout_cycles == 16'h0000);
-  wire       timeout_reset_event = rx_fifo_empty || rx_pop_accept || legacy_rx_pop_accept ||
-                                   rx_fifo_clear || rx_valid_hw_set || rx_activity_pulse;
+  wire       timeout_reset_event = rx_fifo_empty || rx_pop_accept || rx_fifo_clear ||
+                                   rx_activity_pulse;
   wire       timeout_limit_reached = (rx_timeout_counter >= (rx_timeout_cycles - 16'h0001));
 
   assign pready = 1'b1;
@@ -226,8 +220,6 @@ module apb_uart_regs #(
       irq_error            <= 1'b0;
       irq_rx_timeout       <= 1'b0;
       rx_timeout_counter   <= 16'h0000;
-      legacy_rx_valid_hold <= 1'b0;
-      legacy_rx_data_hold  <= 8'h00;
     end else begin
       tx_start      <= 1'b0;
       tx_fifo_push  <= 1'b0;
@@ -254,10 +246,6 @@ module apb_uart_regs #(
         break_err <= 1'b1;
         irq_error <= 1'b1;
       end
-      if (rx_valid_hw_set) begin
-        legacy_rx_valid_hold <= 1'b1;
-        legacy_rx_data_hold  <= rx_data_hw;
-      end
 
       if (timeout_disabled || timeout_reset_event) begin
         rx_timeout_counter <= 16'h0000;
@@ -279,9 +267,8 @@ module apb_uart_regs #(
             ctrl_rx_irq_en      <= pwdata[2];
             ctrl_err_irq_en     <= pwdata[3];
             if (pwdata[4]) begin
-              rx_fifo_clear        <= 1'b1;
-              legacy_rx_valid_hold <= 1'b0;
-              rx_timeout_counter   <= 16'h0000;
+              rx_fifo_clear      <= 1'b1;
+              rx_timeout_counter <= 16'h0000;
             end
             ctrl_tx_break       <= pwdata[5];
             ctrl_loopback_en    <= pwdata[6];
@@ -321,9 +308,8 @@ module apb_uart_regs #(
               tx_fifo_clear <= 1'b1;
             end
             if (pwdata[1]) begin
-              rx_fifo_clear        <= 1'b1;
-              legacy_rx_valid_hold <= 1'b0;
-              rx_timeout_counter   <= 16'h0000;
+              rx_fifo_clear      <= 1'b1;
+              rx_timeout_counter <= 16'h0000;
             end
           end
           A_FIFO_THRESH: begin
@@ -344,10 +330,6 @@ module apb_uart_regs #(
 
       if (rx_pop_accept) begin
         rx_fifo_pop <= 1'b1;
-        rx_timeout_counter <= 16'h0000;
-      end
-      if (legacy_rx_pop_accept) begin
-        legacy_rx_valid_hold <= 1'b0;
         rx_timeout_counter <= 16'h0000;
       end
     end

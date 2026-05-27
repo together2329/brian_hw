@@ -66,7 +66,8 @@ def register_sessions_routes(
             return default
         return str(raw).strip().lower() in ("1", "true", "yes", "on")
 
-    def _session_worker_keepalive_enabled() -> bool:
+    def _session_worker_keepalive_enabled(process_mode: Optional[bool] = None) -> bool:
+        _ = process_mode
         if os.environ.get("ATLAS_SESSION_WORKER_KEEPALIVE") is not None:
             return _env_flag("ATLAS_SESSION_WORKER_KEEPALIVE", False)
         return current_exec_mode(os.environ) == EXEC_MODE_SINGLE
