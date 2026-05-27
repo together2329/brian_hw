@@ -71,7 +71,8 @@ expected_scenarios = [
     'SC_APB_RESET', 'SC_APB_RW', 'SC_APB_INVALID', 'SC_TX_ONE_BYTE',
     'SC_TX_BACK_TO_BACK', 'SC_TX_IRQ', 'SC_RX_ONE_BYTE',
     'SC_RX_BACK_TO_BACK', 'SC_RX_FRAMING_ERROR', 'SC_RX_OVERRUN',
-    'SC_RX_IRQ', 'SC_BAUD_VARIANTS',
+    'SC_RX_IRQ', 'SC_BAUD_VARIANTS', 'SC_RX_MAJORITY_NOISE',
+    'SC_RX_FALSE_START',
 ]
 scenarios = {r['scenario'] for r in rows if r.get('check') == 'SCENARIO_START'}
 
@@ -93,7 +94,7 @@ def cov_bin(name, condition, evidence):
     }
 
 coverage_bins = [
-    cov_bin('directed_scenarios_all_12', len(scenarios) == 12 and set(expected_scenarios) == scenarios, '12 SCENARIO_START rows in scoreboard_events.csv'),
+    cov_bin('directed_scenarios_all_14', len(scenarios) == 14 and set(expected_scenarios) == scenarios, '14 SCENARIO_START rows in scoreboard_events.csv'),
     cov_bin('apb_ctrl_reset', hit('SC_APB_RESET', 'CTRL_RESET'), 'CTRL_RESET scoreboard row'),
     cov_bin('apb_status_reset', hit('SC_APB_RESET', 'STATUS_RESET'), 'STATUS_RESET scoreboard row'),
     cov_bin('apb_baud_reset', hit('SC_APB_RESET', 'BAUD_RESET'), 'BAUD_RESET scoreboard row'),
@@ -117,6 +118,11 @@ coverage_bins = [
     cov_bin('rx_overrun_preserve_old_data', hit('SC_RX_OVERRUN', 'OVERRUN_PRESERVE'), 'OVERRUN_PRESERVE scoreboard row'),
     cov_bin('rx_irq_assert_clear', hit('SC_RX_IRQ', 'RX_IRQ_ASSERT') and hit('SC_RX_IRQ', 'RX_IRQ_CLEAR'), 'RX_IRQ_ASSERT and RX_IRQ_CLEAR scoreboard rows'),
     cov_bin('baud_alt8_tx_rx', hit('SC_BAUD_VARIANTS', 'TX_BAUD8') and hit('SC_BAUD_VARIANTS', 'RX_BAUD8'), 'TX_BAUD8 and RX_BAUD8 scoreboard rows'),
+    cov_bin('rx_majority_noise_valid', hit('SC_RX_MAJORITY_NOISE', 'RX_MAJORITY_VALID'), 'RX_MAJORITY_VALID scoreboard row'),
+    cov_bin('rx_majority_noise_no_errors', hit('SC_RX_MAJORITY_NOISE', 'RX_MAJORITY_NO_ERRORS'), 'RX_MAJORITY_NO_ERRORS scoreboard row'),
+    cov_bin('rx_majority_noise_data', hit('SC_RX_MAJORITY_NOISE', 'RX_MAJORITY_DATA_C3'), 'RX_MAJORITY_DATA_C3 scoreboard row'),
+    cov_bin('rx_false_start_rejected', hit('SC_RX_FALSE_START', 'FALSE_START_NO_STATUS'), 'FALSE_START_NO_STATUS scoreboard row'),
+    cov_bin('rx_false_start_recovery', hit('SC_RX_FALSE_START', 'FALSE_START_RECOVERY_DATA'), 'FALSE_START_RECOVERY_DATA scoreboard row'),
 ]
 summary = {
     'total_bins': len(coverage_bins),
@@ -153,7 +159,7 @@ waveform = {
     'generation_command': 'cd apb_uart_txrx_demo && ./sim/run_sim.sh',
     'testbench_only': True,
     'dut_source_modified_for_waveforms': False,
-    'dump_source': {'file': 'sim/tb_apb_uart_txrx_demo.sv', 'dumpfile_line': 324, 'dumpvars_line': 325},
+    'dump_source': {'file': 'sim/tb_apb_uart_txrx_demo.sv', 'dumpfile_line': 391, 'dumpvars_line': 392},
     'required_top_signals': observed,
     'source_artifacts': ['sim/sim.log', 'sim/sim_results.json', 'sim/scoreboard_events.csv'],
 }

@@ -1,11 +1,11 @@
 {
   "dump_source": {
-    "dumpfile_line": 324,
-    "dumpvars_line": 325,
+    "dumpfile_line": 391,
+    "dumpvars_line": 392,
     "file": "sim/tb_apb_uart_txrx_demo.sv"
   },
   "dut_source_modified_for_waveforms": false,
-  "generated_at": "2026-05-27T01:07:30Z",
+  "generated_at": "2026-05-27T01:15:53Z",
   "generation_command": "cd apb_uart_txrx_demo && ./sim/run_sim.sh",
   "ip": "apb_uart_txrx_demo",
   "required_top_signals": {
@@ -34,6 +34,6 @@
   "waveform": {
     "exists": true,
     "path": "sim/waves/apb_uart_txrx_demo.vcd",
-    "size_bytes": 87447
+    "size_bytes": 131233
   }
 }

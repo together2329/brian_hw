@@ -179,6 +179,51 @@ module tb_apb_uart_txrx_demo;
     end
   endtask
 
+  task drive_uart_bit_with_optional_glitch;
+    input bit_value;
+    input integer glitch_cycle;
+    integer c;
+    begin
+      for (c = 0; c < baud_div; c = c + 1) begin
+        uart_rx <= (c == glitch_cycle) ? ~bit_value : bit_value;
+        @(posedge pclk);
+      end
+      uart_rx <= bit_value;
+    end
+  endtask
+
+  task send_rx_byte_with_center_glitches;
+    input [7:0] b;
+    input good_stop;
+    integer i;
+    integer glitch_cycle;
+    begin
+      // With BAUD_DIV=32 this targets one synchronized center sample while
+      // leaving the neighboring early/late samples correct for majority vote.
+      glitch_cycle = (baud_div > 4) ? ((baud_div >> 1) + 1) : -1;
+      uart_rx <= 1'b1;
+      repeat (3) @(posedge pclk);
+      drive_uart_bit_with_optional_glitch(1'b0, -1);
+      for (i = 0; i < 8; i = i + 1) begin
+        drive_uart_bit_with_optional_glitch(b[i], glitch_cycle);
+      end
+      drive_uart_bit_with_optional_glitch(good_stop ? 1'b1 : 1'b0, glitch_cycle);
+      uart_rx <= 1'b1;
+      repeat (3*baud_div) @(posedge pclk);
+    end
+  endtask
+
+  task send_rx_false_start_glitch;
+    begin
+      uart_rx <= 1'b1;
+      repeat (4) @(posedge pclk);
+      uart_rx <= 1'b0;
+      repeat (4) @(posedge pclk);
+      uart_rx <= 1'b1;
+      repeat (3*baud_div) @(posedge pclk);
+    end
+  endtask
+
   task reset_dut;
     begin
       psel <= 0; penable <= 0; pwrite <= 0; paddr <= 0; pwdata <= 0; uart_rx <= 1'b1;
@@ -312,6 +357,28 @@ module tb_apb_uart_txrx_demo;
     end
   endtask
 
+  task sc_rx_majority_noise;
+    reg [31:0] r; reg err;
+    begin
+      start_scenario("SC_RX_MAJORITY_NOISE"); reset_dut(); set_baud(32);
+      send_rx_byte_with_center_glitches(8'hc3, 1'b1);
+      apb_read(A_STATUS, r, err); expect_eq32("RX_MAJORITY_VALID", r & 32'h0000_0001, 32'h0000_0001);
+      expect_eq32("RX_MAJORITY_NO_ERRORS", r & 32'h0000_0018, 32'h0000_0000);
+      apb_read(A_RXDATA, r, err); expect_eq32("RX_MAJORITY_DATA_C3", r, 32'h0000_00c3);
+    end
+  endtask
+
+  task sc_rx_false_start_reject;
+    reg [31:0] r; reg err;
+    begin
+      start_scenario("SC_RX_FALSE_START"); reset_dut(); set_baud(32);
+      send_rx_false_start_glitch();
+      apb_read(A_STATUS, r, err); expect_eq32("FALSE_START_NO_STATUS", r & 32'h0000_0019, 32'h0000_0000);
+      send_rx_byte(8'h96, 1'b1);
+      apb_read(A_RXDATA, r, err); expect_eq32("FALSE_START_RECOVERY_DATA", r, 32'h0000_0096);
+    end
+  endtask
+
   task write_results;
     begin
       json_fd = $fopen("sim/sim_results.json", "w");
@@ -343,6 +410,8 @@ module tb_apb_uart_txrx_demo;
     sc_rx_overrun();
     sc_rx_irq();
     sc_baud_variants();
+    sc_rx_majority_noise();
+    sc_rx_false_start_reject();
 
     write_results();
     $fclose(csv_fd);

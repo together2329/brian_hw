@@ -1,9 +1,9 @@
 {
   "coverage_bins": [
     {
-      "evidence": "12 SCENARIO_START rows in scoreboard_events.csv",
+      "evidence": "14 SCENARIO_START rows in scoreboard_events.csv",
       "hit": true,
-      "name": "directed_scenarios_all_12",
+      "name": "directed_scenarios_all_14",
       "required": true,
       "waived": false
     },
@@ -167,6 +167,41 @@
       "name": "baud_alt8_tx_rx",
       "required": true,
       "waived": false
+    },
+    {
+      "evidence": "RX_MAJORITY_VALID scoreboard row",
+      "hit": true,
+      "name": "rx_majority_noise_valid",
+      "required": true,
+      "waived": false
+    },
+    {
+      "evidence": "RX_MAJORITY_NO_ERRORS scoreboard row",
+      "hit": true,
+      "name": "rx_majority_noise_no_errors",
+      "required": true,
+      "waived": false
+    },
+    {
+      "evidence": "RX_MAJORITY_DATA_C3 scoreboard row",
+      "hit": true,
+      "name": "rx_majority_noise_data",
+      "required": true,
+      "waived": false
+    },
+    {
+      "evidence": "FALSE_START_NO_STATUS scoreboard row",
+      "hit": true,
+      "name": "rx_false_start_rejected",
+      "required": true,
+      "waived": false
+    },
+    {
+      "evidence": "FALSE_START_RECOVERY_DATA scoreboard row",
+      "hit": true,
+      "name": "rx_false_start_recovery",
+      "required": true,
+      "waived": false
     }
   ],
   "directed_scenarios": {
@@ -176,8 +211,10 @@
       "SC_APB_RW",
       "SC_BAUD_VARIANTS",
       "SC_RX_BACK_TO_BACK",
+      "SC_RX_FALSE_START",
       "SC_RX_FRAMING_ERROR",
       "SC_RX_IRQ",
+      "SC_RX_MAJORITY_NOISE",
       "SC_RX_ONE_BYTE",
       "SC_RX_OVERRUN",
       "SC_TX_BACK_TO_BACK",
@@ -196,17 +233,19 @@
       "SC_RX_FRAMING_ERROR",
       "SC_RX_OVERRUN",
       "SC_RX_IRQ",
-      "SC_BAUD_VARIANTS"
+      "SC_BAUD_VARIANTS",
+      "SC_RX_MAJORITY_NOISE",
+      "SC_RX_FALSE_START"
     ]
   },
-  "generated_at": "2026-05-27T01:07:30Z",
+  "generated_at": "2026-05-27T01:15:53Z",
   "ip": "apb_uart_txrx_demo",
   "schema_version": "directed_coverage.v3",
   "scoreboard": {
     "passed": true,
-    "scenario_count": 12,
+    "scenario_count": 14,
     "scoreboard_fail": 0,
-    "scoreboard_pass": 30
+    "scoreboard_pass": 35
   },
   "source_artifacts": [
     "sim/sim.log",
@@ -216,10 +255,10 @@
   ],
   "summary": {
     "effective_coverage_pct": 100.0,
-    "hit_bins": 24,
+    "hit_bins": 29,
     "missed_bins": 0,
     "signoff_status": "pass",
-    "total_bins": 24,
+    "total_bins": 29,
     "waived_bins": 0
   }
 }
