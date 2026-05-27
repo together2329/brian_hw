@@ -578,6 +578,21 @@ def dispatch_tool(
                     f"  Action: write_file(path=\"file.sv\", content=\"\"\"<code>\"\"\")"
                 )
 
+        # ── Windows path-separator normalization (every tool) ────────────
+        # Tool-call paths can arrive with backslashes — Windows clients, or the
+        # LLM echoing a Windows-style path it saw in a doc/spec. On POSIX
+        # backends "\" is not a separator, so the file is "not found". Normalize
+        # path-only kwargs to forward slashes before dispatch. This is the single
+        # chokepoint covering all current and future tools (the per-tool resolvers
+        # do deeper resolution; tools like commit_ip that skip them are covered
+        # here). Content / pattern / regex args are intentionally NOT touched —
+        # backslashes are meaningful there.
+        _PATH_KEYS = ("path", "file_path", "filename", "directory", "dir", "ip_root", "root")
+        for _pk in _PATH_KEYS:
+            _pv = parsed_kwargs.get(_pk)
+            if isinstance(_pv, str) and "\\" in _pv:
+                parsed_kwargs[_pk] = _pv.replace("\\", "/")
+
         # Execute tool with optional global timeout
         result = _call_with_timeout(
             func, parsed_args, parsed_kwargs,
