@@ -11381,67 +11381,6 @@ def create_app():
             client_session.emit("agent_state", running=False)
         client_session.emit("flush")
 
-    def _handle_quick_file_list_command(text: str, client_session: Any) -> bool:
-        """Answer explicit slash file-list requests without a ReAct/LLM turn."""
-        raw = str(text or "").strip()
-        if not raw.startswith("/"):
-            return False
-        cmd, args = _split_slash(raw)
-        if cmd not in {"ls", "dir", "list-files"}:
-            return False
-
-        path_arg = args.strip().strip("'\"`")
-        if path_arg.lower() in {"", ".", "files", "file", "directory", "dir"}:
-            path_arg = ""
-        if "\x00" in path_arg:
-            _emit_slash_output(client_session, "Invalid path.")
-            return True
-
-        try:
-            ip = _command_ip("", client_session)
-            base = _ip_root(ip) if _valid_ip_name(ip) else PROJECT_ROOT
-            if path_arg:
-                rel = Path(path_arg)
-                if rel.is_absolute() or ".." in rel.parts:
-                    _emit_slash_output(client_session, "Only project-relative paths are supported.")
-                    return True
-                if _valid_ip_name(ip) and rel.parts and rel.parts[0] == ip:
-                    target = (PROJECT_ROOT / rel).resolve(strict=False)
-                else:
-                    target = (base / rel).resolve(strict=False)
-            else:
-                target = base.resolve(strict=False)
-
-            project_resolved = PROJECT_ROOT.resolve(strict=False)
-            try:
-                target.relative_to(project_resolved)
-            except ValueError:
-                _emit_slash_output(client_session, "Path is outside the project root.")
-                return True
-
-            if not target.exists():
-                _emit_slash_output(client_session, f"Not found: {target.relative_to(project_resolved)}")
-                return True
-            if not target.is_dir():
-                rel_label = target.relative_to(project_resolved).as_posix()
-                _emit_slash_output(client_session, f"{rel_label} is a file, not a directory.")
-                return True
-
-            children = sorted(target.iterdir(), key=lambda p: (not p.is_dir(), p.name.lower()))
-            limit = 80
-            rel_label = target.relative_to(project_resolved).as_posix() or "."
-            lines = [f"{rel_label}/"]
-            for child in children[:limit]:
-                lines.append(child.name + ("/" if child.is_dir() else ""))
-            if len(children) > limit:
-                lines.append(f"... {len(children) - limit} more")
-            lines.append(f"\n{len(children)} entries")
-            _emit_slash_output(client_session, "\n".join(lines))
-            return True
-        except Exception as exc:
-            _emit_slash_output(client_session, f"List failed: {exc}")
-            return True
-
     def _apply_slash_model_switch(target: str, client_session: Any) -> str:
         try:
             import src.config as _cfg_model  # noqa: WPS433
@@ -19132,8 +19071,6 @@ def create_app():
                         if _handle_to_ssot_gate(_txt, client_session=session):
                             continue
                         if _run_stage_command(_txt, client_session=session):
-                            continue
-                        if _handle_quick_file_list_command(_txt, client_session=session):
                             continue
                         if _execute_generic_slash_command(_txt, session):
                             continue
