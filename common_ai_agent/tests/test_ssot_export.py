@@ -94,11 +94,12 @@ def test_render_html(tmp_path, monkeypatch, ip):
     assert "<h1" in html and f">{ip}</h1>" in html, "h1 tag with ip name missing"
     assert "<table>" in html, "expected at least one table"
 
-    # FSM must render as a real mermaid stateDiagram (both samples have an fsm).
+    # FSM uses native HTML transition maps so long labels do not clip in the
+    # DOC iframe/export context.
     assert "fsm" in data, f"sample {ip} unexpectedly lacks an fsm section"
-    assert 'class="mermaid"' in html, "FSM should render as a mermaid block"
-    assert "stateDiagram" in html, "mermaid block should be a stateDiagram"
-    # Mermaid runtime must be wired up in the exported head.
+    assert "fsm-flow-map" in html, "FSM transition map missing from html"
+    assert "stateDiagram" not in html, "FSM should not rely on Mermaid stateDiagram"
+    # Mermaid runtime remains wired for custom_blocks that declare mermaid.
     assert "/vendor/mermaid.min.js" in html, "mermaid script not injected"
     assert "../../vendor/mermaid.min.js" in html, "prefix-safe mermaid path not injected"
     assert "mermaid.initialize" in html, "mermaid init script not injected"
@@ -230,6 +231,66 @@ def test_bit_ranges_normalize_for_html_and_docx(tmp_path, monkeypatch):
     text = _docx_text(docx_path)
     assert "73:39" in text
     assert "39, 73" not in text
+
+
+def test_html_datasheet_uses_readable_cards_for_behavior_models():
+    data = {
+        "top_module": {"name": "demo", "description": "demo top"},
+        "function_model": {
+            "purpose": "Executable contract.",
+            "state_variables": [{"name": "mm2s_len", "reset": 0}],
+            "transactions": [
+                {
+                    "id": "MM2S_TRANSFER",
+                    "name": "mm2s_transfer",
+                    "preconditions": [
+                        "mm2s_status & 1 == 1",
+                        "mm2s_len > 0",
+                        "mm2s_sa is word-aligned",
+                    ],
+                    "inputs": ["memory_data at mm2s_sa"],
+                    "output_rules": [
+                        {"name": "strm_tdata", "port": "mm2s_tdata", "expr": "memory_data", "width": 32},
+                        {"name": "strm_tvalid", "port": "mm2s_tvalid", "expr": "1", "width": 1},
+                    ],
+                    "state_updates": [
+                        {"name": "mm2s_sa", "expr": "mm2s_sa + (DATA_WIDTH // 8)", "width": 32},
+                    ],
+                    "side_effects": ["IOC bit asserted on final beat"],
+                }
+            ],
+        },
+        "cycle_model": {
+            "clock": "aclk",
+            "pipeline": [
+                {"stage": "AR issue", "cycle": 0, "action": "Drive read address"},
+                {"stage": "R capture", "cycle": 1, "action": "Capture memory beat"},
+                {"stage": "AXI-Stream output", "cycle": 2, "ready": "tready applies backpressure"},
+            ],
+            "backpressure": ["Hold tdata/tvalid stable while tready is low."],
+        },
+        "fsm": {
+            "machines": [{
+                "name": "s2mm_engine",
+                "reset_state": "S2MM_IDLE",
+                "transitions": [
+                    {"from": "S2MM_IDLE", "to": "S2MM_ACCEPT_STREAM", "condition": "s2mm_control_start"},
+                    {"from": "S2MM_ACCEPT_STREAM", "to": "S2MM_AW_ISSUE", "condition": "tvalid and tready"},
+                ],
+            }],
+        },
+    }
+
+    md = atlas_ui._ssot_to_markdown(data, "demo")
+    html = atlas_ui._ssot_to_html(md, "demo", data)
+
+    assert "transaction-card" in html
+    assert "transaction-grid" in html
+    assert "cycle-flow" in html
+    assert "cycle-stage" in html
+    assert "fsm-flow-map" in html
+    assert "<th>Output Rules</th>" not in html
+    assert "stateDiagram-v2" not in html
 
 
 def test_custom_blocks_render_after_anchor_sections(tmp_path, monkeypatch):

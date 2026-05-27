@@ -1759,6 +1759,27 @@ def _ssot_html_fsm_section(data: dict) -> str:
                     f"<td>{_ssot_html_escape(action)}</td>"
                     "</tr>"
                 )
+        flow_rows = []
+        for item in transitions_raw:
+            if not isinstance(item, dict):
+                continue
+            src = item.get("from") or item.get("source") or item.get("current") or ""
+            cond = item.get("condition") or item.get("event") or item.get("trigger") or ""
+            dst = item.get("to") or item.get("dest") or item.get("target") or item.get("next") or ""
+            action = item.get("action") or item.get("output") or item.get("description") or ""
+            if not src and not dst:
+                continue
+            action_html = f"<small>{_ssot_html_escape(action)}</small>" if action else ""
+            flow_rows.append(
+                "<div class=\"fsm-flow-row\">"
+                f"<span class=\"fsm-flow-state{' reset' if src == reset_state else ''}\">{_ssot_html_escape(src)}</span>"
+                "<span class=\"fsm-flow-edge\">"
+                f"<span>{_ssot_html_escape(cond or 'transition')}</span>"
+                "</span>"
+                f"<span class=\"fsm-flow-state{' reset' if dst == reset_state else ''}\">{_ssot_html_escape(dst)}</span>"
+                f"{action_html}"
+                "</div>"
+            )
         table = (
             "<table><thead><tr><th>Current</th><th>Condition</th><th>Next</th><th>Action</th></tr></thead>"
             f"<tbody>{''.join(rows)}</tbody></table>"
@@ -1766,13 +1787,15 @@ def _ssot_html_fsm_section(data: dict) -> str:
         )
         reset_html = f"<p class=\"reset-note\">reset: {_ssot_html_escape(reset_state)}</p>" if reset_state else ""
 
-        mermaid = _ssot_html_fsm_mermaid(machine, str(reset_state), transitions_raw)
-        if mermaid:
-            # Real diagram + transition table as complement below it.
-            diagram_html = mermaid
-        else:
-            # No transitions: fall back to the textual state rail.
-            diagram_html = "<div class=\"fsm-rail\">" + (
+        # Native HTML transition map avoids Mermaid's runtime sizing/cropping
+        # problems in iframe/export contexts while keeping the full transition
+        # table as a precise fallback below.
+        diagram_html = (
+            "<div class=\"fsm-flow-map\">"
+            f"{''.join(flow_rows)}"
+            "</div>"
+            if flow_rows else
+            "<div class=\"fsm-rail\">" + (
                 "".join(
                     f"<span class=\"fsm-state{' reset' if state == reset_state else ''}\">{_ssot_html_escape(state)}</span>"
                     + ("<span class=\"fsm-arrow\">&rarr;</span>" if pos < len(states) - 1 else "")
@@ -1780,6 +1803,7 @@ def _ssot_html_fsm_section(data: dict) -> str:
                 )
                 or "<span class=\"doc-empty small\">no states declared</span>"
             ) + "</div>"
+        )
 
         chunks.append(
             "<div class=\"fsm-machine\">"
@@ -1931,6 +1955,348 @@ def _ssot_pick(item: dict, *keys: str) -> Any:
             continue
         return val
     return None
+
+
+def _ssot_html_is_scalar(value: Any) -> bool:
+    return value is None or isinstance(value, (str, int, float, bool))
+
+
+def _ssot_html_scalar(value: Any) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    return str(value)
+
+
+def _ssot_html_yaml_pre(value: Any) -> str:
+    import yaml as _yaml  # type: ignore
+
+    try:
+        dumped = _yaml.safe_dump(value, allow_unicode=True, sort_keys=False).strip()
+    except Exception:
+        dumped = _ssot_html_scalar(value)
+    return f"<pre class=\"mini-yaml\">{_ssot_html_escape(dumped)}</pre>"
+
+
+def _ssot_html_value_block(value: Any, empty: str = "—") -> str:
+    """Render arbitrary SSOT values without forcing them into wide table cells."""
+    if value is None or value == "" or value == [] or value == {}:
+        return f"<span class=\"doc-empty small\">{_ssot_html_escape(empty)}</span>"
+    if _ssot_html_is_scalar(value):
+        text = _ssot_html_escape(_ssot_html_scalar(value))
+        if "\n" in _ssot_html_scalar(value):
+            return f"<pre class=\"mini-yaml\">{text}</pre>"
+        return text
+    if isinstance(value, list):
+        if all(_ssot_html_is_scalar(item) for item in value):
+            items = "".join(f"<li>{_ssot_html_escape(_ssot_html_scalar(item))}</li>" for item in value)
+            return f"<ul class=\"doc-list compact\">{items}</ul>"
+        return "<div class=\"doc-stack\">" + "".join(
+            f"<div class=\"doc-nested-item\">{_ssot_html_value_block(item)}</div>"
+            for item in value
+        ) + "</div>"
+    if isinstance(value, dict):
+        rows = []
+        for key, val in value.items():
+            if val in (None, "", [], {}):
+                continue
+            rows.append(
+                "<div class=\"kv-row\">"
+                f"<dt>{_ssot_html_escape(str(key).replace('_', ' '))}</dt>"
+                f"<dd>{_ssot_html_value_block(val)}</dd>"
+                "</div>"
+            )
+        return f"<dl class=\"kv-list\">{''.join(rows)}</dl>" if rows else _ssot_html_yaml_pre(value)
+    return _ssot_html_yaml_pre(value)
+
+
+def _ssot_html_rule_cards(value: Any, kind: str) -> str:
+    if value is None or value == "" or value == [] or value == {}:
+        return f"<span class=\"doc-empty small\">no {kind.replace('_', ' ')} declared</span>"
+    if not isinstance(value, list):
+        return _ssot_html_value_block(value)
+    cards: list[str] = []
+    for idx, item in enumerate(value, start=1):
+        if not isinstance(item, dict):
+            cards.append(f"<li>{_ssot_html_escape(_ssot_html_scalar(item))}</li>")
+            continue
+        name = _ssot_pick(item, "name", "id", "signal", "port", "target", "state") or f"{kind}_{idx}"
+        port = _ssot_pick(item, "port", "target", "signal", "state", "register")
+        expr = _ssot_pick(item, "expr", "expression", "value", "rule", "condition", "action")
+        width = _ssot_pick(item, "width", "bits")
+        desc = _ssot_pick(item, "description", "notes", "note", "side_effect")
+        chips = []
+        if port is not None and str(port) != str(name):
+            chips.append(f"<span class=\"doc-chip\">{_ssot_html_escape(_ssot_html_scalar(port))}</span>")
+        if width is not None:
+            chips.append(f"<span class=\"doc-chip\">{_ssot_html_escape(_ssot_html_scalar(width))}b</span>")
+        expr_html = (
+            f"<div class=\"rule-expr\"><span>expr</span><code>{_ssot_html_escape(_ssot_html_scalar(expr))}</code></div>"
+            if expr not in (None, "", [], {}) else ""
+        )
+        desc_html = (
+            f"<p>{_ssot_html_escape(_ssot_html_scalar(desc))}</p>"
+            if desc not in (None, "", [], {}) else ""
+        )
+        leftovers = {
+            k: v for k, v in item.items()
+            if k not in {
+                "name", "id", "signal", "port", "target", "state", "register",
+                "expr", "expression", "value", "rule", "condition", "action",
+                "width", "bits", "description", "notes", "note", "side_effect",
+            }
+            and v not in (None, "", [], {})
+        }
+        extra_html = _ssot_html_value_block(leftovers, "") if leftovers else ""
+        cards.append(
+            "<div class=\"rule-card\">"
+            "<div class=\"rule-head\">"
+            f"<strong>{_ssot_html_escape(_ssot_html_scalar(name))}</strong>"
+            f"<span>{''.join(chips)}</span>"
+            "</div>"
+            f"{expr_html}{desc_html}{extra_html}"
+            "</div>"
+        )
+    if cards and all(card.startswith("<li>") for card in cards):
+        return f"<ul class=\"doc-list compact\">{''.join(cards)}</ul>"
+    return "<div class=\"rule-grid\">" + "".join(cards) + "</div>"
+
+
+def _ssot_html_function_model(data: dict) -> str:
+    fm = data.get("function_model") if isinstance(data.get("function_model"), dict) else None
+    if not isinstance(fm, dict) or not fm:
+        return (
+            "<section class=\"diagram-card function-model-doc\">"
+            "<h3>Function Model</h3>"
+            "<p class=\"doc-empty\">Function model not specified in SSOT.</p>"
+            "</section>"
+        )
+
+    purpose = _ssot_pick(fm, "purpose", "description", "summary")
+    header = (
+        f"<p class=\"doc-lead\">{_ssot_html_escape(_ssot_html_scalar(purpose))}</p>"
+        if purpose not in (None, "", [], {}) else ""
+    )
+
+    state_vars = fm.get("state_variables")
+    invariants = fm.get("invariants")
+    overview_parts = []
+    if state_vars not in (None, "", [], {}):
+        overview_parts.append(
+            "<section class=\"doc-subsection\"><h4>State Variables</h4>"
+            f"{_ssot_html_rule_cards(state_vars, 'state_variable')}</section>"
+        )
+    if invariants not in (None, "", [], {}):
+        overview_parts.append(
+            "<section class=\"doc-subsection\"><h4>Invariants</h4>"
+            f"{_ssot_html_value_block(invariants)}</section>"
+        )
+
+    txs = fm.get("transactions")
+    tx_cards: list[str] = []
+    if isinstance(txs, list):
+        for idx, tx in enumerate(txs, start=1):
+            if not isinstance(tx, dict):
+                tx_cards.append(
+                    "<article class=\"transaction-card\">"
+                    f"<h4>Transaction {idx}</h4>{_ssot_html_value_block(tx)}"
+                    "</article>"
+                )
+                continue
+            tx_id = _ssot_pick(tx, "id", "transaction_id") or f"TX{idx}"
+            name = _ssot_pick(tx, "name", "kind", "type") or tx_id
+            desc = _ssot_pick(tx, "description", "summary")
+            panels = [
+                ("Preconditions", tx.get("preconditions")),
+                ("Inputs", tx.get("inputs")),
+                ("Outputs", tx.get("outputs")),
+                ("Output Rules", tx.get("output_rules")),
+                ("State Updates", tx.get("state_updates")),
+                ("Side Effects", tx.get("side_effects")),
+                ("Error Cases", tx.get("error_cases")),
+            ]
+            panel_html = []
+            for label, value in panels:
+                if value in (None, "", [], {}):
+                    continue
+                if label in {"Output Rules", "State Updates"}:
+                    body = _ssot_html_rule_cards(value, label.lower().replace(" ", "_"))
+                else:
+                    body = _ssot_html_value_block(value)
+                panel_html.append(
+                    "<section class=\"transaction-panel\">"
+                    f"<h5>{_ssot_html_escape(label)}</h5>{body}"
+                    "</section>"
+                )
+            known = {
+                "id", "transaction_id", "name", "kind", "type", "description", "summary",
+                "preconditions", "inputs", "outputs", "output_rules",
+                "state_updates", "side_effects", "error_cases",
+            }
+            leftovers = {k: v for k, v in tx.items() if k not in known and v not in (None, "", [], {})}
+            extra = (
+                "<section class=\"transaction-panel wide\"><h5>Additional Contract</h5>"
+                f"{_ssot_html_value_block(leftovers)}</section>"
+                if leftovers else ""
+            )
+            desc_html = (
+                f"<p class=\"tx-desc\">{_ssot_html_escape(_ssot_html_scalar(desc))}</p>"
+                if desc not in (None, "", [], {}) else ""
+            )
+            tx_cards.append(
+                "<article class=\"transaction-card\">"
+                "<div class=\"transaction-title\">"
+                f"<span class=\"tx-id\">{_ssot_html_escape(_ssot_html_scalar(tx_id))}</span>"
+                f"<h4>{_ssot_html_escape(_ssot_html_scalar(name))}</h4>"
+                "</div>"
+                f"{desc_html}"
+                f"<div class=\"transaction-grid\">{''.join(panel_html)}{extra}</div>"
+                "</article>"
+            )
+
+    tx_body = (
+        "<section class=\"doc-subsection\"><h4>Transactions</h4>"
+        f"<div class=\"transaction-stack\">{''.join(tx_cards)}</div></section>"
+        if tx_cards else
+        "<section class=\"doc-subsection\"><h4>Transactions</h4>"
+        "<p class=\"doc-empty\">No transactions declared.</p></section>"
+    )
+
+    leftover = {
+        k: v for k, v in fm.items()
+        if k not in ("purpose", "description", "summary", "state_variables", "invariants", "transactions")
+        and v not in (None, "", [], {})
+    }
+    leftover_html = (
+        "<section class=\"doc-subsection\"><h4>Additional Function-Model Fields</h4>"
+        f"{_ssot_html_value_block(leftover)}</section>"
+        if leftover else ""
+    )
+    return (
+        "<section class=\"diagram-card function-model-doc\">"
+        "<h3>Function Model</h3>"
+        f"{header}{''.join(overview_parts)}{tx_body}{leftover_html}"
+        "</section>"
+    )
+
+
+def _ssot_html_cycle_model(data: dict) -> str:
+    cm = data.get("cycle_model") if isinstance(data.get("cycle_model"), dict) else None
+    if not isinstance(cm, dict) or not cm:
+        return (
+            "<section class=\"diagram-card cycle-model-doc\">"
+            "<h3>Cycle Model</h3>"
+            "<p class=\"doc-empty\">Cycle model not specified in SSOT.</p>"
+            "</section>"
+        )
+
+    purpose = _ssot_pick(cm, "purpose", "description", "summary")
+    lead = (
+        f"<p class=\"doc-lead\">{_ssot_html_escape(_ssot_html_scalar(purpose))}</p>"
+        if purpose not in (None, "", [], {}) else ""
+    )
+    contract_rows = {
+        "clock": _ssot_pick(cm, "clock", "clock_domain"),
+        "reset": _ssot_pick(cm, "reset", "reset_domain"),
+        "latency": cm.get("latency") or cm.get("latencies"),
+        "ordering": cm.get("ordering"),
+        "throughput": _ssot_pick(cm, "throughput", "performance"),
+    }
+    contract_rows = {k: v for k, v in contract_rows.items() if v not in (None, "", [], {})}
+    contract_html = (
+        "<section class=\"doc-subsection\"><h4>Cycle Contract</h4>"
+        f"{_ssot_html_value_block(contract_rows)}</section>"
+        if contract_rows else ""
+    )
+
+    pipeline = cm.get("pipeline") or cm.get("stages")
+    stage_cards: list[str] = []
+    if isinstance(pipeline, list):
+        for idx, stage in enumerate(pipeline, start=1):
+            if isinstance(stage, dict):
+                title = _ssot_pick(stage, "stage", "name", "id", "phase") or f"stage_{idx}"
+                cycle = _ssot_pick(stage, "cycle", "phase", "latency")
+                action = _ssot_pick(stage, "action", "description", "operation", "work")
+                ready = _ssot_pick(stage, "ready", "backpressure", "stall", "notes", "note")
+                known = {"stage", "name", "id", "phase", "cycle", "latency", "action", "description", "operation", "work", "ready", "backpressure", "stall", "notes", "note"}
+                extra = {k: v for k, v in stage.items() if k not in known and v not in (None, "", [], {})}
+            else:
+                title = stage
+                cycle = ""
+                action = stage
+                ready = ""
+                extra = {}
+            chip = (
+                f"<span class=\"doc-chip\">{_ssot_html_escape(_ssot_html_scalar(cycle))}</span>"
+                if cycle not in (None, "", [], {}) else ""
+            )
+            action_html = (
+                f"<p>{_ssot_html_escape(_ssot_html_scalar(action))}</p>"
+                if action not in (None, "", [], {}) and action != title else ""
+            )
+            ready_html = (
+                f"<div class=\"cycle-note\"><strong>ready/backpressure</strong>{_ssot_html_value_block(ready)}</div>"
+                if ready not in (None, "", [], {}) else ""
+            )
+            extra_html = _ssot_html_value_block(extra, "") if extra else ""
+            stage_cards.append(
+                "<div class=\"cycle-stage\">"
+                "<div class=\"cycle-stage-head\">"
+                f"<strong>{_ssot_html_escape(_ssot_html_scalar(title))}</strong>{chip}"
+                "</div>"
+                f"{action_html}{ready_html}{extra_html}"
+                "</div>"
+            )
+
+    stage_joiner = "<span class=\"cycle-arrow\">&rarr;</span>"
+    pipeline_html = (
+        "<section class=\"doc-subsection\"><h4>Pipeline</h4>"
+        f"<div class=\"cycle-flow\">{stage_joiner.join(stage_cards)}</div>"
+        "</section>"
+        if stage_cards else ""
+    )
+
+    handshake = cm.get("handshake_rules") or cm.get("handshake")
+    backpressure = cm.get("backpressure")
+    scenario_like = cm.get("scenarios") or cm.get("examples")
+    behavior_parts = []
+    if handshake not in (None, "", [], {}):
+        behavior_parts.append(
+            "<section class=\"doc-subsection\"><h4>Handshake Rules</h4>"
+            f"{_ssot_html_rule_cards(handshake, 'handshake_rule')}</section>"
+        )
+    if backpressure not in (None, "", [], {}):
+        behavior_parts.append(
+            "<section class=\"doc-subsection\"><h4>Backpressure</h4>"
+            f"{_ssot_html_value_block(backpressure)}</section>"
+        )
+    if scenario_like not in (None, "", [], {}):
+        behavior_parts.append(
+            "<section class=\"doc-subsection\"><h4>Scenarios</h4>"
+            f"{_ssot_html_value_block(scenario_like)}</section>"
+        )
+
+    leftover = {
+        k: v for k, v in cm.items()
+        if k not in {
+            "purpose", "description", "summary", "clock", "clock_domain", "reset", "reset_domain",
+            "latency", "latencies", "ordering", "throughput", "performance", "pipeline", "stages",
+            "handshake_rules", "handshake", "backpressure", "scenarios", "examples",
+        }
+        and v not in (None, "", [], {})
+    }
+    leftover_html = (
+        "<section class=\"doc-subsection\"><h4>Additional Cycle-Model Fields</h4>"
+        f"{_ssot_html_value_block(leftover)}</section>"
+        if leftover else ""
+    )
+    return (
+        "<section class=\"diagram-card cycle-model-doc\">"
+        "<h3>Cycle Model</h3>"
+        f"{lead}{contract_html}{pipeline_html}{''.join(behavior_parts)}{leftover_html}"
+        "</section>"
+    )
 
 
 def _ssot_field_bit_info(field: dict) -> tuple[str, int | None, int | None]:
@@ -2373,10 +2739,10 @@ def _ssot_to_html(md_text: str, ip: str, data: dict | None = None) -> str:
     html_body = _ssot_html_normalize_mermaid_fences(html_body)
     css = (
         "body { font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", "
-        "system-ui, sans-serif; max-width: 980px; margin: 2em auto; "
+        "system-ui, sans-serif; max-width: 1180px; margin: 2em auto; "
         "padding: 0 1em; line-height: 1.55; color: #222; } "
         "h1, h2, h3 { border-bottom: 1px solid #eee; padding-bottom: .2em; } "
-        "table { border-collapse: collapse; margin: .8em 0; } "
+        "table { border-collapse: collapse; margin: .8em 0; width: 100%; } "
         "th, td { border: 1px solid #ddd; padding: .35em .6em; "
         "text-align: left; vertical-align: top; } "
         "th { background: #f7f7f7; } "
@@ -2391,8 +2757,48 @@ def _ssot_to_html(md_text: str, ip: str, data: dict | None = None) -> str:
         ".design-note, .doc-empty { color: #5d6778; } "
         ".doc-empty.small { font-size: .86em; } "
         ".diagram-card { margin: 1em 0; padding: 1em; border: 1px solid #e3e7ef; "
-        "border-radius: 8px; background: #fff; } "
+        "border-radius: 8px; background: #fff; overflow-x: auto; } "
         ".diagram-card h3 { margin-top: 0; } "
+        ".doc-lead { color: #475569; margin: .25em 0 1em; } "
+        ".doc-subsection { margin: 1em 0 1.15em; } "
+        ".doc-subsection h4 { margin: 0 0 .55em; font-size: 1.05em; border-bottom: 1px solid #edf0f5; padding-bottom: .25em; } "
+        ".doc-list.compact { margin: .25em 0; padding-left: 1.2em; } "
+        ".doc-stack { display: grid; gap: .45em; } "
+        ".doc-nested-item { border: 1px solid #e5e9f0; border-radius: 6px; background: #fbfcff; padding: .55em .65em; } "
+        ".mini-yaml { margin: .2em 0; padding: .55em .65em; background: #f7f9fc; border: 1px solid #e5e9f0; border-radius: 6px; white-space: pre-wrap; } "
+        ".kv-list { display: grid; gap: .35em; margin: .25em 0; } "
+        ".kv-row { display: grid; grid-template-columns: minmax(120px, .32fr) minmax(0, 1fr); gap: .75em; align-items: start; } "
+        ".kv-row dt { color: #64748b; font-weight: 700; text-transform: none; } "
+        ".kv-row dd { margin: 0; min-width: 0; } "
+        ".doc-chip { display: inline-flex; align-items: center; border: 1px solid #cbd5e1; border-radius: 999px; padding: .08em .45em; "
+        "background: #f8fafc; color: #334155; font: 700 .82em \"SF Mono\", Menlo, Consolas, monospace; white-space: nowrap; } "
+        ".rule-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: .55em; } "
+        ".rule-card { border: 1px solid #dbe3ee; border-radius: 7px; padding: .6em .7em; background: #fbfdff; min-width: 0; } "
+        ".rule-head { display: flex; justify-content: space-between; gap: .5em; align-items: center; margin-bottom: .35em; } "
+        ".rule-head strong { overflow-wrap: anywhere; } "
+        ".rule-head span { display: inline-flex; gap: .25em; flex-wrap: wrap; justify-content: flex-end; } "
+        ".rule-card p { margin: .35em 0 0; color: #475569; } "
+        ".rule-expr { display: grid; grid-template-columns: 3.5em minmax(0,1fr); gap: .4em; align-items: start; margin-top: .25em; } "
+        ".rule-expr span { color: #64748b; font-size: .82em; font-weight: 700; text-transform: uppercase; } "
+        ".rule-expr code { display: block; white-space: pre-wrap; overflow-wrap: anywhere; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 5px; padding: .22em .38em; } "
+        ".transaction-stack { display: grid; gap: 1em; } "
+        ".transaction-card { border: 1px solid #d9e0ea; border-left: 4px solid #315fdc; border-radius: 8px; background: #fff; padding: .85em; } "
+        ".transaction-title { display: flex; align-items: baseline; gap: .65em; flex-wrap: wrap; margin-bottom: .35em; } "
+        ".transaction-title h4 { margin: 0; border: 0; padding: 0; font-size: 1.05em; } "
+        ".tx-id { font: 800 .86em \"SF Mono\", Menlo, Consolas, monospace; color: #315fdc; background: #eef4ff; border: 1px solid #c8d8ff; border-radius: 5px; padding: .12em .45em; } "
+        ".tx-desc { color: #475569; margin: .25em 0 .75em; } "
+        ".transaction-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: .7em; align-items: start; } "
+        ".transaction-panel { border: 1px solid #e5e9f0; border-radius: 7px; background: #fbfcff; padding: .65em; min-width: 0; } "
+        ".transaction-panel.wide { grid-column: 1 / -1; } "
+        ".transaction-panel h5 { margin: 0 0 .4em; color: #334155; font-size: .86em; text-transform: uppercase; letter-spacing: .03em; } "
+        ".cycle-flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .65em; align-items: stretch; } "
+        ".cycle-stage { position: relative; border: 1px solid #bfd0ea; border-radius: 8px; background: #f8fbff; padding: .75em; min-width: 0; } "
+        ".cycle-stage-head { display: flex; justify-content: space-between; gap: .5em; align-items: center; margin-bottom: .35em; } "
+        ".cycle-stage-head strong { overflow-wrap: anywhere; } "
+        ".cycle-stage p { margin: .25em 0; color: #475569; } "
+        ".cycle-note { margin-top: .45em; padding-top: .45em; border-top: 1px solid #dbe5f2; color: #475569; } "
+        ".cycle-note strong { display: block; color: #64748b; font-size: .78em; text-transform: uppercase; margin-bottom: .2em; } "
+        ".cycle-arrow { display: none; } "
         ".register-block { margin: .8em 0 1.1em; } "
         ".register-block h4 { margin: .2em 0; } "
         ".reg-desc { color: #475569; margin: .1em 0 .55em; } "
@@ -2432,6 +2838,16 @@ def _ssot_to_html(md_text: str, ip: str, data: dict | None = None) -> str:
         ".fsm-state { border: 1px solid #b8c5dd; border-radius: 999px; padding: .35em .7em; background: #f8fafc; font-family: monospace; } "
         ".fsm-state.reset { border-color: #16a34a; background: #ecfdf3; } "
         ".fsm-arrow { color: #64748b; } "
+        ".fsm-flow-map { display: grid; gap: .5em; margin: .6em 0 .9em; min-width: 520px; } "
+        ".fsm-flow-row { display: grid; grid-template-columns: minmax(110px,.7fr) minmax(180px,1.35fr) minmax(110px,.7fr); "
+        "gap: .65em; align-items: center; border: 1px solid #e1e7f0; border-radius: 7px; background: #fbfcff; padding: .5em .6em; } "
+        ".fsm-flow-row small { grid-column: 2 / -1; color: #64748b; } "
+        ".fsm-flow-state { display: inline-flex; justify-content: center; border: 1px solid #b8c5dd; border-radius: 999px; "
+        "padding: .3em .65em; background: #fff; font: 800 .9em \"SF Mono\", Menlo, Consolas, monospace; overflow-wrap: anywhere; text-align: center; } "
+        ".fsm-flow-state.reset { border-color: #16a34a; background: #ecfdf3; } "
+        ".fsm-flow-edge { display: flex; align-items: center; justify-content: center; color: #475569; min-width: 0; } "
+        ".fsm-flow-edge::before, .fsm-flow-edge::after { content: \"\"; height: 1px; background: #94a3b8; flex: 1; min-width: 18px; } "
+        ".fsm-flow-edge span { border: 1px solid #d4dbe8; border-radius: 5px; background: #fff; padding: .18em .42em; margin: 0 .35em; overflow-wrap: anywhere; text-align: center; } "
         ".wave-table { width: 100%; table-layout: fixed; } "
         ".wave-table th { width: 9em; } "
         ".wave-cell { text-align: center; font-family: monospace; padding: .25em .35em; } "
@@ -2439,7 +2855,13 @@ def _ssot_to_html(md_text: str, ip: str, data: dict | None = None) -> str:
         ".wave-cell.low { background: #f8fafc; border-bottom: 3px solid #64748b; } "
         ".wave-cell.mark { background: #fff7d6; } "
         ".mermaid { margin: .6em 0 .9em; } "
+        "@media (min-width: 920px) { .cycle-flow { display: flex; overflow-x: auto; padding-bottom: .2em; } "
+        ".cycle-stage { flex: 1 0 190px; } .cycle-arrow { display: inline-flex; align-items: center; color: #64748b; font-weight: 900; } } "
         "@media (max-width: 760px) { .block-graph { grid-template-columns: 1fr; gap: .8em; } "
+        ".kv-row { grid-template-columns: 1fr; gap: .15em; } "
+        ".transaction-grid { grid-template-columns: 1fr; } "
+        ".fsm-flow-map { min-width: 0; } .fsm-flow-row { grid-template-columns: 1fr; } "
+        ".fsm-flow-row small { grid-column: auto; } "
         ".iface-link.left, .iface-link.right { grid-template-columns: minmax(44px, .25fr) minmax(120px, 1fr); } "
         ".iface-link.left .iface-wire { order: 1; } .iface-link.left .iface-label { order: 2; } "
         ".wave-table { table-layout: auto; } }"
@@ -2451,11 +2873,17 @@ def _ssot_to_html(md_text: str, ip: str, data: dict | None = None) -> str:
     if isinstance(data, dict):
         block_diagram = _ssot_html_block_diagram(data)
         html_body = _ssot_html_insert_after_top_module(html_body, block_diagram)
-        # (b) Replace the plain markdown "Registers" section body with the
+        # (b) Replace dense markdown tables for behavioral sections with
+        # structured cards that keep transaction/cycle semantics readable.
+        function_model_html = _ssot_html_function_model(data)
+        html_body = _ssot_html_insert_after_section(html_body, "Function Model", function_model_html)
+        cycle_model_html = _ssot_html_cycle_model(data)
+        html_body = _ssot_html_insert_after_section(html_body, "Cycle Model", cycle_model_html)
+        # (c) Replace the plain markdown "Registers" section body with the
         # rich register-map tables (per-register props + bit-field tables).
         registers_html = _ssot_html_registers(data)
         html_body = _ssot_html_insert_after_section(html_body, "Registers", registers_html)
-        # (c) Custom blocks: inject user-authored content (markdown / mermaid /
+        # (d) Custom blocks: inject user-authored content (markdown / mermaid /
         # html; inline or file ref) after its anchor section. Source lives in
         # SSOT (data["custom_blocks"]) so it survives regeneration.
         if isinstance(data.get("custom_blocks"), list):
