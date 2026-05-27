@@ -96,7 +96,7 @@ class TestTodoTracker(unittest.TestCase):
         self.assertEqual(self.tracker.todos[0].status, "completed")
 
     def test_auto_advance(self):
-        """Test auto-advance to next pending todo"""
+        """Test auto-advance leaves the next pending todo for explicit pickup"""
         todos = [
             {"content": "Step 1", "status": "in_progress", "activeForm": "Doing Step 1"},
             {"content": "Step 2", "status": "pending", "activeForm": "Doing Step 2"},
@@ -107,30 +107,34 @@ class TestTodoTracker(unittest.TestCase):
 
         self.tracker.auto_advance()
 
-        # First should be completed
+        # First should be completed/reviewable.
         self.assertEqual(self.tracker.todos[0].status, "completed")
-        # Second should be in_progress
-        self.assertEqual(self.tracker.todos[1].status, "in_progress")
-        self.assertEqual(self.tracker.current_index, 1)
+        # The tracker must not silently start the next task.
+        self.assertEqual(self.tracker.todos[1].status, "pending")
+        self.assertEqual(self.tracker.current_index, 0)
 
     def test_format_progress(self):
         """Test progress formatting"""
         todos = [
-            {"content": "Step 1", "status": "completed", "activeForm": "Doing Step 1"},
-            {"content": "Step 2", "status": "in_progress", "activeForm": "Doing Step 2"},
-            {"content": "Step 3", "status": "pending", "activeForm": "Doing Step 3"},
+            {"content": "Step 1", "status": "approved", "activeForm": "Doing Step 1"},
+            {"content": "Step 2", "status": "completed", "activeForm": "Doing Step 2"},
+            {"content": "Step 3", "status": "in_progress", "activeForm": "Doing Step 3"},
+            {"content": "Step 4", "status": "pending", "activeForm": "Doing Step 4"},
         ]
         self.tracker.add_todos(todos)
-        self.tracker.current_index = 1
+        self.tracker.current_index = 2
 
         progress = self.tracker.format_progress()
 
         # Check icons
-        self.assertIn("✅", progress)  # Completed
-        self.assertIn("▶️", progress)  # In progress
-        self.assertIn("⏸️", progress)  # Pending
-        # Check progress summary
-        self.assertIn("Progress: 1/3", progress)
+        self.assertIn("✅", progress)  # Approved
+        self.assertIn("👀", progress)  # Completed/review
+        self.assertIn("▶", progress)  # In progress
+        self.assertIn("⏸", progress)  # Pending
+        self.assertIn("[Approved]", progress)
+        self.assertIn("[Review]", progress)
+        self.assertIn("[In Progress]", progress)
+        self.assertIn("[Pending]", progress)
 
     def test_get_current_todo(self):
         """Test getting current in_progress todo"""
@@ -147,10 +151,10 @@ class TestTodoTracker(unittest.TestCase):
         self.assertEqual(current.content, "Step 2")
 
     def test_is_all_completed(self):
-        """Test checking if all todos are completed"""
+        """Test checking if all todos are approved"""
         todos = [
-            {"content": "Step 1", "status": "completed", "activeForm": "Doing Step 1"},
-            {"content": "Step 2", "status": "completed", "activeForm": "Doing Step 2"},
+            {"content": "Step 1", "status": "approved", "activeForm": "Doing Step 1"},
+            {"content": "Step 2", "status": "approved", "activeForm": "Doing Step 2"},
         ]
         self.tracker.add_todos(todos)
 
@@ -168,7 +172,7 @@ class TestTodoTracker(unittest.TestCase):
     def test_get_completion_ratio(self):
         """Test completion ratio calculation"""
         todos = [
-            {"content": "Step 1", "status": "completed", "activeForm": "Doing Step 1"},
+            {"content": "Step 1", "status": "approved", "activeForm": "Doing Step 1"},
             {"content": "Step 2", "status": "in_progress", "activeForm": "Doing Step 2"},
             {"content": "Step 3", "status": "pending", "activeForm": "Doing Step 3"},
         ]

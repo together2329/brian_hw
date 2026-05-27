@@ -514,6 +514,10 @@ class TestTodoUpdateStateMachine(unittest.TestCase):
     def setUp(self):
         self.tmpdir = tempfile.mkdtemp()
         self.todo_file = Path(self.tmpdir) / "test_todo.json"
+        self._commit_patcher = patch("core.tools.commit_ip", lambda message: None)
+        self._tag_patcher = patch("core.tools._git_tag_todo", lambda *args, **kwargs: None)
+        self._commit_patcher.start()
+        self._tag_patcher.start()
 
         # Patch config to use our temp file
         self._config_patcher = patch.dict('sys.modules', {
@@ -541,6 +545,8 @@ class TestTodoUpdateStateMachine(unittest.TestCase):
         os.environ.pop("STRICT_TODO_APPROVAL", None)
         os.environ.pop("STRICT_DELIVERABLE_CHECK", None)
         self._config_patcher.stop()
+        self._tag_patcher.stop()
+        self._commit_patcher.stop()
         import main as main_mod
         main_mod.todo_tracker = None
 
@@ -856,12 +862,31 @@ class TestTodoWrite(unittest.TestCase):
     def setUp(self):
         self.tmpdir = tempfile.mkdtemp()
         self.todo_file = Path(self.tmpdir) / "test_todo.json"
+        self.todo_error_file = Path(self.tmpdir) / "todo_error.json"
+        self._commit_patcher = patch("core.tools.commit_ip", lambda message: None)
+        self._tag_patcher = patch("core.tools._git_tag_todo", lambda *args, **kwargs: None)
+        self._commit_patcher.start()
+        self._tag_patcher.start()
+
+        import config as cfg
+        import lib.todo_tracker as todo_mod
+        self._old_cfg_todo_file = getattr(cfg, "TODO_FILE", None)
+        self._old_cfg_error_file = getattr(cfg, "TODO_ERROR_FILE", None)
+        self._old_module_todo_file = getattr(todo_mod, "TODO_FILE", None)
+        cfg.TODO_FILE = str(self.todo_file)
+        cfg.TODO_ERROR_FILE = str(self.todo_error_file)
+        todo_mod.TODO_FILE = self.todo_file
 
         # Set up main module
         import main as main_mod
         from lib.todo_tracker import TodoTracker
         self.tracker = TodoTracker(persist_path=self.todo_file)
         main_mod.todo_tracker = self.tracker
+        try:
+            import src.main as src_main
+            src_main.todo_tracker = self.tracker
+        except Exception:
+            pass
 
         # Clear plan mode counter
         os.environ.pop("_PLAN_TODO_WRITE_COUNT", None)
@@ -870,15 +895,37 @@ class TestTodoWrite(unittest.TestCase):
     def tearDown(self):
         import main as main_mod
         main_mod.todo_tracker = None
+        try:
+            import src.main as src_main
+            src_main.todo_tracker = None
+        except Exception:
+            pass
+        self._tag_patcher.stop()
+        self._commit_patcher.stop()
+        import config as cfg
+        import lib.todo_tracker as todo_mod
+        cfg.TODO_FILE = self._old_cfg_todo_file
+        cfg.TODO_ERROR_FILE = self._old_cfg_error_file
+        todo_mod.TODO_FILE = self._old_module_todo_file
         os.environ.pop("_PLAN_TODO_WRITE_COUNT", None)
         os.environ.pop("PLAN_MODE", None)
+
+    def _task(self, content, status="pending", **extra):
+        data = {
+            "content": content,
+            "status": status,
+            "detail": extra.pop("detail", f"Do {content}"),
+            "criteria": extra.pop("criteria", f"{content} verified"),
+        }
+        data.update(extra)
+        return data
 
     def test_basic_write(self):
         """Basic todo_write creates tasks."""
         from core.tools import todo_write
         result = todo_write([
-            {"content": "Task 1", "status": "pending"},
-            {"content": "Task 2", "status": "pending"},
+            self._task("Task 1"),
+            self._task("Task 2"),
         ])
         self.assertIn("✅", result)
         self.assertEqual(len(self.tracker.todos), 2)
@@ -895,15 +942,15 @@ class TestTodoWrite(unittest.TestCase):
     def test_auto_generates_active_form(self):
         """Missing activeForm is auto-generated."""
         from core.tools import todo_write
-        todo_write([{"content": "Run tests", "status": "pending"}])
+        todo_write([self._task("Run tests")])
         self.assertEqual(self.tracker.todos[0].active_form, "Running tests")
 
     def test_status_alias_normalization(self):
         """Status aliases are normalized (e.g. 'done' → 'completed')."""
         from core.tools import todo_write
         result = todo_write([
-            {"content": "Task 1", "status": "todo"},
-            {"content": "Task 2", "status": "done"},
+            self._task("Task 1", "todo"),
+            self._task("Task 2", "done"),
         ])
         self.assertIn("✅", result)
         self.assertEqual(self.tracker.todos[0].status, "pending")
@@ -913,8 +960,8 @@ class TestTodoWrite(unittest.TestCase):
         """Multiple in_progress tasks are rejected."""
         from core.tools import todo_write
         result = todo_write([
-            {"content": "T1", "status": "in_progress"},
-            {"content": "T2", "status": "in_progress"},
+            self._task("T1", "in_progress"),
+            self._task("T2", "in_progress"),
         ])
         self.assertIn("Error", result)
         self.assertIn("ONE task", result)
@@ -938,22 +985,22 @@ class TestTodoWrite(unittest.TestCase):
         os.environ["PLAN_TODO_WRITE_MAX"] = "2"
 
         # First two writes succeed
-        todo_write([{"content": "T1", "status": "pending"}])
-        todo_write([{"content": "T2", "status": "pending"}])
+        todo_write([self._task("T1")])
+        todo_write([self._task("T2")])
 
         # Third write is blocked
-        result = todo_write([{"content": "T3", "status": "pending"}])
+        result = todo_write([self._task("T3")])
         self.assertIn("limit reached", result)
 
     def test_write_replaces_existing(self):
         """todo_write replaces all existing tasks."""
         from core.tools import todo_write
-        todo_write([{"content": "Old task", "status": "pending"}])
+        todo_write([self._task("Old task")])
         self.assertEqual(len(self.tracker.todos), 1)
 
         todo_write([
-            {"content": "New A", "status": "pending"},
-            {"content": "New B", "status": "pending"},
+            self._task("New A"),
+            self._task("New B"),
         ])
         self.assertEqual(len(self.tracker.todos), 2)
         self.assertEqual(self.tracker.todos[0].content, "New A")
