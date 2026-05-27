@@ -357,3 +357,24 @@ def test_wiki_query_no_rebuild_trusts_shipped_graph(tmp_path: Path, monkeypatch)
     # shipped graph untouched: sentinel still the only node, decoy not merged
     after = json.loads(graph_path.read_text(encoding="utf-8"))
     assert [n["id"] for n in after["nodes"]] == ["sentinel_ip"]
+
+
+def test_wiki_query_external_query_adapter_owns_lookup(monkeypatch) -> None:
+    """ATLAS_RTL_DB_QUERY delegates the WHOLE query to an external command — no
+    ATLAS_RTL_DB_WIKI / _graph.json needed. The external side owns structure,
+    search, and transport; ATLAS returns its stdout."""
+    monkeypatch.setenv(
+        "ATLAS_RTL_DB_QUERY",
+        str(PROJECT_ROOT / "scripts" / "example_external_rtl_db_query.py"),
+    )
+    monkeypatch.delenv("ATLAS_RTL_DB_WIKI", raising=False)
+    monkeypatch.delenv("ATLAS_ACTIVE_IP", raising=False)
+
+    from core.tools import wiki_query
+
+    result = wiki_query(ip="rtl-db", topic="uart apb dma", depth=3)
+
+    assert "scope=rtl-db · external query" in result
+    assert "ext_uart" in result
+    # depth=3 includes the summary line
+    assert "FIFO" in result or "DMA handshake" in result

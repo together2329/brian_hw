@@ -7654,7 +7654,9 @@ def resolve_rtl_db_wiki():
     import os as _os
     from pathlib import Path as _Path
 
-    raw = _os.path.expandvars((_os.environ.get("ATLAS_RTL_DB_WIKI") or "").strip())
+    raw = _os.path.expandvars(
+        (_os.environ.get("ATLAS_EXTERNAL_DB_WIKI") or _os.environ.get("ATLAS_RTL_DB_WIKI") or "").strip()
+    )
     if not raw or "${" in raw:
         return None
     p = _Path(raw).expanduser()
@@ -7705,11 +7707,39 @@ def wiki_query(ip: str = "", topic: str = "", depth: int = 2, max_nodes: int = 1
         "external_rtl_db",
         "previous-rtl-db",
         "previous_rtl_db",
+        "external-db",
+        "external_db",
         "andes",
     }
     if ip.lower() in external_aliases:
         scope_kind = "rtl-db"
         scope_label = "scope=rtl-db"
+        # External query adapter (maximum freedom — everything handled outside).
+        # ATLAS_RTL_DB_QUERY points at an executable that OWNS the entire lookup:
+        # its own structure, search, and transport (local files, a DB, an HTTP
+        # service, a vector store…). ATLAS hands it the query as JSON on stdin and
+        # returns its stdout verbatim — no _graph.json / wiki_graph schema needed.
+        # Any language: a `.py` runs via python3, anything else runs directly
+        # (e.g. a 3-line shell+curl wrapper to a remote service).
+        query_cmd = _os.path.expandvars(
+            (_os.environ.get("ATLAS_EXTERNAL_DB_QUERY") or _os.environ.get("ATLAS_RTL_DB_QUERY") or "").strip()
+        )
+        if query_cmd:
+            cmd_path = _Path(query_cmd).expanduser()
+            argv = ["python3", str(cmd_path)] if cmd_path.suffix == ".py" else [str(cmd_path)]
+            payload = _json.dumps(
+                {"ip": ip, "topic": topic, "depth": depth, "max_nodes": max_nodes}
+            )
+            try:
+                proc = _sp.run(argv, input=payload, capture_output=True, text=True, timeout=90)
+            except Exception as exc:
+                return f"[wiki_query] external RTL DB query command failed: {exc}"
+            out = (proc.stdout or "").strip()
+            if proc.returncode != 0 and not out:
+                err = (proc.stderr or "").strip()[:300]
+                return f"[wiki_query] external RTL DB query exited {proc.returncode}: {err}"
+            header = f"# wiki_query [scope=rtl-db · external query] topic={topic!r} depth={depth}\n"
+            return header + (out or "(external RTL DB query returned no output)")
         rtl_db = resolve_rtl_db_wiki()
         if rtl_db is None:
             return "[wiki_query] ATLAS_RTL_DB_WIKI is not configured or the path does not exist."
@@ -7736,7 +7766,9 @@ def wiki_query(ip: str = "", topic: str = "", depth: int = 2, max_nodes: int = 1
             # understands THIS wiki's (possibly foreign) structure and writes
             # <wiki_root>/_graph.json in the wiki_graph.v1 node schema. ATLAS runs
             # it instead of the built-in build_graph.py. Mirrors ATLAS_SCM_UI_OVERRIDE.
-            ext_builder = _os.path.expandvars((_os.environ.get("ATLAS_RTL_DB_BUILDER") or "").strip())
+            ext_builder = _os.path.expandvars(
+                (_os.environ.get("ATLAS_EXTERNAL_DB_BUILDER") or _os.environ.get("ATLAS_RTL_DB_BUILDER") or "").strip()
+            )
             if ext_builder:
                 ext_path = _Path(ext_builder).expanduser()
                 if ext_path.suffix == ".py":
@@ -7803,7 +7835,7 @@ def wiki_query(ip: str = "", topic: str = "", depth: int = 2, max_nodes: int = 1
         # clobber it, even if its source files look newer to us.
         no_rebuild = (
             scope_kind == "rtl-db"
-            and (_os.environ.get("ATLAS_RTL_DB_NO_REBUILD") or "").strip().lower()
+            and (_os.environ.get("ATLAS_EXTERNAL_DB_NO_REBUILD") or _os.environ.get("ATLAS_RTL_DB_NO_REBUILD") or "").strip().lower()
             in ("1", "true", "yes", "on")
         )
         needs_build = (not no_rebuild) and (not graph_path.is_file())

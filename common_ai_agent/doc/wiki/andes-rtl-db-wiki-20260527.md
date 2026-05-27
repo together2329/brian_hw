@@ -61,6 +61,18 @@ two `.env` hooks (no ATLAS code change; same idiom as `ATLAS_SCM_UI_OVERRIDE`):
 | --- | --- |
 | `ATLAS_RTL_DB_BUILDER=/abs/builder.py` | ATLAS runs `<builder> --wiki <root>` instead of `build_graph.py`; the builder understands the foreign structure and writes `<root>/_graph.json`. Contract + working sample: `scripts/example_external_rtl_db_builder.py`. |
 | `ATLAS_RTL_DB_NO_REBUILD=1` | ATLAS reads an externally-produced `_graph.json` as-is and **never (re)builds or clobbers** it — for foreign wikis that ship their own graph (any pipeline), even when their source files look newer. |
+| `ATLAS_RTL_DB_QUERY=/abs/query_adapter` | **Max freedom — external owns the whole lookup.** ATLAS pipes the query `{ip,topic,depth,max_nodes}` as JSON on stdin and returns the command's stdout verbatim. No wiki dir / `_graph.json` / schema; any language or transport (files, DB, HTTP, vector store). Contract + sample: `scripts/example_external_rtl_db_query.py`. |
+
+### `external-db` skill — when to use the DB
+
+The `skills/external-db/` skill auto-triggers on reuse/reference keywords (uart, spi,
+dma, apb, ahb, "reference design", "reuse", "external db"…) and instructs the agent to
+call `wiki_query(ip="external-db")` (aliases: `rtl-db` / `andes`) **before** writing RTL
+or citing a reference. It is **data-source-agnostic** — it
+works with whichever hook above is configured. Skills are themselves an external
+drop-in (a `skills/<name>/SKILL.md` folder, zero ATLAS code change); external tools
+likewise plug in via `.mcp.json` (`ENABLE_MCP`). So the full chain — *trigger* (skill),
+*tool* (MCP), and *data* (RTL DB adapter) — is implementable entirely outside ATLAS.
 
 Implementation: `core/tools.py::wiki_query` (rtl-db scope). Verified end-to-end by
 `tests/test_wiki_query_tool.py` (`..._external_builder_override...`, `..._no_rebuild_trusts_shipped_graph`).
