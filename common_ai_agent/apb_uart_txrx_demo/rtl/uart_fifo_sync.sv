@@ -30,25 +30,32 @@ module uart_fifo_sync #(
   output logic                    overflow_pulse,
   output logic                    underflow_pulse
 );
+  localparam [LEVEL_WIDTH-1:0] LEVEL_ZERO = {LEVEL_WIDTH{1'b0}};
+  localparam [LEVEL_WIDTH-1:0] LEVEL_ONE  = {{(LEVEL_WIDTH-1){1'b0}}, 1'b1};
+  localparam [LEVEL_WIDTH-1:0] DEPTH_LEVEL = DEPTH;
+  localparam [PTR_WIDTH-1:0] PTR_ZERO = {PTR_WIDTH{1'b0}};
+  localparam [PTR_WIDTH-1:0] PTR_ONE  = {{(PTR_WIDTH-1){1'b0}}, 1'b1};
+  localparam [PTR_WIDTH-1:0] PTR_LAST = DEPTH - 1;
+
   logic [DATA_WIDTH-1:0] mem [0:DEPTH-1];
   logic [PTR_WIDTH-1:0] rd_ptr;
   logic [PTR_WIDTH-1:0] wr_ptr;
   logic [LEVEL_WIDTH-1:0] count;
 
-  wire pop_accept  = pop && (count != {LEVEL_WIDTH{1'b0}});
-  wire push_accept = push && ((count != DEPTH[LEVEL_WIDTH-1:0]) || pop_accept);
+  wire pop_accept  = pop && (count != LEVEL_ZERO);
+  wire push_accept = push && ((count != DEPTH_LEVEL) || pop_accept);
 
-  assign empty = (count == {LEVEL_WIDTH{1'b0}});
-  assign full  = (count == DEPTH[LEVEL_WIDTH-1:0]);
+  assign empty = (count == LEVEL_ZERO);
+  assign full  = (count == DEPTH_LEVEL);
   assign level = count;
   assign pop_data = empty ? {DATA_WIDTH{1'b0}} : mem[rd_ptr];
 
   function automatic [PTR_WIDTH-1:0] ptr_next(input [PTR_WIDTH-1:0] ptr);
     begin
-      if (ptr == (DEPTH-1)[PTR_WIDTH-1:0]) begin
-        ptr_next = {PTR_WIDTH{1'b0}};
+      if (ptr == PTR_LAST) begin
+        ptr_next = PTR_ZERO;
       end else begin
-        ptr_next = ptr + {{(PTR_WIDTH-1){1'b0}}, 1'b1};
+        ptr_next = ptr + PTR_ONE;
       end
     end
   endfunction
