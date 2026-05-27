@@ -3040,7 +3040,7 @@ if __name__ == "__main__":
             from src.llm_client import get_active_model as _get_active_model
             print(Color.success(
                 f"[--model] CLI backend active → {_get_active_model()}"))
-        elif config.is_opencode_model(_m):
+        elif config.is_opencode_model(_m) and config.auto_opencode_oauth_allowed():
             # gpt-5* / *codex* → ChatGPT OAuth via opencode auth.json.
             # Strip any provider prefix ("openai/gpt-5.5" → "gpt-5.5").
             _bare = _m.split("/", 1)[-1]

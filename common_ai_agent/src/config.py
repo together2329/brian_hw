@@ -334,8 +334,21 @@ def _looks_like_opencode_model_name(name: str) -> bool:
     return n.startswith("gpt-5") or ("gpt" in n and "codex" in n)
 
 
+def auto_opencode_oauth_allowed() -> bool:
+    """Whether a Codex-looking model name may auto-route to opencode OAuth."""
+    provider = os.getenv("LLM_PROVIDER", "").strip().lower()
+    if provider and provider != "openai":
+        return False
+    base_url = os.getenv("LLM_BASE_URL", "").strip().lower()
+    if ".openai.azure.com" in base_url:
+        return False
+    return True
+
+
 def _activate_dropdown_opencode_model(model: str):
     if not _looks_like_opencode_model_name(model):
+        return None
+    if not auto_opencode_oauth_allowed():
         return None
     activate_oauth = globals().get("activate_opencode_oauth")
     if not callable(activate_oauth):
@@ -1184,7 +1197,10 @@ sys.modules[__name__].__class__ = _ThreadRuntimeConfigModule
 _apply_model_dropdown_selection()
 
 if USE_OPENCODE_OAUTH and not (CURSOR_AGENT_ENABLE or CLAUDE_CLI_ENABLE):
-    if _active_profile_blocks_auto_opencode() and not runtime_model_override_active():
+    if not auto_opencode_oauth_allowed() and not runtime_model_override_active():
+        USE_OPENCODE_OAUTH = False
+        os.environ["USE_OPENCODE_OAUTH"] = "false"
+    elif _active_profile_blocks_auto_opencode() and not runtime_model_override_active():
         USE_OPENCODE_OAUTH = False
         USE_RESPONSES_API = False
         os.environ["USE_OPENCODE_OAUTH"] = "false"

@@ -286,7 +286,7 @@ if __name__ == "__main__":
         elif config.activate_cli_backend(_m):
             from src.llm_client import get_active_model as _get_active_model
             print(f"[--model] CLI backend active → {_get_active_model()}")
-        elif config.is_opencode_model(_m):
+        elif config.is_opencode_model(_m) and config.auto_opencode_oauth_allowed():
             _bare = _m.split("/", 1)[-1]
             if config.activate_opencode_oauth(_bare):
                 print(f"[--model] opencode-OAuth active → "

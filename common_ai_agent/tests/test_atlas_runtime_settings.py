@@ -309,6 +309,60 @@ def test_config_boot_codex_dropdown_overrides_glm_profile_without_mixed_endpoint
     assert payload["env_profile"] is None
 
 
+def test_config_boot_azure_blocks_opencode_oauth_probe(tmp_path):
+    pkg = tmp_path / "pkg"
+    src_dir = pkg / "src"
+    src_dir.mkdir(parents=True)
+    (src_dir / "__init__.py").write_text("", encoding="utf-8")
+    shutil.copy(PROJECT_ROOT / "src" / "config.py", src_dir / "config.py")
+
+    (pkg / ".config").write_text(
+        "\n".join([
+            "USE_OPENCODE_OAUTH=true",
+            "USE_RESPONSES_API=true",
+            "",
+        ]),
+        encoding="utf-8",
+    )
+    (pkg / ".env").write_text(
+        "\n".join([
+            "LLM_PROVIDER=azure",
+            "LLM_MODEL_NAME=gpt-5.3-codex",
+            "AZURE_OPENAI_ENDPOINT=https://azure.example.openai.azure.com",
+            "AZURE_OPENAI_API_KEY=azure-key",
+            "",
+        ]),
+        encoding="utf-8",
+    )
+
+    code = (
+        "import json; import src.config as c; "
+        "print(json.dumps({"
+        "'model': c.MODEL_NAME, "
+        "'base_url': c.BASE_URL, "
+        "'provider': c.LLM_PROVIDER, "
+        "'use_opencode': c.USE_OPENCODE_OAUTH, "
+        "'responses': c.USE_RESPONSES_API"
+        "}, sort_keys=True))"
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", code],
+        cwd=str(pkg),
+        env={"HOME": str(tmp_path / "home"), "PYTHONPATH": str(pkg)},
+        text=True,
+        capture_output=True,
+        check=True,
+    )
+
+    assert "no credential" not in result.stdout
+    payload = json.loads(result.stdout)
+    assert payload["provider"] == "azure"
+    assert payload["model"] == "gpt-5.3-codex"
+    assert payload["base_url"] == "https://azure.example.openai.azure.com"
+    assert payload["use_opencode"] is False
+    assert payload["responses"] is True
+
+
 def test_config_resolves_pdk_paths_from_source_root(monkeypatch):
     import src.config as config
 
