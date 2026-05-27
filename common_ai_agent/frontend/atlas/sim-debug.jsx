@@ -207,12 +207,24 @@ const buildVcdLineAnnotations = ({ line, traceList, selectedSig, cursorA, cursor
   return rows;
 };
 
+const VCD_ANNOTATION_AXES = [
+  { id: 'a', label: 'A', key: 'a', color: 'var(--accent)' },
+  { id: 'b', label: 'B', key: 'b', color: 'var(--cyan)' },
+];
+
+const annotationAxesForMode = (mode) => {
+  if (mode === 'a') return VCD_ANNOTATION_AXES.slice(0, 1);
+  if (mode === 'b') return VCD_ANNOTATION_AXES.slice(1, 2);
+  return VCD_ANNOTATION_AXES;
+};
+
 if (typeof window !== 'undefined') {
   window.simDebugActiveIpFromAtlasRuntime = activeIpFromAtlasRuntime;
   window.simDebugVcdPathBelongsToIp = vcdPathBelongsToIp;
   window.simDebugVcdValueAtTrace = vcdValueAtTrace;
   window.simDebugBuildWaveTraceList = buildWaveTraceList;
   window.simDebugBuildVcdLineAnnotations = buildVcdLineAnnotations;
+  window.simDebugAnnotationAxesForMode = annotationAxesForMode;
 }
 
 // Cocotb (testbench) tree view — categorised file list + parsed
@@ -650,10 +662,14 @@ const RangeInput = ({ effRange, vcdData, setViewRange }) => {
 // globally from index.html — language autoloader fetches the grammar
 // for the file extension on demand). Renders each line in its own
 // row so line numbers + cursor highlight + per-line click work.
-const SourceViewer = ({ lines, cursor, path, vcdAnnotations = {} }) => {
+const SourceViewer = ({ lines, cursor, path, vcdAnnotations = {}, vcdAnnotationAxis = 'both' }) => {
   const ref = React.useRef(null);
   // Bump on every Prism load so we re-render once the grammar arrives.
   const [grammarTick, setGrammarTick] = React.useState(0);
+  const annotationAxes = React.useMemo(
+    () => annotationAxesForMode(vcdAnnotationAxis),
+    [vcdAnnotationAxis],
+  );
 
   // Resolve language id from extension via window.PRISM_LANG_MAP.
   const ext = (path || '').match(/\.([a-zA-Z0-9]+)$/)?.[1]?.toLowerCase() || '';
@@ -752,8 +768,14 @@ const SourceViewer = ({ lines, cursor, path, vcdAnnotations = {} }) => {
                       whiteSpace: 'nowrap',
                     }}>
                       <b style={{ color: 'var(--cyan)' }}>{item.name}</b>
-                      <span style={{ color: 'var(--accent)', marginLeft: 5 }}>A={item.a}</span>
-                      <span style={{ color: 'var(--cyan)', marginLeft: 5 }}>B={item.b}</span>
+                      {annotationAxes.map(axis => (
+                        <span
+                          key={axis.id}
+                          style={{ color: axis.color, marginLeft: 5 }}
+                        >
+                          {axis.label}={item[axis.key]}
+                        </span>
+                      ))}
                     </span>
                   ))}
                 </div>
@@ -835,6 +857,7 @@ window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
   const [viewRange, setViewRange] = React.useState(null);
   const [showHelp, setShowHelp] = React.useState(false);
   const [showVcdAnnotations, setShowVcdAnnotations] = React.useState(false);
+  const [vcdAnnotationAxis, setVcdAnnotationAxis] = React.useState('both');
   // Left panel mode — switch between RTL hierarchy and TB (cocotb) tree.
   const [leftTab, setLeftTab] = React.useState('rtl');  // 'rtl' | 'tb'
   const [cocotbData, setCocotbData] = React.useState(null);
@@ -1958,12 +1981,39 @@ window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
                 >
                   annot {showVcdAnnotations ? 'on' : 'off'}
                 </button>
+                {showVcdAnnotations && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 2, marginLeft: 4 }}>
+                    {[
+                      ['both', 'A+B', `show VCD values at A (${waveCursor}${vcdData?.timescale || 'ns'}) and B (${waveCursorB}${vcdData?.timescale || 'ns'})`],
+                      ['a', 'A', `show VCD values at cursor A (${waveCursor}${vcdData?.timescale || 'ns'})`],
+                      ['b', 'B', `show VCD values at cursor B (${waveCursorB}${vcdData?.timescale || 'ns'})`],
+                    ].map(([mode, label, title]) => (
+                      <button
+                        key={mode}
+                        className="btn"
+                        onClick={() => setVcdAnnotationAxis(mode)}
+                        title={title}
+                        style={{
+                          padding: '1px 6px',
+                          fontSize: 10,
+                          fontWeight: 700,
+                          minWidth: 26,
+                          background: vcdAnnotationAxis === mode ? 'var(--cyan)' : undefined,
+                          color: vcdAnnotationAxis === mode ? '#001018' : undefined,
+                        }}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
               <SourceViewer
                 lines={srcLines}
                 cursor={srcCursor}
                 path={srcPath}
                 vcdAnnotations={sourceVcdAnnotations}
+                vcdAnnotationAxis={vcdAnnotationAxis}
               />
             </div>
           )}

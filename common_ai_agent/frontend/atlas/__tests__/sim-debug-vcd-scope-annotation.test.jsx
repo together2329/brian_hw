@@ -48,6 +48,13 @@ describe('sim debug VCD scoping and annotations', () => {
     ]);
   });
 
+  it('selects which VCD annotation cursor axes are shown in the source viewer', () => {
+    expect(window.simDebugAnnotationAxesForMode('a').map(axis => axis.label)).toEqual(['A']);
+    expect(window.simDebugAnnotationAxesForMode('b').map(axis => axis.label)).toEqual(['B']);
+    expect(window.simDebugAnnotationAxesForMode('both').map(axis => axis.label)).toEqual(['A', 'B']);
+    expect(window.simDebugAnnotationAxesForMode('unknown').map(axis => axis.label)).toEqual(['A', 'B']);
+  });
+
   it('adds pinned signals beyond the default waveform slice', () => {
     const signals = Array.from({ length: 30 }, (_, i) => ({
       id: `s${i}`,

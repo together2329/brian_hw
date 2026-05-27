@@ -79,8 +79,6 @@ module apb_uart_txrx_demo #(
   logic irq_rx_timeout;
   logic irq_tx_threshold;
   logic irq_rx_threshold;
-  logic irq_pending_base;
-  logic irq_base_level;
   logic irq_pending;
   logic [7:0] tx_threshold;
   logic [7:0] rx_threshold;
@@ -97,17 +95,12 @@ module apb_uart_txrx_demo #(
   assign uart_tx = uart_tx_int;
   assign uart_rx_selected = ctrl_loopback_en ? uart_tx_int : uart_rx;
   assign tx_empty_status = tx_fifo_empty && tx_idle;
-  assign irq_pending = irq_pending_base ||
-                       (ctrl_timeout_irq_en && irq_rx_timeout) ||
-                       (ctrl_fifo_irq_en && (irq_tx_threshold || irq_rx_threshold));
-  assign irq = irq_pending;
-  assign _unused_top_outputs = parity_err ^ break_err ^ rx_timeout ^
+  assign _unused_top_outputs = rx_timeout ^
                                tx_start_unused ^ (|tx_data_unused) ^
                                (|tx_threshold) ^ (|rx_threshold) ^
                                (|rx_timeout_cycles) ^ (|scratch_reg_unused) ^
                                (|rx_data_unused) ^ tx_fifo_overflow_pulse ^
-                               tx_fifo_underflow_pulse ^ rx_fifo_underflow_pulse ^
-                               irq_base_level;
+                               tx_fifo_underflow_pulse ^ rx_fifo_underflow_pulse;
 
   baud_div_eff #(.BAUD_DIV_WIDTH(BAUD_DIV_WIDTH)) u_baud_div_eff (
     .baud_div_reg(baud_div_reg),
@@ -118,13 +111,20 @@ module apb_uart_txrx_demo #(
     .ctrl_tx_irq_en(ctrl_tx_irq_en),
     .ctrl_rx_irq_en(ctrl_rx_irq_en),
     .ctrl_err_irq_en(ctrl_err_irq_en),
+    .ctrl_timeout_irq_en(ctrl_timeout_irq_en),
+    .ctrl_fifo_irq_en(ctrl_fifo_irq_en),
     .irq_tx_done(irq_tx_done),
     .rx_valid(rx_valid),
     .frame_err(frame_err),
+    .parity_err(parity_err),
     .overrun_err(overrun_err),
+    .break_err(break_err),
     .irq_error(irq_error),
-    .irq_pending(irq_pending_base),
-    .irq(irq_base_level)
+    .irq_rx_timeout(irq_rx_timeout),
+    .irq_tx_threshold(irq_tx_threshold),
+    .irq_rx_threshold(irq_rx_threshold),
+    .irq_pending(irq_pending),
+    .irq(irq)
   );
 
   uart_fifo_sync #(
