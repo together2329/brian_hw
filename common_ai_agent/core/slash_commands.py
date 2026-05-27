@@ -1434,13 +1434,13 @@ class SlashCommandRegistry:
             f"  Source: {memory.storage_label() if hasattr(memory, 'storage_label') else memory.memory_rules_file}",
         ]
         if not items:
-            lines.append("  (none)")
-        else:
-            for idx, item in enumerate(items, 1):
-                scope = str(item.get("scope") or "global")
-                wf_name = str(item.get("workflow") or "")
-                label = "global" if scope == "global" else f"workflow:{wf_name or '-'}"
-                lines.append(f"  {idx}. [{label}] {item.get('rule') or ''}")
+            return ""
+
+        for idx, item in enumerate(items, 1):
+            scope = str(item.get("scope") or "global")
+            wf_name = str(item.get("workflow") or "")
+            label = "global" if scope == "global" else f"workflow:{wf_name or '-'}"
+            lines.append(f"  {idx}. [{label}] {item.get('rule') or ''}")
         lines.append("\033[2m" + "=" * 60 + "\033[0m")
         return "\n".join(lines) + "\n"
 
@@ -3104,7 +3104,7 @@ class SlashCommandRegistry:
             if debug_lines:
                 output = "".join(debug_lines) + output
 
-            if not (verbose_context and self._active_atlas_session()):
+            if not verbose_context:
                 # Add Rules section (.UPD_RULE.md)
                 output += self._fmt_rules_section()
 

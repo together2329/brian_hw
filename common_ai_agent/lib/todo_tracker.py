@@ -7,6 +7,7 @@ Todo Tracking System for Common AI Agent
 
 import json
 import time
+import textwrap
 from pathlib import Path
 from typing import Any, List, Dict, Optional
 from dataclasses import dataclass, field
@@ -1030,7 +1031,7 @@ class TodoTracker:
         return "\n".join(lines)
 
     def format_simple(self) -> str:
-        """Simple list view — content + criteria. Used by /todo (no -v)."""
+        """Readable list view used by /todo and compact/context summaries."""
         if not self.todos:
             return ""
         icons = {
@@ -1040,26 +1041,118 @@ class TodoTracker:
             "approved":    Color.success("✅"),
             "rejected":    Color.error("❌"),
         }
-        if not self.todos:
-            return ""
-        lines = ["", f"  {Color.BOLD}{Color.CYAN}── TODO ──{Color.RESET}"]
+        status_labels = {
+            "pending": "pending",
+            "in_progress": "in progress",
+            "completed": "review",
+            "approved": "approved",
+            "rejected": "rejected",
+        }
+        counts = {
+            "pending": 0,
+            "in_progress": 0,
+            "completed": 0,
+            "approved": 0,
+            "rejected": 0,
+        }
+        for todo in self.todos:
+            if todo.status in counts:
+                counts[todo.status] += 1
+
+        def _strip_number_prefix(text: str) -> str:
+            import re as _re
+            return _re.sub(r'^\d+\.\s*', '', str(text or '')).strip()
+
+        def _wrap_field(label: str, value: str, *, color: str = "") -> list:
+            text = str(value or "").strip()
+            if not text:
+                return []
+            label_text = f"{label}:"
+            first = f"       {Color.DIM}{label_text:<10}{Color.RESET} "
+            cont = " " * 18
+            chunks = textwrap.wrap(
+                text,
+                width=88,
+                initial_indent="",
+                subsequent_indent="",
+                break_long_words=False,
+                break_on_hyphens=False,
+            )
+            lines = []
+            for i, chunk in enumerate(chunks):
+                indent = first if i == 0 else cont
+                if color:
+                    lines.append(f"{indent}{color}{chunk}{Color.RESET}")
+                else:
+                    lines.append(f"{indent}{chunk}")
+            return lines
+
+        def _criteria_lines(value: str) -> list:
+            items = [c.strip(" \t-•") for c in str(value or "").splitlines() if c.strip(" \t-•")]
+            if not items:
+                return []
+            lines = [f"       {Color.DIM}{'criteria:':<10}{Color.RESET}"]
+            for item in items:
+                for line in textwrap.wrap(
+                    item,
+                    width=82,
+                    initial_indent="         - ",
+                    subsequent_indent="           ",
+                    break_long_words=False,
+                    break_on_hyphens=False,
+                ):
+                    lines.append(line)
+            return lines
+
+        total = len(self.todos)
+        approved = counts["approved"]
+        active = counts["pending"] + counts["in_progress"] + counts["completed"] + counts["rejected"]
+        summary_parts = [
+            f"{approved}/{total} approved",
+            f"{active} open" if active else "0 open",
+        ]
+        for key in ("in_progress", "completed", "pending", "rejected"):
+            if counts[key]:
+                summary_parts.append(f"{counts[key]} {status_labels[key]}")
+        lines = [
+            "",
+            f"  {Color.BOLD}{Color.CYAN}── TODO ──{Color.RESET}",
+            f"  {Color.DIM}{' · '.join(summary_parts)}{Color.RESET}",
+        ]
 
         # Collapse approved tasks without hiding pending gaps.
         approved_indices = [i+1 for i, t in enumerate(self.todos) if t.status == "approved"]
         if approved_indices:
             _range = self._format_index_ranges(approved_indices)
-            lines.append(f"  {Color.success('✅')} {Color.DIM}{len(approved_indices)} approved ({_range}){Color.RESET}")
+            lines.append(f"  {Color.success('✅')} {Color.DIM}approved tasks: {_range}{Color.RESET}")
 
+        show_approved_rows = active == 0 or total <= 6
         for i, todo in enumerate(self.todos):
-            if todo.status == "approved":
+            if todo.status == "approved" and not show_approved_rows:
                 continue
             icon = icons.get(todo.status, "?")
-            import re as _re
-            _display_content = _re.sub(r'^\d+\.\s*', '', todo.content)
+            _display_content = _strip_number_prefix(
+                todo.get_active_form() if todo.status in ("in_progress", "rejected") else todo.content
+            )
+            status = status_labels.get(todo.status, todo.status or "unknown")
             _cmd_mark = f" {Color.YELLOW}⚡{Color.RESET}" if getattr(todo, "command", "") else ""
-            lines.append(f"  {icon} {Color.CYAN}{i+1}.{Color.RESET} {_display_content}{_cmd_mark}")
+            priority = ""
+            if todo.priority == "high":
+                priority = f" {Color.RED}[high]{Color.RESET}"
+            elif todo.priority == "low":
+                priority = f" {Color.DIM}[low]{Color.RESET}"
+            lines.append("")
+            lines.append(f"  {icon} {Color.CYAN}{i+1}.{Color.RESET} [{status}]{priority} {_display_content}{_cmd_mark}")
+            if todo.status == "approved" and total > 6:
+                continue
             if todo.rejection_reason and todo.status in ("rejected", "in_progress", "pending"):
-                lines.append(f"       {Color.error('✗')} {Color.DIM}{todo.rejection_reason}{Color.RESET}")
+                lines.extend(_wrap_field("rejected", todo.rejection_reason, color=Color.RED))
+            if todo.detail:
+                lines.extend(_wrap_field("detail", todo.detail))
+            if todo.criteria:
+                lines.extend(_criteria_lines(todo.criteria))
+            if todo.approved_reason and todo.status == "approved":
+                lines.extend(_wrap_field("approved", todo.approved_reason))
         lines.append("")
         return "\n".join(lines)
 

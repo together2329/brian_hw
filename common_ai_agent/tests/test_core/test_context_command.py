@@ -162,5 +162,37 @@ def test_context_verbose_shows_active_memory_rules(tmp_path, monkeypatch):
     assert "[global] Keep answers concise" in result
     assert "[workflow:ssot-gen] Resolve TBDs before generation" in result
 
+
+def test_context_verbose_omits_non_verbose_footer_when_memory_empty(tmp_path, monkeypatch):
+    from core.context_tracker import reset_tracker
+    from core.slash_commands import SlashCommandRegistry
+
+    monkeypatch.setattr(config, "MEMORY_DIR", str(tmp_path / "memory"), raising=False)
+    monkeypatch.delenv("ATLAS_ACTIVE_SESSION", raising=False)
+    monkeypatch.delenv("ATLAS_SESSION_APPLIED", raising=False)
+    monkeypatch.delenv("ATLAS_SESSION_ID", raising=False)
+    monkeypatch.setenv("ACTIVE_WORKSPACE", "default")
+    reset_tracker(max_tokens=200000)
+
+    tracker = get_tracker()
+    messages = [
+        {"role": "system", "content": "small system prompt"},
+        {"role": "user", "content": "hello"},
+        {"role": "assistant", "content": "hi"},
+    ]
+    tracker.messages = messages
+    tracker.update_system_prompt(messages[0]["content"])
+    tracker.update_messages(messages, exclude_system=True)
+
+    result = SlashCommandRegistry().execute("/context -v")
+
+    assert "Context Usage" in result
+    assert "Full Conversation Context" in result
+    assert "hello" in result
+    assert "Memory Rules" not in result
+    assert "Rules · .UPD_RULE.md" not in result
+    assert "Skills  (" not in result
+    assert "Tip: Use /clear" not in result
+
 if __name__ == "__main__":
     test_context_visualization()

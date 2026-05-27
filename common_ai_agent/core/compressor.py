@@ -18,6 +18,7 @@ import os
 import platform
 import subprocess
 import sys
+import textwrap
 import re as _re
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
@@ -1503,21 +1504,51 @@ def compress_history(
             "approved": "✅",
             "rejected": "❌",
         }
-        todo_lines = ["[Todo Status]:"]
+        status_label = {
+            "pending": "pending",
+            "in_progress": "in progress",
+            "completed": "review",
+            "approved": "approved",
+            "rejected": "rejected",
+        }
+        total = len(todo_tracker.todos)
+        approved = sum(1 for t in todo_tracker.todos if getattr(t, "status", "") == "approved")
+        active = sum(1 for t in todo_tracker.todos if getattr(t, "status", "") != "approved")
+
+        def _todo_wrap(prefix: str, value: str, width: int = 100) -> List[str]:
+            text = str(value or "").strip()
+            if not text:
+                return []
+            return textwrap.wrap(
+                text,
+                width=width,
+                initial_indent=prefix,
+                subsequent_indent=" " * len(prefix),
+                break_long_words=False,
+                break_on_hyphens=False,
+            )
+
+        todo_lines = [
+            "[Todo Status]:",
+            f"  progress: {approved}/{total} approved · {active} open",
+        ]
         for i, t in enumerate(todo_tracker.todos):
             icon = status_icon.get(t.status, "?")
-            line = f"  {icon} {i+1}. [{t.status}] {t.content}"
+            label = status_label.get(t.status, t.status)
+            title = str(getattr(t, "content", "") or "").strip()
+            line_parts = _todo_wrap(f"  {icon} {i+1}. [{label}] ", title, width=106)
+            line = "\n".join(line_parts) if line_parts else f"  {icon} {i+1}. [{label}]"
             if t.detail:
-                line += f"\n     Detail: {t.detail}"
+                line += "\n" + "\n".join(_todo_wrap("     detail: ", t.detail))
             if t.criteria:
                 for _c in t.criteria.splitlines():
                     if _c.strip():
-                        line += f"\n     • {_c.strip()}"
+                        line += "\n" + "\n".join(_todo_wrap("     - ", _c.strip()))
             if t.rejection_reason and t.status in ("rejected", "in_progress", "pending"):
-                line += f"\n     ⚠ REJECTED: {t.rejection_reason}"
+                line += "\n" + "\n".join(_todo_wrap("     rejected: ", t.rejection_reason))
             if getattr(t, "notes", None):
                 for ni, note in enumerate(t.notes, 1):
-                    line += f"\n     [{ni}] {note}"
+                    line += "\n" + "\n".join(_todo_wrap(f"     note {ni}: ", note))
             todo_lines.append(line)
         todo_snapshot = "\n".join(todo_lines)
 
@@ -1532,8 +1563,6 @@ def compress_history(
                 next_instruction = f"\n[Ongoing Task]: {prompt}"
             elif next_idx is not None:
                 todo = todo_tracker.todos[next_idx]
-                approved = sum(1 for t in todo_tracker.todos if t.status == "approved")
-                total = len(todo_tracker.todos)
                 next_instruction = (
                     f"\n[Ongoing Task]: [Todo {approved}/{total}] Next task ready: {todo.content}\n"
                     f"→ Start with: todo_update(index={next_idx + 1}, status='in_progress')"

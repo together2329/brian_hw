@@ -1563,6 +1563,98 @@ html[data-platform="windows"] .app {
   accent-color: var(--accent);
 }
 
+.atlas-terminal-transcript {
+  margin: 8px 0 0;
+  padding: 12px 14px;
+  background: color-mix(in oklch, var(--code-bg, #111820) 92%, var(--bg, #0b1117));
+  border: 1px solid var(--line, #263240);
+  border-left: 2px solid var(--accent, #f5c86b);
+  border-radius: 4px;
+  color: var(--fg, #cbd5df);
+  font-family: var(--code-font, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace);
+  font-size: var(--ui-code-font-size, 13px);
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  tab-size: 2;
+  -moz-tab-size: 2;
+  font-feature-settings: "calt" 0, "liga" 0, "clig" 0, "dlig" 0;
+  font-variant-ligatures: none;
+  letter-spacing: 0;
+}
+.atlas-terminal-transcript .att-line {
+  min-height: 1.45em;
+}
+.atlas-terminal-transcript .att-section {
+  color: var(--accent, #f5c86b);
+  font-weight: 800;
+  margin-top: 10px;
+  padding-top: 5px;
+  border-top: 1px solid color-mix(in oklch, var(--line, #263240) 72%, transparent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.atlas-terminal-transcript .att-section:first-child {
+  margin-top: 0;
+  border-top: 0;
+}
+.atlas-terminal-transcript .att-separator {
+  height: 1px;
+  min-height: 1px;
+  margin: 9px 0;
+  background: color-mix(in oklch, var(--accent, #f5c86b) 55%, var(--line, #263240));
+}
+.atlas-terminal-transcript .att-command {
+  color: var(--cyan, #78dce8);
+  font-weight: 800;
+}
+.atlas-terminal-transcript .att-callout {
+  color: var(--warn, #ffcf70);
+  font-weight: 700;
+}
+.atlas-terminal-transcript .att-bullet {
+  color: var(--fg, #cbd5df);
+}
+.atlas-terminal-transcript .att-role {
+  margin-top: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.atlas-terminal-transcript .att-role-system { color: var(--magenta, #c792ea); }
+.atlas-terminal-transcript .att-role-user { color: var(--cyan, #78dce8); }
+.atlas-terminal-transcript .att-role-assistant { color: var(--ok, #7bd88f); }
+.atlas-terminal-transcript .att-role-tool { color: var(--magenta, #c792ea); }
+.atlas-terminal-transcript .att-chip {
+  display: inline;
+  padding: 0 4px;
+  border-radius: 3px;
+  background: color-mix(in oklch, var(--fg, #cbd5df) 8%, transparent);
+  border: 1px solid color-mix(in oklch, var(--fg, #cbd5df) 13%, transparent);
+  font-weight: 700;
+}
+.atlas-terminal-transcript .att-path,
+.atlas-terminal-transcript .att-signal {
+  color: var(--cyan, #78dce8);
+  background: color-mix(in oklch, var(--cyan, #78dce8) 12%, transparent);
+  border-color: color-mix(in oklch, var(--cyan, #78dce8) 22%, var(--line, #263240));
+}
+.atlas-terminal-transcript .att-status {
+  color: var(--accent, #f5c86b);
+  background: color-mix(in oklch, var(--accent, #f5c86b) 12%, transparent);
+  border-color: color-mix(in oklch, var(--accent, #f5c86b) 24%, var(--line, #263240));
+}
+.atlas-terminal-transcript .att-number {
+  color: var(--warn, #ffcf70);
+  background: color-mix(in oklch, var(--warn, #ffcf70) 10%, transparent);
+  border-color: color-mix(in oklch, var(--warn, #ffcf70) 22%, var(--line, #263240));
+}
+.atlas-terminal-transcript .att-code {
+  color: var(--magenta, #c792ea);
+  background: color-mix(in oklch, var(--magenta, #c792ea) 12%, transparent);
+  border-color: color-mix(in oklch, var(--magenta, #c792ea) 24%, var(--line, #263240));
+}
+
 .md-tool-result {
   margin: 6px 0 0;
   padding: 8px 12px;

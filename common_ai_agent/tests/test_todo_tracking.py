@@ -1475,10 +1475,26 @@ class TestEdgeCases(unittest.TestCase):
         ])
         output = tracker.format_simple()
         plain = re.sub(r"\x1b\[[0-9;]*m", "", output)
-        self.assertIn("3 approved (1, 3-4)", plain)
+        self.assertIn("3/5 approved", plain)
+        self.assertIn("approved tasks: 1, 3-4", plain)
         self.assertNotIn("1-4 approved", plain)
-        self.assertIn("2. Task B", plain)
-        self.assertIn("5. Task E", plain)
+        self.assertIn("2. [pending] Task B", plain)
+        self.assertIn("5. [pending] Task E", plain)
+
+    def test_format_simple_wraps_detail_and_criteria(self):
+        """Simple TODO output keeps long detail readable under labels."""
+        tracker = self._make_tracker()
+        tracker.add_todos([{
+            "content": "Repair signoff bundle",
+            "status": "pending",
+            "detail": "Inspect current requirements and run harness before editing. " * 4,
+            "criteria": "Run directed simulation\nRecord scoreboard evidence",
+        }])
+        plain = re.sub(r"\x1b\[[0-9;]*m", "", tracker.format_simple())
+        self.assertIn("0/1 approved", plain)
+        self.assertIn("detail:", plain)
+        self.assertIn("criteria:", plain)
+        self.assertIn("- Run directed simulation", plain)
 
     def test_format_progress(self):
         """format_progress returns visualization."""
