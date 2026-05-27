@@ -1099,6 +1099,36 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
         required=[],
     ),
 
+    "wiki_query": _fn(
+        "wiki_query",
+        (
+            "Read-only query of the knowledge wiki. ip=\"\" → project wiki; "
+            "ip=\"<name>\" → that IP's wiki; ip=\"rtl-db\" (or \"andes\") → the "
+            "external previous-project RTL DB configured by ATLAS_RTL_DB_WIKI. "
+            "Consult it before generating RTL to find reusable reference designs "
+            "and prior art. Returns a compact markdown digest of matching nodes."
+        ),
+        properties={
+            "ip": {
+                "type": "string",
+                "description": "\"\" = project wiki; \"<ip>\" = that IP's wiki; \"rtl-db\"/\"andes\" = external RTL DB. Defaults to ATLAS_ACTIVE_IP.",
+            },
+            "topic": {
+                "type": "string",
+                "description": "Case-insensitive keyword filter over id/title/tags/path/summary. Empty matches everything.",
+            },
+            "depth": {
+                "type": "integer",
+                "description": "Detail: 1 (id+title), 2 (+status/meta), 3 (+summary). Default 2.",
+            },
+            "max_nodes": {
+                "type": "integer",
+                "description": "Cap on rendered nodes (default 12).",
+            },
+        },
+        required=[],
+    ),
+
     # ── Document ingestion (Word / PDF / etc. → markdown) ────────────────────
     "read_doc": _fn(
         "read_doc",
