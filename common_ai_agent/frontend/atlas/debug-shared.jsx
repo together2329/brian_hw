@@ -118,6 +118,32 @@ function tToX(t, width) {
   const span = (end - start) || 1;
   return ((t - start) / span) * width;
 }
+window.waveTimeToX = tToX;
+
+function nearestWaveEdgeTime(trace, x, width, thresholdPx = 8) {
+  if (!Array.isArray(trace) || trace.length < 2) return null;
+  const clickX = Number(x);
+  if (!Number.isFinite(clickX)) return null;
+  let bestTime = null;
+  let bestDist = Infinity;
+  for (let i = 1; i < trace.length; i++) {
+    const prev = trace[i - 1];
+    const curr = trace[i];
+    if (!Array.isArray(prev) || !Array.isArray(curr)) continue;
+    if (String(prev[1]) === String(curr[1])) continue;
+    const t = Number(curr[0]);
+    if (!Number.isFinite(t)) continue;
+    const edgeX = tToX(t, width);
+    if (edgeX < -thresholdPx || edgeX > width + thresholdPx) continue;
+    const dist = Math.abs(edgeX - clickX);
+    if (dist <= thresholdPx && dist < bestDist) {
+      bestDist = dist;
+      bestTime = t;
+    }
+  }
+  return bestTime;
+}
+window.nearestWaveEdgeTime = nearestWaveEdgeTime;
 
 // Convert a binary or named bus value to a display string per radix.
 // VCD parser hands us bus values as binary strings (e.g. "10110011"); the
@@ -226,12 +252,20 @@ function BusWave({ trace, width, radix = 'HEX' }) {
 }
 
 // Render a single signal row.
-window.WaveRow = ({ name, scope, trace, width, isBus, radix = 'HEX', selected, onClick, colorHint }) => {
+window.WaveRow = ({ name, scope, trace, width, isBus, radix = 'HEX', selected, onClick, onEdgeClick, colorHint }) => {
   const lastVal = trace && trace.length > 0 ? trace[trace.length - 1][1] : '?';
   const valStr = isBus
     ? fmtBusValue(lastVal, radix)
     : String(bitOf(lastVal));
   const valCls = String(lastVal).match(/[xX]/) ? 'x' : (String(lastVal).match(/[zZ]/) ? 'z' : '');
+  const handleTrackClick = (e) => {
+    e.stopPropagation();
+    if (onClick) onClick(e);
+    if (!onEdgeClick) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const edgeTime = nearestWaveEdgeTime(trace, e.clientX - rect.left, width);
+    if (edgeTime != null) onEdgeClick(edgeTime, e);
+  };
   return (
     <div className={`wave-row ${selected ? 'sel' : ''}`} onClick={onClick}
          title={name + (scope ? ' · ' + scope : '')}>
@@ -241,7 +275,7 @@ window.WaveRow = ({ name, scope, trace, width, isBus, radix = 'HEX', selected, o
         {isBus && <span className="radix">{radix}</span>}
       </div>
       <div className={`wave-val ${valCls}`}>{valStr}</div>
-      <div className="wave-track wave-area">
+      <div className="wave-track wave-area" onClick={handleTrackClick} title="click a transition edge to move cursor B">
         <svg className="wave-svg" width={width} height={WAVE_HEIGHT}>
           {isBus ? (
             <BusWave trace={trace} width={width} radix={radix} />

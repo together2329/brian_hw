@@ -1019,6 +1019,26 @@ window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
     setViewRange([Math.max(vs, ns), Math.min(ve, ne)]);
   }, [effRange, vcdData]);
 
+  const jumpToWaveEdge = React.useCallback((edgeTime) => {
+    const t = Math.round(Number(edgeTime));
+    if (!Number.isFinite(t)) return;
+    setWaveCursorB(t);
+
+    const [s, e] = effRange;
+    if (t >= s && t <= e) return;
+
+    const span = Math.max(1, e - s);
+    const [vs, ve] = vcdData ? vcdData.timeRange : [s, e];
+    let ns = t - span / 2;
+    let ne = t + span / 2;
+    if (ns < vs) { ne += vs - ns; ns = vs; }
+    if (ne > ve) { ns -= ne - ve; ne = ve; }
+    ns = Math.max(vs, ns);
+    ne = Math.min(ve, ne);
+    if (ns <= vs && ne >= ve) setViewRange(null);
+    else setViewRange([ns, ne]);
+  }, [effRange, vcdData]);
+
   // ── Keyboard shortcuts (Verdi-ish) ───────────────────────────────
   // Active only while sim_debug has focus AND user isn't typing in
   // an input/textarea/contenteditable.
@@ -1922,6 +1942,7 @@ window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
                           selected={selectedSig === (t.signalName || t.name) || selectedSig === t.name}
                           colorHint={color}
                           onClick={() => onSelectWaveSignal(t.signalName || t.name, t.scope || '')}
+                          onEdgeClick={jumpToWaveEdge}
                         />
                       </div>
                     );
