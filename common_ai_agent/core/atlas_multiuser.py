@@ -292,10 +292,29 @@ class _SessionBridge:
             if msg_id in self._seen_msg_ids:
                 self._seen_msg_ids.move_to_end(msg_id)
                 return True
-            self._seen_msg_ids[msg_id] = time.monotonic()
-            while len(self._seen_msg_ids) > self._SEEN_MSG_LIMIT:
-                self._seen_msg_ids.popitem(last=False)
+            self._remember_msg_id_locked(msg_id)
             return False
+
+    def has_msg_id(self, msg_id: str) -> bool:
+        if not msg_id:
+            return False
+        with self._seen_msg_ids_lock:
+            found = msg_id in self._seen_msg_ids
+            if found:
+                self._seen_msg_ids.move_to_end(msg_id)
+            return found
+
+    def mark_msg_id_seen(self, msg_id: str) -> None:
+        if not msg_id:
+            return
+        with self._seen_msg_ids_lock:
+            self._remember_msg_id_locked(msg_id)
+
+    def _remember_msg_id_locked(self, msg_id: str) -> None:
+        self._seen_msg_ids[msg_id] = time.monotonic()
+        self._seen_msg_ids.move_to_end(msg_id)
+        while len(self._seen_msg_ids) > self._SEEN_MSG_LIMIT:
+            self._seen_msg_ids.popitem(last=False)
 
 
 class _MultiUserBridge:
@@ -503,8 +522,8 @@ class _MultiUserBridge:
         Per-session emit() routes to one session's WS clients only; chat
         rooms cross session boundaries (user on uart_lite session must see
         a global-room post from a user on a dma session), so chat events
-        emit through this path instead. Each session keeps the same dedup
-        via msg_id_seen() on the receiving WS leg."""
+        emit through this path instead. Each session keeps the same msg_id
+        bookkeeping on the receiving WS leg."""
         if str(msg_type or "") in _SESSION_PRIVATE_BROADCAST_TYPES:
             self.emit(msg_type, **payload)
             return
@@ -751,20 +770,19 @@ class _MultiUserBridge:
                 )
         return msg_id is not None
 
-    def queue_prompt_for_session(self, session_id: str | None, text: str) -> None:
+    def queue_prompt_for_session(self, session_id: str | None, text: str) -> bool:
         if self._process_manager is not None:
-            self._send_process_input_for_session(
+            return self._send_process_input_for_session(
                 session_id, "prompt", {"text": text}, spawn=True
             )
-            return
         self._ensure_session(session_id).queue_prompt(text)
+        return True
 
-    def submit_prompt_for_session(self, session_id: str | None, text: str) -> None:
+    def submit_prompt_for_session(self, session_id: str | None, text: str) -> bool:
         if self._process_manager is not None:
-            self._send_process_input_for_session(
+            return self._send_process_input_for_session(
                 session_id, "prompt", {"text": text}, spawn=True
             )
-            return
         session = self._ensure_session(session_id)
         session._stop_flag = False
         if self._agent_starter is not None:
@@ -772,6 +790,7 @@ class _MultiUserBridge:
         session.ensure_agent_alive()
         session.touch()
         session._inbox.put(text)
+        return True
 
     def submit_interrupt_for_session(self, session_id: str | None, text: str) -> None:
         if self._process_manager is not None:

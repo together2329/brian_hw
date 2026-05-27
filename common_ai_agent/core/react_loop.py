@@ -1084,6 +1084,19 @@ def run_react_agent_impl(
             else:
                 _buf_write("\n")
 
+        def _surface_runtime_notice(text: str) -> None:
+            if not deps.emit_content_fn:
+                return
+            try:
+                deps.emit_content_fn(text if text.endswith("\n") else text + "\n")
+            except Exception:
+                return
+            if deps.emit_flush_fn:
+                try:
+                    deps.emit_flush_fn()
+                except Exception:
+                    pass
+
         _parser = StreamParser(
             emit_fn=_emit_content,
             emit_reasoning_fn=_emit_reasoning,
@@ -1162,7 +1175,9 @@ def run_react_agent_impl(
                     _thinking_spinner.stop()
                 _thinking_stopped = True
             if not _parser.collected:
+                _fail_msg = f"[LLM] Call failed before any visible content was streamed: {e}"
                 print(f"\n  LLM call failed: {e}")
+                _surface_runtime_notice(_fail_msg)
                 break
         finally:
             _rl_stop_event.set()
@@ -1225,7 +1240,12 @@ def run_react_agent_impl(
                 messages = deps.compress_fn(messages, force=True, quiet=False, todo_tracker=todo_tracker)
                 continue
             _llm_retry = 0
+            _empty_msg = (
+                f"[LLM] Empty response after {getattr(cfg, 'LLM_RETRY_COUNT', 1)} retry. "
+                "The input was accepted, but the model returned no visible assistant content."
+            )
             print(f"\n  LLM failed after {getattr(cfg, 'LLM_RETRY_COUNT', 1)} retry. Returning to input.")
+            _surface_runtime_notice(_empty_msg)
             break
         _llm_retry = 0
 
@@ -1274,7 +1294,12 @@ def run_react_agent_impl(
                 continue
 
             _llm_retry = 0
+            _reasoning_msg = (
+                "[LLM] Reasoning-only response after retries. "
+                "The input was accepted, but no visible assistant content was produced."
+            )
             print(f"\n  LLM failed after retries. Returning to input.")
+            _surface_runtime_notice(_reasoning_msg)
             break
 
         # Strip echoed system prompt prefix

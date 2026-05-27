@@ -52,6 +52,18 @@ def _activate(
     )
 
 
+def _receive_until_types(ws, *types: str, limit: int = 12):
+    seen = []
+    needed = set(types)
+    for _ in range(limit):
+        msg = ws.receive_json()
+        seen.append(msg)
+        needed.discard(msg.get("type"))
+        if not needed:
+            return seen
+    raise AssertionError(f"expected websocket events {sorted(types)!r}, saw {seen!r}")
+
+
 def test_multiuser_session_ip_workflow_dirs_and_ip_visibility(tmp_path, monkeypatch):
     import src.atlas_ui as atlas_ui
 
@@ -1105,10 +1117,11 @@ def test_session_activate_policy_and_mode_sweep_keeps_namespace_todos_isolated(t
         with client.websocket_connect(f"/ws/agent?session_id={canonical}") as ws:
             assert ws.receive_json()["type"] == "hello"
             ws.send_json({"type": "prompt", "text": slash, "msg_id": f"mode-{idx}"})
-            seen = [ws.receive_json() for _ in range(3)]
+            seen = _receive_until_types(ws, "agent_received", "agent_accepted", "mode_change")
 
         assert os.environ["PLAN_MODE"] == expected_plan_mode
         assert any(msg.get("type") == "agent_received" for msg in seen)
+        assert any(msg.get("type") == "agent_accepted" and msg.get("ok") is True for msg in seen)
         assert any(msg.get("type") == "mode_change" for msg in seen)
         assert bridge_session._inbox.empty()
 
@@ -1510,16 +1523,92 @@ def test_websocket_slash_command_executes_without_agent_prompt(tmp_path, monkeyp
         assert ws.receive_json()["type"] == "hello"
         ws.send_json({"type": "prompt", "text": "/effort high", "msg_id": "effort-1"})
 
-        seen = []
-        for _ in range(3):
-            seen.append(ws.receive_json())
+        seen = _receive_until_types(ws, "agent_received", "agent_accepted", "slash_output")
 
     assert os.environ["REASONING_MODE"] == "high"
     assert any(msg.get("type") == "agent_received" for msg in seen)
+    assert any(msg.get("type") == "agent_accepted" and msg.get("ok") is True for msg in seen)
     assert any(msg.get("type") == "slash_output" and "high" in msg.get("text", "") for msg in seen)
     assert not any(msg.get("type") == "agent_state" and msg.get("running") is False for msg in seen)
     assert session.agent_running is True
     assert session.agent_alive is False
+    assert session._inbox.empty()
+
+
+def test_websocket_plain_command_words_are_llm_prompts(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "SOURCE_ROOT", tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    session_id = "alice/ip_alpha/rtl-gen"
+    session = app.state.bridge._ensure_session(session_id)
+    prompts = ["list", "ls", "list up rtl", "ssot-rtl"]
+
+    with client.websocket_connect(f"/ws/agent?session_id={session_id}") as ws:
+        assert ws.receive_json()["type"] == "hello"
+        for idx, prompt in enumerate(prompts):
+            ws.send_json({"type": "prompt", "text": prompt, "msg_id": f"plain-{idx}"})
+            seen = _receive_until_types(ws, "agent_received", "agent_accepted")
+            assert any(msg.get("type") == "agent_received" for msg in seen)
+            assert any(
+                msg.get("type") == "agent_accepted"
+                and msg.get("ok") is True
+                and msg.get("queued") is True
+                for msg in seen
+            )
+            assert session._inbox.get(timeout=1) == prompt
+
+
+def test_websocket_bang_command_runs_shell_without_llm_prompt(tmp_path, monkeypatch):
+    import core.tools as tools
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "SOURCE_ROOT", tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    calls = []
+
+    def fake_run_command(command, timeout=60):
+        calls.append((command, timeout))
+        return "BANG_OK"
+
+    monkeypatch.setattr(tools, "run_command", fake_run_command)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    session_id = "alice/ip_alpha/rtl-gen"
+    session = app.state.bridge._ensure_session(session_id)
+    with client.websocket_connect(f"/ws/agent?session_id={session_id}") as ws:
+        assert ws.receive_json()["type"] == "hello"
+        ws.send_json({"type": "prompt", "text": "!echo hi", "msg_id": "bang-1"})
+        seen = _receive_until_types(ws, "agent_received", "agent_accepted", "tool_result", "agent_state")
+
+    assert calls == [("echo hi", 60)]
+    assert any(msg.get("type") == "agent_received" for msg in seen)
+    assert any(msg.get("type") == "agent_accepted" and msg.get("ok") is True for msg in seen)
+    assert any(
+        msg.get("type") == "tool_result"
+        and msg.get("tool") == "run_command"
+        and "$ echo hi" in msg.get("text", "")
+        and "BANG_OK" in msg.get("text", "")
+        for msg in seen
+    )
+    assert any(msg.get("type") == "agent_state" and msg.get("running") is False for msg in seen)
     assert session._inbox.empty()
 
 
@@ -1591,15 +1680,6 @@ def test_websocket_prompt_explicit_session_rebinds_before_queueing(tmp_path, mon
     default_session = app.state.bridge._ensure_session(default_session_id)
     target_session = app.state.bridge._ensure_session(target_session_id)
 
-    def receive_agent_received(ws):
-        seen = []
-        for _ in range(4):
-            msg = ws.receive_json()
-            seen.append(msg)
-            if msg.get("type") == "agent_received":
-                return msg
-        raise AssertionError(f"agent_received not seen: {seen!r}")
-
     with client.websocket_connect(f"/ws/agent?session_id={default_session_id}") as ws:
         assert ws.receive_json()["type"] == "hello"
         ws.send_json({
@@ -1608,10 +1688,16 @@ def test_websocket_prompt_explicit_session_rebinds_before_queueing(tmp_path, mon
             "text": "Hi",
             "msg_id": "cloudflare-first-prompt",
         })
-        ack = receive_agent_received(ws)
+        seen = _receive_until_types(ws, "agent_received", "agent_accepted")
+        ack = next(msg for msg in seen if msg.get("type") == "agent_received")
+        accepted = next(msg for msg in seen if msg.get("type") == "agent_accepted")
 
         assert ack["session_id"] == target_session_id
         assert ack["msg_id"] == "cloudflare-first-prompt"
+        assert accepted["session_id"] == target_session_id
+        assert accepted["msg_id"] == "cloudflare-first-prompt"
+        assert accepted["ok"] is True
+        assert accepted["queued"] is True
         assert target_session._inbox.get_nowait() == "Hi"
         assert default_session._inbox.empty()
         assert len(default_session.clients) == 0
@@ -1626,9 +1712,14 @@ def test_websocket_prompt_explicit_session_rebinds_before_queueing(tmp_path, mon
             "text": "Hi again",
             "msg_id": "cloudflare-first-prompt",
         })
-        duplicate_ack = receive_agent_received(ws)
+        seen = _receive_until_types(ws, "agent_received", "agent_accepted")
+        duplicate_ack = next(msg for msg in seen if msg.get("type") == "agent_received")
+        duplicate_accepted = next(msg for msg in seen if msg.get("type") == "agent_accepted")
 
         assert duplicate_ack["session_id"] == target_session_id
+        assert duplicate_accepted["session_id"] == target_session_id
+        assert duplicate_accepted["ok"] is True
+        assert duplicate_accepted["duplicate"] is True
         assert target_session._inbox.empty()
         try:
             default_session._inbox.get_nowait()
@@ -1701,3 +1792,15 @@ def test_main_serve_cli_has_host_option_and_passes_it():
     assert "_parser.add_argument('--host'" in main_py
     assert "host=_args.host" in main_py
     assert "_agent_serve(" in main_py
+
+
+def test_textual_chat_loop_bang_prefix_runs_shell_before_llm_turn():
+    main_py = (PROJECT_ROOT / "src" / "main.py").read_text(encoding="utf-8")
+
+    bang_idx = main_py.index('if user_input.startswith("!"):')
+    slash_idx = main_py.index("# Handle slash commands")
+    llm_idx = main_py.index("_process_chat_turn(user_input, _loop_state, _loop_deps)")
+
+    assert bang_idx < slash_idx < llm_idx
+    assert "_bang_run_command(_shell_command, timeout=60)" in main_py
+    assert '_textual_emit_tool_result_fn(_shell_output, "run_command")' in main_py

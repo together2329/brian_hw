@@ -54,9 +54,13 @@ def test_active_session_delegation():
 def test_msg_id_dedup():
     bridge = _MultiUserBridge()
     bridge.activate_session("default")
+    session = bridge.get_session("default")
     assert bridge.msg_id_seen("id-1") is False
     assert bridge.msg_id_seen("id-1") is True
     assert bridge.msg_id_seen("id-1") is True
+    assert session.has_msg_id("id-2") is False
+    session.mark_msg_id_seen("id-2")
+    assert session.has_msg_id("id-2") is True
     print("PASS: msg_id dedup")
 
 

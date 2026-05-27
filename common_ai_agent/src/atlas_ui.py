@@ -19795,6 +19795,54 @@ def create_app():
                     # slow worker startup cannot trigger a duplicate send.
                     _msg_id = str(msg.get("msg_id") or "").strip()
                     _txt_preview = str(msg.get("text") or "")[:80].replace("\n", " ")
+
+                    async def _send_prompt_acceptance(
+                        *,
+                        ok: bool,
+                        queued: bool = False,
+                        handled: str = "",
+                        duplicate: bool = False,
+                        error: str = "",
+                    ) -> None:
+                        payload = {
+                            "type": "agent_accepted",
+                            "msg_id": _msg_id,
+                            "text_preview": _txt_preview,
+                            "session_id": session.session_id,
+                            "ok": bool(ok),
+                            "queued": bool(queued),
+                            "duplicate": bool(duplicate),
+                        }
+                        if handled:
+                            payload["handled"] = handled
+                        if error:
+                            payload["error"] = error
+                        await websocket.send_json(payload)
+
+                    async def _accept_handled(kind: str) -> None:
+                        if _msg_id:
+                            session.mark_msg_id_seen(_msg_id)
+                        try:
+                            await _send_prompt_acceptance(ok=True, handled=kind)
+                        except Exception as exc:
+                            if not _is_websocket_disconnect(exc):
+                                session.emit("error", message=f"acceptance ack failed: {exc}")
+
+                    async def _accept_queued(kind: str = "") -> None:
+                        delivered = bridge.submit_prompt_for_session(session.session_id, _txt)
+                        if delivered and _msg_id:
+                            session.mark_msg_id_seen(_msg_id)
+                        try:
+                            await _send_prompt_acceptance(
+                                ok=bool(delivered),
+                                queued=bool(delivered),
+                                handled=kind,
+                                error="" if delivered else "input was not delivered to the agent worker",
+                            )
+                        except Exception as exc:
+                            if not _is_websocket_disconnect(exc):
+                                session.emit("error", message=f"acceptance ack failed: {exc}")
+
                     try:
                         await websocket.send_json({
                             "type": "agent_received",
@@ -19806,7 +19854,16 @@ def create_app():
                         if not _is_websocket_disconnect(exc):
                             session.emit("error", message=f"ack failed: {exc}")
                         continue
-                    if _msg_id and session.msg_id_seen(_msg_id):
+                    if _msg_id and session.has_msg_id(_msg_id):
+                        try:
+                            await _send_prompt_acceptance(
+                                ok=True,
+                                handled="duplicate",
+                                duplicate=True,
+                            )
+                        except Exception as exc:
+                            if not _is_websocket_disconnect(exc):
+                                session.emit("error", message=f"acceptance ack failed: {exc}")
                         continue
                     if _session_raw:
                         try:
@@ -19815,6 +19872,14 @@ def create_app():
                             else:
                                 _setup_session_proxy(_session)
                         except Exception as exc:
+                            try:
+                                await _send_prompt_acceptance(
+                                    ok=False,
+                                    error=f"session setup failed: {exc}",
+                                )
+                            except Exception as ack_exc:
+                                if not _is_websocket_disconnect(ack_exc):
+                                    session.emit("error", message=f"acceptance ack failed: {ack_exc}")
                             session.emit("error", message=f"session setup failed: {exc}")
                             continue
                     import os as _os
@@ -19831,33 +19896,47 @@ def create_app():
                     # reads it at the top of each iteration.
                     _low = _txt.lower()
                     if _handle_bang_shell_command(_txt, client_session=session):
+                        await _accept_handled("bang")
                         continue
                     if _txt.startswith("/"):
                         if _handle_new_ip_command(_txt, client_session=session):
+                            await _accept_handled("new_ip")
                             continue
                         if _handle_ip_command(_txt, client_session=session):
+                            await _accept_handled("ip")
                             continue
                         if _handle_session_command(_txt, client_session=session):
+                            await _accept_handled("session")
                             continue
                         if _handle_import_command(_txt, client_session=session):
+                            await _accept_handled("import")
                             continue
                         if _handle_grill_me_command(_txt, client_session=session):
+                            await _accept_handled("grill")
                             continue
                         if _handle_approval_command(_txt, client_session=session):
+                            await _accept_handled("approval")
                             continue
                         if _handle_verify_ssot_command(_txt, client_session=session):
+                            await _accept_handled("verify_ssot")
                             continue
                         if _handle_repair_ssot_command(_txt, client_session=session):
+                            await _accept_handled("repair_ssot")
                             continue
                         if _handle_repair_rtl_command(_txt, client_session=session):
+                            await _accept_handled("repair_rtl")
                             continue
                         if _handle_repair_equiv_command(_txt, client_session=session):
+                            await _accept_handled("repair_equiv")
                             continue
                         if _handle_to_ssot_gate(_txt, client_session=session):
+                            await _accept_handled("to_ssot")
                             continue
                         if _run_stage_command(_txt, client_session=session):
+                            await _accept_handled("stage")
                             continue
                         if _execute_generic_slash_command(_txt, session):
+                            await _accept_handled("slash")
                             continue
                         if _low in ("/plan", "/mode plan", "/mode normal", "/normal"):
                             is_plan = _low in ("/plan", "/mode plan")
@@ -19907,9 +19986,9 @@ def create_app():
                             #     across turns. Without this submit, the
                             #     UI's "● NORMAL" pill could click without
                             #     ever telling main.py to flip — desync.
-                            bridge.submit_prompt_for_session(session.session_id, _txt)
+                            await _accept_queued("mode")
                             continue
-                    bridge.submit_prompt_for_session(session.session_id, _txt)
+                    await _accept_queued()
                 elif t == "interrupt":
                     bridge.submit_interrupt_for_session(session.session_id, msg.get("text", ""))
                 elif t == "answer" and msg.get("flow_id"):

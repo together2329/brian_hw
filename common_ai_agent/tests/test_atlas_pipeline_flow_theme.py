@@ -214,6 +214,17 @@ def test_atlas_prompt_input_waits_for_ack_before_clear() -> None:
     assert normal_tail.index("waitForPromptAck(") < normal_tail.index("setFeed(f => [...f, { kind: 'user', text: raw }]);")
 
 
+def test_atlas_auth_required_revalidates_cookie_before_login() -> None:
+    app = (PROJECT_ROOT / "frontend" / "atlas" / "app.jsx").read_text()
+
+    assert "const authRequiredProbeRef = React.useRef(0);" in app
+    assert "A single WebSocket can close with auth_required" in app
+    assert "fetch('/api/users/me', { cache: 'no-store', credentials: 'include' })" in app
+    assert "if (r.status === 401 || r.status === 403) return { authFailed: true };" in app
+    assert "window.backend.switchSession(recoveredNs);" in app
+    assert "preserve_running: true" in app
+
+
 def test_atlas_single_worker_workflow_switch_owns_chat_session() -> None:
     workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace.jsx").read_text()
     data = (PROJECT_ROOT / "frontend" / "atlas" / "data.jsx").read_text()

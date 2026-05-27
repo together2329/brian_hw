@@ -230,8 +230,9 @@ def test_process_bridge_seeds_output_cursor_before_fresh_spawn():
     fake = FakeManager()
     bridge._process_manager = fake
 
-    bridge.submit_prompt_for_session("admin/spi_core/tb-gen", "hello")
+    delivered = bridge.submit_prompt_for_session("admin/spi_core/tb-gen", "hello")
 
+    assert delivered is True
     assert bridge._process_output_cursors["admin/spi_core/tb-gen"] == "old-output-row"
     assert fake.spawned == ["admin/spi_core/tb-gen"]
     assert fake.sent == [("admin/spi_core/tb-gen", "prompt", {"text": "hello"})]
@@ -355,7 +356,8 @@ def test_process_bridge_reports_worker_death_after_prompt_before_output_poll():
     fake = FakeManager()
     bridge._process_manager = fake
 
-    bridge.submit_prompt_for_session("admin/spi_core/default", "hi")
+    delivered = bridge.submit_prompt_for_session("admin/spi_core/default", "hi")
+    assert delivered is True
     session = bridge.get_session("admin/spi_core/default")
     assert session.agent_running is True
 
@@ -404,8 +406,9 @@ def test_process_bridge_reports_prompt_delivery_failure():
     fake = FakeManager()
     bridge._process_manager = fake
 
-    bridge.submit_prompt_for_session("admin/spi_core/default", "hi")
+    delivered = bridge.submit_prompt_for_session("admin/spi_core/default", "hi")
 
+    assert delivered is False
     session = bridge.get_session("admin/spi_core/default")
     assert session.agent_running is False
     assert session.agent_alive is False

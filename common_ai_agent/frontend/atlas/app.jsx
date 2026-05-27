@@ -617,16 +617,88 @@ const App = () => {
 
   // Auth gate — mounts LoginScreen until /api/users/me returns 200.
   const [authState, setAuthState] = React.useState('checking');
+  const authRequiredProbeRef = React.useRef(0);
   React.useEffect(() => {
     const onAuthRequired = () => {
-      setAuthState('unauth');
       setBootSteps(s => (s.ws === 'fail' ? s : { ...s, ws: 'fail' }));
+      const probeId = authRequiredProbeRef.current + 1;
+      authRequiredProbeRef.current = probeId;
+      // A single WebSocket can close with auth_required because it was opened
+      // before /api/users/me rebound the tab to the current cookie user, or
+      // because a stale owner/IP namespace was still in localStorage. Re-check
+      // the HTTP auth cookie before showing LoginScreen, otherwise a live run
+      // can be kicked back to the login page by one stale socket close.
+      fetch('/api/users/me', { cache: 'no-store', credentials: 'include' })
+        .then(r => {
+          if (r.ok) return r.json();
+          if (r.status === 401 || r.status === 403) return { authFailed: true };
+          throw new Error(`auth probe ${r.status}`);
+        })
+        .then(j => {
+          if (authRequiredProbeRef.current !== probeId) return;
+          if (j && j.authFailed) {
+            setAuthState('unauth');
+            return;
+          }
+          const user = j && j.user;
+          if (!user || !user.username) {
+            setAuthState('unauth');
+            return;
+          }
+          const username = normalizeSession(user.username) || user.username;
+          window.ATLAS_USER = user;
+          window.ATLAS_USER_SESSION_ID = username;
+          try { localStorage.setItem('atlasUserSessionId', username); } catch (_) {}
+
+          const currentNs = normalizeSession(window.ACTIVE_SESSION || localStorage.getItem('atlasActiveSession') || '');
+          const currentParts = currentNs
+            ? splitSessionNamespace(currentNs)
+            : { sessionId: '', ipId: '', workflow: '' };
+          const currentBelongsToUser = currentNs && currentParts.sessionId === username;
+          const recoveredNs = currentBelongsToUser
+            ? currentNs
+            : `${username}/${WORKFLOW_DEFAULT}/${execMode === 'orchestrator' ? 'orchestrator' : WORKFLOW_DEFAULT}`;
+          const recoveredParts = splitSessionNamespace(recoveredNs);
+          window.ACTIVE_SESSION = recoveredNs;
+          try { localStorage.setItem('atlasActiveSession', recoveredNs); } catch (_) {}
+          setActiveSessionId(username);
+          setActiveNamespace(recoveredNs);
+          setActiveIp(recoveredParts.ipId || WORKFLOW_DEFAULT);
+          setAuthState('authed');
+          setBootSteps(s => (s.ws === 'fail' ? { ...s, ws: 'pending' } : s));
+
+          if (window.backend) {
+            try {
+              if (typeof window.backend.switchSession === 'function') {
+                window.backend.switchSession(recoveredNs);
+              } else if (typeof window.backend.connect === 'function') {
+                window.backend.connect(recoveredNs);
+              }
+            } catch (_) {}
+          }
+          fetch('/api/session/activate', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              owner: username,
+              ip: recoveredParts.ipId || WORKFLOW_DEFAULT,
+              workflow: recoveredParts.workflow || WORKFLOW_DEFAULT,
+              preserve_running: true,
+            }),
+          }).catch(() => {});
+        })
+        .catch(() => {
+          if (authRequiredProbeRef.current === probeId) {
+            setBootSteps(s => (s.ws === 'fail' ? s : { ...s, ws: 'fail' }));
+          }
+        });
     };
     try { window.addEventListener('atlas:auth_required', onAuthRequired); } catch (_) {}
     return () => {
       try { window.removeEventListener('atlas:auth_required', onAuthRequired); } catch (_) {}
     };
-  }, []);
+  }, [execMode, normalizeSession, splitSessionNamespace]);
   React.useEffect(() => {
     let cancelled = false;
     fetch('/api/users/me', { cache: 'no-store' })

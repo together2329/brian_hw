@@ -268,6 +268,32 @@ class TestRunReactAgentImpl(unittest.TestCase):
         msgs, _ = self._call(llm_call_fn=empty_then_answer)
         self.assertGreaterEqual(call_count[0], 1)
 
+    def test_empty_llm_response_surfaces_failure_to_ui(self):
+        """Atlas must not show a silent YOU-only turn when the LLM returns empty."""
+        emitted = []
+        flushes = []
+
+        def always_empty(messages, stop=None, **kwargs):
+            if False:
+                yield "unused"
+
+        cfg = _make_cfg(LLM_RETRY_COUNT=0, REACT_LOOP_STALL_SEC=0)
+        msgs, _ = self._call(
+            cfg=cfg,
+            llm_call_fn=always_empty,
+            emit_content_fn=lambda line: emitted.append(line),
+            emit_flush_fn=lambda: flushes.append(True),
+        )
+
+        rendered = "".join(str(line) for line in emitted)
+        self.assertIn("[LLM] Empty response after", rendered)
+        self.assertIn("input was accepted", rendered)
+        self.assertTrue(flushes, "empty-response notice should be flushed to the UI")
+        self.assertFalse(any(
+            m.get("role") == "assistant" and "[LLM] Empty response" in m.get("content", "")
+            for m in msgs
+        ))
+
     def test_no_todo_tracker_when_disabled(self):
         """ENABLE_TODO_TRACKING=False → todo_tracker is None inside loop."""
         cfg = _make_cfg(ENABLE_TODO_TRACKING=False)

@@ -2339,22 +2339,44 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       }
       return new Promise((resolve) => {
         let done = false;
-        let unsub = null;
+        let transportEvent = null;
+        let unsubReceived = null;
+        let unsubAccepted = null;
         let timer = null;
         const finish = (result) => {
           if (done) return;
           done = true;
-          try { if (unsub) unsub(); } catch (_) {}
+          try { if (unsubReceived) unsubReceived(); } catch (_) {}
+          try { if (unsubAccepted) unsubAccepted(); } catch (_) {}
           try { clearTimeout(timer); } catch (_) {}
           resolve(result);
         };
-        cancelAckWait = () => finish({ ok: false, error: 'send failed before backend acknowledgement' });
-        unsub = window.backend.subscribe('agent_received', (m) => {
+        cancelAckWait = () => finish({ ok: false, error: 'send failed before backend acceptance' });
+        unsubReceived = window.backend.subscribe('agent_received', (m) => {
           if (!m || m.msg_id !== msg_id) return;
-          finish({ ok: true, event: m });
+          transportEvent = m;
+        });
+        unsubAccepted = window.backend.subscribe('agent_accepted', (m) => {
+          if (!m || m.msg_id !== msg_id) return;
+          if (m.ok === false) {
+            finish({
+              ok: false,
+              error: m.error || 'backend received input but did not accept it',
+              event: m,
+              transport: transportEvent,
+            });
+            return;
+          }
+          finish({ ok: true, event: m, transport: transportEvent });
         });
         timer = setTimeout(() => {
-          finish({ ok: false, error: 'backend did not acknowledge receipt' });
+          finish({
+            ok: false,
+            error: transportEvent
+              ? 'backend received input but did not confirm worker delivery'
+              : 'backend did not acknowledge receipt',
+            transport: transportEvent,
+          });
         }, 7000);
       });
     })();
@@ -6515,32 +6537,13 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
                 }}
               >doc</span>
             )}
-            {showQaTab && workflow !== 'ssot-gen' && (
-              <span
-                className="tab-chip"
-                onClick={() => setMainTab('qa')}
-                title={pendingQcard ? 'Answer the agent\'s questions' : 'No pending questions'}
-                style={{
-                  cursor: 'pointer',
-                  padding: '2px 8px', borderRadius: 2, marginLeft: 4,
-                  position: 'relative',
-                  color: mainTab === 'qa' ? 'var(--warn)' : (pendingQcard ? 'var(--warn)' : 'var(--fg-mute)'),
-                  background: mainTab === 'qa' ? 'color-mix(in oklch, var(--warn) 14%, transparent)' : 'transparent',
-                  border: '1px solid ' + (mainTab === 'qa' ? 'var(--warn)' : 'transparent'),
-                  fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 'var(--ui-control-font-size)',
-                }}
-              >
-                Q&amp;A
-                {pendingQcard && mainTab !== 'qa' && (
-                  <span style={{
-                    position: 'absolute', top: 1, right: 1,
-                    width: 6, height: 6, borderRadius: '50%',
-                    background: 'var(--warn)',
-                    animation: 'pulse 1.5s infinite',
-                  }} />
-                )}
-              </span>
-            )}
+            {/* No Q&A tab outside ssot-gen. The SSOT Q&A board (<ip>/ssot-gen/
+                qa.json: /grill-me generates it, /to-ssot consumes the approved
+                answers) is an ssot-agent artifact, so it lives only in the
+                ssot-gen tab above. A live ask_user question surfaces on its own
+                — inline AskUserPrompt in classic layout, or the auto-switch to
+                the qa body in tabbed layout (see the qcard effect) — so it never
+                needs a standing tab in the default strip. */}
             <span
               className="tab-chip"
               onClick={() => setMainTab('split')}
@@ -7807,6 +7810,83 @@ const Typewriter = ({ text }) => {
   );
 };
 
+const _ATLAS_TERMINAL_SECTION_RE = /^(?:#+\s*)?(Compression Summary|Context Usage|Full Conversation Context|Full Conversation History|Goals|Completed|Decisions & Conventions|Errors & Fixes|In Progress \/ Next|Key Files & Symbols|User Preferences|Todo Status|Recent Messages|Stats|Memory Rules|Rules|Skills)\b/i;
+
+const _atlasTerminalTranscriptKind = (text) => {
+  const body = String(_unwrapAtlasOutputFence(text) || '');
+  if (!body.trim()) return '';
+  if (/Compression Summary/i.test(body)) return 'compact';
+  if (/Context Usage/i.test(body) && /Full Conversation (?:Context|History)/i.test(body)) return 'context';
+  if (/Todo Status/i.test(body) || /^\s*── TODO ──/mi.test(body)) return 'todo';
+  if (/^\s*\[(?:\d+\]\s+)?(?:SYSTEM|USER|ASSISTANT|TOOL)\b/mi.test(body)) return 'transcript';
+  return '';
+};
+
+const _atlasTerminalRole = (line) => {
+  const trimmed = String(line || '').trim();
+  const match = trimmed.match(/^\[(?:\d+\]\s+)?(SYSTEM|USER|ASSISTANT|TOOL)\b/i)
+    || trimmed.match(/^\[(SYSTEM|USER|ASSISTANT|TOOL)\]/i);
+  return match ? match[1].toLowerCase() : '';
+};
+
+const _atlasTerminalLineKind = (line) => {
+  const trimmed = String(line || '').trim();
+  if (!trimmed) return 'blank';
+  if (/^[=\-─]{8,}$/.test(trimmed)) return 'separator';
+  const role = _atlasTerminalRole(trimmed);
+  if (role) return `role role-${role}`;
+  if (_ATLAS_TERMINAL_SECTION_RE.test(trimmed)) return 'section';
+  if (/^(?:\/context|\/compact|\/todo|\/memory|-v\/context|\/context\s+-v)\b/i.test(trimmed)) return 'command';
+  if (/^\[(?:Todo Status|Ongoing Task|Resume after compression)\]/i.test(trimmed)) return 'callout';
+  if (/^\s*[•*-]\s+/.test(line)) return 'bullet';
+  return 'text';
+};
+
+const _atlasTerminalTokenClass = (token) => {
+  const t = String(token || '');
+  const bare = t.replace(/^`|`$/g, '').replace(/[),.;:]+$/g, '');
+  if (!bare.trim()) return '';
+  if (/^`.*`$/.test(t)) return 'att-chip att-code';
+  if (/^(?:CLAIMED|VERIFIED|PASSED|FAILED|MISSING|RUNNING|READY)$/i.test(bare)) return 'att-chip att-status';
+  if (/^\[(?:approved|pending|in_progress|completed|rejected|review)\]$/i.test(bare)) return 'att-chip att-status';
+  if (/^(?:0x[0-9a-f]+|\d+(?:\.\d+)?(?:k|m|%|s|ms|us|bytes?)?)$/i.test(bare)) return 'att-chip att-number';
+  if (/[A-Za-z0-9_.-]+\/[A-Za-z0-9_./-]+/.test(bare) || _CHIP_PATH_RE.test(bare)) return 'att-chip att-path';
+  if (/^[A-Z][A-Z0-9_]{2,}(?:\[[^\]]+\])?$/.test(bare)) return 'att-chip att-signal';
+  if (/^[a-z][a-z0-9_]*_[a-z0-9_]+(?:\[[^\]]+\])?$/i.test(bare)) return 'att-chip att-signal';
+  return '';
+};
+
+const _renderAtlasTerminalInline = (line, lineKey) => {
+  const parts = String(line || '').split(/(`[^`]+`|[A-Za-z0-9_.-]+\/[A-Za-z0-9_./-]+|0x[0-9A-Fa-f]+|\[[A-Za-z_ -]+\]|[A-Za-z_][A-Za-z0-9_]*(?:\[[^\]\s]+\])?|\d+(?:\.\d+)?(?:k|m|%|s|ms|us|bytes?)?)/g);
+  return parts.map((part, idx) => {
+    if (!part) return null;
+    const cls = _atlasTerminalTokenClass(part);
+    if (!cls) return <React.Fragment key={`${lineKey}-${idx}`}>{part}</React.Fragment>;
+    const clean = /^`.*`$/.test(part) ? part.slice(1, -1) : part;
+    return <span key={`${lineKey}-${idx}`} className={cls}>{clean}</span>;
+  });
+};
+
+const AtlasTerminalTranscript = ({ text, kind }) => {
+  const body = String(_unwrapAtlasOutputFence(text) || '').replace(/\r\n?/g, '\n').trimEnd();
+  const lines = body.split('\n');
+  return (
+    <div className={`atlas-terminal-transcript atlas-terminal-${kind || 'transcript'}`}>
+      {lines.map((line, idx) => {
+        const lineKind = _atlasTerminalLineKind(line);
+        if (lineKind === 'separator') {
+          return <div key={idx} className="att-line att-separator" />;
+        }
+        return (
+          <div key={idx} className={`att-line att-${lineKind}`}>
+            {line ? _renderAtlasTerminalInline(line, idx) : '\u00a0'}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
 const LiveAgentPreview = React.memo(({ text }) => {
   const body = String(text || '');
   if (!body.trim()) return null;
@@ -7850,6 +7930,7 @@ const _FeedEntryRaw = ({ entry, qaState, onToggle, onCustom, onSubmit, dir, summ
     );
   }
   if (entry.kind === 'agent') {
+    const terminalKind = _atlasTerminalTranscriptKind(entry.text || '');
     const html = _markdownHtml(entry.text || '');
     return (
       <div className="feed-entry feed-entry-agent has-hover-affordance" style={{ padding: '8px 0 12px', marginBottom: 4, position: 'relative' }}>
@@ -7861,6 +7942,8 @@ const _FeedEntryRaw = ({ entry, qaState, onToggle, onCustom, onSubmit, dir, summ
         <CopyBtn text={entry.text || ''} />
         {entry._animate
           ? <div className="md-agent" style={{ marginTop: 4 }}><Typewriter text={entry.text || ''} /></div>
+          : terminalKind
+            ? <AtlasTerminalTranscript text={entry.text || ''} kind={terminalKind} />
           : <div className="md-agent" style={{ marginTop: 4 }} dangerouslySetInnerHTML={{ __html: html }}
               ref={_postProcessMarkdownNode}
             />
@@ -15066,31 +15149,9 @@ const SsotDocPane = ({ uiLang = 'ko', ip = '', onBack }) => {
         <button type="button" className="btn" onClick={() => setReloadKey(k => k + 1)} style={{ fontSize: 10 }}>
           refresh
         </button>
-        <div style={{ display: 'inline-flex', border: '1px solid var(--line)', borderRadius: 3, overflow: 'hidden' }}>
-          {[
-            ['view', 'View Mode'],
-            ['feedback', 'Feedback Mode'],
-          ].map(([mode, label]) => (
-            <button
-              key={mode}
-              type="button"
-              onClick={() => setDocMode(mode)}
-              style={{
-                border: 0,
-                borderRight: mode === 'view' ? '1px solid var(--line)' : 0,
-                background: docMode === mode ? 'var(--accent)' : 'var(--bg)',
-                color: docMode === mode ? 'var(--bg)' : 'var(--fg-mute)',
-                fontFamily: 'var(--mono)',
-                fontSize: 10,
-                fontWeight: 800,
-                padding: '4px 8px',
-                cursor: 'pointer',
-              }}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        {/* DOC is view-only: the View/Feedback mode toggle was removed, so docMode
+            stays 'view' and the feedback comment form / drag-drop wiring below
+            stay inert. SSOT review feedback lives in the SSOT review pane, not here. */}
         <button type="button" className="btn" onClick={() => { window.location.href = downloadUrl; }} style={{ fontSize: 10 }}>
           download
         </button>
