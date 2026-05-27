@@ -1,1 +1,20 @@
-{"passed":true,"scoreboard_pass":35,"scoreboard_fail":0,"scenario_count":14}
+{
+  "passed":true,
+  "scoreboard_pass":106,
+  "scoreboard_fail":0,
+  "scenario_count":31,
+  "coverage_flags":{
+    "legacy_apb":true,
+    "legacy_tx_rx_irq_error":true,
+    "frame_cfg":true,
+    "data_widths":true,
+    "parity":true,
+    "stop2":true,
+    "fifo":true,
+    "threshold_irq":true,
+    "timeout_irq":true,
+    "loopback":true,
+    "break_error":true,
+    "scratch":true
+  }
+}

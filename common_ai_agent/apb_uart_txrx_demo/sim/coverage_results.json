@@ -2,7 +2,7 @@
   "coverage_bins": [
     {
       "evidence": "14 SCENARIO_START rows in scoreboard_events.csv",
-      "hit": true,
+      "hit": false,
       "name": "directed_scenarios_all_14",
       "required": true,
       "waived": false
@@ -210,16 +210,33 @@
       "SC_APB_RESET",
       "SC_APB_RW",
       "SC_BAUD_VARIANTS",
+      "SC_BREAK",
+      "SC_FIFO_CLEAR",
+      "SC_FIFO_THRESHOLD_IRQ",
+      "SC_FRAME_CFG",
+      "SC_LOOPBACK",
       "SC_RX_BACK_TO_BACK",
+      "SC_RX_DATA_WIDTHS",
       "SC_RX_FALSE_START",
+      "SC_RX_FIFO_ORDER",
       "SC_RX_FRAMING_ERROR",
       "SC_RX_IRQ",
       "SC_RX_MAJORITY_NOISE",
       "SC_RX_ONE_BYTE",
       "SC_RX_OVERRUN",
+      "SC_RX_PARITY_ERROR",
+      "SC_RX_PARITY_GOOD",
+      "SC_RX_STOP2",
+      "SC_RX_TIMEOUT_IRQ",
+      "SC_SCRATCH",
       "SC_TX_BACK_TO_BACK",
+      "SC_TX_DATA_WIDTHS",
+      "SC_TX_FIFO_BURST",
+      "SC_TX_FIFO_FULL",
       "SC_TX_IRQ",
-      "SC_TX_ONE_BYTE"
+      "SC_TX_ONE_BYTE",
+      "SC_TX_PARITY_EVEN_ODD",
+      "SC_TX_STOP2"
     ],
     "required": [
       "SC_APB_RESET",
@@ -238,14 +255,28 @@
       "SC_RX_FALSE_START"
     ]
   },
-  "generated_at": "2026-05-27T03:39:54Z",
+  "generated_at": "2026-05-27T23:40:37Z",
   "ip": "apb_uart_txrx_demo",
   "schema_version": "directed_coverage.v3",
   "scoreboard": {
+    "coverage_flags": {
+      "break_error": true,
+      "data_widths": true,
+      "fifo": true,
+      "frame_cfg": true,
+      "legacy_apb": true,
+      "legacy_tx_rx_irq_error": true,
+      "loopback": true,
+      "parity": true,
+      "scratch": true,
+      "stop2": true,
+      "threshold_irq": true,
+      "timeout_irq": true
+    },
     "passed": true,
-    "scenario_count": 14,
+    "scenario_count": 31,
     "scoreboard_fail": 0,
-    "scoreboard_pass": 35
+    "scoreboard_pass": 106
   },
   "source_artifacts": [
     "sim/sim.log",
@@ -254,10 +285,10 @@
     "sim/waves/apb_uart_txrx_demo.vcd"
   ],
   "summary": {
-    "effective_coverage_pct": 100.0,
-    "hit_bins": 29,
-    "missed_bins": 0,
-    "signoff_status": "pass",
+    "effective_coverage_pct": 96.6,
+    "hit_bins": 28,
+    "missed_bins": 1,
+    "signoff_status": "fail",
     "total_bins": 29,
     "waived_bins": 0
   }
