@@ -1,0 +1,39 @@
+{
+  "dump_source": {
+    "dumpfile_line": 783,
+    "dumpvars_line": 784,
+    "file": "sim/tb_apb_uart_txrx_demo.sv"
+  },
+  "dut_source_modified_for_waveforms": false,
+  "generated_at": "2026-05-27T23:45:37Z",
+  "generation_command": "cd apb_uart_txrx_demo && ./sim/run_sim.sh",
+  "ip": "apb_uart_txrx_demo",
+  "required_top_signals": {
+    "irq": true,
+    "paddr": true,
+    "pclk": true,
+    "penable": true,
+    "prdata": true,
+    "pready": true,
+    "preset_n": true,
+    "psel": true,
+    "pslverr": true,
+    "pwdata": true,
+    "pwrite": true,
+    "uart_rx": true,
+    "uart_tx": true
+  },
+  "schema_version": "waveform_manifest.v3-enhanced-v2plus",
+  "source_artifacts": [
+    "sim/sim.log",
+    "sim/sim_results.json",
+    "sim/scoreboard_events.csv"
+  ],
+  "status": "pass",
+  "testbench_only": true,
+  "waveform": {
+    "exists": true,
+    "path": "sim/waves/apb_uart_txrx_demo.vcd",
+    "size_bytes": 370717
+  }
+}
