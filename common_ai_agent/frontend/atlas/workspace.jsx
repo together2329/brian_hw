@@ -2793,7 +2793,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       const d = ev && ev.detail || {};
       if (!d.sha) return;
       setGitShow({ sha: d.sha, ip: d.ip || '', subject: d.subject || '' });
-      setMainTab(t => (t === 'chat' || t === 'qa' || t === 'checklist' || t === 'import_export') ? 'split' : t);
+      setMainTab(t => (t === 'chat' || t === 'qa' || t === 'checklist' || t === 'import_export' || t === 'split') ? 'preview' : t);
     };
     window.addEventListener('atlas-git-show', onShow);
     return () => window.removeEventListener('atlas-git-show', onShow);

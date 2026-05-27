@@ -164,7 +164,7 @@ TOOL_OUTPUT_LIMITS = {
     "grep_file": 20000,      # ~5K tokens
     "find_files": 10000,     # ~2.5K tokens
     "run_command": 20000,    # ~5K tokens
-    "git_diff": 30000,       # ~7.5K tokens
+    "git_diff": 200000,      # keep explicit git diffs effectively full
     "git_status": 10000,
     "rag_search": 10000,
     "rag_explore": 10000,

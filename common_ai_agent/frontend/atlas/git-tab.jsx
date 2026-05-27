@@ -26,6 +26,7 @@
     const [diffBody, setDiffBody] = useState('');
     const [diffBusy, setDiffBusy] = useState(false);
     const [diffErr, setDiffErr] = useState('');
+    const [diffFull, setDiffFull] = useState(false);
     const [busy, setBusy] = useState(false);
     const [err, setErr] = useState(null);
     const [revertTarget, setRevertTarget] = useState(null);
@@ -46,6 +47,7 @@
       setDiffBody('');
       setDiffErr('');
       setDiffBusy(false);
+      setDiffFull(false);
       setRevertTarget(null);
     }, []);
 
@@ -128,6 +130,7 @@
       setSelectedCommit(commit);
       setDiffBody('');
       setDiffErr('');
+      setDiffFull(true);
       setDiffBusy(true);
       fetch(withProvider(`/api/git/show?sha=${encodeURIComponent(commit.hash)}&ip=${encodeURIComponent(ip)}`),
             { cache: 'no-store' })
@@ -289,52 +292,58 @@
           </span>
         </div>
         <div style={sxBody}>
-          <div style={sxGraphPane}>
-            {graph || (busy ? 'loading…' : '(no commits)')}
-          </div>
-          <div style={sxListPane}>
-            <div style={{
-              padding: '6px 12px', borderBottom: '1px solid var(--line)',
-              color: 'var(--fg-mute)', fontSize: 10,
-              textTransform: 'uppercase', letterSpacing: '0.08em',
-              position: 'sticky', top: 0, background: 'var(--bg-2)', zIndex: 1,
-            }}>
-              history · select commit to view diff
+          {!(diffFull && selectedCommit) && (
+            <div style={sxGraphPane}>
+              {graph || (busy ? 'loading…' : '(no commits)')}
             </div>
-            {commits.map(c => (
-              <div key={c.hash}
-                   style={sxRow(selectedCommit && selectedCommit.hash === c.hash)}
-                   onClick={() => loadCommitDiff(c)}>
-                <div style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
-                  <code style={{ color: 'var(--accent)' }}>{c.short}</code>
-                  <span style={{ color: 'var(--fg-mute)', fontSize: 10 }}>
-                    {_fmtRel(c.time)}
-                  </span>
-                  <span style={{ color: 'var(--fg-mute)', fontSize: 10 }}>
-                    {c.author}
-                  </span>
-                  <span style={{ flex: 1 }} />
-                  {selectedCommit && selectedCommit.hash === c.hash && (
-                    <button
-                      onClick={(ev) => {
-                        ev.stopPropagation();
-                        setRevertTarget(c);
-                      }}
-                      style={sxMiniButton}
-                      title="hard reset requires confirmation"
-                    >Revert…</button>
-                  )}
+          )}
+          {!(diffFull && selectedCommit) && (
+            <div style={sxListPane}>
+              <div style={{
+                padding: '6px 12px', borderBottom: '1px solid var(--line)',
+                color: 'var(--fg-mute)', fontSize: 10,
+                textTransform: 'uppercase', letterSpacing: '0.08em',
+                position: 'sticky', top: 0, background: 'var(--bg-2)', zIndex: 1,
+              }}>
+                history · select commit to view diff
+              </div>
+              {commits.map(c => (
+                <div key={c.hash}
+                     style={sxRow(selectedCommit && selectedCommit.hash === c.hash)}
+                     onClick={() => loadCommitDiff(c)}>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
+                    <code style={{ color: 'var(--accent)' }}>{c.short}</code>
+                    <span style={{ color: 'var(--fg-mute)', fontSize: 10 }}>
+                      {_fmtRel(c.time)}
+                    </span>
+                    <span style={{ color: 'var(--fg-mute)', fontSize: 10 }}>
+                      {c.author}
+                    </span>
+                    <span style={{ flex: 1 }} />
+                    {selectedCommit && selectedCommit.hash === c.hash && (
+                      <button
+                        onClick={(ev) => {
+                          ev.stopPropagation();
+                          setRevertTarget(c);
+                        }}
+                        style={sxMiniButton}
+                        title="hard reset requires confirmation"
+                      >Revert…</button>
+                    )}
+                  </div>
+                  <div style={{ marginTop: 2 }}>{c.subject}</div>
                 </div>
-                <div style={{ marginTop: 2 }}>{c.subject}</div>
-              </div>
-            ))}
-            {commits.length === 0 && !busy && (
-              <div style={{ padding: 16, color: 'var(--fg-mute)' }}>
-                no commits yet
-              </div>
-            )}
-          </div>
-          <div style={sxDiffPane}>
+              ))}
+              {commits.length === 0 && !busy && (
+                <div style={{ padding: 16, color: 'var(--fg-mute)' }}>
+                  no commits yet
+                </div>
+              )}
+            </div>
+          )}
+          <div style={(diffFull && selectedCommit)
+            ? { ...sxDiffPane, flex: '1 1 100%', minWidth: 0 }
+            : sxDiffPane}>
             <div style={{
               padding: '6px 12px', borderBottom: '1px solid var(--line)',
               display: 'flex', alignItems: 'center', gap: 8,
@@ -351,6 +360,15 @@
                 </>
               )}
               <span style={{ flex: 1 }} />
+              {selectedCommit && (
+                <button
+                  onClick={() => setDiffFull(v => !v)}
+                  style={sxMiniButton}
+                  title={diffFull ? 'show history beside the diff' : 'expand diff to full width'}
+                >
+                  {diffFull ? 'History' : 'Full diff'}
+                </button>
+              )}
               {diffBusy && <span style={{ color: 'var(--fg-mute)', fontSize: 11 }}>loading…</span>}
             </div>
             {!selectedCommit ? (

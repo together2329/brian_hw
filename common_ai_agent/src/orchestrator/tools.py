@@ -425,6 +425,76 @@ def _relative_display(path: Path, project_root: Optional[Path]) -> str:
         return path.name
 
 
+def _auto_commit_ip_path(
+    *,
+    ip: str,
+    path: Path,
+    project_root: Optional[Path],
+    tool: str,
+) -> None:
+    """Best-effort checkpoint for writes inside the active per-IP git repo."""
+    try:
+        pr = Path(project_root) if project_root else Path(
+            os.environ.get("ATLAS_PROJECT_ROOT") or "."
+        )
+        expected_root = (pr / ip).resolve()
+        resolved = path.resolve()
+        if not _is_relative_to(resolved, expected_root):
+            return
+        if not (expected_root / ".git").exists():
+            return
+
+        rel = resolved.relative_to(expected_root)
+        subprocess.run(
+            ["git", "add", "--", str(rel)],
+            cwd=str(expected_root),
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        staged = subprocess.run(
+            ["git", "diff", "--cached", "--quiet", "--", str(rel)],
+            cwd=str(expected_root),
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        if staged.returncode == 0:
+            return
+        if staged.returncode not in (0, 1):
+            return
+
+        for key, value in (
+            ("user.email", "atlas@local.invalid"),
+            ("user.name", "Atlas Agent"),
+        ):
+            current = subprocess.run(
+                ["git", "config", "--get", key],
+                cwd=str(expected_root),
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if current.returncode != 0:
+                subprocess.run(
+                    ["git", "config", key, value],
+                    cwd=str(expected_root),
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
+                )
+
+        subprocess.run(
+            ["git", "commit", "-m", f"{tool}: {rel}"],
+            cwd=str(expected_root),
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+    except Exception:
+        return
+
+
 def _tool_text_header(path: str, meta: str = "") -> str:
     suffix = f" {meta}" if meta else ""
     return f"path: {path}{suffix}\n---\n"
@@ -672,6 +742,12 @@ def write_file(
     except Exception as exc:
         err = f"{type(exc).__name__}: {exc}"
         return {"ok": False, "error": err, "path": path}, err
+    _auto_commit_ip_path(
+        ip=ip,
+        path=path_obj,
+        project_root=project_root,
+        tool="write_file",
+    )
     action = "appended" if append else "wrote"
     result = {"ok": True, "ip": ip, "path": path, "bytes": len(str(content or "").encode("utf-8")), "append": bool(append)}
     return result, f"{action} {result['bytes']} bytes to {path}"
@@ -712,6 +788,12 @@ def replace_in_file(
     except Exception as exc:
         err = f"{type(exc).__name__}: {exc}"
         return {"ok": False, "error": err, "path": path}, err
+    _auto_commit_ip_path(
+        ip=ip,
+        path=path_obj,
+        project_root=project_root,
+        tool="replace_in_file",
+    )
     result = {
         "ok": True,
         "ip": ip,

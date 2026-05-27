@@ -1,5 +1,6 @@
 import json
 import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -64,6 +65,57 @@ class TestDispatchWorkflow:
 
 
 class TestLocalFileTools:
+    def test_write_and_replace_commit_to_ip_git_repo(self, tmp_path):
+        ip = "ipA"
+        ip_dir = tmp_path / ip
+        ip_dir.mkdir()
+        subprocess.run(["git", "init", "-q"], cwd=ip_dir, check=True)
+        subprocess.run(
+            ["git", "config", "user.email", "test@example.invalid"],
+            cwd=ip_dir,
+            check=True,
+        )
+        subprocess.run(
+            ["git", "config", "user.name", "Atlas Test"],
+            cwd=ip_dir,
+            check=True,
+        )
+
+        result, _ = orch_tools.write_file(
+            ip=ip,
+            path="rtl/unit.sv",
+            content="alpha\nbeta\n",
+            project_root=tmp_path,
+        )
+        assert result["ok"] is True
+
+        result, _ = orch_tools.replace_in_file(
+            ip=ip,
+            path="rtl/unit.sv",
+            old_text="beta",
+            new_text="gamma",
+            project_root=tmp_path,
+        )
+        assert result["ok"] is True
+
+        log = subprocess.run(
+            ["git", "log", "--format=%s"],
+            cwd=ip_dir,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.splitlines()
+        assert "write_file: rtl/unit.sv" in log
+        assert "replace_in_file: rtl/unit.sv" in log
+        status = subprocess.run(
+            ["git", "status", "--short"],
+            cwd=ip_dir,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout
+        assert status == ""
+
     def test_accepts_backslash_relative_paths(self, tmp_path):
         ip = "ipA"
         target = tmp_path / ip / "rtl" / "unit.sv"
