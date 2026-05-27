@@ -1,9 +1,9 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-05-27T00:02:40Z",
+  "generated_at": "2026-05-27T02:26:06Z",
   "root": "doc/wiki",
-  "node_count": 92,
-  "edge_count": 426,
+  "node_count": 93,
+  "edge_count": 432,
   "tags": {
     "atcdmac100": [
       "atcdmac100-document-flow-ui-honesty-20260518"
@@ -258,6 +258,7 @@
     ],
     "reference": [
       "agent-autonomous-ip-implementation-pattern",
+      "apb-uart-real-uart-signoff-20260527",
       "api-error-path-20260519",
       "arm-m0-min-current-status",
       "arm-m0-min-pipeline-run",
@@ -379,6 +380,28 @@
       "summary": "> **작성일**: 2026-05-17 > **대상 IP**: `dma_real` (4-channel DMA controller, APB slave / AHB-Lite master) > **최종 성과**: Simulation 6/6 PASS · Coverage 100% (58/58 bins) · Goal Audit 15/16 > **핵심 질문**: \"사용자가 wiki만 보여주고 '이거 구현해'라고 했을 때, 에이전트는 **무엇을 어떻게** 했는가?\"",
       "path": "doc/wiki/agent-autonomous-ip-implementation-pattern.md",
       "size_bytes": 16813
+    },
+    {
+      "id": "apb-uart-real-uart-signoff-20260527",
+      "title": "APB UART Real-UART Signoff — 2026-05-27",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "pipeline-progress-debugging",
+        "default-agent-ip-flow",
+        "golden-todo-evidence",
+        "workflow-ownership-and-boundaries"
+      ],
+      "incoming": [
+        "default-agent-ip-flow",
+        "index"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "> **Scope**: Current quality/status record for `apb_uart_txrx_demo` after the RX path was upgraded from a simple single-sample UART receiver to a bounded production-style 8N1 receiver. > **Decision**: **GO for bounded real-UART APB demo signoff**. > **Authority caveat**: This is local default-agent evidence, not a visible ATLAS UI/orchestrator product-flow…",
+      "path": "doc/wiki/apb-uart-real-uart-signoff-20260527.md",
+      "size_bytes": 4873
     },
     {
       "id": "api-error-path-20260519",
@@ -1014,6 +1037,7 @@
       "tags": [],
       "related": [],
       "outgoing": [
+        "apb-uart-real-uart-signoff-20260527",
         "full-flow-pipeline",
         "agent-autonomous-ip-implementation-pattern",
         "golden-todo-evidence",
@@ -1022,14 +1046,15 @@
         "pipeline-progress-debugging"
       ],
       "incoming": [
+        "apb-uart-real-uart-signoff-20260527",
         "guide-tab-and-architect-my-ips-20260527",
         "index"
       ],
       "broken_refs": [],
       "updated": "",
-      "summary": "> **Updated**: 2026-05-26 > **Scope**: How a default agent creates and signs off an IP directly, without forcing the user to operate workflow/stage commands. > **Reference run**: `apb_uart_txrx_demo` — APB UART TX/RX built, decomposed, simulated, covered, statically checked, and reviewed through direct agent actions.",
+      "summary": "> **Updated**: 2026-05-27 > **Scope**: How a default agent creates and signs off an IP directly, without forcing the user to operate workflow/stage commands. > **Reference run**: `apb_uart_txrx_demo` — APB UART TX/RX built, decomposed, upgraded with a production-style RX path, simulated, covered, statically checked, and reviewed through direct agent…",
       "path": "doc/wiki/default-agent-ip-flow.md",
-      "size_bytes": 12859
+      "size_bytes": 13190
     },
     {
       "id": "deterministic-emit-stages",
@@ -1249,6 +1274,7 @@
       ],
       "incoming": [
         "agent-autonomous-ip-implementation-pattern",
+        "apb-uart-real-uart-signoff-20260527",
         "arm-m0-min-current-status",
         "arm-m0-min-pipeline-run",
         "atcuart100-pipeline-run",
@@ -1446,6 +1472,7 @@
         "wiki-curation-policy",
         "agent-autonomous-ip-implementation-pattern",
         "default-agent-ip-flow",
+        "apb-uart-real-uart-signoff-20260527",
         "orchestrator-workflow-bring-up-20260517",
         "atlas-pytest-hygiene",
         "triple-llm-rv32i-experiment",
@@ -1499,7 +1526,7 @@
       "updated": "",
       "summary": "This wiki is the cross-linked operating map for common_ai_agent. It is optimized for long-context LLMs and agent handoffs: read the linked pages in order, then follow the source docs for implementation detail.",
       "path": "doc/wiki/index.md",
-      "size_bytes": 22713
+      "size_bytes": 22838
     },
     {
       "id": "interactive-ask-user-ip-discovery",
@@ -2184,6 +2211,7 @@
       ],
       "incoming": [
         "agent-autonomous-ip-implementation-pattern",
+        "apb-uart-real-uart-signoff-20260527",
         "atcdmac100-document-flow-ui-honesty-20260518",
         "atlas-pipeline-worker-workspace-jump",
         "default-agent-ip-flow",
@@ -2818,6 +2846,7 @@
       ],
       "incoming": [
         "agent-autonomous-ip-implementation-pattern",
+        "apb-uart-real-uart-signoff-20260527",
         "arm-m0-min-pipeline-run",
         "atcuart100-pipeline-run",
         "atcwdt200-pipeline-run-20260517",

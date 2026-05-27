@@ -3689,6 +3689,13 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
 
         if status == "approved":
             _reason_stripped = (reason or "").strip()
+            if not _reason_stripped:
+                return (
+                    f"Error: You MUST provide a concrete 'reason' when approving Task {index}.\n"
+                    f"Describe what you actually verified — e.g. 'read output.md: contains all sections, matches spec' "
+                    f"or 'ran pytest tests/foo.py — 14 passed, 0 failed'.\n"
+                    f"→ todo_update(index={index}, status='approved', reason='<specific evidence>')"
+                )
             # Review-gate: must have called at least one non-write evidence tool
             # since the task transitioned to "completed". Prevents the agent from
             # approving based on its own self-written summary file (sim_report.txt

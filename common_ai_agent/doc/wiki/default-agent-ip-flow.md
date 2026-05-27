@@ -1,8 +1,8 @@
 # Default Agent IP Flow — conversational read/edit/run/signoff loop
 
-> **Updated**: 2026-05-26  
+> **Updated**: 2026-05-27  
 > **Scope**: How a default agent creates and signs off an IP directly, without forcing the user to operate workflow/stage commands.  
-> **Reference run**: `apb_uart_txrx_demo` — APB UART TX/RX built, decomposed, simulated, covered, statically checked, and reviewed through direct agent actions.
+> **Reference run**: `apb_uart_txrx_demo` — APB UART TX/RX built, decomposed, upgraded with a production-style RX path, simulated, covered, statically checked, and reviewed through direct agent actions. Current quality snapshot: [[apb-uart-real-uart-signoff-20260527]].
 
 ## Why this flow exists
 
@@ -160,7 +160,7 @@ A useful directed TB should include:
 - VCD dumping.
 - Named scenario IDs.
 
-For `apb_uart_txrx_demo`, the directed TB covered 12 scenarios:
+For `apb_uart_txrx_demo`, the directed TB originally covered 12 baseline scenarios and now covers 14 after the real-UART RX refresh:
 
 ```text
 SC_APB_RESET
@@ -175,6 +175,8 @@ SC_RX_FRAMING_ERROR
 SC_RX_OVERRUN
 SC_RX_IRQ
 SC_BAUD_VARIANTS
+SC_RX_MAJORITY_NOISE
+SC_RX_FALSE_START
 ```
 
 ### 6. Add a reproducible run harness
@@ -217,10 +219,10 @@ Important habits:
 - Never claim a test passed without running it.
 - Record the exact evidence used for approval.
 
-For `apb_uart_txrx_demo`, the directed run was repaired until:
+For `apb_uart_txrx_demo`, the refreshed directed run was repaired until:
 
 ```json
-{"passed": true, "scoreboard_pass": 30, "scoreboard_fail": 0, "scenario_count": 12}
+{"passed": true, "scoreboard_pass": 35, "scoreboard_fail": 0, "scenario_count": 14}
 ```
 
 and `scoreboard_events.csv` had no `FAIL` rows.
@@ -237,12 +239,13 @@ For each required bin, record:
 - Evidence source: scenario, scoreboard row, log, or waveform.
 - Rationale for any waiver.
 
-For `apb_uart_txrx_demo`, coverage recorded:
+For `apb_uart_txrx_demo`, current coverage records:
 
-- 12/12 directed scenarios hit.
-- 23/23 required bins hit.
+- 14/14 directed scenarios hit.
+- 29/29 required bins hit.
 - 0 missed bins.
 - 100% effective directed coverage.
+- The real-UART bins for majority-noise tolerance and false-start recovery are required and hit.
 
 ### 9. Record waveform/debug evidence
 
