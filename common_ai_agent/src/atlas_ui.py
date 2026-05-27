@@ -127,6 +127,161 @@ SOURCE_ROOT  = HERE.parent                            # common_ai_agent/ (source
 FRONTEND     = SOURCE_ROOT / "frontend" / "atlas"
 
 
+def _history_content_text(content: Any) -> str:
+    """Return readable text from an OpenAI-style message content field."""
+
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        parts: list[str] = []
+        for item in content:
+            if isinstance(item, dict):
+                text = item.get("text") or item.get("content") or ""
+                if text:
+                    parts.append(str(text))
+            elif item is not None:
+                parts.append(str(item))
+        return "\n".join(parts)
+    if content is None:
+        return ""
+    return str(content)
+
+
+def _history_message_preview(message: dict[str, Any], *, limit: int = 240) -> str:
+    role = str(message.get("role") or "unknown")
+    text = _history_content_text(message.get("content"))
+    text = re.sub(r"\s+", " ", text).strip()
+    if len(text) > limit:
+        text = text[: max(0, limit - 1)].rstrip() + "..."
+    return f"{role}: {text or '(empty)'}"
+
+
+def _parse_compact_history_signal(signal: str) -> tuple[int, bool, str]:
+    """Parse COMPACT_HISTORY signal options from the slash-command registry."""
+
+    options = signal.split(":", 1)[1].strip() if ":" in signal else ""
+    keep_recent = 4
+    dry_run = False
+    instruction = ""
+    if not options:
+        return keep_recent, dry_run, instruction
+    keep_match = re.search(r"\bkeep=(\d+)\b", options)
+    if keep_match:
+        keep_recent = max(0, int(keep_match.group(1)))
+    elif "dry_run=true" in options:
+        dry_run = True
+    else:
+        instruction = options
+    return keep_recent, dry_run, instruction
+
+
+def _write_history_json(path: Path, messages: list[dict[str, Any]]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp.write_text(json.dumps(messages, ensure_ascii=False, indent=2), encoding="utf-8")
+    tmp.replace(path)
+
+
+def _load_history_json(path: Path) -> list[dict[str, Any]]:
+    if not path.is_file():
+        return []
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(raw, list):
+        return []
+    return [m for m in raw if isinstance(m, dict)]
+
+
+def _compact_history_file(path: Path, signal: str) -> tuple[str, list[dict[str, Any]]]:
+    """Apply Web UI /compact to a local .session conversation file.
+
+    The CLI compactor uses the live agent loop. The Web command plane is
+    outside that loop, so this deterministic local compactor avoids returning
+    the raw COMPACT_HISTORY token or blocking the UI on a second LLM call.
+    """
+
+    messages = _load_history_json(path)
+    system_msgs = [m for m in messages if m.get("role") == "system"]
+    active_msgs = [m for m in messages if m.get("role") != "system"]
+    keep_recent, dry_run, instruction = _parse_compact_history_signal(signal)
+    keep_recent = min(keep_recent, len(active_msgs))
+    old_msgs = active_msgs[: len(active_msgs) - keep_recent] if keep_recent else active_msgs
+    recent_msgs = active_msgs[len(active_msgs) - keep_recent:] if keep_recent else []
+
+    if not old_msgs:
+        return (
+            f"History is already compact: {len(active_msgs)} non-system message(s), "
+            f"keeping {keep_recent}.",
+            messages,
+        )
+
+    preview_lines = [
+        f"- {_history_message_preview(m)}"
+        for m in old_msgs[:20]
+    ]
+    omitted = len(old_msgs) - len(preview_lines)
+    if omitted > 0:
+        preview_lines.append(f"- ... {omitted} older message(s) omitted from this local summary")
+    summary = [
+        f"[Previous Conversation Summary ({len(old_msgs)} messages, local web compact)]:",
+        f"Compacted from {path.as_posix()} at {time.strftime('%Y-%m-%d %H:%M:%S')}.",
+    ]
+    if instruction:
+        summary.append(f"Instruction: {instruction}")
+    summary.extend(["", "Older message preview:", *preview_lines])
+    compacted = system_msgs + [{"role": "system", "content": "\n".join(summary)}] + recent_msgs
+
+    msg = (
+        f"Compacted local session history: {len(messages)} -> {len(compacted)} message(s); "
+        f"summarized {len(old_msgs)}, kept {len(recent_msgs)} recent."
+    )
+    if dry_run:
+        return "Dry run: " + msg, messages
+    _write_history_json(path, compacted)
+    return msg, compacted
+
+
+def _clear_history_file(path: Path, signal: str) -> tuple[str, list[dict[str, Any]]]:
+    messages = _load_history_json(path)
+    keep_pairs = 0
+    if ":" in signal:
+        try:
+            keep_pairs = max(0, int(signal.split(":", 1)[1]))
+        except ValueError:
+            keep_pairs = 0
+    system_msgs = [m for m in messages if m.get("role") == "system"]
+    active_msgs = [m for m in messages if m.get("role") != "system"]
+    kept = active_msgs[-(keep_pairs * 2):] if keep_pairs > 0 else []
+    cleared = system_msgs + kept
+    _write_history_json(path, cleared)
+    if keep_pairs > 0:
+        return f"Conversation history cleared; kept last {keep_pairs} message pair(s).", cleared
+    return "Conversation history cleared.", cleared
+
+
+def _estimate_history_tokens(messages: list[dict[str, Any]]) -> int:
+    try:
+        from src.llm_client import estimate_message_tokens as _estimate_msg
+    except Exception:
+        try:
+            from llm_client import estimate_message_tokens as _estimate_msg  # type: ignore
+        except Exception:
+            _estimate_msg = None
+    if callable(_estimate_msg):
+        return sum(_estimate_msg(m) for m in messages)
+    return sum(max(1, len(json.dumps(m, ensure_ascii=False)) // 4) for m in messages)
+
+
+def _max_context_tokens() -> int:
+    try:
+        import src.config as _cfg_context  # noqa: WPS433
+    except Exception:
+        try:
+            import config as _cfg_context  # type: ignore  # noqa: WPS433
+        except Exception:
+            _cfg_context = None
+    return int(getattr(_cfg_context, "MAX_CONTEXT_TOKENS", 0) or 0) if _cfg_context else 0
+
+
 def _resolve_workflow_root(raw: str | Path | None = None) -> Path:
     """Resolve the directory that contains workflow families.
 
@@ -11289,15 +11444,15 @@ def create_app():
         raw = (text or "").strip()
         if not raw.startswith("/"):
             return False
+        active_slash_session = normalize_session_name(
+            str(getattr(client_session, "session_id", "") or "")
+        )
         if raw.lower() == "/normal":
             result = "AGENT_MODE:normal"
         else:
             try:
                 from core.slash_commands import get_registry as _get_slash_registry
                 _old_memory_user = os.environ.get("ATLAS_MEMORY_USER")
-                active_slash_session = normalize_session_name(
-                    str(getattr(client_session, "session_id", "") or "")
-                )
                 _owner_for_memory = active_slash_session.split("/", 1)[0]
                 if _owner_for_memory:
                     os.environ["ATLAS_MEMORY_USER"] = _owner_for_memory
@@ -11353,6 +11508,42 @@ def create_app():
 
         if result.startswith("WINDOW_MODE:") or result.startswith("COMPRESSION_MODE:"):
             _emit_slash_output(client_session, result)
+            return True
+
+        if result.startswith("COMPACT_HISTORY"):
+            try:
+                message, updated = _compact_history_file(
+                    _session_json_path(active_slash_session),
+                    result,
+                )
+                max_ctx = _max_context_tokens()
+                if max_ctx:
+                    client_session.emit(
+                        "context",
+                        used=_estimate_history_tokens(updated),
+                        max=max_ctx,
+                    )
+                _emit_slash_output(client_session, message)
+            except Exception as exc:
+                _emit_slash_output(client_session, f"Compact failed: {exc}")
+            return True
+
+        if result == "CLEAR_HISTORY" or result.startswith("CLEAR_HISTORY:"):
+            try:
+                message, updated = _clear_history_file(
+                    _session_json_path(active_slash_session),
+                    result,
+                )
+                max_ctx = _max_context_tokens()
+                if max_ctx:
+                    client_session.emit(
+                        "context",
+                        used=_estimate_history_tokens(updated),
+                        max=max_ctx,
+                    )
+                _emit_slash_output(client_session, message)
+            except Exception as exc:
+                _emit_slash_output(client_session, f"Clear failed: {exc}")
             return True
 
         if result.startswith("PLAN_AND_RUN:"):
