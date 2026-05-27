@@ -45,6 +45,133 @@ const inferRtlTopFromVcd = (parsed, fallback = '') => {
   return fallback || '';
 };
 
+const activeIpFromAtlasRuntime = () => {
+  if (typeof window === 'undefined') return '';
+  const direct = String(window.ACTIVE_IP || '').trim();
+  if (direct && direct !== 'default') return direct;
+  const ctxIp = String((window.CONTEXT && (window.CONTEXT.active_ip || window.CONTEXT.activeIp)) || '').trim();
+  if (ctxIp && ctxIp !== 'default') return ctxIp;
+  const parts = String(window.ACTIVE_SESSION || '').split('/').filter(Boolean);
+  const sessionIp = parts.length >= 2 ? String(parts[1] || '').trim() : '';
+  return sessionIp && sessionIp !== 'default' ? sessionIp : '';
+};
+
+const vcdPathBelongsToIp = (path, ip) => {
+  const p = String(path || '').replace(/\\/g, '/').replace(/^\/+/, '');
+  const owner = String(ip || '').replace(/\\/g, '/').replace(/^\/+|\/+$/g, '');
+  return !!owner && (p === owner || p.startsWith(owner + '/'));
+};
+
+const stripSignalRange = (name) => String(name || '').replace(/\s*\[[^\]]+\]\s*$/g, '').trim();
+
+const vcdValueAtTrace = (trace, time) => {
+  if (!Array.isArray(trace) || trace.length === 0) return '?';
+  const target = Number(time);
+  if (!Number.isFinite(target)) return '?';
+  let value = '?';
+  for (const sample of trace) {
+    if (!Array.isArray(sample)) continue;
+    const t = Number(sample[0]);
+    if (!Number.isFinite(t)) continue;
+    if (t > target) break;
+    value = sample[1];
+  }
+  return value == null ? '?' : value;
+};
+
+const formatVcdValue = (value, isBus) => {
+  if (value == null) return '?';
+  const s = String(value);
+  if (!isBus) return s;
+  if (/^[01]+$/.test(s)) {
+    try {
+      return '0x' + BigInt('0b' + s).toString(16).toUpperCase();
+    } catch (_) {
+      return s;
+    }
+  }
+  return s;
+};
+
+const VERILOG_KEYWORDS = new Set([
+  'always', 'always_comb', 'always_ff', 'assign', 'begin', 'case', 'default', 'else',
+  'end', 'endcase', 'endmodule', 'for', 'generate', 'if', 'input', 'logic', 'module',
+  'negedge', 'or', 'output', 'parameter', 'posedge', 'reg', 'wire',
+]);
+
+const sourceLineIdentifiers = (line) => {
+  const ids = [];
+  const seen = new Set();
+  const text = String(line || '');
+  const re = /\b[A-Za-z_][A-Za-z0-9_$]*\b/g;
+  let m;
+  while ((m = re.exec(text))) {
+    const id = m[0];
+    const key = id.toLowerCase();
+    if (VERILOG_KEYWORDS.has(key) || seen.has(key)) continue;
+    seen.add(key);
+    ids.push(id);
+  }
+  return ids;
+};
+
+const signalAliasKeys = (sig) => {
+  const aliases = [
+    sig?.signalName,
+    sig?.name,
+    stripSignalRange(sig?.name),
+  ];
+  return aliases
+    .map(a => String(a || '').trim())
+    .filter(Boolean)
+    .flatMap(a => [a, a.split('.').pop()])
+    .map(a => stripSignalRange(a).toLowerCase())
+    .filter(Boolean);
+};
+
+const buildVcdLineAnnotations = ({ line, traceList, selectedSig, cursorA, cursorB, limit = 8 }) => {
+  if (!Array.isArray(traceList) || traceList.length === 0) return [];
+  const byAlias = new Map();
+  for (const sig of traceList) {
+    for (const alias of signalAliasKeys(sig)) {
+      if (!byAlias.has(alias)) byAlias.set(alias, sig);
+    }
+  }
+
+  const wanted = [];
+  const pushWanted = (name) => {
+    const key = stripSignalRange(name).toLowerCase();
+    if (key && !wanted.includes(key)) wanted.push(key);
+  };
+  pushWanted(selectedSig);
+  sourceLineIdentifiers(line).forEach(pushWanted);
+
+  const rows = [];
+  const seen = new Set();
+  for (const key of wanted) {
+    const sig = byAlias.get(key);
+    if (!sig) continue;
+    const display = sig.name || sig.signalName || key;
+    const dedupe = stripSignalRange(display).toLowerCase();
+    if (seen.has(dedupe)) continue;
+    seen.add(dedupe);
+    rows.push({
+      name: display,
+      a: formatVcdValue(vcdValueAtTrace(sig.trace, cursorA), sig.isBus),
+      b: formatVcdValue(vcdValueAtTrace(sig.trace, cursorB), sig.isBus),
+    });
+    if (rows.length >= limit) break;
+  }
+  return rows;
+};
+
+if (typeof window !== 'undefined') {
+  window.simDebugActiveIpFromAtlasRuntime = activeIpFromAtlasRuntime;
+  window.simDebugVcdPathBelongsToIp = vcdPathBelongsToIp;
+  window.simDebugVcdValueAtTrace = vcdValueAtTrace;
+  window.simDebugBuildVcdLineAnnotations = buildVcdLineAnnotations;
+}
+
 // Cocotb (testbench) tree view — categorised file list + parsed
 // results.xml summary. Click any file to load it in the source viewer.
 const CocotbTreeView = ({ data, ipName, onOpenFile }) => {
@@ -480,7 +607,7 @@ const RangeInput = ({ effRange, vcdData, setViewRange }) => {
 // globally from index.html — language autoloader fetches the grammar
 // for the file extension on demand). Renders each line in its own
 // row so line numbers + cursor highlight + per-line click work.
-const SourceViewer = ({ lines, cursor, path }) => {
+const SourceViewer = ({ lines, cursor, path, vcdAnnotations = {} }) => {
   const ref = React.useRef(null);
   // Bump on every Prism load so we re-render once the grammar arrives.
   const [grammarTick, setGrammarTick] = React.useState(0);
@@ -535,28 +662,61 @@ const SourceViewer = ({ lines, cursor, path }) => {
       {lineHTMLs.map((html, i) => {
         const lineNo = i + 1;
         const isCur = cursor === lineNo;
+        const ann = vcdAnnotations[lineNo] || [];
         return (
-          <div
-            key={i}
-            data-ln={lineNo}
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '46px 1fr',
-              padding: '0 8px',
-              background: isCur ? 'color-mix(in oklch, var(--accent) 18%, transparent)' : 'transparent',
-              borderLeft: isCur ? '2px solid var(--accent)' : '2px solid transparent',
-            }}
-          >
-            <span style={{
-              color: isCur ? 'var(--accent)' : 'var(--fg-mute)',
-              textAlign: 'right', paddingRight: 8, userSelect: 'none',
-              fontSize: 10,
-            }}>{lineNo}</span>
-            <span
-              style={{ whiteSpace: 'pre' }}
-              dangerouslySetInnerHTML={{ __html: html }}
-            />
-          </div>
+          <React.Fragment key={i}>
+            <div
+              data-ln={lineNo}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '46px 1fr',
+                padding: '0 8px',
+                background: isCur ? 'color-mix(in oklch, var(--accent) 18%, transparent)' : 'transparent',
+                borderLeft: isCur ? '2px solid var(--accent)' : '2px solid transparent',
+              }}
+            >
+              <span style={{
+                color: isCur ? 'var(--accent)' : 'var(--fg-mute)',
+                textAlign: 'right', paddingRight: 8, userSelect: 'none',
+                fontSize: 10,
+              }}>{lineNo}</span>
+              <span
+                style={{ whiteSpace: 'pre' }}
+                dangerouslySetInnerHTML={{ __html: html }}
+              />
+            </div>
+            {ann.length > 0 && (
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: '46px 1fr',
+                padding: '2px 8px 5px',
+                borderLeft: '2px solid var(--cyan)',
+                background: 'color-mix(in oklch, var(--cyan) 9%, transparent)',
+              }}>
+                <span style={{
+                  color: 'var(--cyan)', textAlign: 'right', paddingRight: 8,
+                  fontSize: 9, userSelect: 'none',
+                }}>vcd</span>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {ann.map(item => (
+                    <span key={item.name} style={{
+                      border: '1px solid color-mix(in oklch, var(--cyan) 40%, var(--line))',
+                      borderRadius: 3,
+                      padding: '0 5px',
+                      color: 'var(--fg)',
+                      background: 'var(--bg)',
+                      fontSize: 10,
+                      whiteSpace: 'nowrap',
+                    }}>
+                      <b style={{ color: 'var(--cyan)' }}>{item.name}</b>
+                      <span style={{ color: 'var(--accent)', marginLeft: 5 }}>A={item.a}</span>
+                      <span style={{ color: 'var(--cyan)', marginLeft: 5 }}>B={item.b}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </React.Fragment>
         );
       })}
     </div>
@@ -631,6 +791,7 @@ window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
   // mutate this; "fit" resets it to null.
   const [viewRange, setViewRange] = React.useState(null);
   const [showHelp, setShowHelp] = React.useState(false);
+  const [showVcdAnnotations, setShowVcdAnnotations] = React.useState(false);
   // Left panel mode — switch between RTL hierarchy and TB (cocotb) tree.
   const [leftTab, setLeftTab] = React.useState('rtl');  // 'rtl' | 'tb'
   const [cocotbData, setCocotbData] = React.useState(null);
@@ -668,20 +829,16 @@ window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
   const [rtlTop, setRtlTop] = React.useState('');
 
   // Auto-detect IP. Two parallel signals are checked:
-  //   1) window.ACTIVE_SESSION's middle segment — fires immediately on
+  //   1) window.ACTIVE_IP / ACTIVE_SESSION — fires immediately on
   //      mount and keeps the panel correctly scoped even when no VCD
   //      has been generated yet (e.g. before /sim runs). Subscribes to
   //      backend session_state events so a workspace switch live-flips
   //      the IP without a manual reload.
-  //   2) /api/vcd/list — same as before, but ONLY overrides the IP
-  //      when (1) hasn't already supplied one. Without this guard the
-  //      VCD list could pin sim_debug to whichever IP last produced a
-  //      VCD even after the user has moved to a different IP.
+  //   2) /api/vcd/list?ip=<ip> — scoped to the active IP only.
   React.useEffect(() => {
     const seedFromActiveSession = () => {
-      const segs = String(window.ACTIVE_SESSION || '').split('/').filter(Boolean);
-      const ipSeg = segs.length >= 2 ? segs[1] : '';
-      if (ipSeg && ipSeg !== 'default') setIpName(ipSeg);
+      const activeIp = activeIpFromAtlasRuntime();
+      if (activeIp) setIpName(activeIp);
     };
     seedFromActiveSession();
     if (!window.backend?.subscribe) return undefined;
@@ -694,27 +851,26 @@ window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
 
   React.useEffect(() => {
     let cancelled = false;
+    const activeIp = String(ipName || activeIpFromAtlasRuntime()).trim();
+    if (!activeIp || activeIp === 'default') {
+      setVcdFiles([]);
+      setVcdActive('');
+      setVcdData(null);
+      return () => { cancelled = true; };
+    }
     (async () => {
       try {
-        const r = await fetch('/api/vcd/list');
+        const r = await fetch('/api/vcd/list?ip=' + encodeURIComponent(activeIp));
         const d = await r.json();
         if (cancelled) return;
-        const files = d.files || [];
+        const files = (d.files || []).filter(f => vcdPathBelongsToIp(f.path, activeIp));
         setVcdFiles(files);
-        if (files.length && !vcdActive) {
-          // Pick the most recent (list is mtime-sorted desc).
-          setVcdActive(files[0].path);
-          const parts = files[0].path.split('/');
-          // Only seed ipName from the VCD path when the session-derived
-          // ipName is still empty — see effect above.
-          if (parts.length >= 2 && parts[1] === 'sim' && !ipName) {
-            setIpName(parts[0]);
-          }
-        }
+        setVcdActive(prev => files.some(f => f.path === prev) ? prev : (files[0]?.path || ''));
+        if (!files.length) setVcdData(null);
       } catch (e) { /* ignore */ }
     })();
     return () => { cancelled = true; };
-  }, []);
+  }, [ipName]);
 
   // Load + parse the active VCD whenever it changes.
   React.useEffect(() => {
@@ -1183,6 +1339,18 @@ window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
       }
     } catch (e) { /* trace failed; keep current source */ }
   }, [ipName, rtlTop, loadSourceFile]);
+
+  const sourceVcdAnnotations = React.useMemo(() => {
+    if (!showVcdAnnotations || srcCursor <= 0 || !srcLines.length) return {};
+    const items = buildVcdLineAnnotations({
+      line: srcLines[srcCursor - 1] || '',
+      traceList,
+      selectedSig,
+      cursorA: waveCursor,
+      cursorB: waveCursorB,
+    });
+    return items.length ? { [srcCursor]: items } : {};
+  }, [showVcdAnnotations, srcCursor, srcLines, traceList, selectedSig, waveCursor, waveCursorB]);
 
   // Auto-load top module source the first time hierarchy resolves.
   React.useEffect(() => {
@@ -1707,8 +1875,28 @@ window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
                 {srcCursor > 0 && (
                   <span style={{ color: 'var(--accent)', fontSize: 10 }}>L{srcCursor}</span>
                 )}
+                <button
+                  className="btn"
+                  onClick={() => setShowVcdAnnotations(v => !v)}
+                  title="toggle VCD values under the active source line"
+                  style={{
+                    padding: '1px 8px',
+                    fontSize: 10,
+                    fontWeight: 700,
+                    marginLeft: 8,
+                    background: showVcdAnnotations ? 'var(--accent)' : undefined,
+                    color: showVcdAnnotations ? '#000' : undefined,
+                  }}
+                >
+                  annot {showVcdAnnotations ? 'on' : 'off'}
+                </button>
               </div>
-              <SourceViewer lines={srcLines} cursor={srcCursor} path={srcPath} />
+              <SourceViewer
+                lines={srcLines}
+                cursor={srcCursor}
+                path={srcPath}
+                vcdAnnotations={sourceVcdAnnotations}
+              />
             </div>
           )}
           {/* Source ↔ Wave splitter */}

@@ -665,6 +665,7 @@ def run_react_agent_impl(
     # generic stagnation threshold to fire (~50 turns).
     _text_only_no_progress = 0
     _execution_no_action_retries = 0
+    _empty_chat_thinking_retries = 0
 
     # ======================================================================
     # Main loop
@@ -2365,6 +2366,30 @@ def run_react_agent_impl(
             # No actions branch
             if getattr(cfg, "EXECUTION_MODE", "agent") == "chat":
                 if getattr(cfg, "CHAT_MAX_ITERATIONS", 1) > 0:
+                    # Thinking-only dead-end guard: a no-Action chat turn whose
+                    # visible (non-thinking) content is empty means the model
+                    # "planned in its head" — it reasoned (e.g. "I'll generate
+                    # the VCD…") but emitted neither a tool Action nor any answer
+                    # the user can see. Breaking here would END OF LOOP on a
+                    # dangling thought. Nudge once for a real answer/Action; only
+                    # break if it still produces nothing (or a normal answer).
+                    try:
+                        _visible_chat = deps.strip_thinking_fn(collected_content).strip() if deps.strip_thinking_fn else (collected_content or "").strip()
+                    except Exception:
+                        _visible_chat = (collected_content or "").strip()
+                    _empty_chat_limit = int(getattr(cfg, "CHAT_EMPTY_THINKING_RETRY_LIMIT", 1))
+                    if not _visible_chat and _empty_chat_thinking_retries < _empty_chat_limit:
+                        _empty_chat_thinking_retries += 1
+                        messages.append({
+                            "role": "user",
+                            "content": (
+                                "Your last response was internal reasoning only — no answer text "
+                                "and no tool Action reached the user. Respond now with EITHER one "
+                                "concrete tool Action to do the work, OR a direct final answer to "
+                                "the user. Do not reply with thinking alone."
+                            ),
+                        })
+                        continue
                     break
 
             # Plan mode: if no tools were called, break immediately to ask user

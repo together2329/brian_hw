@@ -38,13 +38,13 @@ def register_vcd_routes(
     async def api_vcd_list(ip: str = "", scope: str = ""):
         """Discover VCD files under PROJECT_ROOT.
 
-        - `ip`    — restrict to `<ip>/sim/*.vcd` (matches the IP-tree convention).
+        - `ip`    — restrict to VCD files under the active `<ip>/` tree.
         - `scope` — arbitrary sub-directory under PROJECT_ROOT to search.
         - neither — recursive scan up to depth 4 (cheap on typical projects).
         Returns: `{files: [{path, size, mtime}]}` sorted by mtime desc.
         """
         if ip:
-            base = safe_path(ip + "/sim")
+            base = safe_path(ip)
         elif scope:
             base = safe_path(scope)
         else:
@@ -54,18 +54,32 @@ def register_vcd_routes(
 
         results = []
         try:
-            if ip or scope:
+            root = project_root().resolve()
+            if ip:
+                # Active-IP scoped recursive scan. Keep this broader than
+                # `<ip>/sim/*.vcd` so cocotb build dirs and `sim/waves/`
+                # still appear, but never leak another IP into the picker.
+                for f in base.rglob("*.vcd"):
+                    if not f.is_file():
+                        continue
+                    rel_path = f.resolve().relative_to(root)
+                    if any(p in skip_dirs for p in rel_path.parts):
+                        continue
+                    st = f.stat()
+                    rel = rel_path.as_posix()
+                    results.append({"path": rel, "size": st.st_size, "mtime": st.st_mtime})
+            elif scope:
                 # Direct *.vcd in chosen dir.
                 for f in base.glob("*.vcd"):
                     if f.is_file():
                         st = f.stat()
-                        rel = f.relative_to(project_root()).as_posix()
+                        rel = f.resolve().relative_to(root).as_posix()
                         results.append({"path": rel, "size": st.st_size, "mtime": st.st_mtime})
             else:
                 # Recursive scan (capped depth).
                 for f in base.rglob("*.vcd"):
                     try:
-                        rel = f.relative_to(project_root())
+                        rel = f.resolve().relative_to(root)
                     except ValueError:
                         continue
                     if any(p in skip_dirs for p in rel.parts):
