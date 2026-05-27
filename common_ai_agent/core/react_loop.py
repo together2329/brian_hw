@@ -665,9 +665,21 @@ def run_react_agent_impl(
     # ======================================================================
     _last_injected_task_key: tuple = (-1, "")  # (task_index, task_status)
 
+    def _ensure_todo_current(tt) -> None:
+        """Recover current_index for disk-loaded todos before routing a turn."""
+        if not tt or not getattr(tt, "todos", None):
+            return
+        try:
+            recover = getattr(tt, "_auto_recover_current_index", None)
+            if callable(recover):
+                recover()
+        except Exception:
+            pass
+
     def _get_task_key(tt) -> tuple:
         if not tt or not tt.todos:
             return (-1, "")
+        _ensure_todo_current(tt)
         t = tt.get_current_todo()
         if t is None:
             return (-1, "")
@@ -2340,6 +2352,8 @@ def run_react_agent_impl(
             _has_incomplete_todos = bool(
                 todo_tracker and not todo_tracker.is_all_processed() and todo_tracker.todos
             )
+            if _has_incomplete_todos:
+                _ensure_todo_current(todo_tracker)
             _active_todo = todo_tracker.get_current_todo() if _has_incomplete_todos else None
             if _has_incomplete_todos and _active_todo is None:
                 visible = deps.strip_thinking_fn(collected_content).strip()

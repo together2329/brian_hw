@@ -340,6 +340,60 @@ class TestRunReactAgentImpl(unittest.TestCase):
         self.assertNotIn("Runtime guard nudged execution", rendered)
         self.assertNotIn("no-action guard", rendered)
 
+    def test_pending_todo_without_current_index_is_selected(self):
+        """Disk-loaded pending todos with current_index=-1 must start task 1."""
+        from tempfile import TemporaryDirectory
+        from pathlib import Path
+        from core.react_loop import run_react_agent_impl
+        from lib.todo_tracker import TodoTracker
+
+        captured_prompts = []
+
+        def text_reply(messages, stop=None, **kwargs):
+            captured_prompts.append(messages[-1].get("content", ""))
+            yield "I can do that."
+
+        with TemporaryDirectory() as tmp:
+            todo_path = Path(tmp) / "todo.json"
+            todo_tracker = TodoTracker(persist_path=todo_path)
+            todo_tracker.add_todos([{
+                "content": "make test.md at doc",
+                "status": "pending",
+                "detail": "Create the requested doc artifact.",
+                "criteria": "doc/test.md exists",
+            }])
+            todo_tracker.current_index = -1
+            todo_tracker.save()
+
+            cfg = _make_cfg(
+                ENABLE_TODO_TRACKING=True,
+                EXECUTION_NO_ACTION_GUARD=True,
+                EXECUTION_NO_ACTION_RETRY_LIMIT=0,
+                TODO_FILE=str(todo_path),
+            )
+            deps = self._make_deps(
+                cfg=cfg,
+                llm_call_fn=text_reply,
+                detect_completion_fn=lambda _text: False,
+                emit_content_fn=lambda _line: None,
+                emit_flush_fn=lambda: None,
+            )
+            messages = [{"role": "system", "content": "system"}, {"role": "user", "content": "Keep going"}]
+            tracker = self._make_tracker()
+
+            run_react_agent_impl(
+                messages=messages,
+                tracker=tracker,
+                task_description="continue todos",
+                deps=deps,
+                todo_tracker=todo_tracker,
+            )
+
+        self.assertTrue(captured_prompts)
+        self.assertIn("[Task 1/1]", captured_prompts[0])
+        self.assertIn("todo_update(index=1, status='in_progress')", captured_prompts[0])
+        self.assertEqual(todo_tracker.current_index, 0)
+
     def test_preface_disabled_skips_orchestrator(self):
         """preface_enabled=False must not call orchestrator."""
         from core.react_loop import run_react_agent_impl
