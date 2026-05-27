@@ -13530,7 +13530,11 @@ const BlockDiagram = ({ topName, modules, contractByModule = {}, interfaces = []
   // Clicking the row toggles a port detail drawer underneath.
   const renderPinRow = (iface, idx) => {
     const color = _ifaceColor(iface.kind);
-    const id = `${iface.kind}:${iface.name || idx}`;
+    // idx ("top0"/"bot1"…) is always appended so two interfaces sharing
+    // kind+name — e.g. an `apb_slave` diagram pin and an `apb_slave` interface
+    // both bucketed to "bus" — get distinct React keys (no "two children with
+    // the same key" warning) and independent open/close drawer state.
+    const id = `${iface.kind}:${iface.name || 'pin'}:${idx}`;
     const isOpen = openIfaces.has(id);
     const ports = Array.isArray(iface.ports) ? iface.ports
                 : Array.isArray(iface.inputs) || Array.isArray(iface.outputs)
@@ -15168,80 +15172,6 @@ const SsotDocPane = ({ uiLang = 'ko', ip = '', onBack }) => {
         flexDirection: 'column',
         gap: 10,
       }}>
-        {docMode === 'feedback' ? (
-          <form onSubmit={handleDocFeedbackSubmit} style={{
-            border: '1px solid var(--line)',
-            background: 'var(--bg-2)',
-            borderRadius: 4,
-            padding: 10,
-            display: 'grid',
-            gap: 8,
-            fontFamily: 'var(--mono)',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <button type="button" className="btn"
-                draggable={docMode === 'feedback'}
-                onDragStart={handleDocCommentDragStart}
-                title="Drag this comment marker onto a document section"
-                style={{ fontSize: 10, cursor: 'grab' }}>
-                comment
-              </button>
-              <span style={{ flex: 1 }} />
-            </div>
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'minmax(130px, 0.7fr) minmax(180px, 1fr) minmax(150px, 0.9fr)',
-              gap: 8,
-            }}>
-              <label style={{ display: 'grid', gap: 4, color: 'var(--fg-mute)', fontSize: 10 }}>
-                anchor
-                <select value={feedbackSection} onChange={e => setFeedbackSection(e.target.value)}
-                  style={{ background: 'var(--bg)', color: 'var(--fg)', border: '1px solid var(--line)', padding: '5px 7px', fontFamily: 'var(--mono)' }}>
-                  {docSections.map(key => (
-                    <option key={key} value={key}>{SSOT_SECTION_LABELS[key] || key}</option>
-                  ))}
-                </select>
-              </label>
-              <label style={{ display: 'grid', gap: 4, color: 'var(--fg-mute)', fontSize: 10 }}>
-                yaml path
-                <input value={feedbackPath} onChange={e => setFeedbackPath(e.target.value)}
-                  placeholder={`${feedbackSection}.review_note`}
-                  style={{ background: 'var(--bg)', color: 'var(--fg)', border: '1px solid var(--line)', padding: '5px 7px', fontFamily: 'var(--mono)' }} />
-              </label>
-              <label style={{ display: 'grid', gap: 4, color: 'var(--fg-mute)', fontSize: 10 }}>
-                custom field
-                <input value={feedbackField} onChange={e => setFeedbackField(e.target.value)}
-                  placeholder="review_note"
-                  style={{ background: 'var(--bg)', color: 'var(--fg)', border: '1px solid var(--line)', padding: '5px 7px', fontFamily: 'var(--mono)' }} />
-              </label>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 0.8fr) minmax(260px, 1.2fr) auto', gap: 8, alignItems: 'end' }}>
-              <label style={{ display: 'grid', gap: 4, color: 'var(--fg-mute)', fontSize: 10 }}>
-                value
-                <input value={feedbackValue} onChange={e => setFeedbackValue(e.target.value)}
-                  placeholder="field value"
-                  style={{ background: 'var(--bg)', color: 'var(--fg)', border: '1px solid var(--line)', padding: '5px 7px', fontFamily: 'var(--mono)' }} />
-              </label>
-              <label style={{ display: 'grid', gap: 4, color: 'var(--fg-mute)', fontSize: 10 }}>
-                comment
-                <textarea ref={commentTextareaRef}
-                  value={feedbackComment} onChange={e => setFeedbackComment(e.target.value)}
-                  rows={2}
-                  placeholder="doc feedback"
-                  style={{ resize: 'vertical', minHeight: 38, background: 'var(--bg)', color: 'var(--fg)', border: '1px solid var(--line)', padding: '5px 7px', fontFamily: 'var(--mono)' }} />
-              </label>
-              <button type="submit" className="btn" disabled={!canSubmitFeedback || feedbackBusy}
-                style={{ fontSize: 10, minWidth: 84 }}>
-                {feedbackBusy ? 'saving' : 'apply'}
-              </button>
-            </div>
-            {feedbackStatus ? (
-              <div style={{ color: /failed|error|invalid/i.test(feedbackStatus) ? 'var(--err)' : 'var(--ok)', fontSize: 10 }}>
-                {feedbackStatus}
-              </div>
-            ) : null}
-          </form>
-        ) : null}
         <iframe
           ref={docFrameRef}
           key={inlineUrl}
