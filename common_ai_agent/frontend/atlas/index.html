@@ -254,6 +254,9 @@
        (AskUserPrompt, ProgressPanel, TodoPanel, OrchestratorChatPanel,
        GitPanel, AgentStatusPanel) totaling ~2297 lines. 13 unique
        workspace-scope deps via the same IIFE + lambda forward-ref pattern. -->
+  <!-- Phase 19 split: AgentStatusPanel (~614 lines) extracted from
+       workspace-panels.jsx so the latter drops under the 2000-line target. -->
+  <script type="text/babel" data-presets="react" src="agent-status-panel.jsx?v=atlas-20260528-asp"></script>
   <script type="text/babel" data-presets="react" src="workspace-panels.jsx?v=atlas-20260528-panels"></script>
   <!-- sim_debug components (loaded BEFORE workspace.jsx so the
        conditional render in workspace.jsx can reference them). -->
