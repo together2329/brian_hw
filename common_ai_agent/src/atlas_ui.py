@@ -8719,62 +8719,27 @@ def create_app():
     def _legacy_ssot_session_dir(ip: str) -> Path:
         return PROJECT_ROOT / ".session" / ip / "ssot-gen"
 
-    def _ssot_qa_path(ip: str, session: str | None = None) -> Path:
-        return _ssot_session_dir(ip, session) / "qa.json"
+    # Phase 10b: simple Q&A I/O helpers moved to src/atlas_qa.py via factory.
+    # Lambda wrappers defer name lookup so forward-refs (e.g. _canonical_session_string)
+    # work — Python resolves the names from create_app's enclosing scope at CALL time.
+    from src.atlas_qa import make_qa_helpers as _make_qa_helpers
+    _qa = _make_qa_helpers(
+        ssot_session_dir_fn=_ssot_session_dir,
+        legacy_ssot_session_dir_fn=lambda ip: _legacy_ssot_session_dir(ip),
+        normalize_session_name_fn=lambda s: normalize_session_name(s),
+        project_root_fn=lambda: PROJECT_ROOT,
+        active_session_value_fn=lambda: _active_session_value(),
+        active_ip_value_fn=lambda: _active_ip_value(),
+        valid_ip_name_fn=lambda n: _valid_ip_name(n),
+        canonical_session_fn=lambda *a, **k: _canonical_session_string(*a, **k),
+    )
+    _ssot_qa_path = _qa["path"]
+    _load_ssot_qa_items = _qa["load"]
+    _save_ssot_qa_items = _qa["save"]
+    _active_ssot_qa_context = _qa["active_context"]
 
 
-    def _load_ssot_qa_items(ip: str, session: str | None = None) -> list[dict[str, Any]]:
-        path = _ssot_qa_path(ip, session)
-        if not path.is_file() and session:
-            path = _legacy_ssot_session_dir(ip) / "qa.json"
-        if not path.is_file():
-            return []
-        try:
-            raw = json.loads(path.read_text(encoding="utf-8"))
-        except Exception:
-            return []
-        items = raw.get("items") if isinstance(raw, dict) else raw
-        if not isinstance(items, list):
-            return []
-        return [dict(x) for x in items if isinstance(x, dict)]
 
-    def _save_ssot_qa_items(ip: str, items: list[dict[str, Any]], session: str | None = None) -> None:
-        path = _ssot_qa_path(ip, session)
-        doc = {
-            "ip": ip,
-            "workflow": "ssot-gen",
-            "updated_at": time.time(),
-            "items": items,
-        }
-        text = json.dumps(doc, ensure_ascii=False, indent=2)
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(text, encoding="utf-8")
-
-        # Compatibility bridge: before canonical session paths, SSOT QA lived at
-        # .session/<ip>/ssot-gen/qa.json. Keep mirroring default-owner sessions
-        # there so old UI/tests/tools continue to read the same cards, while
-        # avoiding cross-user leakage for real owner sessions.
-        clean = normalize_session_name(str(session or ""))
-        parts = [p for p in clean.split("/") if p]
-        try:
-            path_parts = [p for p in path.relative_to(PROJECT_ROOT / ".session").parts if p]
-        except Exception:
-            path_parts = []
-        mirror_legacy = (
-            not clean
-            or (len(parts) >= 3 and parts[0] == "default" and parts[-2] == ip and parts[-1] == "ssot-gen")
-            or (
-                len(path_parts) >= 4
-                and path_parts[0] == "default"
-                and path_parts[-3] == ip
-                and path_parts[-2] == "ssot-gen"
-                and path_parts[-1] == "qa.json"
-            )
-        )
-        legacy_path = _legacy_ssot_session_dir(ip) / "qa.json"
-        if mirror_legacy and legacy_path != path:
-            legacy_path.parent.mkdir(parents=True, exist_ok=True)
-            legacy_path.write_text(text, encoding="utf-8")
 
     def _status_group(status: str) -> str:
         return "approved" if str(status or "").lower() in {"approved", "answered", "resolved"} else "pending"
@@ -8808,15 +8773,6 @@ def create_app():
             pairs.append((key, label[:240] or key, question))
         return pairs
 
-    def _active_ssot_qa_context() -> tuple[str, str]:
-        session = normalize_session_name(str(_active_session_value() or ""))
-        parts = [p for p in session.split("/") if p]
-        if len(parts) >= 2 and parts[-1] == "ssot-gen" and _valid_ip_name(parts[-2]):
-            return parts[-2], session
-        ip = str(_active_ip_value() or "").strip()
-        if _valid_ip_name(ip):
-            return ip, _canonical_session_string(ip)
-        return "", ""
 
     def _upsert_ssot_qa_items(
         ip: str,
