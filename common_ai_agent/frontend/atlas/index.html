@@ -241,6 +241,10 @@
        workspace.jsx-scope helpers (extractors, section parsers, status
        helpers, status-badge components) that workspace.jsx exposes via
        end-of-file `window.X = X` block. -->
+  <!-- Phase 18 split: BlockDiagram (~478 lines) extracted from ssot-digest.jsx
+       so the latter drops under the 2000-line target. Loads BEFORE ssot-digest
+       so SsotDigestContent's BlockDiagram forward-ref resolves at render. -->
+  <script type="text/babel" data-presets="react" src="block-diagram.jsx?v=atlas-20260528-block-diag"></script>
   <script type="text/babel" data-presets="react" src="ssot-digest.jsx?v=atlas-20260528-ssot-digest"></script>
   <!-- Phase 13f refactor: SsotQaBoard (~1691 lines) — the Q&A workbench
        panel. Same IIFE + lambda forward-ref pattern; only 5 workspace
