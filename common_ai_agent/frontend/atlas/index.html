@@ -221,6 +221,10 @@
   <script type="text/babel" data-presets="react" src="login.jsx?v=atlas-20260511-login"></script>
   <script type="text/babel" data-presets="react" src="data.jsx?v=atlas-20260526-todo-tab"></script>
   <script type="text/babel" data-presets="react" src="shared.jsx?v=atlas-20260503-strict-status"></script>
+  <!-- Phase 13e refactor: small cross-cutting utilities (window.CopyBtn,
+       window._copyToClipboard). Loaded BEFORE workspace.jsx so the bindings
+       exist by the time workspace.jsx's babel transform runs. -->
+  <script type="text/babel" data-presets="react" src="ui-utils.jsx?v=atlas-20260527-ui-utils"></script>
   <!-- sim_debug components (loaded BEFORE workspace.jsx so the
        conditional render in workspace.jsx can reference them). -->
   <script type="text/babel" data-presets="react" src="debug-shared.jsx?v=atlas-20260503-strict-status"></script>

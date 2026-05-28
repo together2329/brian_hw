@@ -1055,56 +1055,11 @@ const DiffOutputPre = ({ text, tool, truncated, hintText = '' }) => {
 
 // Hover-revealed copy button (positioned absolute; parent must be
 // position:relative and apply CSS `:hover .copy-btn{opacity:1}`).
-// Copy that also works over plain-HTTP LAN access. navigator.clipboard only
-// exists in secure contexts (https / localhost); when the app is opened via
-// http://<lan-ip>:3000 it is undefined, so every copy button hit the catch and
-// silently no-op'd. Fall back to a hidden-textarea execCommand('copy').
-const _copyToClipboard = (value) => {
-  const text = String(value == null ? '' : value);
-  try {
-    if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(text);
-      return true;
-    }
-  } catch (_) {}
-  try {
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    ta.setAttribute('readonly', '');
-    ta.style.position = 'fixed';
-    ta.style.top = '-1000px';
-    ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.select();
-    ta.setSelectionRange(0, text.length);
-    const ok = document.execCommand('copy');
-    document.body.removeChild(ta);
-    return ok;
-  } catch (_) {
-    return false;
-  }
-};
-
-const CopyBtn = ({ text, label = 'copy' }) => {
-  const [copied, setCopied] = React.useState(false);
-  const onClick = (e) => {
-    e.stopPropagation();
-    if (_copyToClipboard(text)) { setCopied(true); setTimeout(() => setCopied(false), 1200); }
-  };
-  return (
-    <button onClick={onClick} className="copy-btn" type="button"
-      style={{
-        position: 'absolute', top: 6, right: 6,
-        opacity: 0, transition: 'opacity .15s',
-        background: 'var(--bg-2)', border: '1px solid var(--line)',
-        color: copied ? 'var(--ok)' : 'var(--fg-mute)',
-        fontSize: 10, padding: '1px 6px', borderRadius: 2,
-        cursor: 'pointer', fontFamily: 'var(--mono)',
-      }}>
-      {copied ? '✓ copied' : label}
-    </button>
-  );
-};
+// Phase 13e: CopyBtn + _copyToClipboard moved to frontend/atlas/ui-utils.jsx
+// (loaded before workspace.jsx in index.html). Alias the globals back to the
+// original names so the rest of this file references them unchanged.
+const _copyToClipboard = window._copyToClipboard;
+const CopyBtn = window.CopyBtn;
 
 // ── Column-resize helpers ─────────────────────────────────────────
 // useResizable: state + localStorage persistence + clamp.
