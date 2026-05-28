@@ -1,0 +1,55 @@
+{
+  "//": "Incremental TS migration config. Scoped to MIGRATED .tsx only; legacy .jsx are untyped global-style and not checked here. Remove a file's .jsx + its window entry from atlas-window.d.ts at the import-cutover.",
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "lib": [
+      "ES2020",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "types": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "include": [
+    "types/**/*.d.ts",
+    "agent-status-panel.tsx",
+    "axi-dma-mock.tsx",
+    "block-diagram.tsx",
+    "coverage.tsx",
+    "debug-inline-cards.tsx",
+    "debug-shared.tsx",
+    "debug-tab.tsx",
+    "git-tab.tsx",
+    "guide.tsx",
+    "lobby.tsx",
+    "login.tsx",
+    "pipe-width.tsx",
+    "pipeline-flow-stage.tsx",
+    "pipeline-helpers.tsx",
+    "pipeline-trace.tsx",
+    "pipeline.tsx",
+    "preview-pane.tsx",
+    "progress-todo-panels.tsx",
+    "shared.tsx",
+    "soc-data.tsx",
+    "soc-shared.tsx",
+    "ssot-digest-content.tsx",
+    "ssot-digest.tsx",
+    "ssot-doc.tsx",
+    "ssot-review.tsx",
+    "ui-utils.tsx",
+    "user-dashboard.tsx",
+    "workflow-report.tsx",
+    "workspace-panels.tsx"
+  ]
+}
