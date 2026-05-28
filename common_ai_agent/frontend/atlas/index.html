@@ -246,6 +246,13 @@
        so SsotDigestContent's BlockDiagram forward-ref resolves at render. -->
   <script type="text/babel" data-presets="react" src="block-diagram.jsx?v=atlas-20260528-block-diag"></script>
   <script type="text/babel" data-presets="react" src="ssot-digest.jsx?v=atlas-20260528-ssot-digest"></script>
+  <!-- Phase 22 split: SsotDigestContent (~950 lines) extracted from
+       ssot-digest.jsx. -->
+  <script type="text/babel" data-presets="react" src="ssot-digest-content.jsx?v=atlas-20260528-digest-content"></script>
+  <!-- Phase 21 split: SsotReviewPane (~583 lines) extracted from
+       ssot-digest.jsx. Loads AFTER ssot-digest-content.jsx since it
+       consumes SsotDigestContent. -->
+  <script type="text/babel" data-presets="react" src="ssot-review.jsx?v=atlas-20260528-ssot-review"></script>
   <!-- Phase 13f refactor: SsotQaBoard (~1691 lines) — the Q&A workbench
        panel. Same IIFE + lambda forward-ref pattern; only 5 workspace
        helpers needed (one already on window from Phase 13c). -->
