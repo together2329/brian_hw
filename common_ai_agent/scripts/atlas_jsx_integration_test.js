@@ -103,6 +103,7 @@ const files = [
   ["block-diagram.jsx", "frontend/atlas/block-diagram.jsx"],
   ["ssot-digest.jsx", "frontend/atlas/ssot-digest.jsx"],
   ["ssot-qa-board.jsx", "frontend/atlas/ssot-qa-board.jsx"],
+  ["agent-status-panel.jsx", "frontend/atlas/agent-status-panel.jsx"],
   ["workspace-panels.jsx", "frontend/atlas/workspace-panels.jsx"],
   ["workspace.jsx", "frontend/atlas/workspace.jsx"],
 ];
