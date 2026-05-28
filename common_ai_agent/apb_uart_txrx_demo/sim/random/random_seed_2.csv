@@ -1,0 +1,66 @@
+time,seed,txn,check,result,detail
+145000,2,-1,reset_ctrl,PASS,CTRL reset value
+175000,2,-1,reset_frame_cfg,PASS,FRAME_CFG reset value
+325000,2,0,baud_program,PASS,BAUD_DIV legal write
+385000,2,0,frame_config_model_readback,PASS,frame_word=0x00000009 readback=0x00000009 bits=6 parity_en=0 odd=1 stop2=0
+555000,2,1,baud_program,PASS,BAUD_DIV legal write
+615000,2,1,frame_config_model_readback,PASS,frame_word=0x00000015 readback=0x00000015 bits=6 parity_en=1 odd=0 stop2=1
+1145000,2,1,random_tx_frame_configured,PASS,bits=6 pe=1 odd=0 st2=1 exp=0x0c got=0x0c parity=0 stop1=1 stop2=1 idle=1
+1325000,2,2,baud_program,PASS,BAUD_DIV legal write
+1385000,2,2,frame_config_model_readback,PASS,frame_word=0x00000019 readback=0x00000019 bits=6 parity_en=0 odd=1 stop2=1
+2465000,2,2,random_rx_frame_configured,PASS,good_rx bits=6 pe=0 st2=1 exp=0x16 got=0x16 status=0x00001803
+2655000,2,3,baud_program,PASS,BAUD_DIV legal write
+2715000,2,3,frame_config_model_readback,PASS,frame_word=0x0000001b readback=0x0000001b bits=8 parity_en=0 odd=1 stop2=1
+5420000,2,3,random_tx_fifo_burst_order,PASS,len=1 cfg_bits=8 got=a1_xx_xx_xx exp=a1_2c_63_9b
+5605000,2,4,baud_program,PASS,BAUD_DIV legal write
+5665000,2,4,frame_config_model_readback,PASS,frame_word=0x00000015 readback=0x00000015 bits=6 parity_en=1 odd=0 stop2=1
+11085000,2,4,random_rx_fifo_order0,PASS,RX FIFO oldest byte 0
+11115000,2,4,random_rx_fifo_order1,PASS,RX FIFO oldest byte 1
+11145000,2,4,random_rx_fifo_order2,PASS,RX FIFO oldest byte 2
+11175000,2,4,random_rx_fifo_order3,PASS,RX FIFO oldest byte 3
+11175000,2,4,random_rx_fifo_overrun,PASS,status=0x00001893 overrun_bit=1 discarded=0x26
+11345000,2,5,baud_program,PASS,BAUD_DIV legal write
+11405000,2,5,random_tx_fifo_fill0,PASS,fill accepted
+11435000,2,5,random_tx_fifo_fill1,PASS,fill accepted
+11465000,2,5,random_tx_fifo_fill2,PASS,fill accepted
+11495000,2,5,random_tx_fifo_fill3,PASS,fill accepted
+11555000,2,5,random_tx_fifo_full_write_error,PASS,fifo_status=0x00060004 level=4 full=1 extra_err=1
+11705000,2,6,baud_program,PASS,BAUD_DIV legal write
+11765000,2,6,frame_config_model_readback,PASS,frame_word=0x00000003 readback=0x00000003 bits=8 parity_en=0 odd=0 stop2=0
+18305000,2,6,random_fifo_threshold_irq,PASS,rx_thresh=3 irq_before=0 irq_after=1 status=0x00001021 irq_status=0x00000022
+18455000,2,7,baud_program,PASS,BAUD_DIV legal write
+18515000,2,7,frame_config_model_readback,PASS,frame_word=0x00000003 readback=0x00000003 bits=8 parity_en=0 odd=0 stop2=0
+20725000,2,7,random_rx_timeout_irq,PASS,timeout_cycles=14 status=0x00001c23 irq_status=0x0000003a irq_after_clear=0
+20895000,2,8,baud_program,PASS,BAUD_DIV legal write
+20955000,2,8,frame_config_model_readback,PASS,frame_word=0x0000001b readback=0x0000001b bits=8 parity_en=0 odd=1 stop2=1
+22455000,2,8,random_loopback,PASS,bits=8 pe=0 st2=1 exp=0xd8 got=0xd8 rx_seen=1
+22625000,2,9,random_invalid_read,PASS,invalid address read pslverr expected
+22655000,2,9,random_invalid_write,PASS,invalid address write pslverr expected
+22715000,2,9,random_disabled_txdata_write,PASS,disabled TXDATA pslverr expected
+22885000,2,10,baud_program,PASS,BAUD_DIV legal write
+22945000,2,10,random_tx_break_low,PASS,TX break forces low
+24315000,2,10,random_rx_break_error,PASS,status=0x00001a2b irq=1
+24525000,2,11,random_scratch_readback,PASS,scratch_exp=0x7c7821f8 scratch_got=0x7c7821f8
+24695000,2,12,baud_program,PASS,BAUD_DIV legal write
+24755000,2,12,frame_config_model_readback,PASS,frame_word=0x0000000e readback=0x0000000e bits=7 parity_en=1 odd=1 stop2=0
+25915000,2,12,random_rx_parity_error,PASS,parity_error bits=7 exp=0x18 got=0x18 status=0x00001923 irq=1
+26065000,2,13,baud_program,PASS,BAUD_DIV legal write
+26125000,2,13,frame_config_model_readback,PASS,frame_word=0x00000012 readback=0x00000012 bits=7 parity_en=0 odd=0 stop2=1
+26765000,2,13,random_rx_framing_error,PASS,frame_error bits=7 exp=0x11 got=0x11 status=0x0000182b irq=1
+26955000,2,14,baud_program,PASS,BAUD_DIV legal write
+27015000,2,14,frame_config_model_readback,PASS,frame_word=0x0000001c readback=0x0000001c bits=5 parity_en=1 odd=1 stop2=1
+28575000,2,14,random_rx_frame_configured,PASS,good_rx bits=5 pe=1 st2=1 exp=0x0e got=0x0e status=0x00001803
+28725000,2,15,baud_program,PASS,BAUD_DIV legal write
+28785000,2,15,frame_config_model_readback,PASS,frame_word=0x00000011 readback=0x00000011 bits=6 parity_en=0 odd=0 stop2=1
+29385000,2,15,random_rx_framing_error,PASS,frame_error bits=6 exp=0x0a got=0x0a status=0x0000182b irq=1
+29585000,2,16,baud_program,PASS,BAUD_DIV legal write
+29645000,2,16,frame_config_model_readback,PASS,frame_word=0x00000016 readback=0x00000016 bits=7 parity_en=1 odd=0 stop2=1
+30885000,2,16,random_rx_parity_error,PASS,parity_error bits=7 exp=0x53 got=0x53 status=0x00001923 irq=1
+31045000,2,17,random_invalid_read,PASS,invalid address read pslverr expected
+31075000,2,17,random_invalid_write,PASS,invalid address write pslverr expected
+31135000,2,17,random_disabled_txdata_write,PASS,disabled TXDATA pslverr expected
+31285000,2,18,baud_program,PASS,BAUD_DIV legal write
+31345000,2,18,frame_config_model_readback,PASS,frame_word=0x0000000c readback=0x0000000c bits=5 parity_en=1 odd=1 stop2=0
+32115000,2,18,random_tx_frame_configured,PASS,bits=5 pe=1 odd=1 st2=0 exp=0x1f got=0x1f parity=0 stop1=1 stop2=0 idle=1
+32275000,2,19,baud_program,PASS,BAUD_DIV legal write
+32335000,2,19,frame_config_model_readback,PASS,frame_word=0x0000000b readback=0x0000000b bits=8 parity_en=0 odd=1 stop2=0

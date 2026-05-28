@@ -1,2 +1,53 @@
-{"seeds":[{"passed":true,"seed":7,"txns":12,"scoreboard_pass":18,"scoreboard_fail":0}
-],"txns":12,"seed_list":"7","passed":true,"scoreboard_fail_total":0}
+{"seeds":[{
+  "passed":true,
+  "seed":1,
+  "final_seed":823270631,
+  "txns":20,
+  "scoreboard_pass":77,
+  "scoreboard_fail":0,
+  "coverage_flags":{
+    "frame_cfg":true,
+    "tx_frame_config":true,
+    "rx_frame_config":true,
+    "parity_good":true,
+    "parity_error":true,
+    "stop2":true,
+    "tx_fifo_burst":true,
+    "rx_fifo_order":true,
+    "fifo_full":true,
+    "overrun":true,
+    "threshold_irq":true,
+    "timeout_irq":true,
+    "loopback":true,
+    "invalid_access":true,
+    "break_error":true,
+    "scratch":true
+  }
+}
+,{
+  "passed":true,
+  "seed":2,
+  "final_seed":-805811860,
+  "txns":20,
+  "scoreboard_pass":65,
+  "scoreboard_fail":0,
+  "coverage_flags":{
+    "frame_cfg":true,
+    "tx_frame_config":true,
+    "rx_frame_config":true,
+    "parity_good":true,
+    "parity_error":true,
+    "stop2":true,
+    "tx_fifo_burst":true,
+    "rx_fifo_order":true,
+    "fifo_full":true,
+    "overrun":true,
+    "threshold_irq":true,
+    "timeout_irq":true,
+    "loopback":true,
+    "invalid_access":true,
+    "break_error":true,
+    "scratch":true
+  }
+}
+],"txns":20,"seed_list":"1,2","passed":true,"scoreboard_fail_total":0}
