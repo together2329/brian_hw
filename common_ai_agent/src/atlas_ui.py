@@ -10282,3 +10282,15 @@ def _access_url(host: str, port: int, path: str = "") -> str:
     return f"http://{display_host}:{port}{path}"
 
 
+# Canonical launcher entry. Phase 4b moved `main()` into atlas_runtime
+# (and atlas_ui.py:415 re-imports it for backward compat), but the
+# original `if __name__ == "__main__": main()` guard never came back
+# to atlas_ui.py. Result: `python3 src/atlas_ui.py …` ran the module
+# top-to-bottom (imports + class/function defs + module-level constants)
+# and exited without ever calling main() — no uvicorn, no listener.
+# The README at frontend/atlas/README.md:37 still points users at this
+# invocation, so the guard belongs here for the canonical CLI path.
+if __name__ == "__main__":
+    main()
+
+

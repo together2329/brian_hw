@@ -18,15 +18,29 @@ import json
 import logging
 import multiprocessing
 import os
+import contextvars
 import re
 import signal
 import socket
+import subprocess
 import sys
 import time
 import threading
 import traceback
+import uuid
 from pathlib import Path
 from typing import Any, Optional
+
+# main() references these as bare names (atlas_ui.py imports them at
+# lines 146-151 from core/atlas_exec_policy.py). Import directly here so
+# the lookup resolves against this module's globals without going through
+# the lazy hydration helper.
+from core.atlas_exec_policy import (
+    EXEC_MODE_ORCHESTRATOR,
+    apply_exec_mode_env,
+    current_exec_mode,
+    normalize_exec_mode,
+)
 
 
 def _hydrate_atlas_ui_globals() -> None:
@@ -50,20 +64,22 @@ def _hydrate_atlas_ui_globals() -> None:
     if g.get("_AUI_HYDRATED"):
         return
     from src import atlas_ui as _aui
-    for name in (
-        "PROJECT_ROOT", "WORKFLOW_ROOT", "HERE", "SOURCE_ROOT",
-        "create_app",
-        "_access_url", "_assert_bind_target_available",
-        "_active_session_value", "_active_ip_value",
-        "_atlas_emit_session_id",
-        "_atlas_active_session_cv", "_atlas_active_ip_cv",
-        "_sync_env_to_context",
-        "_format_answer",
-        "_set_runtime_reasoning_effort",
-        "_ssot_export_valid_ip",
-    ):
-        if hasattr(_aui, name):
-            g[name] = getattr(_aui, name)
+    # Wholesale hydration: every non-dunder atlas_ui module-level name lands
+    # in this module's globals so bare-name lookups inside run_atlas_ui /
+    # _launch_admin_server / main resolve correctly. A hand-curated list
+    # kept missing symbols (Phase 4b extracted ~1060 lines of nested-fn
+    # bodies that reference ~50+ atlas_ui symbols; enumerating them one by
+    # one is fragile, and every new extraction surface exposes more —
+    # subprocess, normalize_exec_mode, _set_runtime_model, etc.). Wholesale
+    # copy is bulletproof: any atlas_ui name the bodies reference at runtime
+    # finds the live atlas_ui binding. We only skip dunders and names that
+    # already exist locally (don't shadow this module's own definitions).
+    for name in dir(_aui):
+        if name.startswith("__") and name.endswith("__"):
+            continue
+        if name in g:
+            continue  # don't shadow locals like `Path`, `run_atlas_ui`, etc.
+        g[name] = getattr(_aui, name)
     g["_AUI_HYDRATED"] = True
 
 
