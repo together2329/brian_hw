@@ -1082,19 +1082,32 @@ def main() -> None:
         if ip_root_is_active_ip and args.ip == "default" and _ssot_export_valid_ip(ip_root_target.name):
             args.ip = ip_root_target.name
 
+    # Propagate PROJECT_ROOT mutations BOTH ways: locally (so any
+    # remaining atlas_runtime body refs see the new root) AND into atlas_ui
+    # (where every route handler / module global / `_safe()` resolver
+    # reads PROJECT_ROOT from). Without the _aui.PROJECT_ROOT = … write,
+    # `--root` is silently ignored by /api/files, /api/soc, etc. because
+    # those routes were registered in create_app() — they bind to
+    # atlas_ui.PROJECT_ROOT, not this module's hydrated copy.
+    from src import atlas_ui as _aui
     if args.root:
         target = Path(args.root).expanduser().resolve()
         if not target.is_dir():
             sys.exit(f"--root not found: {target}")
         os.chdir(str(target))
         PROJECT_ROOT = target
+        _aui.PROJECT_ROOT = target
     elif ip_root_target is not None:
         if ip_root_is_active_ip:
             os.chdir(str(ip_root_target.parent))
             PROJECT_ROOT = ip_root_target.parent
+            _aui.PROJECT_ROOT = ip_root_target.parent
         else:
             os.chdir(str(ip_root_target))
             PROJECT_ROOT = ip_root_target
+            _aui.PROJECT_ROOT = ip_root_target
+    # Same back-write for WORKFLOW_ROOT (mutated earlier in this function).
+    _aui.WORKFLOW_ROOT = WORKFLOW_ROOT
     # Always export PROJECT_ROOT to the env so workers, sub-agents, and
     # the system-prompt header injector resolve to the same path the UI
     # serves files from — even when the user launches without --root and
