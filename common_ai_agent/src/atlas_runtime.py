@@ -12,11 +12,13 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import errno
 import io
 import json
 import logging
 import multiprocessing
 import os
+import re
 import signal
 import socket
 import sys
@@ -27,12 +29,51 @@ from pathlib import Path
 from typing import Any, Optional
 
 
+def _hydrate_atlas_ui_globals() -> None:
+    """One-time backport of the symbols Phase 4 extracted-but-didn't-import.
+
+    Phase 4b moved run_atlas_ui / _launch_admin_server / main into this
+    module from src/atlas_ui.py, but their bodies use bare-name references
+    to ~20 atlas_ui module globals (PROJECT_ROOT, WORKFLOW_ROOT, create_app,
+    _assert_bind_target_available, contextvars, helper functions, …). Bare
+    names resolve against the function's defining-module globals, which is
+    THIS module — and those names live in atlas_ui.py's namespace, not
+    here. Without hydration the functions raise NameError on first call.
+
+    Lazy import (inside the function) sidesteps the top-level circular
+    import — atlas_ui imports `run_atlas_ui` from us at its line 415, so
+    we can't import atlas_ui at module load. By the time anything
+    actually CALLS run_atlas_ui / main / _launch_admin_server, atlas_ui
+    is fully imported and every symbol is available.
+    """
+    g = globals()
+    if g.get("_AUI_HYDRATED"):
+        return
+    from src import atlas_ui as _aui
+    for name in (
+        "PROJECT_ROOT", "WORKFLOW_ROOT", "HERE", "SOURCE_ROOT",
+        "create_app",
+        "_access_url", "_assert_bind_target_available",
+        "_active_session_value", "_active_ip_value",
+        "_atlas_emit_session_id",
+        "_atlas_active_session_cv", "_atlas_active_ip_cv",
+        "_sync_env_to_context",
+        "_format_answer",
+        "_set_runtime_reasoning_effort",
+        "_ssot_export_valid_ip",
+    ):
+        if hasattr(_aui, name):
+            g[name] = getattr(_aui, name)
+    g["_AUI_HYDRATED"] = True
+
+
 def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
     """Start the Atlas web UI server and run the agent in a worker thread.
 
     Wires brian_hw/common_ai_agent/src/main.py's _textual_* callbacks so the
     existing ReAct loop streams to all connected WS clients.
     """
+    _hydrate_atlas_ui_globals()
     _assert_bind_target_available(host, port, "ATLAS UI")
 
     import uvicorn
@@ -890,6 +931,7 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
 
 def _launch_admin_server(admin_port: str, admin_host: str) -> subprocess.Popen:
     """Launch the standalone admin server next to the main Atlas UI."""
+    _hydrate_atlas_ui_globals()
     import atexit
 
     port_text = str(admin_port or "3002").strip() or "3002"
@@ -925,6 +967,16 @@ def _launch_admin_server(admin_port: str, admin_host: str) -> subprocess.Popen:
     return proc
 
 def main() -> None:
+    # NB: main() mutates PROJECT_ROOT / WORKFLOW_ROOT via `global` further
+    # below. Because hydration copies the current atlas_ui values into THIS
+    # module, those mutations stay local to atlas_runtime — atlas_ui's own
+    # PROJECT_ROOT does NOT pick them up. That mismatch is harmless today
+    # because the canonical launch path is `from src.atlas_ui import
+    # run_atlas_ui; run_atlas_ui(...)` (textual_main.py:391), which never
+    # routes through main(). If someone ever wires `python -m atlas_runtime`
+    # back to production, change the `global ... = X` writes here to
+    # `_aui.X = ...` so atlas_ui sees the new roots too.
+    _hydrate_atlas_ui_globals()
     ap = argparse.ArgumentParser(prog="atlas_ui",
                                   description="Atlas frontend for common_ai_agent")
     ap.add_argument("--port", type=int, default=8765)
@@ -989,12 +1041,19 @@ def main() -> None:
     # PROJECT_ROOT was computed from the import-time cwd; chdir + rebind
     # so /api/files, .session/, and friends all serve from --root.
     global PROJECT_ROOT, WORKFLOW_ROOT
-    if args.workflow_root:
-        workflow_target = _resolve_workflow_root(args.workflow_root)
-        if not workflow_target.is_dir():
-            sys.exit(f"--workflow-root not found: {workflow_target}")
-        WORKFLOW_ROOT = workflow_target
-        os.environ["ATLAS_WORKFLOW_ROOT"] = str(WORKFLOW_ROOT)
+    # Always resolve + bind WORKFLOW_ROOT: this module has no module-level
+    # WORKFLOW_ROOT (unlike atlas_ui.py:289), so the `global` declaration
+    # only creates an unbound name. Without an unconditional assignment,
+    # line 1028's `setdefault("ATLAS_WORKFLOW_ROOT", str(WORKFLOW_ROOT))`
+    # raises NameError when `--workflow-root` isn't passed. The resolver
+    # already honors $ATLAS_WORKFLOW_ROOT and the canonical
+    # `_source_root()/workflow` default — same behavior as atlas_ui.py
+    # uses at module init.
+    workflow_target = _resolve_workflow_root(args.workflow_root)
+    if args.workflow_root and not workflow_target.is_dir():
+        sys.exit(f"--workflow-root not found: {workflow_target}")
+    WORKFLOW_ROOT = workflow_target
+    os.environ["ATLAS_WORKFLOW_ROOT"] = str(WORKFLOW_ROOT)
 
     ip_root_target: Path | None = None
     ip_root_is_active_ip = False
@@ -1083,10 +1142,6 @@ def main() -> None:
     run_atlas_ui(port=args.port, host=args.host)
 
 
-if __name__ == "__main__":
-    main()
-
-
 def _source_root() -> Path:
     """Read _source_root() from atlas_ui dynamically (deferred, avoids circular)."""
     try:
@@ -1113,3 +1168,12 @@ def _resolve_workflow_root(raw: str | Path | None = None) -> Path:
     if (nested / "ssot-gen").exists():
         return nested.resolve()
     return base.resolve()
+
+
+# The __main__ guard MUST sit after every callee `main()` reaches. Until now
+# it lived at line ~1093 — above `_source_root` and `_resolve_workflow_root`
+# (orphan-appended by Phase 6a). The bug only surfaced when callers omit
+# `--workflow-root`, because the old `main()` guarded the resolver call
+# behind `if args.workflow_root:` and that branch swallowed the lookup.
+if __name__ == "__main__":
+    main()

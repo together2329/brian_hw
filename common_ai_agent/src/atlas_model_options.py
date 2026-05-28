@@ -98,7 +98,33 @@ def _catalog_model_option_rows(env_file: dict[str, str]) -> list[dict[str, str]]
         rows.append(row)
     return rows
 
+def _hydrate_atlas_ui_helpers() -> None:
+    """One-time backport of atlas_ui helpers Phase 5 didn't bring along.
+
+    `_catalog_model_option_rows`, `_model_option_rows`, etc. are defined
+    here but their bodies call into 7 atlas_ui helpers (_env_value,
+    _read_env_file_values, _display_model_option_keys, _split_model_catalog,
+    _model_option_value, _profile_from_env_values, _profile_name_from_option_key)
+    using bare-name resolution. atlas_ui re-exports our public functions, so a
+    top-level back-import would be circular. Hydration happens at first call
+    (by then atlas_ui is fully loaded) and is idempotent.
+    """
+    g = globals()
+    if g.get("_AUI_HYDRATED"):
+        return
+    from src import atlas_ui as _aui
+    for name in (
+        "_env_value", "_read_env_file_values", "_display_model_option_keys",
+        "_split_model_catalog", "_model_option_value",
+        "_profile_from_env_values", "_profile_name_from_option_key",
+    ):
+        if hasattr(_aui, name):
+            g[name] = getattr(_aui, name)
+    g["_AUI_HYDRATED"] = True
+
+
 def _model_option_rows(active_model: str = "") -> list[dict[str, str]]:
+    _hydrate_atlas_ui_helpers()
     env_file = _read_env_file_values()
     display_keys = _display_model_option_keys(env_file)
 
