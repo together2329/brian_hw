@@ -21,6 +21,7 @@ This section is additive; it does not replace the reading order below.
 | Guide tab + Architect "My IPs" landing (mock SoC removed) | [[guide-tab-and-architect-my-ips-20260527]] |
 | Andes external RTL DB wiki + `ATLAS_RTL_DB_WIKI` pointer | [[andes-rtl-db-wiki-20260527]] |
 | SSOT datasheet authoring — demo-grade via custom_blocks / timing mapping / FSM | [[ssot-datasheet-authoring-20260527]] |
+| Review note for Atlas single-worker readiness / warmup refactor | [[atlas-refactoring-review-20260528]] |
 | Run Mode / Exec Mode and SSOT provenance policy | [[run-mode-and-provenance-policy]] |
 | Why headless is not product-flow authority | [[pipeline-progress-debugging]] |
 | Current CPU handoff / approval / README status | [[arm-m0-min-current-status]] |
@@ -128,6 +129,7 @@ be loaded on a different machine and inspected without recreating the DB.
 - [[pl330-real-orchestrator-ui-lessons-20260517]] — first stop for visible UI Orchestrator/worker validation, `/ssot-rtl` handoff versus TODO payloads, duplicate dispatch loading, and contaminated stage-card status.
 - [[atcdmac100-document-flow-ui-honesty-20260518]] — first stop for distinguishing backend-generated ATCDMAC100 evidence from real UI Orchestrator/worker proof.
 - [[atlas-modular-refactor-status-20260528]] — first stop for "what's been extracted from `src/atlas_ui.py` / `frontend/atlas/workspace.jsx`?" and how to verify a new phase without booting the server (Node `vm`-sandbox integration rig at `scripts/atlas_jsx_integration_test.js`).
+- [[atlas-refactoring-review-20260528]] — review note for the single-worker warmup/readiness refactor; current open risks are premature input release on `scheduled` warmup and duplicate in-flight warmup scheduling.
 
 ## Open Improvements
 

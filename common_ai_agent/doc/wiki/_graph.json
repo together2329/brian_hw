@@ -1,9 +1,9 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-05-28T08:38:03Z",
+  "generated_at": "2026-05-28T11:37:49Z",
   "root": "doc/wiki",
-  "node_count": 97,
-  "edge_count": 442,
+  "node_count": 98,
+  "edge_count": 443,
   "tags": {
     "atcdmac100": [
       "atcdmac100-document-flow-ui-honesty-20260518"
@@ -275,6 +275,7 @@
       "atlas-pipeline-db-state",
       "atlas-pipeline-screen",
       "atlas-pytest-hygiene",
+      "atlas-refactoring-review-20260528",
       "atlas-ssot-flag-reference",
       "atlas-test-feature-coverage",
       "atlas-test-hardening-2026-05-23",
@@ -911,6 +912,22 @@
       "size_bytes": 1328
     },
     {
+      "id": "atlas-refactoring-review-20260528",
+      "title": "Atlas refactoring review - single-worker readiness (2026-05-28)",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [],
+      "incoming": [
+        "index"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Review note for the Atlas UI/session refactor around single-worker keepalive, workflow switching, and startup latency.",
+      "path": "doc/wiki/atlas-refactoring-review-20260528.md",
+      "size_bytes": 5162
+    },
+    {
       "id": "atlas-ssot-flag-reference",
       "title": "ATLAS — SSOT Flag Reference",
       "type": "reference",
@@ -1519,6 +1536,7 @@
         "guide-tab-and-architect-my-ips-20260527",
         "andes-rtl-db-wiki-20260527",
         "ssot-datasheet-authoring-20260527",
+        "atlas-refactoring-review-20260528",
         "run-mode-and-provenance-policy",
         "arm-m0-min-current-status",
         "multi-user-worker-isolation",
@@ -1591,7 +1609,7 @@
       "updated": "",
       "summary": "This wiki is the cross-linked operating map for common_ai_agent. It is optimized for long-context LLMs and agent handoffs: read the linked pages in order, then follow the source docs for implementation detail.",
       "path": "doc/wiki/index.md",
-      "size_bytes": 23476
+      "size_bytes": 23801
     },
     {
       "id": "interactive-ask-user-ip-discovery",
