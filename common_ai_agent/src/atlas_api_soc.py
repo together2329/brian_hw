@@ -23,6 +23,19 @@ from typing import Any
 
 from fastapi.responses import JSONResponse
 
+# api_soc body's `_rtl_manifest_progress` integration. Mirrors the
+# atlas_ui.py:803-809 try/except chain so the body's bare-name lookup
+# resolves against this module's globals. Without this the
+# `_shared_rtl_manifest_progress` reference in api_soc raised NameError
+# at request time — extraction debt caught by live web verification.
+try:
+    from .workflow_stage_engine import _rtl_manifest_progress as _shared_rtl_manifest_progress
+except Exception:
+    try:
+        from workflow_stage_engine import _rtl_manifest_progress as _shared_rtl_manifest_progress  # type: ignore
+    except Exception:
+        _shared_rtl_manifest_progress = None  # type: ignore
+
 
 def register_soc_routes(
     app,
