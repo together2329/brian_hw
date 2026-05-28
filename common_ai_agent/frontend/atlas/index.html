@@ -296,6 +296,7 @@
   <!-- Phase 27 split: pipelineInitialIp + readPipeWidth (~960L)
        extracted from pipeline.jsx. Loads AFTER pipeline.jsx so
        ENH_* data + helper functions are exposed on window first. -->
+  <script type="text/babel" data-presets="react" src="pipe-width.jsx?v=atlas-20260528-pipe-width"></script>
   <script type="text/babel" data-presets="react" src="pipeline-helpers.jsx?v=atlas-20260528-pipe-helpers"></script>
   <!-- Phase 20 split: orchestrator trace + flow canvas (~1388 lines)
        extracted from pipeline.jsx so the latter drops under 2000.
