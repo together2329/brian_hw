@@ -20,7 +20,9 @@ def test_health_polling_rejects_different_user_snapshots():
     # One of the !healthMatchesCurrentUser(j) call sites lives inside
     # AgentStatusPanel, which Phase 13g moved into workspace-panels.jsx.
     panels_src = (PROJECT_ROOT / "frontend" / "atlas" / "workspace-panels.jsx").read_text(encoding="utf-8")
-    workspace_plus_panels = workspace_src + "\n" + panels_src
+    # Phase 19: AgentStatusPanel split into its own file.
+    agent_status_src = (PROJECT_ROOT / "frontend" / "atlas" / "agent-status-panel.jsx").read_text(encoding="utf-8")
+    workspace_plus_panels = workspace_src + "\n" + panels_src + "\n" + agent_status_src
 
     assert "function healthMatchesCurrentUser(payload)" in data_src
     assert "if (!healthMatchesCurrentUser(d)) return;" in data_src
@@ -85,7 +87,9 @@ def test_health_context_preserves_browser_ip_when_backend_reports_other_ip():
     # acceptCounters + costIpChanged refs live inside AgentStatusPanel, moved
     # to workspace-panels.jsx by Phase 13g.
     panels_src = (PROJECT_ROOT / "frontend" / "atlas" / "workspace-panels.jsx").read_text(encoding="utf-8")
-    workspace_plus_panels = workspace_src + "\n" + panels_src
+    # Phase 19: AgentStatusPanel split into its own file.
+    agent_status_src = (PROJECT_ROOT / "frontend" / "atlas" / "agent-status-panel.jsx").read_text(encoding="utf-8")
+    workspace_plus_panels = workspace_src + "\n" + panels_src + "\n" + agent_status_src
     assert "const acceptCounters = uiHealthCountersMatchBrowserRoute(j);" in workspace_plus_panels
     assert "costIpChanged" in workspace_plus_panels
 

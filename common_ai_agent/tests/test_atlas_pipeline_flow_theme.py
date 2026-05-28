@@ -57,7 +57,9 @@ def test_atlas_worker_sidebar_polls_current_ip_scope() -> None:
     # Phase 13g moved into workspace-panels.jsx.
     workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace.jsx").read_text()
     panels = (PROJECT_ROOT / "frontend" / "atlas" / "workspace-panels.jsx").read_text()
-    combined = workspace + "\n" + panels
+    # Phase 19: AgentStatusPanel extracted from workspace-panels.jsx.
+    agent_status = (PROJECT_ROOT / "frontend" / "atlas" / "agent-status-panel.jsx").read_text()
+    combined = workspace + "\n" + panels + "\n" + agent_status
 
     assert "const workerIp = (() => {" in combined
     assert "workspaceFetchWorkerSnapshot({ ip: workerIp, activeOnly: true })" in combined
@@ -90,12 +92,16 @@ def test_atlas_worker_panels_share_cached_worker_snapshot_fetch() -> None:
     data = (atlas_dir / "data.jsx").read_text()
     workspace = (atlas_dir / "workspace.jsx").read_text()
     pipeline = (atlas_dir / "pipeline.jsx").read_text()
+    # Phase 20: WorkerOrchestraBar + its pipelineFetchWorkerSnapshot
+    # call site extracted from pipeline.jsx → pipeline-trace.jsx.
+    pipeline_trace = (atlas_dir / "pipeline-trace.jsx").read_text()
+    pipeline_combined = pipeline + "\n" + pipeline_trace
 
     assert "const workerSnapshotCache = new Map()" in data
     assert "fetchWorkerSnapshot, sessionFor" in data
     assert "workspaceFetchWorkerSnapshot({ ip, activeOnly: true, force: manual })" in workspace
-    assert "WorkerOrchestraBar" in pipeline
-    assert "pipelineFetchWorkerSnapshot({ ip, activeOnly: true })" in pipeline
+    assert "WorkerOrchestraBar" in pipeline_combined
+    assert "pipelineFetchWorkerSnapshot({ ip, activeOnly: true })" in pipeline_combined
 
 
 def test_atlas_workspace_lands_on_chat_and_reports_worker_done_state() -> None:

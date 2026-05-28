@@ -28,17 +28,35 @@ ATLAS_UI_PY = ROOT / "src" / "atlas_ui.py"
 SSOT_DIGEST_JSX = ROOT / "frontend" / "atlas" / "ssot-digest.jsx"
 PREVIEW_PANE_JSX = ROOT / "frontend" / "atlas" / "preview-pane.jsx"
 SSOT_QA_BOARD_JSX = ROOT / "frontend" / "atlas" / "ssot-qa-board.jsx"
+# Phase 21/22/23 splits — formerly in ssot-digest.jsx / workspace-panels.jsx
+SSOT_DIGEST_CONTENT_JSX = ROOT / "frontend" / "atlas" / "ssot-digest-content.jsx"
+SSOT_REVIEW_JSX = ROOT / "frontend" / "atlas" / "ssot-review.jsx"
+BLOCK_DIAGRAM_JSX = ROOT / "frontend" / "atlas" / "block-diagram.jsx"
+WORKSPACE_PANELS_JSX = ROOT / "frontend" / "atlas" / "workspace-panels.jsx"
+PROGRESS_TODO_PANELS_JSX = ROOT / "frontend" / "atlas" / "progress-todo-panels.jsx"
+AGENT_STATUS_PANEL_JSX = ROOT / "frontend" / "atlas" / "agent-status-panel.jsx"
 
 
 def _all_workspace_jsx() -> str:
-    """workspace.jsx + the 13c/13d/13f cluster files concatenated, for
-    greps that don't care which file a moved string ended up in."""
-    return "\n".join((
-        WORKSPACE_JSX.read_text(encoding="utf-8"),
-        SSOT_DIGEST_JSX.read_text(encoding="utf-8"),
-        PREVIEW_PANE_JSX.read_text(encoding="utf-8"),
-        SSOT_QA_BOARD_JSX.read_text(encoding="utf-8"),
-    ))
+    """workspace.jsx + every Phase 13/18/19/21/22/23 cluster file
+    concatenated, for greps that don't care which file a moved string
+    ended up in. Add to the tuple whenever a new cluster gets split out."""
+    return "\n".join(
+        p.read_text(encoding="utf-8")
+        for p in (
+            WORKSPACE_JSX,
+            SSOT_DIGEST_JSX,
+            SSOT_DIGEST_CONTENT_JSX,
+            SSOT_REVIEW_JSX,
+            BLOCK_DIAGRAM_JSX,
+            PREVIEW_PANE_JSX,
+            SSOT_QA_BOARD_JSX,
+            WORKSPACE_PANELS_JSX,
+            PROGRESS_TODO_PANELS_JSX,
+            AGENT_STATUS_PANEL_JSX,
+        )
+        if p.exists()
+    )
 CORE_TOOLS_PY = ROOT / "core" / "tools.py"
 TOOL_SCHEMA_PY = ROOT / "core" / "tool_schema.py"
 TO_SSOT_SKILL = ROOT / "workflow" / "ssot-gen" / "skills" / "to-ssot" / "SKILL.md"
@@ -274,10 +292,10 @@ def test_to_ssot_preview_and_verify_share_canonical_format_contract():
     assert "{ id: 'implementation'" in workspace_src
     assert "const testSection = sectionByKey(sections, 'test_requirements');" in workspace_src
     assert "...listBlocksFromSection(testSection, 'scenarios')" in workspace_src
-    # Policy banners ride inside SsotDigestContent's register/FSM sections,
-    # now in ssot-digest.jsx (Phase 13c).
-    digest_src = SSOT_DIGEST_JSX.read_text(encoding="utf-8")
-    ws_plus_digest = workspace_src + "\n" + digest_src
+    # Policy banners ride inside SsotDigestContent, which moved from
+    # ssot-digest.jsx → ssot-digest-content.jsx in Phase 22. Use the
+    # full combined-source helper so we don't have to chase each split.
+    ws_plus_digest = _all_workspace_jsx()
     assert "explicit no-register policy" in ws_plus_digest
     assert "explicit no-FSM policy" in ws_plus_digest
     assert "const interfaceFromBlock = (block" in workspace_src
