@@ -1,22 +1,21 @@
 """SSOT Q&A board helpers — extracted from src/atlas_ui.py.
 
-Phases 10 / 10b of refactor/atlas-modular:
-- Phase 10:  section-key→label mapping (pure consts).
-- Phase 10b: factory `make_qa_helpers(**deps)` for the simple I/O cluster
-  (path/load/save/active_context). Bigger helpers (upsert/view/
-  sessions_view) extracted in subsequent phases.
+Phases 10 / 10b / 10c of refactor/atlas-modular:
+- Phase 10:  section-key→label mapping (pure consts + lookup).
+- Phase 10b: factory `make_qa_helpers(**deps)` returning the simple I/O
+  cluster (path/load/save/active_context).
+- Phase 10c: pure utility helpers (status_group/qa_slug/q_pairs) +
+  upsert(items) added to the factory.
 
-The factory pattern keeps closures intact while moving the code out of
-create_app(): each helper closes over its sibling helpers + the injected
-deps, and atlas_ui aliases the returned callables back to the original
-public names so call sites stay unchanged.
+Bigger helpers (view, sessions_view) extracted in subsequent phases.
 """
 from __future__ import annotations
 
 import json
+import re
 import time
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 
 # Section-key → (section_id, display_label) — Phase 10 PoC.
@@ -41,6 +40,48 @@ def _ssot_qa_section(decision_key: str) -> Tuple[str, str]:
     )
 
 
+# Phase 10c: pure helpers (no closure deps).
+
+def _status_group(status: str) -> str:
+    """Map a raw status string to the high-level 'approved' / 'pending' bucket."""
+    return "approved" if str(status or "").lower() in {"approved", "answered", "resolved"} else "pending"
+
+
+def _qa_slug(value: str, fallback: str) -> str:
+    """Slugify a decision key candidate; fall back when result is empty."""
+    slug = re.sub(r"[^a-z0-9_]+", "_", str(value or "").strip().lower())
+    slug = re.sub(r"_+", "_", slug).strip("_")
+    return (slug[:72] or fallback)
+
+
+def _ssot_q_pairs_from_questions(
+    questions: Optional[List[Dict[str, Any]]],
+) -> List[Tuple[str, str, Dict[str, Any]]]:
+    """Build (key, label, question) triples from an ask_user question list."""
+    pairs: List[Tuple[str, str, Dict[str, Any]]] = []
+    for idx, raw in enumerate(questions or []):
+        if not isinstance(raw, dict):
+            continue
+        question = dict(raw)
+        key_src = (
+            question.get("decision_key")
+            or question.get("id")
+            or question.get("field_path")
+            or question.get("section_id")
+            or question.get("question")
+        )
+        key = _qa_slug(str(key_src or ""), f"qa_{idx + 1}")
+        label = str(
+            question.get("decision_label")
+            or question.get("field_path")
+            or question.get("subtitle")
+            or question.get("question")
+            or key
+        ).strip()
+        pairs.append((key, label[:240] or key, question))
+    return pairs
+
+
 def make_qa_helpers(
     *,
     ssot_session_dir_fn: Callable[[str, Optional[str]], Path],
@@ -52,10 +93,10 @@ def make_qa_helpers(
     valid_ip_name_fn: Callable[[str], bool],
     canonical_session_fn: Callable[..., str],
 ) -> Dict[str, Callable]:
-    """Build the simple Q&A I/O helpers (path/load/save/active_context).
+    """Build the Q&A I/O + upsert helpers.
 
     Each kwarg replaces a closure capture from create_app(). The returned
-    dict has the 4 callables atlas_ui aliases back to its original names.
+    dict has the callables atlas_ui aliases back to its original names.
     """
 
     def _ssot_qa_path(ip: str, session: Optional[str] = None) -> Path:
@@ -123,9 +164,83 @@ def make_qa_helpers(
             return ip, canonical_session_fn(ip)
         return "", ""
 
+    def _upsert_ssot_qa_items(
+        ip: str,
+        *,
+        flow_id: str,
+        kind: str,
+        q_pairs: List[Tuple[str, str, Dict[str, Any]]],
+        status: str,
+        answers: Optional[Dict[str, Dict[str, Any]]] = None,
+        session: Optional[str] = None,
+        source: str = "ssot-qna",
+    ) -> None:
+        items = _load_ssot_qa_items(ip, session)
+        index = {
+            (str(item.get("flow_id") or ""), str(item.get("decision_key") or "")): idx
+            for idx, item in enumerate(items)
+        }
+        now = time.time()
+        answers = answers or {}
+        for order, (key, label, question) in enumerate(q_pairs):
+            default_section_id, default_section_title = _ssot_qa_section(key)
+            section_id = str(
+                question.get("section_id")
+                or question.get("section")
+                or default_section_id
+            ).strip()
+            section_title = str(
+                question.get("section_title")
+                or question.get("section_name")
+                or question.get("section")
+                or default_section_title
+            ).strip()
+            answer = answers.get(key) if isinstance(answers.get(key), dict) else {}
+            answer_text = str(answer.get("answer") or "").strip()
+            existing_idx = index.get((flow_id, key))
+            prior = items[existing_idx] if existing_idx is not None else {}
+            prior_answer_text = str(prior.get("answer") or "").strip()
+            item_status = "approved" if answer_text or prior_answer_text else status
+            item = {
+                **prior,
+                "ip": ip,
+                "workflow": "ssot-gen",
+                "kind": kind or "TBD",
+                "flow_id": flow_id,
+                "source": source or "ssot-qna",
+                "section_id": section_id,
+                "section_title": section_title,
+                "decision_key": key,
+                "decision_label": label,
+                "question": str(question.get("question") or ""),
+                "subtitle": str(question.get("subtitle") or ""),
+                "question_kind": str(question.get("kind") or "single"),
+                "options": question.get("options") or [],
+                "qa_type": str(question.get("qa_type") or question.get("type") or "human_decision"),
+                "content": question.get("content") or "",
+                "detail": question.get("detail") or "",
+                "criteria": question.get("criteria") or [],
+                "source_refs": question.get("source_refs") or question.get("sources") or [],
+                "field_path": question.get("field_path") or "",
+                "order": order,
+                "status": item_status,
+                "status_group": _status_group(item_status),
+                "answer": answer_text or str(prior.get("answer") or ""),
+                "selected": answer.get("selected") or prior.get("selected") or [],
+                "custom": answer.get("custom") or prior.get("custom") or "",
+                "updated_at": now,
+                "created_at": prior.get("created_at") or now,
+            }
+            if existing_idx is None:
+                items.append(item)
+            else:
+                items[existing_idx] = item
+        _save_ssot_qa_items(ip, items, session)
+
     return {
         "path": _ssot_qa_path,
         "load": _load_ssot_qa_items,
         "save": _save_ssot_qa_items,
         "active_context": _active_ssot_qa_context,
+        "upsert": _upsert_ssot_qa_items,
     }

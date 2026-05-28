@@ -406,7 +406,10 @@ from src.atlas_compactor import (
 )
 
 # Phase 10 refactor (PoC): Q&A section labels moved to src/atlas_qa.py
-from src.atlas_qa import _ssot_qa_section
+from src.atlas_qa import (
+    _ssot_qa_section,
+    _status_group, _qa_slug, _ssot_q_pairs_from_questions,
+)
 
 # Phase 4 refactor: server runtime + CLI extracted to src/atlas_runtime.py
 from src.atlas_runtime import (
@@ -8737,115 +8740,16 @@ def create_app():
     _load_ssot_qa_items = _qa["load"]
     _save_ssot_qa_items = _qa["save"]
     _active_ssot_qa_context = _qa["active_context"]
+    _upsert_ssot_qa_items = _qa["upsert"]
 
 
 
 
-    def _status_group(status: str) -> str:
-        return "approved" if str(status or "").lower() in {"approved", "answered", "resolved"} else "pending"
-
-    def _qa_slug(value: str, fallback: str) -> str:
-        slug = re.sub(r"[^a-z0-9_]+", "_", str(value or "").strip().lower())
-        slug = re.sub(r"_+", "_", slug).strip("_")
-        return (slug[:72] or fallback)
-
-    def _ssot_q_pairs_from_questions(questions: list[dict[str, Any]] | None) -> list[tuple[str, str, dict[str, Any]]]:
-        pairs: list[tuple[str, str, dict[str, Any]]] = []
-        for idx, raw in enumerate(questions or []):
-            if not isinstance(raw, dict):
-                continue
-            question = dict(raw)
-            key_src = (
-                question.get("decision_key")
-                or question.get("id")
-                or question.get("field_path")
-                or question.get("section_id")
-                or question.get("question")
-            )
-            key = _qa_slug(str(key_src or ""), f"qa_{idx + 1}")
-            label = str(
-                question.get("decision_label")
-                or question.get("field_path")
-                or question.get("subtitle")
-                or question.get("question")
-                or key
-            ).strip()
-            pairs.append((key, label[:240] or key, question))
-        return pairs
+    _upsert_ssot_qa_items = _qa["upsert"]
 
 
-    def _upsert_ssot_qa_items(
-        ip: str,
-        *,
-        flow_id: str,
-        kind: str,
-        q_pairs: list[tuple[str, str, dict[str, Any]]],
-        status: str,
-        answers: dict[str, dict[str, Any]] | None = None,
-        session: str | None = None,
-        source: str = "ssot-qna",
-    ) -> None:
-        items = _load_ssot_qa_items(ip, session)
-        index = {
-            (str(item.get("flow_id") or ""), str(item.get("decision_key") or "")): idx
-            for idx, item in enumerate(items)
-        }
-        now = time.time()
-        answers = answers or {}
-        for order, (key, label, question) in enumerate(q_pairs):
-            default_section_id, default_section_title = _ssot_qa_section(key)
-            section_id = str(
-                question.get("section_id")
-                or question.get("section")
-                or default_section_id
-            ).strip()
-            section_title = str(
-                question.get("section_title")
-                or question.get("section_name")
-                or question.get("section")
-                or default_section_title
-            ).strip()
-            answer = answers.get(key) if isinstance(answers.get(key), dict) else {}
-            answer_text = str(answer.get("answer") or "").strip()
-            existing_idx = index.get((flow_id, key))
-            prior = items[existing_idx] if existing_idx is not None else {}
-            prior_answer_text = str(prior.get("answer") or "").strip()
-            item_status = "approved" if answer_text or prior_answer_text else status
-            item = {
-                **prior,
-                "ip": ip,
-                "workflow": "ssot-gen",
-                "kind": kind or "TBD",
-                "flow_id": flow_id,
-                "source": source or "ssot-qna",
-                "section_id": section_id,
-                "section_title": section_title,
-                "decision_key": key,
-                "decision_label": label,
-                "question": str(question.get("question") or ""),
-                "subtitle": str(question.get("subtitle") or ""),
-                "question_kind": str(question.get("kind") or "single"),
-                "options": question.get("options") or [],
-                "qa_type": str(question.get("qa_type") or question.get("type") or "human_decision"),
-                "content": question.get("content") or "",
-                "detail": question.get("detail") or "",
-                "criteria": question.get("criteria") or [],
-                "source_refs": question.get("source_refs") or question.get("sources") or [],
-                "field_path": question.get("field_path") or "",
-                "order": order,
-                "status": item_status,
-                "status_group": _status_group(item_status),
-                "answer": answer_text or str(prior.get("answer") or ""),
-                "selected": answer.get("selected") or prior.get("selected") or [],
-                "custom": answer.get("custom") or prior.get("custom") or "",
-                "updated_at": now,
-                "created_at": prior.get("created_at") or now,
-            }
-            if existing_idx is None:
-                items.append(item)
-            else:
-                items[existing_idx] = item
-        _save_ssot_qa_items(ip, items, session)
+
+
 
     def _ssot_qa_view(ip: str, session: str | None = None) -> dict[str, Any]:
         state = _load_ssot_state(ip)
