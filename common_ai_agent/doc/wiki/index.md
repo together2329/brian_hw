@@ -130,6 +130,7 @@ be loaded on a different machine and inspected without recreating the DB.
 - [[atcdmac100-document-flow-ui-honesty-20260518]] — first stop for distinguishing backend-generated ATCDMAC100 evidence from real UI Orchestrator/worker proof.
 - [[atlas-modular-refactor-status-20260528]] — first stop for "what's been extracted from `src/atlas_ui.py` / `frontend/atlas/workspace.jsx`?" and how to verify a new phase without booting the server (Node `vm`-sandbox integration rig at `scripts/atlas_jsx_integration_test.js`).
 - [[atlas-refactoring-review-20260528]] — review note for the single-worker warmup/readiness refactor; current open risks are premature input release on `scheduled` warmup and duplicate in-flight warmup scheduling.
+- [[atlas-refactoring-exceptions]] — sub-1000-line file-size policy + the registry of files that remain ≥1000 with per-file technical justification (single mega-component / mega-factory / cross-module hydration constraints), the decomposition cost matrix, and the verified extraction-pattern catalogue.
 
 ## Open Improvements
 

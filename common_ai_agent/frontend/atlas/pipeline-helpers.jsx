@@ -1,5 +1,4 @@
 // pipeline-helpers.jsx — Phase 27 refactor: pipelineInitialIp + readPipeWidth
-const readPipeWidth = (...a) => window.readPipeWidth(...a);
 // extracted from pipeline.jsx so the latter drops further toward <1000.
 //
 // Same IIFE + 2-tier dep wiring as pipeline-trace.jsx (Phase 20).
@@ -204,10 +203,10 @@ window.AtlasPipeline = function AtlasPipeline() {
   const [chatTarget, setChatTarget] = React.useState('orchestrator');
   const [localPolicy, setLocalPolicy] = React.useState(() => window.pipelinePolicyPayload());
   const [leftW, setLeftW] = React.useState(() => {
-    return readPipeWidth('atlasPipeLeftW', PIPE_LEFT_DEFAULT, PIPE_LEFT_MIN, PIPE_LEFT_MAX);
+    return window.readPipeWidth('atlasPipeLeftW', PIPE_LEFT_DEFAULT, PIPE_LEFT_MIN, PIPE_LEFT_MAX);
   });
   const [rightW, setRightW] = React.useState(() => {
-    return readPipeWidth('atlasPipeRightW', PIPE_RIGHT_DEFAULT, PIPE_RIGHT_MIN, PIPE_RIGHT_MAX);
+    return window.readPipeWidth('atlasPipeRightW', PIPE_RIGHT_DEFAULT, PIPE_RIGHT_MIN, PIPE_RIGHT_MAX);
   });
   const dragRef = React.useRef(null);
   const beginDrag = React.useCallback((edge) => (ev) => {
@@ -731,8 +730,6 @@ window.ENH_PILL_LABEL = ENH_PILL_LABEL;
 window.ENH_ROUTE_EDGES = ENH_ROUTE_EDGES;
 window.ENH_ROW_Y = ENH_ROW_Y;
 window.ENH_STAGE_LAYOUT = ENH_STAGE_LAYOUT;
-window.EnhancedDetailCards = EnhancedDetailCards;
-window.HierarchyList = HierarchyList;
 
 
 // Phase 27 window exports:

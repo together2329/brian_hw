@@ -966,5 +966,3 @@ window.StageStatusRail = StageStatusRail;
 window.WorkerOrchestraBar = WorkerOrchestraBar;
 window.clampPipeWidth = clampPipeWidth;
 window.pipelineIpFromActiveNamespace = pipelineIpFromActiveNamespace;
-const readPipeWidth = (...a) => window.readPipeWidth(...a);
-const pipelineInitialIp = (...a) => window.pipelineInitialIp(...a);
