@@ -160,8 +160,12 @@ def test_import_to_ssot_uses_manifest_and_split_roots():
     assert "{ip}/wiki/import-evidence.md" in spec_src
     assert "import_manifest.json" in qna_src
     assert "`{ip}/req/imports/`" in qna_src
-    assert "--workflow-root" in atlas_ui_src
-    assert "--ip-root" in atlas_ui_src
+    # CLI flag definitions live in src/atlas_runtime.py post Phase-4 refactor;
+    # accept either location so the assertion tracks intent (the flags are wired
+    # somewhere in the server-side codebase) rather than the file boundary.
+    runtime_src = ATLAS_UI_PY.with_name("atlas_runtime.py").read_text(encoding="utf-8")
+    assert "--workflow-root" in atlas_ui_src or "--workflow-root" in runtime_src
+    assert "--ip-root" in atlas_ui_src or "--ip-root" in runtime_src
 
     for path in (TO_SSOT_SKILL, SSOT_SYSTEM_PROMPT, COMMON_ENGINE_FLOW):
         src = path.read_text(encoding="utf-8")
