@@ -77,6 +77,41 @@ def _install_stack_dump_signal() -> None:
 _install_stack_dump_signal()
 
 
+_DISCONNECT_ERRNOS = {
+    errno.ECONNRESET,
+    errno.ECONNABORTED,
+    errno.EPIPE,
+}
+_DISCONNECT_WINERRORS = {
+    10053,  # WSAECONNABORTED
+    10054,  # WSAECONNRESET: remote host forcibly closed the connection
+    10058,  # WSAESHUTDOWN
+}
+_DISCONNECT_TEXT_FRAGMENTS = (
+    "connection reset by peer",
+    "forcibly closed",
+    "broken pipe",
+    "connection aborted",
+    "transport is closing",
+)
+
+
+def _is_disconnect_os_error(exc: BaseException) -> bool:
+    """Classify OS-level socket resets as normal client disconnects."""
+
+    if isinstance(exc, (ConnectionResetError, BrokenPipeError, EOFError)):
+        return True
+    if isinstance(exc, OSError):
+        if getattr(exc, "errno", None) in _DISCONNECT_ERRNOS:
+            return True
+        if getattr(exc, "winerror", None) in _DISCONNECT_WINERRORS:
+            return True
+        msg = str(exc).lower()
+        if any(fragment in msg for fragment in _DISCONNECT_TEXT_FRAGMENTS):
+            return True
+    return False
+
+
 # Self-bootstrap PYTHONPATH so `python3 src/atlas_ui.py` works without
 # the caller exporting PYTHONPATH=.:src first. atlas_ui imports modules
 # from BOTH this directory (other src/*.py siblings) AND the repo root
@@ -4797,6 +4832,8 @@ def create_app():
         cur: BaseException | None = exc
         while cur is not None and id(cur) not in seen:
             seen.add(id(cur))
+            if _is_disconnect_os_error(cur):
+                return True
             if isinstance(cur, WebSocketDisconnect):
                 return True
             cls_name = cur.__class__.__name__
@@ -5054,7 +5091,7 @@ def create_app():
         return Response(
             content=cached["body"],
             media_type=media_type,
-            headers={"Cache-Control": "no-store, max-age=0"},
+            headers={"Cache-Control": "public, max-age=31536000, immutable"},
         )
 
     @app.get("/")

@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import threading
 from pathlib import Path
 from typing import Any, Callable, Optional
 
@@ -70,6 +71,77 @@ def register_sessions_routes(
         if os.environ.get("ATLAS_SESSION_WORKER_KEEPALIVE") is not None:
             return _env_flag("ATLAS_SESSION_WORKER_KEEPALIVE", False)
         return current_exec_mode(os.environ) == EXEC_MODE_SINGLE
+
+    def _session_worker_alive(session_id: str, *, process_mode: bool) -> bool:
+        if not session_id:
+            return False
+        try:
+            if process_mode:
+                manager = getattr(bridge, "_process_manager", None)
+                return bool(manager is not None and manager.is_alive(session_id))
+            return bool(getattr(bridge.get_session(session_id), "agent_alive", False))
+        except Exception:
+            return False
+
+    def _session_worker_pid(session_id: str) -> int:
+        try:
+            manager = getattr(bridge, "_process_manager", None)
+            if manager is None:
+                return 0
+            get_pid = getattr(manager, "get_pid", None)
+            if callable(get_pid):
+                return int(get_pid(session_id) or 0)
+        except Exception:
+            pass
+        return 0
+
+    def _schedule_session_worker_warmup(session_id: str, *, process_mode: bool) -> dict[str, Any]:
+        mode = "process" if process_mode else "thread"
+        if _session_worker_alive(session_id, process_mode=process_mode):
+            payload: dict[str, Any] = {
+                "enabled": True,
+                "mode": mode,
+                "session_id": session_id,
+                "status": "ready",
+                "alive": True,
+            }
+            if process_mode:
+                payload["pid"] = _session_worker_pid(session_id)
+            return payload
+        warm_fn = getattr(bridge, "warm_session", None)
+        if not callable(warm_fn):
+            return {
+                "enabled": False,
+                "mode": mode,
+                "session_id": session_id,
+                "reason": "missing_warm_session",
+            }
+
+        def _run_background_warmup() -> None:
+            try:
+                warm_fn(session_id)
+            except Exception as exc:
+                print(
+                    f"[Session] background session worker warmup({session_id!r}) failed: {exc}",
+                    flush=True,
+                )
+
+        try:
+            threading.Thread(
+                target=_run_background_warmup,
+                name=f"atlas-session-warmup:{session_id}",
+                daemon=True,
+            ).start()
+        except Exception as exc:
+            return {"enabled": False, "mode": mode, "session_id": session_id, "error": str(exc)}
+        return {
+            "enabled": True,
+            "mode": mode,
+            "session_id": session_id,
+            "status": "scheduled",
+            "alive": False,
+            "background": True,
+        }
 
     # ── /api/session/activate ──────────────────────────────────────
     @app.post("/api/session/activate")
@@ -394,12 +466,10 @@ def register_sessions_routes(
         except Exception as exc:
             worker_warmup = {"enabled": False, "error": str(exc)}
         if keep_session_worker_hot and "error" not in session_worker_warmup:
-            try:
-                warm_fn = getattr(bridge, "warm_session", None)
-                if callable(warm_fn):
-                    session_worker_warmup = warm_fn(canonical)
-            except Exception as exc:
-                session_worker_warmup = {"enabled": False, "error": str(exc)}
+            session_worker_warmup = _schedule_session_worker_warmup(
+                canonical,
+                process_mode=process_mode,
+            )
         return JSONResponse({
             "ok": True,
             "active_session": canonical,

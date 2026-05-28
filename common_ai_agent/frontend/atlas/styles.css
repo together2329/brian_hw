@@ -602,6 +602,107 @@ html[data-platform="windows"] .app {
   border-color: var(--accent);
   background: var(--hover-bg);
 }
+.dir-name-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: color-mix(in oklch, var(--bg) 72%, transparent);
+}
+.dir-name-modal {
+  width: min(420px, calc(100vw - 36px));
+  background: var(--panel);
+  color: var(--fg);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  box-shadow: 0 18px 52px color-mix(in oklch, var(--fg) 22%, transparent);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-family: var(--mono);
+}
+.dir-name-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.dir-name-modal-title {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+.dir-name-modal-sub {
+  margin-top: 4px;
+  color: var(--fg-mute);
+  font-size: 11px;
+}
+.dir-name-modal-close {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--fg-dim);
+  cursor: pointer;
+  font: inherit;
+}
+.dir-name-modal-close:hover { border-color: var(--accent); color: var(--accent); }
+.dir-name-modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--fg-mute);
+  font-size: 11px;
+  text-transform: uppercase;
+}
+.dir-name-modal-input {
+  height: 38px;
+  background: var(--field-bg);
+  color: var(--fg);
+  border: 1px solid var(--line-2);
+  border-radius: 6px;
+  outline: none;
+  padding: 0 10px;
+  font-family: var(--mono);
+  font-size: 14px;
+}
+.dir-name-modal-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--accent) 22%, transparent);
+}
+.dir-name-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.dir-name-modal-btn {
+  height: 32px;
+  min-width: 76px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--fg-dim);
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.dir-name-modal-btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-fg);
+  font-weight: 800;
+}
+.dir-name-modal-btn:disabled,
+.dir-name-modal-close:disabled,
+.dir-name-modal-input:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
 .dir-select-wrap {
   display: inline-flex;
   align-items: center;
@@ -6236,40 +6337,6 @@ pre, code,
     white-space: nowrap;
   }
   .mob-header-wf:active { background: color-mix(in oklch, var(--cyan, #06b6d4) 24%, var(--bg-3)); }
-
-  /* IP inline name-entry form (shown when + IP is pending) */
-  .mob-ip-entry-form {
-    flex: 1 1 0;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    min-height: 44px;
-  }
-  .mob-ip-entry-input {
-    flex: 1 1 0;
-    min-height: 40px;
-    background: var(--field-bg);
-    border: 1px solid var(--accent);
-    border-radius: 6px;
-    padding: 0 10px;
-    font-family: var(--mono);
-    font-size: 13px;
-    color: var(--fg);
-    outline: none;
-  }
-  .mob-ip-entry-ok {
-    min-height: 40px;
-    min-width: 44px;
-    background: var(--bg-3);
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    color: var(--fg);
-    font-family: var(--mono);
-    font-size: 12px;
-    cursor: pointer;
-    padding: 0 8px;
-  }
-  .mob-ip-entry-ok:active { background: var(--accent); color: var(--bg); }
 
   /* ── Bottom-sheet backdrop ─────────────────────────────────────── */
   .mob-sheet-backdrop {

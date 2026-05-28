@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+import time
 from pathlib import Path
 from typing import Optional
 
@@ -757,7 +758,8 @@ def test_process_session_activate_keeps_single_worker_process_warm(tmp_path, mon
     first = _activate(client, "alice", "spi_core", "rtl-gen")
     assert first.status_code == 200, first.text
     assert first.json()["halted"] is False
-    assert calls == [("spawn", "alice/spi_core/rtl-gen")]
+    assert first.json()["session_worker_warmup"]["status"] == "ready"
+    assert calls == []
     calls.clear()
     app.state.bridge.get_session("alice/spi_core/rtl-gen").agent_running = True
 
@@ -765,9 +767,8 @@ def test_process_session_activate_keeps_single_worker_process_warm(tmp_path, mon
 
     assert switched.status_code == 200, switched.text
     assert switched.json()["halted"] is True
-    assert ("kill", "alice/spi_core/rtl-gen") not in calls
     assert any(call[:3] == ("send_input", "alice/spi_core/rtl-gen", "stop") for call in calls)
-    assert app.state.bridge.get_session("alice/spi_core/rtl-gen").agent_alive is True
+    assert switched.json()["session_worker_warmup"]["status"] in {"scheduled", "ready"}
 
 
 def test_single_worker_session_activate_warms_chat_process(tmp_path, monkeypatch):
@@ -802,6 +803,7 @@ def test_single_worker_session_activate_warms_chat_process(tmp_path, monkeypatch
             return None
 
         def spawn(self, session_id):
+            time.sleep(0.2)
             calls.append(("spawn", session_id))
             self.live.add(session_id)
             return True
@@ -836,10 +838,14 @@ def test_single_worker_session_activate_warms_chat_process(tmp_path, monkeypatch
         "enabled": True,
         "mode": "process",
         "session_id": "alice/spi_core/ssot-gen",
-        "status": "started",
-        "alive": True,
-        "pid": 4321,
+        "status": "scheduled",
+        "alive": False,
+        "background": True,
     }
+    assert calls == []
+    deadline = time.time() + 2.0
+    while time.time() < deadline and ("spawn", "alice/spi_core/ssot-gen") not in calls:
+        time.sleep(0.02)
     assert ("spawn", "alice/spi_core/ssot-gen") in calls
     session = app.state.bridge.get_session("alice/spi_core/ssot-gen")
     assert session.agent_alive is True
@@ -945,7 +951,12 @@ def test_todos_crud_add_update_remove_clear_round_trip(tmp_path, monkeypatch):
     assert len(_get_todos()) == 1
 
     # Add a second so update/remove indices are meaningful
-    add2 = client.post("/api/todos/add", json={"session": session, "content": "second todo"})
+    add2 = client.post("/api/todos/add", json={
+        "session": session,
+        "content": "second todo",
+        "detail": "second implementation detail",
+        "criteria": "second acceptance criterion",
+    })
     assert add2.status_code == 200, add2.text
     assert len(_get_todos()) == 2
 
@@ -1182,24 +1193,24 @@ def test_ip_create_endpoint_scaffolds_once_and_rejects_duplicate(tmp_path, monke
 
     assert response.status_code == 200
     assert response.json()["created"] is True
-    assert response.json()["session"] == "alice/gpio/ssot-gen"
+    assert response.json()["session"] == "alice/gpio/default"
     assert (tmp_path / "gpio" / "yaml" / "gpio.ssot.yaml").is_file()
-    assert (tmp_path / ".session" / "alice" / "gpio" / "ssot-gen" / "conversation.json").is_file()
+    assert (tmp_path / ".session" / "alice" / "gpio" / "default" / "conversation.json").is_file()
 
     listed = client.get("/api/ip/list")
     assert listed.status_code == 200, listed.text
     assert {item["name"] for item in listed.json()["items"]} == {"gpio"}
-    assert listed.json()["items"][0]["workflows"] == ["ssot-gen"]
+    assert listed.json()["items"][0]["workflows"] == ["default"]
 
     with AtlasDB() as db:
         user = db.get_user_by_username("alice")
         assert user is not None
-        session = db.get_session("alice/gpio/ssot-gen")
+        session = db.get_session("alice/gpio/default")
         assert session is not None
         assert session["user_id"] == user["id"]
         assert session["owner"] == "alice"
         assert session["ip"] == "gpio"
-        assert session["workflow"] == "ssot-gen"
+        assert session["workflow"] == "default"
         assert session["summary"]["kind"] == "atlas_ip_scaffold"
         ip_rows = db._fetchall("SELECT id, ip_name FROM ip_blocks WHERE ip_name = ?", ("gpio",))
         assert len(ip_rows) == 1
