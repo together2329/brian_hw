@@ -133,12 +133,16 @@ def test_preview_feedback_controls_are_mode_gated():
 
 def test_import_to_ssot_uses_manifest_and_split_roots():
     atlas_ui_src = ATLAS_UI_PY.read_text(encoding="utf-8")
-    gate_start = atlas_ui_src.index("def _handle_to_ssot_gate")
-    gate_end = atlas_ui_src.index("def _handle_repair_ssot_command", gate_start)
-    gate_src = atlas_ui_src[gate_start:gate_end]
-    import_start = atlas_ui_src.index("def _handle_import_command")
-    import_end = atlas_ui_src.index("def _safe_import_upload_name", import_start)
-    import_src = atlas_ui_src[import_start:import_end]
+    # Phase 12 refactor: slash handlers (_handle_to_ssot_gate,
+    # _handle_repair_ssot_command, _handle_import_command, …) moved to
+    # src/atlas_slash_handlers.py — read source from there now.
+    slash_src = ATLAS_UI_PY.with_name("atlas_slash_handlers.py").read_text(encoding="utf-8")
+    gate_start = slash_src.index("def _handle_to_ssot_gate")
+    gate_end = slash_src.index("def _handle_repair_ssot_command", gate_start)
+    gate_src = slash_src[gate_start:gate_end]
+    import_start = slash_src.index("def _handle_import_command")
+    import_end = slash_src.index("def _handle_grill_me_command", import_start)
+    import_src = slash_src[import_start:import_end]
     spec_start = atlas_ui_src.index("def _render_approved_ssot_spec")
     spec_end = atlas_ui_src.index("def _emit_ssot_approval_ready", spec_start)
     spec_src = atlas_ui_src[spec_start:spec_end]
@@ -182,9 +186,11 @@ def test_to_ssot_preview_and_verify_share_canonical_format_contract():
     schema_src = TOOL_SCHEMA_PY.read_text(encoding="utf-8")
     command_src = VERIFY_SSOT_COMMAND.read_text(encoding="utf-8")
 
-    gate_start = atlas_ui_src.index("def _handle_to_ssot_gate")
-    gate_end = atlas_ui_src.index("def _handle_repair_ssot_command", gate_start)
-    gate_src = atlas_ui_src[gate_start:gate_end]
+    # Phase 12 refactor: gate handler moved to atlas_slash_handlers.py.
+    slash_src = ATLAS_UI_PY.with_name("atlas_slash_handlers.py").read_text(encoding="utf-8")
+    gate_start = slash_src.index("def _handle_to_ssot_gate")
+    gate_end = slash_src.index("def _handle_repair_ssot_command", gate_start)
+    gate_src = slash_src[gate_start:gate_end]
 
     canonical_keys = (
         "top_module",
