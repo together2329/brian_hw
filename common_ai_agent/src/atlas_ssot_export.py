@@ -13,23 +13,31 @@ from __future__ import annotations
 import html as _html
 import json as _json
 import os
+import re  # original atlas_ui code uses both bare `re` and alias `_re`
 import re as _re
 from pathlib import Path
 from typing import Any, Optional
 
 import yaml as _yaml
 
-# ── PROJECT_ROOT injection (set by atlas_ui at startup) ───────────────
-_PROJECT_ROOT: Optional[Path] = None
-
+# ── PROJECT_ROOT lookup (dynamic, respects test monkeypatch) ──────────
 def set_project_root(p: Path) -> None:
-    """Called by atlas_ui after PROJECT_ROOT is defined. Avoids circular import."""
-    global _PROJECT_ROOT
-    _PROJECT_ROOT = p
+    """Kept as a no-op for backward compatibility — atlas_ui calls this at
+    startup. The actual project root is read freshly by `_project_root()` so
+    `monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)` in tests is
+    respected without re-importing this module."""
+    return None
 
 def _project_root() -> Path:
-    """Returns the configured PROJECT_ROOT, falling back to cwd if unset."""
-    return _PROJECT_ROOT if _PROJECT_ROOT is not None else Path(os.getcwd())
+    """Read PROJECT_ROOT from atlas_ui on every call. The deferred import
+    avoids a top-level circular dep (atlas_ui imports this module) and is
+    cheap (Python caches modules in sys.modules). Falls back to cwd if
+    atlas_ui isn't importable yet."""
+    try:
+        from src.atlas_ui import PROJECT_ROOT
+        return PROJECT_ROOT
+    except Exception:
+        return Path(os.getcwd())
 
 
 _SSOT_EXPORT_SECTION_ORDER: list[tuple[str, str]] = [
