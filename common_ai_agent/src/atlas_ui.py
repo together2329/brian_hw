@@ -2231,75 +2231,7 @@ def create_app():
             return None
         return candidate
 
-    @app.get("/api/files")
-    async def api_files(path: str = "", recursive: int = 0, max_depth: int = 4,
-                          max_entries: int = 800):
-        target = _safe(path)
-        if target is None:
-            return JSONResponse({"error": "path outside project root"},
-                                status_code=400)
-        if not target.exists():
-            return JSONResponse({"error": "not found"}, status_code=404)
-        rel = "" if target == PROJECT_ROOT else target.relative_to(PROJECT_ROOT).as_posix()
-        if target.is_file():
-            stat = target.stat()
-            return JSONResponse({
-                "type": "file", "path": rel,
-                "size": stat.st_size, "mtime": stat.st_mtime,
-            })
 
-        entries: list = []
-
-        def _list_one(d, depth):
-            try:
-                children = sorted(d.iterdir(),
-                                   key=lambda p: (p.is_file(), p.name.lower()))
-            except PermissionError:
-                return
-            for child in children:
-                if len(entries) >= max_entries:
-                    return
-                if child.name in SKIP_DIRS or child.name.startswith("."):
-                    continue
-                if child.is_file() and _is_file_tree_hidden_artifact(child, target):
-                    continue
-                try:
-                    stat = child.stat()
-                except OSError:
-                    continue
-                entries.append({
-                    "name":  child.name if not recursive else child.relative_to(target).as_posix(),
-                    "type":  "dir" if child.is_dir() else "file",
-                    "size":  stat.st_size if child.is_file() else None,
-                    "mtime": stat.st_mtime,
-                    "depth": depth,
-                })
-                if recursive and child.is_dir() and depth < max_depth:
-                    _list_one(child, depth + 1)
-
-        _list_one(target, 0)
-        return JSONResponse({"type": "dir", "path": rel,
-                              "entries": entries,
-                              "truncated": len(entries) >= max_entries})
-
-    @app.get("/api/file")
-    async def api_file(path: str):
-        target = _safe(path)
-        if target is None or not target.is_file():
-            return JSONResponse({"error": "not found"}, status_code=404)
-        try:
-            def _read_preview():
-                stat = target.stat()
-                data = target.read_bytes()[:MAX_READ_BYTES]
-                return stat, data.decode("utf-8", errors="replace")
-            stat, content = await asyncio.to_thread(_read_preview)
-        except OSError as e:
-            return JSONResponse({"error": str(e)}, status_code=500)
-        truncated = stat.st_size > MAX_READ_BYTES
-        return JSONResponse({
-            "path": path, "size": stat.st_size, "mtime": stat.st_mtime,
-            "truncated": truncated, "content": content,
-        })
 
     def _safe_ip_file_delete_target(ip: str, path: str) -> tuple[Path | None, str | None]:
         clean_ip = str(ip or "").strip().strip("/")
@@ -2339,28 +2271,20 @@ def create_app():
             return None, "file not found"
         return candidate, None
 
-    @app.delete("/api/file")
-    async def api_file_delete(ip: str = "", path: str = ""):
-        target, error = _safe_ip_file_delete_target(ip, path)
-        if target is None:
-            status = 404 if error in {"IP not found", "file not found"} else 400
-            return JSONResponse({"error": error or "not found"}, status_code=status)
-        clean_ip = str(ip or "").strip().strip("/")
-        clean_path = str(path or "").strip().strip("/")
-        try:
-            await asyncio.to_thread(target.unlink)
-        except OSError as exc:
-            return JSONResponse({"error": str(exc)}, status_code=500)
-        try:
-            bridge.emit("file_changed", path=clean_path, tool="delete_file", ip=clean_ip, deleted=True)
-        except Exception:
-            pass
-        return JSONResponse({"deleted": True, "ip": clean_ip, "path": clean_path})
 
-    # Phase 8 refactor (PoC): /api/file/raw moved to src/atlas_api_files.py.
-    # Factory pattern — closure capture (`_safe`) becomes an explicit kwarg.
+    # Phase 9: file API cluster moved to src/atlas_api_files.py.
+    # Factory pattern — closure captures become explicit kwargs.
     from src.atlas_api_files import register_file_routes as _register_file_routes
-    _register_file_routes(app, safe_path_fn=_safe)
+    _register_file_routes(
+        app,
+        safe_path_fn=_safe,
+        project_root=PROJECT_ROOT,
+        skip_dirs=SKIP_DIRS,
+        is_hidden_artifact_fn=_is_file_tree_hidden_artifact,
+        max_read_bytes=MAX_READ_BYTES,
+        safe_ip_delete_fn=_safe_ip_file_delete_target,
+        bridge=bridge,
+    )
 
     def _lint_ip_candidates(ip: str) -> list[Path]:
         clean = str(ip or "").strip().strip("/")
@@ -3174,49 +3098,6 @@ def create_app():
     _FOLD_MAX_BYTES = 5 * 1024 * 1024   # 5 MB
     _FOLD_MAX_LINES = 10_000
 
-    @app.get("/api/fold-symbols")
-    async def api_fold_symbols(path: str):
-        target = _safe(path)
-        if target is None or not target.is_file():
-            return JSONResponse({"error": "not found"}, status_code=404)
-        stat = target.stat()
-        # mtime-keyed LRU
-        cached = _FOLD_CACHE.get(path)
-        if cached and cached[0] == stat.st_mtime:
-            _FOLD_CACHE.move_to_end(path)
-            return JSONResponse({
-                "path": path, "ranges": cached[1], "cached": True,
-            })
-        if stat.st_size > _FOLD_MAX_BYTES:
-            return JSONResponse({
-                "path": path, "ranges": [], "skipped": True,
-                "reason": f"file > {_FOLD_MAX_BYTES // (1024*1024)} MB",
-            })
-        try:
-            text = await asyncio.to_thread(
-                lambda: target.read_text(encoding="utf-8", errors="replace")
-            )
-        except OSError as e:
-            return JSONResponse({"error": str(e)}, status_code=500)
-        if text.count("\n") > _FOLD_MAX_LINES:
-            return JSONResponse({
-                "path": path, "ranges": [], "skipped": True,
-                "reason": f"more than {_FOLD_MAX_LINES} lines",
-            })
-        try:
-            from core.fold_extractor import folds_for_path
-            ranges = await asyncio.to_thread(folds_for_path, path, text)
-        except Exception as e:
-            return JSONResponse({
-                "path": path, "ranges": [], "error": f"extractor failed: {e}",
-            }, status_code=422)
-        _FOLD_CACHE[path] = (stat.st_mtime, ranges)
-        _FOLD_CACHE.move_to_end(path)
-        while len(_FOLD_CACHE) > _FOLD_CACHE_CAP:
-            _FOLD_CACHE.popitem(last=False)
-        return JSONResponse({
-            "path": path, "ranges": ranges, "cached": False,
-        })
 
     # ── VCD (waveform) endpoints — sim_debug workspace ────────────
     # VCD files can be MB+ so we bypass MAX_READ_BYTES with a separate
