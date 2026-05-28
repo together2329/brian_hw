@@ -8,8 +8,30 @@ from __future__ import annotations
 
 import json
 import os
+import time
 from pathlib import Path
 from typing import Any, Callable, Optional
+
+
+def _hydrate_atlas_ui_helpers() -> None:
+    """One-time backport of atlas_ui helpers Phase 3 didn't bring along.
+
+    `_compact_history_file` / `_compact_history_llm` bodies call into 3
+    atlas_ui helpers (`_parse_compact_history_signal`,
+    `_history_message_preview`, `_write_history_json`) via bare-name
+    resolution. atlas_ui imports us at its line 401, so a top-level
+    back-import would be circular. Lazy import + idempotent module-global
+    backfill fixes the `/compact` slash command which was raising
+    NameError at call time.
+    """
+    g = globals()
+    if g.get("_AUI_HYDRATED"):
+        return
+    from src import atlas_ui as _aui
+    for name in ("_parse_compact_history_signal", "_history_message_preview", "_write_history_json"):
+        if hasattr(_aui, name):
+            g[name] = getattr(_aui, name)
+    g["_AUI_HYDRATED"] = True
 
 
 def _load_history_json(path: Path) -> list[dict[str, Any]]:
@@ -27,7 +49,7 @@ def _compact_history_file(path: Path, signal: str) -> tuple[str, list[dict[str, 
     outside that loop, so this deterministic local compactor avoids returning
     the raw COMPACT_HISTORY token or blocking the UI on a second LLM call.
     """
-
+    _hydrate_atlas_ui_helpers()
     messages = _load_history_json(path)
     system_msgs = [m for m in messages if m.get("role") == "system"]
     active_msgs = [m for m in messages if m.get("role") != "system"]
@@ -111,6 +133,7 @@ def _compact_history_llm(
     preserves working paths / code / todos), and persists the result. `compress_fn`
     is injectable for tests; it defaults to the live LLM path.
     """
+    _hydrate_atlas_ui_helpers()
     messages = _load_history_json(path)
     keep_recent, dry_run, instruction = _parse_compact_history_signal(signal)
     if compress_fn is None:

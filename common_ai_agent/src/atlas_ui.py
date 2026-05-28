@@ -4064,7 +4064,10 @@ def create_app():
     # by which point every closure local is bound. Same pattern as the
     # Phase 13d preview-pane forward-refs and Phase 10b atlas_qa wiring.
     from src.atlas_api_soc import register_soc_routes as _register_soc_routes
-    _register_soc_routes(
+    # Capture the returned api_soc handler so cross-route Python-level
+    # callers like api_progress (line ~4093) can keep invoking
+    # api_soc(scope=…, ip=…) directly without going through HTTP.
+    api_soc = _register_soc_routes(
         app,
         SKIP_DIRS=SKIP_DIRS,
         _load_ssot_state=lambda *a, **k: _load_ssot_state(*a, **k),
