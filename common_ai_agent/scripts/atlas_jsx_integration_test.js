@@ -97,6 +97,7 @@ const repoRoot = process.argv[2] || ".";
 vm.runInContext(fs.readFileSync(path.join(repoRoot, "frontend/atlas/vendor/babel.min.js"), "utf8"), sb);
 
 const files = [
+  ["axi-dma-mock.jsx", "frontend/atlas/axi-dma-mock.jsx"],
   ["shared.jsx", "frontend/atlas/shared.jsx"],
   ["ui-utils.jsx", "frontend/atlas/ui-utils.jsx"],
   ["preview-pane.jsx", "frontend/atlas/preview-pane.jsx"],
