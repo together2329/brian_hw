@@ -121,7 +121,12 @@ def test_atlas_ip_file_tree_exposes_right_click_delete() -> None:
     atlas_dir = PROJECT_ROOT / "frontend" / "atlas"
     workspace = (atlas_dir / "workspace.jsx").read_text()
     css = (atlas_dir / "styles.css").read_text()
+    # /api/file/delete (and the guard messages) were extracted from atlas_ui.py
+    # into atlas_api_files.py by Phase 8/9 of refactor/atlas-modular. The route
+    # was renamed at that point: `@app.delete("/api/file")` → `@app.delete("/api/file/delete")`.
     atlas_ui = (PROJECT_ROOT / "src" / "atlas_ui.py").read_text()
+    api_files = (PROJECT_ROOT / "src" / "atlas_api_files.py").read_text()
+    ui_plus_files = atlas_ui + "\n" + api_files
 
     assert "fileContextMenu" in workspace
     assert "onContextMenu={(event) => {" in workspace
@@ -130,9 +135,9 @@ def test_atlas_ip_file_tree_exposes_right_click_delete() -> None:
     assert "atlasResourceCache('file').delete(cleanPath)" in workspace
     assert "file-context-menu" in css
     assert "file-context-menu-danger" in css
-    assert '@app.delete("/api/file")' in atlas_ui
-    assert "path is outside the selected IP" in atlas_ui
-    assert "directory delete is not supported from the UI" in atlas_ui
+    assert '@app.delete("/api/file/delete")' in ui_plus_files
+    assert "path is outside the selected IP" in ui_plus_files
+    assert "directory delete is not supported from the UI" in ui_plus_files
 
 
 def test_atlas_session_switches_hydrate_chat_history_without_full_reload() -> None:
@@ -321,13 +326,18 @@ def test_atlas_left_workflow_ip_panels_are_vertically_resizable() -> None:
 
 def test_atlas_ssot_qa_does_not_seed_nine_default_boxes() -> None:
     workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace.jsx").read_text()
+    # Q&A board (the "synthetic required boxes" comment + requirement_rows
+    # bookkeeping) was extracted from atlas_ui.py into atlas_qa.py by
+    # Phase 10 of refactor/atlas-modular.
     atlas_ui = (PROJECT_ROOT / "src" / "atlas_ui.py").read_text()
+    atlas_qa = (PROJECT_ROOT / "src" / "atlas_qa.py").read_text()
+    py_combined = atlas_ui + "\n" + atlas_qa
 
     assert "'9 boxes to fill'" not in workspace
     assert "'채워야 하는 9칸'" not in workspace
     assert "Do not seed default questions" in workspace
-    assert "they must not seed the UI with synthetic required boxes" in atlas_ui
-    assert "\"total\": len(requirement_rows)" in atlas_ui
+    assert "they must not seed the UI with synthetic required boxes" in py_combined
+    assert "\"total\": len(requirement_rows)" in py_combined
 
 
 def test_atlas_live_worker_feed_is_bounded_for_responsiveness() -> None:

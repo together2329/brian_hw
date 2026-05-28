@@ -235,6 +235,13 @@
        forward-refs internally so the window.X helpers it consumes are looked
        up at render time (workspace.jsx registers them during its own load). -->
   <script type="text/babel" data-presets="react" src="preview-pane.jsx?v=atlas-20260528-preview"></script>
+  <!-- Phase 13c refactor: DigestCard + BlockDiagram + SsotDigestContent +
+       SsotReviewPane (the SSOT digest/review cluster, ~2023 lines). Same
+       IIFE + lambda forward-ref pattern as preview-pane.jsx; depends on 57
+       workspace.jsx-scope helpers (extractors, section parsers, status
+       helpers, status-badge components) that workspace.jsx exposes via
+       end-of-file `window.X = X` block. -->
+  <script type="text/babel" data-presets="react" src="ssot-digest.jsx?v=atlas-20260528-ssot-digest"></script>
   <!-- sim_debug components (loaded BEFORE workspace.jsx so the
        conditional render in workspace.jsx can reference them). -->
   <script type="text/babel" data-presets="react" src="debug-shared.jsx?v=atlas-20260503-strict-status"></script>
