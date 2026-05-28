@@ -228,6 +228,8 @@
   <!-- Phase 13a refactor: SsotDocPane. Loaded BEFORE workspace.jsx so the
        `const SsotDocPane = window.SsotDocPane` alias resolves at parse time. -->
   <script type="text/babel" data-presets="react" src="ssot-doc.jsx?v=atlas-20260527-ssot-doc"></script>
+  <!-- Phase 13b: WorkflowReportPane. -->
+  <script type="text/babel" data-presets="react" src="workflow-report.jsx?v=atlas-20260527-wrp"></script>
   <!-- sim_debug components (loaded BEFORE workspace.jsx so the
        conditional render in workspace.jsx can reference them). -->
   <script type="text/babel" data-presets="react" src="debug-shared.jsx?v=atlas-20260503-strict-status"></script>
