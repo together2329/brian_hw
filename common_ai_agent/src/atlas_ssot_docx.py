@@ -20,7 +20,9 @@ from typing import Any, Optional
 import yaml as _yaml
 
 from src.atlas_ssot_export import (
+    _SSOT_EXPORT_SECTION_ORDER,
     _ssot_md_scalar,
+    _ssot_md_is_short_scalar,
     _ssot_section_is_empty,
     _ssot_field_bit_info,
 )
