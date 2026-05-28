@@ -6,8 +6,10 @@
 
 ## Where the cuts landed
 
-`workspace.jsx` started at **21,415 lines** and is now **15,562 lines**
-(**−27.3%**, **5,853 lines** lifted into focused sibling files).
+| | Started | Now | Reduction |
+|---|---:|---:|---:|
+| `frontend/atlas/workspace.jsx` | 21,415 | **13,286** | **−38.0%** |
+| `src/atlas_ui.py` | 21,415 | **11,179** | **−47.8%** |
 
 | Phase | Commit | Target file | Lines moved |
 |---|---|---|---|
@@ -27,8 +29,20 @@
 | **13d** | 282506b7 | `frontend/atlas/preview-pane.jsx` (PreviewPane + FoldablePane + DeferredMarkdownPreview) | 712 |
 | **13c** | 2096a836 | `frontend/atlas/ssot-digest.jsx` (DigestCard + BlockDiagram + SsotDigestContent + SsotReviewPane) | 2,123 |
 | **13f** | f69b93be | `frontend/atlas/ssot-qa-board.jsx` (SsotQaBoard) | 1,717 |
+| **13g** | cc9908be | `frontend/atlas/workspace-panels.jsx` (AskUserPrompt + ProgressPanel + TodoPanel + OrchestratorChatPanel + GitPanel + AgentStatusPanel) | 2,354 |
+| **14** | (refactor/backend-soc HEAD) | `src/atlas_api_soc.py` — GET /api/soc + nested _build_module, the biggest single route handler in create_app() | 2,721 |
 
-## Pattern used by every frontend extraction (Phase 13a–f)
+### Verification + fix commits on this branch
+
+| Commit | What |
+|---|---|
+| 46233f88 | `onSelectIp` prop propagation from ArchitectMyIps card grid to app |
+| 253cfaec | `_hydrate_atlas_ui_globals()` in atlas_runtime + atlas_model_options (Phase 4/5/6 extraction debt caught by live boot) |
+| 5cefc4ae | `sys` import in atlas_model_options + `/api/file/delete` test path update (Phase 5/9 debt) |
+| e299105a | persist `scripts/atlas_jsx_integration_test.js` + this wiki page |
+| 18509991 | `doc/wiki/_graph.json` regen |
+
+## Pattern used by every frontend extraction (Phase 13a–g)
 
 Each extracted jsx file is a single IIFE that:
 
@@ -60,6 +74,45 @@ Each extracted jsx file is a single IIFE that:
 `index.html` loads each cluster jsx **before** `workspace.jsx`. The IIFE
 wrapper is what prevents top-level `const` collisions across the shared
 `<script>` global scope.
+
+## Pattern used by every backend route-cluster extraction (Phase 8/9, 10, 11, 12, 14)
+
+Each extracted `src/atlas_<area>.py` exposes a single factory function:
+
+```python
+def register_<area>_routes(app, *, dep1, dep2, …) -> None:
+    @app.get("/api/…")
+    def handler(...):
+        # body is the verbatim original — bare names dep1/dep2/… resolve
+        # against the factory's parameter scope, not atlas_ui's module
+        # scope, so no body edits are needed
+```
+
+In `atlas_ui.create_app()` the original nested route is replaced by:
+
+```python
+from src.atlas_<area> import register_<area>_routes as _register_<area>_routes
+_register_<area>_routes(
+    app,
+    dep1=dep1,
+    # Lambda forward-refs for deps defined later in create_app() so the
+    # actual name lookup happens at request time (TDZ-safe):
+    dep2=lambda *a, **k: dep2(*a, **k),
+    …
+)
+```
+
+Three categories of dep need different handling:
+
+| Dep type | Wiring | Why |
+|---|---|---|
+| Forward-ref `def` in create_app() (e.g. `_load_ssot_state`) | `lambda *a, **k: name(*a, **k)` | Without the lambda, the factory call fires at create_app construction time when the def is not yet bound — UnboundLocalError. |
+| Already-defined local (e.g. `_soc_build_lock`) | Pass directly | Bound before the factory call; safe. |
+| Module global (e.g. `PROJECT_ROOT`, `SOURCE_ROOT`) | Pass directly | Finalized by `main()`/import before `create_app()` runs. |
+| Stdlib (`json`, `re`, `Path`, etc.) | Import at top of the extracted module | Not in atlas_ui's globals; needed by the body. |
+| FastAPI `JSONResponse` etc. | Import at top of the extracted module | `create_app()` imports it locally, so the bare-name resolves against atlas_ui's *function* scope which is not visible after extraction. |
+
+The fourth and fifth rows above are the **extraction debt** category — Phase 4/5/6 missed them at first and shipped with latent NameErrors that only fired when the real boot path was exercised. See commits 253cfaec / 5cefc4ae for the catch-up fixes.
 
 ## Verification rig — `scripts/atlas_jsx_integration_test.js`
 
