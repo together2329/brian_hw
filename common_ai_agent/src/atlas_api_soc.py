@@ -2739,3 +2739,6 @@ def register_soc_routes(
         except Exception as e:
             return JSONResponse({"error": str(e), "clusters": []}, status_code=500)
 
+    # Return api_soc so the caller can rebind it as a local for any
+    # cross-route Python-level callers (e.g. api_progress in atlas_ui.py).
+    return api_soc
