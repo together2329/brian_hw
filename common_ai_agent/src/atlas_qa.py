@@ -1,13 +1,15 @@
 """SSOT Q&A board helpers — extracted from src/atlas_ui.py.
 
-Phases 10 / 10b / 10c of refactor/atlas-modular:
+Phases 10 / 10b / 10c / 10d of refactor/atlas-modular:
 - Phase 10:  section-key→label mapping (pure consts + lookup).
-- Phase 10b: factory `make_qa_helpers(**deps)` returning the simple I/O
-  cluster (path/load/save/active_context).
-- Phase 10c: pure utility helpers (status_group/qa_slug/q_pairs) +
-  upsert(items) added to the factory.
+- Phase 10b: factory `make_qa_helpers(**deps)` for path/load/save/active_context.
+- Phase 10c: pure utility helpers (status_group/qa_slug/q_pairs) + upsert.
+- Phase 10d: view + sessions_view (the heaviest renderers).
 
-Bigger helpers (view, sessions_view) extracted in subsequent phases.
+The factory pattern keeps closures intact while moving the code out of
+create_app(): each helper closes over its sibling helpers + the injected
+deps, and atlas_ui aliases the returned callables back to the original
+public names so call sites stay unchanged.
 """
 from __future__ import annotations
 
@@ -92,8 +94,11 @@ def make_qa_helpers(
     active_ip_value_fn: Callable[[], str],
     valid_ip_name_fn: Callable[[str], bool],
     canonical_session_fn: Callable[..., str],
+    load_ssot_state_fn: Callable[[str], dict],
+    ssot_decisions_fn: Callable[[str, dict], dict],
+    required_decisions_fn: Callable[[], List[Tuple[str, str]]],
 ) -> Dict[str, Callable]:
-    """Build the Q&A I/O + upsert helpers.
+    """Build the Q&A I/O + upsert + view helpers.
 
     Each kwarg replaces a closure capture from create_app(). The returned
     dict has the callables atlas_ui aliases back to its original names.
@@ -237,10 +242,275 @@ def make_qa_helpers(
                 items[existing_idx] = item
         _save_ssot_qa_items(ip, items, session)
 
+    def _ssot_qa_view(ip: str, session: Optional[str] = None) -> Dict[str, Any]:
+        state = load_ssot_state_fn(ip)
+        decisions = ssot_decisions_fn(ip, state)
+        items = _load_ssot_qa_items(ip, session)
+        required_index = {key: idx for idx, (key, _label) in enumerate(required_decisions_fn())}
+        for item in items:
+            key = str(item.get("decision_key") or "")
+            answer = str(item.get("answer") or decisions.get(key) or "").strip()
+            status = "approved" if answer else _status_group(str(item.get("status") or "pending"))
+            item["answer"] = answer
+            item["status_group"] = "approved" if status == "approved" else "pending"
+            if item["status_group"] == "approved":
+                item["status"] = "approved"
+        items.sort(key=lambda item: (
+            str(item.get("section_id") or ""),
+            required_index.get(str(item.get("decision_key") or ""), 999),
+            float(item.get("created_at") or 0),
+        ))
+        groups: Dict[str, Dict[str, Any]] = {}
+        for item in items:
+            section_id = str(item.get("section_id") or "99_other")
+            section = groups.setdefault(section_id, {
+                "id": section_id,
+                "title": str(item.get("section_title") or "99. Other / Open Decisions"),
+                "approved": [],
+                "pending": [],
+                "items": [],
+            })
+            copied = dict(item)
+            section["items"].append(copied)
+            bucket = "approved" if copied.get("status_group") == "approved" else "pending"
+            section[bucket].append(copied)
+        sections = list(groups.values())
+        toc = [
+            {
+                "id": section["id"],
+                "title": section["title"],
+                "approved": len(section["approved"]),
+                "pending": len(section["pending"]),
+                "total": len(section["items"]),
+            }
+            for section in sections
+        ]
+        approved = sum(1 for item in items if item.get("status_group") == "approved")
+        pending = sum(1 for item in items if item.get("status_group") != "approved")
+        # Q&A is now driven only by real recorded questions/answers. The
+        # nine SSOT decision names still guide /new-ip and /to-ssot prompts,
+        # but they must not seed the UI with synthetic required boxes.
+        requirement_rows: List[Dict[str, Any]] = []
+        requirement_missing_keys: List[str] = []
+        seen_requirement_keys: set = set()
+        for idx, item in enumerate(items):
+            key = str(item.get("decision_key") or item.get("flow_id") or "").strip()
+            if not key:
+                key = _qa_slug(str(item.get("question") or item.get("subtitle") or ""), f"qa_{idx + 1}")
+            if key in seen_requirement_keys:
+                continue
+            seen_requirement_keys.add(key)
+            is_approved = item.get("status_group") == "approved"
+            if not is_approved:
+                requirement_missing_keys.append(key)
+            requirement_rows.append({
+                "key": key,
+                "label": str(item.get("decision_label") or item.get("question") or key),
+                "status": "filled" if is_approved else "missing",
+                "answer": str(item.get("answer") or ""),
+            })
+        imported_files: List[Dict[str, Any]] = []
+        seen_import_paths: set = set()
+        project_root = project_root_fn()
+
+        def _add_imported_file(row: Dict[str, Any]) -> None:
+            path = str(row.get("path") or row.get("md_path") or row.get("original_path") or "").strip()
+            original = str(row.get("original_path") or row.get("path") or "").strip()
+            md_path_str = str(row.get("md_path") or "").strip()
+            if not path and not original:
+                return
+            # Dedup against every path the artifact knows about so a manifest
+            # entry for foo.docx (with md_path=foo.md) doesn't get re-added by
+            # the imports/ glob pass that also iterates foo.md as standalone.
+            keys = [k for k in (path, original, md_path_str) if k]
+            if any(k in seen_import_paths for k in keys):
+                return
+            for k in keys:
+                seen_import_paths.add(k)
+            name = str(row.get("name") or Path(original or path).name or "").strip()
+            images = row.get("image_paths") if isinstance(row.get("image_paths"), list) else []
+            for img in images:
+                if isinstance(img, str) and img:
+                    seen_import_paths.add(img)
+            imported_files.append({
+                "name": name,
+                "bytes": int(row.get("bytes") or row.get("size_bytes") or 0),
+                "path": path,
+                "md_path": md_path_str or (path if path.endswith(".md") else ""),
+                "original_path": original,
+                "image_paths": images,
+                "image_count": len(images),
+                "convert_error": str(row.get("convert_error") or ""),
+            })
+
+        manifest_path = project_root / ip / "req" / "import_manifest.json"
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8", errors="replace")) if manifest_path.is_file() else {}
+        except Exception:
+            manifest = {}
+        for artifact in (manifest.get("artifacts") if isinstance(manifest, dict) else []) or []:
+            if isinstance(artifact, dict):
+                _add_imported_file(artifact)
+        imports_dir = project_root / ip / "req" / "imports"
+        originals_dir = imports_dir / "originals"
+        # Build a lookup of every uploaded source document under
+        # imports/originals/<stamp>_<idx>_<filename>. The .md sibling in
+        # imports/ has the same <stamp>_<idx>_ prefix; matching by stem
+        # collapses the docx/md pair into a single row whose displayed name
+        # is the user's original upload filename (foo.docx, not <stamp>_<idx>_foo.md).
+        original_by_stem: Dict[str, Path] = {}
+        if originals_dir.is_dir():
+            for orig_path in originals_dir.iterdir():
+                if not orig_path.is_file():
+                    continue
+                stem = orig_path.stem
+                original_by_stem[stem] = orig_path
+                try:
+                    rel = orig_path.relative_to(project_root).as_posix()
+                except Exception:
+                    rel = orig_path.as_posix()
+                m = re.match(r"^(\d+_\d+)_(.+)$", orig_path.name)
+                display_name = m.group(2) if m else orig_path.name
+                # Pair the original with its md sibling (same stem in imports/)
+                # so the UI shows the docx name and the agent still sees md_path.
+                md_sibling = imports_dir / f"{stem}.md"
+                md_rel = ""
+                if md_sibling.is_file():
+                    try:
+                        md_rel = md_sibling.relative_to(project_root).as_posix()
+                    except Exception:
+                        md_rel = md_sibling.as_posix()
+                _add_imported_file({
+                    "name": display_name,
+                    "bytes": orig_path.stat().st_size,
+                    "path": rel,
+                    "md_path": md_rel,
+                    "original_path": rel,
+                })
+        if imports_dir.is_dir():
+            for path in sorted(imports_dir.glob("*"), key=lambda p: p.stat().st_mtime if p.exists() else 0, reverse=True)[:80]:
+                if path.is_dir():
+                    continue
+                if not path.is_file():
+                    continue
+                try:
+                    rel = path.relative_to(project_root).as_posix()
+                except Exception:
+                    rel = path.as_posix()
+                if rel in seen_import_paths:
+                    continue
+                # Loose .md files whose <stamp>_<idx>_<name> stem matches an
+                # entry under originals/ are already covered by the pass above.
+                if path.suffix.lower() == ".md" and path.stem in original_by_stem:
+                    continue
+                _add_imported_file({
+                    "name": path.name,
+                    "bytes": path.stat().st_size,
+                    "path": rel,
+                    "md_path": rel if path.suffix.lower() == ".md" else "",
+                    "original_path": rel,
+                })
+        return {
+            "ip": ip,
+            "workflow": "ssot-gen",
+            "session": normalize_session_name_fn(str(session or active_session_value_fn() or canonical_session_fn(ip))),
+            "approved": bool(state.get("approved")),
+            "state_status": state.get("status") or "",
+            "toc": toc,
+            "sections": sections,
+            "summary": {"total": approved + pending, "approved": approved, "pending": pending},
+            "requirements": {
+                "total": len(requirement_rows),
+                "filled": sum(1 for row in requirement_rows if row.get("status") == "filled"),
+                "missing": len(requirement_missing_keys),
+                "items": requirement_rows,
+                "missing_keys": requirement_missing_keys,
+            },
+            "items": items,
+            "imports": imported_files,
+            "path": str(_ssot_qa_path(ip, session).relative_to(project_root)),
+        }
+
+    def _ssot_qa_sessions_view() -> Dict[str, Any]:
+        root = project_root_fn() / ".session"
+        sessions: List[Dict[str, Any]] = []
+        if not root.is_dir():
+            return {"sessions": sessions, "count": 0}
+        seen: set = set()
+        for sdir in root.rglob("ssot-gen"):
+            if not sdir.is_dir():
+                continue
+            try:
+                rel = sdir.relative_to(root)
+            except Exception:
+                continue
+            parts = [p for p in rel.parts if p]
+            if len(parts) < 2 or parts[-1] != "ssot-gen":
+                continue
+            ip = parts[-2]
+            if not valid_ip_name_fn(ip):
+                continue
+            session = str(rel)
+            if session in seen:
+                continue
+            seen.add(session)
+            files = [sdir / name for name in ("state.json", "qa.json", "conversation.json")]
+            if not any(p.is_file() for p in files):
+                continue
+            mtimes = []
+            for p in files:
+                try:
+                    if p.is_file():
+                        mtimes.append(p.stat().st_mtime)
+                except Exception:
+                    pass
+            state = {}
+            state_path = sdir / "state.json"
+            if state_path.is_file():
+                try:
+                    loaded = json.loads(state_path.read_text(encoding="utf-8"))
+                    state = loaded if isinstance(loaded, dict) else {}
+                except Exception:
+                    state = {}
+            if not state:
+                state = load_ssot_state_fn(ip)
+            # Keep the sessions list cheap: it's polled during first page load
+            # and must never parse every IP's SSOT YAML. Some generated drafts
+            # are very large or malformed enough for PyYAML to stall the
+            # single uvicorn event loop for seconds. The detailed SSOT pane
+            # still calls _ssot_qa_view() for one selected IP.
+            qa_items = _load_ssot_qa_items(ip, session)
+            approved = sum(
+                1 for item in qa_items
+                if _status_group(str(item.get("status") or "")) == "approved"
+                or str(item.get("answer") or "").strip()
+            )
+            pending = max(0, len(qa_items) - approved)
+            qa_path = _ssot_qa_path(ip, session)
+            sessions.append({
+                "session": session,
+                "owner": "/".join(parts[:-2]),
+                "ip": ip,
+                "workflow": "ssot-gen",
+                "status": state.get("status") or "draft",
+                "approved": bool(state.get("approved")),
+                "summary": {
+                    "total": approved + pending,
+                    "approved": approved,
+                    "pending": pending,
+                },
+                "updated_at": max(mtimes) if mtimes else float(state.get("updated_at") or 0),
+                "qa_path": str(qa_path.relative_to(project_root_fn())) if qa_path.exists() else "",
+            })
+        sessions.sort(key=lambda row: float(row.get("updated_at") or 0), reverse=True)
+        return {"sessions": sessions, "count": len(sessions)}
+
     return {
         "path": _ssot_qa_path,
         "load": _load_ssot_qa_items,
         "save": _save_ssot_qa_items,
         "active_context": _active_ssot_qa_context,
         "upsert": _upsert_ssot_qa_items,
+        "view": _ssot_qa_view,
+        "sessions_view": _ssot_qa_sessions_view,
     }
