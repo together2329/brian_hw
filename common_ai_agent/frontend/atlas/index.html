@@ -230,6 +230,11 @@
   <script type="text/babel" data-presets="react" src="ssot-doc.jsx?v=atlas-20260527-ssot-doc"></script>
   <!-- Phase 13b: WorkflowReportPane. -->
   <script type="text/babel" data-presets="react" src="workflow-report.jsx?v=atlas-20260527-wrp"></script>
+  <!-- Phase 13d refactor: PreviewPane + FoldablePane + DeferredMarkdownPreview
+       extracted from workspace.jsx. Loaded BEFORE workspace.jsx; uses lambda
+       forward-refs internally so the window.X helpers it consumes are looked
+       up at render time (workspace.jsx registers them during its own load). -->
+  <script type="text/babel" data-presets="react" src="preview-pane.jsx?v=atlas-20260528-preview"></script>
   <!-- sim_debug components (loaded BEFORE workspace.jsx so the
        conditional render in workspace.jsx can reference them). -->
   <script type="text/babel" data-presets="react" src="debug-shared.jsx?v=atlas-20260503-strict-status"></script>

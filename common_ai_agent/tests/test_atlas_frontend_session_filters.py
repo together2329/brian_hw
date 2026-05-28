@@ -47,7 +47,10 @@ def test_orchestrator_exec_mode_pins_orchestrator_workflow_first():
     assert "orchestrator: {" in workspace_src
     assert "const next = (currentWorkflow === w ? defaultWorkflowForExecMode() : w) || defaultWorkflowForExecMode();" in workspace_src
     assert "next !== 'orchestrator'" in workspace_src
-    assert "return <OrchestratorWorkflowPane activeIp={activeIp} />;" in workspace_src
+    # OrchestratorWorkflowPane render moved into workflow-report.jsx by
+    # Phase 13b of refactor/atlas-modular.
+    workflow_report_src = (PROJECT_ROOT / "frontend" / "atlas" / "workflow-report.jsx").read_text(encoding="utf-8")
+    assert "return <OrchestratorWorkflowPane activeIp={activeIp} />;" in (workspace_src + "\n" + workflow_report_src)
 
 
 def test_workspace_chat_routing_prefers_active_session_ip_over_stale_scope():
@@ -56,7 +59,9 @@ def test_workspace_chat_routing_prefers_active_session_ip_over_stale_scope():
 
     assert "() => resolveSession(window.ACTIVE_SESSION, activeNamespace, activeSession)" in workspace_src
     assert "return activeIpForRoute([\n      window.ACTIVE_SESSION,\n      activeNamespace," in workspace_src
-    assert "const promptScope = (() => {\n        return activeIpForRoute([" in workspace_src
+    # Source indent is 6 spaces (IIFE body is one level deeper than the
+    # surrounding `const promptScope = (() =>` at 4 spaces).
+    assert "const promptScope = (() => {\n      return activeIpForRoute([" in workspace_src
     assert "const scoped = normalizeUiSession(window.SCOPE_PATH || '');" not in workspace_src
     assert "const browserActiveIp = activeIpFromSession();" in data_src
     assert "const routeActiveIp = effectiveRoute.ip || browserActiveIp || backendActiveIp;" in data_src

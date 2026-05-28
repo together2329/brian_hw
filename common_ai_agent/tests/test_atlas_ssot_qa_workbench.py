@@ -121,14 +121,20 @@ def test_fsm_graph_defaults_to_native_renderer_not_mermaid():
 
 
 def test_preview_feedback_controls_are_mode_gated():
+    # PreviewPane itself was extracted to preview-pane.jsx in Phase 13d, so
+    # the `feedbackMode` default param + the `feedbackMode && floating` overlay
+    # markup live there now. The mode state + caller-site `feedbackMode={…}`
+    # props stay in workspace.jsx (the parents that render PreviewPane).
     workspace_src = WORKSPACE_JSX.read_text(encoding="utf-8")
+    preview_pane_src = (ROOT / "frontend" / "atlas" / "preview-pane.jsx").read_text(encoding="utf-8")
+    combined = workspace_src + "\n" + preview_pane_src
 
-    assert "feedbackMode = false" in workspace_src
-    assert "feedbackMode && floating" in workspace_src
-    assert "const [previewMode, setPreviewMode] = React.useState('view');" in workspace_src
-    assert "const [ssotPreviewMode, setSsotPreviewMode] = React.useState('view');" in workspace_src
-    assert "feedbackMode={previewMode === 'feedback'}" in workspace_src
-    assert "feedbackMode={ssotPreviewMode === 'feedback'}" in workspace_src
+    assert "feedbackMode = false" in combined
+    assert "feedbackMode && floating" in combined
+    assert "const [previewMode, setPreviewMode] = React.useState('view');" in combined
+    assert "const [ssotPreviewMode, setSsotPreviewMode] = React.useState('view');" in combined
+    assert "feedbackMode={previewMode === 'feedback'}" in combined
+    assert "feedbackMode={ssotPreviewMode === 'feedback'}" in combined
 
 
 def test_import_to_ssot_uses_manifest_and_split_roots():
