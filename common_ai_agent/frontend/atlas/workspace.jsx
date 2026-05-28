@@ -13111,7 +13111,7 @@ const FsmTransitionDiagram = ({ machine, index = 0 }) => {
         </div>
       </div>
       {mode === 'graph' ? (
-        <MermaidFsmGraph graph={graph} code={mermaidCode} diagramId={diagramId} />
+        <FsmLayeredSvgDiagram graph={graph} diagramId={diagramId} />
       ) : null}
       {mode === 'mermaid' ? (
         <pre

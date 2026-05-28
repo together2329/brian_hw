@@ -111,6 +111,15 @@ def test_ssot_preview_attention_status_uses_bang_glyph():
     assert "{ssotStatusGlyph(status)}" in workspace_src
 
 
+def test_fsm_graph_defaults_to_native_renderer_not_mermaid():
+    workspace_src = WORKSPACE_JSX.read_text(encoding="utf-8")
+    graph_branch = workspace_src[workspace_src.index("{mode === 'graph' ? ("):workspace_src.index("{mode === 'mermaid' ? (")]
+
+    assert "<FsmLayeredSvgDiagram graph={graph} diagramId={diagramId} />" in graph_branch
+    assert "<MermaidFsmGraph" not in graph_branch
+    assert "<code>{mermaidCode}</code>" in workspace_src
+
+
 def test_preview_feedback_controls_are_mode_gated():
     workspace_src = WORKSPACE_JSX.read_text(encoding="utf-8")
 
