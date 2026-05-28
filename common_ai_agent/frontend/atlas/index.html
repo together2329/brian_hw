@@ -303,6 +303,9 @@
        functions are already exposed on window; this file binds them
        directly inside its IIFE. -->
   <script type="text/babel" data-presets="react" src="pipeline-trace.jsx?v=atlas-20260528-pipe-trace"></script>
+  <!-- Phase 30 split: PipelineFlowMap + StageCard extracted from
+       pipeline-trace.jsx so it drops under 1000. -->
+  <script type="text/babel" data-presets="react" src="pipeline-flow-stage.jsx?v=atlas-20260528-flow-stage"></script>
   <!-- Guide screen — registers window.AtlasGuide, mounted by app.jsx when
        screen === 'guide'. Loaded before app.jsx like the other screens. -->
   <script type="text/babel" data-presets="react" src="guide.jsx?v=atlas-20260527-guide"></script>
