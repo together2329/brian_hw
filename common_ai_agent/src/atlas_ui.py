@@ -405,6 +405,9 @@ from src.atlas_compactor import (
     _compact_history_llm,
 )
 
+# Phase 10 refactor (PoC): Q&A section labels moved to src/atlas_qa.py
+from src.atlas_qa import _ssot_qa_section
+
 # Phase 4 refactor: server runtime + CLI extracted to src/atlas_runtime.py
 from src.atlas_runtime import (
     run_atlas_ui,
@@ -8700,17 +8703,6 @@ def create_app():
         state["updated_at"] = time.time()
         path.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    _SSOT_QA_SECTIONS = {
-        "purpose": ("00_overview", "0. Overview / Intent"),
-        "parameters": ("01_parameters", "1. Parameters"),
-        "clock_reset": ("02_clock_reset", "2. Clock / Reset"),
-        "bus_interface": ("03_interface", "3. Interface"),
-        "submodule_structure": ("04_architecture", "4. Architecture / Decomposition"),
-        "memory_map": ("05_memory", "5. Memory / Buffering"),
-        "register_map": ("06_registers", "6. Register Map"),
-        "interrupt": ("07_interrupt_error", "7. Interrupt / Error Policy"),
-        "test_expectation": ("18_verification", "18. Verification / Gates"),
-    }
 
     def _ssot_session_dir(ip: str, session: str | None = None) -> Path:
         # Canonical layout under --ui atlas: .session/<session_id>/<ip>/ssot-gen
@@ -8730,11 +8722,6 @@ def create_app():
     def _ssot_qa_path(ip: str, session: str | None = None) -> Path:
         return _ssot_session_dir(ip, session) / "qa.json"
 
-    def _ssot_qa_section(decision_key: str) -> tuple[str, str]:
-        return _SSOT_QA_SECTIONS.get(
-            decision_key,
-            ("99_other", "99. Other / Open Decisions"),
-        )
 
     def _load_ssot_qa_items(ip: str, session: str | None = None) -> list[dict[str, Any]]:
         path = _ssot_qa_path(ip, session)
