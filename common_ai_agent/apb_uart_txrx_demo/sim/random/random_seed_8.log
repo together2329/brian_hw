@@ -1,0 +1,2 @@
+RANDOM PASS seed=8 txns=17 pass=57
+sim/tb_apb_uart_txrx_demo_random.sv:796: $finish called at 30225000 (1ps)

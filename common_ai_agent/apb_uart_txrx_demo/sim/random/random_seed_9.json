@@ -1,9 +1,9 @@
 {
   "passed":true,
-  "seed":1,
-  "final_seed":823270631,
-  "txns":20,
-  "scoreboard_pass":77,
+  "seed":9,
+  "final_seed":-659150856,
+  "txns":17,
+  "scoreboard_pass":57,
   "scoreboard_fail":0,
   "coverage_flags":{
     "frame_cfg":true,
