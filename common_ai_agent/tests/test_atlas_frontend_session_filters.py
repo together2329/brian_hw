@@ -17,11 +17,15 @@ def test_live_context_and_cost_require_matching_session_id():
 def test_health_polling_rejects_different_user_snapshots():
     data_src = (PROJECT_ROOT / "frontend" / "atlas" / "data.jsx").read_text(encoding="utf-8")
     workspace_src = (PROJECT_ROOT / "frontend" / "atlas" / "workspace.jsx").read_text(encoding="utf-8")
+    # One of the !healthMatchesCurrentUser(j) call sites lives inside
+    # AgentStatusPanel, which Phase 13g moved into workspace-panels.jsx.
+    panels_src = (PROJECT_ROOT / "frontend" / "atlas" / "workspace-panels.jsx").read_text(encoding="utf-8")
+    workspace_plus_panels = workspace_src + "\n" + panels_src
 
     assert "function healthMatchesCurrentUser(payload)" in data_src
     assert "if (!healthMatchesCurrentUser(d)) return;" in data_src
     assert "const healthMatchesCurrentUser = (payload) =>" in workspace_src
-    assert workspace_src.count("!healthMatchesCurrentUser(j)") >= 2
+    assert workspace_plus_panels.count("!healthMatchesCurrentUser(j)") >= 2
 
 
 def test_agent_stream_events_require_matching_session_id():
@@ -78,8 +82,12 @@ def test_health_context_preserves_browser_ip_when_backend_reports_other_ip():
     assert "const healthMetaApplies = !healthSession || !effectiveSession || healthSession === effectiveSession;" in data_src
 
     assert "const uiEffectiveHealthSession = (payload) =>" in workspace_src
-    assert "const acceptCounters = uiHealthCountersMatchBrowserRoute(j);" in workspace_src
-    assert "costIpChanged" in workspace_src
+    # acceptCounters + costIpChanged refs live inside AgentStatusPanel, moved
+    # to workspace-panels.jsx by Phase 13g.
+    panels_src = (PROJECT_ROOT / "frontend" / "atlas" / "workspace-panels.jsx").read_text(encoding="utf-8")
+    workspace_plus_panels = workspace_src + "\n" + panels_src
+    assert "const acceptCounters = uiHealthCountersMatchBrowserRoute(j);" in workspace_plus_panels
+    assert "costIpChanged" in workspace_plus_panels
 
     assert "function shouldUseBrowserSession(cfg)" in routing_src
     assert "function healthCountersMatchRoute(cfg)" in routing_src

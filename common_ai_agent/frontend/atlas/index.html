@@ -246,6 +246,11 @@
        panel. Same IIFE + lambda forward-ref pattern; only 5 workspace
        helpers needed (one already on window from Phase 13c). -->
   <script type="text/babel" data-presets="react" src="ssot-qa-board.jsx?v=atlas-20260528-qa-board"></script>
+  <!-- Phase 13g refactor: workspace-panels.jsx — 6 sidebar/panel components
+       (AskUserPrompt, ProgressPanel, TodoPanel, OrchestratorChatPanel,
+       GitPanel, AgentStatusPanel) totaling ~2297 lines. 13 unique
+       workspace-scope deps via the same IIFE + lambda forward-ref pattern. -->
+  <script type="text/babel" data-presets="react" src="workspace-panels.jsx?v=atlas-20260528-panels"></script>
   <!-- sim_debug components (loaded BEFORE workspace.jsx so the
        conditional render in workspace.jsx can reference them). -->
   <script type="text/babel" data-presets="react" src="debug-shared.jsx?v=atlas-20260503-strict-status"></script>

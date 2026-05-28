@@ -53,14 +53,18 @@ def test_atlas_ignores_stale_agent_state_false_before_prompt_run_starts() -> Non
 
 
 def test_atlas_worker_sidebar_polls_current_ip_scope() -> None:
+    # The right-rail worker sidebar lives inside AgentStatusPanel, which
+    # Phase 13g moved into workspace-panels.jsx.
     workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace.jsx").read_text()
+    panels = (PROJECT_ROOT / "frontend" / "atlas" / "workspace-panels.jsx").read_text()
+    combined = workspace + "\n" + panels
 
-    assert "const workerIp = (() => {" in workspace
-    assert "workspaceFetchWorkerSnapshot({ ip: workerIp, activeOnly: true })" in workspace
-    assert "}, [activeIp]);" in workspace
-    assert "Current context window of the selected/live worker session" in workspace
-    assert "user/IP" in workspace
-    assert "activeJobs.slice(0, 4)" in workspace
+    assert "const workerIp = (() => {" in combined
+    assert "workspaceFetchWorkerSnapshot({ ip: workerIp, activeOnly: true })" in combined
+    assert "}, [activeIp]);" in combined
+    assert "Current context window of the selected/live worker session" in combined
+    assert "user/IP" in combined
+    assert "activeJobs.slice(0, 4)" in combined
 
 
 def test_atlas_orchestrator_chat_exposes_flow_strip() -> None:
