@@ -283,25 +283,9 @@ def _emit_history_context_update(client_session: Any, messages: list[dict[str, A
         client_session.emit("context", used=used, max=max_ctx)
 
 
-def _resolve_workflow_root(raw: str | Path | None = None) -> Path:
-    """Resolve the directory that contains workflow families.
-
-    Accept either the workflow directory itself (`.../workflow`) or the
-    common_ai_agent source root (`.../common_ai_agent`). This lets CLI/env
-    callers pass the most obvious path without making every script guess.
-    """
-    value = str(raw or os.environ.get("ATLAS_WORKFLOW_ROOT") or "").strip()
-    base = Path(os.path.expandvars(value)).expanduser() if value else SOURCE_ROOT / "workflow"
-    if not base.is_absolute():
-        base = SOURCE_ROOT / base
-    if (base / "ssot-gen").exists() or base.name == "workflow":
-        return base.resolve()
-    nested = base / "workflow"
-    if (nested / "ssot-gen").exists():
-        return nested.resolve()
-    return base.resolve()
 
 
+from src.atlas_runtime import _resolve_workflow_root  # Phase 6: needed before module-level WORKFLOW_ROOT computation
 WORKFLOW_ROOT = _resolve_workflow_root()
 # PROJECT_ROOT is the user's cwd at launch, NOT the source repo. This
 # lets the user run `python ../path/to/textual_main.py` from any
