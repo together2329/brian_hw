@@ -293,6 +293,10 @@
        PIPELINE_LABEL / ArchitectChat, and before app.jsx so the
        mount point can reference window.AtlasPipeline). -->
   <script type="text/babel" data-presets="react" src="pipeline.jsx?v=atlas-20260519-textarea-always-mounts"></script>
+  <!-- Phase 27 split: pipelineInitialIp + readPipeWidth (~960L)
+       extracted from pipeline.jsx. Loads AFTER pipeline.jsx so
+       ENH_* data + helper functions are exposed on window first. -->
+  <script type="text/babel" data-presets="react" src="pipeline-helpers.jsx?v=atlas-20260528-pipe-helpers"></script>
   <!-- Phase 20 split: orchestrator trace + flow canvas (~1388 lines)
        extracted from pipeline.jsx so the latter drops under 2000.
        Loads AFTER pipeline.jsx so ENH_* data constants and helper
