@@ -127,11 +127,12 @@ be loaded on a different machine and inspected without recreating the DB.
 - [[interactive-ask-user-ip-discovery]] — first stop for validating real interactive SSOT discovery instead of headless/pipeline proxy behavior.
 - [[pl330-real-orchestrator-ui-lessons-20260517]] — first stop for visible UI Orchestrator/worker validation, `/ssot-rtl` handoff versus TODO payloads, duplicate dispatch loading, and contaminated stage-card status.
 - [[atcdmac100-document-flow-ui-honesty-20260518]] — first stop for distinguishing backend-generated ATCDMAC100 evidence from real UI Orchestrator/worker proof.
+- [[atlas-modular-refactor-status-20260528]] — first stop for "what's been extracted from `src/atlas_ui.py` / `frontend/atlas/workspace.jsx`?" and how to verify a new phase without booting the server (Node `vm`-sandbox integration rig at `scripts/atlas_jsx_integration_test.js`).
 
 ## Open Improvements
 
 - [[workflow-improvement-candidates]] — parking lot for design candidates not yet decided (reference RTL reuse incl. legacy-extend / style-match / pin-compat cases, sectional SSOT-gen, multi-LLM reviewer pattern, stage repair convergence budget, requirements authoring guide). Captured 2026-05-17 from [[atcuart100-pipeline-run]]. None promoted to code yet; do not treat as normative.
-- [[workspace-jsx-decomposition-plan]] — parked frontend refactor plan for splitting `frontend/atlas/workspace.jsx` after routing/session work settles. Status: proposed, P0-gated, not implemented.
+- [[workspace-jsx-decomposition-plan]] — original (2026-05-25) design rationale for splitting `frontend/atlas/workspace.jsx`. Implementation is now landing on `refactor/atlas-modular`; live progress + verification rig under [[atlas-modular-refactor-status-20260528]] (workspace.jsx 21,415 → 15,562 lines as of Phase 13f, −27.3%).
 
 ## Hard Rules
 

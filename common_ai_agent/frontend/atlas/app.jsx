@@ -477,6 +477,7 @@ const App = () => {
   // so route validation feedback through a transient banner instead.
   const [topNotice, setTopNotice] = React.useState('');
   const [nameEntry, setNameEntry] = React.useState(null);
+  const [nameEntryBusy, setNameEntryBusy] = React.useState(false);
   const nameEntryInputRef = React.useRef(null);
   const showNotice = React.useCallback((msg) => {
     setTopNotice(String(msg || ''));
@@ -1614,6 +1615,7 @@ const App = () => {
 
   const beginNameEntry = (kind) => {
     setTopNotice('');
+    setNameEntryBusy(false);
     setNameEntry({ kind, value: '' });
   };
 
@@ -1650,22 +1652,6 @@ const App = () => {
       showNotice('Invalid IP name. Use only [A-Za-z0-9_.-].');
       return false;
     }
-    // The dropdown and file tree are backed by real PROJECT_ROOT IP
-    // directories. Do not treat a stale .session/<owner>/<ip>/... as
-    // proof that the IP exists; that is exactly the dead state this
-    // creation flow prevents.
-    try {
-      const r = await fetch('/api/ip/list', { cache: 'no-store' });
-      if (r.ok) {
-        const d = await r.json();
-        const exists = (Array.isArray(d.items) ? d.items : [])
-          .some(item => String(item && item.name || '') === ip);
-        if (exists) {
-          showNotice(`IP "${ip}" already exists. Select it from IP_ID.`);
-          return false;
-        }
-      }
-    } catch (_) {}
     const authedOwner = normalizeSession(
       (window.ATLAS_USER && window.ATLAS_USER.username)
       || window.ATLAS_USER_SESSION_ID
@@ -1717,15 +1703,23 @@ const App = () => {
   };
 
   const commitNameEntry = async () => {
-    if (!nameEntry) return;
+    if (!nameEntry || nameEntryBusy) return;
     const raw = String(nameEntry.value || '').trim();
     if (!raw) {
       setNameEntry(null);
       return;
     }
-    const ok = nameEntry.kind === 'session'
-      ? commitNewSessionId(raw)
-      : await createIp(raw);
+    let ok = false;
+    if (nameEntry.kind === 'session') {
+      ok = commitNewSessionId(raw);
+    } else {
+      setNameEntryBusy(true);
+      try {
+        ok = await createIp(raw);
+      } finally {
+        setNameEntryBusy(false);
+      }
+    }
     if (ok) setNameEntry(null);
   };
 
@@ -2169,6 +2163,67 @@ const App = () => {
           <style>{`@keyframes atlas-spin{to{transform:rotate(360deg)}}`}</style>
         </div>
       )}
+      {nameEntry && nameEntry.kind === 'ip' && (
+        <div
+          className="dir-name-modal-backdrop"
+          onMouseDown={() => { if (!nameEntryBusy) setNameEntry(null); }}
+        >
+          <form
+            className="dir-name-modal"
+            data-esc-local="true"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Create IP"
+            onMouseDown={e => e.stopPropagation()}
+            onSubmit={(e) => { e.preventDefault(); commitNameEntry(); }}
+          >
+            <div className="dir-name-modal-head">
+              <div>
+                <div className="dir-name-modal-title">Create IP</div>
+                <div className="dir-name-modal-sub">workflow {newIpInitialWorkflow()}</div>
+              </div>
+              <button
+                type="button"
+                className="dir-name-modal-close"
+                aria-label="Cancel new IP"
+                disabled={nameEntryBusy}
+                onClick={() => setNameEntry(null)}
+              >×</button>
+            </div>
+            <label className="dir-name-modal-field">
+              <span>ip_id</span>
+              <input
+                ref={nameEntryInputRef}
+                className="dir-name-modal-input"
+                aria-label="New IP name"
+                placeholder="new_ip"
+                value={nameEntry.value}
+                disabled={nameEntryBusy}
+                onChange={e => setNameEntry({ kind: 'ip', value: e.currentTarget.value })}
+                onKeyDown={e => {
+                  if (e.key === 'Escape' && !nameEntryBusy) {
+                    e.preventDefault();
+                    setNameEntry(null);
+                  }
+                }}
+              />
+            </label>
+            <div className="dir-name-modal-actions">
+              <button
+                type="button"
+                className="dir-name-modal-btn"
+                disabled={nameEntryBusy}
+                onClick={() => setNameEntry(null)}
+              >Cancel</button>
+              <button
+                type="submit"
+                className="dir-name-modal-btn primary"
+                disabled={nameEntryBusy || !String(nameEntry.value || '').trim()}
+              >{nameEntryBusy ? 'Creating...' : 'Create'}</button>
+            </div>
+          </form>
+        </div>
+      )}
       <div className="dir-switcher atlas-desktop-only">
         <label className="dir-select-wrap" title={`Select user owner. Active namespace: .session/${normalizeSession(activeNamespace) || 'default'}`}>
           <span>user</span>
@@ -2230,29 +2285,6 @@ const App = () => {
         <button className="dir-btn"
                 title={`Create a new IP under the current user and switch to ${newIpInitialWorkflow()}`}
                 onClick={() => beginNameEntry('ip')}>+ IP</button>
-        {nameEntry && nameEntry.kind === 'ip' && (
-          <form className="dir-name-entry"
-                data-esc-local="true"
-                title="New IP name: letters, digits, underscore, dash, or dot"
-                onSubmit={(e) => { e.preventDefault(); commitNameEntry(); }}>
-            <input ref={nameEntryInputRef}
-                   className="dir-name-input ip"
-                   aria-label="New IP name"
-                   placeholder="ip_id"
-                   value={nameEntry.value}
-                   onChange={e => setNameEntry({ kind: 'ip', value: e.currentTarget.value })}
-                   onKeyDown={e => {
-                     if (e.key === 'Escape') {
-                       e.preventDefault();
-                       setNameEntry(null);
-                     }
-                   }} />
-            <button type="submit" className="dir-name-action">OK</button>
-            <button type="button" className="dir-name-action"
-                    aria-label="Cancel new IP"
-                    onClick={() => setNameEntry(null)}>×</button>
-          </form>
-        )}
         <label className="dir-select-wrap" title="Workflow indicator. Use the left Workflow rail to switch.">
           <span>workflow</span>
           <output className="dir-select readonly">
@@ -2397,15 +2429,6 @@ const App = () => {
         ipOptions={ipOptions}
         onSelectIp={selectIp}
         onCreateIp={() => beginNameEntry('ip')}
-        nameEntry={nameEntry}
-        nameEntryInputRef={nameEntryInputRef}
-        onNameEntryChange={v => setNameEntry({ kind: 'ip', value: v })}
-        onNameEntryCancel={() => setNameEntry(null)}
-        onNameEntryCommit={() => {
-          if (nameEntry && nameEntry.value) {
-            createIp(nameEntry.value).then(ok => { if (ok !== false) setNameEntry(null); });
-          }
-        }}
         workflow={execMode === 'orchestrator' ? 'orchestrator' : currentWorkflow()}
         workflowOptions={WORKFLOW_OPTIONS}
         onSelectWorkflow={selectWorkflow}
@@ -2435,7 +2458,7 @@ const App = () => {
             : screen === 'pipeline' && window.AtlasPipeline
             ? <ErrorBoundary label="Pipeline"><window.AtlasPipeline /></ErrorBoundary>
             : screen === 'architect' && window.SocArchitect
-              ? <ErrorBoundary label="Architect"><window.SocArchitect ipOptions={ipOptions} activeIp={activeIp} /></ErrorBoundary>
+              ? <ErrorBoundary label="Architect"><window.SocArchitect ipOptions={ipOptions} activeIp={activeIp} onSelectIp={selectIp} /></ErrorBoundary>
             : screen === 'guide' && window.AtlasGuide
               ? <ErrorBoundary label="Guide"><window.AtlasGuide /></ErrorBoundary>
               : <ErrorBoundary label="Workspace"><Workspace dir={dir} uiLang={uiLang} activeNamespace={activeNamespace} activeWorkflow={currentWorkflow()} /></ErrorBoundary>}
@@ -2593,7 +2616,6 @@ const MobileKebabMenu = ({ open, onClose, stopAgent, exitAll }) => {
 // drawer logic.
 const MobileHeader = ({
   activeIp, ipOptions, onSelectIp, onCreateIp,
-  nameEntry, nameEntryInputRef, onNameEntryChange, onNameEntryCancel, onNameEntryCommit,
   workflow,
   onOpenLeftDrawer, onOpenRightDrawer,
   stopAgent, exitAll,
@@ -2627,34 +2649,14 @@ const MobileHeader = ({
       >☰</button>
 
       {/* ── IP pill ── */}
-      {nameEntry && nameEntry.kind === 'ip' ? (
-        <form
-          className="mob-ip-entry-form"
-          onSubmit={e => { e.preventDefault(); onNameEntryCommit(); }}
-          data-esc-local="true"
-        >
-          <input
-            ref={nameEntryInputRef}
-            className="mob-ip-entry-input"
-            aria-label="New IP name"
-            placeholder="ip_name"
-            value={nameEntry.value}
-            onChange={e => onNameEntryChange(e.currentTarget.value)}
-            onKeyDown={e => { if (e.key === 'Escape') { e.preventDefault(); onNameEntryCancel(); } }}
-          />
-          <button type="submit" className="mob-ip-entry-ok" aria-label="Confirm">OK</button>
-          <button type="button" className="mob-ip-entry-ok" aria-label="Cancel" onClick={onNameEntryCancel}>×</button>
-        </form>
-      ) : (
-        <button
-          className="mob-ip-pill"
-          aria-label={`Current IP: ${ipLabel}. Tap to change.`}
-          onClick={() => setIpPickerOpen(true)}
-        >
-          <span className="mob-ip-pill-label">IP: {ipLabel}</span>
-          <span className="mob-ip-pill-chevron">▾</span>
-        </button>
-      )}
+      <button
+        className="mob-ip-pill"
+        aria-label={`Current IP: ${ipLabel}. Tap to change.`}
+        onClick={() => setIpPickerOpen(true)}
+      >
+        <span className="mob-ip-pill-label">IP: {ipLabel}</span>
+        <span className="mob-ip-pill-chevron">▾</span>
+      </button>
 
       {/* ── Workflow chip ── */}
       <button

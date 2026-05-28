@@ -52,14 +52,21 @@ def test_api_files_hides_import_image_cache_but_raw_serves_it(tmp_path, monkeypa
 
 
 def test_preview_pane_labels_binary_images_with_image_metadata():
+    # PreviewPane was extracted from workspace.jsx into preview-pane.jsx by
+    # Phase 13d of refactor/atlas-modular. The image-label markup (naturalWidth
+    # readout, "file <span ...>", "Image preview failed..." fallback) lives in
+    # preview-pane.jsx now; atlasFileTreeMetaForPath / atlasImageMimeForExt
+    # remain in workspace.jsx (still consumed by other panes too).
     src = WORKSPACE_JSX.read_text(encoding="utf-8")
+    preview_pane_src = (ROOT / "frontend" / "atlas" / "preview-pane.jsx").read_text(encoding="utf-8")
+    combined = src + "\n" + preview_pane_src
     atlas_ui_src = ATLAS_UI_PY.read_text(encoding="utf-8")
 
     assert "const atlasFileTreeMetaForPath = (rawPath)" in src
     assert "const atlasImageMimeForExt = (ext)" in src
-    assert "naturalWidth" in src
-    assert "file <span" in src
-    assert "Image preview failed. Use copy path" in src
-    assert "resource.mtime || 0" in src
+    assert "naturalWidth" in combined
+    assert "file <span" in combined
+    assert "Image preview failed. Use copy path" in combined
+    assert "resource.mtime || 0" in combined
     assert "flat tiny extracted image" in atlas_ui_src
     assert "filter_noise=True" in atlas_ui_src

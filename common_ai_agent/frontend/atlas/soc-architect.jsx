@@ -2765,7 +2765,12 @@ window.SocArchitect = function SocArchitect(props = {}) {
       <ArchitectMyIps
         ips={ipList}
         activeIp={props.activeIp}
-        onOpen={(name) => setSelectedIp(name)}
+        onOpen={(name) => {
+          setSelectedIp(name);
+          // Propagate to app-level activeIp so the header IP-picker and other
+          // screens stay in sync. Optional — only fires when app.jsx wired it.
+          if (typeof props.onSelectIp === 'function') props.onSelectIp(name);
+        }}
       />
     );
   }

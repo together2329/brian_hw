@@ -44,6 +44,32 @@ def test_client_binding():
     print("PASS: client binding")
 
 
+def test_client_binding_does_not_eager_spawn_process_worker():
+    bridge = _MultiUserBridge(use_processes=False)
+
+    class MockClient:
+        pass
+
+    class MockProcessManager:
+        def __init__(self):
+            self.spawned = []
+
+        def is_alive(self, session_id):
+            return False
+
+        def spawn(self, session_id, *args, **kwargs):
+            self.spawned.append(session_id)
+            return True
+
+    manager = MockProcessManager()
+    bridge._process_manager = manager
+    sid = bridge.bind_client(MockClient(), "alice/dma/default")
+
+    assert sid == "alice/dma/default"
+    assert manager.spawned == []
+    print("PASS: client binding skips eager process spawn")
+
+
 def test_active_session_delegation():
     bridge = _MultiUserBridge()
     bridge.activate_session("active-1")

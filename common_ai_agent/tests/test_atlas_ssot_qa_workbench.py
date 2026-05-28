@@ -16,6 +16,29 @@ if str(ROOT / "src") not in sys.path:
 WORKSPACE_JSX = ROOT / "frontend" / "atlas" / "workspace.jsx"
 DATA_JSX = ROOT / "frontend" / "atlas" / "data.jsx"
 ATLAS_UI_PY = ROOT / "src" / "atlas_ui.py"
+# Cluster files extracted from workspace.jsx by refactor/atlas-modular:
+#   Phase 13a → ssot-doc.jsx   (SsotDocPane)
+#   Phase 13b → workflow-report.jsx
+#   Phase 13c → ssot-digest.jsx (DigestCard, BlockDiagram, SsotDigestContent,
+#                                SsotReviewPane — ~2023 lines)
+#   Phase 13d → preview-pane.jsx (PreviewPane, FoldablePane,
+#                                 DeferredMarkdownPreview — ~671 lines)
+#   Phase 13f → ssot-qa-board.jsx (SsotQaBoard — ~1691 lines)
+# Many source-grep tests below now read the union so moved strings still match.
+SSOT_DIGEST_JSX = ROOT / "frontend" / "atlas" / "ssot-digest.jsx"
+PREVIEW_PANE_JSX = ROOT / "frontend" / "atlas" / "preview-pane.jsx"
+SSOT_QA_BOARD_JSX = ROOT / "frontend" / "atlas" / "ssot-qa-board.jsx"
+
+
+def _all_workspace_jsx() -> str:
+    """workspace.jsx + the 13c/13d/13f cluster files concatenated, for
+    greps that don't care which file a moved string ended up in."""
+    return "\n".join((
+        WORKSPACE_JSX.read_text(encoding="utf-8"),
+        SSOT_DIGEST_JSX.read_text(encoding="utf-8"),
+        PREVIEW_PANE_JSX.read_text(encoding="utf-8"),
+        SSOT_QA_BOARD_JSX.read_text(encoding="utf-8"),
+    ))
 CORE_TOOLS_PY = ROOT / "core" / "tools.py"
 TOOL_SCHEMA_PY = ROOT / "core" / "tool_schema.py"
 TO_SSOT_SKILL = ROOT / "workflow" / "ssot-gen" / "skills" / "to-ssot" / "SKILL.md"
@@ -43,41 +66,53 @@ def _receive_slash_output(ws, marker: str) -> str:
 
 
 def test_ssot_qa_workbench_has_first_class_actions_and_no_history_panel():
+    # SsotQaBoard moved to ssot-qa-board.jsx by Phase 13f. The board-internal
+    # action strings (validate / import / grill-me / to-ssot) live there now;
+    # the parent mount points (Q&A Session label, fullHeight prop) stay in
+    # workspace.jsx (still in the surrounding Workspace component).
     src = WORKSPACE_JSX.read_text(encoding="utf-8")
+    combined = _all_workspace_jsx()
 
     assert "Q&amp;A Session" in src
     assert "fullHeight={true}" in src
-    assert "/api/ssot/import/upload" in src
-    assert "/api/ssot/validate" in src
-    assert "check_ssot_disk.sh" in src
-    assert "verify_ssot.py" in src
-    assert "runSsotCommand(`/grill-me ${data.ip}`)" in src
-    assert "runSsotCommand(`/to-ssot ${data.ip}`)" in src
-    assert "Validation" in src
-    assert "Import / Export" in src
+    assert "/api/ssot/import/upload" in combined
+    assert "/api/ssot/validate" in combined
+    assert "check_ssot_disk.sh" in combined
+    assert "verify_ssot.py" in combined
+    assert "runSsotCommand(`/grill-me ${data.ip}`)" in combined
+    assert "runSsotCommand(`/to-ssot ${data.ip}`)" in combined
+    assert "Validation" in combined
+    assert "Import / Export" in combined
     assert "checklistOnly={true}" in src
     assert "importExportOnly={true}" in src
-    assert "무엇을 만들까?" in src
-    assert "Q&A 카드" in src
-    assert "Q&A readiness" in src
-    assert "Q&A 준비 상태" in src
-    assert "채워야 하는 9칸" not in src
-    assert "Answer Percent" not in src
-    assert "SSOT 3단계 흐름" in src
-    assert "2. Deep Interview" in src
-    assert "3. To SSOT" in src
-    assert "QaHistoryPanel history={visibleQaHistory}" not in src
+    # Locale UI strings + 3-step flow markers + Q&A readouts all moved into
+    # SsotQaBoard's own render → ssot-qa-board.jsx.
+    assert "무엇을 만들까?" in combined
+    assert "Q&A 카드" in combined
+    assert "Q&A readiness" in combined
+    assert "Q&A 준비 상태" in combined
+    assert "채워야 하는 9칸" not in combined
+    assert "Answer Percent" not in combined
+    assert "SSOT 3단계 흐름" in combined
+    assert "2. Deep Interview" in combined
+    assert "3. To SSOT" in combined
+    assert "QaHistoryPanel history={visibleQaHistory}" not in combined
     assert "ADD_DATA_URI_TAGS: ['img']" in src
     assert "_sanitizePrismLanguageClasses(node)" in src
     assert "/^data[:;]/i.test(lang)" in src
-    assert "const files = Array.from(ev.target.files || []);" in src
-    assert src.count("const files = Array.from(e.target.files || []);") >= 2
+    assert "const files = Array.from(ev.target.files || []);" in combined
+    # The two SsotDigestContent file-input handlers moved to ssot-digest.jsx
+    # in Phase 13c; count across workspace + cluster files.
+    assert _all_workspace_jsx().count("const files = Array.from(e.target.files || []);") >= 2
 
 
 def test_ssot_preview_uses_fresh_yaml_without_llm_narrator():
     workspace_src = WORKSPACE_JSX.read_text(encoding="utf-8")
     data_src = DATA_JSX.read_text(encoding="utf-8")
     atlas_ui_src = ATLAS_UI_PY.read_text(encoding="utf-8")
+    # meta.mtime/size readouts live in SsotDigestContent → ssot-digest.jsx
+    # since Phase 13c.
+    combined = _all_workspace_jsx()
 
     assert "NarratorBanner" not in workspace_src
     assert "/api/ssot/narrate" not in workspace_src
@@ -85,8 +120,8 @@ def test_ssot_preview_uses_fresh_yaml_without_llm_narrator():
     assert "caller_tag=\"ssot-narrate\"" not in atlas_ui_src
     assert 'data-role="tool-count"' not in workspace_src
     assert "fetch('/api/ssot', { cache: 'no-store' })" in data_src
-    assert "meta.mtime || 0" in workspace_src
-    assert "meta.size || 0" in workspace_src
+    assert "meta.mtime || 0" in combined
+    assert "meta.size || 0" in combined
 
 
 def test_ssot_preview_ignores_yaml_hash_comments_in_digest_parser():
@@ -103,12 +138,16 @@ def test_ssot_preview_ignores_yaml_hash_comments_in_digest_parser():
 
 def test_ssot_preview_attention_status_uses_bang_glyph():
     workspace_src = WORKSPACE_JSX.read_text(encoding="utf-8")
+    # statusForPresence + the glyph render site moved into SsotDigestContent /
+    # SsotReviewPane (ssot-digest.jsx) in Phase 13c; the status-helper consts
+    # ssotNeedsAttentionStatus/ssotStatusGlyph still live in workspace.jsx.
+    combined = _all_workspace_jsx()
 
     assert "const ssotNeedsAttentionStatus = (status) =>" in workspace_src
     assert "const ssotStatusGlyph = (status) =>" in workspace_src
-    assert "const statusForPresence = (present) => present ? 'approved' : 'needs_review';" in workspace_src
-    assert "statuses.some(ssotNeedsAttentionStatus)" in workspace_src
-    assert "{ssotStatusGlyph(status)}" in workspace_src
+    assert "const statusForPresence = (present) => present ? 'approved' : 'needs_review';" in combined
+    assert "statuses.some(ssotNeedsAttentionStatus)" in combined
+    assert "{ssotStatusGlyph(status)}" in combined
 
 
 def test_fsm_graph_defaults_to_native_renderer_not_mermaid():
@@ -121,24 +160,33 @@ def test_fsm_graph_defaults_to_native_renderer_not_mermaid():
 
 
 def test_preview_feedback_controls_are_mode_gated():
-    workspace_src = WORKSPACE_JSX.read_text(encoding="utf-8")
+    # Spread across three files now:
+    #   - PreviewPane component (feedbackMode default + overlay) → preview-pane.jsx (13d)
+    #   - SsotDigestContent / SsotReviewPane parents (previewMode + ssotPreviewMode
+    #     state + caller-site feedbackMode={…} props) → ssot-digest.jsx (13c)
+    # workspace.jsx may still hold sibling state. Grep all three.
+    combined = _all_workspace_jsx()
 
-    assert "feedbackMode = false" in workspace_src
-    assert "feedbackMode && floating" in workspace_src
-    assert "const [previewMode, setPreviewMode] = React.useState('view');" in workspace_src
-    assert "const [ssotPreviewMode, setSsotPreviewMode] = React.useState('view');" in workspace_src
-    assert "feedbackMode={previewMode === 'feedback'}" in workspace_src
-    assert "feedbackMode={ssotPreviewMode === 'feedback'}" in workspace_src
+    assert "feedbackMode = false" in combined
+    assert "feedbackMode && floating" in combined
+    assert "const [previewMode, setPreviewMode] = React.useState('view');" in combined
+    assert "const [ssotPreviewMode, setSsotPreviewMode] = React.useState('view');" in combined
+    assert "feedbackMode={previewMode === 'feedback'}" in combined
+    assert "feedbackMode={ssotPreviewMode === 'feedback'}" in combined
 
 
 def test_import_to_ssot_uses_manifest_and_split_roots():
     atlas_ui_src = ATLAS_UI_PY.read_text(encoding="utf-8")
-    gate_start = atlas_ui_src.index("def _handle_to_ssot_gate")
-    gate_end = atlas_ui_src.index("def _handle_repair_ssot_command", gate_start)
-    gate_src = atlas_ui_src[gate_start:gate_end]
-    import_start = atlas_ui_src.index("def _handle_import_command")
-    import_end = atlas_ui_src.index("def _safe_import_upload_name", import_start)
-    import_src = atlas_ui_src[import_start:import_end]
+    # Phase 12 refactor: slash handlers (_handle_to_ssot_gate,
+    # _handle_repair_ssot_command, _handle_import_command, …) moved to
+    # src/atlas_slash_handlers.py — read source from there now.
+    slash_src = ATLAS_UI_PY.with_name("atlas_slash_handlers.py").read_text(encoding="utf-8")
+    gate_start = slash_src.index("def _handle_to_ssot_gate")
+    gate_end = slash_src.index("def _handle_repair_ssot_command", gate_start)
+    gate_src = slash_src[gate_start:gate_end]
+    import_start = slash_src.index("def _handle_import_command")
+    import_end = slash_src.index("def _handle_grill_me_command", import_start)
+    import_src = slash_src[import_start:import_end]
     spec_start = atlas_ui_src.index("def _render_approved_ssot_spec")
     spec_end = atlas_ui_src.index("def _emit_ssot_approval_ready", spec_start)
     spec_src = atlas_ui_src[spec_start:spec_end]
@@ -160,8 +208,12 @@ def test_import_to_ssot_uses_manifest_and_split_roots():
     assert "{ip}/wiki/import-evidence.md" in spec_src
     assert "import_manifest.json" in qna_src
     assert "`{ip}/req/imports/`" in qna_src
-    assert "--workflow-root" in atlas_ui_src
-    assert "--ip-root" in atlas_ui_src
+    # CLI flag definitions live in src/atlas_runtime.py post Phase-4 refactor;
+    # accept either location so the assertion tracks intent (the flags are wired
+    # somewhere in the server-side codebase) rather than the file boundary.
+    runtime_src = ATLAS_UI_PY.with_name("atlas_runtime.py").read_text(encoding="utf-8")
+    assert "--workflow-root" in atlas_ui_src or "--workflow-root" in runtime_src
+    assert "--ip-root" in atlas_ui_src or "--ip-root" in runtime_src
 
     for path in (TO_SSOT_SKILL, SSOT_SYSTEM_PROMPT, COMMON_ENGINE_FLOW):
         src = path.read_text(encoding="utf-8")
@@ -178,9 +230,11 @@ def test_to_ssot_preview_and_verify_share_canonical_format_contract():
     schema_src = TOOL_SCHEMA_PY.read_text(encoding="utf-8")
     command_src = VERIFY_SSOT_COMMAND.read_text(encoding="utf-8")
 
-    gate_start = atlas_ui_src.index("def _handle_to_ssot_gate")
-    gate_end = atlas_ui_src.index("def _handle_repair_ssot_command", gate_start)
-    gate_src = atlas_ui_src[gate_start:gate_end]
+    # Phase 12 refactor: gate handler moved to atlas_slash_handlers.py.
+    slash_src = ATLAS_UI_PY.with_name("atlas_slash_handlers.py").read_text(encoding="utf-8")
+    gate_start = slash_src.index("def _handle_to_ssot_gate")
+    gate_end = slash_src.index("def _handle_repair_ssot_command", gate_start)
+    gate_src = slash_src[gate_start:gate_end]
 
     canonical_keys = (
         "top_module",
@@ -220,8 +274,12 @@ def test_to_ssot_preview_and_verify_share_canonical_format_contract():
     assert "{ id: 'implementation'" in workspace_src
     assert "const testSection = sectionByKey(sections, 'test_requirements');" in workspace_src
     assert "...listBlocksFromSection(testSection, 'scenarios')" in workspace_src
-    assert "explicit no-register policy" in workspace_src
-    assert "explicit no-FSM policy" in workspace_src
+    # Policy banners ride inside SsotDigestContent's register/FSM sections,
+    # now in ssot-digest.jsx (Phase 13c).
+    digest_src = SSOT_DIGEST_JSX.read_text(encoding="utf-8")
+    ws_plus_digest = workspace_src + "\n" + digest_src
+    assert "explicit no-register policy" in ws_plus_digest
+    assert "explicit no-FSM policy" in ws_plus_digest
     assert "const interfaceFromBlock = (block" in workspace_src
     assert "const mapBlocksFromText = (text, parentKey = '') =>" in workspace_src
     assert "...mapBlocksFromSection(section, key)" in workspace_src
@@ -231,9 +289,11 @@ def test_to_ssot_preview_and_verify_share_canonical_format_contract():
     assert "interfaceFromBlock(block, ssotTitleFor(section.key), 'bus')" in workspace_src
     assert "Quickstart" not in workspace_src
     assert "quickstartSteps" not in workspace_src
-    assert "const registerConfig = {" in workspace_src
-    assert "const meaningfulFields = (reg.fields || []).filter(_hasMeaningfulRegisterField);" in workspace_src
-    assert "<RegisterBitFieldView" in workspace_src
+    # Register render config + meaningfulFields filter + RegisterBitFieldView
+    # mount are inside SsotDigestContent → ssot-digest.jsx (Phase 13c).
+    assert "const registerConfig = {" in ws_plus_digest
+    assert "const meaningfulFields = (reg.fields || []).filter(_hasMeaningfulRegisterField);" in ws_plus_digest
+    assert "<RegisterBitFieldView" in ws_plus_digest
     assert "gridTemplateColumns: '82px minmax(0, 1fr) auto'" in workspace_src
 
 
