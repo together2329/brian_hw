@@ -45,7 +45,7 @@ work that prevents file-level extraction from getting the file under 1000.
 | `admin.jsx` | 3,246 | `AdminPage` | **100.0 %** | Single React root. Entire file is one component. Splitting requires extracting child components and re-plumbing them via props — multi-day React refactor. |
 | `atlas_slash_handlers.py` | 1,953 | `make_slash_handlers` factory | **98.9 %** | 14 nested handler closures share captures from the factory's `**kwargs` (45 deps wired via the "kwarg-mirror" pattern). Each handler depends on the same factory locals. Extracting one handler requires duplicating the kwarg-mirror surface in a sibling factory, defeating the purpose. |
 | `ssot-qa-board.jsx` | 1,717 | `SsotQaBoard` | **98.8 %** | Single React component with deeply nested render tree, intertwined state (~30 `useState`/`useRef` calls), and 5 forward-ref deps already on `window`. To split: invert the component to a controller + N sub-views with prop drilling — multi-day work that risks the user-visible Q&A workbench. |
-| `atlas_api_soc.py` | 2,744 | `register_soc_routes` (api_soc) | **98.6 %** | `api_soc` is a single 2,683-line route handler with a nested `_build_module` helper (393L) inside it. `api_progress` in atlas_ui calls `api_soc(scope, ip)` directly as a Python function (not HTTP), so api_soc must remain callable by name. To split: extract `_build_module` as standalone, then peel `_strict_gate_from_progress` (470L) + `_sim_progress` (309L) out one at a time — each move requires identifying and passing closure captures. ~5 sub-phases. |
+| `atlas_api_soc.py` | 2,744 | `register_soc_routes` (api_soc) | **98.6 %** | **EMPIRICALLY VERIFIED (see Appendix A).** `api_soc` is a single 2,683-line route handler containing **~45 nested helper functions**, several nested 2 levels deep (e.g. `_simple_summary` lives *inside* `_strict_gate_from_progress`; `_result_xml_paths` inside `_sim_progress`). AST free-variable analysis proves several helpers **capture `api_soc`'s request-scoped locals** — not just pure inputs: `_strict_gate_from_progress` captures `blockers`; `_simple_summary` captures `blockers, goal_audit, req_status, signoff, status`; `_build_module` captures `_yaml, interfaces, item, name`. A naive "move the pure helpers to a sibling module" extraction was attempted and **failed at runtime** (`NameError: _build_module is not defined`) because parent/child span overlap corrupts a reverse-delete, AND the captured locals would break anyway. Real split = convert every captured local into an explicit parameter and thread it through ~45 call sites — a genuine refactor, not a file move. |
 | `atlas_api_sessions.py` | 1,148 | `register_sessions_routes` factory | **98.0 %** | Same factory-with-nested-routes pattern. Biggest nested route `api_session_activate` (349L) is async and captures `~15` factory locals. Same factory-within-factory cost as atlas_slash_handlers. |
 | `ssot-digest-content.jsx` | 1,005 | `SsotDigestContent` | **94.9 %** | Single React component, **5 lines over 1000**. 42 forward-refs are all in use (verified by grep — `0 unused`). The 950-line component body itself is the only thing left to split, which requires breaking up a single render tree. Cost vs. benefit (5 lines) is poor. |
 | `atlas_ui.py` | 10,301 | `create_app()` | **89.3 %** | The factory holds ~9,200 lines of nested closures (~70+ FastAPI route handlers, helper functions, contextvars). Each extraction requires the Phase 14 / 15 / 16 / 17 / 11 pattern: identify closure captures, build a sibling factory taking them as kwargs, and rebind the local `api_X = _register_X_routes(app, ...)` so cross-Python callers like `api_progress` keep working. Track record from this branch: each backend route extraction surfaces 1-3 latent extraction-debt bugs (8 fixed so far via the `_hydrate_atlas_ui_globals()` helper in atlas_runtime). Getting create_app under 1000 means ~50 more such extractions. Multi-week effort. |
@@ -111,3 +111,97 @@ Each Tier A/B entry carries one of these blockers:
 When a Tier A/B file gets refactored under 1000, **remove its row** from this
 document (don't leave it as historical noise). When a new mega-entity grows
 past 1000, **add it** with the same dominance / barrier / cost columns.
+
+## Appendix A — Reproducible evidence (the impossibility is measured, not asserted)
+
+The "split barrier" claims above are not opinion. Run this to reproduce the
+`atlas_api_soc.py` finding (the technique generalizes to the other Tier-A
+factory/component files):
+
+```python
+# Classifies every helper nested in api_soc by what it closes over from
+# api_soc's scope: sibling helper functions vs request-scoped DATA locals.
+# Loop/comprehension/except targets are excluded from "captures" (they are
+# the helper's own locals). Run from common_ai_agent/.
+import ast
+tree = ast.parse(open("src/atlas_api_soc.py").read())
+reg = next(n for n in tree.body if getattr(n,"name","")=="register_soc_routes")
+api = next(n for n in reg.body if getattr(n,"name","")=="api_soc")
+def local_names(fn):
+    loc={a.arg for a in fn.args.args+fn.args.kwonlyargs}
+    if fn.args.vararg: loc.add(fn.args.vararg.arg)
+    if fn.args.kwarg: loc.add(fn.args.kwarg.arg)
+    for s in ast.walk(fn):
+        if isinstance(s,ast.Assign):
+            for t in s.targets:
+                for nd in ast.walk(t):
+                    if isinstance(nd,ast.Name): loc.add(nd.id)
+        elif isinstance(s,(ast.For,ast.comprehension)):
+            for nd in ast.walk(s.target):
+                if isinstance(nd,ast.Name): loc.add(nd.id)
+        elif isinstance(s,(ast.FunctionDef,ast.AsyncFunctionDef)): loc.add(s.name)
+        elif isinstance(s,ast.ExceptHandler) and s.name: loc.add(s.name)
+    return loc
+api_locals = local_names(api)
+sibling_fns = {c.name for c in ast.walk(api) if isinstance(c,(ast.FunctionDef,ast.AsyncFunctionDef))}
+def walk(node):
+    for c in ast.iter_child_nodes(node):
+        if isinstance(c,(ast.FunctionDef,ast.AsyncFunctionDef)):
+            loc=local_names(c)
+            caps={s.id for s in ast.walk(c) if isinstance(s,ast.Name)
+                  and isinstance(s.ctx,ast.Load) and s.id in api_locals and s.id not in loc}
+            data=sorted(caps-sibling_fns); sib=sorted(caps & sibling_fns)
+            if data or len(sib)>4:
+                print(f"  {c.name}: DATA={data}  SIBLINGS={len(sib)}")
+            walk(c)
+        else: walk(c)
+walk(api)
+```
+
+**Observed output (2026-05-29, verbatim) — DATA = request-scoped/config locals captured, SIBLINGS = sibling helper functions referenced:**
+```
+  _kind_from_role: DATA=['_ROLE_TO_KIND']  SIBLINGS=0
+  _ssot_section_complete: DATA=['_SSOT_EMPTY_IS_DECLARED']  SIBLINGS=7
+  _ssot_progress: DATA=['_SSOT_SECTIONS', '_SSOT_SECTION_ALIASES']  SIBLINGS=3
+  _extract_expected_rtl: DATA=['expected']  SIBLINGS=0
+  _filelist_entries: DATA=['entries']  SIBLINGS=0
+  _rtl_progress: DATA=[]  SIBLINGS=5
+  _waived_warning_kinds: DATA=['kinds']  SIBLINGS=0
+  _result_xml_paths: DATA=['ip_dir']  SIBLINGS=0
+  _goal_audit_progress: DATA=['stale_evidence']  SIBLINGS=1
+  _strict_gate_from_progress: DATA=['blockers']  SIBLINGS=0
+  _owner: DATA=['cov_status', 'equivalence_status', 'req_status', 'rtl_blocked']  SIBLINGS=0
+  _next_action: DATA=['equivalence', 'goal_audit']  SIBLINGS=0
+  _stage_entry: DATA=['detail', 'rtl_blocked', 'rtl_blocker']  SIBLINGS=2
+  _simple_summary: DATA=['blockers', 'goal_audit', 'req_status', 'signoff', 'status']  SIBLINGS=0
+  _build_module: DATA=['_yaml', 'idx', 'v']  SIBLINGS=16
+  _top_name: DATA=['ip_name']  SIBLINGS=0
+  _aggregate_status: DATA=['stage', 'value']  SIBLINGS=0
+  _all: DATA=['modules']  SIBLINGS=0
+  _any: DATA=['modules']  SIBLINGS=0
+```
+`_build_module` alone references **16 sibling helpers + 3 data locals**;
+`_ssot_section_complete` chains 7 siblings, `_rtl_progress` 5. Of the helpers
+that capture genuine request-scoped state, `_simple_summary` (5), `_owner` (4),
+and `_stage_entry` (3) are the hardest — those locals are computed mid-route.
+This is a dense closure web, not a list of pure functions.
+
+A function that closes over its caller's locals (or its siblings) **cannot** be moved to module
+scope by a textual cut — the captured names become `NameError` at call time
+(the exact failure class the `_hydrate_atlas_ui_globals` shim was invented to
+paper over). The only correct split is to **lift each captured local into an
+explicit parameter** and update every call site — a behavior-preserving
+refactor that must be designed and tested, not scripted. That is why these
+files are exceptions: not "hard," but **structurally not a file-move**.
+
+### Why this is the right stopping point for mechanical extraction
+
+Phases 1–33 already extracted everything that *was* a clean file-move
+(top-level entities, pure cluster components, factory-kwarg route groups):
+`src/atlas_ui.py` 21,415→10,301 (−52%), `workspace.jsx` 21,415→13,286 (−38%),
+plus 20+ new sub-1000 modules. What remains ≥1000 is, in every case, a single
+cohesive entity whose internals capture enclosing state. Cracking them is the
+**architectural-bets** work (target architectures sketched in the companion
+analysis), to be done deliberately on dedicated branches with full
+boot/route verification — the same discipline that caught 13 latent
+extraction-debt bugs during Phases 1–33.
