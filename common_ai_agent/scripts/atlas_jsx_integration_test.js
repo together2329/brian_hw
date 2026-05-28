@@ -102,6 +102,8 @@ const files = [
   ["preview-pane.jsx", "frontend/atlas/preview-pane.jsx"],
   ["block-diagram.jsx", "frontend/atlas/block-diagram.jsx"],
   ["ssot-digest.jsx", "frontend/atlas/ssot-digest.jsx"],
+  ["ssot-digest-content.jsx", "frontend/atlas/ssot-digest-content.jsx"],
+  ["ssot-review.jsx", "frontend/atlas/ssot-review.jsx"],
   ["ssot-qa-board.jsx", "frontend/atlas/ssot-qa-board.jsx"],
   ["agent-status-panel.jsx", "frontend/atlas/agent-status-panel.jsx"],
   ["workspace-panels.jsx", "frontend/atlas/workspace-panels.jsx"],
