@@ -100,6 +100,7 @@ const files = [
   ["shared.jsx", "frontend/atlas/shared.jsx"],
   ["ui-utils.jsx", "frontend/atlas/ui-utils.jsx"],
   ["preview-pane.jsx", "frontend/atlas/preview-pane.jsx"],
+  ["block-diagram.jsx", "frontend/atlas/block-diagram.jsx"],
   ["ssot-digest.jsx", "frontend/atlas/ssot-digest.jsx"],
   ["ssot-qa-board.jsx", "frontend/atlas/ssot-qa-board.jsx"],
   ["workspace-panels.jsx", "frontend/atlas/workspace-panels.jsx"],
