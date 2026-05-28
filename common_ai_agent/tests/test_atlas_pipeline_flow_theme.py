@@ -325,17 +325,19 @@ def test_atlas_left_workflow_ip_panels_are_vertically_resizable() -> None:
 
 
 def test_atlas_ssot_qa_does_not_seed_nine_default_boxes() -> None:
+    # Q&A board UI ("Do not seed default questions" guard comment) moved
+    # to ssot-qa-board.jsx by Phase 13f; the backend guard + requirement_rows
+    # bookkeeping moved to atlas_qa.py by Phase 10.
     workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace.jsx").read_text()
-    # Q&A board (the "synthetic required boxes" comment + requirement_rows
-    # bookkeeping) was extracted from atlas_ui.py into atlas_qa.py by
-    # Phase 10 of refactor/atlas-modular.
+    qa_board = (PROJECT_ROOT / "frontend" / "atlas" / "ssot-qa-board.jsx").read_text()
+    jsx_combined = workspace + "\n" + qa_board
     atlas_ui = (PROJECT_ROOT / "src" / "atlas_ui.py").read_text()
     atlas_qa = (PROJECT_ROOT / "src" / "atlas_qa.py").read_text()
     py_combined = atlas_ui + "\n" + atlas_qa
 
-    assert "'9 boxes to fill'" not in workspace
-    assert "'채워야 하는 9칸'" not in workspace
-    assert "Do not seed default questions" in workspace
+    assert "'9 boxes to fill'" not in jsx_combined
+    assert "'채워야 하는 9칸'" not in jsx_combined
+    assert "Do not seed default questions" in jsx_combined
     assert "they must not seed the UI with synthetic required boxes" in py_combined
     assert "\"total\": len(requirement_rows)" in py_combined
 

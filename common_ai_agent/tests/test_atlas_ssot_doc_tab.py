@@ -64,7 +64,13 @@ def test_default_workflow_shows_ssot_import_export_tab():
 
 
 def test_to_ssot_button_uses_same_plain_mini_button_as_deep_interview():
+    # The /to-ssot button render sites live in SsotQaBoard now → ssot-qa-board.jsx
+    # (extracted in Phase 13f). The negative assertion (borderColor not set)
+    # still applies across the union — if the highlighted-button style ever
+    # leaks back into any workspace-cluster file, this catches it.
     src = WORKSPACE_JSX.read_text(encoding="utf-8")
-    assert "borderColor: 'var(--ok)', color: 'var(--ok)'" not in src
-    assert "title=\"Run /to-ssot for this IP\"\n                  style={{ marginTop: 7 }}" in src
-    assert "title=\"Run /to-ssot for this IP\"\n              style={{ marginTop: 10 }}" in src
+    qa_board_src = (ROOT / "frontend" / "atlas" / "ssot-qa-board.jsx").read_text(encoding="utf-8")
+    combined = src + "\n" + qa_board_src
+    assert "borderColor: 'var(--ok)', color: 'var(--ok)'" not in combined
+    assert "title=\"Run /to-ssot for this IP\"\n                  style={{ marginTop: 7 }}" in combined
+    assert "title=\"Run /to-ssot for this IP\"\n              style={{ marginTop: 10 }}" in combined

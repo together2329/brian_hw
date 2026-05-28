@@ -23,18 +23,21 @@ ATLAS_UI_PY = ROOT / "src" / "atlas_ui.py"
 #                                SsotReviewPane — ~2023 lines)
 #   Phase 13d → preview-pane.jsx (PreviewPane, FoldablePane,
 #                                 DeferredMarkdownPreview — ~671 lines)
+#   Phase 13f → ssot-qa-board.jsx (SsotQaBoard — ~1691 lines)
 # Many source-grep tests below now read the union so moved strings still match.
 SSOT_DIGEST_JSX = ROOT / "frontend" / "atlas" / "ssot-digest.jsx"
 PREVIEW_PANE_JSX = ROOT / "frontend" / "atlas" / "preview-pane.jsx"
+SSOT_QA_BOARD_JSX = ROOT / "frontend" / "atlas" / "ssot-qa-board.jsx"
 
 
 def _all_workspace_jsx() -> str:
-    """workspace.jsx + the 13c/13d cluster files concatenated, for greps
-    that don't care which file a moved string ended up in."""
+    """workspace.jsx + the 13c/13d/13f cluster files concatenated, for
+    greps that don't care which file a moved string ended up in."""
     return "\n".join((
         WORKSPACE_JSX.read_text(encoding="utf-8"),
         SSOT_DIGEST_JSX.read_text(encoding="utf-8"),
         PREVIEW_PANE_JSX.read_text(encoding="utf-8"),
+        SSOT_QA_BOARD_JSX.read_text(encoding="utf-8"),
     ))
 CORE_TOOLS_PY = ROOT / "core" / "tools.py"
 TOOL_SCHEMA_PY = ROOT / "core" / "tool_schema.py"
@@ -63,34 +66,41 @@ def _receive_slash_output(ws, marker: str) -> str:
 
 
 def test_ssot_qa_workbench_has_first_class_actions_and_no_history_panel():
+    # SsotQaBoard moved to ssot-qa-board.jsx by Phase 13f. The board-internal
+    # action strings (validate / import / grill-me / to-ssot) live there now;
+    # the parent mount points (Q&A Session label, fullHeight prop) stay in
+    # workspace.jsx (still in the surrounding Workspace component).
     src = WORKSPACE_JSX.read_text(encoding="utf-8")
+    combined = _all_workspace_jsx()
 
     assert "Q&amp;A Session" in src
     assert "fullHeight={true}" in src
-    assert "/api/ssot/import/upload" in src
-    assert "/api/ssot/validate" in src
-    assert "check_ssot_disk.sh" in src
-    assert "verify_ssot.py" in src
-    assert "runSsotCommand(`/grill-me ${data.ip}`)" in src
-    assert "runSsotCommand(`/to-ssot ${data.ip}`)" in src
-    assert "Validation" in src
-    assert "Import / Export" in src
+    assert "/api/ssot/import/upload" in combined
+    assert "/api/ssot/validate" in combined
+    assert "check_ssot_disk.sh" in combined
+    assert "verify_ssot.py" in combined
+    assert "runSsotCommand(`/grill-me ${data.ip}`)" in combined
+    assert "runSsotCommand(`/to-ssot ${data.ip}`)" in combined
+    assert "Validation" in combined
+    assert "Import / Export" in combined
     assert "checklistOnly={true}" in src
     assert "importExportOnly={true}" in src
-    assert "무엇을 만들까?" in src
-    assert "Q&A 카드" in src
-    assert "Q&A readiness" in src
-    assert "Q&A 준비 상태" in src
-    assert "채워야 하는 9칸" not in src
-    assert "Answer Percent" not in src
-    assert "SSOT 3단계 흐름" in src
-    assert "2. Deep Interview" in src
-    assert "3. To SSOT" in src
-    assert "QaHistoryPanel history={visibleQaHistory}" not in src
+    # Locale UI strings + 3-step flow markers + Q&A readouts all moved into
+    # SsotQaBoard's own render → ssot-qa-board.jsx.
+    assert "무엇을 만들까?" in combined
+    assert "Q&A 카드" in combined
+    assert "Q&A readiness" in combined
+    assert "Q&A 준비 상태" in combined
+    assert "채워야 하는 9칸" not in combined
+    assert "Answer Percent" not in combined
+    assert "SSOT 3단계 흐름" in combined
+    assert "2. Deep Interview" in combined
+    assert "3. To SSOT" in combined
+    assert "QaHistoryPanel history={visibleQaHistory}" not in combined
     assert "ADD_DATA_URI_TAGS: ['img']" in src
     assert "_sanitizePrismLanguageClasses(node)" in src
     assert "/^data[:;]/i.test(lang)" in src
-    assert "const files = Array.from(ev.target.files || []);" in src
+    assert "const files = Array.from(ev.target.files || []);" in combined
     # The two SsotDigestContent file-input handlers moved to ssot-digest.jsx
     # in Phase 13c; count across workspace + cluster files.
     assert _all_workspace_jsx().count("const files = Array.from(e.target.files || []);") >= 2

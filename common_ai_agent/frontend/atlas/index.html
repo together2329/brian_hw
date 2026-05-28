@@ -242,6 +242,10 @@
        helpers, status-badge components) that workspace.jsx exposes via
        end-of-file `window.X = X` block. -->
   <script type="text/babel" data-presets="react" src="ssot-digest.jsx?v=atlas-20260528-ssot-digest"></script>
+  <!-- Phase 13f refactor: SsotQaBoard (~1691 lines) — the Q&A workbench
+       panel. Same IIFE + lambda forward-ref pattern; only 5 workspace
+       helpers needed (one already on window from Phase 13c). -->
+  <script type="text/babel" data-presets="react" src="ssot-qa-board.jsx?v=atlas-20260528-qa-board"></script>
   <!-- sim_debug components (loaded BEFORE workspace.jsx so the
        conditional render in workspace.jsx can reference them). -->
   <script type="text/babel" data-presets="react" src="debug-shared.jsx?v=atlas-20260503-strict-status"></script>
