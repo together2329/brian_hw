@@ -4293,31 +4293,9 @@ def create_app():
     }
     _SOURCE_NO_EXT_NAMES = {"Makefile", "makefile", "Dockerfile"}
 
-    @app.get("/api/source")
-    async def api_source(path: str):
-        """Read a source file. Accepts SV / V / Python / Make /
-        constraints / YAML / JSON / Markdown / shell / firmware /
-        results.xml. Returns split-by-line array for the SourceViewer
-        component."""
-        target = _safe(path)
-        if target is None or not target.is_file():
-            return JSONResponse({"error": "not found"}, status_code=404)
-        suffix = target.suffix.lower()
-        if suffix not in _SOURCE_EXTS and target.name not in _SOURCE_NO_EXT_NAMES:
-            return JSONResponse({
-                "error": f"unsupported extension '{suffix or target.name}'",
-                "allowed": sorted(_SOURCE_EXTS) + sorted(_SOURCE_NO_EXT_NAMES),
-            }, status_code=400)
-        try:
-            content = target.read_text(encoding="utf-8", errors="replace")
-        except OSError as e:
-            return JSONResponse({"error": str(e)}, status_code=500)
-        return JSONResponse({
-            "path": path,
-            "size": len(content),
-            "content": content,
-            "lines": content.split("\n"),
-        })
+    # Phase 11a: /api/source moved to src/atlas_api_sim_debug.py via factory.
+    from src.atlas_api_sim_debug import register_source_route as _register_source_route
+    _register_source_route(app, safe_path_fn=_safe)
 
     # ── sim_debug elab module loader ─────────────────────────────
     # Lives at workflow/sim_debug/elab.py — co-located with the rest
