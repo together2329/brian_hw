@@ -2458,7 +2458,7 @@ const App = () => {
             : screen === 'pipeline' && window.AtlasPipeline
             ? <ErrorBoundary label="Pipeline"><window.AtlasPipeline /></ErrorBoundary>
             : screen === 'architect' && window.SocArchitect
-              ? <ErrorBoundary label="Architect"><window.SocArchitect ipOptions={ipOptions} activeIp={activeIp} /></ErrorBoundary>
+              ? <ErrorBoundary label="Architect"><window.SocArchitect ipOptions={ipOptions} activeIp={activeIp} onSelectIp={selectIp} /></ErrorBoundary>
             : screen === 'guide' && window.AtlasGuide
               ? <ErrorBoundary label="Guide"><window.AtlasGuide /></ErrorBoundary>
               : <ErrorBoundary label="Workspace"><Workspace dir={dir} uiLang={uiLang} activeNamespace={activeNamespace} activeWorkflow={currentWorkflow()} /></ErrorBoundary>}
