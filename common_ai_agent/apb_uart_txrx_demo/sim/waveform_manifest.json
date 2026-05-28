@@ -5,7 +5,7 @@
     "file": "sim/tb_apb_uart_txrx_demo.sv"
   },
   "dut_source_modified_for_waveforms": false,
-  "generated_at": "2026-05-27T23:45:37Z",
+  "generated_at": "2026-05-28T00:13:23Z",
   "generation_command": "cd apb_uart_txrx_demo && ./sim/run_sim.sh",
   "ip": "apb_uart_txrx_demo",
   "required_top_signals": {

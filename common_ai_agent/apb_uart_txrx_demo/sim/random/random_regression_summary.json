@@ -1,72 +1,37 @@
 {
   "passed": true,
-  "seed_list": "8,9",
+  "seed_list": "7",
   "seeds_requested": [
-    8,
-    9
+    7
   ],
-  "txns": 12,
-  "requested_txns": 12,
+  "txns": 20,
+  "requested_txns": 20,
   "effective_txns_by_seed": {
-    "8": 17,
-    "9": 17
+    "7": 20
   },
   "vcd_requested": false,
-  "scoreboard_pass_total": 114,
+  "scoreboard_pass_total": 70,
   "scoreboard_fail_total": 0,
   "csv_fail_rows_total": 0,
   "all_coverage_flags_hit": true,
   "coverage_missing_by_seed": {
-    "8": [],
-    "9": []
+    "7": []
   },
   "artifacts": [
     {
-      "seed": 8,
-      "json": "sim/random/random_seed_8.json",
-      "csv": "sim/random/random_seed_8.csv",
-      "log": "sim/random/random_seed_8.log"
-    },
-    {
-      "seed": 9,
-      "json": "sim/random/random_seed_9.json",
-      "csv": "sim/random/random_seed_9.csv",
-      "log": "sim/random/random_seed_9.log"
+      "seed": 7,
+      "json": "sim/random/random_seed_7.json",
+      "csv": "sim/random/random_seed_7.csv",
+      "log": "sim/random/random_seed_7.log"
     }
   ],
   "seeds": [
     {
       "passed": true,
-      "seed": 8,
-      "final_seed": -466968099,
-      "txns": 17,
-      "scoreboard_pass": 57,
-      "scoreboard_fail": 0,
-      "coverage_flags": {
-        "frame_cfg": true,
-        "tx_frame_config": true,
-        "rx_frame_config": true,
-        "parity_good": true,
-        "parity_error": true,
-        "stop2": true,
-        "tx_fifo_burst": true,
-        "rx_fifo_order": true,
-        "fifo_full": true,
-        "overrun": true,
-        "threshold_irq": true,
-        "timeout_irq": true,
-        "loopback": true,
-        "invalid_access": true,
-        "break_error": true,
-        "scratch": true
-      }
-    },
-    {
-      "passed": true,
-      "seed": 9,
-      "final_seed": -659150856,
-      "txns": 17,
-      "scoreboard_pass": 57,
+      "seed": 7,
+      "final_seed": -1086462363,
+      "txns": 20,
+      "scoreboard_pass": 70,
       "scoreboard_fail": 0,
       "coverage_flags": {
         "frame_cfg": true,
