@@ -665,7 +665,7 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
     # Surface the source-repo path to the agent so it can locate
     # workflow/, rules/, templates/, etc. when running from a non-source
     # cwd (e.g. user runs `cd Custom_IP && python ../…/textual_main.py`).
-    os.environ["ATLAS_SOURCE_ROOT"] = str(SOURCE_ROOT)
+    os.environ["ATLAS_SOURCE_ROOT"] = str(_source_root())
     os.environ["ATLAS_WORKFLOW_ROOT"] = str(WORKFLOW_ROOT)
     os.environ["ATLAS_PROJECT_ROOT"] = str(PROJECT_ROOT)
     # Inject a system-prompt note so the LLM knows about both roots.
@@ -673,7 +673,7 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
         f"\n\n[Atlas Runtime] You are running with cwd = {PROJECT_ROOT}. "
         f"All file reads/writes default to ATLAS_PROJECT_ROOT={PROJECT_ROOT}. "
         f"The active workflow scripts live at ATLAS_WORKFLOW_ROOT={WORKFLOW_ROOT}; "
-        f"the common_ai_agent source root is ATLAS_SOURCE_ROOT={SOURCE_ROOT}. "
+        f"the common_ai_agent source root is ATLAS_SOURCE_ROOT={_source_root()}. "
         f"Use `$ATLAS_WORKFLOW_ROOT/<workflow>/scripts/...` for deterministic "
         f"workflow tooling and pass `--root $ATLAS_PROJECT_ROOT` for IP/project "
         f"artifacts. Keep generated IP artifacts under PROJECT_ROOT/IP_ROOT and "
@@ -911,9 +911,9 @@ def _launch_admin_server(admin_port: str, admin_host: str) -> subprocess.Popen:
             "--host",
             bind_host,
             "--root",
-            str(SOURCE_ROOT),
+            str(_source_root()),
         ],
-        cwd=str(SOURCE_ROOT),
+        cwd=str(_source_root()),
         env=os.environ.copy(),
     )
     atexit.register(lambda p=proc: (p.terminate() if p.poll() is None else None))
@@ -1085,3 +1085,31 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+
+def _source_root() -> Path:
+    """Read _source_root() from atlas_ui dynamically (deferred, avoids circular)."""
+    try:
+        from src.atlas_ui import SOURCE_ROOT
+        return SOURCE_ROOT
+    except Exception:
+        return Path(__file__).resolve().parent.parent
+
+
+def _resolve_workflow_root(raw: str | Path | None = None) -> Path:
+    """Resolve the directory that contains workflow families.
+
+    Accept either the workflow directory itself (`.../workflow`) or the
+    common_ai_agent source root (`.../common_ai_agent`). This lets CLI/env
+    callers pass the most obvious path without making every script guess.
+    """
+    value = str(raw or os.environ.get("ATLAS_WORKFLOW_ROOT") or "").strip()
+    base = Path(os.path.expandvars(value)).expanduser() if value else _source_root() / "workflow"
+    if not base.is_absolute():
+        base = _source_root() / base
+    if (base / "ssot-gen").exists() or base.name == "workflow":
+        return base.resolve()
+    nested = base / "workflow"
+    if (nested / "ssot-gen").exists():
+        return nested.resolve()
+    return base.resolve()
