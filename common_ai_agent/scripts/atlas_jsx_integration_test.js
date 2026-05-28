@@ -102,6 +102,7 @@ const files = [
   ["preview-pane.jsx", "frontend/atlas/preview-pane.jsx"],
   ["ssot-digest.jsx", "frontend/atlas/ssot-digest.jsx"],
   ["ssot-qa-board.jsx", "frontend/atlas/ssot-qa-board.jsx"],
+  ["workspace-panels.jsx", "frontend/atlas/workspace-panels.jsx"],
   ["workspace.jsx", "frontend/atlas/workspace.jsx"],
 ];
 const failed = [];
@@ -136,6 +137,13 @@ const expected = [
   // Phase 13f component + 4 newly-exposed deps (AtlasStatusBadge already counted above)
   "SsotQaBoard",
   "AskUserQuestionBlock", "atlasStatusMeta", "normalizeUiSession", "ssotIpFromSession",
+  // Phase 13g — 6 panel components + 8 newly-exposed deps (the other 5
+  // panel deps — AskUserQuestionBlock/AtlasStatusBadge/atlasStatusMeta/
+  // normalizeUiSession — are already counted above from earlier phases)
+  "AskUserPrompt", "ProgressPanel", "TodoPanel", "OrchestratorChatPanel", "GitPanel", "AgentStatusPanel",
+  "TodoGraph", "_limitAtlasLines", "_statusGlyph", "atlasUiExecMode",
+  "healthMatchesCurrentUser", "uiEffectiveHealthSession",
+  "uiHealthCountersMatchBrowserRoute", "uiSessionRoute", "workspaceFetchWorkerSnapshot",
 ];
 console.log("\nwindow registration:");
 let ok = 0;
