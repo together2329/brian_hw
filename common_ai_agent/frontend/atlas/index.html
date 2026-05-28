@@ -265,6 +265,9 @@
        workspace-panels.jsx so the latter drops under the 2000-line target. -->
   <script type="text/babel" data-presets="react" src="agent-status-panel.jsx?v=atlas-20260528-asp"></script>
   <script type="text/babel" data-presets="react" src="workspace-panels.jsx?v=atlas-20260528-panels"></script>
+  <!-- Phase 23 split: ProgressPanel + TodoPanel extracted from
+       workspace-panels.jsx so the latter drops under 1000. -->
+  <script type="text/babel" data-presets="react" src="progress-todo-panels.jsx?v=atlas-20260528-pt-panels"></script>
   <!-- sim_debug components (loaded BEFORE workspace.jsx so the
        conditional render in workspace.jsx can reference them). -->
   <script type="text/babel" data-presets="react" src="debug-shared.jsx?v=atlas-20260503-strict-status"></script>

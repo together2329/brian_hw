@@ -107,6 +107,7 @@ const files = [
   ["ssot-qa-board.jsx", "frontend/atlas/ssot-qa-board.jsx"],
   ["agent-status-panel.jsx", "frontend/atlas/agent-status-panel.jsx"],
   ["workspace-panels.jsx", "frontend/atlas/workspace-panels.jsx"],
+  ["progress-todo-panels.jsx", "frontend/atlas/progress-todo-panels.jsx"],
   ["workspace.jsx", "frontend/atlas/workspace.jsx"],
 ];
 const failed = [];
