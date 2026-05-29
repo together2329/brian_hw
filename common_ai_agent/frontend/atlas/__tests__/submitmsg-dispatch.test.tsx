@@ -1,0 +1,337 @@
+// __tests__/submitmsg-dispatch.test.tsx
+//
+// THE MISSING DISPATCH GATE for the ported workspace submitMsg (the ~510-line
+// dispatch hub faithfully ported from workspace.jsx submitMsg L3801-L4356 into
+// workspace-root-data-hook.tsx, L1366-1895).
+//
+// WHY THIS EXISTS — the render-smoke gate (workspace-render-smoke.test.tsx) only
+// MOUNTS the Workspace. It proves renderPromptRow/renderChatPane resolved to real
+// functions and a <textarea> exists, but it NEVER presses Enter — so submitMsg's
+// branch routing is never exercised. That is exactly how a happy-path stub passed
+// "green-while-broken": a 46-line stub that just shipped everything to the agent
+// would also mount fine and render a textarea. Mounting != dispatching.
+//
+// THIS test mounts the REAL Workspace (same self-wired path as the smoke gate),
+// types into the live composer textarea, presses Enter, and asserts WHERE the
+// input went. It exercises the four load-bearing routing contracts of the hub:
+//
+//   (a) a CLIENT-side slash command (`/scope x`) is handled IN-BROWSER —
+//       window scope is set, NOTHING is shipped via sendPrompt/agent-prompt.
+//   (b) in ORCHESTRATOR mode a plain prompt POSTs /api/pipeline/orchestrator/chat
+//       (NOT sendPrompt — the orchestrator routes through HTTP, not the WS agent).
+//   (c) a plain prompt in NORMAL mode calls sendPrompt (the WS agent path).
+//   (d) when sendPrompt's ack never confirms (no agent_received/agent_accepted),
+//       the input is HELD (heldSubmitRef populated + restored to the box), NOT
+//       silently cleared — the anti-data-loss contract.
+//
+// WOULD-HAVE-CAUGHT-THE-STUB (noted per assertion below): the old happy-path stub
+// unconditionally called sendPrompt(raw) and cleared the box. Against it:
+//   (a) FAILS — stub ships "/scope x" to sendPrompt instead of handling locally.
+//   (b) FAILS — stub calls sendPrompt, never fetches the orchestrator endpoint.
+//   (d) FAILS — stub clears the input on send; heldSubmitRef stays null.
+//   (c) is the only assertion the stub would have *passed* (both call sendPrompt),
+//       which is precisely why a sendPrompt-only smoke check could not tell the
+//       full hub from the stub. (a)/(b)/(d) are the discriminating gates.
+
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+// A full-app mount + a fireEvent dispatch cycle in jsdom can exceed the 5s
+// default under load; widen the budget (mirrors the render-smoke gate).
+vi.setConfig({ testTimeout: 30000, hookTimeout: 30000 });
+
+import { render, cleanup, fireEvent, act } from '@testing-library/react';
+
+// Same load-order bridge the live app + the render-smoke gate rely on:
+// ui-utils.tsx publishes window.CopyBtn / window._copyToClipboard on import, and
+// workspace-markdown-chips.tsx binds window.CopyBtn at MODULE-LOAD time. Import
+// it first so the bridge is real before the workspace bundle evaluates.
+import '../ui-utils.tsx';
+
+type AnyWindow = typeof window & Record<string, any>;
+
+// Passthrough placeholder for the window-published ATLAS panels.
+const PassthroughPanel = ({ children }: { children?: unknown }) =>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (children as any) ?? null;
+
+// A controllable backend double. The REAL sendPrompt (session hook) calls
+// backend.send(msg) then awaits an ack Promise that resolves only when a
+// subscribed 'agent_received'/'agent_accepted' event matching msg.msg_id fires
+// (else it times out at 7s). We capture send() calls and let each test decide
+// whether to ACK (resolve ok) or WITHHOLD the ack (drive the held path) — without
+// ever waiting on the real 7s timer.
+function makeBackend() {
+  const subs: Record<string, Array<(m: any) => void>> = {};
+  const sent: any[] = [];
+  let ackMode: 'accept' | 'withhold' = 'accept';
+  const emit = (event: string, m: any) => {
+    (subs[event] || []).forEach((cb) => { try { cb(m); } catch (_) {} });
+  };
+  const backend = {
+    state: 'open',
+    getConnectionState: () => 'open',
+    send: vi.fn((msg: any) => {
+      sent.push(msg);
+      // Resolve the ack synchronously-ish on the microtask queue: the ack
+      // Promise subscribes to these events inside sendPrompt BEFORE send()
+      // returns, so emitting right after push lands on the live listeners.
+      if (ackMode === 'accept') {
+        Promise.resolve().then(() => {
+          emit('agent_received', { msg_id: msg.msg_id });
+          emit('agent_accepted', { msg_id: msg.msg_id, ok: true });
+        });
+      }
+      // ackMode === 'withhold' → emit nothing; we instead resolve the miss path
+      // deterministically below (see withholdAndFailFast) so tests never wait 7s.
+    }),
+    subscribe: vi.fn((event: string, cb: (m: any) => void) => {
+      (subs[event] || (subs[event] = [])).push(cb);
+      return () => {
+        subs[event] = (subs[event] || []).filter((x) => x !== cb);
+      };
+    }),
+    on: vi.fn(),
+    off: vi.fn(),
+    switchSession: vi.fn(),
+    connect: vi.fn(),
+  };
+  return {
+    backend,
+    sent,
+    setAckMode: (m: 'accept' | 'withhold') => { ackMode = m; },
+    // For the held-input test: after send(), immediately resolve the ack as a
+    // FAILED acceptance for the just-sent msg. This drives waitForPromptAck's
+    // onMiss → holdUnacknowledgedInput WITHOUT the 7s real-backend timeout.
+    failLastSendFast: () => {
+      const last = sent[sent.length - 1];
+      if (!last) return;
+      emit('agent_accepted', { msg_id: last.msg_id, ok: false, error: 'no ack (test)' });
+    },
+  };
+}
+
+let bk: ReturnType<typeof makeBackend>;
+
+function installWindowStubs() {
+  const w = window as AnyWindow;
+
+  for (const name of [
+    'SsotReviewPane', 'SsotQaBoard', 'SsotDocPane', 'PreviewPane',
+    'AskUserPrompt', 'ProgressPanel', 'TodoPanel', 'OrchestratorChatPanel',
+    'GitPanel', 'AgentStatusPanel', 'Coverage', 'SimDebug', 'DebugTab',
+    'GitTab',
+  ]) {
+    w[name] = PassthroughPanel;
+  }
+  w.Kbd = ({ children }: { children?: unknown }) => children ?? null;
+
+  // normalizeUiSession() delegates to this; without it every session string
+  // normalizes to '' and activeIp can never be derived (orchestrator gate fails
+  // to find a real IP). A lowercase-trim identity matches the live normalizer's
+  // shape closely enough for routing (owner/ip/workflow → ip).
+  const normalize = (s: any) => String(s || '').trim().toLowerCase();
+  w.normalizeAtlasSessionName = normalize;
+
+  w.CONTEXT = {};
+  w.ACTIVE_SESSION = '';
+  w.ACTIVE_IP = '';
+  w.ATLAS_UI_LANG = 'ko';
+  w.ATLAS_USER = { username: 'alice' };
+  w.FLOW_STAGES = [];
+  w.TODOS = [];
+  w.SCOPE_PATH = '';
+  w.FILE_TREE_LOADING = false;
+  w.FILE_TREE_ERROR = null;
+  w.FILE_TREE_LAST_REFRESH = 0;
+  // Reset exec mode per test; each test opts INTO orchestrator where needed.
+  w.ATLAS_EXEC_MODE = '';
+  delete w.ATLAS_DEFAULT_EXEC_MODE;
+  delete w.ATLAS_BOOT_CONFIG;
+
+  // atlasData surface the submitMsg branches touch. setScopePath is called
+  // UNGUARDED in the /scope branch (data-hook L1502), so it MUST exist; sessionFor
+  // is optional-chained but provide a sane value for the orchestrator branch;
+  // normalizeSessionName is the primary delegate for normalizeUiSession.
+  w.atlasData = {
+    setScopePath: vi.fn(),
+    sessionFor: (ip: string, wf: string) => `alice/${ip}/${wf}`,
+    normalizeSessionName: normalize,
+    refreshFileTree: vi.fn(),
+  };
+
+  bk = makeBackend();
+  w.backend = bk.backend;
+
+  w.AtlasBannerLogic = { shouldShowSelectIpBanner: () => false };
+
+  // Default network double: empty-OK JSON so mount-time polls settle. Individual
+  // tests REPLACE this with a spy when they need to assert a specific POST.
+  global.fetch = vi.fn(async () =>
+    new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } }),
+  ) as unknown as typeof fetch;
+}
+
+// Type into the live composer textarea and press plain Enter (the wired path:
+// onPromptKey → submitMsg() with the current input). fireEvent.change updates the
+// controlled value via setInput; the keydown handler closes over the latest
+// memoized submitMsg, so Enter dispatches the just-typed text.
+function typeAndSubmit(container: HTMLElement, text: string) {
+  const textarea = container.querySelector('textarea') as HTMLTextAreaElement;
+  expect(textarea).not.toBeNull();
+  expect(textarea.disabled).toBe(false); // workflowReady must be null → enabled
+  fireEvent.change(textarea, { target: { value: text } });
+  fireEvent.keyDown(textarea, { key: 'Enter', code: 'Enter' });
+  return textarea;
+}
+
+async function mountWorkspace() {
+  // Import AFTER stubs so the module-load window reads see them.
+  const { Workspace } = await import('../workspace.tsx');
+  let utils: ReturnType<typeof render>;
+  await act(async () => {
+    utils = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
+  });
+  // @ts-expect-error assigned inside act
+  return utils;
+}
+
+describe('submitMsg dispatch routing (the missing TDD gate)', () => {
+  beforeEach(() => {
+    installWindowStubs();
+  });
+
+  afterEach(() => {
+    cleanup();
+    vi.restoreAllMocks();
+  });
+
+  // (a) CLIENT slash command — handled in-browser, NOT shipped to the agent.
+  // CATCHES THE STUB: the happy-path stub would sendPrompt("/scope x") and clear
+  // the box. Here we assert window scope was set locally AND sendPrompt was never
+  // called with the slash text.
+  it('(a) handles a client slash command (/scope) in-browser — never ships it via sendPrompt', async () => {
+    const w = window as AnyWindow;
+    const { container } = await mountWorkspace();
+
+    await act(async () => {
+      typeAndSubmit(container, '/scope subblock');
+    });
+
+    // Handled locally: the browser-side scope setter ran with the parsed arg.
+    expect(w.atlasData.setScopePath).toHaveBeenCalledWith('subblock');
+    // And it was NOT shipped to the agent: backend.send carries {type:'prompt'}.
+    const shippedSlash = bk.sent.some(
+      (m) => m && m.type === 'prompt' && String(m.text || '').includes('/scope'),
+    );
+    expect(shippedSlash).toBe(false);
+    expect(bk.backend.send).not.toHaveBeenCalled();
+  });
+
+  // (b) ORCHESTRATOR mode plain prompt → POST /api/pipeline/orchestrator/chat.
+  // CATCHES THE STUB: the stub would sendPrompt(raw) and never touch the
+  // orchestrator HTTP endpoint. Here we assert the exact URL was fetched and
+  // sendPrompt was NOT used.
+  it('(b) in orchestrator mode a plain prompt POSTs /api/pipeline/orchestrator/chat (not sendPrompt)', async () => {
+    const w = window as AnyWindow;
+    // Opt into orchestrator mode and give it a real (non-default) active IP so
+    // the orchestrator HTTP branch (not the held/guard paths) is reached.
+    w.ATLAS_EXEC_MODE = 'orchestrator';
+    w.ACTIVE_SESSION = 'alice/myip/orchestrator';
+    w.ACTIVE_IP = 'myip';
+
+    const fetchSpy = vi.fn(async () =>
+      new Response('{"reply":""}', { status: 200, headers: { 'Content-Type': 'application/json' } }),
+    );
+    global.fetch = fetchSpy as unknown as typeof fetch;
+
+    const { container } = await mountWorkspace();
+
+    await act(async () => {
+      typeAndSubmit(container, 'design the AXI bridge');
+    });
+
+    const orchestratorChatCalls = fetchSpy.mock.calls.filter(
+      ([url]) => String(url) === '/api/pipeline/orchestrator/chat',
+    );
+    expect(orchestratorChatCalls.length).toBeGreaterThanOrEqual(1);
+    // The orchestrator routes through HTTP, NOT the WS agent prompt.
+    const shippedPrompt = bk.sent.some((m) => m && m.type === 'prompt');
+    expect(shippedPrompt).toBe(false);
+    expect(bk.backend.send).not.toHaveBeenCalled();
+    // And it did NOT also dispatch a worker job for a plain chat turn.
+    const jobDispatchCalls = fetchSpy.mock.calls.filter(
+      ([url]) => String(url) === '/api/job/dispatch',
+    );
+    expect(jobDispatchCalls.length).toBe(0);
+  });
+
+  // (c) NORMAL mode plain prompt → sendPrompt (the WS agent path).
+  // NOTE: this is the ONE assertion the old stub would also have passed (both the
+  // stub and the full hub call sendPrompt here). It is included to prove the
+  // normal-mode path is intact, but it is NOT a stub discriminator on its own —
+  // (a)/(b)/(d) are what expose the stub.
+  it('(c) a plain prompt in normal mode calls sendPrompt (WS agent path)', async () => {
+    const w = window as AnyWindow;
+    w.ATLAS_EXEC_MODE = ''; // normal (single-worker) mode
+    w.ACTIVE_SESSION = 'alice/myip/rtl_gen';
+    w.ACTIVE_IP = 'myip';
+    bk.setAckMode('accept'); // confirm the ack so the box clears (happy path)
+
+    const { container } = await mountWorkspace();
+
+    await act(async () => {
+      typeAndSubmit(container, 'implement the FIFO');
+      // Let the ack microtask + state updates flush.
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    // sendPrompt shipped a {type:'prompt'} message carrying the typed text.
+    expect(bk.backend.send).toHaveBeenCalled();
+    const promptMsg = bk.sent.find((m) => m && m.type === 'prompt');
+    expect(promptMsg).toBeTruthy();
+    expect(promptMsg.text).toBe('implement the FIFO');
+    // Normal mode does NOT route a plain prompt through the orchestrator endpoint.
+    const usedOrchestrator = (global.fetch as any).mock.calls.some(
+      ([url]: any[]) => String(url) === '/api/pipeline/orchestrator/chat',
+    );
+    expect(usedOrchestrator).toBe(false);
+  });
+
+  // (d) ACK NEVER CONFIRMS → input is HELD, not silently cleared.
+  // CATCHES THE STUB: the stub cleared the box on send with no ack handling, so
+  // heldSubmitRef would stay null and the text would be lost. Here we withhold the
+  // ack, fail it fast, and assert the input was preserved (heldSubmitRef set AND
+  // the textarea repopulated with the original text).
+  it('(d) when sendPrompt ack never confirms, the input is HELD (not silently cleared)', async () => {
+    const w = window as AnyWindow;
+    w.ATLAS_EXEC_MODE = '';
+    w.ACTIVE_SESSION = 'alice/myip/rtl_gen';
+    w.ACTIVE_IP = 'myip';
+    bk.setAckMode('withhold'); // backend.send emits NO agent_received/accepted
+
+    const { container } = await mountWorkspace();
+
+    const textarea = container.querySelector('textarea') as HTMLTextAreaElement;
+    await act(async () => {
+      typeAndSubmit(container, 'unacknowledged prompt');
+      // sendPrompt ran and subscribed its ack listeners; now deterministically
+      // resolve the ack as a FAILED acceptance for the just-sent msg (drives
+      // waitForPromptAck → onMiss → holdUnacknowledgedInput) without a 7s wait.
+      await Promise.resolve();
+      bk.failLastSendFast();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    // sendPrompt WAS attempted (this is not the not-ready path)...
+    expect(bk.backend.send).toHaveBeenCalled();
+    // ...but because the ack never confirmed, the input is HELD. heldSubmitRef is
+    // internal to the hook, so assert its OBSERVABLE contract: the textarea was
+    // repopulated with the held text (holdSubmittedInput restores raw into the
+    // box via setInput) rather than emptied.
+    expect(textarea.value).toBe('unacknowledged prompt');
+    // A held-input notice was appended to the feed (the "kept it in the input box"
+    // agent message), proving the held branch — not a silent send — executed.
+    expect(container.textContent || '').toMatch(/Input not confirmed|kept it in the input box/i);
+  });
+});

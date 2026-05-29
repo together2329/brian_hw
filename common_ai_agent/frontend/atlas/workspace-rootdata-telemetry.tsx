@@ -59,6 +59,22 @@ export interface WorkspaceDataDeps {
   activateSession: (scopePath: any, wf?: any) => void;
   NORMAL_FEED: any[];
   PLAN_FEED: any[];
+  // ── submitMsg dispatch-hub primitives (formerly read through `deps as any`) ──
+  // These are session-half values the chat-submit hub consumes. They were
+  // previously read off a `deps as any` cast, which silently tolerated
+  // typos/undefined (setStreamText resolved to `undefined` at runtime because
+  // the session hook never returns it — the data hook owns it). Declared here so
+  // the cast can be dropped and tsc verifies the composer threads each one.
+  workflowReady: any;
+  switchGateRef: { current: any };
+  sendPrompt: (text: any, sessionOverride?: any) => any;
+  appendLiveFeedEntries: (entries: any) => void;
+  inputRouteState: any;
+  inputRouteRef: { current: any };
+  // Mode + session-transition helpers the client-side slash branches call.
+  setIntent: (i: any) => void;
+  switchToDefaultSession: () => any;
+  switchWorkflow: (wf: any) => any;
 }
 
 /**

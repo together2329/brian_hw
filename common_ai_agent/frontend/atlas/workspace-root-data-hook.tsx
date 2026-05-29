@@ -124,6 +124,16 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     activateSession,
     NORMAL_FEED,
     PLAN_FEED,
+    // submitMsg dispatch-hub primitives (now typed; no `deps as any` cast).
+    workflowReady,
+    switchGateRef,
+    sendPrompt,
+    appendLiveFeedEntries,
+    inputRouteState,
+    inputRouteRef,
+    setIntent,
+    switchToDefaultSession,
+    switchWorkflow,
   } = deps;
 
   // ── Telemetry: /healthz poll loop ───────────────────────────────
@@ -294,6 +304,11 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   // ── Input + input history ───────────────────────────────────────
   const [input, setInput] = useState<string>('');
   const heldSubmitRef = useRef<any>(null);
+  // Optimistic run-start arming: set true after a confirmed prompt send so the
+  // agent_state handler doesn't swallow the backend's first running:false before
+  // the agent actually starts. (workspace.jsx L2737-L2738 component-scope refs.)
+  const awaitingRunStartRef = useRef<boolean>(false);
+  const backendRunStartedRef = useRef<boolean>(false);
 
   // Fold/drag-select comment events from PreviewPane prefill the chat input
   // with `@<path> L<lo>-L<hi> (label)` and focus it.
@@ -1151,21 +1166,217 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     && (scmProvider !== 'git' || ScmTabComponent !== w.GitTab)
   );
 
-  // ── chat submit (with switch-gate guard) ───────────────────────────
-  // The session-half primitives needed to send/hold a prompt are threaded in
-  // through the spread session bag (workspace-root composes dataDeps as
-  // { ...session }), so they are read off `deps` with the file's permissive
-  // `any` house style rather than re-declared in the typed contract.
-  const sessionBag = deps as any;
+  // Commands that put the banner into a transient "busy" state while the
+  // backend processes them (workspace.jsx L3793-L3799).
+  const slashBusyForRaw = (value: any) => {
+    const head = String(value || '').trim().split(/\s+/, 1)[0].toLowerCase();
+    if (head === '/compact' || head === '/co') {
+      return { kind: 'compact', text: 'Compacting history' };
+    }
+    return null;
+  };
+
+  // ── ask_user text-answer helpers (workspace.jsx L5371-L5463) ────────────
+  // Parse a plain chat message into an ask_user answer when a qcard is open, so
+  // the user can answer by typing instead of clicking. Ported verbatim.
+  const matchAnswerToken = (raw: any, opts: any[]) => {
+    const text = String(raw || '').trim();
+    if (!text) return null;
+    if (/^\d+$/.test(text)) {
+      const idx = parseInt(text, 10) - 1;
+      return opts[idx] || null;
+    }
+    const low = text.toLowerCase();
+    return opts.find((o: any) =>
+      String(o.id || '').toLowerCase() === low ||
+      String(o.label || '').toLowerCase() === low
+    ) || null;
+  };
+
+  const parseTextAnswer = (raw: any, question: any, opts: any[]) => {
+    const text = String(raw || '').trim();
+    const kind = question?.kind === 'multi' ? 'multi'
+      : question?.kind === 'input' ? 'input'
+      : 'single';
+    if (!text || kind === 'input' || !opts.length) {
+      return { selected: [] as any[], custom: text };
+    }
+    if (kind === 'multi') {
+      const tokens = text.split(/[,\s]+/).map((x: string) => x.trim()).filter(Boolean);
+      const selected: any[] = [];
+      const unmatched: any[] = [];
+      for (const token of tokens) {
+        const match = matchAnswerToken(token, opts);
+        if (match) selected.push(match.id);
+        else unmatched.push(token);
+      }
+      if (selected.length) {
+        return { selected: Array.from(new Set(selected)), custom: unmatched.join(' ') };
+      }
+      return { selected: [], custom: text };
+    }
+    const match = matchAnswerToken(text, opts);
+    return match ? { selected: [match.id], custom: '' } : { selected: [], custom: text };
+  };
+
+  const applyParsedAnswer = (tabState: any, question: any, parsed: any) => {
+    const selected = new Set(parsed.selected || []);
+    const kind = question?.kind === 'multi' ? 'multi'
+      : question?.kind === 'input' ? 'input'
+      : 'single';
+    const opts = (tabState.opts || []).map((o: any) => ({
+      ...o,
+      selected: kind === 'multi'
+        ? (!!o.locked || selected.has(o.id))
+        : selected.has(o.id),
+    }));
+    return { ...tabState, opts, custom: parsed.custom || '' };
+  };
+
+  const tabHasAnswer = (tabState: any) => {
+    return !!(
+      (tabState?.opts || []).some((o: any) => o.selected) ||
+      String(tabState?.custom || '').trim()
+    );
+  };
+
+  const historySnapshotFor = (flowId: any, flow: any, st: any) => {
+    if (!flow || !st) return null;
+    const session = normalizeUiSession(flow.session || currentSession || w.ACTIVE_SESSION || '');
+    const ip = String(flow.ip || ssotIpFromSession(session) || activeSsotIp() || '').trim();
+    const items = flow.batched
+      ? (flow.questions || []).map((q: any, i: number) => {
+          const tab = (st.states || [])[i] || { opts: [], custom: '' };
+          return {
+            question: q.question || '',
+            kind: q.kind || 'single',
+            selected: tab.opts.filter((o: any) => o.selected)
+              .map((o: any) => ({ id: o.id, label: o.label })),
+            custom: tab.custom || '',
+          };
+        })
+      : [{
+          question: flow.question || '',
+          kind: flow.kind || 'single',
+          selected: (st.opts || []).filter((o: any) => o.selected)
+            .map((o: any) => ({ id: o.id, label: o.label })),
+          custom: st.custom || '',
+        }];
+    return {
+      flowId,
+      ts: Date.now(),
+      session,
+      ip,
+      workflow: flow.workflow || '',
+      source: flow.source || '',
+      items,
+    };
+  };
+
+  const answerPendingFromInput = (raw: any) => {
+    const flowId = pendingQcard?.flowId;
+    const flow = flowId && w.QA_FLOWS && w.QA_FLOWS[flowId];
+    const st = flowId && qaState[flowId];
+    const text = String(raw || '').trim();
+    if (!flowId || !flow || !st || st.submitted || !text) return false;
+
+    let nextState = st;
+    let shouldSubmit = false;
+    let snapshot: any = null;
+
+    if (st.batched) {
+      const questions = flow.questions || [];
+      const states = (st.states || questions.map((q: any) => ({
+        opts: (q.options || []).map((o: any) => ({ ...o })),
+        custom: '',
+      }))).map((tab: any) => ({
+        ...tab,
+        opts: (tab.opts || []).map((o: any) => ({ ...o })),
+      }));
+      const lines = text.split(/\n+/).map((x: string) => x.trim()).filter(Boolean);
+      let lineIdx = 0;
+      const active = Math.max(0, Math.min(st.active || 0, Math.max(0, questions.length - 1)));
+      const openTargets = questions.map((_: any, i: number) => i).filter((i: number) => !tabHasAnswer(states[i]));
+      const targets = lines.length > 1
+        ? Array.from(new Set((openTargets.length ? openTargets : [active])))
+        : [active];
+      for (const idx of targets as number[]) {
+        if (idx < 0 || idx >= questions.length || lineIdx >= lines.length) continue;
+        const q = questions[idx];
+        const parsed = parseTextAnswer(lines[lineIdx], q, states[idx]?.opts || []);
+        states[idx] = applyParsedAnswer(states[idx] || { opts: [], custom: '' }, q, parsed);
+        lineIdx += 1;
+      }
+      const allAnswered = states.length > 0 && states.every(tabHasAnswer);
+      const firstOpen = states.findIndex((tab: any) => !tabHasAnswer(tab));
+      nextState = {
+        ...st,
+        states,
+        active: allAnswered ? questions.length : Math.max(0, firstOpen),
+        submitted: allAnswered,
+      };
+      shouldSubmit = allAnswered;
+      if (shouldSubmit && w.backend) {
+        const answers = states.map((tab: any) => ({
+          selected: tab.opts.filter((o: any) => o.selected).map((o: any) => o.id),
+          custom: tab.custom || '',
+        }));
+        w.backend.send({ type: 'answer', flow_id: flowId, answers });
+        snapshot = historySnapshotFor(flowId, flow, nextState);
+      }
+    } else {
+      const parsed = parseTextAnswer(text, flow, st.opts || []);
+      nextState = {
+        ...applyParsedAnswer(st, flow, parsed),
+        submitted: true,
+      };
+      shouldSubmit = true;
+      if (w.backend) {
+        w.backend.send({
+          type: 'answer',
+          flow_id: flowId,
+          selected: nextState.opts.filter((o: any) => o.selected).map((o: any) => o.id),
+          custom: nextState.custom || '',
+        });
+        snapshot = historySnapshotFor(flowId, flow, nextState);
+      }
+    }
+
+    setFeed((f: any) => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
+    setQaState((s: any) => ({ ...s, [flowId]: nextState }));
+    if (snapshot) {
+      setQaHistory((h: any[]) => {
+        if (h.length && h[0].flowId === snapshot.flowId) return h;
+        return [snapshot, ...h].slice(0, QA_HISTORY_LIMIT);
+      });
+    }
+    setMainTab(shouldSubmit ? 'chat' : 'qa');
+    setAskSel(0);
+    if (shouldSubmit) setStreaming(true);
+    return true;
+  };
+
+  // ── chat submit (FAITHFUL port of workspace.jsx submitMsg L3801-L4356) ─────
+  // The full dispatch hub: switch-gate guard → pendingQcard answer-from-input →
+  // client-side slash commands → orchestrator-chat / worker job-dispatch HTTP
+  // branches → backend slash commands (ack-aware) → default agent prompt
+  // (ack-aware). Session-half primitives are now read from the destructured,
+  // TYPED deps above — the old `deps as any` cast (which left setStreamText
+  // undefined at runtime) is gone. setStreamText is the data hook's OWN state.
   const submitMsg = useCallback((cmd?: any) => {
     const raw = String(cmd ?? input).trim();
     if (!raw) return;
-    const setStreaming = sessionBag.setStreaming;
-    const setStreamText = sessionBag.setStreamText;
-    const workflowReady = sessionBag.workflowReady;
-    const switchGateRef = sessionBag.switchGateRef;
-    const sendPrompt = sessionBag.sendPrompt;
 
+    const clearSubmittedInput = () => {
+      recordInputHistory(raw);
+      setInput((cur: any) => {
+        const curText = String(cur || '').trim();
+        if (!curText || curText === raw) return '';
+        if (cmd != null && curText.startsWith('/')) return '';
+        return cur;
+      });
+      setShowSlash(false);
+    };
     const holdSubmittedInput = (reason: string) => {
       heldSubmitRef.current = { raw, cmd, createdAt: Date.now() };
       setInput((cur: any) => {
@@ -1173,10 +1384,39 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
         return curText ? cur : raw;
       });
       setShowSlash(false);
-      if (typeof setStreaming === 'function') setStreaming(false);
+      setStreaming(false);
+      awaitingRunStartRef.current = false;
       streamBufferRef.current = '';
-      if (typeof setStreamText === 'function') setStreamText('');
+      setStreamText('');
       setFeed((f: any) => [...f, { kind: 'agent', text: reason, createdAt: Date.now() }]);
+    };
+    const promptBackendState = () => {
+      if (!w.backend) return 'missing';
+      if (typeof w.backend.getConnectionState === 'function') {
+        return w.backend.getConnectionState() || backendState || 'unknown';
+      }
+      return backendState || 'unknown';
+    };
+    const backendReadyForPrompt = () => w.backend && promptBackendState() === 'open';
+    const waitForPromptAck = (sent: any, onAck: (e: any) => void, onMiss: (r: any) => void) => {
+      if (!sent || sent.ok === false) {
+        onMiss(sent?.error || backendState || 'unknown');
+        return;
+      }
+      if (!sent.ack || typeof sent.ack.then !== 'function') {
+        onAck(null);
+        return;
+      }
+      sent.ack.then((ack: any) => {
+        if (ack && ack.ok) {
+          onAck(ack.event || ack);
+          return;
+        }
+        onMiss((ack && ack.error) || 'backend did not acknowledge receipt');
+      });
+    };
+    const holdUnacknowledgedInput = (reason: string) => {
+      holdSubmittedInput(`Input not confirmed. ${reason || 'Backend did not acknowledge receipt'}; kept it in the input box.`);
     };
 
     // Race fix: read the synchronous gate FIRST. workflowReady is React state and
@@ -1192,25 +1432,474 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       return;
     }
 
-    // Cleared to send: record history, clear the box, and dispatch to the backend.
-    recordInputHistory(raw);
-    setInput((cur: any) => {
-      const curText = String(cur || '').trim();
-      if (!curText || curText === raw) return '';
-      if (cmd != null && curText.startsWith('/')) return '';
-      return cur;
-    });
-    setShowSlash(false);
-    setFeed((f: any) => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
-    if (typeof sendPrompt === 'function') sendPrompt(raw);
-  }, [input, workflow, recordInputHistory, setFeed, setInput, setShowSlash, streamBufferRef, sessionBag]);
+    if (pendingQcard && !raw.startsWith('/')) {
+      if (answerPendingFromInput(raw)) {
+        clearSubmittedInput();
+        return;
+      }
+    }
+
+    // ── Client-side slash commands ──────────────────────────────
+    // Some commands operate on browser state (SCOPE_PATH lives in
+    // localStorage / window) and don't need an agent round-trip.
+    // Handle them here BEFORE sending anything to the backend.
+    const sessionMatch = raw.match(/^\/(session|sess)(\s+(.*))?$/);
+    if (sessionMatch) {
+      clearSubmittedInput();
+      const arg = (sessionMatch[3] || '').trim();
+      setFeed((f: any) => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
+      const _clearStreaming = () => {
+        setStreaming(false);
+        streamBufferRef.current = '';
+        setStreamText('');
+      };
+      if (!arg) {
+        setFeed((f: any) => [...f, {
+          kind: 'agent',
+          text: `Current session: \`${activeSession || w.ACTIVE_SESSION || 'default'}\`\nUse \`/session default\` to return to the default session.`,
+        }]);
+        _clearStreaming();
+        return;
+      }
+      if (arg.toLowerCase() === 'default') {
+        const sid = switchToDefaultSession();
+        setFeed((f: any) => [...f, { kind: 'agent', text: `Session set to \`${sid}\`.` }]);
+        _clearStreaming();
+        return;
+      }
+      const sid = resolveSession(arg, activeSession, w.ACTIVE_SESSION);
+      w.ACTIVE_SESSION = sid;
+      setActiveSession(sid);
+      try { localStorage.setItem('atlasActiveSession', sid); } catch (_) {}
+      refreshChatSession(sid);
+      setFeed((f: any) => [...f, { kind: 'agent', text: `Session set to \`${sid}\`.` }]);
+      _clearStreaming();
+      return;
+    }
+
+    const m = raw.match(/^\/(scope|cd)(\s+(.*))?$/);
+    if (m) {
+      clearSubmittedInput();
+      const arg = (m[3] || '').trim();
+      const cur = w.SCOPE_PATH || '';
+      const _clearStreaming = () => {
+        setStreaming(false);
+        streamBufferRef.current = '';
+        setStreamText('');
+      };
+      if (!arg) {
+        setFeed((f: any) => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
+        setFeed((f: any) => [...f, {
+          kind: 'agent',
+          text: cur
+            ? `Current scope: \`${cur}\`\nUse \`/scope <path>\` to change, \`/scope /\` to reset.`
+            : 'No scope set — agent works on the whole project.\nUse `/scope <path>` to confine it.',
+        }]);
+        _clearStreaming();
+        return;
+      }
+      const next = (arg === '/' || arg === '~' || arg === '-') ? '' : arg.replace(/^\/+|\/+$/g, '');
+      w.atlasData.setScopePath(next);
+      setFeed((f: any) => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
+      setFeed((f: any) => [...f, {
+        kind: 'agent',
+        text: next
+          ? `✓ Scope set to \`${next}\`. Future prompts will tell the agent to stay inside this directory.`
+          : '✓ Scope cleared. Agent operates on the whole project again.',
+      }]);
+      _clearStreaming();
+      return;
+    }
+
+    // /plan, /normal, /mode plan, /mode normal — flip UI intent locally AND
+    // forward to backend so agent_mode flips. Normalize the WIRE form to the
+    // canonical command the backend slash registry actually handles.
+    const modeMatch = raw.match(/^\/(plan|mode\s+plan|mode\s+normal|normal)$/i);
+    if (modeMatch) {
+      clearSubmittedInput();
+      const target = /^\/(plan|mode\s+plan)$/i.test(raw) ? 'plan' : 'normal';
+      const wire = target === 'plan' ? '/plan' : '/mode normal';
+      setIntent(target);
+      setFeed((f: any) => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
+      sendPrompt(wire);
+      setStreaming(false);
+      streamBufferRef.current = '';
+      setStreamText('');
+      return;
+    }
+
+    const wfMatch = raw.match(/^\/(wf|workflow)(\s+(\S+))?$/i);
+    if (wfMatch) {
+      clearSubmittedInput();
+      const targetWf = (wfMatch[3] || '').trim();
+      setFeed((f: any) => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
+      if (targetWf) {
+        switchWorkflow(targetWf);
+      } else {
+        setFeed((f: any) => [...f, {
+          kind: 'agent',
+          text: `Current workflow: \`${workflow || 'default'}\``,
+        }]);
+      }
+      setStreaming(false);
+      streamBufferRef.current = '';
+      setStreamText('');
+      return;
+    }
+
+    const pipelineMatch = raw.match(/^\/(pipeline|pipe|full-pipeline)(\s+(\S+))?$/i);
+    if (pipelineMatch) {
+      clearSubmittedInput();
+      const ipName = (pipelineMatch[3] || w.ACTIVE_IP || activeIp || '').trim();
+      setFeed((f: any) => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
+      const _clearStreaming = () => {
+        setStreaming(false);
+        streamBufferRef.current = '';
+        setStreamText('');
+      };
+      if (!ipName || ipName === 'default') {
+        setFeed((f: any) => [...f, {
+          kind: 'agent',
+          text: 'Usage: `/pipeline <ip>` — dispatches SSOT → FL/CL → RTL → lint → TB → sim → coverage → syn → sta → pnr → sta-post.',
+        }]);
+        _clearStreaming();
+        return;
+      }
+      fetch('/api/pipeline/dispatch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ip: ipName }),
+      })
+        .then(async (r) => {
+          const j = await r.json().catch(() => ({}));
+          if (!r.ok || j.error || j.detail) throw new Error(j.error || j.detail || `HTTP ${r.status}`);
+          return j;
+        })
+        .then((j: any) => {
+          const stages = Array.isArray(j.stages)
+            ? j.stages.map((s: any) => s && s.id).filter(Boolean).join(' → ')
+            : '';
+          setFeed((f: any) => [...f, {
+            kind: 'agent',
+            text: `Dispatched pipeline \`${j.pipeline_id || 'unknown'}\` for \`${ipName}\`${stages ? `.\nStages: ${stages}` : '.'}`,
+          }]);
+          window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'JOBS' }));
+        })
+        .catch((err: any) => setFeed((f: any) => [...f, {
+          kind: 'agent',
+          text: 'Pipeline dispatch failed: ' + (err && err.message || err),
+        }]));
+      _clearStreaming();
+      return;
+    }
+
+    // /commit <msg> — labeled checkpoint in the active IP's per-IP git.
+    const commitMatch = raw.match(/^\/commit(\s+([\s\S]+))?$/i);
+    if (commitMatch) {
+      clearSubmittedInput();
+      const msg = (commitMatch[2] || '').trim() || 'manual checkpoint';
+      const ipName = (w.ACTIVE_IP || activeIp || '').trim();
+      setFeed((f: any) => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
+      if (!ipName || ipName === 'default') {
+        setFeed((f: any) => [...f, {
+          kind: 'agent',
+          text: '⚠ no active IP — pick one from the IP_ID dropdown first.',
+        }]);
+      } else {
+        fetch(`/api/ip/${encodeURIComponent(ipName)}/git/commit`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: msg }),
+        })
+          .then((r) => r.json())
+          .then((j: any) => {
+            const ok = j && j.ok;
+            const hash = (j && j.hash) || '?';
+            const detail = (j && (j.stderr || j.error || '')).slice(0, 200);
+            setFeed((f: any) => [...f, {
+              kind: 'agent',
+              text: ok ? `✅ committed \`${hash}\` — ${msg}` : `⚠ commit failed: ${detail || 'unknown error'}`,
+            }]);
+          })
+          .catch((err: any) => setFeed((f: any) => [...f, {
+            kind: 'agent',
+            text: '⚠ commit request failed: ' + (err && err.message || err),
+          }]));
+      }
+      setStreaming(false);
+      streamBufferRef.current = '';
+      setStreamText('');
+      return;
+    }
+
+    // /feedback <text> — drop a message into the feedback table for admin review.
+    const feedbackMatch = raw.match(/^\/feedback(\s+([\s\S]+))?$/i);
+    if (feedbackMatch) {
+      clearSubmittedInput();
+      const text = (feedbackMatch[2] || '').trim();
+      setFeed((f: any) => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
+      if (!text) {
+        setFeed((f: any) => [...f, {
+          kind: 'agent',
+          text: 'Usage: `/feedback <your message>` — sends a message to the admin team.',
+        }]);
+      } else {
+        fetch('/api/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: text }),
+        })
+          .then((r) => r.json())
+          .then((j: any) => setFeed((f: any) => [...f, {
+            kind: 'agent',
+            text: j && j.ok
+              ? `✅ feedback received (id: \`${(j.id || '').slice(0, 8)}\`). Thanks!`
+              : `⚠ feedback failed: ${(j && (j.error || j.detail)) || 'unknown error'}`,
+          }]))
+          .catch((err: any) => setFeed((f: any) => [...f, {
+            kind: 'agent',
+            text: '⚠ feedback request failed: ' + (err && err.message || err),
+          }]));
+      }
+      setStreaming(false);
+      streamBufferRef.current = '';
+      setStreamText('');
+      return;
+    }
+
+    // ── Orchestrator-mode HTTP branches ─────────────────────────────────────
+    const isOrch = atlasUiOrchestratorMode();
+    const orchIp = String(activeIp || '').trim();
+    const inputRoute = inputRouteRef.current || {};
+    const dispatchWorkflow = inputRoute.type === 'workflow-dispatch'
+      ? normalizeUiSession(inputRoute.workflow || '')
+      : '';
+    const dispatchSession = dispatchWorkflow
+      ? (normalizeUiSession(inputRoute.session || '') || sessionForInputRoute(orchIp, dispatchWorkflow))
+      : '';
+    if (
+      atlasUiOrchestratorMode()
+      && dispatchWorkflow
+      && dispatchWorkflow !== 'orchestrator'
+      && orchIp
+      && orchIp.toLowerCase() !== 'default'
+      && !raw.startsWith('/')
+    ) {
+      clearSubmittedInput();
+      setFeed((f: any) => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
+      setStreaming(true);
+      awaitingRunStartRef.current = true;
+      fetch('/api/job/dispatch', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          workflow: dispatchWorkflow,
+          ip: orchIp,
+          prompt: raw,
+          session: dispatchSession,
+          exec_mode: 'orchestrator',
+          run_mode: w.ATLAS_RUN_MODE || (w.ATLAS_BOOT_CONFIG && w.ATLAS_BOOT_CONFIG.run_mode) || '',
+          trigger_source: 'worker_direct_chat',
+        }),
+      })
+        .then(async (r) => {
+          const j = await r.json().catch(() => ({}));
+          if (!r.ok || j.error || j.detail) throw new Error(j.error || j.detail || `HTTP ${r.status}`);
+          return j;
+        })
+        .then((j: any) => {
+          const result = {
+            ok: true,
+            job_id: j.job_id || '',
+            workflow: j.workflow || dispatchWorkflow,
+            ip: orchIp,
+            session: j.session || dispatchSession,
+            worker: j.worker || '',
+            status: j.status || 'queued',
+          };
+          setFeed((f: any) => [...f, {
+            kind: 'action',
+            text: `▶ dispatch_workflow workflow="${dispatchWorkflow}" ip="${orchIp}"`,
+            tool: 'dispatch_workflow',
+            args: `workflow="${dispatchWorkflow}", ip="${orchIp}"`,
+            createdAt: Date.now(),
+          }, {
+            kind: 'obs',
+            text: JSON.stringify(result, null, 2),
+            tool: 'dispatch_workflow',
+            createdAt: Date.now(),
+          }]);
+          window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'JOBS' }));
+          [1200, 3500, 7000].forEach((delay) => setTimeout(() => {
+            const route = inputRouteRef.current || {};
+            const sid = normalizeUiSession(route.session || '');
+            if (route.type === 'workflow-dispatch' && sid === dispatchSession) {
+              refreshChatSession(dispatchSession, { force: true, viewOnly: true });
+            }
+          }, delay));
+        })
+        .catch((e: any) => {
+          setFeed((f: any) => [...f, { kind: 'agent', text: `[${dispatchWorkflow}] dispatch failed: ${String(e && e.message || e)}` }]);
+        })
+        .finally(() => {
+          setStreaming(false);
+          awaitingRunStartRef.current = false;
+          streamBufferRef.current = '';
+          setStreamText('');
+        });
+      return;
+    }
+    if (isOrch && orchIp && orchIp.toLowerCase() !== 'default' && !raw.startsWith('/')) {
+      clearSubmittedInput();
+      const sessionParts = normalizeUiSession(w.ACTIVE_SESSION || activeSessionRef.current || activeSession || '').split('/').filter(Boolean);
+      const orchOwner = normalizeUiSession((w.ATLAS_USER && w.ATLAS_USER.username) || '') || sessionParts[0] || 'default';
+      const orchSession = resolveSession(
+        (w.atlasData && w.atlasData.sessionFor)
+          ? w.atlasData.sessionFor(orchIp, 'orchestrator')
+          : `${orchOwner}/${orchIp}/orchestrator`,
+      );
+      const returningFromWorkerView = !!normalizeUiSession(chatViewSessionRef.current || '');
+      if (atlasUiOrchestratorMode()) {
+        setWorkflow('orchestrator');
+        setMainTab('chat');
+        setChatViewSession('');
+        setOrchestratorInputRoute(orchIp);
+        w.CONTEXT = Object.assign({}, w.CONTEXT || {}, {
+          workspace: 'orchestrator',
+          view_workspace: 'orchestrator',
+        });
+        if (orchSession) {
+          const activeBefore = normalizeUiSession(w.ACTIVE_SESSION || activeSessionRef.current || '');
+          hydratedConversationSessionRef.current = orchSession;
+          if (activeBefore !== orchSession) {
+            w.ACTIVE_SESSION = orchSession;
+            activeSessionRef.current = orchSession;
+            setActiveSession(orchSession);
+            try { localStorage.setItem('atlasActiveSession', orchSession); } catch (_) {}
+          }
+          if (activeBefore !== orchSession && w.backend) {
+            try {
+              if (typeof w.backend.switchSession === 'function') w.backend.switchSession(orchSession);
+              else if (typeof w.backend.connect === 'function') w.backend.connect(orchSession);
+            } catch (_) {}
+          }
+        }
+      }
+      setFeed((f: any) => [...(returningFromWorkerView ? [] : f), { kind: 'user', text: raw, createdAt: Date.now() }]);
+      setStreaming(true);
+      awaitingRunStartRef.current = true;
+      fetch('/api/pipeline/orchestrator/chat', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: raw,
+          ip: orchIp,
+          session: orchSession,
+        }),
+      })
+        .then((r) => r.json().catch(() => ({})))
+        .then((d: any) => {
+          if (d && d.error) {
+            setFeed((f: any) => [...f, { kind: 'agent', text: `[orchestrator] ${d.error}` }]);
+            setStreaming(false);
+            return;
+          }
+          if (d && d.reply && String(d.reply).trim()) {
+            setFeed((f: any) => [...f, { kind: 'agent', text: String(d.reply), createdAt: Date.now() }]);
+            setStreaming(false);
+          }
+        })
+        .catch((e: any) => {
+          setFeed((f: any) => [...f, { kind: 'agent', text: `[orchestrator] ${String(e)}` }]);
+          setStreaming(false);
+        });
+      return;
+    }
+
+    // Backend slash commands — anything starting with '/' the client-side
+    // branches above didn't handle (/context, /help, /clear, /status, /model …).
+    // Do NOT arm the agent-run streaming state for them: the backend's events
+    // drive the banner (running:true only when an agent actually runs).
+    if (raw.startsWith('/')) {
+      // `/ip <name>` | `/use <name>`: drive the FRONTEND IP switch too.
+      try {
+        const _ipm = raw.match(/^\/(?:ip|use)\s+(\S+)/i);
+        if (_ipm && !_ipm[1].startsWith('-')) {
+          const _argIp = _ipm[1];
+          const _cur = String(w.ACTIVE_IP || '');
+          if (_argIp && _argIp.toLowerCase() !== 'default' && _argIp.toLowerCase() !== _cur.toLowerCase()) {
+            window.dispatchEvent(new CustomEvent('atlas:select-ip', { detail: { ip: _argIp } }));
+          }
+        }
+      } catch (_) {}
+      if (!backendReadyForPrompt()) {
+        holdSubmittedInput(`Input held. Backend is ${promptBackendState()}; it will send automatically if unchanged.`);
+        return;
+      }
+      const busyState = slashBusyForRaw(raw);
+      const sent = sendPrompt(raw);
+      if (!sent || sent.ok === false) {
+        if (busyState) setCommandBusy(null);
+        holdSubmittedInput(`Input held. Backend is not ready (${sent?.error || backendState || 'unknown'}); it will send automatically if unchanged.`);
+        return;
+      }
+      if (busyState) setCommandBusy(busyState);
+      waitForPromptAck(
+        sent,
+        () => {
+          clearSubmittedInput();
+          setFeed((f: any) => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
+        },
+        (reason: any) => {
+          if (busyState) setCommandBusy(null);
+          holdUnacknowledgedInput(reason);
+        },
+      );
+      return;
+    }
+
+    if (!backendReadyForPrompt()) {
+      holdSubmittedInput(`Input held. Backend is ${promptBackendState()}; it will send automatically if unchanged.`);
+      return;
+    }
+    const sent = sendPrompt(raw);
+    if (!sent || sent.ok === false) {
+      holdSubmittedInput(`Input held. Backend is not ready (${sent?.error || backendState || 'unknown'}); it will send automatically if unchanged.`);
+      return;
+    }
+    waitForPromptAck(
+      sent,
+      () => {
+        clearSubmittedInput();
+        setFeed((f: any) => [...f, { kind: 'user', text: raw }]);
+        setStreaming(true);
+        awaitingRunStartRef.current = true;
+        backendRunStartedRef.current = false;
+        setStreamText('');
+      },
+      holdUnacknowledgedInput,
+    );
+    // Keep the submitted user message clean. Active IP/path scope is already
+    // injected into the workflow system prompt by the backend.
+  }, [
+    input, workflow, activeIp, activeSession, currentSession,
+    backendState, pendingQcard, qaState,
+    recordInputHistory, setFeed, setInput, setShowSlash, setStreaming, setStreamText,
+    setQaState, setQaHistory, setMainTab, setAskSel, setCommandBusy, setActiveSession, setIntent, setWorkflow,
+    streamBufferRef, workflowReady, switchGateRef, sendPrompt, resolveSession,
+    sessionForInputRoute, setChatViewSession, setOrchestratorInputRoute,
+    switchToDefaultSession, switchWorkflow, activeSsotIp,
+    activeSessionRef, chatViewSessionRef, hydratedConversationSessionRef, inputRouteRef,
+  ]);
 
   // Held-input replay: when the switch settles (workflowReady cleared) and the
   // backend is open, re-fire the held prompt if the user hasn't changed it. This
   // is the EXISTING replay mechanism (heldSubmitRef) reused — no parallel queue.
   useEffect(() => {
     const held = heldSubmitRef.current;
-    if (!held || sessionBag.workflowReady) return undefined;
+    if (!held || workflowReady) return undefined;
     const state = w.backend && typeof w.backend.getConnectionState === 'function'
       ? w.backend.getConnectionState()
       : backendState;
@@ -1230,7 +1919,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       submitMsg(latest.cmd ?? latest.raw);
     }, 80);
     return () => clearTimeout(timer);
-  }, [backendState, input, sessionBag.workflowReady, submitMsg]);
+  }, [backendState, input, workflowReady, submitMsg]);
 
   // ── Brief live-worker strip for the orchestrator chat ───────────────────
   // Shows which workers the orchestrator currently has running, inline in the
@@ -1285,8 +1974,6 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     workerLogSeenRef.current = new Set();
     setWorkerProgress(null);
     let dead = false;
-
-    const appendLiveFeedEntries = sessionBag.appendLiveFeedEntries;
 
     const toEntry = (e: any, job: any = {}) => {
       const mapper = w.AtlasOrchestratorChatLogic?.feedEntryFromWorkerLogEntry;
@@ -1520,13 +2207,13 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       input={input}
       setInput={setInput}
       inputRef={inputRef}
-      inputRouteState={sessionBag.inputRouteState}
-      inputRouteRef={sessionBag.inputRouteRef}
+      inputRouteState={inputRouteState}
+      inputRouteRef={inputRouteRef}
       inputHistoryIndexRef={inputHistoryIndexRef}
       inputHistoryDraftRef={inputHistoryDraftRef}
       onKey={onPromptKey}
       pendingQcard={pendingQcard}
-      workflowReady={sessionBag.workflowReady}
+      workflowReady={workflowReady}
       atlasUiOrchestratorMode={atlasUiOrchestratorMode}
       workflowForExecMode={workflowForExecMode}
       defaultWorkflowForExecMode={defaultWorkflowForExecMode}
