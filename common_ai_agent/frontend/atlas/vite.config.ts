@@ -24,7 +24,9 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
-    // entry wired at the cutover (Phase 4), when app.tsx becomes the root module
+    rollupOptions: {
+      input: '/Users/brian/Desktop/Project/brian_hw/common_ai_agent/frontend/atlas/index.vite.html',
+    },
   },
   test: {
     environment: 'jsdom',

@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html data-dir="A" data-theme="dark" data-screen-label="ATLAS">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="atlas-backend" content="live">
+<title>ATLAS</title>
+<script>
+  (function () {
+    try {
+      var ua = navigator.userAgent || '';
+      var platform = navigator.platform || '';
+      if (/Windows|Win32|Win64|WOW64/i.test(ua + ' ' + platform)) {
+        document.documentElement.setAttribute('data-platform', 'windows');
+      }
+    } catch (_) {}
+  })();
+</script>
+<link rel="stylesheet" href="/styles.css?v=atlas-20260521-windows-fonts">
+<style>
+  html, body {
+    margin: 0; padding: 0;
+    /* Theme tokens — literal is first-paint fallback before styles.css loads. */
+    background: var(--bg, #000);
+    color: var(--fg, #e6edf3);
+    width: 100vw; height: 100dvh;
+    /* 100dvh follows the dynamic viewport so the iOS Safari URL bar
+       (and bottom toolbar) do not clip the sticky-top mobile header
+       or the sticky-bottom chat input. 100vh would point at the
+       largest possible viewport and hide controls behind the URL bar. */
+    overflow: hidden;
+  }
+  @supports not (height: 100dvh) {
+    html, body { height: 100vh; }
+  }
+  /* Full-screen, no letterbox: scale uniformly so the 1920x1080 design
+     covers the whole viewport. Anything taller/wider than the design's
+     aspect ratio just stretches uniformly to fill. */
+  #scaler {
+    width: var(--atlas-canvas-w, 1920px);
+    height: var(--atlas-canvas-h, 1080px);
+    transform-origin: top left;
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+</style>
+</head>
+<body>
+  <div id="scaler"><div id="root"></div></div>
+
+  <!-- Global error banner. Without this, a Babel-transpile failure /
+       broken CDN / 404 on a .jsx asset leaves the user looking at a
+       black screen with errors only visible inside browser devtools.
+       Captures uncaught errors, unhandled promise rejections, and
+       script-element load failures and renders them on a fixed banner
+       at the top so the operator can act on Windows / locked-down
+       environments where the devtools console isn't immediately open. -->
+  <script>
+    (function () {
+      var lines = [];
+      var entries = [];
+      var box = null;
+      function ensureBox() {
+        if (box) return box;
+        box = document.createElement('div');
+        box.id = 'atlas-error-banner';
+        box.setAttribute('role', 'alert');
+        box.style.cssText = [
+          'position:fixed','top:0','left:0','right:0','z-index:99999',
+          'max-height:35vh','overflow:auto',
+          'background:#3a1414','color:#fde7e7',
+          'border-bottom:1px solid #f87171',
+          'font:12px/1.45 ui-monospace,Consolas,Menlo,monospace',
+          'padding:8px 14px 32px','white-space:pre-wrap','word-break:break-word',
+          'box-shadow:0 6px 18px rgba(0,0,0,0.6)'
+        ].join(';');
+        var close = document.createElement('button');
+        close.textContent = '× dismiss';
+        close.style.cssText = 'position:absolute;right:10px;top:6px;background:transparent;color:#fde7e7;border:1px solid #f87171;border-radius:3px;padding:2px 8px;cursor:pointer;font:inherit';
+        close.onclick = function () { box.remove(); box = null; lines.length = 0; entries.length = 0; };
+        box.appendChild(close);
+        document.body.appendChild(box);
+        return box;
+      }
+      function append(label, detail) {
+        var b = ensureBox();
+        var line = document.createElement('div');
+        line.style.marginRight = '120px';
+        var ts = new Date().toLocaleTimeString();
+        line.textContent = '[' + ts + '] ' + label + ': ' + detail;
+        b.appendChild(line);
+        lines.push(label + ': ' + detail);
+        entries.push({ label: label, detail: detail, node: line });
+      }
+      window.addEventListener('error', function (ev) {
+        // Element load failure: ev.target is the failing script/link/img/etc.
+        if (ev.target && (ev.target.src || ev.target.href) && ev.target !== window) {
+          var tag = String(ev.target.tagName || '').toLowerCase();
+          var url = ev.target.src || ev.target.href;
+          if (tag === 'img' && /^data:image\//i.test(String(url || ''))) return;
+          // Prism autoloader best-effort grammar fetches: a missing language
+          // grammar just means that code block renders without highlighting —
+          // never fatal, so don't alarm the user with a banner.
+          if (tag === 'script' && /\/vendor\/prism-components\/prism-[\w-]+\.min\.js/i.test(String(url || ''))) return;
+          if (tag === 'script') append('script load failed', url);
+          else if (tag === 'link') append('stylesheet load failed', url);
+          else if (tag === 'img') append('image load failed', url);
+          else append('asset load failed', url);
+          return;
+        }
+        var msg = (ev.error && (ev.error.stack || ev.error.message)) || ev.message || 'unknown';
+        append('uncaught', msg);
+      }, true);
+      window.addEventListener('unhandledrejection', function (ev) {
+        var r = ev.reason;
+        append('unhandled promise', (r && (r.stack || r.message)) || String(r));
+      });
+      // Mirror console.error so non-throwing failures still surface.
+      var origErr = console.error.bind(console);
+      console.error = function () {
+        try {
+          var parts = Array.prototype.map.call(arguments, function (a) {
+            if (a instanceof Error) return a.stack || a.message;
+            if (typeof a === 'object') return JSON.stringify(a);
+            return String(a);
+          });
+          var rendered = parts.join(' ');
+          // Babel emits this as console.error for large in-browser JSX files,
+          // but it is only a code-generator formatting notice. Suppress it
+          // completely so normal startup does not look like a runtime error.
+          if (/^\[BABEL\] Note: The code generator has deoptimised the styling of /.test(rendered)) {
+            return;
+          }
+          append('console.error', rendered);
+        } catch (_) {}
+        origErr.apply(null, arguments);
+      };
+      // Expose so future scripts can call from anywhere.
+      window.__atlasReportError = append;
+      window.__atlasClearAssetLoadErrors = function () {
+        try {
+          if (!entries.length) return;
+          var assetOnly = entries.every(function (entry) {
+            return /^(script|stylesheet|image|asset) load failed$/.test(String(entry.label || ''));
+          });
+          if (!assetOnly) return;
+          if (box) {
+            box.remove();
+            box = null;
+          }
+          lines.length = 0;
+          entries.length = 0;
+        } catch (_) {}
+      };
+    })();
+  </script>
+
+  <!-- Markdown renderer for agent replies (code fences, lists, links…). -->
+  <script src="/vendor/marked.min.js?v=9.1.6"></script>
+  <!-- FSM/state diagrams. workspace.jsx renders through mermaid.render()
+       and falls back to an internal SVG when this library is unavailable. -->
+  <script src="/vendor/mermaid.min.js?v=11.15.0"></script>
+
+  <!-- DOMPurify — strips <script>, on*-handlers, javascript: URIs, etc.
+       Without it, agent text containing raw HTML (relayed from a
+       malicious file read, web fetch, or grep result) would inject via
+       dangerouslySetInnerHTML and execute. -->
+  <script src="/vendor/purify.min.js?v=3.1.6"></script>
+
+  <!-- Syntax highlighting for the file preview pane (Prism core +
+       autoloader → loads language grammars on demand from CDN). -->
+  <link rel="stylesheet" href="/vendor/prism-tomorrow.css?v=1.29.0">
+  <script src="/vendor/prism-core.min.js?v=1.29.0"></script>
+  <script src="/vendor/prism-autoloader.min.js?v=1.29.0"></script>
+  <script>
+    // Map file extension → Prism language id. Covers what Atlas
+    // actually opens (RTL/SV, YAML, Python, MD, JSON, shell, etc.).
+    window.PRISM_LANG_MAP = {
+      sv: 'verilog', v: 'verilog', svh: 'verilog', vh: 'verilog',
+      py: 'python', js: 'javascript', jsx: 'jsx', ts: 'typescript', tsx: 'tsx',
+      yaml: 'yaml', yml: 'yaml', json: 'json', md: 'markdown', txt: 'none',
+      sh: 'bash', bash: 'bash', zsh: 'bash', f: 'tcl',
+      c: 'c', h: 'c', cpp: 'cpp', hpp: 'cpp',
+      sdc: 'tcl', tcl: 'tcl', ini: 'ini', toml: 'toml', html: 'html', css: 'css',
+    };
+    // Tell autoloader where to find grammars.
+    if (window.Prism && window.Prism.plugins && window.Prism.plugins.autoloader) {
+      window.Prism.plugins.autoloader.languages_path =
+        'vendor/prism-components/';
+    }
+  </script>
+
+  <!-- Backend adapter: window.backend (live WebSocket) -->
+  <script src="/backend.js?v=atlas-20260519-worker-ws-rebind"></script>
+
+  <!-- VCD parser (pure JS, no Babel — ships as plain script). -->
+  <script src="/vcd-parser.js"></script>
+
+  <!-- Pure-logic helpers: ES-module exports + window.Atlas* UMD shims.
+       Loaded BEFORE JSX modules so workspace.jsx / user-dashboard.jsx
+       can call window.AtlasBannerLogic, window.AtlasDashboardHelpers,
+       window.AtlasWorkersLogic at runtime. -->
+  <script type="module" src="/lib/banner_logic.js"></script>
+  <script type="module" src="/lib/dashboard_helpers.js"></script>
+  <script type="module" src="/lib/exec_policy.js"></script>
+  <script type="module" src="/lib/orchestrator_chat_logic.js"></script>
+  <script type="module" src="/lib/session_routing.js"></script>
+  <script type="module" src="/lib/workers_panel_logic.js"></script>
+
+  <script type="module" src="/main.tsx"></script>
+
+  <script>
+    const ATLAS_RESOLUTION_PRESETS = {
+      '1366x768': [1366, 768],
+      '1600x900': [1600, 900],
+      '1920x1080': [1920, 1080],
+      '2560x1440': [2560, 1440],
+      '3840x2160': [3840, 2160],
+    };
+    function atlasResolution() {
+      let key = '1920x1080';
+      try {
+        const saved = localStorage.getItem('atlasResolution');
+        if (ATLAS_RESOLUTION_PRESETS[saved]) key = saved;
+      } catch (_) {}
+      const size = ATLAS_RESOLUTION_PRESETS[key] || ATLAS_RESOLUTION_PRESETS['1920x1080'];
+      return { key, width: size[0], height: size[1] };
+    }
+    function applyAtlasResolution() {
+      const res = atlasResolution();
+      document.documentElement.style.setProperty('--atlas-canvas-w', res.width + 'px');
+      document.documentElement.style.setProperty('--atlas-canvas-h', res.height + 'px');
+      document.documentElement.setAttribute('data-resolution', res.key);
+      const s = document.getElementById('scaler');
+      if (s) {
+        s.style.width = res.width + 'px';
+        s.style.height = res.height + 'px';
+      }
+      window.ATLAS_RESOLUTION = res;
+      return res;
+    }
+    // Full-screen scaling: stretch the 1920x1080 design to fill the whole
+    // viewport on each axis (no letterbox bars). The design uses flex
+    // layouts internally so reflow stays sane up to ~3x scale.
+    function scale() {
+      const s = document.getElementById('scaler');
+      const res = applyAtlasResolution();
+      // On narrow (mobile) viewports skip the fixed-canvas scale transform
+      // and let the inner React tree reflow naturally via CSS media queries.
+      if (window.innerWidth < 900) {
+        s.style.transform = 'none';
+        s.style.width = '100vw';
+        s.style.height = '100dvh';
+        s.style.position = 'static';
+        return;
+      }
+      const sx = window.innerWidth  / res.width;
+      const sy = window.innerHeight / res.height;
+      // Use scaleX/scaleY independently so both dimensions hit the edges.
+      s.style.transform = `scale(${sx}, ${sy})`;
+      // Restore desktop positioning in case we transitioned from mobile.
+      s.style.width = res.width + 'px';
+      s.style.height = res.height + 'px';
+      s.style.position = 'absolute';
+    }
+    window.addEventListener('resize', scale);
+    window.addEventListener('atlas-resolution-changed', scale);
+    window.ATLAS_APPLY_RESOLUTION = scale;
+    setTimeout(scale, 30);
+    setTimeout(scale, 200);
+
+    // Auto-reload on frontend file change OR backend restart.
+    // Polls /api/version every 3s; reloads when mtime or `started` bumps.
+    (function () {
+      let baseline = null;
+      let baselineStarted = null;
+      async function tick() {
+        try {
+          const r = await fetch('/api/version', { cache: 'no-store' });
+          if (!r.ok) return;
+          const { mtime, started } = await r.json();
+          if (baseline === null) {
+            baseline = mtime;
+            baselineStarted = Number(started) || 0;
+            return;
+          }
+          if (mtime && mtime > baseline + 0.5) {
+            console.info('[atlas] frontend changed → reloading');
+            location.reload();
+            return;
+          }
+          const newStarted = Number(started) || 0;
+          if (newStarted > 0 && newStarted > baselineStarted + 0.5) {
+            console.info('[atlas] backend restarted → reloading');
+            location.reload();
+          }
+        } catch (_) { /* offline; retry */ }
+      }
+      setInterval(tick, 3000);
+      tick();
+    })();
+  </script>
+</body>
+</html>

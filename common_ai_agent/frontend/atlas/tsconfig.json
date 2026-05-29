@@ -22,6 +22,8 @@
   },
   "include": [
     "types/**/*.d.ts",
+    "_react-global.ts",
+    "main.tsx",
     "admin-chrome.tsx",
     "admin-helpers.tsx",
     "admin-overview.tsx",

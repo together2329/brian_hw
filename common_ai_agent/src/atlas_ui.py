@@ -1448,6 +1448,40 @@ def create_app():
         html = html.replace("</head>", script + "\n</head>", 1)
         return _inject_scm_ui_override(html)
 
+    def _vite_index_html() -> str | None:
+        """Serve the built Vite index when ATLAS_FRONTEND_MODE=vite.
+
+        Reads FRONTEND/dist/index.vite.html fresh on each call (the file is
+        tiny) and injects the SAME ATLAS_BOOT_CONFIG <script> the legacy path
+        injects.  The boot-config payload+injection logic is intentionally
+        DUPLICATED here so the legacy inliner is left byte-for-byte untouched.
+        Returns None when the built dist file is absent so the caller can fall
+        through to the legacy path.
+        """
+        dist_index = FRONTEND / "dist" / "index.vite.html"
+        if not dist_index.is_file():
+            return None
+        html = dist_index.read_text(encoding="utf-8")
+        exec_mode = _current_atlas_exec_mode()
+        policy = exec_policy_payload(exec_mode, env=os.environ)
+        payload = {
+            "run_mode": os.environ.get("ATLAS_RUN_MODE", "engineering"),
+            "exec_mode": exec_mode,
+            "exec_policy": policy,
+            "multi_user": os.environ.get("ATLAS_MULTI_USER", "1"),
+            "multi_user_proc": os.environ.get("ATLAS_MULTI_USER_PROC", "1"),
+            "scm_provider": configured_scm_provider(),
+            "scm_ui_override": bool(_scm_ui_override_ref()),
+        }
+        script = (
+            "<script>window.ATLAS_BOOT_CONFIG="
+            + json.dumps(payload, separators=(",", ":"))
+            + ";window.ATLAS_DEFAULT_RUN_MODE=window.ATLAS_BOOT_CONFIG.run_mode;"
+            + "window.ATLAS_DEFAULT_EXEC_MODE=window.ATLAS_BOOT_CONFIG.exec_mode;</script>"
+        )
+        html = html.replace("</head>", script + "\n</head>", 1)
+        return _inject_scm_ui_override(html)
+
     _asset_cache: dict[str, dict[str, Any]] = {}
 
     def _cached_frontend_asset_response(rel_path: str) -> Response:
@@ -1497,6 +1531,12 @@ def create_app():
         dev-time Babel path but removes the fragile second fetch.
         Cached by frontend mtime — see _inline_html_cached().
         """
+        mode = os.environ.get("ATLAS_FRONTEND_MODE", "legacy").strip().lower()
+        if mode == "vite":
+            vite_html = _vite_index_html()
+            if vite_html is not None:
+                return HTMLResponse(vite_html)
+            # dist missing -> fall through to legacy below
         return HTMLResponse(_html_with_atlas_boot_config("index.html"))
 
     @app.get("/vendor/{asset_path:path}")
@@ -10197,6 +10237,16 @@ def create_app():
                 if guessed and resp.headers.get("Content-Type", "").startswith("text/plain"):
                     resp.headers["Content-Type"] = guessed
             return resp
+
+    # Vite build assets (ATLAS_FRONTEND_MODE=vite). Guarded so it only
+    # mounts when a real built dist/assets dir exists; harmless no-op in the
+    # default legacy path. Mounted BEFORE the catch-all "/" static mount so
+    # /assets/* resolves to the built bundle. No existing /assets route, so
+    # this does not shadow anything.
+    _vite_assets_dir = FRONTEND / "dist" / "assets"
+    if _vite_assets_dir.is_dir():
+        app.mount("/assets", _NoCacheStatic(directory=str(_vite_assets_dir), html=False),
+                  name="vite-assets")
 
     app.mount("/", _NoCacheStatic(directory=str(FRONTEND), html=False),
               name="atlas-static")
