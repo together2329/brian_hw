@@ -221,7 +221,7 @@ def make_slash_handlers(
         _queue_prompt_for_session(client_session, "/mode normal")
         _queue_prompt_for_session(client_session, "/wf ssot-gen")
         _queue_prompt_for_session(client_session, _render_ssot_llm_qna_prompt(ip, str(state.get("kind") or "TBD"), state))
-        bridge.emit("agent_state", running=True)
+        client_session.emit("agent_state", running=True)
         return True
 
     def _handle_new_ip_command(text: str, client_session: Any | None = None) -> bool:
@@ -291,7 +291,7 @@ def make_slash_handlers(
         # Tell legacy frontend surfaces to pivot to the newly-created IP
         # using the execution-mode default workflow.
         try:
-            bridge.emit(
+            client_session.emit(
                 "session_switch_request",
                 ip=ip,
                 workflow=initial_workflow,
@@ -321,15 +321,15 @@ def make_slash_handlers(
                 "ip",
             )
             return True
-        bridge.request_stop()
-        bridge.emit("agent_state", running=False)
+        client_session.request_stop()
+        client_session.emit("agent_state", running=False)
         _set_active_ssot_ip(ip)
         msg = (
             f"[IP] active IP -> {ip}\n"
             f"session: {_canonical_session_string(ip)}"
         )
         _emit_workflow_result(msg, "ip")
-        bridge.emit("commands_changed")
+        client_session.emit("commands_changed")
         return True
 
     def _handle_session_command(text: str, client_session: Any | None = None) -> bool:
@@ -352,8 +352,8 @@ def make_slash_handlers(
                 "session",
             )
             return True
-        bridge.request_stop()
-        bridge.emit("agent_state", running=False)
+        client_session.request_stop()
+        client_session.emit("agent_state", running=False)
         ip = _active_ssot_ip() or "default"
         wf = os.environ.get("ATLAS_DEFAULT_WORKFLOW") or "default"
         _atlas_active_session_cv.set(f"{sid}/{ip}/{wf}")
@@ -361,7 +361,7 @@ def make_slash_handlers(
             f"[SESSION] active session -> {sid}/{ip}/{wf}",
             "session",
         )
-        bridge.emit("commands_changed")
+        client_session.emit("commands_changed")
         return True
 
     def _handle_approval_command(text: str, client_session: Any | None = None) -> bool:
@@ -596,7 +596,7 @@ def make_slash_handlers(
             f"and `python3 {verify_script} {ip} --root {script_root} --mode engineering`; fix any format failures before handoff. "
             "Emit `[SSOT HANDOFF]` once the yaml is on disk."
         )
-        bridge.emit("agent_state", running=True)
+        client_session.emit("agent_state", running=True)
         return True
 
     def _handle_repair_ssot_command(text: str, client_session: Any | None = None) -> bool:
@@ -618,7 +618,7 @@ def make_slash_handlers(
         _append_session_message(session, "user", text)
         _append_workflow_history("ssot-gen", "user", text)
         _append_active_history("user", text)
-        bridge.emit("agent_state", running=True)
+        client_session.emit("agent_state", running=True)
 
         if not ssot_path.is_file():
             msg = (
@@ -733,7 +733,7 @@ def make_slash_handlers(
         _append_session_message(session, "user", text)
         _append_workflow_history("ssot-gen", "user", text)
         _append_active_history("user", text)
-        bridge.emit("agent_state", running=True)
+        client_session.emit("agent_state", running=True)
 
         if not script.is_file():
             msg = f"[verify-ssot] verifier script not found: {script}"
@@ -856,9 +856,9 @@ def make_slash_handlers(
             "waivers/suppressions. If any part cannot be fixed from RTL alone, stop with "
             "a precise `[SSOT QUESTION]` or `[RTL BLOCKED]` rather than claiming DONE."
         )
-        bridge.emit("agent_state", running=True)
+        client_session.emit("agent_state", running=True)
         _emit_workflow_result(queued, "repair-rtl")
-        bridge.emit("agent_state", running=True)
+        client_session.emit("agent_state", running=True)
         return True
 
     def _handle_repair_equiv_command(text: str, client_session: Any | None = None) -> bool:
@@ -979,7 +979,7 @@ def make_slash_handlers(
         _append_workflow_history("sim_debug", "assistant", msg)
         _append_active_history("assistant", "```\n" + msg + "\n```")
         _emit_workflow_result(msg, "repair-equiv")
-        bridge.emit("agent_state", running=True)
+        client_session.emit("agent_state", running=True)
         return True
 
     def _run_stage_command(text: str, client_session: Any | None = None) -> bool:
@@ -1026,7 +1026,7 @@ def make_slash_handlers(
             session = f"{ip}/signoff"
             _append_session_message(session, "user", text)
             _append_active_history("user", text)
-            bridge.emit("agent_state", running=True)
+            client_session.emit("agent_state", running=True)
 
             async def _emit_signoff_snapshot() -> None:
                 try:
@@ -1101,7 +1101,7 @@ def make_slash_handlers(
             engine_alias = surface.alias
             _append_session_message(session, "user", text)
             _append_active_history("user", text)
-            emit("agent_state", running=True)
+            client_session.emit("agent_state", running=True)
             _append_session_message(session, "assistant", msg)
             _append_workflow_history(workflow, "assistant", msg)
             _append_active_history("assistant", "```\n" + msg + "\n```")
@@ -1116,7 +1116,7 @@ def make_slash_handlers(
             for prompt in surface.queue_prompts:
                 _queue_prompt_for_session(client_session, prompt)
             if surface.queue_prompts:
-                emit("agent_state", running=True)
+                client_session.emit("agent_state", running=True)
                 return True
             if surface.sim_human_gate_doc is not None:
                 opened_human_gate = _start_sim_human_gate_qna(
@@ -1130,11 +1130,11 @@ def make_slash_handlers(
                     _append_session_message(session, "assistant", note)
                     _append_workflow_history(workflow, "assistant", note)
                     _append_active_history("assistant", "```\n" + note + "\n```")
-                    bridge.emit("tool_result", text="```\n" + note + "\n```", tool=engine_alias, truncated=False)
-                    bridge.emit("slash_output", text="```\n" + note + "\n```")
-                    bridge.emit("flush")
+                    client_session.emit("tool_result", text="```\n" + note + "\n```", tool=engine_alias, truncated=False)
+                    client_session.emit("slash_output", text="```\n" + note + "\n```")
+                    client_session.emit("flush")
                     return True
-            bridge.emit("agent_state", running=False)
+            client_session.emit("agent_state", running=False)
             return True
         if alias == "sim":
             session = f"{ip}/sim"
@@ -1151,7 +1151,7 @@ def make_slash_handlers(
             runner = next((p for p in runner_candidates if p.is_file()), None)
             _append_session_message(session, "user", text)
             _append_active_history("user", text)
-            bridge.emit("agent_state", running=True)
+            client_session.emit("agent_state", running=True)
             if runner is None:
                 msg = (
                     f"[sim] blocked: no executable TB runner found for {ip}\n"
@@ -1272,7 +1272,7 @@ def make_slash_handlers(
 
             _append_session_message(session, "user", text)
             _append_active_history("user", text)
-            bridge.emit("agent_state", running=True)
+            client_session.emit("agent_state", running=True)
             runs: list[dict[str, Any]] = []
             stage_root = _script_project_root(ip)
 
@@ -1432,7 +1432,7 @@ def make_slash_handlers(
                     "is still ambiguous, emit a precise "
                     "[SSOT QUESTION] and stop."
                 )
-            bridge.emit("agent_state", running=False)
+            client_session.emit("agent_state", running=False)
             return True
         if alias == "ssot-equiv-goals":
             session = f"{ip}/fl-model-gen"
@@ -1440,7 +1440,7 @@ def make_slash_handlers(
             script = WORKFLOW_ROOT / "fl-model-gen" / "scripts" / "emit_equivalence_goals.py"
             _append_session_message(session, "user", text)
             _append_active_history("user", text)
-            bridge.emit("agent_state", running=True)
+            client_session.emit("agent_state", running=True)
             runs: list[dict[str, Any]] = []
             stage_root = _script_project_root(ip)
 
@@ -1530,7 +1530,7 @@ def make_slash_handlers(
             _append_workflow_history("fl-model-gen", "assistant", msg)
             _append_active_history("assistant", "```\n" + msg + "\n```")
             _emit_workflow_result(msg, alias)
-            bridge.emit("agent_state", running=False)
+            client_session.emit("agent_state", running=False)
             return True
         if alias in {"ssot-tb", "ssot-tb-cocotb"}:
             canonical_alias = "ssot-tb-cocotb"
@@ -1540,7 +1540,7 @@ def make_slash_handlers(
             scoreboard = WORKFLOW_ROOT / "tb-gen" / "runtime" / "equivalence_scoreboard.py"
             _append_session_message(session, "user", text)
             _append_active_history("user", text)
-            bridge.emit("agent_state", running=True)
+            client_session.emit("agent_state", running=True)
             runs: list[dict[str, Any]] = []
             stage_root = _script_project_root(ip)
 
@@ -1678,16 +1678,16 @@ def make_slash_handlers(
                     f"{msg}\n"
                     "```"
                 )
-                bridge.emit("agent_state", running=True)
+                client_session.emit("agent_state", running=True)
             else:
-                bridge.emit("agent_state", running=False)
+                client_session.emit("agent_state", running=False)
             return True
         if alias == "sim-debug":
             session = f"{ip}/sim_debug"
             script = WORKFLOW_ROOT / "sim_debug" / "scripts" / "compare_fl_rtl_results.py"
             _append_session_message(session, "user", text)
             _append_active_history("user", text)
-            bridge.emit("agent_state", running=True)
+            client_session.emit("agent_state", running=True)
             try:
                 import subprocess
 
@@ -1705,7 +1705,7 @@ def make_slash_handlers(
                 _append_session_message(session, "assistant", msg)
                 _append_active_history("assistant", "```\n" + msg + "\n```")
                 _emit_workflow_result(msg, alias)
-                bridge.emit("agent_state", running=False)
+                client_session.emit("agent_state", running=False)
                 return True
 
             compare_path = ip_dir / "sim" / "fl_rtl_compare.json"
@@ -1764,18 +1764,18 @@ def make_slash_handlers(
                     _append_session_message(session, "assistant", note)
                     _append_workflow_history("sim_debug", "assistant", note)
                     _append_active_history("assistant", "```\n" + note + "\n```")
-                    bridge.emit("tool_result", text="```\n" + note + "\n```", tool=alias, truncated=False)
-                    bridge.emit("slash_output", text="```\n" + note + "\n```")
-                    bridge.emit("flush")
+                    client_session.emit("tool_result", text="```\n" + note + "\n```", tool=alias, truncated=False)
+                    client_session.emit("slash_output", text="```\n" + note + "\n```")
+                    client_session.emit("flush")
             if not opened_human_gate:
-                bridge.emit("agent_state", running=False)
+                client_session.emit("agent_state", running=False)
             return True
         if alias == "goal-audit":
             session = f"{ip}/goal-audit"
             script = WORKFLOW_ROOT / "sim_debug" / "scripts" / "audit_fl_rtl_equivalence_goal.py"
             _append_session_message(session, "user", text)
             _append_active_history("user", text)
-            bridge.emit("agent_state", running=True)
+            client_session.emit("agent_state", running=True)
             try:
                 import subprocess
 
@@ -1793,7 +1793,7 @@ def make_slash_handlers(
                 _append_session_message(session, "assistant", msg)
                 _append_active_history("assistant", "```\n" + msg + "\n```")
                 _emit_workflow_result(msg, alias)
-                bridge.emit("agent_state", running=False)
+                client_session.emit("agent_state", running=False)
                 return True
 
             audit_path = ip_dir / "sim" / "fl_rtl_goal_audit.json"
@@ -1842,14 +1842,14 @@ def make_slash_handlers(
             _append_workflow_history("sim_debug", "assistant", msg)
             _append_active_history("assistant", "```\n" + msg + "\n```")
             _emit_workflow_result(msg, alias)
-            bridge.emit("agent_state", running=False)
+            client_session.emit("agent_state", running=False)
             return True
         if alias == "ssot-fl-model":
             session = f"{ip}/fl-model-gen"
             script = WORKFLOW_ROOT / "fl-model-gen" / "scripts" / "emit_fl_model.py"
             _append_session_message(session, "user", text)
             _append_active_history("user", text)
-            bridge.emit("agent_state", running=True)
+            client_session.emit("agent_state", running=True)
             try:
                 import subprocess
 
@@ -1867,7 +1867,7 @@ def make_slash_handlers(
                 _append_session_message(session, "assistant", msg)
                 _append_active_history("assistant", "```\n" + msg + "\n```")
                 _emit_workflow_result(msg, alias)
-                bridge.emit("agent_state", running=False)
+                client_session.emit("agent_state", running=False)
                 return True
 
             parts = [
@@ -1894,7 +1894,7 @@ def make_slash_handlers(
             _append_workflow_history("fl-model-gen", "assistant", msg)
             _append_active_history("assistant", "```\n" + msg + "\n```")
             _emit_workflow_result(msg, alias)
-            bridge.emit("agent_state", running=False)
+            client_session.emit("agent_state", running=False)
             return True
         workflow = str(spec["workflow"])
         template = str(spec.get("template") or alias)
@@ -1931,9 +1931,9 @@ def make_slash_handlers(
             "split any file that would exceed about 180 lines into replace_in_file "
             "or replace_lines follow-up actions."
         )
-        bridge.emit("agent_state", running=True)
+        client_session.emit("agent_state", running=True)
         _emit_workflow_result(queued, alias)
-        bridge.emit("agent_state", running=True)
+        client_session.emit("agent_state", running=True)
         return True
     return {
         "_handle_bang_shell_command": _handle_bang_shell_command,
