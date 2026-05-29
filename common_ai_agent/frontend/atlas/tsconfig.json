@@ -23,6 +23,9 @@
   "include": [
     "types/**/*.d.ts",
     "_react-global.ts",
+    "session-protocol.ts",
+    "session-machine.ts",
+    "__tests__/session-machine.test.ts",
     "main.tsx",
     "admin-chrome.tsx",
     "admin-helpers.tsx",

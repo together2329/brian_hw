@@ -1,0 +1,38 @@
+{
+  "checks": {
+    "FM_ACCEPT_AXI_TLP": "PASS",
+    "FM_ASSEMBLE_FRAGMENT": "PASS",
+    "FM_CLASSIFY_DROP": "PASS",
+    "FM_FILTER_VDM": "PASS",
+    "FM_PARSE_MCTP": "PASS",
+    "FM_WRITE_SRAM_AND_DESCRIPTOR": "PASS",
+    "SC_INTERLEAVING_15": "PASS"
+  },
+  "context_count": 15,
+  "drop_reason_codes": {
+    "AD_DESCRIPTOR_FULL": 68,
+    "AD_DUPLICATE_SOM": 64,
+    "AD_MESSAGE_OVERFLOW": 66,
+    "AD_SEQUENCE_MISMATCH": 65,
+    "AD_SRAM_OVERFLOW": 67,
+    "AD_TIMEOUT": 69,
+    "DROP_NONE": 0,
+    "PD_BAD_MCTP_HEADER": 4,
+    "PD_BAD_OR_EXPIRED_TAG": 7,
+    "PD_BAD_PAD_OR_ALIGNMENT": 8,
+    "PD_DEST_EID_REJECT": 5,
+    "PD_DISABLED_DROP_MODE": 1,
+    "PD_MALFORMED_TLP": 2,
+    "PD_UNEXPECTED_MIDDLE_END": 6,
+    "PD_UNSUPPORTED_VDM": 3
+  },
+  "passed": true,
+  "transaction_results": {
+    "FM_ACCEPT_AXI_TLP": "PASS",
+    "FM_ASSEMBLE_FRAGMENT": "PASS",
+    "FM_CLASSIFY_DROP": "PASS",
+    "FM_FILTER_VDM": "PASS",
+    "FM_PARSE_MCTP": "PASS",
+    "FM_WRITE_SRAM_AND_DESCRIPTOR": "PASS"
+  }
+}

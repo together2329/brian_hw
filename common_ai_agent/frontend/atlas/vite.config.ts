@@ -25,7 +25,10 @@ export default defineConfig({
     outDir: 'dist',
     emptyOutDir: true,
     rollupOptions: {
-      input: '/Users/brian/Desktop/Project/brian_hw/common_ai_agent/frontend/atlas/index.vite.html',
+      input: {
+        index: '/Users/brian/Desktop/Project/brian_hw/common_ai_agent/frontend/atlas/index.vite.html',
+        lobby: '/Users/brian/Desktop/Project/brian_hw/common_ai_agent/frontend/atlas/lobby.vite.html',
+      },
     },
   },
   test: {

@@ -52,6 +52,15 @@ def register_git_routes(
         func = getattr(adapter, method)
         return await asyncio.to_thread(func, *args, **kwargs)
 
+    async def _scm_optional(cwd: str | None, method: str, *args, provider: str = "", **kwargs):
+        # Like _scm_call but for provider-specific methods (e.g. Perforce-only
+        # sync_state/open_paths). Returns (result_or_None, provider, supported).
+        adapter = resolve_scm_adapter(cwd or str(project_root()), provider=_request_provider(provider) or None)
+        if not hasattr(adapter, method):
+            return None, adapter.provider, False
+        func = getattr(adapter, method)
+        return (await asyncio.to_thread(func, *args, **kwargs)), adapter.provider, True
+
     def _scm_provider_for_cwd(cwd: str | None, provider: str = ""):
         return resolve_scm_adapter(cwd or str(project_root()), provider=_request_provider(provider) or None).provider
 
@@ -238,3 +247,90 @@ def register_git_routes(
             "provider": result.provider,
             "ip": resolved_ip,
         })
+
+    def _scm_result_json(result, resolved_ip: str):
+        return JSONResponse({
+            "ok": result.ok,
+            "stdout": result.stdout,
+            "stderr": result.stderr,
+            "error": result.error,
+            "returncode": result.returncode,
+            "provider": result.provider,
+            "ip": resolved_ip,
+        })
+
+    @app.post("/api/scm/sync")
+    @app.post("/api/git/sync")
+    async def api_scm_sync(payload: Optional[dict[str, Any]] = None):
+        # Pull from the server, overwriting local (force). Optional `paths` for a
+        # selective sync; `revision` to pin a changelist. sync() is part of the
+        # base SCM contract, so this works for any provider.
+        body = payload or {}
+        provider = str(body.get("provider") or "")
+        revision = str(body.get("revision") or "")
+        cwd, error, resolved_ip = _route_cwd(str(body.get("ip") or ""), provider=provider)
+        if error is not None:
+            return error
+        paths = body.get("paths") or []
+        if paths:
+            result, _prov, supported = await _scm_optional(cwd, "sync_paths", paths, revision, provider=provider)
+            if not supported:
+                result = await _scm_call(cwd, "sync", revision, provider=provider)
+        else:
+            result = await _scm_call(cwd, "sync", revision, provider=provider)
+        return _scm_result_json(result, resolved_ip)
+
+    @app.get("/api/scm/pane")
+    async def api_scm_pane(ip: str = "", provider: str = ""):
+        # Two-pane Perforce Sync view: local / depot / pending. Provider-specific.
+        cwd, error, resolved_ip = _route_cwd(ip, provider=provider)
+        if error is not None:
+            return error
+        state, prov, supported = await _scm_optional(cwd, "sync_state", provider=provider)
+        if not supported:
+            return JSONResponse({
+                "ok": False,
+                "provider": prov,
+                "ip": resolved_ip,
+                "error": f"pane view is not supported for provider '{prov}'",
+                "local": [], "depot": [], "pending": [],
+            }, status_code=200)
+        state = dict(state or {})
+        state["ip"] = resolved_ip
+        state["cwd"] = cwd
+        return JSONResponse(state, status_code=200)
+
+    @app.post("/api/scm/add")
+    async def api_scm_add(payload: dict[str, Any]):
+        # Open selected local paths for add/edit/delete (p4 reconcile) into the
+        # pending changelist. Provider-specific (Perforce).
+        body = payload or {}
+        provider = str(body.get("provider") or "")
+        paths = body.get("paths") or []
+        cwd, error, resolved_ip = _route_cwd(str(body.get("ip") or ""), provider=provider)
+        if error is not None:
+            return error
+        result, prov, supported = await _scm_optional(cwd, "open_paths", paths, provider=provider)
+        if not supported:
+            return JSONResponse({
+                "ok": False, "provider": prov, "ip": resolved_ip,
+                "error": f"add/open is not supported for provider '{prov}'",
+            }, status_code=200)
+        return _scm_result_json(result, resolved_ip)
+
+    @app.post("/api/scm/revert")
+    async def api_scm_revert(payload: dict[str, Any]):
+        # Revert selected pending paths (p4 revert). Provider-specific (Perforce).
+        body = payload or {}
+        provider = str(body.get("provider") or "")
+        paths = body.get("paths") or []
+        cwd, error, resolved_ip = _route_cwd(str(body.get("ip") or ""), provider=provider)
+        if error is not None:
+            return error
+        result, prov, supported = await _scm_optional(cwd, "revert_paths", paths, provider=provider)
+        if not supported:
+            return JSONResponse({
+                "ok": False, "provider": prov, "ip": resolved_ip,
+                "error": f"revert is not supported for provider '{prov}'",
+            }, status_code=200)
+        return _scm_result_json(result, resolved_ip)

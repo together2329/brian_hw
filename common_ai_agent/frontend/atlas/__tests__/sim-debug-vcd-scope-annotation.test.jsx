@@ -4,7 +4,7 @@ import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 describe('sim debug VCD scoping and annotations', () => {
   beforeAll(async () => {
     globalThis.React = React;
-    await import('../sim-debug.jsx?sim-debug-vcd-scope-annotation-test');
+    await import('../sim-debug-helpers.tsx?sim-debug-vcd-scope-annotation-test');
   });
 
   afterEach(() => {

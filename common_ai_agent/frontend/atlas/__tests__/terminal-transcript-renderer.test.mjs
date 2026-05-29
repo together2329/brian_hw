@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const workspaceSrc = readFileSync(resolve(here, '../workspace.jsx'), 'utf8');
+const workspaceSrc = readFileSync(resolve(here, '../workspace-feed-terminal.tsx'), 'utf8');
 const stylesSrc = readFileSync(resolve(here, '../styles.css'), 'utf8');
 
 describe('terminal transcript rendering hooks', () => {

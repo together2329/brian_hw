@@ -1,0 +1,14 @@
+===== pyslang =====
+command: pyslang rtl/mctp_assembler_axi_write_ingress.sv rtl/mctp_assembler_pcie_vdm_parser.sv rtl/mctp_assembler_mctp_parser.sv rtl/mctp_assembler_context_table.sv rtl/mctp_assembler_payload_writer.sv rtl/mctp_assembler_apb_regfile.sv rtl/mctp_assembler_cdc.sv rtl/mctp_assembler.sv
+returncode: 0
+errors: 0 warnings: 0
+pyslang files: 8
+errors=0 warnings=0
+
+===== verilator =====
+command: verilator --lint-only -Wall -Irtl -f list/mctp_assembler.f --top-module mctp_assembler
+returncode: 0
+errors: 0 warnings: 0
+- V e r i l a t i o n   R e p o r t: Verilator 5.046 2026-02-28 rev vUNKNOWN-built20260228
+- Verilator: Built from 0.405 MB sources in 9 modules, into 0.306 MB in 3 C++ files needing 0.000 MB
+- Verilator: Walltime 0.956 s (elab=0.246, cvt=0.510, bld=0.000); cpu 0.190 s on 1 threads; allocated 13.219 MB

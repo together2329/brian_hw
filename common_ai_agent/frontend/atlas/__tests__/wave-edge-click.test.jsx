@@ -5,7 +5,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 describe('waveform edge click', () => {
   beforeAll(async () => {
     globalThis.React = React;
-    await import('../debug-shared.jsx?wave-edge-click-test');
+    await import('../debug-shared.tsx?wave-edge-click-test');
   });
 
   afterEach(() => {

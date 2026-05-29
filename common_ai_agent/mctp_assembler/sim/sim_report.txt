@@ -1,0 +1,3 @@
+TESTS=1 PASS=1 FAIL=0
+results=mctp_assembler/sim/results.xml
+scoreboard=mctp_assembler/sim/scoreboard_events.jsonl

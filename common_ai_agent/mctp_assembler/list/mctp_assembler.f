@@ -1,0 +1,8 @@
+rtl/mctp_assembler_axi_write_ingress.sv
+rtl/mctp_assembler_pcie_vdm_parser.sv
+rtl/mctp_assembler_mctp_parser.sv
+rtl/mctp_assembler_context_table.sv
+rtl/mctp_assembler_payload_writer.sv
+rtl/mctp_assembler_apb_regfile.sv
+rtl/mctp_assembler_cdc.sv
+rtl/mctp_assembler.sv

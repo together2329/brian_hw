@@ -5,7 +5,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 describe('debug ToolCard rendering', () => {
   beforeAll(async () => {
     globalThis.React = React;
-    await import('../debug-shared.jsx?tool-card-object-test');
+    await import('../debug-shared.tsx?tool-card-object-test');
   });
 
   it('renders object args/results as text instead of React children', () => {

@@ -1,0 +1,499 @@
+{
+  "schema_version": 1,
+  "type": "generic_ssot_rule_rtl_contract",
+  "ip": "mctp_assembler",
+  "top": "mctp_assembler",
+  "generated_at": "2026-05-29T06:18:23Z",
+  "contract": {
+    "top": "mctp_assembler",
+    "transaction": "FM_ACCEPT_AXI_TLP",
+    "clock": "axi_aclk",
+    "reset": "axi_aresetn",
+    "reset_active": "low",
+    "sample_condition": "1",
+    "outputs": [
+      {
+        "name": "pslverr",
+        "port": "pslverr",
+        "expr": "0",
+        "width": 1,
+        "source": {
+          "name": "pslverr",
+          "port": "pslverr",
+          "expr": "0",
+          "width": 1,
+          "description": "Auto-injected benign observable rule so the function_model has at least one scoreboard-visible output equation; replace with IP-specific output behavior before signoff."
+        }
+      },
+      {
+        "name": "pready",
+        "port": "pready",
+        "expr": "1",
+        "width": 1,
+        "source": {
+          "name": "pready",
+          "port": "pready",
+          "expr": "1",
+          "width": 1
+        }
+      },
+      {
+        "name": "prdata",
+        "port": "prdata",
+        "expr": "0",
+        "width": 1,
+        "source": {
+          "name": "prdata",
+          "port": "prdata",
+          "expr": "0",
+          "width": 32
+        }
+      },
+      {
+        "name": "s_axi_awready",
+        "port": "s_axi_awready",
+        "expr": "1",
+        "width": 1,
+        "source": {
+          "name": "s_axi_awready",
+          "port": "s_axi_awready",
+          "expr": "1",
+          "width": 1
+        }
+      },
+      {
+        "name": "s_axi_wready",
+        "port": "s_axi_wready",
+        "expr": "1",
+        "width": 1,
+        "source": {
+          "name": "s_axi_wready",
+          "port": "s_axi_wready",
+          "expr": "1",
+          "width": 1
+        }
+      },
+      {
+        "name": "s_axi_bvalid",
+        "port": "s_axi_bvalid",
+        "expr": "0",
+        "width": 1,
+        "source": {
+          "name": "s_axi_bvalid",
+          "port": "s_axi_bvalid",
+          "expr": "0",
+          "width": 1
+        }
+      },
+      {
+        "name": "s_axi_bresp",
+        "port": "s_axi_bresp",
+        "expr": "(0)",
+        "width": 2,
+        "source": {
+          "name": "s_axi_bresp",
+          "port": "s_axi_bresp",
+          "expr": "0",
+          "width": 2
+        }
+      },
+      {
+        "name": "sram_wr_valid",
+        "port": "sram_wr_valid",
+        "expr": "0",
+        "width": 1,
+        "source": {
+          "name": "sram_wr_valid",
+          "port": "sram_wr_valid",
+          "expr": "0",
+          "width": 1
+        }
+      },
+      {
+        "name": "intr",
+        "port": "intr",
+        "expr": "0",
+        "width": 1,
+        "source": {
+          "name": "intr",
+          "port": "intr",
+          "expr": "0",
+          "width": 1
+        }
+      }
+    ],
+    "state_vars": {
+      "enabled": {
+        "width": 32,
+        "reset": 0
+      },
+      "cfg_local_eid": {
+        "width": 32,
+        "reset": 0
+      },
+      "cfg_dest_filter_enable": {
+        "width": 32,
+        "reset": 1
+      },
+      "cfg_mtu_bytes": {
+        "width": 32,
+        "reset": 64
+      },
+      "cfg_max_message_bytes": {
+        "width": 32,
+        "reset": 4096
+      },
+      "cfg_sram_base": {
+        "width": 32,
+        "reset": 0
+      },
+      "cfg_sram_limit": {
+        "width": 32,
+        "reset": 0
+      },
+      "active_contexts": {
+        "width": 32,
+        "reset": 0
+      },
+      "descriptor_fifo": {
+        "width": 32,
+        "reset": 0
+      },
+      "interrupt_status": {
+        "width": 32,
+        "reset": 0
+      },
+      "error_status": {
+        "width": 32,
+        "reset": 0
+      },
+      "fm_accept_axi_tlp_observed": {
+        "width": 1,
+        "reset": 0
+      },
+      "fm_filter_vdm_observed": {
+        "width": 1,
+        "reset": 0
+      },
+      "fm_parse_mctp_observed": {
+        "width": 1,
+        "reset": 0
+      },
+      "fm_assemble_fragment_observed": {
+        "width": 1,
+        "reset": 0
+      },
+      "fm_write_sram_and_descriptor_observed": {
+        "width": 1,
+        "reset": 0
+      },
+      "packet_drop_count": {
+        "width": 32,
+        "reset": 0
+      },
+      "assembly_drop_count": {
+        "width": 32,
+        "reset": 0
+      },
+      "last_drop_class": {
+        "width": 32,
+        "reset": 0
+      },
+      "last_drop_reason": {
+        "width": 32,
+        "reset": 0
+      }
+    },
+    "state_updates": [
+      {
+        "name": "fm_accept_axi_tlp_observed",
+        "expr": "1",
+        "source": {
+          "name": "fm_accept_axi_tlp_observed",
+          "expr": "1",
+          "width": 1,
+          "description": "Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff."
+        }
+      }
+    ],
+    "special_outputs": {
+      "output_valid": "sram_wr_valid"
+    },
+    "pipeline_stages": [
+      "S0_ACCEPT",
+      "S1_EVALUATE",
+      "S2_OBSERVE"
+    ],
+    "fsm_states": [],
+    "fsm_transitions": [],
+    "input_map": {
+      "sram_ready": "sram_wr_ready",
+      "s_axi_awaddr": "s_axi_awaddr",
+      "s_axi_awlen": "s_axi_awlen",
+      "s_axi_awsize": "s_axi_awsize",
+      "s_axi_awburst": "s_axi_awburst",
+      "s_axi_awvalid": "s_axi_awvalid",
+      "s_axi_wdata": "s_axi_wdata",
+      "s_axi_wstrb": "s_axi_wstrb",
+      "s_axi_wlast": "s_axi_wlast",
+      "s_axi_wvalid": "s_axi_wvalid",
+      "s_axi_bready": "s_axi_bready",
+      "paddr": "paddr",
+      "psel": "psel",
+      "penable": "penable",
+      "pwrite": "pwrite",
+      "pwdata": "pwdata",
+      "pstrb": "pstrb",
+      "sram_wr_ready": "sram_wr_ready"
+    },
+    "apb_registers": {
+      "addr_width": 1,
+      "data_width": 1,
+      "strb_width": 1,
+      "registers": [
+        {
+          "name": "CONTROL",
+          "offset": 0,
+          "width": 32,
+          "access": "rw_wo_mixed",
+          "reset": 4,
+          "description": ""
+        },
+        {
+          "name": "STATUS",
+          "offset": 4,
+          "width": 32,
+          "access": "ro",
+          "reset": 0,
+          "description": ""
+        },
+        {
+          "name": "LOCAL_EID",
+          "offset": 8,
+          "width": 32,
+          "access": "rw",
+          "reset": 0,
+          "description": ""
+        },
+        {
+          "name": "MTU_TIMEOUT",
+          "offset": 12,
+          "width": 32,
+          "access": "rw",
+          "reset": 64,
+          "description": ""
+        },
+        {
+          "name": "MAX_MSG_BYTES",
+          "offset": 16,
+          "width": 32,
+          "access": "rw",
+          "reset": 4096,
+          "description": ""
+        },
+        {
+          "name": "SRAM_BASE",
+          "offset": 20,
+          "width": 32,
+          "access": "rw",
+          "reset": 0,
+          "description": ""
+        },
+        {
+          "name": "SRAM_LIMIT",
+          "offset": 24,
+          "width": 32,
+          "access": "rw",
+          "reset": 0,
+          "description": ""
+        },
+        {
+          "name": "SRAM_WR_PTR",
+          "offset": 28,
+          "width": 32,
+          "access": "ro",
+          "reset": 0,
+          "description": ""
+        },
+        {
+          "name": "INTR_ENABLE",
+          "offset": 32,
+          "width": 32,
+          "access": "rw",
+          "reset": 0,
+          "description": ""
+        },
+        {
+          "name": "INTR_STATUS",
+          "offset": 36,
+          "width": 32,
+          "access": "w1c",
+          "reset": 0,
+          "description": ""
+        },
+        {
+          "name": "ERROR_STATUS",
+          "offset": 40,
+          "width": 32,
+          "access": "w1c",
+          "reset": 0,
+          "description": ""
+        },
+        {
+          "name": "DESC_STATUS",
+          "offset": 48,
+          "width": 32,
+          "access": "ro",
+          "reset": 0,
+          "description": ""
+        },
+        {
+          "name": "DESC_POP",
+          "offset": 52,
+          "width": 32,
+          "access": "wo",
+          "reset": 0,
+          "description": ""
+        },
+        {
+          "name": "DESC_WORD0",
+          "offset": 56,
+          "width": 32,
+          "access": "ro",
+          "reset": 0,
+          "description": ""
+        },
+        {
+          "name": "DESC_WORD1",
+          "offset": 60,
+          "width": 32,
+          "access": "ro",
+          "reset": 0,
+          "description": ""
+        },
+        {
+          "name": "DESC_WORD2",
+          "offset": 64,
+          "width": 32,
+          "access": "ro",
+          "reset": 0,
+          "description": ""
+        },
+        {
+          "name": "DESC_WORD3",
+          "offset": 68,
+          "width": 32,
+          "access": "ro",
+          "reset": 0,
+          "description": ""
+        },
+        {
+          "name": "DEBUG_STATE",
+          "offset": 128,
+          "width": 32,
+          "access": "ro",
+          "reset": 0,
+          "description": ""
+        },
+        {
+          "name": "DEBUG_CONTEXT_INDEX",
+          "offset": 132,
+          "width": 32,
+          "access": "rw",
+          "reset": 0,
+          "description": ""
+        },
+        {
+          "name": "DEBUG_CONTEXT_DATA0",
+          "offset": 136,
+          "width": 32,
+          "access": "ro",
+          "reset": 0,
+          "description": ""
+        },
+        {
+          "name": "DEBUG_CONTEXT_DATA1",
+          "offset": 140,
+          "width": 32,
+          "access": "ro",
+          "reset": 0,
+          "description": ""
+        },
+        {
+          "name": "RX_TLP_COUNT",
+          "offset": 256,
+          "width": 32,
+          "access": "ro",
+          "reset": 0,
+          "description": ""
+        },
+        {
+          "name": "RX_MCTP_PACKET_COUNT",
+          "offset": 260,
+          "width": 32,
+          "access": "ro",
+          "reset": 0,
+          "description": ""
+        },
+        {
+          "name": "RX_MESSAGE_COUNT",
+          "offset": 264,
+          "width": 32,
+          "access": "ro",
+          "reset": 0,
+          "description": ""
+        },
+        {
+          "name": "DROP_COUNT",
+          "offset": 268,
+          "width": 32,
+          "access": "ro",
+          "reset": 0,
+          "description": ""
+        },
+        {
+          "name": "SEQ_ERR_COUNT",
+          "offset": 272,
+          "width": 32,
+          "access": "ro",
+          "reset": 0,
+          "description": ""
+        },
+        {
+          "name": "OVERFLOW_ERR_COUNT",
+          "offset": 276,
+          "width": 32,
+          "access": "ro",
+          "reset": 0,
+          "description": ""
+        },
+        {
+          "name": "DROP_STATUS",
+          "offset": 44,
+          "width": 32,
+          "access": "ro",
+          "reset": 0,
+          "description": ""
+        },
+        {
+          "name": "PACKET_DROP_COUNT",
+          "offset": 280,
+          "width": 32,
+          "access": "ro",
+          "reset": 0,
+          "description": ""
+        },
+        {
+          "name": "ASSEMBLY_DROP_COUNT",
+          "offset": 284,
+          "width": 32,
+          "access": "ro",
+          "reset": 0,
+          "description": ""
+        }
+      ],
+      "has_interrupt_policy": false
+    },
+    "source": "rtl_contract + function_model.output_rules"
+  }
+}

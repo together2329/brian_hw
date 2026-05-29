@@ -38,6 +38,7 @@ import "./debug-inline-cards";
 import "./sim-debug";
 import "./debug-tab";
 import "./git-tab";
+import "./perforce-sync";
 import "./coverage";
 import "./user-dashboard";
 import "./workspace";

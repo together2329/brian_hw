@@ -22,6 +22,10 @@ This section is additive; it does not replace the reading order below.
 | Andes external RTL DB wiki + `ATLAS_RTL_DB_WIKI` pointer | [[andes-rtl-db-wiki-20260527]] |
 | SSOT datasheet authoring — demo-grade via custom_blocks / timing mapping / FSM | [[ssot-datasheet-authoring-20260527]] |
 | Review note for Atlas single-worker readiness / warmup refactor | [[atlas-refactoring-review-20260528]] |
+| Tech direction (language/runtime/build): keep Python backend, finish TSX + Vite build cutover, Go/Rust/Bun/Tauri surgical only | [[tech-direction-recommendation-20260529]] |
+| Frontend modernization arc (overview): .jsx→.tsx migration + Vite cutover (ATLAS_FRONTEND_MODE) + Tauri desktop + gpt-5.5 | [[frontend-modernization-2026-05-29]] |
+| Babel/legacy-jsx retirement cutover — PAUSED progress + resume plan (Step1 flip done; Round1 partial; 4 decisions; Rounds 2–4) | [[babel-retirement-cutover-20260529]] |
+| Local IP-root + thin LLM-license server (desktop-app arch): already half-built via --root, Tauri = delivery not enabler; + remote-brain/local-hands variant | [[local-iproot-thin-llm-server-arch-20260529]] |
 | Run Mode / Exec Mode and SSOT provenance policy | [[run-mode-and-provenance-policy]] |
 | Why headless is not product-flow authority | [[pipeline-progress-debugging]] |
 | Current CPU handoff / approval / README status | [[arm-m0-min-current-status]] |

@@ -1,0 +1,35 @@
+# Secrets / local config — never submit
+.env
+.env.*
+.p4config
+.mcp.json
+# VCS / tooling state
+.git/
+.gitignore
+.omc/
+.omx/
+.cursor/
+.claude/
+.github/
+# Sessions / scratch / logs
+.session/
+.session_debug/
+.workers/
+.deep_test/
+.rag/
+.benchmarks/
+.pytest_cache/
+artifacts/
+cmd_output_*.txt
+*.log
+# Build / deps / caches
+node_modules/
+dist/
+__pycache__/
+*.pyc
+*.pyo
+# Databases / binaries
+*.db
+*.db-shm
+*.db-wal
+*.vcd

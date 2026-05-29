@@ -1,0 +1,102 @@
+{
+  "ip": "mctp_assembler",
+  "complete": true,
+  "source": "yaml/mctp_assembler.ssot.yaml",
+  "units": [
+    {
+      "id": "axi_ingress",
+      "kind": "protocol_adapter",
+      "model_owner": "FunctionalModel.accept_axi_tlp",
+      "rtl_candidates": [
+        "mctp_assembler_axi_write_ingress"
+      ],
+      "source_refs": [
+        "function_model.transactions.FM_ACCEPT_AXI_TLP",
+        "io_list.interfaces.axi_write_slave",
+        "dataflow.sequence.AXI_W_COLLECT"
+      ]
+    },
+    {
+      "id": "vdm_filter",
+      "kind": "parser_filter",
+      "model_owner": "FunctionalModel.filter_vdm",
+      "rtl_candidates": [
+        "mctp_assembler_pcie_vdm_parser"
+      ],
+      "source_refs": [
+        "function_model.transactions.FM_FILTER_VDM",
+        "custom.standards_decode.pcie_vdm",
+        "error_handling.packet_drop_conditions"
+      ]
+    },
+    {
+      "id": "mctp_transport_parse",
+      "kind": "parser",
+      "model_owner": "FunctionalModel.parse_mctp",
+      "rtl_candidates": [
+        "mctp_assembler_mctp_parser"
+      ],
+      "source_refs": [
+        "function_model.transactions.FM_PARSE_MCTP",
+        "custom.standards_decode.mctp_transport"
+      ]
+    },
+    {
+      "id": "mctp_assembly_queue",
+      "kind": "stateful_datapath",
+      "model_owner": "FunctionalModel.assemble_fragment",
+      "rtl_candidates": [
+        "mctp_assembler_context_table"
+      ],
+      "source_refs": [
+        "function_model.transactions.FM_ASSEMBLE_FRAGMENT",
+        "memory.internal_context_table",
+        "custom.approved_assumptions.CONTEXT_COUNT"
+      ]
+    },
+    {
+      "id": "payload_write_descriptor",
+      "kind": "output_datapath",
+      "model_owner": "FunctionalModel.write_sram_and_descriptor",
+      "rtl_candidates": [
+        "mctp_assembler_payload_writer",
+        "mctp_assembler_apb_regfile"
+      ],
+      "source_refs": [
+        "function_model.transactions.FM_WRITE_SRAM_AND_DESCRIPTOR",
+        "io_list.interfaces.sram_write_port",
+        "registers.register_list.DESC_WORD0"
+      ]
+    },
+    {
+      "id": "drop_classifier",
+      "kind": "error_control",
+      "model_owner": "FunctionalModel._classify_drop",
+      "rtl_candidates": [
+        "mctp_assembler_context_table",
+        "mctp_assembler_apb_regfile"
+      ],
+      "source_refs": [
+        "function_model.transactions.FM_CLASSIFY_DROP",
+        "error_handling.drop_policy",
+        "error_handling.packet_drop_conditions",
+        "error_handling.assembly_drop_conditions"
+      ]
+    },
+    {
+      "id": "cycle_wrapper",
+      "kind": "cycle_model",
+      "model_owner": "CycleModel",
+      "rtl_candidates": [
+        "mctp_assembler_axi_write_ingress",
+        "mctp_assembler_cdc"
+      ],
+      "source_refs": [
+        "cycle_model.handshake_rules",
+        "cycle_model.pipeline",
+        "cycle_model.performance",
+        "cdc_requirements"
+      ]
+    }
+  ]
+}

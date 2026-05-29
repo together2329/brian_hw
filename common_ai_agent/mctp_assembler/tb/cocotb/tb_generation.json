@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "type": "mctp_assembler_cocotb_generation",
+  "ip": "mctp_assembler",
+  "generated_at": "2026-05-29T00:00:00Z",
+  "manifest": "mctp_assembler/tb/cocotb/tb_manifest.json",
+  "test": "mctp_assembler/tb/cocotb/test_mctp_assembler.py",
+  "runner": "mctp_assembler/tb/cocotb/test_runner.py",
+  "scenarios": "mctp_assembler/tc/mctp_assembler_scenarios.py",
+  "oracle": "mctp_assembler/model/functional_model.py",
+  "equivalence_goals": "mctp_assembler/verify/equivalence_goals.json",
+  "notes": "Hand-authored cocotb/pyuvm TB with FunctionalModel scoreboard; rtl/rtl_contract.json present for optional tb-gen regen."
+}

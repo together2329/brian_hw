@@ -25,6 +25,11 @@ def test_scm_ui_override_file_is_served_and_injected_before_workspace(tmp_path: 
     )
     monkeypatch.setenv("ATLAS_SCM_PROVIDER", "perforce")
     monkeypatch.setenv("ATLAS_SCM_UI_OVERRIDE_PERFORCE", str(override))
+    # This case asserts the override is injected before the legacy
+    # `data-filename="workspace.jsx"` marker, which only exists in the
+    # babel/JSX (legacy) index. Pin that mode so the assertion is deterministic
+    # whether or not a Vite dist/ build is present.
+    monkeypatch.setenv("ATLAS_FRONTEND_MODE", "legacy")
 
     client = TestClient(_create_app(tmp_path, monkeypatch))
 

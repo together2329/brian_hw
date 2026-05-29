@@ -746,6 +746,28 @@ class _MultiUserBridge:
         if spawn:
             self._spawn_process_session(session, running=True)
         msg_id = manager.send_input(session.session_id, msg_type, payload or {})
+        # Crash-at-startup / spawn-fail safety net: send_input returns None
+        # when the worker process is not alive at the is_alive() gate
+        # (session_process_manager.py:408-409), so the message was never
+        # enqueued into the durable DB session_queue. For real user inputs
+        # (prompt/interrupt) this is silent loss because the frontend
+        # retransmit layer has already been disarmed. Respawn once and retry
+        # the enqueue so a single startup crash converts to success without a
+        # client round trip. msg_id dedup at the WS layer still guards against
+        # a retried duplicate that races the first delivery.
+        if (
+            msg_id is None
+            and spawn
+            and msg_type in {"prompt", "interrupt"}
+        ):
+            cleanup = getattr(manager, "cleanup_zombies", None)
+            if callable(cleanup):
+                try:
+                    cleanup()
+                except Exception:
+                    pass
+            self._spawn_process_session(session, running=True)
+            msg_id = manager.send_input(session.session_id, msg_type, payload or {})
         session.touch()
         if msg_id is None:
             cleanup = getattr(manager, "cleanup_zombies", None)

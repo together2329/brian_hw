@@ -1,0 +1,84 @@
+{
+  "ip": "mctp_assembler",
+  "planned_before_rtl": true,
+  "source": "yaml/mctp_assembler.ssot.yaml",
+  "bins": [
+    {
+      "id": "fcov_FM_ACCEPT_AXI_TLP",
+      "class": "transaction",
+      "source": "function_model.transactions.FM_ACCEPT_AXI_TLP",
+      "source_ref": "function_model.transactions.FM_ACCEPT_AXI_TLP",
+      "description": "AXI write burst is accepted as one ordered TLP byte vector."
+    },
+    {
+      "id": "fcov_FM_FILTER_VDM",
+      "class": "transaction",
+      "source": "function_model.transactions.FM_FILTER_VDM",
+      "source_ref": "function_model.transactions.FM_FILTER_VDM",
+      "description": "PCIe VDM filter accepts DMTF MCTP VDM and rejects unsupported VDM fields."
+    },
+    {
+      "id": "fcov_FM_PARSE_MCTP",
+      "class": "transaction",
+      "source": "function_model.transactions.FM_PARSE_MCTP",
+      "source_ref": "function_model.transactions.FM_PARSE_MCTP",
+      "description": "MCTP transport header parse extracts EIDs, SOM/EOM, sequence, tag owner, message tag, and payload."
+    },
+    {
+      "id": "fcov_FM_ASSEMBLE_FRAGMENT",
+      "class": "transaction",
+      "source": "function_model.transactions.FM_ASSEMBLE_FRAGMENT",
+      "source_ref": "function_model.transactions.FM_ASSEMBLE_FRAGMENT",
+      "description": "MCTP fragments assemble through a 15-entry interleaving context table."
+    },
+    {
+      "id": "fcov_FM_WRITE_SRAM_AND_DESCRIPTOR",
+      "class": "transaction",
+      "source": "function_model.transactions.FM_WRITE_SRAM_AND_DESCRIPTOR",
+      "source_ref": "function_model.transactions.FM_WRITE_SRAM_AND_DESCRIPTOR",
+      "description": "Completed payload writes to SRAM and descriptor metadata is published."
+    },
+    {
+      "id": "fcov_FM_CLASSIFY_DROP",
+      "class": "transaction",
+      "source": "function_model.transactions.FM_CLASSIFY_DROP",
+      "source_ref": "function_model.transactions.FM_CLASSIFY_DROP",
+      "description": "Packet drop and assembly drop are classified independently."
+    },
+    {
+      "id": "fcov_packet_drop_all_conditions",
+      "class": "drop_classification",
+      "source": "error_handling.packet_drop_conditions",
+      "source_ref": "error_handling.packet_drop_conditions",
+      "description": "Each packet drop condition leaves assembly state unchanged and increments PACKET_DROP_COUNT."
+    },
+    {
+      "id": "fcov_assembly_drop_all_conditions",
+      "class": "drop_classification",
+      "source": "error_handling.assembly_drop_conditions",
+      "source_ref": "error_handling.assembly_drop_conditions",
+      "description": "Each assembly drop condition releases only the affected context and increments ASSEMBLY_DROP_COUNT."
+    },
+    {
+      "id": "fcov_interleaving_15_contexts",
+      "class": "assembly_depth",
+      "source": "memory.internal_context_table",
+      "source_ref": "memory.internal_context_table",
+      "description": "Fifteen simultaneous interleaved assemblies are active before context_full."
+    },
+    {
+      "id": "ccov_axi_one_outstanding",
+      "class": "cycle_handshake",
+      "source": "cycle_model.handshake_rules.axi_write",
+      "source_ref": "cycle_model.handshake_rules",
+      "description": "Cycle model enforces one outstanding AXI write transaction."
+    },
+    {
+      "id": "ccov_cdc_event_observe",
+      "class": "cycle_cdc",
+      "source": "cdc_requirements",
+      "source_ref": "cdc_requirements",
+      "description": "Descriptor, status, and interrupt events are observed after AXI to APB synchronization latency."
+    }
+  ]
+}

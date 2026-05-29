@@ -4,9 +4,10 @@ import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const appSource = readFileSync(resolve(here, '../app.jsx'), 'utf8');
-const pipelineSource = readFileSync(resolve(here, '../pipeline.jsx'), 'utf8');
-const gitTabSource = readFileSync(resolve(here, '../git-tab.jsx'), 'utf8');
+const appSource = readFileSync(resolve(here, '../app-session-hook.tsx'), 'utf8');
+const appShellSource = readFileSync(resolve(here, '../app-shell.tsx'), 'utf8');
+const pipelineSource = readFileSync(resolve(here, '../pipeline-rail.tsx'), 'utf8');
+const gitTabSource = readFileSync(resolve(here, '../git-tab.tsx'), 'utf8');
 
 describe('Atlas IP roster source', () => {
   it('does not seed authenticated IP_ID options from browser-local stale state', () => {
@@ -20,7 +21,7 @@ describe('Atlas IP roster source', () => {
   });
 
   it('hides detached active IP options in authenticated mode', () => {
-    expect(appSource).toContain(
+    expect(appShellSource).toContain(
       "authState !== 'authed' && activeIp && activeIp !== WORKFLOW_DEFAULT && !ipOptions.includes(activeIp)"
     );
   });

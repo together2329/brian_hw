@@ -4,6 +4,16 @@ Pytest configuration and fixtures for test_core
 import sys
 import os
 
+# Keep the developer's local .env from leaking SCM provider/adapter overrides
+# into the test suite. core.chat_responder auto-loads .env at import time
+# (load_dotenv, override=False), so a dev who set ATLAS_SCM_PROVIDER=perforce /
+# ATLAS_SCM_ADAPTER_PERFORCE in .env would otherwise change provider-resolution
+# defaults for every test. setdefault keeps an explicit shell export winning,
+# while pinning a clean ("auto", no override) baseline; tests that exercise a
+# specific provider set these via monkeypatch.
+os.environ.setdefault("ATLAS_SCM_PROVIDER", "")
+os.environ.setdefault("ATLAS_SCM_ADAPTER_PERFORCE", "")
+
 # Add paths for imports
 _tests_dir = os.path.dirname(os.path.abspath(__file__))
 _project_root = os.path.dirname(_tests_dir)

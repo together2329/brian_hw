@@ -1,0 +1,8 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1780040158" />
+    <testcase name="mctp_ssot_scenarios" classname="test_mctp_assembler" file="/Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler/tb/cocotb/test_mctp_assembler.py" lineno="214" time="14.04944109916687" sim_time_ns="112890.001" ratio_time="8035.195151406725">
+      <failure message="Test failed with RANDOM_SEED=1780040158" />
+    </testcase>
+  </testsuite>
+</testsuites>

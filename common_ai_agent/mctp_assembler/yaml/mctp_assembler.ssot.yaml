@@ -1,0 +1,4036 @@
+top_module:
+  name: mctp_assembler
+  file: rtl/mctp_assembler.sv
+  version: 0.1.0
+  type: peripheral
+  description: AXI write-slave ingress block that receives raw PCIe VDM TLP packets
+    carrying MCTP, assembles fragmented MCTP message payload bytes (never PCIe TLP
+    headers) into external SRAM, exposes a separate AXI read-slave path for burst
+    SRAM payload readback, and exposes control/debug through APB.
+  reference_spec: req/mctp_assembler_requirements.md; DMTF DSP0238 MCTP PCIe VDM Transport
+    Binding; DMTF DSP0236 MCTP Base Specification
+  target:
+    technology: generic
+    clock_freq_mhz: null
+    area_um2: null
+    power_mw: null
+sub_modules:
+- name: mctp_assembler_axi_write_ingress
+  file: rtl/mctp_assembler_axi_write_ingress.sv
+  ownership: manifest
+  ssot_gen: true
+  implements:
+  - io_list.interfaces.axi_write_slave
+  - dataflow.ingress
+  - cycle_model.handshake_rules.axi_write
+  source_sections:
+  - io_list
+  - dataflow
+  - cycle_model
+  - test_requirements
+  description: Accepts one raw PCIe VDM TLP per AXI write burst and emits ordered
+    valid bytes.
+  function_model_refs:
+  - function_model.transactions.FM_ACCEPT_AXI_TLP
+  - function_model.transactions.FM_FILTER_VDM
+  - function_model.transactions.FM_WRITE_SRAM_AND_DESCRIPTOR
+  cycle_model_refs:
+  - cycle_model
+  dataflow_refs:
+  - dataflow
+  test_refs:
+  - test_requirements
+- name: mctp_assembler_pcie_vdm_parser
+  file: rtl/mctp_assembler_pcie_vdm_parser.sv
+  ownership: manifest
+  ssot_gen: true
+  implements:
+  - custom.standards_decode.pcie_vdm
+  - function_model.transactions.FM_FILTER_VDM
+  - error_handling
+  source_sections: &id001
+  - custom
+  - function_model
+  - error_handling
+  description: Parses PCIe VDM header fields and filters for MCTP-over-PCIe-VDM packets.
+- name: mctp_assembler_mctp_parser
+  file: rtl/mctp_assembler_mctp_parser.sv
+  ownership: manifest
+  ssot_gen: true
+  implements:
+  - custom.standards_decode.mctp_transport
+  - function_model.transactions.FM_PARSE_MCTP
+  source_sections: &id002
+  - custom
+  - function_model
+  description: Parses MCTP transport header and extracts EIDs, SOM/EOM, sequence,
+    tag owner, message tag, and message type.
+  function_model_refs:
+  - function_model.transactions.FM_PARSE_MCTP
+- name: mctp_assembler_context_table
+  file: rtl/mctp_assembler_context_table.sv
+  ownership: manifest
+  ssot_gen: true
+  implements:
+  - memory.internal_context_table
+  - function_model.transactions.FM_ASSEMBLE_FRAGMENT
+  - fsm.assembly_fsm
+  source_sections:
+  - memory
+  - function_model
+  - fsm
+  description: Tracks active fragmented messages keyed by source EID, tag owner, and
+    message tag.
+  function_model_refs:
+  - function_model.transactions.FM_ASSEMBLE_FRAGMENT
+  fsm_refs:
+  - fsm
+- name: mctp_assembler_payload_writer
+  file: rtl/mctp_assembler_payload_writer.sv
+  ownership: manifest
+  ssot_gen: true
+  implements:
+  - io_list.interfaces.sram_write_port
+  - memory.external_sram_write_port
+  - dataflow.output
+  source_sections: &id003
+  - io_list
+  - memory
+  - dataflow
+  description: Packs assembled payload bytes into SRAM write beats while stripping
+    headers and final packet padding.
+- name: mctp_assembler_axi_read_egress
+  file: rtl/mctp_assembler_axi_read_egress.sv
+  ownership: manifest
+  ssot_gen: true
+  implements:
+  - io_list.interfaces.axi_read_slave
+  - io_list.interfaces.sram_read_port
+  - dataflow.sram_read
+  source_sections:
+  - io_list
+  - dataflow
+  - cycle_model
+  - test_requirements
+  description: Separate AXI read-slave path that translates host burst reads into
+    external SRAM read transactions. Independent from TLP ingress and assembly.
+  function_model_refs:
+  - function_model.transactions.FM_READ_SRAM_BURST
+  cycle_model_refs:
+  - cycle_model
+  test_refs:
+  - test_requirements
+- name: mctp_assembler_apb_regfile
+  file: rtl/mctp_assembler_apb_regfile.sv
+  ownership: manifest
+  ssot_gen: true
+  implements:
+  - io_list.interfaces.apb_slave
+  - registers.register_list
+  - interrupts
+  - debug_observability
+  source_sections:
+  - io_list
+  - registers
+  - interrupts
+  - debug_observability
+  - features
+  - decomposition
+  description: APB control, descriptor, status, interrupt, counter, and debug register
+    block.
+  function_model_refs:
+  - function_model.state_variables
+  - function_model.transactions.FM_WRITE_SRAM_AND_DESCRIPTOR
+  feature_refs:
+  - features
+  decomposition_refs:
+  - decomposition
+  register_refs:
+  - registers.register_list
+- name: mctp_assembler_cdc
+  file: rtl/mctp_assembler_cdc.sv
+  ownership: manifest
+  ssot_gen: true
+  implements:
+  - cdc_requirements
+  - clock_reset_domains
+  - interrupts
+  source_sections: &id004
+  - cdc_requirements
+  - clock_reset_domains
+  - interrupts
+  description: Synchronizes APB configuration into AXI domain and AXI events/descriptors
+    into APB domain.
+- name: mctp_assembler
+  file: rtl/mctp_assembler.sv
+  ownership: manifest
+  ssot_gen: true
+  wiring_only: true
+  description: Top-level integration module matching SSOT top_module
+  implements:
+  - top_module
+  - integration
+  source_sections:
+  - top_module
+  - io_list
+  - decomposition
+  - integration
+  decomposition_refs:
+  - decomposition
+  dataflow_refs:
+  - dataflow
+decomposition:
+  units:
+  - id: axi_ingress
+    kind: protocol_adapter
+    source_refs:
+    - io_list.interfaces.axi_write_slave
+    - dataflow.ingress
+    rtl_candidates:
+    - mctp_assembler_axi_write_ingress
+    verification_impact:
+    - test_requirements.scenarios.SC_AXI_ONE_BURST_ONE_TLP
+    - test_requirements.scenarios.SC_AXI_WSTRB_FINAL
+  - id: vdm_filter
+    kind: parser_filter
+    source_refs:
+    - custom.standards_decode.pcie_vdm
+    - function_model.transactions.FM_FILTER_VDM
+    rtl_candidates:
+    - mctp_assembler_pcie_vdm_parser
+    verification_impact:
+    - test_requirements.scenarios.SC_DROP_WRONG_VENDOR
+    - test_requirements.scenarios.SC_DROP_WRONG_MESSAGE_CODE
+  - id: mctp_assembly
+    kind: stateful_datapath
+    source_refs:
+    - function_model.transactions.FM_ASSEMBLE_FRAGMENT
+    - memory.internal_context_table
+    - fsm.assembly_fsm
+    rtl_candidates:
+    - mctp_assembler_mctp_parser
+    - mctp_assembler_context_table
+    verification_impact:
+    - test_requirements.scenarios.SC_MULTI_PACKET
+    - test_requirements.scenarios.SC_SEQ_ERROR
+  - id: axi_read_egress
+    kind: protocol_adapter
+    source_refs:
+    - io_list.interfaces.axi_read_slave
+    - io_list.interfaces.sram_read_port
+    - dataflow.sram_read
+    rtl_candidates:
+    - mctp_assembler_axi_read_egress
+    verification_impact:
+    - test_requirements.scenarios.SC_AXI_READ_SINGLE
+    - test_requirements.scenarios.SC_AXI_READ_BURST
+  - id: register_debug
+    kind: control_status
+    source_refs:
+    - registers.register_list
+    - interrupts
+    - debug_observability
+    rtl_candidates:
+    - mctp_assembler_apb_regfile
+    verification_impact:
+    - test_requirements.scenarios.SC_APB_REGS
+    - test_requirements.scenarios.SC_INTR_W1C
+  strategy: manifest_owned_leaf_decomposition
+  owners:
+  - module: mctp_assembler_axi_write_ingress
+    file: rtl/mctp_assembler_axi_write_ingress.sv
+    responsibility: Accepts one raw PCIe VDM TLP per AXI write burst and emits ordered
+      valid bytes.
+    source_sections:
+    - io_list
+    - dataflow
+    - cycle_model
+  - module: mctp_assembler_pcie_vdm_parser
+    file: rtl/mctp_assembler_pcie_vdm_parser.sv
+    responsibility: Parses PCIe VDM header fields and filters for MCTP-over-PCIe-VDM
+      packets.
+    source_sections: *id001
+  - module: mctp_assembler_mctp_parser
+    file: rtl/mctp_assembler_mctp_parser.sv
+    responsibility: Parses MCTP transport header and extracts EIDs, SOM/EOM, sequence,
+      tag owner, message tag, and message type.
+    source_sections: *id002
+  - module: mctp_assembler_context_table
+    file: rtl/mctp_assembler_context_table.sv
+    responsibility: Tracks active fragmented messages keyed by source EID, tag owner,
+      and message tag.
+    source_sections:
+    - memory
+    - function_model
+    - fsm
+  - module: mctp_assembler_payload_writer
+    file: rtl/mctp_assembler_payload_writer.sv
+    responsibility: Packs assembled payload bytes into SRAM write beats while stripping
+      headers and final packet padding.
+    source_sections: *id003
+  - module: mctp_assembler_axi_read_egress
+    file: rtl/mctp_assembler_axi_read_egress.sv
+    responsibility: Accept AXI read bursts and issue matching burst reads on the external
+      SRAM read port for payload readback.
+    source_sections:
+    - io_list
+    - dataflow
+    - cycle_model
+  - module: mctp_assembler_apb_regfile
+    file: rtl/mctp_assembler_apb_regfile.sv
+    responsibility: APB control, descriptor, status, interrupt, counter, and debug
+      register block.
+    source_sections:
+    - io_list
+    - registers
+    - interrupts
+    - debug_observability
+  - module: mctp_assembler_cdc
+    file: rtl/mctp_assembler_cdc.sv
+    responsibility: Synchronizes APB configuration into AXI domain and AXI events/descriptors
+      into APB domain.
+    source_sections: *id004
+  - module: mctp_assembler
+    file: rtl/mctp_assembler.sv
+    responsibility: Top-level integration module matching SSOT top_module
+    source_sections:
+    - top_module
+    - io_list
+    - decomposition
+    - integration
+  integration_policy: Top-level wiring must be backed by integration.connections or
+    sub_modules[].connections before signoff.
+  source_refs:
+  - sub_modules
+  - function_model
+  - cycle_model
+  - integration
+rtl_contract:
+  transaction: FM_ACCEPT_AXI_TLP
+  sample_condition: '1'
+  input_map:
+    axi_tlp_bytes: s_axi_wlast
+    apb_config: CONTROL, CFG_LOCAL_EID, CFG_MTU, CFG_MAX_MESSAGE_BYTES, CFG_SRAM_BASE,
+      CFG_SRAM_LIMIT, CFG_TIMEOUT, INTR_ENABLE.
+    sram_ready: sram_wr_ready
+    s_axi_awaddr: s_axi_awaddr
+    s_axi_awlen: s_axi_awlen
+    s_axi_awsize: s_axi_awsize
+    s_axi_awburst: s_axi_awburst
+    s_axi_awvalid: s_axi_awvalid
+    s_axi_wdata: s_axi_wdata
+    s_axi_wstrb: s_axi_wstrb
+    s_axi_wlast: s_axi_wlast
+    s_axi_wvalid: s_axi_wvalid
+    s_axi_bready: s_axi_bready
+    paddr: paddr
+    psel: psel
+    penable: penable
+    pwrite: pwrite
+    pwdata: pwdata
+    pstrb: pstrb
+    sram_wr_ready: sram_wr_ready
+    s_axi_araddr: s_axi_araddr
+    s_axi_arlen: s_axi_arlen
+    s_axi_arsize: s_axi_arsize
+    s_axi_arburst: s_axi_arburst
+    s_axi_arvalid: s_axi_arvalid
+    s_axi_rready: s_axi_rready
+    sram_rd_valid: sram_rd_valid
+    sram_rd_ready: sram_rd_ready
+  output_map:
+    sram_write: sram_wr_strb
+    descriptor: DESC_WORD0..DESC_WORD3 expose metadata for the oldest completed message
+      through APB.
+    interrupt: intr
+    status: STATUS, ERROR_STATUS, counters, and DEBUG_STATE reflect parser, assembly,
+      descriptor, and error state.
+    s_axi_awready: s_axi_awready
+    s_axi_wready: s_axi_wready
+    s_axi_bresp: s_axi_bresp
+    s_axi_bvalid: s_axi_bvalid
+    prdata: prdata
+    pready: pready
+    pslverr: pslverr
+    sram_wr_valid: sram_wr_valid
+    sram_wr_addr: sram_wr_addr
+    sram_wr_data: sram_wr_data
+    sram_wr_strb: sram_wr_strb
+    s_axi_arready: s_axi_arready
+    s_axi_rdata: s_axi_rdata
+    s_axi_rresp: s_axi_rresp
+    s_axi_rlast: s_axi_rlast
+    s_axi_rvalid: s_axi_rvalid
+    sram_rd_addr: sram_rd_addr
+    intr: intr
+  state_updates:
+  - name: active_contexts
+    reset: empty
+    expr: Allocate on valid SOM without EOM, append on matching sequence, release
+  - name: sram_write_pointer
+    reset: CFG_SRAM_BASE shadow after reset/config update
+    expr: Advance by assembled payload bytes written; overflow if next write exceeds
+  - name: descriptor_fifo
+    reset: empty
+    expr: Push descriptor on message completion; pop only by DESC_POP APB command.
+  - name: interrupt_status
+    reset: 0
+    expr: Set on synchronized AXI event, clear by APB W1C.
+  owner: ssot-gen
+  type: ssot_derived_rule_contract
+  clock: axi_aclk
+  reset: axi_aresetn
+  reset_active: low
+  output_valid: sram_wr_valid
+  contract_invariants:
+  - RTL-visible behavior implements the referenced function_model transaction.
+  - Input sampling and output observation follow cycle_model handshake and latency
+    rules.
+  output_rules:
+  - name: pslverr
+    port: pslverr
+    expr: '0'
+    width: 1
+    description: Auto-injected benign observable rule so the function_model has at
+      least one scoreboard-visible output equation; replace with IP-specific output
+      behavior before signoff.
+parameters:
+- name: AXI_ADDR_WIDTH
+  default: 16
+  type: int
+  description: AXI address width. Write AWADDR selects the ingress window only; read
+    ARADDR is the external SRAM byte address within configured SRAM_BASE/SRAM_LIMIT.
+  drives:
+  - mctp_assembler.sv
+  - mctp_assembler_axi_write_ingress.sv
+  - mctp_assembler_axi_read_egress.sv
+- name: AXI_DATA_WIDTH
+  default: 256
+  type: int
+  values:
+  - 32
+  - 64
+  - 128
+  - 256
+  description: AXI WDATA/RDATA width in bits.
+  drives:
+  - mctp_assembler.sv
+  - mctp_assembler_axi_write_ingress.sv
+  - mctp_assembler_axi_read_egress.sv
+  - mctp_assembler_payload_writer.sv
+- name: APB_ADDR_WIDTH
+  default: 12
+  type: int
+  description: APB byte address width for control/debug register access.
+  drives:
+  - mctp_assembler.sv
+  - mctp_assembler_apb_regfile.sv
+- name: APB_DATA_WIDTH
+  default: 32
+  type: int
+  values:
+  - 32
+  description: APB data width.
+  drives:
+  - mctp_assembler.sv
+  - mctp_assembler_apb_regfile.sv
+- name: SRAM_ADDR_WIDTH
+  default: 16
+  type: int
+  description: SRAM byte address width.
+  drives:
+  - mctp_assembler.sv
+  - mctp_assembler_payload_writer.sv
+  - mctp_assembler_context_table.sv
+  - mctp_assembler_axi_read_egress.sv
+- name: SRAM_DATA_WIDTH
+  default: 256
+  type: int
+  description: SRAM write data width in bits; defaults to AXI data width.
+  drives:
+  - mctp_assembler.sv
+  - mctp_assembler_payload_writer.sv
+- name: CONTEXT_COUNT
+  default: 15
+  type: int
+  description: Number of simultaneous MCTP message assembly contexts; the assembly
+    queue supports up to 15 interleaved messages.
+  drives:
+  - mctp_assembler_context_table.sv
+  - mctp_assembler_apb_regfile.sv
+- name: MAX_MESSAGE_BYTES
+  default: 4096
+  type: int
+  description: Maximum assembled message payload bytes before overflow.
+  drives:
+  - mctp_assembler_context_table.sv
+  - mctp_assembler_payload_writer.sv
+- name: BASELINE_MTU_BYTES
+  default: 64
+  type: int
+  description: Default MCTP baseline transmission unit in bytes.
+  drives:
+  - mctp_assembler_pcie_vdm_parser.sv
+  - mctp_assembler_apb_regfile.sv
+- name: DESCRIPTOR_FIFO_DEPTH
+  default: 8
+  type: int
+  description: Internal APB-readable completed-message descriptor FIFO depth.
+  drives:
+  - mctp_assembler_apb_regfile.sv
+  - mctp_assembler_cdc.sv
+- name: TIMEOUT_COUNTER_WIDTH
+  default: 24
+  type: int
+  description: Width of per-context assembly timeout counters.
+  drives:
+  - mctp_assembler_context_table.sv
+io_list:
+  clock_domains:
+  - name: axi
+    frequency_mhz: null
+    description: AXI ingress, SRAM write, and separate AXI read egress clock domain.
+    ports:
+    - name: axi_aclk
+      width: 1
+      direction: input
+      description: AXI domain clock
+  - name: apb
+    frequency_mhz: null
+    description: APB control/debug and interrupt clock domain.
+    ports:
+    - name: pclk
+      width: 1
+      direction: input
+      description: APB domain clock
+  resets:
+  - name: axi_aresetn
+    polarity: active_low
+    sync_async: async_assert_sync_deassert
+    clock_domain: axi
+    ports:
+    - name: axi_aresetn
+      width: 1
+      direction: input
+      description: AXI domain active-low reset
+  - name: presetn
+    polarity: active_low
+    sync_async: async_assert_sync_deassert
+    clock_domain: apb
+    ports:
+    - name: presetn
+      width: 1
+      direction: input
+      description: APB domain active-low reset
+  interfaces:
+  - name: axi_write_slave
+    type: AXI4
+    role: slave_write_only
+    clock_domain: axi
+    reset_domain: axi_aresetn
+    description: AXI write-only slave ingress. Each accepted write burst carries exactly
+      one raw PCIe VDM TLP in WDATA.
+    protocol:
+      outstanding_rule: Only one outstanding ingress burst is supported; no AXI ID
+        ports are exposed in the initial SSOT.
+      aw_rule: AWADDR selects ingress window only and is not interpreted as payload
+        address.
+      w_rule: WDATA byte lane 0 of the first accepted beat is TLP byte 0; WSTRB marks
+        valid bytes; WLAST terminates the TLP.
+      burst_rule: AWBURST must be INCR or FIXED according to system integration policy;
+        unsupported bursts return SLVERR.
+      response_rule: BRESP is OKAY for accepted packets or SLVERR for malformed AXI
+        burst protocol or disabled ingress rejection.
+    ports:
+    - name: s_axi_awaddr
+      width: AXI_ADDR_WIDTH
+      direction: input
+      description: AXI write address selecting ingress window
+    - name: s_axi_awlen
+      width: 8
+      direction: input
+      description: AXI burst length, beats minus one
+    - name: s_axi_awsize
+      width: 3
+      direction: input
+      description: AXI beat size
+    - name: s_axi_awburst
+      width: 2
+      direction: input
+      description: AXI burst type
+    - name: s_axi_awvalid
+      width: 1
+      direction: input
+      description: Write address valid
+    - name: s_axi_awready
+      width: 1
+      direction: output
+      description: Write address ready
+    - name: s_axi_wdata
+      width: AXI_DATA_WIDTH
+      direction: input
+      description: Raw PCIe VDM TLP bytes
+    - name: s_axi_wstrb
+      width: AXI_DATA_WIDTH/8
+      direction: input
+      description: Byte-valid mask for WDATA
+    - name: s_axi_wlast
+      width: 1
+      direction: input
+      description: Final beat of one TLP
+    - name: s_axi_wvalid
+      width: 1
+      direction: input
+      description: Write data valid
+    - name: s_axi_wready
+      width: 1
+      direction: output
+      description: Write data ready
+    - name: s_axi_bresp
+      width: 2
+      direction: output
+      description: AXI write response
+    - name: s_axi_bvalid
+      width: 1
+      direction: output
+      description: AXI write response valid
+    - name: s_axi_bready
+      width: 1
+      direction: input
+      description: AXI write response ready
+  - name: axi_read_slave
+    type: AXI4
+    role: slave_read_only
+    clock_domain: axi
+    reset_domain: axi_aresetn
+    description: Separate AXI read-only slave for burst readback of assembled payload
+      bytes from external SRAM. Independent from TLP ingress; ARADDR is the SRAM byte
+      address.
+    protocol:
+      outstanding_rule: Only one outstanding read burst is supported; no AXI ID ports
+        are exposed.
+      ar_rule: ARADDR selects external SRAM byte address and must fall within configured
+        SRAM_BASE and SRAM_LIMIT inclusive.
+      r_rule: RDATA returns payload bytes in little-endian lane order within each beat;
+        RLAST marks the final beat of ARlen+1 beats.
+      burst_rule: ARBURST INCR and FIXED are supported; WRAP is unsupported and returns
+        SLVERR.
+      size_rule: ARSIZE must not exceed the beat width implied by AXI_DATA_WIDTH;
+        unsupported size returns SLVERR.
+      response_rule: RRESP is OKAY for in-range successful reads or SLVERR for illegal
+        address, unsupported burst type, or protocol violation.
+      independence_rule: Read acceptance and completion do not require or modify assembly
+        contexts, descriptors, or TLP ingress state.
+    ports:
+    - name: s_axi_araddr
+      width: AXI_ADDR_WIDTH
+      direction: input
+      description: AXI read address selecting external SRAM byte address
+    - name: s_axi_arlen
+      width: 8
+      direction: input
+      description: AXI burst length, beats minus one
+    - name: s_axi_arsize
+      width: 3
+      direction: input
+      description: AXI read beat size
+    - name: s_axi_arburst
+      width: 2
+      direction: input
+      description: AXI read burst type
+    - name: s_axi_arvalid
+      width: 1
+      direction: input
+      description: Read address valid
+    - name: s_axi_arready
+      width: 1
+      direction: output
+      description: Read address ready
+    - name: s_axi_rdata
+      width: AXI_DATA_WIDTH
+      direction: output
+      description: Read data beat
+    - name: s_axi_rresp
+      width: 2
+      direction: output
+      description: Read response
+    - name: s_axi_rlast
+      width: 1
+      direction: output
+      description: Final beat of read burst
+    - name: s_axi_rvalid
+      width: 1
+      direction: output
+      description: Read data valid
+    - name: s_axi_rready
+      width: 1
+      direction: input
+      description: Read data ready
+  - name: apb_slave
+    type: APB4
+    role: slave
+    clock_domain: apb
+    reset_domain: presetn
+    description: APB control, descriptor, status, counter, interrupt, and debug register
+      interface.
+    protocol:
+      setup_phase: psel=1 and penable=0 captures address/control.
+      access_phase: psel=1 and penable=1 completes when pready=1.
+      read_rule: prdata is valid during completing read access.
+      write_rule: pwdata and pstrb are sampled during completing write access.
+      error_rule: pslverr is asserted with pready for illegal address, illegal byte
+        strobe, or unsupported access.
+    ports:
+    - name: paddr
+      width: APB_ADDR_WIDTH
+      direction: input
+      description: APB byte address
+    - name: psel
+      width: 1
+      direction: input
+      description: APB select
+    - name: penable
+      width: 1
+      direction: input
+      description: APB enable
+    - name: pwrite
+      width: 1
+      direction: input
+      description: APB write control
+    - name: pwdata
+      width: APB_DATA_WIDTH
+      direction: input
+      description: APB write data
+    - name: pstrb
+      width: APB_DATA_WIDTH/8
+      direction: input
+      description: APB byte strobes
+    - name: prdata
+      width: APB_DATA_WIDTH
+      direction: output
+      description: APB read data
+    - name: pready
+      width: 1
+      direction: output
+      description: APB ready
+    - name: pslverr
+      width: 1
+      direction: output
+      description: APB error
+  - name: sram_write_port
+    type: SRAM_WRITE
+    role: master
+    clock_domain: axi
+    reset_domain: axi_aresetn
+    description: Write-only SRAM payload port for completed MCTP message payload bytes.
+    protocol:
+      valid_ready: A write occurs when sram_wr_valid && sram_wr_ready.
+      strb_rule: sram_wr_strb marks valid payload bytes in sram_wr_data.
+      address_rule: sram_wr_addr is byte address within configured SRAM base/limit.
+    ports:
+    - name: sram_wr_valid
+      width: 1
+      direction: output
+      description: SRAM write valid
+    - name: sram_wr_ready
+      width: 1
+      direction: input
+      description: SRAM write ready
+    - name: sram_wr_addr
+      width: SRAM_ADDR_WIDTH
+      direction: output
+      description: SRAM byte write address
+    - name: sram_wr_data
+      width: SRAM_DATA_WIDTH
+      direction: output
+      description: SRAM write data
+    - name: sram_wr_strb
+      width: SRAM_DATA_WIDTH/8
+      direction: output
+      description: SRAM write byte strobes
+  - name: sram_read_port
+    type: SRAM_READ
+    role: master
+    clock_domain: axi
+    reset_domain: axi_aresetn
+    description: Read-only SRAM payload port used by the separate AXI read path to
+      fetch assembled bytes from external SRAM.
+    protocol:
+      valid_ready: A read request is presented on sram_rd_valid && sram_rd_ready.
+      address_rule: sram_rd_addr is byte address within configured SRAM base/limit.
+      data_rule: sram_rd_data returns the requested beat on the cycle sram_rd_valid
+        is accepted; the read path may pipeline or stretch bursts according to implementation.
+      burst_rule: The AXI read path may issue back-to-back read beats for one AXI burst;
+        each beat uses sram_rd_addr advanced by the effective byte width of the transfer.
+      arbitration_rule: Read and write ports may be active concurrently; the external
+        SRAM or system interconnect resolves port conflicts. The read path never writes
+        SRAM.
+    ports:
+    - name: sram_rd_valid
+      width: 1
+      direction: output
+      description: SRAM read request valid
+    - name: sram_rd_ready
+      width: 1
+      direction: input
+      description: SRAM read request ready
+    - name: sram_rd_addr
+      width: SRAM_ADDR_WIDTH
+      direction: output
+      description: SRAM byte read address
+    - name: sram_rd_data
+      width: SRAM_DATA_WIDTH
+      direction: input
+      description: SRAM read data returned for the accepted address beat
+  - name: interrupt
+    type: custom
+    role: source
+    clock_domain: apb
+    reset_domain: presetn
+    description: Single APB-domain level interrupt.
+    ports:
+    - name: intr
+      width: 1
+      direction: output
+      polarity: active_high
+      description: Level interrupt from enabled INTR_STATUS bits
+    protocol:
+      acceptance: Transfer acceptance follows the declared valid/ready or protocol
+        phase rule.
+      stability: Payload/control fields remain stable until accepted.
+      response: Observable response timing follows cycle_model latency and ordering.
+features:
+- id: AXI_TLP_INGRESS
+  description: Accept one PCIe VDM TLP per AXI write burst.
+  source_refs:
+  - req/mctp_assembler_requirements.md:17
+- id: PCIE_VDM_MCTP_FILTER
+  description: Accept only MCTP-over-PCIe-VDM packets matching Type 1 VDM with data,
+    message code 0x7F, DMTF vendor ID 0x1AB4, and MCTP VDM code 0.
+  source_refs:
+  - req/mctp_assembler_requirements.md:26
+- id: MCTP_MESSAGE_ASSEMBLY
+  description: Assemble fragmented MCTP messages keyed by source EID, tag owner, and
+    message tag using SOM/EOM and 2-bit sequence modulo 4. Ingress is a raw PCIe VDM
+    TLP byte stream; SRAM stores only MCTP message payload bytes (TLP index 16+, minus
+    pad). PCIe TLP header bytes never enter SRAM.
+  source_refs:
+  - req/mctp_assembler_requirements.md:31
+- id: APB_CONTROL_DEBUG
+  description: Expose configuration, descriptor metadata, status, counters, error
+    status, and debug state through APB.
+  source_refs:
+  - req/mctp_assembler_requirements.md:37
+- id: ASYNC_AXI_APB
+  description: AXI ingress/SRAM domain and APB control/debug domain are asynchronous
+    and require CDC-safe transfer.
+  source_refs:
+  - req/mctp_assembler_requirements.md:9
+- id: INTERNAL_DESCRIPTOR
+  description: Completed message descriptor is internal and APB-readable; no descriptor
+    valid/data top-level pins are exposed.
+  source_refs:
+  - req/mctp_assembler_requirements.md:35
+- id: AXI_SRAM_READ
+  description: Separate AXI read-slave path performs burst readback of assembled payload
+    bytes from external SRAM using ARADDR as SRAM byte address. Independent from TLP
+    ingress and assembly datapath.
+  source_refs:
+  - req/mctp_assembler_requirements.md
+dataflow:
+  sequence:
+  - step: AXI_AW_ACCEPT
+    description: Accept AW only when ingress is enabled, no burst is active, and internal
+      buffers can accept one TLP.
+  - step: AXI_W_COLLECT
+    description: Collect WDATA bytes in order using WSTRB. WLAST marks packet end.
+  - step: PCIE_VDM_PARSE
+    description: Parse PCIe/VDM header, length, routing, message code, vendor ID,
+      MCTP VDM code, and pad/digest policy.
+  - step: MCTP_HEADER_PARSE
+    description: Parse MCTP transport header and first payload message type byte.
+  - step: FILTER_OR_REJECT
+    description: Apply VDM, header version, destination EID, MTU, and length checks.
+  - step: ASSEMBLE_PAYLOAD
+    description: Allocate, append, complete, abort, or timeout a message context using
+      only MCTP message payload bytes (TLP bytes from index 16 upward, excluding final
+      pad).
+  - step: SRAM_WRITE
+    description: Write only assembled MCTP message payload bytes to SRAM. PCIe TLP
+      header, PCIe VDM header, MCTP transport header, and final packet pad bytes are
+      never written.
+  - step: DESCRIPTOR_EVENT
+    description: Transfer completed descriptor metadata and error/status events into
+      APB domain.
+  sram_read:
+  - step: AXI_AR_ACCEPT
+    description: Accept AR when no read burst is active, ARADDR is within SRAM base/limit,
+      and burst attributes are supported.
+  - step: SRAM_READ_BURST
+    description: Issue ARLEN+1 read beats on sram_read_port and return ordered RDATA
+      beats with RLAST on the final beat.
+  ordering:
+  - AXI bursts are processed in acceptance order.
+  - AXI read bursts are processed independently from TLP write bursts and assembly
+    state except for shared external SRAM bandwidth.
+  - Descriptor order matches message completion order after CDC transfer.
+  - Interleaving is allowed only across distinct source_eid/tag_owner/message_tag
+    keys.
+function_model:
+  state_variables:
+  - name: enabled
+    type: bool
+    reset: false
+  - name: cfg_local_eid
+    type: uint8
+    reset: 0
+  - name: cfg_dest_filter_enable
+    type: bool
+    reset: true
+  - name: cfg_mtu_bytes
+    type: uint16
+    reset: 64
+  - name: cfg_max_message_bytes
+    type: uint16
+    reset: 4096
+  - name: cfg_sram_base
+    type: uint32
+    reset: 0
+  - name: cfg_sram_limit
+    type: uint32
+    reset: 0
+  - name: active_contexts
+    type: table
+    entries: 15
+    key:
+    - source_eid
+    - tag_owner
+    - message_tag
+    description: Tracks up to 15 simultaneous interleaved MCTP message assemblies.
+  - name: descriptor_fifo
+    type: fifo
+    reset: empty
+  - name: interrupt_status
+    type: bitfield
+    reset: 0
+  - name: error_status
+    type: bitfield
+    reset: 0
+  - name: fm_accept_axi_tlp_observed
+    source: function_model.transactions.FM_ACCEPT_AXI_TLP
+    width: 1
+    reset: 0
+    description: Auto-injected transaction coverage/state marker because the transaction
+      had prose outputs or side effects but no executable output_rules/state_updates.
+  - name: fm_filter_vdm_observed
+    source: function_model.transactions.FM_FILTER_VDM
+    width: 1
+    reset: 0
+    description: Auto-injected transaction coverage/state marker because the transaction
+      had prose outputs or side effects but no executable output_rules/state_updates.
+  - name: fm_parse_mctp_observed
+    source: function_model.transactions.FM_PARSE_MCTP
+    width: 1
+    reset: 0
+    description: Auto-injected transaction coverage/state marker because the transaction
+      had prose outputs or side effects but no executable output_rules/state_updates.
+  - name: fm_assemble_fragment_observed
+    source: function_model.transactions.FM_ASSEMBLE_FRAGMENT
+    width: 1
+    reset: 0
+    description: Auto-injected transaction coverage/state marker because the transaction
+      had prose outputs or side effects but no executable output_rules/state_updates.
+  - name: fm_write_sram_and_descriptor_observed
+    source: function_model.transactions.FM_WRITE_SRAM_AND_DESCRIPTOR
+    width: 1
+    reset: 0
+    description: Auto-injected transaction coverage/state marker because the transaction
+      had prose outputs or side effects but no executable output_rules/state_updates.
+  - name: packet_drop_count
+    type: uint32
+    reset: 0
+    description: Counts packets discarded before allocating, appending, completing,
+      or terminating an assembly context.
+  - name: assembly_drop_count
+    type: uint32
+    reset: 0
+    description: Counts active message assemblies aborted after context allocation
+      or update.
+  - name: last_drop_class
+    type: enum
+    reset: none
+    values:
+    - none
+    - packet_drop
+    - assembly_drop
+    description: Classification of the most recent drop event.
+  - name: last_drop_reason
+    type: uint8
+    reset: 0
+    description: Encoded reason for the most recent packet or assembly drop.
+  transactions:
+  - id: FM_ACCEPT_AXI_TLP
+    description: Convert one accepted AXI write burst into an ordered byte vector
+      representing one PCIe VDM TLP.
+    inputs:
+    - s_axi_awaddr
+    - s_axi_awlen
+    - s_axi_awsize
+    - s_axi_awburst
+    - s_axi_wdata
+    - s_axi_wstrb
+    - s_axi_wlast
+    outputs:
+    - tlp_bytes
+    - tlp_byte_count
+    - name: pslverr
+      port: pslverr
+      expr: '0'
+      description: Auto-injected benign observable rule so the function_model has
+        at least one scoreboard-visible output equation; replace with IP-specific
+        output behavior before signoff.
+    - state: fm_accept_axi_tlp_observed
+      expr: '1'
+      description: Repair marker making this transaction machine-checkable; ssot-gen
+        should replace with IP-specific architectural state/output equations before
+        signoff.
+    preconditions:
+    - enabled is true
+    - one outstanding burst is not already active
+    postconditions:
+    - tlp byte 0 equals byte lane 0 of first accepted WDATA beat
+    - invalid WSTRB bytes are excluded
+    name: fm_accept_axi_tlp
+    side_effects:
+    - updates only SSOT-declared architectural state, status, events, or output handoff
+      state
+    output_rules:
+    - name: pslverr
+      port: pslverr
+      expr: '0'
+      width: 1
+      description: Auto-injected benign observable rule so the function_model has
+        at least one scoreboard-visible output equation; replace with IP-specific
+        output behavior before signoff.
+    state_updates:
+    - name: fm_accept_axi_tlp_observed
+      expr: '1'
+      width: 1
+      description: Repair marker making this transaction machine-checkable; ssot-gen
+        should replace with IP-specific architectural state/output equations before
+        signoff.
+  - id: FM_FILTER_VDM
+    description: Accept or reject the TLP based on PCIe VDM and MCTP binding fields.
+    inputs:
+    - tlp_bytes
+    outputs:
+    - accepted_packet
+    - reject_reason
+    - state: fm_filter_vdm_observed
+      expr: '1'
+      description: Repair marker making this transaction machine-checkable; ssot-gen
+        should replace with IP-specific architectural state/output equations before
+        signoff.
+    checks:
+    - message_code == 0x7F
+    - vendor_id == 0x1AB4
+    - mctp_vdm_code == 0
+    - packet length is sufficient for PCIe/VDM and MCTP transport headers
+    name: fm_filter_vdm
+    preconditions:
+    - transaction is accepted under cycle_model rules
+    side_effects:
+    - updates only SSOT-declared architectural state, status, events, or output handoff
+      state
+    output_rules: []
+    state_updates:
+    - name: fm_filter_vdm_observed
+      expr: '1'
+      width: 1
+      description: Repair marker making this transaction machine-checkable; ssot-gen
+        should replace with IP-specific architectural state/output equations before
+        signoff.
+  - id: FM_PARSE_MCTP
+    description: Extract destination EID, source EID, SOM, EOM, packet sequence, tag
+      owner, message tag, and message type.
+    inputs:
+    - accepted_packet
+    outputs:
+    - mctp_fields
+    - packet_payload_bytes
+    - state: fm_parse_mctp_observed
+      expr: '1'
+      description: Repair marker making this transaction machine-checkable; ssot-gen
+        should replace with IP-specific architectural state/output equations before
+        signoff.
+    checks:
+    - MCTP header version is supported
+    - destination EID passes configured local/broadcast/null policy
+    name: fm_parse_mctp
+    preconditions:
+    - transaction is accepted under cycle_model rules
+    side_effects:
+    - updates only SSOT-declared architectural state, status, events, or output handoff
+      state
+    output_rules: []
+    state_updates:
+    - name: fm_parse_mctp_observed
+      expr: '1'
+      width: 1
+      description: Repair marker making this transaction machine-checkable; ssot-gen
+        should replace with IP-specific architectural state/output equations before
+        signoff.
+  - id: FM_ASSEMBLE_FRAGMENT
+    description: Apply SOM/EOM/sequence rules and update a keyed assembly context.
+    inputs:
+    - mctp_fields
+    - packet_payload_bytes
+    outputs:
+    - context_update
+    - optional_completed_message
+    - optional_error
+    - state: fm_assemble_fragment_observed
+      expr: '1'
+      description: Repair marker making this transaction machine-checkable; ssot-gen
+        should replace with IP-specific architectural state/output equations before
+        signoff.
+    rules:
+    - SOM=1,EOM=1 completes a single-packet message.
+    - SOM=1,EOM=0 allocates a context and sets expected sequence to packet_seq+1 modulo
+      4.
+    - SOM=0 requires an active context for the source_eid/tag_owner/message_tag key.
+    - Continuation packet_seq must equal expected sequence; expected sequence increments
+      modulo 4.
+    - EOM=1 completes the context and releases it.
+    name: fm_assemble_fragment
+    preconditions:
+    - transaction is accepted under cycle_model rules
+    side_effects:
+    - updates only SSOT-declared architectural state, status, events, or output handoff
+      state
+    output_rules: []
+    state_updates:
+    - name: fm_assemble_fragment_observed
+      expr: '1'
+      width: 1
+      description: Repair marker making this transaction machine-checkable; ssot-gen
+        should replace with IP-specific architectural state/output equations before
+        signoff.
+  - id: FM_WRITE_SRAM_AND_DESCRIPTOR
+    description: Write completed message payload bytes to SRAM and publish APB-readable
+      descriptor metadata.
+    inputs:
+    - completed_message
+    outputs:
+    - sram_writes
+    - descriptor_fifo_push
+    - interrupt_event
+    - state: fm_write_sram_and_descriptor_observed
+      expr: '1'
+      description: Repair marker making this transaction machine-checkable; ssot-gen
+        should replace with IP-specific architectural state/output equations before
+        signoff.
+    checks:
+    - payload byte count does not exceed cfg_max_message_bytes
+    - SRAM writes remain within cfg_sram_base and cfg_sram_limit
+    - descriptor FIFO has space or reports descriptor_full
+    name: fm_write_sram_and_descriptor
+    preconditions:
+    - transaction is accepted under cycle_model rules
+    side_effects:
+    - updates only SSOT-declared architectural state, status, events, or output handoff
+      state
+    output_rules: []
+    state_updates:
+    - name: fm_write_sram_and_descriptor_observed
+      expr: '1'
+      width: 1
+      description: Repair marker making this transaction machine-checkable; ssot-gen
+        should replace with IP-specific architectural state/output equations before
+        signoff.
+  - id: FM_READ_SRAM_BURST
+    description: Read assembled payload bytes from external SRAM through the separate
+      AXI read-slave path and return burst RDATA to the host.
+    inputs:
+    - araddr
+    - arlen
+    - arsize
+    - arburst
+    outputs:
+    - rdata_beats
+    - read_error
+    - state: fm_read_sram_burst_observed
+      expr: '1'
+      description: Repair marker making this transaction machine-checkable; ssot-gen
+        should replace with IP-specific architectural state/output equations before
+        signoff.
+    rules:
+    - ARADDR is a byte address within cfg_sram_base and cfg_sram_limit inclusive.
+    - Burst length is arlen+1 beats; each beat returns up to AXI_DATA_WIDTH/8 bytes
+      in little-endian lane order according to arsize.
+    - INCR and FIXED bursts are supported; WRAP is rejected.
+    - Reads do not allocate, modify, or complete assembly contexts and do not push
+      descriptors.
+    - Out-of-range address or unsupported burst attributes produce read_error without
+      modifying assembly state.
+    name: fm_read_sram_burst
+    preconditions:
+    - read request is accepted under cycle_model rules
+    side_effects:
+    - none on assembly contexts, descriptor fifo, or ingress state
+    output_rules: []
+    state_updates:
+    - name: fm_read_sram_burst_observed
+      expr: '1'
+      width: 1
+      description: Repair marker making this transaction machine-checkable; ssot-gen
+        should replace with IP-specific architectural state/output equations before
+        signoff.
+  - id: FM_CLASSIFY_DROP
+    name: fm_classify_drop
+    description: Classify discard events as packet_drop when no assembly context is
+      affected, or assembly_drop when an active context must be aborted.
+    inputs:
+    - drop_condition
+    - context_match
+    - context_active
+    - packet_stage
+    outputs:
+    - drop_class
+    - drop_reason
+    - name: intr
+      port: intr
+      expr: (|(INTR_STATUS & INTR_ENABLE))
+    preconditions:
+    - A packet or active context hits a declared drop condition.
+    side_effects:
+    - updates packet_drop_count or assembly_drop_count
+    - sets last_drop_class and last_drop_reason
+    - sets packet_drop or assembly_drop interrupt/status source when enabled
+    output_rules:
+    - name: intr
+      port: intr
+      expr: (|(INTR_STATUS & INTR_ENABLE))
+      width: 1
+      description: Drop events can contribute to APB-domain interrupt status when
+        enabled.
+    state_updates:
+    - name: packet_drop_count
+      expr: packet_drop_count + 1 when drop_class == packet_drop else packet_drop_count
+      width: 32
+    - name: assembly_drop_count
+      expr: assembly_drop_count + 1 when drop_class == assembly_drop else assembly_drop_count
+      width: 32
+    - name: last_drop_class
+      expr: drop_class
+      width: 2
+    - name: last_drop_reason
+      expr: drop_reason
+      width: 8
+    error_cases:
+    - unknown_drop_reason is encoded as DROP_RESERVED_UNKNOWN and sets error_status
+  invariants:
+  - No PCIe TLP header, PCIe VDM header, MCTP transport header, or final packet pad
+    byte is written as assembled payload to SRAM.
+  - At most one active context exists for any source_eid/tag_owner/message_tag key.
+  - No APB-domain configuration bit is consumed in AXI domain without CDC synchronization.
+  - intr is asserted only from APB-domain interrupt status bits that are enabled.
+  - Packet drop never allocates, updates, completes, or terminates an assembly context.
+  - Assembly drop aborts exactly the affected active context and suppresses a successful
+    descriptor for that message.
+  - Packet drop and assembly drop counters are independently observable through APB.
+  - AXI read path observes SRAM bytes only; it never writes payload or updates assembly
+    contexts.
+  scenarios:
+  - id: FM_READ_BACK
+    description: A completed message payload can be read back through FM_READ_SRAM_BURST
+      at the descriptor sram_start_addr for payload_byte_count bytes.
+  - id: FM_SINGLE_PACKET
+    description: A valid SOM=1,EOM=1 MCTP packet produces one SRAM payload and one
+      descriptor.
+  - id: FM_MULTI_PACKET
+    description: A valid SOM/middle/EOM sequence with modulo-4 sequence numbers produces
+      one assembled payload.
+  - id: FM_BAD_SEQUENCE
+    description: A continuation fragment with wrong sequence aborts its context and
+      sets sequence_error.
+  - id: FM_WRONG_VENDOR
+    description: A VDM packet with non-DMTF vendor ID is dropped and counted.
+  derived_signals:
+  - name: apb_access
+    expr: psel and penable
+    width: 1
+    description: APB access phase helper derived from psel and penable.
+    source: repair_ssot_schema.apb_helper
+  - name: apb_valid_write
+    expr: psel and penable and pwrite
+    width: 1
+    description: APB write access helper derived from psel, penable, and pwrite.
+    source: repair_ssot_schema.apb_helper
+  - name: apb_valid_read
+    expr: psel and penable and not pwrite
+    width: 1
+    description: APB read access helper derived from psel, penable, and pwrite.
+    source: repair_ssot_schema.apb_helper
+  - name: addr
+    expr: paddr
+    width: APB_ADDR_WIDTH
+    description: Register address helper derived from the APB paddr input.
+    source: repair_ssot_schema.apb_helper
+  - name: wmask
+    expr: ((0x000000FF if (pstrb & 0x1) != 0 else 0) | (0x0000FF00 if (pstrb & 0x2)
+      != 0 else 0) | (0x00FF0000 if (pstrb & 0x4) != 0 else 0) | (0xFF000000 if (pstrb
+      & 0x8) != 0 else 0))
+    width: APB_DATA_WIDTH
+    description: APB byte-lane write mask expanded from pstrb.
+    source: repair_ssot_schema.apb_helper
+  - name: legal_addr
+    expr: (addr == 0) or (addr == 4) or (addr == 8) or (addr == 12) or (addr == 16)
+      or (addr == 20) or (addr == 24) or (addr == 28) or (addr == 32) or (addr ==
+      36) or (addr == 40) or (addr == 48) or (addr == 52) or (addr == 56) or (addr
+      == 60) or (addr == 64) or (addr == 68) or (addr == 128) or (addr == 132) or
+      (addr == 136) or (addr == 140) or (addr == 256) or (addr == 260) or (addr ==
+      264) or (addr == 268) or (addr == 272) or (addr == 276)
+    width: 1
+    description: APB legal address decode derived from registers.register_list offsets.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_control
+    expr: apb_valid_write and (addr == 0)
+    width: 1
+    description: APB write decode helper for register CONTROL.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_control
+    expr: apb_valid_read and (addr == 0)
+    width: 1
+    description: APB read decode helper for register CONTROL.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_status
+    expr: apb_valid_write and (addr == 4)
+    width: 1
+    description: APB write decode helper for register STATUS.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_status
+    expr: apb_valid_read and (addr == 4)
+    width: 1
+    description: APB read decode helper for register STATUS.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_local_eid
+    expr: apb_valid_write and (addr == 8)
+    width: 1
+    description: APB write decode helper for register LOCAL_EID.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_local_eid
+    expr: apb_valid_read and (addr == 8)
+    width: 1
+    description: APB read decode helper for register LOCAL_EID.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_mtu_timeout
+    expr: apb_valid_write and (addr == 12)
+    width: 1
+    description: APB write decode helper for register MTU_TIMEOUT.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_mtu_timeout
+    expr: apb_valid_read and (addr == 12)
+    width: 1
+    description: APB read decode helper for register MTU_TIMEOUT.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_max_msg_bytes
+    expr: apb_valid_write and (addr == 16)
+    width: 1
+    description: APB write decode helper for register MAX_MSG_BYTES.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_max_msg_bytes
+    expr: apb_valid_read and (addr == 16)
+    width: 1
+    description: APB read decode helper for register MAX_MSG_BYTES.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_sram_base
+    expr: apb_valid_write and (addr == 20)
+    width: 1
+    description: APB write decode helper for register SRAM_BASE.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_sram_base
+    expr: apb_valid_read and (addr == 20)
+    width: 1
+    description: APB read decode helper for register SRAM_BASE.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_sram_limit
+    expr: apb_valid_write and (addr == 24)
+    width: 1
+    description: APB write decode helper for register SRAM_LIMIT.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_sram_limit
+    expr: apb_valid_read and (addr == 24)
+    width: 1
+    description: APB read decode helper for register SRAM_LIMIT.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_sram_wr_ptr
+    expr: apb_valid_write and (addr == 28)
+    width: 1
+    description: APB write decode helper for register SRAM_WR_PTR.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_sram_wr_ptr
+    expr: apb_valid_read and (addr == 28)
+    width: 1
+    description: APB read decode helper for register SRAM_WR_PTR.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_intr_enable
+    expr: apb_valid_write and (addr == 32)
+    width: 1
+    description: APB write decode helper for register INTR_ENABLE.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_intr_enable
+    expr: apb_valid_read and (addr == 32)
+    width: 1
+    description: APB read decode helper for register INTR_ENABLE.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_intr_status
+    expr: apb_valid_write and (addr == 36)
+    width: 1
+    description: APB write decode helper for register INTR_STATUS.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_intr_status
+    expr: apb_valid_read and (addr == 36)
+    width: 1
+    description: APB read decode helper for register INTR_STATUS.
+    source: repair_ssot_schema.apb_helper
+  - name: intr_status_w1c
+    expr: ((pwdata & gpio_mask) if wr_intr_status else 0)
+    width: 32
+    description: W1C write mask helper for register INTR_STATUS.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_error_status
+    expr: apb_valid_write and (addr == 40)
+    width: 1
+    description: APB write decode helper for register ERROR_STATUS.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_error_status
+    expr: apb_valid_read and (addr == 40)
+    width: 1
+    description: APB read decode helper for register ERROR_STATUS.
+    source: repair_ssot_schema.apb_helper
+  - name: error_status_w1c
+    expr: ((pwdata & gpio_mask) if wr_error_status else 0)
+    width: 32
+    description: W1C write mask helper for register ERROR_STATUS.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_desc_status
+    expr: apb_valid_write and (addr == 48)
+    width: 1
+    description: APB write decode helper for register DESC_STATUS.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_desc_status
+    expr: apb_valid_read and (addr == 48)
+    width: 1
+    description: APB read decode helper for register DESC_STATUS.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_desc_pop
+    expr: apb_valid_write and (addr == 52)
+    width: 1
+    description: APB write decode helper for register DESC_POP.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_desc_pop
+    expr: apb_valid_read and (addr == 52)
+    width: 1
+    description: APB read decode helper for register DESC_POP.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_desc_word0
+    expr: apb_valid_write and (addr == 56)
+    width: 1
+    description: APB write decode helper for register DESC_WORD0.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_desc_word0
+    expr: apb_valid_read and (addr == 56)
+    width: 1
+    description: APB read decode helper for register DESC_WORD0.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_desc_word1
+    expr: apb_valid_write and (addr == 60)
+    width: 1
+    description: APB write decode helper for register DESC_WORD1.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_desc_word1
+    expr: apb_valid_read and (addr == 60)
+    width: 1
+    description: APB read decode helper for register DESC_WORD1.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_desc_word2
+    expr: apb_valid_write and (addr == 64)
+    width: 1
+    description: APB write decode helper for register DESC_WORD2.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_desc_word2
+    expr: apb_valid_read and (addr == 64)
+    width: 1
+    description: APB read decode helper for register DESC_WORD2.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_desc_word3
+    expr: apb_valid_write and (addr == 68)
+    width: 1
+    description: APB write decode helper for register DESC_WORD3.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_desc_word3
+    expr: apb_valid_read and (addr == 68)
+    width: 1
+    description: APB read decode helper for register DESC_WORD3.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_debug_state
+    expr: apb_valid_write and (addr == 128)
+    width: 1
+    description: APB write decode helper for register DEBUG_STATE.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_debug_state
+    expr: apb_valid_read and (addr == 128)
+    width: 1
+    description: APB read decode helper for register DEBUG_STATE.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_debug_context_index
+    expr: apb_valid_write and (addr == 132)
+    width: 1
+    description: APB write decode helper for register DEBUG_CONTEXT_INDEX.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_debug_context_index
+    expr: apb_valid_read and (addr == 132)
+    width: 1
+    description: APB read decode helper for register DEBUG_CONTEXT_INDEX.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_debug_context_data0
+    expr: apb_valid_write and (addr == 136)
+    width: 1
+    description: APB write decode helper for register DEBUG_CONTEXT_DATA0.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_debug_context_data0
+    expr: apb_valid_read and (addr == 136)
+    width: 1
+    description: APB read decode helper for register DEBUG_CONTEXT_DATA0.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_debug_context_data1
+    expr: apb_valid_write and (addr == 140)
+    width: 1
+    description: APB write decode helper for register DEBUG_CONTEXT_DATA1.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_debug_context_data1
+    expr: apb_valid_read and (addr == 140)
+    width: 1
+    description: APB read decode helper for register DEBUG_CONTEXT_DATA1.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_rx_tlp_count
+    expr: apb_valid_write and (addr == 256)
+    width: 1
+    description: APB write decode helper for register RX_TLP_COUNT.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_rx_tlp_count
+    expr: apb_valid_read and (addr == 256)
+    width: 1
+    description: APB read decode helper for register RX_TLP_COUNT.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_rx_mctp_packet_count
+    expr: apb_valid_write and (addr == 260)
+    width: 1
+    description: APB write decode helper for register RX_MCTP_PACKET_COUNT.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_rx_mctp_packet_count
+    expr: apb_valid_read and (addr == 260)
+    width: 1
+    description: APB read decode helper for register RX_MCTP_PACKET_COUNT.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_rx_message_count
+    expr: apb_valid_write and (addr == 264)
+    width: 1
+    description: APB write decode helper for register RX_MESSAGE_COUNT.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_rx_message_count
+    expr: apb_valid_read and (addr == 264)
+    width: 1
+    description: APB read decode helper for register RX_MESSAGE_COUNT.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_drop_count
+    expr: apb_valid_write and (addr == 268)
+    width: 1
+    description: APB write decode helper for register DROP_COUNT.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_drop_count
+    expr: apb_valid_read and (addr == 268)
+    width: 1
+    description: APB read decode helper for register DROP_COUNT.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_seq_err_count
+    expr: apb_valid_write and (addr == 272)
+    width: 1
+    description: APB write decode helper for register SEQ_ERR_COUNT.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_seq_err_count
+    expr: apb_valid_read and (addr == 272)
+    width: 1
+    description: APB read decode helper for register SEQ_ERR_COUNT.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_overflow_err_count
+    expr: apb_valid_write and (addr == 276)
+    width: 1
+    description: APB write decode helper for register OVERFLOW_ERR_COUNT.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_overflow_err_count
+    expr: apb_valid_read and (addr == 276)
+    width: 1
+    description: APB read decode helper for register OVERFLOW_ERR_COUNT.
+    source: repair_ssot_schema.apb_helper
+  - name: read_mux
+    expr: (0 if addr == 0 else (0 if addr == 4 else (0 if addr == 8 else (0 if addr
+      == 12 else (0 if addr == 16 else (0 if addr == 20 else (0 if addr == 24 else
+      (0 if addr == 28 else (0 if addr == 32 else (0 if addr == 36 else (error_status
+      if addr == 40 else (0 if addr == 48 else (0 if addr == 52 else (0 if addr ==
+      56 else (0 if addr == 60 else (0 if addr == 64 else (0 if addr == 68 else (0
+      if addr == 128 else (0 if addr == 132 else (0 if addr == 136 else (0 if addr
+      == 140 else (0 if addr == 256 else (0 if addr == 260 else (0 if addr == 264
+      else (0 if addr == 268 else (0 if addr == 272 else (0 if addr == 276 else 0)))))))))))))))))))))))))))
+    width: APB_DATA_WIDTH
+    description: APB read data mux derived from registers.register_list offsets and
+      function_model state variables.
+    source: repair_ssot_schema.apb_helper
+cycle_model:
+  purpose: Cycle/handshake contract for rtl-gen and waveform-based verification.
+  executable: python
+  backend_policy: Use the repo-owned pure-Python deterministic stepper; FunctionalModel
+    remains the behavioral oracle.
+  clock: axi_aclk
+  reset:
+    signal: axi_aresetn
+    polarity: active_low
+    assertion: axi_aresetn assertion returns architectural state to declared reset
+      values
+    deassertion: Logic may accept transactions after async_assert_sync_deassert deassertion
+      completes
+  latency:
+    control_or_request_accept:
+      min_cycles: 0
+      max_cycles: null
+      description: Bounded by declared valid/ready or protocol acceptance rules
+    primary_operation:
+      min_cycles: 1
+      max_cycles: null
+      description: Runs on axi_aclk at nominal 100 MHz; max depends on declared backpressure
+        and implementation state
+    response_or_observable_result:
+      min_cycles: 0
+      max_cycles: null
+      description: Held stable until the declared response/output acceptance condition
+  handshake_rules:
+  - signal: s_axi_awvalid/s_axi_awready
+    rule: s_axi_awvalid payload remains stable until s_axi_awready is sampled asserted
+      on axi_write_slave.
+  - signal: s_axi_bvalid/s_axi_bready
+    rule: s_axi_bvalid payload remains stable until s_axi_bready is sampled asserted
+      on axi_write_slave.
+  - signal: s_axi_wvalid/s_axi_wready
+    rule: s_axi_wvalid payload remains stable until s_axi_wready is sampled asserted
+      on axi_write_slave.
+  - signal: sram_wr_valid/sram_wr_ready
+    rule: sram_wr_valid payload remains stable until sram_wr_ready is sampled asserted
+      on sram_write_port.
+  - signal: s_axi_arvalid/s_axi_arready
+    rule: s_axi_arvalid payload remains stable until s_axi_arready is sampled asserted
+      on axi_read_slave.
+  - signal: s_axi_rvalid/s_axi_rready
+    rule: s_axi_rvalid payload remains stable until s_axi_rready is sampled asserted
+      on axi_read_slave.
+  - signal: sram_rd_valid/sram_rd_ready
+    rule: sram_rd_addr remains stable until sram_rd_ready is sampled asserted on sram_read_port;
+      returned sram_rd_data is valid on the accepted read beat.
+  pipeline:
+  - stage: S0_ACCEPT
+    cycle: 0..N
+    action: Accept legal request/command/packet/control work under declared handshake
+      rules.
+  - stage: S1_EVALUATE
+    cycle: N..M
+    action: Evaluate function_model transaction and update only declared state.
+  - stage: S2_OBSERVE
+    cycle: M..K
+    action: Publish response/status/output/debug event and hold it stable until accepted.
+  ordering:
+  - Accepted requests update architectural state only on clock edges.
+  - Completion/status/interrupt updates occur after the operation reaches its terminal
+    FSM state.
+  - Backpressure stalls the active handshake stage without corrupting stored state.
+  - Read/dataflow stages must precede dependent write/output stages where declared
+    in dataflow.
+  backpressure:
+  - Ready/valid deassertion stalls only the affected interface stage; payload and
+    route/control state remain stable.
+  performance:
+    frequency_mhz: 100
+    throughput:
+      sustained_beats_per_cycle: 1
+      condition: No backpressure on the active interface
+    outstanding:
+      max: 1
+      description: Default one accepted operation until the SSOT declares deeper buffering
+    depth:
+      pipeline_stages: 3
+      queue_depth: 1
+      description: Default accept/evaluate/observe cycle model depth
+  observability:
+  - Every function_model transaction maps to at least one cycle_model stage and one
+    test_requirements scenario.
+clock_reset_domains:
+  domains:
+  - name: axi
+    clock: axi_aclk
+    reset: axi_aresetn
+    contents:
+    - AXI write ingress
+    - PCIe VDM parser
+    - MCTP transport parser
+    - assembly context table
+    - payload writer
+    - SRAM write interface
+    - AXI read egress
+    - SRAM read interface
+  - name: apb
+    clock: pclk
+    reset: presetn
+    contents:
+    - APB register file
+    - synchronized descriptor/status/error/counter shadows
+    - interrupt controller
+  reset_behavior:
+    hardware_reset: Both domains clear contexts, descriptors, sticky errors, counters,
+      and interrupt status.
+    soft_reset: APB soft_reset requests AXI-domain reset of parser/context/payload
+      state through request/ack CDC; APB registers retain configuration except sticky
+      status cleared by policy.
+cdc_requirements:
+  required: true
+  rationale: AXI ingress/SRAM write logic runs on axi_aclk while APB control, descriptor
+    readout, status, and interrupt logic run on pclk; axi_aclk and pclk are asynchronous.
+  checks:
+  - APB-written configuration used in the AXI domain crosses through stable shadow
+    registers with update toggle and acknowledge.
+  - AXI descriptor, error, counter, and interrupt events cross to APB using pulse-toggle
+    synchronizers or async FIFO.
+  - Completed descriptors cross using a CDC-safe FIFO or two-phase mailbox with stable
+    payload.
+  - APB soft reset request and AXI acknowledge use synchronized request/ack handshake.
+  - APB counter reads use synchronized shadow or snapshot semantics for multi-bit
+    counters.
+  - No combinational path crosses between axi_aclk and pclk.
+rdc_requirements:
+  required: true
+  rationale: axi_aresetn and presetn reset independent asynchronous clock domains,
+    and APB soft reset controls AXI-domain state through CDC.
+  checks:
+  - axi_aresetn is asynchronous assert and synchronized deassert within axi_aclk domain.
+  - presetn is asynchronous assert and synchronized deassert within pclk domain.
+  - Soft reset crossing is synchronized and does not asynchronously reset destination-domain
+    flops without a local synchronizer.
+registers:
+  config:
+    register_width: 32
+    byte_addressable: true
+    reserved_bit_behavior: Reserved bits read as 0 and ignore writes unless the access
+      is an illegal byte strobe.
+    descriptor_pop_policy: explicit_apb_pop
+  register_list:
+  - name: CONTROL
+    offset: 0
+    access: rw_wo_mixed
+    reset: 4
+    fields:
+    - name: enable
+      bits:
+      - 0
+      - 0
+      access: rw
+      reset: 0
+      description: Enable AXI ingress and assembly.
+      write_effect: APB write data updates this field value according to its bit mask.
+    - name: soft_reset
+      bits:
+      - 1
+      - 1
+      access: wo_pulse
+      reset: 0
+      description: Request soft reset of AXI-domain parser/context/payload state.
+      write_effect: APB write data updates this field value according to its bit mask.
+    - name: dest_filter_enable
+      bits:
+      - 2
+      - 2
+      access: rw
+      reset: 1
+      description: Filter destination EID against LOCAL_EID when set.
+      write_effect: APB write data updates this field value according to its bit mask.
+    - name: drop_when_disabled
+      bits:
+      - 3
+      - 3
+      access: rw
+      reset: 0
+      description: When set, accept and drop packets while disabled; otherwise backpressure.
+      write_effect: APB write data updates this field value according to its bit mask.
+    - name: accept_broadcast_eid
+      bits:
+      - 4
+      - 4
+      access: rw
+      reset: 0
+      description: Allow destination EID 0xFF when destination filter is enabled.
+      write_effect: APB write data updates this field value according to its bit mask.
+    - name: accept_null_eid
+      bits:
+      - 5
+      - 5
+      access: rw
+      reset: 0
+      description: Allow destination EID 0x00 when configured.
+      write_effect: APB write data updates this field value according to its bit mask.
+    width: 32
+  - name: STATUS
+    offset: 4
+    access: ro
+    reset: 0
+    fields:
+    - name: busy
+      bits:
+      - 0
+      - 0
+      access: ro
+      reset: 0
+      description: Ingress/parser or writer is active.
+    - name: context_active_any
+      bits:
+      - 1
+      - 1
+      access: ro
+      reset: 0
+      description: At least one assembly context is active.
+    - name: descriptor_available
+      bits:
+      - 2
+      - 2
+      access: ro
+      reset: 0
+      description: Descriptor FIFO is not empty.
+    - name: error_pending
+      bits:
+      - 3
+      - 3
+      access: ro
+      reset: 0
+      description: Any sticky error or enabled interrupt source is pending.
+    - name: context_full
+      bits:
+      - 4
+      - 4
+      access: ro
+      reset: 0
+      description: No free context was available for a packet.
+    - name: sram_overflow_seen
+      bits:
+      - 5
+      - 5
+      access: ro
+      reset: 0
+      description: SRAM address limit overflow has occurred.
+    width: 32
+  - name: LOCAL_EID
+    offset: 8
+    access: rw
+    reset: 0
+    fields:
+    - name: local_eid
+      bits:
+      - 7
+      - 0
+      access: rw
+      reset: 0
+      description: Accepted local destination EID when filtering is enabled.
+      write_effect: APB write data updates this field value according to its bit mask.
+    width: 32
+  - name: MTU_TIMEOUT
+    offset: 12
+    access: rw
+    reset: 64
+    fields:
+    - name: mtu_bytes
+      bits:
+      - 15
+      - 0
+      access: rw
+      reset: 64
+      description: Configured MCTP transmission unit limit in bytes.
+      write_effect: APB write data updates this field value according to its bit mask.
+    - name: timeout_cycles_lsb
+      bits:
+      - 31
+      - 16
+      access: rw
+      reset: 0
+      description: Lower timeout field; exact units require human review.
+      write_effect: APB write data updates this field value according to its bit mask.
+    width: 32
+  - name: MAX_MSG_BYTES
+    offset: 16
+    access: rw
+    reset: 4096
+    fields:
+    - name: max_message_bytes
+      bits:
+      - 15
+      - 0
+      access: rw
+      reset: 4096
+      description: Maximum assembled payload byte count.
+      write_effect: APB write data updates this field value according to its bit mask.
+    width: 32
+  - name: SRAM_BASE
+    offset: 20
+    access: rw
+    reset: 0
+    fields:
+    - name: sram_base
+      bits:
+      - 31
+      - 0
+      access: rw
+      reset: 0
+      description: Base byte address for payload writes.
+      write_effect: APB write data updates this field value according to its bit mask.
+    width: 32
+  - name: SRAM_LIMIT
+    offset: 24
+    access: rw
+    reset: 0
+    fields:
+    - name: sram_limit
+      bits:
+      - 31
+      - 0
+      access: rw
+      reset: 0
+      description: Inclusive or exclusive limit policy requires human review; RTL
+        must implement a documented policy.
+      write_effect: APB write data updates this field value according to its bit mask.
+    width: 32
+  - name: SRAM_WR_PTR
+    offset: 28
+    access: ro
+    reset: 0
+    fields:
+    - name: sram_wr_ptr
+      bits:
+      - 31
+      - 0
+      access: ro
+      reset: 0
+      description: Current payload write pointer shadow.
+    width: 32
+  - name: INTR_ENABLE
+    offset: 32
+    access: rw
+    reset: 0
+    fields:
+    - name: desc_ready_en
+      bits:
+      - 0
+      - 0
+      access: rw
+      reset: 0
+      description: Enable descriptor-ready interrupt.
+      write_effect: APB write data updates this field value according to its bit mask.
+    - name: malformed_tlp_en
+      bits:
+      - 1
+      - 1
+      access: rw
+      reset: 0
+      description: Enable malformed TLP interrupt.
+      write_effect: APB write data updates this field value according to its bit mask.
+    - name: unsupported_vdm_en
+      bits:
+      - 2
+      - 2
+      access: rw
+      reset: 0
+      description: Enable unsupported VDM interrupt.
+      write_effect: APB write data updates this field value according to its bit mask.
+    - name: bad_mctp_hdr_en
+      bits:
+      - 3
+      - 3
+      access: rw
+      reset: 0
+      description: Enable bad MCTP header interrupt.
+      write_effect: APB write data updates this field value according to its bit mask.
+    - name: dest_eid_reject_en
+      bits:
+      - 4
+      - 4
+      access: rw
+      reset: 0
+      description: Enable destination EID reject interrupt.
+      write_effect: APB write data updates this field value according to its bit mask.
+    - name: sequence_error_en
+      bits:
+      - 5
+      - 5
+      access: rw
+      reset: 0
+      description: Enable sequence error interrupt.
+      write_effect: APB write data updates this field value according to its bit mask.
+    - name: context_error_en
+      bits:
+      - 6
+      - 6
+      access: rw
+      reset: 0
+      description: Enable context full/duplicate/unexpected fragment interrupt.
+      write_effect: APB write data updates this field value according to its bit mask.
+    - name: overflow_error_en
+      bits:
+      - 7
+      - 7
+      access: rw
+      reset: 0
+      description: Enable message/SRAM/descriptor overflow interrupt.
+      write_effect: APB write data updates this field value according to its bit mask.
+    - name: timeout_en
+      bits:
+      - 8
+      - 8
+      access: rw
+      reset: 0
+      description: Enable assembly timeout interrupt.
+      write_effect: APB write data updates this field value according to its bit mask.
+    - name: packet_drop_en
+      bits:
+      - 9
+      - 9
+      access: rw
+      reset: 0
+      description: Enable packet-drop classification interrupt.
+      write_effect: APB write data updates this field value according to its bit mask.
+    - name: assembly_drop_en
+      bits:
+      - 10
+      - 10
+      access: rw
+      reset: 0
+      description: Enable assembly-drop classification interrupt.
+      write_effect: APB write data updates this field value according to its bit mask.
+    width: 32
+  - name: INTR_STATUS
+    offset: 36
+    access: w1c
+    reset: 0
+    fields:
+    - name: desc_ready
+      bits:
+      - 0
+      - 0
+      access: w1c
+      reset: 0
+      description: Descriptor is available.
+      write_effect: Writing 1 clears the corresponding status bit; writing 0 leaves
+        it unchanged.
+    - name: malformed_tlp
+      bits:
+      - 1
+      - 1
+      access: w1c
+      reset: 0
+      description: Malformed or short TLP observed.
+      write_effect: Writing 1 clears the corresponding status bit; writing 0 leaves
+        it unchanged.
+    - name: unsupported_vdm
+      bits:
+      - 2
+      - 2
+      access: w1c
+      reset: 0
+      description: Unsupported VDM/vendor/message code observed.
+      write_effect: Writing 1 clears the corresponding status bit; writing 0 leaves
+        it unchanged.
+    - name: bad_mctp_hdr
+      bits:
+      - 3
+      - 3
+      access: w1c
+      reset: 0
+      description: Bad MCTP header observed.
+      write_effect: Writing 1 clears the corresponding status bit; writing 0 leaves
+        it unchanged.
+    - name: dest_eid_reject
+      bits:
+      - 4
+      - 4
+      access: w1c
+      reset: 0
+      description: Destination EID rejected.
+      write_effect: Writing 1 clears the corresponding status bit; writing 0 leaves
+        it unchanged.
+    - name: sequence_error
+      bits:
+      - 5
+      - 5
+      access: w1c
+      reset: 0
+      description: MCTP fragment sequence error.
+      write_effect: Writing 1 clears the corresponding status bit; writing 0 leaves
+        it unchanged.
+    - name: context_error
+      bits:
+      - 6
+      - 6
+      access: w1c
+      reset: 0
+      description: Context full, duplicate SOM, or unexpected fragment.
+      write_effect: Writing 1 clears the corresponding status bit; writing 0 leaves
+        it unchanged.
+    - name: overflow_error
+      bits:
+      - 7
+      - 7
+      access: w1c
+      reset: 0
+      description: Message/SRAM/descriptor overflow.
+      write_effect: Writing 1 clears the corresponding status bit; writing 0 leaves
+        it unchanged.
+    - name: timeout
+      bits:
+      - 8
+      - 8
+      access: w1c
+      reset: 0
+      description: Assembly timeout.
+      write_effect: Writing 1 clears the corresponding status bit; writing 0 leaves
+        it unchanged.
+    - name: packet_drop
+      bits:
+      - 9
+      - 9
+      access: w1c
+      reset: 0
+      description: A packet was dropped before affecting assembly state.
+      write_effect: Write 1 clears this sticky interrupt bit.
+    - name: assembly_drop
+      bits:
+      - 10
+      - 10
+      access: w1c
+      reset: 0
+      description: An active assembly was aborted and dropped.
+      write_effect: Write 1 clears this sticky interrupt bit.
+    width: 32
+  - name: ERROR_STATUS
+    offset: 40
+    access: w1c
+    reset: 0
+    fields:
+    - name: bad_vdm_type
+      bits:
+      - 0
+      - 0
+      access: w1c
+      reset: 0
+      description: VDM type/routing unsupported.
+      write_effect: Writing 1 clears the corresponding status bit; writing 0 leaves
+        it unchanged.
+    - name: bad_vendor
+      bits:
+      - 1
+      - 1
+      access: w1c
+      reset: 0
+      description: Vendor ID was not 0x1AB4.
+      write_effect: Writing 1 clears the corresponding status bit; writing 0 leaves
+        it unchanged.
+    - name: bad_message_code
+      bits:
+      - 2
+      - 2
+      access: w1c
+      reset: 0
+      description: VDM message code was not 0x7F.
+      write_effect: Writing 1 clears the corresponding status bit; writing 0 leaves
+        it unchanged.
+    - name: bad_mctp_vdm_code
+      bits:
+      - 3
+      - 3
+      access: w1c
+      reset: 0
+      description: MCTP VDM code was not 0.
+      write_effect: Writing 1 clears the corresponding status bit; writing 0 leaves
+        it unchanged.
+    - name: bad_header_version
+      bits:
+      - 4
+      - 4
+      access: w1c
+      reset: 0
+      description: Unsupported MCTP header version.
+      write_effect: Writing 1 clears the corresponding status bit; writing 0 leaves
+        it unchanged.
+    - name: unexpected_fragment
+      bits:
+      - 5
+      - 5
+      access: w1c
+      reset: 0
+      description: Middle or EOM packet without active context.
+      write_effect: Writing 1 clears the corresponding status bit; writing 0 leaves
+        it unchanged.
+    - name: duplicate_som
+      bits:
+      - 6
+      - 6
+      access: w1c
+      reset: 0
+      description: SOM observed for an active context key.
+      write_effect: Writing 1 clears the corresponding status bit; writing 0 leaves
+        it unchanged.
+    - name: seq_mismatch
+      bits:
+      - 7
+      - 7
+      access: w1c
+      reset: 0
+      description: Packet sequence did not match expected modulo-4 value.
+      write_effect: Writing 1 clears the corresponding status bit; writing 0 leaves
+        it unchanged.
+    - name: context_full
+      bits:
+      - 8
+      - 8
+      access: w1c
+      reset: 0
+      description: Context table full.
+      write_effect: Writing 1 clears the corresponding status bit; writing 0 leaves
+        it unchanged.
+    - name: message_overflow
+      bits:
+      - 9
+      - 9
+      access: w1c
+      reset: 0
+      description: Assembled payload exceeded configured maximum.
+      write_effect: Writing 1 clears the corresponding status bit; writing 0 leaves
+        it unchanged.
+    - name: sram_overflow
+      bits:
+      - 10
+      - 10
+      access: w1c
+      reset: 0
+      description: Payload write exceeded SRAM bounds.
+      write_effect: Writing 1 clears the corresponding status bit; writing 0 leaves
+        it unchanged.
+    - name: descriptor_full
+      bits:
+      - 11
+      - 11
+      access: w1c
+      reset: 0
+      description: Descriptor FIFO/mailbox full.
+      write_effect: Writing 1 clears the corresponding status bit; writing 0 leaves
+        it unchanged.
+    - name: assembly_timeout
+      bits:
+      - 12
+      - 12
+      access: w1c
+      reset: 0
+      description: Context timed out.
+      write_effect: Writing 1 clears the corresponding status bit; writing 0 leaves
+        it unchanged.
+    - name: packet_drop_seen
+      bits:
+      - 13
+      - 13
+      access: w1c
+      reset: 0
+      description: Sticky aggregate packet-drop indication.
+      write_effect: Write 1 clears this sticky error bit.
+    - name: assembly_drop_seen
+      bits:
+      - 14
+      - 14
+      access: w1c
+      reset: 0
+      description: Sticky aggregate assembly-drop indication.
+      write_effect: Write 1 clears this sticky error bit.
+    width: 32
+  - name: DESC_STATUS
+    offset: 48
+    access: ro
+    reset: 0
+    fields:
+    - name: desc_count
+      bits:
+      - 7
+      - 0
+      access: ro
+      reset: 0
+      description: Number of completed descriptors available.
+    - name: desc_full
+      bits:
+      - 8
+      - 8
+      access: ro
+      reset: 0
+      description: Descriptor FIFO full.
+    - name: desc_empty
+      bits:
+      - 9
+      - 9
+      access: ro
+      reset: 1
+      description: Descriptor FIFO empty.
+    width: 32
+  - name: DESC_POP
+    offset: 52
+    access: wo
+    reset: 0
+    fields:
+    - name: pop
+      bits:
+      - 0
+      - 0
+      access: wo_pulse
+      reset: 0
+      description: Pop the front completed descriptor.
+      write_effect: APB write data updates this field value according to its bit mask.
+    width: 32
+  - name: DESC_WORD0
+    offset: 56
+    access: ro
+    reset: 0
+    fields:
+    - name: source_eid
+      bits:
+      - 7
+      - 0
+      access: ro
+      reset: 0
+      description: Descriptor source EID.
+    - name: dest_eid
+      bits:
+      - 15
+      - 8
+      access: ro
+      reset: 0
+      description: Descriptor destination EID.
+    - name: message_tag
+      bits:
+      - 18
+      - 16
+      access: ro
+      reset: 0
+      description: Descriptor MCTP message tag.
+    - name: tag_owner
+      bits:
+      - 19
+      - 19
+      access: ro
+      reset: 0
+      description: Descriptor MCTP tag owner.
+    - name: message_type
+      bits:
+      - 27
+      - 20
+      access: ro
+      reset: 0
+      description: First assembled payload byte interpreted as MCTP message type.
+    width: 32
+  - name: DESC_WORD1
+    offset: 60
+    access: ro
+    reset: 0
+    fields:
+    - name: payload_byte_count
+      bits:
+      - 15
+      - 0
+      access: ro
+      reset: 0
+      description: Assembled payload byte count.
+    - name: requester_id
+      bits:
+      - 31
+      - 16
+      access: ro
+      reset: 0
+      description: PCIe requester ID from received VDM.
+    width: 32
+  - name: DESC_WORD2
+    offset: 64
+    access: ro
+    reset: 0
+    fields:
+    - name: sram_start_addr
+      bits:
+      - 31
+      - 0
+      access: ro
+      reset: 0
+      description: SRAM start byte address for completed payload.
+    width: 32
+  - name: DESC_WORD3
+    offset: 68
+    access: ro
+    reset: 0
+    fields:
+    - name: completion_status
+      bits:
+      - 7
+      - 0
+      access: ro
+      reset: 0
+      description: Descriptor completion status.
+    - name: final_sequence
+      bits:
+      - 9
+      - 8
+      access: ro
+      reset: 0
+      description: Final MCTP packet sequence.
+    - name: routing
+      bits:
+      - 12
+      - 10
+      access: ro
+      reset: 0
+      description: PCIe VDM routing field.
+    - name: context_id
+      bits:
+      - 19
+      - 16
+      access: ro
+      reset: 0
+      description: Assembly context ID used.
+    width: 32
+  - name: DEBUG_STATE
+    offset: 128
+    access: ro
+    reset: 0
+    fields:
+    - name: parser_state
+      bits:
+      - 7
+      - 0
+      access: ro
+      reset: 0
+      description: Parser FSM state encoding.
+    - name: assembly_state
+      bits:
+      - 15
+      - 8
+      access: ro
+      reset: 0
+      description: Assembly FSM state encoding.
+    - name: ingress_state
+      bits:
+      - 23
+      - 16
+      access: ro
+      reset: 0
+      description: AXI ingress FSM state encoding.
+    - name: selected_context
+      bits:
+      - 31
+      - 24
+      access: ro
+      reset: 0
+      description: Currently selected debug context index.
+    width: 32
+  - name: DEBUG_CONTEXT_INDEX
+    offset: 132
+    access: rw
+    reset: 0
+    fields:
+    - name: context_index
+      bits:
+      - 7
+      - 0
+      access: rw
+      reset: 0
+      description: Context index selected for DEBUG_CONTEXT registers.
+      write_effect: APB write data updates this field value according to its bit mask.
+    width: 32
+  - name: DEBUG_CONTEXT_DATA0
+    offset: 136
+    access: ro
+    reset: 0
+    fields:
+    - name: context_valid
+      bits:
+      - 0
+      - 0
+      access: ro
+      reset: 0
+      description: Selected context valid.
+    - name: expected_seq
+      bits:
+      - 2
+      - 1
+      access: ro
+      reset: 0
+      description: Expected next sequence.
+    - name: source_eid
+      bits:
+      - 15
+      - 8
+      access: ro
+      reset: 0
+      description: Selected context source EID.
+    - name: tag_owner
+      bits:
+      - 16
+      - 16
+      access: ro
+      reset: 0
+      description: Selected context tag owner.
+    - name: message_tag
+      bits:
+      - 19
+      - 17
+      access: ro
+      reset: 0
+      description: Selected context message tag.
+    width: 32
+  - name: DEBUG_CONTEXT_DATA1
+    offset: 140
+    access: ro
+    reset: 0
+    fields:
+    - name: context_byte_count
+      bits:
+      - 15
+      - 0
+      access: ro
+      reset: 0
+      description: Selected context assembled byte count.
+    - name: context_start_addr
+      bits:
+      - 31
+      - 16
+      access: ro
+      reset: 0
+      description: Selected context SRAM start address low bits.
+    width: 32
+  - name: RX_TLP_COUNT
+    offset: 256
+    access: ro
+    reset: 0
+    fields:
+    - name: count
+      bits:
+      - 31
+      - 0
+      access: ro
+      reset: 0
+      description: Total AXI TLP bursts observed.
+    width: 32
+  - name: RX_MCTP_PACKET_COUNT
+    offset: 260
+    access: ro
+    reset: 0
+    fields:
+    - name: count
+      bits:
+      - 31
+      - 0
+      access: ro
+      reset: 0
+      description: Accepted MCTP packets.
+    width: 32
+  - name: RX_MESSAGE_COUNT
+    offset: 264
+    access: ro
+    reset: 0
+    fields:
+    - name: count
+      bits:
+      - 31
+      - 0
+      access: ro
+      reset: 0
+      description: Completed MCTP messages.
+    width: 32
+  - name: DROP_COUNT
+    offset: 268
+    access: ro
+    reset: 0
+    fields:
+    - name: count
+      bits:
+      - 31
+      - 0
+      access: ro
+      reset: 0
+      description: Dropped or rejected packets.
+    width: 32
+  - name: SEQ_ERR_COUNT
+    offset: 272
+    access: ro
+    reset: 0
+    fields:
+    - name: count
+      bits:
+      - 31
+      - 0
+      access: ro
+      reset: 0
+      description: Sequence errors.
+    width: 32
+  - name: OVERFLOW_ERR_COUNT
+    offset: 276
+    access: ro
+    reset: 0
+    fields:
+    - name: count
+      bits:
+      - 31
+      - 0
+      access: ro
+      reset: 0
+      description: Message, SRAM, or descriptor overflow errors.
+    width: 32
+  - name: DROP_STATUS
+    offset: 44
+    access: ro
+    reset: 0
+    width: 32
+    fields:
+    - name: packet_drop_seen
+      bits:
+      - 0
+      - 0
+      access: ro
+      reset: 0
+      description: Most recent drop classification included a packet drop.
+    - name: assembly_drop_seen
+      bits:
+      - 1
+      - 1
+      access: ro
+      reset: 0
+      description: Most recent drop classification included an assembly drop.
+    - name: last_drop_class
+      bits:
+      - 5
+      - 4
+      access: ro
+      reset: 0
+      description: 0 none, 1 packet_drop, 2 assembly_drop.
+    - name: last_drop_reason
+      bits:
+      - 15
+      - 8
+      access: ro
+      reset: 0
+      description: Encoded reason for the most recent drop event.
+  - name: PACKET_DROP_COUNT
+    offset: 280
+    access: ro
+    reset: 0
+    width: 32
+    fields:
+    - name: count
+      bits:
+      - 31
+      - 0
+      access: ro
+      reset: 0
+      description: Number of packets dropped before assembly state was affected.
+  - name: ASSEMBLY_DROP_COUNT
+    offset: 284
+    access: ro
+    reset: 0
+    width: 32
+    fields:
+    - name: count
+      bits:
+      - 31
+      - 0
+      access: ro
+      reset: 0
+      description: Number of active message assemblies aborted and dropped.
+memory:
+  instances:
+  - name: external_sram_write_port
+    type: external_sram
+    width: SRAM_DATA_WIDTH
+    address_width: SRAM_ADDR_WIDTH
+    clock_domain: axi
+    description: External SRAM write target for assembled MCTP payload bytes.
+  - name: external_sram_read_port
+    type: external_sram
+    width: SRAM_DATA_WIDTH
+    address_width: SRAM_ADDR_WIDTH
+    clock_domain: axi
+    description: External SRAM read source for burst payload readback through the
+      separate AXI read path.
+  - name: internal_context_table
+    type: register_array
+    depth: CONTEXT_COUNT
+    clock_domain: axi
+    description: Fifteen-entry active message assembly queue keyed by source_eid/tag_owner/message_tag,
+      enabling up to 15 simultaneous interleaved assemblies.
+  - name: internal_descriptor_fifo
+    type: cdc_fifo_or_mailbox
+    depth: DESCRIPTOR_FIFO_DEPTH
+    write_domain: axi
+    read_domain: apb
+    description: Completed message descriptor storage readable through APB registers.
+  policies:
+    assembly_content: Concatenated MCTP message payload bytes only (first byte is typically
+      the message type, for example 0x7E). Binding/transport metadata is reflected in
+      the APB descriptor, not duplicated in SRAM.
+    payload_excludes:
+    - PCIe TLP header
+    - PCIe VDM header
+    - MCTP transport header
+    - final packet pad bytes
+    default_allocation: Monotonic write pointer between SRAM_BASE and SRAM_LIMIT.
+    wrap_policy: pending_human_review
+    overflow_behavior: Abort current message, set sram_overflow, and do not publish
+      a successful descriptor.
+interrupts:
+  present: false
+  sources: []
+  rationale: No interrupt output is implied by repair; add interrupt sources explicitly
+    before rtl-gen implements IRQ behavior
+fsm:
+  axi_ingress_fsm:
+    states:
+    - IDLE
+    - AW_ACCEPTED
+    - W_COLLECT
+    - BRESP
+    - DROP
+    reset_state: IDLE
+    transitions:
+    - from: IDLE
+      to: AW_ACCEPTED
+      condition: s_axi_awvalid && s_axi_awready
+    - from: AW_ACCEPTED
+      to: W_COLLECT
+      condition: first accepted W beat
+    - from: W_COLLECT
+      to: BRESP
+      condition: accepted W beat with s_axi_wlast
+    - from: BRESP
+      to: IDLE
+      condition: s_axi_bvalid && s_axi_bready
+    - from: W_COLLECT
+      to: DROP
+      condition: fatal AXI/TLP collection error
+  axi_read_fsm:
+    states:
+    - IDLE
+    - AR_ACCEPTED
+    - RD_ISSUE
+    - RDATA
+    - ERROR
+    reset_state: IDLE
+    transitions:
+    - from: IDLE
+      to: AR_ACCEPTED
+      condition: s_axi_arvalid && s_axi_arready
+    - from: AR_ACCEPTED
+      to: RD_ISSUE
+      condition: first sram read beat accepted or direct RDATA path entered
+    - from: RD_ISSUE
+      to: RDATA
+      condition: read beat returned to host on s_axi_rvalid && s_axi_rready
+    - from: RDATA
+      to: IDLE
+      condition: final beat accepted with s_axi_rlast
+    - from: AR_ACCEPTED
+      to: ERROR
+      condition: illegal address or unsupported burst attributes
+    - from: ERROR
+      to: IDLE
+      condition: error response beat accepted
+  parser_fsm:
+    states:
+    - WAIT_PACKET
+    - PARSE_PCIE
+    - PARSE_VDM
+    - PARSE_MCTP
+    - FILTER
+    - PAYLOAD
+    - REJECT
+    reset_state: WAIT_PACKET
+  assembly_fsm:
+    states:
+    - IDLE
+    - ALLOC_CONTEXT
+    - APPEND_PAYLOAD
+    - COMPLETE_MESSAGE
+    - ABORT_CONTEXT
+    reset_state: IDLE
+  sram_writer_fsm:
+    states:
+    - IDLE
+    - PACK_WORD
+    - WRITE_WORD
+    - WAIT_READY
+    - FLUSH_FINAL
+    reset_state: IDLE
+  apb_fsm:
+    states:
+    - APB_IDLE
+    - APB_SETUP
+    - APB_ACCESS
+    reset_state: APB_IDLE
+timing:
+  clocks:
+    axi_aclk:
+      target_mhz: null
+      review_required: true
+    pclk:
+      target_mhz: null
+      review_required: true
+  constraints:
+  - Declare axi_aclk and pclk asynchronous.
+  - CDC synchronizer paths must be constrained according to the selected CDC primitive.
+  - SRAM write outputs are timed to axi_aclk.
+  - APB interface is timed to pclk.
+  latency:
+    final_fragment_to_descriptor: Bounded by payload drain, descriptor CDC, and APB-domain
+      status update.
+    interrupt_latency: Bounded by AXI event to APB CDC synchronization.
+  target_clocks:
+  - name: axi_aclk
+    frequency_mhz: 100
+    period_ns: 10.0
+    uncertainty_ns: 0.2
+  latency_budget:
+    register_access:
+      min: 0
+      max: null
+      measured_from: valid && ready
+      measured_to: response valid && ready
+    primary_operation:
+      min: 1
+      max: null
+      measured_from: start/request accepted
+      measured_to: done/response accepted
+  sta_expectations:
+    setup_wns_ns_min: 0.0
+    hold_wns_ns_min: 0.0
+    required_reports:
+    - sta/out/timing.rpt
+    - sta/out/wns.json
+power:
+  clock_gating:
+    allowed: true
+    requirements:
+    - Do not gate synchronizer destination clocks inside this IP.
+    - Parser/context logic may be idle-gated when enable=0 and no soft reset is pending.
+  low_power_behavior:
+    disabled_ingress: Default backpressure while disabled unless CONTROL.drop_when_disabled
+      is set.
+  domains:
+  - name: PD_MAIN
+    voltage: nominal
+    clock_domains:
+    - axi_aclk
+    isolation: not_required_single_domain
+  power_states:
+  - name: 'ON'
+    entry: reset deasserted
+    exit: reset asserted
+    guarantees:
+    - All declared IP functionality active
+  upf_required: false
+security:
+  assets:
+  - assembled payload in SRAM
+  - descriptor metadata
+  - local EID configuration
+  - debug context metadata
+  requirements:
+  - Reject packets that do not match MCTP-over-PCIe-VDM binding constants.
+  - Reject or abort messages that would write outside configured SRAM bounds.
+  - Do not expose arbitrary payload bytes through APB debug registers.
+  - Malformed packets must not corrupt unrelated active contexts.
+  - Context key isolation prevents one source/tag flow from completing another flow.
+  abuse_cases:
+  - Fragment flood causing context exhaustion.
+  - Sequence mismatch injection.
+  - Oversized message overflow.
+  - Descriptor FIFO full denial of service.
+  - Unsupported destination EID spam.
+  mitigations:
+  - Bounded context count with sticky error/counter.
+  - Configurable assembly timeout.
+  - Bounds check before SRAM write.
+  - Interrupt and APB-visible error reporting.
+  classification: non_secure_leaf_ip
+  threat_model:
+  - threat: invalid configuration or address
+    mitigation: error_handling declares detection, architectural effect, and recovery
+  - threat: silent data/control corruption
+    mitigation: test_requirements scoreboard checks every declared functional transaction
+  privilege_model: System-level access control is owned by the integrating bus/firewall
+    unless explicitly declared here.
+error_handling:
+  errors:
+  - id: ERR_MALFORMED_TLP
+    condition: Packet shorter than required headers or inconsistent AXI length/WSTRB/WLAST
+    action: reject_packet
+    status: malformed_tlp
+    drop_class: packet_drop
+  - id: ERR_UNSUPPORTED_VDM
+    condition: Wrong VDM type/routing/message code/vendor/MCTP VDM code
+    action: reject_packet
+    status: unsupported_vdm
+    drop_class: packet_drop
+  - id: ERR_BAD_MCTP_HDR
+    condition: Unsupported MCTP header version or malformed transport header
+    action: reject_packet
+    status: bad_mctp_hdr
+    drop_class: packet_drop
+  - id: ERR_DEST_EID_REJECT
+    condition: Destination EID fails configured policy
+    action: reject_packet
+    status: dest_eid_reject
+    drop_class: packet_drop
+  - id: ERR_UNEXPECTED_FRAGMENT
+    condition: SOM=0 fragment without active context
+    action: packet_drop_no_context_effect
+    status: sequence_error
+    drop_class: packet_drop
+  - id: ERR_DUPLICATE_SOM
+    condition: SOM for active context key
+    action: reject_new_packet
+    status: context_error
+    drop_class: assembly_drop
+  - id: ERR_SEQ_MISMATCH
+    condition: Packet sequence differs from expected modulo-4 value
+    action: abort_context
+    status: sequence_error
+    drop_class: assembly_drop
+  - id: ERR_CONTEXT_FULL
+    condition: No free assembly context
+    action: reject_packet
+    status: context_error
+    drop_class: packet_drop
+  - id: ERR_MESSAGE_OVERFLOW
+    condition: Payload would exceed MAX_MESSAGE_BYTES
+    action: abort_context
+    status: overflow_error
+    drop_class: assembly_drop
+  - id: ERR_SRAM_OVERFLOW
+    condition: Payload write would exceed configured SRAM range
+    action: abort_context
+    status: overflow_error
+    drop_class: assembly_drop
+  - id: ERR_DESCRIPTOR_FULL
+    condition: Descriptor FIFO/mailbox cannot accept completed descriptor
+    action: set_error_and_preserve_payload_status
+    status: overflow_error
+    drop_class: assembly_drop
+  - id: ERR_TIMEOUT
+    condition: Context active longer than CFG_TIMEOUT policy
+    action: abort_context
+    status: timeout
+    drop_class: assembly_drop
+  error_sources:
+  - id: ERR_PROTOCOL
+    condition: Downstream protocol response is non-OKAY or invalid
+    architectural_effect: Set error status and block signoff until handled
+  propagation:
+  - Errors update status/debug observability and propagate through declared response/interrupt
+    mechanisms.
+  recovery:
+  - action: reset or software clear
+    clears:
+    - error/status indicators
+    preserves:
+    - configuration unless reset policy states otherwise
+  drop_policy:
+    packet_drop: Discard only the current packet before context allocation/update/completion/termination;
+      do not write SRAM and do not emit a successful descriptor.
+    assembly_drop: Abort the affected active context, release the context slot, suppress
+      successful descriptor publication, record reason, and report through APB status/counters/interrupts.
+  packet_drop_conditions:
+  - id: PD_DISABLED_DROP_MODE
+    condition: CONTROL.enable=0 and CONTROL.drop_when_disabled=1
+    action: drop_packet_no_context_effect
+    status: packet_drop
+  - id: PD_MALFORMED_TLP
+    condition: Malformed/short TLP, inconsistent AXI length/WLAST/WSTRB, or unsupported
+      AXI burst policy
+    action: drop_packet_no_context_effect
+    status: malformed_tlp
+  - id: PD_UNSUPPORTED_VDM
+    condition: Unsupported PCIe VDM format/routing/message code, vendor ID, or MCTP
+      VDM code
+    action: drop_packet_no_context_effect
+    status: unsupported_vdm
+  - id: PD_BAD_MCTP_HEADER
+    condition: Unsupported MCTP header version or insufficient transport header bytes
+    action: drop_packet_no_context_effect
+    status: bad_mctp_hdr
+  - id: PD_DEST_EID_REJECT
+    condition: Destination EID fails configured local/broadcast/null policy
+    action: drop_packet_no_context_effect
+    status: dest_eid_reject
+  - id: PD_UNEXPECTED_MIDDLE_END
+    condition: SOM=0 middle/end packet is received without an active matching context
+    action: drop_packet_no_context_effect
+    status: sequence_error
+  - id: PD_BAD_OR_EXPIRED_TAG
+    condition: Tag owner/message tag policy says this packet is unexpected or expired
+      and it is not allowed to affect assembly state
+    action: drop_packet_no_context_effect
+    status: context_error
+  - id: PD_BAD_PAD_OR_ALIGNMENT
+    condition: Unsupported pad length, non-EOM pad, or PCIe dword alignment violation
+    action: drop_packet_no_context_effect
+    status: malformed_tlp
+  assembly_drop_conditions:
+  - id: AD_DUPLICATE_SOM
+    condition: SOM=1 packet arrives for an active source_eid/tag_owner/message_tag
+      key
+    action: abort_or_preserve_existing_context_per_policy_default_reject_new
+    status: context_error
+  - id: AD_SEQUENCE_MISMATCH
+    condition: Continuation packet sequence differs from expected modulo-4 value for
+      an active context
+    action: abort_context
+    status: sequence_error
+  - id: AD_MESSAGE_OVERFLOW
+    condition: Appending payload would exceed MAX_MESSAGE_BYTES
+    action: abort_context
+    status: overflow_error
+  - id: AD_SRAM_OVERFLOW
+    condition: Payload write allocation would exceed configured SRAM range
+    action: abort_context
+    status: overflow_error
+  - id: AD_DESCRIPTOR_FULL
+    condition: Completed payload cannot publish descriptor metadata because descriptor
+      FIFO/mailbox is full
+    action: drop_completed_assembly_metadata_and_report
+    status: overflow_error
+  - id: AD_TIMEOUT
+    condition: Active context exceeds configured assembly timeout
+    action: abort_context
+    status: timeout
+debug_observability:
+  apb_visible:
+  - parser_state
+  - ingress_state
+  - assembly_state
+  - selected_context_key
+  - selected_context_expected_seq
+  - selected_context_byte_count
+  - descriptor_fifo_count
+  - front_descriptor_words
+  - sticky_error_status
+  - interrupt_status
+  - protocol counters
+  - packet_drop_count
+  - assembly_drop_count
+  - last_drop_class
+  - last_drop_reason
+  controls:
+  - DEBUG_CONTEXT_INDEX selects context debug readout.
+  - DESC_POP removes the front completed descriptor.
+  - INTR_STATUS and ERROR_STATUS are W1C.
+  excluded:
+  - No top-level descriptor stream.
+  - No top-level configuration pins.
+  - No top-level status counter pins.
+  - No arbitrary SRAM payload readback through APB.
+  - Payload readback is supported only through axi_read_slave and sram_read_port, not
+    through APB or the TLP write ingress path.
+  waveform_must_probe:
+  - axi_aclk
+  - axi_aresetn
+  - fsm_state
+  - start_or_request
+  - done_or_response
+  - error_status
+  - irq_or_status_outputs
+  trace_events:
+  - name: operation_start
+    trigger: start/request accepted
+  - name: operation_complete
+    trigger: done/response accepted
+  - name: error_detected
+    trigger: any error_handling.error_sources condition
+  status_outputs:
+  - status/debug signals declared in io_list or registers
+integration:
+  upstream:
+    block: PCIe VDM TLP source
+    interface: AXI write slave
+    assumptions:
+    - One AXI write burst equals one PCIe VDM TLP.
+    - Byte lane 0 of first WDATA beat is TLP byte 0.
+    - Upstream provides raw TLP bytes.
+    - ECRC/TD handling follows custom.approved_assumptions.ecrc_policy.
+  downstream:
+    block: SRAM
+    interface: write and read payload ports
+    assumptions:
+    - SRAM write port is synchronous to axi_aclk and carries assembled payload bytes.
+    - SRAM read port is synchronous to axi_aclk and serves burst payload readback for
+      the separate AXI read path.
+    - System software reads assembled payload through axi_read_slave using descriptor
+      sram_start_addr and payload_byte_count after message completion.
+  software:
+    responsibilities:
+    - Program CONTROL, LOCAL_EID, MTU_TIMEOUT, MAX_MSG_BYTES, SRAM_BASE, SRAM_LIMIT,
+      and INTR_ENABLE.
+    - Read descriptors through DESC_WORD registers.
+    - Issue DESC_POP after consuming descriptor metadata.
+    - Read assembled payload bytes through axi_read_slave burst reads at the descriptor
+      sram_start_addr for payload_byte_count bytes.
+    - Clear INTR_STATUS and ERROR_STATUS with W1C writes.
+  bus_attachment:
+    interfaces:
+    - axi_write_slave
+    - axi_read_slave
+    - apb_slave
+    - sram_write_port
+    - sram_read_port
+    - interrupt
+    address_ownership: SoC assigns base addresses and external routing not owned by
+      this leaf IP
+  dependencies:
+    external_modules: []
+    external_clocks:
+    - axi_aclk
+    external_resets:
+    - axi_aresetn
+  connections: []
+  connection_contract_status: missing machine-readable module wiring; child RTL drafts
+    may proceed from owner packets, but top integration/signoff must stay blocked
+    until SSOT authors integration.connections or sub_modules[].connections with module/port/signal
+    records
+  integration_notes:
+  - Integrator must connect every declared io_list port and honor timing/reset assumptions.
+dft:
+  scan:
+    required: true
+    notes: CDC synchronizers require scan-safe implementation or test-mode constraints.
+  mbist:
+    required: false
+    notes: Initial context table and descriptor storage are register/FIFO based; enable
+      MBIST only if mapped to SRAM macros.
+  test_mode:
+    review_required: true
+  assertions:
+  - No combinational CDC crossing.
+  - Context allocation count never exceeds CONTEXT_COUNT.
+  - SRAM write address remains in configured range for non-error writes.
+  scan_required: false
+  controllability:
+    reset: axi_aresetn
+    clocks:
+    - axi_aclk
+    primary_inputs: all io_list inputs controllable in testbench
+  observability:
+    required_internal_points:
+    - fsm_state
+    - status
+    - error_status
+    outputs: all io_list outputs observable
+  mbist_required: true
+synthesis:
+  rtl_dialect: systemverilog_synthesizable
+  reset_style: Async assert, synchronized deassert per domain.
+  constraints:
+  - Use explicit module ports; no SystemVerilog interface or package dependency.
+  - Use parameterized widths for AXI, APB, SRAM, context, and FIFO depths.
+  - Keep byte ordering deterministic for each AXI_DATA_WIDTH.
+  - Use localparams for register offsets and error bit positions.
+  dialect: systemverilog_2012
+  top_module: mctp_assembler
+  tool_flow: yosys
+  target_technology: sky130_fd_sc_hd
+  target_library: sky130_fd_sc_hd
+  liberty_env_var: SKY130_LIB
+  corner:
+    name: sky130_fd_sc_hd__ss_100C_1v40
+    process: ss
+    temperature_c: 100
+    voltage_v: 1.4
+  library_policy: Use the SKY130_LIB environment variable to locate the SS corner
+    Liberty file for the declared sky130_fd_sc_hd target library; synthesis and STA
+    must stop if the file is unreadable or does not match the declared corner.
+  ppa_targets:
+    area_um2_max: null
+    power_mw_max: null
+    frequency_mhz_min: 100
+  required_outputs:
+  - syn/out/synth.v
+  - syn/out/area.json
+  - syn/out/syn.report.md
+  - sta/out/wns.json
+pnr:
+  constraints:
+  - Async clock group between axi_aclk and pclk.
+  - Preserve synchronizer flops and CDC FIFO pointer synchronizers.
+  - Constrain SRAM write interface timing to axi_aclk.
+  floorplan_notes:
+  - Place parser/context/payload writer near SRAM interface.
+  - Place APB register file near APB fabric.
+  - Physically group CDC synchronizer chains.
+  utilization_pct: 60
+  aspect_ratio: 1.0
+  core_space_um: 2.0
+  global_density: 0.65
+  io_layers:
+    horizontal: met3
+    vertical: met2
+  cts_buf_list:
+  - sky130_fd_sc_hd__clkbuf_4
+  - sky130_fd_sc_hd__clkbuf_8
+  routing:
+    signal_layers:
+      min: met1
+      max: met5
+    drc_waivers: []
+coding_rules:
+  verilog_style: systemverilog_2012
+  file_extension: .sv
+  parameter_header: rtl/mctp_assembler_param.vh
+  conventions:
+  - Use .sv filenames with the project SystemVerilog subset
+  - Use input logic/output logic ANSI ports and internal single-driver logic
+  - Put shared parameter declarations in rtl/<ip>_param.vh when needed; include it
+    inside consuming modules
+  - Do not create *_pkg.sv or use typedef/enum/always_ff/always_comb/package/import/interface/modport/function/task/for/while
+    constructs
+  - No inferred latches; every combinational branch assigns all outputs
+  - No parameterized part-selects inside procedural blocks; use helper wires/continuous
+    assigns
+  - No ad-hoc lint suppressions without SSOT waiver and DUT-only lint evidence
+  lint_waivers: []
+reuse_modules: []
+custom:
+  standards_decode:
+    pcie_vdm:
+      required_transport: MCTP over PCIe VDM
+      type: Type 1 VDM with data
+      message_code: 127
+      vendor_id: 6836
+      mctp_vdm_code: 0
+      supported_routing_initial:
+      - route_by_id
+      - route_to_root_complex
+      - broadcast_from_root_complex
+      byte_layout:
+        ingress_unit: One AXI write burst equals one raw PCIe VDM TLP byte stream.
+        dsp0238_note: Per the MCTP PCIe VDM binding, the PCIe TLP payload field carries
+          the MCTP packet. This IP parses that full TLP on ingress but stores only
+          the assembled MCTP message body in external SRAM.
+        regions:
+        - name: pcie_tlp_and_vdm_header
+          byte_range: 0..11
+          role: parse_and_filter_only
+          sram: excluded
+          description: PCIe TLP header and PCIe VDM header bytes. Used for length,
+            routing, vendor, and message-code checks only.
+        - name: mctp_transport_header
+          byte_range: 12..15
+          role: assembly_control_and_descriptor_metadata
+          sram: excluded
+          description: MCTP transport header within the PCIe TLP payload (header version,
+            destination/source EID, SOM/EOM/sequence/tag fields). Drives assembly
+            keying; first message payload byte is not part of this region.
+        - name: mctp_message_payload
+          byte_range: 16..(tlp_length-1-pad_len)
+          role: assemble_to_sram
+          sram: included
+          description: MCTP message body bytes concatenated across accepted fragments
+            and written to external SRAM.
+        - name: packet_pad
+          byte_range: trailing_pad_len_bytes
+          role: alignment_only
+          sram: excluded
+        assembly_rule: Assembly and SRAM writes include only mctp_message_payload bytes.
+          Bytes in pcie_tlp_and_vdm_header, mctp_transport_header, and packet_pad must
+          never appear in SRAM.
+    mctp_transport:
+      assembly_key:
+      - source_eid
+      - tag_owner
+      - message_tag
+      control_fields:
+      - destination_eid
+      - source_eid
+      - som
+      - eom
+      - packet_sequence
+      - tag_owner
+      - message_tag
+      sequence_rule: After SOM, packet_sequence increments modulo 4 until EOM.
+  approved_assumptions:
+  - AXI_DATA_WIDTH default is 256 bits; AXI and SRAM data widths match.
+  - APB_DATA_WIDTH is 32 bits.
+  - CONTEXT_COUNT default is 15, matching the 15-entry assembly queue and allowing
+    up to 15 simultaneous interleaved message assemblies.
+  - MAX_MESSAGE_BYTES default is 4096.
+  - BASELINE_MTU_BYTES default is 64.
+  - Destination EID filtering is enabled by default against LOCAL_EID.
+  - Payload types are opaque; only first message type byte is recorded in the descriptor
+    while the full message body is stored in SRAM.
+  - No top-level AXI ID pins; only one outstanding ingress burst is supported.
+  human_review_items:
+  - id: HR_AXI_ID
+    question: Confirm whether AXI ID pins and multiple outstanding write bursts are
+      required.
+    current_assumption: No AXI ID pins; one outstanding ingress burst.
+  - id: HR_ECRC
+    question: Confirm whether upstream strips/checks ECRC or this IP must account
+      for TLP digest bytes.
+    current_assumption: ECRC/TD policy is configurable and initially upstream_checked_or_stripped.
+  - id: HR_DESC_POP
+    question: Confirm descriptor pop policy.
+    current_assumption: Explicit APB DESC_POP command.
+  - id: HR_SRAM_WRAP
+    question: Confirm SRAM address allocation and wrap policy.
+    current_assumption: Monotonic pointer, overflow on limit crossing, no wrap.
+  - id: HR_TIMEOUT
+    question: Confirm timeout cycle units and default value.
+    current_assumption: Programmable AXI-domain cycle counter, default disabled or
+      zero until software config.
+  - id: HR_FREQ
+    question: Confirm axi_aclk and pclk target frequencies.
+    current_assumption: No fixed frequency in starter SSOT.
+  optional_behavior_policy:
+    resolution: non_required_optional_items_disabled_unless_ssot_marks_required_or_parameterized
+    owner: ssot-gen deterministic repair
+    rule: Rows marked required:false or prose-only optional verification aids do not
+      add RTL behavior. Any optional functional behavior must be converted by ssot-gen
+      into required behavior or an explicit parameter/register policy before rtl-gen
+      signoff.
+  drop_conditions:
+    classification_rule: Packet Drop occurs before assembly state is affected; Assembly
+      Drop aborts or invalidates an active assembly context.
+    packet_drop:
+    - PD_DISABLED_DROP_MODE
+    - PD_MALFORMED_TLP
+    - PD_UNSUPPORTED_VDM
+    - PD_BAD_MCTP_HEADER
+    - PD_DEST_EID_REJECT
+    - PD_UNEXPECTED_MIDDLE_END
+    - PD_BAD_OR_EXPIRED_TAG
+    - PD_BAD_PAD_OR_ALIGNMENT
+    assembly_drop:
+    - AD_DUPLICATE_SOM
+    - AD_SEQUENCE_MISMATCH
+    - AD_MESSAGE_OVERFLOW
+    - AD_SRAM_OVERFLOW
+    - AD_DESCRIPTOR_FULL
+    - AD_TIMEOUT
+    reason_codes:
+      '0x00': DROP_NONE
+      '0x01': PD_DISABLED_DROP_MODE
+      '0x02': PD_MALFORMED_TLP
+      '0x03': PD_UNSUPPORTED_VDM
+      '0x04': PD_BAD_MCTP_HEADER
+      '0x05': PD_DEST_EID_REJECT
+      '0x06': PD_UNEXPECTED_MIDDLE_END
+      '0x07': PD_BAD_OR_EXPIRED_TAG
+      '0x08': PD_BAD_PAD_OR_ALIGNMENT
+      '0x40': AD_DUPLICATE_SOM
+      '0x41': AD_SEQUENCE_MISMATCH
+      '0x42': AD_MESSAGE_OVERFLOW
+      '0x43': AD_SRAM_OVERFLOW
+      '0x44': AD_DESCRIPTOR_FULL
+      '0x45': AD_TIMEOUT
+dir_structure:
+  root: mctp_assembler
+  required:
+  - req/mctp_assembler_requirements.md
+  - yaml/mctp_assembler.ssot.yaml
+  - model/
+  - rtl/
+  - list/
+  - tb/
+  - tc/
+  - sim/
+  - cov/
+  - lint/
+  - verify/
+  - syn/
+  - sta/
+  - pnr/
+filelist:
+  rtl:
+  - rtl/mctp_assembler.sv
+  - rtl/mctp_assembler_axi_write_ingress.sv
+  - rtl/mctp_assembler_pcie_vdm_parser.sv
+  - rtl/mctp_assembler_mctp_parser.sv
+  - rtl/mctp_assembler_context_table.sv
+  - rtl/mctp_assembler_payload_writer.sv
+  - rtl/mctp_assembler_axi_read_egress.sv
+  - rtl/mctp_assembler_apb_regfile.sv
+  - rtl/mctp_assembler_cdc.sv
+  list:
+  - list/mctp_assembler.f
+  models:
+  - model/functional_model.py
+  - model/cycle_model.py
+  verification:
+  - tb/cocotb/test_mctp_assembler.py
+  - tb/cocotb/test_runner.py
+  - tc/mctp_assembler_scenarios.py
+  headers:
+  - rtl/mctp_assembler_param.vh
+  tb:
+  - tb/cocotb/test_mctp_assembler.py
+  - tb/cocotb/test_runner.py
+  - tb/cocotb/scoreboard.py
+  sim:
+  - sim/results.xml
+  - sim/waves.fst
+  coverage:
+  - cov/coverage.json
+test_requirements:
+  scenarios:
+  - id: SC_APB_REGS
+    description: APB reset, read/write, W1C interrupt/error clear, and descriptor
+      pop behavior.
+    expected: Register reads/writes match reset/access policy and intr follows enabled
+      pending bits.
+    name: Scenario 1
+    stimulus: Drive the sequence for Scenario 1 using declared interfaces and configuration
+      registers.
+    checker: Scoreboard/checker compares observed Scenario 1 result against function_model
+      expected result.
+    coverage:
+    - SC_APB_REGS
+    - function_model
+    - cycle_model
+  - id: SC_AXI_ONE_BURST_ONE_TLP
+    description: One AXI write burst is accepted as exactly one raw PCIe VDM TLP.
+    expected: Parser starts at byte 0 of first WDATA beat and terminates on WLAST.
+    name: Scenario 2
+    stimulus: Drive the sequence for Scenario 2 using declared interfaces and configuration
+      registers.
+    checker: Scoreboard/checker compares observed Scenario 2 result against function_model
+      expected result.
+    coverage:
+    - SC_AXI_ONE_BURST_ONE_TLP
+    - function_model
+    - cycle_model
+  - id: SC_AXI_WSTRB_FINAL
+    description: Final beat WSTRB masks invalid bytes.
+    expected: Invalid final bytes are excluded from TLP byte count.
+    name: Scenario 3
+    stimulus: Drive the sequence for Scenario 3 using declared interfaces and configuration
+      registers.
+    checker: Scoreboard/checker compares observed Scenario 3 result against function_model
+      expected result.
+    coverage:
+    - SC_AXI_WSTRB_FINAL
+    - function_model
+    - cycle_model
+  - id: SC_VALID_SINGLE_PACKET
+    description: Valid MCTP-over-PCIe-VDM single packet with SOM=1,EOM=1.
+    expected: Payload is written to SRAM and descriptor is published.
+    name: Scenario 4
+    stimulus: Drive the sequence for Scenario 4 using declared interfaces and configuration
+      registers.
+    checker: Scoreboard/checker compares observed Scenario 4 result against function_model
+      expected result.
+    coverage:
+    - SC_VALID_SINGLE_PACKET
+    - function_model
+    - cycle_model
+  - id: SC_AXI_READ_SINGLE
+    description: After message completion, read back assembled payload through the
+      separate AXI read-slave at descriptor sram_start_addr.
+    expected: One accepted AXI read transfer returns RDATA bytes matching the assembled
+      SRAM payload written by the assembly datapath.
+    name: Scenario 4b
+    stimulus: 'Complete SC_VALID_SINGLE_PACKET assembly. Read DESC_WORD2/1 for sram_start_addr
+      and payload_byte_count. Issue AXI read at sram_start_addr covering the payload
+      length.'
+    checker: Scoreboard compares AXI RDATA bytes against functional_model SRAM contents;
+      read path must not modify descriptors or assembly state.
+    coverage:
+    - SC_AXI_READ_SINGLE
+    - AXI_SRAM_READ
+    - function_model
+    - cycle_model
+  - id: SC_AXI_READ_BURST
+    description: Multi-beat AXI read burst retrieves payload spanning multiple RDATA
+      beats.
+    expected: ARLEN+1 read beats return contiguous payload bytes in order with RLAST
+      on the final beat.
+    name: Scenario 4c
+    stimulus: 'Complete a message whose payload spans at least two AXI read beats
+      (for example 36 bytes at 256-bit data width). Issue INCR read burst from descriptor
+      sram_start_addr with ARLEN set for the required beat count.'
+    checker: Scoreboard compares all returned read bytes against expected assembled
+      payload and verifies RLAST timing.
+    coverage:
+    - SC_AXI_READ_BURST
+    - AXI_SRAM_READ
+    - function_model
+    - cycle_model
+  - id: SC_MULTI_PACKET
+    description: Valid fragmented message across SOM, middle, and EOM packets.
+    expected: Payload fragments assemble in order and descriptor byte_count equals
+      total payload bytes.
+    name: Scenario 5
+    stimulus: Drive the sequence for Scenario 5 using declared interfaces and configuration
+      registers.
+    checker: Scoreboard/checker compares observed Scenario 5 result against function_model
+      expected result.
+    coverage:
+    - SC_MULTI_PACKET
+    - function_model
+    - cycle_model
+  - id: SC_INTERLEAVE_TWO
+    description: Two fragmented messages interleave at TLP boundaries (A0, B0, A1,
+      B1) using distinct assembly keys.
+    expected: Both messages complete with independent descriptors and SRAM payloads;
+      no cross-contamination between contexts.
+    name: Scenario 5b
+    stimulus: 'Configure enable/local_eid/SRAM limits. Send message A fragment0 (SOM,
+      source=6, tag=3), message B fragment0 (SOM, source=7, tag=4), message A fragment1
+      (EOM, seq=2), message B fragment1 (EOM, seq=2) as four sequential AXI bursts.'
+    checker: Scoreboard expects two descriptors with FM-matching payload_byte_count
+      and SRAM bytes for each message.
+    coverage:
+    - SC_INTERLEAVE_TWO
+    - SC_INTERLEAVED_TAGS
+    - fcov_interleaving_15_contexts
+    - function_model
+    - cycle_model
+  - id: SC_INTERLEAVED_TAGS
+    description: Fifteen distinct source/tag flows interleave fragments concurrently.
+    expected: All 15 independent assembly contexts complete without cross-contamination;
+      STATUS.active_context_count reaches 15 before EOM phase and returns to 0 after
+      all descriptors publish.
+    name: Scenario 6
+    stimulus: 'Configure enable/local_eid/SRAM limits. Phase-1: send fifteen SOM fragments
+      (unique source_eid/tag_owner/message_tag, eom=0) in slot order 0..14. Verify
+      active_context_count=15. Phase-2: send fifteen matching EOM fragments (seq=1)
+      in the same slot order. Expect fifteen descriptors.'
+    checker: Scoreboard/checker compares all fifteen descriptors and SRAM payloads
+      against function_model without cross-contamination.
+    coverage:
+    - SC_INTERLEAVED_TAGS
+    - fcov_interleaving_15_contexts
+    - function_model
+    - cycle_model
+  - id: SC_SEQ_ERROR
+    description: Continuation packet has wrong 2-bit sequence.
+    expected: Context aborts, ASSEMBLY_DROP_COUNT increments, sequence_error is set,
+      and no successful descriptor is produced.
+    name: Scenario 7
+    stimulus: Drive the sequence for Scenario 7 using declared interfaces and configuration
+      registers.
+    checker: Scoreboard/checker compares observed Scenario 7 result against function_model
+      expected result.
+    coverage:
+    - SC_SEQ_ERROR
+    - function_model
+    - cycle_model
+  - id: SC_DUPLICATE_SOM
+    description: SOM arrives for an active key.
+    expected: Duplicate SOM is classified as assembly_drop/context_error according
+      to default reject-new policy.
+    name: Scenario 8
+    stimulus: Drive the sequence for Scenario 8 using declared interfaces and configuration
+      registers.
+    checker: Scoreboard/checker compares observed Scenario 8 result against function_model
+      expected result.
+    coverage:
+    - SC_DUPLICATE_SOM
+    - function_model
+    - cycle_model
+  - id: SC_DROP_WRONG_VENDOR
+    description: VDM vendor ID is not 0x1AB4.
+    expected: Packet is dropped and unsupported_vdm/bad_vendor status is set.
+    name: Scenario 9
+    stimulus: Drive the sequence for Scenario 9 using declared interfaces and configuration
+      registers.
+    checker: Scoreboard/checker compares observed Scenario 9 result against function_model
+      expected result.
+    coverage:
+    - SC_DROP_WRONG_VENDOR
+    - function_model
+    - cycle_model
+  - id: SC_DROP_WRONG_MESSAGE_CODE
+    description: VDM message code is not 0x7F.
+    expected: Packet is dropped and unsupported_vdm/bad_message_code status is set.
+    name: Scenario 10
+    stimulus: Drive the sequence for Scenario 10 using declared interfaces and configuration
+      registers.
+    checker: Scoreboard/checker compares observed Scenario 10 result against function_model
+      expected result.
+    coverage:
+    - SC_DROP_WRONG_MESSAGE_CODE
+    - function_model
+    - cycle_model
+  - id: SC_DEST_EID_REJECT
+    description: Destination EID does not match local EID while filtering is enabled.
+    expected: Packet is rejected and dest_eid_reject is set.
+    name: Scenario 11
+    stimulus: Drive the sequence for Scenario 11 using declared interfaces and configuration
+      registers.
+    checker: Scoreboard/checker compares observed Scenario 11 result against function_model
+      expected result.
+    coverage:
+    - SC_DEST_EID_REJECT
+    - function_model
+    - cycle_model
+  - id: SC_PAD_STRIP
+    description: Final packet has pad bytes.
+    expected: Pad bytes are not written to SRAM and byte_count excludes them.
+    name: Scenario 12
+    stimulus: Drive the sequence for Scenario 12 using declared interfaces and configuration
+      registers.
+    checker: Scoreboard/checker compares observed Scenario 12 result against function_model
+      expected result.
+    coverage:
+    - SC_PAD_STRIP
+    - function_model
+    - cycle_model
+  - id: SC_CONTEXT_FULL
+    description: Sixteen concurrent fragmented messages are attempted when CONTEXT_COUNT
+      is 15.
+    expected: The first 15 contexts are accepted; the 16th allocation is rejected
+      as packet_drop/context_full without modifying existing contexts.
+    name: Scenario 13
+    stimulus: 'Configure enable/local_eid/SRAM limits. Send fifteen unique SOM fragments
+      (eom=0) to occupy all context slots; verify active_context_count=15. Send a
+      sixteenth unique SOM fragment; expect packet_drop with contexts unchanged (still
+      15 active).'
+    checker: Scoreboard/checker confirms active_context_count remains 15, packet_drop_count
+      increments, and no sixteenth context is allocated.
+    coverage:
+    - SC_CONTEXT_FULL
+    - fcov_interleaving_15_contexts
+    - function_model
+    - cycle_model
+  - id: SC_SRAM_OVERFLOW
+    description: Assembled payload would exceed SRAM limit.
+    expected: Message aborts and sram_overflow is reported.
+    name: Scenario 14
+    stimulus: Drive the sequence for Scenario 14 using declared interfaces and configuration
+      registers.
+    checker: Scoreboard/checker compares observed Scenario 14 result against function_model
+      expected result.
+    coverage:
+    - SC_SRAM_OVERFLOW
+    - function_model
+    - cycle_model
+  - id: SC_DESCRIPTOR_FULL
+    description: Completed message occurs while descriptor FIFO is full.
+    expected: descriptor_full is reported and interrupt/error policy is followed.
+    name: Scenario 15
+    stimulus: Drive the sequence for Scenario 15 using declared interfaces and configuration
+      registers.
+    checker: Scoreboard/checker compares observed Scenario 15 result against function_model
+      expected result.
+    coverage:
+    - SC_DESCRIPTOR_FULL
+    - function_model
+    - cycle_model
+  - id: SC_TIMEOUT
+    description: Fragmented context does not receive continuation before timeout.
+    expected: Context aborts and timeout is reported.
+    name: Scenario 16
+    stimulus: Drive the sequence for Scenario 16 using declared interfaces and configuration
+      registers.
+    checker: Scoreboard/checker compares observed Scenario 16 result against function_model
+      expected result.
+    coverage:
+    - SC_TIMEOUT
+    - function_model
+    - cycle_model
+  - id: SC_ASYNC_AXI_APB
+    description: AXI and APB run at unrelated clocks.
+    expected: Configuration, descriptor, status, and interrupt CDC behavior remains
+      stable.
+    name: Scenario 17
+    stimulus: Drive the sequence for Scenario 17 using declared interfaces and configuration
+      registers.
+    checker: Scoreboard/checker compares observed Scenario 17 result against function_model
+      expected result.
+    coverage:
+    - SC_ASYNC_AXI_APB
+    - function_model
+    - cycle_model
+  - id: SC_PACKET_DROP_CLASSIFICATION
+    description: Exercise malformed TLP, unsupported VDM, destination EID reject,
+      unexpected middle/end without active context, and bad pad/alignment packet drops.
+    expected: Each case increments PACKET_DROP_COUNT, updates DROP_STATUS.last_drop_class
+      to packet_drop, does not allocate/release/abort any context, writes no SRAM
+      payload, and emits no successful descriptor.
+    name: Packet Drop Classification
+    stimulus: Drive each packet_drop_conditions case using AXI ingress and APB configuration.
+    checker: Scoreboard confirms no context table change, no SRAM write, no descriptor,
+      packet_drop status/counter update.
+    coverage:
+    - packet_drop_conditions
+    - error_handling.packet_drop_conditions
+    - function_model.FM_CLASSIFY_DROP
+  - id: SC_ASSEMBLY_DROP_CLASSIFICATION
+    description: Exercise duplicate SOM, sequence mismatch, message overflow, SRAM
+      overflow, descriptor full, and timeout while a matching context is active.
+    expected: Each case increments ASSEMBLY_DROP_COUNT, updates DROP_STATUS.last_drop_class
+      to assembly_drop, releases the affected context, suppresses successful descriptor
+      publication, and reports the reason.
+    name: Assembly Drop Classification
+    stimulus: Create active assembly contexts then drive each assembly_drop_conditions
+      case.
+    checker: Scoreboard confirms affected context release, no successful descriptor
+      for dropped message, independent contexts remain intact, assembly_drop status/counter
+      update.
+    coverage:
+    - assembly_drop_conditions
+    - error_handling.assembly_drop_conditions
+    - function_model.FM_CLASSIFY_DROP
+  coverage_goals:
+    function:
+      target: 95
+      model: functional_model
+      bins:
+      - description: All parser accept and reject branches.
+        id: FUNCTION_COV_01
+        source_ref: function_model.transactions
+        class: transaction
+      - description: All error_handling errors.
+        id: FUNCTION_COV_02
+        source_ref: function_model.transactions
+        class: transaction
+      - description: All interrupt sources asserted and cleared.
+        id: FUNCTION_COV_03
+        source_ref: function_model.transactions
+        class: transaction
+      - description: 'All MCTP assembly paths: single, start, middle, end, timeout,
+          abort.'
+        id: FUNCTION_COV_04
+        source_ref: function_model.transactions
+        class: transaction
+      - description: Sequence wrap 3 to 0.
+        id: FUNCTION_COV_05
+        source_ref: function_model.transactions
+        class: transaction
+      - description: All descriptor pop/status cases.
+        id: FUNCTION_COV_06
+        source_ref: function_model.transactions
+        class: transaction
+      - description: AXI read single and burst payload readback paths.
+        id: FUNCTION_COV_07
+        source_ref: function_model.transactions.FM_READ_SRAM_BURST
+        class: transaction
+      - description: All packet_drop_conditions are classified without context side
+          effects.
+        id: FUNCTION_COV_PACKET_DROP_CLASS
+        source_ref: function_model.transactions.FM_CLASSIFY_DROP
+        class: drop_classification
+      - description: All assembly_drop_conditions abort exactly the affected context.
+        id: FUNCTION_COV_ASSEMBLY_DROP_CLASS
+        source_ref: function_model.transactions.FM_CLASSIFY_DROP
+        class: drop_classification
+      source_refs:
+      - function_model.transactions
+      - error_handling
+      - interrupts
+      target_pct: 100
+      description: Behavioral coverage from function_model.
+    cycle:
+      target: 90
+      model: cycle_model
+      bins:
+      - description: AXI backpressure on AW and W.
+        id: CYCLE_COV_01
+        source_ref: cycle_model.performance
+        class: cycle_rule
+      - description: SRAM backpressure during payload drain.
+        id: CYCLE_COV_02
+        source_ref: cycle_model.performance
+        class: cycle_rule
+      - description: APB access during active AXI assembly.
+        id: CYCLE_COV_03
+        source_ref: cycle_model.performance
+        class: cycle_rule
+      - description: CDC event propagation for descriptor and error.
+        id: CYCLE_COV_04
+        source_ref: cycle_model.performance
+        class: cycle_rule
+      - description: Soft reset request/ack while context active.
+        id: CYCLE_COV_05
+        source_ref: cycle_model.performance
+        class: cycle_rule
+      source_refs:
+      - cycle_model.pipeline
+      - cdc_requirements
+      target_pct: 100
+      description: Cycle/performance coverage from cycle_model.
+    scenario: All SSOT scenarios pass with executable cocotb/pyuvm checkers and FL-vs-RTL
+      scoreboard evidence
+  scoreboards:
+  - name: payload_scoreboard
+    checks: Expected payload bytes after header/pad stripping equal SRAM writes.
+  - name: descriptor_scoreboard
+    checks: Expected metadata equals DESC_WORD registers for completed messages.
+  - name: error_scoreboard
+    checks: Expected protocol errors set matching ERROR_STATUS/INTR_STATUS/counters.
+  - name: drop_classification_scoreboard
+    checks: Packet-drop cases leave contexts unchanged; assembly-drop cases release
+      only the affected context; counters/status/interrupts match expected drop class
+      and reason.
+  scoreboard_checks: 17
+quality_gates:
+  ssot:
+    pass: check_ssot_disk.sh exits 0 and ATLAS SSOT progress is fully approved
+    evidence:
+    - check_ssot_disk.sh PASS
+    - ATLAS /api/progress ssot all sections approved
+  rtl:
+    pass: All expected RTL files exist, are production-ready, compile, and lint within
+      warning budget
+    evidence:
+    - list/<ip>.f
+    - compile log
+    - lint log
+  rtl_gen:
+    profile: standard
+    pass: rtl-gen execution_policy.pass_allowed is true, every required SSOT-derived
+      RTL TODO is closed, and provenance proves common_ai_agent rtl-gen authored the
+      RTL without fixed-template fallback behavior
+    evidence:
+    - rtl/rtl_authoring_plan.json
+    - logs/rtl-gen/rtl_todo_plan.json
+    - rtl/provenance.json
+    - rtl_compile.json
+    - lint/dut_lint.json
+  dv:
+    pass: Every SSOT test_requirements scenario has an executable checker and FL-vs-RTL
+      equivalence goal
+    evidence:
+    - verify/equivalence_goals.json
+    - sim/scoreboard_events.jsonl
+    - tb/cocotb tests
+    - scenario implementation map
+  coverage:
+    pass: Functional coverage passes and any explicitly requested structural metrics
+      have matching evidence or approved waivers
+    evidence:
+    - coverage report
+    - coverage waiver list if any
+  eda:
+    pass: Synthesis/STA/DFT expectations have reports or approved waivers
+    evidence:
+    - syn/sta/dft reports
+  signoff:
+    pass: SSOT, FL/equivalence, RTL, lint, DV, sim, coverage, and EDA gates pass with
+      fresh artifacts
+    evidence:
+    - ATLAS progress signoff PASS
+  lint:
+  - DUT lint has zero unwaived errors.
+  - No ad-hoc lint suppressions without human-approved waiver.
+  sim:
+  - All directed scenarios pass.
+  - Payload, descriptor, and error scoreboards report zero mismatches.
+traceability:
+  requirements_sources:
+  - req/mctp_assembler_requirements.md
+  - DMTF DSP0238 MCTP PCIe VDM Transport Binding
+  - DMTF DSP0236 MCTP Base Specification
+  - DMTF DSP0236 sections on dropped packets/messages
+  - DMTF DSP0238 PCIe VDM packet format and MCTP VDM code
+  mapping:
+    AXI_WRITE_INGRESS:
+    - features.AXI_TLP_INGRESS
+    - io_list.interfaces.axi_write_slave
+    - dataflow.sequence
+    APB_CONTROL_DEBUG:
+    - features.APB_CONTROL_DEBUG
+    - io_list.interfaces.apb_slave
+    - registers.register_list
+    - debug_observability
+    ASYNC_CLOCKS:
+    - features.ASYNC_AXI_APB
+    - clock_reset_domains
+    - cdc_requirements
+    - rdc_requirements
+    SRAM_PAYLOAD_WRITE:
+    - memory.external_sram_write_port
+    - io_list.interfaces.sram_write_port
+    - function_model.transactions.FM_WRITE_SRAM_AND_DESCRIPTOR
+    INTERRUPT:
+    - interrupts
+    - registers.INTR_ENABLE
+    - registers.INTR_STATUS
+    VDM_FILTER:
+    - custom.standards_decode.pcie_vdm
+    - function_model.transactions.FM_FILTER_VDM
+    - error_handling.errors
+    MCTP_ASSEMBLY:
+    - custom.standards_decode.mctp_transport
+    - function_model.transactions.FM_ASSEMBLE_FRAGMENT
+    - memory.internal_context_table
+    INTERNAL_DESCRIPTORS_ONLY:
+    - features.INTERNAL_DESCRIPTOR
+    - registers.register_list
+    - rtl_contract.output_map
+    ERROR_HANDLING:
+    - error_handling.errors
+    - registers.ERROR_STATUS
+    - test_requirements.scenarios
+    DROP_CLASSIFICATION:
+    - error_handling.drop_policy
+    - error_handling.packet_drop_conditions
+    - error_handling.assembly_drop_conditions
+    - custom.drop_conditions
+    - test_requirements.scenarios.SC_PACKET_DROP_CLASSIFICATION
+    - test_requirements.scenarios.SC_ASSEMBLY_DROP_CLASSIFICATION
+  yaml_to_output:
+  - yaml: function_model
+    output: RTL behavior and TB reference model
+  - yaml: cycle_model
+    output: RTL handshake/pipeline timing and waveform checks
+  - yaml: function_model/cycle_model/test_requirements
+    output: verify/equivalence_goals.json and FL-vs-RTL scoreboard contracts
+  - yaml: timing
+    output: STA constraints and latency pass/fail criteria
+  - yaml: security
+    output: Threat mitigations and negative tests
+  - yaml: error_handling
+    output: Fault RTL paths and DV error scenarios
+  - yaml: debug_observability
+    output: VCD probes and sim_debug inspection
+  - yaml: quality_gates
+    output: ATLAS progress/signoff criteria
+workflow_todos:
+  ssot-gen:
+  - id: SSOT-REVIEW-001
+    content: Resolve open human review decisions for AXI ID, ECRC, descriptor pop,
+      SRAM wrap, timeout units, and clock frequencies.
+    detail: These fields affect RTL behavior and signoff constraints. Keep the conservative
+      assumptions visible until the user approves final values.
+    command: /grill-me mctp_assembler
+    script: workflow/ssot-gen/scripts/check_ssot_disk.sh
+    instructions: Ask only the unresolved questions listed in custom.human_review_items
+      and update the exact SSOT fields.
+    criteria:
+    - custom.human_review_items is either resolved into approved assumptions or preserved
+      as non-signoff blockers.
+    source_refs:
+    - custom.human_review_items
+    - req/mctp_assembler_requirements.md:69
+    priority: high
+    required: true
+  - id: SSOT-VALIDATE-001
+    content: Validate mctp_assembler SSOT in engineering mode.
+    detail: Run repair/verify validators and preserve req/ssot_validation.json evidence.
+    command: /verify-ssot mctp_assembler
+    script: workflow/ssot-gen/scripts/verify_ssot.py
+    instructions: Fix structural YAML issues only; do not run RTL/TB generation from
+      ssot-gen.
+    criteria:
+    - verify_ssot.py exits 0 in engineering mode.
+    source_refs:
+    - yaml/mctp_assembler.ssot.yaml
+    priority: high
+    required: true
+  rtl-gen:
+  - id: RTL-GEN-001
+    content: Implement SSOT-derived RTL modules for AXI ingress, VDM parser, MCTP
+      parser, context table, payload writer, APB regfile, and CDC.
+    detail: RTL must be generated from this SSOT and must not expose descriptor/config/status
+      top-level pins.
+    command: /ssot-rtl mctp_assembler
+    script: workflow/rtl-gen/scripts/ssot_to_rtl.py
+    instructions: Use rtl_contract, io_list, registers, cdc_requirements, error_handling,
+      and test_requirements as source sections.
+    criteria:
+    - rtl_compile.json and lint/dut_lint.json pass; top-level ports match io_list.
+    source_refs:
+    - rtl_contract
+    - io_list
+    - registers
+    - cdc_requirements
+    priority: high
+    required: true
+  tb-gen:
+  - id: TB-GEN-001
+    content: Generate SSOT-driven cocotb/pyuvm tests and scoreboards for MCTP assembly.
+    detail: Tests must compare accepted TLP bytes to SRAM writes and descriptor metadata.
+    command: /ssot-tb-cocotb mctp_assembler
+    script: workflow/tb-gen/scripts/emit_goal_scoreboard_cocotb.py
+    instructions: Cover directed valid/error/CDC/backpressure scenarios from test_requirements.scenarios.
+    criteria:
+    - tb_manifest.json is present and scoreboard self-check passes.
+    source_refs:
+    - test_requirements.scenarios
+    - test_requirements.scoreboards
+    priority: high
+    required: true
+  sim:
+  - id: SIM-001
+    content: Run simulation and collect scoreboard, results.xml, and coverage-ready
+      evidence.
+    detail: Simulation must prove payload stripping, descriptor metadata, error reporting,
+      and CDC interrupt/status behavior.
+    command: /ssot-sim mctp_assembler
+    script: workflow/sim/scripts/sim.sh
+    instructions: Do not edit sim artifacts by hand; rerun the sim workflow after
+      RTL/TB changes.
+    criteria:
+    - results.xml passes and scoreboard reports zero mismatches.
+    source_refs:
+    - test_requirements.scoreboards
+    - quality_gates.sim
+    priority: high
+    required: true
+  coverage:
+  - id: COV-001
+    content: Close SSOT functional and cycle coverage goals.
+    detail: Coverage must include parser branches, error paths, interrupts, sequence
+      wrap, backpressure, and CDC events.
+    command: /ssot-coverage mctp_assembler
+    script: workflow/coverage/scripts/ssot_coverage_summary.py
+    instructions: Add stimulus or record explicit limitations; do not lower goals
+      to pass.
+    criteria:
+    - coverage.json status is pass/ok or limitations are explicitly routed to human
+      review.
+    source_refs:
+    - test_requirements.coverage_goals
+    priority: medium
+    required: true
+  sim_debug: []
+generation_flow:
+  steps:
+  - name: verify_ssot
+    command: python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py" mctp_assembler
+      --root "$ATLAS_PROJECT_ROOT" --mode ${ATLAS_RUN_MODE:-signoff}
+    description: Validate SSOT structure, Preview fields, and quality gates at the
+      selected Run Mode
+  - name: handoff_fl_model
+    command: /ssot-fl-model mctp_assembler
+    description: Generate FunctionalModel, decomposition, and FCOV plan from SSOT
+  - name: handoff_equivalence_goals
+    command: /ssot-equiv-goals mctp_assembler
+    description: Derive FL-vs-RTL equivalence goals before TB generation
+  - name: handoff_rtl
+    command: /ssot-rtl mctp_assembler
+    description: Generate RTL from validated SSOT
+  - name: handoff_tb
+    command: /ssot-tb-cocotb mctp_assembler
+    description: Generate cocotb/pyuvm verification from validated SSOT
+  - name: handoff_sim_debug
+    command: /wf sim_debug
+    description: Run simulation, waveform, and coverage inspection

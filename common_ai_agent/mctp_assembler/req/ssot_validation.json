@@ -1,0 +1,16 @@
+{
+  "schema_version": "ssot_validation.v2",
+  "ip": "mctp_assembler",
+  "mode": "engineering",
+  "ssot": "mctp_assembler/yaml/mctp_assembler.ssot.yaml",
+  "ok": true,
+  "blockers": [],
+  "warnings": [],
+  "check_ssot_disk": {
+    "ok": true,
+    "returncode": 0,
+    "stdout": "[check_ssot_disk] PASS: mctp_assembler/yaml/mctp_assembler.ssot.yaml = 135730B, 34 sections, 0 TBDs, mode=engineering\n",
+    "stderr": ""
+  },
+  "preview_contract": "strict"
+}

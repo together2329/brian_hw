@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "type": "functional_coverage",
+  "status": "pass",
+  "timestamp_iso": "2026-05-29T10:04:26Z",
+  "functional": {
+    "hit": 10,
+    "total": 10,
+    "pct": 100.0,
+    "bins": {
+      "SC_APB_REGS": {
+        "hit": true,
+        "scenario_id": "SC_APB_REGS"
+      },
+      "SC_VALID_SINGLE_PACKET": {
+        "hit": true,
+        "scenario_id": "SC_VALID_SINGLE_PACKET"
+      },
+      "SC_AXI_ONE_BURST_ONE_TLP": {
+        "hit": true,
+        "scenario_id": "SC_VALID_SINGLE_PACKET"
+      },
+      "SC_DROP_WRONG_VENDOR": {
+        "hit": true,
+        "scenario_id": "SC_DROP_WRONG_VENDOR"
+      },
+      "SC_MULTI_PACKET": {
+        "hit": true,
+        "scenario_id": "SC_MULTI_PACKET"
+      },
+      "SC_INTERLEAVE_TWO": {
+        "hit": true,
+        "scenario_id": "SC_INTERLEAVE_TWO"
+      },
+      "SC_INTERLEAVED_TAGS": {
+        "hit": true,
+        "scenario_id": "SC_INTERLEAVED_TAGS"
+      },
+      "fcov_interleaving_15_contexts": {
+        "hit": true,
+        "scenario_id": "SC_CONTEXT_FULL"
+      },
+      "SC_SEQ_ERROR": {
+        "hit": true,
+        "scenario_id": "SC_SEQ_ERROR"
+      },
+      "SC_CONTEXT_FULL": {
+        "hit": true,
+        "scenario_id": "SC_CONTEXT_FULL"
+      }
+    }
+  }
+}

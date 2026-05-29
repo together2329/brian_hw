@@ -47,6 +47,9 @@ htmlcov/
 cmd_output_*.txt
 **/cmd_output_*.txt
 
+# Scratch RTL compile log (top-level rtl/ only; per-IP rtl_compile.log stay tracked as evidence)
+/rtl/rtl_compile.log
+
 # Runtime state
 current_todos.json
 **/current_todos.json
@@ -114,3 +117,6 @@ atlas_ssot_web_clean/
 
 # Required workflow validators whose names match parent repo sim-output globs.
 !workflow/tb-gen/scripts/check_tb_sim_evidence.sh
+
+# Perforce local connection config
+.p4config

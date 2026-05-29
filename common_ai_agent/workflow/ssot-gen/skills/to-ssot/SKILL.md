@@ -1,14 +1,15 @@
 ---
-name: to-ssot
-description: Synthesize the current conversation context (and codebase understanding) into a canonical SSOT YAML, including function_model and cycle_model, and write it to <ip>/yaml/<ip>.ssot.yaml. Use when the user wants to convert a finished discussion or grill-me session into a concrete SSOT YAML file.
----
+
+## name: to-ssot
+
+description: Synthesize the current conversation context (and codebase understanding) into a canonical SSOT YAML, including function_model and cycle_model, and write it to /yaml/.ssot.yaml. Use when the user wants to convert a finished discussion or grill-me session into a concrete SSOT YAML file.
 
 # To SSOT
 
 Take the current conversation context (typically the output of a `grill-me`
 session) and produce a complete SSOT YAML file conforming to the project's
 canonical template. Adapted from
-<https://github.com/mattpocock/skills> (`to-prd` / `to-issues`, MIT) —
+[https://github.com/mattpocock/skills](https://github.com/mattpocock/skills) (`to-prd` / `to-issues`, MIT) —
 issue-tracker output replaced with a YAML write, story breakdown replaced
 with the SSOT section schema.
 
@@ -39,59 +40,55 @@ If the current context contains `[SSOT TBD REPORT] -> ssot-gen`, run targeted
 enrichment instead of rewriting the whole SSOT:
 
 1. Parse each `Missing` row: `yaml_path`, `needed_for`, `question`, and
-   `current_rtl_action`.
+  `current_rtl_action`.
 2. Read the existing `<ip>/yaml/<ip>.ssot.yaml` once.
 3. Patch only the named YAML fields when the missing fact is available from
-   the conversation, requirements, imported documents, or approved QA.
+  the conversation, requirements, imported documents, or approved QA.
 4. If the fact is still unknown, record a pending QA item for that exact
-   `yaml_path` and `needed_for` instead of inventing a value.
+  `yaml_path` and `needed_for` instead of inventing a value.
 5. Validate the patched SSOT and emit a refreshed `[SSOT HANDOFF] -> rtl-gen`
-   with `Resolved RTL TBD rows: N` and any `Pending QA rows: ...`.
+  with `Resolved RTL TBD rows: N` and any `Pending QA rows: ...`.
 
 ## Process
 
 1. **Locate the canonical template.** Read
-   `workflow/ssot-gen/rules/ssot-template.yaml` to confirm the section
+  `workflow/ssot-gen/rules/ssot-template.yaml` to confirm the section
    ordering and field names you must use. (It's also embedded in the
    ssot-gen system prompt.)
-
 2. **Resolve the IP name.** Take it from the latest user message, an
-   existing `<ip>/` directory, or the first `top_module.name` referenced
+  existing `<ip>/` directory, or the first `top_module.name` referenced
    in conversation context. Refuse if the name is ambiguous — ask the
    user once.
-
 3. **Sketch the section map** internally. For each canonical section,
-   note: filled / partial / missing. Sections grill-me typically resolves
+  note: filled / partial / missing. Sections grill-me typically resolves
    the user-facing behavior and interface anchors first; remaining signoff
    sections come from explicit requirements, approved assumptions, or
    conservative repair defaults that are visible in provenance.
-
 4. **Use the Preview/validator YAML shape exactly.**
-   - Top level is one YAML mapping. Do not wrap the document in `ssot:`,
-     `sections:`, `spec:`, or markdown fences.
-   - Use these exact top-level keys, in this order:
-     `top_module`, `sub_modules`, `decomposition`, `rtl_contract`,
-     `parameters`, `io_list`, `features`, `dataflow`, `function_model`,
-     `cycle_model`, `clock_reset_domains`, `cdc_requirements`,
-     `rdc_requirements`, `registers`, `memory`, `interrupts`, `fsm`,
-     `timing`, `power`, `security`, `error_handling`,
-     `debug_observability`, `integration`, `dft`, `synthesis`, `pnr`,
-     `coding_rules`, `reuse_modules`, `custom`, `dir_structure`,
-     `filelist`, `test_requirements`, `quality_gates`, `traceability`,
-     `workflow_todos`, `generation_flow`.
-   - Do not use legacy top-level aliases such as `interface`,
-     `bus_interface`, `register_map`, `clock_reset`, `errors`, `debug`,
-     `dv_plan`, or `verification_plan`.
-   - SSOT Preview renders typed cards from `top_module.description`,
-     `io_list.interfaces[].ports[]`, `function_model.transactions[]`,
-     `cycle_model.pipeline[]`, `cycle_model.scenarios[]` or
-     `function_model.scenarios[]`, `registers.register_list[]` or an
-     explicit no-register policy, `fsm.states/transitions` or an explicit
-     no-FSM policy, and `test_requirements.scenarios[]`. Treat these as
-     required for a previewable engineering SSOT.
-
+  - Top level is one YAML mapping. Do not wrap the document in `ssot:`,
+   `sections:`, `spec:`, or markdown fences.
+  - Use these exact top-level keys, in this order:
+  `top_module`, `sub_modules`, `decomposition`, `rtl_contract`,
+  `parameters`, `io_list`, `features`, `dataflow`, `function_model`,
+  `cycle_model`, `clock_reset_domains`, `cdc_requirements`,
+  `rdc_requirements`, `registers`, `memory`, `interrupts`, `fsm`,
+  `timing`, `power`, `security`, `error_handling`,
+  `debug_observability`, `integration`, `dft`, `synthesis`, `pnr`,
+  `coding_rules`, `reuse_modules`, `custom`, `dir_structure`,
+  `filelist`, `test_requirements`, `quality_gates`, `traceability`,
+  `workflow_todos`, `generation_flow`.
+  - Do not use legacy top-level aliases such as `interface`,
+  `bus_interface`, `register_map`, `clock_reset`, `errors`, `debug`,
+  `dv_plan`, or `verification_plan`.
+  - SSOT Preview renders typed cards from `top_module.description`,
+  `io_list.interfaces[].ports[]`, `function_model.transactions[]`,
+  `cycle_model.pipeline[]`, `cycle_model.scenarios[]` or
+  `function_model.scenarios[]`, `registers.register_list[]` or an
+  explicit no-register policy, `fsm.states/transitions` or an explicit
+  no-FSM policy, and `test_requirements.scenarios[]`. Treat these as
+  required for a previewable engineering SSOT.
 5. **Write executable workflow todos.** Preserve and enrich
-   `workflow_todos.<stage>[]` as the downstream handoff ledger. Every
+  `workflow_todos.<stage>[]` as the downstream handoff ledger. Every
    executable item must include `id`, `content`, `detail`, `command`, `script`,
    `instructions`, `criteria`, `source_refs`, `priority`, and `required`.
    Use `command` for the ATLAS slash entrypoint (`/to-ssot <ip>`,
@@ -99,52 +96,47 @@ enrichment instead of rewriting the whole SSOT:
    workflow script that validates or expands that handoff. The todo detail and
    instructions must be IP-specific and source-backed; do not leave generic
    template text when import evidence exists.
-
 6. **Fill the YAML generically from the approved context.**
-   - Do not use IP-specific fixed templates.
-   - Required behavior fields must come from the conversation, local requirements, or explicit assumptions.
-   - List sections preserve the order grill-me elicited them in.
-   - Include enough detail for downstream generic workflows:
-     interfaces, parameters, memories, registers/no-CSR policy, interrupts,
-     function_model transactions/invariants, cycle_model latency/handshake/
-     pipeline rules, FSM states/transitions, feature triggers/datapaths/
-     outputs, timing/power/security/error/integration/DFT/synthesis
-     constraints, reset defaults, error behavior, test scenarios, expected
-     results, scoreboard checks, coverage goals, quality gates, and traceability.
-   - For every interface, include machine-readable protocol/timing/handshake
-     rules in addition to ports. Port declarations alone are not enough.
-   - For every register field, include bit range, access, reset, description,
-     reserved behavior, and write/clear side effects where applicable.
-   - Split coverage into `coverage_goals.function` and
-     `coverage_goals.cycle`; each must have target, model, bins, source_refs,
-     classes, and descriptions.
-   - Comments are optional; do not add `TODO` comments for behavior that
-     rtl-gen needs. Ask/stop instead.
-
+  - Do not use IP-specific fixed templates.
+  - Required behavior fields must come from the conversation, local requirements, or explicit assumptions.
+  - List sections preserve the order grill-me elicited them in.
+  - Include enough detail for downstream generic workflows:
+  interfaces, parameters, memories, registers/no-CSR policy, interrupts,
+  function_model transactions/invariants, cycle_model latency/handshake/
+  pipeline rules, FSM states/transitions, feature triggers/datapaths/
+  outputs, timing/power/security/error/integration/DFT/synthesis
+  constraints, reset defaults, error behavior, test scenarios, expected
+  results, scoreboard checks, coverage goals, quality gates, and traceability.
+  - For every interface, include machine-readable protocol/timing/handshake
+  rules in addition to ports. Port declarations alone are not enough.
+  - For every register field, include bit range, access, reset, description,
+  reserved behavior, and write/clear side effects where applicable.
+  - Split coverage into `coverage_goals.function` and
+  `coverage_goals.cycle`; each must have target, model, bins, source_refs,
+  classes, and descriptions.
+  - Comments are optional; do not add `TODO` comments for behavior that
+  rtl-gen needs. Ask/stop instead.
 7. **Write the file.** Path is exactly `<ip>/yaml/<ip>.ssot.yaml` from the
-   project root. Do not add a second `<ip>/` segment when the UI scope is
+  project root. Do not add a second `<ip>/` segment when the UI scope is
    already set to that IP; for `gpio`, the path is `gpio/yaml/gpio.ssot.yaml`,
    never `gpio/gpio/yaml/gpio.ssot.yaml`. Use `write_file`.
    Scaffold output containing `<TBD>`, `<placeholder>`, `TODO`, or a tiny
    template-only YAML is not user-authored content; replace it with the
    complete canonical SSOT. For a substantive existing SSOT, read it first
    and preserve user-authored facts while completing missing sections.
-
 8. **Validate before final handoff.** Use the workflow validators:
-   first run `python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/repair_ssot_schema.py" <ip> --root "$ATLAS_PROJECT_ROOT" --mode engineering`,
+  first run `python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/repair_ssot_schema.py" <ip> --root "$ATLAS_PROJECT_ROOT" --mode engineering`,
    then run `python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py" <ip> --root "$ATLAS_PROJECT_ROOT" --mode engineering`.
    `verify_ssot.py` also runs `check_ssot_disk.sh` and writes
    `<ip>/req/ssot_validation.json`. If validation fails, fix the YAML and
    rerun. Do not run RTL/TB generators from ssot-gen.
-
 9. **Summary.** After writing, list:
-   - the path written
-   - which sections came from conversation vs. template defaults
-   - any `# TODO: confirm` lines that need follow-up
-   - whether validation passed
-
+  - the path written
+  - which sections came from conversation vs. template defaults
+  - any `# TODO: confirm` lines that need follow-up
+  - whether validation passed
 10. **Suggest next steps.** Use `/ssot-rtl <ip>` after the SSOT validates,
-   or another `/grill-me` round if blocking behavioral fields are missing.
+  or another `/grill-me` round if blocking behavioral fields are missing.
 
 ## Bounded execution rule
 
@@ -154,9 +146,9 @@ discovery budget for one run is:
 - read the canonical template at most once;
 - read the existing `<ip>/yaml/<ip>.ssot.yaml` at most once;
 - read the validator at most once, only if its requirements are not already
-  included in the prompt;
+included in the prompt;
 - then the next tool action must be `write_file`, `replace_in_file`, or
-  `run_command` validation if the file was already complete.
+`run_command` validation if the file was already complete.
 
 If an existing SSOT is substantive, prefer a targeted patch over rewriting the
 whole file. Insert or replace only the missing/weak canonical sections, preserve
@@ -191,10 +183,11 @@ top_module:
 ## Do NOT
 
 - Do not rewrite existing user-authored prose; preserve their phrasing
-  in `description` fields where they gave one.
+in `description` fields where they gave one.
 - Do not invent register addresses, bit positions, protocol timing, memory
-  depth, security transforms, DFT obligations, PPA targets, quality gates, or
-  expected outputs. Ask or record a clearly non-blocking assumption.
+depth, security transforms, DFT obligations, PPA targets, quality gates, or
+expected outputs. Ask or record a clearly non-blocking assumption.
 - Do not run code generators, deterministic fallback writers, Jinja2
-  expansion, RTL generation, TB generation, lint, or simulation. Those are
-  downstream workflows.
+expansion, RTL generation, TB generation, lint, or simulation. Those are
+downstream workflows.
+

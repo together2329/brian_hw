@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "type": "mctp_assembler_cocotb_manifest",
+  "ip": "mctp_assembler",
+  "top": "mctp_assembler",
+  "generated_at": "2026-05-29T00:00:00Z",
+  "common_ai_agent_root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+  "ssot": "mctp_assembler/yaml/mctp_assembler.ssot.yaml",
+  "functional_model": "mctp_assembler/model/functional_model.py",
+  "clock_axi": "axi_aclk",
+  "clock_apb": "pclk",
+  "reset_axi": "axi_aresetn",
+  "reset_apb": "presetn",
+  "reset_active": "low",
+  "rtl_sources": [
+    "rtl/mctp_assembler_axi_write_ingress.sv",
+    "rtl/mctp_assembler_pcie_vdm_parser.sv",
+    "rtl/mctp_assembler_mctp_parser.sv",
+    "rtl/mctp_assembler_context_table.sv",
+    "rtl/mctp_assembler_payload_writer.sv",
+    "rtl/mctp_assembler_apb_regfile.sv",
+    "rtl/mctp_assembler_cdc.sv",
+    "rtl/mctp_assembler.sv"
+  ],
+  "test_module": "test_mctp_assembler",
+  "scenarios": [
+    "SC_APB_REGS",
+    "SC_VALID_SINGLE_PACKET",
+    "SC_DROP_WRONG_VENDOR",
+    "SC_MULTI_PACKET",
+    "SC_INTERLEAVE_TWO",
+    "SC_SEQ_ERROR",
+    "SC_INTERLEAVED_TAGS",
+    "SC_CONTEXT_FULL"
+  ]
+}
