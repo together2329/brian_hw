@@ -312,7 +312,14 @@ export const Workspace = ({
       height: '100%', overflow: 'hidden',
     }}>
       <WorkflowReadyOverlay state={workflowReady} />
-      {renderWorkspaceLeftRail(ws)}
+      {/* Hand the helper the COMPOSER-derived effLeftW/effRightW. The raw `ws`
+          bag has no effLeftW key (neither hook returns it — it is computed
+          locally at the effLeftW const above), so renderWorkspaceLeftRail's
+          `effLeftW > 0` gate would read `undefined > 0` === false and collapse
+          the entire left panel to the empty grid cell while the grid still
+          reserves ${leftW}px — i.e. a present-but-blank left column. Inject the
+          resolved widths so the gate sees the real number. */}
+      {renderWorkspaceLeftRail({ ...ws, effLeftW, effRightW })}
 
       {/* LEFT ↔ CENTER splitter — keep visible at 0px so collapsed panels can reopen. */}
       <Splitter width={leftW} side="left" onResize={setLeftW} onToggle={toggleLeft} />
