@@ -114,6 +114,14 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     streamBufferRef,
     inputRef,
     feedRef,
+    // Composer-owned (lifted into workspace-root.tsx). Previously this hook
+    // OWNED the useState for both, but useWorkspaceSession needs their setters
+    // and runs first, so the composer now owns them and threads them into both
+    // hooks. Re-surfaced in this hook's return for the JSX destructure.
+    streamText,
+    setStreamText,
+    mainTab,
+    setMainTab,
     intent,
     switchIntent,
     resolveSession,
@@ -127,6 +135,9 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     // submitMsg dispatch-hub primitives (now typed; no `deps as any` cast).
     workflowReady,
     switchGateRef,
+    setWorkflowReady,
+    clearWorkflowReadyTimers,
+    workflowReadySeqRef,
     sendPrompt,
     appendLiveFeedEntries,
     inputRouteState,
@@ -202,7 +213,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   }, []);
 
   const [peerCount, setPeerCount] = useState<number>(1);
-  const [streamText, setStreamText] = useState<string>('');
+  // streamText is composer-owned now (destructured from deps above).
 
   // streaming is owned by the composer (shared with the session half) but the
   // ref-sync + window-broadcast side effects live here next to the chat feed,
@@ -256,7 +267,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   const [collapsedFileDirs, setCollapsedFileDirs] = useState<Set<string>>(() => new Set());
 
   const [rightTab, setRightTab] = useState<string>('todo'); // todo | progress | git
-  const [mainTab, setMainTab] = useState<string>('chat');
+  // mainTab is composer-owned now (destructured from deps above).
   const [previewPath, setPreviewPath] = useState<any>(() => loadStoredPreviewPath());
   const [fileContextMenu, setFileContextMenu] = useState<any>(null);
   useEffect(() => {
@@ -750,10 +761,38 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
         }
       }
       refreshChatSession(sid);
+      // SERVER-DRIVEN SWITCH GATE REOPEN (the active-blocker fix).
+      // The client switch path (switchWorkflow -> beginWorkflowReady ->
+      // finishWorkflowReady) is the ONLY path that drives the synchronous
+      // switch-gate ready again. A SERVER-announced workflow switch (surfaced as
+      // "Workflow switched to X (was Y)") reaches the Workspace ONLY through this
+      // atlas-session-switched handler, which previously updated UI state but
+      // never touched the gate. If the gate is still 'switching' (e.g. a CLIENT
+      // beginSwitch is in flight and the server now confirms, OR a stale
+      // overlay), markReady() never fires and the first prompt typed after the
+      // switch is HELD forever (drain only runs once the gate is ready AND the
+      // overlay clears). Reopen the gate here exactly once and clear the overlay
+      // so the held-input replay effect drains in FIFO order.
+      const gate = switchGateRef && switchGateRef.current;
+      if (gate && typeof gate.isSwitching === 'function' && gate.isSwitching()) {
+        // Bump the seq FIRST so any in-flight stale client dismiss/fail timer
+        // (which is seq-guarded against workflowReadySeqRef.current) becomes a
+        // no-op and cannot re-close or re-open the gate behind us — keeping the
+        // single markReady() below authoritative.
+        if (workflowReadySeqRef && workflowReadySeqRef.current != null) {
+          workflowReadySeqRef.current = (Number(workflowReadySeqRef.current) || 0) + 1;
+        }
+        if (typeof clearWorkflowReadyTimers === 'function') clearWorkflowReadyTimers();
+        // markReady() preserves held pending for the replay drain; fires once.
+        if (typeof gate.markReady === 'function') gate.markReady();
+        // Clear the overlay so the held-input replay effect (gated on
+        // !workflowReady) can fire and drain the FIFO.
+        if (typeof setWorkflowReady === 'function') setWorkflowReady(null);
+      }
     };
     window.addEventListener('atlas-session-switched', onSessionSwitched);
     return () => window.removeEventListener('atlas-session-switched', onSessionSwitched);
-  }, [activeIp, setOrchestratorInputRoute, setWorkflowDispatchInputRoute]);
+  }, [activeIp, setOrchestratorInputRoute, setWorkflowDispatchInputRoute, switchGateRef, setWorkflowReady, clearWorkflowReadyTimers, workflowReadySeqRef]);
 
   // Hydrate the chat feed from the active conversation.json.
   useEffect(() => {

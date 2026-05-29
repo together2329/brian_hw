@@ -49,6 +49,14 @@ export interface WorkspaceDataDeps {
   streamBufferRef: { current: any };
   inputRef: { current: any };
   feedRef: { current: any };
+  // Composer-owned (lifted into workspace-root.tsx so useWorkspaceSession, which
+  // runs first, can receive the setters in its deps). The data hook reads these
+  // off deps instead of owning the useState, then re-surfaces them in its return
+  // for the JSX destructure + chatFeedSummary memo.
+  streamText: string;
+  setStreamText: (updater: any) => void;
+  mainTab: string;
+  setMainTab: (updater: any) => void;
   intent: any;
   switchIntent: (i: any) => void;
   resolveSession: (...candidates: any[]) => string;
@@ -67,6 +75,15 @@ export interface WorkspaceDataDeps {
   // the cast can be dropped and tsc verifies the composer threads each one.
   workflowReady: any;
   switchGateRef: { current: any };
+  // Workflow-ready overlay controls (session-hook owned). The data hook drives
+  // these from onSessionSwitched: a SERVER-announced workflow switch must reopen
+  // the synchronous switch-gate (markReady) and clear the overlay so held input
+  // drains — the client-only beginWorkflowReady->finishWorkflowReady lifecycle
+  // never runs for a server-driven switch, so without this the gate stays
+  // 'switching' and the first post-switch prompt is held forever.
+  setWorkflowReady: (updater: any) => void;
+  clearWorkflowReadyTimers: () => void;
+  workflowReadySeqRef: { current: any };
   sendPrompt: (text: any, sessionOverride?: any) => any;
   appendLiveFeedEntries: (entries: any) => void;
   inputRouteState: any;

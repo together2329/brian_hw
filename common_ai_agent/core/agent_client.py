@@ -69,6 +69,168 @@ def _single_worker_mode_enabled() -> bool:
     return current_exec_mode(os.environ) == EXEC_MODE_SINGLE
 
 
+# ── IPC/portless transport routing ──────────────────────────────────
+# In single-worker IPC ("portless") transport ATLAS never opens a worker
+# HTTP port (5601 etc.) — workflow jobs run as IPC subprocesses instead. The
+# HTTP-only worker_call/worker_call_all would otherwise dead-end with
+# "Connection refused". We detect that mode and route agent-type / plain
+# tasks to the in-process subagent, returning an actionable error for tasks
+# that genuinely need a workflow worker.
+
+_BUILTIN_LOCAL_WORKER_URLS = {
+    SINGLE_WORKER_URL.rstrip("/"),
+    "http://localhost:8001",
+    "http://127.0.0.1:8001",
+}
+
+
+def _ipc_transport_active() -> bool:
+    mode = (
+        os.environ.get("ATLAS_WORKER_TRANSPORT", "")
+        or os.environ.get("ATLAS_WORKER_DISPATCH_TRANSPORT", "")
+        or os.environ.get("ATLAS_WORKER_DISPATCH_MODE", "")
+    ).strip().lower().replace("_", "-")
+    return mode in ("ipc", "process", "subprocess", "portless")
+
+
+def _is_external_url(worker: str) -> bool:
+    """True for an explicit http(s) URL that is NOT a built-in local worker
+    endpoint — i.e. an external fleet the caller chose deliberately, which we
+    must not override."""
+    w = str(worker or "").strip().rstrip("/")
+    if not (w.startswith("http://") or w.startswith("https://")):
+        return False
+    if w in _BUILTIN_LOCAL_WORKER_URLS:
+        return False
+    for port in _DEFAULT_WORKER_PORTS.values():
+        if w in (f"http://127.0.0.1:{port}", f"http://localhost:{port}"):
+            return False
+    return True
+
+
+def _worker_target_kind(worker: str, workflow: str = "") -> str:
+    """Classify an IPC-mode worker_call target: 'workflow' (needs a real
+    workflow worker → unavailable portless) or 'in-process' (agent-type /
+    plain task → runnable as an in-process subagent)."""
+    if str(workflow or "").strip():
+        return "workflow"
+    name = str(worker or "").strip()
+    low = name.lower().rstrip("/")
+    if low.startswith("http://") or low.startswith("https://"):
+        for port in _DEFAULT_WORKER_PORTS.values():
+            if low in (f"http://127.0.0.1:{port}", f"http://localhost:{port}"):
+                return "workflow"
+        return "in-process"
+    if name in _DEFAULT_WORKER_PORTS:
+        return "workflow"
+    return "in-process"
+
+
+def _ipc_error_result(error: str, *, routed: str = "", started: float = 0.0) -> Dict:
+    return {
+        "status": "error",
+        "result": "",
+        "files_modified": [],
+        "files_examined": [],
+        "iterations": 0,
+        "execution_time_ms": int((time.time() - started) * 1000) if started else 0,
+        "error": error,
+        "routed": routed,
+    }
+
+
+def _ipc_workflow_error(worker: str, workflow: str) -> Dict:
+    wf = str(workflow or worker or "").strip() or "?"
+    return _ipc_error_result(
+        (
+            f"worker_call has no HTTP worker to reach in this run "
+            f"(ATLAS_WORKER_TRANSPORT=ipc — single-worker portless mode never "
+            f"opens worker ports such as {SINGLE_WORKER_URL}). Workflow '{wf}' "
+            f"must be dispatched through the pipeline / IPC job path "
+            f"(e.g. pipeline_execute), not worker_call. To use HTTP workers, "
+            f"relaunch with ATLAS_WORKER_TRANSPORT=http ATLAS_SINGLE_WORKER_EAGER=1. "
+            f"For an in-process subagent, pass worker='explore'/'review'/'execute' "
+            f"or use background_task(agent=...)."
+        ),
+        routed="ipc-workflow-unavailable",
+    )
+
+
+def _run_worker_in_process(
+    worker: str,
+    task: str,
+    *,
+    model: str = "",
+    workflow: str = "",
+    reasoning_effort: str = "",
+    system_prompt: str = "",
+    allowed_tools: Any = None,
+    custom_agent: str = "",
+    custom_agent_owner_id: str = "",
+    timeout: int = 600,
+) -> Dict:
+    """Run an agent-type worker_call as an in-process subagent (no HTTP worker
+    needed). Used when ATLAS_WORKER_TRANSPORT=ipc, where the legacy HTTP
+    worker_call path would otherwise fail with Connection refused."""
+    started = time.time()
+    try:
+        from core.agent_runner import run_agent_session
+        from core.custom_agents import BASE_AGENTS, runtime_overrides_for_effort
+        try:
+            import config
+        except ModuleNotFoundError:  # pragma: no cover - package import fallback
+            from src import config  # type: ignore
+        from contextlib import nullcontext
+    except Exception as exc:  # pragma: no cover - import guard
+        return _ipc_error_result(
+            f"in-process worker route unavailable: {exc}",
+            routed="in-process-import-error", started=started,
+        )
+
+    name = str(worker or "").strip()
+    agent_name = name if name in BASE_AGENTS else "execute"
+
+    tools_set = None
+    if allowed_tools:
+        if isinstance(allowed_tools, (set, list, tuple)):
+            tools_set = {str(t).strip() for t in allowed_tools if str(t).strip()}
+        elif isinstance(allowed_tools, str):
+            tools_set = {t.strip() for t in allowed_tools.split(",") if t.strip()}
+
+    try:
+        model_ctx = config.scoped_model_runtime(model) if model else nullcontext()
+        extra = runtime_overrides_for_effort(reasoning_effort) if reasoning_effort else {}
+        with model_ctx, config.scoped_runtime_extra(extra):
+            active_model = getattr(config, "MODEL_NAME", model) if model else None
+            res = run_agent_session(
+                agent_name=agent_name,
+                prompt=task,
+                model_override=active_model,
+                allowed_tools=tools_set,
+                system_prompt=system_prompt or None,
+                workflow_name=str(workflow or ""),
+                verbose=getattr(config, "DEBUG_MODE", False),
+            )
+    except Exception as exc:
+        import traceback
+        return _ipc_error_result(
+            f"in-process worker failed: {exc}\n{traceback.format_exc()}",
+            routed="in-process-subagent", started=started,
+        )
+
+    return {
+        "status": res.status,
+        "result": res.output,
+        "files_modified": list(res.files_modified or []),
+        "files_examined": list(res.files_examined or []),
+        "iterations": res.iterations,
+        "execution_time_ms": res.execution_time_ms,
+        "error": res.error or "",
+        "routed": "in-process-subagent",
+        "worker": agent_name,
+    }
+
+
 def _workflow_env_suffix(workflow: str) -> str:
     return str(workflow or "").strip().upper().replace("-", "_")
 
@@ -184,6 +346,22 @@ def worker_call(
         Dict with keys: status, result, files_modified, files_examined,
                         iterations, execution_time_ms, error
     """
+    worker_arg = str(worker or "").strip()
+
+    # ── IPC/portless transport: no worker HTTP port is ever opened, so a raw
+    # worker_call would dead-end (e.g. http://127.0.0.1:5601 → Connection
+    # refused). Route agent-type / plain tasks to the in-process subagent;
+    # surface an actionable error for tasks that need a workflow worker.
+    if _ipc_transport_active() and not _is_external_url(worker_arg):
+        if _worker_target_kind(worker_arg, workflow) == "in-process":
+            return _run_worker_in_process(
+                worker_arg, task, model=model, workflow=workflow,
+                reasoning_effort=reasoning_effort, system_prompt=system_prompt,
+                allowed_tools=allowed_tools, custom_agent=custom_agent,
+                custom_agent_owner_id=custom_agent_owner_id, timeout=timeout,
+            )
+        return _ipc_workflow_error(worker_arg, workflow)
+
     worker = _resolve_worker(worker).rstrip("/")
     start_time = time.time()
 
@@ -420,8 +598,10 @@ def worker_call_all(
         else:
             name = str(w)
             url = ""
-        if not url:
+        if not url and not _ipc_transport_active():
             url = _resolve_worker(name)
+        # In IPC/portless transport leave url empty so worker_call routes by
+        # name to the in-process subagent (no HTTP worker exists to resolve to).
         targets.append({"name": name, "url": url})
 
     def _dispatch_one(w: dict) -> dict:
@@ -429,7 +609,7 @@ def worker_call_all(
         start = time.time()
         try:
             result = worker_call(
-                worker=w["url"],
+                worker=w["url"] or w["name"],
                 task=task,
                 model=model,
                 timeout=timeout,

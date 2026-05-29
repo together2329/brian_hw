@@ -39,7 +39,7 @@ import {
   WorkflowReportPane,
 } from './workspace-git-diff';
 import { TodoEditorPane } from './workspace-todo';
-import { useWorkspaceSession } from './workspace-root-session-hook';
+import { useWorkspaceSession, type UseWorkspaceSessionDeps } from './workspace-root-session-hook';
 import { useWorkspaceData, type WorkspaceDataDeps } from './workspace-root-data-hook';
 import {
   renderWorkspaceLeftRail,
@@ -111,21 +111,28 @@ export const Workspace = ({
   const streamBufferRef = useRef<string>('');
   const inputRef = useRef<any>(null);
   const feedRef = useRef<any>(null);
+  // streamText + mainTab were previously OWNED by useWorkspaceData, but
+  // useWorkspaceSession (which runs FIRST) needs their setters in its deps
+  // (handleSwitchSession clears streamText; switchWorkflow flips mainTab). The
+  // data hook can't supply them at the session-hook call site — it hasn't run
+  // yet (circular ordering). So they are lifted here next to streaming and
+  // threaded into BOTH dep bags, exactly the composer-owned pattern the comment
+  // at the top of this block describes. This is what lets sessionDeps be typed
+  // as UseWorkspaceSessionDeps instead of `any`.
+  const [streamText, setStreamText] = useState<string>('');
+  const [mainTab, setMainTab] = useState<string>('chat');
 
-  const sessionDeps: any = {
-    dir,
-    onScreen,
+  const sessionDeps: UseWorkspaceSessionDeps = {
     uiLang,
     activeNamespace,
     activeWorkflow,
-    streaming,
     setStreaming,
     streamingRef,
     streamBufferRef,
-    inputRef,
-    feedRef,
+    setStreamText,
+    setMainTab,
   };
-  const session = useWorkspaceSession(sessionDeps as any);
+  const session = useWorkspaceSession(sessionDeps);
 
   // Data hook: SSOT/QA boards, worker progress, telemetry, file tree, tab
   // visibility flags, and the bound render helpers (renderChatPane/
@@ -152,7 +159,14 @@ export const Workspace = ({
     streamBufferRef,
     inputRef,
     feedRef,
-  }), [session, dir, activeNamespace, streaming]);
+    // Composer-owned (lifted above) so the session hook can receive the setters
+    // in its deps despite running first. The data hook reads the state/setters
+    // off deps and re-surfaces them in its return for the JSX destructure.
+    streamText,
+    setStreamText,
+    mainTab,
+    setMainTab,
+  }), [session, dir, activeNamespace, streaming, streamText, mainTab]);
   const data = useWorkspaceData(dataDeps);
 
   // Merge the two hook surfaces so destructuring below reads from one bag.

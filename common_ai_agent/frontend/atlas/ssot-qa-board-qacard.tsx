@@ -18,7 +18,7 @@
 //
 // Load order (index.html): BEFORE ssot-qa-board.tsx. The main component reads
 // QaCard + the helpers through the transitional window bridges.
-import { useRef, useState, type CSSProperties, type KeyboardEvent, type MouseEvent } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type MouseEvent } from 'react';
 
 import type { SsotQaStrings } from './ssot-qa-board-i18n';
 
@@ -214,10 +214,28 @@ export function QaCard({
   // landed). Holds the i18n message to show, or '' when idle.
   const [sentFeedback, setSentFeedback] = useState('');
   const sentTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // The parent flips to the chat tab immediately after a submit, which can
+  // unmount this card while the 4s feedback timer is still pending. Guard the
+  // deferred setState with a mounted ref and clear the timer on unmount so we
+  // never call setSentFeedback() after the component is gone.
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      if (sentTimerRef.current) {
+        clearTimeout(sentTimerRef.current);
+        sentTimerRef.current = null;
+      }
+    };
+  }, []);
   const flashSent = (message: string): void => {
     setSentFeedback(message);
     if (sentTimerRef.current) clearTimeout(sentTimerRef.current);
-    sentTimerRef.current = setTimeout(() => setSentFeedback(''), 4000);
+    sentTimerRef.current = setTimeout(() => {
+      sentTimerRef.current = null;
+      if (mountedRef.current) setSentFeedback('');
+    }, 4000);
   };
   // Read the optional backend connection-state getter defensively. Returns
   // 'open' (lowercase) when the websocket is live; anything else means the
