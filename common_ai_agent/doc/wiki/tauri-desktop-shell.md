@@ -39,25 +39,38 @@ to the Python backend**.
 
 ## Run / verify
 
+Already done in-repo: `@tauri-apps/{cli,api}` are in `frontend/atlas/package.json`
+devDeps, the icon set is generated, and a release `ATLAS.app` has been built and
+verified. On a fresh checkout:
+
 ```bash
-# 1. install the Tauri CLI (prebuilt binary) + JS API
-cd common_ai_agent/frontend/atlas
-npm install -D @tauri-apps/cli@^2 @tauri-apps/api@^2
+# 0. install node deps (pulls the Tauri CLI binary into node_modules/.bin)
+(cd common_ai_agent/frontend/atlas && npm install)
 
-# 2. prove the Rust shell compiles (first build downloads ~400 crates; 5-12 min)
-cd ../../src-tauri
-cargo check        # type/borrow check — the compile proof
-cargo build        # links target/debug/atlas-desktop
+# 1. (optional) prove the Rust shell compiles — first build pulls ~400 crates (~2 min)
+(cd common_ai_agent/src-tauri && cargo check)
 
-# 3. live run — start the backend first (separate shell), then launch the shell
-#    python -m src.atlas_runtime_run --port 3000        # (or your usual launcher)
-cd ../frontend/atlas
-npx tauri dev --config ../../src-tauri/tauri.conf.json
-#    (or, with a root tauri script, `npm run tauri dev`)
+# 2. RUN the desktop window. It loads http://localhost:3000, so the ATLAS
+#    backend must be serving there first (see below). One command:
+common_ai_agent/scripts/run_atlas_desktop.sh          # tauri dev — opens the window
+common_ai_agent/scripts/run_atlas_desktop.sh --prod   # open the pre-built .app
 
-# 4. package a .app/.dmg (needs a real icon; see Deferred)
-npx tauri build --config ../../src-tauri/tauri.conf.json
+# 3. build the runnable .app yourself (app-only target, ~2 min release compile):
+(cd common_ai_agent && frontend/atlas/node_modules/.bin/tauri build)
+#    -> src-tauri/target/release/bundle/macos/ATLAS.app   (double-clickable)
 ```
+
+Start the backend before launching the window — e.g. to show the new Vite
+frontend (+ gpt-5.5):
+
+```bash
+ATLAS_FRONTEND_MODE=vite <your atlas server launch command> --model gpt-5.5
+```
+
+> `bundle.targets` is `["app"]` (not `dmg`): the `.app` is the runnable artifact.
+> `tauri build`'s `.dmg` step (`bundle_dmg.sh`) needs a GUI Finder/AppleScript
+> session and fails headless — DMG/installer packaging is part of the deferred
+> distribution pass (with signing + notarization).
 
 ## Deferred to a later architecture pass (kept out of the MVP on purpose)
 
