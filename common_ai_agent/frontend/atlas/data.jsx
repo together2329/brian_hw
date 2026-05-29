@@ -1023,15 +1023,20 @@
           );
           const resetCounters = scopeChanged || rejectedDifferentIp;
           const keep = (value) => (resetCounters ? 0 : value);
-          const stable = (key, value) => {
+          const stable = (key, value, monotonic = true) => {
             if (!acceptHealthCounters) return keep(Number(_prev[key] || 0));
             const next = Number(value || 0);
             if (resetCounters) return next;
+            // Live levels (e.g. context tokens) DROP after history compression, so
+            // they must take the latest value, not a monotonic Math.max clamp
+            // (which froze the Context meter post-compression). Cumulative usage/
+            // cost counters stay monotonic.
+            if (!monotonic) return Number.isFinite(next) ? next : Number(_prev[key] || 0);
             const prev = Number(_prev[key] || 0);
             return Number.isFinite(next) ? Math.max(prev, next) : prev;
           };
           return {
-            tokens: (d.tokens != null) ? stable('tokens', d.tokens) : keep(Number(_prev.tokens || 0)),
+            tokens: (d.tokens != null) ? stable('tokens', d.tokens, false) : keep(Number(_prev.tokens || 0)),
             tokensIn: (d.tokens_in != null) ? stable('tokensIn', d.tokens_in) : keep(Number(_prev.tokensIn || 0)),
             tokensCache: (d.tokens_cache != null) ? stable('tokensCache', d.tokens_cache) : keep(Number(_prev.tokensCache || 0)),
             tokensOut: (d.tokens_out != null) ? stable('tokensOut', d.tokens_out) : keep(Number(_prev.tokensOut || 0)),
