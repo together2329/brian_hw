@@ -84,7 +84,7 @@ export interface WorkspaceDataDeps {
   setWorkflowReady: (updater: any) => void;
   clearWorkflowReadyTimers: () => void;
   workflowReadySeqRef: { current: any };
-  sendPrompt: (text: any, sessionOverride?: any) => any;
+  sendPrompt: (text: any, sessionOverride?: any, msgIdOverride?: any) => any;
   appendLiveFeedEntries: (entries: any) => void;
   inputRouteState: any;
   inputRouteRef: { current: any };

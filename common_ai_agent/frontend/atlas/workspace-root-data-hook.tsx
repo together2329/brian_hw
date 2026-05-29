@@ -315,6 +315,12 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   // ── Input + input history ───────────────────────────────────────
   const [input, setInput] = useState<string>('');
   const heldSubmitRef = useRef<any>(null);
+  // BUG A: when the held-input replay re-fires an ack-miss hold, this carries the
+  // ORIGINAL send's msg_id so the re-entered submitMsg threads it into sendPrompt
+  // (re-send under the same id → backend has_msg_id dedup collapses the duplicate
+  // instead of executing the prompt twice). Consumed-and-cleared at the sendPrompt
+  // call sites; null for every non-replay submit.
+  const replayMsgIdRef = useRef<any>(null);
   // Optimistic run-start arming: set true after a confirmed prompt send so the
   // agent_state handler doesn't swallow the backend's first running:false before
   // the agent actually starts. (workspace.jsx L2737-L2738 component-scope refs.)
@@ -1406,6 +1412,13 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     const raw = String(cmd ?? input).trim();
     if (!raw) return;
 
+    // BUG A: read-and-clear the replay msg_id for THIS dispatch. Set only by the
+    // held-input replay when re-firing an ack-miss hold; threaded into sendPrompt
+    // so the re-send reuses the original msg_id (backend dedup collapses the dup).
+    // Cleared immediately so a fresh submit in the same tick can't inherit it.
+    const replayMsgId = replayMsgIdRef.current;
+    replayMsgIdRef.current = null;
+
     const clearSubmittedInput = () => {
       recordInputHistory(raw);
       setInput((cur: any) => {
@@ -1416,8 +1429,14 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       });
       setShowSlash(false);
     };
-    const holdSubmittedInput = (reason: string) => {
-      heldSubmitRef.current = { raw, cmd, createdAt: Date.now() };
+    const holdSubmittedInput = (reason: string, opts?: { msgId?: any }) => {
+      // msgId is set ONLY for an ack-miss hold (the prompt WAS sent under a
+      // concrete msg_id but the worker dropped it / never confirmed). The replay
+      // re-fires under that SAME msg_id so the backend's per-session has_msg_id
+      // dedup collapses the duplicate — closing BUG A's double-execution race.
+      // A backend-down / switch hold was never sent, so it carries no msgId and
+      // the replay mints a fresh id as usual.
+      heldSubmitRef.current = { raw, cmd, createdAt: Date.now(), msgId: opts?.msgId || null };
       setInput((cur: any) => {
         const curText = String(cur || '').trim();
         return curText ? cur : raw;
@@ -1437,7 +1456,11 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       return backendState || 'unknown';
     };
     const backendReadyForPrompt = () => w.backend && promptBackendState() === 'open';
-    const waitForPromptAck = (sent: any, onAck: (e: any) => void, onMiss: (r: any) => void) => {
+    // onMiss receives the reason AND the original msg_id (when one exists) so the
+    // held-input replay can re-fire under the SAME msg_id. The id is only present
+    // for a prompt that actually reached backend.send (sent.ok === true with a
+    // sent.msg_id) — i.e. the worker dropped it or never confirmed delivery.
+    const waitForPromptAck = (sent: any, onAck: (e: any) => void, onMiss: (r: any, msgId?: any) => void) => {
       if (!sent || sent.ok === false) {
         onMiss(sent?.error || backendState || 'unknown');
         return;
@@ -1451,11 +1474,14 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
           onAck(ack.event || ack);
           return;
         }
-        onMiss((ack && ack.error) || 'backend did not acknowledge receipt');
+        onMiss((ack && ack.error) || 'backend did not acknowledge receipt', sent.msg_id);
       });
     };
-    const holdUnacknowledgedInput = (reason: string) => {
-      holdSubmittedInput(`Input not confirmed. ${reason || 'Backend did not acknowledge receipt'}; kept it in the input box.`);
+    const holdUnacknowledgedInput = (reason: string, msgId?: any) => {
+      holdSubmittedInput(
+        `Input not confirmed. ${reason || 'Backend did not acknowledge receipt'}; kept it in the input box.`,
+        { msgId },
+      );
     };
 
     // Race fix: read the synchronous gate FIRST. workflowReady is React state and
@@ -1887,7 +1913,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
         return;
       }
       const busyState = slashBusyForRaw(raw);
-      const sent = sendPrompt(raw);
+      const sent = sendPrompt(raw, undefined, replayMsgId);
       if (!sent || sent.ok === false) {
         if (busyState) setCommandBusy(null);
         holdSubmittedInput(`Input held. Backend is not ready (${sent?.error || backendState || 'unknown'}); it will send automatically if unchanged.`);
@@ -1900,9 +1926,9 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
           clearSubmittedInput();
           setFeed((f: any) => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
         },
-        (reason: any) => {
+        (reason: any, msgId?: any) => {
           if (busyState) setCommandBusy(null);
-          holdUnacknowledgedInput(reason);
+          holdUnacknowledgedInput(reason, msgId);
         },
       );
       return;
@@ -1912,7 +1938,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       holdSubmittedInput(`Input held. Backend is ${promptBackendState()}; it will send automatically if unchanged.`);
       return;
     }
-    const sent = sendPrompt(raw);
+    const sent = sendPrompt(raw, undefined, replayMsgId);
     if (!sent || sent.ok === false) {
       holdSubmittedInput(`Input held. Backend is not ready (${sent?.error || backendState || 'unknown'}); it will send automatically if unchanged.`);
       return;
@@ -1997,13 +2023,19 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       // matches it. A switch hold already lives in the FIFO, so we skip it here
       // to avoid a duplicate send.
       if (latest && !fifo.length && String(input || '').trim() === latest.raw) {
-        fifo.push({ text: latest.raw, meta: { cmd: latest.cmd ?? null } });
+        // Carry the ack-miss hold's ORIGINAL msg_id so the re-fire below re-sends
+        // under the same id (BUG A: backend has_msg_id dedup collapses the dup).
+        fifo.push({ text: latest.raw, meta: { cmd: latest.cmd ?? null, msgId: latest.msgId || null } });
       }
       for (const m of fifo) {
         const meta = (m && m.meta) || {};
         const replayCmd = meta.cmd != null ? meta.cmd : (m ? m.text : undefined);
+        // Switch-hold FIFO entries were never sent (no msgId) → submitMsg mints a
+        // fresh id. Only an ack-miss replay carries the original id to reuse.
+        replayMsgIdRef.current = meta.msgId || null;
         submitMsg(replayCmd);
       }
+      replayMsgIdRef.current = null;
     }, 80);
     return () => clearTimeout(timer);
   }, [backendState, input, workflowReady, submitMsg, switchGateRef]);

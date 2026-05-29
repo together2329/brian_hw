@@ -617,9 +617,25 @@ export const Workspace = ({
                     // carry a msg_id — a bare send is silently lost if a warming
                     // worker drops it). sendPrompt generates the msg_id, builds
                     // the ack Promise, and emits {type:'prompt', msg_id, ...}.
+                    // BUG C: capture sendPrompt's return. If the send misses
+                    // (backend unavailable / send threw), surface a feed warning
+                    // instead of silently dropping the QA answer — mirroring the
+                    // chat hub's submitMsg, which re-holds on !sent.ok. We keep this
+                    // minimal (a notice, not a full hold/replay) per the QA path's
+                    // simpler contract.
+                    let sent: any = null;
                     try {
-                      sendPrompt(payload, sessionName);
-                    } catch (_) {}
+                      sent = sendPrompt(payload, sessionName);
+                    } catch (e: any) {
+                      sent = { ok: false, error: String((e && e.message) || e) };
+                    }
+                    if (!sent || sent.ok === false) {
+                      setFeed((f: any[]) => [...f, {
+                        kind: 'agent',
+                        text: `Answer not delivered (${sent?.error || 'backend not ready'}) — please resend.`,
+                        createdAt: Date.now(),
+                      }]);
+                    }
                     setMainTab('chat');
                   }}
                 />

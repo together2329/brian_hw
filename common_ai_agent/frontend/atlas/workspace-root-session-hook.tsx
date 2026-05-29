@@ -206,6 +206,17 @@ export function useWorkspaceSession(deps: UseWorkspaceSessionDeps) {
           ? { ...current, phase: 'ready', message: 'Ready timeout reached; input is enabled' }
           : current
       ));
+      // BUG B: workflowReadyTimeoutRef is a SINGLE shared slot. If an overlapping
+      // switch A resolved after switch B armed this net, A's finish/fail cleared B's
+      // timer out of the shared slot — so dismissWorkflowReady's deferred markReady
+      // may never run, and if B's continuation fetch never settles the gate is stuck
+      // 'switching' forever. Give the LIVE switch a seq-guarded, direct reopen here so
+      // the synchronous gate is guaranteed to reopen at the deadline regardless of the
+      // shared-slot clobber. The seq guard (mirroring failWorkflowReady L178) preserves
+      // the deliberate suppression of stale reopens — only the current owner reopens.
+      if (workflowReadySeqRef.current === seq && switchGateRef.current) {
+        switchGateRef.current.markReady();
+      }
       dismissWorkflowReady(seq, 1000);
       workflowReadyTimeoutRef.current = null;
     }, WORKFLOW_READY_TIMEOUT_MS);
@@ -473,7 +484,7 @@ export function useWorkspaceSession(deps: UseWorkspaceSessionDeps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resolveSession, setChatViewSession]);
 
-  const sendPrompt = useCallback((text: any, sessionOverride?: any) => {
+  const sendPrompt = useCallback((text: any, sessionOverride?: any, msgIdOverride?: any) => {
     if (!w.backend || typeof w.backend.send !== 'function') {
       return { ok: false, error: 'backend unavailable' };
     }
@@ -519,16 +530,23 @@ export function useWorkspaceSession(deps: UseWorkspaceSessionDeps) {
     // crypto.randomUUID is secure-context only (localhost / https).
     // Accessing it from http://<lan-ip>/ throws — fall back to
     // getRandomValues, which IS available in non-secure contexts.
-    let msg_id;
-    try {
-      msg_id = window.crypto.randomUUID();
-    } catch (_) {
-      const b = new Uint8Array(16);
-      window.crypto.getRandomValues(b);
-      b[6] = (b[6] & 0x0f) | 0x40;
-      b[8] = (b[8] & 0x3f) | 0x80;
-      const h = Array.from(b, x => x.toString(16).padStart(2, '0'));
-      msg_id = `${h.slice(0, 4).join('')}-${h.slice(4, 6).join('')}-${h.slice(6, 8).join('')}-${h.slice(8, 10).join('')}-${h.slice(10, 16).join('')}`;
+    //
+    // msgIdOverride: a held-input REPLAY (ack-miss re-fire) passes the ORIGINAL
+    // send's msg_id so the backend's per-session has_msg_id dedup collapses the
+    // replay against the first send — preventing the double-execution race where
+    // a fresh msg_id would slip past dedup if the worker warmed up in between.
+    let msg_id = String(msgIdOverride || '').trim();
+    if (!msg_id) {
+      try {
+        msg_id = window.crypto.randomUUID();
+      } catch (_) {
+        const b = new Uint8Array(16);
+        window.crypto.getRandomValues(b);
+        b[6] = (b[6] & 0x0f) | 0x40;
+        b[8] = (b[8] & 0x3f) | 0x80;
+        const h = Array.from(b, x => x.toString(16).padStart(2, '0'));
+        msg_id = `${h.slice(0, 4).join('')}-${h.slice(4, 6).join('')}-${h.slice(6, 8).join('')}-${h.slice(8, 10).join('')}-${h.slice(10, 16).join('')}`;
+      }
     }
     let cancelAckWait: any = null;
     const ack = (() => {
