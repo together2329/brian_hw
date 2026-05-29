@@ -3360,6 +3360,31 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         }
       }
       refreshChatSession(sid);
+      // SERVER-DRIVEN SWITCH GATE REOPEN (the active-blocker fix).
+      // The client switch path (switchWorkflow -> beginWorkflowReady ->
+      // finishWorkflowReady) is the ONLY path that drives the synchronous
+      // switch-gate ready again. A SERVER-announced workflow switch (surfaced as
+      // "Workflow switched to X (was Y)") reaches the Workspace ONLY through this
+      // atlas-session-switched handler, which previously updated UI state but
+      // never touched the gate. If the gate is still 'switching' (e.g. a CLIENT
+      // beginSwitch is in flight and the server now confirms, OR a stale
+      // overlay), markReady() never fires and the first prompt typed after the
+      // switch is HELD forever (drain only runs once the gate is ready AND the
+      // overlay clears). Reopen the gate here exactly once and clear the overlay
+      // so the held-input replay effect drains in FIFO order.
+      const gate = switchGateRef && switchGateRef.current;
+      if (gate && typeof gate.isSwitching === 'function' && gate.isSwitching()) {
+        // Bump the seq FIRST so any in-flight stale client dismiss/fail timer
+        // (seq-guarded against workflowReadySeqRef.current) becomes a no-op and
+        // cannot re-close or re-open the gate behind us — keeping the single
+        // markReady() below authoritative.
+        if (workflowReadySeqRef && workflowReadySeqRef.current != null) {
+          workflowReadySeqRef.current = (Number(workflowReadySeqRef.current) || 0) + 1;
+        }
+        if (typeof clearWorkflowReadyTimers === 'function') clearWorkflowReadyTimers();
+        if (typeof gate.markReady === 'function') gate.markReady();
+        setWorkflowReady(null);
+      }
     };
     window.addEventListener('atlas-session-switched', onSessionSwitched);
     return () => window.removeEventListener('atlas-session-switched', onSessionSwitched);

@@ -71,4 +71,53 @@ describe('switch-gate wiring (the .tsx live-app contract)', () => {
     gate.markReady();
     expect(gate.drain().map((m) => m.text)).toEqual(['held for a', 'held for b']);
   });
+
+  // ── CRITICAL #2: server-driven workflow switch reopens the gate ──────────
+  // Reproduces the onSessionSwitched reopening logic added to
+  // workspace-root-data-hook.tsx / workspace.jsx. A server-announced switch
+  // reaches the Workspace via the atlas-session-switched handler ONLY; the
+  // client beginWorkflowReady->finishWorkflowReady lifecycle does NOT run, so
+  // without this reopen the gate stays 'switching' and the first prompt after
+  // the switch is held forever.
+  const onServerSwitchReopen = (gate: ReturnType<typeof createSwitchGate>) => {
+    // Mirror of the handler: only reopen if the gate is still switching, and
+    // fire markReady() exactly once.
+    if (gate.isSwitching()) gate.markReady();
+  };
+
+  it('server-driven switch (no client finish) reopens the gate so route() is ready', () => {
+    const gate = createSwitchGate();
+    // A CLIENT beginSwitch is in flight (gate switching) and the user types a
+    // prompt in the one-frame window — it is HELD.
+    gate.beginSwitch('owner/ip/rtl_gen');
+    const held = consult(gate, 'first command after the switch');
+    expect(held.kind).toBe('held');
+    expect(gate.route().status).toBe('switching');
+
+    // The SERVER confirms the switch (atlas-session-switched). The client
+    // finishWorkflowReady never ran — only this server-driven reopen does.
+    onServerSwitchReopen(gate);
+
+    // Gate is READY again (route() reports the ready singleton, not switching).
+    expect(gate.route().status).toBe('ready');
+    expect(gate.isSwitching()).toBe(false);
+    // The held prompt is drainable for the FIFO replay (not eaten).
+    expect(gate.drain().map((m) => m.text)).toEqual(['first command after the switch']);
+    // Reopened gate now sends the next prompt straight through.
+    expect(consult(gate, 'next prompt').kind).toBe('send');
+  });
+
+  it('server reopen fires markReady exactly once and is a no-op when already ready', () => {
+    const gate = createSwitchGate();
+    gate.beginSwitch('owner/ip/lint');
+    consult(gate, 'held during server switch');
+    // First server confirmation reopens.
+    onServerSwitchReopen(gate);
+    expect(gate.isSwitching()).toBe(false);
+    // A second/late server event (or a duplicated dispatch) must NOT re-disturb
+    // the gate or drop the still-undrained held prompt.
+    onServerSwitchReopen(gate);
+    expect(gate.isSwitching()).toBe(false);
+    expect(gate.drain().map((m) => m.text)).toEqual(['held during server switch']);
+  });
 });
