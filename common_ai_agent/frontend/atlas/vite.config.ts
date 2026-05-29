@@ -25,9 +25,11 @@ export default defineConfig({
     outDir: 'dist',
     emptyOutDir: true,
     rollupOptions: {
+      // Relative to Vite root (the config dir, frontend/atlas — where the build
+      // runs). PORTABLE: no machine-absolute paths, no node-types dependency.
       input: {
-        index: '/Users/brian/Desktop/Project/brian_hw/common_ai_agent/frontend/atlas/index.vite.html',
-        lobby: '/Users/brian/Desktop/Project/brian_hw/common_ai_agent/frontend/atlas/lobby.vite.html',
+        index: 'index.vite.html',
+        lobby: 'lobby.vite.html',
       },
     },
   },
