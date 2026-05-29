@@ -17,11 +17,10 @@
 // sim-debug-panels.tsx. The `window.SimDebug = ...` bridge at the bottom is
 // preserved verbatim so the legacy mount points keep resolving the root.
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import type { ReactNode, CSSProperties, WheelEvent as ReactWheelEvent, MouseEvent as ReactMouseEvent } from 'react';
+import type { MouseEvent as ReactMouseEvent } from 'react';
 import {
   normalizeProjectSourcePath,
   stripSignalRange,
-  waveSignalMatches,
   buildWaveTraceList,
   buildVcdLineAnnotations,
   inferRtlTopFromVcd,
@@ -29,53 +28,21 @@ import {
   vcdPathBelongsToIp,
   atlasEventMatchesActiveSession,
 } from './sim-debug-helpers';
-import type { VcdData, VcdSignal, PinnedSignal } from './sim-debug-helpers';
-import {
-  CocotbTreeView,
-  SimSummaryPanel,
-  RangeInput,
-  SourceViewer,
-  HierarchyNode,
-  Splitter,
-} from './sim-debug-panels';
-
-// ── Cross-file globals owned by OTHER (unmigrated) files. Typed via a local
-// view of `window`; behavior identical to the legacy implicit globals. These
-// are workspace/data/wave primitives the root renders or reads at runtime.
-interface BackendBridge {
-  subscribe?: (event: string, cb: (m: any) => void) => (() => void) | void;
-  send?: (msg: { type: string; text: string }) => void;
-}
-interface SimDebugRootWindow {
-  ACTIVE_SESSION?: string;
-  backend?: BackendBridge;
-  parseVCD?: (content: string) => VcdData;
-  WAVE_TIME_START?: number;
-  WAVE_TIME_END?: number;
-  AtlasTitle: (...a: any[]) => any;
-  TimeRuler: (...a: any[]) => any;
-  WaveRow: (...a: any[]) => any;
-  WaveCursor: (...a: any[]) => any;
-  // This file's OWN public global (set via the transitional bridge below).
-  SimDebug?: (props?: SimDebugProps) => ReactNode;
-}
-const g = (typeof window !== 'undefined' ? window : ({} as Window)) as unknown as SimDebugRootWindow;
-
-// Runtime aliases for the window-owned components so JSX reads cleanly while
-// still resolving at call time (no module-ordering dependency on the owners).
-const AtlasTitle = (props: any) => g.AtlasTitle(props);
-const TimeRuler = (props: any) => g.TimeRuler(props);
-const WaveRow = (props: any) => g.WaveRow(props);
-const WaveCursor = (props: any) => g.WaveCursor(props);
-
-interface SimDebugProps {
-  view?: string;
-  initialTab?: string;
-}
-
-type ViewRange = [number, number] | null;
-type ChatEntry = { kind: string; text: string; ts: number };
-interface SrcRange { from: number; to: number; hl: number[]; cur: number }
+import type { VcdData, PinnedSignal } from './sim-debug-helpers';
+import { SimSummaryPanel, Splitter } from './sim-debug-panels';
+// Cross-file window view + the shared local types — extracted to
+// sim-debug-root-shared.tsx so the presentational siblings can reuse the SAME
+// window view (behavior identical). AtlasTitle is the only window-owned
+// component the root still renders directly; the rest moved into the panel
+// siblings that now own the subtrees that use them.
+import { g, AtlasTitle } from './sim-debug-root-shared';
+import type { SimDebugProps, ViewRange, ChatEntry, SrcRange } from './sim-debug-root-shared';
+// Prop-driven panel subtrees lifted out of the root JSX. The root closure still
+// owns all state; these receive the slice they render + the handlers they fire.
+import { WaveBand } from './sim-debug-wave';
+import { ChatRail } from './sim-debug-chat';
+import { HierarchyPanel, SourceBand } from './sim-debug-panels-side';
+import { DebugHeader } from './sim-debug-header';
 
 export const SimDebug = ({ view = 'debug', initialTab = '' }: SimDebugProps = {}) => {
   const summaryOnly = view === 'summary';
@@ -836,48 +803,6 @@ export const SimDebug = ({ view = 'debug', initialTab = '' }: SimDebugProps = {}
     return { lw: leftW, rw: rightW, th: topH, showSource: true, showWave: true, showHier: leftW > 0, showChat: rightW > 0 };
   })();
 
-  const ExpandBtn = ({ id, glyph, title }: { id: string; glyph: string; title: string }) => (
-    <button
-      onClick={() => setExpand(expand === id ? 'split' : id)}
-      title={title}
-      style={{
-        background: expand === id ? 'var(--accent)' : 'transparent',
-        color: expand === id ? 'var(--bg)' : 'var(--fg-mute)',
-        border: '1px solid var(--line)', borderRadius: 3,
-        padding: '1px 6px', fontSize: 'var(--ui-control-font-size)', cursor: 'pointer',
-        fontFamily: 'var(--mono)', marginLeft: 4,
-      }}
-    >{glyph}</button>
-  );
-
-  const selectTopTab = (id: string) => {
-    setTopTab(id);
-    if (id === 'hierarchy') {
-      setLeftTab('rtl');
-      setExpand('hierarchy');
-    } else if (id === 'tb') {
-      setLeftTab('tb');
-      setExpand('split');
-    } else if (id === 'wave' || id === 'trace') {
-      setExpand('split');
-    }
-  };
-
-  const ModeBtn = ({ id, label, title }: { id: string; label: string; title?: string }) => (
-    <button
-      onClick={() => selectTopTab(id)}
-      title={title || label}
-      style={{
-        background: topTab === id ? 'var(--accent)' : 'transparent',
-        color: topTab === id ? 'var(--bg)' : 'var(--fg-mute)',
-        border: '1px solid var(--line)', borderRadius: 3,
-        padding: '2px 8px', fontSize: 10, cursor: 'pointer',
-        fontFamily: 'var(--mono)', fontWeight: 800,
-        letterSpacing: '0.06em', textTransform: 'uppercase',
-      }}
-    >{label}</button>
-  );
-
   const bodyGridColumns = expand === 'hierarchy'
     ? '1fr 0 0 0 0'
     : `${eff.showHier ? eff.lw + 'px' : '0'} ${eff.showHier && eff.lw > 0 ? '4px' : '0'} 1fr ${eff.showChat && eff.rw > 0 ? '4px' : '0'} ${eff.showChat ? eff.rw + 'px' : '0'}`;
@@ -909,79 +834,20 @@ export const SimDebug = ({ view = 'debug', initialTab = '' }: SimDebugProps = {}
       />
 
       {/* Single unified header — VCD picker + cursor controls + expand mode */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 12,
-        padding: '6px 14px', borderBottom: '1px solid var(--line)',
-        background: 'var(--bg-2)', fontSize: 'var(--ui-control-font-size)', flexShrink: 0,
-      }}>
-        <span style={{ color: 'var(--fg-mute)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>MODE</span>
-        {summaryOnly ? (
-          <span className="pill" style={{
-            fontSize: 10, padding: '2px 8px',
-            background: 'color-mix(in oklch, var(--accent) 14%, transparent)',
-            color: 'var(--accent)',
-            border: '1px solid color-mix(in oklch, var(--accent) 40%, var(--line))',
-            borderRadius: 3,
-            fontFamily: 'var(--mono)', fontWeight: 800,
-            letterSpacing: '0.06em', textTransform: 'uppercase',
-          }}>
-            Sim Summary
-          </span>
-        ) : (
-          <>
-            <ModeBtn id="wave" label="Wave" title="source + waveform" />
-            <ModeBtn id="hierarchy" label="RTL" title="RTL hierarchy" />
-            <ModeBtn id="tb" label="TB" title="TB hierarchy and cocotb files" />
-          </>
-        )}
-        <span style={{ color: 'var(--line-2)', margin: '0 4px' }}>│</span>
-        <span style={{ color: 'var(--fg-mute)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>VCD</span>
-        <select
-          value={vcdActive}
-          onChange={e => setVcdActive(e.target.value)}
-          style={{
-            background: 'var(--bg)', color: 'var(--fg)', border: '1px solid var(--line)',
-            padding: '3px 6px', fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', minWidth: 280,
-          }}
-        >
-          {!vcdFiles.length && <option value="">(no VCD found — run /sim)</option>}
-          {vcdFiles.map(f => (
-            <option key={f.path} value={f.path}>{f.path}</option>
-          ))}
-        </select>
-        {vcdData && (
-          <span className="pill" style={{
-            fontSize: 10, padding: '2px 8px',
-            background: 'color-mix(in oklch, var(--ok) 18%, transparent)',
-            color: 'var(--ok)',
-            border: '1px solid color-mix(in oklch, var(--ok) 30%, var(--line))',
-            borderRadius: 3,
-          }}>
-            ✓ {vcdData.signals!.length} sig · t={vcdData.timeRange![0]}–{vcdData.timeRange![1]} {vcdData.timescale}
-          </span>
-        )}
-        {!summaryOnly && (
-          <>
-            <span style={{ color: 'var(--line-2)', margin: '0 4px' }}>│</span>
-            <span style={{ color: 'var(--fg-mute)', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase' }}>cur A</span>
-            <span style={{ color: 'var(--accent)', fontWeight: 600, fontFamily: 'var(--mono)' }}>{waveCursor}ns</span>
-            <span style={{ color: 'var(--fg-mute)', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase' }}>B</span>
-            <span style={{ color: 'var(--cyan)', fontWeight: 600, fontFamily: 'var(--mono)' }}>{waveCursorB}ns</span>
-            <span style={{ color: 'var(--fg-mute)', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Δ</span>
-            <span style={{ color: 'var(--magenta)', fontWeight: 600, fontFamily: 'var(--mono)' }}>{waveCursorB - waveCursor}ns</span>
-          </>
-        )}
-        <span style={{ flex: 1 }} />
-        {!summaryOnly && (
-          <>
-            <span style={{ color: 'var(--fg-mute)', fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase' }}>expand</span>
-            <ExpandBtn id="hierarchy" glyph="◧"   title="hierarchy only" />
-            <ExpandBtn id="source"    glyph="◨"   title="source only"    />
-            <ExpandBtn id="wave"      glyph="▣"   title="wave only"      />
-            <ExpandBtn id="split"     glyph="⊞"   title="split (default)" />
-          </>
-        )}
-      </div>
+      <DebugHeader
+        summaryOnly={summaryOnly}
+        topTab={topTab}
+        setTopTab={setTopTab}
+        setLeftTab={setLeftTab}
+        expand={expand}
+        setExpand={setExpand}
+        vcdActive={vcdActive}
+        setVcdActive={setVcdActive}
+        vcdFiles={vcdFiles}
+        vcdData={vcdData}
+        waveCursor={waveCursor}
+        waveCursorB={waveCursorB}
+      />
 
       {summaryOnly || topTab === 'summary' ? (
         <SimSummaryPanel
@@ -1007,95 +873,25 @@ export const SimDebug = ({ view = 'debug', initialTab = '' }: SimDebugProps = {}
       }}>
         {/* LEFT — hierarchy panel */}
         {eff.showHier && (
-          <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'var(--panel)', borderRight: '1px solid var(--line)' }}>
-            <div className="mini-h" style={{ display: 'flex', alignItems: 'center' }}>
-              <button
-                onClick={() => setLeftTab('rtl')}
-                style={{
-                  background: leftTab === 'rtl' ? 'var(--accent)' : 'transparent',
-                  color:      leftTab === 'rtl' ? 'var(--bg)'     : 'var(--fg-mute)',
-                  border: '1px solid var(--line)', borderRadius: 3,
-                  padding: '1px 8px', fontSize: 10, cursor: 'pointer',
-                  fontFamily: 'var(--mono)', fontWeight: 700,
-                  marginRight: 4,
-                }}
-                title="RTL hierarchy (verilator/pyslang elab)"
-              >RTL</button>
-              <button
-                onClick={() => setLeftTab('tb')}
-                style={{
-                  background: leftTab === 'tb' ? 'var(--accent)' : 'transparent',
-                  color:      leftTab === 'tb' ? 'var(--bg)'     : 'var(--fg-mute)',
-                  border: '1px solid var(--line)', borderRadius: 3,
-                  padding: '1px 8px', fontSize: 10, cursor: 'pointer',
-                  fontFamily: 'var(--mono)', fontWeight: 700,
-                }}
-                title="cocotb testbench environment"
-              >TB{cocotbData && cocotbData.exists ? '' : ' ⊘'}</button>
-              <span style={{ color: 'var(--fg-mute)', marginLeft: 8, fontSize: 10 }}>
-                {leftTab === 'rtl'
-                  ? (
-                    <span title={hierarchyBackendTitle}>{hierarchyBackendLabel}</span>
-                  )
-                  : (cocotbData?.exists ? `cocotb · ${ipName}` : 'cocotb (none)')}
-              </span>
-              <span style={{ flex: 1 }} />
-            </div>
-            {leftTab === 'tb' ? (
-              <CocotbTreeView
-                data={cocotbData}
-                ipName={ipName}
-                onOpenFile={(p, line) => loadSourceFile(p, line || 0)}
-              />
-            ) : (
-            <div style={{ flex: 1, overflow: 'auto', padding: 8, fontFamily: 'var(--mono)', fontSize: 11 }}>
-              {hierarchy ? (
-                <HierarchyNode node={hierarchy} depth={0}
-                  onSelectModule={onSelectModule}
-                  activeModule={srcModule} />
-              ) : (
-                <div style={{ color: 'var(--fg-mute)', padding: 8 }}>
-                  No RTL hierarchy yet.<br />
-                  {hierarchyError ? (
-                    <span style={{ color: 'var(--err)' }}>{hierarchyError}</span>
-                  ) : (
-                    <span>Pick a workspace IP to elaborate.</span>
-                  )}
-                </div>
-              )}
-              {vcdData && vcdData.signals && vcdData.signals.length > 0 && (
-                <div style={{ marginTop: 16 }}>
-                  <div style={{ color: 'var(--fg-mute)', fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 4 }}>
-                    signals ({vcdData.signals.length})
-                  </div>
-                  {vcdData.signals.slice(0, 30).map((s: VcdSignal) => {
-                    const isSelected = selectedSig === s.name && (!selectedSigScope || selectedSigScope === s.scope);
-                    const isPinned = wavePinnedSignals.some(pin => waveSignalMatches(s, pin.name, pin.scope));
-                    return (
-                      <div
-                        key={s.id}
-                        onClick={() => onSelectWaveSignal(s.name!, s.scope)}
-                        style={{
-                          padding: '2px 4px', cursor: 'pointer',
-                          color: isSelected ? 'var(--accent)' : 'var(--fg)',
-                          background: isSelected ? 'var(--bg-2)' : 'transparent',
-                          display: 'flex', gap: 4, alignItems: 'center',
-                        }}
-                        title="click to focus, Ctrl+W to add to waveform"
-                      >
-                        <span style={{ color: isPinned ? 'var(--cyan)' : 'var(--fg-mute)' }}>{isPinned ? '◆' : '·'}</span>
-                        <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {showSignalHierarchy && s.scope ? `${s.scope}.` : ''}{s.name}
-                          {s.isBus && <span style={{ color: 'var(--fg-mute)', fontSize: 9 }}> {s.range}</span>}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-            )}
-          </div>
+          <HierarchyPanel
+            leftTab={leftTab}
+            setLeftTab={setLeftTab}
+            cocotbData={cocotbData}
+            hierarchyBackendTitle={hierarchyBackendTitle}
+            hierarchyBackendLabel={hierarchyBackendLabel}
+            ipName={ipName}
+            loadSourceFile={loadSourceFile}
+            hierarchy={hierarchy}
+            onSelectModule={onSelectModule}
+            srcModule={srcModule}
+            hierarchyError={hierarchyError}
+            vcdData={vcdData}
+            selectedSig={selectedSig}
+            selectedSigScope={selectedSigScope}
+            wavePinnedSignals={wavePinnedSignals}
+            onSelectWaveSignal={onSelectWaveSignal}
+            showSignalHierarchy={showSignalHierarchy}
+          />
         )}
         {eff.showHier && eff.lw > 0 && (
           <Splitter orient="v"
@@ -1108,71 +904,21 @@ export const SimDebug = ({ view = 'debug', initialTab = '' }: SimDebugProps = {}
         <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
           {/* SOURCE band */}
           {eff.showSource && (
-            <div style={{
-              flex: eff.showWave ? `${Math.round(eff.th * 100)} ${Math.round(eff.th * 100)} 0` : '1 1 0',
-              display: 'flex', flexDirection: 'column', overflow: 'hidden',
-              background: 'var(--panel)',
-            }}>
-              <div className="mini-h" style={{ display: 'flex', alignItems: 'center' }}>
-                <b>source</b>
-                <span style={{ color: 'var(--cyan)', marginLeft: 8, fontFamily: 'var(--mono)', fontSize: 11 }}>
-                  {srcPath || `(click hierarchy module or wave signal)`}
-                </span>
-                <span style={{ flex: 1 }} />
-                {srcLoading && <span style={{ color: 'var(--fg-mute)', fontSize: 10 }}>loading…</span>}
-                {srcCursor > 0 && (
-                  <span style={{ color: 'var(--accent)', fontSize: 10 }}>L{srcCursor}</span>
-                )}
-                <button
-                  className="btn"
-                  onClick={() => setShowVcdAnnotations(v => !v)}
-                  title="toggle VCD values under the active source line"
-                  style={{
-                    padding: '1px 8px',
-                    fontSize: 10,
-                    fontWeight: 700,
-                    marginLeft: 8,
-                    background: showVcdAnnotations ? 'var(--accent)' : undefined,
-                    color: showVcdAnnotations ? '#000' : undefined,
-                  }}
-                >
-                  annot {showVcdAnnotations ? 'on' : 'off'}
-                </button>
-                {showVcdAnnotations && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 2, marginLeft: 4 }}>
-                    {([
-                      ['both', 'A+B', `show VCD values at A (${waveCursor}${vcdData?.timescale || 'ns'}) and B (${waveCursorB}${vcdData?.timescale || 'ns'})`],
-                      ['a', 'A', `show VCD values at cursor A (${waveCursor}${vcdData?.timescale || 'ns'})`],
-                      ['b', 'B', `show VCD values at cursor B (${waveCursorB}${vcdData?.timescale || 'ns'})`],
-                    ] as Array<[string, string, string]>).map(([mode, label, title]) => (
-                      <button
-                        key={mode}
-                        className="btn"
-                        onClick={() => setVcdAnnotationAxis(mode)}
-                        title={title}
-                        style={{
-                          padding: '1px 6px',
-                          fontSize: 10,
-                          fontWeight: 700,
-                          minWidth: 26,
-                          background: vcdAnnotationAxis === mode ? 'var(--cyan)' : undefined,
-                          color: vcdAnnotationAxis === mode ? '#001018' : undefined,
-                        }}
-                      >
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <SourceViewer
-                lines={srcLines}
-                cursor={srcCursor}
-                path={srcPath}
-                vcdAnnotations={sourceVcdAnnotations}
-                vcdAnnotationAxis={vcdAnnotationAxis}
-              />
-            </div>
+            <SourceBand
+              eff={eff}
+              srcPath={srcPath}
+              srcLoading={srcLoading}
+              srcCursor={srcCursor}
+              showVcdAnnotations={showVcdAnnotations}
+              setShowVcdAnnotations={setShowVcdAnnotations}
+              waveCursor={waveCursor}
+              waveCursorB={waveCursorB}
+              vcdData={vcdData}
+              vcdAnnotationAxis={vcdAnnotationAxis}
+              setVcdAnnotationAxis={setVcdAnnotationAxis}
+              srcLines={srcLines}
+              sourceVcdAnnotations={sourceVcdAnnotations}
+            />
           )}
           {/* Source ↔ Wave splitter */}
           {eff.showSource && eff.showWave && (
@@ -1185,241 +931,30 @@ export const SimDebug = ({ view = 'debug', initialTab = '' }: SimDebugProps = {}
           {/* WAVE band — wrap in .wave-panel for Verdi-style dark canvas
               + sharp signal colors (defined in styles.css). */}
           {eff.showWave && (
-            <div className="wave-panel" style={{
-              flex: eff.showSource ? `${Math.round((1 - eff.th) * 100)} ${Math.round((1 - eff.th) * 100)} 0` : '1 1 0',
-              display: 'flex', flexDirection: 'column', overflow: 'hidden',
-              borderTop: eff.showSource ? '1px solid var(--line)' : 'none',
-              position: 'relative',
-            }}>
-              {showHelp && (
-                <div
-                  onClick={() => setShowHelp(false)}
-                  style={{
-                    position: 'absolute', top: 0, right: 0, bottom: 0, left: 0,
-                    background: 'rgba(0,0,0,0.78)', zIndex: 50,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                  <div onClick={e => e.stopPropagation()} style={{
-                    background: '#0d1118',
-                    border: '1px solid #ffd24d',
-                    borderRadius: 6, padding: '14px 20px',
-                    fontFamily: 'var(--mono)', fontSize: 12,
-                    color: '#c8d2dc', minWidth: 460,
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
-                  }}>
-                    <div style={{
-                      display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12,
-                      borderBottom: '1px solid #2a3140', paddingBottom: 8,
-                    }}>
-                      <span style={{ color: '#ffd24d', fontWeight: 700, fontSize: 13, letterSpacing: '0.06em' }}>
-                        WAVE SHORTCUTS
-                      </span>
-                      <span style={{ flex: 1 }} />
-                      <span style={{ color: '#6c7888', fontSize: 10 }}>
-                        press <b>?</b> or <b>Esc</b> to close
-                      </span>
-                    </div>
-                    {[
-                      { keys: ['+', '='], desc: 'zoom in (around cursor A)' },
-                      { keys: ['−', '_'], desc: 'zoom out' },
-                      { keys: ['f'],      desc: 'fit — show whole VCD' },
-                      { keys: ['a'],      desc: 'zoom to cursor A↔B' },
-                      { keys: ['←'],      desc: 'pan left  (Shift+← = bigger step)' },
-                      { keys: ['→'],      desc: 'pan right (Shift+→ = bigger step)' },
-                      { keys: ['Home'],   desc: 'go to t=0' },
-                      { keys: ['End'],    desc: 'go to t=tMax' },
-                      { keys: ['Ctrl + W'], desc: 'add focused signal to waveform' },
-                      { keys: ['h'],      desc: 'toggle signal hierarchy in labels' },
-                      { keys: ['Ctrl/⌘ + wheel'], desc: 'zoom around cursor A' },
-                      { keys: ['?'],      desc: 'toggle this help' },
-                    ].map((row, i) => (
-                      <div key={i} style={{
-                        display: 'grid',
-                        gridTemplateColumns: '160px 1fr',
-                        padding: '4px 0', gap: 12,
-                      }}>
-                        <span style={{ display: 'flex', gap: 4 }}>
-                          {row.keys.map((k, j) => (
-                            <span key={j} style={{
-                              background: '#1a2030',
-                              border: '1px solid #4a5566',
-                              borderBottom: '2px solid #4a5566',
-                              borderRadius: 3, padding: '1px 6px',
-                              color: '#ffd24d', fontWeight: 700,
-                            }}>{k}</span>
-                          ))}
-                        </span>
-                        <span style={{ color: '#c8d2dc' }}>{row.desc}</span>
-                      </div>
-                    ))}
-                    <div style={{
-                      marginTop: 12, paddingTop: 8,
-                      borderTop: '1px solid #2a3140', color: '#6c7888',
-                      fontSize: 10,
-                    }}>
-                      tip: shortcuts only fire when the wave panel has focus —
-                      not while typing in chat or any input.
-                    </div>
-                  </div>
-                </div>
-              )}
-              <div className="mini-h" style={{ display: 'flex', alignItems: 'center' }}>
-                <b>waveform</b>
-                <span style={{ color: 'var(--cyan)', marginLeft: 8, fontFamily: 'var(--mono)', fontSize: 11 }}>
-                  {vcdActive ? vcdActive.split('/').pop() : '(none)'}
-                </span>
-                <span style={{ flex: 1 }} />
-                {/* Editable range — type to jump. Two number inputs for
-                    start/end. Plus a tiny tooltip with full range + zoom %. */}
-                <RangeInput
-                  effRange={effRange}
-                  vcdData={vcdData}
-                  setViewRange={setViewRange}
-                />
-                <button className="btn" style={{ padding: '1px 8px', fontSize: 'var(--ui-control-font-size)', marginRight: 2, fontWeight: 700 }}
-                        onClick={zoomIn}    title="zoom in  (shortcut: + or =)">+</button>
-                <button className="btn" style={{ padding: '1px 8px', fontSize: 'var(--ui-control-font-size)', marginRight: 2, fontWeight: 700 }}
-                        onClick={zoomOut}   title="zoom out (shortcut: − or _)">−</button>
-                <button className="btn" style={{ padding: '1px 6px', fontSize: 10, marginRight: 2 }}
-                        onClick={() => panBy(-0.25)} title="pan left  (shortcut: ←)">◀</button>
-                <button className="btn" style={{ padding: '1px 6px', fontSize: 10, marginRight: 2 }}
-                        onClick={() => panBy(0.25)}  title="pan right (shortcut: →)">▶</button>
-                <button className="btn" style={{ padding: '1px 8px', fontSize: 10, marginRight: 2 }}
-                        onClick={zoomToCursors} title="zoom to A↔B (shortcut: a)">A↔B</button>
-                <button className="btn" style={{ padding: '1px 8px', fontSize: 10, marginRight: 4 }}
-                        onClick={zoomFit}   title="fit whole VCD (shortcut: f)">fit</button>
-                <button className="btn"
-                        onClick={() => setShowHelp(h => !h)}
-                        title="show keyboard shortcuts (shortcut: ?)"
-                        style={{
-                          padding: '1px 8px', fontSize: 10, fontWeight: 700,
-                          background: showHelp ? 'var(--accent)' : undefined,
-                          color: showHelp ? '#000' : undefined,
-                        }}>?</button>
-              </div>
-              <div
-                style={{ flex: 1, overflow: 'auto', position: 'relative' }}
-                onWheel={(e: ReactWheelEvent) => {
-                  // Ctrl+wheel = zoom around cursor A. Plain wheel = scroll.
-                  if (!e.ctrlKey && !e.metaKey) return;
-                  e.preventDefault();
-                  if (e.deltaY < 0) zoomIn(); else zoomOut();
-                }}
-              >
-                <TimeRuler
-                  width={waveWidth}
-                  tMin={effRange[0]}
-                  tMax={effRange[1]}
-                  signals={traceList.length}
-                  scope={ipName || 'scope'}
-                  timescale={vcdData ? vcdData.timescale : 'ns'}
-                />
-
-                {/* Cursor strip — dedicated row that holds A/B labels and a
-                    Δ readout. Keeps the cursor markers from overlapping the
-                    signal rows the way they did before. */}
-                <div style={{
-                  position: 'sticky', top: 22, zIndex: 5,
-                  display: 'grid',
-                  gridTemplateColumns: '180px 90px 1fr',
-                  height: 18,
-                  borderBottom: '1px solid #2a3140',
-                  background: '#0d1118',
-                  fontFamily: 'var(--mono)', fontSize: 10,
-                }}>
-                  <span style={{
-                    display: 'flex', alignItems: 'center',
-                    padding: '0 10px', color: '#6c7888',
-                    borderRight: '1px solid #161a22',
-                    textTransform: 'uppercase', letterSpacing: '0.06em',
-                  }}>cursors</span>
-                  <span style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
-                    padding: '0 10px', color: '#ffd24d', fontWeight: 700,
-                    borderRight: '1px solid #161a22',
-                  }}>Δ {waveCursorB - waveCursor}{vcdData ? vcdData.timescale : 'ns'}</span>
-                  <div style={{ position: 'relative' }}>
-                    {[
-                      { time: waveCursor,  kind: 'A', color: '#ffb84d' },
-                      { time: waveCursorB, kind: 'B', color: '#4dd0e1' },
-                    ].map((c, i) => {
-                      // Use the same tToX so the badge sits exactly above
-                      // its vertical line. Hide if outside view.
-                      const span = effRange[1] - effRange[0] || 1;
-                      const x = ((c.time - effRange[0]) / span) * waveWidth;
-                      if (x < 0 || x > waveWidth) return null;
-                      return (
-                        <span key={i} style={{
-                          position: 'absolute', left: x, transform: 'translateX(-50%)',
-                          top: 1, padding: '0 4px',
-                          background: c.color, color: '#000',
-                          borderRadius: 2, fontWeight: 700, fontSize: 10,
-                          whiteSpace: 'nowrap',
-                        }}>
-                          {c.kind}={c.time}{vcdData ? vcdData.timescale : 'ns'}
-                        </span>
-                      );
-                    })}
-                  </div>
-                </div>
-                <div style={{ position: 'relative' }}>
-                  {traceList.length === 0 && (
-                    <div style={{
-                      padding: '20px 16px',
-                      color: 'var(--fg-mute)',
-                      fontStyle: 'italic',
-                      fontSize: 12,
-                      lineHeight: 1.6,
-                    }}>
-                      {ipName ? (
-                        <>
-                          no VCD found for <code>{ipName}</code>.<br />
-                          run <code>/sim</code> in chat to generate{' '}
-                          <code>{ipName}/sim/{ipName}.vcd</code>, then this
-                          panel will populate with real signals.
-                        </>
-                      ) : (
-                        <>pick an IP from <code>IP_ID</code> to scope sim_debug.</>
-                      )}
-                    </div>
-                  )}
-                  {traceList.map((t, ti) => {
-                    // Verdi-style color hint by name role.
-                    const lname = (t.name || '').toLowerCase();
-                    const isClock = /\b(clk|clock|sclk|pclk)\b/.test(lname);
-                    const isReset = /\b(rst|reset|presetn|areset)\b/.test(lname);
-                    const isIrq   = /\b(irq|int|intr)\b/.test(lname);
-                    const color = isClock ? '#7CFC4D'      // bright green
-                                : isReset ? '#7CFC4D'
-                                : isIrq   ? '#ff6b6b'      // pink/red
-                                : !t.isBus ? '#4dd0e1'      // cyan for normal scalars
-                                : undefined;
-                    const displayName = showSignalHierarchy && t.scope ? `${t.scope}.${t.name}` : t.name;
-                    return (
-                      <div key={(t.scope || '') + '/' + t.name + '/' + ti}
-                           style={color ? ({ '--wave-color-override': color } as CSSProperties) : undefined}>
-                        <WaveRow
-                          name={displayName}
-                          scope={t.scope}
-                          trace={t.trace}
-                          width={waveWidth}
-                          isBus={t.isBus}
-                          radix={t.radix || 'HEX'}
-                          selected={waveSignalMatches(t, selectedSig, selectedSigScope)}
-                          colorHint={color}
-                          onClick={() => onSelectWaveSignal(t.signalName || t.name!, t.scope || '')}
-                          onEdgeClick={jumpToWaveEdge}
-                        />
-                      </div>
-                    );
-                  })}
-                  <div style={{ position: 'absolute', top: 0, bottom: 0, left: 280, width: waveWidth, pointerEvents: 'none' }}>
-                    <WaveCursor time={waveCursor}  kind="a" width={waveWidth} />
-                    <WaveCursor time={waveCursorB} kind="b" width={waveWidth} />
-                  </div>
-                </div>
-              </div>
-            </div>
+            <WaveBand
+              eff={eff}
+              showHelp={showHelp}
+              setShowHelp={setShowHelp}
+              vcdActive={vcdActive}
+              effRange={effRange}
+              vcdData={vcdData}
+              setViewRange={setViewRange}
+              zoomIn={zoomIn}
+              zoomOut={zoomOut}
+              zoomFit={zoomFit}
+              zoomToCursors={zoomToCursors}
+              panBy={panBy}
+              waveWidth={waveWidth}
+              traceList={traceList}
+              ipName={ipName}
+              waveCursor={waveCursor}
+              waveCursorB={waveCursorB}
+              showSignalHierarchy={showSignalHierarchy}
+              selectedSig={selectedSig}
+              selectedSigScope={selectedSigScope}
+              onSelectWaveSignal={onSelectWaveSignal}
+              jumpToWaveEdge={jumpToWaveEdge}
+            />
           )}
         </div>
 
@@ -1435,150 +970,24 @@ export const SimDebug = ({ view = 'debug', initialTab = '' }: SimDebugProps = {}
             via window.backend.send and appends streamed tokens / agent /
             reasoning / slash_output events to the feed). */}
         {eff.showChat && (
-          <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'var(--panel)', borderLeft: '1px solid var(--line)' }}>
-            <div className="mini-h" style={{ display: 'flex', alignItems: 'center' }}>
-              <b>chat</b>
-              <span style={{ color: 'var(--fg-mute)', marginLeft: 8, fontSize: 10 }}>trace · debug · ask</span>
-              <span style={{ flex: 1 }} />
-              {chatStreaming && (
-                <span style={{ color: 'var(--accent)', fontSize: 10, marginRight: 6 }}>● streaming</span>
-              )}
-              <button
-                className="btn"
-                onClick={() => { setChatFeed([]); _streamBuf.current = ''; }}
-                style={{ padding: '1px 6px', fontSize: 10 }}
-              >clear</button>
-            </div>
-
-            {/* Focus card — selected signal / current IP */}
-            <div style={{
-              padding: '6px 10px',
-              background: 'var(--bg-2)', borderBottom: '1px solid var(--line)',
-              fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--fg-dim)',
-            }}>
-              focus: <span style={{ color: 'var(--accent)' }}>{selectedSig || '(click a signal)'}</span>
-              {ipName && <> · ip: <span style={{ color: 'var(--cyan)' }}>{ipName}</span></>}
-            </div>
-
-            {/* Feed */}
-            <div ref={_chatScrollRef} style={{
-              flex: 1, overflow: 'auto', padding: '8px 10px',
-              fontSize: 'var(--ui-control-font-size)', lineHeight: 1.5,
-            }}>
-              {chatFeed.length === 0 && (
-                <div style={{ color: 'var(--fg-mute)', fontSize: 10, marginBottom: 8 }}>
-                  Click a signal in the wave or hierarchy panel to set focus, then
-                  pick a quick prompt below or type a free question.
-                </div>
-              )}
-              {chatFeed.map((m, i) => {
-                if (m.kind === 'user') {
-                  return (
-                    <div key={i} style={{ marginBottom: 6, color: 'var(--accent)' }}>
-                      <span style={{
-                        fontSize: 9, letterSpacing: '0.1em',
-                        textTransform: 'uppercase', color: 'var(--fg-mute)',
-                        marginRight: 6,
-                      }}>YOU</span>
-                      <span style={{ fontFamily: 'var(--mono)' }}>{m.text}</span>
-                    </div>
-                  );
-                }
-                if (m.kind === 'thought') {
-                  return (
-                    <div key={i} style={{
-                      marginBottom: 6, color: 'var(--magenta)',
-                      fontSize: 10, fontStyle: 'italic',
-                      borderLeft: '2px solid var(--magenta)',
-                      paddingLeft: 8, opacity: 0.8,
-                    }}>
-                      <span style={{
-                        fontSize: 9, letterSpacing: '0.1em',
-                        textTransform: 'uppercase', color: 'var(--fg-mute)',
-                        marginRight: 6, fontStyle: 'normal',
-                      }}>THOUGHT</span>
-                      <span style={{ whiteSpace: 'pre-wrap' }}>{m.text}</span>
-                    </div>
-                  );
-                }
-                if (m.kind === 'sys') {
-                  return (
-                    <div key={i} style={{ marginBottom: 6, color: 'var(--err)', fontSize: 10 }}>
-                      {m.text}
-                    </div>
-                  );
-                }
-                // agent / agent_stream
-                return (
-                  <div key={i} style={{ marginBottom: 8, color: 'var(--fg)' }}>
-                    <span style={{
-                      fontSize: 9, letterSpacing: '0.1em',
-                      textTransform: 'uppercase', color: 'var(--ok)',
-                      marginRight: 6,
-                    }}>AGENT{m.kind === 'agent_stream' ? ' …' : ''}</span>
-                    <span style={{ whiteSpace: 'pre-wrap', fontFamily: 'var(--mono)', fontSize: 10 }}>
-                      {m.text}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Quick prompts (signal-aware) */}
-            <div style={{
-              padding: '6px 10px', borderTop: '1px solid var(--line)',
-              background: 'var(--bg-2)', fontSize: 10,
-            }}>
-              <div style={{ color: 'var(--fg-mute)', fontSize: 9, letterSpacing: '0.08em',
-                            textTransform: 'uppercase', marginBottom: 4 }}>quick prompts</div>
-              {[
-                `/trace ${selectedSig || 'gpio_irq'}${ipName ? ' --ip ' + ipName : ''}`,
-                `/hier ${ipName || 'gpio_pad'}`,
-                selectedSig ? `Why does ${selectedSig} have unexpected values around t=${waveCursor}ns?` : `Explain the FSM in ${ipName || 'this design'}`,
-              ].map((p, i) => (
-                <div
-                  key={i}
-                  onClick={() => sendChat(p)}
-                  style={{
-                    fontFamily: 'var(--mono)', fontSize: 10,
-                    color: 'var(--fg)', padding: '3px 6px', marginBottom: 2,
-                    background: 'var(--bg)', border: '1px solid var(--line)',
-                    borderRadius: 3, cursor: 'pointer',
-                  }}
-                  title="click to send"
-                >{p}</div>
-              ))}
-            </div>
-
-            {/* Input */}
-            <div className="prompt-row" style={{
-              padding: 8, borderTop: '1px solid var(--line)',
-              background: 'var(--bg)',
-            }}>
-              <span className="ps">›</span>
-              <input
-                value={chatInput}
-                onChange={e => setChatInput(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    sendChat();
-                  }
-                }}
-                placeholder="ask the debug agent · /trace · /hier · ↵ send"
-                disabled={chatStreaming}
-                style={{ opacity: chatStreaming ? 0.6 : 1 }}
-              />
-              <span className="kbd-i">/</span>
-              <span className="kbd-i">↵</span>
-            </div>
-          </div>
+          <ChatRail
+            chatStreaming={chatStreaming}
+            setChatFeed={setChatFeed}
+            streamBufRef={_streamBuf}
+            selectedSig={selectedSig}
+            ipName={ipName}
+            chatScrollRef={_chatScrollRef}
+            chatFeed={chatFeed}
+            waveCursor={waveCursor}
+            sendChat={sendChat}
+            chatInput={chatInput}
+            setChatInput={setChatInput}
+          />
         )}
       </div>
       )}
     </div>
   );
-
 };
 
 // ── Transitional bridge: register on window so the legacy mount points keep

@@ -6,24 +6,22 @@
 //
 // Split: the module-level helpers + standalone status components +
 // ErrorBoundary moved to app-helpers.tsx; the mobile header family moved to
-// app-mobile.tsx. This file keeps the irreducibly large `App` root component
-// (a single React function component whose hooks/closures share state and so
-// cannot be split mid-function without changing behavior) and the
-// createRoot().render() entry. See StructuredOutput notes.
+// app-mobile.tsx; the entire presentational render tree moved to app-shell.tsx
+// (AppShell); the agent-running/workspace-switch state moved to
+// app-agent-hook.tsx (useAtlasAgentRunning); the boot-handshake state machine
+// moved to app-boot-hook.tsx (useAtlasBoot). This file keeps the irreducibly
+// large `App` root component's stateful hook body (a single React function
+// whose hooks/closures share namespace/auth state and so cannot be split
+// mid-function without changing behavior) and the createRoot().render() entry.
 //
 // Automatic JSX runtime — no React import needed for JSX. We still read the
 // global React/ReactDOM owned by the page bootstrap via window where needed.
 import { useState, useEffect, useCallback, useMemo, useRef, useReducer } from 'react';
 import {
-  ErrorBoundary,
-  ATLAS_UI_RESOLUTION_PRESETS,
   DEFAULT_ATLAS_RESOLUTION,
   atlasResolutionPreset,
-  ATLAS_RUN_MODE_OPTIONS,
-  ATLAS_EXEC_MODE_OPTIONS,
   DEFAULT_ATLAS_EXEC_MODE,
   ATLAS_EXEC_MODE_LOCKED,
-  ATLAS_FONT_MODE_OPTIONS,
   normalizeAtlasFontMode,
   normalizeAtlasRunMode,
   normalizeAtlasExecMode,
@@ -31,17 +29,13 @@ import {
   atlasPolicyConfig,
   mergeAtlasPolicyResponse,
   atlasShouldHoldDashboardActivation,
-  PipelineRunningChip,
-  OrchInlineStatus,
 } from './app-helpers';
-import { MobileHeader } from './app-mobile';
-
-// Workspace and the screen components are owned by other (unmigrated) .jsx
-// files; resolve them through window at render time.
-const Workspace = (props: any) => {
-  const W = window.Workspace as any;
-  return W ? <W {...props} /> : null;
-};
+import { useAtlasAgentRunning } from './app-agent-hook';
+import { useAtlasBoot } from './app-boot-hook';
+import { useAtlasAuthGate } from './app-auth-hook';
+import { useAtlasSessionSync } from './app-session-hook';
+import { useAtlasScreen } from './app-screen-hook';
+import { AppShell } from './app-shell';
 
 const App = () => {
   const dir = 'B';     // Workbench is the only visible Atlas shell mode.
@@ -336,67 +330,12 @@ const App = () => {
     }
   }, [showNotice]);
 
-  const [agentRunning, _setAgentRunning] = useState(false);
-  const agentRunningRef = useRef(false);
-  const setAgentRunningState = useCallback((running: unknown) => {
-    const next = !!running;
-    agentRunningRef.current = next;
-    try { window.ATLAS_AGENT_RUNNING = next; } catch (_) {}
-    _setAgentRunning(next);
-  }, []);
-  useEffect(() => {
-    const subs: Array<(() => void) | undefined> = [];
-    const onGlobalRunning = (ev: any) => {
-      setAgentRunningState(!!(ev && ev.detail && ev.detail.running));
-    };
-    try {
-      if (typeof window.ATLAS_AGENT_RUNNING === 'boolean') {
-        setAgentRunningState(window.ATLAS_AGENT_RUNNING);
-      }
-      window.addEventListener('atlas-agent-running', onGlobalRunning);
-      if (window.backend?.subscribe) {
-        subs.push(window.backend.subscribe('hello', (m: any) => {
-          if (m && typeof m.running === 'boolean') setAgentRunningState(m.running);
-        }));
-        subs.push(window.backend.subscribe('agent_state', (m: any) => {
-          if (m && typeof m.running === 'boolean') setAgentRunningState(m.running);
-        }));
-      }
-    } catch (_) {}
-    return () => {
-      try { window.removeEventListener('atlas-agent-running', onGlobalRunning); } catch (_) {}
-      subs.forEach(u => { try { u && u(); } catch (_) {} });
-    };
-  }, [setAgentRunningState]);
-
-  // Workspace switch in-flight indicator. Backend emits
-  // `workspace_changing` right before _setup_workspace runs and
-  // `workspace_changed` after success. The banner shows a spinner so
-  // the user can see the dropdown click hit something, even though
-  // setup_workspace usually finishes in < 100 ms.
-  const [wfSwitching, setWfSwitching] = useState<any>(null);
-  useEffect(() => {
-    if (!window.backend?.subscribe) return undefined;
-    const subs: Array<(() => void) | undefined> = [];
-    try {
-      subs.push(window.backend.subscribe('workspace_changing', (m: any) => {
-        setWfSwitching({ from: m?.prev || '', to: m?.workspace || '', ip: m?.ip || '' });
-      }));
-      subs.push(window.backend.subscribe('workspace_changed', (m: any) => {
-        const loaded = m?.workspace || '';
-        setTimeout(() => {
-          setWfSwitching((cur: any) => (!loaded || (cur && cur.to === loaded)) ? null : cur);
-        }, 300);
-        setAgentRunningState(false);
-      }));
-    } catch (_) {}
-    return () => { subs.forEach(u => { try { u && u(); } catch (_) {} }); };
-  }, [setAgentRunningState]);
-  useEffect(() => {
-    if (!wfSwitching) return undefined;
-    const t = setTimeout(() => setWfSwitching(null), 2500);
-    return () => clearTimeout(t);
-  }, [wfSwitching]);
+  // Agent-running indicator + workspace-switch in-flight toast. Extracted to
+  // app-agent-hook.tsx (self-contained: subscribes only to window.backend).
+  // The window.ATLAS_AGENT_RUNNING bridge lives inside that hook now.
+  const {
+    agentRunning, agentRunningRef, setAgentRunningState, wfSwitching, setWfSwitching,
+  } = useAtlasAgentRunning();
 
   // First-connect handshake indicator. Runs a small protocol on mount:
   //   1) WS connects               → 'ws'
@@ -407,307 +346,27 @@ const App = () => {
   // While any step is outstanding the banner shows a spinner with the
   // current step label. Lets the user see the boot is actually doing
   // something instead of staring at a blank chrome.
-  const [bootSteps, setBootSteps] = useState<Record<string, string>>({
-    ws: 'pending', hello: 'pending', health: 'pending', sessions: 'pending',
-    llm: 'pending',
-  });
-  const [bootHidden, setBootHidden] = useState(false);
-  const bootEverReadyRef = useRef(false);
-
   // Auth gate — mounts LoginScreen until /api/users/me returns 200.
   const [authState, setAuthState] = useState('checking');
   const authRequiredProbeRef = useRef(0);
-  useEffect(() => {
-    const onAuthRequired = () => {
-      setBootSteps(s => (s.ws === 'fail' ? s : { ...s, ws: 'fail' }));
-      const probeId = authRequiredProbeRef.current + 1;
-      authRequiredProbeRef.current = probeId;
-      // A single WebSocket can close with auth_required because it was opened
-      // before /api/users/me rebound the tab to the current cookie user, or
-      // because a stale owner/IP namespace was still in localStorage. Re-check
-      // the HTTP auth cookie before showing LoginScreen, otherwise a live run
-      // can be kicked back to the login page by one stale socket close.
-      fetch('/api/users/me', { cache: 'no-store', credentials: 'include' })
-        .then(r => {
-          if (r.ok) return r.json();
-          if (r.status === 401 || r.status === 403) return { authFailed: true };
-          throw new Error(`auth probe ${r.status}`);
-        })
-        .then(j => {
-          if (authRequiredProbeRef.current !== probeId) return;
-          if (j && j.authFailed) {
-            setAuthState('unauth');
-            return;
-          }
-          const user = j && j.user;
-          if (!user || !user.username) {
-            setAuthState('unauth');
-            return;
-          }
-          const username = normalizeSession(user.username) || user.username;
-          window.ATLAS_USER = user;
-          window.ATLAS_USER_SESSION_ID = username;
-          try { localStorage.setItem('atlasUserSessionId', username); } catch (_) {}
 
-          const currentNs = normalizeSession(window.ACTIVE_SESSION || localStorage.getItem('atlasActiveSession') || '');
-          const currentParts = currentNs
-            ? splitSessionNamespace(currentNs)
-            : { sessionId: '', ipId: '', workflow: '' };
-          const currentBelongsToUser = currentNs && currentParts.sessionId === username;
-          const recoveredNs = currentBelongsToUser
-            ? currentNs
-            : `${username}/${WORKFLOW_DEFAULT}/${execMode === 'orchestrator' ? 'orchestrator' : WORKFLOW_DEFAULT}`;
-          const recoveredParts = splitSessionNamespace(recoveredNs);
-          window.ACTIVE_SESSION = recoveredNs;
-          try { localStorage.setItem('atlasActiveSession', recoveredNs); } catch (_) {}
-          setActiveSessionId(username);
-          setActiveNamespace(recoveredNs);
-          setActiveIp(recoveredParts.ipId || WORKFLOW_DEFAULT);
-          setAuthState('authed');
-          setBootSteps(s => (s.ws === 'fail' ? { ...s, ws: 'pending' } : s));
+  // First-connect handshake state machine — extracted to app-boot-hook.tsx.
+  // Self-contained (depends only on authState + window.backend); App's auth
+  // effect below still flips bootSteps.ws via the returned setBootSteps.
+  const {
+    bootSteps, setBootSteps, bootHidden, setBootHidden,
+    bootDisplayDone, bootFailed,
+  } = useAtlasBoot(authState);
 
-          if (window.backend) {
-            try {
-              if (typeof window.backend.switchSession === 'function') {
-                window.backend.switchSession(recoveredNs);
-              } else if (typeof window.backend.connect === 'function') {
-                window.backend.connect(recoveredNs);
-              }
-            } catch (_) {}
-          }
-          fetch('/api/session/activate', {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              owner: username,
-              ip: recoveredParts.ipId || WORKFLOW_DEFAULT,
-              workflow: recoveredParts.workflow || WORKFLOW_DEFAULT,
-              preserve_running: true,
-            }),
-          }).catch(() => {});
-        })
-        .catch(() => {
-          if (authRequiredProbeRef.current === probeId) {
-            setBootSteps(s => (s.ws === 'fail' ? s : { ...s, ws: 'fail' }));
-          }
-        });
-    };
-    try { window.addEventListener('atlas:auth_required', onAuthRequired); } catch (_) {}
-    return () => {
-      try { window.removeEventListener('atlas:auth_required', onAuthRequired); } catch (_) {}
-    };
-  }, [execMode, normalizeSession, splitSessionNamespace]);
-  useEffect(() => {
-    let cancelled = false;
-    fetch('/api/users/me', { cache: 'no-store' })
-      .then(r => r.ok ? r.json() : Promise.reject(r.status))
-      .then(j => {
-        if (cancelled) return;
-        const user = j && j.user;
-        if (!user || !user.username) { setAuthState('unauth'); return; }
-        window.ATLAS_USER = user;
-        window.ATLAS_USER_SESSION_ID = user.username;
-        try {
-          const username = normalizeSession(user.username) || user.username;
-          const url = new URL(window.location.href);
-          const urlSession = normalizeSession(url.searchParams.get('session') || '');
-          // splitSessionNamespace('') yields {sessionId:'default', ipId:'default',
-          // workflow:'default'} — treating those as authoritative would
-          // overwrite a real ?ip= deep link with 'default'. Only consult the
-          // parsed namespace when ?session= was actually present.
-          const urlParts = urlSession
-            ? splitSessionNamespace(urlSession)
-            : { sessionId: '', ipId: '', workflow: '' };
-          const ipParam = normalizeSession(url.searchParams.get('ip') || url.searchParams.get('ip_id') || '');
-          const wfParam = normalizeSession(url.searchParams.get('workflow') || url.searchParams.get('wf') || '');
-          const requestedIp = ipParam || normalizeSession(urlParts.ipId || '');
-          const requestedWf = wfParam || normalizeSession(urlParts.workflow || '');
-          const hasUrlContext = !!(urlSession || requestedIp || requestedWf);
-          const holdDashboardActivation = atlasShouldHoldDashboardActivation();
-          const currentNs = normalizeSession(window.ACTIVE_SESSION || localStorage.getItem('atlasActiveSession') || '');
-          const currentOwner = (currentNs.split('/').filter(Boolean)[0] || '');
-          const ownerMismatch = !!(currentOwner && currentOwner !== username);
-          localStorage.setItem('atlasUserSessionId', username);
-          if (hasUrlContext || (!holdDashboardActivation && (!currentNs || currentNs === 'default' || ownerMismatch))) {
-            const currentParts = currentNs
-              ? splitSessionNamespace(currentNs)
-              : { sessionId: '', ipId: '', workflow: '' };
-            const defaultWorkflow = execMode === 'orchestrator' ? 'orchestrator' : WORKFLOW_DEFAULT;
-            const savedWorkflow = (!ownerMismatch && currentParts.workflow && currentParts.workflow !== WORKFLOW_DEFAULT)
-              ? currentParts.workflow
-              : '';
-            const nextIp = requestedIp || (!ownerMismatch ? currentParts.ipId : '') || WORKFLOW_DEFAULT;
-            const nextWf = requestedWf || savedWorkflow || defaultWorkflow;
-            const nextNs = `${username}/${nextIp}/${nextWf}`;
-            window.ACTIVE_SESSION = nextNs;
-            localStorage.setItem('atlasActiveSession', nextNs);
-            setActiveSessionId(username);
-            setActiveNamespace(nextNs);
-            setActiveIp(nextIp);
-            url.searchParams.set('session', nextNs);
-            url.searchParams.set('session_id', username);
-            url.searchParams.set('ip', nextIp);
-            url.searchParams.set('workflow', nextWf);
-            url.searchParams.delete('ip_id');
-            url.searchParams.delete('wf');
-            window.history.replaceState(null, '', url);
-          } else if (holdDashboardActivation) {
-            setActiveSessionId(username);
-            window.ACTIVE_SESSION = '';
-            localStorage.removeItem('atlasActiveSession');
-            setActiveNamespace('');
-            setActiveIp(WORKFLOW_DEFAULT);
-            url.searchParams.delete('session');
-            url.searchParams.delete('session_id');
-            url.searchParams.delete('ip');
-            url.searchParams.delete('ip_id');
-            url.searchParams.delete('workflow');
-            url.searchParams.delete('wf');
-            window.history.replaceState(null, '', url);
-          }
-          const activeForBackend = normalizeSession(window.ACTIVE_SESSION || localStorage.getItem('atlasActiveSession') || '');
-          if (activeForBackend) {
-            if (window.backend) {
-              if (typeof window.backend.switchSession === 'function') {
-                window.backend.switchSession(activeForBackend);
-              } else if (typeof window.backend.connect === 'function') {
-                window.backend.connect(activeForBackend);
-              }
-            }
-            const parsed = splitSessionNamespace(activeForBackend);
-            fetch('/api/session/activate', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                owner: username || parsed.sessionId,
-                ip: parsed.ipId || 'default',
-                workflow: parsed.workflow || 'default',
-              }),
-            }).then(() => {
-              try { return window.atlasData && window.atlasData.refreshHealth && window.atlasData.refreshHealth(); }
-              catch (_) { return null; }
-            }).catch(() => {});
-          }
-        } catch (_) {
-          try { localStorage.setItem('atlasUserSessionId', user.username); } catch (_) {}
-        }
-        setAuthState('authed');
-      })
-      .catch(() => { if (!cancelled) setAuthState('unauth'); });
-    return () => { cancelled = true; };
-  }, []);
-  useEffect(() => {
-    if (authState !== 'authed') return undefined;
-    let dead = false;
-    fetch('/api/pipeline/run_policy', { cache: 'no-store' })
-      .then(r => r.ok ? r.json() : Promise.reject(r.status))
-      .then(j => {
-        if (dead || !j) return;
-        mergeAtlasPolicyResponse(j);
-        if (j.run_mode) setRunMode(normalizeAtlasRunMode(j.run_mode));
-        if (j.exec_mode) setExecMode(normalizeAtlasExecMode(j.exec_mode));
-      })
-      .catch(() => {});
-    return () => { dead = true; };
-  }, [authState]);
-  useEffect(() => {
-    const mark = (k: string, v: string) => setBootSteps(s => (s[k] === v ? s : { ...s, [k]: v }));
-    const runProbes = () => {
-      // Reset HTTP-side legs to pending so the user sees the rerun.
-      setBootSteps(s => ({
-        ...s,
-        health: 'pending', sessions: 'pending', llm: 'pending',
-      }));
-      if (!bootEverReadyRef.current) setBootHidden(false);
-      fetch('/healthz?cost=0', { cache: 'no-store' })
-        .then(r => mark('health', r.ok ? 'done' : 'fail'))
-        .catch(() => mark('health', 'fail'));
-      fetch('/api/session/list', { cache: 'no-store' })
-        .then(r => mark('sessions', r.ok ? 'done' : 'fail'))
-        .catch(() => mark('sessions', 'fail'));
-      // LLM provider probe — cheap GET /v1/models. Backend now treats
-      // 200/400/404 as "reachable" so this lights ✓ on every common
-      // provider (deepseek, openai, codex OAuth, azure deployment
-      // without /models exposed).
-      fetch('/api/llm/ping', { cache: 'no-store' })
-        .then(r => r.ok ? r.json() : Promise.reject(r.status))
-        .then(j => mark('llm', j && j.ok ? 'done' : 'fail'))
-        .catch(() => mark('llm', 'fail'));
-    };
-
-    // Initial WS state — backend.js may have already connected by the
-    // time this effect runs.
-    if (window.backend?.getConnectionState) {
-      const s = window.backend.getConnectionState();
-      mark('ws', s === 'open' ? 'done' : (s === 'closed' || s === 'error' ? 'fail' : 'pending'));
-    }
-    const subs: Array<(() => void) | undefined> = [];
-    try {
-      subs.push(window.backend.subscribe('connection', (m: any) => {
-        const next = m?.state === 'open' ? 'done' : 'fail';
-        mark('ws', next);
-        // On a reconnect (e.g. after backend restart), re-fire the
-        // HTTP probes — otherwise the panel stays pinned at whatever
-        // it captured the first time the page mounted. The boot card
-        // is what the user looks at to confirm "yes the new backend
-        // is up", so it MUST refresh after a WS reopen.
-        if (next === 'done') runProbes();
-      }));
-      subs.push(window.backend.subscribe('hello', () => mark('hello', 'done')));
-    } catch (_) {}
-    runProbes();
-    return () => { subs.forEach(u => { try { u && u(); } catch (_) {} }); };
-  }, []);
-  useEffect(() => {
-    if (authState !== 'authed') return undefined;
-    const needsProbe = (
-      bootSteps.health !== 'done'
-      || bootSteps.sessions !== 'done'
-      || bootSteps.llm !== 'done'
-    );
-    if (!needsProbe) return undefined;
-    let cancelled = false;
-    const mark = (key: string, value: string) => {
-      if (cancelled) return;
-      setBootSteps(s => (s[key] === value ? s : { ...s, [key]: value }));
-    };
-    const t = setTimeout(() => {
-      fetch('/api/session/list', { cache: 'no-store' })
-        .then(r => mark('sessions', r.ok ? 'done' : 'fail'))
-        .catch(() => mark('sessions', 'fail'));
-      fetch('/healthz?cost=0', { cache: 'no-store' })
-        .then(r => mark('health', r.ok ? 'done' : 'fail'))
-        .catch(() => mark('health', 'fail'));
-      fetch('/api/llm/ping', { cache: 'no-store' })
-        .then(r => r.ok ? r.json() : Promise.reject(r.status))
-        .then(j => mark('llm', j && j.ok ? 'done' : 'fail'))
-        .catch(() => mark('llm', 'fail'));
-    }, 350);
-    return () => {
-      cancelled = true;
-      clearTimeout(t);
-    };
-  }, [authState, bootSteps.health, bootSteps.sessions, bootSteps.llm]);
-  const bootDone = Object.values(bootSteps).every(v => v === 'done');
-  const bootUsable = (
-    authState === 'authed'
-    && bootSteps.ws === 'done'
-    && bootSteps.hello === 'done'
-    && bootSteps.llm === 'done'
-    && bootSteps.health !== 'fail'
-    && bootSteps.sessions !== 'fail'
-  );
-  const bootDisplayDone = bootDone || bootUsable;
-  const bootFailed = !bootDisplayDone && Object.values(bootSteps).some(v => v === 'fail');
-  useEffect(() => {
-    if (bootDisplayDone) {
-      bootEverReadyRef.current = true;
-      setTimeout(() => {
-        if (bootEverReadyRef.current) setBootHidden(true);
-      }, 1200);
-    }
-  }, [bootDisplayDone]);
+  // Auth gate (auth_required listener + /api/users/me probe + run_policy
+  // hydration) — extracted to app-auth-hook.tsx. The window.ATLAS_USER /
+  // ATLAS_USER_SESSION_ID / ACTIVE_SESSION bridges live inside that hook now.
+  useAtlasAuthGate({
+    WORKFLOW_DEFAULT, authState, execMode, authRequiredProbeRef,
+    normalizeSession, splitSessionNamespace,
+    setBootSteps, setAuthState, setActiveSessionId, setActiveNamespace,
+    setActiveIp, setRunMode, setExecMode,
+  });
 
   const workflowForExecMode = useCallback((workflow: unknown) => {
     const wf = normalizeSession(workflow || WORKFLOW_DEFAULT) || WORKFLOW_DEFAULT;
@@ -947,403 +606,29 @@ const App = () => {
   // that slipped into the IP slot from `${owner}/${wf}` namespaces
   // gets filtered too. 'default' stays selectable as the explicit
   // default IP_ID.
-  const RESERVED_IP_NAMES = useMemo(
-    () => new Set(['soc', 'user', ...TOP_WORKFLOWS]),
-    [TOP_WORKFLOWS]
-  );
+  // Session-roster + namespace-sync cluster (refreshTopTargets, the
+  // /healthz-tick syncCurrent listener, the URL/localStorage handshake, and
+  // the atlas-session-switched listener) — extracted to app-session-hook.tsx.
+  // The window.IP_OPTIONS / ACTIVE_SESSION / ACTIVE_IP bridges live there now.
+  const { refreshTopTargets } = useAtlasSessionSync({
+    WORKFLOW_DEFAULT, TOP_WORKFLOWS, authState, activeIp, activeNamespace, activeSessionId,
+    initialUrlNamespaceRef, userPickAtRef,
+    loggedInOwner, normalizeSession, splitSessionNamespace, namespaceFor,
+    currentWorkflow, workflowForExecMode, applySessionMeta, syncNamespaceUrl, activateNamespace,
+    setSessionIdOptions, setIpOptions, setActiveSessionId, setActiveNamespace, setActiveIp,
+  });
 
-  const refreshTopTargets = useCallback(async () => {
-    const currentUserSession = loggedInOwner()
-      || normalizeSession(window.ATLAS_USER_SESSION_ID || activeSessionId);
-    const ownerScopedRoster = authState === 'authed' && !!currentUserSession;
-    const nextSessionIds = new Set([currentUserSession || 'default']);
-    const holdActivation = atlasShouldHoldDashboardActivation();
-    const nextIps = new Set([WORKFLOW_DEFAULT]);
-    const acceptIp = (id: string) => id && (id === WORKFLOW_DEFAULT || !RESERVED_IP_NAMES.has(id));
-    const rememberedNamespace = normalizeSession(
-      window.ACTIVE_SESSION ||
-      activeNamespace ||
-      (() => { try { return localStorage.getItem('atlasActiveSession') || ''; } catch (_) { return ''; } })()
-    );
-    const rememberedParts = splitSessionNamespace(rememberedNamespace);
-    const rememberedIp = rememberedParts.ipId === 'soc' ? WORKFLOW_DEFAULT : rememberedParts.ipId;
-    if (!ownerScopedRoster && acceptIp(rememberedIp)) nextIps.add(rememberedIp);
-    if (!ownerScopedRoster && acceptIp(activeIp)) nextIps.add(activeIp);
-    try {
-      const r = await fetch('/api/session/list', { cache: 'no-store' });
-      if (r.ok) {
-        const d = await r.json();
-        for (const row of (Array.isArray(d.sessions) ? d.sessions : [])) {
-          const raw = (row && row.session) || '';
-          const segments = String(raw).split('/').filter(Boolean);
-          const parsed = splitSessionNamespace(raw);
-          if (parsed.sessionId && (!currentUserSession || parsed.sessionId === currentUserSession)) {
-            nextSessionIds.add(parsed.sessionId);
-          }
-          // Only surface an IP if the on-disk namespace explicitly
-          // names an owner (i.e. 3-segment <owner>/<ip>/<wf>). Legacy
-          // 2-segment <ip>/<wf> trees parse to {sessionId:'default'},
-          // and pre-owner backends used to drop bare-IP dirs that
-          // still linger on disk; we don't want them in *this* user's
-          // dropdown. Also require the parsed owner to match the
-          // current user_session — backend is per-user (operator runs
-          // one process per user), so cross-owner pollution is noise.
-          if (segments.length < 3) continue;
-          // /api/session/list still feeds SESSION_ID. We deliberately
-          // stopped collecting IPs from it because the dropdown should
-          // reflect what's literally on disk under PROJECT_ROOT, not
-          // every IP that ever showed up in a session namespace.
-        }
-      }
-    } catch (_) {}
-    // Backend IP roster is authoritative for IP_ID. In multi-user mode this
-    // is DB/session scoped by the authenticated owner; do not mix in stale
-    // browser-local IPs from another login.
-    let ipListOk = false;
-    const backendIps = new Set([WORKFLOW_DEFAULT]);
-    try {
-      const ipOwner = normalizeSession(currentUserSession || '');
-      const ipUrl = '/api/ip/list' + (ipOwner ? `?session_id=${encodeURIComponent(ipOwner)}` : '');
-      const r2 = await fetch(ipUrl, { cache: 'no-store' });
-      if (r2.ok) {
-        ipListOk = true;
-        const d2 = await r2.json();
-        for (const it of (Array.isArray(d2.items) ? d2.items : [])) {
-          const name = normalizeSession(it && it.name);
-          if (acceptIp(name)) {
-            nextIps.add(name);
-            backendIps.add(name);
-          }
-        }
-      }
-    } catch (_) {}
-    const ipAllowedForCurrentUser = (id: string) => {
-      const ip = normalizeSession(id === 'soc' ? WORKFLOW_DEFAULT : id);
-      if (!ip || ip === WORKFLOW_DEFAULT) return true;
-      if (!acceptIp(ip)) return false;
-      if (!ownerScopedRoster) return true;
-      return ipListOk && backendIps.has(ip);
-    };
-
-    let liveNamespace = holdActivation
-      ? ''
-      : (normalizeSession(window.ACTIVE_SESSION || activeNamespace) || namespaceFor(currentUserSession, activeIp, currentWorkflow()));
-    if (liveNamespace && currentUserSession) {
-      const liveParts = splitSessionNamespace(liveNamespace);
-      if (liveParts.sessionId && liveParts.sessionId !== currentUserSession) {
-        liveNamespace = namespaceFor(
-          currentUserSession,
-          liveParts.ipId || activeIp || WORKFLOW_DEFAULT,
-          liveParts.workflow || currentWorkflow() || WORKFLOW_DEFAULT
-        );
-        window.ACTIVE_SESSION = liveNamespace;
-        try { localStorage.setItem('atlasActiveSession', liveNamespace); } catch (_) {}
-      }
-    }
-    let parsedLive = splitSessionNamespace(liveNamespace);
-    if (liveNamespace && !ipAllowedForCurrentUser(parsedLive.ipId)) {
-      const owner = currentUserSession || parsedLive.sessionId || 'default';
-      const wf = parsedLive.workflow || currentWorkflow() || WORKFLOW_DEFAULT;
-      liveNamespace = namespaceFor(owner, WORKFLOW_DEFAULT, wf);
-      parsedLive = splitSessionNamespace(liveNamespace);
-      window.ACTIVE_SESSION = liveNamespace;
-      try { localStorage.setItem('atlasActiveSession', liveNamespace); } catch (_) {}
-    }
-    if (!liveNamespace) {
-      setSessionIdOptions(Array.from(nextSessionIds).sort((a, b) => {
-        if (a === currentUserSession) return -1;
-        if (b === currentUserSession) return 1;
-        if (a === 'default') return -1;
-        if (b === 'default') return 1;
-        return a.localeCompare(b);
-      }));
-      const sortedIps = Array.from(nextIps).sort((a, b) => {
-        if (a === WORKFLOW_DEFAULT) return -1;
-        if (b === WORKFLOW_DEFAULT) return 1;
-        return a.localeCompare(b);
-      });
-      setIpOptions(prev => {
-        const merged = new Set(sortedIps);
-        if (!ipListOk && !ownerScopedRoster) (prev || []).forEach(ip => { if (acceptIp(ip)) merged.add(ip); });
-        const next = Array.from(merged).sort((a, b) => {
-          if (a === WORKFLOW_DEFAULT) return -1;
-          if (b === WORKFLOW_DEFAULT) return 1;
-          return a.localeCompare(b);
-        });
-        window.IP_OPTIONS = next;
-        return next;
-      });
-      setActiveSessionId(currentUserSession || 'default');
-      setActiveNamespace('');
-      setActiveIp(
-        ipAllowedForCurrentUser(activeIp) && activeIp && activeIp !== WORKFLOW_DEFAULT
-          ? activeIp
-          : WORKFLOW_DEFAULT
-      );
-      return;
-    }
-    if (parsedLive.sessionId && (!currentUserSession || parsedLive.sessionId === currentUserSession)) {
-      nextSessionIds.add(parsedLive.sessionId);
-    }
-    // Don't auto-include parsedLive.ipId: when the user deletes a
-    // session on disk (rm -rf .session/<owner>/<ip>/<wf>) the
-    // localStorage cached ACTIVE_SESSION still parses to the dead
-    // ip, and this line used to keep adding it to the dropdown
-    // forever. Now the dropdown reflects only what /api/session/list
-    // and /api/soc actually have, plus whatever createIp() seeded
-    // locally (which sticks for one render cycle, then naturally
-    // drops if it never lands on disk).
-    setSessionIdOptions(Array.from(nextSessionIds).sort((a, b) => {
-      if (a === currentUserSession) return -1;
-      if (b === currentUserSession) return 1;
-      if (a === 'default') return -1;
-      if (b === 'default') return 1;
-      return a.localeCompare(b);
-    }));
-    const sortedIps = Array.from(nextIps).sort((a, b) => {
-      if (a === WORKFLOW_DEFAULT) return -1;
-      if (b === WORKFLOW_DEFAULT) return 1;
-      return a.localeCompare(b);
-    });
-    // Expose for inline-code-chip click validation in workspace.jsx so
-    // only IPs confirmed by the backend roster become clickable. In
-    // owner-scoped mode a failed roster probe must not preserve another
-    // user's previous browser-local list.
-    setIpOptions(prev => {
-      const merged = new Set(sortedIps);
-      if (!ipListOk && !ownerScopedRoster) (prev || []).forEach(ip => { if (acceptIp(ip)) merged.add(ip); });
-      const next = Array.from(merged).sort((a, b) => {
-        if (a === WORKFLOW_DEFAULT) return -1;
-        if (b === WORKFLOW_DEFAULT) return 1;
-        return a.localeCompare(b);
-      });
-      window.IP_OPTIONS = next;
-      return next;
-    });
-    setActiveSessionId(currentUserSession || parsedLive.sessionId || 'default');
-    setActiveNamespace(liveNamespace);
-    setActiveIp(parsedLive.ipId === 'soc' ? WORKFLOW_DEFAULT : (parsedLive.ipId || WORKFLOW_DEFAULT));
-  }, [activeIp, activeNamespace, activeSessionId, authState, currentWorkflow, loggedInOwner, namespaceFor, normalizeSession, splitSessionNamespace]);
-
-  useEffect(() => {
-    let timer: any = null;
-    const syncCurrent = (ev: any) => {
-      if (atlasShouldHoldDashboardActivation()) {
-        const authOwner = normalizeSession(
-          (window.ATLAS_USER && window.ATLAS_USER.username) ||
-          window.ATLAS_USER_SESSION_ID ||
-          activeSessionId ||
-          'default'
-        ) || 'default';
-        window.ACTIVE_SESSION = '';
-        try { localStorage.removeItem('atlasActiveSession'); } catch (_) {}
-        setActiveSessionId(authOwner);
-        setActiveNamespace('');
-        setActiveIp(WORKFLOW_DEFAULT);
-        return;
-      }
-      const eventSession = normalizeSession(
-        (ev && ev.detail && typeof ev.detail === 'object' && ev.detail.session) || ''
-      );
-      const liveSession = normalizeSession(window.ACTIVE_SESSION || activeNamespace || '');
-      if (
-        ev &&
-        (ev.type === 'atlas-conversation-loaded' || ev.type === 'atlas-session-loaded') &&
-        eventSession &&
-        liveSession &&
-        eventSession !== liveSession
-      ) {
-        return;
-      }
-      const ctx = window.CONTEXT || {};
-      const ctxSession = normalizeSession(ctx.active_session || ctx.activeSession || '');
-      // refreshHealth periodic poll → backend is the ground truth.
-      // Snap UI dropdowns to whatever the backend reports as the active
-      // (sid, ip, wf), except when backend is still at the boot
-      // "default/default/default" placeholder — let the user's
-      // localStorage / URL hint own that brief window.
-      const isHealthTick = ev && ev.type === 'atlas-data-changed' && ev.detail === 'CONTEXT';
-      let namespace;
-      if (isHealthTick && ctxSession && ctxSession !== 'default/default/default') {
-        const ctxOwner = (ctxSession.split('/').filter(Boolean)[0] || '');
-        const authOwner = normalizeSession(
-          (window.ATLAS_USER && window.ATLAS_USER.username) ||
-          window.ATLAS_USER_SESSION_ID ||
-          activeSessionId ||
-          ''
-        );
-        const initialUrlNamespace = normalizeSession(initialUrlNamespaceRef.current || '');
-        const parsedUrl = splitSessionNamespace(initialUrlNamespace);
-        const parsedCtx = splitSessionNamespace(ctxSession);
-        const browserNamespace = normalizeSession(
-          window.ACTIVE_SESSION ||
-          activeNamespace ||
-          (() => { try { return localStorage.getItem('atlasActiveSession') || ''; } catch (_) { return ''; } })()
-        );
-        const parsedBrowser = splitSessionNamespace(browserNamespace);
-        const urlStillOwnsBoot = !!(
-          initialUrlNamespace &&
-          ctxSession !== initialUrlNamespace &&
-          (!parsedUrl.sessionId || !parsedCtx.sessionId || parsedUrl.sessionId === parsedCtx.sessionId)
-        );
-        const ctxIsDefaultPlaceholder = !!(
-          parsedCtx.sessionId &&
-          (!parsedCtx.ipId || parsedCtx.ipId === WORKFLOW_DEFAULT) &&
-          (!parsedCtx.workflow || parsedCtx.workflow === WORKFLOW_DEFAULT)
-        );
-        const browserHasRealIp = !!(
-          parsedBrowser.sessionId &&
-          parsedBrowser.ipId &&
-          parsedBrowser.ipId !== WORKFLOW_DEFAULT &&
-          parsedBrowser.ipId !== 'soc'
-        );
-        const browserSameOwner = !!(
-          browserNamespace &&
-          parsedBrowser.sessionId &&
-          (!parsedCtx.sessionId || parsedCtx.sessionId === parsedBrowser.sessionId || parsedBrowser.sessionId === authOwner)
-        );
-        // During login and fast screen changes, /healthz can briefly report
-        // the process bootstrap namespace (often default/<ip>/<wf>). In
-        // DB-backed multi-user mode the authenticated user owns the browser
-        // namespace, so do not let that stale backend context rewrite the UI
-        // back to default and poison the websocket session.
-        // Recent user-initiated picks (IP/workflow/session dropdown) win
-        // over backend CONTEXT for a brief window. Without this, a /healthz
-        // tick firing between the optimistic UI update and the
-        // /api/session/activate POST landing on the backend would yank the
-        // dropdowns back to the stale triple the backend still reports.
-        const userPickIsFresh = (Date.now() - userPickAtRef.current) < 5000;
-        if (urlStillOwnsBoot) {
-          namespace = initialUrlNamespace;
-        } else if (ctxIsDefaultPlaceholder && browserHasRealIp && browserSameOwner) {
-          namespace = browserNamespace;
-        } else if (authOwner && ctxOwner && ctxOwner !== authOwner && ctxOwner !== 'local-admin') {
-          namespace = normalizeSession(window.ACTIVE_SESSION || activeNamespace || '');
-        } else if (userPickIsFresh) {
-          namespace = normalizeSession(window.ACTIVE_SESSION || activeNamespace || '') || ctxSession;
-        } else {
-          namespace = ctxSession;
-        }
-        if (namespace && namespace !== window.ACTIVE_SESSION) {
-          window.ACTIVE_SESSION = namespace;
-          try { localStorage.setItem('atlasActiveSession', namespace); } catch (_) {}
-        }
-      } else {
-        const requestedSession = normalizeSession(
-          (ev && ev.detail && typeof ev.detail === 'object' && ev.detail.session) ||
-          window.ACTIVE_SESSION || activeNamespace
-        );
-        namespace = requestedSession || ctxSession;
-      }
-      const parsed = splitSessionNamespace(namespace);
-      const owner = loggedInOwner() || parsed.sessionId || activeSessionId || 'default';
-      const ipSeg = parsed.ipId === 'soc' ? WORKFLOW_DEFAULT : (parsed.ipId || activeIp || WORKFLOW_DEFAULT);
-      const wfSeg = parsed.workflow || WORKFLOW_DEFAULT;
-      const canonicalNamespace = namespaceFor(owner, ipSeg, wfSeg);
-      if (canonicalNamespace && canonicalNamespace !== window.ACTIVE_SESSION) {
-        window.ACTIVE_SESSION = canonicalNamespace;
-        try { localStorage.setItem('atlasActiveSession', canonicalNamespace); } catch (_) {}
-      }
-      if (initialUrlNamespaceRef.current && canonicalNamespace === normalizeSession(initialUrlNamespaceRef.current)) {
-        initialUrlNamespaceRef.current = '';
-      }
-      setActiveNamespace(canonicalNamespace);
-      setActiveSessionId(owner);
-      setActiveIp(ipSeg);
-      if (isHealthTick && (ctx.dbSessionId || ctx.sessionUid || ctx.sessionLabel)) {
-        applySessionMeta({
-          db_session_id: ctx.dbSessionId,
-          session_uid: ctx.sessionUid,
-          session_label: ctx.sessionLabel,
-          namespace: canonicalNamespace,
-        }, canonicalNamespace);
-      }
-      // Push the canonical triple into the URL so the address bar
-      // never silently disagrees with what the server reports.
-      // Without this, reloading after a triple flip kept the OLD
-      // ?ip=…&workflow=… params visible even though dropdowns / file
-      // tree had pivoted to the new triple.
-      try {
-        if (canonicalNamespace) syncNamespaceUrl(canonicalNamespace, owner, ipSeg, wfSeg);
-      } catch (_) {}
-      clearTimeout(timer);
-      timer = setTimeout(refreshTopTargets, 150);
-    };
-    refreshTopTargets();
-    window.addEventListener('atlas-session-loaded', syncCurrent);
-    window.addEventListener('atlas-conversation-loaded', syncCurrent);
-    window.addEventListener('atlas-data-changed', syncCurrent);
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('atlas-session-loaded', syncCurrent);
-      window.removeEventListener('atlas-conversation-loaded', syncCurrent);
-      window.removeEventListener('atlas-data-changed', syncCurrent);
-    };
-  }, [activeIp, activeNamespace, activeSessionId, applySessionMeta, currentWorkflow, loggedInOwner, namespaceFor, normalizeSession, refreshTopTargets, splitSessionNamespace]);
-
-  useEffect(() => {
-    // Don't fire the URL/localStorage → backend handshake before we
-    // know who the logged-in user is. Without this guard a stale
-    // localStorage entry like "default/sqa/default" left over from a
-    // previous run would post /api/session/activate with owner='default'
-    // before the auth gate had a chance to rewrite to <user>/default,
-    // producing the surprising "prev='', ip='sqa', owner='default'"
-    // backend log on first connection.
-    if (!window.ATLAS_USER) return;
-    if (atlasShouldHoldDashboardActivation()) return;
-    const currentNamespace = normalizeSession(window.ACTIVE_SESSION || activeNamespace || '');
-    if (!currentNamespace) return;
-    const parsed = splitSessionNamespace(currentNamespace);
-    if (!parsed.ipId && !parsed.workflow) return;
-    // Also bail if the parsed owner is not this user — the auth
-    // gate will rewrite localStorage and we'll re-fire then.
-    const owner = parsed.sessionId || '';
-    if (owner && owner !== (window.ATLAS_USER.username || '')) return;
-    activateNamespace(
-      parsed.sessionId || activeSessionId || 'default',
-      parsed.ipId || WORKFLOW_DEFAULT,
-      parsed.workflow || WORKFLOW_DEFAULT,
-      true
-    );
-    // Run once on mount AFTER auth: this is the URL/localStorage → backend handshake.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authState]);
-
-  useEffect(() => {
-    const onSwitch = (ev: any) => {
-      const sessionId = ev?.detail?.sessionId;
-      const namespace = ev?.detail?.namespace;
-      if (!sessionId) return;
-      const currentNamespace = normalizeSession(namespace || window.ACTIVE_SESSION || activeNamespace || '');
-      const parsed = currentNamespace
-        ? splitSessionNamespace(currentNamespace)
-        : { sessionId: '', ipId: '', workflow: '' };
-      const owner = loggedInOwner() || normalizeSession(parsed.sessionId || sessionId);
-      const nextIp = parsed.ipId === 'soc' ? WORKFLOW_DEFAULT : (parsed.ipId || activeIp || WORKFLOW_DEFAULT);
-      const nextWorkflow = workflowForExecMode(parsed.workflow || currentWorkflow() || WORKFLOW_DEFAULT);
-      const nextNamespace = currentNamespace && parsed.workflow === nextWorkflow
-        ? currentNamespace
-        : namespaceFor(owner, nextIp, nextWorkflow);
-      setActiveSessionId(owner);
-      setActiveNamespace(nextNamespace);
-      setActiveIp(nextIp);
-      window.ACTIVE_SESSION = nextNamespace;
-      window.ACTIVE_IP = nextIp;
-      try { localStorage.setItem('atlasActiveSession', nextNamespace); } catch (_) {}
-      if (ev?.detail?.session_uid || ev?.detail?.db_session_id || ev?.detail?.session_label) {
-        applySessionMeta(ev.detail, nextNamespace);
-      }
-      syncNamespaceUrl(
-        nextNamespace,
-        owner,
-        nextIp,
-        nextWorkflow
-      );
-      refreshTopTargets();
-    };
-    window.addEventListener('atlas-session-switched', onSwitch);
-    return () => window.removeEventListener('atlas-session-switched', onSwitch);
-  }, [activeIp, activeNamespace, applySessionMeta, currentWorkflow, loggedInOwner, namespaceFor, normalizeSession, refreshTopTargets, splitSessionNamespace, syncNamespaceUrl, workflowForExecMode]);
+  // Screen routing + screen-driven side effects (open_evidence / workflow
+  // workspace listeners, opt-in workflow auto-switch, data-* attribute sync,
+  // page-load stop guard, activateDashboardSession) — extracted to
+  // app-screen-hook.tsx. setScreen is returned so createIp() can flip to
+  // Workspace after scaffolding a new IP.
+  const { screen, setScreen, activateDashboardSession } = useAtlasScreen({
+    dir, theme, fontMode, fontScale, uiLang, execMode, WORKFLOW_DEFAULT,
+    activeIp, activeNamespace, activeSessionId, activateNamespace,
+    confirmStopForWorkflowSwitch, currentWorkflow, loggedInOwner,
+    normalizeSession, splitSessionNamespace,
+  });
 
   const selectSessionId = (rawSessionId: string) => {
     const authOwner = loggedInOwner();
@@ -1530,220 +815,6 @@ const App = () => {
   // Old 'architect' value (mock-data SoC view) migrates to 'pipeline'
   // on first load so existing sessions don't get stranded on a screen
   // that no longer exists.
-  const [screen, setScreen] = useState(() => {
-    try {
-      const params = new URLSearchParams(window.location.search || '');
-      const urlView = (params.get('view') || '').trim().toLowerCase();
-      const hasUrlContext = !!(
-        params.get('session') ||
-        params.get('session_id') ||
-        params.get('ip') ||
-        params.get('ip_id') ||
-        params.get('workflow') ||
-        params.get('wf')
-      );
-      // Explicit ?view=pipeline / ?view=architect still honored so
-      // deep links keep working. Without URL context, land on Workspace
-      // Chat instead of restoring dashboard/pipeline from a prior visit.
-      if (urlView === 'dashboard' || urlView === 'workspace' || urlView === 'pipeline' || urlView === 'architect' || urlView === 'guide') return urlView;
-      const saved = localStorage.atlasScreen;
-      if (hasUrlContext && (saved === 'dashboard' || saved === 'workspace' || saved === 'pipeline' || saved === 'architect' || saved === 'guide')) return saved;
-      return 'workspace';
-    } catch (_) { return 'workspace'; }
-  });
-  useEffect(() => {
-    try { localStorage.atlasScreen = screen; } catch (_) {}
-  }, [screen]);
-  const workflowWorkspaceOpenRef = useRef(false);
-
-  useEffect(() => {
-    const onOpenEvidence = (ev: any) => {
-      const path = String(ev?.detail?.path || '').trim();
-      if (!path) return;
-      try { localStorage.setItem('atlasPreviewPath', path); } catch (_) {}
-      setScreen('workspace');
-      setTimeout(() => {
-        try {
-          window.dispatchEvent(new CustomEvent('atlas-chip-open', {
-            detail: { path, source: ev?.detail?.source || 'pipeline' },
-          }));
-        } catch (_) {}
-      }, 0);
-    };
-    window.addEventListener('atlas:open_evidence', onOpenEvidence);
-    return () => window.removeEventListener('atlas:open_evidence', onOpenEvidence);
-  }, []);
-
-  useEffect(() => {
-    const onOpenWorkflowWorkspace = (ev: any) => {
-      const detail = ev?.detail || {};
-      const workflow = normalizeSession(detail.workflow || '');
-      if (!workflow) return;
-      const parsed = splitSessionNamespace(window.ACTIVE_SESSION || activeNamespace || '');
-      const owner = loggedInOwner() || normalizeSession(
-        detail.sessionId ||
-        parsed.sessionId ||
-        activeSessionId ||
-        window.ATLAS_USER_SESSION_ID ||
-        (window.ATLAS_USER && window.ATLAS_USER.username) ||
-        'default'
-      ) || 'default';
-      const ip = normalizeSession(
-        detail.ip ||
-        parsed.ipId ||
-        activeIp ||
-        window.SCOPE_PATH ||
-        WORKFLOW_DEFAULT
-      ) || WORKFLOW_DEFAULT;
-      const path = String(detail.path || '').trim();
-      const activeWorkflow = normalizeSession(parsed.workflow || currentWorkflow() || WORKFLOW_DEFAULT) || WORKFLOW_DEFAULT;
-      // In orchestrator + multi-worker mode, pipeline worker cards are
-      // workspace switches, not single-worker stop/restart boundaries.
-      const preserveRunning = (
-        detail.source === 'pipeline'
-        && workflow !== activeWorkflow
-        && (activeWorkflow === 'orchestrator' || execMode === 'orchestrator')
-      );
-
-      workflowWorkspaceOpenRef.current = true;
-      if (!preserveRunning && !confirmStopForWorkflowSwitch(workflow)) return;
-      activateNamespace(owner, ip, workflow, true, { preserveRunning });
-      setScreen('workspace');
-      if (path) {
-        try { localStorage.setItem('atlasPreviewPath', path); } catch (_) {}
-        setTimeout(() => {
-          try {
-            window.dispatchEvent(new CustomEvent('atlas-chip-open', {
-              detail: { path, source: detail.source || 'pipeline' },
-            }));
-          } catch (_) {}
-        }, 0);
-      }
-    };
-    window.addEventListener('atlas:open_workflow_workspace', onOpenWorkflowWorkspace);
-    return () => window.removeEventListener('atlas:open_workflow_workspace', onOpenWorkflowWorkspace);
-  }, [
-    activeIp,
-    activeNamespace,
-    activeSessionId,
-    activateNamespace,
-    confirmStopForWorkflowSwitch,
-    currentWorkflow,
-    execMode,
-    loggedInOwner,
-    normalizeSession,
-    splitSessionNamespace,
-  ]);
-
-  // Screen-change → workflow auto-switch is OPT-IN. By default the
-  // user's workflow / IP / session are manual. Pipeline and Architect
-  // screens previously force-switched the workflow to 'orchestrator' /
-  // 'architect' on enter and back to 'default' on exit, which surprised
-  // users who wanted the workflow they explicitly picked to stick.
-  // Re-enable via:
-  //   localStorage.setItem('atlasArchAutoSwitch', 'on')
-  const prevScreenRef = useRef(screen);
-  useEffect(() => {
-    const prev = prevScreenRef.current;
-    if (prev === screen) return;
-    prevScreenRef.current = screen;
-    if (!window.backend || typeof window.backend.send !== 'function') return;
-    const optIn = (() => { try { return localStorage.getItem('atlasArchAutoSwitch') === 'on'; }
-                           catch (_) { return false; } })();
-    if (!optIn) return;
-    if (screen === 'architect' || screen === 'pipeline') {
-      const targetWorkflow = screen === 'pipeline' ? 'orchestrator' : 'architect';
-      activateNamespace(activeSessionId, activeIp || WORKFLOW_DEFAULT, targetWorkflow, true, {
-        preserveRunning: execMode === 'orchestrator' && targetWorkflow === 'orchestrator',
-      });
-    } else if (prev === 'architect' || prev === 'pipeline') {
-      if (workflowWorkspaceOpenRef.current) {
-        workflowWorkspaceOpenRef.current = false;
-        return;
-      }
-      if (prev === 'pipeline' && execMode === 'orchestrator') return;
-      activateNamespace(activeSessionId, activeIp || WORKFLOW_DEFAULT, WORKFLOW_DEFAULT, true, {
-        preserveRunning: execMode === 'orchestrator' && prev === 'pipeline',
-      });
-    }
-  }, [activateNamespace, activeIp, activeSessionId, execMode, screen, uiLang]);
-
-  const activateDashboardSession = useCallback((row: any) => {
-    const rowNamespace = normalizeSession(String((row && row.id) || ''));
-    const parsed = rowNamespace
-      ? splitSessionNamespace(rowNamespace)
-      : { sessionId: '', ipId: '', workflow: '' };
-    const currentNamespace = normalizeSession(
-      window.ACTIVE_SESSION ||
-      activeNamespace ||
-      (() => { try { return localStorage.getItem('atlasActiveSession') || ''; } catch (_) { return ''; } })()
-    );
-    const current = currentNamespace
-      ? splitSessionNamespace(currentNamespace)
-      : { sessionId: '', ipId: '', workflow: '' };
-    const owner = loggedInOwner() || normalizeSession(
-      parsed.sessionId ||
-      current.sessionId ||
-      activeSessionId ||
-      window.ATLAS_USER_SESSION_ID ||
-      (window.ATLAS_USER && window.ATLAS_USER.username) ||
-      'default'
-    ) || 'default';
-    const ip = normalizeSession(
-      (row && row.ip) ||
-      parsed.ipId ||
-      current.ipId ||
-      activeIp ||
-      WORKFLOW_DEFAULT
-    ) || WORKFLOW_DEFAULT;
-    const workflow = normalizeSession(
-      (row && row.workflow) ||
-      parsed.workflow ||
-      current.workflow ||
-      currentWorkflow() ||
-      WORKFLOW_DEFAULT
-    ) || WORKFLOW_DEFAULT;
-    activateNamespace(owner, ip, workflow, true, {
-      preserveRunning: execMode === 'orchestrator',
-    });
-  }, [activeIp, activeNamespace, activeSessionId, activateNamespace, currentWorkflow, execMode, loggedInOwner, normalizeSession, splitSessionNamespace]);
-
-  useEffect(() => {
-    document.documentElement.setAttribute('data-dir', dir);
-    document.documentElement.setAttribute('data-theme', theme);
-    document.documentElement.setAttribute('data-font', fontMode);
-    document.documentElement.setAttribute('data-font-scale', fontScale);
-  }, [dir, theme, fontMode, fontScale]);
-
-  // Page-load stop guard. Whenever the App mounts (fresh reload, new
-  // tab) we fire /api/control/stop so any agent run left over from a
-  // prior session halts immediately, instead of resuming for 1000
-  // iterations under the user's nose. The backend handler is
-  // idempotent — sending stop when nothing is running is a no-op.
-  // Followed by a /healthz refresh so the workspace state visible in
-  // the UI matches whatever the backend ended up settling on.
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        await fetch('/api/control/stop', {
-          method: 'POST',
-          cache: 'no-store',
-          keepalive: true,
-        });
-      } catch (_) {}
-      if (cancelled) return;
-      // Immediately re-read /healthz so the UI's session/ip/workflow
-      // chips reflect the post-stop server state.
-      try {
-        if (window.atlasData && typeof window.atlasData.refreshHealth === 'function') {
-          await window.atlasData.refreshHealth();
-        }
-      } catch (_) {}
-    })();
-    return () => { cancelled = true; };
-  }, []);
-
   const sendControl = useCallback((type: string) => {
     if (!type) return;
     try { if (window.backend) window.backend.send({ type }); } catch (_) {}
@@ -1835,438 +906,57 @@ const App = () => {
   ].filter(Boolean).join(' · ');
 
   return (
-    <div className="app" data-dir={dir} data-theme={theme}>
-      {topNotice && (
-        <div role="alert" style={{
-          padding: '6px 12px', fontSize: 12, fontFamily: 'var(--mono)',
-          background: 'color-mix(in oklch, var(--warn) 14%, transparent)',
-          color: 'var(--warn)', borderBottom: '1px solid var(--warn)',
-          display: 'flex', alignItems: 'center', gap: 8,
-        }}>
-          <span>⚠</span>
-          <span style={{ flex: 1 }}>{topNotice}</span>
-          <button onClick={() => setTopNotice('')}
-                  style={{ background: 'transparent', border: 'none', color: 'var(--warn)',
-                           cursor: 'pointer', fontSize: 14, lineHeight: 1 }}>×</button>
-        </div>
-      )}
-      {wfSwitching && (
-        <div role="status" aria-live="polite" style={{
-          position: 'fixed', right: 12, bottom: 12, zIndex: 1200,
-          maxWidth: 'min(520px, calc(100vw - 24px))',
-          padding: '6px 10px', fontSize: 11, fontFamily: 'var(--mono)',
-          background: 'var(--panel)',
-          color: 'var(--accent)',
-          border: '1px solid var(--accent)',
-          borderRadius: 6,
-          boxShadow: '0 10px 28px color-mix(in oklch, var(--fg) 18%, transparent)',
-          display: 'flex', alignItems: 'center', gap: 8,
-          lineHeight: '16px',
-          pointerEvents: 'none',
-        }}>
-          <span style={{
-            display: 'inline-block',
-            width: 12, height: 12,
-            border: '2px solid currentColor',
-            borderRightColor: 'transparent',
-            borderRadius: '50%',
-            animation: 'atlas-spin 0.9s linear infinite',
-          }} />
-          <span style={{ flex: 1 }}>
-            <strong>Workflow Loading ...</strong>{' '}
-            <code>{wfSwitching.from || 'default'}</code> → <code>{wfSwitching.to}</code>
-            {wfSwitching.ip ? <> · ip=<code>{wfSwitching.ip}</code></> : null}
-            <span style={{ marginLeft: 8, opacity: 0.7 }}>
-              {wfSwitching.preserveRunning ? '(previous worker kept running)' : '(agent stopped while loading)'}
-            </span>
-          </span>
-          <style>{`@keyframes atlas-spin{to{transform:rotate(360deg)}}`}</style>
-        </div>
-      )}
-      {!bootHidden && (
-        <div role="status" aria-live="polite" style={{
-          // Centered overlay so the user notices the handshake the
-          // moment the page paints. Theme tokens drive bg/fg so dark
-          // mode shows dark-on-dark and light mode shows light-on-
-          // light; previous hardcoded `var(--bg-1, #14171c)` had a
-          // baked-in dark fallback that clashed in light mode because
-          // --bg-1 wasn't defined in styles.css.
-          position: 'fixed',
-          top: '50%', left: '50%',
-          transform: 'translate(-50%, -50%)',
-          zIndex: 9999,
-          minWidth: 360,
-          maxWidth: 480,
-          padding: '18px 22px',
-          fontSize: 13, fontFamily: 'var(--mono)',
-          background: 'var(--bg-2)',
-          border: '1px solid ' + (bootFailed ? 'var(--red, #ef4444)' : (bootDisplayDone ? 'var(--green, #22c55e)' : 'var(--accent)')),
-          borderRadius: 8,
-          boxShadow: '0 8px 32px color-mix(in oklch, var(--fg) 25%, transparent)',
-          color: 'var(--fg)',
-          display: 'flex', flexDirection: 'column', gap: 12,
-          transition: 'opacity 250ms ease',
-          opacity: bootDisplayDone ? 0.94 : 1,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            {!bootDisplayDone && !bootFailed && (
-              <span style={{
-                display: 'inline-block',
-                width: 18, height: 18,
-                border: '2px solid currentColor',
-                borderRightColor: 'transparent',
-                borderRadius: '50%',
-                animation: 'atlas-spin 0.9s linear infinite',
-                flexShrink: 0,
-              }} />
-            )}
-            {bootDisplayDone && <span style={{ fontSize: 20, fontWeight: 700 }}>✓</span>}
-            {bootFailed && <span style={{ fontSize: 20, fontWeight: 700 }}>⚠</span>}
-            <span style={{ fontWeight: 600 }}>
-              {bootDisplayDone ? 'Backend connected'
-                : bootFailed ? 'Connection problem'
-                : 'Connecting to backend…'}
-            </span>
-            <span style={{ flex: 1 }} />
-            <button onClick={() => setBootHidden(true)}
-                    style={{ background: 'transparent', border: 'none',
-                             color: 'currentColor', cursor: 'pointer',
-                             fontSize: 18, lineHeight: 1, padding: 0 }}
-                    title="dismiss">×</button>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {Object.entries(bootSteps).map(([k, v]) => {
-              const labels: Record<string, string> = {
-                ws: 'WebSocket connection',
-                hello: 'Backend handshake (hello)',
-                health: '/healthz endpoint',
-                sessions: 'Session list hydrated',
-                llm: 'LLM provider reachable (/models probe)',
-              };
-              return (
-                <div key={k} style={{
-                  display: 'flex', alignItems: 'center', gap: 10,
-                  fontSize: 12,
-                  opacity: v === 'done' ? 1 : v === 'fail' ? 1 : 0.7,
-                  color: v === 'done' ? 'var(--green, #22c55e)' : v === 'fail' ? 'var(--red, #ef4444)' : 'currentColor',
-                }}>
-                  <span style={{ width: 14, textAlign: 'center', fontWeight: 700 }}>
-                    {v === 'done' ? '✓' : v === 'fail' ? '✗' : '○'}
-                  </span>
-                  <span>{labels[k] || k}</span>
-                </div>
-              );
-            })}
-          </div>
-          <style>{`@keyframes atlas-spin{to{transform:rotate(360deg)}}`}</style>
-        </div>
-      )}
-      {nameEntry && nameEntry.kind === 'ip' && (
-        <div
-          className="dir-name-modal-backdrop"
-          onMouseDown={() => { if (!nameEntryBusy) setNameEntry(null); }}
-        >
-          <form
-            className="dir-name-modal"
-            data-esc-local="true"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Create IP"
-            onMouseDown={e => e.stopPropagation()}
-            onSubmit={(e) => { e.preventDefault(); commitNameEntry(); }}
-          >
-            <div className="dir-name-modal-head">
-              <div>
-                <div className="dir-name-modal-title">Create IP</div>
-                <div className="dir-name-modal-sub">workflow {newIpInitialWorkflow()}</div>
-              </div>
-              <button
-                type="button"
-                className="dir-name-modal-close"
-                aria-label="Cancel new IP"
-                disabled={nameEntryBusy}
-                onClick={() => setNameEntry(null)}
-              >×</button>
-            </div>
-            <label className="dir-name-modal-field">
-              <span>ip_id</span>
-              <input
-                ref={nameEntryInputRef}
-                className="dir-name-modal-input"
-                aria-label="New IP name"
-                placeholder="new_ip"
-                value={nameEntry.value}
-                disabled={nameEntryBusy}
-                onChange={e => setNameEntry({ kind: 'ip', value: e.currentTarget.value })}
-                onKeyDown={e => {
-                  if (e.key === 'Escape' && !nameEntryBusy) {
-                    e.preventDefault();
-                    setNameEntry(null);
-                  }
-                }}
-              />
-            </label>
-            <div className="dir-name-modal-actions">
-              <button
-                type="button"
-                className="dir-name-modal-btn"
-                disabled={nameEntryBusy}
-                onClick={() => setNameEntry(null)}
-              >Cancel</button>
-              <button
-                type="submit"
-                className="dir-name-modal-btn primary"
-                disabled={nameEntryBusy || !String(nameEntry.value || '').trim()}
-              >{nameEntryBusy ? 'Creating...' : 'Create'}</button>
-            </div>
-          </form>
-        </div>
-      )}
-      <div className="dir-switcher atlas-desktop-only">
-        <label className="dir-select-wrap" title={`Select user owner. Active namespace: .session/${normalizeSession(activeNamespace) || 'default'}`}>
-          <span>user</span>
-          <select
-            className="dir-select"
-            disabled={!ownerEditable}
-            value={activeSessionId || 'default'}
-            onChange={e => selectSessionId(e.currentTarget.value)}>
-            {sessionIdOptions.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
-        </label>
-        {ownerEditable && (
-          <button className="dir-btn"
-                  title="Create a local user owner and keep the selected IP/workflow"
-                  onClick={newSessionId}>+ User</button>
-        )}
-        {ownerEditable && nameEntry && nameEntry.kind === 'session' && (
-          <form className="dir-name-entry"
-                data-esc-local="true"
-                title="New user owner: letters, digits, underscore, dash, or dot"
-                onSubmit={(e) => { e.preventDefault(); commitNameEntry(); }}>
-            <input ref={nameEntryInputRef}
-                   className="dir-name-input"
-                   aria-label="New user owner"
-                   placeholder="user"
-                   value={nameEntry.value}
-                   onChange={e => setNameEntry({ kind: 'session', value: e.currentTarget.value })}
-                   onKeyDown={e => {
-                     if (e.key === 'Escape') {
-                       e.preventDefault();
-                       setNameEntry(null);
-                     }
-                   }} />
-            <button type="submit" className="dir-name-action">OK</button>
-            <button type="button" className="dir-name-action"
-                    aria-label="Cancel new user owner"
-                    onClick={() => setNameEntry(null)}>×</button>
-          </form>
-        )}
-        <label className="dir-select-wrap" title="Select ip_id. Namespace is user/ip_id/workflow.">
-          <span>ip_id</span>
-          <select
-            className="dir-select ip"
-            value={activeIp || WORKFLOW_DEFAULT}
-            onChange={e => selectIp(e.currentTarget.value)}>
-            <option value={WORKFLOW_DEFAULT}>{WORKFLOW_DEFAULT}</option>
-            {/* `value=` of the <select> must exist as an <option>; otherwise
-                React renders the first option (label "default") even though
-                state holds a real IP like "PL330", which makes the dropdown
-                disagree with the URL/session it is supposed to mirror. */}
-            {authState !== 'authed' && activeIp && activeIp !== WORKFLOW_DEFAULT && !ipOptions.includes(activeIp) && (
-              <option key={activeIp} value={activeIp}>{activeIp}</option>
-            )}
-            {ipOptions.filter(ip => ip !== WORKFLOW_DEFAULT).map(ip => (
-              <option key={ip} value={ip}>{ip}</option>
-            ))}
-          </select>
-        </label>
-        <button className="dir-btn"
-                title={`Create a new IP under the current user and switch to ${newIpInitialWorkflow()}`}
-                onClick={() => beginNameEntry('ip')}>+ IP</button>
-        <label className="dir-select-wrap" title="Workflow indicator. Use the left Workflow rail to switch.">
-          <span>workflow</span>
-          <output className="dir-select readonly">
-            {execMode === 'orchestrator' ? 'orchestrator' : (currentWorkflow() || WORKFLOW_DEFAULT)}
-          </output>
-        </label>
-        <button className="dir-btn"
-                title={activeIp
-                  ? `Download ${activeIp}/ as .zip`
-                  : "Select an IP first to download just that workspace; "
-                    + "leave blank for the whole project (slow)"}
-                disabled={false}
-                onClick={() => {
-                  const sub = activeIp
-                    ? `?subpath=${encodeURIComponent(activeIp)}`
-                    : '';
-                  window.location.href = `/api/workspace/download.zip${sub}`;
-                }}>📦 .zip</button>
-        <span style={{ width: 12 }} />
-        <label className="dir-select-wrap" title="Change UI font family">
-          <span>font</span>
-          <select
-            className="dir-select mini"
-            value={fontMode}
-            onChange={e => {
-              setFontMode(e.currentTarget.value);
-              try { localStorage.setItem('atlasFontModeUserSet', '1'); } catch (_) {}
-            }}>
-            {ATLAS_FONT_MODE_OPTIONS.map(opt => (
-              <option key={opt.key} value={opt.key}>{opt.label}</option>
-            ))}
-          </select>
-        </label>
-        <label className="dir-select-wrap" title="Change UI text size">
-          <span>size</span>
-          <select
-            className="dir-select mini"
-            value={fontScale}
-            onChange={e => setFontScale(e.currentTarget.value)}>
-            <option value="compact">13px</option>
-            <option value="normal">14px</option>
-            <option value="large">15px</option>
-            <option value="xl">16px</option>
-          </select>
-        </label>
-        <label className="dir-select-wrap" title="Change virtual canvas resolution">
-          <span>res</span>
-          <select
-            className="dir-select res"
-            value={resolution}
-            onChange={e => setResolution(e.currentTarget.value)}>
-            {ATLAS_UI_RESOLUTION_PRESETS.map(p => (
-              <option key={p.key} value={p.key}>{p.label}</option>
-            ))}
-          </select>
-        </label>
-        <span style={{ width: 12 }} />
-        <button className={`dir-btn ${theme === 'dark' ? 'active' : ''}`}
-                onClick={() => setTheme('dark')}>Dark</button>
-        <button className={`dir-btn ${theme === 'light' ? 'active' : ''}`}
-                onClick={() => setTheme('light')}>Light</button>
-        <button className={`dir-btn ${uiLang === 'ko' ? 'active' : ''}`}
-                title="Prefer Korean for visible agent output"
-                onClick={() => chooseUiLang('ko')}>한국어</button>
-        <button className={`dir-btn ${uiLang === 'en' ? 'active' : ''}`}
-                title="Prefer English for visible agent output"
-                onClick={() => chooseUiLang('en')}>English</button>
-        <span style={{ width: 12 }} />
-        <button className="dir-btn"
-                title="Abort the agent's current iteration  (Esc)"
-                onClick={stopAgent}>■ Stop</button>
-        <button className="dir-btn"
-                title="Terminate this session worker; Atlas UI server stays alive  (Ctrl/⌘+Q)"
-                onClick={exitAll}>✕ Exit</button>
-        <span style={{ width: 12 }} />
-        {window.ATLAS_USER && (
-          <button className="dir-btn"
-                  title={`Logged in as ${window.ATLAS_USER.username}. Click to log out.`}
-                  onClick={async () => {
-                    try {
-                      await fetch('/api/auth/logout', { method: 'POST' });
-                    } catch (_) {}
-                    try {
-                      localStorage.removeItem('atlasUserSessionId');
-                      localStorage.removeItem('atlasActiveSession');
-                    } catch (_) {}
-                    window.location.reload();
-                  }}>↩ {window.ATLAS_USER.username}</button>
-        )}
-        <span data-row-break style={{flex:'0 0 100%',width:'100%',height:0,margin:0,padding:0,border:0}} />
-        <button className={`dir-btn ${screen === 'dashboard' ? 'active' : ''}`}
-                title="User dashboard · current focus · recent sessions · usage"
-                onClick={() => setScreen('dashboard')}>▦ Dashboard</button>
-        <button className={`dir-btn ${screen === 'workspace' ? 'active' : ''}`}
-                title="Live agent · chat · sidebar (sim/lint/scope)"
-                onClick={() => setScreen('workspace')}>⌂ Workspace</button>
-        <button className={`dir-btn ${screen === 'pipeline' ? 'active' : ''}`}
-                title="Live pipeline dispatcher · stage situation board"
-                onClick={() => setScreen('pipeline')}>◫ Pipeline</button>
-        <button className={`dir-btn ${screen === 'architect' ? 'active' : ''}`}
-                title="SoC structure · per-module status grid · block diagram (rich progress view)"
-                onClick={() => setScreen('architect')}>◇ Architect</button>
-        <button className={`dir-btn ${screen === 'guide' ? 'active' : ''}`}
-                title="How to use ATLAS · default mode + per-workflow capabilities"
-                onClick={() => setScreen('guide')}>📖 Guide</button>
-        <label className="dir-select-wrap run-policy">
-          <span>run</span>
-          <select
-            className="dir-select policy"
-            value={runMode}
-            onChange={e => saveRunPolicy(e.currentTarget.value, execMode)}
-            title="Run Mode controls evidence strictness, not IP size">
-            {ATLAS_RUN_MODE_OPTIONS.map(opt => (
-              <option key={opt.key} value={opt.key}>{opt.label}</option>
-            ))}
-          </select>
-        </label>
-        <label className="dir-select-wrap run-policy">
-          <span>exec</span>
-          <select
-            className="dir-select exec"
-            value={ATLAS_EXEC_MODE_LOCKED ? 'single-worker' : execMode}
-            disabled={ATLAS_EXEC_MODE_LOCKED}
-            onChange={e => { if (!ATLAS_EXEC_MODE_LOCKED) saveRunPolicy(runMode, e.currentTarget.value); }}
-            title={ATLAS_EXEC_MODE_LOCKED
-              ? 'Exec Mode is locked to Single Worker'
-              : 'Exec Mode chooses single-worker execution or orchestrator-managed workers'}>
-            {(ATLAS_EXEC_MODE_LOCKED
-              ? ATLAS_EXEC_MODE_OPTIONS.filter(opt => opt.key === 'single-worker')
-              : ATLAS_EXEC_MODE_OPTIONS
-            ).map(opt => (
-              <option key={opt.key} value={opt.key}>{opt.label}</option>
-            ))}
-          </select>
-        </label>
-        <span style={{ display: 'contents' }}><PipelineRunningChip onClick={() => setScreen('pipeline')} /></span>
-        <OrchInlineStatus activeIp={activeIp} />
-      </div>
-      {/* ── Mobile header (< 900px only) ───────────────────────────── */}
-      <MobileHeader
-        activeIp={activeIp}
-        ipOptions={ipOptions}
-        onSelectIp={selectIp}
-        onCreateIp={() => beginNameEntry('ip')}
-        workflow={execMode === 'orchestrator' ? 'orchestrator' : currentWorkflow()}
-        workflowOptions={WORKFLOW_OPTIONS}
-        onSelectWorkflow={selectWorkflow}
-        onOpenLeftDrawer={() => {
-          window.dispatchEvent(new CustomEvent('atlas:mobile-left-drawer'));
-        }}
-        onOpenRightDrawer={() => {
-          window.dispatchEvent(new CustomEvent('atlas:mobile-right-drawer'));
-        }}
-        stopAgent={stopAgent}
-        exitAll={exitAll}
-      />
-      <div className="app-main">
-        <div style={{ flex: 1, overflow: 'hidden' }}>
-          {screen === 'dashboard' && window.AtlasUserDashboard
-            ? <ErrorBoundary label="Dashboard">
-                <window.AtlasUserDashboard
-                  activeNamespace={activeNamespace}
-                  activeIp={activeIp}
-                  activeWorkflow={currentWorkflow()}
-                  execMode={execMode}
-                  runMode={runMode}
-                  onOpenScreen={setScreen}
-                  onActivateSession={activateDashboardSession}
-                />
-              </ErrorBoundary>
-            : screen === 'pipeline' && window.AtlasPipeline
-            ? <ErrorBoundary label="Pipeline"><window.AtlasPipeline /></ErrorBoundary>
-            : screen === 'architect' && window.SocArchitect
-              ? <ErrorBoundary label="Architect"><window.SocArchitect ipOptions={ipOptions} activeIp={activeIp} onSelectIp={selectIp} /></ErrorBoundary>
-            : screen === 'guide' && window.AtlasGuide
-              ? <ErrorBoundary label="Guide"><window.AtlasGuide /></ErrorBoundary>
-              : <ErrorBoundary label="Workspace"><Workspace dir={dir} uiLang={uiLang} activeNamespace={activeNamespace} activeWorkflow={currentWorkflow()} /></ErrorBoundary>}
-        </div>
-        {/* App-level StatusBar removed — model / tokens / iter / rate /
-            SAFE chips were duplicated by the right-side AgentStatusPanel,
-            and the row clipped against the bottom of the 1080px canvas
-            so most users never saw it anyway. */}
-      </div>
-    </div>
+    <AppShell
+      dir={dir}
+      theme={theme}
+      setTheme={setTheme}
+      topNotice={topNotice}
+      setTopNotice={setTopNotice}
+      wfSwitching={wfSwitching}
+      bootHidden={bootHidden}
+      setBootHidden={setBootHidden}
+      bootSteps={bootSteps}
+      bootFailed={bootFailed}
+      bootDisplayDone={bootDisplayDone}
+      nameEntry={nameEntry}
+      setNameEntry={setNameEntry}
+      nameEntryBusy={nameEntryBusy}
+      nameEntryInputRef={nameEntryInputRef}
+      commitNameEntry={commitNameEntry}
+      newIpInitialWorkflow={newIpInitialWorkflow}
+      normalizeSession={normalizeSession}
+      activeNamespace={activeNamespace}
+      ownerEditable={ownerEditable}
+      activeSessionId={activeSessionId}
+      sessionIdOptions={sessionIdOptions}
+      selectSessionId={selectSessionId}
+      newSessionId={newSessionId}
+      activeIp={activeIp}
+      WORKFLOW_DEFAULT={WORKFLOW_DEFAULT}
+      selectIp={selectIp}
+      ipOptions={ipOptions}
+      authState={authState}
+      beginNameEntry={beginNameEntry}
+      execMode={execMode}
+      currentWorkflow={currentWorkflow}
+      fontMode={fontMode}
+      setFontMode={setFontMode}
+      fontScale={fontScale}
+      setFontScale={setFontScale}
+      resolution={resolution}
+      setResolution={setResolution}
+      uiLang={uiLang}
+      chooseUiLang={chooseUiLang}
+      stopAgent={stopAgent}
+      exitAll={exitAll}
+      screen={screen}
+      setScreen={setScreen}
+      runMode={runMode}
+      saveRunPolicy={saveRunPolicy}
+      WORKFLOW_OPTIONS={WORKFLOW_OPTIONS}
+      selectWorkflow={selectWorkflow}
+      activateDashboardSession={activateDashboardSession}
+    />
   );
 };
 

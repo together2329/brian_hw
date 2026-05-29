@@ -11,130 +11,43 @@
 //     executes). The original was wrapped in `(() => { ... })()`.
 //   - React hooks are imported (`useMemo`) instead of read off the ambient
 //     global `React`; `React.useMemo` becomes the imported `useMemo`.
-//   - Cross-file globals OWNED BY OTHER FILES (the ~40 lambda forward-refs
-//     below, plus sectionFact which is owned by workspace.jsx) are kept as
-//     the same lambda forward-refs that resolve `window.X` at call time.
-//     They are not (yet) in types/atlas-window.d.ts, so a narrow `win` cast
-//     is used (same pattern as block-diagram.tsx).
+//   - Cross-file globals OWNED BY OTHER FILES (the ~40 lambda forward-refs,
+//     plus sectionFact which is owned by workspace.jsx) live in the sibling
+//     ssot-digest-content-globals.tsx and resolve `window.X` at call time.
+//   - The per-view render functions live in the sibling
+//     ssot-digest-content-renderers.tsx (buildRenderers(ctx)); this file
+//     computes the derived `ctx` and dispatches on view.id. Sub-1000 split.
 //   - This file's OWN public global (SsotDigestContent) becomes a real export
 //     plus a transitional window.* bridge at the bottom for not-yet-migrated
 //     .jsx consumers.
-import { useMemo, type ReactNode } from 'react';
+import { useMemo } from 'react';
+import {
+  win,
+  type SsotDigestContentProps,
+  DigestSourceSections,
+  SsotCommandPalette,
+  blockField,
+  buildReferenceTokens,
+  compactDigestItems,
+  extractFeatures,
+  extractFsms,
+  extractModuleContracts,
+  extractRegisters,
+  extractReviewInterfaces,
+  extractReviewPins,
+  extractScenarios,
+  extractSubmodules,
+  listBlocksFromSection,
+  mapGroupsFromSection,
+  sectionByKey,
+  sectionFact,
+  sourceSectionsForDigestView,
+  ssotTitleFor,
+  ssotValuePresent,
+} from './ssot-digest-content-globals';
+import { buildRenderers } from './ssot-digest-content-renderers';
 
-// ── Narrow cast for undeclared cross-file globals ─────────────────────
-// types/atlas-window.d.ts does not (yet) declare these helper/component
-// globals (owned by other still-.jsx files), so reference them through a
-// locally-typed view of window. This preserves the exact runtime reads
-// without spraying `any`.
-interface SsotDigestContentWindow {
-  AtlasStatusBadge?: (...a: unknown[]) => unknown;
-  BlockDiagram?: (...a: unknown[]) => unknown;
-  DigestCard?: (...a: unknown[]) => unknown;
-  DigestEmpty?: (...a: unknown[]) => unknown;
-  DigestKV?: (...a: unknown[]) => unknown;
-  DigestList?: (...a: unknown[]) => unknown;
-  DigestSourceSections?: (...a: unknown[]) => unknown;
-  FeatureCard?: (...a: unknown[]) => unknown;
-  FoldablePane?: (...a: unknown[]) => unknown;
-  FsmTransitionDiagram?: (...a: unknown[]) => unknown;
-  GatesPanel?: (...a: unknown[]) => unknown;
-  ModuleTree?: (...a: unknown[]) => unknown;
-  PipelineTraceDiagram?: (...a: unknown[]) => unknown;
-  RegisterBitFieldView?: (...a: unknown[]) => unknown;
-  SsotCommandPalette?: (...a: unknown[]) => unknown;
-  SsotScenarioPlayer?: (...a: unknown[]) => unknown;
-  _formatWidth?: (...a: unknown[]) => unknown;
-  _hasMeaningfulRegisterField?: (...a: unknown[]) => unknown;
-  _hasRegisterDetail?: (...a: unknown[]) => unknown;
-  blockField?: (...a: unknown[]) => unknown;
-  blockListValues?: (...a: unknown[]) => unknown;
-  buildReferenceTokens?: (...a: unknown[]) => unknown;
-  compactDigestItems?: (...a: unknown[]) => unknown;
-  extractFeatures?: (...a: unknown[]) => unknown;
-  extractFsms?: (...a: unknown[]) => unknown;
-  extractModuleContracts?: (...a: unknown[]) => unknown;
-  extractRegisters?: (...a: unknown[]) => unknown;
-  extractReviewInterfaces?: (...a: unknown[]) => unknown;
-  extractReviewPins?: (...a: unknown[]) => unknown;
-  extractScenarios?: (...a: unknown[]) => unknown;
-  extractSubmodules?: (...a: unknown[]) => unknown;
-  fieldFromText?: (...a: unknown[]) => unknown;
-  fsmGraphFromMachine?: (...a: unknown[]) => unknown;
-  linkifyReferences?: (...a: unknown[]) => unknown;
-  listBlocksFromSection?: (...a: unknown[]) => unknown;
-  mapGroupsFromSection?: (...a: unknown[]) => unknown;
-  sectionByKey?: (...a: unknown[]) => unknown;
-  sectionFact?: (...a: unknown[]) => unknown;
-  sourceSectionsForDigestView?: (...a: unknown[]) => unknown;
-  ssotTitleFor?: (...a: unknown[]) => unknown;
-  ssotValuePresent?: (...a: unknown[]) => unknown;
-  trimSsotValue?: (...a: unknown[]) => unknown;
-  uniqueFsmStates?: (...a: unknown[]) => unknown;
-  SsotDigestContent?: (props: SsotDigestContentProps) => ReactNode;
-}
-
-const win = window as unknown as SsotDigestContentWindow & Window;
-
-// Forward-refs to cross-file globals (resolved at call time):
-const AtlasStatusBadge = (...a: any[]): any => win.AtlasStatusBadge!(...a);
-const BlockDiagram = (...a: any[]): any => win.BlockDiagram!(...a);
-const DigestCard = (...a: any[]): any => win.DigestCard!(...a);
-const DigestEmpty = (...a: any[]): any => win.DigestEmpty!(...a);
-const DigestKV = (...a: any[]): any => win.DigestKV!(...a);
-const DigestList = (...a: any[]): any => win.DigestList!(...a);
-const DigestSourceSections = (...a: any[]): any => win.DigestSourceSections!(...a);
-const FeatureCard = (...a: any[]): any => win.FeatureCard!(...a);
-const FoldablePane = (...a: any[]): any => win.FoldablePane!(...a);
-const FsmTransitionDiagram = (...a: any[]): any => win.FsmTransitionDiagram!(...a);
-const GatesPanel = (...a: any[]): any => win.GatesPanel!(...a);
-const ModuleTree = (...a: any[]): any => win.ModuleTree!(...a);
-const PipelineTraceDiagram = (...a: any[]): any => win.PipelineTraceDiagram!(...a);
-const RegisterBitFieldView = (...a: any[]): any => win.RegisterBitFieldView!(...a);
-const SsotCommandPalette = (...a: any[]): any => win.SsotCommandPalette!(...a);
-const SsotScenarioPlayer = (...a: any[]): any => win.SsotScenarioPlayer!(...a);
-const _formatWidth = (...a: any[]): any => win._formatWidth!(...a);
-const _hasMeaningfulRegisterField = (...a: any[]): any => win._hasMeaningfulRegisterField!(...a);
-const _hasRegisterDetail = (...a: any[]): any => win._hasRegisterDetail!(...a);
-const blockField = (...a: any[]): any => win.blockField!(...a);
-const blockListValues = (...a: any[]): any => win.blockListValues!(...a);
-const buildReferenceTokens = (...a: any[]): any => win.buildReferenceTokens!(...a);
-const compactDigestItems = (...a: any[]): any => win.compactDigestItems!(...a);
-const extractFeatures = (...a: any[]): any => win.extractFeatures!(...a);
-const extractFsms = (...a: any[]): any => win.extractFsms!(...a);
-const extractModuleContracts = (...a: any[]): any => win.extractModuleContracts!(...a);
-const extractRegisters = (...a: any[]): any => win.extractRegisters!(...a);
-const extractReviewInterfaces = (...a: any[]): any => win.extractReviewInterfaces!(...a);
-const extractReviewPins = (...a: any[]): any => win.extractReviewPins!(...a);
-const extractScenarios = (...a: any[]): any => win.extractScenarios!(...a);
-const extractSubmodules = (...a: any[]): any => win.extractSubmodules!(...a);
-const fieldFromText = (...a: any[]): any => win.fieldFromText!(...a);
-const fsmGraphFromMachine = (...a: any[]): any => win.fsmGraphFromMachine!(...a);
-const linkifyReferences = (...a: any[]): any => win.linkifyReferences!(...a);
-const listBlocksFromSection = (...a: any[]): any => win.listBlocksFromSection!(...a);
-const mapGroupsFromSection = (...a: any[]): any => win.mapGroupsFromSection!(...a);
-const sectionByKey = (...a: any[]): any => win.sectionByKey!(...a);
-const sourceSectionsForDigestView = (...a: any[]): any => win.sourceSectionsForDigestView!(...a);
-const ssotTitleFor = (...a: any[]): any => win.ssotTitleFor!(...a);
-const ssotValuePresent = (...a: any[]): any => win.ssotValuePresent!(...a);
-const trimSsotValue = (...a: any[]): any => win.trimSsotValue!(...a);
-const uniqueFsmStates = (...a: any[]): any => win.uniqueFsmStates!(...a);
-// sectionFact is owned by workspace.jsx; in the original .jsx it was called
-// directly (relying on babel's loose scoping). Keep it as a forward-ref so it
-// resolves window.sectionFact at call time — identical runtime behavior.
-const sectionFact = (...a: any[]): any => win.sectionFact!(...a);
-
-interface SsotDigestContentProps {
-  view: any;
-  sections: any;
-  statusByKey?: any;
-  uiLang?: string;
-  content?: string;
-  selected?: string;
-  onJump?: any;
-  feedbackMode?: boolean;
-}
-
-const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content = '', selected = '', onJump, feedbackMode = false }: SsotDigestContentProps): ReactNode => {
+const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content = '', selected = '', onJump, feedbackMode = false }: SsotDigestContentProps) => {
   const t = uiLang === 'en'
     ? { sourceSections: 'Source section review', ports: 'ports', fields: 'fields' }
     : { sourceSections: '원본 섹션 리뷰', ports: 'ports', fields: 'fields' };
@@ -426,643 +339,37 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
     { label: 'Dataflow', status: statusForPresence(dataflowGroups.length > 0 || semanticSectionNames(/dataflow|flow|fifo|buffer|open_drain|access/i, 1).length > 0), detail: dataflowGroups.length ? `${dataflowGroups.length} flows` : compactDigestItems(semanticSectionNames(/dataflow|flow|fifo|buffer|open_drain|access/i, 3), 3) },
   ];
 
-  const renderOverview = () => (
-    <>
-      {header}
-      <div style={{ display: 'grid', gap: 10 }}>
-        <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
-          <DigestCard title="Top Module" meta={top ? `line ${top.startLine}` : ''}>
-            <DigestKV rows={[
-              ['name', topName],
-              ['type', sectionFact(top, 'type')],
-              ['clock', sectionFact(top, 'clock_freq_mhz') ? `${sectionFact(top, 'clock_freq_mhz')} MHz` : sectionFact(clockSection, 'frequency_hz')],
-              ['purpose', trimSsotValue(sectionFact(top, 'description', 'No top_module.description available yet.'), 300)],
-            ]} />
-          </DigestCard>
-          <DigestCard title="Review Coverage" meta={`${sections.length} sections`}>
-            <div style={{ display: 'grid', gap: 5 }}>
-              {coverageRows.map(row => (
-                <div key={row.label} style={{ display: 'grid', gridTemplateColumns: '118px minmax(0, 1fr)', gap: 8, alignItems: 'center' }}>
-                  <AtlasStatusBadge status={row.status} label={row.label} compact soft />
-                  <span className="trunc" style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10 }}>{row.detail || '-'}</span>
-                </div>
-              ))}
-            </div>
-          </DigestCard>
-        </div>
-        <DigestCard title="Architecture" meta={`${submods.length} submodules`}>
-          {submods.length ? <ModuleTree topName={topName} modules={submods.slice(0, 10)} /> : (
-            <DigestList items={moduleContracts.map((contract: any) => `${contract.module}: ${compactDigestItems(contract.owns, 4)}`)} />
-          )}
-        </DigestCard>
-        <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
-          <DigestCard title="Features" meta={`${features.length} items`}>
-            <DigestList items={features.map((f: any) => `${f.name}${f.datapath ? ` - ${trimSsotValue(f.datapath, 90)}` : ''}`)} limit={6} />
-          </DigestCard>
-          <DigestCard title="Interfaces" meta={`${interfaces.length} interfaces`}>
-            <DigestList items={interfaces.map((iface: any) => `${iface.name}${iface.type ? ` (${iface.type})` : ''}${iface.ports.length ? ` · ${iface.ports.length} ports` : ''}`)} limit={6} />
-          </DigestCard>
-          <DigestCard title="Registers / Dataflow" meta={`${registers.length} regs`}>
-            <DigestKV rows={[
-              ['registers', compactDigestItems(registers.map((reg: any) => `${reg.name}${reg.offset ? ` @ ${reg.offset}` : ''}`), 5)],
-              ['dataflow', compactDigestItems(dataflowGroups.map((g: any) => ssotTitleFor(g.key)), 5) || compactDigestItems(semanticSectionNames(/dataflow|flow|fifo|buffer|open_drain|access/i, 5), 5)],
-              ['function', sectionFact(functionSection, 'purpose') || compactDigestItems(semanticSectionNames(/function|fsm|logic|state/i, 4), 4)],
-              ['fsm', compactDigestItems(fsmMachines.map((machine: any) => `${machine.name} (${machine.states.length} states)`), 4)],
-              ['cycle', sectionFact(cycleSection, 'purpose') || compactDigestItems(semanticSectionNames(/cycle|timing|latency|scl/i, 4), 4)],
-            ]} />
-          </DigestCard>
-        </div>
-      </div>
-    </>
-  );
-
-  const renderFeatures = () => (
-    <>
-      {header}
-      <div style={{ display: 'grid', gap: 14 }}>
-        {features.length ? features.map((f: any, i: number) => (
-          <FeatureCard key={`${f.name}-${i}`} index={i + 1} feature={f} tokenMap={refTokenMap} onJump={onJump} />
-        )) : <DigestEmpty />}
-      </div>
-    </>
-  );
-
-  const renderFeatureMap = () => (
-    <>
-      {header}
-      <div style={{ display: 'grid', gap: 10 }}>
-        {features.length ? features.map((feature: any, i: number) => {
-          const tokens = featureTokens(feature);
-          const ownedModules = namesForFeature(
-            submods,
-            tokens,
-            (row: any) => row.name,
-            (row: any) => [row.name, row.description, ...(row.implements || []), ...(row.sourceSections || [])].join(' '),
-          );
-          const contractModules = namesForFeature(
-            moduleContracts,
-            tokens,
-            (row: any) => row.module,
-            (row: any) => [row.module, row.implementation, ...(row.owns || []), ...(row.inputs || []), ...(row.outputs || [])].join(' '),
-          );
-          const relatedRegisters = namesForFeature(
-            registers,
-            tokens,
-            (row: any) => `${row.name}${row.offset ? ` @ ${row.offset}` : ''}`,
-            (row: any) => [row.name, row.description, ...(row.fields || []).map((field: any) => `${field.name} ${field.description}`)].join(' '),
-          );
-          const relatedFlows = namesForFeature(
-            dataflowGroups,
-            tokens,
-            (row: any) => ssotTitleFor(row.key),
-            (row: any) => `${row.key} ${row.text}`,
-          );
-          const relatedFunction = namesForFeature(
-            transactions,
-            tokens,
-            (row: any) => blockField(row, 'id') || blockField(row, 'name'),
-            (row: any) => row.text,
-          );
-          const relatedCycle = namesForFeature(
-            [...latencyGroups, ...handshakeRules, ...pipeline],
-            tokens,
-            (row: any) => row.key || blockField(row, 'signal') || blockField(row, 'stage') || blockField(row, 'name'),
-            (row: any) => row.text,
-          );
-          const modules = compactDigestItems([...new Set([...ownedModules, ...contractModules])], 5);
-          return (
-            <DigestCard key={`feat-${feature.name || ''}-${i}`} title={feature.name} meta={feature.sourceKey || feature.trigger}>
-              <DigestKV rows={[
-                ['what', feature.datapath || feature.output || feature.trigger],
-                ['implemented by', modules || compactDigestItems(featureSections.filter((section: any) => matchesFeature(section.text, tokens)).map((section: any) => ssotTitleFor(section.key)), 5)],
-                ['submodule direction', compactDigestItems(moduleContracts.filter((contract: any) => matchesFeature(contract.implementation, tokens)).map((contract: any) => `${contract.module}: ${trimSsotValue(contract.implementation, 90)}`), 2)],
-                ['control path', feature.control || compactDigestItems(relatedRegisters, 4)],
-                ['function model', compactDigestItems(relatedFunction, 4) || sectionFact(functionSection, 'purpose')],
-                ['cycle model', compactDigestItems(relatedCycle, 4) || sectionFact(cycleSection, 'purpose')],
-                ['registers', compactDigestItems(relatedRegisters, 5)],
-                ['dataflow', compactDigestItems(relatedFlows, 5)],
-                ['observable output', feature.output],
-              ]} />
-            </DigestCard>
-          );
-        }) : (
-          <DigestCard title="Feature Map">
-            <DigestEmpty text="No feature-level entries were found. Review Gaps shows which anchors are missing." />
-          </DigestCard>
-        )}
-      </div>
-    </>
-  );
-
-  const renderArchitecture = () => (
-    <>
-      {header}
-      <div style={{ display: 'grid', gap: 10 }}>
-        <DigestCard title="Block Diagram" meta={`${topName} → ${submods.length} submodules · ${diagramPins.length ? `${diagramPins.length} pins` : `${interfaces.length} interfaces`}`}>
-          {submods.length ? (
-            <BlockDiagram
-              topName={topName}
-              modules={submods}
-              contractByModule={contractByModule}
-              interfaces={interfaces}
-              diagramPins={diagramPins}
-              clockSection={clockSection}
-              parameters={parameters}
-            />
-          ) : <DigestEmpty />}
-        </DigestCard>
-        <DigestCard title="Module Tree" meta={`${topName} + ${submods.length} submodules`}>
-          {submods.length ? (
-            <ModuleTree topName={topName} modules={submods} />
-          ) : <DigestEmpty />}
-        </DigestCard>
-        <DigestCard title="Module Split" meta={`${submods.length} submodules`}>
-          {submods.length ? (
-            <div style={{ display: 'grid', gap: 9 }}>
-              {submods.map((m: any, i: number) => {
-                const contract = contractByModule[m.name] || {};
-                const localInputs = (contract.inputs || []).length ? contract.inputs : [];
-                const localOutputs = (contract.outputs || []).length ? contract.outputs : [];
-                const owns = (contract.owns || []).length ? contract.owns : m.implements;
-                return (
-                  <div key={`sm-${m.name || ''}-${i}`} style={{ borderBottom: '1px solid var(--line)', paddingBottom: 7 }}>
-                    <div><b>{m.name}</b> <span className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 10 }}>{m.file}</span></div>
-                    <div className="mute" style={{ marginTop: 2 }}>{m.description}</div>
-                    {owns.length ? <div style={{ marginTop: 3, color: 'var(--cyan)', fontFamily: 'var(--mono)', fontSize: 10 }}>direction: {owns.join(', ')}</div> : null}
-                    {localInputs.length || localOutputs.length ? (
-                      <DigestKV rows={[
-                        ['inputs', localInputs.join('; ')],
-                        ['outputs', localOutputs.join('; ')],
-                      ]} />
-                    ) : null}
-                  </div>
-                );
-              })}
-            </div>
-          ) : <DigestEmpty />}
-        </DigestCard>
-        {moduleContracts.length ? (
-          <DigestCard title="Implementation Direction" meta={`${moduleContracts.length} module contracts`}>
-            <div style={{ display: 'grid', gap: 10 }}>
-              {moduleContracts.map((contract: any, i: number) => (
-                <div key={`mc-${contract.module || ''}-${i}`} style={{ borderBottom: '1px solid var(--line)', paddingBottom: 8 }}>
-                  <div style={{ fontWeight: 800 }}>{contract.module}</div>
-                  {contract.implementation ? <div className="mute" style={{ marginTop: 2 }}>{contract.implementation}</div> : null}
-                  <DigestKV rows={[
-                    ['owns', contract.owns.join('; ')],
-                    ['inputs', contract.inputs.join('; ')],
-                    ['outputs', contract.outputs.join('; ')],
-                  ]} />
-                </div>
-              ))}
-            </div>
-          </DigestCard>
-        ) : null}
-        {decompSection ? <DigestSourceSections view={{ keys: ['decomposition'] }} sections={sections} statusByKey={statusByKey} t={t} /> : null}
-      </div>
-    </>
-  );
-
-  const renderFunctionModel = () => (
-    <>
-      {header}
-      <div style={{ display: 'grid', gap: 10 }}>
-        <DigestCard title="Purpose">
-          <div>{sectionFact(functionSection, 'purpose', 'No function model purpose available yet.')}</div>
-        </DigestCard>
-        <DigestCard title="Transactions" meta={`${transactions.length} transactions`}>
-          {transactions.length ? transactions.map((tx: any, i: number) => (
-            <div key={`tx-${blockField(tx, 'id') || blockField(tx, 'name') || i}-${i}`} style={{ marginBottom: 10, borderBottom: '1px solid var(--line)', paddingBottom: 8 }}>
-              <div><b>{blockField(tx, 'id')}</b> {blockField(tx, 'name')}</div>
-              <DigestKV rows={[
-                ['preconditions', blockListValues(tx, 'preconditions', 4).join('; ')],
-                ['inputs', blockListValues(tx, 'inputs', 4).join('; ')],
-                ['outputs', blockListValues(tx, 'outputs', 4).join('; ')],
-                ['side effects', blockListValues(tx, 'side_effects', 4).join('; ')],
-              ]} />
-            </div>
-          )) : <DigestEmpty />}
-        </DigestCard>
-        <DigestCard title="State Variables" meta={`${stateVars.length} variables`}>
-          {stateVars.length ? (
-            <div style={{ display: 'grid', gap: 5 }}>
-              {stateVars.map((v: any, i: number) => <DigestKV key={`sv-${blockField(v, 'name') || i}-${i}`} rows={[[blockField(v, 'name'), `${blockField(v, 'source')} · reset ${blockField(v, 'reset')} · ${blockField(v, 'description')}`]]} />)}
-            </div>
-          ) : <DigestEmpty />}
-        </DigestCard>
-      </div>
-    </>
-  );
-
-  const renderFsm = () => (
-    <>
-      {header}
-      <div style={{ display: 'grid', gap: 10 }}>
-        <DigestCard
-          title="FSM Summary"
-          meta={`${fsmMachines.length} machines · ${fsmMachines.reduce((sum: number, m: any) => sum + uniqueFsmStates(m).length, 0)} states · ${fsmMachines.reduce((sum: number, m: any) => sum + m.transitions.length, 0)} transitions`}
-        >
-          {fsmMachines.length ? (
-            <DigestKV rows={[
-              ['machines', compactDigestItems(fsmMachines.map((machine: any) => machine.name), 8)],
-              ['reset states', compactDigestItems(fsmMachines.map((machine: any) => machine.resetState ? `${machine.name}: ${machine.resetState}` : '').filter(Boolean), 6)],
-              ['source', fsmSection ? `fsm section line ${fsmSection.startLine}` : 'No fsm section found'],
-            ]} />
-          ) : noFsmPolicy ? (
-            <DigestKV rows={[
-              ['policy', noFsmPolicy],
-              ['source', fsmSection ? `fsm section line ${fsmSection.startLine}` : 'No fsm section found'],
-            ]} />
-          ) : (
-            <DigestEmpty text="No structured FSM section found. Add fsm.<machine>.states and fsm.<machine>.transitions to SSOT." />
-          )}
-        </DigestCard>
-        {fsmMachines.map((machine: any, machineIdx: number) => {
-          const graph = fsmGraphFromMachine(machine);
-          return (
-            <DigestCard
-              key={`fsm-${machine.name || ''}-${machineIdx}`}
-              title={machine.name}
-              meta={`${graph.states.length} states · ${graph.transitions.length} transitions`}
-            >
-              <DigestKV rows={[
-                ['reset', machine.resetState],
-                ['illegal recovery', machine.illegalRecovery],
-                ['outputs', machine.outputs.join('; ')],
-                ['actions', machine.actions.join('; ')],
-                ['note', machine.note],
-              ]} />
-              {graph.states.length ? (
-                <div style={{ marginTop: 10 }}>
-                  <div className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 10, marginBottom: 5 }}>states</div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                    {graph.states.map((state: any) => (
-                      <span
-                        key={`${machine.name}:${state.id}`}
-                        style={{
-                          border: '1px solid var(--line-2)',
-                          borderRadius: 3,
-                          padding: '3px 7px',
-                          fontFamily: 'var(--mono)',
-                          fontSize: 'var(--ui-control-font-size)',
-                          color: state.reset ? 'var(--accent)' : 'var(--fg)',
-                          background: state.reset
-                            ? 'color-mix(in oklch, var(--accent) 14%, transparent)'
-                            : 'var(--bg-3)',
-                        }}
-                      >
-                        {state.label}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-              <FsmTransitionDiagram machine={machine} index={machineIdx} />
-            </DigestCard>
-          );
-        })}
-      </div>
-    </>
-  );
-
-  const renderCycleModel = () => (
-    <>
-      {header}
-      <div style={{ display: 'grid', gap: 10 }}>
-        <DigestCard title="Cycle Contract">
-          <DigestKV rows={[
-            ['purpose', sectionFact(cycleSection, 'purpose')],
-            ['clock', sectionFact(cycleSection, 'clock')],
-            ['reset assertion', sectionFact(cycleSection, 'assertion')],
-            ['reset deassertion', sectionFact(cycleSection, 'deassertion')],
-          ]} />
-        </DigestCard>
-        <DigestCard title="Latency" meta={`${latencyGroups.length} paths`}>
-          {latencyGroups.length ? latencyGroups.map((g: any, i: number) => (
-            <DigestKV key={`lat-${g.key || ''}-${i}`} rows={[[g.key, `${fieldFromText(g.text, 'min_cycles') || '?'}-${fieldFromText(g.text, 'max_cycles') || '?'} cycles · ${fieldFromText(g.text, 'description')}`]]} />
-          )) : <DigestEmpty />}
-        </DigestCard>
-        <DigestCard title="Handshake / Pipeline" meta={`${handshakeRules.length} rules · ${pipeline.length} stages`}>
-          {handshakeRules.slice(0, 8).map((r: any, i: number) => <div key={`hr-${blockField(r, 'signal') || i}-${i}`} style={{ marginBottom: 4 }}><b>{blockField(r, 'signal')}</b> <span className="mute">{blockField(r, 'rule', 320)}</span></div>)}
-          {pipeline.length ? <hr style={{ border: 0, borderTop: '1px solid var(--line)', margin: '8px 0' }} /> : null}
-          {pipeline.map((p: any, i: number) => <div key={`pl-${blockField(p, 'stage') || i}-${i}`} style={{ marginBottom: 4 }}><b>{blockField(p, 'stage')}</b> <span className="mute">{blockField(p, 'cycle')} · {blockField(p, 'action', 320)}</span></div>)}
-        </DigestCard>
-        {pipeline.length ? (
-          <DigestCard title="Pipeline trace" meta={`${pipeline.length}-stage staircase · ${Math.min(transactions.length || 1, 4)} ${transactions.length ? 'transactions' : 'flow'}`}>
-            <PipelineTraceDiagram pipeline={pipeline} transactions={transactions} />
-          </DigestCard>
-        ) : null}
-      </div>
-    </>
-  );
-
-  const renderInterfaces = () => (
-    <>
-      {header}
-      <div style={{ display: 'grid', gap: 10 }}>
-        <div style={{ color: 'var(--accent)', fontWeight: 800, fontSize: 12 }}>Top Module External Interfaces <span className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 10 }}>{interfaces.length} interfaces</span></div>
-        {interfaces.length ? interfaces.map((iface: any, i: number) => (
-          <DigestCard key={`if-${iface.name || ''}-${i}`} title={iface.name} meta={`${iface.type}${iface.role ? ` · ${iface.role}` : ''} · ${iface.ports.length} ${t.ports}`}>
-            <div className="mute" style={{ marginBottom: 8 }}>{iface.description}</div>
-            <div style={{ display: 'grid', gap: 4 }}>
-              {iface.ports.map((port: any, pi: number) => (
-                <div key={`port-${port.name || ''}-${pi}`} style={{ display: 'grid', gridTemplateColumns: 'minmax(110px, 0.7fr) 56px minmax(70px, max-content) minmax(0, 1.4fr)', gap: 10, fontFamily: 'var(--mono)', fontSize: 'var(--ui-control-font-size)', alignItems: 'baseline' }}>
-                  <span style={{ color: 'var(--fg)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{port.name}</span>
-                  <span className="mute">{port.direction}</span>
-                  <span className="mute" style={{ whiteSpace: 'nowrap' }}>{_formatWidth(port.width) || '[0]'}</span>
-                  <span className="mute" style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{port.description}</span>
-                </div>
-              ))}
-            </div>
-          </DigestCard>
-        )) : <DigestEmpty />}
-        {moduleContracts.length ? (
-          <DigestCard title="Submodule Local Interfaces" meta={`${moduleContracts.length} modules`}>
-            <div style={{ display: 'grid', gap: 10 }}>
-              {moduleContracts.map((contract: any, ci: number) => (
-                <div key={`mc2-${contract.module || ''}-${ci}`} style={{ borderBottom: '1px solid var(--line)', paddingBottom: 8 }}>
-                  <div style={{ fontWeight: 800 }}>{contract.module}</div>
-                  <DigestKV rows={[
-                    ['inputs', contract.inputs.join('; ')],
-                    ['outputs', contract.outputs.join('; ')],
-                  ]} />
-                  {contract.interfaces.length ? (
-                    <div style={{ marginTop: 7, display: 'grid', gap: 6 }}>
-                      {contract.interfaces.map((iface: any, ii: number) => (
-                        <div key={`cif-${iface.name || ''}-${ii}`}>
-                          <b>{iface.name}</b> <span className="mute">{iface.type}{iface.role ? ` · ${iface.role}` : ''}</span>
-                          <DigestKV rows={[
-                            ['inputs', iface.inputs.join('; ')],
-                            ['outputs', iface.outputs.join('; ')],
-                            ['description', iface.description],
-                          ]} />
-                        </div>
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
-              ))}
-            </div>
-          </DigestCard>
-        ) : null}
-      </div>
-    </>
-  );
-
-  const renderRegisters = () => (
-    <>
-      {header}
-      <DigestCard title="Register Map" meta={`${registers.length} registers`}>
-        {registers.length ? (
-          <div style={{ display: 'grid', gap: 8 }}>
-            <div className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 10 }}>
-              {[
-                `${registers.length} register${registers.length === 1 ? '' : 's'}`,
-                _hasRegisterDetail(registerConfig.addrWidth) ? `addr ${registerConfig.addrWidth}` : '',
-                _hasRegisterDetail(registerConfig.dataWidth) ? `data ${registerConfig.dataWidth}` : '',
-                _hasRegisterDetail(registerConfig.byteAddressable) ? `byte ${registerConfig.byteAddressable}` : '',
-              ].filter(Boolean).join(' · ')}
-            </div>
-            {registers.map((reg: any, i: number) => {
-              const meaningfulFields = (reg.fields || []).filter(_hasMeaningfulRegisterField);
-              const hasExpandedDetail = meaningfulFields.length > 0;
-              const tags = [
-                _hasRegisterDetail(reg.access) && `access ${reg.access}`,
-                _hasRegisterDetail(reg.reset) && `reset ${reg.reset}`,
-                _hasRegisterDetail(reg.width) && `${reg.width}b`,
-              ].filter(Boolean);
-              return (
-              <div key={`reg-${reg.name || ''}-${i}`} style={{
-                border: '1px solid var(--line)',
-                borderLeft: '3px solid var(--accent)',
-                borderRadius: 4,
-                background: 'var(--bg-2)',
-                padding: hasExpandedDetail ? 10 : '8px 10px',
-                minWidth: 0,
-              }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '76px minmax(0, 1fr)', gap: 10, alignItems: 'center' }}>
-                  <div style={{
-                    fontFamily: 'var(--mono)',
-                    color: 'var(--cyan)',
-                    fontWeight: 900,
-                    border: '1px solid var(--line-2)',
-                    borderRadius: 4,
-                    padding: '4px 7px',
-                    textAlign: 'center',
-                    background: 'var(--bg-1)',
-                    whiteSpace: 'nowrap',
-                  }}>
-                    {_hasRegisterDetail(reg.offset) ? reg.offset : '--'}
-                  </div>
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
-                      <span style={{ fontWeight: 900, color: 'var(--fg)', fontSize: 14, fontFamily: 'var(--mono)', wordBreak: 'break-word' }}>{reg.name}</span>
-                      {tags.map((tag: any) => (
-                        <span key={`${reg.name}-${tag}`} className="mute" style={{
-                          fontFamily: 'var(--mono)',
-                          fontSize: 10,
-                          border: '1px solid var(--line)',
-                          borderRadius: 3,
-                          padding: '2px 6px',
-                          background: 'var(--bg-3)',
-                          whiteSpace: 'nowrap',
-                        }}>{tag}</span>
-                      ))}
-                    </div>
-                    {_hasRegisterDetail(reg.description) ? (
-                      <div className="mute" style={{ marginTop: 5, lineHeight: 1.5, wordBreak: 'break-word' }}>{linkifyReferences(reg.description, refTokenMap, onJump)}</div>
-                    ) : !hasExpandedDetail ? (
-                      <div className="mute" style={{ marginTop: 3, fontFamily: 'var(--mono)', fontSize: 10 }}>details pending</div>
-                    ) : null}
-                  </div>
-                </div>
-                {hasExpandedDetail ? (
-                  <RegisterBitFieldView
-                    width={reg.width || registerConfig.dataWidth || 32}
-                    fields={meaningfulFields}
-                    tokenMap={refTokenMap}
-                    onJump={onJump}
-                  />
-                ) : null}
-              </div>
-            );})}
-          </div>
-        ) : noRegisterPolicy ? (
-          <DigestKV rows={[['policy', noRegisterPolicy]]} />
-        ) : <DigestEmpty />}
-      </DigestCard>
-    </>
-  );
-
-  const renderDataflow = () => (
-    <>
-      {header}
-      <div style={{ display: 'grid', gap: 10 }}>
-        {dataflowGroups.length ? dataflowGroups.map((g: any, i: number) => (
-          <DigestCard key={`df-${g.key || ''}-${i}`} title={ssotTitleFor(g.key)}>
-            <DigestKV rows={[
-              ['source', fieldFromText(g.text, 'source')],
-              ['sequence', blockListValues(g, 'sequence', 8).join(' -> ')],
-              ['buffer', fieldFromText(g.text, 'buffer')],
-              ['backpressure', fieldFromText(g.text, 'backpressure', 360)],
-              ['description', fieldFromText(g.text, 'description', 360)],
-            ]} />
-          </DigestCard>
-        )) : <DigestEmpty />}
-      </div>
-    </>
-  );
-
-  const renderClocking = () => (
-    <>
-      {header}
-      <div style={{ display: 'grid', gap: 10 }}>
-        <DigestCard title="Clock Domains" meta={`${clockDomains.length} domains`}>
-          {clockDomains.length ? clockDomains.map((d: any, i: number) => <DigestKV key={`cd-${d.name || ''}-${i}`} rows={[[d.name, `${d.frequency || '?'} MHz · ${d.description}`]]} />) : <DigestEmpty />}
-        </DigestCard>
-        <DigestCard title="Reset">
-          {resets.length ? resets.map((r: any, i: number) => <DigestKV key={`rs-${r.name || ''}-${i}`} rows={[[r.name, `${r.polarity} · ${r.type} · ${r.description}`]]} />) : <DigestKV rows={[['scheme', sectionFact(clockSection, 'type') || sectionFact(clockSection, 'reset_scheme')]]} />}
-        </DigestCard>
-        <DigestCard title="CDC / RDC" meta={`${cdcCrossings.length} CDC crossings`}>
-          {cdcCrossings.length ? cdcCrossings.map((c: any, i: number) => <DigestKV key={`cdc-${c.name || ''}-${i}`} rows={[[c.name, `${c.from} -> ${c.to} · ${c.synchronizer} · ${c.description}`]]} />) : <DigestEmpty text={sectionFact(rdcSection, 'note') || 'No CDC crossings listed.'} />}
-        </DigestCard>
-      </div>
-    </>
-  );
-
-  const renderReviewGaps = () => {
-    const explicitGaps = (sections || []).flatMap((section: any) => (
-      ((section.summary && section.summary.gaps) || []).map((gap: any) => ({
-        key: section.key,
-        line: gap.line,
-        text: gap.text,
-      }))
-    ));
-    const missing = coverageRows.filter(row => row.status !== 'approved');
-    return (
-      <>
-        {header}
-        <div style={{ display: 'grid', gap: 10 }}>
-          <DigestCard title="Review Coverage" meta={`${coverageRows.length} anchors`}>
-            <div style={{ display: 'grid', gap: 6 }}>
-              {coverageRows.map(row => (
-                <div key={row.label} style={{
-                  display: 'grid', gridTemplateColumns: '150px minmax(0, 1fr)',
-                  gap: 8, alignItems: 'center', borderBottom: '1px solid var(--line)', paddingBottom: 5,
-                }}>
-                  <AtlasStatusBadge status={row.status} label={row.label} compact soft />
-                  <span style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 'var(--ui-control-font-size)', minWidth: 0, wordBreak: 'break-word' }}>
-                    {row.detail || '-'}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </DigestCard>
-          <DigestCard title="Missing Anchors" meta={`${missing.length} missing`}>
-            {missing.length ? (
-              <DigestList items={missing.map(row => `${row.label}: ${row.detail || 'not found'}`)} />
-            ) : <DigestEmpty text="All core review anchors have structured SSOT coverage." />}
-          </DigestCard>
-          <DigestCard title="Open Flags" meta={`${explicitGaps.length} flags`}>
-            {explicitGaps.length ? (
-              <div style={{ display: 'grid', gap: 7 }}>
-                {explicitGaps.slice(0, 18).map((gap: any) => (
-                  <div key={`${gap.key}:${gap.line}:${gap.text}`} style={{ borderLeft: '2px solid var(--warn)', paddingLeft: 8 }}>
-                    <div style={{ color: 'var(--warn)', fontFamily: 'var(--mono)', fontSize: 10 }}>{ssotTitleFor(gap.key)} · line {gap.line}</div>
-                    <div style={{ marginTop: 2 }}>{gap.text}</div>
-                  </div>
-                ))}
-              </div>
-            ) : <DigestEmpty text="No TBD, TODO, placeholder, pending, null, or unspecified markers detected." />}
-          </DigestCard>
-        </div>
-      </>
-    );
-  };
-
-  const renderRawYaml = () => {
-    // Embed FoldablePane directly without the DigestCard wrapper —
-    // DigestCard pins height for chip-sized content and clipped the
-    // scrollable fold body. Now matches /tmp/ssot_fold_engine.html
-    // exactly: a single full-bleed fold pane with the toolbar at top,
-    // the chat input is the global ATLAS textarea reached via the
-    // atlas-fold-comment custom event.
-    const lineCount = (content || '').split('\n').length;
-    if (!selected || !content) {
-      return (
-        <>
-          {header}
-          <div style={{ padding: 16, color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 12 }}>
-            {selected ? 'loading…' : 'no SSOT file selected'}
-          </div>
-        </>
-      );
-    }
-    return (
-      <>
-        {header}
-        <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
-          <FoldablePane path={selected} body={content} lang="yaml" lineCount={lineCount} feedbackMode={feedbackMode} />
-        </div>
-      </>
-    );
-  };
-
-  const renderGates = () => {
-    const ipFromPath = (() => {
-      const p = String(selected || '').trim();
-      if (!p) return '';
-      const seg = p.split('/').filter(Boolean);
-      return seg[0] || '';
-    })();
-    return (
-      <>
-        {header}
-        <div style={{ flex: 1, minHeight: 0, overflow: 'auto', padding: '10px 12px' }}>
-          <GatesPanel ip={ipFromPath} />
-        </div>
-      </>
-    );
-  };
-
-  const renderGeneric = (title: any, sourceSections: any) => (
-    <>
-      {header}
-      {sourceSections.length ? <DigestSourceSections view={{ keys: sourceSections.map((s: any) => s.key) }} sections={sections} statusByKey={statusByKey} t={t} /> : <DigestEmpty />}
-    </>
-  );
-
   const sourceSections = sourceSectionsForDigestView(view, sections);
   const scenarios = useMemo(() => extractScenarios(sections), [sections]);
-  const renderScenarios = () => (
-    <>
-      {header}
-      <DigestCard title="Interactive scenarios" meta={`${scenarios.length} scenarios${scenarios.length && scenarios[0].synthesized ? ' · auto-synthesized from transactions + pipeline' : ''}`}>
-        {scenarios.length ? (
-          <SsotScenarioPlayer scenarios={scenarios} fsmMachines={fsmMachines} tokenMap={refTokenMap} onJump={onJump} />
-        ) : (
-          <DigestEmpty text="No cycle_model.scenarios[] declared and no function_model.transactions[] + cycle_model.pipeline[] to synthesize from. Add scenarios under cycle_model: { scenarios: [{ name, summary, steps:[{cycle,action,fl_state,cl_state,signals}] }] } to make this IP self-demonstrating." />
-        )}
-      </DigestCard>
-    </>
-  );
+
+  const renderers = buildRenderers({
+    header, sections, statusByKey, t, onJump, selected, content, feedbackMode,
+    top, topName, clockSection, functionSection, cycleSection, timingSection,
+    fsmSection, rdcSection, decompSection, parameters, submods, moduleContracts,
+    contractByModule, features, featureSections, interfaces, diagramPins,
+    registers, registerConfig, noRegisterPolicy, noFsmPolicy, fsmMachines,
+    dataflowGroups, transactions, stateVars, latencyGroups, handshakeRules,
+    pipeline, clockDomains, resets, cdcCrossings, coverageRows, refTokenMap,
+    scenarios, featureTokens, matchesFeature, namesForFeature, semanticSectionNames,
+  });
+
   let body;
-  if (view.id === 'overview') body = renderOverview();
-  else if (view.id === 'scenarios') body = renderScenarios();
-  else if (view.id === 'features') body = renderFeatures();
-  else if (view.id === 'architecture') body = renderArchitecture();
-  else if (view.id === 'feature_map') body = renderFeatureMap();
-  else if (view.id === 'function_model') body = renderFunctionModel();
-  else if (view.id === 'fsm') body = renderFsm();
-  else if (view.id === 'cycle_model') body = renderCycleModel();
-  else if (view.id === 'interfaces') body = renderInterfaces();
-  else if (view.id === 'registers') body = renderRegisters();
-  else if (view.id === 'dataflow') body = renderDataflow();
-  else if (view.id === 'clocking') body = renderClocking();
-  else if (view.id === 'review_gaps') body = renderReviewGaps();
-  else if (view.id === 'gates') body = renderGates();
-  else if (view.id === 'raw_yaml') body = renderRawYaml();
-  else body = renderGeneric(view.label, sourceSections);
+  if (view.id === 'overview') body = renderers.renderOverview();
+  else if (view.id === 'scenarios') body = renderers.renderScenarios();
+  else if (view.id === 'features') body = renderers.renderFeatures();
+  else if (view.id === 'architecture') body = renderers.renderArchitecture();
+  else if (view.id === 'feature_map') body = renderers.renderFeatureMap();
+  else if (view.id === 'function_model') body = renderers.renderFunctionModel();
+  else if (view.id === 'fsm') body = renderers.renderFsm();
+  else if (view.id === 'cycle_model') body = renderers.renderCycleModel();
+  else if (view.id === 'interfaces') body = renderers.renderInterfaces();
+  else if (view.id === 'registers') body = renderers.renderRegisters();
+  else if (view.id === 'dataflow') body = renderers.renderDataflow();
+  else if (view.id === 'clocking') body = renderers.renderClocking();
+  else if (view.id === 'review_gaps') body = renderers.renderReviewGaps();
+  else if (view.id === 'gates') body = renderers.renderGates();
+  else if (view.id === 'raw_yaml') body = renderers.renderRawYaml();
+  else body = renderers.renderGeneric(view.label, sourceSections);
 
   return (
     <>
@@ -1087,9 +394,10 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
 
 // ── Transitional bridge: register on window for not-yet-migrated .jsx ──
 // SsotDigestContent is not (yet) declared on the ambient Window (it lives in
-// the local SsotDigestContentWindow cast), so write it through `win` — same
-// pattern as block-diagram.tsx's `win.BlockDiagram = BlockDiagram`. Remove
-// once all consumers import { SsotDigestContent } directly.
+// the local SsotDigestContentWindow cast in ssot-digest-content-globals.tsx),
+// so write it through `win` — same pattern as block-diagram.tsx's
+// `win.BlockDiagram = BlockDiagram`. Remove once all consumers import
+// { SsotDigestContent } directly.
 win.SsotDigestContent = SsotDigestContent;
 
 export { SsotDigestContent };

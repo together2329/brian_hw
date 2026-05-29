@@ -1,0 +1,642 @@
+// pipeline-rail.tsx — TypeScript migration slice of pipeline.tsx.
+//
+// Extracted from pipeline.tsx (was 1208L) so it drops under 1000. Holds the
+// left-rail / readiness / chat / phase-group cluster:
+//   - HierarchyList                 — IP hierarchy list (left column top).
+//   - deriveStageReadiness          — green-readiness derivation from stages.
+//   - RunToGreenCard                — readiness card + run-to-green dispatch.
+//   - StageStatusRail               — left column status object (IP + stages).
+//   - PipelineOrchestratorChatPanel — right-column orchestrator chat.
+//   - PhaseGroup                    — phase-grouped StageCard grid.
+//
+// Same permissive house style as the other pipeline-* siblings: cross-file
+// window globals (owned by not-yet-migrated .jsx) are reached through a locally-
+// typed `AtlasGlue` view of window so the access type-checks without editing the
+// shared types/atlas-window.d.ts. The transitional window.* bridges for these
+// symbols still run in pipeline.tsx in the original order.
+import {
+  useState,
+  useEffect,
+  useRef,
+  type ReactNode,
+  type ChangeEvent,
+  type KeyboardEvent,
+} from 'react';
+
+// ── Local typed view of the legacy window-glue surface this file touches ──
+type AnyComponent = (...a: unknown[]) => ReactNode;
+interface StateMeta {
+  color: string;
+  glyph: string;
+  label: string;
+}
+interface PipelinePolicyPayload {
+  run_mode: string;
+  exec_mode: string;
+  [key: string]: unknown;
+}
+interface PipelineFlowDef {
+  id: string;
+  stages?: string[];
+  [key: string]: unknown;
+}
+interface PipelineStageInfo {
+  state?: string;
+  status?: string;
+  top?: string;
+  secondary?: string;
+  locked_reason?: string;
+  latest_evidence?: string;
+  live_tail?: string;
+  iter?: number | string;
+  elapsed_seconds?: number;
+  model?: string;
+  progress?: number;
+  [key: string]: unknown;
+}
+interface PipelineState {
+  stages?: Record<string, PipelineStageInfo>;
+  orchestrator?: {
+    active?: boolean;
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+}
+interface AtlasGlue {
+  // cross-file data + helpers (owned by other files)
+  PIPELINE_STAGES?: string[];
+  PIPELINE_LABEL?: Record<string, string>;
+  PIPELINE_FLOW_DEFS?: PipelineFlowDef[];
+  pipelineStateMeta: (state: string) => StateMeta;
+  pipelineActualStages: (stages: string[]) => string[];
+  pipelinePolicyPayload: () => PipelinePolicyPayload;
+  StageCard: AnyComponent;
+  // session / context globals (owned by other files)
+  ATLAS_USER?: { username?: string } & Record<string, unknown>;
+  ATLAS_USER_SESSION_ID?: unknown;
+  ACTIVE_SESSION?: string;
+  ATLAS_DB_SESSION_ID?: string;
+}
+const w = window as unknown as AtlasGlue;
+
+// ── HierarchyList ─────────────────────────────────────────────────────────────
+// list with the active IP if the workspace endpoint is missing.
+export interface HierarchyListProps {
+  activeIp?: string;
+  onSelect?: (ip: string) => void;
+}
+export function HierarchyList({ activeIp, onSelect }: HierarchyListProps) {
+  const [ips, setIps] = useState<string[]>([]);
+  useEffect(() => {
+    let dead = false;
+    (async () => {
+      try {
+        const sessionId = (w.ATLAS_USER && w.ATLAS_USER.username)
+          || w.ATLAS_USER_SESSION_ID
+          || (w.ACTIVE_SESSION || '').split('/')[0]
+          || '';
+        const url = sessionId ? `/api/ip/list?session_id=${encodeURIComponent(String(sessionId))}` : '/api/ip/list';
+        const r = await fetch(url);
+        const j = await r.json().catch(() => ({}));
+        if (dead) return;
+        const list = Array.isArray(j.items) ? j.items
+                   : Array.isArray(j.ips) ? j.ips
+                   : Array.isArray(j.workspaces) ? j.workspaces
+                   : [];
+        setIps(list.map((x: unknown) => typeof x === 'string' ? x : ((x as Record<string, string>).ip || (x as Record<string, string>).name || (x as Record<string, string>).id || '')).filter(Boolean));
+      } catch (_) {
+        const ownerScoped = !!(w.ATLAS_USER && w.ATLAS_USER.username);
+        if (!dead && !ownerScoped && activeIp) setIps([activeIp]);
+      }
+    })();
+    return () => { dead = true; };
+  }, [activeIp]);
+
+  return (
+    <div className="pipe-hierarchy">
+      <div className="pipe-hierarchy-title">IP HIERARCHY</div>
+      <ul className="pipe-hierarchy-list">
+        {(ips.length ? ips : (activeIp ? [activeIp] : [])).map(ip => (
+          <li key={ip}
+              className={`pipe-hierarchy-row ${ip === activeIp ? 'sel' : ''}`}
+              onClick={() => onSelect && onSelect(ip)}>
+            <span className="pipe-hierarchy-glyph">{ip === activeIp ? '◉' : '○'}</span>
+            <span className="pipe-hierarchy-name">{ip}</span>
+          </li>
+        ))}
+        {!ips.length && !activeIp && (
+          <li className="pipe-hierarchy-row mute">no IPs yet</li>
+        )}
+      </ul>
+      <div className="pipe-hierarchy-legend mute">
+        <div>legend</div>
+        <div>✓ passed · ▶ running · ! failed</div>
+        <div>⏸ blocked · ⊘ stale · ◯ idle</div>
+      </div>
+    </div>
+  );
+}
+
+interface NextStep {
+  stage?: string | null;
+  label?: string;
+  owner?: string;
+  reason?: string;
+  status?: string;
+}
+interface StageReadiness {
+  percent: number;
+  headline: string;
+  message: string;
+  next_stage: string | null;
+  next_steps: NextStep[];
+  state: string;
+}
+export function deriveStageReadiness(stagesState?: Record<string, PipelineStageInfo> | null): StageReadiness | null {
+  const sids = w.PIPELINE_STAGES || [];
+  if (!stagesState || !sids.length) return null;
+  const labels = w.PIPELINE_LABEL || {};
+  let passed = 0, failed = 0, running = 0, blocked = 0, idle = 0;
+  let firstNonGreen: string | null = null;
+  for (const sid of sids) {
+    const info = stagesState[sid] || {};
+    const st = String(info.state || 'idle').toLowerCase();
+    if (st === 'passed' || st === 'pass' || st === 'green') passed++;
+    else if (st === 'running' || st === 'run') { running++; if (!firstNonGreen) firstNonGreen = sid; }
+    else if (st === 'failed' || st === 'fail' || st === 'error' || st === 'red') { failed++; if (!firstNonGreen) firstNonGreen = sid; }
+    else if (st === 'blocked' || st === 'block') { blocked++; if (!firstNonGreen) firstNonGreen = sid; }
+    else { idle++; if (!firstNonGreen) firstNonGreen = sid; }
+  }
+  const total = sids.length;
+  const percent = total ? Math.round((passed / total) * 100) : 0;
+  const nextLabel = firstNonGreen ? (labels[firstNonGreen] || firstNonGreen) : null;
+  let headline, message, nextSteps;
+  if (passed === total) {
+    headline = 'Pipeline complete';
+    message = `All ${total} stages passed. Review evidence and approve sign-off.`;
+    nextSteps = [{ stage: 'audit', label: 'Review goal-audit + approve sign-off', owner: 'human',
+                   reason: 'Final human approval is the only gate left.', status: 'pending' }];
+  } else if (failed) {
+    headline = `${failed} stage${failed > 1 ? 's' : ''} failed`;
+    message = `Fix ${nextLabel} (or other failed stage), then re-run downstream.`;
+    nextSteps = [{ stage: firstNonGreen, label: `Resolve failure in ${nextLabel}`, owner: 'atlas',
+                   reason: 'Failure blocks every downstream stage.', status: 'failed' }];
+  } else if (blocked) {
+    headline = `${blocked} stage${blocked > 1 ? 's' : ''} blocked`;
+    message = `Unblock ${nextLabel} (review decision or missing evidence).`;
+    nextSteps = [{ stage: firstNonGreen, label: `Unblock ${nextLabel}`, owner: 'human',
+                   reason: 'Blocked stages need a review decision or missing evidence.', status: 'blocked' }];
+  } else if (running) {
+    headline = `${running} stage${running > 1 ? 's' : ''} running`;
+    message = `Waiting for ${nextLabel} to finish.`;
+    nextSteps = [{ stage: firstNonGreen, label: `Watch ${nextLabel}`, owner: 'atlas',
+                   reason: 'Stage in progress.', status: 'running' }];
+  } else if (passed > 0) {
+    headline = `${passed} / ${total} stages green`;
+    message = `Next: run ${nextLabel}.`;
+    nextSteps = [{ stage: firstNonGreen, label: `Run ${nextLabel}`, owner: 'atlas',
+                   reason: 'Next stage in the canonical pipeline.', status: 'pending' }];
+  } else {
+    return null;
+  }
+  return { percent, headline, message, next_stage: firstNonGreen, next_steps: nextSteps,
+           state: passed === total ? 'complete' : (failed ? 'failed' : (blocked ? 'blocked' : (running ? 'running' : 'in_progress'))) };
+}
+
+interface RunToGreenSummary {
+  percent?: number;
+  state?: string;
+  headline?: string;
+  message?: string;
+  next_stage?: string | null;
+  next_steps?: NextStep[];
+  primary_action?: { kind?: string; label?: string; stage?: string };
+  [key: string]: unknown;
+}
+export interface RunToGreenCardProps {
+  summary?: RunToGreenSummary | null;
+  stages?: Record<string, PipelineStageInfo> | null;
+  ip?: string;
+  onSelectStage?: (stageId: string) => void;
+}
+export function RunToGreenCard({ summary, stages, ip, onSelectStage }: RunToGreenCardProps) {
+  const [busy, setBusy] = useState(false);
+  const derived = deriveStageReadiness(stages);
+  const backend = summary || {};
+  const backendPercent = Math.max(0, Math.min(100, Number(backend.percent || 0)));
+  const derivedPercent = derived ? derived.percent : 0;
+  const useDerived = derived && (derivedPercent > backendPercent || backendPercent === 0);
+  const data = useDerived
+    ? { ...backend, percent: derivedPercent, headline: derived.headline, message: derived.message,
+        next_stage: derived.next_stage, next_steps: derived.next_steps, state: derived.state }
+    : backend;
+  const state = data.state || 'not_started';
+  const percent = Math.max(0, Math.min(100, Number(data.percent || 0)));
+  const rawSteps = Array.isArray(data.next_steps) ? data.next_steps : [];
+  const nextSteps = rawSteps.length ? rawSteps : [{
+    stage: 'ssot',
+    label: 'Create or import SSOT',
+    owner: 'user',
+    reason: 'SSOT is the source of truth for every downstream step.',
+    status: 'pending',
+  }];
+  const stageFor = (stage?: string | null): string => {
+    if (stage === 'req') return 'ssot';
+    if (stage === 'equivalence_goals') return 'equivalence';
+    if (stage === 'goal_audit') return 'goal-audit';
+    if (stage === 'sim_debug') return 'sim-debug';
+    if (stage === 'fl_model') return 'fl-model';
+    if (stage === 'fl_decomp' || stage === 'fcov_plan') return 'fl-model';
+    return stage || 'ssot';
+  };
+  const focusStage = (stage?: string | null) => {
+    const sid = stageFor(stage || data.next_stage);
+    if (typeof onSelectStage === 'function') onSelectStage(sid);
+    try {
+      window.dispatchEvent(new CustomEvent('atlas:pipeline-focus-stage', {
+        detail: { stage: sid },
+      }));
+    } catch (_) {}
+  };
+  const runToGreen = async () => {
+    if (!ip || busy) return;
+    const flow = (w.PIPELINE_FLOW_DEFS || []).find(f => f.id === 'full') || { stages: [] };
+    const stages = w.pipelineActualStages(flow.stages || []);
+    if (!stages.length) return;
+    setBusy(true);
+    try {
+      const r = await fetch('/api/pipeline/dispatch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ip, stages, schedule: 'auto', prompt: '', ...w.pipelinePolicyPayload() }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        console.error('[pipeline] run-to-green failed', j.error || r.status);
+      } else {
+        try {
+          window.dispatchEvent(new CustomEvent('atlas:pipeline-dispatched', {
+            detail: { stage: 'full', ip, jobs: j.jobs || [] },
+          }));
+          window.dispatchEvent(new CustomEvent('atlas:pipeline-poll'));
+        } catch (_) {}
+      }
+    } catch (e) {
+      console.error('[pipeline] run-to-green error', e);
+    } finally {
+      setBusy(false);
+    }
+  };
+  const primary = data.primary_action || {};
+  const primaryKind = primary.kind || 'run_pipeline';
+  const primaryLabel = busy ? 'Starting...' : (primary.label || 'Run to Green');
+  return (
+    <div className="pipe-green-card" data-state={state}>
+      <div className="pipe-green-top">
+        <span className="pipe-green-kicker">GREEN READINESS</span>
+        <span className="pipe-green-percent">{percent}%</span>
+      </div>
+      <div className="pipe-green-headline">{data.headline || 'Start the IP pipeline'}</div>
+      <div className="pipe-green-message">
+        {data.message || 'Run the flow and ATLAS will show the next simple action here.'}
+      </div>
+      <div className="pipe-green-bar" aria-label={`green readiness ${percent}%`}>
+        <div className="pipe-green-bar-fill" style={{ width: `${percent}%` }} />
+      </div>
+      <div className="pipe-green-actions">
+        <button className="rb-btn primary pipe-green-primary"
+                disabled={!ip || busy}
+                onClick={() => primaryKind === 'run_pipeline'
+                  ? runToGreen()
+                  : focusStage(primary.stage || data.next_stage)}>
+          {primaryLabel}
+        </button>
+        {data.next_stage && (
+          <button className="rb-btn pipe-green-secondary"
+                  onClick={() => focusStage(data.next_stage)}>
+            Open Next
+          </button>
+        )}
+      </div>
+      <div className="pipe-green-next">
+        {nextSteps.length ? nextSteps.map((step, idx) => (
+          <button key={`${step.stage || idx}-${idx}`}
+                  className="pipe-green-step"
+                  onClick={() => focusStage(step.stage)}>
+            <span className="pipe-green-step-index">{idx + 1}</span>
+            <span className="pipe-green-step-main">
+              <span className="pipe-green-step-label">{step.label || step.stage}</span>
+              <span className="pipe-green-step-reason">{step.reason || step.status || ''}</span>
+            </span>
+            <span className="pipe-green-owner">{step.owner || 'atlas'}</span>
+          </button>
+        )) : (
+          <div className="pipe-green-empty">No open step found.</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Internal: StageStatusRail ─────────────────────────────────────
+//
+// Left column: status is now the primary left-hand object. IP selection stays
+// compact at the top, then every workflow stage is visible without scrolling
+// the graph or opening a bottom inspector.
+export interface StageStatusRailProps {
+  activeIp?: string;
+  onSelectIp?: (ip: string) => void;
+  state?: PipelineState | null;
+  simpleSummary?: RunToGreenSummary | null;
+  selectedStage?: string;
+  onSelectStage?: (stageId: string) => void;
+}
+export function StageStatusRail({ activeIp, onSelectIp, state, simpleSummary, selectedStage, onSelectStage }: StageStatusRailProps) {
+  const labels = w.PIPELINE_LABEL || {};
+  const stages = w.PIPELINE_STAGES || [];
+  const stagesState = (state && state.stages) || {};
+  const [ips, setIps] = useState<string[]>([]);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+
+  useEffect(() => {
+    let dead = false;
+    (async () => {
+      try {
+        const sessionId = (w.ATLAS_USER && w.ATLAS_USER.username)
+          || w.ATLAS_USER_SESSION_ID
+          || (w.ACTIVE_SESSION || '').split('/')[0]
+          || '';
+        const url = sessionId ? `/api/ip/list?session_id=${encodeURIComponent(String(sessionId))}` : '/api/ip/list';
+        const r = await fetch(url);
+        const j = await r.json().catch(() => ({}));
+        if (dead) return;
+        const list = Array.isArray(j.items) ? j.items
+                   : Array.isArray(j.ips) ? j.ips
+                   : Array.isArray(j.workspaces) ? j.workspaces
+                   : [];
+        setIps(list.map((x: unknown) => typeof x === 'string' ? x : ((x as Record<string, string>).ip || (x as Record<string, string>).name || (x as Record<string, string>).id || '')).filter(Boolean));
+      } catch (_) {
+        const ownerScoped = !!(w.ATLAS_USER && w.ATLAS_USER.username);
+        if (!dead && !ownerScoped && activeIp) setIps([activeIp]);
+      }
+    })();
+    return () => { dead = true; };
+  }, [activeIp]);
+
+  const summarize = (info?: PipelineStageInfo): string => {
+    if (!info) return 'no evidence yet';
+    return info.top || info.secondary || info.locked_reason || info.latest_evidence || 'no evidence yet';
+  };
+
+  return (
+    <div className="pipe-stage-rail">
+      <div className="pipe-stage-rail-head">
+        <div>
+          <div className="pipe-stage-rail-kicker">IP</div>
+          <div className="pipe-stage-rail-ip">{activeIp || 'no IP'}</div>
+        </div>
+        <select className="pipe-stage-rail-select"
+                value={activeIp || ''}
+                onChange={(e: ChangeEvent<HTMLSelectElement>) => onSelectIp && onSelectIp(e.currentTarget.value)}>
+          {(ips.length ? ips : (activeIp ? [activeIp] : [])).map(ip => (
+            <option key={ip} value={ip}>{ip}</option>
+          ))}
+        </select>
+      </div>
+      <RunToGreenCard
+        summary={simpleSummary}
+        stages={stagesState}
+        ip={activeIp}
+        onSelectStage={onSelectStage} />
+      <button className="pipe-stage-rail-title pipe-stage-rail-toggle"
+              onClick={() => setDetailsOpen(v => !v)}
+              aria-expanded={detailsOpen}>
+        <span>Stage Detail</span>
+        <span className="pipe-stage-rail-toggle-hint">{detailsOpen ? '▾ hide' : '▸ show'}</span>
+      </button>
+      {detailsOpen && (
+        <>
+          <div className="pipe-stage-rail-hint">Same info as the flow map. Click a row to focus the stage.</div>
+          <div className="pipe-stage-rail-list">
+            {stages.map(stageId => {
+              const info = stagesState[stageId] || {};
+              const stateName = info.state || 'idle';
+              const meta = w.pipelineStateMeta(stateName);
+              return (
+                <button key={stageId}
+                        className={`pipe-stage-rail-row ${selectedStage === stageId ? 'sel' : ''}`}
+                        data-state={stateName}
+                        onClick={() => onSelectStage && onSelectStage(stageId)}>
+                  <span className="pipe-stage-rail-glyph" style={{ color: meta.color }}>{meta.glyph}</span>
+                  <span className="pipe-stage-rail-main">
+                    <span className="pipe-stage-rail-name">{labels[stageId] || stageId}</span>
+                    <span className="pipe-stage-rail-sub">{summarize(info)}</span>
+                  </span>
+                  <span className="pipe-stage-rail-state">{meta.label}</span>
+                </button>
+              );
+            })}
+          </div>
+          <div className="pipe-stage-rail-legend">
+            ✓ passed · ▶ running · ! failed · ⏸ blocked · ⊘ stale
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+interface ChatMessage {
+  id?: string | number;
+  role?: string;
+  content?: string;
+  payload?: {
+    role?: string;
+    content?: string;
+    display_name?: string;
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+}
+export interface PipelineOrchestratorChatPanelProps {
+  ip?: string;
+  pipelineState?: PipelineState | null;
+}
+function PipelineOrchestratorChatPanelImpl({ ip, pipelineState }: PipelineOrchestratorChatPanelProps) {
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [since, setSince] = useState(0);
+  const [draft, setDraft] = useState('');
+  const [sending, setSending] = useState(false);
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const bodyRef = useRef<HTMLDivElement | null>(null);
+
+  const isActive = !!(pipelineState && pipelineState.orchestrator && pipelineState.orchestrator.active);
+  const hasIp = !!(ip && ip !== 'default');
+
+  useEffect(() => {
+    if (!hasIp) {
+      if (pollingRef.current) { clearInterval(pollingRef.current); pollingRef.current = null; }
+      return;
+    }
+    let dead = false;
+    let currentSince = since;
+    const fetchOnce = async () => {
+      try {
+        const url = `/api/orchestrator/chat/messages?ip=${encodeURIComponent(ip!)}&since=${currentSince}`;
+        const r = await fetch(url);
+        if (!r.ok) return;
+        const j = await r.json();
+        if (!dead && j.ok && Array.isArray(j.messages) && j.messages.length > 0) {
+          setMessages(prev => {
+            const ids = new Set(prev.map(m => m.id));
+            const fresh = j.messages.filter((m: ChatMessage) => !ids.has(m.id));
+            return fresh.length ? [...prev, ...fresh] : prev;
+          });
+          currentSince = j.next_since || currentSince;
+          setSince(currentSince);
+        }
+      } catch (_) {}
+    };
+    fetchOnce();
+    pollingRef.current = setInterval(fetchOnce, 1500);
+    return () => { dead = true; clearInterval(pollingRef.current!); pollingRef.current = null; };
+  }, [ip, isActive]);
+
+  useEffect(() => {
+    if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
+  }, [messages]);
+
+  const handleSend = async () => {
+    const text = draft.trim();
+    if (!text || !hasIp || sending) return;
+    setSending(true);
+    try {
+      await fetch('/api/pipeline/orchestrator/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: text,
+          ip,
+          session: w.ACTIVE_SESSION || '',
+          session_id: w.ATLAS_DB_SESSION_ID || w.ACTIVE_SESSION || '',
+        }),
+      });
+      setDraft('');
+    } catch (_) {} finally {
+      setSending(false);
+    }
+  };
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
+  };
+
+  const roleClass = (role?: string): string => {
+    if (role === 'assistant') return 'md-bubble md-agent';
+    if (role === 'user') return 'md-bubble md-user md-agent';
+    if (role === 'tool') return 'md-bubble md-tool';
+    return 'md-bubble md-agent';
+  };
+
+  return (
+    <div className="pipe-orch-chat-shell orch-chat-panel">
+      <div className="orch-chat-header">
+        <span className="orch-chat-title">ORCHESTRATOR CHAT</span>
+        <span className="orch-chat-status" data-active={isActive ? 'yes' : 'no'}>
+          {isActive ? 'live' : 'idle'}
+        </span>
+      </div>
+      <div className="orch-chat-body" ref={bodyRef}>
+        {messages.length === 0 ? (
+          <div className="orch-chat-empty mute">
+            {hasIp
+              ? `No orchestrator activity yet for ${ip}. Send a chat message or run a workflow to see logs here.`
+              : 'Pick an IP to see orchestrator chat.'}
+          </div>
+        ) : messages.map((m, i) => (
+          <div key={m.id || i} className={roleClass(m.role || (m.payload && m.payload.role))}>
+            <span className="orch-chat-role">
+              {(m.role || (m.payload && m.payload.role) || 'assistant').toUpperCase()}
+            </span>
+            <span className="orch-chat-content">
+              {m.content || (m.payload && (m.payload.content || m.payload.display_name)) || ''}
+            </span>
+          </div>
+        ))}
+      </div>
+      <div className="orch-chat-input-row">
+        <textarea
+          className="orch-chat-input"
+          placeholder={hasIp ? `Message orchestrator for ${ip}…` : 'Select an IP first'}
+          value={draft}
+          disabled={sending}
+          rows={1}
+          onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setDraft(e.target.value)}
+          onKeyDown={handleKeyDown}
+        />
+        <button
+          className="orch-chat-send-btn"
+          disabled={!draft.trim() || !hasIp || sending}
+          onClick={handleSend}
+        >
+          {sending ? '…' : '▶'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export function PipelineOrchestratorChatPanel({ ip, pipelineState }: PipelineOrchestratorChatPanelProps) {
+  return <PipelineOrchestratorChatPanelImpl ip={ip} pipelineState={pipelineState} />;
+}
+
+// ─── Internal: PhaseGroup ──────────────────────────────────────────
+//
+// Visual grouping of a phase's stage cards into a 2-column grid.
+// SIGN-OFF starts collapsed if every stage in the band is idle, since
+// most users don't care about the back-end stages until earlier work
+// passes. Click the band header to expand/collapse.
+interface PhaseGroupPhase {
+  id: string;
+  stages: string[];
+}
+export interface PhaseGroupProps {
+  phase: PhaseGroupPhase;
+  stagesState: Record<string, PipelineStageInfo>;
+  ip?: string;
+  onChain?: (stageId: string) => void;
+  defaultCollapsed?: boolean;
+}
+export function PhaseGroup({ phase, stagesState, ip, onChain, defaultCollapsed }: PhaseGroupProps) {
+  const [collapsed, setCollapsed] = useState(!!defaultCollapsed);
+  const stages = phase.stages.filter(s => (w.PIPELINE_STAGES || []).indexOf(s) >= 0);
+  // Read window.StageCard at render time (cross-file, owner unmigrated) so a
+  // late registration by the owning .jsx is still picked up.
+  const StageCardView = w.StageCard as (props: {
+    stageId: string;
+    info?: PipelineStageInfo;
+    ip?: string;
+    onChain?: (stageId: string) => void;
+  }) => ReactNode;
+  return (
+    <div className="pipe-phase-group" data-phase={phase.id}>
+      <div className="pipe-phase-header" onClick={() => setCollapsed(c => !c)}>
+        <span className="pipe-phase-glyph">{collapsed ? '▸' : '▾'}</span>
+        <span className="pipe-phase-name">{phase.id}</span>
+        <span className="pipe-phase-count mute">({stages.length})</span>
+      </div>
+      {!collapsed && (
+        <div className="pipe-phase-grid">
+          {stages.map(s => (
+            <StageCardView
+              key={s}
+              stageId={s}
+              info={stagesState[s]}
+              ip={ip}
+              onChain={onChain} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
