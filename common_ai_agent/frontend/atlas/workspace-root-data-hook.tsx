@@ -943,6 +943,87 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     && (scmProvider !== 'git' || ScmTabComponent !== w.GitTab)
   );
 
+  // ── chat submit (with switch-gate guard) ───────────────────────────
+  // The session-half primitives needed to send/hold a prompt are threaded in
+  // through the spread session bag (workspace-root composes dataDeps as
+  // { ...session }), so they are read off `deps` with the file's permissive
+  // `any` house style rather than re-declared in the typed contract.
+  const sessionBag = deps as any;
+  const submitMsg = useCallback((cmd?: any) => {
+    const raw = String(cmd ?? input).trim();
+    if (!raw) return;
+    const setStreaming = sessionBag.setStreaming;
+    const setStreamText = sessionBag.setStreamText;
+    const workflowReady = sessionBag.workflowReady;
+    const switchGateRef = sessionBag.switchGateRef;
+    const sendPrompt = sessionBag.sendPrompt;
+
+    const holdSubmittedInput = (reason: string) => {
+      heldSubmitRef.current = { raw, cmd, createdAt: Date.now() };
+      setInput((cur: any) => {
+        const curText = String(cur || '').trim();
+        return curText ? cur : raw;
+      });
+      setShowSlash(false);
+      if (typeof setStreaming === 'function') setStreaming(false);
+      streamBufferRef.current = '';
+      if (typeof setStreamText === 'function') setStreamText('');
+      setFeed((f: any) => [...f, { kind: 'agent', text: reason, createdAt: Date.now() }]);
+    };
+
+    // Race fix: read the synchronous gate FIRST. workflowReady is React state and
+    // lags one commit behind beginWorkflowReady's setWorkflowReady(); the gate was
+    // set in the SAME tick, so it reports "switching" immediately even when the
+    // closed-over workflowReady is still the stale null. Either signal holds the
+    // input via the EXISTING held-input mechanism (heldSubmitRef), which the
+    // replay effect below flushes once the switch settles.
+    const switchingNow = !!(switchGateRef && switchGateRef.current && switchGateRef.current.isSwitching());
+    if (workflowReady || switchingNow) {
+      const holdTarget = (workflowReady && workflowReady.target) || workflow || 'workflow';
+      holdSubmittedInput(`Input held. Waiting for \`${holdTarget}\` to be ready; it will send automatically if unchanged.`);
+      return;
+    }
+
+    // Cleared to send: record history, clear the box, and dispatch to the backend.
+    recordInputHistory(raw);
+    setInput((cur: any) => {
+      const curText = String(cur || '').trim();
+      if (!curText || curText === raw) return '';
+      if (cmd != null && curText.startsWith('/')) return '';
+      return cur;
+    });
+    setShowSlash(false);
+    setFeed((f: any) => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
+    if (typeof sendPrompt === 'function') sendPrompt(raw);
+  }, [input, workflow, recordInputHistory, setFeed, setInput, setShowSlash, streamBufferRef, sessionBag]);
+
+  // Held-input replay: when the switch settles (workflowReady cleared) and the
+  // backend is open, re-fire the held prompt if the user hasn't changed it. This
+  // is the EXISTING replay mechanism (heldSubmitRef) reused — no parallel queue.
+  useEffect(() => {
+    const held = heldSubmitRef.current;
+    if (!held || sessionBag.workflowReady) return undefined;
+    const state = w.backend && typeof w.backend.getConnectionState === 'function'
+      ? w.backend.getConnectionState()
+      : backendState;
+    if (state !== 'open') return undefined;
+    if (String(input || '').trim() !== held.raw) {
+      heldSubmitRef.current = null;
+      return undefined;
+    }
+    const timer = setTimeout(() => {
+      const latest = heldSubmitRef.current;
+      if (!latest || latest.raw !== held.raw) return;
+      if (String(input || '').trim() !== latest.raw) {
+        heldSubmitRef.current = null;
+        return;
+      }
+      heldSubmitRef.current = null;
+      submitMsg(latest.cmd ?? latest.raw);
+    }, 80);
+    return () => clearTimeout(timer);
+  }, [backendState, input, sessionBag.workflowReady, submitMsg]);
+
   return {
     // telemetry / backend
     backendState, setBackendState,
@@ -982,6 +1063,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     atQuery, atDirCache, setAtDirCache, atDirEntries, setAtDirEntries,
     fileMatches, filtered, acceptAtCompletion,
     showAt, setShowAt, atSel, setAtSel,
+    submitMsg,
     // session-derived
     currentSession, activeIp, activeSsotIp,
     // tab visibility

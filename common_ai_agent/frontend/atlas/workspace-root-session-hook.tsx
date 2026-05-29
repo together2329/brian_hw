@@ -26,6 +26,11 @@
 // `any` on purpose; do NOT tighten them.
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { MutableRefObject, Dispatch, SetStateAction } from 'react';
+// PURE, unit-tested switch-gate (session-machine.test.ts: 16 green). Unlike the
+// legacy workspace.jsx — a classic Babel <script> that had to inline-port this —
+// the .tsx is bundled by vite and IMPORTS the canonical module directly, so the
+// gate semantics cannot drift from the spec.
+import { createSwitchGate } from './session-machine';
 import {
   refreshChatSession,
   trimAtlasFeedState,
@@ -94,6 +99,16 @@ export function useWorkspaceSession(deps: UseWorkspaceSessionDeps): any {
   const workflowReadySeqRef = useRef(0);
   const workflowReadyTimeoutRef = useRef<any>(null);
   const workflowReadyClearRef = useRef<any>(null);
+  // ── switch-gate (synchronous mirror of workflowReady) ──────────────
+  // workflowReady is React state: setWorkflowReady() only takes effect after
+  // React commits, leaving a one-frame window where submitMsg's closed-over
+  // workflowReady is still null and a prompt can be SENT into a session that is
+  // already switching away (the prompt is then wiped by backend.js liveConnect
+  // sessionChanged). This ref-held gate is a SYNCHRONOUS source of truth set in
+  // the SAME tick as setWorkflowReady, so submitMsg can read "switching"
+  // immediately and HOLD instead of send. It is the real, unit-tested factory
+  // from session-machine.ts (the .jsx had to inline-port it; the .tsx imports it).
+  const switchGateRef = useRef(createSwitchGate());
 
   const clearWorkflowReadyTimers = useCallback(() => {
     if (workflowReadyTimeoutRef.current) {
@@ -112,6 +127,9 @@ export function useWorkspaceSession(deps: UseWorkspaceSessionDeps): any {
     }
     workflowReadyClearRef.current = setTimeout(() => {
       setWorkflowReady((current: any) => (current && current.seq === seq ? null : current));
+      // Switch settled (overlay dismissed): reopen the synchronous gate so input
+      // flows again. Held msgs are preserved for the existing replay to flush.
+      if (switchGateRef.current) switchGateRef.current.markReady();
       workflowReadyClearRef.current = null;
     }, delay);
   }, []);
@@ -139,12 +157,22 @@ export function useWorkspaceSession(deps: UseWorkspaceSessionDeps): any {
       workflowReadyTimeoutRef.current = null;
     }
     updateWorkflowReady(seq, { phase: 'error', message: message || 'Workflow activation failed' });
+    // Switch failed: reopen the gate immediately so input flows again. Held msgs
+    // are preserved (no data loss); dismissWorkflowReady() will also markReady().
+    if (switchGateRef.current) switchGateRef.current.markFailed();
     dismissWorkflowReady(seq, 1800);
   }, [dismissWorkflowReady, updateWorkflowReady]);
   const beginWorkflowReady = useCallback((target: any, session: any, ip: any = '') => {
     const seq = workflowReadySeqRef.current + 1;
     workflowReadySeqRef.current = seq;
     clearWorkflowReadyTimers();
+    // SYNCHRONOUS write that beats React's commit: from this instant submitMsg's
+    // gate read reports "switching" and HOLDS the prompt (closing the one-frame
+    // race where the stale-closure workflowReady===null let a send through).
+    // beginSwitch preserves any already-held pending across a re-switch.
+    if (switchGateRef.current) {
+      switchGateRef.current.beginSwitch(normalizeUiSession(session || '') || String(target || ''));
+    }
     setWorkflowReady({
       seq,
       target: target || defaultWorkflowForExecMode(),
@@ -795,6 +823,10 @@ export function useWorkspaceSession(deps: UseWorkspaceSessionDeps): any {
     workflowReadySeqRef,
     workflowReadyTimeoutRef,
     workflowReadyClearRef,
+    // Synchronous switch-gate: submitMsg consults switchGateRef.current.isSwitching()
+    // (or .submit()) BEFORE sending so input typed in the one-frame window after a
+    // switch is HELD, not eaten. Exported so the input/submit layer can read it.
+    switchGateRef,
     clearWorkflowReadyTimers,
     dismissWorkflowReady,
     updateWorkflowReady,
