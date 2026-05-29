@@ -1423,11 +1423,20 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     // lags one commit behind beginWorkflowReady's setWorkflowReady(); the gate was
     // set in the SAME tick, so it reports "switching" immediately even when the
     // closed-over workflowReady is still the stale null. Either signal holds the
-    // input via the EXISTING held-input mechanism (heldSubmitRef), which the
-    // replay effect below flushes once the switch settles.
+    // input via the held-input mechanism, which the replay effect below flushes
+    // once the switch settles.
     const switchingNow = !!(switchGateRef && switchGateRef.current && switchGateRef.current.isSwitching());
     if (workflowReady || switchingNow) {
       const holdTarget = (workflowReady && workflowReady.target) || workflow || 'workflow';
+      // While SWITCHING, enqueue into the gate's FIFO so that N>1 prompts typed
+      // during a single switch are all preserved (the single-slot heldSubmitRef
+      // would otherwise overwrite all but the last). The replay effect below
+      // drains this FIFO in order once the switch settles. submit() only returns
+      // action:"held" while switching; if the gate already reopened (ready) we
+      // fall through to the normal single-slot hold below.
+      if (switchingNow && switchGateRef.current) {
+        switchGateRef.current.submit({ text: raw, meta: { cmd: cmd ?? null } });
+      }
       holdSubmittedInput(`Input held. Waiting for \`${holdTarget}\` to be ready; it will send automatically if unchanged.`);
       return;
     }
@@ -1895,31 +1904,70 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   ]);
 
   // Held-input replay: when the switch settles (workflowReady cleared) and the
-  // backend is open, re-fire the held prompt if the user hasn't changed it. This
-  // is the EXISTING replay mechanism (heldSubmitRef) reused — no parallel queue.
+  // backend is open, re-fire the held prompt(s) in FIFO order.
+  //
+  // Two held-input sources feed this one flush, never a parallel queue:
+  //   1. The gate FIFO (switchGateRef): prompts typed DURING a switch are
+  //      enqueued via gate.submit() so N>1 are all preserved. drain() here is
+  //      the gate's ONLY live caller — without it the FIFO would accumulate
+  //      forever (the orphaned-pending leak). We drain it once the switch
+  //      settles and re-fire every held prompt in order.
+  //   2. The single-slot heldSubmitRef: prompts held while the backend was
+  //      down/closed (NOT switching — the gate is ready in that case). This is
+  //      a single overwrite slot and the gate FIFO is empty for it.
+  // The most-recent held prompt is also mirrored back into the input box (by
+  // holdSubmittedInput), so the "did the user change it?" guard only applies to
+  // that last entry; earlier FIFO entries are committed prompts and replay
+  // unconditionally once the switch is over.
   useEffect(() => {
-    const held = heldSubmitRef.current;
-    if (!held || workflowReady) return undefined;
+    if (workflowReady) return undefined;
     const state = w.backend && typeof w.backend.getConnectionState === 'function'
       ? w.backend.getConnectionState()
       : backendState;
     if (state !== 'open') return undefined;
-    if (String(input || '').trim() !== held.raw) {
+
+    const gate = switchGateRef && switchGateRef.current;
+    // PEEK (don't drain) the FIFO depth so the held msgs survive an effect
+    // cleanup/re-run before the commit point below; drain() is deferred into the
+    // timer so it happens exactly once, at the moment we actually re-fire.
+    // NOTE: route() can't be used here — by the time this effect runs the switch
+    // has settled and the gate is back to "ready" (markReady/markFailed ran), so
+    // route() reports the ready singleton with no pending field even though the
+    // FIFO still holds the switch-time prompts. pendingCount() stays accurate.
+    const queuedDepth = gate && typeof gate.pendingCount === 'function' ? gate.pendingCount() : 0;
+    const held = heldSubmitRef.current;
+    if (!queuedDepth && !held) return undefined;
+
+    // The last held prompt was mirrored into the box (single-slot UX). The gate
+    // FIFO entries are already-committed prompts and replay unconditionally; only
+    // the single-slot held entry is gated on the box being unchanged.
+    if (held && String(input || '').trim() !== held.raw && !queuedDepth) {
       heldSubmitRef.current = null;
       return undefined;
     }
+
     const timer = setTimeout(() => {
+      const liveGate = switchGateRef && switchGateRef.current;
+      // drain() is the gate FIFO's ONLY live caller — this empties it exactly
+      // once, closing the orphaned-pending leak. Re-fire earliest-first.
+      const fifo: any[] = liveGate && typeof liveGate.drain === 'function' ? liveGate.drain() : [];
       const latest = heldSubmitRef.current;
-      if (!latest || latest.raw !== held.raw) return;
-      if (String(input || '').trim() !== latest.raw) {
-        heldSubmitRef.current = null;
-        return;
-      }
       heldSubmitRef.current = null;
-      submitMsg(latest.cmd ?? latest.raw);
+      // The single-slot held entry replays only when the gate FIFO did not carry
+      // it (i.e. it was a backend-down hold, not a switch hold) and the box still
+      // matches it. A switch hold already lives in the FIFO, so we skip it here
+      // to avoid a duplicate send.
+      if (latest && !fifo.length && String(input || '').trim() === latest.raw) {
+        fifo.push({ text: latest.raw, meta: { cmd: latest.cmd ?? null } });
+      }
+      for (const m of fifo) {
+        const meta = (m && m.meta) || {};
+        const replayCmd = meta.cmd != null ? meta.cmd : (m ? m.text : undefined);
+        submitMsg(replayCmd);
+      }
     }, 80);
     return () => clearTimeout(timer);
-  }, [backendState, input, workflowReady, submitMsg]);
+  }, [backendState, input, workflowReady, submitMsg, switchGateRef]);
 
   // ── Brief live-worker strip for the orchestrator chat ───────────────────
   // Shows which workers the orchestrator currently has running, inline in the

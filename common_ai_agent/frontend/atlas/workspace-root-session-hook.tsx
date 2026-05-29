@@ -130,10 +130,19 @@ export function useWorkspaceSession(deps: UseWorkspaceSessionDeps) {
       workflowReadyClearRef.current = null;
     }
     workflowReadyClearRef.current = setTimeout(() => {
-      setWorkflowReady((current: any) => (current && current.seq === seq ? null : current));
+      // Seq-guard EVERYTHING in this timer, not just setWorkflowReady. A stale
+      // dismiss timer (its switch was superseded by a newer beginWorkflowReady,
+      // which bumped the seq) must NOT reopen the gate: the newer switch owns the
+      // gate now and is still "switching". Reopening here would let input flow
+      // (and the replay effect drain) mid-switch — the very race the gate closes.
+      let owns = false;
+      setWorkflowReady((current: any) => {
+        owns = !!(current && current.seq === seq);
+        return owns ? null : current;
+      });
       // Switch settled (overlay dismissed): reopen the synchronous gate so input
-      // flows again. Held msgs are preserved for the existing replay to flush.
-      if (switchGateRef.current) switchGateRef.current.markReady();
+      // flows again. Held msgs are preserved for the replay effect to drain.
+      if (owns && switchGateRef.current) switchGateRef.current.markReady();
       workflowReadyClearRef.current = null;
     }, delay);
   }, []);
@@ -163,7 +172,12 @@ export function useWorkspaceSession(deps: UseWorkspaceSessionDeps) {
     updateWorkflowReady(seq, { phase: 'error', message: message || 'Workflow activation failed' });
     // Switch failed: reopen the gate immediately so input flows again. Held msgs
     // are preserved (no data loss); dismissWorkflowReady() will also markReady().
-    if (switchGateRef.current) switchGateRef.current.markFailed();
+    // Seq-guard the gate call: a stale fail (its switch was superseded by a newer
+    // beginWorkflowReady that bumped workflowReadySeqRef) must NOT reopen the gate
+    // the newer switch now owns. Only the live owner may flip the gate to ready.
+    if (workflowReadySeqRef.current === seq && switchGateRef.current) {
+      switchGateRef.current.markFailed();
+    }
     dismissWorkflowReady(seq, 1800);
   }, [dismissWorkflowReady, updateWorkflowReady]);
   const beginWorkflowReady = useCallback((target: any, session: any, ip: any = '') => {

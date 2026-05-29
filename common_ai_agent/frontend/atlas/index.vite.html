@@ -43,11 +43,8 @@
     position: absolute;
     left: 0;
     top: 0;
-    /* GPU-promote the scaled subtree: transform: scale() (applied by scale() JS)
-       composites on its own layer instead of repainting the full 1920x1080+ tree
-       on every frame. Closes the WKWebView (Tauri) vs Blink (Chrome) jank gap on
-       the fixed-canvas fit. */
-    will-change: transform;
+    /* will-change is set by JS (scale()) only on the desktop scale path
+       so mobile (transform:none) does not keep an idle compositing layer. */
     contain: layout paint;
   }
 </style>
@@ -259,11 +256,15 @@
         s.style.width = '100vw';
         s.style.height = '100dvh';
         s.style.position = 'static';
+        // No compositing layer needed on mobile — clear will-change.
+        s.style.willChange = 'auto';
         return;
       }
       const sx = window.innerWidth  / res.width;
       const sy = window.innerHeight / res.height;
       // Use scaleX/scaleY independently so both dimensions hit the edges.
+      // GPU-promote only when a real scale transform is applied (desktop path).
+      s.style.willChange = (sx !== 1 || sy !== 1) ? 'transform' : 'auto';
       s.style.transform = `scale(${sx}, ${sy})`;
       // Restore desktop positioning in case we transitioned from mobile.
       s.style.width = res.width + 'px';

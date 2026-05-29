@@ -108,6 +108,42 @@ describe('createSwitchGate — drain()', () => {
   });
 });
 
+describe('createSwitchGate — pendingCount()', () => {
+  it('pendingCount() reflects held depth without consuming the FIFO', () => {
+    const gate = createSwitchGate();
+    expect(gate.pendingCount()).toBe(0);
+    gate.beginSwitch('sess-1');
+    gate.submit(msg('a'));
+    gate.submit(msg('b'));
+    expect(gate.pendingCount()).toBe(2);
+    // Non-consuming: a peek must not empty the queue.
+    expect(gate.pendingCount()).toBe(2);
+    expect(gate.drain().map((m) => m.text)).toEqual(['a', 'b']);
+    expect(gate.pendingCount()).toBe(0);
+  });
+
+  it('pendingCount() stays accurate AFTER markReady()/markFailed() (route() would hide it)', () => {
+    const ready = createSwitchGate();
+    ready.beginSwitch('sess-1');
+    ready.submit(msg('held-ready'));
+    ready.markReady();
+    // route() now reports the ready singleton (no pending field), but the FIFO
+    // still holds the switch-time prompt — pendingCount() is the live-replay's
+    // only way to see it.
+    expect(ready.route().status).toBe('ready');
+    expect(ready.pendingCount()).toBe(1);
+    expect(ready.drain().map((m) => m.text)).toEqual(['held-ready']);
+
+    const failed = createSwitchGate();
+    failed.beginSwitch('sess-2');
+    failed.submit(msg('held-failed'));
+    failed.markFailed();
+    expect(failed.route().status).toBe('ready');
+    expect(failed.pendingCount()).toBe(1);
+    expect(failed.drain().map((m) => m.text)).toEqual(['held-failed']);
+  });
+});
+
 describe('createSwitchGate — markReady() / markFailed()', () => {
   it('markReady() after switching returns route to ready; subsequent submit() sends', () => {
     const gate = createSwitchGate();
@@ -190,7 +226,9 @@ describe('createSwitchGate — purity', () => {
         gate.submit(msg('a'));
         gate.beginSwitch('s');
         gate.submit(msg('b'));
+        gate.pendingCount();
         gate.markReady();
+        gate.pendingCount();
         gate.drain();
         gate.markFailed();
       }).not.toThrow();

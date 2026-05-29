@@ -40,10 +40,19 @@ echo
 # 2) orchestrator + worker model state (authoritative)
 WORKERS_JSON="$(curl -fsS -m 8 -b "atlas_session=$CK" "$HOST/api/orchestrator/workers")"
 
-echo "$WORKERS_JSON" | EXPECT="$EXPECT" python3 -c '
+PARSE_OUT="$(echo "$WORKERS_JSON" | EXPECT="$EXPECT" python3 -c '
 import sys, json, os
 expect = os.environ["EXPECT"]
-d = json.load(sys.stdin)
+raw = sys.stdin.read()
+try:
+    d = json.loads(raw)
+except Exception as e:
+    # Non-JSON response (HTML auth-redirect, nginx error page, etc.)
+    preview = raw[:200].replace("\n", " ").strip()
+    print("PARSE_ERROR: response is not JSON — %s" % e)
+    print("  First 200 chars: %s" % preview)
+    print("ORCH_MODEL=")
+    sys.exit(0)   # let the shell wrapper emit the graceful PENDING message
 o = d.get("orchestrator", {}) or {}
 orch_model = o.get("model")
 print("orchestrator.model :", orch_model, "(profile:", o.get("profile"), ")")
@@ -65,11 +74,15 @@ else:
 
 # exit signal via marker line parsed by the shell wrapper
 print("ORCH_MODEL=%s" % (orch_model or ""))
-' | tee /tmp/.atlas_smoke_out
+' 2>&1)" || {
+  echo "✗ python parse step failed unexpectedly." >&2
+  echo "$PARSE_OUT" >&2
+  exit 1
+}
+echo "$PARSE_OUT"
 
 echo
-ORCH_MODEL="$(grep '^ORCH_MODEL=' /tmp/.atlas_smoke_out | tail -1 | cut -d= -f2)"
-rm -f /tmp/.atlas_smoke_out
+ORCH_MODEL="$(echo "$PARSE_OUT" | grep '^ORCH_MODEL=' | tail -1 | cut -d= -f2 || true)"
 
 if [[ "$ORCH_MODEL" == "$EXPECT" ]]; then
   echo "✓ PASS: orchestrator.model == $EXPECT (boot picked up the switch)."

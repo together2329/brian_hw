@@ -27,7 +27,7 @@
  * tsc-clean + vitest-green + window.Workspace registered + public exports
  * intact. Do NOT treat this as the live source of truth.
  */
-import { type ReactNode, useRef, useState } from 'react';
+import { type ReactNode, useMemo, useRef, useState } from 'react';
 
 import { ErrorBoundary } from './app-helpers';
 import { Splitter } from './workspace-resize-splitters';
@@ -40,7 +40,7 @@ import {
 } from './workspace-git-diff';
 import { TodoEditorPane } from './workspace-todo';
 import { useWorkspaceSession } from './workspace-root-session-hook';
-import { useWorkspaceData } from './workspace-root-data-hook';
+import { useWorkspaceData, type WorkspaceDataDeps } from './workspace-root-data-hook';
 import {
   renderWorkspaceLeftRail,
   renderWorkspaceCenterTabStrip,
@@ -130,19 +130,30 @@ export const Workspace = ({
   // Data hook: SSOT/QA boards, worker progress, telemetry, file tree, tab
   // visibility flags, and the bound render helpers (renderChatPane/
   // renderPromptRow) that close over the live feed + input state.
-  const dataDeps: any = {
-    dir,
-    uiLang,
-    session,
+  //
+  // Typed as WorkspaceDataDeps (NOT `any`) so tsc threads the session-half
+  // contract end-to-end: the moment a required dep is missing (it was — the old
+  // `as any` cast silently dropped `activeNamespace`, leaving deps.activeNamespace
+  // undefined at runtime) or mistyped, this object literal ERRORS at the call
+  // site. This is the type-gate that would have caught the submitMsg stub.
+  //
+  // Memoized so its identity is stable across renders that don't change a dep —
+  // submitMsg's useCallback and the held-input replay effect read individual
+  // fields off the threaded contract, and a fresh object every render would
+  // needlessly churn the bootstrap. `session` is spread for the session-half
+  // values; the explicit fields are the composer-owned shared primitives.
+  const dataDeps = useMemo<WorkspaceDataDeps>(() => ({
     ...session,
+    dir,
+    activeNamespace,
     streaming,
     setStreaming,
     streamingRef,
     streamBufferRef,
     inputRef,
     feedRef,
-  };
-  const data = useWorkspaceData(dataDeps as any);
+  }), [session, dir, activeNamespace, streaming]);
+  const data = useWorkspaceData(dataDeps);
 
   // Merge the two hook surfaces so destructuring below reads from one bag.
   // (session first, data second — data wins on the few overlapping derived

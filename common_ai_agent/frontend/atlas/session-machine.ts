@@ -37,6 +37,15 @@ export interface SwitchGate {
   /** Returns queued msgs FIFO and clears the queue. Feeds the EXISTING held-input replay. */
   drain(): Msg[];
 
+  /**
+   * Non-consuming count of currently-held msgs. Unlike route(), this stays
+   * accurate AFTER markReady()/markFailed() reopen the gate (route() reports the
+   * ready singleton, which carries no pending field). The live replay uses this
+   * to decide whether a post-settle drain() is worth arming — peeking the depth
+   * without consuming the FIFO, so an effect cleanup/re-run can't drop held msgs.
+   */
+  pendingCount(): number;
+
   /** Discriminated-union snapshot of the gate. */
   route(): Route;
 
@@ -84,6 +93,13 @@ export function createSwitchGate(initial: Route = READY): SwitchGate {
       const out = pending;
       pending = [];
       return out;
+    },
+
+    pendingCount(): number {
+      // Non-consuming. Stays accurate after markReady/markFailed (which preserve
+      // `pending`), where route() would report the ready singleton with no
+      // pending field.
+      return pending.length;
     },
 
     route(): Route {

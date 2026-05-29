@@ -241,9 +241,9 @@ const AgentStatusPanel = ({ intent, workflow, activeIp = '', agentAlive = false,
 	    if (effectiveSession) merged.activeSession = effectiveSession;
 
 	    // 'tokens' = the LIVE context size; it legitimately DROPS after history
-    // compression, so it must NOT be monotonically clamped (Math.max froze the
-    // Context meter post-compression). Only the genuinely-cumulative usage/cost
-    // counters below are clamped against per-tick jitter.
+	    // compression, so it must NOT be monotonically clamped (Math.max froze the
+	    // Context meter post-compression). Only the genuinely-cumulative usage/cost
+	    // counters below are clamped against per-tick jitter.
     const counters = ['tokensIn', 'tokensCache', 'tokensOut', 'costUsd'];
 	    const incomingCostIp = String(clean.costIp || globalCtx.costIp || '').trim();
 	    const prevCostIp = String(prevCtx.costIp || '').trim();
