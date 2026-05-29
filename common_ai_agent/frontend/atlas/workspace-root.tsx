@@ -32,7 +32,7 @@ import { type ReactNode, useMemo, useRef, useState } from 'react';
 import { ErrorBoundary } from './app-helpers';
 import { Splitter } from './workspace-resize-splitters';
 import { WorkflowReadyOverlay } from './workspace-workflow-ready';
-import { isSsotYamlPath } from './workspace-session-routing';
+import { isSsotYamlPath, normalizeUiSession } from './workspace-session-routing';
 import {
   GitDiffPane,
   FileViewer,
@@ -217,7 +217,10 @@ export const Workspace = ({
     fileContextMenu, setFileContextMenu,
     deleteIpTreeFile,
     // center tabs
-    mainTab, setMainTab,
+    // (mainTab/setMainTab are composer-owned — declared above via useState and
+    // threaded into BOTH hook dep bags; the data hook re-surfaces them in its
+    // return, but the composer's own state is the authoritative in-scope binding,
+    // so they are NOT re-destructured here. Re-binding would shadow-redeclare.)
     previewPath, setPreviewPath,
     gitShow, setGitShow,
     openFile, setOpenFile,
@@ -560,9 +563,14 @@ export const Workspace = ({
                     setInput('');
                     // 1) Mirror submitted text into chat feed for traceability.
                     setFeed((f: any[]) => [...f, { kind: 'user', text: payload, createdAt: Date.now() }]);
+                    // Use the LIVE resolved session (currentSession), normalized,
+                    // falling back to the browser ACTIVE_SESSION. The bag property
+                    // ws.normalizeUiSession was never assigned (optional-chained ->
+                    // undefined), so the old code collapsed to 'default' and routed
+                    // every non-default session's QA answer to the WRONG session.
                     let sessionName = 'default';
                     try {
-                      sessionName = ws.normalizeUiSession?.(w.ACTIVE_SESSION || '') || 'default';
+                      sessionName = normalizeUiSession(currentSession || w.ACTIVE_SESSION || '') || 'default';
                     } catch (_) {}
                     // 2) Persist answered items into qa.json via the backend.
                     try {
