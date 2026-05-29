@@ -78,7 +78,11 @@ export interface UseWorkspaceSessionDeps {
   setMainTab: Dispatch<SetStateAction<string>>;
 }
 
-export function useWorkspaceSession(deps: UseWorkspaceSessionDeps): any {
+// Return type is INFERRED (no `: any`) so the composer's typed `ws` bag can see
+// every key this hook exposes — tsc then ERRORS if workspace-root.tsx
+// destructures a symbol this hook (or its data sibling) never returns. This is
+// the gate that an `any` return previously hid.
+export function useWorkspaceSession(deps: UseWorkspaceSessionDeps) {
   const {
     uiLang,
     activeNamespace,

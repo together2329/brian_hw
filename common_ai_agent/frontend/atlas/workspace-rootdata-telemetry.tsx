@@ -30,6 +30,7 @@ const w = window as any;
  * where every binding was in scope without annotations.
  */
 export interface WorkspaceDataDeps {
+  dir?: string;
   activeNamespace: string;
   workflow: any;
   setWorkflow: (wf: any) => void;
@@ -42,6 +43,8 @@ export interface WorkspaceDataDeps {
   hydratedConversationSessionRef: { current: any };
   liveFeedStartedRef: { current: any };
   workerLogCursorsRef: { current: Map<string, any> };
+  streaming: boolean;
+  setStreaming: (updater: any) => void;
   streamingRef: { current: any };
   streamBufferRef: { current: any };
   inputRef: { current: any };

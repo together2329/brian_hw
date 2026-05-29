@@ -27,7 +27,7 @@
  * tsc-clean + vitest-green + window.Workspace registered + public exports
  * intact. Do NOT treat this as the live source of truth.
  */
-import { type ReactNode } from 'react';
+import { type ReactNode, useRef, useState } from 'react';
 
 import { ErrorBoundary } from './app-helpers';
 import { Splitter } from './workspace-resize-splitters';
@@ -99,25 +99,71 @@ export const Workspace = ({
   // through an `any` cast here — the root/repair phase reconciles the precise
   // bootstrap ordering once both hook contracts freeze. (These .tsx are inert
   // mirrors; behavior is not exercised at runtime in this phase.)
+  // Shared streaming/DOM primitives that BOTH hooks consume. The legacy
+  // single-closure original (workspace.jsx L2734-L2736, L3512-L3513) created
+  // these at the component top so the session-half (sendPrompt/switchWorkflow)
+  // and the data-half (live worker poll / chat submit) could share one source
+  // of truth. The composer mirrors that by creating them here and threading
+  // them into both dep bags. `streaming` drives the Agent-running spinner and
+  // is re-surfaced through the data hook's return for the JSX destructure.
+  const [streaming, setStreaming] = useState<boolean>(false);
+  const streamingRef = useRef<boolean>(false);
+  const streamBufferRef = useRef<string>('');
+  const inputRef = useRef<any>(null);
+  const feedRef = useRef<any>(null);
+
   const sessionDeps: any = {
     dir,
     onScreen,
     uiLang,
     activeNamespace,
     activeWorkflow,
+    streaming,
+    setStreaming,
+    streamingRef,
+    streamBufferRef,
+    inputRef,
+    feedRef,
   };
-  const session: any = useWorkspaceSession(sessionDeps as any);
+  const session = useWorkspaceSession(sessionDeps as any);
 
   // Data hook: SSOT/QA boards, worker progress, telemetry, file tree, tab
   // visibility flags, and the bound render helpers (renderChatPane/
   // renderPromptRow) that close over the live feed + input state.
-  const dataDeps: any = { dir, uiLang, session, ...session };
-  const data: any = useWorkspaceData(dataDeps as any);
+  const dataDeps: any = {
+    dir,
+    uiLang,
+    session,
+    ...session,
+    streaming,
+    setStreaming,
+    streamingRef,
+    streamBufferRef,
+    inputRef,
+    feedRef,
+  };
+  const data = useWorkspaceData(dataDeps as any);
 
   // Merge the two hook surfaces so destructuring below reads from one bag.
   // (session first, data second — data wins on the few overlapping derived
   // keys it recomputes from session state.)
-  const ws: any = { ...session, ...data };
+  //
+  // THE TYPE GATE: `ws` is the INTERSECTION of both hook return types plus the
+  // handful of defensive, optional reads the JSX does directly off `ws.*`
+  // (effLeftW/effRightW are derived locally with a `typeof === 'number'` guard;
+  // normalizeUiSession is reached via optional-chaining). Typing this bag — not
+  // `any` — means tsc ERRORS the moment the destructure below names a symbol
+  // neither hook returns. An `any` bag silently swallowed 15 such undefined
+  // destructures; this turns that runtime break into a compile error.
+  type WorkspaceComposerExtras = {
+    effLeftW?: number;
+    effRightW?: number;
+    normalizeUiSession?: (s: string) => string;
+  };
+  type WorkspaceBag = ReturnType<typeof useWorkspaceSession>
+    & ReturnType<typeof useWorkspaceData>
+    & WorkspaceComposerExtras;
+  const ws: WorkspaceBag = { ...session, ...data };
 
   const {
     // intent / workflow
@@ -187,15 +233,21 @@ export const Workspace = ({
     setActiveTab,
     advanceBatchedQuestion,
     // input + slash/@ completion
+    // (inputRef is composer-owned — declared above and threaded into BOTH hook
+    // dep bags; the data hook re-surfaces it in its return, but the composer's
+    // own ref is the authoritative in-scope binding, so it is NOT re-destructured
+    // here. Re-binding it would shadow-redeclare the const.)
     input, setInput,
-    inputRef,
     showSlash, slashSel, setSlashSel, filtered,
     showAt, atQuery, atSel, setAtSel, fileMatches, atDirEntries,
     acceptAtCompletion,
     submitMsg,
     // feed + streaming
+    // (streaming is composer-owned — declared above via useState and threaded
+    // into BOTH hook dep bags; the data hook re-surfaces it in its return for
+    // completeness, but the composer's own state is the authoritative in-scope
+    // binding, so it is NOT re-destructured here.)
     feed, setFeed,
-    streaming,
     backendState,
     commandBusy,
     workerProgress,

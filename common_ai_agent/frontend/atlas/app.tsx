@@ -894,16 +894,10 @@ const App = () => {
   }
 
   const ownerEditable = !loggedInOwner();
-  const activeDbSessionLabel = (
-    activeDbSession.sessionLabel
-    || (activeDbSession.sessionUid ? `S-${activeDbSession.sessionUid.slice(0, 8)}` : '')
-    || (normalizeSession(activeDbSession.namespace || activeNamespace) || 'pending')
-  );
-  const activeDbSessionTitle = [
-    activeDbSession.dbSessionId ? `db_session_id=${activeDbSession.dbSessionId}` : '',
-    activeDbSession.sessionUid ? `session_uid=${activeDbSession.sessionUid}` : '',
-    activeNamespace ? `namespace=.session/${normalizeSession(activeNamespace)}` : '',
-  ].filter(Boolean).join(' · ');
+  // NOTE: activeDbSessionLabel / activeDbSessionTitle were computed here but
+  // never rendered — same as the app.jsx reference, which also computes them
+  // and never uses them. Dropped to match the working reference exactly and
+  // avoid dead code (and an unused-local in strict TS).
 
   return (
     <AppShell

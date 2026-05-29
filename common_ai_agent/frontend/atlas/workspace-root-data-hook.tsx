@@ -34,10 +34,13 @@ import {
   atlasBootScmProvider,
   atlasResolveScmTab,
   atlasScmTabLabel,
+  workspaceFetchWorkerSnapshot,
   INPUT_HISTORY_LIMIT,
   QA_HISTORY_LIMIT,
   QA_HISTORY_LEGACY_STORAGE_KEY,
 } from './workspace-tool-theme';
+import { useResizable, useVerticalResizable } from './workspace-resize-splitters';
+import { WorkspaceChatPane, WorkspacePromptRow } from './workspace-root-render';
 import {
   WORKFLOW_REPORT_TABS,
   workspaceTelemetryFromMessages,
@@ -50,6 +53,7 @@ import {
   uiEffectiveHealthSession,
   atlasUiOrchestratorMode,
   defaultWorkflowForExecMode,
+  workflowForExecMode,
   ssotIpFromSession,
   isSsotYamlPath,
   routeScopeIp,
@@ -91,6 +95,7 @@ const w = window as any;
 
 export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   const {
+    dir,
     activeNamespace,
     workflow,
     setWorkflow,
@@ -103,6 +108,8 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     hydratedConversationSessionRef,
     liveFeedStartedRef,
     workerLogCursorsRef,
+    streaming,
+    setStreaming,
     streamingRef,
     streamBufferRef,
     inputRef,
@@ -186,7 +193,58 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
 
   const [peerCount, setPeerCount] = useState<number>(1);
   const [streamText, setStreamText] = useState<string>('');
+
+  // streaming is owned by the composer (shared with the session half) but the
+  // ref-sync + window-broadcast side effects live here next to the chat feed,
+  // exactly as the legacy closure had them (workspace.jsx L2739-L2747).
+  useEffect(() => { streamingRef.current = streaming; }, [streaming, streamingRef]);
+  useEffect(() => {
+    try {
+      window.ATLAS_AGENT_RUNNING = !!streaming;
+      window.dispatchEvent(new CustomEvent('atlas-agent-running', {
+        detail: { running: !!streaming },
+      }));
+    } catch (_) {}
+  }, [streaming]);
+
   const [openFile, setOpenFile] = useState<any>(null);
+
+  // ── Column widths (drag-resizable, persisted in localStorage) ───────
+  // 0 = collapsed; any positive width is clamped to [min, max]. Ported
+  // verbatim from workspace.jsx L2030-L2033 — the grid template reads
+  // `${leftW}px ... ${rightW}px`, so an undefined width breaks the whole
+  // 5-track layout.
+  const [leftW,  setLeftW,  toggleLeft]  = useResizable(230, 'atlasLeftW',  160, 480, false);
+  const [rightW, setRightW, toggleRight] = useResizable(360, 'atlasRightW', 260, 600);
+  const [splitRightW, setSplitRightW] = useResizable(520, 'atlasSplitRightW', 300, 900, false);
+  const [leftWorkflowH, setLeftWorkflowH, resetLeftWorkflowH] = useVerticalResizable(178, 'atlasLeftWorkflowH', 126, 540);
+
+  // ── File-tree sort / expand / collapse state ────────────────────────
+  // sort: 'name' (alphabetical, dirs first; default) or 'recent'.
+  // expand: 'shallow' (top level only) or 'deep' (recursive descent).
+  // Both persist across reloads (workspace.jsx L2060-L2085).
+  const [fileSort, setFileSort] = useState<string>(() => {
+    try { return localStorage.getItem('atlasFileSort') === 'recent' ? 'recent' : 'name'; }
+    catch (_) { return 'name'; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem('atlasFileSort', fileSort); } catch (_) {}
+  }, [fileSort]);
+  const [fileExpand, setFileExpand] = useState<string>(() => {
+    try { return localStorage.getItem('atlasFileExpand') === 'deep' ? 'deep' : 'shallow'; }
+    catch (_) { return 'shallow'; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem('atlasFileExpand', fileExpand); } catch (_) {}
+    if (w.atlasData && w.atlasData.refreshFileTree) {
+      const scope = String(w.SCOPE_PATH || '').trim();
+      if (scope && scope !== 'default') {
+        w.atlasData.refreshFileTree(scope, { recursive: true });
+      }
+    }
+  }, [fileExpand]);
+  const [collapsedFileDirs, setCollapsedFileDirs] = useState<Set<string>>(() => new Set());
+
   const [rightTab, setRightTab] = useState<string>('todo'); // todo | progress | git
   const [mainTab, setMainTab] = useState<string>('chat');
   const [previewPath, setPreviewPath] = useState<any>(() => loadStoredPreviewPath());
@@ -767,6 +825,156 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   }, [centerLayout, _qcardActiveFlow, _qcardSubmitted, workflow]);
 
   const [askSel, setAskSel] = useState<number>(0);
+
+  // ── question card handlers ─────────────────────────────────────
+  // Both single-question and batched (tabbed) flows share these helpers; in
+  // batched mode they operate on the active tab's slice (states[active])
+  // instead of the top-level opts/custom. Ported verbatim from
+  // workspace.jsx L5324-L5645 — passed to AskUserPrompt / FeedEntry.
+  const toggleOpt = (flowId: string, optId: string) => {
+    const flow = w.QA_FLOWS[flowId];
+    setQaState((s: any) => {
+      const cur = s[flowId];
+      if (cur.submitted) return s;
+      if (cur.batched) {
+        const idx = cur.active || 0;
+        const q = flow.questions[idx];
+        const tabState = cur.states[idx];
+        let opts;
+        if (q.kind === 'multi') {
+          opts = tabState.opts.map((o: any) =>
+            o.id === optId ? (o.locked ? o : { ...o, selected: !o.selected }) : o
+          );
+        } else {
+          opts = tabState.opts.map((o: any) => ({ ...o, selected: o.id === optId }));
+        }
+        const states = cur.states.map((st: any, i: number) =>
+          i === idx ? { ...st, opts } : st
+        );
+        return { ...s, [flowId]: { ...cur, states } };
+      }
+      let opts;
+      if (flow.kind === 'multi') {
+        opts = cur.opts.map((o: any) => o.id === optId ? (o.locked ? o : { ...o, selected: !o.selected }) : o);
+      } else {
+        opts = cur.opts.map((o: any) => ({ ...o, selected: o.id === optId }));
+      }
+      return { ...s, [flowId]: { ...cur, opts } };
+    });
+  };
+
+  const setCustom = (flowId: string, val: string) => {
+    setQaState((s: any) => {
+      const cur = s[flowId];
+      if (!cur) return s;
+      if (cur.batched) {
+        const idx = cur.active || 0;
+        const states = cur.states.map((st: any, i: number) =>
+          i === idx ? { ...st, custom: val } : st
+        );
+        return { ...s, [flowId]: { ...cur, states } };
+      }
+      return { ...s, [flowId]: { ...cur, custom: val } };
+    });
+  };
+
+  const setActiveTab = (flowId: string, idx: number) => {
+    setQaState((s: any) => {
+      const cur = s[flowId];
+      if (!cur || !cur.batched) return s;
+      const flow = w.QA_FLOWS[flowId];
+      const max = (flow.questions || []).length; // .length = Submit tab
+      const next = Math.max(0, Math.min(max, idx));
+      return { ...s, [flowId]: { ...cur, active: next } };
+    });
+  };
+
+  const advanceBatchedQuestion = (flowId: string) => {
+    setQaState((s: any) => {
+      const cur = s[flowId];
+      if (!cur || !cur.batched) return s;
+      const flow = w.QA_FLOWS[flowId];
+      const tabCount = (flow.questions || []).length;
+      const active = cur.active || 0;
+      const next = Math.max(0, Math.min(tabCount, active + 1));
+      return { ...s, [flowId]: { ...cur, active: next } };
+    });
+  };
+
+  // submitCard ships an ask_user answer back to the agent over the WS.
+  // Batched flows package every per-tab answer into a single {answers: [...]}
+  // payload so the backend resolves all of them in one round-trip — matches
+  // the textual UI's batched ask_user.
+  const submitCard = (flowId: string) => {
+    // Functional updater so we always read the latest qaState — this matters
+    // when a toggle was just queued (e.g. single-kind Enter = toggle+submit)
+    // and we'd otherwise see pre-toggle state.
+    let snapshot: any = null;
+    setQaState((s: any) => {
+      const st = s[flowId];
+      if (!st || st.submitted) return s;
+      if (w.backend) {
+        if (st.batched) {
+          const answers = (st.states || []).map((tab: any) => ({
+            selected: tab.opts.filter((o: any) => o.selected).map((o: any) => o.id),
+            custom: tab.custom || '',
+          }));
+          w.backend.send({ type: 'answer', flow_id: flowId, answers });
+        } else {
+          const selectedIds = st.opts.filter((o: any) => o.selected).map((o: any) => o.id);
+          w.backend.send({
+            type: 'answer',
+            flow_id: flowId,
+            selected: selectedIds,
+            custom: st.custom || '',
+          });
+        }
+      }
+      // Build a serializable history snapshot of THIS submit so we can prepend
+      // it to qaHistory after the state update flushes.
+      try {
+        const flow = w.QA_FLOWS && w.QA_FLOWS[flowId];
+        if (flow) {
+          const items = flow.batched
+            ? (flow.questions || []).map((q: any, i: number) => {
+                const tab = (st.states || [])[i] || { opts: [], custom: '' };
+                return {
+                  question: q.question || '',
+                  kind: q.kind || 'single',
+                  selected: tab.opts.filter((o: any) => o.selected)
+                    .map((o: any) => ({ id: o.id, label: o.label })),
+                  custom: tab.custom || '',
+                };
+              })
+            : [{
+                question: flow.question || '',
+                kind: flow.kind || 'single',
+                selected: (st.opts || []).filter((o: any) => o.selected)
+                  .map((o: any) => ({ id: o.id, label: o.label })),
+                custom: st.custom || '',
+              }];
+          snapshot = {
+            flowId,
+            ts: Date.now(),
+            session: normalizeUiSession(flow.session || currentSession || w.ACTIVE_SESSION || ''),
+            ip: String(flow.ip || ssotIpFromSession(flow.session || currentSession || w.ACTIVE_SESSION || '') || activeSsotIp() || '').trim(),
+            workflow: flow.workflow || '',
+            source: flow.source || '',
+            items,
+          };
+        }
+      } catch (_) {}
+      return { ...s, [flowId]: { ...st, submitted: true } };
+    });
+    if (snapshot) {
+      setQaHistory((h: any[]) => {
+        if (h.length && h[0].flowId === snapshot.flowId) return h; // dedupe re-submits
+        return [snapshot, ...h].slice(0, QA_HISTORY_LIMIT);
+      });
+    }
+    setStreaming(true);  // agent resumes after receiving answer
+  };
+
   const pendingQcardActiveTab = pendingQcard
     ? (qaState[pendingQcard.flowId]?.active || 0)
     : 0;
@@ -1024,6 +1232,307 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     return () => clearTimeout(timer);
   }, [backendState, input, sessionBag.workflowReady, submitMsg]);
 
+  // ── Brief live-worker strip for the orchestrator chat ───────────────────
+  // Shows which workers the orchestrator currently has running, inline in the
+  // chat (sourced from the same snapshot the Workers tab polls). Each chip is
+  // a click-through to that worker's own session for full detail.
+  // (workspace.jsx L5067-L5091)
+  const [orchWorkers, setOrchWorkers] = useState<any[]>([]);
+  useEffect(() => {
+    const ip = String(activeIp || '').trim();
+    if (String(workflow || '') !== 'orchestrator' || !ip || ip.toLowerCase() === 'default') {
+      setOrchWorkers([]);
+      return undefined;
+    }
+    let dead = false;
+    const poll = async () => {
+      if (dead || (typeof document !== 'undefined' && document.visibilityState === 'hidden')) return;
+      try {
+        const snap = await workspaceFetchWorkerSnapshot({ ip, activeOnly: true });
+        if (dead) return;
+        const all = Array.isArray(snap && snap.workers) ? snap.workers : [];
+        setOrchWorkers(all.filter((wk: any) =>
+          Number(wk.running_count || 0) > 0 ||
+          Number(wk.pending_count || 0) > 0 ||
+          Number(wk.queued_count || 0) > 0
+        ));
+      } catch (_) {}
+    };
+    poll();
+    const t = setInterval(poll, 3000);
+    return () => { dead = true; clearInterval(t); };
+  }, [workflow, activeIp]);
+
+  // ── Worker-session LIVE transcript poll ─────────────────────────────────
+  // When viewing a worker session (not the orchestrator), surface the live
+  // ReAct steps of the worker the orchestrator dispatched. Those steps are NOT
+  // in this session's conversation.json (the worker writes elsewhere) — but the
+  // worker agent-server exposes them via /api/job/{id}/log. We map
+  // (ip, workflow) → running job_id through /api/pipeline/progress-debug, then
+  // poll the job log and append new entries to the feed.
+  // (workspace.jsx L5100-L5219)
+  const workerLogJobRef = useRef<string>('');
+  const workerLogSinceRef = useRef<number>(0);
+  const workerLogSeenRef = useRef<Set<number>>(new Set());
+  const workerLogAutoTabRef = useRef<string>('');
+  const [workerProgress, setWorkerProgress] = useState<any>(null);
+  useEffect(() => {
+    const ip = String(activeIp || '').trim();
+    const wf = String(workflow || '');
+    if (!wf || wf === 'orchestrator' || !ip || ip.toLowerCase() === 'default') return undefined;
+    workerLogJobRef.current = '';
+    workerLogSinceRef.current = 0;
+    workerLogSeenRef.current = new Set();
+    setWorkerProgress(null);
+    let dead = false;
+
+    const appendLiveFeedEntries = sessionBag.appendLiveFeedEntries;
+
+    const toEntry = (e: any, job: any = {}) => {
+      const mapper = w.AtlasOrchestratorChatLogic?.feedEntryFromWorkerLogEntry;
+      if (typeof mapper === 'function') return mapper(e, job);
+      const type = String(e.type || e.role || '').toLowerCase();
+      const text = String(e.content || '').trim();
+      if (!text) return null;
+      const createdAt = Number(e.timestamp || 0) * 1000 || 0;
+      const worker = {
+        job_id: String(job.job_id || ''),
+        run_id: String(job.run_id || ''),
+        workflow: String(job.workflow || job.stage_id || wf || ''),
+        stage_id: String(job.stage_id || ''),
+        status: String(job.status || ''),
+        worker: String(job.worker || ''),
+      };
+      if (type === 'response' || type === 'assistant') return { kind: 'agent', text, createdAt, live: true, worker };
+      if (type === 'action') return { kind: 'action', text, createdAt, live: true, worker };
+      if (type === 'observation' || type === 'obs') return { kind: 'obs', text, createdAt, live: true, worker };
+      // task / plan / context / system / thought → thought (truncate noisy context)
+      return { kind: 'thought', text: text.length > 1200 ? text.slice(0, 1200) + ' …' : text, createdAt, live: true, worker };
+    };
+
+    const findJobId = async () => {
+      try {
+        const r = await fetch(`/api/pipeline/progress-debug?ip=${encodeURIComponent(ip)}`, { credentials: 'include', cache: 'no-store' });
+        if (!r.ok) return '';
+        const d = await r.json();
+        const active = (d && d.worker && Array.isArray(d.worker.active)) ? d.worker.active
+          : (d && Array.isArray(d.active)) ? d.active : [];
+        const match = active.find((j: any) => String(j.workflow || '') === wf)
+          || active.find((j: any) => String(j.stage_id || '') === wf)
+          || active.find((j: any) => {
+            const stageId = String(j.stage_id || '');
+            return !!stageId && wf.startsWith(stageId);
+          });
+        return match ? String(match.job_id || '') : '';
+      } catch (_) { return ''; }
+    };
+
+    const poll = async () => {
+      if (dead || (typeof document !== 'undefined' && document.visibilityState === 'hidden')) return;
+      try {
+        if (!workerLogJobRef.current) {
+          workerLogJobRef.current = await findJobId();
+          if (!workerLogJobRef.current) return;
+        }
+        const jid = workerLogJobRef.current;
+        const r = await fetch(`/api/job/${encodeURIComponent(jid)}/log?since=${workerLogSinceRef.current}`, { credentials: 'include', cache: 'no-store' });
+        if (!r.ok) { if (r.status === 404) workerLogJobRef.current = ''; return; }
+        const d = await r.json();
+        const jb = d.job || {};
+        setWorkerProgress({
+          workflow: wf,
+          status: String(d.status || jb.status || 'running'),
+          startedAt: Number(jb.started_at || 0),
+          iterations: Number(jb.iterations || 0),
+        });
+        const entries = Array.isArray(d.entries) ? d.entries : [];
+        const fresh: any[] = [];
+        let maxIdx = workerLogSinceRef.current;
+        for (const e of entries) {
+          const idx = Number(e.index);
+          if (Number.isFinite(idx)) {
+            if (workerLogSeenRef.current.has(idx)) continue;
+            workerLogSeenRef.current.add(idx);
+            if (idx + 1 > maxIdx) maxIdx = idx + 1;
+          }
+          const fe = toEntry(e, {
+            ...jb,
+            job_id: jb.job_id || jid,
+            workflow: jb.workflow || wf,
+            status: jb.status || d.status || '',
+          });
+          if (fe) fresh.push(fe);
+        }
+        workerLogSinceRef.current = maxIdx;
+        if (fresh.length) {
+          // Route through appendLiveFeedEntries so entries are `live`-stamped
+          // and liveFeedStartedRef is set — otherwise a late conversation
+          // hydration (empty conversation.json) would wipe them.
+          if (typeof appendLiveFeedEntries === 'function') appendLiveFeedEntries(fresh);
+          setStreaming((s: boolean) => (s ? false : s));
+          // First live steps for this job → surface the CHAT tab so the user
+          // who clicked the strip chip actually sees the worker working.
+          // Only override the workflow-default tabs; never fight a manual pick.
+          if (workerLogAutoTabRef.current !== jid) {
+            workerLogAutoTabRef.current = jid;
+            setMainTab((prev: string) => (
+              prev === 'checklist' || prev === 'sim_summary' ||
+              prev === 'coverage' || prev === 'workflow_report' || prev === 'debug'
+            ) ? 'chat' : prev);
+          }
+        }
+        // job finished → stop chasing it (next active job, if any, re-resolves)
+        if (d.status && ['passed', 'failed', 'error', 'done', 'completed', 'cancelled'].includes(String(d.status))) {
+          workerLogJobRef.current = '';
+        }
+      } catch (_) {}
+    };
+    poll();
+    const t = setInterval(poll, 1500);
+    return () => { dead = true; clearInterval(t); };
+  }, [workflow, activeIp]);
+
+  // ── input history navigation + textarea key handling ────────────────────
+  // (workspace.jsx L5221-L5318) — used by the bound renderPromptRow textarea.
+  const navigateInputHistory = (delta: number): boolean => {
+    if (!inputHistory.length) return false;
+    let idx = inputHistoryIndexRef.current;
+    if (idx === null || idx === undefined) {
+      if (delta > 0) return false;
+      inputHistoryDraftRef.current = input;
+      idx = inputHistory.length - 1;
+    } else {
+      idx += delta;
+    }
+    if (idx < 0) idx = 0;
+    if (idx >= inputHistory.length) {
+      inputHistoryIndexRef.current = null;
+      setInput(inputHistoryDraftRef.current || '');
+      return true;
+    }
+    inputHistoryIndexRef.current = idx;
+    setInput(inputHistory[idx] || '');
+    setShowSlash(false);
+    setShowAt(false);
+    return true;
+  };
+
+  const onPromptKey = (e: any) => {
+    if (showSlash) {
+      if (e.key === 'ArrowDown') { e.preventDefault(); setSlashSel((s: number) => Math.min(s + 1, filtered.length - 1)); return; }
+      if (e.key === 'ArrowUp')   { e.preventDefault(); setSlashSel((s: number) => Math.max(s - 1, 0)); return; }
+      if (e.key === 'Tab' || e.key === 'Enter') {
+        if (filtered[slashSel]) {
+          e.preventDefault();
+          if (e.key === 'Enter') submitMsg(filtered[slashSel].cmd);
+          else setInput(filtered[slashSel].cmd + ' ');
+          return;
+        }
+      }
+      if (e.key === 'Escape') { e.preventDefault(); setShowSlash(false); return; }
+    }
+    if (showAt) {
+      if (e.key === 'ArrowDown') { e.preventDefault(); setAtSel((s: number) => Math.min(s + 1, fileMatches.length - 1)); return; }
+      if (e.key === 'ArrowUp')   { e.preventDefault(); setAtSel((s: number) => Math.max(s - 1, 0)); return; }
+      if (e.key === 'Tab' || e.key === 'Enter') {
+        if (fileMatches[atSel]) {
+          e.preventDefault();
+          acceptAtCompletion(fileMatches[atSel]);
+          return;
+        }
+      }
+      if (e.key === 'Escape') { e.preventDefault(); setShowAt(false); return; }
+    }
+    if (e.key === 'ArrowUp') {
+      if (navigateInputHistory(-1)) {
+        e.preventDefault();
+        requestAnimationFrame(() => {
+          const el = inputRef.current;
+          if (el) el.setSelectionRange(el.value.length, el.value.length);
+        });
+      }
+      return;
+    }
+    if (e.key === 'ArrowDown') {
+      if (navigateInputHistory(1)) {
+        e.preventDefault();
+        requestAnimationFrame(() => {
+          const el = inputRef.current;
+          if (el) el.setSelectionRange(el.value.length, el.value.length);
+        });
+      }
+      return;
+    }
+    // Plain Enter submits. Shift+Enter and Alt/Option+Enter both insert a
+    // literal newline so multi-line prompts compose naturally.
+    if (e.key === 'Enter') {
+      if (e.altKey) {
+        e.preventDefault();
+        const el = e.target;
+        const lo = el.selectionStart;
+        const hi = el.selectionEnd;
+        const next = el.value.slice(0, lo) + '\n' + el.value.slice(hi);
+        setInput(next);
+        requestAnimationFrame(() => {
+          el.selectionStart = el.selectionEnd = lo + 1;
+          el.style.height = 'auto';
+          el.style.height = Math.min(el.scrollHeight, 192) + 'px';
+        });
+        return;
+      }
+      if (!e.shiftKey) {
+        e.preventDefault();
+        submitMsg();
+      }
+      // Shift+Enter: textarea native handles newline; onChange fires auto-grow.
+    }
+  };
+
+  // ── bound render helpers ────────────────────────────────────────────────
+  // The composer wants render FUNCTIONS (renderChatPane/renderPromptRow) that
+  // close over the live feed/input/stream state. The presentational bodies
+  // were extracted to workspace-root-render.tsx (WorkspaceChatPane /
+  // WorkspacePromptRow); here we adapt them by closing over current state and
+  // forwarding it as props — matching workspace.jsx L5745-L5750 / L5751-L6005.
+  const renderChatPane = (style: any = {}) => (
+    <WorkspaceChatPane
+      feedRef={feedRef}
+      streamText={streamText}
+      style={style}
+      feedEntriesProps={{
+        feed,
+        qaState,
+        chatFeedSummary,
+        toggleOpt,
+        setCustom,
+        submitCard,
+        dir,
+      }}
+    />
+  );
+  const renderPromptRow = () => (
+    <WorkspacePromptRow
+      workflow={workflow}
+      activeIp={activeIp}
+      feed={feed}
+      orchWorkers={orchWorkers}
+      workerProgress={workerProgress}
+      input={input}
+      setInput={setInput}
+      inputRef={inputRef}
+      inputRouteState={sessionBag.inputRouteState}
+      inputRouteRef={sessionBag.inputRouteRef}
+      inputHistoryIndexRef={inputHistoryIndexRef}
+      inputHistoryDraftRef={inputHistoryDraftRef}
+      onKey={onPromptKey}
+      pendingQcard={pendingQcard}
+      workflowReady={sessionBag.workflowReady}
+      atlasUiOrchestratorMode={atlasUiOrchestratorMode}
+      workflowForExecMode={workflowForExecMode}
+      defaultWorkflowForExecMode={defaultWorkflowForExecMode}
+    />
+  );
+
   return {
     // telemetry / backend
     backendState, setBackendState,
@@ -1031,6 +1540,13 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     workspaceTelemetry, setWorkspaceTelemetry,
     peerCount, setPeerCount,
     streamText, setStreamText,
+    // streaming (composer-owned; re-surfaced for the JSX destructure + spinner)
+    streaming, setStreaming,
+    // column widths + collapse toggles
+    leftW, setLeftW, toggleLeft,
+    rightW, setRightW, toggleRight,
+    splitRightW, setSplitRightW,
+    leftWorkflowH, setLeftWorkflowH, resetLeftWorkflowH,
     // tabs / preview / layout
     openFile, setOpenFile,
     rightTab, setRightTab,
@@ -1040,6 +1556,10 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     gitShow, setGitShow,
     centerLayout, setCenterLayout,
     chatFeedSummary, setChatFeedSummary,
+    // file-tree sort / expand / collapse
+    fileSort, setFileSort,
+    fileExpand, setFileExpand,
+    collapsedFileDirs, setCollapsedFileDirs,
     // q&a
     qaState, setQaState, qaStateRef,
     qaHistory, setQaHistory,
@@ -1052,11 +1572,15 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     flowMatchesCurrentSession, activateAskUserSession,
     pendingQcard, pendingQcardActiveTab, ssotQaBoardData,
     askSel, setAskSel,
+    // q&a card handlers (passed to AskUserPrompt / FeedEntry)
+    toggleOpt, setCustom, submitCard, setActiveTab, advanceBatchedQuestion,
     // input / history / slash / at
     input, setInput, heldSubmitRef,
+    inputRef,
     inputHistory, setInputHistory,
     inputHistoryIndexRef, inputHistoryDraftRef,
     replaceInputHistory, recordInputHistory,
+    navigateInputHistory, onPromptKey,
     showSlash, setShowSlash,
     slashSel, setSlashSel,
     slashCommands, setSlashCommands,
@@ -1064,6 +1588,12 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     fileMatches, filtered, acceptAtCompletion,
     showAt, setShowAt, atSel, setAtSel,
     submitMsg,
+    // live worker strips / progress
+    orchWorkers, setOrchWorkers,
+    workerProgress, setWorkerProgress,
+    // bound render helpers (close over feed/input/stream state)
+    feedRef,
+    renderChatPane, renderPromptRow,
     // session-derived
     currentSession, activeIp, activeSsotIp,
     // tab visibility

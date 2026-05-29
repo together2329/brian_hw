@@ -27,6 +27,18 @@ import {
   type DragEvent,
 } from 'react';
 
+// Side-effect imports — these siblings register their window bridges
+// (buildSsotQaStrings, SsotQaCard / ssotPendingDraft / ssotBuildPendingInputText,
+// SsotImportStatusBanner / SsotImportedFilesList / SsotImportExportPane, …) on
+// `window` at module-eval time. The legacy .jsx kept every helper in one IIFE
+// scope; the .tsx split moved them into siblings, so this file MUST pull them in
+// as runtime imports (the `import type` lines below are erased and run nothing).
+// main.tsx only side-effect-imports "./ssot-qa-board", relying on it to
+// transitively load its own split family — exactly as the entry header promises.
+import './ssot-qa-board-i18n';
+import './ssot-qa-board-qacard';
+import './ssot-qa-board-io';
+
 import type { SsotQaStrings, RequirementText, UiLang } from './ssot-qa-board-i18n';
 import type { QaItem, QaDraft, AnswerDrafts } from './ssot-qa-board-qacard';
 import type { ImportedFileRow, ValidationResult } from './ssot-qa-board-io';

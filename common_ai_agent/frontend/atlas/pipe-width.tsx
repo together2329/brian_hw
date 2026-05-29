@@ -50,6 +50,7 @@ interface PipelineWindow {
   PIPELINE_STATE_META?: Record<string, PipelineStateMeta>;
   pipelineStateMeta?: (state?: string) => PipelineStateMeta;
   readPipeWidth?: (key: string, fallback: number, min: number, max: number) => number;
+  pipelineFetchWorkerSnapshot?: (opts?: WorkerSnapshotOpts) => Promise<unknown>;
 }
 
 const win = window as unknown as PipelineWindow & Window;
@@ -386,4 +387,8 @@ export async function pipelineFetchWorkerSnapshot(opts: WorkerSnapshotOpts = {})
 //
 
 // ── Transitional bridge: register on window for not-yet-migrated .jsx ──
+// pipeline-trace-workers.tsx resolves pipelineFetchWorkerSnapshot off window at
+// render time (the original pipeline-trace.jsx called it as a bare shared-scope
+// global). Register it here, where it is defined, so the consumer resolves it.
 win.readPipeWidth = readPipeWidth;
+win.pipelineFetchWorkerSnapshot = pipelineFetchWorkerSnapshot;
