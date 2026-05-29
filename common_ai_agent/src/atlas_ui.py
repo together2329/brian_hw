@@ -1517,6 +1517,13 @@ def create_app():
         dist_index = FRONTEND / "dist" / "index.vite.html"
         if not dist_index.is_file():
             return None
+        # QA #5: a PARTIAL dist (index.vite.html present but assets/ missing or
+        # empty — e.g. an interrupted build) would serve an HTML shell that
+        # references non-existent hashed bundles → a blank page. Require a
+        # populated assets/ dir; otherwise fall through to the working legacy path.
+        dist_assets = FRONTEND / "dist" / "assets"
+        if not dist_assets.is_dir() or not any(dist_assets.glob("*.js")):
+            return None
         html = dist_index.read_text(encoding="utf-8")
         exec_mode = _current_atlas_exec_mode()
         policy = exec_policy_payload(exec_mode, env=os.environ)
