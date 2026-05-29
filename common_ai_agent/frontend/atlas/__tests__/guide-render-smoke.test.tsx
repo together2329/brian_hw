@@ -22,6 +22,8 @@
 // render path needs, this mount throws and the gate goes red.
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+vi.setConfig({ testTimeout: 30000, hookTimeout: 30000 }); // full-app mount in jsdom is >5s under load
+
 import { render, cleanup } from '@testing-library/react';
 
 // ── window/global stubs the live app normally supplies ──────────────────────

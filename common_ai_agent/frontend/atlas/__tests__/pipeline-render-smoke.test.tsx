@@ -48,6 +48,8 @@
 //      OrchestratorTraceStrip forward-refs end-to-end.
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+vi.setConfig({ testTimeout: 30000, hookTimeout: 30000 }); // full-app mount in jsdom is >5s under load
+
 import { render, cleanup } from '@testing-library/react';
 
 type AnyWindow = typeof window & Record<string, any>;

@@ -21,6 +21,8 @@
 // fails (compile gate) OR this mount throws (behavioral gate). Both stay green.
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+vi.setConfig({ testTimeout: 30000, hookTimeout: 30000 }); // full-app mount in jsdom is >5s under load
+
 import { render, cleanup, screen, within } from '@testing-library/react';
 
 // ── window/global stubs the live app normally supplies ──────────────────────

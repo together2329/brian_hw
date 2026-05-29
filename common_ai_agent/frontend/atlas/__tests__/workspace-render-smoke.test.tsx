@@ -23,6 +23,8 @@
 // throws (behavioral gate). Both gates must stay green.
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+vi.setConfig({ testTimeout: 30000, hookTimeout: 30000 }); // full-app mount in jsdom is >5s under load
+
 import { render, cleanup, within } from '@testing-library/react';
 
 // Establish the SAME window bridges the live app loads before the workspace

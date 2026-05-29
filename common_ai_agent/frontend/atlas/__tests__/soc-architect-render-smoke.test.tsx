@@ -32,6 +32,8 @@
 // throws and the gate goes red — before the .jsx reference is retired.
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+vi.setConfig({ testTimeout: 30000, hookTimeout: 30000 }); // full-app mount in jsdom is >5s under load
+
 import { render, cleanup, fireEvent, within } from '@testing-library/react';
 
 // Establish the SAME window bridges the live app loads BEFORE the soc-architect

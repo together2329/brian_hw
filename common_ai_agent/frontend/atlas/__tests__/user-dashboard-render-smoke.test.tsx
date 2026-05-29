@@ -20,6 +20,8 @@
 // mount throws. Both gates must stay green before the .jsx is retired.
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+vi.setConfig({ testTimeout: 30000, hookTimeout: 30000 }); // full-app mount in jsdom is >5s under load
+
 import { render, cleanup, screen, within, act } from '@testing-library/react';
 
 // ── window/global stubs the live app normally supplies ──────────────────────
