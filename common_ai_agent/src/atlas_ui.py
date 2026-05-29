@@ -208,21 +208,22 @@ def _prompt_ack_frames(
 
     - ``agent_received`` is the TRANSPORT ack consumed by backend.js to disarm
       its retransmit timer. It must be emitted ONLY when the prompt is
-      genuinely accepted by a live worker (``ok`` is True) and is NOT a
-      duplicate. Emitting it up-front, before delivery is known, lies about
-      delivery and defeats the only auto-retry — the original silent-loss bug.
+      genuinely accepted (``ok`` is True) — never up-front before delivery is
+      known. Emitting it unconditionally lied about delivery and defeated the
+      only auto-retry, the original silent-loss bug.
     - ``agent_accepted`` is the DELIVERY ack and is ALWAYS emitted, carrying
       ``ok``/``queued``/``duplicate``/``handled``/``error`` so the client can
       decide whether to hold the input for a manual resend.
 
     When ``ok`` is False (the worker dropped the prompt) NO ``agent_received``
-    is produced, so backend.js's pending-ack timer fires and retransmits.
-    A duplicate (already-seen msg_id) is acked ``ok:true,duplicate`` but does
-    NOT re-emit ``agent_received`` (the first delivery already disarmed the
-    retry; msg_id dedup keeps the worker from double-running).
+    is produced, so backend.js's pending-ack timer fires and retransmits the
+    prompt — which auto-lands once the worker is warm. A duplicate (already-seen
+    msg_id) is still a genuine accept (the original landed), so it is acked
+    ``ok:true,duplicate`` WITH ``agent_received``; msg_id dedup keeps the worker
+    from double-running.
     """
     frames: list[dict[str, Any]] = []
-    if ok and not duplicate:
+    if ok:
         frames.append({
             "type": "agent_received",
             "msg_id": msg_id,
