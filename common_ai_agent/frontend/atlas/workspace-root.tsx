@@ -253,6 +253,10 @@ export const Workspace = ({
     showAt, atQuery, atSel, setAtSel, fileMatches, atDirEntries,
     acceptAtCompletion,
     submitMsg,
+    // sendPrompt — the canonical chat-hub prompt sender (generates msg_id, ack
+    // Promise, and retry-armed {type:'prompt', msg_id, ...}). Routed into the
+    // QA-board onSubmitPending handler so that send opts into ack/retry too.
+    sendPrompt,
     // feed + streaming
     // (streaming is composer-owned — declared above via useState and threaded
     // into BOTH hook dep bags; the data hook re-surfaces it in its return for
@@ -585,13 +589,14 @@ export const Workspace = ({
                       }
                     } catch (_) {}
                     // 3) Send the prompt to the backend for LLM processing.
+                    // Route through the SAME sendPrompt the chat hub uses so the
+                    // QA-board prompt opts into the canonical msg_id + ack/retry
+                    // machinery (backend.js only arms a retry for prompts that
+                    // carry a msg_id — a bare send is silently lost if a warming
+                    // worker drops it). sendPrompt generates the msg_id, builds
+                    // the ack Promise, and emits {type:'prompt', msg_id, ...}.
                     try {
-                      w.backend?.send?.({
-                        type: 'prompt',
-                        text: payload,
-                        session: sessionName,
-                        ui_lang: w.ATLAS_UI_LANG || 'ko',
-                      });
+                      sendPrompt(payload, sessionName);
                     } catch (_) {}
                     setMainTab('chat');
                   }}

@@ -18,7 +18,7 @@
 //
 // Load order (index.html): BEFORE ssot-qa-board.tsx. The main component reads
 // QaCard + the helpers through the transitional window bridges.
-import { type CSSProperties, type KeyboardEvent, type MouseEvent } from 'react';
+import { useRef, useState, type CSSProperties, type KeyboardEvent, type MouseEvent } from 'react';
 
 import type { SsotQaStrings } from './ssot-qa-board-i18n';
 
@@ -27,6 +27,9 @@ import type { SsotQaStrings } from './ssot-qa-board-i18n';
 interface QaCardWindowGlobals {
   AskUserQuestionBlock: (...a: any[]) => any;
   atlasStatusMeta: (...a: any[]) => { color: string; [k: string]: unknown };
+  // Optional connection-state getter exposed by backend.js. Returns a lowercase
+  // string ('open' | 'connecting' | 'closed' | ...). Read defensively.
+  backend?: { getConnectionState?: () => string };
   // This file's OWN public globals (set via the bridge below).
   SsotQaCard: (props: QaCardProps) => any;
   ssotPendingItemKey: typeof pendingItemKey;
@@ -205,6 +208,30 @@ export function QaCard({
 }: QaCardProps) {
   const draftOf = (it: QaItem): QaDraft => pendingDraft(it, answerDrafts);
 
+  // Transient in-board confirmation after a send/re-answer click, so the action
+  // is never perceived as a no-op (the parent immediately switches to the chat
+  // tab, so any feedback rendered here is short-lived but proves the click
+  // landed). Holds the i18n message to show, or '' when idle.
+  const [sentFeedback, setSentFeedback] = useState('');
+  const sentTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const flashSent = (message: string): void => {
+    setSentFeedback(message);
+    if (sentTimerRef.current) clearTimeout(sentTimerRef.current);
+    sentTimerRef.current = setTimeout(() => setSentFeedback(''), 4000);
+  };
+  // Read the optional backend connection-state getter defensively. Returns
+  // 'open' (lowercase) when the websocket is live; anything else means the
+  // submit will be queued/retried rather than delivered immediately.
+  const isBackendOpen = (): boolean => {
+    try {
+      const getState = g.backend?.getConnectionState;
+      if (typeof getState !== 'function') return true; // no getter → assume OK
+      return String(getState() || '').toLowerCase() === 'open';
+    } catch {
+      return true;
+    }
+  };
+
   const togglePendingOption = (it: QaItem, optionId: string): void => {
     const draft = draftOf(it);
     const kind = pendingKind(it);
@@ -217,10 +244,17 @@ export function QaCard({
     updatePendingDraft(it, { ...draft, opts });
   };
 
-  const renderPendingAnswerBox = (it: QaItem) => {
+  const renderPendingAnswerBox = (it: QaItem, resolved: boolean) => {
     const draft = draftOf(it);
     const kind = pendingKind(it);
     const hasAnswer = hasPendingAnswer(draft);
+    // When the card is already resolved (approved), the send button is a
+    // re-submit. Relabel it ("re-answer") + use a secondary (outlined) style so
+    // the user is not surprised that a 0-pending card still accepts input.
+    const sendLabel = resolved ? (t.reAnswer || t.send) : t.send;
+    const sendActiveBg = resolved ? 'transparent' : 'var(--cyan)';
+    const sendActiveColor = resolved ? 'var(--cyan)' : 'var(--bg-0)';
+    const sendActiveBorder = resolved ? '1px solid var(--cyan)' : undefined;
     return (
       <div
         onClick={(ev) => ev.stopPropagation()}
@@ -262,8 +296,13 @@ export function QaCard({
           })}
         />
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
-          <span style={{ color: hasAnswer ? 'var(--cyan)' : 'var(--fg-mute)', fontSize: 10 }}>
-            {hasAnswer ? t.inputUpdated : t.autoInputHint}
+          <span
+            style={{
+              color: sentFeedback ? 'var(--ok)' : (hasAnswer ? 'var(--cyan)' : 'var(--fg-mute)'),
+              fontSize: 10,
+            }}
+          >
+            {sentFeedback || (hasAnswer ? t.inputUpdated : t.autoInputHint)}
           </span>
           <span style={{ flex: 1 }} />
           {onSubmitPending ? (
@@ -271,24 +310,33 @@ export function QaCard({
               type="button"
               className="mini-btn"
               disabled={!hasAnswer}
-              title={hasAnswer ? '' : t.sendNeedAnswer}
+              title={
+                !hasAnswer
+                  ? t.sendNeedAnswer
+                  : (resolved ? t.reAnswerHint : '')
+              }
               onClick={(ev: MouseEvent<HTMLButtonElement>) => {
                 ev.stopPropagation();
                 if (!hasAnswer) return;
+                // Immediate in-board confirmation BEFORE the parent flips to the
+                // chat tab, so the click is never perceived as a no-op. Surface a
+                // retry hint when the backend socket is not open.
+                flashSent(isBackendOpen() ? t.sent : t.notConnectedRetry);
                 onSubmitPending(
                   [{ item: it, draft }],
                   buildPendingInputText(it, draft, ip),
                 );
               }}
               style={{
-                background: hasAnswer ? 'var(--cyan)' : undefined,
-                color: hasAnswer ? 'var(--bg-0)' : undefined,
+                background: hasAnswer ? sendActiveBg : undefined,
+                color: hasAnswer ? sendActiveColor : undefined,
+                border: hasAnswer ? sendActiveBorder : undefined,
                 fontWeight: hasAnswer ? 600 : undefined,
                 opacity: hasAnswer ? 1 : 0.45,
                 cursor: hasAnswer ? 'pointer' : 'not-allowed',
               }}
             >
-              {t.send}
+              {sendLabel}
             </button>
           ) : null}
         </div>
@@ -367,7 +415,7 @@ export function QaCard({
           {item.subtitle}
         </div>
       ) : null}
-      {isOpen ? renderPendingAnswerBox(item) : null}
+      {isOpen ? renderPendingAnswerBox(item, isApproved) : null}
       <div style={{ color: item.answer ? 'var(--fg)' : 'var(--fg-mute)', fontSize: 12, marginTop: 7, lineHeight: 1.45 }}>
         {(item.answer as any) || t.noAnswer}
       </div>

@@ -7024,13 +7024,14 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
                       }
                     } catch (_) {}
                     // 3) Send the prompt to the backend for LLM processing.
+                    // Route through the SAME sendPrompt the chat hub uses so the
+                    // QA-board prompt opts into the canonical msg_id + ack/retry
+                    // machinery (backend.js only arms a retry for prompts that
+                    // carry a msg_id — a bare send is silently lost if a warming
+                    // worker drops it). sendPrompt generates the msg_id, builds
+                    // the ack Promise, and emits {type:'prompt', msg_id, ...}.
                     try {
-                      window.backend?.send?.({
-                        type: 'prompt',
-                        text: payload,
-                        session,
-                        ui_lang: window.ATLAS_UI_LANG || 'ko',
-                      });
+                      sendPrompt(payload, session);
                     } catch (_) {}
                     setMainTab('chat');
                   }}

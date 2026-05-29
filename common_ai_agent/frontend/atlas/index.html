@@ -202,7 +202,8 @@
   </script>
 
   <!-- Backend adapter: window.backend (live WebSocket) -->
-  <script src="backend.js?v=atlas-20260519-worker-ws-rebind"></script>
+  <!-- CACHE-BUSTER: bump ?v= whenever backend.js changes, or browsers serve stale copies -->
+  <script src="backend.js?v=atlas-20260529-qa-ackfix"></script>
 
   <!-- VCD parser (pure JS, no Babel — ships as plain script). -->
   <script src="vcd-parser.js"></script>

@@ -125,6 +125,10 @@ const SsotQaBoard = ({
         inputUpdated: 'draft ready',
         send: 'send',
         sendNeedAnswer: 'select an option or type an answer first',
+        reAnswer: 're-answer',
+        reAnswerHint: 're-submit this approved answer',
+        sent: 'sent — awaiting agent',
+        notConnectedRetry: 'not connected — will retry',
         importFiles: 'Import',
         importing: 'Importing...',
         deepInterview: 'Deep Interview',
@@ -212,6 +216,10 @@ const SsotQaBoard = ({
         inputUpdated: '답변 초안 준비됨',
         send: '전송',
         sendNeedAnswer: '옵션을 선택하거나 답변을 입력한 후 전송하세요',
+        reAnswer: '재답변',
+        reAnswerHint: '승인된 답변을 다시 제출',
+        sent: '전송됨 — 에이전트 대기',
+        notConnectedRetry: '연결 안 됨 — 재시도 예정',
         importFiles: 'Import',
         importing: 'Importing...',
         deepInterview: 'Deep Interview',
@@ -696,6 +704,33 @@ const SsotQaBoard = ({
   // Per-status group collapse: both groups default open. Tracking the
   // closed set keeps the default-open rule stable across re-renders.
   const [closedStatusGroups, setClosedStatusGroups] = React.useState(() => new Set());
+  // Transient in-board confirmation after a per-card send/re-answer click, so
+  // the action is never perceived as a no-op (the parent immediately switches to
+  // the chat tab). Maps a card key → message; cleared after a short delay.
+  const [cardSentFeedback, setCardSentFeedback] = React.useState({});
+  const cardSentTimers = React.useRef({});
+  const flashCardSent = (key, message) => {
+    setCardSentFeedback(prev => ({ ...prev, [key]: message }));
+    if (cardSentTimers.current[key]) clearTimeout(cardSentTimers.current[key]);
+    cardSentTimers.current[key] = setTimeout(() => {
+      setCardSentFeedback(prev => {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+    }, 4000);
+  };
+  // Read the optional backend connection-state getter defensively. 'open'
+  // (lowercase) means the websocket is live; anything else → queued/retried.
+  const isBackendOpen = () => {
+    try {
+      const getState = window.backend && window.backend.getConnectionState;
+      if (typeof getState !== 'function') return true;
+      return String(getState() || '').toLowerCase() === 'open';
+    } catch (_) {
+      return true;
+    }
+  };
   const pendingItemKey = (item) => [
     item?.flow_id || '',
     item?.section || item?.section_id || '',
@@ -799,10 +834,19 @@ const SsotQaBoard = ({
     });
     updatePendingDraft(item, { ...draft, opts });
   };
-  const renderPendingAnswerBox = (item) => {
+  const renderPendingAnswerBox = (item, resolved) => {
     const draft = pendingDraft(item);
     const kind = pendingKind(item);
     const hasAnswer = hasPendingAnswer(draft);
+    const cardKey = pendingItemKey(item);
+    const sentMsg = cardSentFeedback[cardKey] || '';
+    // When the card is already resolved (approved), the send button is a
+    // re-submit. Relabel it ("re-answer") + use a secondary (outlined) style so
+    // a 0-pending re-answer is not surprising.
+    const sendLabel = resolved ? (t.reAnswer || t.send) : t.send;
+    const sendActiveBg = resolved ? 'transparent' : 'var(--cyan)';
+    const sendActiveColor = resolved ? 'var(--cyan)' : 'var(--bg-0)';
+    const sendActiveBorder = resolved ? '1px solid var(--cyan)' : undefined;
     return (
       <div
         onClick={(ev) => ev.stopPropagation()}
@@ -844,8 +888,8 @@ const SsotQaBoard = ({
           })}
         />
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
-          <span style={{ color: hasAnswer ? 'var(--cyan)' : 'var(--fg-mute)', fontSize: 10 }}>
-            {hasAnswer ? t.inputUpdated : t.autoInputHint}
+          <span style={{ color: sentMsg ? 'var(--ok)' : (hasAnswer ? 'var(--cyan)' : 'var(--fg-mute)'), fontSize: 10 }}>
+            {sentMsg || (hasAnswer ? t.inputUpdated : t.autoInputHint)}
           </span>
           <span style={{ flex: 1 }} />
           {onSubmitPending ? (
@@ -853,24 +897,29 @@ const SsotQaBoard = ({
               type="button"
               className="mini-btn"
               disabled={!hasAnswer}
-              title={hasAnswer ? '' : t.sendNeedAnswer}
+              title={!hasAnswer ? t.sendNeedAnswer : (resolved ? t.reAnswerHint : '')}
               onClick={(ev) => {
                 ev.stopPropagation();
                 if (!hasAnswer) return;
+                // Immediate in-board confirmation BEFORE the parent flips to the
+                // chat tab, so the click is never perceived as a no-op. Surface a
+                // retry hint when the backend socket is not open.
+                flashCardSent(cardKey, isBackendOpen() ? t.sent : t.notConnectedRetry);
                 onSubmitPending(
                   [{ item, draft }],
                   buildPendingInputText(item, draft),
                 );
               }}
               style={{
-                background: hasAnswer ? 'var(--cyan)' : undefined,
-                color: hasAnswer ? 'var(--bg-0)' : undefined,
+                background: hasAnswer ? sendActiveBg : undefined,
+                color: hasAnswer ? sendActiveColor : undefined,
+                border: hasAnswer ? sendActiveBorder : undefined,
                 fontWeight: hasAnswer ? 600 : undefined,
                 opacity: hasAnswer ? 1 : 0.45,
                 cursor: hasAnswer ? 'pointer' : 'not-allowed',
               }}
             >
-              {t.send}
+              {sendLabel}
             </button>
           ) : null}
         </div>
@@ -949,7 +998,7 @@ const SsotQaBoard = ({
             {item.subtitle}
           </div>
         ) : null}
-        {isOpen ? renderPendingAnswerBox(item) : null}
+        {isOpen ? renderPendingAnswerBox(item, isApproved) : null}
         <div style={{ color: item.answer ? 'var(--fg)' : 'var(--fg-mute)', fontSize: 12, marginTop: 7, lineHeight: 1.45 }}>
           {item.answer || t.noAnswer}
         </div>
