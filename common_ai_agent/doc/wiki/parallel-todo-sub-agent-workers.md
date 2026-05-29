@@ -103,6 +103,28 @@ Worker artefacts land under `<project_root>/.workers/ptd_<id>/`:
 - `manifest.json` — chosen models, chunk sizes, picked reason
 - `<idx>/result.json` — per-worker status, todos_done, raw model output
 
+## Single async worker (`background_task` delegate)
+
+`parallel_todo_dispatch` is the *batch* path. To fan out individual
+http-workers by hand, `background_task` now honours `foreground`:
+
+```python
+# returns a task_id immediately and runs in core/background.py's pool
+background_task(delegate="http-worker", workflow="rtl-gen",
+                prompt="...", foreground="false")
+background_output(task_id="bg_xxxxxxxx")   # collect when ready
+```
+
+Issue several such calls to run http-workers concurrently, then poll
+`background_output`. Previously the `delegate` branch ignored
+`foreground` and always ran synchronously, so repeated calls
+serialised — the only parallel path was `parallel_todo_dispatch`. The
+async lane is `BackgroundManager.launch_callable(fn, ...)`, which
+copies the submitting frame's contextvars into the worker thread so the
+delegate keeps the active model/profile (a plain `ThreadPoolExecutor`
+does not propagate contextvars). Default `foreground="true"` is still
+synchronous, and `delegate=""` (in-process sub-agent) is unchanged.
+
 ## Verification recipe
 
 1. **Unit (no network)** — monkeypatch `DelegateRunner.run` to return

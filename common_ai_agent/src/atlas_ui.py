@@ -191,6 +191,61 @@ def _history_message_preview(message: dict[str, Any], *, limit: int = 240) -> st
     return f"{role}: {text or '(empty)'}"
 
 
+def _prompt_ack_frames(
+    *,
+    msg_id: str,
+    text_preview: str,
+    session_id: str,
+    ok: bool,
+    queued: bool = False,
+    handled: str = "",
+    duplicate: bool = False,
+    error: str = "",
+) -> list[dict[str, Any]]:
+    """Build the ordered WS ack frames for a prompt acceptance outcome.
+
+    AC-2 contract (see tests/test_atlas_worker_warmup_input.py):
+
+    - ``agent_received`` is the TRANSPORT ack consumed by backend.js to disarm
+      its retransmit timer. It must be emitted ONLY when the prompt is
+      genuinely accepted by a live worker (``ok`` is True) and is NOT a
+      duplicate. Emitting it up-front, before delivery is known, lies about
+      delivery and defeats the only auto-retry — the original silent-loss bug.
+    - ``agent_accepted`` is the DELIVERY ack and is ALWAYS emitted, carrying
+      ``ok``/``queued``/``duplicate``/``handled``/``error`` so the client can
+      decide whether to hold the input for a manual resend.
+
+    When ``ok`` is False (the worker dropped the prompt) NO ``agent_received``
+    is produced, so backend.js's pending-ack timer fires and retransmits.
+    A duplicate (already-seen msg_id) is acked ``ok:true,duplicate`` but does
+    NOT re-emit ``agent_received`` (the first delivery already disarmed the
+    retry; msg_id dedup keeps the worker from double-running).
+    """
+    frames: list[dict[str, Any]] = []
+    if ok and not duplicate:
+        frames.append({
+            "type": "agent_received",
+            "msg_id": msg_id,
+            "text_preview": text_preview,
+            "session_id": session_id,
+        })
+    accepted: dict[str, Any] = {
+        "type": "agent_accepted",
+        "msg_id": msg_id,
+        "text_preview": text_preview,
+        "session_id": session_id,
+        "ok": bool(ok),
+        "queued": bool(queued),
+        "duplicate": bool(duplicate),
+    }
+    if handled:
+        accepted["handled"] = handled
+    if error:
+        accepted["error"] = error
+    frames.append(accepted)
+    return frames
+
+
 def _parse_compact_history_signal(signal: str) -> tuple[int, bool, str]:
     """Parse COMPACT_HISTORY signal options from the slash-command registry."""
 
@@ -9985,20 +10040,24 @@ def create_app():
                         duplicate: bool = False,
                         error: str = "",
                     ) -> None:
-                        payload = {
-                            "type": "agent_accepted",
-                            "msg_id": _msg_id,
-                            "text_preview": _txt_preview,
-                            "session_id": session.session_id,
-                            "ok": bool(ok),
-                            "queued": bool(queued),
-                            "duplicate": bool(duplicate),
-                        }
-                        if handled:
-                            payload["handled"] = handled
-                        if error:
-                            payload["error"] = error
-                        await websocket.send_json(payload)
+                        # AC-2: emit agent_received (transport ack) ONLY on a
+                        # genuine accept (ok and not duplicate), immediately
+                        # before agent_accepted (delivery ack). A dropped
+                        # prompt (ok:false) sends NO agent_received, so the
+                        # frontend transport-retry timer fires and the prompt
+                        # auto-lands once the worker is warm. _prompt_ack_frames
+                        # encodes this ordering/conditionality contract.
+                        for frame in _prompt_ack_frames(
+                            msg_id=_msg_id,
+                            text_preview=_txt_preview,
+                            session_id=session.session_id,
+                            ok=ok,
+                            queued=queued,
+                            handled=handled,
+                            duplicate=duplicate,
+                            error=error,
+                        ):
+                            await websocket.send_json(frame)
 
                     async def _accept_handled(kind: str) -> None:
                         if _msg_id:
@@ -10024,17 +10083,15 @@ def create_app():
                             if not _is_websocket_disconnect(exc):
                                 session.emit("error", message=f"acceptance ack failed: {exc}")
 
-                    try:
-                        await websocket.send_json({
-                            "type": "agent_received",
-                            "msg_id": _msg_id,
-                            "text_preview": _txt_preview,
-                            "session_id": session.session_id,
-                        })
-                    except Exception as exc:
-                        if not _is_websocket_disconnect(exc):
-                            session.emit("error", message=f"ack failed: {exc}")
-                        continue
+                    # AC-2: the up-front, UNCONDITIONAL agent_received that
+                    # used to be sent here lied about delivery and disarmed the
+                    # frontend transport-retry before a live worker had accepted
+                    # the prompt — the root cause of warmup/crash silent loss.
+                    # agent_received is now emitted by _send_prompt_acceptance
+                    # (via _prompt_ack_frames) ONLY on a real accept. The
+                    # duplicate guard below still short-circuits a re-sent
+                    # msg_id, and msg_id dedup keeps a raced retransmit from
+                    # double-running the worker.
                     if _msg_id and session.has_msg_id(_msg_id):
                         try:
                             await _send_prompt_acceptance(

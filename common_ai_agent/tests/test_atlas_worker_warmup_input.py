@@ -34,6 +34,8 @@ if PROJECT_ROOT not in sys.path:
 from core.atlas_multiuser import _MultiUserBridge
 from core.session_process_manager import SessionProcessManager
 
+import src.atlas_ui as atlas_ui
+
 
 def _drain(session):
     events = []
@@ -250,3 +252,119 @@ def test_live_worker_prompt_path_is_unchanged_no_extra_respawn():
     assert delivered is True
     assert fake.spawned == ["admin/spi_core/default"]
     assert fake.sent == [("admin/spi_core/default", "prompt", {"text": "go"})]
+
+
+# ---------------------------------------------------------------------------
+# AC-2 Approach A — ws_agent ack contract (atlas_ui.py)
+#
+# Root cause of the silent loss (per the AC-2 design) is the UNCONDITIONAL
+# `agent_received` ack sent at atlas_ui.py:10027-10037 BEFORE delivery is
+# known. backend.js keys its 3s/MAX_RETRIES retransmit on `agent_received`
+# alone, so an up-front `agent_received` lies about delivery and disarms the
+# only auto-retry — a dropped warmup/crash prompt is then lost.
+#
+# The fix moves `agent_received` so it is emitted ONLY on a real accept
+# (alongside agent_accepted{ok:true}); a dropped prompt emits NO
+# `agent_received` and only agent_accepted{ok:false}. The testable seam is a
+# pure module-level helper `_prompt_ack_frames(...)` that encodes which WS
+# frames are emitted for a given acceptance outcome, so the ordering/
+# conditionality contract is verifiable without standing up the whole
+# websocket closure.
+# ---------------------------------------------------------------------------
+
+
+def _frames(ok, **kwargs):
+    return atlas_ui._prompt_ack_frames(
+        msg_id="m-1",
+        text_preview="hello",
+        session_id="admin/spi_core/default",
+        ok=ok,
+        **kwargs,
+    )
+
+
+def test_ws_agent_does_not_send_agent_received_when_prompt_dropped():
+    """When the prompt is NOT accepted by a live worker (delivered=False),
+    NO `agent_received` frame may be emitted (so the transport-retry layer
+    is NOT disarmed) and an `agent_accepted{ok:false}` IS emitted with the
+    undelivered error — proving the silent-ack lie is gone."""
+    frames = _frames(
+        ok=False,
+        queued=False,
+        error="input was not delivered to the agent worker",
+    )
+    types = [f.get("type") for f in frames]
+
+    assert "agent_received" not in types, (
+        "a dropped prompt must NOT emit agent_received (it would disarm the "
+        "frontend transport retry and silently lose the prompt)"
+    )
+    accepted = [f for f in frames if f.get("type") == "agent_accepted"]
+    assert len(accepted) == 1
+    assert accepted[0]["ok"] is False
+    assert "input was not delivered" in accepted[0].get("error", "")
+    assert accepted[0]["msg_id"] == "m-1"
+
+
+def test_ws_agent_sends_agent_received_only_after_accept():
+    """When the prompt IS genuinely accepted (delivered=True), exactly one
+    `agent_received{msg_id}` AND an `agent_accepted{ok:true,msg_id}` are
+    emitted (positive-path contract preserved)."""
+    frames = _frames(ok=True, queued=True)
+    types = [f.get("type") for f in frames]
+
+    received = [f for f in frames if f.get("type") == "agent_received"]
+    accepted = [f for f in frames if f.get("type") == "agent_accepted"]
+
+    assert len(received) == 1, "accepted prompt must emit exactly one agent_received"
+    assert received[0]["msg_id"] == "m-1"
+    assert received[0]["session_id"] == "admin/spi_core/default"
+
+    assert len(accepted) == 1
+    assert accepted[0]["ok"] is True
+    assert accepted[0]["msg_id"] == "m-1"
+
+    # agent_received (transport ack) must precede agent_accepted (delivery
+    # ack) so the client disarms transport retry before evaluating delivery.
+    assert types.index("agent_received") < types.index("agent_accepted")
+
+
+def test_ws_agent_handled_fastpath_emits_received_and_accepted():
+    """Slash/bang fast-paths are real accepts (`_accept_handled`): they must
+    also emit agent_received + agent_accepted{ok:true,handled=...}."""
+    frames = atlas_ui._prompt_ack_frames(
+        msg_id="m-2",
+        text_preview="/plan",
+        session_id="admin/spi_core/default",
+        ok=True,
+        handled="slash",
+    )
+    types = [f.get("type") for f in frames]
+    assert types.count("agent_received") == 1
+    accepted = [f for f in frames if f.get("type") == "agent_accepted"]
+    assert len(accepted) == 1
+    assert accepted[0]["ok"] is True
+    assert accepted[0].get("handled") == "slash"
+    assert accepted[0]["msg_id"] == "m-2"
+
+
+def test_ws_agent_duplicate_does_not_re_emit_agent_received():
+    """A duplicate (already-seen msg_id) is acked ok:true,duplicate but must
+    NOT re-emit agent_received — the original delivery already disarmed the
+    transport retry, and dedup must keep the worker from double-running."""
+    frames = atlas_ui._prompt_ack_frames(
+        msg_id="m-3",
+        text_preview="hello",
+        session_id="admin/spi_core/default",
+        ok=True,
+        duplicate=True,
+        handled="duplicate",
+    )
+    types = [f.get("type") for f in frames]
+    assert "agent_received" not in types, (
+        "a duplicate must not re-emit agent_received"
+    )
+    accepted = [f for f in frames if f.get("type") == "agent_accepted"]
+    assert len(accepted) == 1
+    assert accepted[0]["duplicate"] is True
+    assert accepted[0]["ok"] is True

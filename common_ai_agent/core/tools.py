@@ -4715,7 +4715,10 @@ def background_task(agent="explore", prompt="", context="", foreground="true",
                "review" (read-only verification), or a saved custom agent name.
         prompt: Clear description of what the agent should do
         context: Optional context from current conversation to pass to the agent
-        foreground: "true" (default) for synchronous execution, "false" for background
+        foreground: "true" (default) for synchronous execution, "false" for background.
+                    Honoured for `delegate` too — foreground="false" dispatches the
+                    delegate/http-worker asynchronously (returns a task_id) so repeated
+                    calls fan workers out in parallel.
         delegate: Delegate backend — "" (default in-process sub-agent),
                   "http-worker" to dispatch to a separate full-main-loop
                   worker process (configured via WORKER_URL_<workflow> /
@@ -4800,17 +4803,49 @@ def background_task(agent="explore", prompt="", context="", foreground="true",
                 if delegate not in runner.list_backends():
                     return (f"Error: Invalid delegate '{delegate}'. "
                             f"Available: {', '.join(runner.list_backends())}")
-                out = runner.run(
-                    backend=delegate,
-                    task=prompt,
-                    context=context,
-                    workflow_name=workflow,
-                    model_override=resolved_model or None,
-                    system_prompt=resolved_system_prompt,
-                    allowed_tools=resolved["allowed_tools_list"],
-                    reasoning_effort=resolved_effort,
-                    custom_agent_name=display_agent if resolved["is_custom"] else "",
-                )
+                def _run_delegate():
+                    return runner.run(
+                        backend=delegate,
+                        task=prompt,
+                        context=context,
+                        workflow_name=workflow,
+                        model_override=resolved_model or None,
+                        system_prompt=resolved_system_prompt,
+                        allowed_tools=resolved["allowed_tools_list"],
+                        reasoning_effort=resolved_effort,
+                        custom_agent_name=display_agent if resolved["is_custom"] else "",
+                    )
+
+                # Background: dispatch async so repeated background_task(delegate=...)
+                # calls fan workers out in parallel instead of blocking serially.
+                # (Previously this branch always ran synchronously and ignored
+                # `foreground`, so http-workers could never run in parallel.)
+                if not is_foreground:
+                    from core.background import get_background_manager
+
+                    def _run_delegate_formatted():
+                        out = _run_delegate()
+                        return (
+                            f"=== Delegate Result: {delegate} (workflow={workflow or '-'}, agent={display_agent}) ===\n"
+                            f"{out}\n"
+                            f"=== End ==="
+                        )
+
+                    task_id = get_background_manager().launch_callable(
+                        _run_delegate_formatted,
+                        label=f"{delegate}/{workflow or display_agent or '?'}",
+                        prompt=prompt,
+                    )
+                    return (
+                        f"Background delegate launched: {task_id}\n"
+                        f"Delegate: {delegate} (workflow={workflow or '-'}, agent={display_agent})\n"
+                        f"Prompt: {prompt[:100]}...\n\n"
+                        f"Use background_output(task_id=\"{task_id}\") to collect the result. "
+                        f"Issue more background_task(delegate=..., foreground=\"false\") calls to run workers in parallel."
+                    )
+
+                # Foreground (default): synchronous — unchanged behaviour.
+                out = _run_delegate()
                 from lib.display import Color
                 print(f"\n  {Color.CYAN}◀ {delegate}/{workflow or display_agent or '?'} → primary{Color.RESET}")
                 return (

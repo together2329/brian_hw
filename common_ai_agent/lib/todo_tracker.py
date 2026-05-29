@@ -795,12 +795,11 @@ class TodoTracker:
             on_reject = getattr(todo, "on_reject", 0)
             _MAX_RETRIES = 3
             if on_reject and todo.rejection_count >= _MAX_RETRIES:
-                # Stagnation guard: stop infinite on_reject loop
+                # Stagnation warning: preserve explicit rejection jump target.
                 todo.rejection_reason = (
                     todo.rejection_reason
-                    + f"\n[stagnation] Max retries ({_MAX_RETRIES}) reached — on_reject disabled."
+                    + f"\n[stagnation] Max retries ({_MAX_RETRIES}) reached — continuing jump to configured on_reject target."
                 )
-                on_reject = 0
             if on_reject and 1 <= on_reject <= len(self.todos) and on_reject - 1 != index:
                 jump_idx = on_reject - 1
                 # Cascade reset: jump_idx ~ index-1 → pending

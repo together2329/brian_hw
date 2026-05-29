@@ -426,7 +426,7 @@ class TestCascadeReset:
         tracker.auto_execute_command(0)
         assert tracker.todos[0].rejection_reason == ""
 
-    def test_stagnation_disables_on_reject_after_max_retries(self, tmp_path):
+    def test_stagnation_keeps_on_reject_jump_after_max_retries(self, tmp_path):
         tracker = make_tracker([
             {"content": "implement", "activeForm": "implementing"},
             {"content": "lint",      "activeForm": "linting",
@@ -437,10 +437,11 @@ class TestCascadeReset:
         tracker.todos[1].rejection_count = 2
         tracker.mark_in_progress(1)
         tracker.auto_execute_command(1)
-        # After 3rd failure, on_reject should be disabled (stagnation)
+        # After 3rd failure, stagnation is noted but jump target is preserved
         assert "stagnation" in tracker.todos[1].rejection_reason
-        # current_index should stay on task 2 (index 1), not jump to task 1
-        assert tracker.current_index == 1
+        assert "continuing jump to configured on_reject target" in tracker.todos[1].rejection_reason
+        # current_index should jump to task 1 (index 0)
+        assert tracker.current_index == 0
 
 
 # ── Step 7: todo_add / todo_update command fields ─────────────────────────────

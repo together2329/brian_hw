@@ -12,6 +12,7 @@ import sys
 import time
 import uuid
 import threading
+import contextvars
 from contextlib import nullcontext
 from concurrent.futures import ThreadPoolExecutor, Future
 from dataclasses import dataclass, field
@@ -115,6 +116,43 @@ class BackgroundManager:
 
         with self._lock:
             self._tasks[task_id] = task
+
+        return task_id
+
+    def launch_callable(
+        self,
+        fn: Callable[[], str],
+        *,
+        label: str = "task",
+        prompt: str = "",
+    ) -> str:
+        """Run an arbitrary thunk in the background pool, storing its
+        returned string as the task result.
+
+        Used by ``background_task(delegate=..., foreground="false")`` so a
+        delegate / http-worker dispatch is truly asynchronous: the call
+        returns a task_id immediately and repeated calls fan workers out in
+        parallel. The in-process ``launch()`` path only knows how to run
+        BASE_AGENTS via ``run_agent_session``, not delegates — hence this
+        generic lane.
+
+        The submitting frame's contextvars (e.g. ``config`` thread-runtime
+        model/profile overrides) are copied into the worker thread so the
+        delegate sees the same active model it would have run synchronously
+        (``ThreadPoolExecutor`` does NOT propagate contextvars on its own).
+        """
+        task_id = f"bg_{uuid.uuid4().hex[:8]}"
+        task = BackgroundTask(id=task_id, agent=label, prompt=prompt or label)
+
+        # Register BEFORE submitting: an instant thunk can otherwise run in the
+        # worker and call self._tasks.get(task_id) before the insert lands,
+        # leaving the task stuck "running" forever.
+        with self._lock:
+            self._tasks[task_id] = task
+
+        ctx = contextvars.copy_context()
+        future = self._executor.submit(ctx.run, self._run_callable, task_id, fn)
+        task._future = future
 
         return task_id
 
@@ -260,6 +298,28 @@ class BackgroundManager:
                     task.execution_time_ms = int(
                         (time.time() - task.created_at) * 1000
                     )
+
+    def _run_callable(self, task_id: str, fn: Callable[[], str]):
+        """Thread body for launch_callable — run fn, store its string result."""
+        started = time.time()
+        try:
+            output = fn()
+            with self._lock:
+                task = self._tasks.get(task_id)
+                if task:
+                    task.status = "completed"
+                    task.result = output if isinstance(output, str) else str(output)
+                    task.completed_at = time.time()
+                    task.execution_time_ms = int((time.time() - started) * 1000)
+        except Exception as e:
+            import traceback
+            with self._lock:
+                task = self._tasks.get(task_id)
+                if task:
+                    task.status = "error"
+                    task.error = f"{e}\n{traceback.format_exc()}"
+                    task.completed_at = time.time()
+                    task.execution_time_ms = int((time.time() - started) * 1000)
 
     def shutdown(self):
         """Executor 종료"""
