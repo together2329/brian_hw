@@ -1,0 +1,120 @@
+/* workspace-ssotx-labels.tsx — strangler-fig sibling of workspace-ssot-extract.tsx.
+ *
+ * Owns the pure SSOT constant tables that have no dependency on the parser /
+ * extractor function family:
+ *   - SSOT_SECTION_LABELS  (section-key → human label; also window-published)
+ *   - SSOT_REVIEW_FOCUS    (section-key → reviewer checklist bullets)
+ *   - SSOT_DIGEST_VIEWS    (digest-view descriptors consumed by panels)
+ *
+ * NO React components — pure data. INERT mirror: legacy workspace.jsx still
+ * serves the live app. These symbols are re-exported from
+ * workspace-ssot-extract.tsx so the public contract is unchanged, and the
+ * window.SSOT_SECTION_LABELS bridge still executes from this module.
+ */
+
+export const SSOT_SECTION_LABELS: Record<string, string> = {
+  schema_version: 'Schema Version',
+  metadata: 'Metadata',
+  top_module: 'Top Module',
+  sub_modules: 'Submodules',
+  rtl_contract: 'RTL Contract',
+  parameters: 'Parameters',
+  io_list: 'I/O List',
+  features: 'Features',
+  dataflow: 'Dataflow',
+  function_model: 'Function Model',
+  cycle_model: 'Cycle Model',
+  clock_reset_domains: 'Clock / Reset Domains',
+  cdc_requirements: 'CDC Requirements',
+  rdc_requirements: 'RDC Requirements',
+  registers: 'Registers',
+  memory: 'Memory',
+  interrupts: 'Interrupts',
+  fsm: 'FSM',
+  timing: 'Timing',
+  power: 'Power',
+  security: 'Security',
+  error_handling: 'Error Handling',
+  debug_observability: 'Debug / Observability',
+  errors: 'Errors',
+  debug: 'Debug',
+  integration: 'Integration',
+  dft: 'DFT',
+  synthesis: 'Synthesis',
+  pnr: 'PnR',
+  coding_rules: 'Coding Rules',
+  reuse_modules: 'Reuse Modules',
+  custom: 'Custom Requirements',
+  dir_structure: 'Directory Structure',
+  filelist: 'File List',
+  test_requirements: 'Test Requirements',
+  dv_plan: 'DV Plan',
+  quality_gates: 'Quality Gates',
+  traceability: 'Traceability',
+  workflow_todos: 'Workflow Todos',
+  generation_flow: 'Generation Flow',
+  decomposition: 'Decomposition',
+};
+(window as any).SSOT_SECTION_LABELS = SSOT_SECTION_LABELS;  // Phase 13a: consumed by ssot-doc.jsx
+
+export const SSOT_REVIEW_FOCUS: Record<string, string[]> = {
+  metadata: ['IP name, owner, source, and version are reviewable.', 'Assumptions and scope boundaries are explicit.'],
+  top_module: ['Module name, responsibility, clocks, and resets match the intended IP.', 'No implementation detail hides behind placeholder text.'],
+  sub_modules: ['Hierarchy is complete enough for RTL partitioning.', 'Module ownership and interfaces are not ambiguous.'],
+  parameters: ['Defaults, ranges, legal values, and units are specified.', 'Parameter interactions are called out where they affect behavior.'],
+  io_list: ['Every port has direction, width, clock/reset domain, and semantic description.', 'Handshake and sideband conventions are visible.'],
+  features: ['Required and optional features are separated.', 'Feature dependencies and disabled states are stated.'],
+  dataflow: ['Ingress, transformation, storage, and egress path are understandable.', 'Backpressure, buffering, and ordering rules are explicit.'],
+  function_model: ['Functional behavior is stated as reviewable rules.', 'Corner cases and invalid inputs have expected outcomes.'],
+  cycle_model: ['Latency, throughput, ordering, and cycle-level promises are concrete.', 'Reset and stall behavior are included.'],
+  clock_reset_domains: ['Clock/reset ownership, polarity, and synchronization boundaries are clear.', 'Reset release assumptions are reviewable.'],
+  cdc_requirements: ['All clock crossings name source/destination domains.', 'Synchronizer type and data-valid guarantees are explicit.'],
+  rdc_requirements: ['Reset crossings and release ordering are stated.', 'Required synchronizers or constraints are named.'],
+  registers: ['Address map, access policy, reset values, and side effects are complete.', 'Reserved bits and write-one semantics are visible.'],
+  memory: ['Depth, width, ports, arbitration, and initialization are specified.', 'ECC/parity and read-under-write behavior are stated if relevant.'],
+  interrupts: ['Sources, masks, clears, aggregation, and pulse/level behavior are reviewable.', 'Software-visible status is aligned with registers.'],
+  fsm: ['States, transitions, guards, and error paths are complete.', 'Reset state and illegal-state recovery are specified.'],
+  timing: ['Latency budgets, max frequencies, and timing exceptions are justified.', 'Handshake timing assumptions are not implicit.'],
+  power: ['Clock gating, retention, isolation, and low-power assumptions are visible.', 'Power-state behavior is consistent with reset/CDC sections.'],
+  security: ['Threat assumptions, privilege boundaries, and lock/debug behavior are visible.', 'Unsupported security scope is explicit.'],
+  rtl_contract: ['Transaction sampling, input maps, output maps, and state updates are machine-readable.', 'Function-model outputs are traceable to RTL-visible ports or state.'],
+  error_handling: ['Detection, reporting, recovery, and fatal/non-fatal split are clear.', 'Error injection or observability hooks are named when needed.'],
+  debug_observability: ['Counters, traces, debug registers, and visibility points are reviewable.', 'Debug behavior does not conflict with security/power constraints.'],
+  errors: ['Detection, reporting, recovery, and fatal/non-fatal split are clear.', 'Error injection or observability hooks are named when needed.'],
+  debug: ['Counters, traces, debug registers, and visibility points are reviewable.', 'Debug behavior does not conflict with security/power constraints.'],
+  integration: ['SoC integration assumptions, dependencies, and external contracts are stated.', 'Tie-offs, strap values, and constraints are visible.'],
+  dft: ['Scan, MBIST/LBIST, test modes, and clock/reset handling are covered.', 'DFT exceptions are justified.'],
+  synthesis: ['Target library, constraints, generated blocks, and synthesis assumptions are visible.', 'Non-synthesizable modeling is excluded from RTL scope.'],
+  pnr: ['Floorplan, placement, CTS, routing, and required reports are explicit.', 'Physical constraints align with synthesis and timing assumptions.'],
+  coding_rules: ['Style and lint contracts are specific enough for generated RTL.', 'Naming, reset, and clocking rules match project conventions.'],
+  reuse_modules: ['Reused IP versions, configuration, and integration contracts are explicit.', 'Ownership and verification reuse assumptions are stated.'],
+  dir_structure: ['Generated file layout is predictable.', 'Human-owned and generated files are separated.'],
+  filelist: ['Required source, include, constraint, and sim files are enumerated.', 'Generation outputs line up with downstream tools.'],
+  test_requirements: ['Test intent, coverage targets, sequences, and scoreboards trace to requirements.', 'Corner cases and negative tests are visible.'],
+  dv_plan: ['Test intent, coverage targets, sequences, and scoreboards trace to requirements.', 'Corner cases and negative tests are visible.'],
+  quality_gates: ['Lint, sim, formal, CDC/RDC, and signoff gates have pass criteria.', 'Known waivers or limits are tracked.'],
+  traceability: ['Requirements, SSOT sections, RTL, tests, and gates are connected.', 'Untraced or stale entries are easy to spot.'],
+  workflow_todos: ['Human decisions and agent follow-ups are separated.', 'Pending items are actionable and scoped.'],
+  generation_flow: ['Generated artifact order and handoff points are clear.', 'Review gates stop unsafe downstream generation.'],
+  decomposition: ['Blocks, ownership, dependencies, and generation order are clear.', 'Interfaces between generated units are reviewable.'],
+};
+
+export const SSOT_DIGEST_VIEWS: any[] = [
+  { id: 'overview', label: 'Brief', keys: ['top_module', 'features', 'sub_modules', 'io_list', 'registers', 'dataflow'] },
+  { id: 'scenarios', label: 'Scenarios', keys: ['cycle_model', 'function_model', 'features', 'fsm', 'registers'] },
+  { id: 'architecture', label: 'Architecture', keys: ['sub_modules', 'decomposition'] },
+  { id: 'interfaces', label: 'Interfaces', keys: ['io_list', 'decomposition'] },
+  { id: 'feature_map', label: 'Feature Map', keys: ['features', 'sub_modules', 'decomposition', 'function_model', 'cycle_model', 'registers', 'dataflow'] },
+  { id: 'function_model', label: 'Function Model', keys: ['function_model'] },
+  { id: 'fsm', label: 'FSM', keys: ['fsm'] },
+  { id: 'cycle_model', label: 'Cycle Model', keys: ['cycle_model', 'timing'] },
+  { id: 'rtl_contract', label: 'RTL Contract', keys: ['rtl_contract', 'error_handling', 'debug_observability', 'filelist', 'coding_rules'] },
+  { id: 'registers', label: 'Register Map', keys: ['registers'] },
+  { id: 'dataflow', label: 'Dataflow', keys: ['dataflow'] },
+  { id: 'clocking', label: 'CDC / Reset', keys: ['clock_reset_domains', 'cdc_requirements', 'rdc_requirements'] },
+  { id: 'verification', label: 'Verification', keys: ['test_requirements', 'quality_gates', 'traceability', 'workflow_todos'] },
+  { id: 'implementation', label: 'Implementation', keys: ['integration', 'dft', 'synthesis', 'pnr', 'filelist', 'coding_rules'] },
+  { id: 'review_gaps', label: 'Review Gaps', keys: ['workflow_todos', 'quality_gates', 'traceability', 'top_module', 'features', 'sub_modules', 'io_list', 'registers', 'dataflow', 'function_model', 'cycle_model'] },
+  { id: 'gates', label: 'Gates', keys: [] },
+  { id: 'raw_yaml', label: 'Raw YAML', keys: [] },
+];
