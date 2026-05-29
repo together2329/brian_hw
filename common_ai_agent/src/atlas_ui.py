@@ -1531,7 +1531,11 @@ def create_app():
         dev-time Babel path but removes the fragile second fetch.
         Cached by frontend mtime — see _inline_html_cached().
         """
-        mode = os.environ.get("ATLAS_FRONTEND_MODE", "legacy").strip().lower()
+        # Cutover 2026-05-29: default flipped legacy -> vite. The bundled Vite
+        # build (no in-browser Babel) is now the default for `/`; set
+        # ATLAS_FRONTEND_MODE=legacy to opt back into the babel+.jsx path.
+        # Safety net retained: if dist is missing, fall through to legacy.
+        mode = os.environ.get("ATLAS_FRONTEND_MODE", "vite").strip().lower()
         if mode == "vite":
             vite_html = _vite_index_html()
             if vite_html is not None:
