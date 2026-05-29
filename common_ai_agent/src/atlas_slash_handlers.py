@@ -1101,7 +1101,7 @@ def make_slash_handlers(
             engine_alias = surface.alias
             _append_session_message(session, "user", text)
             _append_active_history("user", text)
-            bridge.emit("agent_state", running=True)
+            emit("agent_state", running=True)
             _append_session_message(session, "assistant", msg)
             _append_workflow_history(workflow, "assistant", msg)
             _append_active_history("assistant", "```\n" + msg + "\n```")
@@ -1116,7 +1116,7 @@ def make_slash_handlers(
             for prompt in surface.queue_prompts:
                 _queue_prompt_for_session(client_session, prompt)
             if surface.queue_prompts:
-                bridge.emit("agent_state", running=True)
+                emit("agent_state", running=True)
                 return True
             if surface.sim_human_gate_doc is not None:
                 opened_human_gate = _start_sim_human_gate_qna(
