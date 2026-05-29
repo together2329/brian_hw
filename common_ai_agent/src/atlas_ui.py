@@ -1531,11 +1531,13 @@ def create_app():
         dev-time Babel path but removes the fragile second fetch.
         Cached by frontend mtime — see _inline_html_cached().
         """
-        # Cutover 2026-05-29: default flipped legacy -> vite. The bundled Vite
-        # build (no in-browser Babel) is now the default for `/`; set
-        # ATLAS_FRONTEND_MODE=legacy to opt back into the babel+.jsx path.
-        # Safety net retained: if dist is missing, fall through to legacy.
-        mode = os.environ.get("ATLAS_FRONTEND_MODE", "vite").strip().lower()
+        # 2026-05-29: default kept on LEGACY (.jsx). The vite cutover is built and
+        # render-verified, but a QA pass found the migrated .tsx workspace submitMsg
+        # is an incomplete port (missing the ~510-line slash-command + orchestrator/
+        # job-dispatch + ack-retry hub), so the .jsx remains the default-served,
+        # fully-working chat path. Opt into the vite bundle with ATLAS_FRONTEND_MODE=vite.
+        # Re-flip the default only after the .tsx submitMsg port lands + is test-covered.
+        mode = os.environ.get("ATLAS_FRONTEND_MODE", "legacy").strip().lower()
         if mode == "vite":
             vite_html = _vite_index_html()
             if vite_html is not None:
