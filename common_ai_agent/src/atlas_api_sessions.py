@@ -182,6 +182,28 @@ def register_sessions_routes(
             if isinstance(raw_preserve, bool)
             else str(raw_preserve or "").strip().lower() in ("1", "true", "yes", "on")
         )
+        # Phantom-IP guard. A stale session (URL param, localStorage, or DB)
+        # can restore an IP that no longer exists on disk — e.g. `uart` after
+        # it was renamed to `uart_v2`. Activating that phantom IP (a) 404s the
+        # file tree ("file tree error — not found"), AND (b) resurfaces the
+        # phantom IP's stale saved workflow, emitting a spurious
+        # "Switching workflow 'tb-gen' → 'fl-model-gen' (ip=uart)" that desyncs
+        # the UI (which shows `default`) from the backend. If the requested IP
+        # is neither "default" nor a real project-IP directory, fall back to
+        # default/default so the whole stale triple is dropped at the source.
+        if ip and ip != "default":
+            try:
+                if not (project_root() / ip).is_dir():
+                    print(
+                        f"[Session] activate: IP {ip!r} not found on disk under "
+                        f"{project_root()} — falling back to default/default "
+                        f"(was workflow={wf!r})",
+                        flush=True,
+                    )
+                    ip = "default"
+                    wf = "default"
+            except Exception:
+                pass
         # Sanitize — refuse exotic path chars to avoid traversal. Usernames
         # may be numeric account ids, so the first segment cannot require a
         # letter.
