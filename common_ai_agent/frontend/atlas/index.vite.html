@@ -43,6 +43,12 @@
     position: absolute;
     left: 0;
     top: 0;
+    /* GPU-promote the scaled subtree: transform: scale() (applied by scale() JS)
+       composites on its own layer instead of repainting the full 1920x1080+ tree
+       on every frame. Closes the WKWebView (Tauri) vs Blink (Chrome) jank gap on
+       the fixed-canvas fit. */
+    will-change: transform;
+    contain: layout paint;
   }
 </style>
 </head>

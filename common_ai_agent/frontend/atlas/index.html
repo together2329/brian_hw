@@ -43,6 +43,10 @@
     position: absolute;
     left: 0;
     top: 0;
+    /* GPU-promote the scaled subtree so transform: scale() composites on its own
+       layer instead of repainting the whole 1920x1080+ tree (WKWebView jank). */
+    will-change: transform;
+    contain: layout paint;
   }
 </style>
 </head>

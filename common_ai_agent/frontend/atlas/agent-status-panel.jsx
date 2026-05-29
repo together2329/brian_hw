@@ -84,7 +84,7 @@ const AgentStatusPanel = ({ intent, workflow, activeIp = '', agentAlive = false,
       || (_sessTail(prevSession) && _sessTail(prevSession) === _sessTail(effectiveSession));
 	    if (effectiveSession) merged.activeSession = effectiveSession;
 
-	    const counters = ['tokens', 'tokensIn', 'tokensCache', 'tokensOut', 'costUsd'];
+	    const counters = ['tokensIn', 'tokensCache', 'tokensOut', 'costUsd']; // 'tokens' = live context size, DROPS on compression → must not be Math.max-clamped
 	    const incomingCostIp = String(clean.costIp || globalCtx.costIp || '').trim();
 	    const prevCostIp = String(prevCtx.costIp || '').trim();
 	    const costIpChanged = !!(incomingCostIp && prevCostIp && incomingCostIp !== prevCostIp);
