@@ -1893,6 +1893,39 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
   const workflowReadySeqRef = React.useRef(0);
   const workflowReadyTimeoutRef = React.useRef(null);
   const workflowReadyClearRef = React.useRef(null);
+  // ── switch-gate (synchronous mirror of workflowReady) ──────────────
+  // workflowReady is React state: setWorkflowReady() only takes effect after
+  // React commits, leaving a one-frame window where submitMsg's closed-over
+  // workflowReady is still null and a prompt can be SENT into a session that is
+  // already switching away (the prompt is then wiped by backend.js liveConnect
+  // sessionChanged). This gate is a ref-held, SYNCHRONOUS source of truth set in
+  // the SAME tick as setWorkflowReady, so submitMsg can read "switching"
+  // immediately and HOLD instead of send. Mirror of the tested pure factory in
+  // session-machine.ts (workspace.jsx runs as a classic Babel <script> and
+  // cannot ESM-import it; the .ts module is the canonical, unit-tested spec).
+  const createSwitchGate = (initial) => {
+    let switching = !!(initial && initial.status === 'switching');
+    let target = switching ? initial.target : '';
+    let pending = switching && Array.isArray(initial.pending) ? [...initial.pending] : [];
+    return {
+      beginSwitch(nextTarget) { switching = true; target = nextTarget; },
+      markReady() { switching = false; target = ''; },
+      markFailed() { switching = false; target = ''; },
+      submit(msg) {
+        if (switching) { pending.push(msg); return { action: 'held', queued: pending.length }; }
+        return { action: 'send', msg };
+      },
+      drain() { const out = pending; pending = []; return out; },
+      route() {
+        return switching
+          ? { status: 'switching', target, pending: [...pending] }
+          : { status: 'ready' };
+      },
+      isSwitching() { return switching; },
+    };
+  };
+  const switchGateRef = React.useRef(null);
+  if (switchGateRef.current === null) switchGateRef.current = createSwitchGate();
 
   const clearWorkflowReadyTimers = React.useCallback(() => {
     if (workflowReadyTimeoutRef.current) {
@@ -1911,6 +1944,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     }
     workflowReadyClearRef.current = setTimeout(() => {
       setWorkflowReady(current => (current && current.seq === seq ? null : current));
+      // Switch settled (overlay dismissed): reopen the synchronous gate so input
+      // flows again. Held msgs are preserved for the existing replay to flush.
+      if (switchGateRef.current) switchGateRef.current.markReady();
       workflowReadyClearRef.current = null;
     }, delay);
   }, []);
@@ -1938,12 +1974,22 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       workflowReadyTimeoutRef.current = null;
     }
     updateWorkflowReady(seq, { phase: 'error', message: message || 'Workflow activation failed' });
+    // Switch failed: reopen the gate immediately so input flows again. Held msgs
+    // are preserved (no data loss); dismissWorkflowReady() will also markReady().
+    if (switchGateRef.current) switchGateRef.current.markFailed();
     dismissWorkflowReady(seq, 1800);
   }, [dismissWorkflowReady, updateWorkflowReady]);
   const beginWorkflowReady = React.useCallback((target, session, ip = '') => {
     const seq = workflowReadySeqRef.current + 1;
     workflowReadySeqRef.current = seq;
     clearWorkflowReadyTimers();
+    // SYNCHRONOUS write that beats React's commit: from this instant submitMsg's
+    // gate read reports "switching" and HOLDS the prompt (closing the one-frame
+    // race where the stale-closure workflowReady===null let a send through).
+    // beginSwitch preserves any already-held pending across a re-switch.
+    if (switchGateRef.current) {
+      switchGateRef.current.beginSwitch(normalizeUiSession(session || '') || String(target || ''));
+    }
     setWorkflowReady({
       seq,
       target: target || defaultWorkflowForExecMode(),
@@ -3811,8 +3857,16 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       holdSubmittedInput(`Input not confirmed. ${reason || 'Backend did not acknowledge receipt'}; kept it in the input box.`);
     };
 
-    if (workflowReady) {
-      holdSubmittedInput(`Input held. Waiting for \`${workflowReady.target || workflow || 'workflow'}\` to be ready; it will send automatically if unchanged.`);
+    // Race fix: read the synchronous gate FIRST. workflowReady is React state and
+    // lags one commit behind beginWorkflowReady's setWorkflowReady(); the gate was
+    // set in the SAME tick, so it reports "switching" immediately even when the
+    // closed-over workflowReady is still the stale null. Either signal holds the
+    // input via the EXISTING held-input mechanism (heldSubmitRef), which the
+    // replay effect below flushes once the switch settles.
+    const switchingNow = !!(switchGateRef.current && switchGateRef.current.isSwitching());
+    if (workflowReady || switchingNow) {
+      const holdTarget = (workflowReady && workflowReady.target) || workflow || 'workflow';
+      holdSubmittedInput(`Input held. Waiting for \`${holdTarget}\` to be ready; it will send automatically if unchanged.`);
       return;
     }
 
