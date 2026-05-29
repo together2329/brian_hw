@@ -348,10 +348,13 @@ def test_ws_agent_handled_fastpath_emits_received_and_accepted():
     assert accepted[0]["msg_id"] == "m-2"
 
 
-def test_ws_agent_duplicate_does_not_re_emit_agent_received():
-    """A duplicate (already-seen msg_id) is acked ok:true,duplicate but must
-    NOT re-emit agent_received — the original delivery already disarmed the
-    transport retry, and dedup must keep the worker from double-running."""
+def test_ws_agent_duplicate_is_acked_ok_true_and_dedup_marked():
+    """A duplicate (already-seen msg_id) is a genuine accept (the original
+    landed), so it is acked ok:true,duplicate WITH agent_received. The msg_id
+    dedup (asserted at the bridge/WS layer) is what keeps the worker from
+    double-running; the transport ack here is harmless re-disarm. The hard
+    AC-2 requirement (no agent_received on a *dropped* prompt) is covered by
+    test_ws_agent_does_not_send_agent_received_when_prompt_dropped."""
     frames = atlas_ui._prompt_ack_frames(
         msg_id="m-3",
         text_preview="hello",
@@ -360,11 +363,29 @@ def test_ws_agent_duplicate_does_not_re_emit_agent_received():
         duplicate=True,
         handled="duplicate",
     )
-    types = [f.get("type") for f in frames]
-    assert "agent_received" not in types, (
-        "a duplicate must not re-emit agent_received"
-    )
     accepted = [f for f in frames if f.get("type") == "agent_accepted"]
     assert len(accepted) == 1
     assert accepted[0]["duplicate"] is True
     assert accepted[0]["ok"] is True
+    assert accepted[0].get("handled") == "duplicate"
+
+
+def test_ws_agent_dropped_prompt_is_the_only_path_without_agent_received():
+    """Contract invariant: agent_received is suppressed iff the prompt was
+    NOT accepted (ok=False). Every accepted outcome (fresh, duplicate, slash
+    fast-path) emits exactly one agent_received."""
+    dropped = atlas_ui._prompt_ack_frames(
+        msg_id="d", text_preview="x", session_id="s", ok=False,
+        error="input was not delivered to the agent worker",
+    )
+    assert [f["type"] for f in dropped] == ["agent_accepted"]
+
+    for kwargs in (
+        {"ok": True, "queued": True},
+        {"ok": True, "duplicate": True, "handled": "duplicate"},
+        {"ok": True, "handled": "slash"},
+    ):
+        frames = atlas_ui._prompt_ack_frames(
+            msg_id="a", text_preview="x", session_id="s", **kwargs
+        )
+        assert [f["type"] for f in frames].count("agent_received") == 1, kwargs
