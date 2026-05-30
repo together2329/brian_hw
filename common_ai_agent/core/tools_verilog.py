@@ -26,6 +26,57 @@ HAS_PYSLANG, _PYSLANG_UNAVAILABLE_REASON = can_compile_probe() if _ENABLE_PYSLAN
     "disabled by ENABLE_PYSLANG",
 )
 
+_IP_SUBDIRS = frozenset({
+    "rtl", "yaml", "tb", "tc", "sim", "sdc", "lint", "doc", "wiki",
+    "req", "list", "model", "syn", "sta", "pnr", "cov", "verify",
+    "todo", "sta-post",
+})
+
+
+def _resolve_sv_path(path: str) -> str:
+    """Resolve ATLAS IP-relative Verilog paths for standalone HDL tools."""
+    if not path:
+        return path
+    norm = os.path.expanduser(str(path).strip()).replace("\\", "/")
+    if os.path.isabs(norm) or re.match(r"^[A-Za-z]:/", norm) or norm.startswith("//"):
+        return norm
+    while norm.startswith("./"):
+        norm = norm[2:]
+    parts = [part for part in norm.split("/") if part and part != "."]
+    if not parts or any(part == ".." for part in parts):
+        return norm
+
+    project_root = (
+        os.environ.get("ATLAS_PROJECT_ROOT", "")
+        or os.environ.get("PROJECT_ROOT", "")
+    ).strip()
+    active_ip = (os.environ.get("ATLAS_ACTIVE_IP", "") or "").strip()
+    ip_root = (os.environ.get("ATLAS_IP_ROOT", "") or "").strip()
+    candidates = []
+    first = parts[0]
+
+    if active_ip and active_ip != "default":
+        if project_root:
+            if first == active_ip:
+                candidates.append(os.path.join(project_root, *parts))
+            elif first in _IP_SUBDIRS:
+                candidates.append(os.path.join(project_root, active_ip, *parts))
+        if ip_root and first in _IP_SUBDIRS:
+            candidates.append(os.path.join(ip_root, *parts))
+    if project_root:
+        candidates.append(os.path.join(project_root, norm))
+    candidates.append(norm)
+
+    seen = set()
+    for candidate in candidates:
+        resolved = os.path.abspath(os.path.expanduser(candidate))
+        if resolved in seen:
+            continue
+        seen.add(resolved)
+        if os.path.exists(resolved):
+            return resolved
+    return norm
+
 # --- Phase 1: Foundation Tools ---
 
 def analyze_verilog_module(path: str, deep: bool = False) -> Dict[str, Any]:
@@ -39,6 +90,7 @@ def analyze_verilog_module(path: str, deep: bool = False) -> Dict[str, Any]:
     Returns:
         Dictionary containing module info (name, ports, signals, etc.)
     """
+    path = _resolve_sv_path(path)
     if not os.path.exists(path):
         return {"error": f"File not found: {path}"}
         
@@ -977,6 +1029,7 @@ def sv_get_ports(path: str) -> List[Dict[str, Any]]:
         List of dicts: [{"name": "clk", "direction": "input", "type": "logic", "width": 1}, ...]
         On error or pyslang unavailable, returns {"error": "..."} in a list.
     """
+    path = _resolve_sv_path(path)
     if not os.path.exists(path):
         return [{"error": f"File not found: {path}"}]
     if not HAS_PYSLANG:
@@ -1031,6 +1084,7 @@ def sv_get_hierarchy(path: str) -> Dict[str, Any]:
           "parameters": ["WIDTH=8"]
         }
     """
+    path = _resolve_sv_path(path)
     if not os.path.exists(path):
         return {"error": f"File not found: {path}"}
     if not HAS_PYSLANG:
@@ -1102,6 +1156,7 @@ def sv_compile(files: List[str]) -> str:
     if not HAS_PYSLANG:
         return f"pyslang unavailable: {_PYSLANG_UNAVAILABLE_REASON}"
 
+    files = [_resolve_sv_path(f) for f in files]
     missing = [f for f in files if not os.path.exists(f)]
     if missing:
         return f"Files not found: {', '.join(missing)}"

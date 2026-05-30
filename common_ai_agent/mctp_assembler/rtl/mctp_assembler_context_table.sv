@@ -192,7 +192,7 @@ module mctp_assembler_context_table #(
       seq_mismatch ||
       (!pkt_som && match_found && (
           ((ctx_len[match_slot] + pkt_payload_count) > max_message_bytes) ||
-          ((ctx_len[match_slot] + pkt_payload_count) > cfg_mtu_bytes) ||
+          (pkt_payload_count > cfg_mtu_bytes) ||
           ((ctx_start[match_slot] + ctx_len[match_slot] + pkt_payload_count) > sram_limit) ||
           desc_fifo_full))
   );
@@ -321,7 +321,7 @@ module mctp_assembler_context_table #(
           msg_type_q <= ctx_msg_type[match_slot];
           req_id_q <= ctx_req_id[match_slot];
           if (((ctx_len[match_slot] + pkt_payload_count) > max_message_bytes) ||
-              ((ctx_len[match_slot] + pkt_payload_count) > cfg_mtu_bytes) ||
+              (pkt_payload_count > cfg_mtu_bytes) ||
               ((ctx_start[match_slot] + ctx_len[match_slot] + pkt_payload_count) > sram_limit) ||
               desc_fifo_full) begin
             evt_assembly_drop <= 1'b1;

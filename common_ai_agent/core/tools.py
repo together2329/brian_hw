@@ -1100,7 +1100,14 @@ def _command_references_active_ip_path(command, active_ip):
     import re as _re
 
     ip_pat = _re.escape(str(active_ip).strip())
-    return bool(_re.search(rf'(?<![A-Za-z0-9_.-])(?:\./)?{ip_pat}/+', command_text))
+    if _re.search(rf'(?<![A-Za-z0-9_.-])(?:\./)?{ip_pat}/+', command_text):
+        return True
+    return bool(
+        _re.search(
+            rf'(?<![A-Za-z0-9_.-])cd\s+(?:--\s+)?(?:"(?:\./)?{ip_pat}"|\'(?:\./)?{ip_pat}\'|(?:\./)?{ip_pat})(?=$|[\s;&|])',
+            command_text,
+        )
+    )
 
 
 def run_command(command, timeout=60):

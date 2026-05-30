@@ -148,6 +148,7 @@ import { _statusGlyph } from './workspace-git-diff';
 
 // ── Lint / coverage / YAML fold helpers ───────────────────────────
 import {
+  _FOLD_KIND_COLOR,
   _buildFoldTree,
   _highlightYamlLine,
 } from './workspace-lint-coverage';
@@ -242,6 +243,7 @@ export {
   _maxNestingDepth,
   TodoGraph,
   _statusGlyph,
+  _FOLD_KIND_COLOR,
   _buildFoldTree,
   _highlightYamlLine,
 };
@@ -259,6 +261,7 @@ w.ssotIpFromSession = ssotIpFromSession; // consumed by ssot-doc.jsx
 w.WORKFLOW_REPORT_TABS = WORKFLOW_REPORT_TABS; // consumed by workflow-report.jsx
 
 // Phase 13d: expose preview-pane.jsx deps.
+w._FOLD_KIND_COLOR = _FOLD_KIND_COLOR;
 w._buildFoldTree = _buildFoldTree;
 w._copyToClipboard = _copyToClipboard;
 w._escHtml = _escHtml;

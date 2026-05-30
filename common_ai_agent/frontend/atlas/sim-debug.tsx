@@ -26,29 +26,23 @@ import {
   inferRtlTopFromVcd,
   activeIpFromAtlasRuntime,
   vcdPathBelongsToIp,
-  atlasEventMatchesActiveSession,
 } from './sim-debug-helpers';
 import type { VcdData, PinnedSignal } from './sim-debug-helpers';
 import { SimSummaryPanel, Splitter } from './sim-debug-panels';
 // Cross-file window view + the shared local types — extracted to
 // sim-debug-root-shared.tsx so the presentational siblings can reuse the SAME
-// window view (behavior identical). AtlasTitle is the only window-owned
-// component the root still renders directly; the rest moved into the panel
-// siblings that now own the subtrees that use them.
-import { g, AtlasTitle } from './sim-debug-root-shared';
-import type { SimDebugProps, ViewRange, ChatEntry, SrcRange } from './sim-debug-root-shared';
+// window view (behavior identical).
+import { g } from './sim-debug-root-shared';
+import type { SimDebugProps, ViewRange } from './sim-debug-root-shared';
 // Prop-driven panel subtrees lifted out of the root JSX. The root closure still
 // owns all state; these receive the slice they render + the handlers they fire.
 import { WaveBand } from './sim-debug-wave';
-import { ChatRail } from './sim-debug-chat';
 import { HierarchyPanel, SourceBand } from './sim-debug-panels-side';
 import { DebugHeader } from './sim-debug-header';
 
 export const SimDebug = ({ view = 'debug', initialTab = '' }: SimDebugProps = {}) => {
   const summaryOnly = view === 'summary';
   const initialTopTab = summaryOnly ? 'summary' : (initialTab || 'wave');
-  // Cross-panel state — the agent's "current focus"
-  const [activeTool, setActiveTool] = useState('vcd.trace'); // last tool the user clicked
   // Cursors default to null until VCD loads — real positions come from
   // 25 % / 75 % of the actual timeRange (no more 110 / 160 mock values).
   const [waveCursor,  setWaveCursor]  = useState(0);
@@ -67,9 +61,6 @@ export const SimDebug = ({ view = 'debug', initialTab = '' }: SimDebugProps = {}
   const [simSummaryLoading, setSimSummaryLoading] = useState(false);
   const [simSummaryError, setSimSummaryError] = useState('');
   const [simSummaryReload, setSimSummaryReload] = useState(0);
-  // No mock srcRange — the live SourceViewer drives everything from
-  // srcLines / srcCursor. Kept as a stub for any leftover references.
-  const [srcRange, setSrcRange] = useState<SrcRange>({ from: 0, to: 0, hl: [], cur: 0 });
   const [selectedSig, setSelectedSig] = useState('mosi');
   const [selectedSigScope, setSelectedSigScope] = useState('');
   const [wavePinnedSignals, setWavePinnedSignals] = useState<PinnedSignal[]>([]);
@@ -94,8 +85,6 @@ export const SimDebug = ({ view = 'debug', initialTab = '' }: SimDebugProps = {}
   //   trace     = source + driver/sink list (full width)
   //   summary   = TC pass/fail table from SSOT scenarios + scoreboard
   const [topTab, setTopTab] = useState(initialTopTab); // summary | wave | hierarchy | trace | tb
-  const [rightTab, setRightTab] = useState('wave'); // legacy, mirrors topTab
-  useEffect(() => { setRightTab(topTab); }, [topTab]);
   const [ipName, setIpName] = useState('');
   const [rtlTop, setRtlTop] = useState('');
 
@@ -283,25 +272,13 @@ export const SimDebug = ({ view = 'debug', initialTab = '' }: SimDebugProps = {}
     return buildWaveTraceList(vcdData, wavePinnedSignals, 24);
   }, [vcdData, wavePinnedSignals]);
 
-  // Tool-call activations: clicking one in chat re-focuses the side panels.
-  const onToolFocus = (toolId: string, opts: { cursor?: number; range?: SrcRange; sig?: string; scope?: string }) => {
-    setActiveTool(toolId);
-    if (opts.cursor != null) setWaveCursor(opts.cursor);
-    if (opts.range) setSrcRange(opts.range);
-    if (opts.sig) {
-      setSelectedSig(opts.sig);
-      setSelectedSigScope(opts.scope || '');
-    }
-  };
-
   // ── Resizable splitter state ─────────────────────────────────────
-  // The user can drag boundaries between hierarchy / source / wave / chat.
+  // The user can drag boundaries between hierarchy / source / wave.
   // Double-click each splitter handle to collapse/restore its panel.
   // Expand-mode buttons (only-source / only-wave) hide the other panes
   // entirely.
   const [leftW, setLeftW] = useState(220);   // hierarchy column width
-  const [rightW, setRightW] = useState(320); // chat rail width
-  const [topH, setTopH] = useState(0.32);    // source band height as fraction of body
+  const [topH, setTopH] = useState(0.5);     // source band height as fraction of body
   const [expand, setExpand] = useState('split'); // split | wave | source | hierarchy
 
   // ── Zoom helpers ─────────────────────────────────────────────────
@@ -578,209 +555,17 @@ export const SimDebug = ({ view = 'debug', initialTab = '' }: SimDebugProps = {}
     }
   }, [hierarchy, srcPath, srcLoading, onSelectModule]);
 
-  // ── Live chat (backend WS) state ─────────────────────────────────
-  // Hooks the right-rail "chat · trace · debug · ask" panel into the
-  // existing ATLAS WS bridge. Send goes to /ws/agent as a 'prompt';
-  // streamed tokens append to the in-flight assistant entry; flush /
-  // agent_state(false) park the buffer as a finished feed entry.
-  const [chatFeed, setChatFeed] = useState<ChatEntry[]>([]);   // [{kind:'user'|'agent'|'thought'|'sys', text, ts}]
-  const [chatInput, setChatInput] = useState('');
-  const [chatStreaming, setChatStreaming] = useState(false);
-  const _streamBuf = useRef('');
-  const _chatScrollRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!g.backend) return;
-    const subs: Array<(() => void) | void> = [];
-    subs.push(g.backend.subscribe!('token', (m: any) => {
-      if (!atlasEventMatchesActiveSession(m, { requireSession: true })) return;
-      const t = m.text || '';
-      if (!t || t === '\x00') return;
-      _streamBuf.current += t;
-      setChatFeed(f => {
-        const last = f[f.length - 1];
-        if (last && last.kind === 'agent_stream') {
-          return [...f.slice(0, -1), { ...last, text: _streamBuf.current }];
-        }
-        return [...f, { kind: 'agent_stream', text: _streamBuf.current, ts: Date.now() }];
-      });
-    }));
-    subs.push(g.backend.subscribe!('reasoning', (m: any) => {
-      if (!atlasEventMatchesActiveSession(m, { requireSession: true })) return;
-      const t = (m.text || '').trim(); if (!t) return;
-      setChatFeed(f => {
-        const last = f[f.length - 1];
-        if (last && last.kind === 'thought') {
-          return [...f.slice(0, -1), { ...last, text: last.text + '\n' + t }];
-        }
-        return [...f, { kind: 'thought', text: t, ts: Date.now() }];
-      });
-    }));
-    const park = () => {
-      const buf = _streamBuf.current;
-      if (buf.trim()) {
-        setChatFeed(f => {
-          // Promote agent_stream → agent (final).
-          const last = f[f.length - 1];
-          if (last && last.kind === 'agent_stream') {
-            return [...f.slice(0, -1), { kind: 'agent', text: buf, ts: Date.now() }];
-          }
-          return [...f, { kind: 'agent', text: buf, ts: Date.now() }];
-        });
-      }
-      _streamBuf.current = '';
-    };
-    subs.push(g.backend.subscribe!('flush', (m: any) => {
-      if (!atlasEventMatchesActiveSession(m, { requireSession: true })) return;
-      park();
-    }));
-    subs.push(g.backend.subscribe!('done', (m: any) => {
-      if (!atlasEventMatchesActiveSession(m, { requireSession: true })) return;
-      park(); setChatStreaming(false);
-    }));
-    subs.push(g.backend.subscribe!('agent_state', (m: any) => {
-      if (!atlasEventMatchesActiveSession(m, { requireSession: true })) return;
-      if (m.running === false) { park(); setChatStreaming(false); }
-      else if (m.running === true) setChatStreaming(true);
-    }));
-    subs.push(g.backend.subscribe!('slash_output', (m: any) => {
-      if (!atlasEventMatchesActiveSession(m, { requireSession: true })) return;
-      const t = m.text || ''; if (!t) return;
-      // de-dupe vs streaming buffer
-      if (_streamBuf.current && _streamBuf.current.indexOf(t) >= 0) return;
-      setChatFeed(f => [...f, { kind: 'agent', text: t, ts: Date.now() }]);
-      _streamBuf.current = '';
-    }));
-    subs.push(g.backend.subscribe!('error', (m: any) => {
-      if (!atlasEventMatchesActiveSession(m, { requireSession: true })) return;
-      setChatFeed(f => [...f, { kind: 'sys', text: `[error] ${m.message || ''}`, ts: Date.now() }]);
-      setChatStreaming(false);
-    }));
-    return () => subs.forEach(u => u && u());
-  }, []);
-
-  useEffect(() => {
-    // auto-scroll chat to bottom on new entries
-    const el = _chatScrollRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
-  }, [chatFeed.length]);
-
-  // Local intent dispatcher — recognizes `/trace <sig>`, `/hier <mod>`,
-  // `/wave <path>` etc. and runs them entirely client-side (drives wave
-  // panel + source viewer) without paying for an LLM round trip. Only
-  // unrecognized input falls through to the backend agent.
-  const sendChat = async (text?: string) => {
-    const raw = (text != null ? text : chatInput).trim();
-    if (!raw) return;
-    setChatFeed(f => [...f, { kind: 'user', text: raw, ts: Date.now() }]);
-    setChatInput('');
-
-    // ── Intent: trace a signal → focus wave + load driver source ──
-    const mTrace = raw.match(/^\/?trace\s+([A-Za-z_][\w.\[\]:]*)\b/i);
-    if (mTrace) {
-      const sig = mTrace[1];
-      setChatFeed(f => [...f, {
-        kind: 'sys',
-        text: `→ tracing ${sig} (focus wave + driver source)`,
-        ts: Date.now(),
-      }]);
-      // Fire wave focus + /api/trace lookup. onSelectWaveSignal already
-      // sets selectedSig, fetches /api/trace, then loads the driver file
-      // at the right line.
-      try {
-        await onSelectWaveSignal(sig);
-        // Re-fetch /api/trace to print a summary in the chat.
-        const activeTop = rtlTop || ipName || sig.split('.')[0] || '';
-        const activeIp = ipName || activeTop;
-        const r = await fetch(
-          `/api/trace?signal=${encodeURIComponent(sig)}` +
-          `&top=${encodeURIComponent(activeTop)}` +
-          `&ip=${encodeURIComponent(activeIp)}`);
-        const d = await r.json();
-        const drv = d?.driver;
-        const sinks = d?.sinks || [];
-        const lines: string[] = [];
-        if (drv) lines.push(`driver: ${drv.kind}  @ ${drv.file_line}`);
-        else     lines.push(`driver: not found (signal '${sig}' may be a port or constant)`);
-        if (sinks.length) {
-          lines.push(`sinks (${sinks.length}):`);
-          sinks.slice(0, 8).forEach((s: any) => lines.push(`  · ${s.context} ${s.access || ''} @ ${s.file_line}`));
-        }
-        setChatFeed(f => [...f, { kind: 'agent', text: lines.join('\n'), ts: Date.now() }]);
-      } catch (e) {
-        setChatFeed(f => [...f, { kind: 'sys', text: `[trace error] ${e}`, ts: Date.now() }]);
-      }
-      return;
-    }
-
-    // ── Intent: hierarchy of a top module ──
-    const mHier = raw.match(/^\/?hier\s+([A-Za-z_]\w*)/i);
-    if (mHier) {
-      const mod = mHier[1];
-      setChatFeed(f => [...f, { kind: 'sys', text: `→ loading hierarchy + source for ${mod}`, ts: Date.now() }]);
-      onSelectModule(mod, mod);
-      try {
-        const r = await fetch(
-          `/api/hierarchy?top=${encodeURIComponent(mod)}` +
-          `&ip=${encodeURIComponent(ipName || mod)}`);
-        const d = await r.json();
-        const tree = d?.tree;
-        const flatten = (n: any, depth: number): string[] => {
-          if (!n) return [];
-          const out = ['  '.repeat(depth) + (n.name || mod) + ' :: ' + (n.module || '')];
-          (n.children || []).forEach((c: any) => out.push(...flatten(c, depth + 1)));
-          return out;
-        };
-        setChatFeed(f => [...f, {
-          kind: 'agent',
-          text: tree ? flatten(tree, 0).join('\n') : (d?.error || 'no tree'),
-          ts: Date.now(),
-        }]);
-      } catch (e) {
-        setChatFeed(f => [...f, { kind: 'sys', text: `[hier error] ${e}`, ts: Date.now() }]);
-      }
-      return;
-    }
-
-    // ── Intent: jump to source line ──  /goto <file>:<line>
-    const mGoto = raw.match(/^\/?goto\s+([^\s:]+):(\d+)/i);
-    if (mGoto) {
-      const path = mGoto[1];
-      const line = parseInt(mGoto[2], 10);
-      setChatFeed(f => [...f, { kind: 'sys', text: `→ source ${path}:${line}`, ts: Date.now() }]);
-      loadSourceFile(path, line);
-      return;
-    }
-
-    // ── Intent: open a VCD ──  /wave <path>
-    const mWave = raw.match(/^\/?wave\s+(\S+)/i);
-    if (mWave) {
-      setChatFeed(f => [...f, { kind: 'sys', text: `→ loading VCD ${mWave[1]}`, ts: Date.now() }]);
-      setVcdActive(mWave[1]);
-      return;
-    }
-
-    // ── Fallback: send to backend agent (natural-language Q&A) ──
-    if (!g.backend) return;
-    setChatStreaming(true);
-    _streamBuf.current = '';
-    g.backend.send!({ type: 'prompt', text: raw });
-  };
-
   const _drag = useRef<any>(null);
   const startDrag = (kind: string) => (e: ReactMouseEvent) => {
     e.preventDefault();
     _drag.current = { kind, startX: e.clientX, startY: e.clientY,
-                      leftW, rightW, topH,
+                      leftW, topH,
                       bodyH: (e.currentTarget as HTMLElement).parentElement?.parentElement?.clientHeight || 600 };
     const onMove = (ev: MouseEvent) => {
       const d = _drag.current; if (!d) return;
       if (d.kind === 'left') {
         const w = Math.max(0, Math.min(560, d.leftW + (ev.clientX - d.startX)));
         setLeftW(w);
-      } else if (d.kind === 'right') {
-        const w = Math.max(0, Math.min(640, d.rightW - (ev.clientX - d.startX)));
-        setRightW(w);
       } else if (d.kind === 'topH') {
         const next = Math.max(0.08, Math.min(0.92, d.topH + (ev.clientY - d.startY) / d.bodyH));
         setTopH(next);
@@ -797,15 +582,15 @@ export const SimDebug = ({ view = 'debug', initialTab = '' }: SimDebugProps = {}
 
   // Effective dimensions after expand mode.
   const eff = (() => {
-    if (expand === 'wave')      return { lw: 0,     rw: 0,      th: 0,    showSource: false, showWave: true,  showHier: false, showChat: false };
-    if (expand === 'source')    return { lw: 0,     rw: 0,      th: 1.0,  showSource: true,  showWave: false, showHier: false, showChat: false };
-    if (expand === 'hierarchy') return { lw: leftW || 320, rw: 0, th: 0, showSource: false, showWave: false, showHier: true, showChat: false };
-    return { lw: leftW, rw: rightW, th: topH, showSource: true, showWave: true, showHier: leftW > 0, showChat: rightW > 0 };
+    if (expand === 'wave')      return { lw: 0,          th: 0,   showSource: false, showWave: true,  showHier: false };
+    if (expand === 'source')    return { lw: 0,          th: 1.0, showSource: true,  showWave: false, showHier: false };
+    if (expand === 'hierarchy') return { lw: leftW || 320, th: 0, showSource: false, showWave: false, showHier: true };
+    return { lw: leftW, th: topH, showSource: true, showWave: true, showHier: leftW > 0 };
   })();
 
   const bodyGridColumns = expand === 'hierarchy'
-    ? '1fr 0 0 0 0'
-    : `${eff.showHier ? eff.lw + 'px' : '0'} ${eff.showHier && eff.lw > 0 ? '4px' : '0'} 1fr ${eff.showChat && eff.rw > 0 ? '4px' : '0'} ${eff.showChat ? eff.rw + 'px' : '0'}`;
+    ? '1fr 0 0'
+    : `${eff.showHier ? eff.lw + 'px' : '0'} ${eff.showHier && eff.lw > 0 ? '4px' : '0'} 1fr`;
 
   return (
     <div className="atlas-frame" style={{
@@ -813,26 +598,6 @@ export const SimDebug = ({ view = 'debug', initialTab = '' }: SimDebugProps = {}
       flex: 1, width: '100%', height: '100%',
       minWidth: 0, minHeight: 0,
     }}>
-      <AtlasTitle
-        // Resolve the active workspace IP — prefer the SimDebug-local
-        // ipName (set when a VCD is found), otherwise the live
-        // window.ACTIVE_SESSION's middle segment (default/<ip>/<wf>).
-        // The hardcoded "spi_master/" fallback inside AtlasTitle is
-        // gone now; passing an empty string still falls back to that
-        // legacy default for first-paint.
-        workspace={
-          ipName ||
-          (String(g.ACTIVE_SESSION || '').split('/').filter(Boolean)[1]) ||
-          ''
-        }
-        subtitle={'sim_debug · ' + (vcdActive ? vcdActive.split('/').pop() : 'no VCD')}
-        right={
-          <span className="agent-chip">
-            <span className="pulse" /> Atlas · debug session
-          </span>
-        }
-      />
-
       {/* Single unified header — VCD picker + cursor controls + expand mode */}
       <DebugHeader
         summaryOnly={summaryOnly}
@@ -924,7 +689,7 @@ export const SimDebug = ({ view = 'debug', initialTab = '' }: SimDebugProps = {}
           {eff.showSource && eff.showWave && (
             <Splitter orient="h"
               onMouseDown={startDrag('topH')}
-              onDoubleClick={() => setTopH(0.32)}
+              onDoubleClick={() => setTopH(0.5)}
             />
           )}
 
@@ -958,32 +723,6 @@ export const SimDebug = ({ view = 'debug', initialTab = '' }: SimDebugProps = {}
           )}
         </div>
 
-        {/* CENTER ↔ CHAT splitter */}
-        {eff.showChat && eff.rw > 0 && (
-          <Splitter orient="v"
-            onMouseDown={startDrag('right')}
-            onDoubleClick={() => setRightW(rightW > 0 ? 0 : 320)}
-          />
-        )}
-
-        {/* RIGHT — live chat connected to backend WS (was a mock; now sends
-            via window.backend.send and appends streamed tokens / agent /
-            reasoning / slash_output events to the feed). */}
-        {eff.showChat && (
-          <ChatRail
-            chatStreaming={chatStreaming}
-            setChatFeed={setChatFeed}
-            streamBufRef={_streamBuf}
-            selectedSig={selectedSig}
-            ipName={ipName}
-            chatScrollRef={_chatScrollRef}
-            chatFeed={chatFeed}
-            waveCursor={waveCursor}
-            sendChat={sendChat}
-            chatInput={chatInput}
-            setChatInput={setChatInput}
-          />
-        )}
       </div>
       )}
     </div>

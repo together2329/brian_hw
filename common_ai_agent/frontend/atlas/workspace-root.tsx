@@ -344,7 +344,7 @@ export const Workspace = ({
         <div className="box" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           {renderWorkspaceCenterTabStrip(ws)}
           {mainTab === 'coverage' ? (
-            w.Coverage ? (
+            typeof w.Coverage === 'function' ? (
               <ErrorBoundary label="Coverage">
                 <w.Coverage />
               </ErrorBoundary>
@@ -429,9 +429,13 @@ export const Workspace = ({
                       onClose={() => setGitShow(null)}
                     />
                   ) : isSsotYamlPath(previewPath) ? (
-                    <SsotReviewPane uiLang={uiLang} initialPath={previewPath} onBack={() => setMainTab('chat')} />
+                    <ErrorBoundary label="SSOTPreview">
+                      <SsotReviewPane uiLang={uiLang} initialPath={previewPath} onBack={() => setMainTab('chat')} />
+                    </ErrorBoundary>
                   ) : (
-                    <PreviewPane path={previewPath} onClose={() => setMainTab('chat')} />
+                    <ErrorBoundary label="Preview">
+                      <PreviewPane path={previewPath} onClose={() => setMainTab('chat')} />
+                    </ErrorBoundary>
                   )}
                 </div>
               </div>
@@ -740,7 +744,7 @@ export const Workspace = ({
               : liveWorkerActive
                 ? { icon: '▶', text: `Worker running · ${liveWorkerWorkflow}`, color: 'var(--warn)', bg: 'color-mix(in oklch, var(--warn) 14%, transparent)' }
               : streaming
-                ? { icon: '◉', text: 'Agent running', color: 'var(--accent)', bg: 'color-mix(in oklch, var(--accent) 16%, transparent)', spin: true }
+                ? { icon: '◉', text: 'Agent responding', color: 'var(--accent)', bg: 'color-mix(in oklch, var(--accent) 16%, transparent)', spin: true }
               : terminalWorkerProgress
                 ? {
                     icon: workerFinishedOk ? '✓' : '!',

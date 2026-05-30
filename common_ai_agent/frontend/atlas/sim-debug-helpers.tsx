@@ -292,6 +292,52 @@ export const buildVcdLineAnnotations = ({
   return rows;
 };
 
+// ── RTL module signals (from /api/module/signals via pyslang) ─────
+export interface ModuleSignal {
+  name: string;
+  direction: 'in' | 'out' | 'inout' | 'internal' | string;
+  kind?: string;
+  type?: string;
+  width?: number;
+  file?: string;
+  line?: number;
+  file_line?: string;
+}
+
+// Filter a module's signals by direction tab. 'inout' shows under both
+// 'in' and 'out' so a bidirectional port is never hidden from either
+// directional view. 'all' returns everything.
+export const filterModuleSignals = (
+  signals: ModuleSignal[] | null | undefined,
+  filter: string,
+): ModuleSignal[] => {
+  const list = Array.isArray(signals) ? signals : [];
+  if (!filter || filter === 'all') return list;
+  if (filter === 'in') return list.filter(s => s.direction === 'in' || s.direction === 'inout');
+  if (filter === 'out') return list.filter(s => s.direction === 'out' || s.direction === 'inout');
+  if (filter === 'internal') return list.filter(s => s.direction === 'internal');
+  return list;
+};
+
+// Per-direction tallies for the filter-chip badges.
+export const moduleSignalCounts = (
+  signals: ModuleSignal[] | null | undefined,
+): { all: number; in: number; out: number; internal: number } => {
+  const list = Array.isArray(signals) ? signals : [];
+  return {
+    all: list.length,
+    in: list.filter(s => s.direction === 'in' || s.direction === 'inout').length,
+    out: list.filter(s => s.direction === 'out' || s.direction === 'inout').length,
+    internal: list.filter(s => s.direction === 'internal').length,
+  };
+};
+
+// Short width label for a signal row, e.g. '[15:0]' → '16b', scalar → ''.
+export const moduleSignalWidthLabel = (sig: ModuleSignal | null | undefined): string => {
+  const w = Number(sig?.width || 0);
+  return w > 1 ? `${w}b` : '';
+};
+
 export const VCD_ANNOTATION_AXES: VcdAnnotationAxis[] = [
   { id: 'a', label: 'A', key: 'a', color: 'var(--accent)' },
   { id: 'b', label: 'B', key: 'b', color: 'var(--cyan)' },

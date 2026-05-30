@@ -19,10 +19,10 @@
     "rtl/mctp_assembler.sv",
     "rtl/mctp_assembler_param.vh"
   ],
-  "timestamp": "2026-05-29T06:29:26.309526+00:00",
-  "returncode": 0,
+  "timestamp": "2026-05-30T09:02:25.335784+00:00",
+  "returncode": 1,
   "errors": 0,
-  "warnings": 0,
+  "warnings": 4,
   "waived_warnings": 0,
   "tool_results": [
     {
@@ -31,19 +31,54 @@
       "command": "pyslang rtl/mctp_assembler_axi_write_ingress.sv rtl/mctp_assembler_pcie_vdm_parser.sv rtl/mctp_assembler_mctp_parser.sv rtl/mctp_assembler_context_table.sv rtl/mctp_assembler_payload_writer.sv rtl/mctp_assembler_apb_regfile.sv rtl/mctp_assembler_cdc.sv rtl/mctp_assembler.sv",
       "returncode": 0,
       "errors": 0,
-      "warnings": 0,
-      "diagnostics": [],
-      "passed": true
+      "warnings": 1,
+      "diagnostics": [
+        {
+          "severity": "warning",
+          "file": "mctp_assembler/rtl/mctp_assembler_payload_writer.sv",
+          "line": 36,
+          "message": "comparison of differently signed types ('logic[4:0]' and 'integer')"
+        }
+      ],
+      "passed": false
     },
     {
       "tool": "verilator",
       "available": true,
       "command": "verilator --lint-only -Wall -Irtl -f list/mctp_assembler.f --top-module mctp_assembler",
-      "returncode": 0,
+      "returncode": 1,
       "errors": 0,
-      "warnings": 0,
-      "diagnostics": [],
-      "passed": true
+      "warnings": 3,
+      "diagnostics": [
+        {
+          "severity": "warning",
+          "rule": "WIDTHTRUNC",
+          "file": "rtl/mctp_assembler_axi_write_ingress.sv",
+          "line": 55,
+          "column": 20,
+          "message": "Operator VAR 'EXPECTED_AWSIZE' expects 3 bits on the Initial value, but Initial value's CLOG2 generates 32 bits.",
+          "source": "  localparam [2:0] EXPECTED_AWSIZE = $clog2(AXI_DATA_BYTES);"
+        },
+        {
+          "severity": "warning",
+          "rule": "WIDTHEXPAND",
+          "file": "rtl/mctp_assembler_payload_writer.sv",
+          "line": 36,
+          "column": 31,
+          "message": "Operator EQ expects 32 bits on the LHS, but LHS's VARREF 'lane_base' generates 5 bits.",
+          "source": "  wire beat_full = (lane_base == (SRAM_DATA_BYTES - 1));"
+        },
+        {
+          "severity": "warning",
+          "rule": "UNUSEDSIGNAL",
+          "file": "rtl/mctp_assembler.sv",
+          "line": 175,
+          "column": 9,
+          "message": "Signal is not used: 'parse_fail_pulse'",
+          "source": "  logic parse_fail_pulse;"
+        }
+      ],
+      "passed": false
     }
   ],
   "suppression_violation_count": 0,
@@ -51,5 +86,5 @@
   "style_violation_count": 0,
   "style_violations": [],
   "policy": "DUT RTL must be lint-clean without ad-hoc verilator lint_off/lint_on or -Wno suppressions, and generated RTL must keep .sv filenames while using the project SystemVerilog subset: input logic/output logic ports and internal logic are allowed; package/import/interface/modport/function/task/for/while/typedef/enum/always_ff/always_comb remain forbidden.",
-  "passed": true
+  "passed": false
 }

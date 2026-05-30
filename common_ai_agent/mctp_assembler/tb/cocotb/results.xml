@@ -1,6 +1,6 @@
 <testsuites name="results">
   <testsuite name="all" package="all">
-    <property name="random_seed" value="1780049058" />
-    <testcase name="mctp_ssot_scenarios" classname="test_mctp_assembler" file="/Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler/tb/cocotb/test_mctp_assembler.py" lineno="237" time="6.900798797607422" sim_time_ns="98550.001" ratio_time="14280.955566211886" />
+    <property name="random_seed" value="1780131754" />
+    <testcase name="mctp_ssot_scenarios" classname="test_mctp_assembler" file="/Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler/tb/cocotb/test_mctp_assembler.py" lineno="237" time="1.8317959308624268" sim_time_ns="98970.001" ratio_time="54028.94467256732" />
   </testsuite>
 </testsuites>

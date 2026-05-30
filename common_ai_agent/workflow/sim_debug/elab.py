@@ -277,6 +277,114 @@ class ElabBackend:
     def trace_driver(self, scope: str, signal: str, sources: list[Path]) -> dict:
         raise NotImplementedError
 
+    def module_signals(self, top: str, module: str, sources: list[Path]) -> dict:
+        raise NotImplementedError
+
+
+# ── Signal helpers (shared by pyslang + text fallback) ───────────
+def _width_from_type(type_text: str) -> int:
+    """Best-effort bit width from a type string like 'logic[15:0]' → 16.
+
+    Packed ranges multiply (`logic[1:0][7:0]` → 16). A bare scalar
+    (`logic`, `wire`) is width 1. Anything we cannot parse returns 0 so
+    the UI can fall back to showing the raw type string instead.
+    """
+    text = str(type_text or "")
+    width = 1
+    found = False
+    for m in re.finditer(r"\[\s*(\d+)\s*:\s*(\d+)\s*\]", text):
+        hi, lo = int(m.group(1)), int(m.group(2))
+        width *= abs(hi - lo) + 1
+        found = True
+    return width if found else (1 if text.strip() else 0)
+
+
+def _direction_label(direction_text: str) -> str:
+    """Map pyslang ArgumentDirection.* → 'in' | 'out' | 'inout'."""
+    d = str(direction_text or "").rsplit(".", 1)[-1].lower()
+    if d.startswith("in") and "out" in d:
+        return "inout"
+    if d.startswith("out"):
+        return "out"
+    if d.startswith("in"):
+        return "in"
+    if "inout" in d or "ref" in d:
+        return "inout"
+    return "internal"
+
+
+def _signal_counts(signals: list[dict]) -> dict:
+    counts = {"in": 0, "out": 0, "inout": 0, "internal": 0, "total": 0}
+    for s in signals:
+        d = s.get("direction", "internal")
+        if d in counts:
+            counts[d] += 1
+        counts["total"] += 1
+    return counts
+
+
+def _static_module_signals(module: str, sources: list[Path], reason: str) -> dict:
+    """Regex fallback when pyslang cannot elaborate. Parses the module's
+    ANSI port header for directions and the body for internal
+    reg/wire/logic declarations. Coarse (no generate/macro awareness) but
+    keeps the panel populated instead of blank."""
+    mod_re = re.compile(r"\bmodule\s+" + re.escape(module) + r"\b")
+    port_re = re.compile(
+        r"\b(input|output|inout)\b\s*(?:wire|reg|logic|bit)?\s*(?:signed\s*)?"
+        r"((?:\[[^\]]+\]\s*)*)([A-Za-z_]\w*)"
+    )
+    decl_re = re.compile(
+        r"^\s*(?:wire|reg|logic|bit)\s+(?:signed\s+)?((?:\[[^\]]+\]\s*)*)([A-Za-z_]\w*)"
+    )
+    signals: list[dict] = []
+    seen: set[str] = set()
+    for src in sources:
+        try:
+            text = _strip_sv_comments(src.read_text(encoding="utf-8", errors="replace"))
+        except OSError:
+            continue
+        if not mod_re.search(text):
+            continue
+        lines = text.splitlines()
+        for line_no, line in enumerate(lines, start=1):
+            for m in port_re.finditer(line):
+                name = m.group(3)
+                if name in seen:
+                    continue
+                seen.add(name)
+                rng = (m.group(2) or "").strip()
+                signals.append({
+                    "name": name,
+                    "direction": _direction_label(m.group(1)),
+                    "kind": "port",
+                    "type": ("logic " + rng).strip() if rng else "logic",
+                    "width": _width_from_type(rng) or 1,
+                    "file": src.as_posix(), "line": line_no,
+                    "file_line": f"{src.as_posix()}:{line_no}",
+                })
+            dm = decl_re.match(line)
+            if dm and dm.group(2) not in seen and not port_re.search(line):
+                name = dm.group(2)
+                seen.add(name)
+                rng = (dm.group(1) or "").strip()
+                signals.append({
+                    "name": name,
+                    "direction": "internal",
+                    "kind": "net",
+                    "type": ("logic " + rng).strip() if rng else "logic",
+                    "width": _width_from_type(rng) or 1,
+                    "file": src.as_posix(), "line": line_no,
+                    "file_line": f"{src.as_posix()}:{line_no}",
+                })
+        break
+    return {
+        "backend": "pyslang-text-fallback",
+        "warning": f"pyslang elaboration unavailable; used static RTL signal scan: {reason}",
+        "module": module,
+        "signals": signals,
+        "counts": _signal_counts(signals),
+    }
+
 
 # ── Verilator backend ────────────────────────────────────────────
 class VerilatorElab(ElabBackend):
@@ -1021,6 +1129,142 @@ class PyslangElab(ElabBackend):
             "sink_count": len(sinks),
         }
 
+    def module_signals(self, top: str, module: str, sources: list[Path]) -> dict:
+        """Return every declared signal of `module`: ports (with In/Out/
+        InOut direction) and internal nets/variables, with type + bit
+        width + file:line. Walks the elaborated symbol table, so generate
+        blocks / macros / typedefs are resolved correctly (regex cannot).
+
+        `module` is the DEFINITION name (e.g. clicked in the hierarchy
+        tree). We locate the first elaborated instance of that definition
+        — `top` only scopes which design root to search."""
+        comp = self._compile(sources)
+        if comp is None:
+            return _static_module_signals(module, sources, "pyslang not importable")
+        if isinstance(comp, tuple) and comp[0] == "error":
+            fallback = _static_module_signals(module, sources, comp[1])
+            if fallback.get("signals"):
+                return fallback
+            return {"error": f"pyslang compile: {comp[1]}", "module": module, "signals": []}
+
+        try:
+            sm = pyslang_source_manager(comp)
+            root, root_error = root_symbol(comp)
+            if root_error:
+                raise RuntimeError(root_error)
+        except Exception as e:
+            return {"error": f"pyslang root: {e}", "module": module, "signals": []}
+
+        def _resolve_loc(loc):
+            try:
+                line = sm.getLineNumber(loc)
+                fname = sm.getFileName(loc)
+                return (fname or "", int(line) if line else 0)
+            except Exception:
+                return ("", 0)
+
+        def _defn_name(inst):
+            try:
+                defn = getattr(inst, "definition", None)
+                return getattr(defn, "name", "") if defn else (getattr(inst, "name", "") or "")
+            except Exception:
+                return getattr(inst, "name", "") or ""
+
+        # Locate the instance whose definition matches `module`. Prefer the
+        # instance with the most body members (real impl over an empty stub,
+        # mirroring build_hierarchy's duplicate-module handling).
+        target = {"inst": None, "count": -1, "path": ""}
+
+        def _find(inst, inst_path):
+            try:
+                if _defn_name(inst) == module:
+                    count = sum(1 for _ in inst.body) if hasattr(inst, "body") else 0
+                    if count > target["count"]:
+                        target.update({"inst": inst, "count": count, "path": inst_path})
+                body = getattr(inst, "body", None)
+                if body is not None:
+                    for member in body:
+                        mk = str(getattr(member, "kind", ""))
+                        if "Instance" in mk and "Body" not in mk:
+                            sub = getattr(member, "name", "") or "?"
+                            _find(member, f"{inst_path}.{sub}" if inst_path else sub)
+            except Exception:
+                pass
+
+        try:
+            tops = list(root.topInstances)
+            roots = [i for i in tops if (not top or _defn_name(i) == top)] or tops
+            for inst in roots:
+                _find(inst, _defn_name(inst))
+            # No instance of `module` found under the chosen top → search all.
+            if target["inst"] is None and module:
+                for inst in tops:
+                    _find(inst, _defn_name(inst))
+        except Exception as e:
+            return {"error": f"pyslang walk: {e}", "module": module, "signals": []}
+
+        inst = target["inst"]
+        if inst is None:
+            return {"error": f"module '{module}' not found in elaborated design",
+                    "module": module, "signals": []}
+
+        ports: list[dict] = []
+        internals: list[dict] = []
+        port_names: set[str] = set()
+        try:
+            for m in inst.body:
+                kind = str(getattr(m, "kind", ""))
+                name = getattr(m, "name", "") or ""
+                if not name:
+                    continue
+                if kind.endswith("Port") and "Interface" not in kind:
+                    fname, line = _resolve_loc(getattr(m, "location", None))
+                    type_text = str(getattr(m, "type", "") or "")
+                    port_names.add(name)
+                    ports.append({
+                        "name": name,
+                        "direction": _direction_label(getattr(m, "direction", "")),
+                        "kind": "port",
+                        "type": type_text,
+                        "width": _width_from_type(type_text),
+                        "file": fname, "line": line,
+                        "file_line": f"{fname}:{line}" if fname else "",
+                    })
+                elif kind.endswith("Variable") or kind.endswith("Net"):
+                    fname, line = _resolve_loc(getattr(m, "location", None))
+                    type_text = str(getattr(m, "type", "") or "")
+                    internals.append({
+                        "name": name,
+                        "direction": "internal",
+                        "kind": "net" if kind.endswith("Net") else "var",
+                        "type": type_text,
+                        "width": _width_from_type(type_text),
+                        "file": fname, "line": line,
+                        "file_line": f"{fname}:{line}" if fname else "",
+                    })
+        except Exception as e:
+            return {"error": f"pyslang members: {e}", "module": module, "signals": ports}
+
+        # Ports re-appear as backing Variables (verified: every port name is
+        # also a VariableSymbol). Drop those duplicates so a port is shown
+        # once, as a port — not twice.
+        seen_internal: set[str] = set()
+        deduped_internal: list[dict] = []
+        for s in internals:
+            if s["name"] in port_names or s["name"] in seen_internal:
+                continue
+            seen_internal.add(s["name"])
+            deduped_internal.append(s)
+
+        signals = ports + deduped_internal
+        return {
+            "backend": "pyslang",
+            "module": module,
+            "instance_path": target["path"],
+            "signals": signals,
+            "counts": _signal_counts(signals),
+        }
+
 
 def _compact_backend_result(name: str, result: dict) -> dict:
     return {
@@ -1237,5 +1481,25 @@ def trace_driver_cached(prefer: str, top: str, signal: str, sources: list[Path])
         return cached
     res = be.trace_driver(top, signal, sources)
     res.setdefault("backend", be.name)
+    _cache_put(key, res)
+    return res
+
+
+def module_signals_cached(prefer: str, top: str, module: str, sources: list[Path]) -> dict:
+    """Per-module signal list (ports + internal nets/vars). Always routed
+    through pyslang — it is the only backend that exposes the elaborated
+    symbol table with directions; `prefer` is accepted for call-site
+    symmetry with the other cached helpers but does not switch backends.
+    Falls back to the static RTL scan when pyslang cannot be imported."""
+    be = _BACKENDS["pyslang"]
+    key = _cache_key("pyslang:signals:" + top + ":" + module, top, sources)
+    cached = _cache_get(key)
+    if cached is not None:
+        return cached
+    if be.available():
+        res = be.module_signals(top, module, sources)
+    else:
+        res = _static_module_signals(module, sources, "pyslang backend unavailable")
+    res.setdefault("backend", "pyslang")
     _cache_put(key, res)
     return res

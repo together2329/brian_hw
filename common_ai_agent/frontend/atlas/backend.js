@@ -17,7 +17,7 @@
   // ── pubsub primitive ───────────────────────────────────────
   const handlers = Object.create(null);
   const lastPayload = Object.create(null);
-  const replayablePayloads = new Set(['hello', 'connection']);
+  const replayablePayloads = new Set(['hello', 'connection', 'agent_state']);
   function subscribe(type, cb) {
     (handlers[type] = handlers[type] || new Set()).add(cb);
     if (replayablePayloads.has(type) && Object.prototype.hasOwnProperty.call(lastPayload, type)) {

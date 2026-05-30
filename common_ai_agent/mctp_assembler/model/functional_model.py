@@ -5,7 +5,8 @@ Functional Model for mctp_assembler.
 SSOT authority: yaml/mctp_assembler.ssot.yaml
 Transactions:
   FM_ACCEPT_AXI_TLP, FM_FILTER_VDM, FM_PARSE_MCTP,
-  FM_ASSEMBLE_FRAGMENT, FM_WRITE_SRAM_AND_DESCRIPTOR, FM_CLASSIFY_DROP
+  FM_ASSEMBLE_FRAGMENT, FM_WRITE_SRAM_AND_DESCRIPTOR, FM_READ_SRAM_BURST,
+  FM_CLASSIFY_DROP
 
 This model is the behavioral oracle for scoreboards. It models packet
 filtering, 15-way MCTP assembly interleaving, SRAM payload writes, descriptor
@@ -201,6 +202,7 @@ class FunctionalModel:
         self.contexts: Dict[Tuple[int, int, int], AssemblyContext] = {}
         self.descriptor_fifo: List[Descriptor] = []
         self.sram_writes: List[Dict[str, Any]] = []
+        self.sram: Dict[int, int] = {}
         self.sram_wr_ptr = 0
         self.interrupt_status: Dict[str, int] = {}
         self.error_status: Dict[str, int] = {}
@@ -245,6 +247,8 @@ class FunctionalModel:
                 self.accept_null_eid = bool(value)
             elif key == "timeout_cycles":
                 self.cfg_timeout_cycles = int(value)
+            elif key in {"mtu_bytes", "mtu"}:
+                self.cfg_mtu_bytes = _u16(value)
         return self.snapshot("configure")
 
     def _record(self, label: str, **payload: Any) -> Dict[str, Any]:
@@ -425,8 +429,15 @@ class FunctionalModel:
         )
         return pkt, self._record("FM_PARSE_MCTP", parsed=True, packet=asdict(pkt))
 
+    def _fragment_mtu_exceeded(self, pkt: ParsedPacket) -> bool:
+        return len(pkt.payload) > self.cfg_mtu_bytes
+
     def assemble_fragment(self, pkt: ParsedPacket) -> Dict[str, Any]:
         key = pkt.key
+        if self._fragment_mtu_exceeded(pkt):
+            if pkt.som and not pkt.eom and key not in self.contexts:
+                return self._classify_drop(PACKET_DROP, "PD_MALFORMED_TLP")
+            return self._classify_drop(ASSEMBLY_DROP, "AD_MESSAGE_OVERFLOW", key if key in self.contexts else None)
         if pkt.som and pkt.eom:
             if key in self.contexts:
                 return self._classify_drop(ASSEMBLY_DROP, "AD_DUPLICATE_SOM", key)
@@ -500,6 +511,8 @@ class FunctionalModel:
             data, strb = _pack_word_bytes(chunk)
             write = {"addr": base + offset, "data": data, "strb": strb, "bytes": list(chunk)}
             self.sram_writes.append(write)
+            for byte_offset, byte in enumerate(chunk):
+                self.sram[base + offset + byte_offset] = _u8(byte)
             write_words.append(write)
 
         desc = Descriptor(
@@ -523,6 +536,29 @@ class FunctionalModel:
         self.counters["bytes_written"] += len(payload)
         self.interrupt_status["desc_ready"] = 1
         return self._record("FM_WRITE_SRAM_AND_DESCRIPTOR", descriptor=asdict(desc), sram_writes=write_words)
+
+    def read_sram_burst(self, txn: Dict[str, Any]) -> Dict[str, Any]:
+        araddr = int(txn.get("araddr", 0))
+        arlen = int(txn.get("arlen", 0))
+        arsize = int(txn.get("arsize", 5))
+        arburst = int(txn.get("arburst", 1))
+        limit = self.cfg_sram_limit if self.cfg_sram_limit else DEFAULT_SRAM_LIMIT
+        if arburst not in {1, 0}:
+            return self._record("FM_READ_SRAM_BURST", read_error=True, rdata_beats=[])
+        beat_count = arlen + 1
+        bytes_per_beat = min(1 << arsize, AXI_DATA_BYTES)
+        end_addr = araddr + (beat_count * bytes_per_beat) - 1
+        if araddr < self.cfg_sram_base or end_addr > limit:
+            return self._record("FM_READ_SRAM_BURST", read_error=True, rdata_beats=[])
+        rdata_beats: List[Dict[str, Any]] = []
+        cursor = araddr
+        for beat_idx in range(beat_count):
+            raw = [self.sram.get(cursor + lane, 0) for lane in range(bytes_per_beat)]
+            data, _strb = _pack_word_bytes(raw, bytes_per_beat)
+            rdata_beats.append({"data": data, "rlast": beat_idx == beat_count - 1})
+            if arburst == 1:
+                cursor += bytes_per_beat
+        return self._record("FM_READ_SRAM_BURST", read_error=False, rdata_beats=rdata_beats)
 
     def process_tlp(self, txn: Dict[str, Any]) -> Dict[str, Any]:
         accept = self.accept_axi_tlp(txn)
@@ -556,6 +592,9 @@ class FunctionalModel:
                 self.contexts.clear()
         elif addr == 0x008:
             self.cfg_local_eid = data & 0xFF
+        elif addr == 0x00C:
+            self.cfg_mtu_bytes = _u16(data)
+            self.cfg_timeout_cycles = (data >> 16) & 0xFFFF
         elif addr == 0x010:
             self.cfg_max_message_bytes = data & 0xFFFF
         elif addr == 0x014:
@@ -659,6 +698,8 @@ class FunctionalModel:
                 pad_len=0,
             )
             return self.write_sram_and_descriptor(pkt.payload, pkt, context_id=0)
+        if kind_l in {"fm_read_sram_burst", "fm_read_sram"}:
+            return self.read_sram_burst(txn)
         if kind_l in {"fm_classify_drop", "classify_drop"}:
             return self._classify_drop(str(txn.get("drop_class", PACKET_DROP)), str(txn.get("reason", "PD_MALFORMED_TLP")), txn.get("key"))
         if kind_l in {"timeout"}:
@@ -740,6 +781,22 @@ class FunctionalModel:
             assert res["drop_class"] == ASSEMBLY_DROP
             transaction_results["FM_CLASSIFY_DROP"] = "PASS"
 
+        def sc_read_sram() -> None:
+            m = configured()
+            payload = [0x7E, 0x55, 0xAA, 0xBB]
+            res = m.apply(
+                {
+                    "kind": "FM_WRITE_SRAM_AND_DESCRIPTOR",
+                    "payload": payload,
+                }
+            )
+            start = res["descriptor"]["sram_start_addr"]
+            read = m.read_sram_burst({"araddr": start, "arlen": 0, "arsize": 2, "arburst": 1})
+            assert not read["read_error"]
+            got = _bytes_from_int(read["rdata_beats"][0]["data"], len(payload))
+            assert got == payload
+            transaction_results["FM_READ_SRAM_BURST"] = "PASS"
+
         def sc_interleaving_15() -> None:
             m = configured()
             for tag in range(15):
@@ -755,6 +812,7 @@ class FunctionalModel:
             "FM_PARSE_MCTP": sc_parse,
             "FM_ASSEMBLE_FRAGMENT": sc_assemble,
             "FM_WRITE_SRAM_AND_DESCRIPTOR": sc_write,
+            "FM_READ_SRAM_BURST": sc_read_sram,
             "FM_CLASSIFY_DROP": sc_drop,
             "SC_INTERLEAVING_15": sc_interleaving_15,
         }.items():
@@ -767,6 +825,7 @@ class FunctionalModel:
                 "FM_PARSE_MCTP",
                 "FM_ASSEMBLE_FRAGMENT",
                 "FM_WRITE_SRAM_AND_DESCRIPTOR",
+                "FM_READ_SRAM_BURST",
                 "FM_CLASSIFY_DROP",
             ]
         )

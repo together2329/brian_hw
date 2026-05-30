@@ -695,8 +695,11 @@ const HierarchyNode = ({ node, depth, onSelectModule, activeModule }: HierarchyN
     <div>
       <div
         style={{
-          display: 'flex', alignItems: 'center', gap: 6,
-          padding: '2px 0 2px ' + indent + 'px',
+          display: 'grid',
+          gridTemplateColumns: `${indent + 14}px minmax(96px, 1fr) 20px minmax(128px, 1.15fr)`,
+          alignItems: 'center',
+          columnGap: 6,
+          padding: '2px 6px 2px 0',
           color: 'var(--fg)',
           background: isActive ? 'color-mix(in oklch, var(--accent) 18%, transparent)' : 'transparent',
           borderLeft: isActive ? '2px solid var(--accent)' : '2px solid transparent',
@@ -705,7 +708,8 @@ const HierarchyNode = ({ node, depth, onSelectModule, activeModule }: HierarchyN
         <span
           onClick={() => hasKids && setOpen(o => !o)}
           style={{
-            width: 12, color: 'var(--fg-mute)', fontSize: 9,
+            justifySelf: 'end',
+            color: 'var(--fg-mute)', fontSize: 9,
             cursor: hasKids ? 'pointer' : 'default',
           }}
         >
@@ -713,13 +717,19 @@ const HierarchyNode = ({ node, depth, onSelectModule, activeModule }: HierarchyN
         </span>
         <span
           onClick={() => onSelectModule && onSelectModule(node.module, node.name)}
-          style={{ color: 'var(--accent)', cursor: 'pointer' }}
+          style={{
+            color: 'var(--accent)', cursor: 'pointer',
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}
           title="open module source"
         >{last}</span>
-        <span style={{ color: 'var(--fg-mute)' }}>::</span>
+        <span style={{ color: 'var(--fg-mute)', justifySelf: 'center' }}>::</span>
         <span
           onClick={() => onSelectModule && onSelectModule(node.module, node.name)}
-          style={{ color: 'var(--cyan)', cursor: 'pointer' }}
+          style={{
+            color: 'var(--cyan)', cursor: 'pointer',
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}
           title="open module source"
         >{node.module}</span>
         {node.cyclic && (

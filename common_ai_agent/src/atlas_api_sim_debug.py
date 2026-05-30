@@ -14,6 +14,8 @@ closure bindings.
 from __future__ import annotations
 
 import asyncio
+import os
+import shlex
 from pathlib import Path
 from typing import Any, Callable, FrozenSet, Optional
 
@@ -460,6 +462,44 @@ def register_sim_debug_routes(
             return JSONResponse({"error": str(e)}, status_code=503)
         except Exception as e:
             return JSONResponse({"error": str(e)}, status_code=500)
+
+
+    @app.get("/api/module/signals")
+    async def api_module_signals(module: str, top: str = "", sources: str = "",
+                                 ip: str = "", backend: str = ""):
+        """List every declared signal of one RTL module: ports (with
+        in/out/inout direction) plus internal nets/variables, each with
+        type, bit width, and file:line. Drives the Debug left-panel signal
+        list when the user clicks a module in the hierarchy tree.
+
+        Always elaborated via pyslang (the only backend exposing port
+        directions). Same source resolution as /api/hierarchy."""
+        if not module:
+            return JSONResponse({"error": "module parameter required", "signals": []}, status_code=400)
+        try:
+            mod = _load_sim_debug_elab()
+            module_signals_cached = mod.module_signals_cached
+            from atlas_sim_debug_top import resolve_sim_debug_top
+        except Exception as e:
+            return JSONResponse({"error": f"elab module: {e}", "signals": []}, status_code=500)
+        srcs = _elab_resolve_sources(sources, ip)
+        if not srcs:
+            return JSONResponse({"error": "no SV sources matched", "signals": []}, status_code=400)
+        top_info = resolve_sim_debug_top(PROJECT_ROOT, ip=ip, requested_top=top)
+        resolved_top = top_info.get("top") or top or module
+        try:
+            res = await asyncio.to_thread(
+                module_signals_cached, backend, resolved_top, module, srcs)
+            res = dict(res)
+            res["requested_top"] = top
+            res["resolved_top"] = resolved_top
+            res["sources"] = [p.relative_to(PROJECT_ROOT).as_posix() for p in srcs]
+            status_code = 200 if res.get("signals") else (200 if not res.get("error") else 404)
+            return JSONResponse(res, status_code=status_code)
+        except ValueError as e:
+            return JSONResponse({"error": str(e), "signals": []}, status_code=503)
+        except Exception as e:
+            return JSONResponse({"error": str(e), "signals": []}, status_code=500)
 
 
     @app.get("/api/cocotb")

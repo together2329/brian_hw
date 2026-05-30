@@ -49,6 +49,32 @@ def test_sv_get_ports_falls_back_to_regex_when_pyslang_api_drifts(tmp_path, monk
     assert all("SyntaxTree" in p["warning"] for p in ports)
 
 
+def test_sv_get_ports_resolves_active_ip_relative_rtl_path(tmp_path, monkeypatch):
+    import core.tools_verilog as tools_verilog
+
+    ip = "NEWIP_MCTP"
+    project_root = tmp_path / "served_root"
+    server_cwd = tmp_path / "common_ai_agent"
+    path = project_root / ip / "rtl" / "NEWIP_MCTP.sv"
+    path.parent.mkdir(parents=True)
+    server_cwd.mkdir(parents=True)
+    path.write_text(
+        "module NEWIP_MCTP(input logic clk_i, output logic irq_o); endmodule\n",
+        encoding="utf-8",
+    )
+
+    monkeypatch.chdir(server_cwd)
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(project_root))
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", ip)
+    monkeypatch.setattr(tools_verilog, "HAS_PYSLANG", False)
+    monkeypatch.setattr(tools_verilog, "_PYSLANG_UNAVAILABLE_REASON", "test")
+
+    ports = tools_verilog.sv_get_ports("rtl/NEWIP_MCTP.sv")
+
+    assert {port["name"] for port in ports} == {"clk_i", "irq_o"}
+    assert all(port["backend"] == "regex-fallback" for port in ports)
+
+
 def test_sv_get_hierarchy_falls_back_to_regex_when_pyslang_api_drifts(tmp_path, monkeypatch):
     import core.tools_verilog as tools_verilog
 

@@ -1,0 +1,207 @@
+{
+  "schema_version": 1,
+  "type": "fl_rtl_goal_audit",
+  "ip": "mctp_assembler",
+  "generated_at": "2026-05-30T08:43:38Z",
+  "status": "fail",
+  "source_of_truth": {
+    "ssot": "mctp_assembler/yaml/mctp_assembler.ssot.yaml",
+    "functional_model": "mctp_assembler/model/functional_model.py",
+    "cycle_model": "SSOT cycle_model section",
+    "equivalence_goals": "mctp_assembler/verify/equivalence_goals.json"
+  },
+  "summary": {
+    "total_checks": 16,
+    "passed_checks": 8,
+    "failed_checks": 8,
+    "blockers": [
+      "req",
+      "dut_compile",
+      "dut_lint",
+      "scoreboard_contract",
+      "simulation",
+      "fl_rtl_compare",
+      "mismatch_classification",
+      "functional_coverage"
+    ]
+  },
+  "checks": [
+    {
+      "id": "req",
+      "label": "Human-approved requirement artifact exists",
+      "status": "fail",
+      "owner": "human gate",
+      "evidence": [
+        "mctp_assembler/req/mctp_assembler_requirements.md"
+      ],
+      "detail": "requirement markdown must exist under req/, contain at least 1000 bytes, contain no TODO/TBD markers, and match req/approval_manifest.json; bytes=5524; approval_manifest=False; pending_review=False; review_decision=False; missing or invalid approval manifest: missing req/approval_manifest.json",
+      "next_action": "capture requirement intent in mctp_assembler/req/*.md before SSOT signoff"
+    },
+    {
+      "id": "ssot",
+      "label": "SSOT contains function_model and cycle_model source of truth",
+      "status": "pass",
+      "owner": "ssot-gen",
+      "evidence": "mctp_assembler/yaml/mctp_assembler.ssot.yaml",
+      "detail": "SSOT parsed with function_model and cycle_model",
+      "next_action": "repair SSOT from requirement answers; do not infer product behavior in RTL"
+    },
+    {
+      "id": "fl_model",
+      "label": "Executable functional model passes self-check",
+      "status": "pass",
+      "owner": "fl-model-gen",
+      "evidence": [
+        "mctp_assembler/model/functional_model.py",
+        "mctp_assembler/model/fl_model_check.json"
+      ],
+      "detail": "fl_model_check.passed=True",
+      "next_action": "rerun /ssot-equiv-goals mctp_assembler after repairing FunctionalModel from SSOT"
+    },
+    {
+      "id": "fl_decomposition",
+      "label": "Functional model decomposition is complete",
+      "status": "pass",
+      "owner": "fl-model-gen",
+      "evidence": "mctp_assembler/model/decomposition.json",
+      "detail": "complete=True units=7",
+      "next_action": "split FunctionalModel behavior into units before coverage/equivalence planning"
+    },
+    {
+      "id": "fcov_plan",
+      "label": "Functional coverage plan exists before RTL signoff",
+      "status": "pass",
+      "owner": "fl-model-gen",
+      "evidence": "mctp_assembler/cov/fcov_plan.json",
+      "detail": "planned_before_rtl=True bins=11",
+      "next_action": "derive functional coverage bins from SSOT/decomposition before RTL/TB signoff"
+    },
+    {
+      "id": "equivalence_goals",
+      "label": "SSOT-traceable equivalence goals are generated",
+      "status": "pass",
+      "owner": "fl-model-gen",
+      "evidence": "mctp_assembler/verify/equivalence_goals.json",
+      "detail": "total=74 blocked=0 errors=[]",
+      "next_action": "rerun /ssot-equiv-goals mctp_assembler or answer SSOT blockers"
+    },
+    {
+      "id": "module_equivalence_goals",
+      "label": "Each RTL owner module has an exact FL-vs-RTL functionality goal",
+      "status": "pass",
+      "owner": "fl-model-gen",
+      "evidence": "mctp_assembler/verify/equivalence_goals.json",
+      "detail": "legacy fixture without module contracts",
+      "next_action": "rerun /ssot-fl-model and /ssot-equiv-goals; every module owning function_model refs needs a scope.level=module goal"
+    },
+    {
+      "id": "rtl_artifacts",
+      "label": "RTL and filelist artifacts exist without placeholder markers",
+      "status": "pass",
+      "owner": "rtl-gen",
+      "evidence": [
+        "mctp_assembler/rtl/mctp_assembler.sv",
+        "mctp_assembler/rtl/mctp_assembler_apb_regfile.sv",
+        "mctp_assembler/rtl/mctp_assembler_axi_write_ingress.sv",
+        "mctp_assembler/rtl/mctp_assembler_cdc.sv",
+        "mctp_assembler/rtl/mctp_assembler_context_table.sv",
+        "mctp_assembler/rtl/mctp_assembler_mctp_parser.sv",
+        "mctp_assembler/rtl/mctp_assembler_payload_writer.sv",
+        "mctp_assembler/rtl/mctp_assembler_pcie_vdm_parser.sv",
+        "mctp_assembler/list/mctp_assembler.f"
+      ],
+      "detail": "rtl_files=8 list_exists=True",
+      "next_action": "run /ssot-rtl mctp_assembler; repair only RTL when SSOT/FL behavior is clear"
+    },
+    {
+      "id": "dut_compile",
+      "label": "DUT-only RTL compile evidence passes with a real HDL tool",
+      "status": "fail",
+      "owner": "rtl-gen",
+      "evidence": "mctp_assembler/rtl/rtl_compile.json",
+      "detail": "passed=False dut_only=True tool=iverilog",
+      "next_action": "run a DUT-only compile command with verilator/pyslang/slang/iverilog and repair diagnostics"
+    },
+    {
+      "id": "dut_lint",
+      "label": "DUT-only lint evidence passes with a real HDL lint/parser tool",
+      "status": "fail",
+      "owner": "rtl-gen",
+      "evidence": "mctp_assembler/lint/dut_lint.json",
+      "detail": "passed=False dut_only=True tool=pyslang+verilator",
+      "next_action": "run DUT-only lint; do not count cocotb/pytest as RTL lint evidence"
+    },
+    {
+      "id": "scoreboard_contract",
+      "label": "TB consumes equivalence_goals.json and emits required scoreboard rows",
+      "status": "fail",
+      "owner": "tb-gen",
+      "evidence": [
+        "mctp_assembler/sim/scoreboard_events.jsonl",
+        "workflow/tb-gen/scripts/check_scoreboard_events.py"
+      ],
+      "detail": "[check_scoreboard_events] FAIL: line 1: unknown goal_id SC_APB_REGS\n[check_scoreboard_events] FAIL: line 1: fl_expected must come from FunctionalModel.apply\n[check_scoreboard_events] FAIL: line 3: unknown goal_id SC_APB_REGS\n[check_scoreboard_events] FAIL: line 3: fl_expected must come from FunctionalModel.apply\n[check_scoreboard_events] FAIL: line 5: unknown goal_id SC_VALID_SINGLE_PACKET\n[check_scoreboard_events] FAIL: line 5: fl_expected must come from FunctionalModel.apply\n[check_scoreboard_events] FAIL: line 7: unknown goal_id SC_DROP_WRONG_VENDOR\n[check_scoreboard_events] FAIL: line 7: fl_expected must come from FunctionalModel.apply\n[check_scoreboard_events] FAIL: line 9: unknown goal_id SC_MULTI_PACKET\n[check_scoreboard_events] FAIL: line 9: fl_expected must come from FunctionalModel.apply\n[check_scoreboard_events] FAIL: line 11: unknown goal_id SC_INTERLEAVE_TWO\n[check_scoreboard_events] FAIL: line 11: fl_expected must come from FunctionalModel.apply\n[check_scoreboard_events] FAIL: line 13: unknown goal_id SC_SEQ_ERROR\n[check_scoreboard_events] FAIL: line 13: fl_expected must come from FunctionalModel.apply\n[check_scoreboard_events] FAIL: line 15: unknown goal_id SC_INTERLEAVED_TAGS\n[check_scoreboard_events] FAIL: line 15: fl_expected must come from FunctionalModel.apply\n[check_scoreboard_events] FAIL: line 17: unknown goal_id SC_INTERLEAVED_TAGS\n[check_scoreboard_events] FAIL: line 17: fl_expected must come from FunctionalModel.apply\n[check_scoreboard_events] FAIL: line 19: unknown goal_id SC_CONTEXT_FULL\n[check_scoreboard_events] FAIL: line 19: fl_expected must come from FunctionalModel.apply\n[check_scoreboard_events] FAIL: line 21: unknown goal_id SC_CONTEXT_FULL\n[check_scoreboard_events] FAIL: line 21: fl_expected must come from FunctionalModel.apply\n[check_scoreboard_events] FAIL: line 23: unknown goal_id SC_CONTEXT_FULL\n[check_scoreboard_events] FAIL: line 23: fl_expected must come from FunctionalModel.apply\n[check_scoreboard_events] FAIL: missing scoreboard rows for required goals: EQ_DEBUG_OBSERVABILITY, EQ_ERROR_NONE, EQ_MEMORY_EXTERNAL_SRAM_WRITE_PORT, EQ_MEMORY_INTERNAL_CONTEXT_TABLE, EQ_MEMORY_INTERNAL_DESCRIPTOR_FIFO, EQ_PROTOCOL_HANDSHAKE_0, EQ_PROTOCOL_HANDSHAKE_1, EQ_PROTOCOL_HANDSHAKE_2, EQ_PROTOCOL_HANDSHAKE_3, EQ_REGISTER_ASSEMBLY_DROP_COUNT, EQ_REGISTER_CONTROL, EQ_REGISTER_DEBUG_CONTEXT_DATA0, ... +54",
+      "next_action": "repair cocotb/pyuvm TB to instantiate EquivalenceScoreboard and cover all required goals"
+    },
+    {
+      "id": "simulation",
+      "label": "RTL simulation completed with waveform evidence",
+      "status": "fail",
+      "owner": "sim",
+      "evidence": [
+        "mctp_assembler/sim/results.xml"
+      ],
+      "detail": "{\"errors\": 0, \"exists\": true, \"failures\": 0, \"parse_error\": \"\", \"tests\": 1}",
+      "next_action": "run /sim mctp_assembler; simulation must emit results.xml, scoreboard_events.jsonl, and waveform"
+    },
+    {
+      "id": "fl_rtl_compare",
+      "label": "FL-vs-RTL comparator passes all equivalence goals",
+      "status": "fail",
+      "owner": "sim_debug",
+      "evidence": "mctp_assembler/sim/fl_rtl_compare.json",
+      "detail": "missing sim/fl_rtl_compare.json",
+      "next_action": "run /sim-debug mctp_assembler; repair classified owner or answer human gate"
+    },
+    {
+      "id": "mismatch_classification",
+      "label": "Mismatches are absent or fully routed before signoff",
+      "status": "fail",
+      "owner": "sim_debug",
+      "evidence": "mctp_assembler/sim/mismatch_classification.json",
+      "detail": "missing sim/mismatch_classification.json",
+      "next_action": "loopable classifications may repair the owner; human classifications must open ATLAS question and persist answer"
+    },
+    {
+      "id": "functional_coverage",
+      "label": "Functional coverage is backed by RTL-observed scoreboard evidence",
+      "status": "fail",
+      "owner": "tb-gen",
+      "evidence": "mctp_assembler/cov/coverage.json",
+      "detail": "missing cov/coverage.json",
+      "next_action": "rerun /coverage after /sim; coverage must be proven by passing scoreboard rows with real rtl_observed signals"
+    },
+    {
+      "id": "fresh_evidence",
+      "label": "Simulation, compare, and coverage evidence is newer than SSOT/model inputs",
+      "status": "pass",
+      "owner": "LLM loop",
+      "evidence": [],
+      "detail": "evidence is fresh",
+      "next_action": "rerun /sim mctp_assembler and /sim-debug mctp_assembler after source artifact changes"
+    }
+  ],
+  "stop_condition": {
+    "req_ok": false,
+    "ssot_ok": true,
+    "fl_model_pass": true,
+    "cycle_model_present": true,
+    "equivalence_goals_generated": true,
+    "scoreboard_from_goals": false,
+    "simulation_complete": false,
+    "fl_rtl_compare_complete": false,
+    "mismatches_classified_or_zero": false,
+    "coverage_linked": false,
+    "signoff_evidence_backed": false
+  }
+}

@@ -174,6 +174,7 @@ def default_apb_setup(
         ApbWrite(A_SRAM_BASE, DEFAULT_SRAM_BASE),
         ApbWrite(A_SRAM_LIMIT, DEFAULT_SRAM_LIMIT),
         ApbWrite(A_MAX_MSG, DEFAULT_MAX_MSG),
+        ApbWrite(A_MTU_TIMEOUT, 64),
         ApbWrite(A_LOCAL_EID, local_eid & 0xFF),
         ApbWrite(A_CONTROL, control),
     ]
@@ -376,6 +377,61 @@ def _scenario_seq_error() -> Scenario:
     )
 
 
+def _payload_bytes(count: int, seed: int = 0) -> List[int]:
+    return [0x7E] + [(seed + idx) & 0xFF for idx in range(max(0, count - 1))]
+
+
+def _scenario_mtu_per_fragment() -> Scenario:
+    setup = default_apb_setup()
+    setup = [w for w in setup if w.addr != A_MTU_TIMEOUT] + [ApbWrite(A_MTU_TIMEOUT, 32)]
+    tlp = build_mctp_pcie_vdm_packet(
+        dest_eid=DEFAULT_LOCAL_EID,
+        source_eid=9,
+        som=1,
+        eom=1,
+        payload=_payload_bytes(40),
+    )
+    return Scenario(
+        scenario_id="SC_MTU_PER_FRAGMENT",
+        description="Single fragment larger than configured MTU is rejected",
+        apb_setup=setup,
+        tlps=[tlp],
+        axi_bursts=[burst_from_tlp(tlp)],
+        expect_assembly_drop=True,
+        coverage_refs=["SC_MTU_PER_FRAGMENT"],
+    )
+
+
+def _scenario_multi_fragment_over_64b() -> Scenario:
+    p0 = build_mctp_pcie_vdm_packet(
+        dest_eid=DEFAULT_LOCAL_EID,
+        source_eid=10,
+        som=1,
+        eom=0,
+        seq=0,
+        message_tag=5,
+        payload=_payload_bytes(40),
+    )
+    p1 = build_mctp_pcie_vdm_packet(
+        dest_eid=DEFAULT_LOCAL_EID,
+        source_eid=10,
+        som=0,
+        eom=1,
+        seq=1,
+        message_tag=5,
+        payload=_payload_bytes(40, seed=0x20),
+    )
+    return Scenario(
+        scenario_id="SC_MULTI_FRAGMENT_OVER_64B",
+        description="Two fragments each within MTU assemble to >64B total payload",
+        apb_setup=default_apb_setup(),
+        tlps=[p0, p1],
+        axi_bursts=[burst_from_tlp(p0), burst_from_tlp(p1)],
+        expect_descriptor=True,
+        coverage_refs=["SC_MULTI_FRAGMENT_OVER_64B", "SC_MULTI_PACKET"],
+    )
+
+
 def _scenario_wstrb_final() -> Scenario:
     tlp = build_mctp_pcie_vdm_packet(dest_eid=DEFAULT_LOCAL_EID, source_eid=6, payload=[0x7E, 0x01])
     beats = tlp_bytes_to_axi_beats(tlp)
@@ -403,6 +459,8 @@ SCENARIOS: dict[str, Scenario] = {
         _scenario_interleaved_tags(),
         _scenario_context_full(),
         _scenario_seq_error(),
+        _scenario_mtu_per_fragment(),
+        _scenario_multi_fragment_over_64b(),
         _scenario_wstrb_final(),
     ]
 }

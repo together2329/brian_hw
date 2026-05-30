@@ -92,6 +92,7 @@ class MctpScoreboard(uvm_scoreboard):
             sram_base=DEFAULT_SRAM_BASE,
             sram_limit=DEFAULT_SRAM_LIMIT,
             dest_filter_enable=True,
+            mtu_bytes=64,
         )
 
     def begin_test_evidence(self) -> None:

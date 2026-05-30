@@ -11,7 +11,8 @@
 // values stay `any`, same permissive house style as sim-debug-helpers.tsx).
 //
 // Load order: imported by sim-debug.tsx. Owns no window bridge.
-import type { ReactNode } from 'react';
+import { useRef, useState } from 'react';
+import type { MouseEvent as ReactMouseEvent, ReactNode } from 'react';
 import { CocotbTreeView, SourceViewer, HierarchyNode } from './sim-debug-panels';
 import type { VcdData, VcdSignal } from './sim-debug-helpers';
 import { waveSignalMatches } from './sim-debug-helpers';
@@ -42,6 +43,31 @@ export const HierarchyPanel = ({
   vcdData, selectedSig, selectedSigScope, wavePinnedSignals, onSelectWaveSignal,
   showSignalHierarchy,
 }: HierarchyPanelProps): ReactNode => {
+  const [hierFrac, setHierFrac] = useState(0.62);
+  const dragRef = useRef<{ startY: number; startFrac: number; bodyH: number } | null>(null);
+  const startSignalResize = (e: ReactMouseEvent) => {
+    e.preventDefault();
+    const host = (e.currentTarget as HTMLElement).parentElement;
+    dragRef.current = {
+      startY: e.clientY,
+      startFrac: hierFrac,
+      bodyH: host?.clientHeight || 420,
+    };
+    const onMove = (ev: MouseEvent) => {
+      const d = dragRef.current;
+      if (!d) return;
+      const next = Math.max(0.25, Math.min(0.85, d.startFrac + (ev.clientY - d.startY) / d.bodyH));
+      setHierFrac(next);
+    };
+    const onUp = () => {
+      dragRef.current = null;
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'var(--panel)', borderRight: '1px solid var(--line)' }}>
       <div className="mini-h" style={{ display: 'flex', alignItems: 'center' }}>
@@ -84,27 +110,40 @@ export const HierarchyPanel = ({
           onOpenFile={(p: string, line?: number) => loadSourceFile(p, line || 0)}
         />
       ) : (
-      <div style={{ flex: 1, overflow: 'auto', padding: 8, fontFamily: 'var(--mono)', fontSize: 11 }}>
-        {hierarchy ? (
-          <HierarchyNode node={hierarchy} depth={0}
-            onSelectModule={onSelectModule}
-            activeModule={srcModule} />
-        ) : (
-          <div style={{ color: 'var(--fg-mute)', padding: 8 }}>
-            No RTL hierarchy yet.<br />
-            {hierarchyError ? (
-              <span style={{ color: 'var(--err)' }}>{hierarchyError}</span>
-            ) : (
-              <span>Pick a workspace IP to elaborate.</span>
-            )}
-          </div>
-        )}
-        {vcdData && vcdData.signals && vcdData.signals.length > 0 && (
-          <div style={{ marginTop: 16 }}>
-            <div style={{ color: 'var(--fg-mute)', fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 4 }}>
-              signals ({vcdData.signals.length})
+      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', fontFamily: 'var(--mono)', fontSize: 11 }}>
+        <div style={{ flex: `${Math.round(hierFrac * 100)} ${Math.round(hierFrac * 100)} 0`, minHeight: 0, overflow: 'auto', padding: 8 }}>
+          {hierarchy ? (
+            <HierarchyNode node={hierarchy} depth={0}
+              onSelectModule={onSelectModule}
+              activeModule={srcModule} />
+          ) : (
+            <div style={{ color: 'var(--fg-mute)', padding: 8 }}>
+              No RTL hierarchy yet.<br />
+              {hierarchyError ? (
+                <span style={{ color: 'var(--err)' }}>{hierarchyError}</span>
+              ) : (
+                <span>Pick a workspace IP to elaborate.</span>
+              )}
             </div>
-            {vcdData.signals.slice(0, 30).map((s: VcdSignal) => {
+          )}
+        </div>
+        <div
+          onMouseDown={startSignalResize}
+          onDoubleClick={() => setHierFrac(0.62)}
+          title="resize hierarchy/signals panes"
+          style={{
+            height: 4,
+            flexShrink: 0,
+            background: 'var(--line)',
+            cursor: 'row-resize',
+          }}
+        />
+        <div style={{ flex: `${Math.round((1 - hierFrac) * 100)} ${Math.round((1 - hierFrac) * 100)} 0`, minHeight: 0, overflow: 'auto', borderTop: '1px solid var(--line)', padding: 8 }}>
+          <div style={{ color: 'var(--fg-mute)', fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 4 }}>
+            signals {vcdData?.signals?.length ? `(${vcdData.signals.length})` : ''}
+          </div>
+          {vcdData && vcdData.signals && vcdData.signals.length > 0 ? (
+            vcdData.signals.slice(0, 30).map((s: VcdSignal) => {
               const isSelected = selectedSig === s.name && (!selectedSigScope || selectedSigScope === s.scope);
               const isPinned = wavePinnedSignals.some(pin => waveSignalMatches(s, pin.name, pin.scope));
               return (
@@ -126,9 +165,13 @@ export const HierarchyPanel = ({
                   </span>
                 </div>
               );
-            })}
-          </div>
-        )}
+            })
+          ) : (
+            <div style={{ color: 'var(--fg-mute)', fontSize: 10 }}>
+              No waveform signals loaded.
+            </div>
+          )}
+        </div>
       </div>
       )}
     </div>

@@ -73,6 +73,10 @@ export const _toolDisplay = (name: any) => {
   return _TOOL_CHAT_ALIAS[tool] || tool || 'tool';
 };
 
+export const atlasIsIterationMarkerText = (text: any): boolean => {
+  return /^──\s*Iter\s+\d+\s*\/\s*\d+(?:\s+\[[^\]]+\])?\s*$/.test(String(text || '').trim());
+};
+
 // Direct workflow/slash results also arrive as `slash_output`, which is the
 // user-facing Markdown surface. Keep their mirrored `tool_result` event for
 // data refresh subscribers, but do not render it again as a plain obs block.

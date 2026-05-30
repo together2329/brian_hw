@@ -35,6 +35,7 @@ import {
   atlasResolveScmTab,
   atlasScmTabLabel,
   workspaceFetchWorkerSnapshot,
+  atlasIsIterationMarkerText,
   INPUT_HISTORY_LIMIT,
   QA_HISTORY_LIMIT,
   QA_HISTORY_LEGACY_STORAGE_KEY,
@@ -214,6 +215,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
 
   const [peerCount, setPeerCount] = useState<number>(1);
   // streamText is composer-owned now (destructured from deps above).
+  const feedPinnedToBottomRef = useRef<boolean>(true);
 
   // streaming is owned by the composer (shared with the session half) but the
   // ref-sync + window-broadcast side effects live here next to the chat feed,
@@ -422,6 +424,115 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       activeSession,
     ]);
   })();
+
+  const eventMatchesCurrentSession = useCallback((m: any, opts: { requireSession?: boolean } = {}) => {
+    const eventSession = normalizeUiSession((m && (m.session_id || m.session || m.namespace)) || '');
+    const active = normalizeUiSession(w.ACTIVE_SESSION || activeSessionRef.current || currentSession || '');
+    if (!active) return !opts.requireSession;
+    if (!eventSession) return !opts.requireSession;
+    if (eventSession === active) return true;
+    const eventParts = eventSession.split('/').filter(Boolean);
+    const activeParts = active.split('/').filter(Boolean);
+    const minLen = Math.min(eventParts.length, activeParts.length);
+    return minLen >= 2 && eventParts.slice(-minLen).join('/') === activeParts.slice(-minLen).join('/');
+  }, [activeSessionRef, currentSession]);
+
+  const parkLiveStream = useCallback(() => {
+    const text = String(streamBufferRef.current || '').replace(/\u0000/g, '');
+    if (text.trim()) {
+      appendLiveFeedEntries({ kind: 'agent', text, createdAt: Date.now(), live: true });
+    }
+    streamBufferRef.current = '';
+    setStreamText('');
+  }, [appendLiveFeedEntries, setStreamText, streamBufferRef]);
+
+  useEffect(() => {
+    if (!w.backend || typeof w.backend.subscribe !== 'function') return undefined;
+    const subs: Array<(() => void) | undefined> = [];
+    const finishRun = () => {
+      parkLiveStream();
+      setStreaming(false);
+      awaitingRunStartRef.current = false;
+      backendRunStartedRef.current = false;
+      setCommandBusy(null);
+    };
+    try {
+      subs.push(w.backend.subscribe('token', (m: any) => {
+        if (!eventMatchesCurrentSession(m)) return;
+        const text = String((m && (m.text ?? m.token ?? m.content)) || '').replace(/\u0000/g, '');
+        if (!text) return;
+        streamBufferRef.current += text;
+        setStreamText(streamBufferRef.current);
+        setStreaming(true);
+      }));
+      subs.push(w.backend.subscribe('reasoning', (m: any) => {
+        if (!eventMatchesCurrentSession(m)) return;
+        const text = String((m && m.text) || '').trim();
+        if (text) appendLiveFeedEntries({ kind: 'thought', text, createdAt: Date.now(), live: true });
+      }));
+      subs.push(w.backend.subscribe('tool', (m: any) => {
+        if (!eventMatchesCurrentSession(m)) return;
+        const text = String((m && m.text) || '').trim();
+        if (!text) return;
+        parkLiveStream();
+        appendLiveFeedEntries({
+          kind: atlasIsIterationMarkerText(text) ? 'iter_marker' : 'action',
+          text,
+          tool: (m && m.tool) || '',
+          createdAt: Date.now(),
+          live: true,
+        });
+      }));
+      subs.push(w.backend.subscribe('tool_result', (m: any) => {
+        if (!eventMatchesCurrentSession(m)) return;
+        const text = String((m && (m.text || m.content)) || '').trim();
+        if (text) appendLiveFeedEntries({ kind: 'obs', text, tool: (m && m.tool) || '', createdAt: Date.now(), live: true });
+      }));
+      subs.push(w.backend.subscribe('slash_output', (m: any) => {
+        if (!eventMatchesCurrentSession(m)) return;
+        const text = String((m && m.text) || '').trim();
+        if (!text) return;
+        parkLiveStream();
+        appendLiveFeedEntries({ kind: 'agent', text, createdAt: Date.now(), live: true });
+        setCommandBusy(null);
+      }));
+      subs.push(w.backend.subscribe('flush', (m: any) => {
+        if (!eventMatchesCurrentSession(m)) return;
+        parkLiveStream();
+      }));
+      subs.push(w.backend.subscribe('done', (m: any) => {
+        if (!eventMatchesCurrentSession(m)) return;
+        finishRun();
+      }));
+      subs.push(w.backend.subscribe('agent_state', (m: any) => {
+        if (!eventMatchesCurrentSession(m)) return;
+        if (m && m.running === true) {
+          backendRunStartedRef.current = true;
+          setStreaming(true);
+          return;
+        }
+        if (m && m.running === false) {
+          finishRun();
+        }
+      }));
+      subs.push(w.backend.subscribe('error', (m: any) => {
+        if (!eventMatchesCurrentSession(m)) return;
+        const message = String((m && (m.message || m.error)) || '').trim();
+        if (message) appendLiveFeedEntries({ kind: 'agent', text: `[error] ${message}`, createdAt: Date.now(), live: true });
+        finishRun();
+      }));
+    } catch (_) {}
+    return () => {
+      subs.forEach((unsub) => { try { if (unsub) unsub(); } catch (_) {} });
+    };
+  }, [
+    appendLiveFeedEntries,
+    eventMatchesCurrentSession,
+    parkLiveStream,
+    setStreamText,
+    setStreaming,
+    streamBufferRef,
+  ]);
 
   useEffect(() => {
     // Single Worker mode binds the selected workflow to the active chat session.
@@ -1146,8 +1257,17 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     }
   };
 
+  const updateFeedPinnedToBottom = useCallback(() => {
+    const el = feedRef.current;
+    if (!el) return;
+    const distance = Number(el.scrollHeight || 0) - Number(el.scrollTop || 0) - Number(el.clientHeight || 0);
+    feedPinnedToBottomRef.current = distance <= 96;
+  }, [feedRef]);
+
   useEffect(() => {
-    if (feedRef.current) feedRef.current.scrollTop = feedRef.current.scrollHeight;
+    const el = feedRef.current;
+    if (!el || !feedPinnedToBottomRef.current) return;
+    el.scrollTop = el.scrollHeight;
   }, [feed, streamText, mainTab]);
 
   // shift+tab swaps Normal ↔ Plan.
@@ -2305,6 +2425,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       feedRef={feedRef}
       streamText={streamText}
       style={style}
+      onScroll={updateFeedPinnedToBottom}
       feedEntriesProps={{
         feed,
         qaState,

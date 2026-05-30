@@ -25,7 +25,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 vi.setConfig({ testTimeout: 30000, hookTimeout: 30000 }); // full-app mount in jsdom is >5s under load
 
-import { render, cleanup, within } from '@testing-library/react';
+import { render, cleanup, within, act, waitFor, fireEvent } from '@testing-library/react';
 
 // Establish the SAME window bridges the live app loads before the workspace
 // bundle. ui-utils.tsx publishes window.CopyBtn / window._copyToClipboard on
@@ -75,12 +75,22 @@ function installWindowStubs() {
   w.FILE_TREE_LOADING = false;
   w.FILE_TREE_ERROR = null;
   w.FILE_TREE_LAST_REFRESH = 0;
-  // Backend bridge — a no-op send/subscribe surface so status reads resolve.
+  // Backend bridge — a tiny pubsub surface so Workspace can exercise live
+  // agent_state/token cleanup without a real WebSocket.
+  const backendHandlers: Record<string, Set<(payload: any) => void>> = {};
   w.backend = {
     send: vi.fn(),
     on: vi.fn(),
     off: vi.fn(),
     state: 'open',
+    getConnectionState: () => 'open',
+    subscribe: vi.fn((type: string, cb: (payload: any) => void) => {
+      (backendHandlers[type] = backendHandlers[type] || new Set()).add(cb);
+      return () => backendHandlers[type]?.delete(cb);
+    }),
+    _emit: (type: string, payload: any = {}) => {
+      (backendHandlers[type] || new Set()).forEach((cb) => cb({ type, ...payload }));
+    },
   };
   // Banner logic helper (optional-chained in the prompt row).
   w.AtlasBannerLogic = {
@@ -146,5 +156,103 @@ describe('Workspace render smoke (the behavioral gate)', () => {
   it('registered window.Workspace on import (app-shell mount bridge)', async () => {
     await import('../workspace.tsx');
     expect(typeof (window as AnyWindow).Workspace).toBe('function');
+  });
+
+  it('publishes the fold color palette used by JSON file previews', async () => {
+    await import('../workspace.tsx');
+    const palette = (window as AnyWindow)._FOLD_KIND_COLOR;
+    expect(palette).toBeTruthy();
+    expect(palette.object).toBeTruthy();
+    expect(palette.array).toBeTruthy();
+  });
+
+  it('clears the Workspace Agent responding banner on agent_state false', async () => {
+    const { Workspace } = await import('../workspace.tsx');
+    const { queryByText } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
+    const backend = (window as AnyWindow).backend;
+
+    await act(async () => {
+      backend._emit('agent_state', { running: true });
+    });
+    await waitFor(() => expect(queryByText('Agent responding')).not.toBeNull());
+
+    await act(async () => {
+      backend._emit('agent_state', { running: false });
+    });
+    await waitFor(() => expect(queryByText('Agent responding')).toBeNull());
+    expect(queryByText(/End of loop/)).not.toBeNull();
+  });
+
+  it('hides backend iteration markers from the visible chat feed', async () => {
+    const { Workspace } = await import('../workspace.tsx');
+    const { queryByText } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
+    const backend = (window as AnyWindow).backend;
+
+    await act(async () => {
+      backend._emit('tool', { text: '── Iter 1 / 1000  [gpt-5.5]' });
+    });
+
+    expect(queryByText(/Iter 1 \/ 1000/)).toBeNull();
+    expect(queryByText(/^action$/i)).toBeNull();
+  });
+
+  it('does not force-scroll the chat feed while the user is reading older content', async () => {
+    const { Workspace } = await import('../workspace.tsx');
+    const { container } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
+    const backend = (window as AnyWindow).backend;
+    const pane = container.querySelector('.workspace-chat-scroll') as HTMLElement;
+    expect(pane).not.toBeNull();
+
+    let scrollTop = 100;
+    Object.defineProperty(pane, 'scrollTop', {
+      configurable: true,
+      get: () => scrollTop,
+      set: (value) => { scrollTop = Number(value); },
+    });
+    Object.defineProperty(pane, 'scrollHeight', { configurable: true, get: () => 1000 });
+    Object.defineProperty(pane, 'clientHeight', { configurable: true, get: () => 400 });
+
+    fireEvent.scroll(pane);
+    await act(async () => {
+      backend._emit('token', { text: 'new live token' });
+    });
+
+    expect(scrollTop).toBe(100);
+  });
+
+  it('keeps auto-scroll enabled when the chat feed is already near the bottom', async () => {
+    const { Workspace } = await import('../workspace.tsx');
+    const { container } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
+    const backend = (window as AnyWindow).backend;
+    const pane = container.querySelector('.workspace-chat-scroll') as HTMLElement;
+    expect(pane).not.toBeNull();
+
+    let scrollTop = 590;
+    Object.defineProperty(pane, 'scrollTop', {
+      configurable: true,
+      get: () => scrollTop,
+      set: (value) => { scrollTop = Number(value); },
+    });
+    Object.defineProperty(pane, 'scrollHeight', { configurable: true, get: () => 1000 });
+    Object.defineProperty(pane, 'clientHeight', { configurable: true, get: () => 400 });
+
+    fireEvent.scroll(pane);
+    await act(async () => {
+      backend._emit('token', { text: 'new live token' });
+    });
+
+    expect(scrollTop).toBe(1000);
+  });
+
+  it('ignores NUL-only stream tokens so keepalives do not create blank running turns', async () => {
+    const { Workspace } = await import('../workspace.tsx');
+    const { queryByText } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
+    const backend = (window as AnyWindow).backend;
+
+    await act(async () => {
+      backend._emit('token', { text: '\u0000' });
+    });
+
+    expect(queryByText('Agent responding')).toBeNull();
   });
 });

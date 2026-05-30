@@ -1,14 +1,31 @@
 ===== pyslang =====
 command: pyslang rtl/mctp_assembler_axi_write_ingress.sv rtl/mctp_assembler_pcie_vdm_parser.sv rtl/mctp_assembler_mctp_parser.sv rtl/mctp_assembler_context_table.sv rtl/mctp_assembler_payload_writer.sv rtl/mctp_assembler_apb_regfile.sv rtl/mctp_assembler_cdc.sv rtl/mctp_assembler.sv
 returncode: 0
-errors: 0 warnings: 0
+errors: 0 warnings: 1
 pyslang files: 8
-errors=0 warnings=0
+errors=0 warnings=1
+warning: mctp_assembler/rtl/mctp_assembler_payload_writer.sv:36 comparison of differently signed types ('logic[4:0]' and 'integer')
 
 ===== verilator =====
 command: verilator --lint-only -Wall -Irtl -f list/mctp_assembler.f --top-module mctp_assembler
-returncode: 0
-errors: 0 warnings: 0
-- V e r i l a t i o n   R e p o r t: Verilator 5.046 2026-02-28 rev vUNKNOWN-built20260228
-- Verilator: Built from 0.405 MB sources in 9 modules, into 0.306 MB in 3 C++ files needing 0.000 MB
-- Verilator: Walltime 0.956 s (elab=0.246, cvt=0.510, bld=0.000); cpu 0.190 s on 1 threads; allocated 13.219 MB
+returncode: 1
+errors: 0 warnings: 3
+%Warning-WIDTHTRUNC: rtl/mctp_assembler_axi_write_ingress.sv:55:20: Operator VAR 'EXPECTED_AWSIZE' expects 3 bits on the Initial value, but Initial value's CLOG2 generates 32 bits.
+                                                                  : ... note: In instance 'mctp_assembler.u_ingress'
+   55 |   localparam [2:0] EXPECTED_AWSIZE = $clog2(AXI_DATA_BYTES);
+      |                    ^~~~~~~~~~~~~~~
+                     ... For warning description see https://verilator.org/warn/WIDTHTRUNC?v=5.046
+                     ... Use "/* verilator lint_off WIDTHTRUNC */" and lint_on around source to disable this message.
+%Warning-WIDTHEXPAND: rtl/mctp_assembler_payload_writer.sv:36:31: Operator EQ expects 32 bits on the LHS, but LHS's VARREF 'lane_base' generates 5 bits.
+                                                                : ... note: In instance 'mctp_assembler.u_writer'
+   36 |   wire beat_full = (lane_base == (SRAM_DATA_BYTES - 1));
+      |                               ^~
+                      ... For warning description see https://verilator.org/warn/WIDTHEXPAND?v=5.046
+                      ... Use "/* verilator lint_off WIDTHEXPAND */" and lint_on around source to disable this message.
+%Warning-UNUSEDSIGNAL: rtl/mctp_assembler.sv:175:9: Signal is not used: 'parse_fail_pulse'
+                                                  : ... note: In instance 'mctp_assembler'
+  175 |   logic parse_fail_pulse;
+      |         ^~~~~~~~~~~~~~~~
+                       ... For warning description see https://verilator.org/warn/UNUSEDSIGNAL?v=5.046
+                       ... Use "/* verilator lint_off UNUSEDSIGNAL */" and lint_on around source to disable this message.
+%Error: Exiting due to 3 warning(s)

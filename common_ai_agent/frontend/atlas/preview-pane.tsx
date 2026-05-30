@@ -428,7 +428,7 @@ const FoldablePane = ({ path, body, lang, lineCount, focusLine = 0, feedbackMode
     const children = node.children.slice().sort((a, b) => a.line_start - b.line_start);
     for (const c of children) {
       while (cursor < c.line_start) { out.push(renderLineRow(cursor)); cursor += 1; }
-      const color = g._FOLD_KIND_COLOR[c.kind as string] || 'var(--fg-mute)';
+      const color = (g._FOLD_KIND_COLOR || {})[c.kind as string] || 'var(--fg-mute)';
       const opened = true;
       const inner: ReactNode[] = [];
       // Keep the original start line in the body. The summary above is

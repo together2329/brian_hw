@@ -230,6 +230,22 @@ def test_run_command_runs_inside_active_ip_under_atlas_project_root(tmp_path, mo
     assert result == str(project_root / ip)
 
 
+def test_run_command_cd_active_ip_runs_from_atlas_project_root(tmp_path, monkeypatch):
+    ip = "uart_core"
+    project_root = tmp_path / "served_root"
+    server_cwd = tmp_path / "common_ai_agent"
+    (project_root / ip).mkdir(parents=True)
+    (server_cwd / ip).mkdir(parents=True)
+
+    monkeypatch.chdir(server_cwd)
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(project_root))
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", ip)
+
+    result = tools.run_command(f"cd {ip} && pwd", timeout=5)
+
+    assert result == str(project_root / ip)
+
+
 def test_run_command_detects_backslash_ip_path_prefix(tmp_path, monkeypatch):
     ip = "uart_core"
     project_root = tmp_path / "served_root"

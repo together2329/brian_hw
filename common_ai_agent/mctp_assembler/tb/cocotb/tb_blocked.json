@@ -1,23 +1,11 @@
 {
   "schema_version": 1,
   "type": "tb_blocker",
-  "status": "partial",
-  "owner": "sim_debug + rtl-gen",
+  "status": "clear",
+  "owner": "tb-gen",
   "ip": "mctp_assembler",
-  "reason": "EQ scenario goals are wired into scoreboard; RTL ingress/datapath still does not produce descriptors or error_status on valid TLP stimulus.",
-  "questions": [
-    {
-      "id": "RTL_INGRESS_TLP_VALID",
-      "decision_needed": "Determine why AXI bursts complete but tlp_valid/parse path leaves error_status=0 and descriptor fifo empty (SC_VALID_SINGLE_PACKET).",
-      "evidence": "scoreboard_events.jsonl: desc_count=0, error_status=0, packet_drop_count=0 after valid FM-matching TLP; SC_SEQ_ERROR 2nd burst awready timeout.",
-      "options": [
-        "Waveform probe cfg_enable, u_ingress.enable_lat_q, tlp_valid_q, byte_count_q on SC_VALID.",
-        "Compare ingress FSM against FunctionalModel byte capture for 20-byte two-beat TLP."
-      ],
-      "recommended_default": "Waveform probe cfg_enable, u_ingress.enable_lat_q, tlp_valid_q, byte_count_q on SC_VALID.",
-      "downstream_effect": "Happy-path EQ scenario goals and SRAM/descriptor checks remain blocked until ingress publishes TLPs."
-    }
-  ],
-  "next_action": "Run sim_debug with VCD on SC_VALID_SINGLE_PACKET; keep hand-authored TB + EquivalenceScoreboard scenario mirroring.",
-  "timestamp": "2026-05-29T07:00:00Z"
+  "reason": "Smoke scenarios aligned with SSOT/FM; ingress publishes descriptors on valid TLP stimulus.",
+  "questions": [],
+  "next_action": "Re-run cocotb smoke after RTL/FM/TB edits.",
+  "timestamp": "2026-05-30T00:00:00Z"
 }

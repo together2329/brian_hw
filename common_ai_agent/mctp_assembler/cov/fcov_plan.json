@@ -39,6 +39,13 @@
       "description": "Completed payload writes to SRAM and descriptor metadata is published."
     },
     {
+      "id": "fcov_FM_READ_SRAM_BURST",
+      "class": "transaction",
+      "source": "function_model.transactions.FM_READ_SRAM_BURST",
+      "source_ref": "function_model.transactions.FM_READ_SRAM_BURST",
+      "description": "AXI read burst returns assembled SRAM payload bytes without modifying assembly state."
+    },
+    {
       "id": "fcov_FM_CLASSIFY_DROP",
       "class": "transaction",
       "source": "function_model.transactions.FM_CLASSIFY_DROP",

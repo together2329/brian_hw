@@ -74,19 +74,19 @@ module mctp_assembler_axi_write_ingress #(
   logic [TLP_IDX_WIDTH-1:0] next_byte_count;
   logic beat_overflow;
   logic aw_phase_ok;
-  logic [8:0] strb_pop_count;
+  wire [8:0] strb_pop_count =
+      {8'd0, s_axi_wstrb[0]} + {8'd0, s_axi_wstrb[1]} + {8'd0, s_axi_wstrb[2]} + {8'd0, s_axi_wstrb[3]} +
+      {8'd0, s_axi_wstrb[4]} + {8'd0, s_axi_wstrb[5]} + {8'd0, s_axi_wstrb[6]} + {8'd0, s_axi_wstrb[7]} +
+      {8'd0, s_axi_wstrb[8]} + {8'd0, s_axi_wstrb[9]} + {8'd0, s_axi_wstrb[10]} + {8'd0, s_axi_wstrb[11]} +
+      {8'd0, s_axi_wstrb[12]} + {8'd0, s_axi_wstrb[13]} + {8'd0, s_axi_wstrb[14]} + {8'd0, s_axi_wstrb[15]} +
+      {8'd0, s_axi_wstrb[16]} + {8'd0, s_axi_wstrb[17]} + {8'd0, s_axi_wstrb[18]} + {8'd0, s_axi_wstrb[19]} +
+      {8'd0, s_axi_wstrb[20]} + {8'd0, s_axi_wstrb[21]} + {8'd0, s_axi_wstrb[22]} + {8'd0, s_axi_wstrb[23]} +
+      {8'd0, s_axi_wstrb[24]} + {8'd0, s_axi_wstrb[25]} + {8'd0, s_axi_wstrb[26]} + {8'd0, s_axi_wstrb[27]} +
+      {8'd0, s_axi_wstrb[28]} + {8'd0, s_axi_wstrb[29]} + {8'd0, s_axi_wstrb[30]} + {8'd0, s_axi_wstrb[31]};
 
   wire [10:0] next_byte_count_ext = {1'b0, byte_count_q} + {1'b0, strb_pop_count};
 
   wire [TLP_IDX_WIDTH-1:0] payload_mem_idx = 9'd16 + tlp_payload_index;
-
-  integer lane_i;
-  always @(*) begin
-    strb_pop_count = 9'd0;
-    for (lane_i = 0; lane_i < AXI_DATA_BYTES; lane_i = lane_i + 1) begin
-      strb_pop_count = strb_pop_count + {8'd0, s_axi_wstrb[lane_i]};
-    end
-  end
 
   assign accept_burst = enable || drop_when_disabled;
   assign backpressure = (!enable && !drop_when_disabled) || (tlp_valid_q && !tlp_ready);
@@ -162,11 +162,38 @@ module mctp_assembler_axi_write_ingress #(
         end else begin
           byte_count_q <= next_byte_count;
         end
-        for (lane_i = 0; lane_i < AXI_DATA_BYTES; lane_i = lane_i + 1) begin
-          if (s_axi_wstrb[lane_i] && !beat_overflow) begin
-            tlp_mem[byte_count_q + lane_i[8:0]] <= s_axi_wdata[8 * lane_i +: 8];
-          end
-        end
+        if (s_axi_wstrb[0] && !beat_overflow) tlp_mem[byte_count_q + 9'd0] <= s_axi_wdata[7:0];
+        if (s_axi_wstrb[1] && !beat_overflow) tlp_mem[byte_count_q + 9'd1] <= s_axi_wdata[15:8];
+        if (s_axi_wstrb[2] && !beat_overflow) tlp_mem[byte_count_q + 9'd2] <= s_axi_wdata[23:16];
+        if (s_axi_wstrb[3] && !beat_overflow) tlp_mem[byte_count_q + 9'd3] <= s_axi_wdata[31:24];
+        if (s_axi_wstrb[4] && !beat_overflow) tlp_mem[byte_count_q + 9'd4] <= s_axi_wdata[39:32];
+        if (s_axi_wstrb[5] && !beat_overflow) tlp_mem[byte_count_q + 9'd5] <= s_axi_wdata[47:40];
+        if (s_axi_wstrb[6] && !beat_overflow) tlp_mem[byte_count_q + 9'd6] <= s_axi_wdata[55:48];
+        if (s_axi_wstrb[7] && !beat_overflow) tlp_mem[byte_count_q + 9'd7] <= s_axi_wdata[63:56];
+        if (s_axi_wstrb[8] && !beat_overflow) tlp_mem[byte_count_q + 9'd8] <= s_axi_wdata[71:64];
+        if (s_axi_wstrb[9] && !beat_overflow) tlp_mem[byte_count_q + 9'd9] <= s_axi_wdata[79:72];
+        if (s_axi_wstrb[10] && !beat_overflow) tlp_mem[byte_count_q + 9'd10] <= s_axi_wdata[87:80];
+        if (s_axi_wstrb[11] && !beat_overflow) tlp_mem[byte_count_q + 9'd11] <= s_axi_wdata[95:88];
+        if (s_axi_wstrb[12] && !beat_overflow) tlp_mem[byte_count_q + 9'd12] <= s_axi_wdata[103:96];
+        if (s_axi_wstrb[13] && !beat_overflow) tlp_mem[byte_count_q + 9'd13] <= s_axi_wdata[111:104];
+        if (s_axi_wstrb[14] && !beat_overflow) tlp_mem[byte_count_q + 9'd14] <= s_axi_wdata[119:112];
+        if (s_axi_wstrb[15] && !beat_overflow) tlp_mem[byte_count_q + 9'd15] <= s_axi_wdata[127:120];
+        if (s_axi_wstrb[16] && !beat_overflow) tlp_mem[byte_count_q + 9'd16] <= s_axi_wdata[135:128];
+        if (s_axi_wstrb[17] && !beat_overflow) tlp_mem[byte_count_q + 9'd17] <= s_axi_wdata[143:136];
+        if (s_axi_wstrb[18] && !beat_overflow) tlp_mem[byte_count_q + 9'd18] <= s_axi_wdata[151:144];
+        if (s_axi_wstrb[19] && !beat_overflow) tlp_mem[byte_count_q + 9'd19] <= s_axi_wdata[159:152];
+        if (s_axi_wstrb[20] && !beat_overflow) tlp_mem[byte_count_q + 9'd20] <= s_axi_wdata[167:160];
+        if (s_axi_wstrb[21] && !beat_overflow) tlp_mem[byte_count_q + 9'd21] <= s_axi_wdata[175:168];
+        if (s_axi_wstrb[22] && !beat_overflow) tlp_mem[byte_count_q + 9'd22] <= s_axi_wdata[183:176];
+        if (s_axi_wstrb[23] && !beat_overflow) tlp_mem[byte_count_q + 9'd23] <= s_axi_wdata[191:184];
+        if (s_axi_wstrb[24] && !beat_overflow) tlp_mem[byte_count_q + 9'd24] <= s_axi_wdata[199:192];
+        if (s_axi_wstrb[25] && !beat_overflow) tlp_mem[byte_count_q + 9'd25] <= s_axi_wdata[207:200];
+        if (s_axi_wstrb[26] && !beat_overflow) tlp_mem[byte_count_q + 9'd26] <= s_axi_wdata[215:208];
+        if (s_axi_wstrb[27] && !beat_overflow) tlp_mem[byte_count_q + 9'd27] <= s_axi_wdata[223:216];
+        if (s_axi_wstrb[28] && !beat_overflow) tlp_mem[byte_count_q + 9'd28] <= s_axi_wdata[231:224];
+        if (s_axi_wstrb[29] && !beat_overflow) tlp_mem[byte_count_q + 9'd29] <= s_axi_wdata[239:232];
+        if (s_axi_wstrb[30] && !beat_overflow) tlp_mem[byte_count_q + 9'd30] <= s_axi_wdata[247:240];
+        if (s_axi_wstrb[31] && !beat_overflow) tlp_mem[byte_count_q + 9'd31] <= s_axi_wdata[255:248];
         if (s_axi_wlast && (beats_left_q != 8'd0)) begin
           malformed_q <= 1'b1;
         end

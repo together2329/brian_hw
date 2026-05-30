@@ -169,6 +169,7 @@ export interface WorkspaceChatPaneProps {
   feedRef: any;
   streamText: string;
   style?: CSSProperties;
+  onScroll?: (...args: any[]) => void;
   feedEntriesProps: RenderWorkspaceFeedEntriesProps;
 }
 
@@ -176,9 +177,15 @@ export const WorkspaceChatPane = ({
   feedRef,
   streamText,
   style = {},
+  onScroll,
   feedEntriesProps,
 }: WorkspaceChatPaneProps) => (
-  <div ref={feedRef} style={{ flex: 1, minHeight: 0, overflow: 'auto', padding: '14px 18px', ...style }}>
+  <div
+    ref={feedRef}
+    className="workspace-chat-scroll"
+    onScroll={onScroll}
+    style={{ flex: 1, minHeight: 0, overflow: 'auto', padding: '14px 18px', ...style }}
+  >
     {renderWorkspaceFeedEntries(feedEntriesProps)}
     <LiveAgentPreview text={streamText} />
   </div>

@@ -16,7 +16,7 @@
 // This is an INERT mirror — legacy workspace.jsx still serves the live app.
 // Window-sourced values are typed `any` on purpose; do not tighten them.
 
-import { _normalizeToolName } from './workspace-tool-theme';
+import { _normalizeToolName, atlasIsIterationMarkerText } from './workspace-tool-theme';
 import { workspaceToolArgsText } from './workspace-report-status';
 import { stripScopeDirective } from './workspace-session-routing';
 
@@ -50,6 +50,10 @@ export function conversationFeedFromMessages(msgs: any[], session: string): any[
         }
       }
     } else if (role === 'tool' && content) {
+      if (atlasIsIterationMarkerText(content)) {
+        newFeed.push({ kind: 'iter_marker', text: content });
+        continue;
+      }
       const parsedCall = /^[▶⏺]/.test(content)
         ? (w.AtlasOrchestratorChatLogic?.toolEntryFromDisplayLine?.(content) || null)
         : null;
