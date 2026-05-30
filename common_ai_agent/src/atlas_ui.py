@@ -1439,88 +1439,27 @@ def create_app():
             return html.replace(marker, tag + "\n" + marker, 1)
         return html.replace("</body>", tag + "\n</body>", 1)
 
-    def _inline_html_cached(template_name: str) -> str:
-        """Return the inlined HTML for a frontend template, cached by
-        max mtime of (template + every referenced .jsx/.js asset)."""
-        tmpl = FRONTEND / template_name
-        if not tmpl.is_file():
-            return ""
-        # Cheap stat-only mtime scan over the frontend dir.
-        candidates = [tmpl, *FRONTEND.glob("*.jsx"), *FRONTEND.glob("*.js")]
-        latest = 0.0
-        for p in candidates:
-            try:
-                m = p.stat().st_mtime
-                if m > latest:
-                    latest = m
-            except OSError:
-                pass
-        cached = _inline_cache.get(template_name)
-        if cached and cached["stamp"] >= latest:
-            return cached["html"]
+    # 2026-05-30 retirement: the legacy .jsx inliner helpers
+    # (_inline_html_cached / _html_with_atlas_boot_config) were removed when
+    # index() and lobby() went VITE-ONLY. _inject_scm_ui_override (above) is
+    # retained — it is still used by _vite_index_html below.
 
-        html = tmpl.read_text(encoding="utf-8")
-        def _inline_script(match):
-            attrs = match.group("attrs")
-            src = match.group("src").split("?", 1)[0]
-            if not src.endswith((".jsx", ".js")):
-                return match.group(0)
-            path = (FRONTEND / src).resolve()
-            try:
-                path.relative_to(FRONTEND.resolve())
-            except Exception:
-                return match.group(0)
-            if not path.is_file():
-                return match.group(0)
-            code = path.read_text(encoding="utf-8")
-            if "data-filename" not in attrs:
-                attrs = f'data-filename="{html_lib.escape(src, quote=True)}" {attrs}'
-            return f'<script type="text/babel" {attrs}>{code.rstrip()}\n//# sourceURL={src}</script>'
-        html = _INLINE_INDEX_RE.sub(_inline_script, html)
-        _inline_cache[template_name] = {"html": html, "stamp": latest}
-        return html
+    def _vite_index_html(filename: str = "index.vite.html") -> str | None:
+        """Serve a built Vite HTML document when ATLAS_FRONTEND_MODE=vite.
 
-    def _html_with_atlas_boot_config(template_name: str) -> str:
-        html = _inline_html_cached(template_name)
-        if not html:
-            return html
-        exec_mode = _current_atlas_exec_mode()
-        policy = exec_policy_payload(exec_mode, env=os.environ)
-        payload = {
-            "run_mode": os.environ.get("ATLAS_RUN_MODE", "engineering"),
-            "exec_mode": exec_mode,
-            "exec_policy": policy,
-            "multi_user": os.environ.get("ATLAS_MULTI_USER", "1"),
-            "multi_user_proc": os.environ.get("ATLAS_MULTI_USER_PROC", "1"),
-            "scm_provider": configured_scm_provider(),
-            "scm_ui_override": bool(_scm_ui_override_ref()),
-        }
-        script = (
-            "<script>window.ATLAS_BOOT_CONFIG="
-            + json.dumps(payload, separators=(",", ":"))
-            + ";window.ATLAS_DEFAULT_RUN_MODE=window.ATLAS_BOOT_CONFIG.run_mode;"
-            + "window.ATLAS_DEFAULT_EXEC_MODE=window.ATLAS_BOOT_CONFIG.exec_mode;</script>"
-        )
-        html = html.replace("</head>", script + "\n</head>", 1)
-        return _inject_scm_ui_override(html)
-
-    def _vite_index_html() -> str | None:
-        """Serve the built Vite index when ATLAS_FRONTEND_MODE=vite.
-
-        Reads FRONTEND/dist/index.vite.html fresh on each call (the file is
-        tiny) and injects the SAME ATLAS_BOOT_CONFIG <script> the legacy path
-        injects.  The boot-config payload+injection logic is intentionally
-        DUPLICATED here so the legacy inliner is left byte-for-byte untouched.
-        Returns None when the built dist file is absent so the caller can fall
-        through to the legacy path.
+        Reads FRONTEND/dist/<filename> fresh on each call (the file is tiny)
+        and injects the ATLAS_BOOT_CONFIG <script>.  Used for both the main
+        app (index.vite.html) and the lobby (lobby.vite.html).
+        Returns None when the built dist file is absent (or the dist is
+        partial) so the caller can serve a clean "build missing" 503.
         """
-        dist_index = FRONTEND / "dist" / "index.vite.html"
+        dist_index = FRONTEND / "dist" / filename
         if not dist_index.is_file():
             return None
-        # QA #5: a PARTIAL dist (index.vite.html present but assets/ missing or
+        # QA #5: a PARTIAL dist (the .html present but assets/ missing or
         # empty — e.g. an interrupted build) would serve an HTML shell that
         # references non-existent hashed bundles → a blank page. Require a
-        # populated assets/ dir; otherwise fall through to the working legacy path.
+        # populated assets/ dir; otherwise treat the dist as missing.
         dist_assets = FRONTEND / "dist" / "assets"
         if not dist_assets.is_dir() or not any(dist_assets.glob("*.js")):
             return None
@@ -1586,27 +1525,26 @@ def create_app():
 
     @app.get("/")
     async def index():
-        """Serve index.html with local JSX inlined.
+        """Serve the built Vite index (VITE-ONLY).
 
-        Babel standalone loads `type=text/babel src=...` via XHR.  The
-        in-app browser can intermittently fail those localhost XHRs even
-        when the same asset is directly reachable.  Inlining keeps the
-        dev-time Babel path but removes the fragile second fetch.
-        Cached by frontend mtime — see _inline_html_cached().
+        2026-05-30: the legacy .jsx frontend has been retired. index() now
+        serves only the built Vite dist (frontend/atlas/dist/index.vite.html
+        + dist/assets/). There is no legacy inliner fallback: when the dist
+        is missing or partial (QA #5 guard inside _vite_index_html), serve a
+        clean 503 telling the operator to build the frontend, rather than
+        inlining now-deleted .jsx.
         """
-        # 2026-05-29: default kept on LEGACY (.jsx). The vite cutover is built and
-        # render-verified, but a QA pass found the migrated .tsx workspace submitMsg
-        # is an incomplete port (missing the ~510-line slash-command + orchestrator/
-        # job-dispatch + ack-retry hub), so the .jsx remains the default-served,
-        # fully-working chat path. Opt into the vite bundle with ATLAS_FRONTEND_MODE=vite.
-        # Re-flip the default only after the .tsx submitMsg port lands + is test-covered.
-        mode = os.environ.get("ATLAS_FRONTEND_MODE", "legacy").strip().lower()
-        if mode == "vite":
-            vite_html = _vite_index_html()
-            if vite_html is not None:
-                return HTMLResponse(vite_html)
-            # dist missing -> fall through to legacy below
-        return HTMLResponse(_html_with_atlas_boot_config("index.html"))
+        vite_html = _vite_index_html()
+        if vite_html is not None:
+            return HTMLResponse(vite_html)
+        return HTMLResponse(
+            "<!doctype html><meta charset=utf-8>"
+            "<title>ATLAS frontend build missing</title>"
+            "<body style=\"font-family:system-ui,sans-serif;padding:2rem\">"
+            "<h1>ATLAS frontend build missing</h1>"
+            "<p>Run <code>npm run build</code> in <code>frontend/atlas</code>.</p>",
+            status_code=503,
+        )
 
     @app.get("/vendor/{asset_path:path}")
     async def vendor_asset(asset_path: str):
@@ -1636,7 +1574,19 @@ def create_app():
 
     @app.get("/lobby")
     async def lobby():
-        return HTMLResponse(_html_with_atlas_boot_config("lobby.html"))
+        # VITE-ONLY (2026-05-30 retirement): serve the built lobby.vite.html
+        # via the shared _vite_index_html reader; same dist-missing 503 as index().
+        vite_html = _vite_index_html("lobby.vite.html")
+        if vite_html is not None:
+            return HTMLResponse(vite_html)
+        return HTMLResponse(
+            "<!doctype html><meta charset=utf-8>"
+            "<title>ATLAS frontend build missing</title>"
+            "<body style=\"font-family:system-ui,sans-serif;padding:2rem\">"
+            "<h1>ATLAS frontend build missing</h1>"
+            "<p>Run <code>npm run build</code> in <code>frontend/atlas</code>.</p>",
+            status_code=503,
+        )
 
     # Per-process startup epoch — bumps every time the backend
     # restarts. Surfaced in /api/version so the frontend polling loop
@@ -10077,9 +10027,13 @@ def create_app():
                                 session.emit("error", message=f"acceptance ack failed: {exc}")
 
                     async def _accept_queued(kind: str = "") -> None:
+                        import time as _t
+                        _t0 = _t.monotonic()
                         delivered = bridge.submit_prompt_for_session(session.session_id, _txt)
+                        _submit_ms = (_t.monotonic() - _t0) * 1000.0
                         if delivered and _msg_id:
                             session.mark_msg_id_seen(_msg_id)
+                        _t1 = _t.monotonic()
                         try:
                             await _send_prompt_acceptance(
                                 ok=bool(delivered),
@@ -10090,6 +10044,20 @@ def create_app():
                         except Exception as exc:
                             if not _is_websocket_disconnect(exc):
                                 session.emit("error", message=f"acceptance ack failed: {exc}")
+                        _ack_ms = (_t.monotonic() - _t1) * 1000.0
+                        # (a) diagnostic: the frontend declares the prompt failed
+                        # if agent_accepted does not arrive within ~7s. Log when
+                        # the submit (spawn + DB enqueue) or the ack send is slow
+                        # so a production "Input not confirmed" is traceable to
+                        # its real cause (DB write-lock contention vs WS
+                        # backpressure) instead of being guessed at.
+                        if _submit_ms + _ack_ms > 1000.0:
+                            print(
+                                f"[prompt-latency] session={session.session_id} "
+                                f"msg_id={_msg_id} submit={_submit_ms:.0f}ms "
+                                f"ack_send={_ack_ms:.0f}ms delivered={bool(delivered)}",
+                                flush=True,
+                            )
 
                     # AC-2: the up-front, UNCONDITIONAL agent_received that
                     # used to be sent here lied about delivery and disarmed the

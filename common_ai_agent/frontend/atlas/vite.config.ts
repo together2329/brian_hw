@@ -7,11 +7,8 @@ import react from '@vitejs/plugin-react';
 //   vitest runtime smoke tests that prove each migrated .tsx imports + renders.
 // - The Tauri shell will load `vite build`'s static output from outDir.
 //
-// resolve.extensions: CRITICAL during the .jsx→.tsx transition. Vite's default
-// order lists .jsx BEFORE .tsx, so a bare `import '../foo'` would resolve to the
-// stale legacy foo.jsx (window-global style, no ES exports) instead of the
-// migrated foo.tsx. We put .tsx/.ts FIRST so migrated modules always win while
-// both files coexist. (Removed once the .jsx are retired at the cutover.)
+// resolve.extensions: the legacy .jsx modules are retired (0 .jsx remain), so
+// only .tsx/.ts/.js/.json are resolved.
 export default defineConfig({
   // @ts-expect-error vitest@1.6 bundles its own vite@5 whose Plugin type differs
   // from the top-level vite@7 that @vitejs/plugin-react targets (dual-version
@@ -19,7 +16,7 @@ export default defineConfig({
   // Resolved by aligning vitest↔vite versions in a later toolchain pass.
   plugins: [react()],
   resolve: {
-    extensions: ['.tsx', '.ts', '.jsx', '.js', '.json'],
+    extensions: ['.tsx', '.ts', '.js', '.json'],
   },
   build: {
     outDir: 'dist',
