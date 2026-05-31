@@ -19,7 +19,8 @@ This section is additive; it does not replace the reading order below.
 | How to control the visible in-app browser | [[atlas-browser-control-runbook]] |
 | How Pipeline worker detail opens real workspaces | [[atlas-pipeline-worker-workspace-jump]] |
 | Guide tab + Architect "My IPs" landing (mock SoC removed) | [[guide-tab-and-architect-my-ips-20260527]] |
-| Andes external RTL DB wiki + `ATLAS_RTL_DB_WIKI` pointer | [[andes-rtl-db-wiki-20260527]] |
+| Andes external RTL DB wiki + optional `ATLAS_RTL_DB_WIKI` / `ATLAS_EXTERNAL_DB_WIKI` pointer | [[andes-rtl-db-wiki-20260527]] |
+| Reusable external RTL DB adapter guide | [[external-rtl-db-integration-guide]] |
 | SSOT datasheet authoring — demo-grade via custom_blocks / timing mapping / FSM | [[ssot-datasheet-authoring-20260527]] |
 | Review note for Atlas single-worker readiness / warmup refactor | [[atlas-refactoring-review-20260528]] |
 | Tech direction (language/runtime/build): keep Python backend, finish TSX + Vite build cutover, Go/Rust/Bun/Tauri surgical only | [[tech-direction-recommendation-20260529]] |

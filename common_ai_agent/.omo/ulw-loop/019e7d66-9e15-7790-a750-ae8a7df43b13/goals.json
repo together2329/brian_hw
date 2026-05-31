@@ -1,7 +1,7 @@
 {
   "version": 1,
   "createdAt": "2026-05-31T11:45:39.180Z",
-  "updatedAt": "2026-05-31T12:24:05.549Z",
+  "updatedAt": "2026-05-31T12:36:23.621Z",
   "briefPath": ".omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/brief.md",
   "goalsPath": ".omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/goals.json",
   "ledgerPath": ".omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/ledger.jsonl",
@@ -11,7 +11,7 @@
       "id": "G001-perforce-system-atlas-client-add-syn",
       "title": "Perforce System 연동을 실제 서버를 켜서 Atlas Client에서 Add, Sync, Edit 동작이 실제로...",
       "objective": "Perforce System 연동을 실제 서버를 켜서 Atlas Client에서 Add, Sync, Edit 동작이 실제로 되는지 검증하고, 실패하면 최소 수정한다. Evidence must include real server/client Add Sync Edit scenario artifacts, RED->GREEN automated tests for any production fix, cleanup receipts, and final reviewer approval if implementation touches multiple files.",
-      "status": "in_progress",
+      "status": "blocked",
       "successCriteria": [
         {
           "id": "C001",
@@ -43,10 +43,10 @@
       ],
       "attempt": 1,
       "createdAt": "2026-05-31T11:45:39.180Z",
-      "updatedAt": "2026-05-31T12:24:05.549Z",
-      "startedAt": "2026-05-31T11:49:31.441Z"
+      "updatedAt": "2026-05-31T12:36:23.621Z",
+      "startedAt": "2026-05-31T11:49:31.441Z",
+      "blockedReason": "Perforce live QA and final review passed, but terminal complete checkpoint is blocked by Codex goal objective mismatch: get_goal is an already-completed legacy lint goal, and create_goal cannot create the Perforce aggregate goal because this thread already has that completed goal. CLI refused --status complete for this reason; use a fresh/no-goal context or clear the old goal to terminally checkpoint this OMO story."
     }
   ],
-  "codexObjective": "Complete the durable ulw-loop plan in .omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/goals.json, including later accepted/appended stories, under the original brief constraints; use .omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/ledger.jsonl as the audit trail.",
-  "activeGoalId": "G001-perforce-system-atlas-client-add-syn"
+  "codexObjective": "Complete the durable ulw-loop plan in .omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/goals.json, including later accepted/appended stories, under the original brief constraints; use .omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/ledger.jsonl as the audit trail."
 }

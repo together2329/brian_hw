@@ -1,9 +1,9 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-05-31T12:23:31Z",
+  "generated_at": "2026-05-31T12:32:27Z",
   "root": "doc/wiki",
-  "node_count": 120,
-  "edge_count": 509,
+  "node_count": 121,
+  "edge_count": 510,
   "tags": {
     "atcdmac100": [
       "atcdmac100-document-flow-ui-honesty-20260518"
@@ -365,6 +365,7 @@
       "deterministic-emit-stages",
       "dma-real-sim-debug-knowhow",
       "e2e-orchestrator-validation-plan",
+      "external-rtl-db-integration-guide",
       "flow-fixes-r2-verify-20260519",
       "flow-fixes-r3-verify-20260519",
       "flow-fixes-verify-20260519",
@@ -485,7 +486,7 @@
     },
     {
       "id": "andes-rtl-db-wiki-20260527",
-      "title": "Andes RTL DB Wiki + RTL DB Pointer (2026-05-27)",
+      "title": "Andes RTL DB Wiki + External DB Pointer (2026-05-27)",
       "type": "reference",
       "tags": [],
       "related": [],
@@ -499,9 +500,9 @@
       ],
       "broken_refs": [],
       "updated": "",
-      "summary": "> **Updated**: 2026-05-27 > **Scope**: Generated an LLM knowledge-graph wiki over the external Andes peripheral > RTL corpus (`~/Desktop/andes`) and pointed ATLAS at it as the external \"previous-project > RTL DB\" via `ATLAS_RTL_DB_WIKI`. > **Related**: [[rtl-gen-ssot-contract]] · [[workflow-ownership-and-boundaries]] · [[karpathy-llm-wiki-pattern]]",
+      "summary": "> **Updated**: 2026-05-27 > **Scope**: Generated an LLM knowledge-graph wiki over the external Andes peripheral > RTL corpus (`~/Desktop/andes`) and documented how ATLAS can optionally point at it > as an external \"previous-project RTL DB\" via `ATLAS_RTL_DB_WIKI` or > `ATLAS_EXTERNAL_DB_WIKI`. > **Related**: [[rtl-gen-ssot-contract]] ·…",
       "path": "doc/wiki/andes-rtl-db-wiki-20260527.md",
-      "size_bytes": 4879
+      "size_bytes": 5202
     },
     {
       "id": "apb-uart-enhanced-signoff-20260527",
@@ -1391,6 +1392,22 @@
       "size_bytes": 6677
     },
     {
+      "id": "external-rtl-db-integration-guide",
+      "title": "External RTL DB integration guide",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [],
+      "incoming": [
+        "index"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Use this when another RTL corpus should become an optional `external-db` source for agent reuse/reference queries.",
+      "path": "doc/wiki/external-rtl-db-integration-guide.md",
+      "size_bytes": 2198
+    },
+    {
       "id": "feedback_regression_test_per_bug",
       "title": "Feedback Regression Test Per Bug",
       "type": "rule",
@@ -1776,6 +1793,7 @@
         "atlas-pipeline-worker-workspace-jump",
         "guide-tab-and-architect-my-ips-20260527",
         "andes-rtl-db-wiki-20260527",
+        "external-rtl-db-integration-guide",
         "ssot-datasheet-authoring-20260527",
         "atlas-refactoring-review-20260528",
         "tech-direction-recommendation-20260529",
@@ -1863,7 +1881,7 @@
       "updated": "",
       "summary": "This wiki is the cross-linked operating map for common_ai_agent. It is optimized for long-context LLMs and agent handoffs: read the linked pages in order, then follow the source docs for implementation detail.",
       "path": "doc/wiki/index.md",
-      "size_bytes": 26354
+      "size_bytes": 26473
     },
     {
       "id": "interactive-ask-user-ip-discovery",

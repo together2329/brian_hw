@@ -33,8 +33,10 @@ existing, proven source. Reuse interface conventions, module decomposition, regi
 layouts, and cited facts rather than inventing them.**
 
 The external DB is, by design, *external* and **data-source-agnostic** — this skill
-does not assume any structure. The deployment wires the source via any one of (newer
-`ATLAS_EXTERNAL_DB_*` names are preferred; legacy `ATLAS_RTL_DB_*` still work):
+does not assume any structure, and the DB is optional. If no wiki, builder, or query
+hook is configured, say the external DB is unavailable and continue from the active
+SSOT/spec. The deployment wires the source via any one of (newer `ATLAS_EXTERNAL_DB_*`
+names are preferred; legacy `ATLAS_RTL_DB_*` still work):
 
 - `…_WIKI` — a wiki directory (markdown + `_graph.json`).
 - `…_BUILDER` — an external converter that builds `_graph.json` from a foreign corpus.
@@ -42,6 +44,9 @@ does not assume any structure. The deployment wires the source via any one of (n
   search / transport: files, DB, HTTP, vector store…).
 
 You never need to know which is configured — always go through `wiki_query`.
+This activation model is the same style as protocol/reference skills such as
+`pcie-expert`, `nvme-expert`, or `ucie-expert`: the skill can trigger whenever the work
+needs prior art, but useful answers depend on the configured data source.
 
 ## How to query
 
@@ -55,6 +60,7 @@ Examples:
 wiki_query(ip="external-db", topic="uart apb dma fifo", depth=3)
 wiki_query(ip="external-db", topic="ahb bus matrix interconnect", depth=2)
 wiki_query(ip="external-db", topic="spi flash bridge", depth=3)
+wiki_query(ip="external-db", topic="module port parameter fsm datapath register memory clock reset docs datasheet", depth=3)
 ```
 
 `depth`: 1 = id+title, 2 = +status/meta, 3 = +summary. Start broad (a family keyword
@@ -63,7 +69,10 @@ or `topic=""`), then drill into the specific id the first query surfaces.
 ## Workflow
 
 1. **Identify the block/interface/topic** from the SSOT or the user's request.
-2. **Query the external DB** with the relevant family + interface keywords.
+2. **Query the external DB** with the relevant family + interface keywords. For RTL
+   reuse/reference work, include AST-level terms when useful: `module`, `port`,
+   `parameter`, `fsm`, `datapath`, `register`, `memory`, `clock`, `reset`, `docs`,
+   `datasheet`.
 3. **If a match is found**, cite it (id + path) and reuse its conventions:
    bus signal set + naming (APB `psel/penable/paddr/…`, AHB `haddr/htrans/…`),
    module decomposition, register map, reset/clock conventions.
