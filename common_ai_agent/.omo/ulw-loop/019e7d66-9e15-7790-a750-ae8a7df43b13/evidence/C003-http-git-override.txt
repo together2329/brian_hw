@@ -1,0 +1,7 @@
+HTTP/1.1 200 OK
+date: Sun, 31 May 2026 12:23:52 GMT
+server: uvicorn
+content-length: 251
+content-type: application/json
+
+{"provider":"git","branch":"ipbranch","head":"9e320cd","head_full":"9e320cdb08a0d63d71a5b07ba1c5feafa0e60b8c","ahead":0,"behind":0,"dirty":false,"files":[],"ip":"ulw_git_c003","cwd":"/Users/brian/Desktop/Project/brian_hw/common_ai_agent/ulw_git_c003"}

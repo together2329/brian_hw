@@ -1,7 +1,7 @@
 {
   "version": 1,
   "createdAt": "2026-05-31T11:45:39.180Z",
-  "updatedAt": "2026-05-31T12:22:39.768Z",
+  "updatedAt": "2026-05-31T12:24:05.549Z",
   "briefPath": ".omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/brief.md",
   "goalsPath": ".omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/goals.json",
   "ledgerPath": ".omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/ledger.jsonl",
@@ -27,21 +27,23 @@
           "scenario": "HTTP call: start isolated p4d on localhost:16672 and Atlas on localhost:8793 with Perforce env; POST curl -i http://127.0.0.1:8793/api/scm/edit with JSON {ip:ulw_p4_c002, paths:[../../.env]} then GET /api/scm/pane. PASS iff response is HTTP 200 JSON ok:false with error 'no valid paths to edit/open' and pane/p4 opened has no pending files.",
           "userModel": "edge",
           "expectedEvidence": ".omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/evidence/C002-http-malformed-edit.txt; automated RED/GREEN: tests/test_atlas_git_api.py::test_scm_edit_rejects_path_escape_for_perforce_provider.",
-          "capturedEvidence": null,
-          "status": "pending"
+          "capturedEvidence": ".omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/evidence/C002-http-malformed-edit.txt shows curl HTTP 200 ok:false error 'no valid paths to edit/open', pane pending:[], and p4 opened reports file(s) not opened | cleanup: .omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/evidence/C002-cleanup.txt confirms atlas/p4 ports empty and QA dirs removed",
+          "status": "pass",
+          "capturedAt": "2026-05-31T12:23:43.614Z"
         },
         {
           "id": "C003",
           "scenario": "HTTP call: with ATLAS_SCM_PROVIDER=perforce, create a temp git IP and call curl -i 'http://127.0.0.1:8794/api/git/status?ip=ulw_git_c003&provider=git' against live Atlas. PASS iff HTTP 200 JSON provider is git, branch is ipbranch, and Perforce default env does not override the explicit git provider.",
           "userModel": "regression",
           "expectedEvidence": ".omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/evidence/C003-http-git-override.txt; automated support: tests/test_atlas_git_api.py::test_git_provider_override_stays_git_when_default_scm_is_perforce.",
-          "capturedEvidence": null,
-          "status": "pending"
+          "capturedEvidence": ".omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/evidence/C003-http-git-override.txt shows curl HTTP 200 with provider git, branch ipbranch while ATLAS_SCM_PROVIDER=perforce | cleanup: .omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/evidence/C003-cleanup.txt confirms atlas port empty and temp git IP removed",
+          "status": "pass",
+          "capturedAt": "2026-05-31T12:24:05.549Z"
         }
       ],
       "attempt": 1,
       "createdAt": "2026-05-31T11:45:39.180Z",
-      "updatedAt": "2026-05-31T12:22:39.768Z",
+      "updatedAt": "2026-05-31T12:24:05.549Z",
       "startedAt": "2026-05-31T11:49:31.441Z"
     }
   ],
