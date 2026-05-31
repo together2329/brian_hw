@@ -1,7 +1,7 @@
 {
   "version": 1,
   "createdAt": "2026-05-31T12:14:30.301Z",
-  "updatedAt": "2026-05-31T12:14:30.301Z",
+  "updatedAt": "2026-05-31T12:26:18.258Z",
   "briefPath": ".omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/brief.md",
   "goalsPath": ".omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/goals.json",
   "ledgerPath": ".omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/ledger.jsonl",
@@ -15,17 +15,17 @@
       "successCriteria": [
         {
           "id": "C001",
-          "scenario": "happy path for: Build an optional Andes RTL DB LLM Wiki / knowledge graph under /Users/brian/...",
+          "scenario": "tmux happy path: build a temp RTL DB wiki from a synthetic SystemVerilog corpus with docs, then inspect generated markdown, _rtl_facts JSON, and _graph.json for pyslang-derived modules, ports, parameters, clocks, resets, registers, memories, FSM candidates, datapath expressions, features, and document wiki pages.",
           "userModel": "happy",
-          "expectedEvidence": "Replace via revise_criterion with observable happy-path proof for goal 1.",
+          "expectedEvidence": ".omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/evidence/C001-ast-doc-build.txt contains the tmux transcript plus cleanup receipt; supporting pytest RED/GREEN evidence in .omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/evidence/C001-pytest.txt.",
           "capturedEvidence": null,
           "status": "pending"
         },
         {
           "id": "C002",
-          "scenario": "edge case (boundary/empty/malformed)",
+          "scenario": "tmux edge path: build from a temp RTL DB containing one malformed SystemVerilog file and an empty hdl directory; the builder must not crash, must emit diagnostics in _rtl_facts, must still emit doc inventory/page artifacts, and graph build must complete.",
           "userModel": "edge",
-          "expectedEvidence": "Replace via revise_criterion with boundary or malformed-input proof for: Build an optional Andes RTL DB LLM Wiki / knowledge graph under /Users/brian/....",
+          "expectedEvidence": ".omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/evidence/C002-malformed-empty-build.txt contains tmux transcript with non-crashing builder output, diagnostics JSON inspection, graph build result, and cleanup receipt; supporting pytest evidence in C002-pytest.txt.",
           "capturedEvidence": null,
           "status": "pending"
         },
@@ -40,7 +40,7 @@
       ],
       "attempt": 0,
       "createdAt": "2026-05-31T12:14:30.301Z",
-      "updatedAt": "2026-05-31T12:14:30.301Z"
+      "updatedAt": "2026-05-31T12:26:18.258Z"
     }
   ],
   "codexObjective": "Complete the durable ulw-loop plan in .omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/goals.json, including later accepted/appended stories, under the original brief constraints; use .omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/ledger.jsonl as the audit trail."
