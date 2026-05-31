@@ -1,7 +1,7 @@
 {
   "version": 1,
   "createdAt": "2026-05-31T11:45:39.180Z",
-  "updatedAt": "2026-05-31T11:49:31.441Z",
+  "updatedAt": "2026-05-31T11:59:06.061Z",
   "briefPath": ".omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/brief.md",
   "goalsPath": ".omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/goals.json",
   "ledgerPath": ".omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/ledger.jsonl",
@@ -15,17 +15,17 @@
       "successCriteria": [
         {
           "id": "C001",
-          "scenario": "happy path for: Perforce System 연동을 실제 서버를 켜서 Atlas Client에서 Add, Sync, Edit 동작이 실제로 되는지 검증하고...",
+          "scenario": "Browser use: start isolated p4d on localhost:16671 and Atlas on localhost:8792 with ATLAS_SCM_PROVIDER=perforce, ATLAS_SCM_ADAPTER_PERFORCE=core.scm_perforce:PerforceP4Adapter, P4PORT=localhost:16671, P4USER=atlasqa, P4CLIENT=atlas_ulw_c001; create QA IP ulw_p4_c001 with one submitted depot file and one new local file; open http://127.0.0.1:8792/?backend=live&ip=ulw_p4_c001, select SCM/Perforce tab, click Add for new file, click Edit for synced file, click Sync after local overwrite. PASS iff browser artifact shows pending add and edit actions and final synced file content equals depot content.",
           "userModel": "happy",
-          "expectedEvidence": "Replace via revise_criterion with observable happy-path proof for goal 1.",
+          "expectedEvidence": ".omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/evidence/C001-browser-add-edit-sync.json plus screenshot .png; automated RED/GREEN: frontend/atlas/__tests__/perforce-sync.test.tsx::renders Add Edit Sync controls and posts edit action; tests/test_scm_perforce_adapter.py::test_edit_paths_runs_p4_edit.",
           "capturedEvidence": null,
           "status": "pending"
         },
         {
           "id": "C002",
-          "scenario": "edge case (boundary/empty/malformed)",
+          "scenario": "HTTP call: start isolated p4d on localhost:16672 and Atlas on localhost:8793 with Perforce env; POST curl -i http://127.0.0.1:8793/api/scm/edit with JSON {ip:ulw_p4_c002, paths:[../../.env]} then GET /api/scm/pane. PASS iff response is HTTP 200 JSON ok:false with error 'no valid paths to edit/open' and pane/p4 opened has no pending files.",
           "userModel": "edge",
-          "expectedEvidence": "Replace via revise_criterion with boundary or malformed-input proof for: Perforce System 연동을 실제 서버를 켜서 Atlas Client에서 Add, Sync, Edit 동작이 실제로 되는지 검증하고....",
+          "expectedEvidence": ".omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/evidence/C002-http-malformed-edit.txt; automated RED/GREEN: tests/test_atlas_git_api.py::test_scm_edit_rejects_path_escape_for_perforce_provider.",
           "capturedEvidence": null,
           "status": "pending"
         },
@@ -40,7 +40,7 @@
       ],
       "attempt": 1,
       "createdAt": "2026-05-31T11:45:39.180Z",
-      "updatedAt": "2026-05-31T11:49:31.441Z",
+      "updatedAt": "2026-05-31T11:59:06.061Z",
       "startedAt": "2026-05-31T11:49:31.441Z"
     }
   ],

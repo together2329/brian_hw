@@ -1,0 +1,5 @@
+[check_ip_signoff] status=fail gates={'total_gates': 15, 'passed': 12, 'failed': 3, 'blocked': 0}
+[check_ip_signoff] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/signoff/ip_signoff.json
+[check_ip_signoff] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/signoff/ip_signoff.md
+
+TASK13_SIGNOFF_AFTER_LEDGER_PROVENANCE_RC=1
