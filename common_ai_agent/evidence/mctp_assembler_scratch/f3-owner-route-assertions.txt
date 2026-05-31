@@ -1,0 +1,6 @@
+signoff_status fail {'blocked': 0, 'failed': 3, 'passed': 12, 'total_gates': 15}
+failed_gates ['rtl_todo', 'scoreboard', 'coverage']
+route_summary {'coverage_owner_counts': {'sim_debug': 57}, 'coverage_routes': 57, 'failed_gates': ['rtl_todo', 'scoreboard', 'coverage'], 'fl_rtl_mismatches': 65, 'mismatch_classification_counts': {'rtl_bug': 32, 'tb_bug': 33}, 'mismatch_owner_counts': {'rtl-gen': 32, 'tb-gen': 33}, 'mutation_mode': 'baseline_blocked', 'mutation_status': 'blocked_baseline', 'rtl_todo_open_required': 23, 'rtl_todo_static_missing': 19}
+F3_OWNER_ROUTES_MATCH_SIGNOFF
+
+F3_OWNER_ROUTE_ASSERT_RC=0
