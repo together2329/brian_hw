@@ -87,6 +87,9 @@ def test_build_andes_wiki_emits_ast_rtl_facts_and_doc_links(tmp_path: Path) -> N
     facts = json.loads(facts_path.read_text(encoding="utf-8"))
     assert facts.get("schema_version") or facts.get("version")
     assert facts.get("block") == "demo_ip"
+    assert "demo_ip/hdl/demo_ip.sv" in facts.get("ast_extracted_files", [])
+    assert facts.get("ast_kind_counts", {}).get("ModuleDeclaration", 0) >= 1
+    assert facts.get("ast_kind_counts", {}).get("AlwaysFFBlock", 0) >= 1
     assert "demo_ip" in facts.get("modules", [])
     assert any(item.get("name") == "WIDTH" for item in facts.get("parameters", []))
     ports = {item.get("name"): item.get("direction") for item in facts.get("ports", [])}

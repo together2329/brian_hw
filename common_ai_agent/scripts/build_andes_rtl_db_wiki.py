@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# noqa: SIZE_OK - single-purpose external RTL DB generator script.
 """Generate an LLM knowledge-graph wiki for the Andes peripheral RTL database.
 
 The Andes drop (`~/Desktop/andes`) is a corpus of real, silicon-proven IP cores
@@ -29,12 +30,18 @@ from __future__ import annotations
 
 import argparse
 from collections import Counter
+from collections.abc import Iterator
 import json
 import re
 import subprocess
 import sys
 import time
 from pathlib import Path
+from typing import Any, cast
+
+JsonObject = dict[str, Any]
+FactMap = dict[str, Any]
+BlockMap = dict[str, Any]
 
 # ── Bus / signal classification by port name ───────────────────────────────
 BUS_SIGNALS = {
@@ -117,7 +124,7 @@ def _read(p: Path) -> str:
 
 
 def discover_ips(andes: Path) -> list[str]:
-    out = []
+    out: list[str] = []
     for child in sorted(andes.iterdir()):
         if child.is_dir() and (child / "hdl").is_dir() and not child.name.startswith("."):
             out.append(child.name)
@@ -129,17 +136,18 @@ def slugify(text: str) -> str:
     return slug or "document"
 
 
-def _walk_json(node):
+def _walk_json(node: Any) -> Iterator[JsonObject]:
     if isinstance(node, dict):
-        yield node
-        for value in node.values():
+        obj = cast(JsonObject, node)
+        yield obj
+        for value in obj.values():
             yield from _walk_json(value)
     elif isinstance(node, list):
         for value in node:
             yield from _walk_json(value)
 
 
-def _text_from_json(node) -> str:
+def _text_from_json(node: Any) -> str:
     parts: list[str] = []
     for item in _walk_json(node):
         text = item.get("text")
@@ -148,22 +156,234 @@ def _text_from_json(node) -> str:
     return " ".join(parts)
 
 
-def _ast_facts(path: Path) -> tuple[Counter, list[str]]:
+def _empty_extracted_facts() -> FactMap:
+    return {
+        "modules": [],
+        "parameters": [],
+        "ports": [],
+        "clocks": [],
+        "resets": [],
+        "registers": [],
+        "memories": [],
+        "fsm_candidates": [],
+        "datapaths": [],
+        "assignments": [],
+    }
+
+
+def _expr_text(node: Any) -> str:
+    text = _text_from_json(node)
+    text = re.sub(r"\s*([\[\]\(\),:;])\s*", r"\1", text)
+    text = re.sub(r"\s*'\s*", "'", text)
+    text = re.sub(r"\s+", " ", text)
+    text = re.sub(r"(\d+)'([A-Za-z])\s+([0-9A-Fa-f_xXzZ?]+)", r"\1'\2\3", text)
+    return text.strip()
+
+
+def _identifier_name(node: Any) -> str:
+    if not isinstance(node, dict):
+        return ""
+    if node.get("kind") == "Identifier":
+        text = node.get("text")
+        return text if isinstance(text, str) else ""
+    for key in ("name", "identifier"):
+        value = node.get(key)
+        if isinstance(value, dict):
+            name = _identifier_name(value)
+            if name:
+                return name
+    return ""
+
+
+def _direction_text(node: Any) -> str:
+    if not isinstance(node, dict):
+        return ""
+    direction = node.get("direction")
+    if not isinstance(direction, dict):
+        return ""
+    text = direction.get("text")
+    if isinstance(text, str) and text:
+        return text
+    return {
+        "InputKeyword": "input",
+        "OutputKeyword": "output",
+        "InOutKeyword": "inout",
+    }.get(str(direction.get("kind")), "")
+
+
+def _type_width(header: Any) -> str:
+    if not isinstance(header, dict):
+        return "1"
+    data_type = header.get("dataType") or header.get("type")
+    if not isinstance(data_type, dict):
+        return "1"
+    dimensions = data_type.get("dimensions")
+    if not isinstance(dimensions, list) or not dimensions:
+        return "1"
+    width = "".join(_expr_text(dimension) for dimension in dimensions if isinstance(dimension, dict))
+    return width or "1"
+
+
+def _extract_ast_module(item: JsonObject, facts: FactMap) -> None:
+    header = item.get("header")
+    if not isinstance(header, dict):
+        return
+    name = _identifier_name(header.get("name"))
+    _merge_name(facts["modules"], name)
+
+
+def _extract_ast_parameter(item: JsonObject, facts: FactMap) -> None:
+    keyword = item.get("keyword")
+    local = isinstance(keyword, dict) and keyword.get("kind") == "LocalParamKeyword"
+    declarators = item.get("declarators")
+    if not isinstance(declarators, list):
+        return
+    for declarator in declarators:
+        if not isinstance(declarator, dict) or declarator.get("kind") != "Declarator":
+            continue
+        name = _identifier_name(declarator.get("name"))
+        if not name:
+            continue
+        parameter: JsonObject = {"name": name, "local": local}
+        initializer = declarator.get("initializer")
+        if isinstance(initializer, dict):
+            value = _expr_text(initializer.get("expr"))
+            if value:
+                parameter["value"] = value
+        _append_unique_named(facts["parameters"], parameter)
+
+
+def _extract_ast_port(item: JsonObject, facts: FactMap) -> None:
+    header = item.get("header")
+    if not isinstance(header, dict):
+        return
+    direction = _direction_text(header)
+    width = _type_width(header)
+    declarators = item.get("declarators")
+    if not isinstance(declarators, list):
+        declarator = item.get("declarator")
+        declarators = [declarator] if isinstance(declarator, dict) else []
+    for declarator in declarators:
+        if not isinstance(declarator, dict) or declarator.get("kind") != "Declarator":
+            continue
+        name = _identifier_name(declarator.get("name"))
+        if not name or not direction:
+            continue
+        _append_unique_named(facts["ports"], {"name": name, "direction": direction, "width": width})
+
+
+def _extract_ast_data_declaration(item: JsonObject, facts: FactMap) -> None:
+    declarators = item.get("declarators")
+    if not isinstance(declarators, list):
+        return
+    for declarator in declarators:
+        if not isinstance(declarator, dict) or declarator.get("kind") != "Declarator":
+            continue
+        name = _identifier_name(declarator.get("name"))
+        if not name:
+            continue
+        _merge_name(facts["registers"], name)
+        dimensions = declarator.get("dimensions")
+        has_unpacked_dimensions = isinstance(dimensions, list) and bool(dimensions)
+        if has_unpacked_dimensions or any(token in name.lower() for token in ("mem", "ram", "fifo")):
+            _merge_name(facts["memories"], name)
+
+
+def _base_signal_name(node: Any) -> str:
+    name = _identifier_name(node)
+    if name:
+        return name
+    text = _expr_text(node)
+    match = re.match(r"([A-Za-z_]\w*)", text)
+    return match.group(1) if match else ""
+
+
+def _assignment_entry(item: JsonObject) -> JsonObject | None:
+    left = item.get("left")
+    right = item.get("right")
+    left_text = _expr_text(left)
+    right_text = _expr_text(right)
+    if not left_text:
+        return None
+    operator = item.get("operatorToken")
+    op = _expr_text(operator) if isinstance(operator, dict) else ""
+    return {"left": left_text, "op": op or "=", "right": right_text}
+
+
+def _extract_ast_case(item: JsonObject, facts: FactMap) -> None:
+    state = _expr_text(item.get("expr"))
+    states: list[str] = []
+    items = item.get("items")
+    if isinstance(items, list):
+        for case_item in items:
+            if not isinstance(case_item, dict):
+                continue
+            if case_item.get("kind") == "DefaultCaseItem":
+                _merge_name(states, "default")
+            expressions = case_item.get("expressions")
+            if not isinstance(expressions, list):
+                continue
+            for expression in expressions:
+                label = _expr_text(expression)
+                _merge_name(states, label)
+    if state or states:
+        _append_unique(
+            facts["fsm_candidates"],
+            {
+                "kind": "case",
+                "state": state,
+                "states": states,
+                "text": f"case ({state})" if state else "case",
+            },
+        )
+
+
+def _extract_ast_facts(ast: Any) -> tuple[FactMap, Counter[str]]:
+    facts = _empty_extracted_facts()
+    counts: Counter[str] = Counter()
+    for item in _walk_json(ast):
+        kind = item.get("kind")
+        if not isinstance(kind, str):
+            continue
+        counts[kind] += 1
+        if kind == "ModuleDeclaration":
+            _extract_ast_module(item, facts)
+        elif kind == "ParameterDeclaration":
+            _extract_ast_parameter(item, facts)
+        elif kind in ("ImplicitAnsiPort", "PortDeclaration"):
+            _extract_ast_port(item, facts)
+        elif kind == "DataDeclaration":
+            _extract_ast_data_declaration(item, facts)
+        elif kind == "NonblockingAssignmentExpression":
+            entry = _assignment_entry(item)
+            if entry is not None:
+                _append_unique(facts["assignments"], entry)
+                _merge_name(facts["registers"], _base_signal_name(item.get("left")))
+        elif kind == "AssignmentExpression":
+            entry = _assignment_entry(item)
+            if entry is not None:
+                _append_unique(facts["datapaths"], entry)
+                _append_unique(facts["assignments"], entry)
+        elif kind == "CaseStatement":
+            _extract_ast_case(item, facts)
+    port_names = [str(port["name"]) for port in facts["ports"]]
+    facts["clocks"] = list(dict.fromkeys(name for name in port_names if any(token in name.lower() for token in ("clk", "clock"))))
+    facts["resets"] = list(dict.fromkeys(name for name in port_names if any(token in name.lower() for token in ("rst", "reset"))))
+    return facts, counts
+
+
+def _ast_facts(path: Path) -> tuple[FactMap, Counter[str], list[str]]:
     diagnostics: list[str] = []
-    counts: Counter = Counter()
     try:
-        import pyslang  # type: ignore
+        import pyslang
     except ImportError:
-        return counts, [f"{path.name}: pyslang unavailable; used regex fallback"]
+        return _empty_extracted_facts(), Counter[str](), [f"{path.name}: pyslang unavailable; used regex fallback"]
 
     try:
         tree = pyslang.SyntaxTree.fromFile(str(path))
         raw = tree.root.to_json()
         ast = json.loads(raw) if isinstance(raw, str) else raw
-        for item in _walk_json(ast):
-            kind = item.get("kind")
-            if isinstance(kind, str):
-                counts[kind] += 1
+        extracted, counts = _extract_ast_facts(ast)
         for diag in tree.diagnostics:
             code = getattr(diag, "code", "diagnostic")
             loc = getattr(diag, "location", "")
@@ -171,12 +391,20 @@ def _ast_facts(path: Path) -> tuple[Counter, list[str]]:
             diagnostics.append(f"{path.name}: {code} at {loc} args={list(args)}")
     except (OSError, RuntimeError, ValueError, TypeError, json.JSONDecodeError) as exc:
         diagnostics.append(f"{path.name}: pyslang parse failed: {type(exc).__name__}: {exc}")
-    return counts, diagnostics
+        return _empty_extracted_facts(), Counter[str](), diagnostics
+    return extracted, counts, diagnostics
 
 
-def _append_unique(items: list, value) -> None:
+def _append_unique(items: list[Any], value: Any) -> None:
     if value not in items:
         items.append(value)
+
+
+def _append_unique_named(items: list[JsonObject], value: JsonObject) -> None:
+    name = value.get("name")
+    if isinstance(name, str) and any(isinstance(item, dict) and item.get("name") == name for item in items):
+        return
+    _append_unique(items, value)
 
 
 def _merge_name(items: list[str], name: str) -> None:
@@ -203,19 +431,19 @@ def _declared_names(decls: str) -> list[tuple[str, bool]]:
     return names
 
 
-def _extract_regex_facts(text: str) -> dict:
+def _extract_regex_facts(text: str) -> FactMap:
     modules: list[str] = []
-    parameters: list[dict] = []
-    ports: list[dict] = []
+    parameters: list[JsonObject] = []
+    ports: list[JsonObject] = []
     registers: list[str] = []
     memories: list[str] = []
-    assignments: list[dict] = []
-    fsm_candidates: list[dict] = []
+    assignments: list[JsonObject] = []
+    fsm_candidates: list[JsonObject] = []
 
     for match in MODULE_RE.finditer(text):
         _merge_name(modules, match.group(1))
     for match in PARAM_RE.finditer(text):
-        item = {"name": match.group("name"), "local": match.group("kind") == "localparam"}
+        item: JsonObject = {"name": match.group("name"), "local": match.group("kind") == "localparam"}
         value = (match.group("value") or "").strip()
         if value:
             item["value"] = value
@@ -279,8 +507,25 @@ def _extract_regex_facts(text: str) -> dict:
     }
 
 
-def build_rtl_facts(andes: Path, name: str, rtl_files: list[Path]) -> dict:
-    facts = {
+def _merge_extracted_facts(target: FactMap, extracted: FactMap, *, fallback: bool = False) -> None:
+    for key in ("modules", "clocks", "resets", "registers", "memories"):
+        target_names = cast(list[str], target[key])
+        for value in cast(list[str], extracted[key]):
+            _merge_name(target_names, value)
+    for key in ("parameters", "ports"):
+        target_items = cast(list[JsonObject], target[key])
+        for value in cast(list[JsonObject], extracted[key]):
+            _append_unique_named(target_items, value)
+    for key in ("fsm_candidates", "datapaths", "assignments"):
+        if fallback and target[key]:
+            continue
+        target_items = cast(list[Any], target[key])
+        for value in cast(list[Any], extracted[key]):
+            _append_unique(target_items, value)
+
+
+def build_rtl_facts(andes: Path, name: str, rtl_files: list[Path]) -> FactMap:
+    facts: FactMap = {
         "schema_version": "andes_rtl_facts.v1",
         "block": name,
         "modules": [],
@@ -295,25 +540,25 @@ def build_rtl_facts(andes: Path, name: str, rtl_files: list[Path]) -> dict:
         "assignments": [],
         "diagnostics": [],
         "source_files": [path.relative_to(andes).as_posix() for path in rtl_files],
+        "ast_extracted_files": [],
         "features": [],
         "ast_kind_counts": {},
     }
-    kind_counts: Counter = Counter()
+    kind_counts: Counter[str] = Counter()
+    diagnostics = cast(list[str], facts["diagnostics"])
+    ast_extracted_files = cast(list[str], facts["ast_extracted_files"])
     if not rtl_files:
-        facts["diagnostics"].append(f"{name}: no .v/.sv RTL files found under hdl/")
+        diagnostics.append(f"{name}: no .v/.sv RTL files found under hdl/")
     for path in rtl_files:
         text = _read(path)
-        counts, diagnostics = _ast_facts(path)
+        ast_extracted, counts, path_diagnostics = _ast_facts(path)
         kind_counts.update(counts)
-        facts["diagnostics"].extend(diagnostics)
-        extracted = _extract_regex_facts(text)
-        for key in ("modules", "clocks", "resets", "registers", "memories"):
-            for value in extracted[key]:
-                _merge_name(facts[key], value)
-        for key in ("parameters", "ports", "fsm_candidates", "datapaths", "assignments"):
-            for value in extracted[key]:
-                _append_unique(facts[key], value)
-    features = []
+        diagnostics.extend(path_diagnostics)
+        if counts:
+            ast_extracted_files.append(path.relative_to(andes).as_posix())
+        _merge_extracted_facts(facts, ast_extracted)
+        _merge_extracted_facts(facts, _extract_regex_facts(text), fallback=True)
+    features: list[str] = []
     if facts["fsm_candidates"]:
         features.append("fsm")
     if facts["registers"]:
@@ -331,8 +576,8 @@ def build_rtl_facts(andes: Path, name: str, rtl_files: list[Path]) -> dict:
     return facts
 
 
-def discover_docs(andes: Path, name: str) -> list[dict]:
-    docs: list[dict] = []
+def discover_docs(andes: Path, name: str) -> list[JsonObject]:
+    docs: list[JsonObject] = []
     seen: set[str] = set()
     ip_root = andes / name
     candidates = [path for path in ip_root.rglob("*") if path.is_file() and path.suffix.lower() in DOC_EXTS]
@@ -347,7 +592,7 @@ def discover_docs(andes: Path, name: str) -> list[dict]:
     return docs
 
 
-def parse_block(andes: Path, name: str) -> dict:
+def parse_block(andes: Path, name: str) -> BlockMap:
     hdl = andes / name / "hdl"
     v_files = sorted(hdl.rglob("*.v")) + sorted(hdl.rglob("*.sv"))
     vh_files = sorted(hdl.rglob("*.vh")) + sorted(hdl.rglob("*.svh"))
@@ -422,11 +667,11 @@ def parse_block(andes: Path, name: str) -> dict:
 PLATFORM_ID = "ae210p"
 
 
-def related_for(b: dict, all_names: set[str]) -> list[str]:
+def related_for(b: BlockMap, all_names: set[str]) -> list[str]:
     """Cross-link topology, derived from bus tags + curated roles."""
     rel: list[str] = []
 
-    def add(x):
+    def add(x: str) -> None:
         if x in all_names and x != b["name"] and x not in rel:
             rel.append(x)
 
@@ -458,12 +703,12 @@ def fence(rows: list[str]) -> str:
     return "\n".join(rows)
 
 
-def write_block_page(wiki: Path, b: dict, all_names: set[str], today: str) -> None:
+def write_block_page(wiki: Path, b: BlockMap, all_names: set[str], today: str) -> None:
     rel = related_for(b, all_names)
     tags = ", ".join(b["tags"])
     related_fm = ", ".join(rel)
     iface = " + ".join(b["buses"]) if b["buses"] else "internal / custom"
-    feats = []
+    feats: list[str] = []
     if b["has_dma"]:
         feats.append("DMA handshake")
     if b["has_irq"]:
@@ -471,7 +716,7 @@ def write_block_page(wiki: Path, b: dict, all_names: set[str], today: str) -> No
     feat_str = (", ".join(feats)) if feats else "—"
 
     # group ports by bus for a compact interface table
-    def grp(sig):
+    def grp(sig: str) -> str:
         s = sig.lower()
         for bus, sigs in BUS_SIGNALS.items():
             if any(x in s for x in sigs):
@@ -494,7 +739,7 @@ def write_block_page(wiki: Path, b: dict, all_names: set[str], today: str) -> No
     rtl_lines = "\n".join(f"- `{f}`" for f in (b["rtl_files"] + b["inc_files"]))
     doc_lines = "\n".join(f"- [[doc-{b['name']}-{d['slug']}]] — `{d['path']}`" for d in b["doc_pages"]) or "_No matching local document found._"
     related_links = " · ".join(f"[[{r}]]" for r in rel)
-    facts = b["rtl_facts"]
+    facts = cast(FactMap, b["rtl_facts"])
     fact_path = f"_rtl_facts/{b['name']}.json"
     fact_terms = " ".join(facts["features"]) or "module port parameter"
     ast_summary = (
@@ -559,7 +804,7 @@ wiki_query(ip="rtl-db", topic="{b['name']} {' '.join(b['buses']).lower()}", dept
     (wiki / f"{b['name']}.md").write_text(body, encoding="utf-8")
 
 
-def write_rtl_facts(wiki: Path, blocks: list[dict]) -> None:
+def write_rtl_facts(wiki: Path, blocks: list[BlockMap]) -> None:
     facts_dir = wiki / "_rtl_facts"
     facts_dir.mkdir(parents=True, exist_ok=True)
     for b in blocks:
@@ -567,7 +812,7 @@ def write_rtl_facts(wiki: Path, blocks: list[dict]) -> None:
         path.write_text(json.dumps(b["rtl_facts"], indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
-def write_doc_pages(wiki: Path, blocks: list[dict], today: str) -> None:
+def write_doc_pages(wiki: Path, blocks: list[BlockMap], today: str) -> None:
     rows: list[str] = []
     seen: set[str] = set()
     for b in blocks:
@@ -614,7 +859,7 @@ Local document pages for Andes RTL DB blocks. These pages record path and owners
     (wiki / "doc-inventory.md").write_text(body, encoding="utf-8")
 
 
-def write_platform_page(wiki: Path, blocks: list[dict], today: str) -> None:
+def write_platform_page(wiki: Path, blocks: list[BlockMap], today: str) -> None:
     names = [b["name"] for b in blocks]
     links = "\n".join(
         f"- [[{b['name']}]] — {b['role']}" for b in blocks
@@ -652,8 +897,8 @@ See [[rtl-inventory]] for the machine-generated block table.
     (wiki / f"{PLATFORM_ID}.md").write_text(body, encoding="utf-8")
 
 
-def write_index(wiki: Path, blocks: list[dict], andes: Path, today: str) -> None:
-    by_cat: dict[str, list[dict]] = {}
+def write_index(wiki: Path, blocks: list[BlockMap], andes: Path, today: str) -> None:
+    by_cat: dict[str, list[BlockMap]] = {}
     for b in blocks:
         by_cat.setdefault(b["category"], []).append(b)
     sections = []
@@ -710,7 +955,7 @@ See also: [[rtl-inventory]] (full table).
     (wiki / "index.md").write_text(body, encoding="utf-8")
 
 
-def write_inventory(wiki: Path, blocks: list[dict], andes: Path, today: str) -> None:
+def write_inventory(wiki: Path, blocks: list[BlockMap], andes: Path, today: str) -> None:
     rows = [
         "| Block | Category | Top module | Bus | Modules | Files | Lines | Tags | Docs |",
         "| --- | --- | --- | --- | ---: | ---: | ---: | --- | ---: |",
