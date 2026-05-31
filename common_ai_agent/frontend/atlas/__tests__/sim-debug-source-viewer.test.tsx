@@ -37,6 +37,30 @@ describe('sim debug source viewer', () => {
     expect(hits.map(el => el.textContent)).toEqual(['irq_status_o[5:0]']);
   });
 
+  it('does not highlight selected signal names inside comments or numeric literal bases', () => {
+    const { container: commentContainer } = render(
+      <SourceViewer
+        lines={[
+          '// Request/control payload',
+          'input logic payload;',
+        ]}
+        selectedSig="payload"
+      />,
+    );
+
+    expect(Array.from(commentContainer.querySelectorAll('.src-sig-hit')).map(el => el.textContent))
+      .toEqual(['payload']);
+
+    const { container: literalContainer } = render(
+      <SourceViewer
+        lines={['localparam [3:0] IDLE = 4\'d0;']}
+        selectedSig="d0"
+      />,
+    );
+
+    expect(literalContainer.querySelectorAll('.src-sig-hit')).toHaveLength(0);
+  });
+
   it('clears native text selection after capturing source context-menu signals', async () => {
     const removeAllRanges = vi.fn();
     vi.spyOn(window, 'getSelection').mockReturnValue({
@@ -57,6 +81,31 @@ describe('sim debug source viewer', () => {
     await new Promise(resolve => setTimeout(resolve, 0));
 
     expect(onSignalContextMenu).toHaveBeenCalledWith('', 10, 10, ['clk', 'rst', 'irq']);
+    expect(removeAllRanges).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores comments and Verilog numeric literals in native source selection menus', async () => {
+    const removeAllRanges = vi.fn();
+    vi.spyOn(window, 'getSelection').mockReturnValue({
+      toString: () => [
+        '// Request/control payload',
+        'input logic req_valid;',
+        'localparam [3:0] IDLE = 4\'d0;',
+      ].join('\n'),
+      removeAllRanges,
+    } as unknown as Selection);
+    const onSignalContextMenu = vi.fn();
+    const { container } = render(
+      <SourceViewer
+        lines={['input logic req_valid;']}
+        onSignalContextMenu={onSignalContextMenu}
+      />,
+    );
+
+    fireEvent.contextMenu(container.querySelector('.src-viewer')!, { clientX: 10, clientY: 10 });
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(onSignalContextMenu).toHaveBeenCalledWith('', 10, 10, ['req_valid', 'IDLE']);
     expect(removeAllRanges).toHaveBeenCalledTimes(1);
   });
 
@@ -108,6 +157,44 @@ describe('sim debug source viewer', () => {
 
     expect(onSelectSignals).toHaveBeenCalledWith(['clk', 'rst', 'irq']);
     expect(onSignalContextMenu).toHaveBeenCalledWith('', 100, 10, ['clk', 'rst', 'irq']);
+  });
+
+  it('excludes comments and numeric literal bases from dragged source signals', async () => {
+    vi.spyOn(window, 'getSelection').mockReturnValue({
+      toString: () => '',
+      removeAllRanges: vi.fn(),
+    } as unknown as Selection);
+    const onSelectSignals = vi.fn();
+    const { container } = render(
+      <SourceViewer
+        lines={[
+          '// Request/control payload',
+          'input logic req_valid;',
+          'localparam [3:0] IDLE = 4\'d0, ACCEPT = 4\'d1;',
+        ]}
+        onSelectSignals={onSelectSignals}
+      />,
+    );
+    const code = container.querySelectorAll('[data-src-code]');
+    const startNode = code[0].firstChild as Text;
+    const endNode = code[2].firstChild as Text;
+    const endText = endNode.textContent || '';
+    Object.defineProperty(document, 'caretRangeFromPoint', {
+      configurable: true,
+      value: vi.fn((_x: number, y: number) => {
+        const range = document.createRange();
+        range.setStart(y < 20 ? startNode : endNode, y < 20 ? 0 : endText.length);
+        return range;
+      }),
+    });
+
+    const viewer = container.querySelector('.src-viewer')!;
+    fireEvent.mouseDown(viewer, { button: 0, clientX: 1, clientY: 10 });
+    fireEvent.mouseMove(window, { clientX: 100, clientY: 60 });
+    fireEvent.mouseUp(window, { clientX: 100, clientY: 60 });
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(onSelectSignals).toHaveBeenCalledWith(['req_valid', 'IDLE', 'ACCEPT']);
   });
 
   it('picks the exact source bit slice under the cursor', () => {

@@ -304,18 +304,28 @@ export const parseVerilogParamValueMap = (lines: unknown): Record<string, string
 
 export const VERILOG_KEYWORDS = new Set([
   'always', 'always_comb', 'always_ff', 'assign', 'begin', 'case', 'default', 'else',
-  'end', 'endcase', 'endmodule', 'for', 'generate', 'if', 'input', 'logic', 'module',
-  'negedge', 'or', 'output', 'parameter', 'posedge', 'reg', 'wire',
+  'end', 'endcase', 'endmodule', 'for', 'generate', 'if', 'initial', 'input',
+  'integer', 'int', 'localparam', 'logic', 'module', 'negedge', 'or', 'output',
+  'parameter', 'posedge', 'reg', 'signed', 'unsigned', 'wire',
 ]);
+
+const stripVerilogCommentsForIdentifiers = (text: string): string =>
+  text.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/\/\/.*$/gm, ' ');
+
+const isNumericLiteralIdentifier = (text: string, start: number): boolean => {
+  const before = text.slice(Math.max(0, start - 4), start);
+  return /'\s*[sS]?$/.test(before);
+};
 
 export const sourceLineIdentifiers = (line: unknown): string[] => {
   const ids: string[] = [];
   const seen = new Set<string>();
-  const text = String(line || '');
+  const text = stripVerilogCommentsForIdentifiers(String(line || ''));
   const re = /\b([A-Za-z_][A-Za-z0-9_$]*)\b(\s*\[[^\]\n]+\])?/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(text))) {
     const base = m[1];
+    if (isNumericLiteralIdentifier(text, m.index)) continue;
     const id = `${base}${m[2] ? m[2].replace(/\s+/g, '') : ''}`;
     const key = id.toLowerCase();
     if (VERILOG_KEYWORDS.has(base.toLowerCase()) || seen.has(key)) continue;

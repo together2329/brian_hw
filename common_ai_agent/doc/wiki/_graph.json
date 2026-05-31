@@ -1,6 +1,6 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-05-31T12:32:27Z",
+  "generated_at": "2026-05-31T14:15:36Z",
   "root": "doc/wiki",
   "node_count": 121,
   "edge_count": 510,
@@ -3057,7 +3057,7 @@
       "updated": "2026-05-31 KST",
       "summary": "Consolidated review of the Sim Debug feature as implemented across the Atlas frontend, backend API, pyslang elaboration layer, VCD tooling, agent tool bridge, and tests. This page is the current high-level operating map; the narrower implementation notes remain in [[sim-debug-module-signals-2026-05-30]], [[sim-debug-agent-tool-2026-05-31]], and…",
       "path": "doc/wiki/sim-debug-feature-review-2026-05-31.md",
-      "size_bytes": 20236
+      "size_bytes": 20430
     },
     {
       "id": "sim-debug-module-signals-2026-05-30",

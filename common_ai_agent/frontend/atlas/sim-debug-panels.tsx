@@ -49,6 +49,56 @@ interface SourcePoint {
   offset: number;
   text: string;
 }
+interface SourceCodeSpan {
+  start: number;
+  end: number;
+}
+
+const SOURCE_IDENT_RE = /\b([A-Za-z_][A-Za-z0-9_$]*)\b(\s*\[[^\]\n]+\])?/g;
+
+const verilogCodeSpansForLines = (lines: string[]): SourceCodeSpan[][] => {
+  let inBlockComment = false;
+  return lines.map(raw => {
+    const text = String(raw || '');
+    const spans: SourceCodeSpan[] = [];
+    let i = 0;
+    while (i < text.length) {
+      if (inBlockComment) {
+        const end = text.indexOf('*/', i);
+        if (end < 0) return spans;
+        inBlockComment = false;
+        i = end + 2;
+        continue;
+      }
+      const lineComment = text.indexOf('//', i);
+      const blockComment = text.indexOf('/*', i);
+      if (lineComment < 0 && blockComment < 0) {
+        if (i < text.length) spans.push({ start: i, end: text.length });
+        return spans;
+      }
+      if (lineComment >= 0 && (blockComment < 0 || lineComment < blockComment)) {
+        if (i < lineComment) spans.push({ start: i, end: lineComment });
+        return spans;
+      }
+      if (i < blockComment) spans.push({ start: i, end: blockComment });
+      const end = text.indexOf('*/', blockComment + 2);
+      if (end < 0) {
+        inBlockComment = true;
+        return spans;
+      }
+      i = end + 2;
+    }
+    return spans;
+  });
+};
+
+const isInsideCodeSpan = (start: number, end: number, spans?: SourceCodeSpan[]): boolean =>
+  !spans || spans.some(span => start >= span.start && end <= span.end);
+
+const isVerilogNumericLiteralIdentifier = (text: string, start: number): boolean => {
+  const before = text.slice(Math.max(0, start - 4), start);
+  return /'\s*[sS]?$/.test(before);
+};
 
 const sourcePointAtPoint = (clientX: number, clientY: number): SourcePoint | null => {
   const caret = caretTextAtPoint(clientX, clientY);
@@ -70,14 +120,16 @@ const sourcePointAtPoint = (clientX: number, clientY: number): SourcePoint | nul
   return globalOffset >= 0 ? { line, offset: globalOffset, text } : null;
 };
 
-const signalAtSourceOffset = (text: string, offset: number): string => {
-  const re = /\b([A-Za-z_][A-Za-z0-9_$]*)\b(\s*\[[^\]\n]+\])?/g;
+const signalAtSourceOffset = (text: string, offset: number, codeSpans?: SourceCodeSpan[]): string => {
+  const re = new RegExp(SOURCE_IDENT_RE.source, 'g');
   let m: RegExpExecArray | null;
   while ((m = re.exec(text))) {
     const base = m[1];
     const full = `${base}${m[2] ? m[2].replace(/\s+/g, '') : ''}`;
     const start = m.index;
     const end = m.index + m[0].length;
+    if (!isInsideCodeSpan(start, end, codeSpans)) continue;
+    if (isVerilogNumericLiteralIdentifier(text, start)) continue;
     if (offset < start || offset > end) continue;
     return VERILOG_KEYWORDS.has(base.toLowerCase()) ? '' : full;
   }
@@ -87,28 +139,36 @@ const signalAtSourceOffset = (text: string, offset: number): string => {
 // Resolve the signal under a mouse event inside highlighted source. Unlike a
 // plain identifier picker, this preserves a trailing Verilog bit/range select
 // (`irq_status_o[5:0]`) and also works when the click lands inside the range.
-const signalAtPoint = (clientX: number, clientY: number): string => {
+const signalAtPoint = (clientX: number, clientY: number, lines?: string[]): string => {
   const point = sourcePointAtPoint(clientX, clientY);
-  return point ? signalAtSourceOffset(point.text, point.offset) : '';
+  if (!point) return '';
+  const src = Array.isArray(lines) ? lines : [point.text];
+  const spansByLine = verilogCodeSpansForLines(src);
+  const spans = Array.isArray(lines) ? spansByLine[point.line - 1] : spansByLine[0];
+  return signalAtSourceOffset(point.text, point.offset, spans);
 };
 
 const sourceSignalsBetween = (lines: string[] | undefined, a: SourcePoint, b: SourcePoint): string[] => {
   const src = Array.isArray(lines) ? lines : [];
+  const spansByLine = verilogCodeSpansForLines(src);
   const before = a.line < b.line || (a.line === b.line && a.offset <= b.offset) ? a : b;
   const after = before === a ? b : a;
   const seen = new Set<string>();
   const out: string[] = [];
   for (let lineNo = before.line; lineNo <= after.line; lineNo++) {
     const text = src[lineNo - 1] || '';
+    const codeSpans = spansByLine[lineNo - 1] || [];
     const lo = lineNo === before.line ? Math.max(0, before.offset) : 0;
     const hi = lineNo === after.line ? Math.max(lo, Math.min(after.offset, text.length)) : text.length;
-    const re = /\b([A-Za-z_][A-Za-z0-9_$]*)\b(\s*\[[^\]\n]+\])?/g;
+    const re = new RegExp(SOURCE_IDENT_RE.source, 'g');
     let m: RegExpExecArray | null;
     while ((m = re.exec(text))) {
       const base = m[1];
       const start = m.index;
       const end = m.index + m[0].length;
       if (end < lo || start > hi) continue;
+      if (!isInsideCodeSpan(start, end, codeSpans)) continue;
+      if (isVerilogNumericLiteralIdentifier(text, start)) continue;
       if (VERILOG_KEYWORDS.has(base.toLowerCase())) continue;
       const name = `${base}${m[2] ? m[2].replace(/\s+/g, '') : ''}`;
       const key = name.toLowerCase();
@@ -148,7 +208,12 @@ const selectedSourceRange = (selectedSig?: string): string => {
   return m ? m[1].replace(/\s+/g, '') : '';
 };
 
-const markSelectedSourceSignal = (html: string, selectedLeaf: string, selectedRange = ''): string => {
+const markSelectedSourceSignal = (
+  html: string,
+  selectedLeaf: string,
+  selectedRange = '',
+  codeSpans?: SourceCodeSpan[],
+): string => {
   if (!selectedLeaf) return html;
   const parts = html.split(/(<[^>]+>|&(?:[A-Za-z][A-Za-z0-9]+|#[0-9]+|#x[0-9A-Fa-f]+);)/g);
   const plainAfter = (idx: number): string => {
@@ -160,9 +225,20 @@ const markSelectedSourceSignal = (html: string, selectedLeaf: string, selectedRa
     }
     return out;
   };
+  let plainOffset = 0;
   return parts.map((part, idx) => {
-    if (!part || part.startsWith('<') || part.startsWith('&')) return part;
-    return part.replace(/\b([A-Za-z_][A-Za-z0-9_$]*)(\s*\[[^\]\n]+\])?/g, (match, word, directRange = '', pos) => {
+    if (!part) return part;
+    if (part.startsWith('<')) return part;
+    if (part.startsWith('&')) {
+      plainOffset += 1;
+      return part;
+    }
+    const partOffset = plainOffset;
+    const marked = part.replace(/\b([A-Za-z_][A-Za-z0-9_$]*)(\s*\[[^\]\n]+\])?/g, (match, word, directRange = '', pos) => {
+      const start = partOffset + Number(pos);
+      const end = start + String(match).length;
+      if (!isInsideCodeSpan(start, end, codeSpans)) return match;
+      if (isVerilogNumericLiteralIdentifier(part, Number(pos))) return match;
       if (word !== selectedLeaf) return match;
       if (selectedRange) {
         const normDirectRange = String(directRange || '').replace(/\s+/g, '');
@@ -173,6 +249,8 @@ const markSelectedSourceSignal = (html: string, selectedLeaf: string, selectedRa
       }
       return `<span class="src-sig-hit">${word}</span>${directRange || ''}`;
     });
+    plainOffset += part.length;
+    return marked;
   }).join('');
 };
 
@@ -723,7 +801,7 @@ const SourceViewer = ({
   // routes it to the matching handler. Keywords are ignored. Single-click only
   // fires when there is no active text selection (so drag-to-copy still works).
   const pickFromEvent = (clientX: number, clientY: number): string => {
-    const w = signalAtPoint(clientX, clientY);
+    const w = signalAtPoint(clientX, clientY, lines);
     return w && !VERILOG_KEYWORDS.has(stripSignalRange(w).toLowerCase()) ? w : '';
   };
   const ref = useRef<HTMLDivElement>(null);
@@ -773,17 +851,18 @@ const SourceViewer = ({
     );
   }, [lines, langId, grammarTick]);
   const lineHTMLs = useMemo(() => {
+    const codeSpansByLine = verilogCodeSpansForLines(lines || []);
     let htmls = selectedLeaf
-      ? baseLineHTMLs.map(html => markSelectedSourceSignal(html, selectedLeaf, selectedRange))
+      ? baseLineHTMLs.map((html, idx) => markSelectedSourceSignal(html, selectedLeaf, selectedRange, codeSpansByLine[idx]))
       : baseLineHTMLs;
     for (const sig of sourceDragSignals) {
       const leaf = selectedSourceLeaf(sig);
       const range = selectedSourceRange(sig);
       if (!leaf) continue;
-      htmls = htmls.map(html => markSelectedSourceSignal(html, leaf, range));
+      htmls = htmls.map((html, idx) => markSelectedSourceSignal(html, leaf, range, codeSpansByLine[idx]));
     }
     return htmls;
-  }, [baseLineHTMLs, selectedLeaf, selectedRange, sourceDragSignals]);
+  }, [baseLineHTMLs, lines, selectedLeaf, selectedRange, sourceDragSignals]);
 
   useEffect(() => {
     if ((cursor || 0) > 0 && ref.current) {

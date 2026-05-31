@@ -220,6 +220,9 @@ Important implementation details:
 - `sourceSignalsBetween` turns a drag range into unique Verilog identifiers.
 - Native text selection is cleared after source context-menu capture to prevent
   accidental dimmed source blocks.
+- Source semantic selection ignores comments and Verilog numeric literal bases
+  such as `4'd0`, so comment words and `d0`/`hFF` literal suffixes are not
+  highlighted or bulk-added as signals.
 - Source selected signals are threaded to root `waveSel`, so `Ctrl+W` adds them
   the same way signal-panel selection does.
 - Source scope is applied only when the loaded source belongs to the currently
