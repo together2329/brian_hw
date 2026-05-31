@@ -1,6 +1,6 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-05-31T12:03:13Z",
+  "generated_at": "2026-05-31T12:10:59Z",
   "root": "doc/wiki",
   "node_count": 120,
   "edge_count": 509,
@@ -2039,7 +2039,7 @@
       "updated": "2026-05-31",
       "summary": "This page records the fresh `mctp_assembler_scratch` req-to-audit run. It is a handoff map, not a production conformance claim. The scratch IP reached a complete local evidence bundle, but final local signoff remains `fail` with explicit owner-routed blockers.",
       "path": "doc/wiki/mctp-assembler-scratch-flow-20260531.md",
-      "size_bytes": 6542
+      "size_bytes": 6965
     },
     {
       "id": "mini-cpu-rerun-20260517",

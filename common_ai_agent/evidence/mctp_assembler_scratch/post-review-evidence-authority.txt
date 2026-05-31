@@ -1,0 +1,2 @@
+EVIDENCE_AUTHORITY_MANIFEST_OK
+diagnostic_only_legacy_reference_files 4

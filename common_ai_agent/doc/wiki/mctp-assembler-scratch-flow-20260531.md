@@ -37,6 +37,7 @@ Primary artifacts:
 - Mutation: `mctp_assembler_scratch/mutation/mutation_report.json`
 - Signoff: `mctp_assembler_scratch/signoff/ip_signoff.json`
 - Owner routes: `mctp_assembler_scratch/signoff/signoff_owner_routes.json`
+- Evidence authority: `mctp_assembler_scratch/signoff/evidence_authority_manifest.json`
 
 Useful commands:
 
@@ -79,6 +80,8 @@ Remaining failed gates are owner-routed:
 | `coverage` | `sim_debug` | Coverage status is `owner_routed`; 57 missing bins are routed to `sim_debug`. |
 
 The important point is not that the IP is green. It is that failure is now explicit, machine-readable, and routed to the right owner workflow instead of being hidden behind a passing cocotb test.
+
+Some adversarial evidence transcripts intentionally include dirty-worktree scans that mention the earlier `mctp_assembler/` directory. Those files are diagnostic logs only, not proof sources. The authoritative scratch evidence roots and diagnostic-only legacy-reference files are listed in `signoff/evidence_authority_manifest.json`.
 
 ## Mutation Interpretation
 
