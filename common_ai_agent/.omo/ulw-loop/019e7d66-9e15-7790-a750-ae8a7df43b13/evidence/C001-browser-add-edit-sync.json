@@ -1,0 +1,40 @@
+{
+  "ok": false,
+  "baseUrl": "http://127.0.0.1:8792",
+  "ip": "ulw_p4_c001",
+  "p4": {
+    "p4Port": "localhost:16671",
+    "p4User": "atlasqa",
+    "p4Client": "atlas_ulw_c001"
+  },
+  "actions": [
+    {
+      "step": "goto",
+      "at": "2026-05-31T12:20:29.270Z",
+      "url": "http://127.0.0.1:8792/?backend=live&ip=ulw_p4_c001"
+    },
+    {
+      "step": "click_scm_tab",
+      "at": "2026-05-31T12:20:52.258Z",
+      "count": 1
+    },
+    {
+      "step": "perforce_tab_visible",
+      "at": "2026-05-31T12:20:52.267Z"
+    },
+    {
+      "step": "browser_closed",
+      "at": "2026-05-31T12:20:52.713Z"
+    }
+  ],
+  "responses": [
+    {
+      "url": "http://127.0.0.1:8792/api/scm/pane?ip=ulw_p4_c001&provider=perforce",
+      "method": "GET",
+      "status": 200
+    }
+  ],
+  "assertions": {},
+  "screenshotPath": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/.omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/evidence/C001-browser-add-edit-sync.png",
+  "error": "locator.waitFor: Error: strict mode violation: getByText('rtl/existing.sv', { exact: true }) resolved to 2 elements:\n    1) <span>rtl/existing.sv</span> aka getByText('rtl/existing.sv').first()\n    2) <span>rtl/existing.sv</span> aka getByText('rtl/existing.sv').nth(1)\n\nCall log:\n\u001b[2m  - waiting for getByText('rtl/existing.sv', { exact: true }) to be visible\u001b[22m\n\n    at /Users/brian/Desktop/Project/brian_hw/common_ai_agent/.omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/scripts/c001_browser_add_edit_sync.mjs:132:60"
+}
