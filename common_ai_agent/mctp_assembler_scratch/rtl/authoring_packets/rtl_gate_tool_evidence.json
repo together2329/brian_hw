@@ -804,18 +804,9 @@
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [
       {
-        "gate_kind": "common_ai_agent_authoring",
-        "owner_module": "mctp_assembler_scratch",
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
-        "source": "packet_task",
-        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-        "status": "open",
-        "task_id": "RTL-0006"
-      },
-      {
         "gate_kind": "dynamic_todo_closure",
         "owner_module": "mctp_assembler_scratch",
-        "reason": "23 required non-closure TODO(s) remain open.",
+        "reason": "22 required non-closure TODO(s) remain open.",
         "source": "packet_task",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "status": "open",
@@ -830,38 +821,15 @@
     "integration_signoff_allowed": true,
     "llm_actionable": false,
     "llm_actionable_open_count": 0,
-    "open_required_count": 2,
+    "open_required_count": 1,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
       "Never use a fixed RTL template as the implementation."
     ],
-    "tool_evidence_open_count": 2,
+    "tool_evidence_open_count": 1,
     "tool_evidence_plan": [
-      {
-        "artifact": "rtl/rtl_authoring_provenance.json",
-        "artifacts": [
-          "mctp_assembler_scratch/rtl/rtl_authoring_provenance.json",
-          "mctp_assembler_scratch/rtl/rtl_todo_plan.json"
-        ],
-        "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
-        "commands": [
-          "python3 src/headless_workflow.py --root . --ip mctp_assembler_scratch --stages rtl-gen",
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py mctp_assembler_scratch --root . --audit-rtl"
-        ],
-        "gate_kind": "common_ai_agent_authoring",
-        "prerequisites": [
-          "An LLM authoring pass emitted or repaired DUT RTL files."
-        ],
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
-        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-        "stage_sequence": [
-          "ssot-rtl"
-        ],
-        "status": "open",
-        "task_id": "RTL-0006"
-      },
       {
         "artifact": "rtl/rtl_todo_plan.json",
         "artifacts": [
@@ -876,7 +844,7 @@
         "prerequisites": [
           "All non-closure required TODOs have pass status."
         ],
-        "reason": "23 required non-closure TODO(s) remain open.",
+        "reason": "22 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "stage_sequence": [
           "audit-rtl"
@@ -909,7 +877,7 @@
       "rtl_gate.rtl_gen": 4
     },
     "module_slice": {},
-    "open_required_count": 2,
+    "open_required_count": 1,
     "required_count": 4,
     "source_refs": [
       "quality_gates.rtl_gen.common_ai_agent_authoring",
@@ -918,8 +886,8 @@
       "quality_gates.rtl_gen.dynamic_todo_closure"
     ],
     "status_counts": {
-      "open": 2,
-      "pass": 2
+      "open": 1,
+      "pass": 3
     },
     "task_count": 4
   },
@@ -968,9 +936,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_authoring_provenance.json"
         ],
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "reason": "RTL authoring provenance proves common_ai_agent rtl-gen ownership.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1108,7 +1076,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "23 required non-closure TODO(s) remain open.",
+        "reason": "22 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }
