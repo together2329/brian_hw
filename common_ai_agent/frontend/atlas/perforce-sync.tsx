@@ -161,6 +161,11 @@ function PerforceSyncTab(props: PerforceSyncProps) {
     if (!paths.length) { setErr('no local changes to add'); return; }
     post('/api/scm/add', { paths }, `opened ${paths.length} file(s)`);
   };
+  const onEdit = () => {
+    const paths = [...selLocal];
+    if (!paths.length) { setErr('select local files to edit'); return; }
+    post('/api/scm/edit', { paths }, `opened ${paths.length} file(s) for edit`);
+  };
   const onSubmit = () => {
     if (!desc.trim()) { setErr('description required'); return; }
     post('/api/scm/submit', { message: desc.trim(), add_all: false }, 'submitted');
@@ -223,6 +228,7 @@ function PerforceSyncTab(props: PerforceSyncProps) {
         {/* CENTER — actions */}
         <div style={sx.center}>
           <button style={sx.btn} onClick={onAdd} disabled={busy || !ip} title="Open selected local files (p4 reconcile)">＋ Add</button>
+          <button style={sx.btn} onClick={onEdit} disabled={busy || !ip} title="Open selected tracked files for edit (p4 edit)">✎ Edit</button>
           <button style={sx.btnPrimary} onClick={onSubmit} disabled={busy || !ip} title="Submit the pending changelist">Submit ▶</button>
           <button style={sx.btn} onClick={onSync} disabled={busy || !ip} title="Force-sync from Perforce (overwrite local)">◀ Sync</button>
         </div>
