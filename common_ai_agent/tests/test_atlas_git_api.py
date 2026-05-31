@@ -3,11 +3,12 @@ import sys
 from pathlib import Path
 
 from fastapi.testclient import TestClient
-from core.scm import SCMCommandResult
 
 PROJECT_ROOT = str(Path(__file__).resolve().parents[1])
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
+
+from core.scm import SCMCommandResult
 
 
 def _run_git(cwd: Path, *args: str) -> subprocess.CompletedProcess[str]:

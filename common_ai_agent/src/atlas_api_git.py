@@ -334,3 +334,20 @@ def register_git_routes(
                 "error": f"revert is not supported for provider '{prov}'",
             }, status_code=200)
         return _scm_result_json(result, resolved_ip)
+
+    @app.post("/api/scm/edit")
+    async def api_scm_edit(payload: dict[str, Any]):
+        # Open selected local paths for edit (p4 edit). Provider-specific (Perforce).
+        body = payload or {}
+        provider = str(body.get("provider") or "")
+        paths = body.get("paths") or []
+        cwd, error, resolved_ip = _route_cwd(str(body.get("ip") or ""), provider=provider)
+        if error is not None:
+            return error
+        result, prov, supported = await _scm_optional(cwd, "edit_paths", paths, provider=provider)
+        if not supported:
+            return JSONResponse({
+                "ok": False, "provider": prov, "ip": resolved_ip,
+                "error": f"edit/open is not supported for provider '{prov}'",
+            }, status_code=200)
+        return _scm_result_json(result, resolved_ip)

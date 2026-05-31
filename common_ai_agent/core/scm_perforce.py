@@ -370,6 +370,12 @@ class PerforceP4Adapter(SCMAdapter):
             return self._result(ok=False, returncode=2, error="no valid paths to open")
         return self._soften(self._run_p4("reconcile", *specs))
 
+    def edit_paths(self, paths: Any) -> SCMCommandResult:
+        specs = self._safe_filespecs(paths)
+        if not specs:
+            return self._result(ok=False, returncode=2, error="no valid paths to edit/open")
+        return self._soften(self._run_p4("edit", *specs))
+
     def revert_paths(self, paths: Any) -> SCMCommandResult:
         specs = self._safe_filespecs(paths)
         if not specs:
