@@ -11,10 +11,9 @@ module generic_counter_ip (
     logic [8:0] doubled_value_next;
 
     // EQ_DOUBLE / function_model.transactions[0]: FunctionalModel.apply
-    // computes value * 2.  The power-of-two multiply is exact as a left shift.
-    // cycle_model.latency=1 requires the registered output to use the current
-    // sampled data_in on the accepting edge, so do not subtract, saturate, or
-    // wait for a second input-register stage.
+    // computes value * 2. The power-of-two multiply is exact as a left shift.
+    // cycle_model.latency=1 registers the result from the current input on the
+    // accepting edge, matching the FL expected value 10 -> 20.
     assign input_value_wide   = {1'b0, data_in};
     assign doubled_value_next = input_value_wide << 1;
 

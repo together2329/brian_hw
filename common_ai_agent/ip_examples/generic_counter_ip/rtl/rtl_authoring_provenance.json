@@ -15,6 +15,6 @@
   "surface": "headless_common_engine",
   "todo_plan_sha256": "6dc58ed8200fc3a33b1b00c92ae9494bf89ff8c31e83cad9f4f08d0f84652f04",
   "type": "rtl_authoring_provenance",
-  "updated_at": "2026-05-31T11:53:46Z",
+  "updated_at": "2026-05-31T11:55:21Z",
   "workflow": "rtl-gen"
 }

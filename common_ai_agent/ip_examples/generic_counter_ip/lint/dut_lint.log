@@ -1,15 +1,14 @@
 ===== pyslang =====
 command: pyslang rtl/generic_counter_ip.sv
-returncode: 1
-errors: 1 warnings: 0
+returncode: 0
+errors: 0 warnings: 0
 pyslang files: 1
-errors=1 warnings=0
-error: generic_counter_ip/rtl/generic_counter_ip.sv:12 unknown module 'generic_counter_ip_core'
+errors=0 warnings=0
 
 ===== verilator =====
 command: verilator --lint-only -Wall -Irtl -f list/generic_counter_ip.f --top-module generic_counter_ip
 returncode: 0
 errors: 0 warnings: 0
 - V e r i l a t i o n   R e p o r t: Verilator 5.046 2026-02-28 rev vUNKNOWN-built20260228
-- Verilator: Built from 0.035 MB sources in 3 modules, into 0.017 MB in 3 C++ files needing 0.000 MB
-- Verilator: Walltime 0.024 s (elab=0.005, cvt=0.008, bld=0.000); cpu 0.017 s on 1 threads; allocated 10.031 MB
+- Verilator: Built from 0.033 MB sources in 2 modules, into 0.009 MB in 3 C++ files needing 0.000 MB
+- Verilator: Walltime 0.021 s (elab=0.004, cvt=0.006, bld=0.000); cpu 0.013 s on 1 threads; allocated 9.641 MB
