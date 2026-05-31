@@ -9,6 +9,8 @@
 - Invalid: `0`
 - Kill rate: `None`
 - Contract unsupported mutation categories: `boundary_flag_flip, interrupt_clear_priority_flip, reset_value_flip`
+- Baseline blocker: baseline FL-vs-RTL compare is not green; mutation kill-rate would be meaningless
+- Baseline source: `sim/fl_rtl_compare.json`
 
 ## Category Kill Rate
 
