@@ -617,7 +617,7 @@ Wave 5: Tasks 13-14 and Final Verification. Signoff/audit bundle and wiki handof
 
   **Commit**: YES | Message: `test(mctp): record scratch assembler mutation depth` | Files: `mctp_assembler_scratch/mutation/*`, any owner-routed TB improvements
 
-- [ ] 13. Run Local Signoff
+- [x] 13. Run Local Signoff
 
   **What to do**: Run final signoff against `IP_SIGNOFF.md` and `ip_contract.json`. If signoff fails, classify every blocker by owner and repair only through the owner workflow. Generate or refresh `signoff/goal_ledger.json` if required by the signoff script.
 
