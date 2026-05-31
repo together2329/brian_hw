@@ -317,3 +317,5 @@ def test_mutation_guard_blocks_when_baseline_compare_is_failing(tmp_path: Path) 
     assert report["baseline"]["status"] == "fail"
     assert report["category_summary"][0]["category"] == "operator_flip"
     assert report["category_summary"][0]["kill_rate"] is None
+    markdown = (ip_dir / "mutation" / "mutation_report.md").read_text(encoding="utf-8")
+    assert "baseline FL-vs-RTL compare is not green" in markdown
