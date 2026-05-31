@@ -1,7 +1,7 @@
 {
   "version": 1,
   "createdAt": "2026-05-31T11:45:39.180Z",
-  "updatedAt": "2026-05-31T11:59:06.061Z",
+  "updatedAt": "2026-05-31T11:59:19.307Z",
   "briefPath": ".omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/brief.md",
   "goalsPath": ".omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/goals.json",
   "ledgerPath": ".omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/ledger.jsonl",
@@ -31,16 +31,16 @@
         },
         {
           "id": "C003",
-          "scenario": "regression: adjacent surface still works",
+          "scenario": "HTTP call: with ATLAS_SCM_PROVIDER=perforce, create a temp git IP and call curl -i 'http://127.0.0.1:8794/api/git/status?ip=ulw_git_c003&provider=git' against live Atlas. PASS iff HTTP 200 JSON provider is git, branch is ipbranch, and Perforce default env does not override the explicit git provider.",
           "userModel": "regression",
-          "expectedEvidence": "Replace via revise_criterion with regression proof for neighboring behavior after: Perforce System 연동을 실제 서버를 켜서 Atlas Client에서 Add, Sync, Edit 동작이 실제로 되는지 검증하고....",
+          "expectedEvidence": ".omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/evidence/C003-http-git-override.txt; automated support: tests/test_atlas_git_api.py::test_git_provider_override_stays_git_when_default_scm_is_perforce.",
           "capturedEvidence": null,
           "status": "pending"
         }
       ],
       "attempt": 1,
       "createdAt": "2026-05-31T11:45:39.180Z",
-      "updatedAt": "2026-05-31T11:59:06.061Z",
+      "updatedAt": "2026-05-31T11:59:19.307Z",
       "startedAt": "2026-05-31T11:49:31.441Z"
     }
   ],
