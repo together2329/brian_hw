@@ -13,7 +13,7 @@
     "type": "rtl_connection_contract_suggestions"
   },
   "gate": {
-    "all_required_todos_pass": true,
+    "all_required_todos_pass": false,
     "audit_rtl": true,
     "blocking_questions": 0,
     "criteria": [
@@ -35,12 +35,12 @@
       "Gate: DUT-only lint report passes after the final RTL edit",
       "Gate: every required rtl_todo_plan item is closed before rtl-gen PASS"
     ],
-    "open_required_todos": 0,
+    "open_required_todos": 2,
     "orphan_tasks": 0,
     "static_missing": 0,
-    "status": "pass"
+    "status": "fail"
   },
-  "generated_at": "2026-05-31T11:47:38Z",
+  "generated_at": "2026-05-31T11:49:19Z",
   "ip": "fresh_rule_ip",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 0,
@@ -597,9 +597,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_authoring_provenance.json"
         ],
-        "reason": "RTL authoring provenance proves common_ai_agent rtl-gen ownership.",
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -1217,9 +1217,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "Every required non-closure TODO has pass status.",
+        "reason": "1 required non-closure TODO(s) remain open.",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -2239,11 +2239,24 @@
     }
   ],
   "todo_completion": {
-    "all_required_todos_pass": true,
+    "all_required_todos_pass": false,
     "audit_rtl": true,
-    "open_required_tasks": 0,
-    "open_tasks": [],
-    "required_passed": 39,
+    "open_required_tasks": 2,
+    "open_tasks": [
+      {
+        "category": "rtl_gate.rtl_gen",
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
+        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+        "task_id": "RTL-0006"
+      },
+      {
+        "category": "rtl_gate.rtl_gen",
+        "reason": "1 required non-closure TODO(s) remain open.",
+        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+        "task_id": "RTL-0019"
+      }
+    ],
+    "required_passed": 37,
     "required_total": 39,
     "rule": "rtl-gen may not claim PASS until every required SSOT-derived TODO has pass status."
   },

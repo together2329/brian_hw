@@ -80,6 +80,15 @@
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [
       {
+        "gate_kind": "common_ai_agent_authoring",
+        "owner_module": "generic_counter_ip",
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+        "status": "open",
+        "task_id": "RTL-0006"
+      },
+      {
         "gate_kind": "dut_lint",
         "owner_module": "generic_counter_ip",
         "reason": "lint/dut_lint.json is older than current RTL source rtl/generic_counter_ip.sv; rerun DUT lint after the final RTL edit.",
@@ -91,7 +100,7 @@
       {
         "gate_kind": "dynamic_todo_closure",
         "owner_module": "generic_counter_ip",
-        "reason": "1 required non-closure TODO(s) remain open.",
+        "reason": "2 required non-closure TODO(s) remain open.",
         "source": "packet_task",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "status": "open",
@@ -106,15 +115,38 @@
     "integration_signoff_allowed": true,
     "llm_actionable": false,
     "llm_actionable_open_count": 0,
-    "open_required_count": 2,
+    "open_required_count": 3,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
       "Never use a fixed RTL template as the implementation."
     ],
-    "tool_evidence_open_count": 2,
+    "tool_evidence_open_count": 3,
     "tool_evidence_plan": [
+      {
+        "artifact": "rtl/rtl_authoring_provenance.json",
+        "artifacts": [
+          "generic_counter_ip/rtl/rtl_authoring_provenance.json",
+          "generic_counter_ip/rtl/rtl_todo_plan.json"
+        ],
+        "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
+        "commands": [
+          "python3 src/headless_workflow.py --root . --ip generic_counter_ip --stages rtl-gen",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py generic_counter_ip --root . --audit-rtl"
+        ],
+        "gate_kind": "common_ai_agent_authoring",
+        "prerequisites": [
+          "An LLM authoring pass emitted or repaired DUT RTL files."
+        ],
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
+        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+        "stage_sequence": [
+          "ssot-rtl"
+        ],
+        "status": "open",
+        "task_id": "RTL-0006"
+      },
       {
         "artifact": "lint/dut_lint.json",
         "artifacts": [
@@ -152,7 +184,7 @@
         "prerequisites": [
           "All non-closure required TODOs have pass status."
         ],
-        "reason": "1 required non-closure TODO(s) remain open.",
+        "reason": "2 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "stage_sequence": [
           "audit-rtl"
@@ -185,7 +217,7 @@
       "rtl_gate.rtl_gen": 4
     },
     "module_slice": {},
-    "open_required_count": 2,
+    "open_required_count": 3,
     "required_count": 4,
     "source_refs": [
       "quality_gates.rtl_gen.common_ai_agent_authoring",
@@ -194,8 +226,8 @@
       "quality_gates.rtl_gen.dynamic_todo_closure"
     ],
     "status_counts": {
-      "open": 2,
-      "pass": 2
+      "open": 3,
+      "pass": 1
     },
     "task_count": 4
   },
@@ -244,9 +276,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_authoring_provenance.json"
         ],
-        "reason": "RTL authoring provenance proves common_ai_agent rtl-gen ownership.",
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -384,7 +416,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 required non-closure TODO(s) remain open.",
+        "reason": "2 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }

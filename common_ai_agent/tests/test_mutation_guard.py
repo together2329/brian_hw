@@ -276,3 +276,44 @@ def test_mutation_guard_reports_category_kill_rates(tmp_path: Path) -> None:
     markdown = (ip_dir / "mutation" / "mutation_report.md").read_text(encoding="utf-8")
     assert "## Category Kill Rate" in markdown
     assert "| `operator_flip` | 1 | 0 | 1 | 0 | `0.0` |" in markdown
+
+
+def test_mutation_guard_blocks_when_baseline_compare_is_failing(tmp_path: Path) -> None:
+    ip_dir = tmp_path / "baseline_fail_ip"
+    rtl_dir = ip_dir / "rtl"
+    sim_dir = ip_dir / "sim"
+    tb_dir = ip_dir / "tb" / "cocotb"
+    rtl_dir.mkdir(parents=True)
+    sim_dir.mkdir(parents=True)
+    tb_dir.mkdir(parents=True)
+    (rtl_dir / "baseline_fail_ip.sv").write_text(
+        "\n".join(
+            [
+                "module baseline_fail_ip(input logic a, input logic b, output logic y);",
+                "  assign y = a ^ b;",
+                "endmodule",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (tb_dir / "test_runner.py").write_text("raise SystemExit(0)\n", encoding="utf-8")
+    (sim_dir / "fl_rtl_compare.json").write_text(
+        json.dumps({"status": "fail", "summary": {"failed": 1}}, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+    result = subprocess.run(
+        ["python3", str(SCRIPT), "baseline_fail_ip", "--root", str(tmp_path), "--max-mutants", "4"],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
+
+    assert result.returncode == 0, result.stdout
+    report = json.loads((ip_dir / "mutation" / "mutation_report.json").read_text(encoding="utf-8"))
+    assert report["status"] == "blocked_baseline"
+    assert report["summary"]["executed"] == 0
+    assert report["baseline"]["status"] == "fail"
+    assert report["category_summary"][0]["category"] == "operator_flip"
+    assert report["category_summary"][0]["kill_rate"] is None
