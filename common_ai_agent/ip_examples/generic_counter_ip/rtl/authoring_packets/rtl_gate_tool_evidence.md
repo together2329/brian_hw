@@ -23,19 +23,11 @@
 - Work allowed: True
 - Draft allowed: False
 - Evidence closure allowed: True
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: top_module, function_model, cycle_model
-- Tool-evidence blockers:
-  - dut_compile: DUT compile artifact is not clean.
-  - dut_lint: DUT lint artifact is not clean.
-  - dynamic_todo_closure: 4 required non-closure TODO(s) remain open.
-- Tool-evidence runbook:
-  - dut_compile: stages=ssot-rtl, dut_compile; artifact=generic_counter_ip/rtl/rtl_compile.json
-  - dut_lint: stages=lint, dut_lint; artifact=generic_counter_ip/lint/dut_lint.json
-  - dynamic_todo_closure: stages=audit-rtl; artifact=generic_counter_ip/rtl/rtl_todo_plan.json
 - SSOT top IO contracts: 4
 
 ## Tasks
@@ -67,13 +59,13 @@ Owner: generic_counter_ip in rtl/generic_counter_ip.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.dut_compile
 - Detail: Compile approval must come from the canonical rtl_compile_report.py artifact generated after RTL generation or repair.
 SSOT ref: quality_gates.rtl_gen.dut_compile.
 Owner: generic_counter_ip in rtl/generic_counter_ip.sv via top_module.
-- Current reason: DUT compile artifact is not clean.
+- Current reason: DUT-only compile artifact passed with zero errors, diagnostics, and style violations.
 - Criteria:
   - rtl/rtl_compile.json exists
   - rtl_compile.json reports dut_only=true
@@ -88,13 +80,13 @@ Owner: generic_counter_ip in rtl/generic_counter_ip.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.dut_lint
 - Detail: Lint approval must come from the canonical dut_lint_report.py artifact and must not rely on ad-hoc suppressions.
 SSOT ref: quality_gates.rtl_gen.dut_lint.
 Owner: generic_counter_ip in rtl/generic_counter_ip.sv via top_module.
-- Current reason: DUT lint artifact is not clean.
+- Current reason: DUT-only lint artifact passed with zero errors, warnings, and suppression violations.
 - Criteria:
   - lint/dut_lint.json exists
   - dut_lint.json reports dut_only=true
@@ -110,13 +102,13 @@ Owner: generic_counter_ip in rtl/generic_counter_ip.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.dynamic_todo_closure
 - Detail: rtl-gen PASS is forbidden until all required implementation, SSOT workflow, and RTL gate TODOs have pass status.
 SSOT ref: quality_gates.rtl_gen.dynamic_todo_closure.
 Owner: generic_counter_ip in rtl/generic_counter_ip.sv via top_module.
-- Current reason: 4 required non-closure TODO(s) remain open.
+- Current reason: Every required non-closure TODO has pass status.
 - Criteria:
   - Every required non-closure task has todo_completion.status=pass
   - open_required_todos is zero
