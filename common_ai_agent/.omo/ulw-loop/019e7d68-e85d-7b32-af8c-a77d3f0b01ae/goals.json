@@ -1,7 +1,7 @@
 {
   "version": 1,
   "createdAt": "2026-05-31T12:14:30.301Z",
-  "updatedAt": "2026-05-31T12:26:18.258Z",
+  "updatedAt": "2026-05-31T12:26:37.808Z",
   "briefPath": ".omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/brief.md",
   "goalsPath": ".omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/goals.json",
   "ledgerPath": ".omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/ledger.jsonl",
@@ -11,7 +11,7 @@
       "id": "G001-build-an-optional-andes-rtl-db-llm-w",
       "title": "Build an optional Andes RTL DB LLM Wiki / knowledge graph under /User...",
       "objective": "Build an optional Andes RTL DB LLM Wiki / knowledge graph under /Users/brian/Desktop/andes and common_ai_agent integration so agents can consult it like pcie/nvme/ucie skills. Use pyslang AST-level extraction for RTL constructs including modules, ports, parameters, FSMs, datapaths, registers, memories, features, clocks, resets; convert existing docs into LLM wiki pages; support on/off via environment/config; provide reusable script and guide for other RTL DBs; verify with RED→GREEN tests and real usage scenarios.",
-      "status": "pending",
+      "status": "in_progress",
       "successCriteria": [
         {
           "id": "C001",
@@ -31,17 +31,19 @@
         },
         {
           "id": "C003",
-          "scenario": "regression: adjacent surface still works",
+          "scenario": "tmux regression/use path: set ATLAS_RTL_DB_WIKI to the generated wiki, verify wiki_query(ip='rtl-db'/'andes') returns AST/doc facts; unset it and verify the on/off path reports missing config; run existing wiki_query external DB tests to prove builder/no-rebuild/query-adapter contracts still work; inspect the agent skill/guide for env-variable reuse instructions.",
           "userModel": "regression",
-          "expectedEvidence": "Replace via revise_criterion with regression proof for neighboring behavior after: Build an optional Andes RTL DB LLM Wiki / knowledge graph under /Users/brian/....",
+          "expectedEvidence": ".omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/evidence/C003-wiki-query-on-off.txt contains tmux transcript with wiki_query enabled output, disabled output, skill/guide grep checks, pytest regression command, and cleanup receipt.",
           "capturedEvidence": null,
           "status": "pending"
         }
       ],
-      "attempt": 0,
+      "attempt": 1,
       "createdAt": "2026-05-31T12:14:30.301Z",
-      "updatedAt": "2026-05-31T12:26:18.258Z"
+      "updatedAt": "2026-05-31T12:26:37.808Z",
+      "startedAt": "2026-05-31T12:26:37.808Z"
     }
   ],
-  "codexObjective": "Complete the durable ulw-loop plan in .omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/goals.json, including later accepted/appended stories, under the original brief constraints; use .omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/ledger.jsonl as the audit trail."
+  "codexObjective": "Complete the durable ulw-loop plan in .omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/goals.json, including later accepted/appended stories, under the original brief constraints; use .omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/ledger.jsonl as the audit trail.",
+  "activeGoalId": "G001-build-an-optional-andes-rtl-db-llm-w"
 }
