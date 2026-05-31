@@ -106,9 +106,9 @@
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
-    "llm_actionable": true,
-    "llm_actionable_open_count": 34,
-    "open_required_count": 34,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
@@ -156,7 +156,7 @@
       "module_task_count": 34,
       "task_limit": 48
     },
-    "open_required_count": 34,
+    "open_required_count": 0,
     "required_count": 34,
     "source_refs": [
       "workflow_todos.rtl-gen[1]",
@@ -185,7 +185,7 @@
       "function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_state"
     ],
     "status_counts": {
-      "planned": 34
+      "pass": 34
     },
     "task_count": 34
   },
@@ -219,6 +219,10 @@
         "sub_modules",
         "workflow_todos.rtl-gen[1]"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -227,9 +231,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_WORKFLOW_TODO_002",
@@ -270,6 +274,10 @@
         "function_model.transactions.FM_SRAM_PACK_WRITE",
         "workflow_todos.rtl-gen[2]"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -278,9 +286,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_WORKFLOW_TODO_003",
@@ -319,6 +327,10 @@
         "test_requirements.scenarios",
         "workflow_todos.rtl-gen[3]"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -327,9 +339,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_WORKFLOW_TODO_004",
@@ -366,6 +378,10 @@
       "ssot_refs": [
         "function_model.transactions.FM_FILTER_VDM"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -374,9 +390,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -407,6 +423,25 @@
       "ssot_refs": [
         "function_model.transactions.FM_FILTER_VDM.preconditions.precondition_0"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "tlp",
+          "tlp_valid",
+          "valid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "tlp",
+          "tlp_valid",
+          "valid"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -415,9 +450,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -449,6 +484,27 @@
       "ssot_refs": [
         "function_model.transactions.FM_FILTER_VDM.outputs.output_0"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 4,
+        "matched_terms": [
+          "debug",
+          "debug_vdm_valid",
+          "valid",
+          "vdm"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "debug",
+          "debug_vdm_valid",
+          "valid",
+          "vdm"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -457,9 +513,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -491,6 +547,25 @@
       "ssot_refs": [
         "function_model.transactions.FM_FILTER_VDM.outputs.output_1"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "debug",
+          "drop"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "debug",
+          "debug_drop_pulse",
+          "drop",
+          "pulse"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -499,9 +574,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -537,6 +612,28 @@
       "ssot_refs": [
         "function_model.transactions.FM_FILTER_VDM.outputs.packet_drop_count"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "count",
+          "drop",
+          "packet"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "count",
+          "drop",
+          "packet",
+          "packet_drop_count",
+          "packet_drop_pulse",
+          "pulse"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -545,9 +642,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -584,6 +681,31 @@
       "ssot_refs": [
         "function_model.transactions.FM_FILTER_VDM.outputs.ctx_last_drop_reason"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 5,
+        "matched_terms": [
+          "drop",
+          "last",
+          "packet",
+          "packet_drop_reason",
+          "reason"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_last_drop_reason",
+          "drop",
+          "last",
+          "packet",
+          "packet_drop_reason",
+          "reason"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -592,9 +714,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -635,6 +757,29 @@
       "ssot_refs": [
         "function_model.transactions.FM_FILTER_VDM.output_rules.debug_vdm_valid"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 4,
+        "matched_terms": [
+          "debug",
+          "debug_vdm_valid",
+          "valid",
+          "vdm"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "debug",
+          "debug_vdm_valid",
+          "supported",
+          "valid",
+          "vdm",
+          "vdm_supported"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 9,
         "evidence_basis": [
@@ -643,9 +788,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -690,6 +835,37 @@
       "ssot_refs": [
         "function_model.transactions.FM_FILTER_VDM.output_rules.debug_drop_pulse"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 8,
+        "matched_terms": [
+          "DROP",
+          "DROP_NONE",
+          "NONE",
+          "debug",
+          "drop",
+          "packet",
+          "packet_drop_reason",
+          "reason"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "DROP",
+          "DROP_NONE",
+          "NONE",
+          "debug",
+          "debug_drop_pulse",
+          "drop",
+          "packet",
+          "packet_drop_reason",
+          "pulse",
+          "reason"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 9,
         "evidence_basis": [
@@ -698,9 +874,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -739,6 +915,28 @@
       "ssot_refs": [
         "function_model.transactions.FM_FILTER_VDM.state_updates.packet_drop_count"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "count",
+          "drop",
+          "packet"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "count",
+          "drop",
+          "packet",
+          "packet_drop_count",
+          "packet_drop_pulse",
+          "pulse"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -747,9 +945,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -789,6 +987,31 @@
       "ssot_refs": [
         "function_model.transactions.FM_FILTER_VDM.state_updates.ctx_last_drop_reason"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 5,
+        "matched_terms": [
+          "drop",
+          "last",
+          "packet",
+          "packet_drop_reason",
+          "reason"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_last_drop_reason",
+          "drop",
+          "last",
+          "packet",
+          "packet_drop_reason",
+          "reason"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -797,9 +1020,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -848,6 +1071,45 @@
       "ssot_refs": [
         "function_model.transactions.FM_FILTER_VDM.error_cases.PD_MALFORMED_TLP"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 10,
+        "matched_terms": [
+          "MALFORMED",
+          "PD",
+          "PD_MALFORMED_TLP",
+          "TLP",
+          "count",
+          "debug",
+          "debug_vdm_valid",
+          "drop",
+          "last",
+          "packet"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "MALFORMED",
+          "PD",
+          "PD_MALFORMED_TLP",
+          "TLP",
+          "count",
+          "ctx",
+          "ctx_last_drop_reason",
+          "debug",
+          "debug_drop_pulse",
+          "debug_vdm_valid",
+          "drop",
+          "increment",
+          "last",
+          "no_sram_write_and_increment_packet_drop_count",
+          "packet",
+          "packet_drop_count"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -856,9 +1118,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -907,6 +1169,45 @@
       "ssot_refs": [
         "function_model.transactions.FM_FILTER_VDM.error_cases.PD_UNSUPPORTED_VDM"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 10,
+        "matched_terms": [
+          "PD",
+          "PD_UNSUPPORTED_VDM",
+          "UNSUPPORTED",
+          "VDM",
+          "count",
+          "debug",
+          "debug_vdm_valid",
+          "drop",
+          "last",
+          "packet"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "PD",
+          "PD_UNSUPPORTED_VDM",
+          "UNSUPPORTED",
+          "VDM",
+          "count",
+          "ctx",
+          "ctx_last_drop_reason",
+          "debug",
+          "debug_drop_pulse",
+          "debug_vdm_valid",
+          "drop",
+          "increment",
+          "last",
+          "no_sram_write_and_increment_packet_drop_count",
+          "packet",
+          "packet_drop_count"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -915,9 +1216,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -945,6 +1246,10 @@
       "ssot_refs": [
         "function_model.transactions.FM_ASSEMBLE_FRAGMENT"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -953,9 +1258,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -989,6 +1294,30 @@
       "ssot_refs": [
         "function_model.transactions.FM_ASSEMBLE_FRAGMENT.preconditions.precondition_0"
       ],
+      "static_evidence": {
+        "fallback_scope": "all_sources_without_owner",
+        "matched_count": 5,
+        "matched_terms": [
+          "accept",
+          "context",
+          "enable",
+          "enable_reg",
+          "reg"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "accept",
+          "context",
+          "context_accept",
+          "enable",
+          "enable_reg",
+          "reg"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -997,9 +1326,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1031,6 +1360,24 @@
       "ssot_refs": [
         "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.output_0"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 1,
+        "matched_terms": [
+          "debug"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "context",
+          "debug",
+          "debug_context_id",
+          "id"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1039,9 +1386,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1075,6 +1422,27 @@
       "ssot_refs": [
         "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_state"
       ],
+      "static_evidence": {
+        "fallback_scope": "all_sources_without_owner",
+        "matched_count": 4,
+        "matched_terms": [
+          "ASSEMBLING",
+          "STATE_ASSEMBLING",
+          "ctx",
+          "ctx_state"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ASSEMBLING",
+          "STATE_ASSEMBLING",
+          "ctx",
+          "ctx_state"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -1083,9 +1451,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1121,6 +1489,26 @@
       "ssot_refs": [
         "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_valid"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 1,
+        "matched_terms": [
+          "valid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "accept",
+          "context",
+          "context_accept",
+          "ctx",
+          "ctx_valid",
+          "valid"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -1129,9 +1517,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1167,6 +1555,29 @@
       "ssot_refs": [
         "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_expected_seq"
       ],
+      "static_evidence": {
+        "fallback_scope": "all_sources_without_owner",
+        "matched_count": 4,
+        "matched_terms": [
+          "ctx",
+          "expected",
+          "next",
+          "seq"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_expected_seq",
+          "expected",
+          "next",
+          "next_seq",
+          "seq"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -1175,9 +1586,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1213,6 +1624,28 @@
       "ssot_refs": [
         "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.payload_byte_count"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "byte",
+          "count",
+          "payload"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "byte",
+          "count",
+          "len",
+          "payload",
+          "payload_byte_count",
+          "payload_len"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -1221,9 +1654,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1260,6 +1693,29 @@
       "ssot_refs": [
         "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_payload_byte_count"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "byte",
+          "count",
+          "payload"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "byte",
+          "count",
+          "ctx",
+          "ctx_payload_byte_count",
+          "len",
+          "payload",
+          "payload_len"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -1268,9 +1724,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1307,6 +1763,27 @@
       "ssot_refs": [
         "function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_state"
       ],
+      "static_evidence": {
+        "fallback_scope": "all_sources_without_owner",
+        "matched_count": 4,
+        "matched_terms": [
+          "ASSEMBLING",
+          "STATE_ASSEMBLING",
+          "ctx",
+          "ctx_state"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ASSEMBLING",
+          "STATE_ASSEMBLING",
+          "ctx",
+          "ctx_state"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -1315,9 +1792,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1356,6 +1833,26 @@
       "ssot_refs": [
         "function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_valid"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 1,
+        "matched_terms": [
+          "valid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "accept",
+          "context",
+          "context_accept",
+          "ctx",
+          "ctx_valid",
+          "valid"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -1364,9 +1861,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1405,6 +1902,29 @@
       "ssot_refs": [
         "function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_expected_seq"
       ],
+      "static_evidence": {
+        "fallback_scope": "all_sources_without_owner",
+        "matched_count": 4,
+        "matched_terms": [
+          "ctx",
+          "expected",
+          "next",
+          "seq"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_expected_seq",
+          "expected",
+          "next",
+          "next_seq",
+          "seq"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -1413,9 +1933,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1454,6 +1974,28 @@
       "ssot_refs": [
         "function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.payload_byte_count"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "byte",
+          "count",
+          "payload"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "byte",
+          "count",
+          "len",
+          "payload",
+          "payload_byte_count",
+          "payload_len"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -1462,9 +2004,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1504,6 +2046,29 @@
       "ssot_refs": [
         "function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_payload_byte_count"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "byte",
+          "count",
+          "payload"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "byte",
+          "count",
+          "ctx",
+          "ctx_payload_byte_count",
+          "len",
+          "payload",
+          "payload_len"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -1512,9 +2077,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1563,6 +2128,37 @@
       "ssot_refs": [
         "function_model.transactions.FM_ASSEMBLE_FRAGMENT.error_cases.AD_DUPLICATE_SOM"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "byte",
+          "count"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "AD",
+          "AD_DUPLICATE_SOM",
+          "DUPLICATE",
+          "SOM",
+          "accept",
+          "active",
+          "active_context_count",
+          "alloc",
+          "assembly",
+          "assembly_drop_reason",
+          "byte",
+          "context",
+          "context_accept",
+          "context_alloc",
+          "context_id",
+          "count"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -1571,9 +2167,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1622,6 +2218,37 @@
       "ssot_refs": [
         "function_model.transactions.FM_ASSEMBLE_FRAGMENT.error_cases.AD_SEQUENCE_MISMATCH"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "byte",
+          "count"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "AD",
+          "AD_SEQUENCE_MISMATCH",
+          "MISMATCH",
+          "SEQUENCE",
+          "accept",
+          "active",
+          "active_context_count",
+          "alloc",
+          "assembly",
+          "assembly_drop_reason",
+          "byte",
+          "context",
+          "context_accept",
+          "context_alloc",
+          "context_id",
+          "count"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -1630,9 +2257,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1660,6 +2287,10 @@
       "ssot_refs": [
         "error_handling.recovery.packet_drop"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1668,9 +2299,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1698,6 +2329,10 @@
       "ssot_refs": [
         "error_handling.recovery.assembly_drop"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1706,9 +2341,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1736,6 +2371,10 @@
       "ssot_refs": [
         "error_handling.recovery.read_error"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1744,9 +2383,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1773,6 +2412,10 @@
       "ssot_refs": [
         "sub_modules.mctp_assembler_scratch_pcie_vdm_parser.module_equivalence"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -1781,9 +2424,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     }
   ],

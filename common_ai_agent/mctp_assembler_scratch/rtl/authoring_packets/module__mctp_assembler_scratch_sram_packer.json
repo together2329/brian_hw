@@ -118,9 +118,9 @@
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
-    "llm_actionable": true,
-    "llm_actionable_open_count": 27,
-    "open_required_count": 27,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
@@ -167,7 +167,7 @@
       "module_task_count": 27,
       "task_limit": 48
     },
-    "open_required_count": 27,
+    "open_required_count": 0,
     "required_count": 27,
     "source_refs": [
       "function_model.transactions.FM_SRAM_PACK_WRITE",
@@ -196,7 +196,7 @@
       "function_model.transactions.FM_SRAM_PACK_WRITE.state_updates.ctx_payload_next_addr"
     ],
     "status_counts": {
-      "planned": 27
+      "pass": 27
     },
     "task_count": 27
   },
@@ -226,6 +226,10 @@
       "ssot_refs": [
         "function_model.transactions.FM_SRAM_PACK_WRITE"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -234,9 +238,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -270,6 +274,27 @@
       "ssot_refs": [
         "function_model.transactions.FM_SRAM_PACK_WRITE.preconditions.precondition_0"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "payload",
+          "valid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "accept",
+          "context",
+          "context_accept",
+          "payload",
+          "payload_valid",
+          "valid"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -278,9 +303,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -312,6 +337,26 @@
       "ssot_refs": [
         "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.output_0"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "sram",
+          "valid",
+          "write"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "sram",
+          "sram_write_valid",
+          "valid",
+          "write"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -320,9 +365,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -354,6 +399,26 @@
       "ssot_refs": [
         "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.output_1"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "addr",
+          "sram",
+          "write"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "addr",
+          "sram",
+          "sram_write_addr",
+          "write"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -362,9 +427,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -396,6 +461,26 @@
       "ssot_refs": [
         "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.output_2"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "data",
+          "sram",
+          "write"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "data",
+          "sram",
+          "sram_write_data",
+          "write"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -404,9 +489,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -438,6 +523,26 @@
       "ssot_refs": [
         "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.output_3"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "sram",
+          "strb",
+          "write"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "sram",
+          "sram_write_strb",
+          "strb",
+          "write"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -446,9 +551,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -491,6 +596,35 @@
       "ssot_refs": [
         "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.sram_write_valid"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 5,
+        "matched_terms": [
+          "payload",
+          "sram",
+          "valid",
+          "wr",
+          "write"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "full",
+          "payload",
+          "payload_valid",
+          "sram",
+          "sram_wr_valid",
+          "sram_write_valid",
+          "valid",
+          "word",
+          "word_full",
+          "wr",
+          "write"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -499,9 +633,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -542,6 +676,32 @@
       "ssot_refs": [
         "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.sram_write_addr"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 4,
+        "matched_terms": [
+          "addr",
+          "sram",
+          "wr",
+          "write"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "addr",
+          "current",
+          "current_word_addr",
+          "sram",
+          "sram_wr_addr",
+          "sram_write_addr",
+          "word",
+          "wr",
+          "write"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -550,9 +710,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -593,6 +753,33 @@
       "ssot_refs": [
         "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.sram_write_data"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 5,
+        "matched_terms": [
+          "data",
+          "payload",
+          "sram",
+          "wr",
+          "write"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "data",
+          "payload",
+          "payload_data_word",
+          "sram",
+          "sram_wr_data",
+          "sram_write_data",
+          "word",
+          "wr",
+          "write"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -601,9 +788,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -645,6 +832,34 @@
       "ssot_refs": [
         "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.sram_write_strb"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 5,
+        "matched_terms": [
+          "payload",
+          "sram",
+          "strb",
+          "wr",
+          "write"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "byte",
+          "payload",
+          "payload_byte_strobe",
+          "sram",
+          "sram_wr_strb",
+          "sram_write_strb",
+          "strb",
+          "strobe",
+          "wr",
+          "write"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -653,9 +868,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -692,6 +907,28 @@
       "ssot_refs": [
         "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.ctx_partial_word_addr"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "addr",
+          "partial"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "addr",
+          "ctx",
+          "ctx_partial_word_addr",
+          "current",
+          "current_word_addr",
+          "partial",
+          "word"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -700,9 +937,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -739,6 +976,29 @@
       "ssot_refs": [
         "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.ctx_partial_next_lane"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "lane",
+          "next",
+          "partial"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "advance",
+          "ctx",
+          "ctx_partial_next_lane",
+          "lane",
+          "lane_advance",
+          "next",
+          "partial"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -747,9 +1007,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -788,6 +1048,31 @@
       "ssot_refs": [
         "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.ctx_partial_word_valid"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "partial",
+          "payload",
+          "valid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_partial_word_valid",
+          "full",
+          "partial",
+          "payload",
+          "payload_valid",
+          "valid",
+          "word",
+          "word_full"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -796,9 +1081,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -836,6 +1121,29 @@
       "ssot_refs": [
         "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.ctx_partial_word_strobe"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "partial",
+          "payload"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "byte",
+          "ctx",
+          "ctx_partial_word_strobe",
+          "partial",
+          "payload",
+          "payload_byte_strobe",
+          "strobe",
+          "word"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -844,9 +1152,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -883,6 +1191,29 @@
       "ssot_refs": [
         "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.ctx_payload_next_addr"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "addr",
+          "next",
+          "payload"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "addr",
+          "ctx",
+          "ctx_payload_next_addr",
+          "len",
+          "next",
+          "payload",
+          "payload_len"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -891,9 +1222,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -939,6 +1270,35 @@
       "ssot_refs": [
         "function_model.transactions.FM_SRAM_PACK_WRITE.output_rules.sram_write_valid"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 5,
+        "matched_terms": [
+          "payload",
+          "sram",
+          "valid",
+          "wr",
+          "write"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "full",
+          "payload",
+          "payload_valid",
+          "sram",
+          "sram_wr_valid",
+          "sram_write_valid",
+          "valid",
+          "word",
+          "word_full",
+          "wr",
+          "write"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 9,
         "evidence_basis": [
@@ -947,9 +1307,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -993,6 +1353,32 @@
       "ssot_refs": [
         "function_model.transactions.FM_SRAM_PACK_WRITE.output_rules.sram_write_addr"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 4,
+        "matched_terms": [
+          "addr",
+          "sram",
+          "wr",
+          "write"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "addr",
+          "current",
+          "current_word_addr",
+          "sram",
+          "sram_wr_addr",
+          "sram_write_addr",
+          "word",
+          "wr",
+          "write"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 9,
         "evidence_basis": [
@@ -1001,9 +1387,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1047,6 +1433,33 @@
       "ssot_refs": [
         "function_model.transactions.FM_SRAM_PACK_WRITE.output_rules.sram_write_data"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 5,
+        "matched_terms": [
+          "data",
+          "payload",
+          "sram",
+          "wr",
+          "write"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "data",
+          "payload",
+          "payload_data_word",
+          "sram",
+          "sram_wr_data",
+          "sram_write_data",
+          "word",
+          "wr",
+          "write"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 9,
         "evidence_basis": [
@@ -1055,9 +1468,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1102,6 +1515,34 @@
       "ssot_refs": [
         "function_model.transactions.FM_SRAM_PACK_WRITE.output_rules.sram_write_strb"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 5,
+        "matched_terms": [
+          "payload",
+          "sram",
+          "strb",
+          "wr",
+          "write"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "byte",
+          "payload",
+          "payload_byte_strobe",
+          "sram",
+          "sram_wr_strb",
+          "sram_write_strb",
+          "strb",
+          "strobe",
+          "wr",
+          "write"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 9,
         "evidence_basis": [
@@ -1110,9 +1551,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1152,6 +1593,28 @@
       "ssot_refs": [
         "function_model.transactions.FM_SRAM_PACK_WRITE.state_updates.ctx_partial_word_addr"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "addr",
+          "partial"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "addr",
+          "ctx",
+          "ctx_partial_word_addr",
+          "current",
+          "current_word_addr",
+          "partial",
+          "word"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -1160,9 +1623,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1202,6 +1665,29 @@
       "ssot_refs": [
         "function_model.transactions.FM_SRAM_PACK_WRITE.state_updates.ctx_partial_next_lane"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "lane",
+          "next",
+          "partial"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "advance",
+          "ctx",
+          "ctx_partial_next_lane",
+          "lane",
+          "lane_advance",
+          "next",
+          "partial"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -1210,9 +1696,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1254,6 +1740,31 @@
       "ssot_refs": [
         "function_model.transactions.FM_SRAM_PACK_WRITE.state_updates.ctx_partial_word_valid"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "partial",
+          "payload",
+          "valid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_partial_word_valid",
+          "full",
+          "partial",
+          "payload",
+          "payload_valid",
+          "valid",
+          "word",
+          "word_full"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -1262,9 +1773,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1305,6 +1816,29 @@
       "ssot_refs": [
         "function_model.transactions.FM_SRAM_PACK_WRITE.state_updates.ctx_partial_word_strobe"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "partial",
+          "payload"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "byte",
+          "ctx",
+          "ctx_partial_word_strobe",
+          "partial",
+          "payload",
+          "payload_byte_strobe",
+          "strobe",
+          "word"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -1313,9 +1847,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1355,6 +1889,29 @@
       "ssot_refs": [
         "function_model.transactions.FM_SRAM_PACK_WRITE.state_updates.ctx_payload_next_addr"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "addr",
+          "next",
+          "payload"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "addr",
+          "ctx",
+          "ctx_payload_next_addr",
+          "len",
+          "next",
+          "payload",
+          "payload_len"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -1363,9 +1920,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1414,6 +1971,36 @@
       "ssot_refs": [
         "function_model.transactions.FM_SRAM_PACK_WRITE.side_effects.side_effect_0"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 1,
+        "matched_terms": [
+          "addr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "32B",
+          "accept",
+          "addr",
+          "advance",
+          "beat",
+          "byte",
+          "context",
+          "context_accept",
+          "ctx",
+          "ctx_partial_next_lane",
+          "ctx_partial_word_addr",
+          "ctx_partial_word_strobe",
+          "ctx_partial_word_valid",
+          "ctx_payload_next_addr",
+          "current",
+          "current_word_addr"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -1422,9 +2009,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1456,6 +2043,25 @@
       "ssot_refs": [
         "memory.instances.payload_sram_window"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "payload",
+          "sram"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "payload",
+          "payload_sram_window",
+          "sram",
+          "window"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1464,9 +2070,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1493,6 +2099,10 @@
       "ssot_refs": [
         "sub_modules.mctp_assembler_scratch_sram_packer.module_equivalence"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -1501,9 +2111,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     }
   ],

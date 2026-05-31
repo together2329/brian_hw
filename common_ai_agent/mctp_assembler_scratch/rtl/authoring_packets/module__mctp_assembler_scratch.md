@@ -25,7 +25,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 25
+- LLM-actionable open tasks: 1
 - Human-locked open tasks: 0
 - Owner refs: dataflow, decomposition, integration, io_list, top_module
 - SSOT connection contracts:
@@ -42,13 +42,13 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: rtl_flow.seed
 - Source ref: top_module
 - Detail: Use rtl_todo_plan.json derived from the current SSOT as the implementation checklist. Seed tasks are not the work breakdown; expand directly from the dynamic plan.
 SSOT ref: top_module.
 Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_module.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - rtl_todo_plan.json was regenerated from the current SSOT
   - Every required task in the plan is either implemented, evidenced, or escalated
@@ -61,14 +61,14 @@ Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_module.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: rtl_flow.top
 - Source ref: io_list
 - Detail: The top wrapper must expose the SSOT ports and connect every owned RTL file without hiding active behavior behind constants.
 SSOT ref: io_list.
 Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_module.
 SSOT item context: value=mctp_assembler_scratch.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Top module name matches SSOT top_module
   - Every SSOT top-level port appears with matching direction and width
@@ -81,13 +81,13 @@ SSOT item context: value=mctp_assembler_scratch.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[0]
 - Detail: AW/W/B channels must follow io_list and cycle_model handshake rules.
 SSOT ref: workflow_todos.rtl-gen[0].
 Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_level_handshake_rule.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - rtl_compile_passes
   - lint_passes
@@ -103,14 +103,14 @@ Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_level_han
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: cycle_model.handshake_rules
 - Source ref: cycle_model.handshake_rules.axi_write_channels
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.axi_write_channels.
 Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_level_handshake_rule.
 SSOT item context: name=axi_write_channels; signal=m_axi_awvalid/m_axi_awready/m_axi_wvalid/m_axi_wready.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -124,14 +124,14 @@ SSOT item context: name=axi_write_channels; signal=m_axi_awvalid/m_axi_awready/m
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: cycle_model.handshake_rules
 - Source ref: cycle_model.handshake_rules.axi_read_channels
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.axi_read_channels.
 Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_level_handshake_rule.
 SSOT item context: name=axi_read_channels; signal=m_axi_arvalid/m_axi_arready/m_axi_rvalid/m_axi_rready.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -145,14 +145,14 @@ SSOT item context: name=axi_read_channels; signal=m_axi_arvalid/m_axi_arready/m_
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: cycle_model.handshake_rules
 - Source ref: cycle_model.handshake_rules.apb_access
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.apb_access.
 Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_level_handshake_rule.
 SSOT item context: name=apb_access; signal=psel/penable/pready.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -166,14 +166,14 @@ SSOT item context: name=apb_access; signal=psel/penable/pready.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: cycle_model.handshake_rules
 - Source ref: cycle_model.handshake_rules.sram_ready_valid
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.sram_ready_valid.
 Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_level_handshake_rule.
 SSOT item context: name=sram_ready_valid; signal=sram_wr_valid/sram_wr_ready/sram_rd_req_valid/sram_rd_req_ready.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -187,14 +187,14 @@ SSOT item context: name=sram_ready_valid; signal=sram_wr_valid/sram_wr_ready/sra
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: security.assets
 - Source ref: security.assets.asset_0
 - Detail: This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: security.assets.asset_0.
 Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_fallback.
 SSOT item context: value=assembled_mctp_payload_in_external_sram.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -207,14 +207,14 @@ SSOT item context: value=assembled_mctp_payload_in_external_sram.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: security.assets
 - Source ref: security.assets.asset_2
 - Detail: This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: security.assets.asset_2.
 Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_fallback.
 SSOT item context: value=packet_and_assembly_drop_counters.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -227,14 +227,14 @@ SSOT item context: value=packet_and_assembly_drop_counters.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.dependencies
 - Source ref: integration.dependencies.external_modules
 - Detail: This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.dependencies.external_modules.
 Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via integration.
 SSOT item context: name=external_modules; value=["external_256b_sram"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -247,14 +247,14 @@ SSOT item context: name=external_modules; value=["external_256b_sram"].
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.dependencies
 - Source ref: integration.dependencies.external_clocks
 - Detail: This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.dependencies.external_clocks.
 Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via integration.
 SSOT item context: name=external_clocks; value=["axi_aclk", "pclk"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -267,14 +267,14 @@ SSOT item context: name=external_clocks; value=["axi_aclk", "pclk"].
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.dependencies
 - Source ref: integration.dependencies.external_resets
 - Detail: This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.dependencies.external_resets.
 Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via integration.
 SSOT item context: name=external_resets; value=["axi_aresetn", "presetn"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -287,14 +287,14 @@ SSOT item context: name=external_resets; value=["axi_aresetn", "presetn"].
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.m_axi_awvalid
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.m_axi_awvalid.
 Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via integration.
 SSOT item context: port=m_axi_awvalid; signal=m_axi_awvalid.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -308,14 +308,14 @@ SSOT item context: port=m_axi_awvalid; signal=m_axi_awvalid.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.m_axi_wvalid
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.m_axi_wvalid.
 Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via integration.
 SSOT item context: port=m_axi_wvalid; signal=m_axi_wvalid.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -329,14 +329,14 @@ SSOT item context: port=m_axi_wvalid; signal=m_axi_wvalid.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.sram_wr_valid
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.sram_wr_valid.
 Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via integration.
 SSOT item context: port=sram_wr_valid; signal=sram_wr_valid.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -350,14 +350,14 @@ SSOT item context: port=sram_wr_valid; signal=sram_wr_valid.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.m_axi_rvalid
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.m_axi_rvalid.
 Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via integration.
 SSOT item context: port=m_axi_rvalid; signal=m_axi_rvalid.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -371,14 +371,14 @@ SSOT item context: port=m_axi_rvalid; signal=m_axi_rvalid.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.pready
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.pready.
 Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via integration.
 SSOT item context: port=pready; signal=pready.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -392,14 +392,14 @@ SSOT item context: port=pready; signal=pready.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: synthesis.constraints
 - Source ref: synthesis.constraints.constraint_0
 - Detail: This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.constraints.constraint_0.
 Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_fallback.
 SSOT item context: value=No inferred latches..
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -412,14 +412,14 @@ SSOT item context: value=No inferred latches..
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: synthesis.constraints
 - Source ref: synthesis.constraints.constraint_1
 - Detail: This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.constraints.constraint_1.
 Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_fallback.
 SSOT item context: value=No unresolved black boxes except external SRAM model in integration testbench..
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -432,14 +432,14 @@ SSOT item context: value=No unresolved black boxes except external SRAM model in
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: synthesis.constraints
 - Source ref: synthesis.constraints.constraint_2
 - Detail: This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.constraints.constraint_2.
 Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_fallback.
 SSOT item context: value=All sequential state has reset or documented initialization..
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -452,14 +452,14 @@ SSOT item context: value=All sequential state has reset or documented initializa
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: synthesis.constraints
 - Source ref: synthesis.constraints.constraint_3
 - Detail: This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.constraints.constraint_3.
 Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_fallback.
 SSOT item context: value=No AXI ID ports are generated..
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -472,14 +472,14 @@ SSOT item context: value=No AXI ID ports are generated..
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: synthesis.ppa_targets
 - Source ref: synthesis.ppa_targets.frequency_mhz_min
 - Detail: This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.ppa_targets.frequency_mhz_min.
 Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_fallback.
 SSOT item context: name=frequency_mhz_min; value=250.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -492,14 +492,14 @@ SSOT item context: name=frequency_mhz_min; value=250.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: synthesis.ppa_targets
 - Source ref: synthesis.ppa_targets.area_um2_max
 - Detail: This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.ppa_targets.area_um2_max.
 Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_fallback.
 SSOT item context: name=area_um2_max.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -512,14 +512,14 @@ SSOT item context: name=area_um2_max.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: synthesis.ppa_targets
 - Source ref: synthesis.ppa_targets.power_mw_max
 - Detail: This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.ppa_targets.power_mw_max.
 Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_fallback.
 SSOT item context: name=power_mw_max.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -532,13 +532,13 @@ SSOT item context: name=power_mw_max.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: equivalence.module
 - Source ref: sub_modules.mctp_assembler_scratch.module_equivalence
 - Detail: This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.
 SSOT ref: sub_modules.mctp_assembler_scratch.module_equivalence.
 Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via module_equivalence.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module
   - cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff

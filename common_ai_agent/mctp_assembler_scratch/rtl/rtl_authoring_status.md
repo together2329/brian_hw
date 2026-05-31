@@ -4,9 +4,9 @@
 
 - Top: mctp_assembler_scratch
 - Packets: 28
-- LLM-actionable tasks: 445
-- Human-locked tasks: 4
-- Tool-evidence tasks: 4
+- LLM-actionable tasks: 21
+- Human-locked tasks: 1
+- Tool-evidence tasks: 2
 - Deferred human QA allowed: True
 - PASS allowed: False
 - Target scale locked: False
@@ -15,22 +15,21 @@
 
 ## Next LLM Packets
 
-- module__mctp_assembler_scratch_axi_write_ingress__io_list: rtl/authoring_packets/module__mctp_assembler_scratch_axi_write_ingress__io_list.json (llm_open=23, human_locked=0)
-- module__mctp_assembler_scratch_axi_write_ingress__test_requirements: rtl/authoring_packets/module__mctp_assembler_scratch_axi_write_ingress__test_requirements.json (llm_open=22, human_locked=0)
-- module__mctp_assembler_scratch_axi_write_ingress__cycle_model: rtl/authoring_packets/module__mctp_assembler_scratch_axi_write_ingress__cycle_model.json (llm_open=16, human_locked=0)
-- module__mctp_assembler_scratch_axi_write_ingress__function_model: rtl/authoring_packets/module__mctp_assembler_scratch_axi_write_ingress__function_model.json (llm_open=13, human_locked=0)
-- module__mctp_assembler_scratch_axi_write_ingress__dataflow: rtl/authoring_packets/module__mctp_assembler_scratch_axi_write_ingress__dataflow.json (llm_open=7, human_locked=0)
-- module__mctp_assembler_scratch_axi_write_ingress__equivalence: rtl/authoring_packets/module__mctp_assembler_scratch_axi_write_ingress__equivalence.json (llm_open=1, human_locked=0)
-- module__mctp_assembler_scratch_pcie_vdm_parser: rtl/authoring_packets/module__mctp_assembler_scratch_pcie_vdm_parser.json (llm_open=34, human_locked=0)
-- module__mctp_assembler_scratch_mctp_parser: rtl/authoring_packets/module__mctp_assembler_scratch_mctp_parser.json (llm_open=18, human_locked=0)
+- module__mctp_assembler_scratch_axi_write_ingress__dataflow: rtl/authoring_packets/module__mctp_assembler_scratch_axi_write_ingress__dataflow.json (llm_open=6, human_locked=0)
+- module__mctp_assembler_scratch_context_table: rtl/authoring_packets/module__mctp_assembler_scratch_context_table.json (llm_open=1, human_locked=0)
+- module__mctp_assembler_scratch_descriptor_queue: rtl/authoring_packets/module__mctp_assembler_scratch_descriptor_queue.json (llm_open=1, human_locked=0)
+- module__mctp_assembler_scratch_apb_regfile__registers_01: rtl/authoring_packets/module__mctp_assembler_scratch_apb_regfile__registers_01.json (llm_open=9, human_locked=0)
+- module__mctp_assembler_scratch_apb_regfile__features: rtl/authoring_packets/module__mctp_assembler_scratch_apb_regfile__features.json (llm_open=1, human_locked=0)
+- module__mctp_assembler_scratch: rtl/authoring_packets/module__mctp_assembler_scratch.json (llm_open=1, human_locked=0)
+- rtl_gate_evidence_closure: rtl/authoring_packets/rtl_gate_evidence_closure.json (llm_open=2, human_locked=0)
 
 ## Tool Evidence Queue
 
-- rtl_gate_tool_evidence: tool_evidence=4, next_tool=ssot-rtl, json=rtl/authoring_packets/rtl_gate_tool_evidence.json
+- rtl_gate_tool_evidence: tool_evidence=2, next_tool=ssot-rtl, json=rtl/authoring_packets/rtl_gate_tool_evidence.json
 
 ## Human-Locked Queue
 
-- rtl_gate_human_closure: human_locked=4, json=rtl/authoring_packets/rtl_gate_human_closure.json
+- rtl_gate_human_closure: human_locked=1, json=rtl/authoring_packets/rtl_gate_human_closure.json
 
 ## Rules
 

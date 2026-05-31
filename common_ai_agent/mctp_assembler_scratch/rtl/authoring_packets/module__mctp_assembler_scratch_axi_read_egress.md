@@ -25,7 +25,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 29
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.handshake_rules.axi_read_channels, function_model, function_model.transactions.FM_AXI_READBACK, io_list, io_list.interfaces.axi_read_slave, memory
 - SSOT connection contracts:
@@ -37,14 +37,14 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM_AXI_READBACK
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM_AXI_READBACK.
 Owner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via function_model.transactions.FM_AXI_READBACK.
 SSOT item context: id=FM_AXI_READBACK; name=AXI readback from descriptor-backed SRAM payload.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -57,14 +57,14 @@ SSOT item context: id=FM_AXI_READBACK; name=AXI readback from descriptor-backed 
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM_AXI_READBACK.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_AXI_READBACK.preconditions.precondition_0.
 Owner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via function_model.transactions.FM_AXI_READBACK.
 SSOT item context: value=axi_ar_accept.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -77,14 +77,14 @@ SSOT item context: value=axi_ar_accept.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_AXI_READBACK.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_AXI_READBACK.outputs.output_0.
 Owner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via function_model.transactions.FM_AXI_READBACK.
 SSOT item context: value=readback_valid.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -97,14 +97,14 @@ SSOT item context: value=readback_valid.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_AXI_READBACK.outputs.output_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_AXI_READBACK.outputs.output_1.
 Owner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via function_model.transactions.FM_AXI_READBACK.
 SSOT item context: value=readback_data_out.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -117,14 +117,14 @@ SSOT item context: value=readback_data_out.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_AXI_READBACK.outputs.output_2
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_AXI_READBACK.outputs.output_2.
 Owner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via function_model.transactions.FM_AXI_READBACK.
 SSOT item context: value=readback_resp.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -137,14 +137,14 @@ SSOT item context: value=readback_resp.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_AXI_READBACK.outputs.output_3
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_AXI_READBACK.outputs.output_3.
 Owner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via function_model.transactions.FM_AXI_READBACK.
 SSOT item context: value=readback_last.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -157,14 +157,14 @@ SSOT item context: value=readback_last.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_AXI_READBACK.outputs.readback_valid
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_AXI_READBACK.outputs.readback_valid.
 Owner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via function_model.transactions.FM_AXI_READBACK.
 SSOT item context: name=readback_valid; port=m_axi_rvalid; expr=axi_ar_accept.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -179,14 +179,14 @@ SSOT item context: name=readback_valid; port=m_axi_rvalid; expr=axi_ar_accept.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_AXI_READBACK.outputs.readback_data_out
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_AXI_READBACK.outputs.readback_data_out.
 Owner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via function_model.transactions.FM_AXI_READBACK.
 SSOT item context: name=readback_data_out; port=m_axi_rdata; expr=readback_data if read_has_descriptor else ZERO_256.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -201,14 +201,14 @@ SSOT item context: name=readback_data_out; port=m_axi_rdata; expr=readback_data 
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_AXI_READBACK.outputs.readback_resp
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_AXI_READBACK.outputs.readback_resp.
 Owner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via function_model.transactions.FM_AXI_READBACK.
 SSOT item context: name=readback_resp; port=m_axi_rresp; expr=RESP_OKAY if read_has_descriptor else RESP_SLVERR.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -223,14 +223,14 @@ SSOT item context: name=readback_resp; port=m_axi_rresp; expr=RESP_OKAY if read_
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_AXI_READBACK.outputs.readback_last
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_AXI_READBACK.outputs.readback_last.
 Owner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via function_model.transactions.FM_AXI_READBACK.
 SSOT item context: name=readback_last; port=m_axi_rlast; expr=read_last.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -245,14 +245,14 @@ SSOT item context: name=readback_last; port=m_axi_rlast; expr=read_last.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_AXI_READBACK.outputs.read_error_count
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_AXI_READBACK.outputs.read_error_count.
 Owner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via function_model.transactions.FM_AXI_READBACK.
 SSOT item context: state=read_error_count; expr=read_error_count + (not read_has_descriptor).
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -266,14 +266,14 @@ SSOT item context: state=read_error_count; expr=read_error_count + (not read_has
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM_AXI_READBACK.output_rules.readback_valid
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_AXI_READBACK.output_rules.readback_valid.
 Owner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via function_model.transactions.FM_AXI_READBACK.
 SSOT item context: name=readback_valid; port=m_axi_rvalid; expr=axi_ar_accept; width=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -290,14 +290,14 @@ SSOT item context: name=readback_valid; port=m_axi_rvalid; expr=axi_ar_accept; w
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM_AXI_READBACK.output_rules.readback_data_out
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_AXI_READBACK.output_rules.readback_data_out.
 Owner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via function_model.transactions.FM_AXI_READBACK.
 SSOT item context: name=readback_data_out; port=m_axi_rdata; expr=readback_data if read_has_descriptor else ZERO_256; width=256.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -314,14 +314,14 @@ SSOT item context: name=readback_data_out; port=m_axi_rdata; expr=readback_data 
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM_AXI_READBACK.output_rules.readback_resp
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_AXI_READBACK.output_rules.readback_resp.
 Owner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via function_model.transactions.FM_AXI_READBACK.
 SSOT item context: name=readback_resp; port=m_axi_rresp; expr=RESP_OKAY if read_has_descriptor else RESP_SLVERR; width=2.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -338,14 +338,14 @@ SSOT item context: name=readback_resp; port=m_axi_rresp; expr=RESP_OKAY if read_
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM_AXI_READBACK.output_rules.readback_last
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_AXI_READBACK.output_rules.readback_last.
 Owner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via function_model.transactions.FM_AXI_READBACK.
 SSOT item context: name=readback_last; port=m_axi_rlast; expr=read_last; width=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -362,14 +362,14 @@ SSOT item context: name=readback_last; port=m_axi_rlast; expr=read_last; width=1
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_AXI_READBACK.state_updates.read_error_count
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_AXI_READBACK.state_updates.read_error_count.
 Owner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via function_model.transactions.FM_AXI_READBACK.
 SSOT item context: name=read_error_count; expr=read_error_count + (not read_has_descriptor); width=32.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -385,14 +385,14 @@ SSOT item context: name=read_error_count; expr=read_error_count + (not read_has_
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM_AXI_READBACK.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_AXI_READBACK.side_effects.side_effect_0.
 Owner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via function_model.transactions.FM_AXI_READBACK.
 SSOT item context: id=FM_AXI_READBACK; name=AXI readback from descriptor-backed SRAM payload; port=["m_axi_rvalid", "m_axi_rdata", "m_axi_rresp", "m_axi_rlast"]; signal=["no_descriptor_read_returns_zero_data_and_slverr_unless_raw_debug_enabled", "axi_ar_accept", "read_has_descriptor", ...; state=["read_error_count"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -406,13 +406,13 @@ SSOT item context: id=FM_AXI_READBACK; name=AXI readback from descriptor-backed 
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: equivalence.module
 - Source ref: sub_modules.mctp_assembler_scratch_axi_read_egress.module_equivalence
 - Detail: This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.
 SSOT ref: sub_modules.mctp_assembler_scratch_axi_read_egress.module_equivalence.
 Owner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via module_equivalence.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module
   - cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff
@@ -427,14 +427,14 @@ Owner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.axi_read_slave.ports.m_axi_araddr
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.axi_read_slave.ports.m_axi_araddr.
 Owner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via io_list.interfaces.axi_read_slave.
 SSOT item context: name=m_axi_araddr; width=AXI_ADDR_WIDTH; direction=input.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -449,14 +449,14 @@ SSOT item context: name=m_axi_araddr; width=AXI_ADDR_WIDTH; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.axi_read_slave.ports.m_axi_arlen
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.axi_read_slave.ports.m_axi_arlen.
 Owner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via io_list.interfaces.axi_read_slave.
 SSOT item context: name=m_axi_arlen; width=8; direction=input.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -471,14 +471,14 @@ SSOT item context: name=m_axi_arlen; width=8; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.axi_read_slave.ports.m_axi_arsize
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.axi_read_slave.ports.m_axi_arsize.
 Owner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via io_list.interfaces.axi_read_slave.
 SSOT item context: name=m_axi_arsize; width=3; direction=input.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -493,14 +493,14 @@ SSOT item context: name=m_axi_arsize; width=3; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.axi_read_slave.ports.m_axi_arburst
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.axi_read_slave.ports.m_axi_arburst.
 Owner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via io_list.interfaces.axi_read_slave.
 SSOT item context: name=m_axi_arburst; width=2; direction=input.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -515,14 +515,14 @@ SSOT item context: name=m_axi_arburst; width=2; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.axi_read_slave.ports.m_axi_arvalid
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.axi_read_slave.ports.m_axi_arvalid.
 Owner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via io_list.interfaces.axi_read_slave.
 SSOT item context: name=m_axi_arvalid; width=1; direction=input.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -537,14 +537,14 @@ SSOT item context: name=m_axi_arvalid; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.axi_read_slave.ports.m_axi_arready
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.axi_read_slave.ports.m_axi_arready.
 Owner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via io_list.interfaces.axi_read_slave.
 SSOT item context: name=m_axi_arready; width=1; direction=output.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -559,14 +559,14 @@ SSOT item context: name=m_axi_arready; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.axi_read_slave.ports.m_axi_rdata
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.axi_read_slave.ports.m_axi_rdata.
 Owner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via io_list.interfaces.axi_read_slave.
 SSOT item context: name=m_axi_rdata; width=AXI_DATA_WIDTH; direction=output.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -581,14 +581,14 @@ SSOT item context: name=m_axi_rdata; width=AXI_DATA_WIDTH; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.axi_read_slave.ports.m_axi_rresp
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.axi_read_slave.ports.m_axi_rresp.
 Owner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via io_list.interfaces.axi_read_slave.
 SSOT item context: name=m_axi_rresp; width=2; direction=output.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -603,14 +603,14 @@ SSOT item context: name=m_axi_rresp; width=2; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.axi_read_slave.ports.m_axi_rlast
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.axi_read_slave.ports.m_axi_rlast.
 Owner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via io_list.interfaces.axi_read_slave.
 SSOT item context: name=m_axi_rlast; width=1; direction=output.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -625,14 +625,14 @@ SSOT item context: name=m_axi_rlast; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.axi_read_slave.ports.m_axi_rvalid
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.axi_read_slave.ports.m_axi_rvalid.
 Owner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via io_list.interfaces.axi_read_slave.
 SSOT item context: name=m_axi_rvalid; width=1; direction=output.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -647,14 +647,14 @@ SSOT item context: name=m_axi_rvalid; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.axi_read_slave.ports.m_axi_rready
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.axi_read_slave.ports.m_axi_rready.
 Owner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via io_list.interfaces.axi_read_slave.
 SSOT item context: name=m_axi_rready; width=1; direction=input.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified

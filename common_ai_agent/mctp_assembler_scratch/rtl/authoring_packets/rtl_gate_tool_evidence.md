@@ -29,14 +29,10 @@
 - Human-locked open tasks: 0
 - Owner refs: dataflow, decomposition, integration, io_list, top_module
 - Tool-evidence blockers:
-  - common_ai_agent_authoring: RTL audit has not run yet.
-  - dut_compile: RTL audit has not run yet.
-  - dut_lint: RTL audit has not run yet.
-  - dynamic_todo_closure: RTL audit has not run yet.
+  - common_ai_agent_authoring: Missing common_ai_agent RTL authoring provenance.
+  - dynamic_todo_closure: 23 required non-closure TODO(s) remain open.
 - Tool-evidence runbook:
   - common_ai_agent_authoring: stages=ssot-rtl; artifact=mctp_assembler_scratch/rtl/rtl_authoring_provenance.json
-  - dut_compile: stages=ssot-rtl, dut_compile; artifact=mctp_assembler_scratch/rtl/rtl_compile.json
-  - dut_lint: stages=lint, dut_lint; artifact=mctp_assembler_scratch/lint/dut_lint.json
   - dynamic_todo_closure: stages=audit-rtl; artifact=mctp_assembler_scratch/rtl/rtl_todo_plan.json
 - SSOT connection contracts:
   - mctp_assembler_scratch_axi_write_ingress.m_axi_awvalid <= m_axi_awvalid (integration.connections[0])
@@ -52,13 +48,13 @@
 
 - Priority: critical
 - Required: True
-- Status: planned
+- Status: open
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.common_ai_agent_authoring
 - Detail: RTL approval requires provenance that the common engine/ATLAS/Textual/headless rtl-gen path wrote the RTL from the current SSOT-derived TODO plan.
 SSOT ref: quality_gates.rtl_gen.common_ai_agent_authoring.
 Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_module.
-- Current reason: RTL audit has not run yet.
+- Current reason: Missing common_ai_agent RTL authoring provenance.
 - Criteria:
   - rtl/rtl_authoring_provenance.json exists
   - provenance agent is common_ai_agent
@@ -75,13 +71,13 @@ Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: planned
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.dut_compile
 - Detail: Compile approval must come from the canonical rtl_compile_report.py artifact generated after RTL generation or repair.
 SSOT ref: quality_gates.rtl_gen.dut_compile.
 Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_module.
-- Current reason: RTL audit has not run yet.
+- Current reason: DUT-only compile artifact passed with zero errors, diagnostics, and style violations.
 - Criteria:
   - rtl/rtl_compile.json exists
   - rtl_compile.json reports dut_only=true
@@ -96,13 +92,13 @@ Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: planned
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.dut_lint
 - Detail: Lint approval must come from the canonical dut_lint_report.py artifact and must not rely on ad-hoc suppressions.
 SSOT ref: quality_gates.rtl_gen.dut_lint.
 Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_module.
-- Current reason: RTL audit has not run yet.
+- Current reason: DUT-only lint artifact passed with zero errors, warnings, and suppression violations.
 - Criteria:
   - lint/dut_lint.json exists
   - dut_lint.json reports dut_only=true
@@ -118,13 +114,13 @@ Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: planned
+- Status: open
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.dynamic_todo_closure
 - Detail: rtl-gen PASS is forbidden until all required implementation, SSOT workflow, and RTL gate TODOs have pass status.
 SSOT ref: quality_gates.rtl_gen.dynamic_todo_closure.
 Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_module.
-- Current reason: RTL audit has not run yet.
+- Current reason: 23 required non-closure TODO(s) remain open.
 - Criteria:
   - Every required non-closure task has todo_completion.status=pass
   - open_required_todos is zero

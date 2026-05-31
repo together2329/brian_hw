@@ -25,7 +25,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 13
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: debug_observability, decomposition, error_handling, features, fsm, function_model.state_variables, function_model.transactions.FM_APB_ACCESS, function_model.transactions.FM_ASSEMBLE_FRAGMENT, function_model.transactions.FM_ASSEMBLY_DROP, function_model.transactions.FM_AXI_READBACK, function_model.transactions.FM_COMPLETE_MESSAGE, function_model.transactions.FM_PACKET_DROP, interrupts, interrupts.sources, io_list, io_list.interfaces.apb_slave
 - Module slice: 3/9 section=function_model task_limit=48
@@ -39,14 +39,14 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM_APB_ACCESS
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM_APB_ACCESS.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_APB_ACCESS.
 SSOT item context: id=FM_APB_ACCESS; name=APB register access.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -59,14 +59,14 @@ SSOT item context: id=FM_APB_ACCESS; name=APB register access.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM_APB_ACCESS.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_ACCESS.preconditions.precondition_0.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_APB_ACCESS.
 SSOT item context: value=apb_access.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -79,14 +79,14 @@ SSOT item context: value=apb_access.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_APB_ACCESS.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_ACCESS.outputs.output_0.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_APB_ACCESS.
 SSOT item context: value=apb_ready.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -99,14 +99,14 @@ SSOT item context: value=apb_ready.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_APB_ACCESS.outputs.output_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_ACCESS.outputs.output_1.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_APB_ACCESS.
 SSOT item context: value=apb_error.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -119,14 +119,14 @@ SSOT item context: value=apb_error.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_APB_ACCESS.outputs.apb_ready
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_ACCESS.outputs.apb_ready.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_APB_ACCESS.
 SSOT item context: name=apb_ready; port=pready; expr=apb_access.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -141,14 +141,14 @@ SSOT item context: name=apb_ready; port=pready; expr=apb_access.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_APB_ACCESS.outputs.apb_error
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_ACCESS.outputs.apb_error.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_APB_ACCESS.
 SSOT item context: name=apb_error; port=pslverr; expr=illegal_apb_access.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -163,14 +163,14 @@ SSOT item context: name=apb_error; port=pslverr; expr=illegal_apb_access.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_APB_ACCESS.outputs.enable_reg
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_ACCESS.outputs.enable_reg.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_APB_ACCESS.
 SSOT item context: state=enable_reg; expr=apb_wdata & apb_write.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -184,14 +184,14 @@ SSOT item context: state=enable_reg; expr=apb_wdata & apb_write.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_APB_ACCESS.outputs.drop_mode_reg
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_ACCESS.outputs.drop_mode_reg.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_APB_ACCESS.
 SSOT item context: state=drop_mode_reg; expr=(apb_wdata >> 1) & apb_write.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -205,14 +205,14 @@ SSOT item context: state=drop_mode_reg; expr=(apb_wdata >> 1) & apb_write.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM_APB_ACCESS.output_rules.apb_ready
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_ACCESS.output_rules.apb_ready.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_APB_ACCESS.
 SSOT item context: name=apb_ready; port=pready; expr=apb_access; width=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -229,14 +229,14 @@ SSOT item context: name=apb_ready; port=pready; expr=apb_access; width=1.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM_APB_ACCESS.output_rules.apb_error
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_ACCESS.output_rules.apb_error.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_APB_ACCESS.
 SSOT item context: name=apb_error; port=pslverr; expr=illegal_apb_access; width=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -253,14 +253,14 @@ SSOT item context: name=apb_error; port=pslverr; expr=illegal_apb_access; width=
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_APB_ACCESS.state_updates.enable_reg
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_ACCESS.state_updates.enable_reg.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_APB_ACCESS.
 SSOT item context: name=enable_reg; expr=apb_wdata & apb_write; width=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -276,14 +276,14 @@ SSOT item context: name=enable_reg; expr=apb_wdata & apb_write; width=1.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_APB_ACCESS.state_updates.drop_mode_reg
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_ACCESS.state_updates.drop_mode_reg.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_APB_ACCESS.
 SSOT item context: name=drop_mode_reg; expr=(apb_wdata >> 1) & apb_write; width=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -299,14 +299,14 @@ SSOT item context: name=drop_mode_reg; expr=(apb_wdata >> 1) & apb_write; width=
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM_APB_ACCESS.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APB_ACCESS.side_effects.side_effect_0.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_APB_ACCESS.
 SSOT item context: id=FM_APB_ACCESS; name=APB register access; port=["pready", "pslverr"]; signal=["control_status_interrupt_counter_descriptor_debug_register_visible", "apb_access", "apb_write", "apb_wdata", "illeg...; state=["enable_reg", "drop_mode_reg"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction

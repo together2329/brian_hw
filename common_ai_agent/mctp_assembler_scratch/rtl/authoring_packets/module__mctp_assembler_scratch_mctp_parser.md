@@ -25,7 +25,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 18
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: custom, custom.mctp_transport_fields, function_model, function_model.transactions.FM_PARSE_MCTP
 
@@ -35,14 +35,14 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM_PARSE_MCTP
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM_PARSE_MCTP.
 Owner: mctp_assembler_scratch_mctp_parser in rtl/mctp_assembler_scratch_mctp_parser.sv via function_model.transactions.FM_PARSE_MCTP.
 SSOT item context: id=FM_PARSE_MCTP; name=Decode MCTP transport header and context key.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -55,14 +55,14 @@ SSOT item context: id=FM_PARSE_MCTP; name=Decode MCTP transport header and conte
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM_PARSE_MCTP.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PARSE_MCTP.preconditions.precondition_0.
 Owner: mctp_assembler_scratch_mctp_parser in rtl/mctp_assembler_scratch_mctp_parser.sv via function_model.transactions.FM_PARSE_MCTP.
 SSOT item context: value=vdm_supported.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -75,14 +75,14 @@ SSOT item context: value=vdm_supported.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_PARSE_MCTP.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PARSE_MCTP.outputs.output_0.
 Owner: mctp_assembler_scratch_mctp_parser in rtl/mctp_assembler_scratch_mctp_parser.sv via function_model.transactions.FM_PARSE_MCTP.
 SSOT item context: value=debug_context_key.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -95,14 +95,14 @@ SSOT item context: value=debug_context_key.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_PARSE_MCTP.outputs.ctx_source_eid
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PARSE_MCTP.outputs.ctx_source_eid.
 Owner: mctp_assembler_scratch_mctp_parser in rtl/mctp_assembler_scratch_mctp_parser.sv via function_model.transactions.FM_PARSE_MCTP.
 SSOT item context: state=ctx_source_eid; expr=source_eid.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -116,14 +116,14 @@ SSOT item context: state=ctx_source_eid; expr=source_eid.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_PARSE_MCTP.outputs.ctx_destination_eid
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PARSE_MCTP.outputs.ctx_destination_eid.
 Owner: mctp_assembler_scratch_mctp_parser in rtl/mctp_assembler_scratch_mctp_parser.sv via function_model.transactions.FM_PARSE_MCTP.
 SSOT item context: state=ctx_destination_eid; expr=destination_eid.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -137,14 +137,14 @@ SSOT item context: state=ctx_destination_eid; expr=destination_eid.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_PARSE_MCTP.outputs.ctx_tag_owner
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PARSE_MCTP.outputs.ctx_tag_owner.
 Owner: mctp_assembler_scratch_mctp_parser in rtl/mctp_assembler_scratch_mctp_parser.sv via function_model.transactions.FM_PARSE_MCTP.
 SSOT item context: state=ctx_tag_owner; expr=tag_owner.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -158,14 +158,14 @@ SSOT item context: state=ctx_tag_owner; expr=tag_owner.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_PARSE_MCTP.outputs.ctx_message_tag
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PARSE_MCTP.outputs.ctx_message_tag.
 Owner: mctp_assembler_scratch_mctp_parser in rtl/mctp_assembler_scratch_mctp_parser.sv via function_model.transactions.FM_PARSE_MCTP.
 SSOT item context: state=ctx_message_tag; expr=message_tag.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -179,14 +179,14 @@ SSOT item context: state=ctx_message_tag; expr=message_tag.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_PARSE_MCTP.outputs.ctx_message_type
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PARSE_MCTP.outputs.ctx_message_type.
 Owner: mctp_assembler_scratch_mctp_parser in rtl/mctp_assembler_scratch_mctp_parser.sv via function_model.transactions.FM_PARSE_MCTP.
 SSOT item context: state=ctx_message_type; expr=message_type.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -200,14 +200,14 @@ SSOT item context: state=ctx_message_type; expr=message_type.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_PARSE_MCTP.outputs.ctx_last_seq
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PARSE_MCTP.outputs.ctx_last_seq.
 Owner: mctp_assembler_scratch_mctp_parser in rtl/mctp_assembler_scratch_mctp_parser.sv via function_model.transactions.FM_PARSE_MCTP.
 SSOT item context: state=ctx_last_seq; expr=packet_seq.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -221,14 +221,14 @@ SSOT item context: state=ctx_last_seq; expr=packet_seq.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM_PARSE_MCTP.output_rules.debug_context_key
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PARSE_MCTP.output_rules.debug_context_key.
 Owner: mctp_assembler_scratch_mctp_parser in rtl/mctp_assembler_scratch_mctp_parser.sv via function_model.transactions.FM_PARSE_MCTP.
 SSOT item context: name=debug_context_key; port=debug_context_key; expr=context_key; width=18.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -245,14 +245,14 @@ SSOT item context: name=debug_context_key; port=debug_context_key; expr=context_
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_source_eid
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_source_eid.
 Owner: mctp_assembler_scratch_mctp_parser in rtl/mctp_assembler_scratch_mctp_parser.sv via function_model.transactions.FM_PARSE_MCTP.
 SSOT item context: name=ctx_source_eid; expr=source_eid; width=8.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -268,14 +268,14 @@ SSOT item context: name=ctx_source_eid; expr=source_eid; width=8.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_destination_eid
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_destination_eid.
 Owner: mctp_assembler_scratch_mctp_parser in rtl/mctp_assembler_scratch_mctp_parser.sv via function_model.transactions.FM_PARSE_MCTP.
 SSOT item context: name=ctx_destination_eid; expr=destination_eid; width=8.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -291,14 +291,14 @@ SSOT item context: name=ctx_destination_eid; expr=destination_eid; width=8.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_tag_owner
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_tag_owner.
 Owner: mctp_assembler_scratch_mctp_parser in rtl/mctp_assembler_scratch_mctp_parser.sv via function_model.transactions.FM_PARSE_MCTP.
 SSOT item context: name=ctx_tag_owner; expr=tag_owner; width=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -314,14 +314,14 @@ SSOT item context: name=ctx_tag_owner; expr=tag_owner; width=1.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_message_tag
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_message_tag.
 Owner: mctp_assembler_scratch_mctp_parser in rtl/mctp_assembler_scratch_mctp_parser.sv via function_model.transactions.FM_PARSE_MCTP.
 SSOT item context: name=ctx_message_tag; expr=message_tag; width=3.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -337,14 +337,14 @@ SSOT item context: name=ctx_message_tag; expr=message_tag; width=3.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_message_type
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_message_type.
 Owner: mctp_assembler_scratch_mctp_parser in rtl/mctp_assembler_scratch_mctp_parser.sv via function_model.transactions.FM_PARSE_MCTP.
 SSOT item context: name=ctx_message_type; expr=message_type; width=8.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -360,14 +360,14 @@ SSOT item context: name=ctx_message_type; expr=message_type; width=8.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_last_seq
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_last_seq.
 Owner: mctp_assembler_scratch_mctp_parser in rtl/mctp_assembler_scratch_mctp_parser.sv via function_model.transactions.FM_PARSE_MCTP.
 SSOT item context: name=ctx_last_seq; expr=packet_seq; width=2.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -383,14 +383,14 @@ SSOT item context: name=ctx_last_seq; expr=packet_seq; width=2.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM_PARSE_MCTP.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PARSE_MCTP.side_effects.side_effect_0.
 Owner: mctp_assembler_scratch_mctp_parser in rtl/mctp_assembler_scratch_mctp_parser.sv via function_model.transactions.FM_PARSE_MCTP.
 SSOT item context: id=FM_PARSE_MCTP; name=Decode MCTP transport header and context key; port=["debug_context_key"]; signal=["context key prepared before allocation or lookup", "source_eid", "destination_eid", "tag_owner", "message_tag", "me...; state=["ctx_source_eid", "ctx_destination_eid", "ctx_tag_owner", "ctx_message_tag", "ctx_message_type", "ctx_last_seq"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -404,13 +404,13 @@ SSOT item context: id=FM_PARSE_MCTP; name=Decode MCTP transport header and conte
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: equivalence.module
 - Source ref: sub_modules.mctp_assembler_scratch_mctp_parser.module_equivalence
 - Detail: This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.
 SSOT ref: sub_modules.mctp_assembler_scratch_mctp_parser.module_equivalence.
 Owner: mctp_assembler_scratch_mctp_parser in rtl/mctp_assembler_scratch_mctp_parser.sv via module_equivalence.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module
   - cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff

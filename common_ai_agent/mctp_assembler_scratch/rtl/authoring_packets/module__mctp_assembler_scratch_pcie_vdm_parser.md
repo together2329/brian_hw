@@ -25,7 +25,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 34
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: custom, custom.pcie_vdm_fields, error_handling, error_handling.packet_drop_ids, function_model, function_model.transactions.FM_ASSEMBLE_FRAGMENT, function_model.transactions.FM_FILTER_VDM
 
@@ -35,13 +35,13 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[1]
 - Detail: Required modules from sub_modules and filelist must exist exactly once and satisfy function_model/state/register ownership.
 SSOT ref: workflow_todos.rtl-gen[1].
 Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - all_required_modules_in_filelist
   - no_missing_declared_module
@@ -57,13 +57,13 @@ Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[2]
 - Detail: Each Q keeps partial_word_addr, partial_word_strobe, partial_word_valid, and partial_next_lane so fragments pack contiguously.
 SSOT ref: workflow_todos.rtl-gen[2].
 Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via custom.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - SC_UNALIGNED_SRAM_PACK_NO_HOLES_passes
   - sram_write_monitor_observes_no_holes
@@ -78,13 +78,13 @@ Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[3]
 - Detail: Every PD_* and AD_* reason must increment the correct counter, expose last reason, and suppress illegal SRAM writes or descriptors.
 SSOT ref: workflow_todos.rtl-gen[3].
 Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via error_handling.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - all_drop_scenarios_pass
   - no_sram_write_on_drop
@@ -99,14 +99,14 @@ Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM_FILTER_VDM
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM_FILTER_VDM.
 Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_FILTER_VDM.
 SSOT item context: id=FM_FILTER_VDM; name=Validate PCIe VDM envelope for MCTP transport.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -119,14 +119,14 @@ SSOT item context: id=FM_FILTER_VDM; name=Validate PCIe VDM envelope for MCTP tr
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM_FILTER_VDM.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FILTER_VDM.preconditions.precondition_0.
 Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_FILTER_VDM.
 SSOT item context: value=tlp_valid.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -139,14 +139,14 @@ SSOT item context: value=tlp_valid.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_FILTER_VDM.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FILTER_VDM.outputs.output_0.
 Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_FILTER_VDM.
 SSOT item context: value=debug_vdm_valid.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -159,14 +159,14 @@ SSOT item context: value=debug_vdm_valid.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_FILTER_VDM.outputs.output_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FILTER_VDM.outputs.output_1.
 Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_FILTER_VDM.
 SSOT item context: value=debug_drop_pulse.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -179,14 +179,14 @@ SSOT item context: value=debug_drop_pulse.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_FILTER_VDM.outputs.packet_drop_count
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FILTER_VDM.outputs.packet_drop_count.
 Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_FILTER_VDM.
 SSOT item context: state=packet_drop_count; expr=packet_drop_count + packet_drop_pulse.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -200,14 +200,14 @@ SSOT item context: state=packet_drop_count; expr=packet_drop_count + packet_drop
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_FILTER_VDM.outputs.ctx_last_drop_reason
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FILTER_VDM.outputs.ctx_last_drop_reason.
 Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_FILTER_VDM.
 SSOT item context: state=ctx_last_drop_reason; expr=packet_drop_reason.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -221,14 +221,14 @@ SSOT item context: state=ctx_last_drop_reason; expr=packet_drop_reason.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM_FILTER_VDM.output_rules.debug_vdm_valid
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FILTER_VDM.output_rules.debug_vdm_valid.
 Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_FILTER_VDM.
 SSOT item context: name=debug_vdm_valid; port=debug_vdm_valid; expr=vdm_supported; width=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -245,14 +245,14 @@ SSOT item context: name=debug_vdm_valid; port=debug_vdm_valid; expr=vdm_supporte
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM_FILTER_VDM.output_rules.debug_drop_pulse
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FILTER_VDM.output_rules.debug_drop_pulse.
 Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_FILTER_VDM.
 SSOT item context: name=debug_drop_pulse; port=debug_drop_pulse; expr=packet_drop_reason != DROP_NONE; width=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -269,14 +269,14 @@ SSOT item context: name=debug_drop_pulse; port=debug_drop_pulse; expr=packet_dro
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_FILTER_VDM.state_updates.packet_drop_count
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FILTER_VDM.state_updates.packet_drop_count.
 Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_FILTER_VDM.
 SSOT item context: name=packet_drop_count; expr=packet_drop_count + packet_drop_pulse; width=32.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -292,14 +292,14 @@ SSOT item context: name=packet_drop_count; expr=packet_drop_count + packet_drop_
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_FILTER_VDM.state_updates.ctx_last_drop_reason
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FILTER_VDM.state_updates.ctx_last_drop_reason.
 Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_FILTER_VDM.
 SSOT item context: name=ctx_last_drop_reason; expr=packet_drop_reason; width=8.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -315,14 +315,14 @@ SSOT item context: name=ctx_last_drop_reason; expr=packet_drop_reason; width=8.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.error_case
 - Source ref: function_model.transactions.FM_FILTER_VDM.error_cases.PD_MALFORMED_TLP
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FILTER_VDM.error_cases.PD_MALFORMED_TLP.
 Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_FILTER_VDM.
 SSOT item context: id=FM_FILTER_VDM; name=Validate PCIe VDM envelope for MCTP transport; port=["debug_vdm_valid", "debug_drop_pulse"]; signal=[{"action": "no_sram_write_and_increment_packet_drop_count", "condition": "packet_drop_reason == 2", "id": "PD_MALFOR...; state=["packet_drop_count", "ctx_last_drop_reason"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -336,14 +336,14 @@ SSOT item context: id=FM_FILTER_VDM; name=Validate PCIe VDM envelope for MCTP tr
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.error_case
 - Source ref: function_model.transactions.FM_FILTER_VDM.error_cases.PD_UNSUPPORTED_VDM
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_FILTER_VDM.error_cases.PD_UNSUPPORTED_VDM.
 Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_FILTER_VDM.
 SSOT item context: id=FM_FILTER_VDM; name=Validate PCIe VDM envelope for MCTP transport; port=["debug_vdm_valid", "debug_drop_pulse"]; signal=[{"action": "no_sram_write_and_increment_packet_drop_count", "condition": "packet_drop_reason == 3", "id": "PD_UNSUPP...; state=["packet_drop_count", "ctx_last_drop_reason"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -357,14 +357,14 @@ SSOT item context: id=FM_FILTER_VDM; name=Validate PCIe VDM envelope for MCTP tr
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.
 Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.
 SSOT item context: id=FM_ASSEMBLE_FRAGMENT; name=Allocate or update a Q context for one MCTP fragment.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -377,14 +377,14 @@ SSOT item context: id=FM_ASSEMBLE_FRAGMENT; name=Allocate or update a Q context 
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.preconditions.precondition_0.
 Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.
 SSOT item context: value=enable_reg and context_accept.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -397,14 +397,14 @@ SSOT item context: value=enable_reg and context_accept.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.output_0.
 Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.
 SSOT item context: value=debug_context_id.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -417,14 +417,14 @@ SSOT item context: value=debug_context_id.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_state
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_state.
 Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.
 SSOT item context: state=ctx_state; expr=STATE_ASSEMBLING.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -438,14 +438,14 @@ SSOT item context: state=ctx_state; expr=STATE_ASSEMBLING.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_valid
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_valid.
 Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.
 SSOT item context: state=ctx_valid; expr=context_accept.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -459,14 +459,14 @@ SSOT item context: state=ctx_valid; expr=context_accept.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_expected_seq
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_expected_seq.
 Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.
 SSOT item context: state=ctx_expected_seq; expr=next_seq.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -480,14 +480,14 @@ SSOT item context: state=ctx_expected_seq; expr=next_seq.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.payload_byte_count
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.payload_byte_count.
 Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.
 SSOT item context: state=payload_byte_count; expr=payload_byte_count + payload_len.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -501,14 +501,14 @@ SSOT item context: state=payload_byte_count; expr=payload_byte_count + payload_l
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_payload_byte_count
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_payload_byte_count.
 Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.
 SSOT item context: state=ctx_payload_byte_count; expr=ctx_payload_byte_count + payload_len.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -522,14 +522,14 @@ SSOT item context: state=ctx_payload_byte_count; expr=ctx_payload_byte_count + p
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_state
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_state.
 Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.
 SSOT item context: name=ctx_state; expr=STATE_ASSEMBLING; width=2.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -545,14 +545,14 @@ SSOT item context: name=ctx_state; expr=STATE_ASSEMBLING; width=2.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_valid
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_valid.
 Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.
 SSOT item context: name=ctx_valid; expr=context_accept; width=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -568,14 +568,14 @@ SSOT item context: name=ctx_valid; expr=context_accept; width=1.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_expected_seq
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_expected_seq.
 Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.
 SSOT item context: name=ctx_expected_seq; expr=next_seq; width=2.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -591,14 +591,14 @@ SSOT item context: name=ctx_expected_seq; expr=next_seq; width=2.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.payload_byte_count
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.payload_byte_count.
 Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.
 SSOT item context: name=payload_byte_count; expr=payload_byte_count + payload_len; width=13.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -614,14 +614,14 @@ SSOT item context: name=payload_byte_count; expr=payload_byte_count + payload_le
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_payload_byte_count
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_payload_byte_count.
 Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.
 SSOT item context: name=ctx_payload_byte_count; expr=ctx_payload_byte_count + payload_len; width=13.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -637,14 +637,14 @@ SSOT item context: name=ctx_payload_byte_count; expr=ctx_payload_byte_count + pa
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.error_case
 - Source ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.error_cases.AD_DUPLICATE_SOM
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.error_cases.AD_DUPLICATE_SOM.
 Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.
 SSOT item context: id=FM_ASSEMBLE_FRAGMENT; name=Allocate or update a Q context for one MCTP fragment; port=["debug_context_id"]; signal=[{"action": "no_sram_write_and_increment_assembly_drop_count", "condition": "assembly_drop_reason == 20", "id": "AD_D...; state=["active_context_count", "ctx_state", "ctx_valid", "ctx_expected_seq", "payload_byte_count", "ctx_payload_byte_count"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -658,14 +658,14 @@ SSOT item context: id=FM_ASSEMBLE_FRAGMENT; name=Allocate or update a Q context 
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.error_case
 - Source ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.error_cases.AD_SEQUENCE_MISMATCH
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.error_cases.AD_SEQUENCE_MISMATCH.
 Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.
 SSOT item context: id=FM_ASSEMBLE_FRAGMENT; name=Allocate or update a Q context for one MCTP fragment; port=["debug_context_id"]; signal=[{"action": "no_sram_write_and_enter_error_state", "condition": "assembly_drop_reason == 21", "id": "AD_SEQUENCE_MISM...; state=["active_context_count", "ctx_state", "ctx_valid", "ctx_expected_seq", "payload_byte_count", "ctx_payload_byte_count"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -679,14 +679,14 @@ SSOT item context: id=FM_ASSEMBLE_FRAGMENT; name=Allocate or update a Q context 
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: error_handling.recovery
 - Source ref: error_handling.recovery.packet_drop
 - Detail: This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: error_handling.recovery.packet_drop.
 Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via error_handling.
 SSOT item context: name=packet_drop; value=next_packet_can_be_accepted_when_resources_available.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -699,14 +699,14 @@ SSOT item context: name=packet_drop; value=next_packet_can_be_accepted_when_reso
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: error_handling.recovery
 - Source ref: error_handling.recovery.assembly_drop
 - Detail: This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: error_handling.recovery.assembly_drop.
 Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via error_handling.
 SSOT item context: name=assembly_drop; value=software_clear_or_timeout_cleanup_returns_q_to_IDLE.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -719,14 +719,14 @@ SSOT item context: name=assembly_drop; value=software_clear_or_timeout_cleanup_r
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: error_handling.recovery
 - Source ref: error_handling.recovery.read_error
 - Detail: This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: error_handling.recovery.read_error.
 Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via error_handling.
 SSOT item context: name=read_error; value=next_read_can_retry_after_response_completion.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -739,13 +739,13 @@ SSOT item context: name=read_error; value=next_read_can_retry_after_response_com
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: equivalence.module
 - Source ref: sub_modules.mctp_assembler_scratch_pcie_vdm_parser.module_equivalence
 - Detail: This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.
 SSOT ref: sub_modules.mctp_assembler_scratch_pcie_vdm_parser.module_equivalence.
 Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via module_equivalence.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module
   - cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff

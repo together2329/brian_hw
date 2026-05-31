@@ -25,7 +25,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 27
+- LLM-actionable open tasks: 1
 - Human-locked open tasks: 0
 - Owner refs: fsm, fsm.context_fsm, function_model, function_model.transactions.FM_ASSEMBLE_FRAGMENT, function_model.transactions.FM_COMPLETE_MESSAGE, memory, memory.instances.context_table, registers
 
@@ -35,14 +35,14 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.active_context_count
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.active_context_count.
 Owner: mctp_assembler_scratch_context_table in rtl/mctp_assembler_scratch_context_table.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.
 SSOT item context: state=active_context_count; expr=active_context_count + context_alloc.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -56,14 +56,14 @@ SSOT item context: state=active_context_count; expr=active_context_count + conte
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.output_rules.debug_context_id
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.output_rules.debug_context_id.
 Owner: mctp_assembler_scratch_context_table in rtl/mctp_assembler_scratch_context_table.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.
 SSOT item context: name=debug_context_id; port=debug_context_id; expr=context_id; width=4.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -80,14 +80,14 @@ SSOT item context: name=debug_context_id; port=debug_context_id; expr=context_id
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.active_context_count
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.active_context_count.
 Owner: mctp_assembler_scratch_context_table in rtl/mctp_assembler_scratch_context_table.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.
 SSOT item context: name=active_context_count; expr=active_context_count + context_alloc; width=5.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -103,14 +103,14 @@ SSOT item context: name=active_context_count; expr=active_context_count + contex
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM_COMPLETE_MESSAGE
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM_COMPLETE_MESSAGE.
 Owner: mctp_assembler_scratch_context_table in rtl/mctp_assembler_scratch_context_table.sv via function_model.transactions.FM_COMPLETE_MESSAGE.
 SSOT item context: id=FM_COMPLETE_MESSAGE; name=Complete EOM message and publish descriptor.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -123,14 +123,14 @@ SSOT item context: id=FM_COMPLETE_MESSAGE; name=Complete EOM message and publish
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM_COMPLETE_MESSAGE.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_COMPLETE_MESSAGE.preconditions.precondition_0.
 Owner: mctp_assembler_scratch_context_table in rtl/mctp_assembler_scratch_context_table.sv via function_model.transactions.FM_COMPLETE_MESSAGE.
 SSOT item context: value=eom and descriptor_ready.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -143,14 +143,14 @@ SSOT item context: value=eom and descriptor_ready.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_COMPLETE_MESSAGE.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_COMPLETE_MESSAGE.outputs.output_0.
 Owner: mctp_assembler_scratch_context_table in rtl/mctp_assembler_scratch_context_table.sv via function_model.transactions.FM_COMPLETE_MESSAGE.
 SSOT item context: value=interrupt.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -163,14 +163,14 @@ SSOT item context: value=interrupt.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_COMPLETE_MESSAGE.outputs.interrupt
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_COMPLETE_MESSAGE.outputs.interrupt.
 Owner: mctp_assembler_scratch_context_table in rtl/mctp_assembler_scratch_context_table.sv via function_model.transactions.FM_COMPLETE_MESSAGE.
 SSOT item context: name=interrupt; port=irq; expr=descriptor_publish.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -185,14 +185,14 @@ SSOT item context: name=interrupt; port=irq; expr=descriptor_publish.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_COMPLETE_MESSAGE.outputs.ctx_state
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_COMPLETE_MESSAGE.outputs.ctx_state.
 Owner: mctp_assembler_scratch_context_table in rtl/mctp_assembler_scratch_context_table.sv via function_model.transactions.FM_COMPLETE_MESSAGE.
 SSOT item context: state=ctx_state; expr=STATE_DONE_WAIT_DESCRIPTOR_POP.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -206,14 +206,14 @@ SSOT item context: state=ctx_state; expr=STATE_DONE_WAIT_DESCRIPTOR_POP.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_COMPLETE_MESSAGE.outputs.active_context_count
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_COMPLETE_MESSAGE.outputs.active_context_count.
 Owner: mctp_assembler_scratch_context_table in rtl/mctp_assembler_scratch_context_table.sv via function_model.transactions.FM_COMPLETE_MESSAGE.
 SSOT item context: state=active_context_count; expr=active_context_count - descriptor_publish.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -227,14 +227,14 @@ SSOT item context: state=active_context_count; expr=active_context_count - descr
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM_COMPLETE_MESSAGE.output_rules.interrupt
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_COMPLETE_MESSAGE.output_rules.interrupt.
 Owner: mctp_assembler_scratch_context_table in rtl/mctp_assembler_scratch_context_table.sv via function_model.transactions.FM_COMPLETE_MESSAGE.
 SSOT item context: name=interrupt; port=irq; expr=descriptor_publish; width=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -251,14 +251,14 @@ SSOT item context: name=interrupt; port=irq; expr=descriptor_publish; width=1.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_COMPLETE_MESSAGE.state_updates.ctx_state
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_COMPLETE_MESSAGE.state_updates.ctx_state.
 Owner: mctp_assembler_scratch_context_table in rtl/mctp_assembler_scratch_context_table.sv via function_model.transactions.FM_COMPLETE_MESSAGE.
 SSOT item context: name=ctx_state; expr=STATE_DONE_WAIT_DESCRIPTOR_POP; width=2.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -274,14 +274,14 @@ SSOT item context: name=ctx_state; expr=STATE_DONE_WAIT_DESCRIPTOR_POP; width=2.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_COMPLETE_MESSAGE.state_updates.active_context_count
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_COMPLETE_MESSAGE.state_updates.active_context_count.
 Owner: mctp_assembler_scratch_context_table in rtl/mctp_assembler_scratch_context_table.sv via function_model.transactions.FM_COMPLETE_MESSAGE.
 SSOT item context: name=active_context_count; expr=active_context_count - descriptor_publish; width=5.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -297,14 +297,14 @@ SSOT item context: name=active_context_count; expr=active_context_count - descri
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.context_bound
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.context_bound.
 Owner: mctp_assembler_scratch_context_table in rtl/mctp_assembler_scratch_context_table.sv via function_model.
 SSOT item context: port=["axi_aw_accept", "axi_wlast_seen", "tlp_byte_count", "m_axi_bvalid", "m_axi_bresp", "vdm_supported", "packet_drop_re...; signal={"expr": "CONTEXT_COUNT >= active_context_count", "name": "context_bound"}; state=["active_context_count", "descriptor_count", "payload_byte_count", "collected_tlp_count", "packet_drop_count", "assem....
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner
@@ -318,14 +318,14 @@ SSOT item context: port=["axi_aw_accept", "axi_wlast_seen", "tlp_byte_count", "m
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: memory.instances
 - Source ref: memory.instances.context_table
 - Detail: This SSOT memory.instances item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: memory.instances.context_table.
 Owner: mctp_assembler_scratch_context_table in rtl/mctp_assembler_scratch_context_table.sv via memory.instances.context_table.
 SSOT item context: name=context_table.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -338,14 +338,14 @@ SSOT item context: name=context_table.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: memory.instances
 - Source ref: memory.instances.partial_word_buffer
 - Detail: This SSOT memory.instances item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: memory.instances.partial_word_buffer.
 Owner: mctp_assembler_scratch_context_table in rtl/mctp_assembler_scratch_context_table.sv via memory.
 SSOT item context: name=partial_word_buffer.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -358,14 +358,14 @@ SSOT item context: name=partial_word_buffer.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: fsm.state
 - Source ref: fsm.context_fsm.states.state_0
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.context_fsm.states.state_0.
 Owner: mctp_assembler_scratch_context_table in rtl/mctp_assembler_scratch_context_table.sv via fsm.context_fsm.
 SSOT item context: value=IDLE.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -379,14 +379,14 @@ SSOT item context: value=IDLE.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: fsm.state
 - Source ref: fsm.context_fsm.states.state_1
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.context_fsm.states.state_1.
 Owner: mctp_assembler_scratch_context_table in rtl/mctp_assembler_scratch_context_table.sv via fsm.context_fsm.
 SSOT item context: value=ASSEMBLING.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -400,14 +400,14 @@ SSOT item context: value=ASSEMBLING.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: fsm.state
 - Source ref: fsm.context_fsm.states.state_2
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.context_fsm.states.state_2.
 Owner: mctp_assembler_scratch_context_table in rtl/mctp_assembler_scratch_context_table.sv via fsm.context_fsm.
 SSOT item context: value=ERROR.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -421,14 +421,14 @@ SSOT item context: value=ERROR.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: fsm.state
 - Source ref: fsm.context_fsm.states.state_3
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.context_fsm.states.state_3.
 Owner: mctp_assembler_scratch_context_table in rtl/mctp_assembler_scratch_context_table.sv via fsm.context_fsm.
 SSOT item context: value=DONE_WAIT_DESCRIPTOR_POP.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -442,14 +442,14 @@ SSOT item context: value=DONE_WAIT_DESCRIPTOR_POP.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.context_fsm.transitions.transition_0
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.context_fsm.transitions.transition_0.
 Owner: mctp_assembler_scratch_context_table in rtl/mctp_assembler_scratch_context_table.sv via fsm.context_fsm.
 SSOT item context: from=IDLE; to=ASSEMBLING; action=allocate_q_and_store_first_tlp_header.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -463,14 +463,14 @@ SSOT item context: from=IDLE; to=ASSEMBLING; action=allocate_q_and_store_first_t
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.context_fsm.transitions.transition_1
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.context_fsm.transitions.transition_1.
 Owner: mctp_assembler_scratch_context_table in rtl/mctp_assembler_scratch_context_table.sv via fsm.context_fsm.
 SSOT item context: from=ASSEMBLING; to=ASSEMBLING; action=append_payload_and_update_last_tlp_header.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -484,14 +484,14 @@ SSOT item context: from=ASSEMBLING; to=ASSEMBLING; action=append_payload_and_upd
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.context_fsm.transitions.transition_2
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.context_fsm.transitions.transition_2.
 Owner: mctp_assembler_scratch_context_table in rtl/mctp_assembler_scratch_context_table.sv via fsm.context_fsm.
 SSOT item context: from=ASSEMBLING; to=DONE_WAIT_DESCRIPTOR_POP; action=flush_partial_word_and_publish_descriptor.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -505,14 +505,14 @@ SSOT item context: from=ASSEMBLING; to=DONE_WAIT_DESCRIPTOR_POP; action=flush_pa
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.context_fsm.transitions.transition_3
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.context_fsm.transitions.transition_3.
 Owner: mctp_assembler_scratch_context_table in rtl/mctp_assembler_scratch_context_table.sv via fsm.context_fsm.
 SSOT item context: from=IDLE; to=ERROR; action=raise_PD_UNEXPECTED_MIDDLE_END.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -526,14 +526,14 @@ SSOT item context: from=IDLE; to=ERROR; action=raise_PD_UNEXPECTED_MIDDLE_END.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.context_fsm.transitions.transition_4
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.context_fsm.transitions.transition_4.
 Owner: mctp_assembler_scratch_context_table in rtl/mctp_assembler_scratch_context_table.sv via fsm.context_fsm.
 SSOT item context: from=ASSEMBLING; to=ERROR; action=raise_AD_drop_reason.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -547,14 +547,14 @@ SSOT item context: from=ASSEMBLING; to=ERROR; action=raise_AD_drop_reason.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.context_fsm.transitions.transition_5
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.context_fsm.transitions.transition_5.
 Owner: mctp_assembler_scratch_context_table in rtl/mctp_assembler_scratch_context_table.sv via fsm.context_fsm.
 SSOT item context: from=DONE_WAIT_DESCRIPTOR_POP; to=IDLE; action=release_context_without_reclaiming_sram_space.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -568,14 +568,14 @@ SSOT item context: from=DONE_WAIT_DESCRIPTOR_POP; to=IDLE; action=release_contex
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: fsm.transition
 - Source ref: fsm.context_fsm.transitions.transition_6
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.context_fsm.transitions.transition_6.
 Owner: mctp_assembler_scratch_context_table in rtl/mctp_assembler_scratch_context_table.sv via fsm.context_fsm.
 SSOT item context: from=ERROR; to=IDLE; action=clear_context_visible_error_state.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -589,13 +589,13 @@ SSOT item context: from=ERROR; to=IDLE; action=clear_context_visible_error_state
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: equivalence.module
 - Source ref: sub_modules.mctp_assembler_scratch_context_table.module_equivalence
 - Detail: This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.
 SSOT ref: sub_modules.mctp_assembler_scratch_context_table.module_equivalence.
 Owner: mctp_assembler_scratch_context_table in rtl/mctp_assembler_scratch_context_table.sv via module_equivalence.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module
   - cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff

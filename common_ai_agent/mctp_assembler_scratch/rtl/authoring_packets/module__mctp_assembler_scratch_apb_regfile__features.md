@@ -25,7 +25,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 3
+- LLM-actionable open tasks: 1
 - Human-locked open tasks: 0
 - Owner refs: debug_observability, decomposition, error_handling, features, fsm, function_model.state_variables, function_model.transactions.FM_APB_ACCESS, function_model.transactions.FM_ASSEMBLE_FRAGMENT, function_model.transactions.FM_ASSEMBLY_DROP, function_model.transactions.FM_AXI_READBACK, function_model.transactions.FM_COMPLETE_MESSAGE, function_model.transactions.FM_PACKET_DROP, interrupts, interrupts.sources, io_list, io_list.interfaces.apb_slave
 - Module slice: 6/9 section=features task_limit=48
@@ -39,14 +39,14 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: features.item
 - Source ref: features.primary_approved_behavior
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.primary_approved_behavior.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via features.
 SSOT item context: name=primary_approved_behavior; output=Observable outputs/status/events match function_model outputs and side effects.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -59,14 +59,14 @@ SSOT item context: name=primary_approved_behavior; output=Observable outputs/sta
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: features.item
 - Source ref: features.backpressure_stability
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.backpressure_stability.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via features.
 SSOT item context: name=backpressure_stability; output=No duplicated, dropped, or reordered transaction unless explicitly allowed.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -79,14 +79,14 @@ SSOT item context: name=backpressure_stability; output=No duplicated, dropped, o
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: features.item
 - Source ref: features.error_policy
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.error_policy.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via features.
 SSOT item context: name=error_policy; output=Error/status/response/debug behavior follows error_handling.propagation.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT

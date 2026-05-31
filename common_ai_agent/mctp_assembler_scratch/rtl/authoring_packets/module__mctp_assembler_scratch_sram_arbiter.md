@@ -25,7 +25,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 16
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.arbitration, io_list, io_list.interfaces.sram_read_port, io_list.interfaces.sram_write_port, memory
 
@@ -35,14 +35,14 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: cycle_model.ordering
 - Source ref: cycle_model.ordering.descriptor_after_sram_flush
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.ordering.descriptor_after_sram_flush.
 Owner: mctp_assembler_scratch_sram_arbiter in rtl/mctp_assembler_scratch_sram_arbiter.sv via cycle_model.
 SSOT item context: name=descriptor_after_sram_flush.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -56,14 +56,14 @@ SSOT item context: name=descriptor_after_sram_flush.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: cycle_model.arbitration
 - Source ref: cycle_model.arbitration.name
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.arbitration.name.
 Owner: mctp_assembler_scratch_sram_arbiter in rtl/mctp_assembler_scratch_sram_arbiter.sv via cycle_model.arbitration.
 SSOT item context: name=name; value=sram_write_priority.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -77,14 +77,14 @@ SSOT item context: name=name; value=sram_write_priority.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: cycle_model.arbitration
 - Source ref: cycle_model.arbitration.policy
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.arbitration.policy.
 Owner: mctp_assembler_scratch_sram_arbiter in rtl/mctp_assembler_scratch_sram_arbiter.sv via cycle_model.arbitration.
 SSOT item context: name=policy; value=assembly SRAM writes win over firmware SRAM reads; reads are retried after write acceptance..
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -98,13 +98,13 @@ SSOT item context: name=policy; value=assembly SRAM writes win over firmware SRA
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: equivalence.module
 - Source ref: sub_modules.mctp_assembler_scratch_sram_arbiter.module_equivalence
 - Detail: This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.
 SSOT ref: sub_modules.mctp_assembler_scratch_sram_arbiter.module_equivalence.
 Owner: mctp_assembler_scratch_sram_arbiter in rtl/mctp_assembler_scratch_sram_arbiter.sv via module_equivalence.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module
   - cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff
@@ -119,14 +119,14 @@ Owner: mctp_assembler_scratch_sram_arbiter in rtl/mctp_assembler_scratch_sram_ar
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.sram_write_port.ports.sram_wr_valid
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.sram_write_port.ports.sram_wr_valid.
 Owner: mctp_assembler_scratch_sram_arbiter in rtl/mctp_assembler_scratch_sram_arbiter.sv via io_list.interfaces.sram_write_port.
 SSOT item context: name=sram_wr_valid; width=1; direction=output.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -141,14 +141,14 @@ SSOT item context: name=sram_wr_valid; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.sram_write_port.ports.sram_wr_ready
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.sram_write_port.ports.sram_wr_ready.
 Owner: mctp_assembler_scratch_sram_arbiter in rtl/mctp_assembler_scratch_sram_arbiter.sv via io_list.interfaces.sram_write_port.
 SSOT item context: name=sram_wr_ready; width=1; direction=input.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -163,14 +163,14 @@ SSOT item context: name=sram_wr_ready; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.sram_write_port.ports.sram_wr_addr
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.sram_write_port.ports.sram_wr_addr.
 Owner: mctp_assembler_scratch_sram_arbiter in rtl/mctp_assembler_scratch_sram_arbiter.sv via io_list.interfaces.sram_write_port.
 SSOT item context: name=sram_wr_addr; width=SRAM_ADDR_WIDTH; direction=output.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -185,14 +185,14 @@ SSOT item context: name=sram_wr_addr; width=SRAM_ADDR_WIDTH; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.sram_write_port.ports.sram_wr_data
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.sram_write_port.ports.sram_wr_data.
 Owner: mctp_assembler_scratch_sram_arbiter in rtl/mctp_assembler_scratch_sram_arbiter.sv via io_list.interfaces.sram_write_port.
 SSOT item context: name=sram_wr_data; width=SRAM_DATA_WIDTH; direction=output.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -207,14 +207,14 @@ SSOT item context: name=sram_wr_data; width=SRAM_DATA_WIDTH; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.sram_write_port.ports.sram_wr_strb
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.sram_write_port.ports.sram_wr_strb.
 Owner: mctp_assembler_scratch_sram_arbiter in rtl/mctp_assembler_scratch_sram_arbiter.sv via io_list.interfaces.sram_write_port.
 SSOT item context: name=sram_wr_strb; width=32; direction=output.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -229,14 +229,14 @@ SSOT item context: name=sram_wr_strb; width=32; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.sram_read_port.ports.sram_rd_req_valid
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.sram_read_port.ports.sram_rd_req_valid.
 Owner: mctp_assembler_scratch_sram_arbiter in rtl/mctp_assembler_scratch_sram_arbiter.sv via io_list.interfaces.sram_read_port.
 SSOT item context: name=sram_rd_req_valid; width=1; direction=output.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -251,14 +251,14 @@ SSOT item context: name=sram_rd_req_valid; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.sram_read_port.ports.sram_rd_req_ready
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.sram_read_port.ports.sram_rd_req_ready.
 Owner: mctp_assembler_scratch_sram_arbiter in rtl/mctp_assembler_scratch_sram_arbiter.sv via io_list.interfaces.sram_read_port.
 SSOT item context: name=sram_rd_req_ready; width=1; direction=input.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -273,14 +273,14 @@ SSOT item context: name=sram_rd_req_ready; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.sram_read_port.ports.sram_rd_req_addr
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.sram_read_port.ports.sram_rd_req_addr.
 Owner: mctp_assembler_scratch_sram_arbiter in rtl/mctp_assembler_scratch_sram_arbiter.sv via io_list.interfaces.sram_read_port.
 SSOT item context: name=sram_rd_req_addr; width=SRAM_ADDR_WIDTH; direction=output.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -295,14 +295,14 @@ SSOT item context: name=sram_rd_req_addr; width=SRAM_ADDR_WIDTH; direction=outpu
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.sram_read_port.ports.sram_rd_rsp_valid
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.sram_read_port.ports.sram_rd_rsp_valid.
 Owner: mctp_assembler_scratch_sram_arbiter in rtl/mctp_assembler_scratch_sram_arbiter.sv via io_list.interfaces.sram_read_port.
 SSOT item context: name=sram_rd_rsp_valid; width=1; direction=input.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -317,14 +317,14 @@ SSOT item context: name=sram_rd_rsp_valid; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.sram_read_port.ports.sram_rd_rsp_ready
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.sram_read_port.ports.sram_rd_rsp_ready.
 Owner: mctp_assembler_scratch_sram_arbiter in rtl/mctp_assembler_scratch_sram_arbiter.sv via io_list.interfaces.sram_read_port.
 SSOT item context: name=sram_rd_rsp_ready; width=1; direction=output.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -339,14 +339,14 @@ SSOT item context: name=sram_rd_rsp_ready; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.sram_read_port.ports.sram_rd_rsp_data
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.sram_read_port.ports.sram_rd_rsp_data.
 Owner: mctp_assembler_scratch_sram_arbiter in rtl/mctp_assembler_scratch_sram_arbiter.sv via io_list.interfaces.sram_read_port.
 SSOT item context: name=sram_rd_rsp_data; width=SRAM_DATA_WIDTH; direction=input.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -361,14 +361,14 @@ SSOT item context: name=sram_rd_rsp_data; width=SRAM_DATA_WIDTH; direction=input
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.sram_read_port.ports.sram_rd_rsp_error
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.sram_read_port.ports.sram_rd_rsp_error.
 Owner: mctp_assembler_scratch_sram_arbiter in rtl/mctp_assembler_scratch_sram_arbiter.sv via io_list.interfaces.sram_read_port.
 SSOT item context: name=sram_rd_rsp_error; width=1; direction=input.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified

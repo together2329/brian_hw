@@ -25,7 +25,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 2
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: debug_observability, decomposition, error_handling, features, fsm, function_model.state_variables, function_model.transactions.FM_APB_ACCESS, function_model.transactions.FM_ASSEMBLE_FRAGMENT, function_model.transactions.FM_ASSEMBLY_DROP, function_model.transactions.FM_AXI_READBACK, function_model.transactions.FM_COMPLETE_MESSAGE, function_model.transactions.FM_PACKET_DROP, interrupts, interrupts.sources, io_list, io_list.interfaces.apb_slave
 - Module slice: 5/9 section=registers task_limit=48
@@ -39,14 +39,14 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.Q_PAYLOAD_COUNT.fields.partial_word_valid
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.Q_PAYLOAD_COUNT.fields.partial_word_valid.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via registers.register_list.
 SSOT item context: name=partial_word_valid; reset=0; access=ro.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -65,14 +65,14 @@ SSOT item context: name=partial_word_valid; reset=0; access=ro.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.Q_PAYLOAD_COUNT.fields.reserved
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.Q_PAYLOAD_COUNT.fields.reserved.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via registers.register_list.
 SSOT item context: name=reserved; reset=0; access=reserved.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT

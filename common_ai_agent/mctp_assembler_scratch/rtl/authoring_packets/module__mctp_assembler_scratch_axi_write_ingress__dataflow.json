@@ -135,8 +135,8 @@
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
     "llm_actionable": true,
-    "llm_actionable_open_count": 7,
-    "open_required_count": 7,
+    "llm_actionable_open_count": 6,
+    "open_required_count": 6,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
@@ -180,7 +180,7 @@
       "section_chunk_index": 1,
       "task_limit": 48
     },
-    "open_required_count": 7,
+    "open_required_count": 6,
     "required_count": 7,
     "source_refs": [
       "dataflow.sequence.sequence_0",
@@ -192,7 +192,8 @@
       "dataflow.sequence.sequence_6"
     ],
     "status_counts": {
-      "planned": 7
+      "open": 6,
+      "pass": 1
     },
     "task_count": 7
   },
@@ -226,6 +227,27 @@
       "ssot_refs": [
         "dataflow.sequence.sequence_0"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 4,
+        "matched_terms": [
+          "axi",
+          "axi_write_ingress",
+          "ingress",
+          "write"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "axi",
+          "axi_write_ingress",
+          "ingress",
+          "write"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -234,9 +256,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -268,6 +290,22 @@
       "ssot_refs": [
         "dataflow.sequence.sequence_1"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "parse",
+          "pcie",
+          "pcie_vdm_parse",
+          "vdm"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -276,9 +314,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -309,6 +347,23 @@
       "ssot_refs": [
         "dataflow.sequence.sequence_2"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 1,
+        "matched_terms": [
+          "mctp"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "mctp",
+          "mctp_parse",
+          "parse"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -317,9 +372,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -350,6 +405,23 @@
       "ssot_refs": [
         "dataflow.sequence.sequence_3"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 1,
+        "matched_terms": [
+          "assembly"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "assembly",
+          "context",
+          "context_assembly"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -358,9 +430,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -391,6 +463,21 @@
       "ssot_refs": [
         "dataflow.sequence.sequence_4"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "pack",
+          "sram",
+          "sram_pack"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -399,9 +486,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -432,6 +519,21 @@
       "ssot_refs": [
         "dataflow.sequence.sequence_5"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "descriptor",
+          "descriptor_publish",
+          "publish"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -440,9 +542,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -473,6 +575,23 @@
       "ssot_refs": [
         "dataflow.sequence.sequence_6"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 1,
+        "matched_terms": [
+          "axi"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "axi",
+          "axi_readback",
+          "readback"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -481,9 +600,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     }
   ],

@@ -103,9 +103,9 @@
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
-    "llm_actionable": true,
-    "llm_actionable_open_count": 18,
-    "open_required_count": 18,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
@@ -151,7 +151,7 @@
       "module_task_count": 18,
       "task_limit": 48
     },
-    "open_required_count": 18,
+    "open_required_count": 0,
     "required_count": 18,
     "source_refs": [
       "function_model.transactions.FM_PARSE_MCTP",
@@ -174,7 +174,7 @@
       "sub_modules.mctp_assembler_scratch_mctp_parser.module_equivalence"
     ],
     "status_counts": {
-      "planned": 18
+      "pass": 18
     },
     "task_count": 18
   },
@@ -204,6 +204,10 @@
       "ssot_refs": [
         "function_model.transactions.FM_PARSE_MCTP"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -212,9 +216,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -245,6 +249,23 @@
       "ssot_refs": [
         "function_model.transactions.FM_PARSE_MCTP.preconditions.precondition_0"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 1,
+        "matched_terms": [
+          "vdm"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "supported",
+          "vdm",
+          "vdm_supported"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_mctp_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -253,9 +274,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -287,6 +308,27 @@
       "ssot_refs": [
         "function_model.transactions.FM_PARSE_MCTP.outputs.output_0"
       ],
+      "static_evidence": {
+        "fallback_scope": "all_sources_without_owner",
+        "matched_count": 4,
+        "matched_terms": [
+          "context",
+          "debug",
+          "debug_context_key",
+          "key"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "context",
+          "debug",
+          "debug_context_key",
+          "key"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_mctp_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -295,9 +337,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -332,6 +374,27 @@
       "ssot_refs": [
         "function_model.transactions.FM_PARSE_MCTP.outputs.ctx_source_eid"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "eid",
+          "source",
+          "source_eid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_source_eid",
+          "eid",
+          "source",
+          "source_eid"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_mctp_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -340,9 +403,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -377,6 +440,27 @@
       "ssot_refs": [
         "function_model.transactions.FM_PARSE_MCTP.outputs.ctx_destination_eid"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "destination",
+          "destination_eid",
+          "eid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_destination_eid",
+          "destination",
+          "destination_eid",
+          "eid"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_mctp_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -385,9 +469,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -422,6 +506,27 @@
       "ssot_refs": [
         "function_model.transactions.FM_PARSE_MCTP.outputs.ctx_tag_owner"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "owner",
+          "tag",
+          "tag_owner"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_tag_owner",
+          "owner",
+          "tag",
+          "tag_owner"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_mctp_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -430,9 +535,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -467,6 +572,27 @@
       "ssot_refs": [
         "function_model.transactions.FM_PARSE_MCTP.outputs.ctx_message_tag"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "message",
+          "message_tag",
+          "tag"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_message_tag",
+          "message",
+          "message_tag",
+          "tag"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_mctp_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -475,9 +601,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -512,6 +638,27 @@
       "ssot_refs": [
         "function_model.transactions.FM_PARSE_MCTP.outputs.ctx_message_type"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "message",
+          "message_type",
+          "type"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_message_type",
+          "message",
+          "message_type",
+          "type"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_mctp_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -520,9 +667,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -558,6 +705,29 @@
       "ssot_refs": [
         "function_model.transactions.FM_PARSE_MCTP.outputs.ctx_last_seq"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 4,
+        "matched_terms": [
+          "last",
+          "packet",
+          "packet_seq",
+          "seq"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_last_seq",
+          "last",
+          "packet",
+          "packet_seq",
+          "seq"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_mctp_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -566,9 +736,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -608,6 +778,29 @@
       "ssot_refs": [
         "function_model.transactions.FM_PARSE_MCTP.output_rules.debug_context_key"
       ],
+      "static_evidence": {
+        "fallback_scope": "all_sources_without_owner",
+        "matched_count": 5,
+        "matched_terms": [
+          "context",
+          "context_key",
+          "debug",
+          "debug_context_key",
+          "key"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "context",
+          "context_key",
+          "debug",
+          "debug_context_key",
+          "key"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_mctp_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 9,
         "evidence_basis": [
@@ -616,9 +809,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -656,6 +849,27 @@
       "ssot_refs": [
         "function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_source_eid"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "eid",
+          "source",
+          "source_eid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_source_eid",
+          "eid",
+          "source",
+          "source_eid"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_mctp_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -664,9 +878,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -704,6 +918,27 @@
       "ssot_refs": [
         "function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_destination_eid"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "destination",
+          "destination_eid",
+          "eid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_destination_eid",
+          "destination",
+          "destination_eid",
+          "eid"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_mctp_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -712,9 +947,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -752,6 +987,27 @@
       "ssot_refs": [
         "function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_tag_owner"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "owner",
+          "tag",
+          "tag_owner"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_tag_owner",
+          "owner",
+          "tag",
+          "tag_owner"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_mctp_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -760,9 +1016,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -800,6 +1056,27 @@
       "ssot_refs": [
         "function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_message_tag"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "message",
+          "message_tag",
+          "tag"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_message_tag",
+          "message",
+          "message_tag",
+          "tag"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_mctp_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -808,9 +1085,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -848,6 +1125,27 @@
       "ssot_refs": [
         "function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_message_type"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "message",
+          "message_type",
+          "type"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_message_type",
+          "message",
+          "message_type",
+          "type"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_mctp_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -856,9 +1154,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -897,6 +1195,29 @@
       "ssot_refs": [
         "function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_last_seq"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 4,
+        "matched_terms": [
+          "last",
+          "packet",
+          "packet_seq",
+          "seq"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_last_seq",
+          "last",
+          "packet",
+          "packet_seq",
+          "seq"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_mctp_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -905,9 +1226,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -956,6 +1277,40 @@
       "ssot_refs": [
         "function_model.transactions.FM_PARSE_MCTP.side_effects.side_effect_0"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 5,
+        "matched_terms": [
+          "destination",
+          "destination_eid",
+          "eid",
+          "eom",
+          "last"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "context",
+          "ctx",
+          "ctx_destination_eid",
+          "ctx_last_seq",
+          "ctx_message_tag",
+          "ctx_message_type",
+          "ctx_source_eid",
+          "ctx_tag_owner",
+          "debug",
+          "debug_context_key",
+          "destination",
+          "destination_eid",
+          "eid",
+          "eom",
+          "key",
+          "last"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_mctp_parser.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -964,9 +1319,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -993,6 +1348,10 @@
       "ssot_refs": [
         "sub_modules.mctp_assembler_scratch_mctp_parser.module_equivalence"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -1001,9 +1360,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     }
   ],

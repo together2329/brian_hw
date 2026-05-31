@@ -25,7 +25,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 13
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.handshake_rules.axi_write_channels, dataflow, function_model, function_model.transactions.FM_ACCEPT_AXI_TLP, io_list, io_list.interfaces.axi_write_slave, test_requirements
 - Module slice: 2/6 section=function_model task_limit=48
@@ -40,14 +40,14 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM_ACCEPT_AXI_TLP
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM_ACCEPT_AXI_TLP.
 Owner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via function_model.transactions.FM_ACCEPT_AXI_TLP.
 SSOT item context: id=FM_ACCEPT_AXI_TLP; name=Accept one AXI4 write burst as one PCIe VDM TLP.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -60,14 +60,14 @@ SSOT item context: id=FM_ACCEPT_AXI_TLP; name=Accept one AXI4 write burst as one
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM_ACCEPT_AXI_TLP.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ACCEPT_AXI_TLP.preconditions.precondition_0.
 Owner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via function_model.transactions.FM_ACCEPT_AXI_TLP.
 SSOT item context: value=axi_aw_accept and axi_wlast_seen.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -80,14 +80,14 @@ SSOT item context: value=axi_aw_accept and axi_wlast_seen.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_ACCEPT_AXI_TLP.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ACCEPT_AXI_TLP.outputs.output_0.
 Owner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via function_model.transactions.FM_ACCEPT_AXI_TLP.
 SSOT item context: value=bvalid_next.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -100,14 +100,14 @@ SSOT item context: value=bvalid_next.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_ACCEPT_AXI_TLP.outputs.output_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ACCEPT_AXI_TLP.outputs.output_1.
 Owner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via function_model.transactions.FM_ACCEPT_AXI_TLP.
 SSOT item context: value=bresp_next.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -120,14 +120,14 @@ SSOT item context: value=bresp_next.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_ACCEPT_AXI_TLP.outputs.bvalid_next
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ACCEPT_AXI_TLP.outputs.bvalid_next.
 Owner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via function_model.transactions.FM_ACCEPT_AXI_TLP.
 SSOT item context: name=bvalid_next; port=m_axi_bvalid; expr=axi_aw_accept and axi_wlast_seen.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -142,14 +142,14 @@ SSOT item context: name=bvalid_next; port=m_axi_bvalid; expr=axi_aw_accept and a
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_ACCEPT_AXI_TLP.outputs.bresp_next
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ACCEPT_AXI_TLP.outputs.bresp_next.
 Owner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via function_model.transactions.FM_ACCEPT_AXI_TLP.
 SSOT item context: name=bresp_next; port=m_axi_bresp; expr=BRESP_OKAY.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -164,14 +164,14 @@ SSOT item context: name=bresp_next; port=m_axi_bresp; expr=BRESP_OKAY.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_ACCEPT_AXI_TLP.outputs.collected_tlp_count
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ACCEPT_AXI_TLP.outputs.collected_tlp_count.
 Owner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via function_model.transactions.FM_ACCEPT_AXI_TLP.
 SSOT item context: state=collected_tlp_count; expr=collected_tlp_count + axi_wlast_seen.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -185,14 +185,14 @@ SSOT item context: state=collected_tlp_count; expr=collected_tlp_count + axi_wla
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM_ACCEPT_AXI_TLP.output_rules.bvalid_next
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ACCEPT_AXI_TLP.output_rules.bvalid_next.
 Owner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via function_model.transactions.FM_ACCEPT_AXI_TLP.
 SSOT item context: name=bvalid_next; port=m_axi_bvalid; expr=axi_aw_accept and axi_wlast_seen; width=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -209,14 +209,14 @@ SSOT item context: name=bvalid_next; port=m_axi_bvalid; expr=axi_aw_accept and a
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM_ACCEPT_AXI_TLP.output_rules.bresp_next
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ACCEPT_AXI_TLP.output_rules.bresp_next.
 Owner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via function_model.transactions.FM_ACCEPT_AXI_TLP.
 SSOT item context: name=bresp_next; port=m_axi_bresp; expr=BRESP_OKAY; width=2.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -233,14 +233,14 @@ SSOT item context: name=bresp_next; port=m_axi_bresp; expr=BRESP_OKAY; width=2.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_ACCEPT_AXI_TLP.state_updates.collected_tlp_count
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ACCEPT_AXI_TLP.state_updates.collected_tlp_count.
 Owner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via function_model.transactions.FM_ACCEPT_AXI_TLP.
 SSOT item context: name=collected_tlp_count; expr=collected_tlp_count + axi_wlast_seen; width=16.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -256,14 +256,14 @@ SSOT item context: name=collected_tlp_count; expr=collected_tlp_count + axi_wlas
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM_ACCEPT_AXI_TLP.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ACCEPT_AXI_TLP.side_effects.side_effect_0.
 Owner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via function_model.transactions.FM_ACCEPT_AXI_TLP.
 SSOT item context: id=FM_ACCEPT_AXI_TLP; name=Accept one AXI4 write burst as one PCIe VDM TLP; port=["m_axi_bvalid", "m_axi_bresp"]; signal=["raw TLP bytes captured until WLAST", "axi_aw_accept", "axi_wlast_seen", "tlp_byte_count"]; state=["collected_tlp_count"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -277,14 +277,14 @@ SSOT item context: id=FM_ACCEPT_AXI_TLP; name=Accept one AXI4 write burst as one
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM_ACCEPT_AXI_TLP.side_effects.side_effect_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ACCEPT_AXI_TLP.side_effects.side_effect_1.
 Owner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via function_model.transactions.FM_ACCEPT_AXI_TLP.
 SSOT item context: id=FM_ACCEPT_AXI_TLP; name=Accept one AXI4 write burst as one PCIe VDM TLP; port=["m_axi_bvalid", "m_axi_bresp"]; signal=["write response emitted after packet classification", "axi_aw_accept", "axi_wlast_seen", "tlp_byte_count"]; state=["collected_tlp_count"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -298,14 +298,14 @@ SSOT item context: id=FM_ACCEPT_AXI_TLP; name=Accept one AXI4 write burst as one
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.payload_bound
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.payload_bound.
 Owner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via function_model.
 SSOT item context: port=["axi_aw_accept", "axi_wlast_seen", "tlp_byte_count", "m_axi_bvalid", "m_axi_bresp", "vdm_supported", "packet_drop_re...; signal={"expr": "MAX_MESSAGE_BYTES >= payload_byte_count", "name": "payload_bound"}; state=["active_context_count", "descriptor_count", "payload_byte_count", "collected_tlp_count", "packet_drop_count", "assem....
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner

@@ -25,7 +25,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 20
+- LLM-actionable open tasks: 1
 - Human-locked open tasks: 0
 - Owner refs: function_model, function_model.transactions.FM_COMPLETE_MESSAGE, function_model.transactions.FM_PACKET_DROP, interrupts, memory, memory.instances.descriptor_fifo, registers, registers.descriptor_window
 
@@ -35,14 +35,14 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_COMPLETE_MESSAGE.outputs.descriptor_count
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_COMPLETE_MESSAGE.outputs.descriptor_count.
 Owner: mctp_assembler_scratch_descriptor_queue in rtl/mctp_assembler_scratch_descriptor_queue.sv via function_model.transactions.FM_COMPLETE_MESSAGE.
 SSOT item context: state=descriptor_count; expr=descriptor_count + descriptor_publish.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -56,14 +56,14 @@ SSOT item context: state=descriptor_count; expr=descriptor_count + descriptor_pu
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_COMPLETE_MESSAGE.state_updates.descriptor_count
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_COMPLETE_MESSAGE.state_updates.descriptor_count.
 Owner: mctp_assembler_scratch_descriptor_queue in rtl/mctp_assembler_scratch_descriptor_queue.sv via function_model.transactions.FM_COMPLETE_MESSAGE.
 SSOT item context: name=descriptor_count; expr=descriptor_count + descriptor_publish; width=4.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -79,14 +79,14 @@ SSOT item context: name=descriptor_count; expr=descriptor_count + descriptor_pub
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.error_case
 - Source ref: function_model.transactions.FM_COMPLETE_MESSAGE.error_cases.AD_DESCRIPTOR_FULL
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_COMPLETE_MESSAGE.error_cases.AD_DESCRIPTOR_FULL.
 Owner: mctp_assembler_scratch_descriptor_queue in rtl/mctp_assembler_scratch_descriptor_queue.sv via function_model.transactions.FM_COMPLETE_MESSAGE.
 SSOT item context: id=FM_COMPLETE_MESSAGE; name=Complete EOM message and publish descriptor; port=["irq"]; signal=[{"action": "no_descriptor_publish_and_increment_assembly_drop_count", "condition": "assembly_drop_reason == 24", "id...; state=["descriptor_count", "ctx_state", "active_context_count"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -100,14 +100,14 @@ SSOT item context: id=FM_COMPLETE_MESSAGE; name=Complete EOM message and publish
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM_PACKET_DROP
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM_PACKET_DROP.
 Owner: mctp_assembler_scratch_descriptor_queue in rtl/mctp_assembler_scratch_descriptor_queue.sv via function_model.transactions.FM_PACKET_DROP.
 SSOT item context: id=FM_PACKET_DROP; name=Packet drop without SRAM payload write.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -120,14 +120,14 @@ SSOT item context: id=FM_PACKET_DROP; name=Packet drop without SRAM payload writ
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM_PACKET_DROP.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PACKET_DROP.preconditions.precondition_0.
 Owner: mctp_assembler_scratch_descriptor_queue in rtl/mctp_assembler_scratch_descriptor_queue.sv via function_model.transactions.FM_PACKET_DROP.
 SSOT item context: value=packet_drop_reason != DROP_NONE.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -140,14 +140,14 @@ SSOT item context: value=packet_drop_reason != DROP_NONE.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_PACKET_DROP.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PACKET_DROP.outputs.output_0.
 Owner: mctp_assembler_scratch_descriptor_queue in rtl/mctp_assembler_scratch_descriptor_queue.sv via function_model.transactions.FM_PACKET_DROP.
 SSOT item context: value=debug_drop_pulse.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -160,14 +160,14 @@ SSOT item context: value=debug_drop_pulse.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_PACKET_DROP.outputs.packet_drop_count
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PACKET_DROP.outputs.packet_drop_count.
 Owner: mctp_assembler_scratch_descriptor_queue in rtl/mctp_assembler_scratch_descriptor_queue.sv via function_model.transactions.FM_PACKET_DROP.
 SSOT item context: state=packet_drop_count; expr=packet_drop_count + (packet_drop_reason != DROP_NONE).
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -181,14 +181,14 @@ SSOT item context: state=packet_drop_count; expr=packet_drop_count + (packet_dro
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_PACKET_DROP.outputs.ctx_last_drop_reason
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PACKET_DROP.outputs.ctx_last_drop_reason.
 Owner: mctp_assembler_scratch_descriptor_queue in rtl/mctp_assembler_scratch_descriptor_queue.sv via function_model.transactions.FM_PACKET_DROP.
 SSOT item context: state=ctx_last_drop_reason; expr=packet_drop_reason.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -202,14 +202,14 @@ SSOT item context: state=ctx_last_drop_reason; expr=packet_drop_reason.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM_PACKET_DROP.output_rules.debug_drop_pulse
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PACKET_DROP.output_rules.debug_drop_pulse.
 Owner: mctp_assembler_scratch_descriptor_queue in rtl/mctp_assembler_scratch_descriptor_queue.sv via function_model.transactions.FM_PACKET_DROP.
 SSOT item context: name=debug_drop_pulse; port=debug_drop_pulse; expr=packet_drop_reason != DROP_NONE; width=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -226,14 +226,14 @@ SSOT item context: name=debug_drop_pulse; port=debug_drop_pulse; expr=packet_dro
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_PACKET_DROP.state_updates.packet_drop_count
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PACKET_DROP.state_updates.packet_drop_count.
 Owner: mctp_assembler_scratch_descriptor_queue in rtl/mctp_assembler_scratch_descriptor_queue.sv via function_model.transactions.FM_PACKET_DROP.
 SSOT item context: name=packet_drop_count; expr=packet_drop_count + (packet_drop_reason != DROP_NONE); width=32.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -249,14 +249,14 @@ SSOT item context: name=packet_drop_count; expr=packet_drop_count + (packet_drop
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_PACKET_DROP.state_updates.ctx_last_drop_reason
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PACKET_DROP.state_updates.ctx_last_drop_reason.
 Owner: mctp_assembler_scratch_descriptor_queue in rtl/mctp_assembler_scratch_descriptor_queue.sv via function_model.transactions.FM_PACKET_DROP.
 SSOT item context: name=ctx_last_drop_reason; expr=packet_drop_reason; width=8.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -272,14 +272,14 @@ SSOT item context: name=ctx_last_drop_reason; expr=packet_drop_reason; width=8.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.error_case
 - Source ref: function_model.transactions.FM_PACKET_DROP.error_cases.PD_DISABLED_DROP_MODE
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PACKET_DROP.error_cases.PD_DISABLED_DROP_MODE.
 Owner: mctp_assembler_scratch_descriptor_queue in rtl/mctp_assembler_scratch_descriptor_queue.sv via function_model.transactions.FM_PACKET_DROP.
 SSOT item context: id=FM_PACKET_DROP; name=Packet drop without SRAM payload write; port=["debug_drop_pulse"]; signal=[{"action": "no_sram_write_and_count_packet_drop", "condition": "packet_drop_reason == 1", "id": "PD_DISABLED_DROP_MO...; state=["packet_drop_count", "ctx_last_drop_reason"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -293,14 +293,14 @@ SSOT item context: id=FM_PACKET_DROP; name=Packet drop without SRAM payload writ
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.error_case
 - Source ref: function_model.transactions.FM_PACKET_DROP.error_cases.PD_BAD_PAD_OR_ALIGNMENT
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PACKET_DROP.error_cases.PD_BAD_PAD_OR_ALIGNMENT.
 Owner: mctp_assembler_scratch_descriptor_queue in rtl/mctp_assembler_scratch_descriptor_queue.sv via function_model.transactions.FM_PACKET_DROP.
 SSOT item context: id=FM_PACKET_DROP; name=Packet drop without SRAM payload write; port=["debug_drop_pulse"]; signal=[{"action": "no_sram_write_and_count_packet_drop", "condition": "packet_drop_reason == 5", "id": "PD_BAD_PAD_OR_ALIGN...; state=["packet_drop_count", "ctx_last_drop_reason"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -314,14 +314,14 @@ SSOT item context: id=FM_PACKET_DROP; name=Packet drop without SRAM payload writ
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.error_case
 - Source ref: function_model.transactions.FM_PACKET_DROP.error_cases.PD_DEST_EID_REJECT
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PACKET_DROP.error_cases.PD_DEST_EID_REJECT.
 Owner: mctp_assembler_scratch_descriptor_queue in rtl/mctp_assembler_scratch_descriptor_queue.sv via function_model.transactions.FM_PACKET_DROP.
 SSOT item context: id=FM_PACKET_DROP; name=Packet drop without SRAM payload write; port=["debug_drop_pulse"]; signal=[{"action": "no_sram_write_and_count_packet_drop", "condition": "packet_drop_reason == 6", "id": "PD_DEST_EID_REJECT"...; state=["packet_drop_count", "ctx_last_drop_reason"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -335,14 +335,14 @@ SSOT item context: id=FM_PACKET_DROP; name=Packet drop without SRAM payload writ
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.error_case
 - Source ref: function_model.transactions.FM_PACKET_DROP.error_cases.PD_UNEXPECTED_MIDDLE_END
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PACKET_DROP.error_cases.PD_UNEXPECTED_MIDDLE_END.
 Owner: mctp_assembler_scratch_descriptor_queue in rtl/mctp_assembler_scratch_descriptor_queue.sv via function_model.transactions.FM_PACKET_DROP.
 SSOT item context: id=FM_PACKET_DROP; name=Packet drop without SRAM payload write; port=["debug_drop_pulse"]; signal=[{"action": "no_sram_write_and_count_packet_drop", "condition": "packet_drop_reason == 7", "id": "PD_UNEXPECTED_MIDDL...; state=["packet_drop_count", "ctx_last_drop_reason"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -356,14 +356,14 @@ SSOT item context: id=FM_PACKET_DROP; name=Packet drop without SRAM payload writ
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.error_case
 - Source ref: function_model.transactions.FM_PACKET_DROP.error_cases.PD_BAD_OR_EXPIRED_TAG
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PACKET_DROP.error_cases.PD_BAD_OR_EXPIRED_TAG.
 Owner: mctp_assembler_scratch_descriptor_queue in rtl/mctp_assembler_scratch_descriptor_queue.sv via function_model.transactions.FM_PACKET_DROP.
 SSOT item context: id=FM_PACKET_DROP; name=Packet drop without SRAM payload write; port=["debug_drop_pulse"]; signal=[{"action": "no_sram_write_and_count_packet_drop", "condition": "packet_drop_reason == 8", "id": "PD_BAD_OR_EXPIRED_T...; state=["packet_drop_count", "ctx_last_drop_reason"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -377,14 +377,14 @@ SSOT item context: id=FM_PACKET_DROP; name=Packet drop without SRAM payload writ
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.invariant
 - Source ref: function_model.invariants.descriptor_bound
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.descriptor_bound.
 Owner: mctp_assembler_scratch_descriptor_queue in rtl/mctp_assembler_scratch_descriptor_queue.sv via function_model.
 SSOT item context: port=["axi_aw_accept", "axi_wlast_seen", "tlp_byte_count", "m_axi_bvalid", "m_axi_bresp", "vdm_supported", "packet_drop_re...; signal={"expr": "DESCRIPTOR_FIFO_DEPTH >= descriptor_count", "name": "descriptor_bound"}; state=["raw_debug_read_enable", "active_context_count", "descriptor_count", "payload_byte_count", "collected_tlp_count", "p....
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
   - If the invariant is verification-only, the SSOT names that evidence owner
@@ -398,14 +398,14 @@ SSOT item context: port=["axi_aw_accept", "axi_wlast_seen", "tlp_byte_count", "m
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: memory.instances
 - Source ref: memory.instances.descriptor_fifo
 - Detail: This SSOT memory.instances item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: memory.instances.descriptor_fifo.
 Owner: mctp_assembler_scratch_descriptor_queue in rtl/mctp_assembler_scratch_descriptor_queue.sv via memory.instances.descriptor_fifo.
 SSOT item context: name=descriptor_fifo; depth=DESCRIPTOR_FIFO_DEPTH.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -419,14 +419,14 @@ SSOT item context: name=descriptor_fifo; depth=DESCRIPTOR_FIFO_DEPTH.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: security.assets
 - Source ref: security.assets.asset_1
 - Detail: This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: security.assets.asset_1.
 Owner: mctp_assembler_scratch_descriptor_queue in rtl/mctp_assembler_scratch_descriptor_queue.sv via semantic_terms:descriptor.
 SSOT item context: value=firmware_visible_descriptor_metadata.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -439,13 +439,13 @@ SSOT item context: value=firmware_visible_descriptor_metadata.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: equivalence.module
 - Source ref: sub_modules.mctp_assembler_scratch_descriptor_queue.module_equivalence
 - Detail: This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.
 SSOT ref: sub_modules.mctp_assembler_scratch_descriptor_queue.module_equivalence.
 Owner: mctp_assembler_scratch_descriptor_queue in rtl/mctp_assembler_scratch_descriptor_queue.sv via module_equivalence.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module
   - cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff

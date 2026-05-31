@@ -25,7 +25,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 48
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: debug_observability, decomposition, error_handling, features, fsm, function_model.state_variables, function_model.transactions.FM_APB_ACCESS, function_model.transactions.FM_ASSEMBLE_FRAGMENT, function_model.transactions.FM_ASSEMBLY_DROP, function_model.transactions.FM_AXI_READBACK, function_model.transactions.FM_COMPLETE_MESSAGE, function_model.transactions.FM_PACKET_DROP, interrupts, interrupts.sources, io_list, io_list.interfaces.apb_slave
 - Module slice: 2/9 section=function_model task_limit=48
@@ -39,14 +39,14 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.enable_reg
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.enable_reg.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=enable_reg; width=1; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -61,14 +61,14 @@ SSOT item context: name=enable_reg; width=1; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.drop_mode_reg
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.drop_mode_reg.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=drop_mode_reg; width=1; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -83,14 +83,14 @@ SSOT item context: name=drop_mode_reg; width=1; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.raw_debug_read_enable
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.raw_debug_read_enable.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=raw_debug_read_enable; width=1; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -105,14 +105,14 @@ SSOT item context: name=raw_debug_read_enable; width=1; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.active_context_count
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.active_context_count.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=active_context_count; width=5; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -127,14 +127,14 @@ SSOT item context: name=active_context_count; width=5; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.descriptor_count
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.descriptor_count.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=descriptor_count; width=4; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -149,14 +149,14 @@ SSOT item context: name=descriptor_count; width=4; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.payload_byte_count
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.payload_byte_count.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=payload_byte_count; width=13; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -171,14 +171,14 @@ SSOT item context: name=payload_byte_count; width=13; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.collected_tlp_count
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.collected_tlp_count.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=collected_tlp_count; width=16; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -193,14 +193,14 @@ SSOT item context: name=collected_tlp_count; width=16; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.packet_drop_count
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.packet_drop_count.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=packet_drop_count; width=32; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -215,14 +215,14 @@ SSOT item context: name=packet_drop_count; width=32; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.assembly_drop_count
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.assembly_drop_count.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=assembly_drop_count; width=32; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -237,14 +237,14 @@ SSOT item context: name=assembly_drop_count; width=32; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.read_error_count
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.read_error_count.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=read_error_count; width=32; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -259,14 +259,14 @@ SSOT item context: name=read_error_count; width=32; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.ctx_state
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.ctx_state.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=ctx_state; width=2; reset=STATE_IDLE.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -281,14 +281,14 @@ SSOT item context: name=ctx_state; width=2; reset=STATE_IDLE.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.ctx_valid
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.ctx_valid.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=ctx_valid; width=1; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -303,14 +303,14 @@ SSOT item context: name=ctx_valid; width=1; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.ctx_error
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.ctx_error.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=ctx_error; width=1; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -325,14 +325,14 @@ SSOT item context: name=ctx_error; width=1; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.ctx_source_eid
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.ctx_source_eid.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=ctx_source_eid; width=8; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -347,14 +347,14 @@ SSOT item context: name=ctx_source_eid; width=8; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.ctx_destination_eid
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.ctx_destination_eid.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=ctx_destination_eid; width=8; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -369,14 +369,14 @@ SSOT item context: name=ctx_destination_eid; width=8; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.ctx_tag_owner
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.ctx_tag_owner.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=ctx_tag_owner; width=1; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -391,14 +391,14 @@ SSOT item context: name=ctx_tag_owner; width=1; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.ctx_message_tag
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.ctx_message_tag.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=ctx_message_tag; width=3; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -413,14 +413,14 @@ SSOT item context: name=ctx_message_tag; width=3; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.ctx_message_type
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.ctx_message_type.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=ctx_message_type; width=8; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -435,14 +435,14 @@ SSOT item context: name=ctx_message_type; width=8; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.ctx_expected_seq
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.ctx_expected_seq.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=ctx_expected_seq; width=2; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -457,14 +457,14 @@ SSOT item context: name=ctx_expected_seq; width=2; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.ctx_last_seq
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.ctx_last_seq.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=ctx_last_seq; width=2; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -479,14 +479,14 @@ SSOT item context: name=ctx_last_seq; width=2; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.ctx_payload_base_addr
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.ctx_payload_base_addr.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=ctx_payload_base_addr; width=SRAM_ADDR_WIDTH; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -501,14 +501,14 @@ SSOT item context: name=ctx_payload_base_addr; width=SRAM_ADDR_WIDTH; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.ctx_payload_next_addr
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.ctx_payload_next_addr.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=ctx_payload_next_addr; width=SRAM_ADDR_WIDTH; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -523,14 +523,14 @@ SSOT item context: name=ctx_payload_next_addr; width=SRAM_ADDR_WIDTH; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.ctx_payload_byte_count
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.ctx_payload_byte_count.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=ctx_payload_byte_count; width=13; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -545,14 +545,14 @@ SSOT item context: name=ctx_payload_byte_count; width=13; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.ctx_transmission_unit_bytes
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.ctx_transmission_unit_bytes.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=ctx_transmission_unit_bytes; width=13; reset=BASELINE_MTU_BYTES.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -567,14 +567,14 @@ SSOT item context: name=ctx_transmission_unit_bytes; width=13; reset=BASELINE_MT
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.ctx_timeout_age
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.ctx_timeout_age.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=ctx_timeout_age; width=TIMEOUT_COUNTER_WIDTH; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -589,14 +589,14 @@ SSOT item context: name=ctx_timeout_age; width=TIMEOUT_COUNTER_WIDTH; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.ctx_last_drop_reason
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.ctx_last_drop_reason.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=ctx_last_drop_reason; width=8; reset=DROP_NONE.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -611,14 +611,14 @@ SSOT item context: name=ctx_last_drop_reason; width=8; reset=DROP_NONE.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.ctx_partial_word_addr
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.ctx_partial_word_addr.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=ctx_partial_word_addr; width=SRAM_ADDR_WIDTH; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -633,14 +633,14 @@ SSOT item context: name=ctx_partial_word_addr; width=SRAM_ADDR_WIDTH; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.ctx_partial_word_strobe
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.ctx_partial_word_strobe.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=ctx_partial_word_strobe; width=32; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -655,14 +655,14 @@ SSOT item context: name=ctx_partial_word_strobe; width=32; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.ctx_partial_word_valid
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.ctx_partial_word_valid.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=ctx_partial_word_valid; width=1; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -677,14 +677,14 @@ SSOT item context: name=ctx_partial_word_valid; width=1; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.ctx_partial_next_lane
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.ctx_partial_next_lane.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=ctx_partial_next_lane; width=5; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -699,14 +699,14 @@ SSOT item context: name=ctx_partial_next_lane; width=5; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM_ASSEMBLY_DROP
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM_ASSEMBLY_DROP.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_ASSEMBLY_DROP.
 SSOT item context: id=FM_ASSEMBLY_DROP; name=Assembly drop without descriptor publish.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -719,14 +719,14 @@ SSOT item context: id=FM_ASSEMBLY_DROP; name=Assembly drop without descriptor pu
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM_ASSEMBLY_DROP.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ASSEMBLY_DROP.preconditions.precondition_0.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_ASSEMBLY_DROP.
 SSOT item context: value=assembly_drop_reason != DROP_NONE.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -739,14 +739,14 @@ SSOT item context: value=assembly_drop_reason != DROP_NONE.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_ASSEMBLY_DROP.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ASSEMBLY_DROP.outputs.output_0.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_ASSEMBLY_DROP.
 SSOT item context: value=debug_drop_pulse.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -759,14 +759,14 @@ SSOT item context: value=debug_drop_pulse.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_ASSEMBLY_DROP.outputs.output_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ASSEMBLY_DROP.outputs.output_1.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_ASSEMBLY_DROP.
 SSOT item context: value=interrupt.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -779,14 +779,14 @@ SSOT item context: value=interrupt.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_ASSEMBLY_DROP.outputs.interrupt
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ASSEMBLY_DROP.outputs.interrupt.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_ASSEMBLY_DROP.
 SSOT item context: name=interrupt; port=irq; expr=assembly_drop_reason != DROP_NONE.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -801,14 +801,14 @@ SSOT item context: name=interrupt; port=irq; expr=assembly_drop_reason != DROP_N
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_ASSEMBLY_DROP.outputs.assembly_drop_count
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ASSEMBLY_DROP.outputs.assembly_drop_count.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_ASSEMBLY_DROP.
 SSOT item context: state=assembly_drop_count; expr=assembly_drop_count + (assembly_drop_reason != DROP_NONE).
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -822,14 +822,14 @@ SSOT item context: state=assembly_drop_count; expr=assembly_drop_count + (assemb
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_ASSEMBLY_DROP.outputs.ctx_error
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ASSEMBLY_DROP.outputs.ctx_error.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_ASSEMBLY_DROP.
 SSOT item context: state=ctx_error; expr=assembly_drop_reason != DROP_NONE.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -843,14 +843,14 @@ SSOT item context: state=ctx_error; expr=assembly_drop_reason != DROP_NONE.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_ASSEMBLY_DROP.outputs.ctx_state
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ASSEMBLY_DROP.outputs.ctx_state.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_ASSEMBLY_DROP.
 SSOT item context: state=ctx_state; expr=STATE_ERROR.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -864,14 +864,14 @@ SSOT item context: state=ctx_state; expr=STATE_ERROR.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_ASSEMBLY_DROP.outputs.ctx_last_drop_reason
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ASSEMBLY_DROP.outputs.ctx_last_drop_reason.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_ASSEMBLY_DROP.
 SSOT item context: state=ctx_last_drop_reason; expr=assembly_drop_reason.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -885,14 +885,14 @@ SSOT item context: state=ctx_last_drop_reason; expr=assembly_drop_reason.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM_ASSEMBLY_DROP.output_rules.debug_drop_pulse
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ASSEMBLY_DROP.output_rules.debug_drop_pulse.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_ASSEMBLY_DROP.
 SSOT item context: name=debug_drop_pulse; port=debug_drop_pulse; expr=assembly_drop_reason != DROP_NONE; width=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -909,14 +909,14 @@ SSOT item context: name=debug_drop_pulse; port=debug_drop_pulse; expr=assembly_d
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM_ASSEMBLY_DROP.output_rules.interrupt
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ASSEMBLY_DROP.output_rules.interrupt.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_ASSEMBLY_DROP.
 SSOT item context: name=interrupt; port=irq; expr=assembly_drop_reason != DROP_NONE; width=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -933,14 +933,14 @@ SSOT item context: name=interrupt; port=irq; expr=assembly_drop_reason != DROP_N
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_ASSEMBLY_DROP.state_updates.assembly_drop_count
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ASSEMBLY_DROP.state_updates.assembly_drop_count.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_ASSEMBLY_DROP.
 SSOT item context: name=assembly_drop_count; expr=assembly_drop_count + (assembly_drop_reason != DROP_NONE); width=32.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -956,14 +956,14 @@ SSOT item context: name=assembly_drop_count; expr=assembly_drop_count + (assembl
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_ASSEMBLY_DROP.state_updates.ctx_error
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ASSEMBLY_DROP.state_updates.ctx_error.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_ASSEMBLY_DROP.
 SSOT item context: name=ctx_error; expr=assembly_drop_reason != DROP_NONE; width=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -979,14 +979,14 @@ SSOT item context: name=ctx_error; expr=assembly_drop_reason != DROP_NONE; width
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_ASSEMBLY_DROP.state_updates.ctx_state
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ASSEMBLY_DROP.state_updates.ctx_state.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_ASSEMBLY_DROP.
 SSOT item context: name=ctx_state; expr=STATE_ERROR; width=2.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -1002,14 +1002,14 @@ SSOT item context: name=ctx_state; expr=STATE_ERROR; width=2.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_ASSEMBLY_DROP.state_updates.ctx_last_drop_reason
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ASSEMBLY_DROP.state_updates.ctx_last_drop_reason.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_ASSEMBLY_DROP.
 SSOT item context: name=ctx_last_drop_reason; expr=assembly_drop_reason; width=8.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -1025,14 +1025,14 @@ SSOT item context: name=ctx_last_drop_reason; expr=assembly_drop_reason; width=8
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.error_case
 - Source ref: function_model.transactions.FM_ASSEMBLY_DROP.error_cases.AD_MESSAGE_OVERFLOW
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ASSEMBLY_DROP.error_cases.AD_MESSAGE_OVERFLOW.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_ASSEMBLY_DROP.
 SSOT item context: id=FM_ASSEMBLY_DROP; name=Assembly drop without descriptor publish; port=["debug_drop_pulse", "irq"]; signal=[{"action": "no_sram_write_and_enter_error_state", "condition": "assembly_drop_reason == 22", "id": "AD_MESSAGE_OVERF...; state=["assembly_drop_count", "ctx_error", "ctx_state", "ctx_last_drop_reason"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -1046,14 +1046,14 @@ SSOT item context: id=FM_ASSEMBLY_DROP; name=Assembly drop without descriptor pu
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.error_case
 - Source ref: function_model.transactions.FM_ASSEMBLY_DROP.error_cases.AD_SRAM_OVERFLOW
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ASSEMBLY_DROP.error_cases.AD_SRAM_OVERFLOW.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_ASSEMBLY_DROP.
 SSOT item context: id=FM_ASSEMBLY_DROP; name=Assembly drop without descriptor publish; port=["debug_drop_pulse", "irq"]; signal=[{"action": "no_sram_write_and_enter_error_state", "condition": "assembly_drop_reason == 23", "id": "AD_SRAM_OVERFLOW...; state=["assembly_drop_count", "ctx_error", "ctx_state", "ctx_last_drop_reason"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -1067,14 +1067,14 @@ SSOT item context: id=FM_ASSEMBLY_DROP; name=Assembly drop without descriptor pu
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: function_model.error_case
 - Source ref: function_model.transactions.FM_ASSEMBLY_DROP.error_cases.AD_TIMEOUT
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ASSEMBLY_DROP.error_cases.AD_TIMEOUT.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_ASSEMBLY_DROP.
 SSOT item context: id=FM_ASSEMBLY_DROP; name=Assembly drop without descriptor publish; port=["debug_drop_pulse", "irq"]; signal=[{"action": "clear_context_after_counting_drop", "condition": "assembly_drop_reason == 25", "id": "AD_TIMEOUT"}, "ass...; state=["assembly_drop_count", "ctx_error", "ctx_state", "ctx_last_drop_reason"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction

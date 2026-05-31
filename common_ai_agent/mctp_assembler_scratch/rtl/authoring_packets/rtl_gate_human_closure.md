@@ -26,13 +26,10 @@
 - PASS allowed: False
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
-- Human-locked open tasks: 4
+- Human-locked open tasks: 1
 - Owner refs: dataflow, decomposition, integration, io_list, top_module
 - Locked-truth blockers:
-  - ssot_required_sections: RTL audit has not run yet.
-  - ssot_workflow_todo_format: RTL audit has not run yet.
-  - owner_traceability: RTL audit has not run yet.
-  - manifest_connection_contract_evidence: RTL audit has not run yet.
+  - manifest_connection_contract_evidence: 1 SSOT connection contract issue(s) remain. mctp_assembler_scratch_sram_packer: SSOT connection contract port is not connected by the RTL named port map
 - SSOT connection contracts:
   - mctp_assembler_scratch_axi_write_ingress.m_axi_awvalid <= m_axi_awvalid (integration.connections[0])
   - mctp_assembler_scratch_axi_write_ingress.m_axi_wvalid <= m_axi_wvalid (integration.connections[1])
@@ -47,13 +44,13 @@
 
 - Priority: critical
 - Required: True
-- Status: planned
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.ssot_required_sections
 - Detail: rtl-gen cannot implement production RTL until the SSOT contains both the functional golden behavior and the cycle/handshake contract.
 SSOT ref: quality_gates.rtl_gen.ssot_required_sections.
 Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_module.
-- Current reason: RTL audit has not run yet.
+- Current reason: SSOT function_model and cycle_model authority is present.
 - Criteria:
   - function_model is present and non-empty in the SSOT
   - cycle_model is present and non-empty in the SSOT
@@ -66,13 +63,13 @@ Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: planned
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.workflow_todo_contract
 - Detail: Every SSOT workflow_todos.rtl-gen item must be executable by rtl-gen and therefore must carry content, detail, and criteria.
 SSOT ref: quality_gates.rtl_gen.workflow_todo_contract.
 Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_module.
-- Current reason: RTL audit has not run yet.
+- Current reason: SSOT-authored rtl-gen workflow TODOs are well formed.
 - Criteria:
   - Every workflow_todos.rtl-gen item has content
   - Every workflow_todos.rtl-gen item has detail
@@ -85,13 +82,13 @@ Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: planned
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.owner_traceability
 - Detail: Function-level, cycle-level, register, dataflow, and FSM behavior must map to an RTL owner module before approval.
 SSOT ref: quality_gates.rtl_gen.owner_traceability.
 Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_module.
-- Current reason: RTL audit has not run yet.
+- Current reason: Every required SSOT-derived RTL behavior has an owner module.
 - Criteria:
   - No required function_model task is orphaned
   - No required cycle_model task is orphaned
@@ -105,13 +102,13 @@ Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: planned
+- Status: open
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.manifest_connection_contract_evidence
 - Detail: Named port maps prove that child instances are wired, but not that they are wired to the SSOT-intended signals. When the SSOT provides integration.connections or sub_modules[].connections, rtl-gen must satisfy those machine-readable connection contracts. Production-profile multi-module RTL must provide such contracts.
 SSOT ref: quality_gates.rtl_gen.manifest_connection_contract_evidence.
 Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_module.
-- Current reason: RTL audit has not run yet.
+- Current reason: 1 SSOT connection contract issue(s) remain. mctp_assembler_scratch_sram_packer: SSOT connection contract port is not connected by the RTL named port map
 - Criteria:
   - Production-profile multi-module IPs provide machine-readable integration.connections or sub_modules[].connections
   - Each SSOT connection contract resolves to a reachable manifest child module and port

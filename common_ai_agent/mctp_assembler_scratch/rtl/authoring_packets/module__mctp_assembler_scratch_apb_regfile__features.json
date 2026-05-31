@@ -134,8 +134,8 @@
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
     "llm_actionable": true,
-    "llm_actionable_open_count": 3,
-    "open_required_count": 3,
+    "llm_actionable_open_count": 1,
+    "open_required_count": 1,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
@@ -179,7 +179,7 @@
       "section_chunk_index": 1,
       "task_limit": 48
     },
-    "open_required_count": 3,
+    "open_required_count": 1,
     "required_count": 3,
     "source_refs": [
       "features.primary_approved_behavior",
@@ -187,7 +187,8 @@
       "features.error_policy"
     ],
     "status_counts": {
-      "planned": 3
+      "open": 1,
+      "pass": 2
     },
     "task_count": 3
   },
@@ -217,6 +218,10 @@
       "ssot_refs": [
         "features.primary_approved_behavior"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -225,9 +230,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -255,6 +260,10 @@
       "ssot_refs": [
         "features.backpressure_stability"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -263,9 +272,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -296,6 +305,20 @@
       "ssot_refs": [
         "features.error_policy"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "error_handling",
+          "handling"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -304,9 +327,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     }
   ],

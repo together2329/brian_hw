@@ -25,7 +25,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 9
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: debug_observability, decomposition, error_handling, features, fsm, function_model.state_variables, function_model.transactions.FM_APB_ACCESS, function_model.transactions.FM_ASSEMBLE_FRAGMENT, function_model.transactions.FM_ASSEMBLY_DROP, function_model.transactions.FM_AXI_READBACK, function_model.transactions.FM_COMPLETE_MESSAGE, function_model.transactions.FM_PACKET_DROP, interrupts, interrupts.sources, io_list, io_list.interfaces.apb_slave
 - Module slice: 1/9 section=io_list task_limit=48
@@ -39,14 +39,14 @@
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.paddr
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.paddr.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=paddr; width=16; direction=input.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -61,14 +61,14 @@ SSOT item context: name=paddr; width=16; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.psel
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.psel.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=psel; width=1; direction=input.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -83,14 +83,14 @@ SSOT item context: name=psel; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.penable
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.penable.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=penable; width=1; direction=input.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -105,14 +105,14 @@ SSOT item context: name=penable; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.pwrite
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.pwrite.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=pwrite; width=1; direction=input.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -127,14 +127,14 @@ SSOT item context: name=pwrite; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.pwdata
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.pwdata.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=pwdata; width=32; direction=input.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -149,14 +149,14 @@ SSOT item context: name=pwdata; width=32; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.pstrb
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.pstrb.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=pstrb; width=4; direction=input.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -171,14 +171,14 @@ SSOT item context: name=pstrb; width=4; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.prdata
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.prdata.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=prdata; width=32; direction=output.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -193,14 +193,14 @@ SSOT item context: name=prdata; width=32; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.pready
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.pready.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=pready; width=1; direction=output.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -215,14 +215,14 @@ SSOT item context: name=pready; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.apb_slave.ports.pslverr
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.apb_slave.ports.pslverr.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via io_list.interfaces.apb_slave.
 SSOT item context: name=pslverr; width=1; direction=output.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified

@@ -1,0 +1,3 @@
+[derive_rtl_todos] mctp_assembler_scratch: tasks=453 blockers=0 orphans=0 gate=fail
+
+TASK13_RTL_TODO_AUDIT_RC=1

@@ -25,7 +25,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 4
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: debug_observability, decomposition, error_handling, features, fsm, function_model.state_variables, function_model.transactions.FM_APB_ACCESS, function_model.transactions.FM_ASSEMBLE_FRAGMENT, function_model.transactions.FM_ASSEMBLY_DROP, function_model.transactions.FM_AXI_READBACK, function_model.transactions.FM_COMPLETE_MESSAGE, function_model.transactions.FM_PACKET_DROP, interrupts, interrupts.sources, io_list, io_list.interfaces.apb_slave
 - Module slice: 9/9 section=debug_observability task_limit=48
@@ -39,14 +39,14 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: debug_observability.signals
 - Source ref: debug_observability.signals.signal_0
 - Detail: This SSOT debug_observability.signals item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: debug_observability.signals.signal_0.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via debug_observability.
 SSOT item context: value=debug_context_id.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -59,14 +59,14 @@ SSOT item context: value=debug_context_id.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: debug_observability.signals
 - Source ref: debug_observability.signals.signal_1
 - Detail: This SSOT debug_observability.signals item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: debug_observability.signals.signal_1.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via debug_observability.
 SSOT item context: value=debug_context_key.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -79,14 +79,14 @@ SSOT item context: value=debug_context_key.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: debug_observability.signals
 - Source ref: debug_observability.signals.signal_2
 - Detail: This SSOT debug_observability.signals item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: debug_observability.signals.signal_2.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via debug_observability.
 SSOT item context: value=debug_drop_pulse.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -99,14 +99,14 @@ SSOT item context: value=debug_drop_pulse.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: debug_observability.signals
 - Source ref: debug_observability.signals.signal_3
 - Detail: This SSOT debug_observability.signals item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: debug_observability.signals.signal_3.
 Owner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via debug_observability.
 SSOT item context: value=debug_vdm_valid.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
