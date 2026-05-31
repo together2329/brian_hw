@@ -1,0 +1,12 @@
+doc/wiki/mctp-assembler-scratch-flow-20260531.md:24:Out of scope for this run: formal proof, PnR/PPA signoff, DMTF certification, PCIe endpoint behavior, ECRC checking, and Flit Mode.
+mctp_assembler_scratch/req/mctp_assembler_scratch_requirements.md:68:- PCIe Flit Mode packet format in the first implementation.
+mctp_assembler_scratch/req/mctp_assembler_scratch_requirements.md:224:The first target supports Non-Flit Mode MCTP over PCIe VDM.
+mctp_assembler_scratch/req/mctp_assembler_scratch_requirements.md:231:- Four-DWORD PCIe VDM header in Non-Flit Mode.
+mctp_assembler_scratch/req/mctp_assembler_scratch_requirements.md:424:| `PD_UNSUPPORTED_VDM` | TLP is not a supported Non-Flit PCIe VDM with data; unsupported Flit Mode packet; unsupported TLP prefix; unsupported routing type; unsupported traffic class; unsupported attribute/address-type/TH/LN/T8/T9 policy; unsupported TD/EP policy; Message Code is not `0x7F`; Vendor ID is not DMTF `0x1AB4`; MCTP VDM Code is not `0x0`; any PCIe VDM binding field required by DSP0238 for this target is not supported. |
+mctp_assembler_scratch/req/source_references.md:42:- Non-Flit Mode packet format.
+mctp_assembler_scratch/req/source_references.md:48:- Flit Mode support is separately defined and remains out of scope for this first target.
+mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.yaml:2832:  note: PnR is not required for first scratch local signoff.
+
+F4_SCOPE_RG_RC=0
+F4_SCOPE_BAD_LINES
+mctp_assembler_scratch/req/mctp_assembler_scratch_requirements.md:68:- PCIe Flit Mode packet format in the first implementation.
