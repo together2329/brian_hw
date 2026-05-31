@@ -64,6 +64,31 @@ def test_submit_refused_at_client_root(monkeypatch):
     assert "client root" in res.error
 
 
+def test_edit_paths_runs_p4_edit_and_rejects_escapes(tmp_path):
+    class RecordingAdapter(PerforceP4Adapter):
+        def __init__(self, root: str | Path, executable: str = "p4") -> None:
+            super().__init__(root, executable=executable)
+            self.calls: list[tuple[str, ...]] = []
+
+        def _run_p4(self, *args: str, timeout: int = 60):
+            self.calls.append(args)
+            return self._result(ok=True, stdout="opened")
+
+    (tmp_path / "a.txt").write_text("x", encoding="utf-8")
+    adapter = RecordingAdapter(tmp_path)
+    ok = adapter.edit_paths(["a.txt", "../../etc/passwd"])
+    assert ok.ok is True
+    assert ok.returncode == 0
+    assert adapter.calls == [("edit", (tmp_path / "a.txt").resolve().as_posix())]
+
+    invalid = RecordingAdapter(tmp_path)
+    bad = invalid.edit_paths(["../../etc/passwd", "/abs/escape"])
+    assert bad.ok is False
+    assert bad.returncode == 2
+    assert "no valid paths" in bad.error
+    assert invalid.calls == []
+
+
 # --------------------------------------------------------------- live server
 @p4_required
 def test_live_status_and_pane_shapes():
