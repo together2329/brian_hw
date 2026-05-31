@@ -691,19 +691,19 @@ Wave 5: Tasks 13-14 and Final Verification. Signoff/audit bundle and wiki handof
 
 > ALL must approve or produce owner-classified blockers. Present consolidated results to user before claiming completion.
 
-- [ ] F1. Plan Compliance Audit
+- [x] F1. Plan Compliance Audit
   - Command: `rg -n 'mctp_assembler_scratch|approval_manifest|verify_ssot|emit_fl_model|emit_cycle_model|derive_ip_contract|mutation_guard|check_ip_signoff' plans/mctp-assembler-req-to-audit-scratch.md`
   - Expected: all required terms found.
 
-- [ ] F2. Evidence Freshness Audit
+- [x] F2. Evidence Freshness Audit
   - Command: `find mctp_assembler_scratch -maxdepth 3 -type f | sort`
   - Expected: only fresh scratch files appear; no proof path comes from `mctp_assembler/`.
 
-- [ ] F3. Full Local Gate Replay
+- [x] F3. Full Local Gate Replay
   - Command: run the Definition of Done command block sequentially.
   - Expected: all local evidence gates pass or only explicit human-production gate remains.
 
-- [ ] F4. Scope Fidelity Check
+- [x] F4. Scope Fidelity Check
   - Command: `rg -n 'Flit Mode|ECRC checking|formal proof complete|PnR|DMTF conformance certified' mctp_assembler_scratch doc/wiki/mctp-assembler-scratch-flow-*.md`
   - Expected: these are absent or marked out-of-scope/future, not completed.
 
