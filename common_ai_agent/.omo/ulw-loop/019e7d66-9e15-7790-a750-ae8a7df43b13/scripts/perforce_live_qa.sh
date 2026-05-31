@@ -315,7 +315,7 @@ run_c002() {
   grep -q "HTTP/1.1 200 OK" "$artifact"
   grep -q '"ok":false' "$artifact"
   grep -q "no valid paths to edit/open" "$artifact"
-  grep -q "File(s) not opened on this client" "$artifact"
+  grep -qi "file(s) not opened on this client" "$artifact"
 }
 
 run_c003() {

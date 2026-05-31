@@ -1,6 +1,6 @@
 ### request: malformed edit path traversal
 HTTP/1.1 200 OK
-date: Sun, 31 May 2026 12:22:56 GMT
+date: Sun, 31 May 2026 12:23:29 GMT
 server: uvicorn
 content-length: 130
 content-type: application/json
@@ -8,7 +8,7 @@ content-type: application/json
 {"ok":false,"stdout":"","stderr":"","error":"no valid paths to edit/open","returncode":2,"provider":"perforce","ip":"ulw_p4_c002"}
 ### pane after malformed edit
 HTTP/1.1 200 OK
-date: Sun, 31 May 2026 12:22:56 GMT
+date: Sun, 31 May 2026 12:23:29 GMT
 server: uvicorn
 content-length: 353
 content-type: application/json
