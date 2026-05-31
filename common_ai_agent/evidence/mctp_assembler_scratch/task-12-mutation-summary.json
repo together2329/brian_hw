@@ -1,0 +1,90 @@
+{
+  "status": "listed",
+  "mode": "list_only",
+  "summary": {
+    "candidates": 32,
+    "executed": 0,
+    "invalid": 0,
+    "kill_rate": null,
+    "killed": 0,
+    "survived": 0
+  },
+  "baseline": {
+    "reason": "",
+    "source": "",
+    "status": "not_checked"
+  },
+  "category_summary": [
+    {
+      "candidates": 7,
+      "category": "comparator_flip",
+      "executed": 0,
+      "invalid": 0,
+      "kill_rate": null,
+      "killed": 0,
+      "survived": 0
+    },
+    {
+      "candidates": 7,
+      "category": "constant_flip",
+      "executed": 0,
+      "invalid": 0,
+      "kill_rate": null,
+      "killed": 0,
+      "survived": 0
+    },
+    {
+      "candidates": 3,
+      "category": "handshake_hold_drop",
+      "executed": 0,
+      "invalid": 0,
+      "kill_rate": null,
+      "killed": 0,
+      "survived": 0
+    },
+    {
+      "candidates": 8,
+      "category": "operator_flip",
+      "executed": 0,
+      "invalid": 0,
+      "kill_rate": null,
+      "killed": 0,
+      "survived": 0
+    },
+    {
+      "candidates": 7,
+      "category": "state_update_drop",
+      "executed": 0,
+      "invalid": 0,
+      "kill_rate": null,
+      "killed": 0,
+      "survived": 0
+    }
+  ],
+  "contract_mutation_obligations": {
+    "contract": "verify/ip_contract.json",
+    "note": "Unsupported categories are advisory follow-up obligations; supported contract-specific and generic mutants run deterministically.",
+    "required": [
+      "boundary_flag_flip",
+      "comparator_flip",
+      "constant_flip",
+      "handshake_hold_drop",
+      "interrupt_clear_priority_flip",
+      "operator_flip",
+      "reset_value_flip",
+      "state_update_drop"
+    ],
+    "supported_by_current_guard": [
+      "comparator_flip",
+      "constant_flip",
+      "handshake_hold_drop",
+      "operator_flip",
+      "state_update_drop"
+    ],
+    "unsupported_by_current_guard": [
+      "boundary_flag_flip",
+      "interrupt_clear_priority_flip",
+      "reset_value_flip"
+    ]
+  }
+}

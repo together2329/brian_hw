@@ -1,4 +1,30 @@
 {
+  "baseline": {
+    "reason": "baseline FL-vs-RTL compare is not green; mutation kill-rate would be meaningless",
+    "source": "sim/fl_rtl_compare.json",
+    "status": "fail",
+    "summary": {
+      "goals_blocked": 0,
+      "goals_checked": 91,
+      "goals_failed": 65,
+      "goals_passed": 26,
+      "goals_untested": 0,
+      "missing_evidence": [],
+      "orphan_scoreboard_events": 0,
+      "scoreboard_events": 91,
+      "sim_results": {
+        "errors": 0,
+        "exists": true,
+        "fail": 0,
+        "failures": 0,
+        "source": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/sim/results.xml",
+        "total": 1
+      },
+      "stale_evidence": [],
+      "stale_oracle_evidence": [],
+      "total": 91
+    }
+  },
   "candidates": [
     {
       "after": "&",
@@ -353,7 +379,53 @@
       "rule": "xor_to_and"
     }
   ],
-  "category_summary": [],
+  "category_summary": [
+    {
+      "candidates": 7,
+      "category": "comparator_flip",
+      "executed": 0,
+      "invalid": 0,
+      "kill_rate": null,
+      "killed": 0,
+      "survived": 0
+    },
+    {
+      "candidates": 7,
+      "category": "constant_flip",
+      "executed": 0,
+      "invalid": 0,
+      "kill_rate": null,
+      "killed": 0,
+      "survived": 0
+    },
+    {
+      "candidates": 3,
+      "category": "handshake_hold_drop",
+      "executed": 0,
+      "invalid": 0,
+      "kill_rate": null,
+      "killed": 0,
+      "survived": 0
+    },
+    {
+      "candidates": 8,
+      "category": "operator_flip",
+      "executed": 0,
+      "invalid": 0,
+      "kill_rate": null,
+      "killed": 0,
+      "survived": 0
+    },
+    {
+      "candidates": 7,
+      "category": "state_update_drop",
+      "executed": 0,
+      "invalid": 0,
+      "kill_rate": null,
+      "killed": 0,
+      "survived": 0
+    }
+  ],
   "contract_mutation_obligations": {
     "contract": "verify/ip_contract.json",
     "note": "Unsupported categories are advisory follow-up obligations; supported contract-specific and generic mutants run deterministically.",
@@ -380,9 +452,9 @@
       "reset_value_flip"
     ]
   },
-  "generated_at": "2026-05-31T11:48:24Z",
+  "generated_at": "2026-05-31T11:51:27Z",
   "ip": "mctp_assembler_scratch",
-  "mode": "list_only",
+  "mode": "baseline_blocked",
   "results": [],
   "schema_version": 1,
   "source_rels": [
@@ -398,7 +470,7 @@
     "rtl/mctp_assembler_scratch_cdc.sv",
     "rtl/mctp_assembler_scratch.sv"
   ],
-  "status": "listed",
+  "status": "blocked_baseline",
   "summary": {
     "candidates": 32,
     "executed": 0,

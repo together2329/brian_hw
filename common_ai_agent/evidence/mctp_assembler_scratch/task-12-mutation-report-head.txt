@@ -1,7 +1,7 @@
 # Mutation Guard - mctp_assembler_scratch
 
-- Status: `blocked_baseline`
-- Mode: `baseline_blocked`
+- Status: `listed`
+- Mode: `list_only`
 - Candidates: `32`
 - Executed: `0`
 - Killed: `0`
