@@ -1,7 +1,7 @@
 # IP Signoff - mctp_assembler_scratch
 
 - Status: `fail`
-- Generated: `2026-05-31T12:00:06Z`
+- Generated: `2026-05-31T12:04:55Z`
 - Contract: `IP_SIGNOFF.md`
 
 | Gate | Status | Artifact | Summary |
