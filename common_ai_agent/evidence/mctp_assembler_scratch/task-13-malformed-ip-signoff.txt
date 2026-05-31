@@ -1,0 +1,5 @@
+[check_ip_signoff] status=fail gates={'total_gates': 1, 'passed': 0, 'failed': 1, 'blocked': 0}
+[check_ip_signoff] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/__missing_ip__/signoff/ip_signoff.json
+[check_ip_signoff] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/__missing_ip__/signoff/ip_signoff.md
+
+TASK13_MALFORMED_SIGNOFF_RC=1

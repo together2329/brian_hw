@@ -19,6 +19,6 @@
     "rtl_compile_report": "workflow/rtl-gen/scripts/rtl_compile_report.py"
   },
   "type": "rtl_authoring_provenance",
-  "updated_at": "2026-05-31T11:50:10Z",
+  "updated_at": "2026-05-31T12:00:58Z",
   "workflow": "rtl-gen"
 }

@@ -1,4 +1,4 @@
-// fresh_rule_ip.sv — SSOT-authored RTL for the double_value rule
+// fresh_rule_ip.sv — SSOT-authored RTL implementing double_value
 module fresh_rule_ip (
     input  logic       clk,
     input  logic       rst_n,
@@ -17,7 +17,7 @@ module fresh_rule_ip (
     logic [8:0] doubled_value;
     logic [7:0] accepted_count_next;
 
-    // ready follows the reset contract: inactive during reset, then high for every active cycle.
+    // ready follows the reset contract: inactive during reset, then high in active cycles.
     assign ready = rst_n;
     assign valid_sample = valid & ready;
     assign value = data_in;

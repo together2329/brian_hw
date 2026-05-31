@@ -1,0 +1,11 @@
+ m ../.claude/worktrees/wf_c8c8419b-dc0-1
+ ? deepdeep_ip
+ M fresh_rule_ip/rtl/fresh_rule_ip.sv
+ ? ip_examples/cmux_flow_alpha
+ m ip_examples/cmux_flow_gamma
+ m ip_examples/cmux_verify_5fix
+ m ../external_refs/open-design
+?? evidence/mctp_assembler_scratch/task-13-dirty-worktree-status-after-cleanup.txt
+?? evidence/mctp_assembler_scratch/task-13-dirty-worktree-status.txt
+?? evidence/mctp_assembler_scratch/task-13-malformed-cleanup.txt
+?? evidence/mctp_assembler_scratch/task-13-malformed-ip-signoff.txt

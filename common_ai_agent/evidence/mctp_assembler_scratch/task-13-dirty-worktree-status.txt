@@ -1,0 +1,9 @@
+ m ../.claude/worktrees/wf_c8c8419b-dc0-1
+ ? deepdeep_ip
+ ? ip_examples/cmux_flow_alpha
+ m ip_examples/cmux_flow_gamma
+ m ip_examples/cmux_verify_5fix
+ m ../external_refs/open-design
+?? __missing_ip__/
+?? evidence/mctp_assembler_scratch/task-13-dirty-worktree-status.txt
+?? evidence/mctp_assembler_scratch/task-13-malformed-ip-signoff.txt
