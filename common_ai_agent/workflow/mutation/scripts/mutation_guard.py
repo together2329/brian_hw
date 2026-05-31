@@ -460,7 +460,10 @@ def _classify_result(returncode: int, output: str, failed_rows: int) -> tuple[st
     return "killed", f"test runner returned {returncode}"
 
 
-def _category_summary(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def _category_summary(
+    results: list[dict[str, Any]],
+    candidates: list[MutationCandidate] | None = None,
+) -> list[dict[str, Any]]:
     grouped: dict[str, dict[str, int]] = {}
     for result in results:
         category = str(result.get("category") or "unknown")
@@ -469,6 +472,13 @@ def _category_summary(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
         status = str(result.get("status") or "")
         if status in {"killed", "survived", "invalid"}:
             row[status] += 1
+    if not results and candidates:
+        for candidate in candidates:
+            row = grouped.setdefault(
+                candidate.category,
+                {"candidates": 0, "executed": 0, "killed": 0, "survived": 0, "invalid": 0},
+            )
+            row["candidates"] += 1
 
     out: list[dict[str, Any]] = []
     for category in sorted(grouped):
@@ -483,6 +493,31 @@ def _category_summary(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
             }
         )
     return out
+
+
+def _baseline_blocker(ip_dir: Path) -> dict[str, Any]:
+    compare = _read_json(ip_dir / "sim" / "fl_rtl_compare.json")
+    if compare:
+        status = str(compare.get("status") or "").lower()
+        if status and status != "pass":
+            return {
+                "status": status,
+                "source": "sim/fl_rtl_compare.json",
+                "reason": "baseline FL-vs-RTL compare is not green; mutation kill-rate would be meaningless",
+                "summary": compare.get("summary") if isinstance(compare.get("summary"), dict) else {},
+            }
+
+    score_path = ip_dir / "sim" / "scoreboard_events.jsonl"
+    if score_path.is_file():
+        failed_rows = _failed_scoreboard_rows(ip_dir)
+        if failed_rows:
+            return {
+                "status": "fail",
+                "source": "sim/scoreboard_events.jsonl",
+                "reason": "baseline scoreboard already contains failing rows; mutation kill-rate would be meaningless",
+                "failed_scoreboard_rows": failed_rows,
+            }
+    return {"status": "pass", "source": "", "reason": ""}
 
 
 def _run_candidate(
@@ -603,7 +638,10 @@ def main() -> int:
     contract_obligations = _contract_mutation_obligations(ip_dir)
     candidates = _mutation_candidates(ip_dir, max_mutants=max(args.max_mutants, 0))
     results: list[dict[str, Any]] = []
+    baseline = {"status": "not_checked" if args.list_only else "pass", "source": "", "reason": ""}
     if not args.list_only:
+        baseline = _baseline_blocker(ip_dir)
+    if not args.list_only and baseline.get("status") == "pass":
         for candidate in candidates:
             results.append(_run_candidate(ip_dir, source_rels, candidate, timeout_sec=args.timeout_sec))
 
@@ -617,6 +655,9 @@ def main() -> int:
     if args.list_only:
         status = "listed"
         mode = "list_only"
+    elif baseline.get("status") != "pass":
+        status = "blocked_baseline"
+        mode = "baseline_blocked"
     elif args.enforce_threshold and (kill_rate is None or kill_rate < args.threshold):
         status = "fail"
         mode = "enforced"
@@ -632,6 +673,7 @@ def main() -> int:
         "status": status,
         "mode": mode,
         "threshold": args.threshold,
+        "baseline": baseline,
         "source_rels": [rel.as_posix() for rel in source_rels],
         "contract_mutation_obligations": contract_obligations,
         "summary": {
@@ -642,7 +684,7 @@ def main() -> int:
             "invalid": invalid,
             "kill_rate": kill_rate,
         },
-        "category_summary": _category_summary(results),
+        "category_summary": _category_summary(results, candidates),
         "candidates": [asdict(candidate) for candidate in candidates],
         "results": results,
     }
@@ -655,9 +697,11 @@ def main() -> int:
     _write_markdown(md_path, report)
 
     print(f"[mutation_guard] status={status} summary={report['summary']}")
+    if status == "blocked_baseline":
+        print(f"[mutation_guard] baseline_blocker={baseline}")
     print(f"[mutation_guard] wrote {json_path}")
     print(f"[mutation_guard] wrote {md_path}")
-    return 0 if status in {"pass", "listed"} else 1
+    return 0 if status in {"pass", "listed", "blocked_baseline"} else 1
 
 
 if __name__ == "__main__":
