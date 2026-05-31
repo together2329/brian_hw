@@ -7,21 +7,22 @@ module generic_counter_ip (
     input  logic [7:0] data_in,
     output logic [8:0] value
 );
-    logic [8:0] fm_value_wide;
-    logic [8:0] fm_value_doubled;
+    logic [8:0] input_value_wide;
+    logic [8:0] doubled_value_next;
 
-    // EQ_DOUBLE / function_model.transactions[0]: FunctionalModel.apply returns
-    // value * 2.  The SSOT latency is 1, so register the exact doubled value
-    // from the current input on this clock edge; no decrement/stale sample is
-    // permitted by the FL-vs-RTL goal or scoreboard evidence.
-    assign fm_value_wide    = {1'b0, data_in};
-    assign fm_value_doubled = fm_value_wide << 1;
+    // EQ_DOUBLE / function_model.transactions[0]: FunctionalModel.apply
+    // computes value * 2.  The power-of-two multiply is exact as a left shift.
+    // cycle_model.latency=1 requires the registered output to use the current
+    // sampled data_in on the accepting edge, so do not subtract, saturate, or
+    // wait for a second input-register stage.
+    assign input_value_wide   = {1'b0, data_in};
+    assign doubled_value_next = input_value_wide << 1;
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             value <= 9'h000;
         end else begin
-            value <= fm_value_doubled;
+            value <= doubled_value_next;
         end
     end
 endmodule
