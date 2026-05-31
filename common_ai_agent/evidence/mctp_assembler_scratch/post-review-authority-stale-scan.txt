@@ -1,0 +1,4 @@
+doc/wiki/mctp-assembler-scratch-flow-20260531.md:14:The IP was built from the current user requirements, not by reusing prior `mctp_assembler/` proof artifacts.
+doc/wiki/mctp-assembler-scratch-flow-20260531.md:84:Some adversarial evidence transcripts intentionally include dirty-worktree scans that mention the earlier `mctp_assembler/` directory. Those files are diagnostic logs only, not proof sources. The authoritative scratch evidence roots and diagnostic-only legacy-reference files are listed in `signoff/evidence_authority_manifest.json`.
+
+POST_REVIEW_AUTHORITY_STALE_SCAN_RC=0
