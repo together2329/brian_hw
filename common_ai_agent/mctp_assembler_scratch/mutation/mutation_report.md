@@ -2,7 +2,7 @@
 
 - Status: `listed`
 - Mode: `list_only`
-- Candidates: `12`
+- Candidates: `32`
 - Executed: `0`
 - Killed: `0`
 - Survived: `0`

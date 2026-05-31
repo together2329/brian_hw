@@ -1,0 +1,3 @@
+[mutation_guard] status=listed summary={'candidates': 32, 'executed': 0, 'killed': 0, 'survived': 0, 'invalid': 0, 'kill_rate': None}
+[mutation_guard] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/mutation/mutation_report.json
+[mutation_guard] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/mutation/mutation_report.md
