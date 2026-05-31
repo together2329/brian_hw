@@ -3,6 +3,7 @@ import sys
 from pathlib import Path
 
 from fastapi.testclient import TestClient
+from core.scm import SCMCommandResult
 
 PROJECT_ROOT = str(Path(__file__).resolve().parents[1])
 if PROJECT_ROOT not in sys.path:
@@ -185,3 +186,44 @@ def test_git_provider_override_stays_git_when_default_scm_is_perforce(tmp_path: 
     missing_git = client.get("/api/ip/beta/git/graph?limit=20&provider=git")
     assert missing_git.status_code == 409
     assert missing_git.json()["error"] == "ip has no .git — create via /new-ip first"
+
+
+def test_scm_edit_route_uses_perforce_adapter(tmp_path: Path, monkeypatch):
+    (tmp_path / "alpha").mkdir(parents=True, exist_ok=True)
+    seen: dict[str, object] = {}
+
+    class FakePerforceAdapter:
+        provider = "perforce"
+
+        def __init__(self, root: str) -> None:
+            self.root = root
+
+        def edit_paths(self, paths):
+            seen["paths"] = list(paths)
+            return SCMCommandResult(
+                ok=True,
+                provider=self.provider,
+                root=self.root,
+                stdout="edit ok",
+                returncode=0,
+                command=("p4", "edit"),
+            )
+
+    def fake_resolve_scm_adapter(root: str, provider=None):
+        seen["root"] = root
+        seen["provider"] = provider
+        return FakePerforceAdapter(root)
+
+    monkeypatch.setattr("src.atlas_api_git.resolve_scm_adapter", fake_resolve_scm_adapter)
+    client = _authenticated_client(_create_app(tmp_path, monkeypatch))
+    response = client.post(
+        "/api/scm/edit",
+        json={"ip": "alpha", "provider": "perforce", "paths": ["foo.v"]},
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["ok"] is True
+    assert payload["provider"] == "perforce"
+    assert payload["ip"] == "alpha"
+    assert payload["stdout"] == "edit ok"
+    assert seen == {"root": str(tmp_path / "alpha"), "provider": "perforce", "paths": ["foo.v"]}

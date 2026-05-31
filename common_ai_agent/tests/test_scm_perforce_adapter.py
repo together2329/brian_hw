@@ -8,6 +8,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from typing import Union
 
 import pytest
 
@@ -66,7 +67,7 @@ def test_submit_refused_at_client_root(monkeypatch):
 
 def test_edit_paths_runs_p4_edit_and_rejects_escapes(tmp_path):
     class RecordingAdapter(PerforceP4Adapter):
-        def __init__(self, root: str | Path, executable: str = "p4") -> None:
+        def __init__(self, root: Union[str, Path], executable: str = "p4") -> None:
             super().__init__(root, executable=executable)
             self.calls: list[tuple[str, ...]] = []
 
