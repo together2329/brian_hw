@@ -88,7 +88,7 @@
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": false,
+    "deferred_human_qa_allowed": true,
     "draft_allowed": true,
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
@@ -96,7 +96,7 @@
     "llm_actionable": false,
     "llm_actionable_open_count": 0,
     "open_required_count": 0,
-    "pass_allowed": true,
+    "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -118,6 +118,7 @@
     "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
     "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
     "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
     "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
   ],
   "schema_version": 1,
@@ -298,10 +299,8 @@
         "Traceability keeps source_ref function_model.transactions.FM_PRIMARY.outputs.output_0",
         "Primary implementation evidence is in rtl/generic_counter_ip.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PRIMARY.outputs.output_0.\nOwner: generic_counter_ip in rtl/generic_counter_ip.sv via function_model.\nSSOT item context: id=FM_PRIMARY; name=primary_behavior; signal=[\"value\"].",
-      "evidence_terms": [
-        "value"
-      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PRIMARY.outputs.output_0.\nOwner: generic_counter_ip in rtl/generic_counter_ip.sv via function_model.\nSSOT item context: value=value.",
+      "evidence_terms": [],
       "id": "RTL-0025",
       "owner_file": "rtl/generic_counter_ip.sv",
       "owner_module": "generic_counter_ip",
@@ -309,26 +308,14 @@
       "required": true,
       "source_ref": "function_model.transactions.FM_PRIMARY.outputs.output_0",
       "ssot_context": {
-        "id": "FM_PRIMARY",
-        "name": "primary_behavior",
-        "signal": "[\"value\"]"
+        "value": "value"
       },
       "ssot_refs": [
         "function_model.transactions.FM_PRIMARY.outputs.output_0"
       ],
       "static_evidence": {
-        "matched_count": 1,
-        "matched_terms": [
-          "value"
-        ],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 1,
-        "required_terms": [
-          "value"
-        ],
-        "source_scope": "rtl/generic_counter_ip.sv",
-        "status": "pass"
+        "required": false,
+        "status": "not_required"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -648,7 +635,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "c3aee053a7c47fa83b671a7c16c3d120057822beb3701c2334595163d70231dc",
+  "todo_plan_sha256": "6dc58ed8200fc3a33b1b00c92ae9494bf89ff8c31e83cad9f4f08d0f84652f04",
   "top": "generic_counter_ip",
   "type": "rtl_authoring_packet"
 }

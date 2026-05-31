@@ -1,0 +1,49 @@
+# Debug Journal - mctp assembler scratch Task 11
+Started: 2026-05-31T00:00:00Z
+Goal: classify and resolve Task 11 FL-vs-RTL audit blockers for `mctp_assembler_scratch`.
+
+## Environment snapshot (Phase 0)
+- Runtime: Python 3.9.6 via `/usr/bin/python3`
+- Entry: `python3 workflow/sim_debug/scripts/compare_fl_rtl_results.py mctp_assembler_scratch --root .`; `python3 workflow/sim_debug/scripts/audit_fl_rtl_equivalence_goal.py mctp_assembler_scratch --root .`
+- Git HEAD: `932d2ee2`
+- Working tree clean: no
+- References read:
+  - `/Users/brian/.codex/plugins/cache/sisyphuslabs/omo/0.1.0/skills/debugging/SKILL.md`
+  - `/Users/brian/.codex/plugins/cache/sisyphuslabs/omo/0.1.0/skills/debugging/references/runtimes/python.md`
+  - `/Users/brian/.codex/plugins/cache/sisyphuslabs/omo/0.1.0/skills/debugging/references/methodology/00-setup.md`
+  - `/Users/brian/.codex/plugins/cache/sisyphuslabs/omo/0.1.0/skills/debugging/references/methodology/02-investigate.md`
+
+## Hypotheses
+1. [OPEN] RTL behavior is only shallowly implemented, so scoreboard rows correctly observe zeros/X values. Distinguishing evidence: RTL modules lack state transitions or output assignments for failed goals. If true, fix is: implement RTL.
+2. [OPEN] TB stimulus/monitor mapping is wrong, so valid RTL behavior is observed as zeros. Distinguishing evidence: scoreboard input_map or alias logic maps failed goal observables to wrong signal names. If true, fix is: repair TB.
+3. [OPEN] Functional/equivalence oracle is stale or over-specific after SSOT edits. Distinguishing evidence: compare/audit stale_evidence or generated goals newer/older mismatch, or expected_contract asks for internal debug observables not contractually driven. If true, fix is: regenerate oracle.
+4. [OPEN] Audit requirement gate is stricter than the scratch approval manifest schema used earlier. Distinguishing evidence: `fl_rtl_goal_audit.json` req check detail points only to approval_manifest type/hash fields. If true, fix is: align manifest.
+
+## Failed hypothesis round counter
+- Round 1: in progress
+
+## Artifacts to revert
+- [ ] `.debug-journal.md` - local debug journal. Revert: `rm .debug-journal.md`
+- [ ] git info exclude entry for `.debug-journal.md`. Revert: remove that line from `../.git/info/exclude`.
+- [ ] `tests/test_fl_rtl_equivalence_loop.py` - add RED regression for abstract required-field stimulus gap classification. Revert: remove the added test.
+- [ ] `workflow/sim_debug/scripts/compare_fl_rtl_results.py` - classify undriven abstract required fields as TB stimulus gaps. Revert: remove the classifier changes.
+
+## Findings
+
+### 2026-05-31T00:00:00Z - Initial compare/audit
+- Source: `mctp_assembler_scratch/sim/mismatch_classification.json`
+- Value: `status=action_required total=65 owner={'rtl-gen': 65} classification={'rtl_bug': 65} loop={'True': 65}`
+- Interpretation: all remaining semantic mismatches are loopable unless later evidence proves TB/oracle fault.
+- Confirms/Refutes: supports H1, does not yet refute H2/H3.
+
+### 2026-05-31T00:00:00Z - Audit blockers
+- Source: `mctp_assembler_scratch/sim/fl_rtl_goal_audit.json`
+- Value: `status=fail passed=12/16 blockers=req,fl_rtl_compare,mismatch_classification,functional_coverage`
+- Interpretation: one manifest-format blocker is independent from the 65 compare mismatches; coverage is blocked by the same missing passing RTL-observed rows.
+- Confirms/Refutes: supports H4; H3 stale-oracle evidence not observed.
+
+### 2026-05-31T00:00:00Z - First failing rows
+- Source: `mctp_assembler_scratch/sim/scoreboard_events.jsonl`
+- Value: `EQ_TRANSACTION_FM_FILTER_VDM expected debug_drop_pulse=1 observed=0`; `EQ_TRANSACTION_FM_PARSE_MCTP expected debug_context_key=3587 observed=0`; `EQ_TRANSACTION_FM_SRAM_PACK_WRITE expected sram_wr_valid=1 addr=52 data=17 strb=17 observed all 0`
+- Interpretation: failures are concentrated on output/state observables remaining zero/X.
+- Confirms/Refutes: supports H1 or H2; H3 stale evidence not indicated.

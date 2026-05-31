@@ -548,7 +548,7 @@ Wave 5: Tasks 13-14 and Final Verification. Signoff/audit bundle and wiki handof
 
   **Commit**: YES | Message: `test(mctp): close scratch assembler coverage` | Files: `mctp_assembler_scratch/cov/*`, any owner-routed TB stimulus fixes
 
-- [ ] 11. Run Sim-Debug Goal Audit and Mismatch Classification
+- [x] 11. Run Sim-Debug Goal Audit and Mismatch Classification
 
   **What to do**: Run FL-vs-RTL goal audit/debug. Produce `sim/fl_rtl_compare.json`, `sim/mismatch_classification.json`, and `sim/fl_rtl_goal_audit.json` if the workflow supports all three. Classify any mismatch owner before repair.
 

@@ -13,7 +13,7 @@
     "type": "rtl_connection_contract_suggestions"
   },
   "gate": {
-    "all_required_todos_pass": true,
+    "all_required_todos_pass": false,
     "audit_rtl": true,
     "blocking_questions": 0,
     "criteria": [
@@ -35,12 +35,12 @@
       "Gate: DUT-only lint report passes after the final RTL edit",
       "Gate: every required rtl_todo_plan item is closed before rtl-gen PASS"
     ],
-    "open_required_todos": 0,
+    "open_required_todos": 2,
     "orphan_tasks": 0,
     "static_missing": 0,
-    "status": "pass"
+    "status": "fail"
   },
-  "generated_at": "2026-05-23T17:52:36Z",
+  "generated_at": "2026-05-31T11:47:42Z",
   "ip": "generic_counter_ip",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 0,
@@ -204,10 +204,10 @@
     }
   ],
   "static_rtl_evidence": {
-    "checked": 1,
+    "checked": 0,
     "missing": 0,
     "missing_tasks": [],
-    "passed": 1,
+    "passed": 0,
     "sources": [
       "rtl/generic_counter_ip.sv"
     ]
@@ -1108,9 +1108,9 @@
           "rtl_todo_plan.json task criteria",
           "lint/dut_lint.json"
         ],
-        "reason": "DUT-only lint artifact passed with zero errors, warnings, and suppression violations.",
+        "reason": "lint/dut_lint.json is older than current RTL source rtl/generic_counter_ip.sv; rerun DUT lint after the final RTL edit.",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -1155,9 +1155,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "Every required non-closure TODO has pass status.",
+        "reason": "1 required non-closure TODO(s) remain open.",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -1402,39 +1402,25 @@
         "Traceability keeps source_ref function_model.transactions.FM_PRIMARY.outputs.output_0",
         "Primary implementation evidence is in rtl/generic_counter_ip.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PRIMARY.outputs.output_0.\nOwner: generic_counter_ip in rtl/generic_counter_ip.sv via function_model.\nSSOT item context: id=FM_PRIMARY; name=primary_behavior; signal=[\"value\"].",
-      "evidence_terms": [
-        "value"
-      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PRIMARY.outputs.output_0.\nOwner: generic_counter_ip in rtl/generic_counter_ip.sv via function_model.\nSSOT item context: value=value.",
+      "evidence_terms": [],
       "id": "RTL-0025",
       "owner_file": "rtl/generic_counter_ip.sv",
       "owner_match": "function_model",
       "owner_module": "generic_counter_ip",
       "priority": "high",
       "required": true,
-      "requires_static_rtl_evidence": true,
+      "requires_static_rtl_evidence": false,
       "source_ref": "function_model.transactions.FM_PRIMARY.outputs.output_0",
       "ssot_context": {
-        "id": "FM_PRIMARY",
-        "name": "primary_behavior",
-        "signal": "[\"value\"]"
+        "value": "value"
       },
       "ssot_refs": [
         "function_model.transactions.FM_PRIMARY.outputs.output_0"
       ],
       "static_evidence": {
-        "matched_count": 1,
-        "matched_terms": [
-          "value"
-        ],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 1,
-        "required_terms": [
-          "value"
-        ],
-        "source_scope": "rtl/generic_counter_ip.sv",
-        "status": "pass"
+        "required": false,
+        "status": "not_required"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -1581,11 +1567,24 @@
     }
   ],
   "todo_completion": {
-    "all_required_todos_pass": true,
+    "all_required_todos_pass": false,
     "audit_rtl": true,
-    "open_required_tasks": 0,
-    "open_tasks": [],
-    "required_passed": 28,
+    "open_required_tasks": 2,
+    "open_tasks": [
+      {
+        "category": "rtl_gate.rtl_gen",
+        "reason": "lint/dut_lint.json is older than current RTL source rtl/generic_counter_ip.sv; rerun DUT lint after the final RTL edit.",
+        "source_ref": "quality_gates.rtl_gen.dut_lint",
+        "task_id": "RTL-0018"
+      },
+      {
+        "category": "rtl_gate.rtl_gen",
+        "reason": "1 required non-closure TODO(s) remain open.",
+        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+        "task_id": "RTL-0019"
+      }
+    ],
+    "required_passed": 26,
     "required_total": 28,
     "rule": "rtl-gen may not claim PASS until every required SSOT-derived TODO has pass status."
   },

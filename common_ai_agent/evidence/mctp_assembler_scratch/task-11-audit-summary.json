@@ -1,0 +1,14 @@
+{
+  "status": "fail",
+  "summary": {
+    "total_checks": 16,
+    "passed_checks": 13,
+    "failed_checks": 3,
+    "blockers": [
+      "fl_rtl_compare",
+      "mismatch_classification",
+      "functional_coverage"
+    ]
+  },
+  "classification_schema_ok": true
+}

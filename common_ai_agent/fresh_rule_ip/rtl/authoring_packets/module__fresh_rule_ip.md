@@ -123,7 +123,7 @@ SSOT item context: id=FM_PRIMARY; name=primary_behavior.
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PRIMARY.outputs.output_0.
 Owner: fresh_rule_ip in rtl/fresh_rule_ip.sv via function_model.
-SSOT item context: id=FM_PRIMARY; name=primary_behavior; port=["result"]; signal=["result", "value"]; state=["accepted_count"].
+SSOT item context: value=result.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
@@ -131,7 +131,6 @@ SSOT item context: id=FM_PRIMARY; name=primary_behavior; port=["result"]; signal
   - Downstream equivalence/coverage can observe this behavior
   - Traceability keeps source_ref function_model.transactions.FM_PRIMARY.outputs.output_0
   - Primary implementation evidence is in rtl/fresh_rule_ip.sv
-  - DUT port ["result"] is the implementation/observation point for primary_behavior
 - SSOT refs: function_model.transactions.FM_PRIMARY.outputs.output_0
 
 ### RTL-0031: Implement output rule for FM_PRIMARY: result

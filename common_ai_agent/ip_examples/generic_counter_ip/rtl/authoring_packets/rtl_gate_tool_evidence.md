@@ -14,6 +14,7 @@
 - For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.
 - Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.
 - Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.
+- Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.
 - Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json.
 
 ## Context
@@ -22,11 +23,17 @@
 - Work allowed: True
 - Draft allowed: False
 - Evidence closure allowed: True
-- PASS allowed: True
+- PASS allowed: False
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: top_module, function_model, cycle_model
+- Tool-evidence blockers:
+  - dut_lint: lint/dut_lint.json is older than current RTL source rtl/generic_counter_ip.sv; rerun DUT lint after the final RTL edit.
+  - dynamic_todo_closure: 1 required non-closure TODO(s) remain open.
+- Tool-evidence runbook:
+  - dut_lint: stages=lint, dut_lint; artifact=generic_counter_ip/lint/dut_lint.json
+  - dynamic_todo_closure: stages=audit-rtl; artifact=generic_counter_ip/rtl/rtl_todo_plan.json
 - SSOT top IO contracts: 4
 
 ## Tasks
@@ -79,13 +86,13 @@ Owner: generic_counter_ip in rtl/generic_counter_ip.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: pass
+- Status: open
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.dut_lint
 - Detail: Lint approval must come from the canonical dut_lint_report.py artifact and must not rely on ad-hoc suppressions.
 SSOT ref: quality_gates.rtl_gen.dut_lint.
 Owner: generic_counter_ip in rtl/generic_counter_ip.sv via top_module.
-- Current reason: DUT-only lint artifact passed with zero errors, warnings, and suppression violations.
+- Current reason: lint/dut_lint.json is older than current RTL source rtl/generic_counter_ip.sv; rerun DUT lint after the final RTL edit.
 - Criteria:
   - lint/dut_lint.json exists
   - dut_lint.json reports dut_only=true
@@ -101,13 +108,13 @@ Owner: generic_counter_ip in rtl/generic_counter_ip.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: pass
+- Status: open
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.dynamic_todo_closure
 - Detail: rtl-gen PASS is forbidden until all required implementation, SSOT workflow, and RTL gate TODOs have pass status.
 SSOT ref: quality_gates.rtl_gen.dynamic_todo_closure.
 Owner: generic_counter_ip in rtl/generic_counter_ip.sv via top_module.
-- Current reason: Every required non-closure TODO has pass status.
+- Current reason: 1 required non-closure TODO(s) remain open.
 - Criteria:
   - Every required non-closure task has todo_completion.status=pass
   - open_required_todos is zero

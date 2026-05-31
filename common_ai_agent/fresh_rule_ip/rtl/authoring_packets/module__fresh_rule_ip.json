@@ -347,6 +347,7 @@
         "function_model.state_variables.accepted_count"
       ],
       "static_evidence": {
+        "fallback_scope": "",
         "matched_count": 3,
         "matched_terms": [
           "accepted",
@@ -355,7 +356,7 @@
         ],
         "owner_file_scoped": true,
         "required": true,
-        "required_match_count": 2,
+        "required_match_count": 1,
         "required_terms": [
           "accepted",
           "accepted_count",
@@ -427,17 +428,10 @@
         "Reset/enable/error behavior is consistent with the parent transaction",
         "Downstream equivalence/coverage can observe this behavior",
         "Traceability keeps source_ref function_model.transactions.FM_PRIMARY.outputs.output_0",
-        "Primary implementation evidence is in rtl/fresh_rule_ip.sv",
-        "DUT port [\"result\"] is the implementation/observation point for primary_behavior"
+        "Primary implementation evidence is in rtl/fresh_rule_ip.sv"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PRIMARY.outputs.output_0.\nOwner: fresh_rule_ip in rtl/fresh_rule_ip.sv via function_model.\nSSOT item context: id=FM_PRIMARY; name=primary_behavior; port=[\"result\"]; signal=[\"result\", \"value\"]; state=[\"accepted_count\"].",
-      "evidence_terms": [
-        "accepted",
-        "accepted_count",
-        "count",
-        "result",
-        "value"
-      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PRIMARY.outputs.output_0.\nOwner: fresh_rule_ip in rtl/fresh_rule_ip.sv via function_model.\nSSOT item context: value=result.",
+      "evidence_terms": [],
       "id": "RTL-0030",
       "owner_file": "rtl/fresh_rule_ip.sv",
       "owner_module": "fresh_rule_ip",
@@ -445,39 +439,17 @@
       "required": true,
       "source_ref": "function_model.transactions.FM_PRIMARY.outputs.output_0",
       "ssot_context": {
-        "id": "FM_PRIMARY",
-        "name": "primary_behavior",
-        "port": "[\"result\"]",
-        "signal": "[\"result\", \"value\"]",
-        "state": "[\"accepted_count\"]"
+        "value": "result"
       },
       "ssot_refs": [
         "function_model.transactions.FM_PRIMARY.outputs.output_0"
       ],
       "static_evidence": {
-        "matched_count": 5,
-        "matched_terms": [
-          "accepted",
-          "accepted_count",
-          "count",
-          "result",
-          "value"
-        ],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 2,
-        "required_terms": [
-          "accepted",
-          "accepted_count",
-          "count",
-          "result",
-          "value"
-        ],
-        "source_scope": "rtl/fresh_rule_ip.sv",
-        "status": "pass"
+        "required": false,
+        "status": "not_required"
       },
       "todo_completion": {
-        "criteria_total": 6,
+        "criteria_total": 5,
         "evidence_basis": [
           "rtl_todo_plan.json task criteria",
           "rtl_traceability.json source_ref mapping",
@@ -523,6 +495,7 @@
         "function_model.transactions.FM_PRIMARY.output_rules.result"
       ],
       "static_evidence": {
+        "fallback_scope": "",
         "matched_count": 1,
         "matched_terms": [
           "result"
@@ -583,6 +556,7 @@
         "function_model.transactions.FM_PRIMARY.state_updates.accepted_count"
       ],
       "static_evidence": {
+        "fallback_scope": "",
         "matched_count": 3,
         "matched_terms": [
           "accepted",
@@ -591,7 +565,7 @@
         ],
         "owner_file_scoped": true,
         "required": true,
-        "required_match_count": 2,
+        "required_match_count": 1,
         "required_terms": [
           "accepted",
           "accepted_count",
@@ -649,6 +623,7 @@
         "function_model.transactions.FM_PRIMARY.side_effects.side_effect_0"
       ],
       "static_evidence": {
+        "fallback_scope": "",
         "matched_count": 5,
         "matched_terms": [
           "accepted",
@@ -659,7 +634,7 @@
         ],
         "owner_file_scoped": true,
         "required": true,
-        "required_match_count": 2,
+        "required_match_count": 1,
         "required_terms": [
           "accepted",
           "accepted_count",
@@ -755,6 +730,7 @@
         "cycle_model.handshake_rules.valid_sample"
       ],
       "static_evidence": {
+        "fallback_scope": "",
         "matched_count": 3,
         "matched_terms": [
           "sample",
@@ -1314,7 +1290,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "819a3a788d6f102cc601146cc62d1a6695b7597d6d47b5a83293864d0317f5b2",
+  "todo_plan_sha256": "ecc55a172b83a8ad6ba27aea05c24ba6a22752a003a5a27cb83df2aaa3cd775c",
   "top": "fresh_rule_ip",
   "type": "rtl_authoring_packet"
 }

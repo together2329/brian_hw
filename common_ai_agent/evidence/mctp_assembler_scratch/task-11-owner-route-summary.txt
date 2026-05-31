@@ -1,0 +1,13 @@
+{
+  "status": "complete",
+  "total": 65,
+  "owner_counts": {
+    "tb-gen": 33,
+    "rtl-gen": 32
+  },
+  "classification_counts": {
+    "tb_bug": 33,
+    "rtl_bug": 32
+  },
+  "unresolved_count": 0
+}
