@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "createdAt": "2026-05-31T12:14:30.301Z",
+  "updatedAt": "2026-05-31T12:14:30.301Z",
+  "briefPath": ".omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/brief.md",
+  "goalsPath": ".omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/goals.json",
+  "ledgerPath": ".omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/ledger.jsonl",
+  "codexGoalMode": "aggregate",
+  "goals": [
+    {
+      "id": "G001-build-an-optional-andes-rtl-db-llm-w",
+      "title": "Build an optional Andes RTL DB LLM Wiki / knowledge graph under /User...",
+      "objective": "Build an optional Andes RTL DB LLM Wiki / knowledge graph under /Users/brian/Desktop/andes and common_ai_agent integration so agents can consult it like pcie/nvme/ucie skills. Use pyslang AST-level extraction for RTL constructs including modules, ports, parameters, FSMs, datapaths, registers, memories, features, clocks, resets; convert existing docs into LLM wiki pages; support on/off via environment/config; provide reusable script and guide for other RTL DBs; verify with RED→GREEN tests and real usage scenarios.",
+      "status": "pending",
+      "successCriteria": [
+        {
+          "id": "C001",
+          "scenario": "happy path for: Build an optional Andes RTL DB LLM Wiki / knowledge graph under /Users/brian/...",
+          "userModel": "happy",
+          "expectedEvidence": "Replace via revise_criterion with observable happy-path proof for goal 1.",
+          "capturedEvidence": null,
+          "status": "pending"
+        },
+        {
+          "id": "C002",
+          "scenario": "edge case (boundary/empty/malformed)",
+          "userModel": "edge",
+          "expectedEvidence": "Replace via revise_criterion with boundary or malformed-input proof for: Build an optional Andes RTL DB LLM Wiki / knowledge graph under /Users/brian/....",
+          "capturedEvidence": null,
+          "status": "pending"
+        },
+        {
+          "id": "C003",
+          "scenario": "regression: adjacent surface still works",
+          "userModel": "regression",
+          "expectedEvidence": "Replace via revise_criterion with regression proof for neighboring behavior after: Build an optional Andes RTL DB LLM Wiki / knowledge graph under /Users/brian/....",
+          "capturedEvidence": null,
+          "status": "pending"
+        }
+      ],
+      "attempt": 0,
+      "createdAt": "2026-05-31T12:14:30.301Z",
+      "updatedAt": "2026-05-31T12:14:30.301Z"
+    }
+  ],
+  "codexObjective": "Complete the durable ulw-loop plan in .omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/goals.json, including later accepted/appended stories, under the original brief constraints; use .omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/ledger.jsonl as the audit trail."
+}
