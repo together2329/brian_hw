@@ -1,11 +1,3 @@
-[wiki/build_graph] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/doc/wiki/_graph.json: nodes=115 edges=491 types=4 tags=75 broken_refs=8
-  broken: atlas-vite-e2e-verification → [[project_ts_vite_tauri_cutover]]
-  broken: atlas-vite-e2e-verification → [[project_merge_broke_prompt_delivery]]
-  broken: sim-debug-module-signals-2026-05-30 → [[project_vite_env_stale_build]]
-  broken: testing-methodology → [[feedback_regression_test_per_bug]]
-  broken: testing-methodology → [[project_merge_broke_prompt_delivery]]
-  broken: testing-methodology → [[project_ts_vite_tauri_cutover]]
-  broken: testing-methodology → [[project_vite_env_stale_build]]
-  broken: testing-methodology → [[project_silent_pass_exposure]]
+[wiki/build_graph] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/doc/wiki/_graph.json: nodes=120 edges=509 types=5 tags=82 broken_refs=0
 
-TASK14_WIKI_GRAPH_RC=1
+TASK14_WIKI_GRAPH_RC=0

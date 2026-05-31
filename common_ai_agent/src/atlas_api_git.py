@@ -337,7 +337,6 @@ def register_git_routes(
 
     @app.post("/api/scm/edit")
     async def api_scm_edit(payload: dict[str, Any]):
-        # Open selected local paths for edit (p4 edit). Provider-specific (Perforce).
         body = payload or {}
         provider = str(body.get("provider") or "")
         paths = body.get("paths") or []

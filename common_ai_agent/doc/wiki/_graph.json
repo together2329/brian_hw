@@ -1,9 +1,9 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-05-31T12:02:26Z",
+  "generated_at": "2026-05-31T12:03:13Z",
   "root": "doc/wiki",
-  "node_count": 115,
-  "edge_count": 491,
+  "node_count": 120,
+  "edge_count": 509,
   "tags": {
     "atcdmac100": [
       "atcdmac100-document-flow-ui-honesty-20260518"
@@ -85,6 +85,8 @@
       "atlas-refactoring-exceptions"
     ],
     "frontend": [
+      "project_ts_vite_tauri_cutover",
+      "project_vite_env_stale_build",
       "sim-debug-waveform-renderer-2026-05-31",
       "workspace-jsx-decomposition-plan"
     ],
@@ -128,7 +130,8 @@
       "pl330-real-orchestrator-ui-lessons-20260517"
     ],
     "mutation": [
-      "mctp-assembler-scratch-flow-20260531"
+      "mctp-assembler-scratch-flow-20260531",
+      "project_silent_pass_exposure"
     ],
     "on-hold": [
       "orchestrator-loop-on-react-loop-plan"
@@ -179,6 +182,9 @@
     "production": [
       "multi-cycle-production-wiring-20260520"
     ],
+    "prompt-delivery": [
+      "project_merge_broke_prompt_delivery"
+    ],
     "pyslang": [
       "sim-debug-feature-review-2026-05-31"
     ],
@@ -192,6 +198,10 @@
       "atlas-refactoring-exceptions",
       "orchestrator-loop-on-react-loop-plan",
       "workspace-jsx-decomposition-plan"
+    ],
+    "regression": [
+      "feedback_regression_test_per_bug",
+      "project_merge_broke_prompt_delivery"
     ],
     "reviewed": [
       "orchestrator-loop-on-react-loop-plan"
@@ -220,6 +230,9 @@
     "silent-green": [
       "silent-pass-exposure-tb-stimulus-gap-20260520"
     ],
+    "silent-pass": [
+      "project_silent_pass_exposure"
+    ],
     "sim": [
       "atcwdt200-ssot-rtl-tb-flow-시행착오-2026-05-17"
     ],
@@ -241,14 +254,25 @@
       "orchestrator-singleworker-e2e-20260526",
       "ssot-conversion-flow-20260519"
     ],
+    "stale-build": [
+      "project_vite_env_stale_build"
+    ],
     "stimulus": [
       "silent-pass-exposure-tb-stimulus-gap-20260520"
+    ],
+    "tauri": [
+      "project_ts_vite_tauri_cutover"
     ],
     "tb-gen": [
       "atcwdt200-ssot-rtl-tb-flow-시행착오-2026-05-17"
     ],
     "testbench": [
       "silent-pass-exposure-tb-stimulus-gap-20260520"
+    ],
+    "testing": [
+      "feedback_regression_test_per_bug",
+      "project_merge_broke_prompt_delivery",
+      "project_silent_pass_exposure"
     ],
     "timeline": [
       "atlas-dag-ip-flow-runbook"
@@ -273,6 +297,10 @@
       "orchestrator-verification-report",
       "silent-pass-exposure-tb-stimulus-gap-20260520",
       "ssot-rtl-flow-verify-20260519"
+    ],
+    "vite": [
+      "project_ts_vite_tauri_cutover",
+      "project_vite_env_stale_build"
     ],
     "waveform": [
       "sim-debug-feature-review-2026-05-31",
@@ -372,6 +400,10 @@
       "orchestrator-workflow-bring-up-20260517",
       "parallel-todo-sub-agent-workers",
       "pipeline-progress-debugging",
+      "project_merge_broke_prompt_delivery",
+      "project_silent_pass_exposure",
+      "project_ts_vite_tauri_cutover",
+      "project_vite_env_stale_build",
       "provider-and-llm-call-accounting",
       "quad-spi-orch-run-20260517",
       "react-flow-adoption-20260529",
@@ -406,6 +438,9 @@
       "workflow-feedback-and-scheduling",
       "workflow-improvement-candidates",
       "workflow-ownership-and-boundaries"
+    ],
+    "rule": [
+      "feedback_regression_test_per_bug"
     ],
     "run": [
       "atcdmac100-document-flow-ui-honesty-20260518",
@@ -1113,12 +1148,12 @@
       ],
       "incoming": [
         "index",
+        "project_merge_broke_prompt_delivery",
+        "project_ts_vite_tauri_cutover",
+        "project_vite_env_stale_build",
         "testing-methodology"
       ],
-      "broken_refs": [
-        "project_ts_vite_tauri_cutover",
-        "project_merge_broke_prompt_delivery"
-      ],
+      "broken_refs": [],
       "updated": "",
       "summary": "One command that proves the vite/.tsx frontend **actually works in a real browser** (not just `tsc`/`build` passing — that gap shipped a white screen + \"no response\" before). Lives in `scripts/`, runs in isolation on a **test port (3019)** so it never touches a running app on `:3000`.",
       "path": "doc/wiki/atlas-vite-e2e-verification.md",
@@ -1356,6 +1391,29 @@
       "size_bytes": 6677
     },
     {
+      "id": "feedback_regression_test_per_bug",
+      "title": "Feedback Regression Test Per Bug",
+      "type": "rule",
+      "tags": [
+        "testing",
+        "regression"
+      ],
+      "related": [
+        "testing-methodology"
+      ],
+      "outgoing": [
+        "testing-methodology"
+      ],
+      "incoming": [
+        "testing-methodology"
+      ],
+      "broken_refs": [],
+      "updated": "2026-05-31",
+      "summary": "Every confirmed bug class should leave behind the smallest regression test that would have failed before the fix. Pick the layer that owns the failure: unit, workflow script, API, UI/E2E, or real worker smoke.",
+      "path": "doc/wiki/feedback_regression_test_per_bug.md",
+      "size_bytes": 346
+    },
+    {
       "id": "flow-fixes-r2-verify-20260519",
       "title": "Flow Fixes R2 Verification 2026-05-19 — Cross-Workspace cmux Chrome",
       "type": "reference",
@@ -1440,6 +1498,7 @@
         "babel-retirement-cutover-20260529",
         "index",
         "local-iproot-thin-llm-server-arch-20260529",
+        "project_ts_vite_tauri_cutover",
         "react-flow-adoption-20260529"
       ],
       "broken_refs": [],
@@ -2094,7 +2153,8 @@
       "incoming": [
         "atlas-test-feature-coverage",
         "atlas-test-hardening-2026-05-23",
-        "mctp-assembler-scratch-flow-20260531"
+        "mctp-assembler-scratch-flow-20260531",
+        "project_silent_pass_exposure"
       ],
       "broken_refs": [],
       "updated": "",
@@ -2619,6 +2679,115 @@
       "size_bytes": 11899
     },
     {
+      "id": "project_merge_broke_prompt_delivery",
+      "title": "Project Merge Broke Prompt Delivery",
+      "type": "reference",
+      "tags": [
+        "testing",
+        "regression",
+        "prompt-delivery"
+      ],
+      "related": [
+        "testing-methodology",
+        "atlas-vite-e2e-verification"
+      ],
+      "outgoing": [
+        "testing-methodology",
+        "atlas-vite-e2e-verification"
+      ],
+      "incoming": [
+        "atlas-vite-e2e-verification",
+        "testing-methodology"
+      ],
+      "broken_refs": [],
+      "updated": "2026-05-31",
+      "summary": "Stub node for the regression class where a merge or frontend/backend wiring change breaks prompt delivery while nearby checks stay green. Treat live \"hi\" response smoke as the minimum proof before trusting prompt-path changes.",
+      "path": "doc/wiki/project_merge_broke_prompt_delivery.md",
+      "size_bytes": 417
+    },
+    {
+      "id": "project_silent_pass_exposure",
+      "title": "Project Silent Pass Exposure",
+      "type": "reference",
+      "tags": [
+        "testing",
+        "mutation",
+        "silent-pass"
+      ],
+      "related": [
+        "silent-pass-exposure-tb-stimulus-gap-20260520",
+        "mutation-baseline-2026-05-23",
+        "testing-methodology"
+      ],
+      "outgoing": [
+        "silent-pass-exposure-tb-stimulus-gap-20260520",
+        "mutation-baseline-2026-05-23",
+        "testing-methodology"
+      ],
+      "incoming": [
+        "testing-methodology"
+      ],
+      "broken_refs": [],
+      "updated": "2026-05-31",
+      "summary": "Stub node for green-while-broken findings. Use [[silent-pass-exposure-tb-stimulus-gap-20260520]] and [[mutation-baseline-2026-05-23]] for the detailed workflow lesson.",
+      "path": "doc/wiki/project_silent_pass_exposure.md",
+      "size_bytes": 393
+    },
+    {
+      "id": "project_ts_vite_tauri_cutover",
+      "title": "Project TS/Vite/Tauri Cutover",
+      "type": "reference",
+      "tags": [
+        "frontend",
+        "vite",
+        "tauri"
+      ],
+      "related": [
+        "frontend-modernization-2026-05-29",
+        "atlas-vite-e2e-verification"
+      ],
+      "outgoing": [
+        "frontend-modernization-2026-05-29",
+        "atlas-vite-e2e-verification"
+      ],
+      "incoming": [
+        "atlas-vite-e2e-verification",
+        "testing-methodology"
+      ],
+      "broken_refs": [],
+      "updated": "2026-05-31",
+      "summary": "Stub node for existing wiki references. The active overview remains [[frontend-modernization-2026-05-29]]; this page exists so graph validation has a stable target for cutover-specific notes.",
+      "path": "doc/wiki/project_ts_vite_tauri_cutover.md",
+      "size_bytes": 375
+    },
+    {
+      "id": "project_vite_env_stale_build",
+      "title": "Project Vite Env Stale Build",
+      "type": "reference",
+      "tags": [
+        "frontend",
+        "vite",
+        "stale-build"
+      ],
+      "related": [
+        "atlas-vite-e2e-verification",
+        "sim-debug-module-signals-2026-05-30"
+      ],
+      "outgoing": [
+        "atlas-vite-e2e-verification",
+        "sim-debug-module-signals-2026-05-30"
+      ],
+      "incoming": [
+        "sim-debug-module-signals-2026-05-30",
+        "testing-methodology"
+      ],
+      "broken_refs": [],
+      "updated": "2026-05-31",
+      "summary": "Stub node for stale Vite/Tauri build symptoms where code changes are correct but the visible desktop/web surface still serves an old bundle. Verify the active bundle and relaunch path before debugging the wrong layer.",
+      "path": "doc/wiki/project_vite_env_stale_build.md",
+      "size_bytes": 408
+    },
+    {
       "id": "provider-and-llm-call-accounting",
       "title": "Provider And LLM Call Accounting",
       "type": "reference",
@@ -2814,6 +2983,7 @@
         "systematic-quality-gates-20260521"
       ],
       "incoming": [
+        "project_silent_pass_exposure",
         "systematic-quality-gates-20260521"
       ],
       "broken_refs": [],
@@ -2882,11 +3052,10 @@
       ],
       "incoming": [
         "index",
+        "project_vite_env_stale_build",
         "sim-debug-feature-review-2026-05-31"
       ],
-      "broken_refs": [
-        "project_vite_env_stale_build"
-      ],
+      "broken_refs": [],
       "updated": "",
       "summary": "Adds a per-module signal browser to the Sim Debug left panel: click a module in the RTL hierarchy tree and the bottom panel lists **that module's signals** — ports (with `in` / `out` / `inout` direction) plus internal nets/variables — filterable by direction, searchable by regex, and addable to the waveform.",
       "path": "doc/wiki/sim-debug-module-signals-2026-05-30.md",
@@ -3188,16 +3357,13 @@
         "project_silent_pass_exposure"
       ],
       "incoming": [
+        "feedback_regression_test_per_bug",
         "index",
+        "project_merge_broke_prompt_delivery",
+        "project_silent_pass_exposure",
         "uart-tx-end-to-end-findings-20260530"
       ],
-      "broken_refs": [
-        "feedback_regression_test_per_bug",
-        "project_merge_broke_prompt_delivery",
-        "project_ts_vite_tauri_cutover",
-        "project_vite_env_stale_build",
-        "project_silent_pass_exposure"
-      ],
+      "broken_refs": [],
       "updated": "",
       "summary": "> 핵심 교훈(2026-05-30, 비싸게 배움): **빌드/타입/유닛이 전부 green이어도 실제 앱은 흰화면·무응답일 수 있다.** 조각 테스트는 \"부품 OK\"만 보장하지, \"사용자가 실제로 쓸 수 있다\"를 보장하지 않는다. 그래서 **최상층(실브라우저 E2E)** 이 반드시 필요하다.",
       "path": "doc/wiki/testing-methodology.md",
