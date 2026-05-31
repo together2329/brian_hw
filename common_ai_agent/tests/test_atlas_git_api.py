@@ -215,7 +215,7 @@ def test_scm_edit_route_uses_perforce_adapter(tmp_path: Path, monkeypatch):
         seen["provider"] = provider
         return FakePerforceAdapter(root)
 
-    monkeypatch.setattr("src.atlas_api_git.resolve_scm_adapter", fake_resolve_scm_adapter)
+    monkeypatch.setattr("atlas_api_git.resolve_scm_adapter", fake_resolve_scm_adapter)
     client = _authenticated_client(_create_app(tmp_path, monkeypatch))
     response = client.post(
         "/api/scm/edit",

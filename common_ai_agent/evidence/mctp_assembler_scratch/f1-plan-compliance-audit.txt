@@ -1,0 +1,158 @@
+4:> **Summary**: Build a fresh `mctp_assembler_scratch` IP from the MCTP requirements, then drive it through the common_ai_agent SSOT -> FL/CL -> equivalence -> contract -> RTL -> TB -> sim -> coverage -> mutation -> signoff/audit flow. Existing `mctp_assembler/` artifacts are references only and must not be reused as evidence.
+6:> - Fresh scratch IP directory: `mctp_assembler_scratch/`
+54:- New IP slug is fixed to `mctp_assembler_scratch`.
+56:- Scratch `req/` must contain copied/derived requirements, source refs, and `approval_manifest.json`.
+57:- CL is generated through `workflow/fl-model-gen/scripts/emit_cycle_model.py`.
+58:- `derive_ip_contract` is required before TB/mutation/signoff.
+69:Create `mctp_assembler_scratch` from requirements and produce machine-checkable evidence that its SSOT, generated models, RTL, TB, simulation, coverage, mutation report, and signoff/audit artifacts are fresh and internally consistent.
+73:- `mctp_assembler_scratch/req/mctp_assembler_scratch_requirements.md`
+74:- `mctp_assembler_scratch/req/source_references.md`
+75:- `mctp_assembler_scratch/req/approval_manifest.json`
+76:- `mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.yaml`
+77:- `mctp_assembler_scratch/model/functional_model.py`
+78:- `mctp_assembler_scratch/model/cycle_model.py`
+79:- `mctp_assembler_scratch/model/fl_model_check.json`
+80:- `mctp_assembler_scratch/model/cl_model_check.json`
+81:- `mctp_assembler_scratch/verify/equivalence_goals.json`
+82:- `mctp_assembler_scratch/verify/ip_contract.json`
+83:- `mctp_assembler_scratch/rtl/*.sv`
+84:- `mctp_assembler_scratch/list/mctp_assembler_scratch.f`
+85:- `mctp_assembler_scratch/tb/cocotb/*`
+86:- `mctp_assembler_scratch/sim/results.xml`
+87:- `mctp_assembler_scratch/sim/scoreboard_events.jsonl`
+88:- `mctp_assembler_scratch/cov/coverage.json`
+89:- `mctp_assembler_scratch/mutation/mutation_report.json`
+90:- `mctp_assembler_scratch/signoff/ip_signoff.json`
+91:- `mctp_assembler_scratch/signoff/ip_signoff.md`
+98:test -d mctp_assembler_scratch
+99:test ! -e mctp_assembler_scratch/sim/scoreboard_events.jsonl || jq empty mctp_assembler_scratch/signoff/ip_signoff.json
+100:python3 workflow/ssot-gen/scripts/verify_ssot.py mctp_assembler_scratch --root . --mode signoff
+101:python3 workflow/fl-model-gen/scripts/emit_fl_model.py mctp_assembler_scratch --root .
+102:python3 workflow/fl-model-gen/scripts/emit_cycle_model.py mctp_assembler_scratch --root .
+103:python3 workflow/fl-model-gen/scripts/emit_equivalence_goals.py mctp_assembler_scratch --root .
+104:python3 workflow/ip-contract/scripts/derive_ip_contract.py mctp_assembler_scratch --root .
+105:python3 workflow/tb-gen/scripts/check_tb_python_compile.py mctp_assembler_scratch --root .
+106:python3 workflow/rtl-gen/scripts/rtl_compile_report.py mctp_assembler_scratch --root .
+107:python3 workflow/lint/scripts/dut_lint_report.py mctp_assembler_scratch --root .
+108:python3 mctp_assembler_scratch/tb/cocotb/test_runner.py
+109:python3 workflow/tb-gen/scripts/check_scoreboard_events.py mctp_assembler_scratch --root . --source-check --require-events
+110:python3 workflow/coverage/scripts/ssot_coverage_summary.py mctp_assembler_scratch --root .
+111:python3 workflow/mutation/scripts/mutation_guard.py mctp_assembler_scratch --root . --max-mutants 32
+112:python3 workflow/signoff/scripts/check_ip_signoff.py mctp_assembler_scratch --root .
+117:- `mctp_assembler_scratch/signoff/ip_signoff.json` exists and has `status`/`passed` equivalent indicating local evidence is complete, or it fails only on explicit human-production-signoff/waiver approval.
+118:- No required evidence path under `mctp_assembler_scratch/` has a timestamp older than its authority artifact after the final implementation change.
+147:- Evidence directory: use `evidence/mctp_assembler_scratch/` for command transcripts when commands do not already write machine-readable evidence.
+191:  **What to do**: Create `mctp_assembler_scratch/req/` from the current MCTP requirement discussion. Copy or derive content from `mctp_assembler/req/mctp_assembler_requirements.md` and `mctp_assembler/req/source_references.md`, but update names and paths to the scratch IP. Create `mctp_assembler_scratch/req/approval_manifest.json` with SHA256 for requirement and source-reference files. Record that existing `mctp_assembler/` artifacts are not authority.
+199:  - Pattern: `doc/wiki/golden-todo-evidence.md` - requirement approval needs `req/approval_manifest.json`.
+204:  - [ ] `mctp_assembler_scratch/req/mctp_assembler_scratch_requirements.md` exists and is over 10 KB.
+205:  - [ ] `mctp_assembler_scratch/req/source_references.md` exists and points to `artifacts/local/standards/DSP0236_1.3.3.pdf` and `artifacts/local/standards/DSP0238_1.4.0.pdf`.
+206:  - [ ] `mctp_assembler_scratch/req/approval_manifest.json` exists, parses as JSON, and contains SHA256 values for both req docs.
+207:  - [ ] `find mctp_assembler_scratch -maxdepth 2 -type f` shows only fresh `req/` files at this step.
+213:    Steps: test -f mctp_assembler_scratch/req/mctp_assembler_scratch_requirements.md && jq empty mctp_assembler_scratch/req/approval_manifest.json
+215:    Evidence: evidence/mctp_assembler_scratch/task-1-req-package.txt
+219:    Steps: find mctp_assembler_scratch -path '*/sim/*' -o -path '*/rtl/*' -o -path '*/tb/*'
+221:    Evidence: evidence/mctp_assembler_scratch/task-1-no-stale-artifacts.txt
+224:  **Commit**: YES | Message: `docs(mctp): seed scratch assembler requirements` | Files: `mctp_assembler_scratch/req/*`
+247:    Steps: "! rg -n 'TBD|TODO|integration-policy dependent' mctp_assembler_scratch/req/mctp_assembler_scratch_requirements.md"
+249:    Evidence: evidence/mctp_assembler_scratch/task-2-no-placeholders.txt
+253:    Steps: rg -n 'no AXI IDs|linear bump|SLVERR|formal proof optional' mctp_assembler_scratch/req/mctp_assembler_scratch_requirements.md
+255:    Evidence: evidence/mctp_assembler_scratch/task-2-defaults.txt
+258:  **Commit**: YES | Message: `docs(mctp): lock scratch assembler first-target decisions` | Files: `mctp_assembler_scratch/req/*`
+262:  **What to do**: Create `mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.yaml` from the approved req using the SSOT template and common-engine rules. Encode exact interfaces, parameters, APB register map, per-Q banks, state variables, drop IDs, SRAM packing rules, AXI read/write behavior, FL transactions, CL pipeline, coverage bins, workflow TODOs, and signoff criteria. Then run repair/verify scripts.
+272:  - Command: `workflow/ssot-gen/scripts/verify_ssot.py`
+275:  - [ ] `python3 workflow/ssot-gen/scripts/repair_ssot_schema.py mctp_assembler_scratch --root . --mode signoff` exits 0.
+276:  - [ ] `python3 workflow/ssot-gen/scripts/verify_ssot.py mctp_assembler_scratch --root . --mode signoff` exits 0.
+277:  - [ ] `mctp_assembler_scratch/req/ssot_validation.json` reports no blockers.
+284:    Steps: python3 workflow/ssot-gen/scripts/verify_ssot.py mctp_assembler_scratch --root . --mode signoff
+286:    Evidence: mctp_assembler_scratch/req/ssot_validation.json
+290:    Steps: "! rg -n 'replace before signoff|Repair marker|Auto-injected benign|Auto-injected transaction' mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.yaml"
+292:    Evidence: evidence/mctp_assembler_scratch/task-3-no-scaffold.txt
+295:  **Commit**: YES | Message: `feat(mctp): author scratch assembler ssot` | Files: `mctp_assembler_scratch/yaml/*`, `mctp_assembler_scratch/req/ssot_validation.json`
+306:  - Command: `workflow/fl-model-gen/scripts/emit_fl_model.py`
+307:  - Command: `workflow/fl-model-gen/scripts/emit_cycle_model.py`
+309:  - Command: `workflow/ip-contract/scripts/derive_ip_contract.py`
+313:  - [ ] `python3 workflow/fl-model-gen/scripts/emit_fl_model.py mctp_assembler_scratch --root .` exits 0.
+314:  - [ ] `python3 workflow/fl-model-gen/scripts/emit_cycle_model.py mctp_assembler_scratch --root .` exits 0.
+315:  - [ ] `python3 workflow/fl-model-gen/scripts/emit_equivalence_goals.py mctp_assembler_scratch --root .` exits 0.
+316:  - [ ] `python3 workflow/ip-contract/scripts/derive_ip_contract.py mctp_assembler_scratch --root .` exits 0.
+323:    Steps: python3 workflow/fl-model-gen/scripts/emit_fl_model.py mctp_assembler_scratch --root . && python3 workflow/fl-model-gen/scripts/emit_cycle_model.py mctp_assembler_scratch --root . && python3 workflow/fl-model-gen/scripts/emit_equivalence_goals.py mctp_assembler_scratch --root . && python3 workflow/ip-contract/scripts/derive_ip_contract.py mctp_assembler_scratch --root .
+325:    Evidence: evidence/mctp_assembler_scratch/task-4-model-chain.txt
+329:    Steps: rg -n 'axi|apb|sram|packet|ready_valid|bus_transaction' mctp_assembler_scratch/verify/ip_contract.json
+331:    Evidence: evidence/mctp_assembler_scratch/task-4-contract-capabilities.txt
+334:  **Commit**: YES | Message: `build(mctp): generate scratch assembler model contracts` | Files: `mctp_assembler_scratch/model/*`, `mctp_assembler_scratch/verify/*`, `mctp_assembler_scratch/cov/fcov_plan.json`
+339:  `mctp_assembler_scratch.sv`, `mctp_assembler_scratch_axi_write_ingress.sv`, `mctp_assembler_scratch_pcie_vdm_parser.sv`, `mctp_assembler_scratch_mctp_parser.sv`, `mctp_assembler_scratch_context_table.sv`, `mctp_assembler_scratch_sram_packer.sv`, `mctp_assembler_scratch_axi_read_egress.sv`, `mctp_assembler_scratch_sram_arbiter.sv`, `mctp_assembler_scratch_descriptor_queue.sv`, `mctp_assembler_scratch_apb_regfile.sv`, `mctp_assembler_scratch_cdc.sv`, and `mctp_assembler_scratch_param.vh`.
+351:  - [ ] `python3 workflow/rtl-gen/scripts/derive_rtl_todos.py mctp_assembler_scratch --root .` exits 0.
+352:  - [ ] `mctp_assembler_scratch/rtl/rtl_todo_plan.json` exists and includes every module above.
+359:    Steps: python3 workflow/rtl-gen/scripts/derive_rtl_todos.py mctp_assembler_scratch --root .
+361:    Evidence: mctp_assembler_scratch/rtl/rtl_todo_plan.json
+365:    Steps: rg -n 'axi_read_egress|sram_arbiter|descriptor_queue|context_table|apb_regfile' mctp_assembler_scratch/rtl/rtl_todo_plan.json
+367:    Evidence: evidence/mctp_assembler_scratch/task-5-rtl-module-todos.txt
+370:  **Commit**: YES | Message: `build(mctp): derive scratch assembler rtl todos` | Files: `mctp_assembler_scratch/rtl/rtl_todo_plan.json`
+374:  **What to do**: Implement RTL against the derived TODOs. Use the SSOT as binding authority. Implement AXI write burst collection, PCIe VDM/MCTP parsing, per-context FSM, per-context 32 B SRAM pack state, descriptor queue, AXI read SRAM bridge, APB register file, counters/interrupts, and CDC. Update `list/mctp_assembler_scratch.f`.
+387:  - [ ] `python3 workflow/rtl-gen/scripts/rtl_compile_report.py mctp_assembler_scratch --root .` exits 0 and `rtl/rtl_compile.json` passes.
+388:  - [ ] `python3 workflow/lint/scripts/dut_lint_report.py mctp_assembler_scratch --root .` exits 0 and `lint/dut_lint.json` passes with zero unwaived warnings/errors.
+389:  - [ ] `list/mctp_assembler_scratch.f` includes every required RTL module exactly once.
+396:    Steps: python3 workflow/rtl-gen/scripts/rtl_compile_report.py mctp_assembler_scratch --root .
+398:    Evidence: mctp_assembler_scratch/rtl/rtl_compile.json
+402:    Steps: python3 workflow/lint/scripts/dut_lint_report.py mctp_assembler_scratch --root .
+404:    Evidence: mctp_assembler_scratch/lint/dut_lint.json
+407:  **Commit**: YES | Message: `feat(mctp): implement scratch assembler rtl` | Files: `mctp_assembler_scratch/rtl/*`, `mctp_assembler_scratch/list/*`, `mctp_assembler_scratch/lint/*`
+424:  - [ ] `python3 workflow/tb-gen/scripts/emit_goal_scoreboard_cocotb.py mctp_assembler_scratch --root .` exits 0.
+425:  - [ ] `python3 workflow/tb-gen/scripts/check_tb_python_compile.py mctp_assembler_scratch --root .` exits 0.
+426:  - [ ] `tb/cocotb/tb_manifest.json` references only `mctp_assembler_scratch` paths.
+433:    Steps: python3 workflow/tb-gen/scripts/check_tb_python_compile.py mctp_assembler_scratch --root .
+435:    Evidence: mctp_assembler_scratch/tb/cocotb/tb_py_compile.json
+439:    Steps: "! rg -n 'mctp_assembler/' mctp_assembler_scratch/tb/cocotb/tb_manifest.json"
+441:    Evidence: evidence/mctp_assembler_scratch/task-7-no-stale-manifest.txt
+444:  **Commit**: YES | Message: `test(mctp): generate scratch assembler cocotb harness` | Files: `mctp_assembler_scratch/tb/*`, `mctp_assembler_scratch/tc/*`
+459:  - [ ] Scenario source file exists under `mctp_assembler_scratch/tc/`.
+467:    Steps: rg -n 'SC_VALID_SINGLE_PACKET|SC_MULTI_FRAGMENT_TU64|SC_MAX_TU_4096_129_BEATS|PD_MALFORMED_TLP|AD_TIMEOUT' mctp_assembler_scratch
+469:    Evidence: evidence/mctp_assembler_scratch/task-8-scenario-ids.txt
+473:    Steps: rg -n 'no_sram_write|sram_write_count.*0|payload_bytes_written.*0' mctp_assembler_scratch/tb mctp_assembler_scratch/tc
+475:    Evidence: evidence/mctp_assembler_scratch/task-8-drop-no-write.txt
+478:  **Commit**: YES | Message: `test(mctp): cover assembler drop and readback scenarios` | Files: `mctp_assembler_scratch/tb/*`, `mctp_assembler_scratch/tc/*`, `mctp_assembler_scratch/verify/*`
+489:  - Command: `python3 mctp_assembler_scratch/tb/cocotb/test_runner.py`
+494:  - [ ] `python3 mctp_assembler_scratch/tb/cocotb/test_runner.py` exits 0.
+497:  - [ ] `python3 workflow/tb-gen/scripts/check_scoreboard_events.py mctp_assembler_scratch --root . --source-check --require-events` exits 0.
+503:    Steps: tmux new-session -d -s ulw-qa-mctp-sim 'cd /Users/brian/Desktop/Project/brian_hw/common_ai_agent && python3 mctp_assembler_scratch/tb/cocotb/test_runner.py'; tmux capture-pane -pt ulw-qa-mctp-sim -S -2000
+505:    Evidence: evidence/mctp_assembler_scratch/task-9-sim-tmux.txt
+509:    Steps: python3 workflow/tb-gen/scripts/check_scoreboard_events.py mctp_assembler_scratch --root . --source-check --require-events
+511:    Evidence: evidence/mctp_assembler_scratch/task-9-scoreboard-schema.txt
+514:  **Commit**: YES | Message: `test(mctp): pass scratch assembler simulation scoreboard` | Files: `mctp_assembler_scratch/sim/*`, `mctp_assembler_scratch/tb/*`, owner-routed RTL/TB fixes
+529:  - [ ] `python3 workflow/coverage/scripts/ssot_coverage_summary.py mctp_assembler_scratch --root .` exits 0.
+538:    Steps: python3 workflow/coverage/scripts/ssot_coverage_summary.py mctp_assembler_scratch --root .
+540:    Evidence: mctp_assembler_scratch/cov/coverage.json
+544:    Steps: rg -n 'PD_MALFORMED_TLP|AD_SEQUENCE_MISMATCH|AXI_READBACK|SRAM_PACK_NO_HOLES|INTERLEAVE' mctp_assembler_scratch/cov/coverage.json
+546:    Evidence: evidence/mctp_assembler_scratch/task-10-coverage-bins.txt
+549:  **Commit**: YES | Message: `test(mctp): close scratch assembler coverage` | Files: `mctp_assembler_scratch/cov/*`, any owner-routed TB stimulus fixes
+564:  - [ ] `python3 workflow/sim_debug/scripts/audit_fl_rtl_equivalence_goal.py mctp_assembler_scratch --root .` exits 0 or fails only with explicit owner-classified blockers.
+572:    Steps: python3 workflow/sim_debug/scripts/audit_fl_rtl_equivalence_goal.py mctp_assembler_scratch --root .
+574:    Evidence: mctp_assembler_scratch/sim/fl_rtl_goal_audit.json
+578:    Steps: "! rg -n 'mctp_assembler/' mctp_assembler_scratch/sim/fl_rtl_goal_audit.json"
+580:    Evidence: evidence/mctp_assembler_scratch/task-11-no-stale-audit-path.txt
+583:  **Commit**: YES | Message: `test(mctp): pass scratch assembler goal audit` | Files: `mctp_assembler_scratch/sim/*`
+594:  - Command: `workflow/mutation/scripts/mutation_guard.py`
+598:  - [ ] `python3 workflow/mutation/scripts/mutation_guard.py mctp_assembler_scratch --root . --list-only` exits 0.
+599:  - [ ] `python3 workflow/mutation/scripts/mutation_guard.py mctp_assembler_scratch --root . --max-mutants 32` exits 0 or reports survived mutants with explicit harness-gap classification.
+607:    Steps: python3 workflow/mutation/scripts/mutation_guard.py mctp_assembler_scratch --root . --list-only
+609:    Evidence: evidence/mctp_assembler_scratch/task-12-mutation-list.txt
+613:    Steps: tmux new-session -d -s ulw-qa-mctp-mut 'cd /Users/brian/Desktop/Project/brian_hw/common_ai_agent && python3 workflow/mutation/scripts/mutation_guard.py mctp_assembler_scratch --root . --max-mutants 32'; tmux capture-pane -pt ulw-qa-mctp-mut -S -2000
+615:    Evidence: mctp_assembler_scratch/mutation/mutation_report.json
+618:  **Commit**: YES | Message: `test(mctp): record scratch assembler mutation depth` | Files: `mctp_assembler_scratch/mutation/*`, any owner-routed TB improvements
+629:  - Command: `workflow/signoff/scripts/check_ip_signoff.py`
+634:  - [ ] `python3 workflow/signoff/scripts/check_ip_signoff.py mctp_assembler_scratch --root .` exits 0 or fails only on explicit human-production-signoff.
+642:    Steps: python3 workflow/signoff/scripts/check_ip_signoff.py mctp_assembler_scratch --root .
+644:    Evidence: mctp_assembler_scratch/signoff/ip_signoff.json
+648:    Steps: "! rg -n 'mctp_assembler/' mctp_assembler_scratch/signoff/ip_signoff.json mctp_assembler_scratch/signoff/ip_signoff.md"
+650:    Evidence: evidence/mctp_assembler_scratch/task-13-no-stale-signoff.txt
+653:  **Commit**: YES | Message: `test(mctp): sign off scratch assembler locally` | Files: `mctp_assembler_scratch/signoff/*`, owner-routed evidence fixes
+679:    Evidence: evidence/mctp_assembler_scratch/task-14-wiki-graph.txt
+685:    Evidence: evidence/mctp_assembler_scratch/task-14-no-overclaim.txt
+688:  **Commit**: YES | Message: `docs(mctp): record scratch assembler audit flow` | Files: `doc/wiki/*`, `evidence/mctp_assembler_scratch/*`
+695:  - Command: `rg -n 'mctp_assembler_scratch|approval_manifest|verify_ssot|emit_fl_model|emit_cycle_model|derive_ip_contract|mutation_guard|check_ip_signoff' plans/mctp-assembler-req-to-audit-scratch.md`
+699:  - Command: `find mctp_assembler_scratch -maxdepth 3 -type f | sort`
+707:  - Command: `rg -n 'Flit Mode|ECRC checking|formal proof complete|PnR|DMTF conformance certified' mctp_assembler_scratch doc/wiki/mctp-assembler-scratch-flow-*.md`
+724:- Fresh scratch IP exists under `mctp_assembler_scratch/`.
+725:- Requirement approval is represented by `req/approval_manifest.json`.
+
+F1_PLAN_COMPLIANCE_RC=0

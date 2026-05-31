@@ -652,7 +652,7 @@ Wave 5: Tasks 13-14 and Final Verification. Signoff/audit bundle and wiki handof
 
   **Commit**: YES | Message: `test(mctp): sign off scratch assembler locally` | Files: `mctp_assembler_scratch/signoff/*`, owner-routed evidence fixes
 
-- [ ] 14. Record Wiki Handoff and Lessons
+- [x] 14. Record Wiki Handoff and Lessons
 
   **What to do**: Add a concise wiki page after local signoff summarizing the scratch MCTP flow, key decisions, commands, artifacts, mutation interpretation, and remaining non-blocking future work such as formal proof and PPA. Link it from `doc/wiki/index.md`.
 
