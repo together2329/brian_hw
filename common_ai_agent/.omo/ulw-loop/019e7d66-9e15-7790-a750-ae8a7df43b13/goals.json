@@ -1,7 +1,7 @@
 {
   "version": 1,
   "createdAt": "2026-05-31T11:45:39.180Z",
-  "updatedAt": "2026-05-31T11:59:19.307Z",
+  "updatedAt": "2026-05-31T12:22:39.768Z",
   "briefPath": ".omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/brief.md",
   "goalsPath": ".omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/goals.json",
   "ledgerPath": ".omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/ledger.jsonl",
@@ -18,8 +18,9 @@
           "scenario": "Browser use: start isolated p4d on localhost:16671 and Atlas on localhost:8792 with ATLAS_SCM_PROVIDER=perforce, ATLAS_SCM_ADAPTER_PERFORCE=core.scm_perforce:PerforceP4Adapter, P4PORT=localhost:16671, P4USER=atlasqa, P4CLIENT=atlas_ulw_c001; create QA IP ulw_p4_c001 with one submitted depot file and one new local file; open http://127.0.0.1:8792/?backend=live&ip=ulw_p4_c001, select SCM/Perforce tab, click Add for new file, click Edit for synced file, click Sync after local overwrite. PASS iff browser artifact shows pending add and edit actions and final synced file content equals depot content.",
           "userModel": "happy",
           "expectedEvidence": ".omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/evidence/C001-browser-add-edit-sync.json plus screenshot .png; automated RED/GREEN: frontend/atlas/__tests__/perforce-sync.test.tsx::renders Add Edit Sync controls and posts edit action; tests/test_scm_perforce_adapter.py::test_edit_paths_runs_p4_edit.",
-          "capturedEvidence": null,
-          "status": "pending"
+          "capturedEvidence": ".omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/evidence/C001-browser-add-edit-sync.json and .png show browser Add/Edit/Sync; assertions openedContainsAdd=true openedContainsEdit=true finalSyncContentMatchesDepot=true | cleanup: .omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/evidence/C001-cleanup.txt confirms atlas/p4 ports empty and QA dirs removed",
+          "status": "pass",
+          "capturedAt": "2026-05-31T12:22:39.768Z"
         },
         {
           "id": "C002",
@@ -40,7 +41,7 @@
       ],
       "attempt": 1,
       "createdAt": "2026-05-31T11:45:39.180Z",
-      "updatedAt": "2026-05-31T11:59:19.307Z",
+      "updatedAt": "2026-05-31T12:22:39.768Z",
       "startedAt": "2026-05-31T11:49:31.441Z"
     }
   ],

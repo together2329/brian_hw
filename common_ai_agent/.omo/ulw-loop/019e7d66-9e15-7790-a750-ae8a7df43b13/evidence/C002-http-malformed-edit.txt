@@ -1,0 +1,18 @@
+### request: malformed edit path traversal
+HTTP/1.1 200 OK
+date: Sun, 31 May 2026 12:22:56 GMT
+server: uvicorn
+content-length: 130
+content-type: application/json
+
+{"ok":false,"stdout":"","stderr":"","error":"no valid paths to edit/open","returncode":2,"provider":"perforce","ip":"ulw_p4_c002"}
+### pane after malformed edit
+HTTP/1.1 200 OK
+date: Sun, 31 May 2026 12:22:56 GMT
+server: uvicorn
+content-length: 353
+content-type: application/json
+
+{"ok":true,"provider":"perforce","root":"/Users/brian/Desktop/Project/brian_hw/common_ai_agent/ulw_p4_c002","client":"atlas_ulw_c002","stream":"//GOOD_SOC/GOOD_IP","head":"","local":[{"path":"yaml/ulw_p4_c002.ssot.yaml","state":"new"}],"depot":[],"pending":[],"ip":"ulw_p4_c002","cwd":"/Users/brian/Desktop/Project/brian_hw/common_ai_agent/ulw_p4_c002"}
+### p4 opened after malformed edit
+ulw_p4_c002/... - file(s) not opened on this client.

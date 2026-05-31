@@ -1,5 +1,5 @@
 {
-  "ok": false,
+  "ok": true,
   "baseUrl": "http://127.0.0.1:8792",
   "ip": "ulw_p4_c001",
   "p4": {
@@ -10,21 +10,82 @@
   "actions": [
     {
       "step": "goto",
-      "at": "2026-05-31T12:20:29.270Z",
+      "at": "2026-05-31T12:21:42.870Z",
       "url": "http://127.0.0.1:8792/?backend=live&ip=ulw_p4_c001"
     },
     {
       "step": "click_scm_tab",
-      "at": "2026-05-31T12:20:52.258Z",
+      "at": "2026-05-31T12:22:15.223Z",
       "count": 1
     },
     {
       "step": "perforce_tab_visible",
-      "at": "2026-05-31T12:20:52.267Z"
+      "at": "2026-05-31T12:22:15.268Z"
+    },
+    {
+      "step": "click_text",
+      "at": "2026-05-31T12:22:18.725Z",
+      "text": "rtl/new_file.sv",
+      "index": 0,
+      "count": 1
+    },
+    {
+      "step": "click_button",
+      "at": "2026-05-31T12:22:18.789Z",
+      "name": {},
+      "count": 1
+    },
+    {
+      "step": "add_completed",
+      "at": "2026-05-31T12:22:19.954Z"
+    },
+    {
+      "step": "click_text",
+      "at": "2026-05-31T12:22:19.976Z",
+      "text": "rtl/existing.sv",
+      "index": 0,
+      "count": 2
+    },
+    {
+      "step": "click_button",
+      "at": "2026-05-31T12:22:20.017Z",
+      "name": {},
+      "count": 1
+    },
+    {
+      "step": "edit_completed",
+      "at": "2026-05-31T12:22:20.595Z"
+    },
+    {
+      "step": "local_overwrite_written",
+      "at": "2026-05-31T12:22:20.596Z",
+      "syncTarget": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/ulw_p4_c001/rtl/sync_target.sv"
+    },
+    {
+      "step": "click_text",
+      "at": "2026-05-31T12:22:20.625Z",
+      "text": "rtl/sync_target.sv",
+      "index": 1,
+      "count": 2
+    },
+    {
+      "step": "click_button",
+      "at": "2026-05-31T12:22:20.675Z",
+      "name": {},
+      "count": 1
+    },
+    {
+      "step": "sync_completed",
+      "at": "2026-05-31T12:22:21.296Z"
+    },
+    {
+      "step": "screenshot",
+      "at": "2026-05-31T12:22:21.429Z",
+      "screenshotPath": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/.omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/evidence/C001-browser-add-edit-sync.png"
     },
     {
       "step": "browser_closed",
-      "at": "2026-05-31T12:20:52.713Z"
+      "at": "2026-05-31T12:22:21.523Z"
     }
   ],
   "responses": [
@@ -32,9 +93,45 @@
       "url": "http://127.0.0.1:8792/api/scm/pane?ip=ulw_p4_c001&provider=perforce",
       "method": "GET",
       "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:8792/api/scm/add",
+      "method": "POST",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:8792/api/scm/pane?ip=ulw_p4_c001&provider=perforce",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:8792/api/scm/edit",
+      "method": "POST",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:8792/api/scm/pane?ip=ulw_p4_c001&provider=perforce",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:8792/api/scm/sync",
+      "method": "POST",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:8792/api/scm/pane?ip=ulw_p4_c001&provider=perforce",
+      "method": "GET",
+      "status": 200
     }
   ],
-  "assertions": {},
-  "screenshotPath": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/.omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/evidence/C001-browser-add-edit-sync.png",
-  "error": "locator.waitFor: Error: strict mode violation: getByText('rtl/existing.sv', { exact: true }) resolved to 2 elements:\n    1) <span>rtl/existing.sv</span> aka getByText('rtl/existing.sv').first()\n    2) <span>rtl/existing.sv</span> aka getByText('rtl/existing.sv').nth(1)\n\nCall log:\n\u001b[2m  - waiting for getByText('rtl/existing.sv', { exact: true }) to be visible\u001b[22m\n\n    at /Users/brian/Desktop/Project/brian_hw/common_ai_agent/.omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/scripts/c001_browser_add_edit_sync.mjs:132:60"
+  "assertions": {
+    "initialRowsVisible": true,
+    "openedContainsAdd": true,
+    "openedContainsEdit": true,
+    "finalSyncContentMatchesDepot": true,
+    "p4Opened": "//GOOD_SOC/GOOD_IP/ulw_p4_c001/rtl/existing.sv#1 - edit default change (text)\n//GOOD_SOC/GOOD_IP/ulw_p4_c001/rtl/new_file.sv#1 - add default change (text)\n",
+    "finalSyncContent": "module sync_target; initial begin $display(\"DEPOT_SYNC_TARGET\"); end endmodule\n"
+  },
+  "screenshotPath": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/.omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/evidence/C001-browser-add-edit-sync.png"
 }

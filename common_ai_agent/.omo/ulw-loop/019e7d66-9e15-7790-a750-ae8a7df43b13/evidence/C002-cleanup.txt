@@ -1,0 +1,7 @@
+cleanup:
+- stopped atlas pid 99367
+- stopped p4d on localhost:16672
+- atlas port 8793 listeners: 0
+- p4 port 16672 listeners: 0
+- removed /Users/brian/Desktop/Project/brian_hw/common_ai_agent/ulw_p4_c002: yes
+- removed tmp /tmp/ulw-c002.sRHACm: yes
