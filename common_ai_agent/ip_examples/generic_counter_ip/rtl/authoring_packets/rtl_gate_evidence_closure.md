@@ -25,7 +25,7 @@
 - Evidence closure allowed: True
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 0
+- LLM-actionable open tasks: 2
 - Human-locked open tasks: 0
 - Owner refs: top_module, function_model, cycle_model
 - SSOT top IO contracts: 4
@@ -97,13 +97,13 @@ Owner: generic_counter_ip in rtl/generic_counter_ip.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: pass
+- Status: open
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.top_io_contract_evidence
 - Detail: The top wrapper must expose the SSOT-declared clock/reset and explicit IO ports. A compiling top with missing, renamed, or wrong-direction ports cannot close RTL generation.
 SSOT ref: quality_gates.rtl_gen.top_io_contract_evidence.
 Owner: generic_counter_ip in rtl/generic_counter_ip.sv via top_module.
-- Current reason: SSOT top IO contracts match the RTL top declaration.
+- Current reason: 1 top IO contract issue(s) remain. value: SSOT top IO port is missing from RTL top declaration
 - Criteria:
   - SSOT clock/reset names are declared on the RTL top module
   - Explicit io_list ports/signals are declared on the RTL top module
@@ -135,13 +135,13 @@ Owner: generic_counter_ip in rtl/generic_counter_ip.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: pass
+- Status: open
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.top_input_consumption_evidence
 - Detail: Declaring input ports is not enough. Each SSOT-declared non-clock/reset top input must feed real RTL logic, a procedural/control expression, or a declared child-module input/inout connection. Unused inputs require an explicit SSOT unused/reserved allowance.
 SSOT ref: quality_gates.rtl_gen.top_input_consumption_evidence.
 Owner: generic_counter_ip in rtl/generic_counter_ip.sv via top_module.
-- Current reason: SSOT top inputs have RTL consumption evidence.
+- Current reason: 1 top input consumption issue(s) remain. data_in: RTL top input is connected only to child ports without declared input/inout direction
 - Criteria:
   - Every non-clock/reset SSOT input/inout top contract has consumption evidence in the RTL top
   - Child-instance consumption evidence uses a declared child input/inout port, not an unknown direction

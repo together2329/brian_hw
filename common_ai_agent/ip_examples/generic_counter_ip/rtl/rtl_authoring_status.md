@@ -4,18 +4,22 @@
 
 - Top: generic_counter_ip
 - Packets: 4
-- LLM-actionable tasks: 0
+- LLM-actionable tasks: 2
 - Human-locked tasks: 0
-- Tool-evidence tasks: 2
+- Tool-evidence tasks: 3
 - Deferred human QA allowed: True
 - PASS allowed: False
 - Target scale locked: False
 - Pending connection-contract suggestions: 0
 - Recommended packet batch limit: 4
 
+## Next LLM Packets
+
+- rtl_gate_evidence_closure: rtl/authoring_packets/rtl_gate_evidence_closure.json (llm_open=2, human_locked=0)
+
 ## Tool Evidence Queue
 
-- rtl_gate_tool_evidence: tool_evidence=2, next_tool=ssot-rtl, json=rtl/authoring_packets/rtl_gate_tool_evidence.json
+- rtl_gate_tool_evidence: tool_evidence=3, next_tool=ssot-rtl, json=rtl/authoring_packets/rtl_gate_tool_evidence.json
 
 ## Rules
 

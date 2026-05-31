@@ -11,9 +11,9 @@
   "rtl_files": [
     "rtl/generic_counter_ip.sv"
   ],
-  "timestamp": "2026-05-31T11:52:04.705134+00:00",
-  "returncode": 0,
-  "errors": 0,
+  "timestamp": "2026-05-31T11:53:47.861131+00:00",
+  "returncode": 1,
+  "errors": 1,
   "warnings": 0,
   "waived_warnings": 0,
   "tool_results": [
@@ -21,11 +21,18 @@
       "tool": "pyslang",
       "available": true,
       "command": "pyslang rtl/generic_counter_ip.sv",
-      "returncode": 0,
-      "errors": 0,
+      "returncode": 1,
+      "errors": 1,
       "warnings": 0,
-      "diagnostics": [],
-      "passed": true
+      "diagnostics": [
+        {
+          "severity": "error",
+          "file": "generic_counter_ip/rtl/generic_counter_ip.sv",
+          "line": 12,
+          "message": "unknown module 'generic_counter_ip_core'"
+        }
+      ],
+      "passed": false
     },
     {
       "tool": "verilator",
@@ -43,5 +50,5 @@
   "style_violation_count": 0,
   "style_violations": [],
   "policy": "DUT RTL must be lint-clean without ad-hoc verilator lint_off/lint_on or -Wno suppressions, and generated RTL must keep .sv filenames while using the project SystemVerilog subset: input logic/output logic ports and internal logic are allowed; package/import/interface/modport/function/task/for/while/typedef/enum/always_ff/always_comb remain forbidden.",
-  "passed": true
+  "passed": false
 }

@@ -582,7 +582,7 @@ Wave 5: Tasks 13-14 and Final Verification. Signoff/audit bundle and wiki handof
 
   **Commit**: YES | Message: `test(mctp): pass scratch assembler goal audit` | Files: `mctp_assembler_scratch/sim/*`
 
-- [ ] 12. Run Mutation Guard with Category Reporting
+- [x] 12. Run Mutation Guard with Category Reporting
 
   **What to do**: Run mutation guard list-only first, then `--max-mutants 32`. Ensure report includes per-category kill-rate summary. For unsupported MCTP-specific categories, record explicit follow-up obligations rather than hiding them. Do not make mutation proof a functional correctness proof.
 

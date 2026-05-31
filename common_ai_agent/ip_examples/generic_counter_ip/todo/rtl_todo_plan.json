@@ -35,12 +35,12 @@
       "Gate: DUT-only lint report passes after the final RTL edit",
       "Gate: every required rtl_todo_plan item is closed before rtl-gen PASS"
     ],
-    "open_required_todos": 2,
+    "open_required_todos": 5,
     "orphan_tasks": 0,
     "static_missing": 0,
     "status": "fail"
   },
-  "generated_at": "2026-05-31T11:52:11Z",
+  "generated_at": "2026-05-31T11:53:48Z",
   "ip": "generic_counter_ip",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 0,
@@ -50,7 +50,9 @@
       "generic_counter_ip"
     ],
     "graph": {
-      "generic_counter_ip": []
+      "generic_counter_ip": [
+        "generic_counter_ip_core"
+      ]
     },
     "issues": [],
     "port_connection_issues": [],
@@ -102,31 +104,31 @@
   "rtl_implementation_depth_evidence": {
     "aggregate": {
       "behavior_owner_logic_modules": 1,
-      "control_flow": 1,
-      "depth_score": 13,
-      "instances": 0,
-      "lines": 25,
+      "control_flow": 0,
+      "depth_score": 2,
+      "instances": 1,
+      "lines": 19,
       "logic_modules": 1,
       "modules": 1,
-      "nonconstant_assigns": 2,
-      "procedural_blocks": 1,
+      "nonconstant_assigns": 0,
+      "procedural_blocks": 0,
       "source_files": 1,
-      "state_updates": 2,
-      "storage_decls": 3
+      "state_updates": 0,
+      "storage_decls": 0
     },
     "issues": [],
     "modules": [
       {
-        "depth_score": 13,
+        "depth_score": 2,
         "file": "rtl/generic_counter_ip.sv",
         "metrics": {
-          "control_flow": 1,
-          "instances": 0,
-          "nonconstant_assigns": 2,
+          "control_flow": 0,
+          "instances": 1,
+          "nonconstant_assigns": 0,
           "placeholder_tokens": false,
-          "procedural_blocks": 1,
-          "state_updates": 2,
-          "storage_decls": 3
+          "procedural_blocks": 0,
+          "state_updates": 0,
+          "storage_decls": 0
         },
         "module": "generic_counter_ip"
       }
@@ -535,9 +537,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_authoring_provenance.json"
         ],
-        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
+        "reason": "RTL authoring provenance proves common_ai_agent rtl-gen ownership.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -727,9 +729,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "SSOT top IO contracts match the RTL top declaration.",
+        "reason": "1 top IO contract issue(s) remain. value: SSOT top IO port is missing from RTL top declaration",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -821,9 +823,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "SSOT top inputs have RTL consumption evidence.",
+        "reason": "1 top input consumption issue(s) remain. data_in: RTL top input is connected only to child ports without declared input/inout direction",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -1058,9 +1060,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_compile.json"
         ],
-        "reason": "DUT-only compile artifact passed with zero errors, diagnostics, and style violations.",
+        "reason": "DUT compile artifact is not clean.",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -1108,9 +1110,9 @@
           "rtl_todo_plan.json task criteria",
           "lint/dut_lint.json"
         ],
-        "reason": "DUT-only lint artifact passed with zero errors, warnings, and suppression violations.",
+        "reason": "DUT lint artifact is not clean.",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -1155,7 +1157,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 required non-closure TODO(s) remain open.",
+        "reason": "4 required non-closure TODO(s) remain open.",
         "required": true,
         "status": "open"
       }
@@ -1569,53 +1571,100 @@
   "todo_completion": {
     "all_required_todos_pass": false,
     "audit_rtl": true,
-    "open_required_tasks": 2,
+    "open_required_tasks": 5,
     "open_tasks": [
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
-        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-        "task_id": "RTL-0006"
+        "reason": "1 top IO contract issue(s) remain. value: SSOT top IO port is missing from RTL top declaration",
+        "source_ref": "quality_gates.rtl_gen.top_io_contract_evidence",
+        "task_id": "RTL-0010"
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "1 required non-closure TODO(s) remain open.",
+        "reason": "1 top input consumption issue(s) remain. data_in: RTL top input is connected only to child ports without declared input/inout direction",
+        "source_ref": "quality_gates.rtl_gen.top_input_consumption_evidence",
+        "task_id": "RTL-0012"
+      },
+      {
+        "category": "rtl_gate.rtl_gen",
+        "reason": "DUT compile artifact is not clean.",
+        "source_ref": "quality_gates.rtl_gen.dut_compile",
+        "task_id": "RTL-0017"
+      },
+      {
+        "category": "rtl_gate.rtl_gen",
+        "reason": "DUT lint artifact is not clean.",
+        "source_ref": "quality_gates.rtl_gen.dut_lint",
+        "task_id": "RTL-0018"
+      },
+      {
+        "category": "rtl_gate.rtl_gen",
+        "reason": "4 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "task_id": "RTL-0019"
       }
     ],
-    "required_passed": 26,
+    "required_passed": 23,
     "required_total": 28,
     "rule": "rtl-gen may not claim PASS until every required SSOT-derived TODO has pass status."
   },
   "top": "generic_counter_ip",
   "top_input_consumption_evidence": {
     "checked": 1,
-    "consumed": 1,
-    "issues": [],
+    "consumed": 0,
+    "issues": [
+      {
+        "connections": [
+          {
+            "accepted": false,
+            "child_port": "data_in",
+            "direction": "",
+            "instance": "u_core",
+            "kind": "child_input_connection",
+            "module": "generic_counter_ip_core"
+          }
+        ],
+        "issue": "RTL top input is connected only to child ports without declared input/inout direction",
+        "port": "data_in",
+        "source_ref": "io_list.interfaces[0].ports[0]"
+      }
+    ],
     "roots": [
       "generic_counter_ip"
     ],
-    "status": "pass"
+    "status": "fail"
   },
   "top_io_contract_evidence": {
     "contracts": 4,
     "declared_top_ports": [
       "clk",
       "data_in",
+      "ready",
+      "result",
+      "result_valid",
       "rst_n",
-      "value"
+      "valid"
     ],
-    "issues": [],
+    "issues": [
+      {
+        "aliases": [
+          "result_out_value",
+          "value"
+        ],
+        "issue": "SSOT top IO port is missing from RTL top declaration",
+        "port": "value",
+        "source_ref": "io_list.interfaces[1].ports[0]"
+      }
+    ],
     "roots": [
       "generic_counter_ip"
     ],
-    "status": "pass",
+    "status": "fail",
     "top_parameters": {}
   },
   "top_output_drive_evidence": {
-    "checked": 1,
-    "driven": 1,
+    "checked": 0,
+    "driven": 0,
     "issues": [],
     "roots": [
       "generic_counter_ip"

@@ -85,9 +85,9 @@
     "evidence_closure_allowed": true,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
-    "llm_actionable": false,
-    "llm_actionable_open_count": 0,
-    "open_required_count": 0,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 2,
+    "open_required_count": 2,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
@@ -120,7 +120,7 @@
       "rtl_gate.rtl_gen": 9
     },
     "module_slice": {},
-    "open_required_count": 0,
+    "open_required_count": 2,
     "required_count": 9,
     "source_refs": [
       "quality_gates.rtl_gen.static_rtl_evidence",
@@ -134,7 +134,8 @@
       "quality_gates.rtl_gen.manifest_signal_flow_evidence"
     ],
     "status_counts": {
-      "pass": 9
+      "open": 2,
+      "pass": 7
     },
     "task_count": 9
   },
@@ -318,9 +319,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "SSOT top IO contracts match the RTL top declaration.",
+        "reason": "1 top IO contract issue(s) remain. value: SSOT top IO port is missing from RTL top declaration",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -408,9 +409,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "SSOT top inputs have RTL consumption evidence.",
+        "reason": "1 top input consumption issue(s) remain. data_in: RTL top input is connected only to child ports without declared input/inout direction",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {

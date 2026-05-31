@@ -11,12 +11,12 @@
   "rtl_files": [
     "rtl/generic_counter_ip.sv"
   ],
-  "timestamp": "2026-05-31T11:51:15Z",
-  "returncode": 0,
-  "errors": 0,
+  "timestamp": "2026-05-31T11:53:47Z",
+  "returncode": 2,
+  "errors": 1,
   "diagnostics": 0,
   "style_violations": 0,
   "style_violation_details": [],
-  "passed": true,
+  "passed": false,
   "policy": "returncode==0, no error/fatal/warning/sorry diagnostics, no procedural parameterized part-select style violations, and no generated-RTL policy violations: .sv filenames with SystemVerilog logic-port syntax, rtl/<ip>_param.vh for shared parameters, no package/import/interface/modport/function/task/for/while, and no typedef/enum/always_ff/always_comb"
 }

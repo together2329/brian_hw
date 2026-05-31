@@ -1,0 +1,5 @@
+rtl/generic_counter_ip.sv:12: error: Unknown module type: generic_counter_ip_core
+2 error(s) during elaboration.
+*** These modules were missing:
+        generic_counter_ip_core referenced 1 times.
+***
