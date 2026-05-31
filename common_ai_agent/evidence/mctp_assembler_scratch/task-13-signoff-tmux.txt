@@ -1,0 +1,24 @@
+[check_ip_signoff] status=fail gates={'total_gates': 15, 'passed': 12, 'failed':
+ 3, 'blocked': 0}
+[check_ip_signoff] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/m
+ctp_assembler_scratch/signoff/ip_signoff.json
+[check_ip_signoff] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/m
+ctp_assembler_scratch/signoff/ip_signoff.md
+TASK13_TMUX_SIGNOFF_RC=1
+status fail {'blocked': 0, 'failed': 3, 'passed': 12, 'total_gates': 15}
+routes {'coverage_owner_counts': {'sim_debug': 57}, 'coverage_routes': 57, 'fail
+ed_gates': ['rtl_todo', 'scoreboard', 'coverage'], 'fl_rtl_mismatches': 65, 'mis
+match_classification_counts': {'rtl_bug': 32, 'tb_bug': 33}, 'mismatch_owner_cou
+nts': {'rtl-gen': 32, 'tb-gen': 33}, 'mutation_mode': 'baseline_blocked', 'mutat
+ion_status': 'blocked_baseline', 'rtl_todo_open_required': 23, 'rtl_todo_static_
+missing': 19}
+
+
+
+
+
+
+
+
+
+
