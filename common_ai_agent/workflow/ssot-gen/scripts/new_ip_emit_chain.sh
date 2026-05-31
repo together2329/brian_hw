@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # new_ip_emit_chain.sh — after /to-ssot has produced <ip>/yaml/<ip>.ssot.yaml,
-# run the proven 4-step emit chain: FL model -> equivalence goals ->
-# cocotb scoreboard -> simulation.
+# run the proven emit chain: FL model -> equivalence goals ->
+# IP evidence contract -> cocotb scoreboard -> pre-sim TB Python compile ->
+# simulation.
 #
 # Usage:
 #   bash "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/new_ip_emit_chain.sh" <ip> [--root <ip-parent>] [--workflow-root <workflow-dir>] [--ip-root <ip-dir>]
@@ -113,9 +114,11 @@ step() {
     fi
 }
 
-step "1/4 emit_fl_model"          python3 "${WORKFLOW_ROOT}/fl-model-gen/scripts/emit_fl_model.py"          "$IP" --root "$ROOT"
-step "2/4 emit_equivalence_goals" python3 "${WORKFLOW_ROOT}/fl-model-gen/scripts/emit_equivalence_goals.py" "$IP" --root "$ROOT"
-step "3/4 emit_goal_scoreboard"   python3 "${WORKFLOW_ROOT}/tb-gen/scripts/emit_goal_scoreboard_cocotb.py"  "$IP" --root "$ROOT"
-step "4/4 cocotb sim"             python3 "${ROOT}/${IP}/tb/cocotb/test_runner.py"
+step "1/6 emit_fl_model"          python3 "${WORKFLOW_ROOT}/fl-model-gen/scripts/emit_fl_model.py"          "$IP" --root "$ROOT"
+step "2/6 emit_equivalence_goals" python3 "${WORKFLOW_ROOT}/fl-model-gen/scripts/emit_equivalence_goals.py" "$IP" --root "$ROOT"
+step "3/6 derive_ip_contract"     python3 "${WORKFLOW_ROOT}/ip-contract/scripts/derive_ip_contract.py"      "$IP" --root "$ROOT"
+step "4/6 emit_goal_scoreboard"   python3 "${WORKFLOW_ROOT}/tb-gen/scripts/emit_goal_scoreboard_cocotb.py"  "$IP" --root "$ROOT"
+step "5/6 tb_python_compile"      python3 "${WORKFLOW_ROOT}/tb-gen/scripts/check_tb_python_compile.py"       "$IP" --root "$ROOT"
+step "6/6 cocotb sim"             python3 "${ROOT}/${IP}/tb/cocotb/test_runner.py"
 
 echo "[emit-chain] done — inspect ${IP}/sim/scoreboard_events.jsonl and CL_COSIM line above"

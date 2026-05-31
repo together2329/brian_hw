@@ -1,0 +1,9 @@
+56:- There are no AXI IDs in the first target. The AXI write and AXI read interfaces accept one transaction at a time from a single upstream master.
+59:- The SRAM payload allocator is a linear bump allocator from `sram_base` to `sram_limit`.
+58:- AXI read requests to a payload range without a completed descriptor return zero data with `RRESP=SLVERR` unless `raw_sram_debug_read_enable` is set.
+163:- Reads outside the configured SRAM read window return `RRESP=SLVERR`.
+164:- Reads to a payload range that has no completed descriptor return zero data with `RRESP=SLVERR` unless `raw_sram_debug_read_enable` is set.
+770:- AXI read outside configured SRAM read window returns `SLVERR`.
+851:- Returning AXI `SLVERR` for malformed writes instead of accepting the AXI
+62:- formal proof optional: formal verification is a future workflow note and is not required for first local audit closure.
+PASS first-target defaults are present

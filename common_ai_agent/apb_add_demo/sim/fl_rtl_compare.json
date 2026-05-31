@@ -1,0 +1,231 @@
+{
+  "schema_version": 1,
+  "type": "fl_rtl_compare",
+  "ip": "apb_add_demo",
+  "generated_at": "2026-05-31T02:57:42Z",
+  "status": "pass",
+  "sources": {
+    "equivalence_goals": "apb_add_demo/verify/equivalence_goals.json",
+    "scoreboard_events": "apb_add_demo/sim/scoreboard_events.jsonl",
+    "results_xml": "apb_add_demo/sim/results.xml",
+    "coverage": "apb_add_demo/cov/coverage.json",
+    "fl_model_check": "apb_add_demo/model/fl_model_check.json"
+  },
+  "summary": {
+    "total": 20,
+    "goals_checked": 20,
+    "goals_passed": 20,
+    "goals_failed": 0,
+    "goals_blocked": 0,
+    "goals_untested": 0,
+    "scoreboard_events": 20,
+    "orphan_scoreboard_events": 0,
+    "missing_evidence": [],
+    "stale_evidence": [],
+    "stale_oracle_evidence": [],
+    "sim_results": {
+      "exists": true,
+      "total": 1,
+      "fail": 0,
+      "errors": 0,
+      "source": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/apb_add_demo/sim/results.xml",
+      "failures": 0
+    }
+  },
+  "goals": [
+    {
+      "goal_id": "EQ_TRANSACTION_FM_WRITE",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "function_apb_write",
+        "cycle_latency_apb_write"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM_IDLE",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "function_idle_or_read"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC1",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC1_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC2",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC2_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC3",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC3_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC4",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC4_executed"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_0",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "cycle_handshake_0",
+        "cycle_handshake_1"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "cycle_handshake_0",
+        "cycle_handshake_1"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_0",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "cycle_ordering_0"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_REGISTER_OPA",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC2_executed",
+        "SC3_executed",
+        "cycle_handshake_1",
+        "cycle_pipeline_s1_update",
+        "cycle_ordering_0"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_REGISTER_OPB",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC3_executed",
+        "cycle_handshake_1",
+        "cycle_pipeline_s1_update",
+        "cycle_ordering_0"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_ERROR_NONE",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "error_error_0"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_STATE_APB_PHASE_IDLE_TO_ACCESS_0",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "function_idle_or_read",
+        "cycle_ordering_0",
+        "fsm_apb_phase_idle_to_access_0",
+        "fsm_apb_phase_access_to_idle_1"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "function_idle_or_read",
+        "cycle_ordering_0",
+        "fsm_apb_phase_idle_to_access_0",
+        "fsm_apb_phase_access_to_idle_1"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_MODULE_APB_ADD_DEMO",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_APB_READ",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "cycle_latency_apb_read"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S0_DECODE",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "cycle_pipeline_s0_decode"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "cycle_backpressure_0"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "cycle_perf_frequency_mhz"
+      ],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "cycle_perf_throughput"
+      ],
+      "coverage_hit": null
+    }
+  ]
+}

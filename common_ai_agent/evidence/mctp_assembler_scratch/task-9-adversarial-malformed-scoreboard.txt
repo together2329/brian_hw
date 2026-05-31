@@ -1,0 +1,2 @@
+[check_scoreboard_events] FAIL: missing IP directory /Users/brian/Desktop/Project/brian_hw/common_ai_agent/no_such_ip_for_task9
+malformed_scoreboard_rc=1

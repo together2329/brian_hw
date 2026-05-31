@@ -197,6 +197,27 @@ function fmtBusValue(v: number | string | null | undefined, radix?: string): str
   return s;
 }
 
+function waveValueKey(v: number | string | null | undefined, isBus: boolean): string {
+  if (v == null) return '';
+  const s = String(v).replace(/_/g, '');
+  if (!s || /[xXzZ?]/.test(s)) return '';
+  try {
+    if (isBus && /^[01]+$/.test(s)) return BigInt('0b' + s).toString(10);
+    if (/^0x[0-9a-fA-F]+$/.test(s)) return BigInt(s).toString(10);
+    if (/^\d+$/.test(s)) return BigInt(s).toString(10);
+  } catch (_) {}
+  return '';
+}
+
+function fmtWaveValue(v: number | string | null | undefined, isBus: boolean, radix?: string, valueMap?: Record<string, string>): string {
+  if (valueMap && (radix === 'FSM' || radix === 'PARAM')) {
+    const label = valueMap[waveValueKey(v, isBus)];
+    if (label) return label;
+  }
+  if (isBus) return fmtBusValue(v, radix === 'DEC' || radix === 'BIN' ? radix : 'HEX');
+  return String(bitOf(v == null ? 'x' : v));
+}
+
 // Treat numeric (0/1) and string ('0'/'1') hi/lo identically so traces
 // from both MOCK_TRACES and the VCD parser render the same way.
 function bitOf(v: number | string): number | string {
@@ -230,9 +251,11 @@ interface BusWaveProps {
   trace?: Trace | null;
   width: number;
   radix?: string;
+  colorHint?: string;
+  valueMap?: Record<string, string>;
 }
 
-function BusWave({ trace, width, radix = 'HEX' }: BusWaveProps): ReactNode {
+function BusWave({ trace, width, radix = 'HEX', colorHint, valueMap }: BusWaveProps): ReactNode {
   if (!trace || trace.length === 0) return null;
   const yTop = WAVE_PAD_Y;
   const yBot = WAVE_HEIGHT - WAVE_PAD_Y;
@@ -244,12 +267,13 @@ function BusWave({ trace, width, radix = 'HEX' }: BusWaveProps): ReactNode {
     const nx = i + 1 < trace.length ? tToX(trace[i + 1][0], width) : width;
     const segW = Math.max(0, nx - x);
     const isX = String(v).includes('x') || String(v).includes('X');
-    // Verdi-style: bright cyan outline + transparent fill, red for X.
-    const fill = isX ? 'rgba(255, 82, 82, 0.18)' : 'rgba(77, 208, 225, 0.10)';
-    const stroke = isX ? '#ff5252' : '#4dd0e1';
+    // Verdi-style: bright outline + transparent fill, red for X. Honor
+    // per-signal/group color overrides for buses too, not only scalar paths.
+    const stroke = isX ? '#ff5252' : (colorHint || '#4dd0e1');
+    const fill = isX ? 'rgba(255, 82, 82, 0.18)' : `color-mix(in oklch, ${stroke} 14%, transparent)`;
     // Pretty-print the segment value: HEX preferred, drop the 0x for
     // segment labels (visually crowded) but keep it in tooltip.
-    const pretty = fmtBusValue(v, radix);
+    const pretty = fmtWaveValue(v, true, radix, valueMap);
     const labelInline = pretty.replace(/^0x/, '');
     // Hide label when segment is too narrow to fit any text.
     const showLabel = segW > 18;
@@ -266,6 +290,7 @@ function BusWave({ trace, width, radix = 'HEX' }: BusWaveProps): ReactNode {
         {showLabel && (
           <text x={(x + nx) / 2} y={(yTop + yBot) / 2 + 3.5}
                 textAnchor="middle"
+                style={!isX && colorHint ? { fill: colorHint } : undefined}
                 className={`bus-flag-text ${isX ? 'x' : ''}`}>
             {labelInline.length > Math.floor(segW / 7)
               ? labelInline.slice(0, Math.max(1, Math.floor(segW / 7) - 1)) + '…'
@@ -290,13 +315,12 @@ export interface WaveRowProps {
   onClick?: (e: MouseEvent<HTMLDivElement>) => void;
   onEdgeClick?: (edgeTime: number, e: MouseEvent<HTMLDivElement>) => void;
   colorHint?: string;
+  valueMap?: Record<string, string>;
 }
 
-export const WaveRow = ({ name, scope, trace, width, isBus, radix = 'HEX', selected, onClick, onEdgeClick, colorHint }: WaveRowProps) => {
+export const WaveRow = ({ name, scope, trace, width, isBus, radix = 'HEX', selected, onClick, onEdgeClick, colorHint, valueMap }: WaveRowProps) => {
   const lastVal = trace && trace.length > 0 ? trace[trace.length - 1][1] : '?';
-  const valStr = isBus
-    ? fmtBusValue(lastVal, radix)
-    : String(bitOf(lastVal));
+  const valStr = fmtWaveValue(lastVal, !!isBus, radix, valueMap);
   const valCls = String(lastVal).match(/[xX]/) ? 'x' : (String(lastVal).match(/[zZ]/) ? 'z' : '');
   const handleTrackClick = (e: MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
@@ -312,13 +336,13 @@ export const WaveRow = ({ name, scope, trace, width, isBus, radix = 'HEX', selec
       <div className="wave-name">
         <span className="scope-glyph">{isBus ? '═' : '─'}</span>
         <span>{name}</span>
-        {isBus && <span className="radix">{radix}</span>}
+        {isBus && <span className="radix">{radix === 'FSM' || radix === 'PARAM' ? 'PARAM' : radix}</span>}
       </div>
       <div className={`wave-val ${valCls}`}>{valStr}</div>
       <div className="wave-track wave-area" onClick={handleTrackClick} title="click a transition edge to move cursor B">
         <svg className="wave-svg" width={width} height={WAVE_HEIGHT}>
           {isBus ? (
-            <BusWave trace={trace} width={width} radix={radix} />
+            <BusWave trace={trace} width={width} radix={radix} colorHint={colorHint} valueMap={valueMap} />
           ) : (
             <path d={bitWavePath(trace, width)}
                   stroke={colorHint || '#7CFC4D'}

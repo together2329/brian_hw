@@ -1,0 +1,9 @@
+mctp_assembler_scratch/cov/fcov_plan.json
+mctp_assembler_scratch/model/cl_model_check.json
+mctp_assembler_scratch/model/cycle_model.py
+mctp_assembler_scratch/model/decomposition.json
+mctp_assembler_scratch/model/fl_model_check.json
+mctp_assembler_scratch/model/functional_model.py
+mctp_assembler_scratch/model/manifest.json
+mctp_assembler_scratch/verify/equivalence_goals.json
+mctp_assembler_scratch/verify/ip_contract.json

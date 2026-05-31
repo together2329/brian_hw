@@ -1,0 +1,29 @@
+[emit_goal_scoreboard_cocotb] wrote 8 Python files for mctp_assembler_scratch
+[emit_goal_scoreboard_cocotb] goals=91 rtl_sources=11
+[emit_goal_scoreboard_cocotb] runner=mctp_assembler_scratch/tb/cocotb/test_runner.py
+[check_tb_python_compile] PASS: compiled 9 file(s)
+[check_tb_python_compile] wrote mctp_assembler_scratch/tb/cocotb/tb_py_compile.json
+{
+  "passed": true,
+  "files": [
+    "mctp_assembler_scratch/tb/cocotb/__init__.py",
+    "mctp_assembler_scratch/tb/cocotb/agents.py",
+    "mctp_assembler_scratch/tb/cocotb/scoreboard.py",
+    "mctp_assembler_scratch/tb/cocotb/sequences.py",
+    "mctp_assembler_scratch/tb/cocotb/tb_coverage.py",
+    "mctp_assembler_scratch/tb/cocotb/test_mctp_assembler_scratch.py",
+    "mctp_assembler_scratch/tb/cocotb/test_runner.py",
+    "mctp_assembler_scratch/tb/cocotb/transactions.py",
+    "mctp_assembler_scratch/tb/cocotb/uvm_env.py"
+  ],
+  "errors": []
+}
+{
+  "ip": "mctp_assembler_scratch",
+  "top": "mctp_assembler_scratch",
+  "rtl_contract_source": "rtl_contract_json",
+  "goal_count": 91,
+  "module_goal_count": 9,
+  "outputs": 41,
+  "rtl_sources": 11
+}

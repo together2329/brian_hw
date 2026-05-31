@@ -412,9 +412,10 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("ip", help="IP directory/name, for example dma")
     parser.add_argument("--top", default=None, help="Top module name; defaults to IP name")
+    parser.add_argument("--root", default=".", help="Project root")
     args = parser.parse_args()
 
-    project_root = Path.cwd().resolve()
+    project_root = Path(args.root).resolve()
     ip_dir = (project_root / args.ip).resolve()
     ip_name = ip_dir.name
     top = args.top or ip_name

@@ -1,0 +1,137 @@
+{
+  "schema_version": "ip_wiki_graph.v1",
+  "generated_at": "2026-05-31T11:46:30Z",
+  "root": "fresh_web_timer_ip/wiki",
+  "node_count": 4,
+  "edge_count": 3,
+  "tags": {
+    "artifact": [
+      "filelist",
+      "rtl",
+      "ssot",
+      "tb"
+    ],
+    "rtl-gen": [
+      "filelist",
+      "rtl"
+    ],
+    "ssot": [
+      "ssot"
+    ],
+    "tb-gen": [
+      "tb"
+    ]
+  },
+  "types": {
+    "reference": [
+      "filelist",
+      "rtl",
+      "ssot",
+      "tb"
+    ]
+  },
+  "nodes": [
+    {
+      "id": "filelist",
+      "title": "fresh_web_timer_ip filelist",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "rtl-gen"
+      ],
+      "related": [
+        "rtl"
+      ],
+      "outgoing": [
+        "rtl"
+      ],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "2026-05-26T02:20:42Z",
+      "summary": "fresh_web_timer_ip.f size=63B",
+      "status": "present",
+      "digest": "fresh_web_timer_ip.f size=63B",
+      "path": "fresh_web_timer_ip/list/fresh_web_timer_ip.f",
+      "size_bytes": 63
+    },
+    {
+      "id": "rtl",
+      "title": "fresh_web_timer_ip RTL",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "rtl-gen"
+      ],
+      "related": [
+        "ssot",
+        "fl_model"
+      ],
+      "outgoing": [
+        "ssot",
+        "fl_model"
+      ],
+      "incoming": [
+        "filelist",
+        "tb"
+      ],
+      "broken_refs": [
+        "fl_model"
+      ],
+      "updated": "2026-05-26T02:20:42Z",
+      "summary": "files=1",
+      "status": "unknown",
+      "digest": "files=1",
+      "path": "fresh_web_timer_ip/rtl",
+      "size_bytes": 96
+    },
+    {
+      "id": "ssot",
+      "title": "fresh_web_timer_ip SSOT",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "ssot"
+      ],
+      "related": [],
+      "outgoing": [],
+      "incoming": [
+        "rtl"
+      ],
+      "broken_refs": [],
+      "updated": "2026-05-26T02:20:42Z",
+      "summary": "sections=36 size=44619B",
+      "status": "present",
+      "digest": "sections=36 size=44619B",
+      "path": "fresh_web_timer_ip/yaml/fresh_web_timer_ip.ssot.yaml",
+      "size_bytes": 44619
+    },
+    {
+      "id": "tb",
+      "title": "fresh_web_timer_ip Testbench",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "tb-gen"
+      ],
+      "related": [
+        "rtl",
+        "fl_model"
+      ],
+      "outgoing": [
+        "rtl",
+        "fl_model"
+      ],
+      "incoming": [],
+      "broken_refs": [
+        "fl_model"
+      ],
+      "updated": "2026-05-22T09:55:20Z",
+      "summary": "manifest=missing",
+      "status": "present",
+      "digest": "manifest=missing",
+      "path": "fresh_web_timer_ip/tb",
+      "size_bytes": 96
+    }
+  ],
+  "ip": "fresh_web_timer_ip"
+}

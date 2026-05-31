@@ -1,0 +1,5 @@
+RED: scenario source should be absent before Task 8 implementation
+scenario_source_rc=1
+RED: no-write assertions should be absent or incomplete before Task 8 implementation
+rg: mctp_assembler_scratch/tc: No such file or directory (os error 2)
+no_write_rg_rc=2

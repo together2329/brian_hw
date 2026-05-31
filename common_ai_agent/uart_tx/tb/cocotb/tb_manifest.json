@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "type": "generic_goal_scoreboard_cocotb_manifest",
+  "ip": "uart_tx",
+  "top": "uart_tx",
+  "generated_at": "2026-05-30T00:00:00Z",
+  "common_ai_agent_root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+  "ssot": "uart_tx/yaml/uart_tx.ssot.yaml",
+  "equivalence_goals": "uart_tx/verify/equivalence_goals.json",
+  "clock": "PCLK",
+  "reset": "PRESETn",
+  "reset_active": "low",
+  "rtl_sources": ["uart_tx/rtl/uart_tx.sv"],
+  "parameters": {
+    "APB_ADDR_WIDTH": 4,
+    "APB_DATA_WIDTH": 32,
+    "DIV_WIDTH": 16
+  }
+}

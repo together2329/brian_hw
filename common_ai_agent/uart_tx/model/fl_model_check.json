@@ -1,0 +1,184 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_check",
+  "ip": "uart_tx",
+  "source": "model/functional_model.py",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "checks": 4,
+    "failed": 0,
+    "transactions": 3,
+    "transaction_results": [
+      {
+        "id": "FM_TX_LOAD",
+        "name": "txdata_write_accepted",
+        "kind": "FM_TX_LOAD",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_TX_LOAD",
+          "transaction_name": "txdata_write_accepted",
+          "sample_accepted": 1,
+          "pready_rule": 1,
+          "PREADY": 1,
+          "pslverr_rule": 0,
+          "PSLVERR": 0,
+          "busy_rule": 1,
+          "tx_busy": 1,
+          "frame_rule": 518,
+          "tx_frame": 518,
+          "state_updates": {
+            "frame_q": 518,
+            "busy_q": 1,
+            "done_q": 0
+          }
+        }
+      },
+      {
+        "id": "FM_TX_IGNORE",
+        "name": "txdata_write_ignored",
+        "kind": "FM_TX_IGNORE",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_TX_IGNORE",
+          "transaction_name": "txdata_write_ignored",
+          "sample_accepted": 1,
+          "pready_rule": 1,
+          "PREADY": 1,
+          "pslverr_rule": 0,
+          "PSLVERR": 0,
+          "busy_rule": 1,
+          "tx_busy": 1,
+          "frame_rule": 518,
+          "tx_frame": 518,
+          "state_updates": {
+            "frame_q": 518,
+            "busy_q": 1
+          }
+        }
+      },
+      {
+        "id": "FM_IDLE",
+        "name": "idle_or_csr",
+        "kind": "FM_IDLE",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_IDLE",
+          "transaction_name": "idle_or_csr",
+          "sample_accepted": 1,
+          "pready_rule": 1,
+          "PREADY": 1,
+          "pslverr_rule": 0,
+          "PSLVERR": 0,
+          "busy_rule": 1,
+          "tx_busy": 1,
+          "prdata_rule": 0,
+          "PRDATA": 0,
+          "state_updates": {
+            "enable_q": 0,
+            "div_q": 4
+          }
+        }
+      }
+    ],
+    "unsupported_transaction_check": true,
+    "trace_entries": 4,
+    "coverage_bins": 29,
+    "invariants_total": 4,
+    "invariants_evaluated": 0,
+    "invariants_failed": [],
+    "invariants_skipped": [
+      {
+        "name": "Idle line is 1; tx_busy=0 when no frame ",
+        "expr": "Idle line is 1; tx_busy=0 when no frame in flight.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "frame = ((data<<1)|0x200)&0x3FF: bit0 is",
+        "expr": "frame = ((data<<1)|0x200)&0x3FF: bit0 is the start bit (0) sent first, bit9 the stop bit (1) sent last.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "PREADY=1 always, PSLVERR=0 always.",
+        "expr": "PREADY=1 always, PSLVERR=0 always.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "A TXDATA write while busy_q=1 or enable_",
+        "expr": "A TXDATA write while busy_q=1 or enable_q=0 does not change frame_q or busy_q.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      }
+    ],
+    "reset_consistency": true,
+    "reset_diff": {},
+    "error_cases_total": 0,
+    "error_cases_planned": 0
+  },
+  "decomposition_units": 6,
+  "fcov_bins": 29,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "uart_tx/req/",
+      "uart_tx/yaml/uart_tx.ssot.yaml",
+      "uart_tx/model/functional_model.py",
+      "uart_tx/cov/fcov_plan.json",
+      "uart_tx/yaml/uart_tx.ssot.yaml#io_list",
+      "uart_tx/yaml/uart_tx.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "uart_tx/rtl/",
+      "uart_tx/tb/",
+      "uart_tx/sim/",
+      "uart_tx/vectors/",
+      "uart_tx/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  }
+}

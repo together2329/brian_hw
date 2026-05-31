@@ -1,0 +1,3 @@
+debug_journal_absent=true
+help_dir_absent=true
+exit=0

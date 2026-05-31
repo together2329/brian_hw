@@ -2765,6 +2765,68 @@ def test_sim_debug_routes_missing_rtl_observable_to_tb_gen():
     assert classification["llm_loop_allowed"] is True
 
 
+def test_sim_debug_routes_undriven_abstract_required_fields_to_tb_gen():
+    comparator_mod = _load_module(COMPARATOR_PATH, "compare_fl_rtl_results_abstract_required_fields_under_test")
+
+    goal = {
+        "goal_id": "EQ_TRANSACTION_FM_PARSE_MCTP",
+        "ssot_refs": ["function_model.transactions[2]"],
+        "stimulus_contract": {
+            "transaction_type": "Decode MCTP transport header and context key",
+            "required_fields": [
+                "kind",
+                "source_eid",
+                "destination_eid",
+                "tag_owner",
+                "message_tag",
+                "message_type",
+                "packet_seq",
+                "som",
+                "eom",
+            ],
+        },
+    }
+    row = {
+        "goal_id": "EQ_TRANSACTION_FM_PARSE_MCTP",
+        "mismatch": "debug_context_key: expected=3587 observed=0",
+        "stimulus": {
+            "kind": "FM_PARSE_MCTP",
+            "source_eid": 3,
+            "destination_eid": 3,
+            "tag_owner": 3,
+            "message_tag": 3,
+            "message_type": 3,
+            "packet_seq": 3,
+            "som": 3,
+            "eom": 3,
+            "m_axi_wdata": 15,
+            "m_axi_wvalid": 1,
+        },
+        "fl_expected": {
+            "model_result": {
+                "transaction_id": "FM_PARSE_MCTP",
+                "transaction_name": "Decode MCTP transport header and context key",
+            }
+        },
+        "rtl_observed": {"debug_context_key": 0},
+    }
+    manifest = {
+        "input_ports": ["m_axi_wdata", "m_axi_wvalid"],
+        "input_map": {
+            "m_axi_wdata": "m_axi_wdata",
+            "m_axi_wvalid": "m_axi_wvalid",
+        },
+    }
+
+    classification = comparator_mod._classify_failure(goal, [row], row["mismatch"], manifest)
+
+    assert classification["classification"] == "tb_bug"
+    assert classification["owner"] == "tb-gen"
+    assert classification["llm_loop_allowed"] is True
+    assert "source_eid" in classification["reason"]
+    assert "protocol encoder or machine_spec" in classification["reason"]
+
+
 def test_goal_audit_passes_complete_equivalence_evidence(tmp_path: Path):
     ip = _write_goal_audit_complete_fixture(tmp_path)
 

@@ -18,7 +18,163 @@
 // Transitional: bridges to `window.*` at the bottom for not-yet-migrated .jsx.
 import { useState, useRef, useEffect, useMemo, Fragment } from 'react';
 import type { ReactNode, CSSProperties, MouseEvent as ReactMouseEvent } from 'react';
-import { annotationAxesForMode } from './sim-debug-helpers';
+import {
+  annotationAxesForMode,
+  VERILOG_KEYWORDS,
+  sourceLineIdentifiers,
+  stripSignalRange,
+  rawTimeToDisplay,
+  displayTimeToRaw,
+  resolveTimeDisplayUnit,
+  formatTimeDisplay,
+} from './sim-debug-helpers';
+
+const caretTextAtPoint = (clientX: number, clientY: number): { node: Node; offset: number } | null => {
+  const doc = document as Document & {
+    caretRangeFromPoint?: (x: number, y: number) => Range | null;
+    caretPositionFromPoint?: (x: number, y: number) => { offsetNode: Node; offset: number } | null;
+  };
+  if (doc.caretRangeFromPoint) {
+    const r = doc.caretRangeFromPoint(clientX, clientY);
+    if (r && r.startContainer.nodeType === 3) return { node: r.startContainer, offset: r.startOffset };
+  } else if (doc.caretPositionFromPoint) {
+    const p = doc.caretPositionFromPoint(clientX, clientY);
+    if (p && p.offsetNode.nodeType === 3) return { node: p.offsetNode, offset: p.offset };
+  }
+  return null;
+};
+
+interface SourcePoint {
+  line: number;
+  offset: number;
+  text: string;
+}
+
+const sourcePointAtPoint = (clientX: number, clientY: number): SourcePoint | null => {
+  const caret = caretTextAtPoint(clientX, clientY);
+  if (!caret) return null;
+  const parent = caret.node.parentElement;
+  const codeRoot = parent?.closest('[data-src-code]') as HTMLElement | null;
+  const lineRoot = codeRoot?.closest('[data-ln]') as HTMLElement | null;
+  if (!codeRoot || !lineRoot) return null;
+  const line = Number(lineRoot.getAttribute('data-ln') || 0);
+  if (!Number.isFinite(line) || line <= 0) return null;
+  const walker = document.createTreeWalker(codeRoot, NodeFilter.SHOW_TEXT);
+  let text = '';
+  let globalOffset = -1;
+  for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+    const s = n.textContent || '';
+    if (n === caret.node) globalOffset = text.length + Math.max(0, Math.min(caret.offset, s.length));
+    text += s;
+  }
+  return globalOffset >= 0 ? { line, offset: globalOffset, text } : null;
+};
+
+const signalAtSourceOffset = (text: string, offset: number): string => {
+  const re = /\b([A-Za-z_][A-Za-z0-9_$]*)\b(\s*\[[^\]\n]+\])?/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text))) {
+    const base = m[1];
+    const full = `${base}${m[2] ? m[2].replace(/\s+/g, '') : ''}`;
+    const start = m.index;
+    const end = m.index + m[0].length;
+    if (offset < start || offset > end) continue;
+    return VERILOG_KEYWORDS.has(base.toLowerCase()) ? '' : full;
+  }
+  return '';
+};
+
+// Resolve the signal under a mouse event inside highlighted source. Unlike a
+// plain identifier picker, this preserves a trailing Verilog bit/range select
+// (`irq_status_o[5:0]`) and also works when the click lands inside the range.
+const signalAtPoint = (clientX: number, clientY: number): string => {
+  const point = sourcePointAtPoint(clientX, clientY);
+  return point ? signalAtSourceOffset(point.text, point.offset) : '';
+};
+
+const sourceSignalsBetween = (lines: string[] | undefined, a: SourcePoint, b: SourcePoint): string[] => {
+  const src = Array.isArray(lines) ? lines : [];
+  const before = a.line < b.line || (a.line === b.line && a.offset <= b.offset) ? a : b;
+  const after = before === a ? b : a;
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (let lineNo = before.line; lineNo <= after.line; lineNo++) {
+    const text = src[lineNo - 1] || '';
+    const lo = lineNo === before.line ? Math.max(0, before.offset) : 0;
+    const hi = lineNo === after.line ? Math.max(lo, Math.min(after.offset, text.length)) : text.length;
+    const re = /\b([A-Za-z_][A-Za-z0-9_$]*)\b(\s*\[[^\]\n]+\])?/g;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(text))) {
+      const base = m[1];
+      const start = m.index;
+      const end = m.index + m[0].length;
+      if (end < lo || start > hi) continue;
+      if (VERILOG_KEYWORDS.has(base.toLowerCase())) continue;
+      const name = `${base}${m[2] ? m[2].replace(/\s+/g, '') : ''}`;
+      const key = name.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push(name);
+    }
+  }
+  return out;
+};
+
+const clearBrowserTextSelection = () => {
+  try { window.getSelection && window.getSelection()?.removeAllRanges(); } catch (_) {}
+};
+
+const sourceSelectionText = (root: HTMLElement | null): string => {
+  const sel = window.getSelection ? window.getSelection() : null;
+  const txt = String(sel || '');
+  if (!txt.trim()) return '';
+  if (!root || typeof sel?.rangeCount !== 'number' || typeof sel?.getRangeAt !== 'function') return txt;
+  for (let i = 0; i < sel.rangeCount; i++) {
+    const node = sel.getRangeAt(i).commonAncestorContainer;
+    const el = node.nodeType === 1 ? node : node.parentNode;
+    if (el && root.contains(el)) return txt;
+  }
+  return '';
+};
+
+const selectedSourceLeaf = (selectedSig?: string): string => {
+  const leaf = stripSignalRange(selectedSig || '').split('.').pop() || '';
+  if (!/^[A-Za-z_][A-Za-z0-9_$]*$/.test(leaf)) return '';
+  return VERILOG_KEYWORDS.has(leaf.toLowerCase()) ? '' : leaf;
+};
+
+const selectedSourceRange = (selectedSig?: string): string => {
+  const m = String(selectedSig || '').match(/(\[[^\]\n]+\])\s*$/);
+  return m ? m[1].replace(/\s+/g, '') : '';
+};
+
+const markSelectedSourceSignal = (html: string, selectedLeaf: string, selectedRange = ''): string => {
+  if (!selectedLeaf) return html;
+  const parts = html.split(/(<[^>]+>|&(?:[A-Za-z][A-Za-z0-9]+|#[0-9]+|#x[0-9A-Fa-f]+);)/g);
+  const plainAfter = (idx: number): string => {
+    let out = '';
+    for (let i = idx; i < parts.length && out.length < 80; i++) {
+      const p = parts[i] || '';
+      if (p.startsWith('<')) continue;
+      out += p;
+    }
+    return out;
+  };
+  return parts.map((part, idx) => {
+    if (!part || part.startsWith('<') || part.startsWith('&')) return part;
+    return part.replace(/\b([A-Za-z_][A-Za-z0-9_$]*)(\s*\[[^\]\n]+\])?/g, (match, word, directRange = '', pos) => {
+      if (word !== selectedLeaf) return match;
+      if (selectedRange) {
+        const normDirectRange = String(directRange || '').replace(/\s+/g, '');
+        const after = normDirectRange ? String(directRange) : part.slice(Number(pos) + word.length) + plainAfter(idx + 1);
+        const r = normDirectRange ? [String(directRange), String(directRange)] : after.match(/^\s*(\[[^\]\n]+\])/);
+        if (!r || r[1].replace(/\s+/g, '') !== selectedRange) return match;
+        if (normDirectRange) return `<span class="src-sig-hit">${word}${directRange}</span>`;
+      }
+      return `<span class="src-sig-hit">${word}</span>${directRange || ''}`;
+    });
+  }).join('');
+};
 
 // ── Cross-file globals owned by OTHER files / this family. Typed via a local
 // view of `window`; behavior identical to the legacy implicit globals.
@@ -455,22 +611,28 @@ interface RangeInputProps {
   effRange: [number, number];
   vcdData: RangeInputVcd | null | undefined;
   setViewRange: (range: [number, number]) => void;
+  timeDisplayUnit?: string;
 }
-const RangeInput = ({ effRange, vcdData, setViewRange }: RangeInputProps) => {
+const RangeInput = ({ effRange, vcdData, setViewRange, timeDisplayUnit = 'auto' }: RangeInputProps) => {
   const ts = vcdData ? vcdData.timescale : 'ns';
+  const unit = resolveTimeDisplayUnit(ts, timeDisplayUnit);
   const full = vcdData ? (vcdData.timeRange as [number, number]) : [0, 0];
   const fullSpan = (full[1] - full[0]) || 1;
   const viewSpan = effRange[1] - effRange[0];
   const zoomPct = (fullSpan / Math.max(1e-9, viewSpan)) * 100;
+  const displayStart = rawTimeToDisplay(effRange[0], ts, unit);
+  const displayEnd = rawTimeToDisplay(effRange[1], ts, unit);
+  const displaySpan = rawTimeToDisplay(viewSpan, ts, unit);
 
-  const [startTxt, setStartTxt] = useState(String(Math.round(effRange[0])));
-  const [endTxt,   setEndTxt]   = useState(String(Math.round(effRange[1])));
-  useEffect(() => { setStartTxt(String(Math.round(effRange[0]))); }, [effRange[0]]);
-  useEffect(() => { setEndTxt  (String(Math.round(effRange[1]))); }, [effRange[1]]);
+  const inputNumber = (n: number) => Number.isInteger(n) ? String(n) : n.toFixed(3).replace(/\.?0+$/, '');
+  const [startTxt, setStartTxt] = useState(inputNumber(displayStart));
+  const [endTxt,   setEndTxt]   = useState(inputNumber(displayEnd));
+  useEffect(() => { setStartTxt(inputNumber(displayStart)); }, [displayStart, unit]);
+  useEffect(() => { setEndTxt  (inputNumber(displayEnd)); }, [displayEnd, unit]);
 
   const commit = () => {
     if (!vcdData) return;
-    const a = Number(startTxt), b = Number(endTxt);
+    const a = displayTimeToRaw(startTxt, ts, unit), b = displayTimeToRaw(endTxt, ts, unit);
     if (Number.isNaN(a) || Number.isNaN(b)) return;
     const lo = Math.max(full[0], Math.min(a, b));
     const hi = Math.min(full[1], Math.max(a, b));
@@ -494,7 +656,7 @@ const RangeInput = ({ effRange, vcdData, setViewRange }: RangeInputProps) => {
       display: 'inline-flex', alignItems: 'center', gap: 4,
       marginRight: 8, fontFamily: 'var(--mono)', fontSize: 10,
       whiteSpace: 'nowrap',
-    }} title={`view ${effRange[0]}–${effRange[1]} ${ts}\nfull ${full[0]}–${full[1]} ${ts}\nzoom ${zoomPct.toFixed(0)}%`}>
+    }} title={`view ${formatTimeDisplay(effRange[0], ts, unit)}–${formatTimeDisplay(effRange[1], ts, unit)}\nfull ${formatTimeDisplay(full[0], ts, unit)}–${formatTimeDisplay(full[1], ts, unit)}\nraw VCD unit ${ts}\nzoom ${zoomPct.toFixed(0)}%`}>
       <span style={{ color: 'var(--fg-mute)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>view</span>
       <input
         type="number"
@@ -503,7 +665,7 @@ const RangeInput = ({ effRange, vcdData, setViewRange }: RangeInputProps) => {
         onBlur={commit}
         onKeyDown={e => {
           if (e.key === 'Enter') { (e.target as HTMLInputElement).blur(); }
-          if (e.key === 'Escape') { setStartTxt(String(Math.round(effRange[0]))); (e.target as HTMLInputElement).blur(); }
+          if (e.key === 'Escape') { setStartTxt(inputNumber(displayStart)); (e.target as HTMLInputElement).blur(); }
           e.stopPropagation();
         }}
         style={inputStyle}
@@ -516,17 +678,17 @@ const RangeInput = ({ effRange, vcdData, setViewRange }: RangeInputProps) => {
         onBlur={commit}
         onKeyDown={e => {
           if (e.key === 'Enter') { (e.target as HTMLInputElement).blur(); }
-          if (e.key === 'Escape') { setEndTxt(String(Math.round(effRange[1]))); (e.target as HTMLInputElement).blur(); }
+          if (e.key === 'Escape') { setEndTxt(inputNumber(displayEnd)); (e.target as HTMLInputElement).blur(); }
           e.stopPropagation();
         }}
         style={inputStyle}
       />
-      <span style={{ color: 'var(--fg-dim)' }}>{ts}</span>
+      <span style={{ color: 'var(--fg-dim)' }}>{unit}</span>
       <span style={{ color: 'var(--fg-dim)', marginLeft: 4 }}>
-        ({viewSpan.toFixed(0)}{ts}) · {zoomPct >= 100 ? `×${(zoomPct/100).toFixed(1)}` : `${zoomPct.toFixed(0)}%`}
+        ({inputNumber(displaySpan)}{unit}) · {zoomPct >= 100 ? `×${(zoomPct/100).toFixed(1)}` : `${zoomPct.toFixed(0)}%`}
       </span>
       <span style={{ color: 'var(--fg-mute)', marginLeft: 4 }}>
-        full {full[0]}–{full[1]}
+        full {formatTimeDisplay(full[0], ts, unit)}–{formatTimeDisplay(full[1], ts, unit)}
       </span>
     </span>
   );
@@ -541,17 +703,49 @@ interface SourceViewerProps {
   lines?: string[];
   cursor?: number;
   path?: string;
+  selectedSig?: string;
   vcdAnnotations?: Record<number, SourceViewerAnnotation[]>;
   vcdAnnotationAxis?: string;
+  // Clicking an identifier in the source picks it as the active signal; the
+  // host wires these to focus / add-to-wave / a right-click signal menu.
+  onPickSignal?: (name: string) => void;
+  onAddSignal?: (name: string) => void;
+  onSelectSignals?: (names: string[]) => void;
+  // selSignals = identifiers found in the current text selection (drag-select a
+  // code region → bulk-add all its signals).
+  onSignalContextMenu?: (name: string, x: number, y: number, selSignals?: string[]) => void;
 }
-const SourceViewer = ({ lines, cursor, path, vcdAnnotations = {}, vcdAnnotationAxis = 'both' }: SourceViewerProps) => {
+const SourceViewer = ({
+  lines, cursor, path, selectedSig, vcdAnnotations = {}, vcdAnnotationAxis = 'both',
+  onPickSignal, onAddSignal, onSelectSignals, onSignalContextMenu,
+}: SourceViewerProps) => {
+  // A click/right-click on an identifier resolves the word under the cursor and
+  // routes it to the matching handler. Keywords are ignored. Single-click only
+  // fires when there is no active text selection (so drag-to-copy still works).
+  const pickFromEvent = (clientX: number, clientY: number): string => {
+    const w = signalAtPoint(clientX, clientY);
+    return w && !VERILOG_KEYWORDS.has(stripSignalRange(w).toLowerCase()) ? w : '';
+  };
   const ref = useRef<HTMLDivElement>(null);
+  const textSelectModeRef = useRef(false);
+  const sourceDragRef = useRef<{
+    start: SourcePoint;
+    current: SourcePoint;
+    startX: number;
+    startY: number;
+    moved: boolean;
+  } | null>(null);
+  const semanticDragJustSelectedRef = useRef(false);
   // Bump on every Prism load so we re-render once the grammar arrives.
   const [grammarTick, setGrammarTick] = useState(0);
+  const [textSelectMode, setTextSelectMode] = useState(false);
+  const [sourceDragSignals, setSourceDragSignals] = useState<string[]>([]);
   const annotationAxes = useMemo(
     () => annotationAxesForMode(vcdAnnotationAxis),
     [vcdAnnotationAxis],
   );
+  const selectedLeaf = useMemo(() => selectedSourceLeaf(selectedSig), [selectedSig]);
+  const selectedRange = useMemo(() => selectedSourceRange(selectedSig), [selectedSig]);
 
   // Resolve language id from extension via window.PRISM_LANG_MAP.
   const ext = (path || '').match(/\.([a-zA-Z0-9]+)$/)?.[1]?.toLowerCase() || '';
@@ -560,7 +754,7 @@ const SourceViewer = ({ lines, cursor, path, vcdAnnotations = {}, vcdAnnotationA
   // Highlighted-per-line HTML. If Prism + the grammar are ready we run
   // it; otherwise we fall back to plain escaped text so the panel
   // never goes blank while the autoloader fetches.
-  const lineHTMLs = useMemo(() => {
+  const baseLineHTMLs = useMemo(() => {
     if (!lines || lines.length === 0) return [];
     const fullCode = lines.join('\n');
     const Prism = g.Prism;
@@ -578,6 +772,18 @@ const SourceViewer = ({ lines, cursor, path, vcdAnnotations = {}, vcdAnnotationA
       ln.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     );
   }, [lines, langId, grammarTick]);
+  const lineHTMLs = useMemo(() => {
+    let htmls = selectedLeaf
+      ? baseLineHTMLs.map(html => markSelectedSourceSignal(html, selectedLeaf, selectedRange))
+      : baseLineHTMLs;
+    for (const sig of sourceDragSignals) {
+      const leaf = selectedSourceLeaf(sig);
+      const range = selectedSourceRange(sig);
+      if (!leaf) continue;
+      htmls = htmls.map(html => markSelectedSourceSignal(html, leaf, range));
+    }
+    return htmls;
+  }, [baseLineHTMLs, selectedLeaf, selectedRange, sourceDragSignals]);
 
   useEffect(() => {
     if ((cursor || 0) > 0 && ref.current) {
@@ -595,10 +801,103 @@ const SourceViewer = ({ lines, cursor, path, vcdAnnotations = {}, vcdAnnotationA
     );
   }
   return (
-    <div ref={ref} className="src-viewer" style={{
+    <div
+      ref={ref}
+      className="src-viewer"
+      onMouseDownCapture={e => {
+        if (e.button !== 0) return;
+        const allowNativeSelection = e.altKey;
+        textSelectModeRef.current = allowNativeSelection;
+        setTextSelectMode(allowNativeSelection);
+        if (allowNativeSelection) return;
+        clearBrowserTextSelection();
+        e.preventDefault();
+        const start = sourcePointAtPoint(e.clientX, e.clientY);
+        if (!start) return;
+        setSourceDragSignals([]);
+        sourceDragRef.current = { start, current: start, startX: e.clientX, startY: e.clientY, moved: false };
+        const onMove = (ev: MouseEvent) => {
+          const drag = sourceDragRef.current;
+          if (!drag) return;
+          const next = sourcePointAtPoint(ev.clientX, ev.clientY);
+          if (!next) return;
+          drag.current = next;
+          if (Math.abs(ev.clientX - drag.startX) > 3 || Math.abs(ev.clientY - drag.startY) > 3) {
+            drag.moved = true;
+            setSourceDragSignals(sourceSignalsBetween(lines, drag.start, next));
+          }
+        };
+        const onUp = () => {
+          window.removeEventListener('mousemove', onMove);
+          window.removeEventListener('mouseup', onUp);
+          const drag = sourceDragRef.current;
+          sourceDragRef.current = null;
+          if (drag?.moved) {
+            semanticDragJustSelectedRef.current = true;
+            const picked = sourceSignalsBetween(lines, drag.start, drag.current);
+            setSourceDragSignals(picked);
+            if (picked.length && onSelectSignals) onSelectSignals(picked);
+            setTimeout(() => { semanticDragJustSelectedRef.current = false; }, 0);
+          }
+        };
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('mouseup', onUp);
+      }}
+      onMouseUpCapture={() => {
+        if (!textSelectModeRef.current) clearBrowserTextSelection();
+        setTimeout(() => {
+          textSelectModeRef.current = false;
+          setTextSelectMode(false);
+        }, 0);
+      }}
+      onDragStart={e => {
+        if (!textSelectModeRef.current) e.preventDefault();
+      }}
+      onClick={e => {
+        if (!onPickSignal) return;
+        if (semanticDragJustSelectedRef.current) {
+          semanticDragJustSelectedRef.current = false;
+          return;
+        }
+        if (window.getSelection && String(window.getSelection() || '').length) return; // don't fight drag-select
+        const w = pickFromEvent(e.clientX, e.clientY);
+        if (w) {
+          setSourceDragSignals([]);
+          onPickSignal(w);
+        }
+      }}
+      onDoubleClick={e => {
+        if (!onAddSignal) return;
+        const w = pickFromEvent(e.clientX, e.clientY);
+        if (w) {
+          setSourceDragSignals([]);
+          onAddSignal(w);
+        }
+      }}
+      onContextMenu={e => {
+        if (!onSignalContextMenu) return;
+        const w = pickFromEvent(e.clientX, e.clientY);
+        // Identifiers inside the current text selection → bulk add.
+        const selText = sourceSelectionText(ref.current);
+        const selSignals = sourceDragSignals.length
+          ? sourceDragSignals
+          : selText.trim()
+          ? sourceLineIdentifiers(selText).filter(s => !VERILOG_KEYWORDS.has(s.toLowerCase()))
+          : [];
+        if (!w && selSignals.length === 0) return;  // nothing actionable → native menu
+        e.preventDefault();
+        e.stopPropagation();  // own the menu; don't let an ancestor handler also fire
+        onSignalContextMenu(w, e.clientX, e.clientY, selSignals);
+        // We already captured selSignals above. Clear the native browser text
+        // selection so the source pane does not stay visually dimmed after the
+        // menu opens or focus moves to the waveform.
+        setTimeout(clearBrowserTextSelection, 0);
+      }}
+      style={{
       flex: 1, overflow: 'auto', padding: '6px 0',
       fontFamily: 'var(--mono)', fontSize: 'var(--ui-control-font-size)', lineHeight: 1.45,
       background: 'var(--panel)',
+      userSelect: textSelectMode ? 'text' : 'none',
     }}>
       {lineHTMLs.map((html, i) => {
         const lineNo = i + 1;
@@ -622,6 +921,7 @@ const SourceViewer = ({ lines, cursor, path, vcdAnnotations = {}, vcdAnnotationA
                 fontSize: 10,
               }}>{lineNo}</span>
               <span
+                data-src-code
                 style={{ whiteSpace: 'pre' }}
                 dangerouslySetInnerHTML={{ __html: html }}
               />

@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "type": "rtl_compile",
+  "scope": "dut",
+  "dut_only": true,
+  "tool": "iverilog",
+  "command": "iverilog -g2012 -Irtl -f list/mctp_assembler_scratch.f -s mctp_assembler_scratch -o /var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/mctp_assembler_scratch_rtl_check.vvp",
+  "cwd": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch",
+  "top": "mctp_assembler_scratch",
+  "filelist": "list/mctp_assembler_scratch.f",
+  "rtl_files": [
+    "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+    "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+    "rtl/mctp_assembler_scratch_mctp_parser.sv",
+    "rtl/mctp_assembler_scratch_context_table.sv",
+    "rtl/mctp_assembler_scratch_sram_packer.sv",
+    "rtl/mctp_assembler_scratch_descriptor_queue.sv",
+    "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+    "rtl/mctp_assembler_scratch_sram_arbiter.sv",
+    "rtl/mctp_assembler_scratch_apb_regfile.sv",
+    "rtl/mctp_assembler_scratch_cdc.sv",
+    "rtl/mctp_assembler_scratch.sv"
+  ],
+  "timestamp": "2026-05-31T11:05:15Z",
+  "returncode": 0,
+  "errors": 0,
+  "diagnostics": 0,
+  "style_violations": 0,
+  "style_violation_details": [],
+  "passed": true,
+  "policy": "returncode==0, no error/fatal/warning/sorry diagnostics, no procedural parameterized part-select style violations, and no generated-RTL policy violations: .sv filenames with SystemVerilog logic-port syntax, rtl/<ip>_param.vh for shared parameters, no package/import/interface/modport/function/task/for/while, and no typedef/enum/always_ff/always_comb"
+}

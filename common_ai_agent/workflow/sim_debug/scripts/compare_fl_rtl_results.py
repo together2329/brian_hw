@@ -355,7 +355,62 @@ def _apb_stimulus_contract_violation(rows: list[dict[str, Any]]) -> str:
     return ""
 
 
-def _classify_failure(goal: dict[str, Any], rows: list[dict[str, Any]], reason: str) -> dict[str, Any]:
+def _goal_looks_like_csr(goal: dict[str, Any], tx_type: str) -> bool:
+    text = " ".join(
+        str(item or "").lower()
+        for item in (
+            goal.get("goal_id"),
+            goal.get("kind"),
+            goal.get("title"),
+            tx_type,
+            goal.get("stimulus_contract"),
+        )
+    )
+    return any(token in text for token in ("apb", "csr", "register", "paddr", "psel", "penable"))
+
+
+def _abstract_stimulus_contract_gap(goal: dict[str, Any], rows: list[dict[str, Any]], manifest: Any = None) -> str:
+    if not isinstance(manifest, dict):
+        return ""
+    contract = goal.get("stimulus_contract") if isinstance(goal.get("stimulus_contract"), dict) else {}
+    if contract.get("machine_spec"):
+        return ""
+    required = [str(item) for item in contract.get("required_fields") or [] if str(item).strip()]
+    if not required:
+        return ""
+    tx_type = str(contract.get("transaction_type") or "")
+    if _goal_looks_like_csr(goal, tx_type):
+        return ""
+
+    input_map = manifest.get("input_map") if isinstance(manifest.get("input_map"), dict) else {}
+    input_ports = {str(item) for item in manifest.get("input_ports") or []}
+    sample_inputs = {str(item) for item in manifest.get("sample_inputs") or []}
+    metadata = {"kind", "scenario_id", "cycle", "observed_signals"}
+    undriven: list[str] = []
+    for field in required:
+        if field in metadata:
+            continue
+        mapped_port = input_map.get(field)
+        if mapped_port and str(mapped_port) in input_ports:
+            continue
+        if field in input_ports or field in sample_inputs:
+            continue
+        if any(isinstance(row.get("stimulus"), dict) and field in row["stimulus"] for row in rows):
+            undriven.append(field)
+    if not undriven:
+        return ""
+    scalar_fields = {"addr", "address", "data", "value", "op", "operation", "cmd", "command"}
+    if len(undriven) == 1 and undriven[0].lower() in scalar_fields:
+        return ""
+    preview = ", ".join(undriven[:8])
+    suffix = "" if len(undriven) <= 8 else f", ... +{len(undriven) - 8}"
+    return (
+        "TB stimulus carries FunctionalModel-only required fields that are not "
+        f"driven through input_map/input_ports and no protocol encoder or machine_spec is present: {preview}{suffix}"
+    )
+
+
+def _classify_failure(goal: dict[str, Any], rows: list[dict[str, Any]], reason: str, manifest: Any = None) -> dict[str, Any]:
     text = " ".join(
         [reason]
         + [str(r.get("mismatch") or r.get("error") or r.get("owner_hint") or "") for r in rows if isinstance(r, dict)]
@@ -372,6 +427,10 @@ def _classify_failure(goal: dict[str, Any], rows: list[dict[str, Any]], reason: 
         repair_reason = (
             f"{repair_reason}; {apb_stimulus_violation}" if repair_reason else apb_stimulus_violation
         )
+    abstract_stimulus_gap = _abstract_stimulus_contract_gap(goal, rows, manifest)
+    if abstract_stimulus_gap:
+        text = text + " " + abstract_stimulus_gap.lower() + " driver"
+        repair_reason = f"{repair_reason}; {abstract_stimulus_gap}" if repair_reason else abstract_stimulus_gap
     locked_change = (
         "change functionalmodel" in text
         or "functionalmodel change" in text
@@ -545,9 +604,11 @@ def compare(ip: str, root: Path) -> tuple[dict[str, Any], dict[str, Any]]:
     model_path = ip_dir / "model" / "functional_model.py"
     decomp_path = ip_dir / "model" / "decomposition.json"
     fcov_plan_path = ip_dir / "cov" / "fcov_plan.json"
+    tb_manifest_path = ip_dir / "tb" / "cocotb" / "tb_manifest.json"
 
     goals_doc = _load_json(goals_path)
     goals = _goal_map(goals_doc)
+    tb_manifest = _load_json(tb_manifest_path)
     rows = _load_jsonl(score_path)
     rows_by_goal: dict[str, list[dict[str, Any]]] = {gid: [] for gid in goals}
     orphan_rows: list[dict[str, Any]] = []
@@ -609,12 +670,12 @@ def compare(ip: str, root: Path) -> tuple[dict[str, Any], dict[str, Any]]:
             status = "blocked"
             blocked += 1
             reason = str(goal.get("blocker") or "equivalence goal is blocked by SSOT")
-            classifications.append(_classify_failure(goal, goal_rows, reason))
+            classifications.append(_classify_failure(goal, goal_rows, reason, tb_manifest))
         elif not goal_rows:
             status = "untested"
             untested += 1
             reason = "missing scoreboard evidence for goal"
-            classifications.append(_classify_failure(goal, goal_rows, reason))
+            classifications.append(_classify_failure(goal, goal_rows, reason, tb_manifest))
         else:
             checked += 1
             row_failures = [r for r in goal_rows if r.get("passed") is not True]
@@ -629,7 +690,7 @@ def compare(ip: str, root: Path) -> tuple[dict[str, Any], dict[str, Any]]:
                 status = "fail"
                 failed += 1
                 reason = str(row_failures[0].get("mismatch") or row_failures[0].get("error") or "scoreboard mismatch")
-                classifications.append(_classify_failure(goal, row_failures, reason))
+                classifications.append(_classify_failure(goal, row_failures, reason, tb_manifest))
             else:
                 status = "pass"
                 passed += 1

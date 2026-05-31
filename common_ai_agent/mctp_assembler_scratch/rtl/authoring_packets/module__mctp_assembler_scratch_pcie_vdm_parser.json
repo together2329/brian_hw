@@ -1,0 +1,1793 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 5,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 34,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+      "name": "mctp_assembler_scratch_pcie_vdm_parser",
+      "refs": [
+        "custom",
+        "custom.pcie_vdm_fields",
+        "error_handling",
+        "error_handling.packet_drop_ids",
+        "function_model",
+        "function_model.transactions.FM_ASSEMBLE_FRAGMENT",
+        "function_model.transactions.FM_FILTER_VDM"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "name": "mctp_assembler_scratch_axi_write_ingress",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "name": "mctp_assembler_scratch_pcie_vdm_parser",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_mctp_parser.sv",
+        "name": "mctp_assembler_scratch_mctp_parser",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_context_table.sv",
+        "name": "mctp_assembler_scratch_context_table",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "name": "mctp_assembler_scratch_sram_packer",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "name": "mctp_assembler_scratch_axi_read_egress",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
+        "name": "mctp_assembler_scratch_sram_arbiter",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_descriptor_queue.sv",
+        "name": "mctp_assembler_scratch_descriptor_queue",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+        "name": "mctp_assembler_scratch_apb_regfile",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_cdc.sv",
+        "name": "mctp_assembler_scratch_cdc",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_param.vh",
+        "name": "mctp_assembler_scratch_param",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch.sv",
+        "name": "mctp_assembler_scratch",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 34,
+    "open_required_count": 34,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "mctp_assembler_scratch",
+  "kind": "module",
+  "owner_file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+  "owner_module": "mctp_assembler_scratch_pcie_vdm_parser",
+  "packet_id": "module__mctp_assembler_scratch_pcie_vdm_parser",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "equivalence.module": 1,
+      "error_handling.recovery": 3,
+      "function_model.error_case": 4,
+      "function_model.output": 10,
+      "function_model.output_rule": 2,
+      "function_model.precondition": 2,
+      "function_model.state_update": 7,
+      "function_model.transaction": 2,
+      "workflow_todo.rtl_gen": 3
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 34,
+      "task_limit": 48
+    },
+    "open_required_count": 34,
+    "required_count": 34,
+    "source_refs": [
+      "workflow_todos.rtl-gen[1]",
+      "workflow_todos.rtl-gen[2]",
+      "workflow_todos.rtl-gen[3]",
+      "function_model.transactions.FM_FILTER_VDM",
+      "function_model.transactions.FM_FILTER_VDM.preconditions.precondition_0",
+      "function_model.transactions.FM_FILTER_VDM.outputs.output_0",
+      "function_model.transactions.FM_FILTER_VDM.outputs.output_1",
+      "function_model.transactions.FM_FILTER_VDM.outputs.packet_drop_count",
+      "function_model.transactions.FM_FILTER_VDM.outputs.ctx_last_drop_reason",
+      "function_model.transactions.FM_FILTER_VDM.output_rules.debug_vdm_valid",
+      "function_model.transactions.FM_FILTER_VDM.output_rules.debug_drop_pulse",
+      "function_model.transactions.FM_FILTER_VDM.state_updates.packet_drop_count",
+      "function_model.transactions.FM_FILTER_VDM.state_updates.ctx_last_drop_reason",
+      "function_model.transactions.FM_FILTER_VDM.error_cases.PD_MALFORMED_TLP",
+      "function_model.transactions.FM_FILTER_VDM.error_cases.PD_UNSUPPORTED_VDM",
+      "function_model.transactions.FM_ASSEMBLE_FRAGMENT",
+      "function_model.transactions.FM_ASSEMBLE_FRAGMENT.preconditions.precondition_0",
+      "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.output_0",
+      "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_state",
+      "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_valid",
+      "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_expected_seq",
+      "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.payload_byte_count",
+      "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_payload_byte_count",
+      "function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_state"
+    ],
+    "status_counts": {
+      "planned": 34
+    },
+    "task_count": 34
+  },
+  "tasks": [
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement parser, context table, SRAM packer, descriptor queue, read egress, APB regfile, SRAM arbiter, CDC, and parameter header.",
+      "criteria": [
+        "all_required_modules_in_filelist",
+        "no_missing_declared_module",
+        "per_q_state_visible",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[1]",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "Semantic source_refs covered: function_model.transactions, memory.instances, registers.per_q_bank, sub_modules"
+      ],
+      "detail": "Required modules from sub_modules and filelist must exist exactly once and satisfy function_model/state/register ownership.\nSSOT ref: workflow_todos.rtl-gen[1].\nOwner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.",
+      "evidence_terms": [],
+      "id": "RTL-0021",
+      "owner_file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+      "owner_module": "mctp_assembler_scratch_pcie_vdm_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[1]",
+      "ssot_context": {},
+      "ssot_refs": [
+        "function_model.transactions",
+        "memory.instances",
+        "registers.per_q_bank",
+        "sub_modules",
+        "workflow_todos.rtl-gen[1]"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      },
+      "workflow_todo": {
+        "id": "RTL_WORKFLOW_TODO_002",
+        "source_refs": [
+          "function_model.transactions",
+          "memory.instances",
+          "registers.per_q_bank",
+          "sub_modules"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement no-hole 256-bit SRAM payload packing.",
+      "criteria": [
+        "SC_UNALIGNED_SRAM_PACK_NO_HOLES_passes",
+        "sram_write_monitor_observes_no_holes",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[2]",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "Semantic source_refs covered: custom.sram_packing, dataflow.sram_pack, function_model.transactions.FM_SRAM_PACK_WRITE"
+      ],
+      "detail": "Each Q keeps partial_word_addr, partial_word_strobe, partial_word_valid, and partial_next_lane so fragments pack contiguously.\nSSOT ref: workflow_todos.rtl-gen[2].\nOwner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via custom.",
+      "evidence_terms": [],
+      "id": "RTL-0022",
+      "owner_file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+      "owner_module": "mctp_assembler_scratch_pcie_vdm_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[2]",
+      "ssot_context": {},
+      "ssot_refs": [
+        "custom.sram_packing",
+        "dataflow.sram_pack",
+        "function_model.transactions.FM_SRAM_PACK_WRITE",
+        "workflow_todos.rtl-gen[2]"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      },
+      "workflow_todo": {
+        "id": "RTL_WORKFLOW_TODO_003",
+        "source_refs": [
+          "custom.sram_packing",
+          "dataflow.sram_pack",
+          "function_model.transactions.FM_SRAM_PACK_WRITE"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement packet and assembly drop handling.",
+      "criteria": [
+        "all_drop_scenarios_pass",
+        "no_sram_write_on_drop",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[3]",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "Semantic source_refs covered: error_handling.error_sources, test_requirements.scenarios"
+      ],
+      "detail": "Every PD_* and AD_* reason must increment the correct counter, expose last reason, and suppress illegal SRAM writes or descriptors.\nSSOT ref: workflow_todos.rtl-gen[3].\nOwner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via error_handling.",
+      "evidence_terms": [],
+      "id": "RTL-0023",
+      "owner_file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+      "owner_module": "mctp_assembler_scratch_pcie_vdm_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[3]",
+      "ssot_context": {},
+      "ssot_refs": [
+        "error_handling.error_sources",
+        "test_requirements.scenarios",
+        "workflow_todos.rtl-gen[3]"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      },
+      "workflow_todo": {
+        "id": "RTL_WORKFLOW_TODO_004",
+        "source_refs": [
+          "error_handling.error_sources",
+          "test_requirements.scenarios"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_FILTER_VDM",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_FILTER_VDM",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_FILTER_VDM.\nOwner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_FILTER_VDM.\nSSOT item context: id=FM_FILTER_VDM; name=Validate PCIe VDM envelope for MCTP transport.",
+      "evidence_terms": [],
+      "id": "RTL-0146",
+      "owner_file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+      "owner_module": "mctp_assembler_scratch_pcie_vdm_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FILTER_VDM",
+      "ssot_context": {
+        "id": "FM_FILTER_VDM",
+        "name": "Validate PCIe VDM envelope for MCTP transport"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FILTER_VDM"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_FILTER_VDM: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FILTER_VDM.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FILTER_VDM.preconditions.precondition_0.\nOwner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_FILTER_VDM.\nSSOT item context: value=tlp_valid.",
+      "evidence_terms": [
+        "tlp",
+        "tlp_valid",
+        "valid"
+      ],
+      "id": "RTL-0147",
+      "owner_file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+      "owner_module": "mctp_assembler_scratch_pcie_vdm_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FILTER_VDM.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "tlp_valid"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FILTER_VDM.preconditions.precondition_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_FILTER_VDM: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FILTER_VDM.outputs.output_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FILTER_VDM.outputs.output_0.\nOwner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_FILTER_VDM.\nSSOT item context: value=debug_vdm_valid.",
+      "evidence_terms": [
+        "debug",
+        "debug_vdm_valid",
+        "valid",
+        "vdm"
+      ],
+      "id": "RTL-0148",
+      "owner_file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+      "owner_module": "mctp_assembler_scratch_pcie_vdm_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FILTER_VDM.outputs.output_0",
+      "ssot_context": {
+        "value": "debug_vdm_valid"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FILTER_VDM.outputs.output_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_FILTER_VDM: output_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FILTER_VDM.outputs.output_1",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FILTER_VDM.outputs.output_1.\nOwner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_FILTER_VDM.\nSSOT item context: value=debug_drop_pulse.",
+      "evidence_terms": [
+        "debug",
+        "debug_drop_pulse",
+        "drop",
+        "pulse"
+      ],
+      "id": "RTL-0149",
+      "owner_file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+      "owner_module": "mctp_assembler_scratch_pcie_vdm_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FILTER_VDM.outputs.output_1",
+      "ssot_context": {
+        "value": "debug_drop_pulse"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FILTER_VDM.outputs.output_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_FILTER_VDM: packet_drop_count",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FILTER_VDM.outputs.packet_drop_count",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "function_model.transactions.FM_FILTER_VDM.outputs.packet_drop_count RTL expression implements SSOT expression packet_drop_count + packet_drop_pulse"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FILTER_VDM.outputs.packet_drop_count.\nOwner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_FILTER_VDM.\nSSOT item context: state=packet_drop_count; expr=packet_drop_count + packet_drop_pulse.",
+      "evidence_terms": [
+        "count",
+        "drop",
+        "packet",
+        "packet_drop_count",
+        "packet_drop_pulse",
+        "pulse"
+      ],
+      "id": "RTL-0150",
+      "owner_file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+      "owner_module": "mctp_assembler_scratch_pcie_vdm_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FILTER_VDM.outputs.packet_drop_count",
+      "ssot_context": {
+        "expr": "packet_drop_count + packet_drop_pulse",
+        "state": "packet_drop_count"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FILTER_VDM.outputs.packet_drop_count"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_FILTER_VDM: ctx_last_drop_reason",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FILTER_VDM.outputs.ctx_last_drop_reason",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "function_model.transactions.FM_FILTER_VDM.outputs.ctx_last_drop_reason RTL expression implements SSOT expression packet_drop_reason"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FILTER_VDM.outputs.ctx_last_drop_reason.\nOwner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_FILTER_VDM.\nSSOT item context: state=ctx_last_drop_reason; expr=packet_drop_reason.",
+      "evidence_terms": [
+        "ctx",
+        "ctx_last_drop_reason",
+        "drop",
+        "last",
+        "packet",
+        "packet_drop_reason",
+        "reason"
+      ],
+      "id": "RTL-0151",
+      "owner_file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+      "owner_module": "mctp_assembler_scratch_pcie_vdm_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FILTER_VDM.outputs.ctx_last_drop_reason",
+      "ssot_context": {
+        "expr": "packet_drop_reason",
+        "state": "ctx_last_drop_reason"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FILTER_VDM.outputs.ctx_last_drop_reason"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_FILTER_VDM: debug_vdm_valid",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FILTER_VDM.output_rules.debug_vdm_valid",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "debug_vdm_valid width matches SSOT value 1",
+        "debug_vdm_valid RTL expression implements SSOT expression vdm_supported",
+        "DUT port debug_vdm_valid is the implementation/observation point for debug_vdm_valid",
+        "debug_vdm_valid is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FILTER_VDM.output_rules.debug_vdm_valid.\nOwner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_FILTER_VDM.\nSSOT item context: name=debug_vdm_valid; port=debug_vdm_valid; expr=vdm_supported; width=1.",
+      "evidence_terms": [
+        "debug",
+        "debug_vdm_valid",
+        "supported",
+        "valid",
+        "vdm",
+        "vdm_supported"
+      ],
+      "id": "RTL-0152",
+      "owner_file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+      "owner_module": "mctp_assembler_scratch_pcie_vdm_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FILTER_VDM.output_rules.debug_vdm_valid",
+      "ssot_context": {
+        "expr": "vdm_supported",
+        "name": "debug_vdm_valid",
+        "port": "debug_vdm_valid",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FILTER_VDM.output_rules.debug_vdm_valid"
+      ],
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_FILTER_VDM: debug_drop_pulse",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FILTER_VDM.output_rules.debug_drop_pulse",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "debug_drop_pulse width matches SSOT value 1",
+        "debug_drop_pulse RTL expression implements SSOT expression packet_drop_reason != DROP_NONE",
+        "DUT port debug_drop_pulse is the implementation/observation point for debug_drop_pulse",
+        "debug_drop_pulse is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FILTER_VDM.output_rules.debug_drop_pulse.\nOwner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_FILTER_VDM.\nSSOT item context: name=debug_drop_pulse; port=debug_drop_pulse; expr=packet_drop_reason != DROP_NONE; width=1.",
+      "evidence_terms": [
+        "DROP",
+        "DROP_NONE",
+        "NONE",
+        "debug",
+        "debug_drop_pulse",
+        "drop",
+        "packet",
+        "packet_drop_reason",
+        "pulse",
+        "reason"
+      ],
+      "id": "RTL-0153",
+      "owner_file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+      "owner_module": "mctp_assembler_scratch_pcie_vdm_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FILTER_VDM.output_rules.debug_drop_pulse",
+      "ssot_context": {
+        "expr": "packet_drop_reason != DROP_NONE",
+        "name": "debug_drop_pulse",
+        "port": "debug_drop_pulse",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FILTER_VDM.output_rules.debug_drop_pulse"
+      ],
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_FILTER_VDM: packet_drop_count",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FILTER_VDM.state_updates.packet_drop_count",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "packet_drop_count width matches SSOT value 32",
+        "packet_drop_count RTL expression implements SSOT expression packet_drop_count + packet_drop_pulse",
+        "packet_drop_count updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FILTER_VDM.state_updates.packet_drop_count.\nOwner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_FILTER_VDM.\nSSOT item context: name=packet_drop_count; expr=packet_drop_count + packet_drop_pulse; width=32.",
+      "evidence_terms": [
+        "count",
+        "drop",
+        "packet",
+        "packet_drop_count",
+        "packet_drop_pulse",
+        "pulse"
+      ],
+      "id": "RTL-0154",
+      "owner_file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+      "owner_module": "mctp_assembler_scratch_pcie_vdm_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FILTER_VDM.state_updates.packet_drop_count",
+      "ssot_context": {
+        "expr": "packet_drop_count + packet_drop_pulse",
+        "name": "packet_drop_count",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FILTER_VDM.state_updates.packet_drop_count"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_FILTER_VDM: ctx_last_drop_reason",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FILTER_VDM.state_updates.ctx_last_drop_reason",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "ctx_last_drop_reason width matches SSOT value 8",
+        "ctx_last_drop_reason RTL expression implements SSOT expression packet_drop_reason",
+        "ctx_last_drop_reason updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FILTER_VDM.state_updates.ctx_last_drop_reason.\nOwner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_FILTER_VDM.\nSSOT item context: name=ctx_last_drop_reason; expr=packet_drop_reason; width=8.",
+      "evidence_terms": [
+        "ctx",
+        "ctx_last_drop_reason",
+        "drop",
+        "last",
+        "packet",
+        "packet_drop_reason",
+        "reason"
+      ],
+      "id": "RTL-0155",
+      "owner_file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+      "owner_module": "mctp_assembler_scratch_pcie_vdm_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FILTER_VDM.state_updates.ctx_last_drop_reason",
+      "ssot_context": {
+        "expr": "packet_drop_reason",
+        "name": "ctx_last_drop_reason",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FILTER_VDM.state_updates.ctx_last_drop_reason"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_FILTER_VDM: PD_MALFORMED_TLP",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FILTER_VDM.error_cases.PD_MALFORMED_TLP",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "DUT port [\"debug_vdm_valid\", \"debug_drop_pulse\"] is the implementation/observation point for Validate PCIe VDM envelope for MCTP transport"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FILTER_VDM.error_cases.PD_MALFORMED_TLP.\nOwner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_FILTER_VDM.\nSSOT item context: id=FM_FILTER_VDM; name=Validate PCIe VDM envelope for MCTP transport; port=[\"debug_vdm_valid\", \"debug_drop_pulse\"]; signal=[{\"action\": \"no_sram_write_and_increment_packet_drop_count\", \"condition\": \"packet_drop_reason == 2\", \"id\": \"PD_MALFOR...; state=[\"packet_drop_count\", \"ctx_last_drop_reason\"].",
+      "evidence_terms": [
+        "MALFORMED",
+        "PD",
+        "PD_MALFORMED_TLP",
+        "TLP",
+        "count",
+        "ctx",
+        "ctx_last_drop_reason",
+        "debug",
+        "debug_drop_pulse",
+        "debug_vdm_valid",
+        "drop",
+        "increment",
+        "last",
+        "no_sram_write_and_increment_packet_drop_count",
+        "packet",
+        "packet_drop_count"
+      ],
+      "id": "RTL-0156",
+      "owner_file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+      "owner_module": "mctp_assembler_scratch_pcie_vdm_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FILTER_VDM.error_cases.PD_MALFORMED_TLP",
+      "ssot_context": {
+        "id": "FM_FILTER_VDM",
+        "name": "Validate PCIe VDM envelope for MCTP transport",
+        "port": "[\"debug_vdm_valid\", \"debug_drop_pulse\"]",
+        "signal": "[{\"action\": \"no_sram_write_and_increment_packet_drop_count\", \"condition\": \"packet_drop_reason == 2\", \"id\": \"PD_MALFOR...",
+        "state": "[\"packet_drop_count\", \"ctx_last_drop_reason\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FILTER_VDM.error_cases.PD_MALFORMED_TLP"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_FILTER_VDM: PD_UNSUPPORTED_VDM",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FILTER_VDM.error_cases.PD_UNSUPPORTED_VDM",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "DUT port [\"debug_vdm_valid\", \"debug_drop_pulse\"] is the implementation/observation point for Validate PCIe VDM envelope for MCTP transport"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FILTER_VDM.error_cases.PD_UNSUPPORTED_VDM.\nOwner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_FILTER_VDM.\nSSOT item context: id=FM_FILTER_VDM; name=Validate PCIe VDM envelope for MCTP transport; port=[\"debug_vdm_valid\", \"debug_drop_pulse\"]; signal=[{\"action\": \"no_sram_write_and_increment_packet_drop_count\", \"condition\": \"packet_drop_reason == 3\", \"id\": \"PD_UNSUPP...; state=[\"packet_drop_count\", \"ctx_last_drop_reason\"].",
+      "evidence_terms": [
+        "PD",
+        "PD_UNSUPPORTED_VDM",
+        "UNSUPPORTED",
+        "VDM",
+        "count",
+        "ctx",
+        "ctx_last_drop_reason",
+        "debug",
+        "debug_drop_pulse",
+        "debug_vdm_valid",
+        "drop",
+        "increment",
+        "last",
+        "no_sram_write_and_increment_packet_drop_count",
+        "packet",
+        "packet_drop_count"
+      ],
+      "id": "RTL-0157",
+      "owner_file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+      "owner_module": "mctp_assembler_scratch_pcie_vdm_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FILTER_VDM.error_cases.PD_UNSUPPORTED_VDM",
+      "ssot_context": {
+        "id": "FM_FILTER_VDM",
+        "name": "Validate PCIe VDM envelope for MCTP transport",
+        "port": "[\"debug_vdm_valid\", \"debug_drop_pulse\"]",
+        "signal": "[{\"action\": \"no_sram_write_and_increment_packet_drop_count\", \"condition\": \"packet_drop_reason == 3\", \"id\": \"PD_UNSUPP...",
+        "state": "[\"packet_drop_count\", \"ctx_last_drop_reason\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FILTER_VDM.error_cases.PD_UNSUPPORTED_VDM"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_ASSEMBLE_FRAGMENT",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_ASSEMBLE_FRAGMENT",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.\nOwner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.\nSSOT item context: id=FM_ASSEMBLE_FRAGMENT; name=Allocate or update a Q context for one MCTP fragment.",
+      "evidence_terms": [],
+      "id": "RTL-0175",
+      "owner_file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+      "owner_module": "mctp_assembler_scratch_pcie_vdm_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ASSEMBLE_FRAGMENT",
+      "ssot_context": {
+        "id": "FM_ASSEMBLE_FRAGMENT",
+        "name": "Allocate or update a Q context for one MCTP fragment"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ASSEMBLE_FRAGMENT"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_ASSEMBLE_FRAGMENT: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ASSEMBLE_FRAGMENT.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.preconditions.precondition_0.\nOwner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.\nSSOT item context: value=enable_reg and context_accept.",
+      "evidence_terms": [
+        "accept",
+        "context",
+        "context_accept",
+        "enable",
+        "enable_reg",
+        "reg"
+      ],
+      "id": "RTL-0176",
+      "owner_file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+      "owner_module": "mctp_assembler_scratch_pcie_vdm_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ASSEMBLE_FRAGMENT.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "enable_reg and context_accept"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ASSEMBLE_FRAGMENT.preconditions.precondition_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_ASSEMBLE_FRAGMENT: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.output_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.output_0.\nOwner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.\nSSOT item context: value=debug_context_id.",
+      "evidence_terms": [
+        "context",
+        "debug",
+        "debug_context_id",
+        "id"
+      ],
+      "id": "RTL-0177",
+      "owner_file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+      "owner_module": "mctp_assembler_scratch_pcie_vdm_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.output_0",
+      "ssot_context": {
+        "value": "debug_context_id"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.output_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_ASSEMBLE_FRAGMENT: ctx_state",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_state",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_state RTL expression implements SSOT expression STATE_ASSEMBLING"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_state.\nOwner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.\nSSOT item context: state=ctx_state; expr=STATE_ASSEMBLING.",
+      "evidence_terms": [
+        "ASSEMBLING",
+        "STATE_ASSEMBLING",
+        "ctx",
+        "ctx_state"
+      ],
+      "id": "RTL-0179",
+      "owner_file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+      "owner_module": "mctp_assembler_scratch_pcie_vdm_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_state",
+      "ssot_context": {
+        "expr": "STATE_ASSEMBLING",
+        "state": "ctx_state"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_state"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_ASSEMBLE_FRAGMENT: ctx_valid",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_valid",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_valid RTL expression implements SSOT expression context_accept"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_valid.\nOwner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.\nSSOT item context: state=ctx_valid; expr=context_accept.",
+      "evidence_terms": [
+        "accept",
+        "context",
+        "context_accept",
+        "ctx",
+        "ctx_valid",
+        "valid"
+      ],
+      "id": "RTL-0180",
+      "owner_file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+      "owner_module": "mctp_assembler_scratch_pcie_vdm_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_valid",
+      "ssot_context": {
+        "expr": "context_accept",
+        "state": "ctx_valid"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_valid"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_ASSEMBLE_FRAGMENT: ctx_expected_seq",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_expected_seq",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_expected_seq RTL expression implements SSOT expression next_seq"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_expected_seq.\nOwner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.\nSSOT item context: state=ctx_expected_seq; expr=next_seq.",
+      "evidence_terms": [
+        "ctx",
+        "ctx_expected_seq",
+        "expected",
+        "next",
+        "next_seq",
+        "seq"
+      ],
+      "id": "RTL-0181",
+      "owner_file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+      "owner_module": "mctp_assembler_scratch_pcie_vdm_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_expected_seq",
+      "ssot_context": {
+        "expr": "next_seq",
+        "state": "ctx_expected_seq"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_expected_seq"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_ASSEMBLE_FRAGMENT: payload_byte_count",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.payload_byte_count",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.payload_byte_count RTL expression implements SSOT expression payload_byte_count + payload_len"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.payload_byte_count.\nOwner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.\nSSOT item context: state=payload_byte_count; expr=payload_byte_count + payload_len.",
+      "evidence_terms": [
+        "byte",
+        "count",
+        "len",
+        "payload",
+        "payload_byte_count",
+        "payload_len"
+      ],
+      "id": "RTL-0182",
+      "owner_file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+      "owner_module": "mctp_assembler_scratch_pcie_vdm_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.payload_byte_count",
+      "ssot_context": {
+        "expr": "payload_byte_count + payload_len",
+        "state": "payload_byte_count"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.payload_byte_count"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_ASSEMBLE_FRAGMENT: ctx_payload_byte_count",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_payload_byte_count",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_payload_byte_count RTL expression implements SSOT expression ctx_payload_byte_count + payload_len"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_payload_byte_count.\nOwner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.\nSSOT item context: state=ctx_payload_byte_count; expr=ctx_payload_byte_count + payload_len.",
+      "evidence_terms": [
+        "byte",
+        "count",
+        "ctx",
+        "ctx_payload_byte_count",
+        "len",
+        "payload",
+        "payload_len"
+      ],
+      "id": "RTL-0183",
+      "owner_file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+      "owner_module": "mctp_assembler_scratch_pcie_vdm_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_payload_byte_count",
+      "ssot_context": {
+        "expr": "ctx_payload_byte_count + payload_len",
+        "state": "ctx_payload_byte_count"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_payload_byte_count"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_ASSEMBLE_FRAGMENT: ctx_state",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_state",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "ctx_state width matches SSOT value 2",
+        "ctx_state RTL expression implements SSOT expression STATE_ASSEMBLING",
+        "ctx_state updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_state.\nOwner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.\nSSOT item context: name=ctx_state; expr=STATE_ASSEMBLING; width=2.",
+      "evidence_terms": [
+        "ASSEMBLING",
+        "STATE_ASSEMBLING",
+        "ctx",
+        "ctx_state"
+      ],
+      "id": "RTL-0186",
+      "owner_file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+      "owner_module": "mctp_assembler_scratch_pcie_vdm_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_state",
+      "ssot_context": {
+        "expr": "STATE_ASSEMBLING",
+        "name": "ctx_state",
+        "width": "2"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_state"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_ASSEMBLE_FRAGMENT: ctx_valid",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_valid",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "ctx_valid width matches SSOT value 1",
+        "ctx_valid RTL expression implements SSOT expression context_accept",
+        "ctx_valid updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_valid.\nOwner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.\nSSOT item context: name=ctx_valid; expr=context_accept; width=1.",
+      "evidence_terms": [
+        "accept",
+        "context",
+        "context_accept",
+        "ctx",
+        "ctx_valid",
+        "valid"
+      ],
+      "id": "RTL-0187",
+      "owner_file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+      "owner_module": "mctp_assembler_scratch_pcie_vdm_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_valid",
+      "ssot_context": {
+        "expr": "context_accept",
+        "name": "ctx_valid",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_valid"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_ASSEMBLE_FRAGMENT: ctx_expected_seq",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_expected_seq",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "ctx_expected_seq width matches SSOT value 2",
+        "ctx_expected_seq RTL expression implements SSOT expression next_seq",
+        "ctx_expected_seq updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_expected_seq.\nOwner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.\nSSOT item context: name=ctx_expected_seq; expr=next_seq; width=2.",
+      "evidence_terms": [
+        "ctx",
+        "ctx_expected_seq",
+        "expected",
+        "next",
+        "next_seq",
+        "seq"
+      ],
+      "id": "RTL-0188",
+      "owner_file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+      "owner_module": "mctp_assembler_scratch_pcie_vdm_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_expected_seq",
+      "ssot_context": {
+        "expr": "next_seq",
+        "name": "ctx_expected_seq",
+        "width": "2"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_expected_seq"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_ASSEMBLE_FRAGMENT: payload_byte_count",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.payload_byte_count",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "payload_byte_count width matches SSOT value 13",
+        "payload_byte_count RTL expression implements SSOT expression payload_byte_count + payload_len",
+        "payload_byte_count updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.payload_byte_count.\nOwner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.\nSSOT item context: name=payload_byte_count; expr=payload_byte_count + payload_len; width=13.",
+      "evidence_terms": [
+        "byte",
+        "count",
+        "len",
+        "payload",
+        "payload_byte_count",
+        "payload_len"
+      ],
+      "id": "RTL-0189",
+      "owner_file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+      "owner_module": "mctp_assembler_scratch_pcie_vdm_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.payload_byte_count",
+      "ssot_context": {
+        "expr": "payload_byte_count + payload_len",
+        "name": "payload_byte_count",
+        "width": "13"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.payload_byte_count"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_ASSEMBLE_FRAGMENT: ctx_payload_byte_count",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_payload_byte_count",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "ctx_payload_byte_count width matches SSOT value 13",
+        "ctx_payload_byte_count RTL expression implements SSOT expression ctx_payload_byte_count + payload_len",
+        "ctx_payload_byte_count updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_payload_byte_count.\nOwner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.\nSSOT item context: name=ctx_payload_byte_count; expr=ctx_payload_byte_count + payload_len; width=13.",
+      "evidence_terms": [
+        "byte",
+        "count",
+        "ctx",
+        "ctx_payload_byte_count",
+        "len",
+        "payload",
+        "payload_len"
+      ],
+      "id": "RTL-0190",
+      "owner_file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+      "owner_module": "mctp_assembler_scratch_pcie_vdm_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_payload_byte_count",
+      "ssot_context": {
+        "expr": "ctx_payload_byte_count + payload_len",
+        "name": "ctx_payload_byte_count",
+        "width": "13"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_payload_byte_count"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_ASSEMBLE_FRAGMENT: AD_DUPLICATE_SOM",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ASSEMBLE_FRAGMENT.error_cases.AD_DUPLICATE_SOM",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "DUT port [\"debug_context_id\"] is the implementation/observation point for Allocate or update a Q context for one MCTP fragment"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.error_cases.AD_DUPLICATE_SOM.\nOwner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.\nSSOT item context: id=FM_ASSEMBLE_FRAGMENT; name=Allocate or update a Q context for one MCTP fragment; port=[\"debug_context_id\"]; signal=[{\"action\": \"no_sram_write_and_increment_assembly_drop_count\", \"condition\": \"assembly_drop_reason == 20\", \"id\": \"AD_D...; state=[\"active_context_count\", \"ctx_state\", \"ctx_valid\", \"ctx_expected_seq\", \"payload_byte_count\", \"ctx_payload_byte_count\"].",
+      "evidence_terms": [
+        "AD",
+        "AD_DUPLICATE_SOM",
+        "DUPLICATE",
+        "SOM",
+        "accept",
+        "active",
+        "active_context_count",
+        "alloc",
+        "assembly",
+        "assembly_drop_reason",
+        "byte",
+        "context",
+        "context_accept",
+        "context_alloc",
+        "context_id",
+        "count"
+      ],
+      "id": "RTL-0191",
+      "owner_file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+      "owner_module": "mctp_assembler_scratch_pcie_vdm_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ASSEMBLE_FRAGMENT.error_cases.AD_DUPLICATE_SOM",
+      "ssot_context": {
+        "id": "FM_ASSEMBLE_FRAGMENT",
+        "name": "Allocate or update a Q context for one MCTP fragment",
+        "port": "[\"debug_context_id\"]",
+        "signal": "[{\"action\": \"no_sram_write_and_increment_assembly_drop_count\", \"condition\": \"assembly_drop_reason == 20\", \"id\": \"AD_D...",
+        "state": "[\"active_context_count\", \"ctx_state\", \"ctx_valid\", \"ctx_expected_seq\", \"payload_byte_count\", \"ctx_payload_byte_count\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ASSEMBLE_FRAGMENT.error_cases.AD_DUPLICATE_SOM"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_ASSEMBLE_FRAGMENT: AD_SEQUENCE_MISMATCH",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ASSEMBLE_FRAGMENT.error_cases.AD_SEQUENCE_MISMATCH",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "DUT port [\"debug_context_id\"] is the implementation/observation point for Allocate or update a Q context for one MCTP fragment"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.error_cases.AD_SEQUENCE_MISMATCH.\nOwner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.\nSSOT item context: id=FM_ASSEMBLE_FRAGMENT; name=Allocate or update a Q context for one MCTP fragment; port=[\"debug_context_id\"]; signal=[{\"action\": \"no_sram_write_and_enter_error_state\", \"condition\": \"assembly_drop_reason == 21\", \"id\": \"AD_SEQUENCE_MISM...; state=[\"active_context_count\", \"ctx_state\", \"ctx_valid\", \"ctx_expected_seq\", \"payload_byte_count\", \"ctx_payload_byte_count\"].",
+      "evidence_terms": [
+        "AD",
+        "AD_SEQUENCE_MISMATCH",
+        "MISMATCH",
+        "SEQUENCE",
+        "accept",
+        "active",
+        "active_context_count",
+        "alloc",
+        "assembly",
+        "assembly_drop_reason",
+        "byte",
+        "context",
+        "context_accept",
+        "context_alloc",
+        "context_id",
+        "count"
+      ],
+      "id": "RTL-0192",
+      "owner_file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+      "owner_module": "mctp_assembler_scratch_pcie_vdm_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ASSEMBLE_FRAGMENT.error_cases.AD_SEQUENCE_MISMATCH",
+      "ssot_context": {
+        "id": "FM_ASSEMBLE_FRAGMENT",
+        "name": "Allocate or update a Q context for one MCTP fragment",
+        "port": "[\"debug_context_id\"]",
+        "signal": "[{\"action\": \"no_sram_write_and_enter_error_state\", \"condition\": \"assembly_drop_reason == 21\", \"id\": \"AD_SEQUENCE_MISM...",
+        "state": "[\"active_context_count\", \"ctx_state\", \"ctx_valid\", \"ctx_expected_seq\", \"payload_byte_count\", \"ctx_payload_byte_count\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ASSEMBLE_FRAGMENT.error_cases.AD_SEQUENCE_MISMATCH"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "error_handling.recovery",
+      "content": "Implement error/fault item packet_drop",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref error_handling.recovery.packet_drop",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv"
+      ],
+      "detail": "This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: error_handling.recovery.packet_drop.\nOwner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via error_handling.\nSSOT item context: name=packet_drop; value=next_packet_can_be_accepted_when_resources_available.",
+      "evidence_terms": [],
+      "id": "RTL-0396",
+      "owner_file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+      "owner_module": "mctp_assembler_scratch_pcie_vdm_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "error_handling.recovery.packet_drop",
+      "ssot_context": {
+        "name": "packet_drop",
+        "value": "next_packet_can_be_accepted_when_resources_available"
+      },
+      "ssot_refs": [
+        "error_handling.recovery.packet_drop"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "error_handling.recovery",
+      "content": "Implement error/fault item assembly_drop",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref error_handling.recovery.assembly_drop",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv"
+      ],
+      "detail": "This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: error_handling.recovery.assembly_drop.\nOwner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via error_handling.\nSSOT item context: name=assembly_drop; value=software_clear_or_timeout_cleanup_returns_q_to_IDLE.",
+      "evidence_terms": [],
+      "id": "RTL-0397",
+      "owner_file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+      "owner_module": "mctp_assembler_scratch_pcie_vdm_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "error_handling.recovery.assembly_drop",
+      "ssot_context": {
+        "name": "assembly_drop",
+        "value": "software_clear_or_timeout_cleanup_returns_q_to_IDLE"
+      },
+      "ssot_refs": [
+        "error_handling.recovery.assembly_drop"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "error_handling.recovery",
+      "content": "Implement error/fault item read_error",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref error_handling.recovery.read_error",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv"
+      ],
+      "detail": "This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: error_handling.recovery.read_error.\nOwner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via error_handling.\nSSOT item context: name=read_error; value=next_read_can_retry_after_response_completion.",
+      "evidence_terms": [],
+      "id": "RTL-0398",
+      "owner_file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+      "owner_module": "mctp_assembler_scratch_pcie_vdm_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "error_handling.recovery.read_error",
+      "ssot_context": {
+        "name": "read_error",
+        "value": "next_read_can_retry_after_response_completion"
+      },
+      "ssot_refs": [
+        "error_handling.recovery.read_error"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module mctp_assembler_scratch_pcie_vdm_parser is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.mctp_assembler_scratch_pcie_vdm_parser.module_equivalence",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.mctp_assembler_scratch_pcie_vdm_parser.module_equivalence.\nOwner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0422",
+      "owner_file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+      "owner_module": "mctp_assembler_scratch_pcie_vdm_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.mctp_assembler_scratch_pcie_vdm_parser.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.mctp_assembler_scratch_pcie_vdm_parser.module_equivalence"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    }
+  ],
+  "todo_plan_sha256": "740f93796c4f016836bc823fe2faf4054d926dc664b7d534ef5d5436d6585bb5",
+  "top": "mctp_assembler_scratch",
+  "type": "rtl_authoring_packet"
+}

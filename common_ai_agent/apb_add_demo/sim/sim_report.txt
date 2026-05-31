@@ -1,0 +1,6 @@
+TESTS=1 PASS=1 FAIL=0
+results=apb_add_demo/sim/results.xml
+scoreboard=apb_add_demo/sim/scoreboard_events.jsonl
+coverage_functional=apb_add_demo/cov/coverage_functional.json
+waveforms=apb_add_demo/sim/apb_add_demo.vcd
+0 errors, 0 warnings

@@ -1,0 +1,12 @@
+rtl/mctp_assembler_scratch.sv: 1
+rtl/mctp_assembler_scratch_axi_write_ingress.sv: 1
+rtl/mctp_assembler_scratch_pcie_vdm_parser.sv: 1
+rtl/mctp_assembler_scratch_mctp_parser.sv: 1
+rtl/mctp_assembler_scratch_context_table.sv: 1
+rtl/mctp_assembler_scratch_sram_packer.sv: 1
+rtl/mctp_assembler_scratch_axi_read_egress.sv: 1
+rtl/mctp_assembler_scratch_sram_arbiter.sv: 1
+rtl/mctp_assembler_scratch_descriptor_queue.sv: 1
+rtl/mctp_assembler_scratch_apb_regfile.sv: 1
+rtl/mctp_assembler_scratch_cdc.sv: 1
+rtl/mctp_assembler_scratch_param.vh reference: 1

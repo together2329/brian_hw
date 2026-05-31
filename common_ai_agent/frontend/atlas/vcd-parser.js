@@ -111,11 +111,20 @@
           range: suffix,           // e.g. "[3:0]"
         };
         // VCD allows the same ID to alias multiple references — keep
-        // the first as canonical so samples map cleanly.
+        // the first as canonical so samples map cleanly. The same net often
+        // appears under several hierarchical names (e.g. a submodule output
+        // port `u_packet_engine.sram_req_o` wired to the top `pe_sram_req`):
+        // record the extra fully-qualified names as aliases so a pin using
+        // EITHER name resolves to this canonical row instead of "not in VCD".
         if (!idToInfo[id]) {
+          sig.aliases = [];
           idToInfo[id] = sig;
           signals.push(sig);
           samples[id] = [];
+        } else {
+          const canon = idToInfo[id];
+          const full = sig.scope ? sig.scope + '.' + sig.name : sig.name;
+          if (canon.aliases && canon.aliases.indexOf(full) < 0) canon.aliases.push(full);
         }
         scope.signals.push(id);
         i = j + 1;

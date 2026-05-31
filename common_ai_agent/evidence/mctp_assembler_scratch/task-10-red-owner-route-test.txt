@@ -1,0 +1,90 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_____ test_main_returns_owner_routed_status_for_non_signoff_coverage_gaps ______
+
+tmp_path = PosixPath('/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/pytest-of-brian/pytest-613/test_main_returns_owner_routed0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1100ca610>
+
+    def test_main_returns_owner_routed_status_for_non_signoff_coverage_gaps(tmp_path: Path, monkeypatch):
+        cov = _load_module()
+        ip_dir = tmp_path / "owner_routed_ip"
+        for subdir in ("yaml", "cov", "verify", "sim"):
+            (ip_dir / subdir).mkdir(parents=True)
+        (ip_dir / "yaml" / "owner_routed_ip.ssot.yaml").write_text(
+            "\n".join(
+                [
+                    "top_module:",
+                    "  name: owner_routed_ip",
+                    "test_requirements:",
+                    "  coverage_goals:",
+                    "    function:",
+                    "      target_pct: 100",
+                    "      bins:",
+                    "        - id: FCOV_NEEDS_RTL_REPAIR",
+                    "          coverage_domain: function",
+                ]
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        (ip_dir / "cov" / "fcov_plan.json").write_text(
+            json.dumps({"bins": [{"id": "FCOV_NEEDS_RTL_REPAIR", "coverage_domain": "function"}]}) + "\n",
+            encoding="utf-8",
+        )
+        (ip_dir / "cov" / "coverage_functional.json").write_text(
+            json.dumps({"status": "pass", "functional": {"bins": {"FCOV_NEEDS_RTL_REPAIR": {"hit": True}}}})
+            + "\n",
+            encoding="utf-8",
+        )
+        (ip_dir / "verify" / "equivalence_goals.json").write_text(
+            json.dumps({"goals": [{"goal_id": "EQ_REPAIR", "coverage_refs": ["FCOV_NEEDS_RTL_REPAIR"]}]}) + "\n",
+            encoding="utf-8",
+        )
+        (ip_dir / "sim" / "scoreboard_events.jsonl").write_text(
+            json.dumps(
+                {
+                    "goal_id": "EQ_REPAIR",
+                    "scenario_id": "SC_REPAIR",
+                    "coverage_refs": ["FCOV_NEEDS_RTL_REPAIR"],
+                    "passed": False,
+                    "fl_expected": {"model_result": {"needs_repair": 1}},
+                    "rtl_observed": {"needs_repair": 0},
+                }
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        (ip_dir / "cov" / "coverage_owner_routes.json").write_text(
+            json.dumps(
+                {
+                    "type": "coverage_owner_routes",
+                    "status": "non_signoff",
+                    "routes": [
+                        {
+                            "bin_id": "FCOV_NEEDS_RTL_REPAIR",
+                            "owner": "rtl-gen",
+                            "status": "non_signoff_blocker",
+                            "reason": "scoreboard row failed; repair RTL before production signoff",
+                        }
+                    ],
+                }
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+    
+        monkeypatch.setattr(sys, "argv", ["ssot_coverage_summary.py", str(ip_dir)])
+    
+>       assert cov.main() == 0
+E       AssertionError: assert 3 == 0
+E        +  where 3 = <function main at 0x11020bd30>()
+E        +    where <function main at 0x11020bd30> = <module 'ssot_coverage_owner_routes_test_4428747392' from '/Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/coverage/scripts/ssot_coverage_summary.py'>.main
+
+tests/test_coverage_owner_routes.py:88: AssertionError
+----------------------------- Captured stdout call -----------------------------
+SSOT coverage summary: /private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/pytest-of-brian/pytest-613/test_main_returns_owner_routed0/owner_routed_ip/cov/coverage.json
+SSOT coverage report : /private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/pytest-of-brian/pytest-613/test_main_returns_owner_routed0/owner_routed_ip/sim/coverage_report.md
+Status               : blocked
+=========================== short test summary info ============================
+FAILED tests/test_coverage_owner_routes.py::test_main_returns_owner_routed_status_for_non_signoff_coverage_gaps
+1 failed in 0.49s

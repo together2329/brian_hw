@@ -1,0 +1,12 @@
+Task 6 adversarial QA summary
+
+malformed input: probed with no_such_ip_for_task6. Compile/lint returned nonzero and did not create scratch evidence.
+prompt injection: ruled not applicable; no natural-language/user-supplied prompt is executed by RTL compile/lint gates.
+cancel/resume: probed by rereading .omo/boulder.json and ledger after context resume; active work id and plan still match this task.
+stale state: probed by rg scan for legacy mctp_assembler/ paths in scratch RTL/list; none found.
+dirty worktree: probed by git status capture; unrelated dirty files acknowledged and not reverted.
+hung commands: probed by Python subprocess timeout wrapper with 30 second bounds; compile/lint both returned 0.
+flaky tests: probed by two back-to-back compile/lint reruns plus jq semantic checks; both passed.
+misleading success output: probed by jq checks against rtl_compile.json and dut_lint.json passed/error/warning fields, not stdout alone.
+repeated interruptions: ruled covered by plan reread and ledger continuity after resumed execution; no conflicting user request was present.
+cleanup: tmux manual QA session was killed and confirmed absent.

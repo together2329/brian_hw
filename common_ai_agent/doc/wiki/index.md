@@ -25,7 +25,12 @@ This section is additive; it does not replace the reading order below.
 | Tech direction (language/runtime/build): keep Python backend, finish TSX + Vite build cutover, Go/Rust/Bun/Tauri surgical only | [[tech-direction-recommendation-20260529]] |
 | Frontend modernization arc (overview): .jsx→.tsx migration + Vite cutover (ATLAS_FRONTEND_MODE) + Tauri desktop + gpt-5.5 | [[frontend-modernization-2026-05-29]] |
 | 테스트 방법론 — 4층 피라미드 + green-while-broken 교훈 + 프론트 컷오버 전 E2E 필수 | [[testing-methodology]] |
+| uart_tx 직접 end-to-end 실행 — flow 골격 검증 + MSB-first mutation으로 shallow-observation silent-PASS 실증 + same-cycle 생성기 경계 + 직접 구동 cheat-sheet (audit=mutation kill-rate 권고) | [[uart-tx-end-to-end-findings-20260530]] |
 | ATLAS vite 프론트 자동 E2E 검증(실브라우저) 런북 + `scripts/atlas_vite_e2e_verify.sh` | [[atlas-vite-e2e-verification]] |
+| Sim Debug RTL module-signal panel (pyslang ports+internal, in/out/internal filter, regex search, Ctrl+W/right-click→wave, wave-scroll fix, 50/50 split) | [[sim-debug-module-signals-2026-05-30]] |
+| Sim Debug agent tool `sim_debug` (VCD parser + pyslang; show/goto/cursor/trace/find/value; file-intent + UI polling channel) | [[sim-debug-agent-tool-2026-05-31]] |
+| Sim Debug waveform renderer decision: current React/SVG row renderer, why not React Flow, future Canvas trigger, VCD slice zero-extension | [[sim-debug-waveform-renderer-2026-05-31]] |
+| Sim Debug full feature review: 4-pane UI, loading/preload, scoped signal identity, source selection, waveform interactions, tool/API contracts, verification and risks | [[sim-debug-feature-review-2026-05-31]] |
 | Babel/legacy-jsx retirement cutover — PAUSED progress + resume plan (Step1 flip done; Round1 partial; 4 decisions; Rounds 2–4) | [[babel-retirement-cutover-20260529]] |
 | Local IP-root + thin LLM-license server (desktop-app arch): already half-built via --root, Tauri = delivery not enabler; + remote-brain/local-hands variant | [[local-iproot-thin-llm-server-arch-20260529]] |
 | Run Mode / Exec Mode and SSOT provenance policy | [[run-mode-and-provenance-policy]] |

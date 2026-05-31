@@ -1,0 +1,78 @@
+- [ ] 6. Implement RTL Through RTL-Gen Ownership
+
+  **What to do**: Implement RTL against the derived TODOs. Use the SSOT as binding authority. Implement AXI write burst collection, PCIe VDM/MCTP parsing, per-context FSM, per-context 32 B SRAM pack state, descriptor queue, AXI read SRAM bridge, APB register file, counters/interrupts, and CDC. Update `list/mctp_assembler_scratch.f`.
+
+  **Must NOT do**: Do not edit SSOT/FL/CL/coverage goals to fit RTL. Do not manually copy existing `mctp_assembler/rtl` without reconciling against scratch SSOT.
+
+  **Parallelization**: Can Parallel: YES | Wave 3 | Blocks: 9,10 | Blocked By: 5
+
+  **References**:
+  - Pattern: `doc/wiki/workflow-ownership-and-boundaries.md` - RTL artifacts are `rtl-gen` owned.
+  - Pattern: `mctp_assembler/rtl/` - prior attempt is reference only; use for naming lessons, not evidence.
+  - Command: `workflow/rtl-gen/scripts/rtl_compile_report.py`
+  - Command: `workflow/lint/scripts/dut_lint_report.py`
+
+  **Acceptance Criteria**:
+  - [ ] `python3 workflow/rtl-gen/scripts/rtl_compile_report.py mctp_assembler_scratch --root .` exits 0 and `rtl/rtl_compile.json` passes.
+  - [ ] `python3 workflow/lint/scripts/dut_lint_report.py mctp_assembler_scratch --root .` exits 0 and `lint/dut_lint.json` passes with zero unwaived warnings/errors.
+  - [ ] `list/mctp_assembler_scratch.f` includes every required RTL module exactly once.
+  - [ ] Top module includes AXI write, AXI read, APB, SRAM read/write, interrupt, clock, and reset ports from SSOT.
+
+  **QA Scenarios**:
+  ```text
+  Scenario: DUT-only compile passes
+    Tool: bash
+    Steps: python3 workflow/rtl-gen/scripts/rtl_compile_report.py mctp_assembler_scratch --root .
+    Expected: rtl_compile.json has passed=true
+    Evidence: mctp_assembler_scratch/rtl/rtl_compile.json
+
+  Scenario: DUT-only lint passes
+    Tool: bash
+    Steps: python3 workflow/lint/scripts/dut_lint_report.py mctp_assembler_scratch --root .
+    Expected: dut_lint.json has passed=true and zero unwaived diagnostics
+    Evidence: mctp_assembler_scratch/lint/dut_lint.json
+  ```
+
+  **Commit**: YES | Message: `feat(mctp): implement scratch assembler rtl` | Files: `mctp_assembler_scratch/rtl/*`, `mctp_assembler_scratch/list/*`, `mctp_assembler_scratch/lint/*`
+
+
+{
+  "compile_passed": true,
+  "errors": 0,
+  "diagnostics": 0,
+  "style_violations": 0,
+  "rtl_files": [
+    "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+    "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+    "rtl/mctp_assembler_scratch_mctp_parser.sv",
+    "rtl/mctp_assembler_scratch_context_table.sv",
+    "rtl/mctp_assembler_scratch_sram_packer.sv",
+    "rtl/mctp_assembler_scratch_descriptor_queue.sv",
+    "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+    "rtl/mctp_assembler_scratch_sram_arbiter.sv",
+    "rtl/mctp_assembler_scratch_apb_regfile.sv",
+    "rtl/mctp_assembler_scratch_cdc.sv",
+    "rtl/mctp_assembler_scratch.sv"
+  ]
+}
+{
+  "lint_passed": true,
+  "errors": 0,
+  "warnings": 0,
+  "style_violation_count": 0,
+  "suppression_violation_count": 0,
+  "rtl_files": [
+    "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+    "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+    "rtl/mctp_assembler_scratch_mctp_parser.sv",
+    "rtl/mctp_assembler_scratch_context_table.sv",
+    "rtl/mctp_assembler_scratch_sram_packer.sv",
+    "rtl/mctp_assembler_scratch_descriptor_queue.sv",
+    "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+    "rtl/mctp_assembler_scratch_sram_arbiter.sv",
+    "rtl/mctp_assembler_scratch_apb_regfile.sv",
+    "rtl/mctp_assembler_scratch_cdc.sv",
+    "rtl/mctp_assembler_scratch.sv",
+    "rtl/mctp_assembler_scratch_param.vh"
+  ]
+}

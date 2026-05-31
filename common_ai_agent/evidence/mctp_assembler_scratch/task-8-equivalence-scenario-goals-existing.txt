@@ -1,0 +1,6 @@
+{
+  "total": 91,
+  "required": 91,
+  "scenario_goals": 22,
+  "drop_scenario_goals": 14
+}

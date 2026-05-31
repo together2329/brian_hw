@@ -55,4 +55,35 @@ describe('waveform edge click', () => {
     expect(onEdgeClick).toHaveBeenCalledTimes(1);
     expect(onEdgeClick.mock.calls[0][0]).toBe(50);
   });
+
+  it('applies colorHint to bus waveform segments', () => {
+    const view = render(React.createElement(window.WaveRow, {
+      name: 'irq_status_o[31:0]',
+      trace: [[0, '1011']],
+      width: 100,
+      isBus: true,
+      colorHint: '#b388ff',
+    }));
+
+    const segment = view.container.querySelector('polygon');
+    const label = view.container.querySelector('.bus-flag-text');
+    expect(segment?.getAttribute('stroke')).toBe('#b388ff');
+    expect(segment?.getAttribute('fill')).toContain('#b388ff');
+    expect(label?.getAttribute('style')).toContain('#b388ff');
+  });
+
+  it('shows mapped parameter names for FSM-style bus values', () => {
+    const view = render(React.createElement(window.WaveRow, {
+      name: 'state[1:0]',
+      trace: [[0, '00'], [100, '01']],
+      width: 200,
+      isBus: true,
+      radix: 'FSM',
+      valueMap: { 0: 'S_IDLE', 1: 'S_RUN' },
+    }));
+
+    expect(view.container.querySelector('.wave-val')?.textContent).toBe('S_RUN');
+    expect(Array.from(view.container.querySelectorAll('.bus-flag-text')).map(el => el.textContent)).toContain('S_IDLE');
+    expect(Array.from(view.container.querySelectorAll('.bus-flag-text')).map(el => el.textContent)).toContain('S_RUN');
+  });
 });

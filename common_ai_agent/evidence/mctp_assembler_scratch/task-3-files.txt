@@ -1,0 +1,7 @@
+mctp_assembler_scratch/req/approval_manifest.json
+mctp_assembler_scratch/req/mctp_assembler_scratch_requirements.md
+mctp_assembler_scratch/req/source_references.md
+mctp_assembler_scratch/req/ssot_downstream_blockers.json
+mctp_assembler_scratch/req/ssot_validation.json
+mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.provenance.json
+mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.yaml

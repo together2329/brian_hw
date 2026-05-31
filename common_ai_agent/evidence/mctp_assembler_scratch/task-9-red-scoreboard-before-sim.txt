@@ -1,0 +1,3 @@
+[check_scoreboard_events] FAIL: missing mctp_assembler_scratch/sim/scoreboard_events.jsonl
+[check_scoreboard_events] FAIL: mctp_assembler_scratch/sim/scoreboard_events.jsonl has no scoreboard rows
+scoreboard_pre_rc=1

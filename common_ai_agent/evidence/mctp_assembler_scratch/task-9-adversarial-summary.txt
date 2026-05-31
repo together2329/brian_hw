@@ -1,0 +1,38 @@
+Task 9 adversarial summary
+
+Scope:
+- Run the real cocotb simulation through mctp_assembler_scratch/tb/cocotb/test_runner.py.
+- Validate generated scoreboard rows with check_scoreboard_events.py --source-check --require-events.
+- Preserve FL-vs-RTL mismatches as soft scoreboard evidence for Task 11 classification.
+
+Probed classes:
+- malformed input: scoreboard gate failed for missing no_such_ip_for_task9.
+  Evidence: task-9-adversarial-malformed-scoreboard.txt.
+- prompt injection: not applicable; simulation and schema gates consume local RTL/TB/JSON artifacts, not natural-language prompts.
+- cancel/resume: Boulder active work and plan were reread before task closure.
+  Evidence: task-9-adversarial-state-dirty-stale.txt.
+- stale state: final sim/TB surfaces have no legacy mctp_assembler/ path.
+  Evidence: task-9-adversarial-state-dirty-stale.txt.
+- dirty worktree: git status was captured; unrelated dirty files were left untouched.
+  Evidence: task-9-adversarial-state-dirty-stale.txt.
+- hung or long commands: test_runner and scoreboard schema ran through a 60s subprocess timeout wrapper.
+  Evidence: task-9-adversarial-bounded-commands.txt.
+- flaky tests: scoreboard schema passed twice back-to-back.
+  Evidence: task-9-adversarial-rerun-schema.txt.
+- misleading success output: success required XML zero failures/errors, 91 scoreboard rows, 91 goals with rows, no legacy goal IDs, non-empty rtl_observed, and schema gate PASS.
+  Evidence: task-9-results-summary-after-alias.txt, task-9-scoreboard-row-semantic-checks.txt, task-9-scoreboard-schema-after-alias.txt.
+- repeated interruptions: plan, Boulder state, and ledger continuity were checked before marking Task 9 complete.
+  Evidence: task-9-adversarial-state-dirty-stale.txt.
+
+Debug note:
+- Initial schema gate failed because rows lacked canonical observable aliases such as bvalid_next, bresp_next, readback_*, and retention.
+- TB scoreboard now augments rtl_observed with aliases copied from DUT-observed signal names before recording.
+- Toggle proof: task-9-scoreboard-schema.txt failed before the alias patch; task-9-scoreboard-schema-after-alias.txt passes after it.
+  Evidence: task-9-debug-journal.txt.
+
+Cleanup:
+- ulw-qa-mctp-sim tmux session killed and verified absent.
+- .debug-journal.md copied to evidence and removed.
+- Python __pycache__ directories removed.
+- ./--help path verified absent.
+  Evidence: task-9-cleanup.txt.

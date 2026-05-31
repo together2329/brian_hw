@@ -1,0 +1,226 @@
+{
+  "schema_version": 1,
+  "type": "generic_goal_scoreboard_cocotb_manifest",
+  "ip": "apb_add_demo",
+  "top": "apb_add_demo",
+  "generated_at": "2026-05-31T02:47:05Z",
+  "common_ai_agent_root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+  "runtime_dir": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/runtime",
+  "ssot": "apb_add_demo/yaml/apb_add_demo.ssot.yaml",
+  "equivalence_goals": "apb_add_demo/verify/equivalence_goals.json",
+  "rtl_contract": "apb_add_demo/rtl/rtl_contract.json",
+  "rtl_contract_source": "ssot_fallback",
+  "clock": "PCLK",
+  "reset": "PRESETn",
+  "reset_active": "low",
+  "latency_cycles": 1,
+  "parameters": {
+    "APB_ADDR_WIDTH": 4,
+    "APB_DATA_WIDTH": 8
+  },
+  "registers": {
+    "config": {
+      "register_width": 8,
+      "addr_width": 4,
+      "byte_addressable": true
+    },
+    "register_list": [
+      {
+        "name": "OPA",
+        "offset": 0,
+        "access": "rw",
+        "index": 0
+      },
+      {
+        "name": "OPB",
+        "offset": 4,
+        "access": "rw",
+        "index": 1
+      }
+    ]
+  },
+  "state_observables": [
+    "opa_q",
+    "opb_q"
+  ],
+  "state_observable_aliases": {},
+  "rtl_signal_names": [
+    "PCLK",
+    "access",
+    "opa_q",
+    "opb_q",
+    "sum",
+    "write_opa",
+    "write_opb"
+  ],
+  "ports": [
+    {
+      "name": "PCLK",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "PRESETn",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "PADDR",
+      "direction": "input",
+      "width": 4
+    },
+    {
+      "name": "PSEL",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "PENABLE",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "PWRITE",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "PWDATA",
+      "direction": "input",
+      "width": 8
+    },
+    {
+      "name": "PRDATA",
+      "direction": "output",
+      "width": 8
+    },
+    {
+      "name": "PREADY",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "PSLVERR",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "add_out",
+      "direction": "output",
+      "width": 8
+    },
+    {
+      "name": "carry_out",
+      "direction": "output",
+      "width": 1
+    }
+  ],
+  "port_widths": {
+    "PCLK": 1,
+    "PRESETn": 1,
+    "PADDR": 4,
+    "PSEL": 1,
+    "PENABLE": 1,
+    "PWRITE": 1,
+    "PWDATA": 8,
+    "PRDATA": 8,
+    "PREADY": 1,
+    "PSLVERR": 1,
+    "add_out": 8,
+    "carry_out": 1
+  },
+  "input_ports": [
+    "PADDR",
+    "PCLK",
+    "PENABLE",
+    "PRESETn",
+    "PSEL",
+    "PWDATA",
+    "PWRITE"
+  ],
+  "output_ports": [
+    "PRDATA",
+    "PREADY",
+    "PSLVERR",
+    "add_out",
+    "carry_out"
+  ],
+  "inout_ports": [],
+  "input_map": {
+    "psel": "PSEL",
+    "penable": "PENABLE",
+    "pwrite": "PWRITE",
+    "paddr": "PADDR",
+    "pwdata": "PWDATA"
+  },
+  "sample_condition": "PRESETn == 1",
+  "sample_inputs": [],
+  "outputs": [
+    {
+      "name": "pready_rule",
+      "port": "PREADY",
+      "width": 1
+    },
+    {
+      "name": "pslverr_rule",
+      "port": "PSLVERR",
+      "width": 1
+    },
+    {
+      "name": "add_rule",
+      "port": "add_out",
+      "width": 8
+    },
+    {
+      "name": "carry_rule",
+      "port": "carry_out",
+      "width": 1
+    },
+    {
+      "name": "prdata_rule",
+      "port": "PRDATA",
+      "width": 8
+    },
+    {
+      "name": "PRDATA",
+      "port": "PRDATA",
+      "width": 8
+    },
+    {
+      "name": "PREADY",
+      "port": "PREADY",
+      "width": 1
+    },
+    {
+      "name": "PSLVERR",
+      "port": "PSLVERR",
+      "width": 1
+    },
+    {
+      "name": "add_out",
+      "port": "add_out",
+      "width": 8
+    },
+    {
+      "name": "carry_out",
+      "port": "carry_out",
+      "width": 1
+    }
+  ],
+  "special_outputs": {},
+  "transaction_kind": "FM_WRITE",
+  "per_goal_reset": true,
+  "cl_cosim": true,
+  "rtl_sources": [
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/apb_add_demo/rtl/apb_add_demo.sv"
+  ],
+  "goal_count": 20,
+  "module_goal_count": 1,
+  "module_goals": [
+    {
+      "goal_id": "EQ_MODULE_APB_ADD_DEMO",
+      "rtl_module": "apb_add_demo",
+      "rtl_file": "rtl/apb_add_demo.sv"
+    }
+  ]
+}

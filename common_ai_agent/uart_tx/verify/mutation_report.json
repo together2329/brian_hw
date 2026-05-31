@@ -1,0 +1,662 @@
+{
+  "schema_version": 1,
+  "type": "mutation_guard_report",
+  "ip": "uart_tx",
+  "top": "uart_tx",
+  "rtl_files": [
+    "rtl/uart_tx.sv"
+  ],
+  "summary": {
+    "total_mutants": 41,
+    "uncompilable": 0,
+    "behavioural": 41,
+    "killed": 30,
+    "survived": 11,
+    "kill_rate": 0.7317
+  },
+  "survivors": [
+    {
+      "id": "M003",
+      "file": "rtl/uart_tx.sv",
+      "operator": "CONST0_TO_1",
+      "line": 41,
+      "before": "wire _unused_ok = &{1'b0, PWDATA[APB_DATA_WIDTH-1:16]};",
+      "after": "wire _unused_ok = &{1'b1, PWDATA[APB_DATA_WIDTH-1:16]};"
+    },
+    {
+      "id": "M004",
+      "file": "rtl/uart_tx.sv",
+      "operator": "AND_TO_OR",
+      "line": 41,
+      "before": "wire _unused_ok = &{1'b0, PWDATA[APB_DATA_WIDTH-1:16]};",
+      "after": "wire _unused_ok = |{1'b0, PWDATA[APB_DATA_WIDTH-1:16]};"
+    },
+    {
+      "id": "M005",
+      "file": "rtl/uart_tx.sv",
+      "operator": "AND_TO_OR",
+      "line": 56,
+      "before": "wire apb_access = PSEL & PENABLE;",
+      "after": "wire apb_access = PSEL | PENABLE;"
+    },
+    {
+      "id": "M007",
+      "file": "rtl/uart_tx.sv",
+      "operator": "AND_TO_OR",
+      "line": 58,
+      "before": "wire apb_read   = apb_access & ~PWRITE;",
+      "after": "wire apb_read   = apb_access | ~PWRITE;"
+    },
+    {
+      "id": "M018",
+      "file": "rtl/uart_tx.sv",
+      "operator": "CONST0_TO_1",
+      "line": 73,
+      "before": "enable_q  <= 1'b0;",
+      "after": "enable_q  <= 1'b1;"
+    },
+    {
+      "id": "M020",
+      "file": "rtl/uart_tx.sv",
+      "operator": "CONST0_TO_1",
+      "line": 77,
+      "before": "done_q    <= 1'b0;",
+      "after": "done_q    <= 1'b1;"
+    },
+    {
+      "id": "M021",
+      "file": "rtl/uart_tx.sv",
+      "operator": "CONST0_TO_1",
+      "line": 79,
+      "before": "baud_cnt  <= {DIV_WIDTH{1'b0}};",
+      "after": "baud_cnt  <= {DIV_WIDTH{1'b1}};"
+    },
+    {
+      "id": "M027",
+      "file": "rtl/uart_tx.sv",
+      "operator": "CONST0_TO_1",
+      "line": 90,
+      "before": "done_q    <= 1'b0;",
+      "after": "done_q    <= 1'b1;"
+    },
+    {
+      "id": "M028",
+      "file": "rtl/uart_tx.sv",
+      "operator": "CONST0_TO_1",
+      "line": 92,
+      "before": "baud_cnt  <= {DIV_WIDTH{1'b0}};",
+      "after": "baud_cnt  <= {DIV_WIDTH{1'b1}};"
+    },
+    {
+      "id": "M037",
+      "file": "rtl/uart_tx.sv",
+      "operator": "CONST0_TO_1",
+      "line": 113,
+      "before": "PRDATA = {APB_DATA_WIDTH{1'b0}};",
+      "after": "PRDATA = {APB_DATA_WIDTH{1'b1}};"
+    },
+    {
+      "id": "M041",
+      "file": "rtl/uart_tx.sv",
+      "operator": "CONST0_TO_1",
+      "line": 119,
+      "before": "default:     PRDATA = {APB_DATA_WIDTH{1'b0}};",
+      "after": "default:     PRDATA = {APB_DATA_WIDTH{1'b1}};"
+    }
+  ],
+  "mutants": [
+    {
+      "id": "M001",
+      "file": "rtl/uart_tx.sv",
+      "operator": "CONST1_TO_0",
+      "line": 36,
+      "before": "assign PREADY  = 1'b1;",
+      "after": "assign PREADY  = 1'b0;",
+      "status": "killed",
+      "killed_by_goals": [
+        "EQ_TRANSACTION_FM_TX_LOAD",
+        "EQ_SCENARIO_SC2",
+        "EQ_SCENARIO_SC3",
+        "EQ_SCENARIO_SC4"
+      ],
+      "detail": "rc=1 tests=1 fail=0 err=0 sb_fail=4"
+    },
+    {
+      "id": "M002",
+      "file": "rtl/uart_tx.sv",
+      "operator": "CONST0_TO_1",
+      "line": 37,
+      "before": "assign PSLVERR = 1'b0;",
+      "after": "assign PSLVERR = 1'b1;",
+      "status": "killed",
+      "killed_by_goals": [
+        "EQ_TRANSACTION_FM_TX_LOAD",
+        "EQ_SCENARIO_SC2",
+        "EQ_SCENARIO_SC3",
+        "EQ_SCENARIO_SC4"
+      ],
+      "detail": "rc=1 tests=1 fail=0 err=0 sb_fail=4"
+    },
+    {
+      "id": "M003",
+      "file": "rtl/uart_tx.sv",
+      "operator": "CONST0_TO_1",
+      "line": 41,
+      "before": "wire _unused_ok = &{1'b0, PWDATA[APB_DATA_WIDTH-1:16]};",
+      "after": "wire _unused_ok = &{1'b1, PWDATA[APB_DATA_WIDTH-1:16]};",
+      "status": "SURVIVED",
+      "killed_by_goals": [],
+      "detail": "rc=0 tests=1 fail=0 err=0 sb_fail=0"
+    },
+    {
+      "id": "M004",
+      "file": "rtl/uart_tx.sv",
+      "operator": "AND_TO_OR",
+      "line": 41,
+      "before": "wire _unused_ok = &{1'b0, PWDATA[APB_DATA_WIDTH-1:16]};",
+      "after": "wire _unused_ok = |{1'b0, PWDATA[APB_DATA_WIDTH-1:16]};",
+      "status": "SURVIVED",
+      "killed_by_goals": [],
+      "detail": "rc=0 tests=1 fail=0 err=0 sb_fail=0"
+    },
+    {
+      "id": "M005",
+      "file": "rtl/uart_tx.sv",
+      "operator": "AND_TO_OR",
+      "line": 56,
+      "before": "wire apb_access = PSEL & PENABLE;",
+      "after": "wire apb_access = PSEL | PENABLE;",
+      "status": "SURVIVED",
+      "killed_by_goals": [],
+      "detail": "rc=0 tests=1 fail=0 err=0 sb_fail=0"
+    },
+    {
+      "id": "M006",
+      "file": "rtl/uart_tx.sv",
+      "operator": "AND_TO_OR",
+      "line": 57,
+      "before": "wire apb_write  = apb_access &  PWRITE;",
+      "after": "wire apb_write  = apb_access |  PWRITE;",
+      "status": "killed",
+      "killed_by_goals": [
+        "EQ_TRANSACTION_FM_TX_LOAD",
+        "EQ_SCENARIO_SC2",
+        "EQ_SCENARIO_SC3",
+        "EQ_SCENARIO_SC4",
+        "EQ_TRANSACTION_FM_TX_IGNORE"
+      ],
+      "detail": "rc=1 tests=1 fail=0 err=0 sb_fail=5"
+    },
+    {
+      "id": "M007",
+      "file": "rtl/uart_tx.sv",
+      "operator": "AND_TO_OR",
+      "line": 58,
+      "before": "wire apb_read   = apb_access & ~PWRITE;",
+      "after": "wire apb_read   = apb_access | ~PWRITE;",
+      "status": "SURVIVED",
+      "killed_by_goals": [],
+      "detail": "rc=0 tests=1 fail=0 err=0 sb_fail=0"
+    },
+    {
+      "id": "M008",
+      "file": "rtl/uart_tx.sv",
+      "operator": "EQ_TO_NE",
+      "line": 61,
+      "before": "wire txdata_write_accept = apb_write & (PADDR == ADDR_TXDATA) & enable_q & ~busy_q;",
+      "after": "wire txdata_write_accept = apb_write & (PADDR != ADDR_TXDATA) & enable_q & ~busy_q;",
+      "status": "killed",
+      "killed_by_goals": [
+        "EQ_TRANSACTION_FM_TX_LOAD",
+        "EQ_SCENARIO_SC2",
+        "EQ_SCENARIO_SC3",
+        "EQ_SCENARIO_SC4",
+        "EQ_TRANSACTION_FM_TX_IGNORE"
+      ],
+      "detail": "rc=1 tests=1 fail=0 err=0 sb_fail=5"
+    },
+    {
+      "id": "M009",
+      "file": "rtl/uart_tx.sv",
+      "operator": "AND_TO_OR",
+      "line": 61,
+      "before": "wire txdata_write_accept = apb_write & (PADDR == ADDR_TXDATA) & enable_q & ~busy_q;",
+      "after": "wire txdata_write_accept = apb_write | (PADDR == ADDR_TXDATA) & enable_q & ~busy_q;",
+      "status": "killed",
+      "killed_by_goals": [
+        "EQ_TRANSACTION_FM_TX_IGNORE"
+      ],
+      "detail": "rc=1 tests=1 fail=0 err=0 sb_fail=1"
+    },
+    {
+      "id": "M010",
+      "file": "rtl/uart_tx.sv",
+      "operator": "AND_TO_OR",
+      "line": 61,
+      "before": "wire txdata_write_accept = apb_write & (PADDR == ADDR_TXDATA) & enable_q & ~busy_q;",
+      "after": "wire txdata_write_accept = apb_write & (PADDR == ADDR_TXDATA) | enable_q & ~busy_q;",
+      "status": "killed",
+      "killed_by_goals": [
+        "EQ_TRANSACTION_FM_TX_IGNORE"
+      ],
+      "detail": "rc=1 tests=1 fail=0 err=0 sb_fail=1"
+    },
+    {
+      "id": "M011",
+      "file": "rtl/uart_tx.sv",
+      "operator": "AND_TO_OR",
+      "line": 61,
+      "before": "wire txdata_write_accept = apb_write & (PADDR == ADDR_TXDATA) & enable_q & ~busy_q;",
+      "after": "wire txdata_write_accept = apb_write & (PADDR == ADDR_TXDATA) & enable_q | ~busy_q;",
+      "status": "killed",
+      "killed_by_goals": [
+        "EQ_TRANSACTION_FM_TX_IGNORE"
+      ],
+      "detail": "rc=1 tests=1 fail=0 err=0 sb_fail=1"
+    },
+    {
+      "id": "M012",
+      "file": "rtl/uart_tx.sv",
+      "operator": "EQ_TO_NE",
+      "line": 64,
+      "before": "wire baud_tick = busy_q & (baud_cnt == (div_q - 1'b1));",
+      "after": "wire baud_tick = busy_q & (baud_cnt != (div_q - 1'b1));",
+      "status": "killed",
+      "killed_by_goals": [
+        "EQ_TRANSACTION_FM_TX_LOAD",
+        "EQ_SCENARIO_SC2",
+        "EQ_SCENARIO_SC3",
+        "EQ_SCENARIO_SC4"
+      ],
+      "detail": "rc=1 tests=1 fail=0 err=0 sb_fail=4"
+    },
+    {
+      "id": "M013",
+      "file": "rtl/uart_tx.sv",
+      "operator": "MINUS1_TO_PLUS1",
+      "line": 64,
+      "before": "wire baud_tick = busy_q & (baud_cnt == (div_q - 1'b1));",
+      "after": "wire baud_tick = busy_q & (baud_cnt == (div_q + 1'b1));",
+      "status": "killed",
+      "killed_by_goals": [
+        "EQ_TRANSACTION_FM_TX_LOAD",
+        "EQ_SCENARIO_SC2",
+        "EQ_SCENARIO_SC3",
+        "EQ_SCENARIO_SC4"
+      ],
+      "detail": "rc=1 tests=1 fail=0 err=0 sb_fail=4"
+    },
+    {
+      "id": "M014",
+      "file": "rtl/uart_tx.sv",
+      "operator": "CONST1_TO_0",
+      "line": 64,
+      "before": "wire baud_tick = busy_q & (baud_cnt == (div_q - 1'b1));",
+      "after": "wire baud_tick = busy_q & (baud_cnt == (div_q - 1'b0));",
+      "status": "killed",
+      "killed_by_goals": [
+        "EQ_TRANSACTION_FM_TX_LOAD",
+        "EQ_SCENARIO_SC2",
+        "EQ_SCENARIO_SC3"
+      ],
+      "detail": "rc=1 tests=1 fail=0 err=0 sb_fail=3"
+    },
+    {
+      "id": "M015",
+      "file": "rtl/uart_tx.sv",
+      "operator": "AND_TO_OR",
+      "line": 64,
+      "before": "wire baud_tick = busy_q & (baud_cnt == (div_q - 1'b1));",
+      "after": "wire baud_tick = busy_q | (baud_cnt == (div_q - 1'b1));",
+      "status": "killed",
+      "killed_by_goals": [
+        "EQ_TRANSACTION_FM_TX_LOAD",
+        "EQ_SCENARIO_SC2",
+        "EQ_SCENARIO_SC3",
+        "EQ_SCENARIO_SC4"
+      ],
+      "detail": "rc=1 tests=1 fail=0 err=0 sb_fail=4"
+    },
+    {
+      "id": "M016",
+      "file": "rtl/uart_tx.sv",
+      "operator": "CONST1_TO_0",
+      "line": 67,
+      "before": "assign tx      = busy_q ? frame_q[bit_index] : 1'b1;",
+      "after": "assign tx      = busy_q ? frame_q[bit_index] : 1'b0;",
+      "status": "killed",
+      "killed_by_goals": [],
+      "detail": "rc=1 tests=1 fail=0 err=0 sb_fail=0"
+    },
+    {
+      "id": "M017",
+      "file": "rtl/uart_tx.sv",
+      "operator": "BITINDEX_REVERSE",
+      "line": 67,
+      "before": "assign tx      = busy_q ? frame_q[bit_index] : 1'b1;",
+      "after": "assign tx      = busy_q ? frame_q[4'd9 - bit_index] : 1'b1;",
+      "status": "killed",
+      "killed_by_goals": [
+        "EQ_TRANSACTION_FM_TX_LOAD",
+        "EQ_SCENARIO_SC2",
+        "EQ_SCENARIO_SC3",
+        "EQ_SCENARIO_SC4"
+      ],
+      "detail": "rc=1 tests=1 fail=0 err=0 sb_fail=4"
+    },
+    {
+      "id": "M018",
+      "file": "rtl/uart_tx.sv",
+      "operator": "CONST0_TO_1",
+      "line": 73,
+      "before": "enable_q  <= 1'b0;",
+      "after": "enable_q  <= 1'b1;",
+      "status": "SURVIVED",
+      "killed_by_goals": [],
+      "detail": "rc=0 tests=1 fail=0 err=0 sb_fail=0"
+    },
+    {
+      "id": "M019",
+      "file": "rtl/uart_tx.sv",
+      "operator": "CONST0_TO_1",
+      "line": 76,
+      "before": "busy_q    <= 1'b0;",
+      "after": "busy_q    <= 1'b1;",
+      "status": "killed",
+      "killed_by_goals": [
+        "EQ_SCENARIO_SC1"
+      ],
+      "detail": "rc=1 tests=1 fail=0 err=0 sb_fail=1"
+    },
+    {
+      "id": "M020",
+      "file": "rtl/uart_tx.sv",
+      "operator": "CONST0_TO_1",
+      "line": 77,
+      "before": "done_q    <= 1'b0;",
+      "after": "done_q    <= 1'b1;",
+      "status": "SURVIVED",
+      "killed_by_goals": [],
+      "detail": "rc=0 tests=1 fail=0 err=0 sb_fail=0"
+    },
+    {
+      "id": "M021",
+      "file": "rtl/uart_tx.sv",
+      "operator": "CONST0_TO_1",
+      "line": 79,
+      "before": "baud_cnt  <= {DIV_WIDTH{1'b0}};",
+      "after": "baud_cnt  <= {DIV_WIDTH{1'b1}};",
+      "status": "SURVIVED",
+      "killed_by_goals": [],
+      "detail": "rc=0 tests=1 fail=0 err=0 sb_fail=0"
+    },
+    {
+      "id": "M022",
+      "file": "rtl/uart_tx.sv",
+      "operator": "EQ_TO_NE",
+      "line": 82,
+      "before": "if (apb_write && PADDR == ADDR_CTRL) enable_q <= PWDATA[0];",
+      "after": "if (apb_write && PADDR != ADDR_CTRL) enable_q <= PWDATA[0];",
+      "status": "killed",
+      "killed_by_goals": [
+        "EQ_REGISTER_CTRL",
+        "EQ_TRANSACTION_FM_TX_LOAD",
+        "EQ_SCENARIO_SC2",
+        "EQ_SCENARIO_SC4"
+      ],
+      "detail": "rc=1 tests=1 fail=0 err=0 sb_fail=4"
+    },
+    {
+      "id": "M023",
+      "file": "rtl/uart_tx.sv",
+      "operator": "EQ_TO_NE",
+      "line": 83,
+      "before": "if (apb_write && PADDR == ADDR_DIV)  div_q    <= pwdata_div;",
+      "after": "if (apb_write && PADDR != ADDR_DIV)  div_q    <= pwdata_div;",
+      "status": "killed",
+      "killed_by_goals": [
+        "EQ_REGISTER_DIV",
+        "EQ_TRANSACTION_FM_TX_LOAD",
+        "EQ_SCENARIO_SC2",
+        "EQ_SCENARIO_SC3",
+        "EQ_SCENARIO_SC4"
+      ],
+      "detail": "rc=1 tests=1 fail=0 err=0 sb_fail=5"
+    },
+    {
+      "id": "M024",
+      "file": "rtl/uart_tx.sv",
+      "operator": "CONST1_TO_0",
+      "line": 88,
+      "before": "frame_q   <= {1'b1, PWDATA[7:0], 1'b0};",
+      "after": "frame_q   <= {1'b0, PWDATA[7:0], 1'b0};",
+      "status": "killed",
+      "killed_by_goals": [
+        "EQ_TRANSACTION_FM_TX_LOAD",
+        "EQ_SCENARIO_SC2",
+        "EQ_SCENARIO_SC3",
+        "EQ_SCENARIO_SC4"
+      ],
+      "detail": "rc=1 tests=1 fail=0 err=0 sb_fail=4"
+    },
+    {
+      "id": "M025",
+      "file": "rtl/uart_tx.sv",
+      "operator": "CONST0_TO_1",
+      "line": 88,
+      "before": "frame_q   <= {1'b1, PWDATA[7:0], 1'b0};",
+      "after": "frame_q   <= {1'b1, PWDATA[7:0], 1'b1};",
+      "status": "killed",
+      "killed_by_goals": [
+        "EQ_TRANSACTION_FM_TX_LOAD",
+        "EQ_SCENARIO_SC2",
+        "EQ_SCENARIO_SC3",
+        "EQ_SCENARIO_SC4"
+      ],
+      "detail": "rc=1 tests=1 fail=0 err=0 sb_fail=4"
+    },
+    {
+      "id": "M026",
+      "file": "rtl/uart_tx.sv",
+      "operator": "CONST1_TO_0",
+      "line": 89,
+      "before": "busy_q    <= 1'b1;",
+      "after": "busy_q    <= 1'b0;",
+      "status": "killed",
+      "killed_by_goals": [
+        "EQ_TRANSACTION_FM_TX_LOAD",
+        "EQ_SCENARIO_SC2",
+        "EQ_SCENARIO_SC3",
+        "EQ_SCENARIO_SC4",
+        "EQ_TRANSACTION_FM_TX_IGNORE"
+      ],
+      "detail": "rc=1 tests=1 fail=0 err=0 sb_fail=5"
+    },
+    {
+      "id": "M027",
+      "file": "rtl/uart_tx.sv",
+      "operator": "CONST0_TO_1",
+      "line": 90,
+      "before": "done_q    <= 1'b0;",
+      "after": "done_q    <= 1'b1;",
+      "status": "SURVIVED",
+      "killed_by_goals": [],
+      "detail": "rc=0 tests=1 fail=0 err=0 sb_fail=0"
+    },
+    {
+      "id": "M028",
+      "file": "rtl/uart_tx.sv",
+      "operator": "CONST0_TO_1",
+      "line": 92,
+      "before": "baud_cnt  <= {DIV_WIDTH{1'b0}};",
+      "after": "baud_cnt  <= {DIV_WIDTH{1'b1}};",
+      "status": "SURVIVED",
+      "killed_by_goals": [],
+      "detail": "rc=0 tests=1 fail=0 err=0 sb_fail=0"
+    },
+    {
+      "id": "M029",
+      "file": "rtl/uart_tx.sv",
+      "operator": "CONST0_TO_1",
+      "line": 96,
+      "before": "baud_cnt <= {DIV_WIDTH{1'b0}};",
+      "after": "baud_cnt <= {DIV_WIDTH{1'b1}};",
+      "status": "killed",
+      "killed_by_goals": [
+        "EQ_TRANSACTION_FM_TX_LOAD",
+        "EQ_SCENARIO_SC2",
+        "EQ_SCENARIO_SC3"
+      ],
+      "detail": "rc=1 tests=1 fail=0 err=0 sb_fail=3"
+    },
+    {
+      "id": "M030",
+      "file": "rtl/uart_tx.sv",
+      "operator": "EQ_TO_NE",
+      "line": 97,
+      "before": "if (bit_index == 4'd9) begin",
+      "after": "if (bit_index != 4'd9) begin",
+      "status": "killed",
+      "killed_by_goals": [
+        "EQ_TRANSACTION_FM_TX_LOAD",
+        "EQ_SCENARIO_SC2",
+        "EQ_SCENARIO_SC3",
+        "EQ_TRANSACTION_FM_TX_IGNORE"
+      ],
+      "detail": "rc=1 tests=1 fail=0 err=0 sb_fail=4"
+    },
+    {
+      "id": "M031",
+      "file": "rtl/uart_tx.sv",
+      "operator": "CONST0_TO_1",
+      "line": 99,
+      "before": "busy_q <= 1'b0;",
+      "after": "busy_q <= 1'b1;",
+      "status": "killed",
+      "killed_by_goals": [
+        "<timeout>"
+      ],
+      "detail": "suite timed out (treated as killed)"
+    },
+    {
+      "id": "M032",
+      "file": "rtl/uart_tx.sv",
+      "operator": "CONST1_TO_0",
+      "line": 100,
+      "before": "done_q <= 1'b1;",
+      "after": "done_q <= 1'b0;",
+      "status": "killed",
+      "killed_by_goals": [],
+      "detail": "rc=1 tests=1 fail=0 err=0 sb_fail=0"
+    },
+    {
+      "id": "M033",
+      "file": "rtl/uart_tx.sv",
+      "operator": "PLUS1_TO_MINUS1",
+      "line": 102,
+      "before": "bit_index <= bit_index + 1'b1;",
+      "after": "bit_index <= bit_index - 1'b1;",
+      "status": "killed",
+      "killed_by_goals": [],
+      "detail": "rc=1 tests=1 fail=0 err=0 sb_fail=0"
+    },
+    {
+      "id": "M034",
+      "file": "rtl/uart_tx.sv",
+      "operator": "CONST1_TO_0",
+      "line": 102,
+      "before": "bit_index <= bit_index + 1'b1;",
+      "after": "bit_index <= bit_index + 1'b0;",
+      "status": "killed",
+      "killed_by_goals": [
+        "<timeout>"
+      ],
+      "detail": "suite timed out (treated as killed)"
+    },
+    {
+      "id": "M035",
+      "file": "rtl/uart_tx.sv",
+      "operator": "PLUS1_TO_MINUS1",
+      "line": 105,
+      "before": "baud_cnt <= baud_cnt + 1'b1;",
+      "after": "baud_cnt <= baud_cnt - 1'b1;",
+      "status": "killed",
+      "killed_by_goals": [
+        "<timeout>"
+      ],
+      "detail": "suite timed out (treated as killed)"
+    },
+    {
+      "id": "M036",
+      "file": "rtl/uart_tx.sv",
+      "operator": "CONST1_TO_0",
+      "line": 105,
+      "before": "baud_cnt <= baud_cnt + 1'b1;",
+      "after": "baud_cnt <= baud_cnt + 1'b0;",
+      "status": "killed",
+      "killed_by_goals": [
+        "<timeout>"
+      ],
+      "detail": "suite timed out (treated as killed)"
+    },
+    {
+      "id": "M037",
+      "file": "rtl/uart_tx.sv",
+      "operator": "CONST0_TO_1",
+      "line": 113,
+      "before": "PRDATA = {APB_DATA_WIDTH{1'b0}};",
+      "after": "PRDATA = {APB_DATA_WIDTH{1'b1}};",
+      "status": "SURVIVED",
+      "killed_by_goals": [],
+      "detail": "rc=0 tests=1 fail=0 err=0 sb_fail=0"
+    },
+    {
+      "id": "M038",
+      "file": "rtl/uart_tx.sv",
+      "operator": "CONST0_TO_1",
+      "line": 116,
+      "before": "ADDR_CTRL:   PRDATA = {{(APB_DATA_WIDTH-1){1'b0}}, enable_q};",
+      "after": "ADDR_CTRL:   PRDATA = {{(APB_DATA_WIDTH-1){1'b1}}, enable_q};",
+      "status": "killed",
+      "killed_by_goals": [
+        "EQ_REGISTER_CTRL"
+      ],
+      "detail": "rc=1 tests=1 fail=0 err=0 sb_fail=1"
+    },
+    {
+      "id": "M039",
+      "file": "rtl/uart_tx.sv",
+      "operator": "CONST0_TO_1",
+      "line": 117,
+      "before": "ADDR_DIV:    PRDATA = {{(APB_DATA_WIDTH-DIV_WIDTH){1'b0}}, div_q};",
+      "after": "ADDR_DIV:    PRDATA = {{(APB_DATA_WIDTH-DIV_WIDTH){1'b1}}, div_q};",
+      "status": "killed",
+      "killed_by_goals": [
+        "EQ_REGISTER_DIV"
+      ],
+      "detail": "rc=1 tests=1 fail=0 err=0 sb_fail=1"
+    },
+    {
+      "id": "M040",
+      "file": "rtl/uart_tx.sv",
+      "operator": "CONST0_TO_1",
+      "line": 118,
+      "before": "ADDR_STATUS: PRDATA = {{(APB_DATA_WIDTH-2){1'b0}}, done_q, busy_q};",
+      "after": "ADDR_STATUS: PRDATA = {{(APB_DATA_WIDTH-2){1'b1}}, done_q, busy_q};",
+      "status": "killed",
+      "killed_by_goals": [],
+      "detail": "rc=1 tests=1 fail=0 err=0 sb_fail=0"
+    },
+    {
+      "id": "M041",
+      "file": "rtl/uart_tx.sv",
+      "operator": "CONST0_TO_1",
+      "line": 119,
+      "before": "default:     PRDATA = {APB_DATA_WIDTH{1'b0}};",
+      "after": "default:     PRDATA = {APB_DATA_WIDTH{1'b1}};",
+      "status": "SURVIVED",
+      "killed_by_goals": [],
+      "detail": "rc=0 tests=1 fail=0 err=0 sb_fail=0"
+    }
+  ]
+}

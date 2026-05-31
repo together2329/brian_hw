@@ -231,7 +231,7 @@ const ENH_CARD_TITLE_TEXT: Record<string, Record<string, string>> = {
   'cl-model':   { passed: 'cl/cl_model.json — cycle-acc',        ready: 'awaiting ssot' },
   equivalence:  { passed: 'FL ≡ CL across 8 192 stimulus vectors', ready: 'awaiting fl-model + cl-model' },
   rtl:          { passed: 'rtl/axi_dma_top.sv — emitted',        running: 'rtl/axi_dma_top.sv — synthesizing channel arbiter', ready: 'awaiting equivalence' },
-  lint:         { passed: 'lint clean — spyglass + verilator',   ready: 'awaiting rtl handoff' },
+  lint:         { passed: 'lint clean - pyslang + verilator',    ready: 'awaiting rtl handoff' },
   tb:           { passed: 'tb/cocotb — emitted',                 ready: 'awaiting rtl' },
   sim:          { passed: 'sim — all tests passed',              running: 'sim driver scoreboarding test vector', ready: 'awaiting tb' },
   syn:          { passed: 'netlist emitted',                     ready: 'awaiting rtl-gen' },

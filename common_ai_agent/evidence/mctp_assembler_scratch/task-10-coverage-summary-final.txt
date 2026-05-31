@@ -1,0 +1,4 @@
+SSOT coverage summary: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/cov/coverage.json
+SSOT coverage report : /Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/sim/coverage_report.md
+Status               : owner_routed
+rc=0

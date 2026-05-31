@@ -1,0 +1,7 @@
+{
+  "total": 91,
+  "required": 91,
+  "scenario_goals": 22,
+  "first_scenario": "EQ_SCENARIO_SC_VALID_SINGLE_PACKET",
+  "last_scenario": "EQ_SCENARIO_AD_TIMEOUT"
+}

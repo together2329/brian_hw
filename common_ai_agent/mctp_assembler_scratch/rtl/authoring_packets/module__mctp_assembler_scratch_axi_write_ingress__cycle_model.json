@@ -1,0 +1,853 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 5,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 6,
+      "enabled": true,
+      "index": 3,
+      "key": "cycle_model",
+      "module_task_count": 82,
+      "rule": "Owner module mctp_assembler_scratch_axi_write_ingress is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "cycle_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "name": "mctp_assembler_scratch_axi_write_ingress",
+      "refs": [
+        "cycle_model",
+        "cycle_model.handshake_rules.axi_write_channels",
+        "dataflow",
+        "function_model",
+        "function_model.transactions.FM_ACCEPT_AXI_TLP",
+        "io_list",
+        "io_list.interfaces.axi_write_slave",
+        "test_requirements"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "name": "mctp_assembler_scratch_axi_write_ingress",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "name": "mctp_assembler_scratch_pcie_vdm_parser",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_mctp_parser.sv",
+        "name": "mctp_assembler_scratch_mctp_parser",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_context_table.sv",
+        "name": "mctp_assembler_scratch_context_table",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "name": "mctp_assembler_scratch_sram_packer",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "name": "mctp_assembler_scratch_axi_read_egress",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
+        "name": "mctp_assembler_scratch_sram_arbiter",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_descriptor_queue.sv",
+        "name": "mctp_assembler_scratch_descriptor_queue",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+        "name": "mctp_assembler_scratch_apb_regfile",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_cdc.sv",
+        "name": "mctp_assembler_scratch_cdc",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_param.vh",
+        "name": "mctp_assembler_scratch_param",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch.sv",
+        "name": "mctp_assembler_scratch",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_scratch_axi_write_ingress",
+        "port": "m_axi_awvalid",
+        "signal": "m_axi_awvalid",
+        "signal_terms": [
+          "m_axi_awvalid"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_scratch_axi_write_ingress",
+        "port": "m_axi_wvalid",
+        "signal": "m_axi_wvalid",
+        "signal_terms": [
+          "m_axi_wvalid"
+        ],
+        "source_ref": "integration.connections[1]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 16,
+    "open_required_count": 16,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "mctp_assembler_scratch",
+  "kind": "module",
+  "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+  "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+  "packet_id": "module__mctp_assembler_scratch_axi_write_ingress__cycle_model",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "cycle_model.backpressure": 3,
+      "cycle_model.clock": 1,
+      "cycle_model.latency": 1,
+      "cycle_model.ordering": 3,
+      "cycle_model.pipeline": 7,
+      "cycle_model.reset": 1
+    },
+    "module_slice": {
+      "count": 6,
+      "enabled": true,
+      "index": 3,
+      "key": "cycle_model",
+      "module_task_count": 82,
+      "rule": "Owner module mctp_assembler_scratch_axi_write_ingress is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "cycle_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 16,
+    "required_count": 16,
+    "source_refs": [
+      "cycle_model.clock",
+      "cycle_model.reset",
+      "cycle_model.latency",
+      "cycle_model.pipeline.axi_write_collect",
+      "cycle_model.pipeline.pcie_vdm_filter",
+      "cycle_model.pipeline.mctp_parse",
+      "cycle_model.pipeline.context_lookup_update",
+      "cycle_model.pipeline.sram_pack_write",
+      "cycle_model.pipeline.descriptor_irq",
+      "cycle_model.pipeline.axi_readback",
+      "cycle_model.ordering.one_tlp_per_axi_write_transaction",
+      "cycle_model.ordering.per_key_fragment_order",
+      "cycle_model.ordering.readback_after_descriptor",
+      "cycle_model.backpressure.backpressure_rule_0",
+      "cycle_model.backpressure.backpressure_rule_1",
+      "cycle_model.backpressure.backpressure_rule_2"
+    ],
+    "status_counts": {
+      "planned": 16
+    },
+    "task_count": 16
+  },
+  "tasks": [
+    {
+      "category": "cycle_model.clock",
+      "content": "Implement cycle-model clock",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.clock",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "cycle_model.clock appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.clock.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via cycle_model.\nSSOT item context: value=axi_aclk.",
+      "evidence_terms": [
+        "aclk",
+        "axi",
+        "axi_aclk"
+      ],
+      "id": "RTL-0294",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.clock",
+      "ssot_context": {
+        "value": "axi_aclk"
+      },
+      "ssot_refs": [
+        "cycle_model.clock"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.reset",
+      "content": "Implement cycle-model reset",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.reset",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "cycle_model.reset appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.reset.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via cycle_model.\nSSOT item context: value=axi_aresetn.",
+      "evidence_terms": [
+        "aresetn",
+        "axi",
+        "axi_aresetn"
+      ],
+      "id": "RTL-0295",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.reset",
+      "ssot_context": {
+        "value": "axi_aresetn"
+      },
+      "ssot_refs": [
+        "cycle_model.reset"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.latency",
+      "content": "Implement cycle-model latency",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.latency",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "cycle_model.latency appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.latency.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via cycle_model.",
+      "evidence_terms": [],
+      "id": "RTL-0296",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.latency",
+      "ssot_context": {},
+      "ssot_refs": [
+        "cycle_model.latency"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: axi_write_collect",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.axi_write_collect",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "cycle_model.pipeline.axi_write_collect timing uses SSOT cycle/latency variable_1_to_129",
+        "cycle_model.pipeline.axi_write_collect appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.axi_write_collect.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via cycle_model.\nSSOT item context: stage=axi_write_collect; action=Collect one raw TLP write transaction through WLAST.; cycle=variable_1_to_129.",
+      "evidence_terms": [],
+      "id": "RTL-0301",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.axi_write_collect",
+      "ssot_context": {
+        "action": "Collect one raw TLP write transaction through WLAST.",
+        "cycle": "variable_1_to_129",
+        "stage": "axi_write_collect"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.axi_write_collect"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: pcie_vdm_filter",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.pcie_vdm_filter",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "cycle_model.pipeline.pcie_vdm_filter timing uses SSOT cycle/latency 1",
+        "cycle_model.pipeline.pcie_vdm_filter appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.pcie_vdm_filter.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via cycle_model.\nSSOT item context: stage=pcie_vdm_filter; action=Decode required PCIe VDM fields and classify packet drops.; cycle=1.",
+      "evidence_terms": [],
+      "id": "RTL-0302",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.pcie_vdm_filter",
+      "ssot_context": {
+        "action": "Decode required PCIe VDM fields and classify packet drops.",
+        "cycle": "1",
+        "stage": "pcie_vdm_filter"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.pcie_vdm_filter"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: mctp_parse",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.mctp_parse",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "cycle_model.pipeline.mctp_parse timing uses SSOT cycle/latency 1",
+        "cycle_model.pipeline.mctp_parse appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.mctp_parse.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via cycle_model.\nSSOT item context: stage=mctp_parse; action=Decode MCTP transport fields and form context key.; cycle=1.",
+      "evidence_terms": [],
+      "id": "RTL-0303",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.mctp_parse",
+      "ssot_context": {
+        "action": "Decode MCTP transport fields and form context key.",
+        "cycle": "1",
+        "stage": "mctp_parse"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.mctp_parse"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: context_lookup_update",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.context_lookup_update",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "cycle_model.pipeline.context_lookup_update timing uses SSOT cycle/latency 1_to_4",
+        "cycle_model.pipeline.context_lookup_update appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.context_lookup_update.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via cycle_model.\nSSOT item context: stage=context_lookup_update; action=Allocate; cycle=1_to_4.",
+      "evidence_terms": [],
+      "id": "RTL-0304",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.context_lookup_update",
+      "ssot_context": {
+        "action": "Allocate",
+        "cycle": "1_to_4",
+        "stage": "context_lookup_update"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.context_lookup_update"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: sram_pack_write",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.sram_pack_write",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "cycle_model.pipeline.sram_pack_write timing uses SSOT cycle/latency 0_to_32",
+        "cycle_model.pipeline.sram_pack_write appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.sram_pack_write.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via cycle_model.\nSSOT item context: stage=sram_pack_write; action=Emit packed 256-bit SRAM writes without holes.; cycle=0_to_32.",
+      "evidence_terms": [],
+      "id": "RTL-0305",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.sram_pack_write",
+      "ssot_context": {
+        "action": "Emit packed 256-bit SRAM writes without holes.",
+        "cycle": "0_to_32",
+        "stage": "sram_pack_write"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.sram_pack_write"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: descriptor_irq",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.descriptor_irq",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "cycle_model.pipeline.descriptor_irq timing uses SSOT cycle/latency 1_to_3",
+        "cycle_model.pipeline.descriptor_irq appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.descriptor_irq.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via cycle_model.\nSSOT item context: stage=descriptor_irq; action=Publish descriptor; cycle=1_to_3.",
+      "evidence_terms": [],
+      "id": "RTL-0306",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.descriptor_irq",
+      "ssot_context": {
+        "action": "Publish descriptor",
+        "cycle": "1_to_3",
+        "stage": "descriptor_irq"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.descriptor_irq"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: axi_readback",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.axi_readback",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "cycle_model.pipeline.axi_readback timing uses SSOT cycle/latency 1_to_8",
+        "cycle_model.pipeline.axi_readback appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.axi_readback.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via cycle_model.\nSSOT item context: stage=axi_readback; action=Read SRAM payload and return AXI R beats.; cycle=1_to_8.",
+      "evidence_terms": [],
+      "id": "RTL-0307",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.axi_readback",
+      "ssot_context": {
+        "action": "Read SRAM payload and return AXI R beats.",
+        "cycle": "1_to_8",
+        "stage": "axi_readback"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.axi_readback"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: one_tlp_per_axi_write_transaction",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.one_tlp_per_axi_write_transaction",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "one_tlp_per_axi_write_transaction appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.one_tlp_per_axi_write_transaction.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via cycle_model.\nSSOT item context: name=one_tlp_per_axi_write_transaction.",
+      "evidence_terms": [],
+      "id": "RTL-0308",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.one_tlp_per_axi_write_transaction",
+      "ssot_context": {
+        "name": "one_tlp_per_axi_write_transaction"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.one_tlp_per_axi_write_transaction"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: per_key_fragment_order",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.per_key_fragment_order",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "per_key_fragment_order appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.per_key_fragment_order.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via cycle_model.\nSSOT item context: name=per_key_fragment_order.",
+      "evidence_terms": [],
+      "id": "RTL-0309",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.per_key_fragment_order",
+      "ssot_context": {
+        "name": "per_key_fragment_order"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.per_key_fragment_order"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: readback_after_descriptor",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.readback_after_descriptor",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "readback_after_descriptor appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.readback_after_descriptor.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via cycle_model.\nSSOT item context: name=readback_after_descriptor.",
+      "evidence_terms": [],
+      "id": "RTL-0311",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.readback_after_descriptor",
+      "ssot_context": {
+        "name": "readback_after_descriptor"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.readback_after_descriptor"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.backpressure",
+      "content": "Implement backpressure rule: backpressure_rule_0",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.backpressure.backpressure_rule_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "cycle_model.backpressure.backpressure_rule_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.backpressure.backpressure_rule_0.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via cycle_model.\nSSOT item context: value=AXI write backpressure is applied when context table, descriptor FIFO, or SRAM pack resources cannot accept more data..",
+      "evidence_terms": [],
+      "id": "RTL-0312",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.backpressure.backpressure_rule_0",
+      "ssot_context": {
+        "value": "AXI write backpressure is applied when context table, descriptor FIFO, or SRAM pack resources cannot accept more data."
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure.backpressure_rule_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.backpressure",
+      "content": "Implement backpressure rule: backpressure_rule_1",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.backpressure.backpressure_rule_1",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "cycle_model.backpressure.backpressure_rule_1 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.backpressure.backpressure_rule_1.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via cycle_model.\nSSOT item context: value=AXI read backpressure is applied while waiting for SRAM read responses..",
+      "evidence_terms": [],
+      "id": "RTL-0313",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.backpressure.backpressure_rule_1",
+      "ssot_context": {
+        "value": "AXI read backpressure is applied while waiting for SRAM read responses."
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure.backpressure_rule_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.backpressure",
+      "content": "Implement backpressure rule: backpressure_rule_2",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.backpressure.backpressure_rule_2",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "cycle_model.backpressure.backpressure_rule_2 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.backpressure.backpressure_rule_2.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via cycle_model.\nSSOT item context: value=SRAM read requests yield to SRAM write requests in the first-target arbiter..",
+      "evidence_terms": [],
+      "id": "RTL-0314",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.backpressure.backpressure_rule_2",
+      "ssot_context": {
+        "value": "SRAM read requests yield to SRAM write requests in the first-target arbiter."
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure.backpressure_rule_2"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    }
+  ],
+  "todo_plan_sha256": "740f93796c4f016836bc823fe2faf4054d926dc664b7d534ef5d5436d6585bb5",
+  "top": "mctp_assembler_scratch",
+  "type": "rtl_authoring_packet"
+}

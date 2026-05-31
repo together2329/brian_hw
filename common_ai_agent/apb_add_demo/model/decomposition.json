@@ -1,0 +1,621 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_decomposition",
+  "ip": "apb_add_demo",
+  "source": "apb_add_demo/yaml/apb_add_demo.ssot.yaml",
+  "units": [
+    {
+      "name": "apb_add_demo",
+      "kind": "rtl_module",
+      "source_sections": [
+        "cycle_model",
+        "features",
+        "function_model",
+        "io_list",
+        "parameters",
+        "registers"
+      ],
+      "rtl_candidates": [
+        "apb_add_demo"
+      ],
+      "rtl_file": "rtl/apb_add_demo.sv",
+      "ssot_refs": [
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.add_out",
+        "cycle_model.handshake_rules.pready",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.pipeline.s0_decode",
+        "cycle_model.pipeline.s1_update",
+        "cycle_model.reset",
+        "features.adder_output",
+        "features.apb_csr_access",
+        "function_model",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.state_variables.opa_q",
+        "function_model.state_variables.opb_q",
+        "function_model.transactions",
+        "function_model.transactions.FM_IDLE",
+        "function_model.transactions.FM_WRITE",
+        "function_model.transactions.fm_idle",
+        "function_model.transactions.fm_idle.inputs.input_0",
+        "function_model.transactions.fm_idle.output_rules.add_rule",
+        "function_model.transactions.fm_idle.output_rules.carry_rule",
+        "function_model.transactions.fm_idle.output_rules.prdata_rule",
+        "function_model.transactions.fm_idle.output_rules.pready_rule",
+        "function_model.transactions.fm_idle.output_rules.pslverr_rule",
+        "function_model.transactions.fm_idle.outputs.output_0",
+        "function_model.transactions.fm_idle.preconditions.precondition_0",
+        "function_model.transactions.fm_idle.state_updates.opa_q",
+        "function_model.transactions.fm_idle.state_updates.opb_q",
+        "function_model.transactions.fm_write",
+        "function_model.transactions.fm_write.inputs.input_0",
+        "function_model.transactions.fm_write.inputs.input_1",
+        "function_model.transactions.fm_write.output_rules.add_rule",
+        "function_model.transactions.fm_write.output_rules.carry_rule",
+        "function_model.transactions.fm_write.output_rules.pready_rule",
+        "function_model.transactions.fm_write.output_rules.pslverr_rule",
+        "function_model.transactions.fm_write.outputs.output_0",
+        "function_model.transactions.fm_write.preconditions.precondition_0",
+        "function_model.transactions.fm_write.preconditions.precondition_1",
+        "function_model.transactions.fm_write.preconditions.precondition_2",
+        "function_model.transactions.fm_write.side_effects.side_effect_0",
+        "function_model.transactions.fm_write.state_updates.opa_q",
+        "function_model.transactions.fm_write.state_updates.opb_q",
+        "io_list",
+        "io_list.interfaces.apb_slave",
+        "parameters.apb_addr_width",
+        "parameters.apb_data_width",
+        "registers",
+        "registers.config.addr_width",
+        "registers.config.byte_addressable",
+        "registers.config.register_width",
+        "registers.register_list",
+        "registers.register_list.opa",
+        "registers.register_list.opb"
+      ],
+      "function_model_refs": [
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.state_variables.opa_q",
+        "function_model.state_variables.opb_q",
+        "function_model.transactions.fm_idle",
+        "function_model.transactions.fm_idle.inputs.input_0",
+        "function_model.transactions.fm_idle.output_rules.add_rule",
+        "function_model.transactions.fm_idle.output_rules.carry_rule",
+        "function_model.transactions.fm_idle.output_rules.prdata_rule",
+        "function_model.transactions.fm_idle.output_rules.pready_rule",
+        "function_model.transactions.fm_idle.output_rules.pslverr_rule",
+        "function_model.transactions.fm_idle.outputs.output_0",
+        "function_model.transactions.fm_idle.preconditions.precondition_0",
+        "function_model.transactions.fm_idle.state_updates.opa_q",
+        "function_model.transactions.fm_idle.state_updates.opb_q",
+        "function_model.transactions.fm_write",
+        "function_model.transactions.fm_write.inputs.input_0",
+        "function_model.transactions.fm_write.inputs.input_1",
+        "function_model.transactions.fm_write.output_rules.add_rule",
+        "function_model.transactions.fm_write.output_rules.carry_rule",
+        "function_model.transactions.fm_write.output_rules.pready_rule",
+        "function_model.transactions.fm_write.output_rules.pslverr_rule",
+        "function_model.transactions.fm_write.outputs.output_0",
+        "function_model.transactions.fm_write.preconditions.precondition_0",
+        "function_model.transactions.fm_write.preconditions.precondition_1",
+        "function_model.transactions.fm_write.preconditions.precondition_2",
+        "function_model.transactions.fm_write.side_effects.side_effect_0",
+        "function_model.transactions.fm_write.state_updates.opa_q",
+        "function_model.transactions.fm_write.state_updates.opb_q"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.add_out",
+        "cycle_model.handshake_rules.pready",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.pipeline.s0_decode",
+        "cycle_model.pipeline.s1_update",
+        "cycle_model.reset"
+      ],
+      "structural_refs": [
+        "features.adder_output",
+        "features.apb_csr_access",
+        "parameters.apb_addr_width",
+        "parameters.apb_data_width",
+        "registers.config.addr_width",
+        "registers.config.byte_addressable",
+        "registers.config.register_width",
+        "registers.register_list.opa",
+        "registers.register_list.opb"
+      ],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "apb_add_demo_protocol_model",
+      "kind": "protocol",
+      "source_sections": [
+        "io_list",
+        "cycle_model"
+      ],
+      "rtl_candidates": [
+        "apb_add_demo_axi_slv",
+        "apb_add_demo_protocol"
+      ],
+      "verification_impact": [
+        "driver",
+        "monitor",
+        "protocol coverage"
+      ]
+    },
+    {
+      "name": "apb_add_demo_register_model",
+      "kind": "register",
+      "source_sections": [
+        "registers",
+        "error_handling"
+      ],
+      "rtl_candidates": [
+        "apb_add_demo_regs",
+        "apb_add_demo_apb_regs"
+      ],
+      "verification_impact": [
+        "register sequences",
+        "readback scoreboard"
+      ]
+    },
+    {
+      "name": "apb_add_demo_datapath_model",
+      "kind": "datapath",
+      "source_sections": [
+        "features",
+        "dataflow",
+        "function_model"
+      ],
+      "rtl_candidates": [
+        "apb_add_demo_core",
+        "apb_add_demo_datapath"
+      ],
+      "verification_impact": [
+        "functional scoreboard",
+        "transaction coverage"
+      ]
+    },
+    {
+      "name": "apb_add_demo_fsm_model",
+      "kind": "fsm",
+      "source_sections": [
+        "fsm",
+        "cycle_model"
+      ],
+      "rtl_candidates": [
+        "apb_add_demo_core"
+      ],
+      "verification_impact": [
+        "state transition coverage",
+        "waveform debug"
+      ]
+    },
+    {
+      "name": "apb_add_demo_error_model",
+      "kind": "error",
+      "source_sections": [
+        "error_handling"
+      ],
+      "rtl_candidates": [
+        "apb_add_demo_core",
+        "apb_add_demo_error"
+      ],
+      "verification_impact": [
+        "negative tests",
+        "mismatch classification"
+      ]
+    }
+  ],
+  "module_contracts": [
+    {
+      "name": "apb_add_demo",
+      "kind": "rtl_module",
+      "rtl_module": "apb_add_demo",
+      "rtl_file": "rtl/apb_add_demo.sv",
+      "source_sections": [
+        "cycle_model",
+        "features",
+        "function_model",
+        "io_list",
+        "parameters",
+        "registers"
+      ],
+      "ssot_refs": [
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.add_out",
+        "cycle_model.handshake_rules.pready",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.pipeline.s0_decode",
+        "cycle_model.pipeline.s1_update",
+        "cycle_model.reset",
+        "features.adder_output",
+        "features.apb_csr_access",
+        "function_model",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.state_variables.opa_q",
+        "function_model.state_variables.opb_q",
+        "function_model.transactions",
+        "function_model.transactions.FM_IDLE",
+        "function_model.transactions.FM_WRITE",
+        "function_model.transactions.fm_idle",
+        "function_model.transactions.fm_idle.inputs.input_0",
+        "function_model.transactions.fm_idle.output_rules.add_rule",
+        "function_model.transactions.fm_idle.output_rules.carry_rule",
+        "function_model.transactions.fm_idle.output_rules.prdata_rule",
+        "function_model.transactions.fm_idle.output_rules.pready_rule",
+        "function_model.transactions.fm_idle.output_rules.pslverr_rule",
+        "function_model.transactions.fm_idle.outputs.output_0",
+        "function_model.transactions.fm_idle.preconditions.precondition_0",
+        "function_model.transactions.fm_idle.state_updates.opa_q",
+        "function_model.transactions.fm_idle.state_updates.opb_q",
+        "function_model.transactions.fm_write",
+        "function_model.transactions.fm_write.inputs.input_0",
+        "function_model.transactions.fm_write.inputs.input_1",
+        "function_model.transactions.fm_write.output_rules.add_rule",
+        "function_model.transactions.fm_write.output_rules.carry_rule",
+        "function_model.transactions.fm_write.output_rules.pready_rule",
+        "function_model.transactions.fm_write.output_rules.pslverr_rule",
+        "function_model.transactions.fm_write.outputs.output_0",
+        "function_model.transactions.fm_write.preconditions.precondition_0",
+        "function_model.transactions.fm_write.preconditions.precondition_1",
+        "function_model.transactions.fm_write.preconditions.precondition_2",
+        "function_model.transactions.fm_write.side_effects.side_effect_0",
+        "function_model.transactions.fm_write.state_updates.opa_q",
+        "function_model.transactions.fm_write.state_updates.opb_q",
+        "io_list",
+        "io_list.interfaces.apb_slave",
+        "parameters.apb_addr_width",
+        "parameters.apb_data_width",
+        "registers",
+        "registers.config.addr_width",
+        "registers.config.byte_addressable",
+        "registers.config.register_width",
+        "registers.register_list",
+        "registers.register_list.opa",
+        "registers.register_list.opb"
+      ],
+      "function_model_refs": [
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.state_variables.opa_q",
+        "function_model.state_variables.opb_q",
+        "function_model.transactions.fm_idle",
+        "function_model.transactions.fm_idle.inputs.input_0",
+        "function_model.transactions.fm_idle.output_rules.add_rule",
+        "function_model.transactions.fm_idle.output_rules.carry_rule",
+        "function_model.transactions.fm_idle.output_rules.prdata_rule",
+        "function_model.transactions.fm_idle.output_rules.pready_rule",
+        "function_model.transactions.fm_idle.output_rules.pslverr_rule",
+        "function_model.transactions.fm_idle.outputs.output_0",
+        "function_model.transactions.fm_idle.preconditions.precondition_0",
+        "function_model.transactions.fm_idle.state_updates.opa_q",
+        "function_model.transactions.fm_idle.state_updates.opb_q",
+        "function_model.transactions.fm_write",
+        "function_model.transactions.fm_write.inputs.input_0",
+        "function_model.transactions.fm_write.inputs.input_1",
+        "function_model.transactions.fm_write.output_rules.add_rule",
+        "function_model.transactions.fm_write.output_rules.carry_rule",
+        "function_model.transactions.fm_write.output_rules.pready_rule",
+        "function_model.transactions.fm_write.output_rules.pslverr_rule",
+        "function_model.transactions.fm_write.outputs.output_0",
+        "function_model.transactions.fm_write.preconditions.precondition_0",
+        "function_model.transactions.fm_write.preconditions.precondition_1",
+        "function_model.transactions.fm_write.preconditions.precondition_2",
+        "function_model.transactions.fm_write.side_effects.side_effect_0",
+        "function_model.transactions.fm_write.state_updates.opa_q",
+        "function_model.transactions.fm_write.state_updates.opb_q"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.add_out",
+        "cycle_model.handshake_rules.pready",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.pipeline.s0_decode",
+        "cycle_model.pipeline.s1_update",
+        "cycle_model.reset"
+      ],
+      "structural_refs": [
+        "features.adder_output",
+        "features.apb_csr_access",
+        "parameters.apb_addr_width",
+        "parameters.apb_data_width",
+        "registers.config.addr_width",
+        "registers.config.byte_addressable",
+        "registers.config.register_width",
+        "registers.register_list.opa",
+        "registers.register_list.opb"
+      ],
+      "owner_matches": [
+        {
+          "ref": "function_model.state_variables.opa_q",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.state_variables.opb_q",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_write",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_write.preconditions.precondition_0",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_write.preconditions.precondition_1",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_write.preconditions.precondition_2",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_write.inputs.input_0",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_write.inputs.input_1",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_write.outputs.output_0",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_write.output_rules.pready_rule",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_write.output_rules.pslverr_rule",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_write.output_rules.add_rule",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_write.output_rules.carry_rule",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_write.state_updates.opa_q",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_write.state_updates.opb_q",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_write.side_effects.side_effect_0",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_idle",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_idle.preconditions.precondition_0",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_idle.inputs.input_0",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_idle.outputs.output_0",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_idle.output_rules.pready_rule",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_idle.output_rules.pslverr_rule",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_idle.output_rules.add_rule",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_idle.output_rules.carry_rule",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_idle.output_rules.prdata_rule",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_idle.state_updates.opa_q",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_idle.state_updates.opb_q",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.invariants.invariant_0",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.invariants.invariant_1",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.clock",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.reset",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.latency",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.pready",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.add_out",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.pipeline.s0_decode",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.pipeline.s1_update",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.ordering.ordering_0",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.backpressure.backpressure_0",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.observability.observability_0",
+          "matched_ref": "single_owner"
+        }
+      ],
+      "structural_owner_matches": [
+        {
+          "ref": "parameters.apb_addr_width",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "parameters.apb_data_width",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "registers.register_list.opa",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "registers.register_list.opb",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "registers.config.register_width",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "registers.config.addr_width",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "registers.config.byte_addressable",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "features.apb_csr_access",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "features.adder_output",
+          "matched_ref": "single_owner"
+        }
+      ],
+      "verification_scope": "module",
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    }
+  ],
+  "orphan_function_cycle_refs": [],
+  "function_cycle_ref_count": 39,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "apb_add_demo/req/",
+      "apb_add_demo/yaml/apb_add_demo.ssot.yaml",
+      "apb_add_demo/model/functional_model.py",
+      "apb_add_demo/cov/fcov_plan.json",
+      "apb_add_demo/yaml/apb_add_demo.ssot.yaml#io_list",
+      "apb_add_demo/yaml/apb_add_demo.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "apb_add_demo/rtl/",
+      "apb_add_demo/tb/",
+      "apb_add_demo/sim/",
+      "apb_add_demo/vectors/",
+      "apb_add_demo/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  },
+  "drives": [
+    "rtl_module_plan",
+    "tb_environment_plan",
+    "functional_coverage_plan"
+  ],
+  "complete": true
+}

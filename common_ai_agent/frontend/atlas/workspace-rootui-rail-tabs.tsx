@@ -400,6 +400,7 @@ export const renderWorkspaceCenterTabStrip = (ws: any): ReactNode => {
     showBuiltinGitTab,
     workflowReportMeta, workflow, pendingQcard,
     previewPath, activeIp, scmTabLabel,
+    debugChatOpen, setDebugChatOpen,
   } = ws;
   return (
     <div className="box-h">
@@ -704,6 +705,20 @@ export const renderWorkspaceCenterTabStrip = (ws: any): ReactNode => {
         </span>
       )}
       <span style={{ flex: 1 }} />
+      {mainTab === 'debug' && setDebugChatOpen && (
+        <span
+          className="tab-chip"
+          onClick={() => setDebugChatOpen(!debugChatOpen)}
+          title="toggle the agent chat beside the waveform (it can drive the view via the sim_debug tool)"
+          style={{
+            cursor: 'pointer', padding: '2px 8px', borderRadius: 2, marginRight: 6,
+            color: debugChatOpen ? 'var(--accent)' : 'var(--fg-mute)',
+            background: debugChatOpen ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
+            border: '1px solid ' + (debugChatOpen ? 'var(--accent)' : 'var(--line)'),
+            fontWeight: 700, letterSpacing: '0.06em', fontSize: 'var(--ui-control-font-size)',
+          }}
+        >💬 chat{debugChatOpen ? ' ✕' : ''}</span>
+      )}
       {(mainTab === 'preview' || mainTab === 'split' || mainTab === 'ssot' || mainTab === 'doc' || mainTab === 'checklist' || mainTab === 'import_export') && (
         <span style={{ fontSize: 10 }}>
           <span className="mute" style={{ marginRight: 8 }}>{mainTab === 'split' ? 'chat only' : 'back to chat'}</span>

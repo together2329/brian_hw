@@ -1,5 +1,19 @@
 # Wiki Log
 
+## 2026-05-31
+
+- Added [[sim-debug-feature-review-2026-05-31]] as the consolidated Sim Debug review: four-pane UI, background preload/loading contract, scoped signal identity, source multi-select, waveform RC/radix/group/reorder behavior, agent tool/API bridge, tests, risks, and next work.
+- Added [[sim-debug-waveform-renderer-2026-05-31]] documenting the current React/SVG waveform renderer, why React Flow is not a fit, when to consider Canvas/virtualization, and the VCD bus-slice zero-extension requirement.
+- [[hw-agent-ip-experiment-batch-20260530]] updated with `axi_mctp_assembler_demo`, AXI-stream packet-assembly evidence, mutation category kill-rate, and the lesson that directed observability closed the first failed mutation run.
+- [[hw-agent-ip-experiment-batch-20260530]] updated with the optional formal-proof workflow note, current tool availability, and the decision not to make formal a canonical gate yet.
+- [[hw-agent-ip-experiment-batch-20260530]] updated with `custom_fifo_processor_demo`, custom I/F FIFO/processor evidence, mutation selector balancing, and the full+pop+push throughput-observable lesson.
+- [[hw-agent-ip-experiment-batch-20260530]] updated with `simple_cpu_demo`, CPU-class evidence, mutation result, and the sequential-gate lesson.
+- [[hw-agent-ip-experiment-batch-20260530]] updated with `ready_valid_fifo_demo`, ready/valid mutation evidence, backpressure contract fix, and the anti-overengineering decision.
+- [[hw-agent-ip-experiment-batch-20260530]] updated after adding reusable serial/UART protocol monitors, contract-specific mutation classes, and `uart_tx_demo` evidence.
+- [[hw-agent-ip-experiment-batch-20260530]] updated with the non-APB `spi_master_tx_demo` general-IP exercise, serial timing evidence, and mutation kill-rate lesson.
+- [[hw-agent-ip-experiment-batch-20260530]] updated with the general-IP decision: reject static profiles and derive `verify/ip_contract.json` from each IP's SSOT/IO/goals.
+- [[hw-agent-ip-experiment-batch-20260530]] updated with `workflow/STAGE_MANIFEST.json`, scoreboard observable completeness, `workflow/mutation`, and validation evidence.
+
 ## 2026-05-25
 
 - Added [[workspace-jsx-decomposition-plan]] as the parked, P0-gated plan for

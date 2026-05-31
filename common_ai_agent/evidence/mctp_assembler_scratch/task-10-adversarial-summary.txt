@@ -1,0 +1,18 @@
+Task 10 adversarial summary
+
+Task: Close Functional and Cycle Coverage
+Result: coverage summary exits 0 with status=owner_routed, not pass.
+
+Classes:
+- malformed input: tests/test_coverage_owner_routes.py first failed before the workflow supported owner routes; after the patch, malformed/missing route coverage is checked by pytest.
+- prompt injection: not applicable; the stage consumes deterministic local JSON, YAML, and scoreboard data, and does not execute natural language.
+- cancel/resume: plan, Boulder state, and ledger were reread before closing the task.
+- stale state: stale path scan for mctp_assembler/ under Task 10 coverage artifacts passed; owner routes were generated from current scratch coverage missing bins.
+- dirty worktree: unrelated dirty files were left untouched; edits were limited to the coverage script, new coverage owner-route test, scratch coverage route artifact, evidence, plan, and ledger.
+- hung or long commands: coverage summary and pytest were rerun in bounded foreground commands; manual QA used tmux and the session was verified absent afterward.
+- flaky tests: coverage summary and pytest were rerun after the patch and final evidence shows rc=0 and 6 passed.
+- misleading success output: coverage status remains owner_routed, and semantic checks assert routed_missing_bins == rtl_observed.missing_bins, with zero unrouted and zero invalid routes.
+- repeated interruptions: task state is captured in evidence files and the JSONL ledger so execution can resume at Task 11.
+
+Important limitation:
+Coverage is not production-closed. Functional/cycle raw bins exist, but 57 bins do not have passing RTL-observed scoreboard rows. Those bins are explicitly routed to sim_debug as non-signoff blockers for the next task.

@@ -8110,6 +8110,169 @@ def verify_ssot(ip: str = "", mode: str = "engineering", root: str = "", preview
     return out or f"[verify_ssot] verifier exited {proc.returncode} with no output"
 
 
+def _sim_debug_siglist(signals, signal):
+    """Normalize signals="a, b" + signal="c" into an ordered, deduped list."""
+    out = []
+    if signal:
+        out.append(str(signal).strip())
+    if signals:
+        out += [t.strip() for t in re.split(r"[,\s]+", str(signals)) if t.strip()]
+    seen, res = set(), []
+    for x in out:
+        if x and x not in seen:
+            seen.add(x)
+            res.append(x)
+    return res
+
+
+def sim_debug(action="", ip="", signals="", signal="", t_start=None, t_end=None,
+              cursor_a=None, cursor_b=None, edge="rising", nth=1, at=None,
+              group="", color="", scope=""):
+    """Drive and query the ATLAS Sim Debug waveform panel from chat.
+
+    The action both (a) returns analysis text to you and (b) updates the open
+    Sim Debug panel (it polls for the latest intent). Use the active IP unless
+    `ip` is given.
+
+    Actions:
+      show    — add signal(s) to the waveform. signals="a,b" or signal="a";
+                optional scope="<VCD/instance scope>" disambiguates duplicates.
+      goto    — zoom the view to [t_start, t_end] (ns); optional cursor_a/cursor_b.
+      cursor  — place cursor A/B (cursor_a, cursor_b in ns).
+      fit     — reset the view to the whole VCD.
+      reorder — set the top-to-bottom row order. signals="a,b,c" (the listed
+                signals lead in that order; the rest follow).
+      group   — tag signals into a named, foldable group ABOVE them.
+                group="name", signals="a,b", optional color="#rrggbb".
+      ungroup — remove signal(s) from their group. signals="a,b".
+      color   — recolor signal(s). color="#rrggbb", signals="a,b".
+      fold / unfold — collapse / expand a group. group="name".
+      trace   — pyslang: report a signal's driver + load sites (file:line) and
+                show the trace in the panel. (signal=…)
+      find    — VCD: time of a signal's edge (edge=rising|falling|any, nth=1),
+                then jump the panel there with the signal shown. (signal=…, optional scope=…)
+      value   — VCD: value of a signal at time `at` ns. (signal=…, at=…, optional scope=…)
+    """
+    from core.sim_debug_intent import push_intent
+    act = str(action or "").strip().lower()
+    ip = str(ip or os.environ.get("ATLAS_ACTIVE_IP", "")).strip()
+    sig_scope = str(scope or "").strip()
+    where = ip or "active IP"
+
+    if act in ("show", "add"):
+        sigs = _sim_debug_siglist(signals, signal)
+        if not sigs:
+            return "[sim_debug show: no signals given — pass signals=\"a,b\" or signal=\"a\"]"
+        shown, notes = [], []
+        try:
+            from core.sim_debug_analyze import resolve_wave_signal
+        except Exception:
+            resolve_wave_signal = None
+        for s in sigs:
+            r = resolve_wave_signal(ip, s, sig_scope) if resolve_wave_signal else {"status": "unresolved"}
+            status = r.get("status")
+            if status == "resolved":
+                shown.append(r.get("resolved_signal") or s)
+                if r.get("resolved_signal") and r.get("resolved_signal") != s:
+                    notes.append(f"{s}→{r.get('resolved_signal')}")
+            elif status == "rtl_not_dumped":
+                shown.append(r.get("resolved_signal") or s)
+                notes.append(f"{s}: real RTL pin/signal, not dumped in VCD")
+            elif status == "ambiguous":
+                cands = [c.get("resolved_signal", "") for c in r.get("candidates", []) if c.get("resolved_signal")]
+                notes.append(f"{s}: ambiguous ({', '.join(cands[:4])})")
+            else:
+                hints = r.get("did_you_mean") or []
+                if hints:
+                    notes.append(f"{s}: not resolved; candidates {', '.join(hints[:4])}")
+                else:
+                    notes.append(f"{s}: not resolved")
+        if not shown:
+            return f"[sim_debug show: no unambiguous signal resolved ({'; '.join(notes)})]"
+        push_intent(ip, "show", signals=shown, scope=(sig_scope or None))
+        scoped = f" @ {sig_scope}" if sig_scope else ""
+        suffix = f" ({'; '.join(notes)})" if notes else ""
+        return f"✓ Sim Debug: added {', '.join(shown)}{scoped} to the waveform ({where}).{suffix}"
+
+    if act in ("goto", "zoom", "view"):
+        if t_start is None or t_end is None:
+            return "[sim_debug goto: t_start and t_end (ns) required]"
+        try:
+            a, b = int(float(t_start)), int(float(t_end))
+        except (TypeError, ValueError):
+            return "[sim_debug goto: t_start/t_end must be numbers (ns)]"
+        push_intent(ip, "goto", t_start=min(a, b), t_end=max(a, b),
+                    cursor_a=cursor_a, cursor_b=cursor_b)
+        return f"✓ Sim Debug: zoomed to {min(a, b)}–{max(a, b)} ns ({where})."
+
+    if act == "cursor":
+        if cursor_a is None and cursor_b is None:
+            return "[sim_debug cursor: cursor_a and/or cursor_b (ns) required]"
+        push_intent(ip, "cursor", cursor_a=cursor_a, cursor_b=cursor_b)
+        parts = []
+        if cursor_a is not None:
+            parts.append(f"A={int(float(cursor_a))}")
+        if cursor_b is not None:
+            parts.append(f"B={int(float(cursor_b))}")
+        return f"✓ Sim Debug cursor: {' '.join(parts)} ns ({where})."
+
+    if act == "fit":
+        push_intent(ip, "fit")
+        return f"✓ Sim Debug: fit whole VCD ({where})."
+
+    if act == "reorder":
+        sigs = _sim_debug_siglist(signals, signal)
+        if not sigs:
+            return "[sim_debug reorder: pass signals=\"a,b,c\" in the desired top-to-bottom order]"
+        push_intent(ip, "reorder", signals=sigs, scope=(sig_scope or None))
+        return f"✓ Sim Debug: reordered {', '.join(sigs)} ({where})."
+
+    if act == "group":
+        sigs = _sim_debug_siglist(signals, signal)
+        grp = str(group or "").strip()
+        if not grp or not sigs:
+            return "[sim_debug group: pass group=\"name\" and signals=\"a,b\"]"
+        push_intent(ip, "group", group=grp, signals=sigs, scope=(sig_scope or None), color=(str(color).strip() or None))
+        cs = f" [{color}]" if str(color).strip() else ""
+        return f"✓ Sim Debug: grouped {', '.join(sigs)} under '{grp}'{cs} ({where})."
+
+    if act == "ungroup":
+        sigs = _sim_debug_siglist(signals, signal)
+        if not sigs:
+            return "[sim_debug ungroup: pass signals=\"a,b\"]"
+        push_intent(ip, "ungroup", signals=sigs, scope=(sig_scope or None))
+        return f"✓ Sim Debug: ungrouped {', '.join(sigs)} ({where})."
+
+    if act == "color":
+        sigs = _sim_debug_siglist(signals, signal)
+        col = str(color or "").strip()
+        if not sigs or not col:
+            return "[sim_debug color: pass color=\"#rrggbb\" and signals=\"a,b\"]"
+        push_intent(ip, "color", signals=sigs, scope=(sig_scope or None), color=col)
+        return f"✓ Sim Debug: colored {', '.join(sigs)} {col} ({where})."
+
+    if act in ("fold", "unfold"):
+        grp = str(group or "").strip()
+        if not grp:
+            return f"[sim_debug {act}: pass group=\"name\"]"
+        push_intent(ip, act, group=grp)
+        return f"✓ Sim Debug: {act}ed group '{grp}' ({where})."
+
+    if act in ("trace", "find", "value"):
+        # Implemented in Phase B/C via core.sim_debug_analyze.
+        try:
+            from core.sim_debug_analyze import run_sim_debug_analysis
+        except Exception:
+            return f"[sim_debug {act}: analysis module unavailable]"
+        return run_sim_debug_analysis(
+            act, ip=ip, signal=signal, edge=edge, nth=nth, at=at,
+            push_intent=push_intent, scope=sig_scope)
+
+    return ("[sim_debug: unknown action '" + act + "'. "
+            "Use: show, goto, cursor, fit, reorder, group, ungroup, color, "
+            "fold, unfold, trace, find, value]")
+
+
 # Registry of available tools
 AVAILABLE_TOOLS = {
     "read_file": read_file,
@@ -8181,6 +8344,8 @@ AVAILABLE_TOOLS = {
     "wrapper_gen": wrapper_gen,
     "dispatch_workflow": dispatch_workflow,
     "read_pipeline_state": read_pipeline_state,
+    # Sim Debug waveform panel driver/analysis (VCD + pyslang)
+    "sim_debug": sim_debug,
 }
 
 

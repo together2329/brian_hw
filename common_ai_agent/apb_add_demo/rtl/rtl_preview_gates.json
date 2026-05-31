@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "type": "starter_rtl_preview_gates",
+  "ip": "apb_add_demo",
+  "top": "apb_add_demo",
+  "mode": "starter",
+  "status": "handoff",
+  "hard_gates": [
+    {
+      "id": "STARTER_TOP_MODULE",
+      "status": "pass"
+    },
+    {
+      "id": "STARTER_IO_LIST",
+      "status": "pass"
+    },
+    {
+      "id": "STARTER_FUNCTION_MODEL",
+      "status": "pass"
+    },
+    {
+      "id": "STARTER_RTL_AUTHORING",
+      "status": "handoff"
+    },
+    {
+      "id": "STARTER_LLM_RTL_AUTHORING_REQUIRED",
+      "status": "required",
+      "message": "Stateful Starter RTL must be authored by an LLM/worker before compile/sim gates can run."
+    }
+  ],
+  "soft_gates": [
+    {
+      "id": "STARTER_LLM_RTL_AUTHORING_REQUIRED",
+      "severity": "warning",
+      "status": "handoff",
+      "message": "Starter contract is ready for LLM-authored RTL; Starter gates are relaxed but RTL must be real authored RTL."
+    }
+  ],
+  "deferred_gates": [
+    {
+      "id": "SSOT_BEHAVIOR_OWNERSHIP",
+      "severity": "deferred",
+      "status": "deferred",
+      "decision_needed": "Assign every SSOT function/decomposition behavior to an RTL module contract.",
+      "evidence": "These SSOT refs have no owning RTL module contract: function_model.state_variables.opa_q, function_model.state_variables.opb_q, decomposition.units.csr_decode, decomposition.units.adder"
+    }
+  ],
+  "policy": "Starter produces real LLM-authored RTL with relaxed gates. Deferred gates remain non-blocking in Starter and become blocking in Engineering/Signoff as applicable.",
+  "timestamp": "2026-05-31T02:46:08Z"
+}

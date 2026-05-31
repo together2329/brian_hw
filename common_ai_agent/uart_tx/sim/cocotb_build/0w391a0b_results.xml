@@ -1,0 +1,8 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1780191551" />
+    <testcase name="fl_vs_rtl" classname="test_uart_tx" file="/Users/brian/Desktop/Project/brian_hw/common_ai_agent/uart_tx/tb/cocotb/test_uart_tx.py" lineno="103" time="0.5047957897186279" sim_time_ns="2190.001" ratio_time="4338.3899878022">
+      <failure message="Test failed with RANDOM_SEED=1780191551" />
+    </testcase>
+  </testsuite>
+</testsuites>

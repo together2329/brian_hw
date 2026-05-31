@@ -1,0 +1,5 @@
+151:- Reads outside the configured SRAM read window return `RRESP=SLVERR`.
+152:- Reads to a payload range that has no completed descriptor are integration-policy dependent. The first target records a debug/error event and may return either zero data with `SLVERR` or raw SRAM data if raw debug access is enabled.
+758:- AXI read outside configured SRAM read window returns `SLVERR`.
+837:- Whether malformed AXI transactions should return `SLVERR` instead of `OKAY` plus status reporting.
+845:- Whether AXI reads outside completed descriptor ranges should be blocked, zeroed with `SLVERR`, or exposed as raw debug SRAM reads.

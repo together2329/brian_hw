@@ -1,0 +1,4 @@
+scratch RTL stale path scan:
+no stale mctp_assembler/ paths in scratch RTL/list
+no accidental --help dir:
+absent

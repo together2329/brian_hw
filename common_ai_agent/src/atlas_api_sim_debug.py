@@ -56,7 +56,8 @@ def register_source_route(
                 "allowed": sorted(_SOURCE_EXTS) + sorted(_SOURCE_NO_EXT_NAMES),
             }, status_code=400)
         try:
-            content = target.read_text(encoding="utf-8", errors="replace")
+            content = await asyncio.to_thread(
+                target.read_text, encoding="utf-8", errors="replace")
         except OSError as e:
             return JSONResponse({"error": str(e)}, status_code=500)
         return JSONResponse({
@@ -234,161 +235,10 @@ def register_sim_debug_routes(
 
 
     def _elab_resolve_sources(sources_glob: str, ip: str = "") -> list:
-        """Resolve a comma-separated glob list (or a single ip-tree default).
-        Each pattern is interpreted relative to PROJECT_ROOT and clipped to
-        files that pass _safe(). Default source discovery prefers the IP
-        filelist (`<ip>/list/*.f` or nested `*/<ip>/list/*.f`) before
-        falling back to RTL directory scans.
-        """
-        skip_parts = {
-            ".git", ".session", "__pycache__", "node_modules", "vendor",
-            ".venv", "venv", "dist", "build",
-        }
-        rtl_suffixes = (".sv", ".v", ".svh", ".vh")
-        filelist_suffixes = (".f", ".vf", ".flist", ".list")
-        out: list = []
-        seen: set[str] = set()
-        seen_filelists: set[str] = set()
-
-        def _add(f):
-            try:
-                resolved = f.resolve()
-                rel = resolved.relative_to(PROJECT_ROOT)
-            except (OSError, ValueError):
-                return
-            if any(part in skip_parts for part in rel.parts):
-                return
-            if not f.is_file() or f.suffix.lower() not in rtl_suffixes:
-                return
-            key = rel.as_posix()
-            if key in seen:
-                return
-            seen.add(key)
-            out.append(resolved)
-
-        def _project_relative_file(p: Path, suffixes: tuple[str, ...]) -> Optional[Path]:
-            try:
-                resolved = p.resolve()
-                rel = resolved.relative_to(PROJECT_ROOT)
-            except (OSError, ValueError):
-                return None
-            if any(part in skip_parts for part in rel.parts):
-                return None
-            if not resolved.is_file() or resolved.suffix.lower() not in suffixes:
-                return None
-            return resolved
-
-        def _resolve_filelist_token(token: str, bases: list[Path]) -> list[Path]:
-            raw = os.path.expanduser(os.path.expandvars(str(token or "").strip()))
-            if not raw:
-                return []
-            p = Path(raw)
-            if p.is_absolute():
-                return [p]
-            candidates: list[Path] = []
-            for base in bases:
-                candidates.append(base / p)
-            candidates.append(PROJECT_ROOT / p)
-            return candidates
-
-        def _read_filelist(filelist: Path) -> None:
-            resolved = _project_relative_file(filelist, filelist_suffixes)
-            if resolved is None:
-                return
-            key = resolved.relative_to(PROJECT_ROOT).as_posix()
-            if key in seen_filelists:
-                return
-            seen_filelists.add(key)
-            bases = [resolved.parent, resolved.parent.parent, PROJECT_ROOT]
-            try:
-                lines = resolved.read_text(encoding="utf-8", errors="replace").splitlines()
-            except OSError:
-                return
-            for raw in lines:
-                line = raw.split("//", 1)[0].split("#", 1)[0].strip()
-                if not line:
-                    continue
-                try:
-                    tokens = shlex.split(line, comments=False, posix=True)
-                except ValueError:
-                    tokens = line.split()
-                i = 0
-                while i < len(tokens):
-                    token = tokens[i].strip()
-                    if token in ("-f", "-F") and i + 1 < len(tokens):
-                        for candidate in _resolve_filelist_token(tokens[i + 1], bases):
-                            _read_filelist(candidate)
-                        i += 2
-                        continue
-                    if (token.startswith("-f") or token.startswith("-F")) and len(token) > 2:
-                        for candidate in _resolve_filelist_token(token[2:], bases):
-                            _read_filelist(candidate)
-                        i += 1
-                        continue
-                    if token.startswith("+incdir+") or token.startswith("+define+") or token.startswith("-I"):
-                        i += 1
-                        continue
-                    if token.startswith("-") or token.startswith("+"):
-                        i += 1
-                        continue
-                    if Path(token).suffix.lower() in rtl_suffixes:
-                        for candidate in _resolve_filelist_token(token, bases):
-                            _add(candidate)
-                    i += 1
-
-        def _add_default_filelists(clean_ip: str) -> None:
-            ip_leaf = Path(clean_ip).name
-            patterns = [
-                f"{clean_ip}/list/{ip_leaf}.f",
-                f"{clean_ip}/list/*.f",
-                f"common_ai_agent/{clean_ip}/list/{ip_leaf}.f",
-                f"common_ai_agent/{clean_ip}/list/*.f",
-                f"common_ai_agent/*/{clean_ip}/list/{ip_leaf}.f",
-                f"common_ai_agent/*/{clean_ip}/list/*.f",
-                f"*/{clean_ip}/list/{ip_leaf}.f",
-                f"*/{clean_ip}/list/*.f",
-                f"*/*/{clean_ip}/list/{ip_leaf}.f",
-                f"*/*/{clean_ip}/list/*.f",
-            ]
-            for pat in patterns:
-                for f in PROJECT_ROOT.glob(pat):
-                    _read_filelist(f)
-
-        if not sources_glob and ip:
-            clean_ip = str(ip).strip().strip("/")
-            _add_default_filelists(clean_ip)
-            if out:
-                return out
-            default_patterns = [
-                f"{clean_ip}/rtl/*",
-                f"common_ai_agent/{clean_ip}/rtl/*",
-                f"common_ai_agent/*/{clean_ip}/rtl/*",
-                f"*/{clean_ip}/rtl/*",
-                f"*/*/{clean_ip}/rtl/*",
-            ]
-            for pat in default_patterns:
-                for f in PROJECT_ROOT.glob(pat):
-                    _add(f)
-            if not out:
-                for rtl_dir in PROJECT_ROOT.rglob("rtl"):
-                    try:
-                        rel = rtl_dir.resolve().relative_to(PROJECT_ROOT)
-                    except (OSError, ValueError):
-                        continue
-                    if any(part in skip_parts for part in rel.parts):
-                        continue
-                    parent = rtl_dir.parent.name
-                    if parent == clean_ip or clean_ip in rel.parts:
-                        for f in rtl_dir.glob("*"):
-                            _add(f)
-            return out
-        for pat in (sources_glob or "").split(","):
-            pat = pat.strip().lstrip("/")
-            if not pat:
-                continue
-            for f in PROJECT_ROOT.glob(pat):
-                _add(f)
-        return out
+        """Resolve the RTL source set for elaboration. Logic lives in the shared
+        src/sim_debug_sources.py so the agent `sim_debug` tool reuses it."""
+        from sim_debug_sources import resolve_elab_sources
+        return resolve_elab_sources(PROJECT_ROOT, sources_glob, ip)
 
 
     @app.get("/api/hierarchy")
@@ -408,23 +258,31 @@ def register_sim_debug_routes(
             from atlas_sim_debug_top import resolve_sim_debug_top
         except Exception as e:
             return JSONResponse({"error": f"elab module: {e}"}, status_code=500)
-        srcs = _elab_resolve_sources(sources, ip)
-        if not srcs:
-            return JSONResponse({"error": "no SV sources matched", "sources_tried": sources or ip}, status_code=400)
-        try:
+
+        # Source globbing + top resolution + (pyslang/verilator) elaboration are
+        # all blocking work — run them off the event loop so the rest of the UI
+        # (and other requests) stay responsive while the panel loads.
+        def _work():
+            srcs = _elab_resolve_sources(sources, ip)
+            if not srcs:
+                return ("nosrc", None)
             top_info = resolve_sim_debug_top(PROJECT_ROOT, ip=ip, requested_top=top)
             resolved_top = top_info.get("top") or top
-            res = build_hierarchy_cached(backend, resolved_top, srcs)
-            res = dict(res)
+            res = dict(build_hierarchy_cached(backend, resolved_top, srcs))
             res["requested_top"] = top
             res["resolved_top"] = resolved_top
             res["top_resolution"] = top_info
             res["sources"] = [p.relative_to(PROJECT_ROOT).as_posix() for p in srcs]
-            return JSONResponse(res)
+            return ("ok", res)
+        try:
+            kind, res = await asyncio.to_thread(_work)
         except ValueError as e:
             return JSONResponse({"error": str(e)}, status_code=503)
         except Exception as e:
             return JSONResponse({"error": str(e)}, status_code=500)
+        if kind == "nosrc":
+            return JSONResponse({"error": "no SV sources matched", "sources_tried": sources or ip}, status_code=400)
+        return JSONResponse(res)
 
 
     @app.get("/api/trace")
@@ -440,28 +298,42 @@ def register_sim_debug_routes(
             from atlas_sim_debug_top import resolve_sim_debug_top
         except Exception as e:
             return JSONResponse({"error": f"elab module: {e}"}, status_code=500)
-        srcs = _elab_resolve_sources(sources, ip)
-        if not srcs:
-            return JSONResponse({"error": "no SV sources matched"}, status_code=400)
-        top_info = resolve_sim_debug_top(
-            PROJECT_ROOT,
-            ip=ip,
-            requested_top=top,
-            vcd_scope=scope,
-        )
-        resolved_top = top_info.get("top") or signal.split(".", 1)[0]
-        try:
-            res = trace_driver_cached(backend, resolved_top, signal, srcs)
-            res = dict(res)
+
+        # Off the event loop: source globbing + top resolution + pyslang trace.
+        def _work():
+            srcs = _elab_resolve_sources(sources, ip)
+            if not srcs:
+                return ("nosrc", None)
+            top_info = resolve_sim_debug_top(PROJECT_ROOT, ip=ip, requested_top=top, vcd_scope=scope)
+            resolved_top = top_info.get("top") or signal.split(".", 1)[0]
+            res = dict(trace_driver_cached(backend, resolved_top, signal, srcs))
             res["requested_top"] = top
             res["resolved_top"] = resolved_top
             res["top_resolution"] = top_info
             res["sources"] = [p.relative_to(PROJECT_ROOT).as_posix() for p in srcs]
-            return JSONResponse(res)
+            return ("ok", res)
+        try:
+            kind, res = await asyncio.to_thread(_work)
         except ValueError as e:
             return JSONResponse({"error": str(e)}, status_code=503)
         except Exception as e:
             return JSONResponse({"error": str(e)}, status_code=500)
+        if kind == "nosrc":
+            return JSONResponse({"error": "no SV sources matched"}, status_code=400)
+        return JSONResponse(res)
+
+
+    @app.get("/api/sim_debug/intent")
+    async def api_sim_debug_intent(ip: str = ""):
+        """Return the latest Sim Debug UI intent pushed by the agent `sim_debug`
+        tool (navigate / show signals / place cursor / trace / fit). The panel
+        polls this and applies it when `seq` increases. Read-only, no side
+        effects; `{"seq": 0}` means nothing pending."""
+        try:
+            from core.sim_debug_intent import get_intent
+        except Exception as e:
+            return JSONResponse({"seq": 0, "error": str(e)})
+        return JSONResponse(get_intent(ip))
 
 
     @app.get("/api/module/signals")
@@ -482,24 +354,27 @@ def register_sim_debug_routes(
             from atlas_sim_debug_top import resolve_sim_debug_top
         except Exception as e:
             return JSONResponse({"error": f"elab module: {e}", "signals": []}, status_code=500)
-        srcs = _elab_resolve_sources(sources, ip)
-        if not srcs:
-            return JSONResponse({"error": "no SV sources matched", "signals": []}, status_code=400)
-        top_info = resolve_sim_debug_top(PROJECT_ROOT, ip=ip, requested_top=top)
-        resolved_top = top_info.get("top") or top or module
-        try:
-            res = await asyncio.to_thread(
-                module_signals_cached, backend, resolved_top, module, srcs)
-            res = dict(res)
+        def _work():
+            srcs = _elab_resolve_sources(sources, ip)
+            if not srcs:
+                return ("nosrc", None)
+            top_info = resolve_sim_debug_top(PROJECT_ROOT, ip=ip, requested_top=top)
+            resolved_top = top_info.get("top") or top or module
+            res = dict(module_signals_cached(backend, resolved_top, module, srcs))
             res["requested_top"] = top
             res["resolved_top"] = resolved_top
             res["sources"] = [p.relative_to(PROJECT_ROOT).as_posix() for p in srcs]
-            status_code = 200 if res.get("signals") else (200 if not res.get("error") else 404)
-            return JSONResponse(res, status_code=status_code)
+            return ("ok", res)
+        try:
+            kind, res = await asyncio.to_thread(_work)
         except ValueError as e:
             return JSONResponse({"error": str(e), "signals": []}, status_code=503)
         except Exception as e:
             return JSONResponse({"error": str(e), "signals": []}, status_code=500)
+        if kind == "nosrc":
+            return JSONResponse({"error": "no SV sources matched", "signals": []}, status_code=400)
+        status_code = 200 if res.get("signals") else (200 if not res.get("error") else 404)
+        return JSONResponse(res, status_code=status_code)
 
 
     @app.get("/api/cocotb")

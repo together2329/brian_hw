@@ -1,0 +1,10 @@
+{
+  "errors": 0,
+  "failed_rows": 65,
+  "failures": 0,
+  "goals_with_rows": 91,
+  "passed_rows": 26,
+  "scenario_rows": 22,
+  "scoreboard_rows": 91,
+  "tests": 1
+}

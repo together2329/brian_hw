@@ -119,7 +119,7 @@ def main() -> int:
     ap.add_argument("ip", help="IP directory under the project root")
     ap.add_argument("--top", default="", help="Top module name; defaults to IP name")
     ap.add_argument("--filelist", default="", help="Filelist path relative to IP dir")
-    ap.add_argument("--project-root", default=".", help="Project root")
+    ap.add_argument("--project-root", "--root", dest="project_root", default=".", help="Project root")
     ns = ap.parse_args()
 
     project_root = Path(ns.project_root).resolve()

@@ -121,6 +121,12 @@ export const Workspace = ({
   // as UseWorkspaceSessionDeps instead of `any`.
   const [streamText, setStreamText] = useState<string>('');
   const [mainTab, setMainTab] = useState<string>('chat');
+  // Sim Debug is expensive (VCD parse + RTL hierarchy/source fetch). Mount it
+  // as soon as the sim_debug workflow is active, then keep it mounted (hidden
+  // via CSS) so opening the Debug tab lands on already-prepared data.
+  const debugVisitedRef = useRef(false);
+  // Optional agent chat split beside Sim Debug (off → full-width waveform).
+  const [debugChatOpen, setDebugChatOpen] = useState(false);
 
   const sessionDeps: UseWorkspaceSessionDeps = {
     uiLang,
@@ -168,6 +174,9 @@ export const Workspace = ({
     setMainTab,
   }), [session, dir, activeNamespace, streaming, streamText, mainTab]);
   const data = useWorkspaceData(dataDeps);
+  const showDebugTabNow = data.showDebugTab === true;
+  if (mainTab === 'debug' || showDebugTabNow) debugVisitedRef.current = true;
+  const debugMounted = debugVisitedRef.current;
 
   // Merge the two hook surfaces so destructuring below reads from one bag.
   // (session first, data second — data wins on the few overlapping derived
@@ -189,6 +198,8 @@ export const Workspace = ({
     & ReturnType<typeof useWorkspaceData>
     & WorkspaceComposerExtras;
   const ws: WorkspaceBag = { ...session, ...data };
+  (ws as any).debugChatOpen = debugChatOpen;
+  (ws as any).setDebugChatOpen = setDebugChatOpen;
 
   const {
     // intent / workflow
@@ -291,7 +302,6 @@ export const Workspace = ({
     renderChatPane,
     renderPromptRow,
   } = ws;
-
   // Effective widths — sim_debug/coverage workflows can claim the full
   // viewport; widths are preserved so switching back restores the layout.
   const effLeftW: number = typeof ws.effLeftW === 'number' ? ws.effLeftW : leftW;
@@ -473,11 +483,9 @@ export const Workspace = ({
               </div>
             )
           ) : mainTab === 'debug' ? (
-            w.SimDebug ? (
-              <ErrorBoundary label="SimDebug">
-                <w.SimDebug key="sim-debug-view" view="debug" initialTab="wave" />
-              </ErrorBoundary>
-            ) : w.DebugTab ? (
+            // The Debug SimDebug is rendered persistently below (kept mounted to
+            // preserve state); render nothing here when it's available.
+            w.SimDebug ? null : w.DebugTab ? (
               <ErrorBoundary label="Debug">
                 <w.DebugTab
                   ip={(() => {
@@ -650,6 +658,51 @@ export const Workspace = ({
                     setMainTab('chat');
                   }}
                 />
+              )}
+            </div>
+          )}
+          {/* Persistent Sim Debug — mounted on first Debug visit, kept alive
+              (hidden via CSS) so source/hierarchy/signal selections + the view
+              survive tab switches instead of reloading. */}
+          {debugMounted && w.SimDebug && (
+            <div style={{
+              display: mainTab === 'debug' ? 'grid' : 'none',
+              gridTemplateColumns: debugChatOpen
+                ? `minmax(0, 1fr) 4px minmax(280px, ${splitRightW}px)`
+                : '1fr',
+              flex: mainTab === 'debug' ? 1 : '0 0 0',
+              minHeight: 0, overflow: 'hidden',
+            }}>
+              <div style={{ minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                <ErrorBoundary label="SimDebug">
+                  <w.SimDebug
+                    key="sim-debug-persistent"
+                    view="debug"
+                    initialTab="wave"
+                    active={mainTab === 'debug'}
+                    preload={showDebugTab}
+                  />
+                </ErrorBoundary>
+              </div>
+              {mainTab === 'debug' && debugChatOpen && (
+                <Splitter width={splitRightW} side="right" onResize={setSplitRightW}
+                          onToggle={() => setDebugChatOpen(false)}
+                          title="drag to resize · double-click to close chat" />
+              )}
+              {mainTab === 'debug' && debugChatOpen && (
+                <div style={{ minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', borderLeft: '1px solid var(--line)' }}>
+                  <div style={{
+                    padding: '4px 10px', borderBottom: '1px solid var(--line)',
+                    color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10,
+                    letterSpacing: '0.06em', textTransform: 'uppercase',
+                    display: 'flex', alignItems: 'center', gap: 8,
+                  }}>
+                    <span>chat · drives the waveform</span>
+                    <span style={{ flex: 1 }} />
+                    <span onClick={() => setDebugChatOpen(false)} style={{ cursor: 'pointer' }} title="close chat">✕</span>
+                  </div>
+                  {renderChatPane({ padding: '10px 12px' })}
+                </div>
               )}
             </div>
           )}

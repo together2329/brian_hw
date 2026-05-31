@@ -1,0 +1,18 @@
+rerun-1 compile/lint json pass checks
+[rtl_compile_report] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/rtl/rtl_compile.json
+[rtl_compile_report] iverilog: errors=0 diagnostics=0 style_violations=0 returncode=0
+[dut_lint_report] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/lint/dut_lint.json
+[dut_lint_report] pyslang+verilator: errors=0 warnings=0 suppression_violations=0 style_violations=0 returncode=0
+[dut_lint_report]   pyslang: errors=0 warnings=0 returncode=0
+[dut_lint_report]   verilator: errors=0 warnings=0 returncode=0
+true
+true
+rerun-2 compile/lint json pass checks
+[rtl_compile_report] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/rtl/rtl_compile.json
+[rtl_compile_report] iverilog: errors=0 diagnostics=0 style_violations=0 returncode=0
+[dut_lint_report] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/lint/dut_lint.json
+[dut_lint_report] pyslang+verilator: errors=0 warnings=0 suppression_violations=0 style_violations=0 returncode=0
+[dut_lint_report]   pyslang: errors=0 warnings=0 returncode=0
+[dut_lint_report]   verilator: errors=0 warnings=0 returncode=0
+true
+true

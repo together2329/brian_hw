@@ -1,0 +1,8 @@
+rerun-1
+[check_tb_python_compile] PASS: compiled 9 file(s)
+[check_tb_python_compile] wrote mctp_assembler_scratch/tb/cocotb/tb_py_compile.json
+true
+rerun-2
+[check_tb_python_compile] PASS: compiled 9 file(s)
+[check_tb_python_compile] wrote mctp_assembler_scratch/tb/cocotb/tb_py_compile.json
+true

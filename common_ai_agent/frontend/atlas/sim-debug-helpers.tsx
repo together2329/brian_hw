@@ -36,6 +36,8 @@ interface SimDebugHelpersWindow {
   simDebugVcdValueAtTrace?: typeof vcdValueAtTrace;
   simDebugBuildWaveTraceList?: typeof buildWaveTraceList;
   simDebugBuildVcdLineAnnotations?: typeof buildVcdLineAnnotations;
+  simDebugParseVerilogParamValueMap?: typeof parseVerilogParamValueMap;
+  simDebugReorderWaveKeys?: typeof reorderWaveKeys;
   simDebugAnnotationAxesForMode?: typeof annotationAxesForMode;
 }
 const g = (typeof window !== 'undefined' ? window : ({} as Window)) as unknown as SimDebugHelpersWindow;
@@ -51,6 +53,11 @@ export interface VcdSignal {
   isBus?: boolean;
   trace?: Array<[number, unknown] | unknown[]>;
   radix?: string;
+  notInVcd?: boolean;
+  // Other fully-qualified names that share this signal's VCD id (same net
+  // dumped under multiple hierarchical paths). Lets a pin using any of those
+  // names resolve to this row. Populated by the VCD parser.
+  aliases?: string[];
 }
 export interface VcdData {
   signals?: VcdSignal[];
@@ -67,6 +74,78 @@ export interface VcdAnnotationRow {
   a: string;
   b: string;
 }
+
+const TIME_UNIT_SECONDS: Record<string, number> = {
+  fs: 1e-15,
+  ps: 1e-12,
+  ns: 1e-9,
+  us: 1e-6,
+  ms: 1e-3,
+  s: 1,
+};
+
+export const TIME_DISPLAY_UNITS = ['auto', 'fs', 'ps', 'ns', 'us', 'ms', 's'];
+
+export const timeUnitFromTimescale = (timescale: unknown): string => {
+  const m = String(timescale || '').trim().toLowerCase().match(/(fs|ps|ns|us|ms|s)$/);
+  return m ? m[1] : 'ns';
+};
+
+export const resolveTimeDisplayUnit = (timescale: unknown, unit: unknown): string => {
+  const u = String(unit || 'auto').trim().toLowerCase();
+  if (u && u !== 'auto' && TIME_UNIT_SECONDS[u]) return u;
+  return timeUnitFromTimescale(timescale);
+};
+
+export const parseTimescaleSeconds = (timescale: unknown): number => {
+  const raw = String(timescale || '').trim().toLowerCase().replace(/\s+/g, '');
+  const m = raw.match(/^([0-9]*\.?[0-9]+)?(fs|ps|ns|us|ms|s)$/);
+  if (!m) return 1e-9;
+  const amount = m[1] ? Number(m[1]) : 1;
+  const unitSeconds = TIME_UNIT_SECONDS[m[2]] || 1e-9;
+  return (Number.isFinite(amount) && amount > 0 ? amount : 1) * unitSeconds;
+};
+
+export const rawTimeToDisplay = (rawTime: unknown, timescale: unknown, unit: unknown): number => {
+  const n = Number(rawTime);
+  if (!Number.isFinite(n)) return 0;
+  const displayUnit = resolveTimeDisplayUnit(timescale, unit);
+  return n * parseTimescaleSeconds(timescale) / (TIME_UNIT_SECONDS[displayUnit] || 1e-9);
+};
+
+export const displayTimeToRaw = (displayTime: unknown, timescale: unknown, unit: unknown): number => {
+  const n = Number(displayTime);
+  if (!Number.isFinite(n)) return 0;
+  const displayUnit = resolveTimeDisplayUnit(timescale, unit);
+  const tsSeconds = parseTimescaleSeconds(timescale);
+  if (!tsSeconds) return n;
+  return n * (TIME_UNIT_SECONDS[displayUnit] || 1e-9) / tsSeconds;
+};
+
+const compactTimeNumber = (n: number): string => {
+  if (!Number.isFinite(n)) return '0';
+  const abs = Math.abs(n);
+  const digits = abs >= 1000 || Number.isInteger(n) ? 0 : (abs >= 100 ? 1 : abs >= 10 ? 2 : 3);
+  return n.toFixed(digits).replace(/\.?0+$/, '');
+};
+
+export const formatTimeDisplay = (rawTime: unknown, timescale: unknown, unit: unknown): string => {
+  const displayUnit = resolveTimeDisplayUnit(timescale, unit);
+  return `${compactTimeNumber(rawTimeToDisplay(rawTime, timescale, displayUnit))}${displayUnit}`;
+};
+
+export const formatTimeDeltaDisplay = (rawDelta: unknown, timescale: unknown, unit: unknown): string => {
+  return formatTimeDisplay(Math.abs(Number(rawDelta) || 0), timescale, unit);
+};
+
+export const formatFrequencyFromDelta = (rawDelta: unknown, timescale: unknown): string => {
+  const dt = Math.abs(Number(rawDelta) || 0) * parseTimescaleSeconds(timescale);
+  if (!dt) return '∞ Hz';
+  const hz = 1 / dt;
+  const units: Array<[string, number]> = [['THz', 1e12], ['GHz', 1e9], ['MHz', 1e6], ['kHz', 1e3], ['Hz', 1]];
+  const picked = units.find(([, scale]) => hz >= scale) || units[units.length - 1];
+  return `${compactTimeNumber(hz / picked[1])} ${picked[0]}`;
+};
 export interface VcdAnnotationAxis {
   id: string;
   label: string;
@@ -134,6 +213,11 @@ export const vcdPathBelongsToIp = (path: unknown, ip: unknown): boolean => {
   return !!owner && (p === owner || p.startsWith(owner + '/'));
 };
 
+export const signalRangeOf = (name: unknown): string => {
+  const m = String(name || '').trim().match(/(\[[^\]\n]+\])\s*$/);
+  return m ? m[1].replace(/\s+/g, '') : '';
+};
+
 export const stripSignalRange = (name: unknown): string => String(name || '').replace(/\s*\[[^\]]+\]\s*$/g, '').trim();
 
 export const vcdValueAtTrace = (trace: Array<unknown[]> | unknown, time: unknown): unknown => {
@@ -165,6 +249,59 @@ export const formatVcdValue = (value: unknown, isBus: unknown): string => {
   return s;
 };
 
+export const numericValueKey = (value: unknown): string => {
+  const raw = String(value || '').trim().replace(/_/g, '');
+  if (!raw || /[xXzZ?]/.test(raw)) return '';
+  const sized = raw.match(/^(?:\d+)?'([bBoOdDhH])([0-9a-fA-F]+)$/);
+  try {
+    if (sized) {
+      const base = sized[1].toLowerCase();
+      const digits = sized[2];
+      if (base === 'b') return BigInt('0b' + digits).toString(10);
+      if (base === 'o') return BigInt('0o' + digits).toString(10);
+      if (base === 'h') return BigInt('0x' + digits).toString(10);
+      return BigInt(digits).toString(10);
+    }
+    if (/^0x[0-9a-fA-F]+$/.test(raw)) return BigInt(raw).toString(10);
+    if (/^\d+$/.test(raw)) return BigInt(raw).toString(10);
+  } catch (_) {}
+  return '';
+};
+
+export const vcdTraceValueKey = (value: unknown, isBus: unknown): string => {
+  const raw = String(value || '').trim().replace(/_/g, '');
+  if (!raw || /[xXzZ?]/.test(raw)) return '';
+  try {
+    if (isBus && /^[01]+$/.test(raw)) return BigInt('0b' + raw).toString(10);
+    return numericValueKey(raw);
+  } catch (_) {
+    return '';
+  }
+};
+
+export const parseVerilogParamValueMap = (lines: unknown): Record<string, string> => {
+  const text = Array.isArray(lines) ? lines.join('\n') : String(lines || '');
+  const cleaned = text.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+  const out: Record<string, string> = {};
+  const declRe = /\b(?:localparam|parameter)\b[\s\S]*?;/g;
+  let decl: RegExpExecArray | null;
+  while ((decl = declRe.exec(cleaned))) {
+    const body = decl[0]
+      .replace(/\b(?:localparam|parameter)\b/g, '')
+      .replace(/\b(?:logic|reg|wire|integer|int|bit|signed|unsigned)\b/g, '')
+      .replace(/\[[^\]\n]+\]/g, ' ');
+    const assignRe = /\b([A-Za-z_][A-Za-z0-9_$]*)\b\s*=\s*([^,;]+)/g;
+    let m: RegExpExecArray | null;
+    while ((m = assignRe.exec(body))) {
+      const name = m[1];
+      if (VERILOG_KEYWORDS.has(name.toLowerCase())) continue;
+      const key = numericValueKey(m[2]);
+      if (key && !out[key]) out[key] = name;
+    }
+  }
+  return out;
+};
+
 export const VERILOG_KEYWORDS = new Set([
   'always', 'always_comb', 'always_ff', 'assign', 'begin', 'case', 'default', 'else',
   'end', 'endcase', 'endmodule', 'for', 'generate', 'if', 'input', 'logic', 'module',
@@ -175,12 +312,13 @@ export const sourceLineIdentifiers = (line: unknown): string[] => {
   const ids: string[] = [];
   const seen = new Set<string>();
   const text = String(line || '');
-  const re = /\b[A-Za-z_][A-Za-z0-9_$]*\b/g;
+  const re = /\b([A-Za-z_][A-Za-z0-9_$]*)\b(\s*\[[^\]\n]+\])?/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(text))) {
-    const id = m[0];
+    const base = m[1];
+    const id = `${base}${m[2] ? m[2].replace(/\s+/g, '') : ''}`;
     const key = id.toLowerCase();
-    if (VERILOG_KEYWORDS.has(key) || seen.has(key)) continue;
+    if (VERILOG_KEYWORDS.has(base.toLowerCase()) || seen.has(key)) continue;
     seen.add(key);
     ids.push(id);
   }
@@ -188,15 +326,27 @@ export const sourceLineIdentifiers = (line: unknown): string[] => {
 };
 
 export const signalAliasKeys = (sig: VcdSignal | null | undefined): string[] => {
-  const aliases = [
-    sig?.signalName,
-    sig?.name,
-    stripSignalRange(sig?.name),
-  ];
-  return aliases
+  // The VCD parser stores the leaf in `name` and the dotted hierarchy in
+  // `scope` (e.g. name="mctp_som", scope="NEWIP_MCTP.u_packet_engine"). A pin
+  // from the agent or a fully-qualified add carries the WHOLE path
+  // ("NEWIP_MCTP.u_packet_engine.mctp_som"), so we must also expose the
+  // scope-qualified form as an alias — otherwise such pins never match and the
+  // row is wrongly flagged "not in VCD". The scope-qualified form is unique per
+  // signal, so this adds no ambiguity (unlike a bare leaf fallback, which would
+  // collide top `sram_req` with `u_packet_engine.sram_req`).
+  const scope = String(sig?.scope || '').trim();
+  const aliases = Array.isArray(sig?.aliases) ? sig!.aliases! : [];
+  // Alias entries are ALREADY fully-qualified (e.g.
+  // "NEWIP_MCTP.u_packet_engine.sram_req_o") — they go in as-is (plus their
+  // leaf); the scope-qualified form below only applies to the leaf names.
+  return [sig?.signalName, sig?.name, stripSignalRange(sig?.name), ...aliases]
     .map(a => String(a || '').trim())
     .filter(Boolean)
-    .flatMap(a => [a, a.split('.').pop() as string])
+    .flatMap(a => {
+      const forms = [a, a.split('.').pop() as string];
+      if (scope) forms.push(`${scope}.${a}`);
+      return forms;
+    })
     .map(a => stripSignalRange(a).toLowerCase())
     .filter(Boolean);
 };
@@ -211,10 +361,159 @@ export const waveSignalKey = (sig: VcdSignal | null | undefined): string => {
 export const waveSignalMatches = (sig: VcdSignal | null | undefined, name: unknown, scope = ''): boolean => {
   const wanted = stripSignalRange(name).toLowerCase();
   if (!wanted) return false;
+  const wantedRange = signalRangeOf(name).toLowerCase();
+  const rowRange = (signalRangeOf(sig?.name) || signalRangeOf(sig?.range)).toLowerCase();
+  if (wantedRange && wantedRange !== rowRange) return false;
   const sigScope = String(sig?.scope || '').trim();
   const wantedScope = String(scope || '').trim();
   if (wantedScope && sigScope !== wantedScope) return false;
   return signalAliasKeys(sig).includes(wanted);
+};
+
+const uniqueWaveRows = (rows: VcdSignal[]): VcdSignal[] => {
+  const seen = new Set<string>();
+  const out: VcdSignal[] = [];
+  for (const row of rows) {
+    const key = waveSignalKey(row);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(row);
+  }
+  return out;
+};
+
+export const resolvePinnedWaveSignal = (
+  allRows: VcdSignal[],
+  pin: PinnedSignal | null | undefined,
+): VcdSignal | null => {
+  const wanted = stripSignalRange(pin?.name).toLowerCase();
+  if (!wanted) return null;
+  const wantedScope = String(pin?.scope || '').trim();
+
+  const exact = allRows.find(row => waveSignalMatches(row, wanted, wantedScope));
+  if (exact) return exact;
+  if (wantedScope) {
+    const scopeKey = wantedScope.toLowerCase();
+    const scopedMatches = uniqueWaveRows(allRows.filter(row => {
+      const rowScope = String(row?.scope || '').trim().toLowerCase();
+      const scopeOk = rowScope === scopeKey || rowScope.endsWith(`.${scopeKey}`);
+      return scopeOk && signalAliasKeys(row).some(alias =>
+        alias === wanted || alias.endsWith(`.${wanted}`));
+    }));
+    return scopedMatches.length === 1 ? scopedMatches[0] : null;
+  }
+
+  // Tool calls commonly send RTL-ish paths without the VCD top/testbench prefix
+  // (e.g. "u_core.done" for "tb.dut.u_core.done"). Treat suffix matches as
+  // valid only when they resolve to one concrete VCD row.
+  if (wanted.includes('.')) {
+    const suffixMatches = uniqueWaveRows(allRows.filter(row =>
+      signalAliasKeys(row).some(alias => alias === wanted || alias.endsWith(`.${wanted}`))));
+    if (suffixMatches.length === 1) return suffixMatches[0];
+    if (suffixMatches.length > 1) return null;
+  }
+
+  // Last resort for module-port style tool calls: a unique leaf may identify the
+  // row even when the prefix is a module name rather than VCD hierarchy. Ambiguous
+  // leaves intentionally stay unresolved so the UI does not pick the wrong net.
+  const leaf = wanted.split('.').pop() || '';
+  if (!leaf) return null;
+  const leafMatches = uniqueWaveRows(allRows.filter(row =>
+    signalAliasKeys(row).some(alias => (alias.split('.').pop() || '') === leaf)));
+  return leafMatches.length === 1 ? leafMatches[0] : null;
+};
+
+// Normalized signal identity used to key per-signal decoration (color, group
+// tag). Same lowercasing/range-strip as the alias keys, scope-qualified when a
+// scope is present so it's unique across the design. UI writes use this; agent
+// writes use whatever name they passed — both resolve via lookupSignalMeta.
+export const sigIdent = (sig: VcdSignal | null | undefined): string =>
+  stripSignalRange(sig?.scope ? `${sig.scope}.${sig.name}` : (sig?.name || '')).toLowerCase();
+
+// Look up a per-signal decoration value by ANY of the signal's alias keys, so
+// a value stored under the agent's name (a submodule-port path, a leaf, …) OR
+// the row's canonical ident both resolve. undefined when none match.
+export const lookupSignalMeta = <T,>(
+  dict: Record<string, T> | null | undefined,
+  sig: VcdSignal | null | undefined,
+): T | undefined => {
+  if (!dict) return undefined;
+  for (const a of signalAliasKeys(sig)) {
+    if (Object.prototype.hasOwnProperty.call(dict, a)) return dict[a];
+  }
+  return undefined;
+};
+
+export type WaveGroupState = Record<string, { folded: boolean; color?: string }>;
+export type WaveDisplayItem =
+  | { type: 'group'; tag: string; count: number; folded: boolean; color?: string }
+  | { type: 'sig'; sig: VcdSignal; tag: string };
+
+// Build the ordered render list for the wave band: a group header followed by
+// its (contiguous) members, interleaved with ungrouped rows. Members of a tag
+// are pulled together at the position of the tag's FIRST member in traceList so
+// a group reads as one block; folded groups render the header only.
+export const buildWaveDisplayRows = (
+  traceList: VcdSignal[],
+  signalTags: Record<string, string> | null | undefined,
+  groupState: WaveGroupState | null | undefined,
+): WaveDisplayItem[] => {
+  const tags = signalTags || {};
+  const groups = groupState || {};
+  const tagOf = (sig: VcdSignal): string => {
+    for (const a of signalAliasKeys(sig)) { if (tags[a]) return tags[a]; }
+    return '';
+  };
+  const items: WaveDisplayItem[] = [];
+  const placed = new Set<string>();
+  for (const sig of traceList) {
+    const key = waveSignalKey(sig);
+    if (placed.has(key)) continue;
+    const tag = tagOf(sig);
+    if (tag) {
+      const members = traceList.filter(s => tagOf(s) === tag);
+      const folded = !!groups[tag]?.folded;
+      items.push({ type: 'group', tag, count: members.length, folded, color: groups[tag]?.color });
+      for (const m of members) placed.add(waveSignalKey(m));
+      if (!folded) for (const m of members) items.push({ type: 'sig', sig: m, tag });
+    } else {
+      items.push({ type: 'sig', sig, tag: '' });
+      placed.add(key);
+    }
+  }
+  return items;
+};
+
+export type WaveReorderPlacement = 'before' | 'after';
+
+export const reorderWaveKeys = (
+  orderedKeys: string[] | null | undefined,
+  movingKeys: string[] | null | undefined,
+  targetKeys: string[] | null | undefined,
+  placement: WaveReorderPlacement = 'before',
+): string[] => {
+  const current = (orderedKeys || []).map(k => String(k || '')).filter(Boolean);
+  const currentSet = new Set(current);
+  const moving = (movingKeys || [])
+    .map(k => String(k || ''))
+    .filter(k => k && currentSet.has(k));
+  const movingSet = new Set(moving);
+  const target = (targetKeys || [])
+    .map(k => String(k || ''))
+    .filter(k => k && currentSet.has(k) && !movingSet.has(k));
+  if (!current.length || !moving.length || !target.length) return current;
+  const remaining = current.filter(k => !movingSet.has(k));
+  const targetKey = placement === 'after'
+    ? [...target].reverse().find(k => remaining.includes(k))
+    : target.find(k => remaining.includes(k));
+  if (!targetKey) return current;
+  const targetIdx = remaining.indexOf(targetKey);
+  const insertAt = placement === 'after' ? targetIdx + 1 : targetIdx;
+  return [
+    ...remaining.slice(0, insertAt),
+    ...moving,
+    ...remaining.slice(insertAt),
+  ];
 };
 
 export const waveRowFromVcdSignal = (vcdData: VcdData, sig: VcdSignal): VcdSignal => ({
@@ -225,7 +524,74 @@ export const waveRowFromVcdSignal = (vcdData: VcdData, sig: VcdSignal): VcdSigna
   trace: (vcdData.samples && sig.id != null ? vcdData.samples[sig.id] : undefined) || [],
   isBus: sig.isBus,
   radix: sig.isBus ? 'HEX' : undefined,
+  aliases: sig.aliases,
 });
+
+const parseSignalRange = (range: unknown): { left: number; right: number; width: number } | null => {
+  const body = signalRangeOf(range).slice(1, -1).trim();
+  if (!body) return null;
+  const parts = body.split(':').map(p => Number(p.trim()));
+  if (parts.some(n => !Number.isInteger(n))) return null;
+  const left = parts[0];
+  const right = parts.length > 1 ? parts[1] : parts[0];
+  return { left, right, width: Math.abs(left - right) + 1 };
+};
+
+const sliceBusValue = (value: unknown, fullRange: { left: number; right: number; width: number }, reqRange: { left: number; right: number; width: number }): unknown => {
+  const s = String(value);
+  if (/^[xXzZ]$/.test(s)) return s.repeat(reqRange.width);
+  if (!/^[01xXzZ]+$/.test(s)) return value;
+  const pad = /^[xXzZ]+$/.test(s) ? s[0] : '0';
+  const bits = s.length >= fullRange.width
+    ? s.slice(-fullRange.width)
+    : s.padStart(fullRange.width, pad);
+  const fullStep = fullRange.left <= fullRange.right ? 1 : -1;
+  const reqStep = reqRange.left <= reqRange.right ? 1 : -1;
+  const out: string[] = [];
+  for (let bit = reqRange.left; ; bit += reqStep) {
+    const pos = (bit - fullRange.left) / fullStep;
+    out.push(pos >= 0 && pos < bits.length ? bits[pos] : 'x');
+    if (bit === reqRange.right) break;
+  }
+  return out.join('');
+};
+
+const compactTraceValueChanges = (trace: Array<[unknown, unknown] | unknown[]>): Array<[unknown, unknown] | unknown[]> => {
+  const out: Array<[unknown, unknown] | unknown[]> = [];
+  for (const sample of trace || []) {
+    if (!Array.isArray(sample)) continue;
+    const prev = out[out.length - 1];
+    if (prev && String(prev[1]) === String(sample[1])) continue;
+    out.push(sample);
+  }
+  return out;
+};
+
+const applyPinnedRange = (row: VcdSignal, pin: PinnedSignal | null | undefined): VcdSignal => {
+  const reqText = signalRangeOf(pin?.name);
+  if (!reqText) return row;
+  const rowRangeText = signalRangeOf(row.range) || signalRangeOf(row.name);
+  if (!rowRangeText || rowRangeText === reqText) return row;
+  const fullRange = parseSignalRange(rowRangeText);
+  const reqRange = parseSignalRange(reqText);
+  if (!fullRange || !reqRange) return row;
+  const trace = Array.isArray(row.trace)
+    ? row.trace.map(sample => Array.isArray(sample)
+        ? [sample[0], sliceBusValue(sample[1], fullRange, reqRange)] as [unknown, unknown]
+        : sample)
+    : [];
+  const compactTrace = compactTraceValueChanges(trace);
+  const base = stripSignalRange(row.signalName || row.name || pin?.name || '');
+  return {
+    ...row,
+    name: `${base}${reqText}`,
+    signalName: base,
+    range: reqText,
+    trace: compactTrace,
+    isBus: reqRange.width > 1,
+    radix: reqRange.width > 1 ? 'HEX' : undefined,
+  };
+};
 
 export const buildWaveTraceList = (
   vcdData: VcdData | null | undefined,
@@ -237,14 +603,42 @@ export const buildWaveTraceList = (
   const rows = allRows.slice(0, defaultLimit);
   const present = new Set(rows.map(waveSignalKey));
   for (const pin of pinnedSignals || []) {
-    const found = allRows.find(row => waveSignalMatches(row, pin.name, pin.scope));
-    if (!found) continue;
-    const key = waveSignalKey(found);
-    if (present.has(key)) continue;
-    rows.push(found);
-    present.add(key);
+    const found = resolvePinnedWaveSignal(allRows, pin);
+    if (found) {
+      const row = applyPinnedRange(found, pin);
+      const key = waveSignalKey(row);
+      if (present.has(key)) continue;
+      rows.push(row);
+      present.add(key);
+    } else {
+      // Pinned but absent from this VCD (e.g. an internal signal that wasn't
+      // dumped). Still show a row so "Add to waveform" gives visible feedback
+      // instead of silently doing nothing — flagged so the UI can mark it.
+      // Split the dotted path into scope + leaf so this placeholder honors the
+      // SAME top-strip + `h` hierarchy toggle as real rows (otherwise it sticks
+      // out showing the raw fully-qualified name and ignoring `h`).
+      const range = signalRangeOf(pin.name);
+      const full = stripSignalRange(pin.name);
+      if (!full) continue;
+      const dot = full.lastIndexOf('.');
+      const leaf = dot >= 0 ? full.slice(dot + 1) : full;
+      const scope = String(pin.scope || (dot >= 0 ? full.slice(0, dot) : '')).trim();
+      const key = `${scope}/${leaf}${range}`.toLowerCase();
+      if (present.has(key)) continue;
+      rows.push({ name: `${leaf}${range}`, signalName: leaf, scope, range, trace: [], notInVcd: true } as VcdSignal);
+      present.add(key);
+    }
   }
   return rows;
+};
+
+// Drop the leading top-module segment from a scope-qualified signal name, so
+// the always-present `NEWIP_MCTP.` prefix isn't repeated on every row.
+//   stripTopScope('NEWIP_MCTP.u_irq.event_sync', 'NEWIP_MCTP') → 'u_irq.event_sync'
+export const stripTopScope = (name: unknown, top: unknown): string => {
+  const s = String(name || '');
+  const t = String(top || '').trim();
+  return t && s.startsWith(t + '.') ? s.slice(t.length + 1) : s;
 };
 
 export const buildVcdLineAnnotations = ({
@@ -338,6 +732,65 @@ export const moduleSignalWidthLabel = (sig: ModuleSignal | null | undefined): st
   return w > 1 ? `${w}b` : '';
 };
 
+// Build a name matcher for the signal-search box. Tries the query as a
+// regex first (case-insensitive); on an invalid pattern it falls back to
+// a case-insensitive substring test so a half-typed regex like `cnt[`
+// still filters instead of throwing. Empty query matches everything.
+//   { test, isRegex, valid } — `valid` is false only when a non-empty
+//   query failed to compile as a regex (UI can flag it but still filters).
+export const buildSignalSearchMatcher = (
+  query: string,
+): { test: (name: string) => boolean; isRegex: boolean; valid: boolean } => {
+  const q = String(query || '').trim();
+  if (!q) return { test: () => true, isRegex: false, valid: true };
+  try {
+    const re = new RegExp(q, 'i');
+    return { test: (name: string) => re.test(String(name || '')), isRegex: true, valid: true };
+  } catch (_) {
+    const lower = q.toLowerCase();
+    return {
+      test: (name: string) => String(name || '').toLowerCase().includes(lower),
+      isRegex: false,
+      valid: false,
+    };
+  }
+};
+
+// ── Waveform chat/command parser ─────────────────────────────────
+// Turns a typed command into a waveform action: place cursor A/B, zoom to a
+// time range, fit, or zoom to the A↔B span. Tolerant of several phrasings:
+//   "a 5000"  "a=5000 b=15000"  "cursor b 12000"
+//   "zoom 1000 5000"  "view 1000-5000"  "확대 1000 5000"
+//   "fit" / "전체"     "a..b" / "zoom a b" / "ab"
+//   bare "1000 5000" → zoom · bare "5000" → cursor A
+export interface WaveCommand {
+  cursorA?: number;
+  cursorB?: number;
+  view?: [number, number];
+  fit?: boolean;
+  zoomCursors?: boolean;
+}
+export const parseWaveCommand = (input: string): WaveCommand | null => {
+  const t = String(input || '').trim().toLowerCase();
+  if (!t) return null;
+  if (/^(fit|reset|전체|맞춤)$/.test(t)) return { fit: true };
+  if (/^(a\s*[-~.·]+\s*b|zoom\s*a\s*b|a\s*b|ab)$/.test(t)) return { zoomCursors: true };
+  const cmd: WaveCommand = {};
+  const am = t.match(/(?:^|[^a-z])a\s*[:=]?\s*(-?\d+)/);
+  const bm = t.match(/(?:^|[^a-z])b\s*[:=]?\s*(-?\d+)/);
+  const zm = t.match(/(?:zoom|view|확대|범위|구간)\D*?(-?\d+)\D+?(-?\d+)/);
+  if (am) cmd.cursorA = parseInt(am[1], 10);
+  if (bm) cmd.cursorB = parseInt(bm[1], 10);
+  if (zm) cmd.view = [parseInt(zm[1], 10), parseInt(zm[2], 10)];
+  if (cmd.cursorA == null && cmd.cursorB == null && !cmd.view) {
+    const nums = (t.match(/-?\d+/g) || []).map(n => parseInt(n, 10));
+    if (nums.length >= 2) cmd.view = [nums[0], nums[1]];
+    else if (nums.length === 1) cmd.cursorA = nums[0];
+    else return null;
+  }
+  return cmd;
+};
+
 export const VCD_ANNOTATION_AXES: VcdAnnotationAxis[] = [
   { id: 'a', label: 'A', key: 'a', color: 'var(--accent)' },
   { id: 'b', label: 'B', key: 'b', color: 'var(--cyan)' },
@@ -358,5 +811,7 @@ if (typeof window !== 'undefined') {
   g.simDebugVcdValueAtTrace = vcdValueAtTrace;
   g.simDebugBuildWaveTraceList = buildWaveTraceList;
   g.simDebugBuildVcdLineAnnotations = buildVcdLineAnnotations;
+  g.simDebugParseVerilogParamValueMap = parseVerilogParamValueMap;
+  g.simDebugReorderWaveKeys = reorderWaveKeys;
   g.simDebugAnnotationAxesForMode = annotationAxesForMode;
 }

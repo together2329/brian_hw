@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "createdAt": "2026-05-31T11:45:39.180Z",
+  "updatedAt": "2026-05-31T11:45:39.180Z",
+  "briefPath": ".omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/brief.md",
+  "goalsPath": ".omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/goals.json",
+  "ledgerPath": ".omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/ledger.jsonl",
+  "codexGoalMode": "aggregate",
+  "goals": [
+    {
+      "id": "G001-perforce-system-atlas-client-add-syn",
+      "title": "Perforce System 연동을 실제 서버를 켜서 Atlas Client에서 Add, Sync, Edit 동작이 실제로...",
+      "objective": "Perforce System 연동을 실제 서버를 켜서 Atlas Client에서 Add, Sync, Edit 동작이 실제로 되는지 검증하고, 실패하면 최소 수정한다. Evidence must include real server/client Add Sync Edit scenario artifacts, RED->GREEN automated tests for any production fix, cleanup receipts, and final reviewer approval if implementation touches multiple files.",
+      "status": "pending",
+      "successCriteria": [
+        {
+          "id": "C001",
+          "scenario": "happy path for: Perforce System 연동을 실제 서버를 켜서 Atlas Client에서 Add, Sync, Edit 동작이 실제로 되는지 검증하고...",
+          "userModel": "happy",
+          "expectedEvidence": "Replace via revise_criterion with observable happy-path proof for goal 1.",
+          "capturedEvidence": null,
+          "status": "pending"
+        },
+        {
+          "id": "C002",
+          "scenario": "edge case (boundary/empty/malformed)",
+          "userModel": "edge",
+          "expectedEvidence": "Replace via revise_criterion with boundary or malformed-input proof for: Perforce System 연동을 실제 서버를 켜서 Atlas Client에서 Add, Sync, Edit 동작이 실제로 되는지 검증하고....",
+          "capturedEvidence": null,
+          "status": "pending"
+        },
+        {
+          "id": "C003",
+          "scenario": "regression: adjacent surface still works",
+          "userModel": "regression",
+          "expectedEvidence": "Replace via revise_criterion with regression proof for neighboring behavior after: Perforce System 연동을 실제 서버를 켜서 Atlas Client에서 Add, Sync, Edit 동작이 실제로 되는지 검증하고....",
+          "capturedEvidence": null,
+          "status": "pending"
+        }
+      ],
+      "attempt": 0,
+      "createdAt": "2026-05-31T11:45:39.180Z",
+      "updatedAt": "2026-05-31T11:45:39.180Z"
+    }
+  ],
+  "codexObjective": "Complete the durable ulw-loop plan in .omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/goals.json, including later accepted/appended stories, under the original brief constraints; use .omo/ulw-loop/019e7d66-9e15-7790-a750-ae8a7df43b13/ledger.jsonl as the audit trail."
+}

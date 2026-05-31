@@ -8,7 +8,7 @@ import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import ClockCycles, RisingEdge
 
-from agents import ApbMaster, AxiWriteMaster, SramMonitor
+from agents import ApbMaster, AxiReadMaster, AxiWriteMaster, SramMonitor
 from scoreboard import MctpScoreboard
 from tb_coverage import FunctionalCoverageCollector
 from uvm_env import MctpEnv
@@ -34,6 +34,7 @@ from mctp_assembler_scenarios import (  # noqa: E402
     A_PACKET_DROP_COUNT,
     A_ASSEMBLY_DROP_COUNT,
     A_STATUS,
+    parse_descriptor_words,
     parse_status,
     smoke_scenarios,
 )
@@ -47,12 +48,17 @@ async def _reset_dut(dut) -> None:
     dut.axi_aresetn.value = 0
     dut.presetn.value = 0
     dut.sram_wr_ready.value = 1
+    dut.sram_rd_ready.value = 1
+    dut.sram_rd_data.value = 0
     apb = ApbMaster()
     apb.bind(dut, "pclk")
     axi = AxiWriteMaster()
     axi.bind(dut, "axi_aclk")
+    axi_read = AxiReadMaster()
+    axi_read.bind(dut, "axi_aclk")
     await apb.reset_bus()
     await axi.reset_bus()
+    await axi_read.reset_bus()
     await ClockCycles(dut.axi_aclk, 5)
     await ClockCycles(dut.pclk, 5)
     dut.axi_aresetn.value = 1
@@ -105,6 +111,13 @@ async def _collect_descriptors(apb: ApbMaster, dut, count: int, timeout: int = 5
     return collected
 
 
+async def _hard_reset_axi(dut) -> None:
+    dut.axi_aresetn.value = 0
+    await ClockCycles(dut.axi_aclk, 8)
+    dut.axi_aresetn.value = 1
+    await ClockCycles(dut.axi_aclk, 8)
+
+
 async def _pulse_soft_reset(apb: ApbMaster, dut) -> None:
     """Clear AXI-domain assembly state between directed scenarios."""
     await apb.write(A_CONTROL, 0x2)
@@ -120,6 +133,7 @@ async def _run_scenario(env: MctpEnv, dut, scenario) -> None:
     cov = env.coverage
     apb = env.apb
     axi = env.axi
+    axi_read = env.axi_read
     sram = env.sram_monitor
 
     sb.reset_oracle()
@@ -127,6 +141,8 @@ async def _run_scenario(env: MctpEnv, dut, scenario) -> None:
     sram.write_log.clear()
     if scenario.scenario_id != "SC_APB_REGS":
         await _pulse_soft_reset(apb, dut)
+    if scenario.axi_reads:
+        await _hard_reset_axi(dut)
 
     if scenario.scenario_id == "SC_APB_REGS":
         control = await apb.read(A_CONTROL)
@@ -231,6 +247,39 @@ async def _run_scenario(env: MctpEnv, dut, scenario) -> None:
         )
     passed = not any(e["scenario_id"] == scenario.scenario_id and not e["passed"] for e in sb.events)
     cov.sample(scenario.scenario_id, scenario.coverage_refs, passed)
+
+    assembly_passed = passed
+    if scenario.axi_reads and desc_words_list and assembly_passed:
+        parsed = parse_descriptor_words(*desc_words_list[0])
+        start_addr = parsed["sram_start_addr"]
+        payload_count = parsed["payload_byte_count"]
+        desc_status_before = await apb.read(A_DESC_STATUS)
+        desc_count_before = desc_status_before & 0xF
+        for read_req in scenario.axi_reads:
+            araddr = start_addr if read_req.araddr == 0 else read_req.araddr
+            byte_count = read_req.byte_count or payload_count
+            rtl_beats = await axi_read.read_burst(
+                araddr,
+                arlen=read_req.arlen,
+                arsize=read_req.arsize,
+                arburst=read_req.arburst,
+            )
+            sb.check_axi_read(
+                scenario.scenario_id,
+                rtl_beats=rtl_beats,
+                araddr=araddr,
+                arlen=read_req.arlen,
+                arsize=read_req.arsize,
+                arburst=read_req.arburst,
+                byte_count=byte_count,
+                desc_status_before=desc_status_before,
+                desc_count_before=desc_count_before,
+            )
+            read_passed = not any(
+                e["scenario_id"] == scenario.scenario_id and not e["passed"] for e in sb.events
+            )
+            cov.sample(scenario.scenario_id, scenario.coverage_refs, read_passed)
+
     if expect_desc_n > 0 and desc_words_list:
         await _drain_descriptors(apb, dut, sb)
 

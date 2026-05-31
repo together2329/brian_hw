@@ -1,0 +1,2 @@
+[check_scoreboard_events] PASS: goals=91 required=91 scoreboard_rows=91 goals_with_rows=91
+scoreboard_schema_rc=0

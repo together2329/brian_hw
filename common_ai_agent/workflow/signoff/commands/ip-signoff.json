@@ -1,0 +1,7 @@
+{
+  "name": "ip-signoff",
+  "description": "Run strict local IP signoff evidence checks and write signoff/ip_signoff.{json,md}",
+  "aliases": ["signoff", "so"],
+  "handler": "bash:run_ip_signoff.sh",
+  "usage": "/ip-signoff <ip_name>"
+}

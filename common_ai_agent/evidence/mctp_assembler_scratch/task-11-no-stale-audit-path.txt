@@ -1,0 +1,1 @@
+no stale mctp_assembler/ reference in scratch audit

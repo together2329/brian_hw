@@ -1,0 +1,2 @@
+help_dir_absent=true
+exit=0

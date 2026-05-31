@@ -1,0 +1,12 @@
+{
+  "type": "requirement_approval_manifest",
+  "ip": "apb_add_demo",
+  "approved_by": "Claude (delegated human-gate approver, user-delegated 2026-05-31)",
+  "approved_at_utc": "2026-05-31T02:57:42Z",
+  "target": "apb_add_demo/req/apb_add_demo_requirements.md",
+  "target_sha256": "2e6a91ab3fd69f493eed00000a82f705915545eec2feac34928ed9c5a1a62f31",
+  "source": "apb_add_demo/review/req_review_packet.md",
+  "source_sha256": "35cde3462331e9295bd4a2c516135af9565255adc059d6dfe9be7ed356db1972",
+  "decision": "approved",
+  "scope": "demonstration (not production tape-out)"
+}

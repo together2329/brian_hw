@@ -1,0 +1,33 @@
+{
+  "tasks": 453,
+  "blockers": 0,
+  "orphans": 0,
+  "gate": {
+    "all_required_todos_pass": false,
+    "audit_rtl": false,
+    "blocking_questions": 0,
+    "criteria": [
+      "Gate: SSOT function_model and cycle_model are present before RTL generation",
+      "Gate: SSOT-authored rtl-gen workflow TODOs are well formed",
+      "Gate: every SSOT-derived RTL behavior has an owner module",
+      "Gate: RTL is authored by common_ai_agent rtl-gen, not by direct operator edits",
+      "Gate: required SSOT behavior has static DUT RTL evidence after audit",
+      "Gate: behavior-owner RTL modules contain real implementation structure",
+      "Gate: RTL sources contain no placeholder markers or disallowed generated-RTL constructs",
+      "Gate: SSOT top IO contracts match the RTL top module",
+      "Gate: SSOT top outputs are driven by real RTL logic",
+      "Gate: SSOT top inputs are consumed by RTL logic or child inputs",
+      "Gate: manifest-owned RTL modules are integrated into the top hierarchy",
+      "Gate: manifest-owned child instances have machine-checkable port connections",
+      "Gate: manifest child port connections carry live RTL signal flow",
+      "Gate: SSOT connection contracts match RTL child port maps",
+      "Gate: DUT-only RTL compile report passes after the final RTL edit",
+      "Gate: DUT-only lint report passes after the final RTL edit",
+      "Gate: every required rtl_todo_plan item is closed before rtl-gen PASS"
+    ],
+    "open_required_todos": 453,
+    "orphan_tasks": 0,
+    "static_missing": 0,
+    "status": "planned"
+  }
+}

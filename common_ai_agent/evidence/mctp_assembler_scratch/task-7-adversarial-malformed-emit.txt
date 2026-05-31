@@ -1,0 +1,2 @@
+[SSOT QUESTION] tb-gen blocked for no_such_ip_for_task7: missing SSOT YAML: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/no_such_ip_for_task7/yaml/no_such_ip_for_task7.ssot.yaml
+emit_rc=2

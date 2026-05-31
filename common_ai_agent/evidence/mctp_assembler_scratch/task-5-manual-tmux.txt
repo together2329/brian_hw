@@ -1,0 +1,24 @@
+START_task5
+[derive_rtl_todos] mctp_assembler_scratch: tasks=453 blockers=0 orphans=0 gate=p
+lanned
+true
+MANUAL_QA_PASS_task5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

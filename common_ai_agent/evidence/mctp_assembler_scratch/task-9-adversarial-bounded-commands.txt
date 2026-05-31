@@ -1,0 +1,7 @@
+RUN python3 mctp_assembler_scratch/tb/cocotb/test_runner.py
+returncode 0
+[SIM ESCALATE] reason=FL-vs-RTL scoreboard mismatch: EQ_TRANSACTION_FM_FILTER_VDM: debug_drop_pulse: expected=1 observed=0; EQ_TRANSACTION_FM_PARSE_MCTP: debug_context_key: expected=3587 observed=0; EQ_TRANSACTION_FM_ASSEMBLE_FRAGMENT: debug_context_id: expected=4 observed=0; ctx_state: expected=1 observed=0; ctx_valid: expected=4 observed=0; payload_byte_count: expected=16 observed=0; EQ_TRANSACTION_FM_SRAM_PACK_WRITE: sram_write_valid: expected=1 observed=0; sram_wr_valid: expected=1 observed=0; sram_write_addr: expected=52 observed=0; sram_wr_addr: expected=52 observed=0; sram_write_data: expected=17 observed=0; sram_wr_data: expected=17 observed=0; sram_write_strb: expected=17 observed=0; sram_wr_strb: expected=17 observed=0; EQ_TRANSACTION_FM_COMPLETE_MESSAGE: descriptor_count: expected=6 observed=0; ctx_state: expected=3 observed=0; EQ_TRANSACTION_FM_PACKET_DROP: debug_drop_pulse: expected=1 observed=0; EQ_TRANSACTION_FM_ASSEMBLY_DROP: debug_drop_pulse: expected=1 observed=0; interrupt: expected=1 observed='x'; irq: expected=1 observed='x'; ctx_error: expected=1 observed=0; ctx_state: expected=2 observed=0; EQ_TRANSACTION_FM_APB_ACCESS: apb_error: expected=1 observed=0; pslverr: expected=1 observed=0; ... +57 more
+RUN python3 workflow/tb-gen/scripts/check_scoreboard_events.py mctp_assembler_scratch --root . --source-check --require-events
+returncode 0
+[check_scoreboard_events] PASS: goals=91 required=91 scoreboard_rows=91 goals_with_rows=91
+bounded_command_probe=pass

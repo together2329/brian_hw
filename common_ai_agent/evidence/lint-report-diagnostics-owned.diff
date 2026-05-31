@@ -1,0 +1,1001 @@
+diff --git a/common_ai_agent/frontend/atlas/__tests__/preview-pane-lint-annotation.test.tsx b/common_ai_agent/frontend/atlas/__tests__/preview-pane-lint-annotation.test.tsx
+new file mode 100644
+index 00000000..3742e4eb
+--- /dev/null
++++ b/common_ai_agent/frontend/atlas/__tests__/preview-pane-lint-annotation.test.tsx
+@@ -0,0 +1,85 @@
++import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
++import { cleanup, render, screen } from '@testing-library/react';
++
++type TestWindow = typeof window & Record<string, unknown>;
++
++function escapeHtml(value: unknown): string {
++  return String(value)
++    .replaceAll('&', '&amp;')
++    .replaceAll('<', '&lt;')
++    .replaceAll('>', '&gt;')
++    .replaceAll('"', '&quot;');
++}
++
++function installPreviewGlobals(): void {
++  const w = window as TestWindow;
++  w._buildFoldTree = () => ({ children: [], line_start: 0, line_end: 1e9 });
++  w._copyToClipboard = vi.fn();
++  w._escHtml = escapeHtml;
++  w._highlightYamlLine = escapeHtml;
++  w._markdownHtml = vi.fn(() => '');
++  w._normalizeMarkdownImageSrc = vi.fn((src: unknown) => String(src || ''));
++  w._postProcessMarkdownNode = vi.fn();
++  w.atlasFileTreeMetaForPath = vi.fn(() => ({}));
++  w.atlasFormatBytes = vi.fn(() => '');
++  w.atlasImageMimeForExt = vi.fn(() => 'image/png');
++  w.scheduleAtlasPreviewWork = (work: () => void) => {
++    work();
++    return undefined;
++  };
++  w.useAtlasAsyncResource = vi.fn(() => [{}, vi.fn()]);
++  w.AtlasStatusBadge = () => null;
++  w.DocxFallbackPane = () => null;
++  w._FOLD_KIND_COLOR = {};
++  w.PRISM_LANG_MAP = { sv: 'systemverilog' };
++  w.Prism = undefined;
++  Object.assign(globalThis, {
++    fetch: vi.fn(async () =>
++      new Response(JSON.stringify({ ranges: [] }), {
++        status: 200,
++        headers: { 'Content-Type': 'application/json' },
++      }),
++    ),
++  });
++}
++
++describe('PreviewPane lint diagnostic annotations', () => {
++  beforeEach(() => {
++    vi.resetModules();
++    installPreviewGlobals();
++  });
++
++  afterEach(() => {
++    cleanup();
++    vi.restoreAllMocks();
++  });
++
++  it('renders the lint diagnostic explanation under the selected source line', async () => {
++    const { FoldablePane } = await import('../preview-pane.tsx');
++
++    render(
++      <FoldablePane
++        path="demo_ip/rtl/demo.sv"
++        body={'module demo;\nassign out = in[7:0];\nendmodule'}
++        lang="systemverilog"
++        lineCount={3}
++        focusLine={2}
++        lintDiagnostic={{
++          severity: 'error',
++          rule: 'WIDTH',
++          path: 'demo_ip/rtl/demo.sv',
++          file: 'rtl/demo.sv',
++          line: 2,
++          column: 12,
++          message: 'Output port connection width mismatch: left 32 bits, right 8 bits',
++          source: 'assign out = in[7:0];',
++        }}
++      />,
++    );
++
++    const annotation = await screen.findByTestId('lint-diagnostic-annotation');
++    expect(annotation).toHaveTextContent('WIDTH');
++    expect(annotation).toHaveTextContent('Output port connection width mismatch: left 32 bits, right 8 bits');
++    expect(annotation).toHaveTextContent('assign out = in[7:0];');
++  });
++});
+diff --git a/common_ai_agent/frontend/atlas/__tests__/workflow-report-click.test.tsx b/common_ai_agent/frontend/atlas/__tests__/workflow-report-click.test.tsx
+new file mode 100644
+index 00000000..91e86650
+--- /dev/null
++++ b/common_ai_agent/frontend/atlas/__tests__/workflow-report-click.test.tsx
+@@ -0,0 +1,216 @@
++import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
++import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
++
++vi.mock('../preview-pane.tsx', () => ({
++  PreviewPane: ({
++    path,
++    focusLine = 0,
++    lintDiagnostic,
++  }: {
++    readonly path?: string;
++    readonly focusLine?: number;
++    readonly lintDiagnostic?: { readonly message?: string } | null;
++  }) => (
++    <div data-testid="preview-pane">
++      {path || 'no preview'}|L{focusLine}|{lintDiagnostic?.message || 'no lint diagnostic'}
++    </div>
++  ),
++}));
++
++type TestWindow = typeof window & Record<string, unknown>;
++
++function installWorkflowReportGlobals(responseBody: Record<string, unknown>): void {
++  const w = window as TestWindow;
++  w.WORKFLOW_REPORT_TABS = {
++    lint: {
++      label: 'lint report',
++      title: 'Lint Report',
++      folders: ['lint'],
++      paths: (ip: string) => [`${ip}/lint/dut_lint.json`],
++    },
++    coverage: {
++      label: 'coverage report',
++      title: 'Coverage Report',
++      folders: ['cov', 'sim'],
++      paths: (ip: string) => [`${ip}/cov/coverage.json`],
++    },
++  };
++  w.PreviewPane = ({ path }: { readonly path?: string }) => (
++    <div data-testid="window-preview-pane">{path || 'no preview'}</div>
++  );
++  w.readAtlasAsyncResource = vi.fn(async () => ({}));
++  w.atlasData = { refreshFileTree: vi.fn() };
++  w.FILE_TREE = [];
++  w.SCOPE_PATH = 'demo_ip';
++  w.ACTIVE_SESSION = 'default/demo_ip/lint';
++
++  Object.assign(globalThis, {
++    fetch: vi.fn(async () =>
++      new Response(JSON.stringify(responseBody), {
++        status: 200,
++        headers: { 'Content-Type': 'application/json' },
++      }),
++    ),
++  });
++}
++
++describe('Workflow report click surfaces', () => {
++  beforeEach(() => {
++    vi.resetModules();
++  });
++
++  afterEach(() => {
++    cleanup();
++    vi.restoreAllMocks();
++  });
++
++  it('renders lint report summary when the report endpoint returns an empty state', async () => {
++    installWorkflowReportGlobals({
++      exists: false,
++      resolved_ip: 'demo_ip',
++      report_path: '',
++      tool_results: [],
++    });
++    const { WorkflowReportPane } = await import('../workflow-report.tsx');
++
++    expect(() => render(<WorkflowReportPane workflow="lint" activeIp="demo_ip" />)).not.toThrow();
++
++    expect(await screen.findByText('No dut_lint.json found yet.')).toBeInTheDocument();
++  });
++
++  it('keeps long lint commands constrained inside report rows', async () => {
++    const longCommand = [
++      'pyslang rtl/demo_ip.sv rtl/demo_ip_axi_slave_ingress.sv rtl/demo_ip_packet_engine.sv',
++      'verilator --lint-only -Wall -Irtl -f list/demo_ip.f --top-module demo_ip',
++    ].join(' && ');
++    installWorkflowReportGlobals({
++      exists: true,
++      resolved_ip: 'demo_ip',
++      tool: 'pyslang+verilator',
++      passed: true,
++      errors: 0,
++      warnings: 0,
++      suppression_violations: 0,
++      style_violations: 0,
++      command: longCommand,
++      report_path: 'demo_ip/lint/dut_lint.json',
++      log_path: 'demo_ip/lint/dut_lint.log',
++      log_exists: true,
++      tool_results: [
++        { tool: 'pyslang', passed: true, returncode: 0, errors: 0, warnings: 0, command: longCommand, diagnostics: [] },
++        { tool: 'verilator', passed: true, returncode: 0, errors: 0, warnings: 0, command: longCommand, diagnostics: [] },
++      ],
++    });
++    const { WorkflowReportPane } = await import('../workflow-report.tsx');
++
++    render(<WorkflowReportPane workflow="lint" activeIp="demo_ip" />);
++
++    const commandRows = await screen.findAllByTitle(longCommand);
++    expect(commandRows.length).toBeGreaterThanOrEqual(2);
++    for (const row of commandRows) {
++      expect(row).toHaveStyle({ minWidth: '0' });
++    }
++  });
++
++  it('groups lint diagnostics by rule with foldable counts', async () => {
++    installWorkflowReportGlobals({
++      exists: true,
++      resolved_ip: 'demo_ip',
++      tool: 'pyslang+verilator',
++      passed: false,
++      errors: 3,
++      warnings: 0,
++      suppression_violations: 0,
++      style_violations: 0,
++      command: 'pyslang rtl/demo.sv && verilator --lint-only rtl/demo.sv',
++      report_path: 'demo_ip/lint/dut_lint.json',
++      tool_results: [
++        {
++          tool: 'verilator',
++          passed: false,
++          returncode: 1,
++          errors: 3,
++          warnings: 0,
++          command: 'verilator --lint-only rtl/demo.sv',
++          diagnostics: [
++            { severity: 'error', rule: 'WIDTH', path: 'demo_ip/rtl/demo.sv', file: 'rtl/demo.sv', line: 7, message: 'Output port connection width mismatch: left 32 bits, right 8 bits' },
++            { severity: 'error', rule: 'WIDTH', path: 'demo_ip/rtl/demo.sv', file: 'rtl/demo.sv', line: 8, message: 'Assignment width mismatch: left 16 bits, right 1 bit' },
++            { severity: 'error', rule: 'UNUSED', path: 'demo_ip/rtl/demo.sv', file: 'rtl/demo.sv', line: 10, message: 'Signal is not used: tmp' },
++          ],
++        },
++      ],
++    });
++    const { WorkflowReportPane } = await import('../workflow-report.tsx');
++
++    render(<WorkflowReportPane workflow="lint" activeIp="demo_ip" />);
++
++    const widthGroup = await screen.findByTestId('lint-diagnostic-group-WIDTH');
++    expect(within(widthGroup).getByText('WIDTH')).toBeInTheDocument();
++    expect(within(widthGroup).getByText('2')).toBeInTheDocument();
++    const unusedGroup = screen.getByTestId('lint-diagnostic-group-UNUSED');
++    expect(within(unusedGroup).getByText('UNUSED')).toBeInTheDocument();
++    expect(within(unusedGroup).getByText('1')).toBeInTheDocument();
++  });
++
++  it('passes the selected lint diagnostic into the source preview', async () => {
++    installWorkflowReportGlobals({
++      exists: true,
++      resolved_ip: 'demo_ip',
++      tool: 'pyslang+verilator',
++      passed: false,
++      errors: 1,
++      warnings: 0,
++      suppression_violations: 0,
++      style_violations: 0,
++      command: 'verilator --lint-only rtl/demo.sv',
++      report_path: 'demo_ip/lint/dut_lint.json',
++      tool_results: [
++        {
++          tool: 'verilator',
++          passed: false,
++          returncode: 1,
++          errors: 1,
++          warnings: 0,
++          command: 'verilator --lint-only rtl/demo.sv',
++          diagnostics: [
++            {
++              severity: 'error',
++              rule: 'WIDTH',
++              path: 'demo_ip/rtl/demo.sv',
++              file: 'rtl/demo.sv',
++              line: 7,
++              column: 12,
++              message: 'Output port connection width mismatch: left 32 bits, right 8 bits',
++              source: 'assign out = in[7:0];',
++            },
++          ],
++        },
++      ],
++    });
++    const { WorkflowReportPane } = await import('../workflow-report.tsx');
++
++    render(<WorkflowReportPane workflow="lint" activeIp="demo_ip" />);
++    fireEvent.click(await screen.findByRole('button', { name: /Output port connection width mismatch/ }));
++
++    expect(await screen.findByTestId('preview-pane')).toHaveTextContent(
++      'demo_ip/rtl/demo.sv|L7|Output port connection width mismatch: left 32 bits, right 8 bits',
++    );
++    expect((window as TestWindow).readAtlasAsyncResource).toHaveBeenCalledWith('file', 'demo_ip/rtl/demo.sv', true);
++  });
++
++  it('renders coverage report summary when the report endpoint returns malformed empty data', async () => {
++    installWorkflowReportGlobals({
++      exists: false,
++      resolved_ip: 'demo_ip',
++      tools: 'not-an-array',
++      artifacts: null,
++      vcd_paths: null,
++      run: null,
++    });
++    const { WorkflowReportPane } = await import('../workflow-report.tsx');
++
++    expect(() => render(<WorkflowReportPane workflow="coverage" activeIp="demo_ip" />)).not.toThrow();
++
++    expect(await screen.findByText(/No coverage artifacts found yet/)).toBeInTheDocument();
++  });
++});
+diff --git a/common_ai_agent/frontend/atlas/lint-diagnostics.tsx b/common_ai_agent/frontend/atlas/lint-diagnostics.tsx
+new file mode 100644
+index 00000000..9f0155e6
+--- /dev/null
++++ b/common_ai_agent/frontend/atlas/lint-diagnostics.tsx
+@@ -0,0 +1,302 @@
++import type { ReactNode } from 'react';
++
++import { AtlasStatusBadge } from './workspace-report-status';
++
++export interface LintDiagnostic {
++  readonly path?: string;
++  readonly file?: string;
++  readonly line?: number | string;
++  readonly column?: number | string;
++  readonly severity?: string;
++  readonly rule?: string;
++  readonly message?: string;
++  readonly source?: string;
++}
++
++interface LintToolResult {
++  readonly tool?: string;
++  readonly passed?: boolean;
++  readonly returncode?: number | string;
++  readonly errors?: number | string;
++  readonly warnings?: number | string;
++  readonly command?: string;
++  readonly diagnostics?: readonly LintDiagnostic[];
++}
++
++interface LintDiagnosticGroup {
++  readonly key: string;
++  readonly label: string;
++  readonly severity: string;
++  readonly diagnostics: readonly LintDiagnostic[];
++}
++
++interface LintToolResultCardProps {
++  readonly result?: LintToolResult;
++  readonly onOpenDiagnostic?: (diagnostic: LintDiagnostic) => void;
++}
++
++interface LintDiagnosticAnnotationProps {
++  readonly diagnostic: LintDiagnostic;
++}
++
++const severityRank = (severity: string): number => {
++  const normalized = severity.trim().toLowerCase();
++  if (normalized === 'fatal' || normalized === 'error') return 0;
++  if (normalized === 'warning' || normalized === 'warn') return 1;
++  return 2;
++};
++
++const textValue = (value: unknown): string => String(value ?? '').trim();
++
++export const lintDiagnosticPath = (diagnostic: LintDiagnostic | null | undefined): string =>
++  textValue(diagnostic?.path || diagnostic?.file).replace(/^\/+/, '');
++
++export const lintDiagnosticLine = (diagnostic: LintDiagnostic | null | undefined): number => {
++  const line = Number(diagnostic?.line || 0);
++  return Number.isFinite(line) && line > 0 ? line : 0;
++};
++
++const lintDiagnosticColumn = (diagnostic: LintDiagnostic): number => {
++  const column = Number(diagnostic.column || 0);
++  return Number.isFinite(column) && column > 0 ? column : 0;
++};
++
++const lintDiagnosticRule = (diagnostic: LintDiagnostic): string => {
++  const explicit = textValue(diagnostic.rule);
++  if (explicit) return explicit;
++  const haystack = `${textValue(diagnostic.message)} ${textValue(diagnostic.source)}`;
++  const verilatorCode = haystack.match(/%(?:Error|Warning|Fatal)-([A-Za-z0-9_]+)/);
++  if (verilatorCode?.[1]) return verilatorCode[1];
++  const uppercaseCode = haystack.match(/\b([A-Z][A-Z0-9_]{2,})\b/);
++  if (uppercaseCode?.[1]) return uppercaseCode[1];
++  return textValue(diagnostic.message).slice(0, 48) || 'lint';
++};
++
++const lintDiagnosticSeverity = (diagnostic: LintDiagnostic): string =>
++  textValue(diagnostic.severity) || 'diagnostic';
++
++const testIdToken = (value: string): string => {
++  const token = value.replace(/[^A-Za-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '');
++  return token || 'lint';
++};
++
++export const groupLintDiagnostics = (diagnostics: readonly LintDiagnostic[]): readonly LintDiagnosticGroup[] => {
++  const buckets = new Map<string, LintDiagnostic[]>();
++  for (const diagnostic of diagnostics) {
++    const key = lintDiagnosticRule(diagnostic);
++    const bucket = buckets.get(key) || [];
++    bucket.push(diagnostic);
++    buckets.set(key, bucket);
++  }
++  return Array.from(buckets.entries())
++    .map(([key, items]) => {
++      const severity = items
++        .map(lintDiagnosticSeverity)
++        .sort((a, b) => severityRank(a) - severityRank(b))[0] || 'diagnostic';
++      return { key, label: key, severity, diagnostics: items };
++    })
++    .sort((a, b) => {
++      const severityDelta = severityRank(a.severity) - severityRank(b.severity);
++      if (severityDelta) return severityDelta;
++      const countDelta = b.diagnostics.length - a.diagnostics.length;
++      if (countDelta) return countDelta;
++      return a.label.localeCompare(b.label);
++    });
++};
++
++const locationText = (diagnostic: LintDiagnostic): string => {
++  const path = textValue(diagnostic.file || diagnostic.path) || '(no file)';
++  const line = lintDiagnosticLine(diagnostic);
++  const column = lintDiagnosticColumn(diagnostic);
++  return `${path}${line ? `:${line}` : ''}${column ? `:${column}` : ''}`;
++};
++
++const severityColor = (severity: string): string => {
++  const normalized = severity.trim().toLowerCase();
++  if (normalized === 'fatal' || normalized === 'error') return 'var(--err)';
++  if (normalized === 'warning' || normalized === 'warn') return 'var(--warn)';
++  return 'var(--accent)';
++};
++
++const LintDiagnosticButton = ({
++  diagnostic,
++  onOpenDiagnostic,
++}: {
++  readonly diagnostic: LintDiagnostic;
++  readonly onOpenDiagnostic?: (diagnostic: LintDiagnostic) => void;
++}): ReactNode => {
++  const severity = lintDiagnosticSeverity(diagnostic);
++  const message = textValue(diagnostic.message) || '(no message)';
++  const source = textValue(diagnostic.source);
++  const path = lintDiagnosticPath(diagnostic);
++  const line = lintDiagnosticLine(diagnostic);
++  const canOpen = !!path;
++  return (
++    <button
++      type="button"
++      data-lint-path={path}
++      data-lint-line={line ? String(line) : undefined}
++      onClick={() => {
++        if (canOpen) onOpenDiagnostic?.(diagnostic);
++      }}
++      style={{
++        textAlign: 'left',
++        border: 0,
++        background: 'transparent',
++        borderLeft: `2px solid ${severityColor(severity)}`,
++        padding: '0 0 0 7px',
++        color: 'var(--fg)',
++        fontFamily: 'var(--mono)',
++        fontSize: 10,
++        lineHeight: 1.35,
++        cursor: canOpen ? 'pointer' : 'default',
++        minWidth: 0,
++      }}
++    >
++      <span className="trunc" title={locationText(diagnostic)} style={{ display: 'block', color: 'var(--fg-mute)', minWidth: 0 }}>
++        {severity} {locationText(diagnostic)}
++      </span>
++      <div style={{ overflowWrap: 'anywhere' }}>{message.slice(0, 260)}</div>
++      {source && <div style={{ color: 'var(--fg-mute)', overflowWrap: 'anywhere' }}>{source.slice(0, 220)}</div>}
++    </button>
++  );
++};
++
++export const LintDiagnosticLineAnnotation = ({ diagnostic }: LintDiagnosticAnnotationProps): ReactNode => {
++  const severity = lintDiagnosticSeverity(diagnostic);
++  const rule = lintDiagnosticRule(diagnostic);
++  const message = textValue(diagnostic.message) || '(no lint message)';
++  const source = textValue(diagnostic.source);
++  return (
++    <div
++      data-testid="lint-diagnostic-annotation"
++      style={{
++        border: `1px solid color-mix(in oklch, ${severityColor(severity)} 45%, var(--line))`,
++        borderLeft: `3px solid ${severityColor(severity)}`,
++        background: 'color-mix(in oklch, var(--panel) 82%, var(--bg))',
++        borderRadius: 3,
++        padding: '7px 9px',
++        color: 'var(--fg)',
++        fontFamily: 'var(--mono)',
++        fontSize: 10,
++        lineHeight: 1.45,
++        whiteSpace: 'normal',
++        overflowWrap: 'anywhere',
++      }}
++    >
++      <div style={{ display: 'flex', gap: 8, alignItems: 'center', minWidth: 0, marginBottom: 4 }}>
++        <span style={{ color: severityColor(severity), fontWeight: 900, textTransform: 'uppercase' }}>{severity}</span>
++        <span style={{ color: 'var(--fg)', fontWeight: 900 }}>{rule}</span>
++        <span className="trunc" title={locationText(diagnostic)} style={{ color: 'var(--fg-mute)', minWidth: 0 }}>
++          {locationText(diagnostic)}
++        </span>
++      </div>
++      <div>{message}</div>
++      {source && (
++        <pre style={{
++          margin: '6px 0 0',
++          whiteSpace: 'pre-wrap',
++          color: 'var(--fg-mute)',
++          fontFamily: 'inherit',
++          fontSize: 'inherit',
++        }}>
++          {source}
++        </pre>
++      )}
++    </div>
++  );
++};
++
++export const LintToolResultCard = ({ result, onOpenDiagnostic }: LintToolResultCardProps): ReactNode => {
++  const passed = result?.passed === true;
++  const diagnostics = Array.isArray(result?.diagnostics) ? result.diagnostics : [];
++  const groups = groupLintDiagnostics(diagnostics);
++  return (
++    <div style={{
++      border: `1px solid ${passed ? 'color-mix(in oklch, var(--ok) 35%, var(--line))' : 'color-mix(in oklch, var(--err) 35%, var(--line))'}`,
++      background: 'var(--panel)',
++      borderRadius: 4,
++      padding: 10,
++      minWidth: 0,
++      overflow: 'hidden',
++    }}>
++      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, minWidth: 0 }}>
++        <span className="trunc" title={result?.tool || 'tool'} style={{ fontFamily: 'var(--mono)', fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.06em', minWidth: 0 }}>
++          {result?.tool || 'tool'}
++        </span>
++        <AtlasStatusBadge status={passed ? 'approved' : 'error'} label={passed ? 'pass' : 'fail'} compact />
++        <span style={{ flex: 1, minWidth: 0 }} />
++        <span style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10, flex: '0 0 auto' }}>
++          rc {result?.returncode ?? '?'}
++        </span>
++      </div>
++      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginBottom: 8, minWidth: 0 }}>
++        {[
++          ['errors', result?.errors ?? 0],
++          ['warnings', result?.warnings ?? 0],
++          ['diagnostics', diagnostics.length],
++        ].map(([label, value]) => (
++          <div key={label} style={{ border: '1px solid var(--line)', background: 'var(--bg)', borderRadius: 3, padding: '6px 7px', minWidth: 0 }}>
++            <div style={{ color: 'var(--fg-mute)', fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{label}</div>
++            <div className="trunc" title={String(value)} style={{ fontFamily: 'var(--mono)', fontWeight: 800, fontSize: 14 }}>{value}</div>
++          </div>
++        ))}
++      </div>
++      <div className="trunc" title={result?.command || ''} style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10, minWidth: 0, maxWidth: '100%' }}>
++        {result?.command || '(no command)'}
++      </div>
++      {groups.length > 0 && (
++        <div style={{ marginTop: 8, display: 'grid', gap: 6, minWidth: 0 }}>
++          {groups.map((group, idx) => (
++            <details
++              key={group.key}
++              open={idx === 0}
++              data-testid={`lint-diagnostic-group-${testIdToken(group.key)}`}
++              style={{
++                border: '1px solid var(--line)',
++                borderRadius: 3,
++                background: 'var(--bg)',
++                minWidth: 0,
++                overflow: 'hidden',
++              }}
++            >
++              <summary style={{
++                display: 'grid',
++                gridTemplateColumns: 'minmax(0, 1fr) auto',
++                gap: 8,
++                alignItems: 'center',
++                padding: '5px 7px',
++                cursor: 'pointer',
++                color: 'var(--fg)',
++                fontFamily: 'var(--mono)',
++                fontSize: 10,
++              }}>
++                <span className="trunc" title={group.label} style={{ fontWeight: 900, color: severityColor(group.severity) }}>
++                  {group.label}
++                </span>
++                <span style={{
++                  color: 'var(--fg)',
++                  border: '1px solid var(--line)',
++                  borderRadius: 999,
++                  padding: '0 6px',
++                  fontWeight: 900,
++                }}>
++                  {group.diagnostics.length}
++                </span>
++              </summary>
++              <div style={{ display: 'grid', gap: 5, padding: '0 7px 7px', minWidth: 0 }}>
++                {group.diagnostics.map((diagnostic, diagnosticIdx) => (
++                  <LintDiagnosticButton
++                    key={`${locationText(diagnostic)}-${diagnosticIdx}`}
++                    diagnostic={diagnostic}
++                    onOpenDiagnostic={onOpenDiagnostic}
++                  />
++                ))}
++              </div>
++            </details>
++          ))}
++        </div>
++      )}
++    </div>
++  );
++};
+diff --git a/common_ai_agent/frontend/atlas/preview-pane.tsx b/common_ai_agent/frontend/atlas/preview-pane.tsx
+index f1045221..9fdbecc0 100644
+--- a/common_ai_agent/frontend/atlas/preview-pane.tsx
++++ b/common_ai_agent/frontend/atlas/preview-pane.tsx
+@@ -14,8 +14,10 @@
+ // Transitional: still bridges to `window.*` at the bottom so not-yet-migrated
+ // .jsx files keep resolving `window.PreviewPane` / `window.FoldablePane` /
+ // `window.DeferredMarkdownPreview`.
+-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
++import { Fragment, useState, useEffect, useRef, useCallback, useMemo } from 'react';
+ import type { ReactNode, MouseEvent } from 'react';
++import { LintDiagnosticLineAnnotation, lintDiagnosticLine } from './lint-diagnostics';
++import type { LintDiagnostic } from './lint-diagnostics';
+ 
+ // ── Cross-file globals owned by OTHER (unmigrated) files. These are NOT
+ // declared in types/atlas-window.d.ts yet, so we read them through a locally
+@@ -220,9 +222,10 @@ interface FoldablePaneProps {
+   lineCount: number;
+   focusLine?: number;
+   feedbackMode?: boolean;
++  lintDiagnostic?: LintDiagnostic | null;
+ }
+ 
+-const FoldablePane = ({ path, body, lang, lineCount, focusLine = 0, feedbackMode = false }: FoldablePaneProps): ReactNode => {
++const FoldablePane = ({ path, body, lang, lineCount, focusLine = 0, feedbackMode = false, lintDiagnostic = null }: FoldablePaneProps): ReactNode => {
+   const [ranges, setRanges] = useState<FoldRange[]>([]);
+   const [skipped, setSkipped] = useState<string | null>(null);
+   const [floating, setFloating] = useState<FloatingComment | null>(null);  // {top, left, lo, hi}
+@@ -376,6 +379,7 @@ const FoldablePane = ({ path, body, lang, lineCount, focusLine = 0, feedbackMode
+     .includes(String(lang).toLowerCase());
+   const isCommentLine = (text: string): boolean => isHashCommentLang && /^\s*#/.test(text);
+   const tree = useMemo(() => _buildFoldTree(ranges), [ranges]);
++  const annotationLine = lintDiagnosticLine(lintDiagnostic);
+ 
+   // Render the source as nested <details> + line-rows. Fold controls are
+   // deliberately separate rows above the source range: the original YAML/RTL
+@@ -386,16 +390,26 @@ const FoldablePane = ({ path, body, lang, lineCount, focusLine = 0, feedbackMode
+     const html = highlightLine(text);
+     const inSel = sel && ln >= sel.lo && ln <= sel.hi;
+     return (
+-      <div key={`L${ln}`} className={'line-row' + (inSel ? ' sel' : '')} data-ln={ln}>
+-        <span className="lineno"
+-              data-ln={ln}
+-              onMouseDown={(ev) => onLineMouseDown(ln, ev)}
+-              onMouseEnter={() => onLineMouseEnter(ln)}>
+-          {ln}
+-        </span>
+-        <span className="line"
+-              dangerouslySetInnerHTML={{ __html: html === text ? _escHtml(text) || ' ' : html }} />
+-      </div>
++      <Fragment key={`L${ln}`}>
++        <div className={'line-row' + (inSel ? ' sel' : '')} data-ln={ln}>
++          <span className="lineno"
++                data-ln={ln}
++                onMouseDown={(ev) => onLineMouseDown(ln, ev)}
++                onMouseEnter={() => onLineMouseEnter(ln)}>
++            {ln}
++          </span>
++          <span className="line"
++                dangerouslySetInnerHTML={{ __html: html === text ? _escHtml(text) || ' ' : html }} />
++        </div>
++        {lintDiagnostic && annotationLine === ln && (
++          <div className="line-row lint-diagnostic-row" data-ln={`${ln}-lint`}>
++            <span className="lineno" />
++            <span className="line" style={{ whiteSpace: 'normal', overflowWrap: 'anywhere' }}>
++              <LintDiagnosticLineAnnotation diagnostic={lintDiagnostic} />
++            </span>
++          </div>
++        )}
++      </Fragment>
+     );
+   };
+ 
+@@ -496,9 +510,10 @@ interface PreviewPaneProps {
+   path?: string;
+   onClose?: () => void;
+   focusLine?: number;
++  lintDiagnostic?: LintDiagnostic | null;
+ }
+ 
+-const PreviewPane = ({ path, onClose, focusLine = 0 }: PreviewPaneProps): ReactNode => {
++const PreviewPane = ({ path, onClose, focusLine = 0, lintDiagnostic = null }: PreviewPaneProps): ReactNode => {
+   const ext = (path ? (path.split('.').pop() || '') : '').toLowerCase();
+   const lang = (g.PRISM_LANG_MAP && g.PRISM_LANG_MAP[ext]) || 'none';
+   const isMarkdown = ['md', 'markdown', 'mdown', 'mkdn'].includes(ext);
+@@ -777,7 +792,7 @@ const PreviewPane = ({ path, onClose, focusLine = 0 }: PreviewPaneProps): ReactN
+              gutter so drag-select-comment works universally. The
+              server's fold extractor returns [] for unknown types,
+              so the fold UI stays out of the way. */
+-          <FoldablePane path={path} body={body} lang={lang} lineCount={lineCount} focusLine={focusLine} feedbackMode={previewMode === 'feedback'} />
++          <FoldablePane path={path} body={body} lang={lang} lineCount={lineCount} focusLine={focusLine} feedbackMode={previewMode === 'feedback'} lintDiagnostic={lintDiagnostic} />
+         ) : (
+           /* 2-column layout: line numbers (sticky left gutter) +
+              code body. Both columns share the SAME font-size and
+diff --git a/common_ai_agent/frontend/atlas/workflow-report.tsx b/common_ai_agent/frontend/atlas/workflow-report.tsx
+index ef86ef4f..580b4d37 100644
+--- a/common_ai_agent/frontend/atlas/workflow-report.tsx
++++ b/common_ai_agent/frontend/atlas/workflow-report.tsx
+@@ -26,6 +26,9 @@ import {
+   useCallback,
+   type ReactNode,
+ } from 'react';
++import { PreviewPane } from './preview-pane';
++import { CoverageReportSummary, LintReportSummary } from './workspace-lint-coverage';
++import { lintDiagnosticLine, lintDiagnosticPath, type LintDiagnostic } from './lint-diagnostics';
+ 
+ // ── Minimal local typings for cross-file window globals (owners unmigrated) ──
+ // These shapes mirror the runtime contract in workspace.jsx / preview-pane.jsx
+@@ -48,12 +51,6 @@ interface AtlasDataApi {
+   refreshFileTree?: (scope: string, opts?: { recursive?: boolean; quiet?: boolean }) => unknown;
+ }
+ 
+-type LintDiagnostic = {
+-  path?: string;
+-  file?: string;
+-  line?: number | string;
+-} | null | undefined;
+-
+ interface WorkflowReportCrossDeps {
+   WORKFLOW_REPORT_TABS?: Record<string, WorkflowReportTabMeta>;
+   ACTIVE_SESSION?: string;
+@@ -62,17 +59,6 @@ interface WorkflowReportCrossDeps {
+   atlasData?: AtlasDataApi;
+   readAtlasAsyncResource: (kind: string, rawPath: string, force?: boolean) => Promise<unknown>;
+   OrchestratorWorkflowPane: (props: { activeIp?: string }) => ReactNode;
+-  LintReportSummary: (props: {
+-    ip?: string;
+-    onSelectPath?: (path: string) => void;
+-    onOpenDiagnostic?: (diag: LintDiagnostic) => void;
+-  }) => ReactNode;
+-  CoverageReportSummary: (props: {
+-    ip?: string;
+-    onSelectPath?: (path: string) => void;
+-    onOpenDiagnostic?: (diag: LintDiagnostic) => void;
+-  }) => ReactNode;
+-  PreviewPane: (props: { path?: string; onClose?: () => void; focusLine?: number }) => ReactNode;
+ }
+ 
+ const w = window as unknown as Window & WorkflowReportCrossDeps;
+@@ -80,11 +66,10 @@ const w = window as unknown as Window & WorkflowReportCrossDeps;
+ // Cross-file components owned by unmigrated .jsx — referenced via window.* so
+ // behavior is identical to the bare-identifier resolution in the .jsx world.
+ const OrchestratorWorkflowPane = w.OrchestratorWorkflowPane;
+-const LintReportSummary = w.LintReportSummary;
+-const CoverageReportSummary = w.CoverageReportSummary;
+-const PreviewPane = w.PreviewPane;
+-const readAtlasAsyncResource = (kind: string, rawPath: string, force?: boolean): Promise<unknown> =>
+-  w.readAtlasAsyncResource(kind, rawPath, force);
++const readAtlasAsyncResource = (kind: string, rawPath: string, force?: boolean): Promise<unknown> => {
++  if (typeof w.readAtlasAsyncResource !== 'function') return Promise.resolve(null);
++  return w.readAtlasAsyncResource(kind, rawPath, force);
++};
+ 
+ export interface WorkflowReportPaneProps {
+   workflow: string;
+@@ -112,6 +97,7 @@ export const WorkflowReportPane = ({ workflow, activeIp }: WorkflowReportPanePro
+   const [dataTick, setDataTick] = useState(0);
+   const [selected, setSelected] = useState('');
+   const [focusLine, setFocusLine] = useState(0);
++  const [selectedLintDiagnostic, setSelectedLintDiagnostic] = useState<LintDiagnostic | null>(null);
+ 
+   useEffect(() => {
+     const handler = (ev: Event) => {
+@@ -150,17 +136,26 @@ export const WorkflowReportPane = ({ workflow, activeIp }: WorkflowReportPanePro
+   useEffect(() => {
+     if (!paths.length) {
+       setSelected('');
++      setFocusLine(0);
++      setSelectedLintDiagnostic(null);
+       return;
+     }
+     setSelected(current => (current && paths.includes(current)) ? current : paths[0]);
+   }, [pathsKey]);
+ 
+-  const openLintDiagnostic = useCallback((diag: LintDiagnostic) => {
+-    const diagPath = String(diag?.path || diag?.file || '').replace(/^\/+/, '');
+-    const line = Number(diag?.line || 0);
++  const selectPath = useCallback((path: string) => {
++    setSelected(path);
++    setFocusLine(0);
++    setSelectedLintDiagnostic(null);
++  }, []);
++
++  const openLintDiagnostic = useCallback((diag: LintDiagnostic | null | undefined) => {
++    const diagPath = lintDiagnosticPath(diag);
++    const line = lintDiagnosticLine(diag);
+     if (!diagPath) return;
+     setSelected(diagPath);
+     setFocusLine(line || 0);
++    setSelectedLintDiagnostic(diag || null);
+     readAtlasAsyncResource('file', diagPath, true).catch(() => {});
+   }, []);
+ 
+@@ -216,7 +211,7 @@ export const WorkflowReportPane = ({ workflow, activeIp }: WorkflowReportPanePro
+             return (
+               <div
+                 key={p}
+-                onClick={() => setSelected(p)}
++                onClick={() => selectPath(p)}
+                 onMouseEnter={() => readAtlasAsyncResource('file', p).catch(() => {})}
+                 title={p}
+                 style={{
+@@ -242,12 +237,12 @@ export const WorkflowReportPane = ({ workflow, activeIp }: WorkflowReportPanePro
+       </div>
+       <div style={{ minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+         {workflow === 'lint' && (
+-          <LintReportSummary ip={ip} onSelectPath={setSelected} onOpenDiagnostic={openLintDiagnostic} />
++          <LintReportSummary ip={ip} onSelectPath={selectPath} onOpenDiagnostic={openLintDiagnostic} />
+         )}
+         {workflow === 'coverage' && (
+-          <CoverageReportSummary ip={ip} onSelectPath={setSelected} onOpenDiagnostic={openLintDiagnostic} />
++          <CoverageReportSummary ip={ip} onSelectPath={selectPath} onOpenDiagnostic={openLintDiagnostic} />
+         )}
+-        <PreviewPane path={selected} onClose={() => {}} focusLine={focusLine} />
++        <PreviewPane path={selected} onClose={() => {}} focusLine={focusLine} lintDiagnostic={selectedLintDiagnostic} />
+       </div>
+     </div>
+   );
+diff --git a/common_ai_agent/frontend/atlas/workspace-lint-coverage.tsx b/common_ai_agent/frontend/atlas/workspace-lint-coverage.tsx
+index a98522fc..ae1e1164 100644
+--- a/common_ai_agent/frontend/atlas/workspace-lint-coverage.tsx
++++ b/common_ai_agent/frontend/atlas/workspace-lint-coverage.tsx
+@@ -17,6 +17,9 @@ import { useState, useEffect, useCallback } from 'react';
+ import { AtlasStatusBadge } from './workspace-report-status';
+ import { _escHtml } from './workspace-feed-cards';
+ import { ToolOutputPre } from './workspace-markdown-chips';
++import { LintToolResultCard } from './lint-diagnostics';
++
++export { LintToolResultCard } from './lint-diagnostics';
+ 
+ export const _buildFoldTree = (ranges: any): any => {
+   const sorted = (ranges || []).slice().sort((a: any, b: any) => {
+@@ -127,71 +130,6 @@ export const _highlightYamlBlock = (text: any): string =>
+ //   • click 💬 button on a summary → dispatch atlas-fold-comment
+ //   • drag-select on line-number gutter → floating "Comment selection"
+ 
+-export const LintToolResultCard = ({ result, onOpenDiagnostic }: any) => {
+-  const passed = result?.passed === true;
+-  const diagnostics = Array.isArray(result?.diagnostics) ? result.diagnostics : [];
+-  return (
+-    <div style={{
+-      border: '1px solid ' + (passed ? 'color-mix(in oklch, var(--ok) 35%, var(--line))' : 'color-mix(in oklch, var(--err) 35%, var(--line))'),
+-      background: 'var(--panel)',
+-      borderRadius: 4,
+-      padding: 10,
+-      minWidth: 0,
+-    }}>
+-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+-        <span style={{ fontFamily: 'var(--mono)', fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+-          {result?.tool || 'tool'}
+-        </span>
+-        <AtlasStatusBadge status={passed ? 'approved' : 'error'} label={passed ? 'pass' : 'fail'} compact />
+-        <span style={{ flex: 1 }} />
+-        <span style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10 }}>
+-          rc {result?.returncode ?? '?'}
+-        </span>
+-      </div>
+-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginBottom: 8 }}>
+-        {[
+-          ['errors', result?.errors ?? 0],
+-          ['warnings', result?.warnings ?? 0],
+-          ['diagnostics', diagnostics.length],
+-        ].map(([label, value]: any) => (
+-          <div key={label} style={{ border: '1px solid var(--line)', background: 'var(--bg)', borderRadius: 3, padding: '6px 7px' }}>
+-            <div style={{ color: 'var(--fg-mute)', fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{label}</div>
+-            <div style={{ fontFamily: 'var(--mono)', fontWeight: 800, fontSize: 14 }}>{value}</div>
+-          </div>
+-        ))}
+-      </div>
+-      <div className="trunc" title={result?.command || ''} style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10 }}>
+-        {result?.command || '(no command)'}
+-      </div>
+-      {diagnostics.length > 0 && (
+-        <div style={{ marginTop: 8, display: 'grid', gap: 5 }}>
+-          {diagnostics.slice(0, 5).map((d: any, idx: number) => (
+-            <button key={idx} type="button" onClick={() => onOpenDiagnostic?.(d)} style={{
+-              textAlign: 'left',
+-              border: 0,
+-              background: 'transparent',
+-              borderLeft: '2px solid ' + (String(d.severity || '').toLowerCase() === 'error' ? 'var(--err)' : 'var(--warn)'),
+-              padding: '0 0 0 7px',
+-              color: 'var(--fg)',
+-              fontFamily: 'var(--mono)',
+-              fontSize: 10,
+-              lineHeight: 1.35,
+-              cursor: d.path || d.file ? 'pointer' : 'default',
+-            }}>
+-              <span style={{ color: 'var(--fg-mute)' }}>
+-                {d.severity || 'diag'} {d.file || ''}{d.line ? `:${d.line}` : ''}{d.column ? `:${d.column}` : ''}
+-                {d.rule ? ` ${d.rule}` : ''}
+-              </span>
+-              <div>{String(d.message || '').slice(0, 260)}</div>
+-              {d.source && <div style={{ color: 'var(--fg-mute)' }}>{String(d.source).slice(0, 220)}</div>}
+-            </button>
+-          ))}
+-        </div>
+-      )}
+-    </div>
+-  );
+-};
+-
+ export const LintReportSummary = ({ ip, onSelectPath, onOpenDiagnostic }: any) => {
+   const [data, setData] = useState<any>(null);
+   const [loading, setLoading] = useState(false);
+@@ -233,29 +171,31 @@ export const LintReportSummary = ({ ip, onSelectPath, onOpenDiagnostic }: any) =
+       padding: 12,
+       display: 'grid',
+       gap: 10,
++      minWidth: 0,
++      overflow: 'hidden',
+     }}>
+-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+-        <div>
+-          <div style={{ fontWeight: 900, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 12 }}>
++      <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
++        <div style={{ minWidth: 0 }}>
++          <div className="trunc" title="pyslang + verilator lint" style={{ fontWeight: 900, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 12 }}>
+             pyslang + verilator lint
+           </div>
+-          <div style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10, marginTop: 2 }}>
++          <div className="trunc" title={`${data?.resolved_ip || ip}${data?.timestamp ? ` · ${data.timestamp}` : ''}`} style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10, marginTop: 2 }}>
+             {data?.resolved_ip || ip} {data?.timestamp ? `· ${data.timestamp}` : ''}
+           </div>
+         </div>
+-        <span style={{ flex: 1 }} />
++        <span style={{ flex: 1, minWidth: 0 }} />
+         {hasReport && <AtlasStatusBadge status={passed ? 'approved' : 'error'} label={passed ? 'clean' : 'issues'} compact />}
+         <button
+           className="btn"
+           onClick={() => setTick(v => v + 1)}
+           disabled={loading}
+-          style={{ padding: '2px 8px', fontSize: 10 }}
++          style={{ padding: '2px 8px', fontSize: 10, flex: '0 0 auto' }}
+         >refresh</button>
+         <button
+           className="btn"
+           onClick={() => load(true)}
+           disabled={running || loading}
+-          style={{ padding: '2px 8px', fontSize: 10 }}
++          style={{ padding: '2px 8px', fontSize: 10, flex: '0 0 auto' }}
+         >run report</button>
+       </div>
+ 
+@@ -275,7 +215,7 @@ export const LintReportSummary = ({ ip, onSelectPath, onOpenDiagnostic }: any) =
+ 
+       {hasReport && (
+         <>
+-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: 8 }}>
++          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 8, minWidth: 0 }}>
+             {[
+               ['tool', data.tool || 'pyslang+verilator'],
+               ['errors', data.errors ?? 0],
+@@ -289,7 +229,7 @@ export const LintReportSummary = ({ ip, onSelectPath, onOpenDiagnostic }: any) =
+               </div>
+             ))}
+           </div>
+-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 10 }}>
++          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(360px, 100%), 1fr))', gap: 10, minWidth: 0 }}>
+             {tools.map((result: any, idx: number) => (
+               <LintToolResultCard
+                 key={`${result.tool || 'tool'}-${idx}`}
+@@ -298,14 +238,14 @@ export const LintReportSummary = ({ ip, onSelectPath, onOpenDiagnostic }: any) =
+               />
+             ))}
+           </div>
+-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+-            <button className="btn" onClick={() => data.report_path && onSelectPath?.(data.report_path)} style={{ padding: '2px 8px', fontSize: 10 }}>
++          <div style={{ display: 'flex', gap: 8, alignItems: 'center', minWidth: 0, overflow: 'hidden' }}>
++            <button className="btn" onClick={() => data.report_path && onSelectPath?.(data.report_path)} style={{ padding: '2px 8px', fontSize: 10, flex: '0 0 auto' }}>
+               open json
+             </button>
+-            <button className="btn" onClick={() => data.log_path && onSelectPath?.(data.log_path)} disabled={!data.log_exists} style={{ padding: '2px 8px', fontSize: 10 }}>
++            <button className="btn" onClick={() => data.log_path && onSelectPath?.(data.log_path)} disabled={!data.log_exists} style={{ padding: '2px 8px', fontSize: 10, flex: '0 0 auto' }}>
+               open log
+             </button>
+-            <span className="trunc" title={data.command || ''} style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10 }}>
++            <span className="trunc" title={data.command || ''} style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10, flex: '1 1 auto', minWidth: 0 }}>
+               {data.command || '(no command)'}
+             </span>
+           </div>

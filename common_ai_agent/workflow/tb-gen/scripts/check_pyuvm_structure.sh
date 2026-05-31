@@ -71,7 +71,7 @@ else
     fi
 fi
 
-if ! python3 -m py_compile "$TB_DIR"/*.py >/tmp/check_pyuvm_structure.$$ 2>&1; then
+if ! python3 "$SCRIPT_DIR/check_tb_python_compile.py" "$IP" --root . >/tmp/check_pyuvm_structure.$$ 2>&1; then
     cat /tmp/check_pyuvm_structure.$$
     rm -f /tmp/check_pyuvm_structure.$$
     echo "[check_pyuvm_structure] FAIL: Python syntax check failed"

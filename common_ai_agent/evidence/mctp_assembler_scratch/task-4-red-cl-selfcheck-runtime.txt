@@ -1,0 +1,40 @@
+{
+  "passed": false,
+  "backend": "python",
+  "transactions": 10,
+  "results_observed": 10,
+  "coverage_bins": 18,
+  "coverage_hit": 18,
+  "fl_errors": [
+    {
+      "kind": "FM_ASSEMBLE_FRAGMENT",
+      "resp": 2,
+      "fl_error": "\"unresolved output rule dependencies: debug_context_id: 'unknown rule name context_id'\""
+    },
+    {
+      "kind": "FM_SRAM_PACK_WRITE",
+      "resp": 2,
+      "fl_error": "\"unresolved output rule dependencies: sram_write_valid: 'unknown rule name eom', sram_write_data: 'unknown rule name payload_data_word', sram_write_strb: 'unknown rule name payload_byte_strobe'\""
+    },
+    {
+      "kind": "FM_APB_ACCESS",
+      "resp": 2,
+      "fl_error": "\"unresolved output rule dependencies: apb_error: 'unknown rule name illegal_apb_access'\""
+    }
+  ],
+  "performance_targets": {
+    "frequency_mhz": 250,
+    "throughput": {
+      "ingress": "one 256-bit AXI beat per cycle while resources are available",
+      "readback": "one 256-bit AXI R beat per SRAM response"
+    },
+    "outstanding": {
+      "write_max": 1,
+      "read_max": 1,
+      "total_max": 2
+    },
+    "pipeline_stages": 7,
+    "queue_depth": "DESCRIPTOR_FIFO_DEPTH"
+  }
+}
+exit=0

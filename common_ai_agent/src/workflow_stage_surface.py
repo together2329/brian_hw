@@ -9,15 +9,19 @@ workflow name, repair prompts, and human-gate signals.
 from __future__ import annotations
 
 import json
+import sys
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, List, Literal
 
 try:
+    from src.workflow_lint_kpi import lint_kpi_dots
     from src.workflow_stage_engine import STAGE_WORKFLOW, WorkflowStageEngine, canonical_stage
 except ModuleNotFoundError:  # pragma: no cover - direct script execution fallback
-    from workflow_stage_engine import STAGE_WORKFLOW, WorkflowStageEngine, canonical_stage
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from src.workflow_lint_kpi import lint_kpi_dots
+    from src.workflow_stage_engine import STAGE_WORKFLOW, WorkflowStageEngine, canonical_stage
 
 
 COMMON_ENGINE_STAGES = {
@@ -334,16 +338,7 @@ def _kpi_rtl(ip_dir: Path) -> List[_KPI_DOT]:
 
 
 def _kpi_lint(ip_dir: Path) -> List[_KPI_DOT]:
-    doc = _read_json(ip_dir / "lint" / "dut_lint.json")
-    if doc is None:
-        return ["idle"] * 3
-    errors = doc.get("errors", doc.get("error_count", 0))
-    warnings = doc.get("warnings", doc.get("warning_count", 0))
-    waivers = doc.get("waivers", doc.get("waiver_count", 0))
-    errors_dot: _KPI_DOT = "pass" if errors == 0 else "fail"
-    warn_dot: _KPI_DOT = "pass" if warnings <= waivers else "warn"
-    waiver_dot: _KPI_DOT = "pass" if waivers >= 0 else "idle"
-    return [errors_dot, warn_dot, waiver_dot]
+    return lint_kpi_dots(ip_dir)
 
 
 def _kpi_tb(ip_dir: Path) -> List[_KPI_DOT]:
@@ -573,7 +568,7 @@ _KPI_LABELS: dict[str, list[str]] = {
     "cl-model": ["emit_passed", "cl_self_check", "cycle_cov_plan"],
     "equivalence": ["parses", "goals_resolved", "sub_module_refs"],
     "rtl": ["compile_rc", "lint_clean", "todo_audit", "provenance"],
-    "lint": ["errors=0", "warnings≤waivers", "waiver_count"],
+    "lint": ["pyslang", "verilator", "errors=0", "warnings<=waivers", "policy"],
     "tb": ["top_present", "scoreboard", "tc_count", "manifest"],
     "sim": ["results.xml", "mismatches=0", "vcd_present", "seed_coverage"],
     "coverage": ["bins_hit", "cycle_cov", "func_cov", "uncov_count"],
@@ -597,7 +592,7 @@ _KPI_EVIDENCE: dict[str, list[str]] = {
         "rtl/rtl_compile.json", "lint/dut_lint.json",
         "rtl/rtl_todo_plan.json", "rtl/rtl_authoring_provenance.json",
     ],
-    "lint": ["lint/dut_lint.json"] * 3,
+    "lint": ["lint/dut_lint.json"] * 5,
     "tb": ["tb/cocotb/"] * 4,
     "sim": [
         "sim/results.xml", "sim/fl_rtl_compare.json",

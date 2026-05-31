@@ -1,0 +1,4 @@
+[compare_fl_rtl_results] wrote mctp_assembler_scratch/sim/fl_rtl_compare.json
+[compare_fl_rtl_results] wrote mctp_assembler_scratch/sim/mismatch_classification.json
+[compare_fl_rtl_results] status=fail total=91 checked=91 passed=26 failed=65 blocked=0 untested=0 classifications=65
+rc=1

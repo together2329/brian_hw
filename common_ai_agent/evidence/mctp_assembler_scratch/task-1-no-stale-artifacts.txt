@@ -1,0 +1,1 @@
+PASS no stale sim/rtl/tb artifacts in scratch tree at task 1

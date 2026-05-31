@@ -1,0 +1,24 @@
+{
+  "schema_version": "ssot_validation.v2",
+  "ip": "uart_tx",
+  "mode": "starter",
+  "ssot": "uart_tx/yaml/uart_tx.ssot.yaml",
+  "ok": true,
+  "blockers": [],
+  "warnings": [
+    {
+      "severity": "warning",
+      "id": "ssot.canonical_order",
+      "path": "$",
+      "message": "Canonical sections are present but not in the standard order.",
+      "fix": "Run repair_ssot_schema.py <ip> --mode engineering or reorder sections to match ssot-template.yaml."
+    }
+  ],
+  "check_ssot_disk": {
+    "ok": true,
+    "returncode": 0,
+    "stdout": "[check_ssot_disk] PASS: uart_tx/yaml/uart_tx.ssot.yaml = 17102B, 3 sections, 0 TBDs, mode=starter\n",
+    "stderr": ""
+  },
+  "preview_contract": "strict"
+}

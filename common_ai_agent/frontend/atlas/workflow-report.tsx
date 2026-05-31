@@ -26,6 +26,9 @@ import {
   useCallback,
   type ReactNode,
 } from 'react';
+import { PreviewPane } from './preview-pane';
+import { CoverageReportSummary, LintReportSummary } from './workspace-lint-coverage';
+import { lintDiagnosticLine, lintDiagnosticPath, type LintDiagnostic } from './lint-diagnostics';
 
 // ── Minimal local typings for cross-file window globals (owners unmigrated) ──
 // These shapes mirror the runtime contract in workspace.jsx / preview-pane.jsx
@@ -48,12 +51,6 @@ interface AtlasDataApi {
   refreshFileTree?: (scope: string, opts?: { recursive?: boolean; quiet?: boolean }) => unknown;
 }
 
-type LintDiagnostic = {
-  path?: string;
-  file?: string;
-  line?: number | string;
-} | null | undefined;
-
 interface WorkflowReportCrossDeps {
   WORKFLOW_REPORT_TABS?: Record<string, WorkflowReportTabMeta>;
   ACTIVE_SESSION?: string;
@@ -62,17 +59,6 @@ interface WorkflowReportCrossDeps {
   atlasData?: AtlasDataApi;
   readAtlasAsyncResource: (kind: string, rawPath: string, force?: boolean) => Promise<unknown>;
   OrchestratorWorkflowPane: (props: { activeIp?: string }) => ReactNode;
-  LintReportSummary: (props: {
-    ip?: string;
-    onSelectPath?: (path: string) => void;
-    onOpenDiagnostic?: (diag: LintDiagnostic) => void;
-  }) => ReactNode;
-  CoverageReportSummary: (props: {
-    ip?: string;
-    onSelectPath?: (path: string) => void;
-    onOpenDiagnostic?: (diag: LintDiagnostic) => void;
-  }) => ReactNode;
-  PreviewPane: (props: { path?: string; onClose?: () => void; focusLine?: number }) => ReactNode;
 }
 
 const w = window as unknown as Window & WorkflowReportCrossDeps;
@@ -80,11 +66,10 @@ const w = window as unknown as Window & WorkflowReportCrossDeps;
 // Cross-file components owned by unmigrated .jsx — referenced via window.* so
 // behavior is identical to the bare-identifier resolution in the .jsx world.
 const OrchestratorWorkflowPane = w.OrchestratorWorkflowPane;
-const LintReportSummary = w.LintReportSummary;
-const CoverageReportSummary = w.CoverageReportSummary;
-const PreviewPane = w.PreviewPane;
-const readAtlasAsyncResource = (kind: string, rawPath: string, force?: boolean): Promise<unknown> =>
-  w.readAtlasAsyncResource(kind, rawPath, force);
+const readAtlasAsyncResource = (kind: string, rawPath: string, force?: boolean): Promise<unknown> => {
+  if (typeof w.readAtlasAsyncResource !== 'function') return Promise.resolve(null);
+  return w.readAtlasAsyncResource(kind, rawPath, force);
+};
 
 export interface WorkflowReportPaneProps {
   workflow: string;
@@ -112,6 +97,7 @@ export const WorkflowReportPane = ({ workflow, activeIp }: WorkflowReportPanePro
   const [dataTick, setDataTick] = useState(0);
   const [selected, setSelected] = useState('');
   const [focusLine, setFocusLine] = useState(0);
+  const [selectedLintDiagnostic, setSelectedLintDiagnostic] = useState<LintDiagnostic | null>(null);
 
   useEffect(() => {
     const handler = (ev: Event) => {
@@ -150,17 +136,26 @@ export const WorkflowReportPane = ({ workflow, activeIp }: WorkflowReportPanePro
   useEffect(() => {
     if (!paths.length) {
       setSelected('');
+      setFocusLine(0);
+      setSelectedLintDiagnostic(null);
       return;
     }
     setSelected(current => (current && paths.includes(current)) ? current : paths[0]);
   }, [pathsKey]);
 
-  const openLintDiagnostic = useCallback((diag: LintDiagnostic) => {
-    const diagPath = String(diag?.path || diag?.file || '').replace(/^\/+/, '');
-    const line = Number(diag?.line || 0);
+  const selectPath = useCallback((path: string) => {
+    setSelected(path);
+    setFocusLine(0);
+    setSelectedLintDiagnostic(null);
+  }, []);
+
+  const openLintDiagnostic = useCallback((diag: LintDiagnostic | null | undefined) => {
+    const diagPath = lintDiagnosticPath(diag);
+    const line = lintDiagnosticLine(diag);
     if (!diagPath) return;
     setSelected(diagPath);
     setFocusLine(line || 0);
+    setSelectedLintDiagnostic(diag || null);
     readAtlasAsyncResource('file', diagPath, true).catch(() => {});
   }, []);
 
@@ -216,7 +211,7 @@ export const WorkflowReportPane = ({ workflow, activeIp }: WorkflowReportPanePro
             return (
               <div
                 key={p}
-                onClick={() => setSelected(p)}
+                onClick={() => selectPath(p)}
                 onMouseEnter={() => readAtlasAsyncResource('file', p).catch(() => {})}
                 title={p}
                 style={{
@@ -242,12 +237,12 @@ export const WorkflowReportPane = ({ workflow, activeIp }: WorkflowReportPanePro
       </div>
       <div style={{ minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
         {workflow === 'lint' && (
-          <LintReportSummary ip={ip} onSelectPath={setSelected} onOpenDiagnostic={openLintDiagnostic} />
+          <LintReportSummary ip={ip} onSelectPath={selectPath} onOpenDiagnostic={openLintDiagnostic} />
         )}
         {workflow === 'coverage' && (
-          <CoverageReportSummary ip={ip} onSelectPath={setSelected} onOpenDiagnostic={openLintDiagnostic} />
+          <CoverageReportSummary ip={ip} onSelectPath={selectPath} onOpenDiagnostic={openLintDiagnostic} />
         )}
-        <PreviewPane path={selected} onClose={() => {}} focusLine={focusLine} />
+        <PreviewPane path={selected} onClose={() => {}} focusLine={focusLine} lintDiagnostic={selectedLintDiagnostic} />
       </div>
     </div>
   );

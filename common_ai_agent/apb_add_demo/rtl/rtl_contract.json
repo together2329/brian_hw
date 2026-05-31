@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "type": "starter_llm_rtl_authoring_contract",
+  "ip": "apb_add_demo",
+  "top": "apb_add_demo",
+  "mode": "starter",
+  "contract": {
+    "top": "apb_add_demo",
+    "transaction": "FM_WRITE",
+    "clock": "PCLK",
+    "reset": "PRESETn",
+    "reset_active": "low",
+    "sample_condition": "(PRESETn == 1)",
+    "outputs": [
+      {
+        "name": "pready_rule",
+        "port": "PREADY",
+        "expr": "1",
+        "width": 1,
+        "source": {
+          "name": "pready_rule",
+          "port": "PREADY",
+          "expr": 1,
+          "width": 1
+        }
+      },
+      {
+        "name": "pslverr_rule",
+        "port": "PSLVERR",
+        "expr": "0",
+        "width": 1,
+        "source": {
+          "name": "pslverr_rule",
+          "port": "PSLVERR",
+          "expr": 0,
+          "width": 1
+        }
+      },
+      {
+        "name": "add_rule",
+        "port": "add_out",
+        "expr": "((((((PADDR == 0)) ? (PWDATA) : opa_q) + (((PADDR == 4)) ? (PWDATA) : opb_q)) & (255)))",
+        "width": 8,
+        "source": {
+          "name": "add_rule",
+          "port": "add_out",
+          "width": 8,
+          "description": "low 8 bits of post-write sum",
+          "expr": "((pwdata if paddr == 0 else opa_q) + (pwdata if paddr == 4 else opb_q)) & 0xff"
+        }
+      },
+      {
+        "name": "carry_rule",
+        "port": "carry_out",
+        "expr": "(|(((((((PADDR == 0)) ? (PWDATA) : opa_q) + (((PADDR == 4)) ? (PWDATA) : opb_q)) >> 8) & (1))))",
+        "width": 1,
+        "source": {
+          "name": "carry_rule",
+          "port": "carry_out",
+          "width": 1,
+          "description": "carry of post-write sum",
+          "expr": "(((pwdata if paddr == 0 else opa_q) + (pwdata if paddr == 4 else opb_q)) >> 8) & 1"
+        }
+      }
+    ],
+    "state_vars": {
+      "opa_q": {
+        "width": 32,
+        "reset": 0
+      },
+      "opb_q": {
+        "width": 32,
+        "reset": 0
+      }
+    },
+    "state_updates": [
+      {
+        "name": "opa_q",
+        "expr": "(((PADDR == 0)) ? (PWDATA) : opa_q)",
+        "source": {
+          "name": "opa_q",
+          "expr": "pwdata if paddr == 0 else opa_q",
+          "width": 8
+        }
+      },
+      {
+        "name": "opb_q",
+        "expr": "(((PADDR == 4)) ? (PWDATA) : opb_q)",
+        "source": {
+          "name": "opb_q",
+          "expr": "pwdata if paddr == 4 else opb_q",
+          "width": 8
+        }
+      }
+    ],
+    "special_outputs": {},
+    "pipeline_stages": [
+      "S0_DECODE",
+      "S1_UPDATE"
+    ],
+    "fsm_states": [],
+    "fsm_transitions": [],
+    "input_map": {
+      "psel": "PSEL",
+      "penable": "PENABLE",
+      "pwrite": "PWRITE",
+      "paddr": "PADDR",
+      "pwdata": "PWDATA"
+    },
+    "apb_registers": {},
+    "source": "rtl_contract + function_model.output_rules"
+  },
+  "generated_at": "2026-05-31T02:46:08Z",
+  "rule": "Starter RTL must be authored by an LLM/worker and verified by gates; this file is an authoring contract, not generated RTL."
+}

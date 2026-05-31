@@ -1,0 +1,1 @@
+152:- Reads to a payload range that has no completed descriptor are integration-policy dependent. The first target records a debug/error event and may return either zero data with `SLVERR` or raw SRAM data if raw debug access is enabled.

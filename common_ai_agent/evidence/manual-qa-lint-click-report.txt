@@ -1,0 +1,497 @@
+USER
+lintqa_20260531
+IP_ID
+default
+mctp_assembler
++ IP
+WORKFLOW
+orchestrator
+📦 .ZIP
+FONT
+Windows
+Sans
+System
+Mono
+SIZE
+13px
+14px
+15px
+16px
+RES
+1366x768
+1600x900
+1920x1080
+2560x1440
+3840x2160
+DARK
+LIGHT
+한국어
+ENGLISH
+■ STOP
+✕ EXIT
+↩ LINTQA_20260531
+▦ DASHBOARD
+⌂ WORKSPACE
+◫ PIPELINE
+◇ ARCHITECT
+📖 GUIDE
+RUN
+Starter
+Engineering
+Signoff
+EXEC
+Single Worker
+orch:on │ workers:0
+▸ MODE
+‹
+shift+tab
+● NORMAL
+◐ PLAN
+WORKFLOW
+· optional · click to toggle
+1
+OR
+orchestrator
+○
+2
+SS
+ssot-gen
+○
+3
+FL
+fl-model-gen
+○
+4
+RT
+rtl-gen
+○
+5
+TB
+tb-gen
+○
+6
+DB
+sim_debug
+○
+7
+LT
+lint
+◉
+8
+CV
+coverage
+○
+9
+SY
+syn
+○
+10
+ST
+sta
+○
+11
+PR
+pnr
+○
+12
+PS
+sta-post
+○
+▸ IP
+mctp_assembler
+dir
+›
+mctp_assembler
+A→Z
+▸ all
+↻
+▸
+cov/
+▸
+lint/
+▸
+list/
+▸
+logs/
+▸
+model/
+▸
+req/
+▸
+rtl/
+▸
+scripts/
+▸
+sim/
+▸
+tb/
+▸
+tc/
+▸
+verify/
+▸
+yaml/
+123 entries
+·
+7:33:42 PM
+mctp_assembler
+RECENT
+FULL
+LINT REPORT
+CHAT
+SSOT
+DOC
+SPLIT VIEW
+FULL VIEW
+PERFORCE
+GIT
+TODO
+·
+LINT REPORT · MCTP_ASSEMBLER
+LINT REPORT
+mctp_assembler · 8 artifact(s)
+refresh
+lint
+1
+lint/dut_lint.json
+2
+lint/rtl_lint.json
+3
+lint/lint_report.txt
+4
+lint/verilator.log
+5
+lint/lint.log
+6
+mctp_assembler/lint/dut_lint.json
+7
+mctp_assembler/lint/dut_lint.log
+8
+lint/dut_lint.log
+PYSLANG + VERILATOR LINT
+mctp_assembler · 2026-05-30T09:02:25.335784+00:00
+!
+ISSUES
+refresh
+run report
+TOOL
+pyslang+verilator
+ERRORS
+0
+WARNINGS
+4
+SUPPRESSIONS
+0
+STYLE
+0
+PYSLANG
+!
+FAIL
+rc 0
+ERRORS
+0
+WARNINGS
+1
+DIAGNOSTICS
+1
+pyslang rtl/mctp_assembler_axi_write_ingress.sv rtl/mctp_assembler_pcie_vdm_parser.sv rtl/mctp_assembler_mctp_parser.sv rtl/mctp_assembler_context_table.sv rtl/mctp_assembler_payload_writer.sv rtl/mctp_assembler_apb_regfile.sv rtl/mctp_assembler_cdc.sv rtl/mctp_assembler.sv
+warning mctp_assembler/rtl/mctp_assembler_payload_writer.sv:36
+comparison of differently signed types ('logic[4:0]' and 'integer')
+VERILATOR
+!
+FAIL
+rc 1
+ERRORS
+0
+WARNINGS
+3
+DIAGNOSTICS
+3
+verilator --lint-only -Wall -Irtl -f list/mctp_assembler.f --top-module mctp_assembler
+warning rtl/mctp_assembler_axi_write_ingress.sv:55:20 WIDTHTRUNC
+Operator VAR 'EXPECTED_AWSIZE' expects 3 bits on the Initial value, but Initial value's CLOG2 generates 32 bits.
+localparam [2:0] EXPECTED_AWSIZE = $clog2(AXI_DATA_BYTES);
+warning rtl/mctp_assembler_payload_writer.sv:36:31 WIDTHEXPAND
+Operator EQ expects 32 bits on the LHS, but LHS's VARREF 'lane_base' generates 5 bits.
+wire beat_full = (lane_base == (SRAM_DATA_BYTES - 1));
+warning rtl/mctp_assembler.sv:175:9 UNUSEDSIGNAL
+Signal is not used: 'parse_fail_pulse'
+logic parse_fail_pulse;
+open json
+open log
+pyslang rtl/mctp_assembler_axi_write_ingress.sv rtl/mctp_assembler_pcie_vdm_parser.sv rtl/mctp_assembler_mctp_parser.sv rtl/mctp_assembler_context_table.sv rtl/mctp_assembler_payload_writer.sv rtl/mctp_assembler_apb_regfile.sv rtl/mctp_assembler_cdc.sv rtl/mctp_assembler.sv && verilator --lint-only -Wall -Irtl -f list/mctp_assembler.f --top-module mctp_assembler
+lang json
+·
+91 lines
+·
+3.6 KB
+·
+syntax pending
+refresh
+copy
+copy path
+View Mode
+Feedback Mode
+▾ Expand all
+▸ Collapse all
+▾ Top sections only
+object
+object L1-L90
+1
+{
+2
+  "schema_version": 1,
+3
+  "type": "dut_lint",
+4
+  "scope": "dut",
+5
+  "dut_only": true,
+6
+  "tool": "pyslang+verilator",
+7
+  "command": "pyslang rtl/mctp_assembler_axi_write_ingress.sv rtl/mctp_assembler_pcie_vdm_parser.sv rtl/mctp_assembler_mctp_parser.sv rtl/mctp_assembler_context_table.sv rtl/mctp_assembler_payload_writer.sv rtl/mctp_assembler_apb_regfile.sv rtl/mctp_assembler_cdc.sv rtl/mctp_assembler.sv && verilator --lint-only -Wall -Irtl -f list/mctp_assembler.f --top-module mctp_assembler",
+8
+  "cwd": "mctp_assembler",
+9
+  "top": "mctp_assembler",
+10
+  "filelist": "mctp_assembler/list/mctp_assembler.f",
+rtl_files
+array L11-L21
+11
+  "rtl_files": [
+12
+    "rtl/mctp_assembler_axi_write_ingress.sv",
+13
+    "rtl/mctp_assembler_pcie_vdm_parser.sv",
+14
+    "rtl/mctp_assembler_mctp_parser.sv",
+15
+    "rtl/mctp_assembler_context_table.sv",
+16
+    "rtl/mctp_assembler_payload_writer.sv",
+17
+    "rtl/mctp_assembler_apb_regfile.sv",
+18
+    "rtl/mctp_assembler_cdc.sv",
+19
+    "rtl/mctp_assembler.sv",
+20
+    "rtl/mctp_assembler_param.vh"
+21
+  ],
+22
+  "timestamp": "2026-05-30T09:02:25.335784+00:00",
+23
+  "returncode": 1,
+24
+  "errors": 0,
+25
+  "warnings": 4,
+26
+  "waived_warnings": 0,
+tool_results
+array L27-L83
+27
+  "tool_results": [
+object
+object L28-L44
+28
+    {
+29
+      "tool": "pyslang",
+30
+      "available": true,
+31
+      "command": "pyslang rtl/mctp_assembler_axi_write_ingress.sv rtl/mctp_assembler_pcie_vdm_parser.sv rtl/mctp_assembler_mctp_parser.sv rtl/mctp_assembler_context_table.sv rtl/mctp_assembler_payload_writer.sv rtl/mctp_assembler_apb_regfile.sv rtl/mctp_assembler_cdc.sv rtl/mctp_assembler.sv",
+32
+      "returncode": 0,
+33
+      "errors": 0,
+34
+      "warnings": 1,
+diagnostics
+array L35-L42
+35
+      "diagnostics": [
+object
+object L36-L41
+36
+        {
+37
+          "severity": "warning",
+38
+          "file": "mctp_assembler/rtl/mctp_assembler_payload_writer.sv",
+39
+          "line": 36,
+40
+          "message": "comparison of differently signed types ('logic[4:0]' and 'integer')"
+41
+        }
+42
+      ],
+43
+      "passed": false
+44
+    },
+passed
+object L45-L82
+45
+    {
+46
+      "tool": "verilator",
+47
+      "available": true,
+48
+      "command": "verilator --lint-only -Wall -Irtl -f list/mctp_assembler.f --top-module mctp_assembler",
+49
+      "returncode": 1,
+50
+      "errors": 0,
+51
+      "warnings": 3,
+diagnostics
+array L52-L80
+52
+      "diagnostics": [
+object
+object L53-L61
+53
+        {
+54
+          "severity": "warning",
+55
+          "rule": "WIDTHTRUNC",
+56
+          "file": "rtl/mctp_assembler_axi_write_ingress.sv",
+57
+          "line": 55,
+58
+          "column": 20,
+59
+          "message": "Operator VAR 'EXPECTED_AWSIZE' expects 3 bits on the Initial value, but Initial value's CLOG2 generates 32 bits.",
+60
+          "source": "  localparam [2:0] EXPECTED_AWSIZE = $clog2(AXI_DATA_BYTES);"
+61
+        },
+object
+object L62-L70
+62
+        {
+63
+          "severity": "warning",
+64
+          "rule": "WIDTHEXPAND",
+65
+          "file": "rtl/mctp_assembler_payload_writer.sv",
+66
+          "line": 36,
+67
+          "column": 31,
+68
+          "message": "Operator EQ expects 32 bits on the LHS, but LHS's VARREF 'lane_base' generates 5 bits.",
+69
+          "source": "  wire beat_full = (lane_base == (SRAM_DATA_BYTES - 1));"
+70
+        },
+object
+object L71-L79
+71
+        {
+72
+          "severity": "warning",
+73
+          "rule": "UNUSEDSIGNAL",
+74
+          "file": "rtl/mctp_assembler.sv",
+75
+          "line": 175,
+76
+          "column": 9,
+77
+          "message": "Signal is not used: 'parse_fail_pulse'",
+78
+          "source": "  logic parse_fail_pulse;"
+79
+        }
+80
+      ],
+81
+      "passed": false
+82
+    }
+83
+  ],
+84
+  "suppression_violation_count": 0,
+85
+  "suppression_violations": [],
+86
+  "style_violation_count": 0,
+87
+  "style_violations": [],
+88
+  "policy": "DUT RTL must be lint-clean without ad-hoc verilator lint_off/lint_on or -Wno suppressions, and generated RTL must keep .sv filenames while using the project SystemVerilog subset: input logic/output logic ports and internal logic are allowed; package/import/interface/modport/function/task/for/while/typedef/enum/always_ff/always_comb remain forbidden.",
+89
+  "passed": false
+90
+}
+91
+ 
+✓
+End of loop · agent ready
+❯
+dispatch:lint
+/ cmd · @ file · ↑↓ history · ↵ send · ⌥↵ newline
+ATLAS
+● NORMAL
+›
+Mode
+Normal · lint
+Model
+gpt-5.5
+gpt-5.4
+gpt-5.3-codex
+kimi · kimi-2.6
+deepseek · deepseek-v4-pro
+glm · glm-5.1
+cursor · cursor-cli
+claude · claude-cli:sonnet
+Effort
+none
+low
+medium
+high
+xhigh
+via
+openai · chatgpt.com/backend-api/codex
+Context
+0.0K / 200K · 0%worker
+COST· user/IP mctp_assembler@ $5/$0.5/$30 per 1M
+Input
+0
+$0.0000
+Cached
+0
+$0.0000
+Output
+0
+$0.0000
+Total
+0
+$0.0000
+▸ WORKERS
+· ORCH
+0/0 UP
+no workers yet — dispatch a workflow to spawn
+TODO
+PROGRESS
+CHAT
+GIT
+0/0
+✕ clear
+VIEW
+LIST
+DETAIL
+GRAPH

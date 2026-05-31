@@ -1,0 +1,368 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 5,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 9,
+      "key": "debug_observability",
+      "module_task_count": 132,
+      "rule": "Owner module mctp_assembler_scratch_apb_regfile is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "debug_observability",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+      "name": "mctp_assembler_scratch_apb_regfile",
+      "refs": [
+        "debug_observability",
+        "decomposition",
+        "error_handling",
+        "features",
+        "fsm",
+        "function_model.state_variables",
+        "function_model.transactions.FM_APB_ACCESS",
+        "function_model.transactions.FM_ASSEMBLE_FRAGMENT",
+        "function_model.transactions.FM_ASSEMBLY_DROP",
+        "function_model.transactions.FM_AXI_READBACK",
+        "function_model.transactions.FM_COMPLETE_MESSAGE",
+        "function_model.transactions.FM_PACKET_DROP",
+        "interrupts",
+        "interrupts.sources",
+        "io_list",
+        "io_list.interfaces.apb_slave",
+        "registers",
+        "registers.register_list"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "name": "mctp_assembler_scratch_axi_write_ingress",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "name": "mctp_assembler_scratch_pcie_vdm_parser",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_mctp_parser.sv",
+        "name": "mctp_assembler_scratch_mctp_parser",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_context_table.sv",
+        "name": "mctp_assembler_scratch_context_table",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "name": "mctp_assembler_scratch_sram_packer",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "name": "mctp_assembler_scratch_axi_read_egress",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
+        "name": "mctp_assembler_scratch_sram_arbiter",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_descriptor_queue.sv",
+        "name": "mctp_assembler_scratch_descriptor_queue",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+        "name": "mctp_assembler_scratch_apb_regfile",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_cdc.sv",
+        "name": "mctp_assembler_scratch_cdc",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_param.vh",
+        "name": "mctp_assembler_scratch_param",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch.sv",
+        "name": "mctp_assembler_scratch",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_scratch_apb_regfile",
+        "port": "pready",
+        "signal": "pready",
+        "signal_terms": [
+          "pready"
+        ],
+        "source_ref": "integration.connections[4]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 4,
+    "open_required_count": 4,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "mctp_assembler_scratch",
+  "kind": "module",
+  "owner_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+  "owner_module": "mctp_assembler_scratch_apb_regfile",
+  "packet_id": "module__mctp_assembler_scratch_apb_regfile__debug_observability",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "debug_observability.signals": 4
+    },
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 9,
+      "key": "debug_observability",
+      "module_task_count": 132,
+      "rule": "Owner module mctp_assembler_scratch_apb_regfile is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "debug_observability",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 4,
+    "required_count": 4,
+    "source_refs": [
+      "debug_observability.signals.signal_0",
+      "debug_observability.signals.signal_1",
+      "debug_observability.signals.signal_2",
+      "debug_observability.signals.signal_3"
+    ],
+    "status_counts": {
+      "planned": 4
+    },
+    "task_count": 4
+  },
+  "tasks": [
+    {
+      "category": "debug_observability.signals",
+      "content": "Implement debug/observability item signal_0",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref debug_observability.signals.signal_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_apb_regfile.sv"
+      ],
+      "detail": "This SSOT debug_observability.signals item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: debug_observability.signals.signal_0.\nOwner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via debug_observability.\nSSOT item context: value=debug_context_id.",
+      "evidence_terms": [
+        "context",
+        "debug",
+        "debug_context_id",
+        "id"
+      ],
+      "id": "RTL-0402",
+      "owner_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+      "owner_module": "mctp_assembler_scratch_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "debug_observability.signals.signal_0",
+      "ssot_context": {
+        "value": "debug_context_id"
+      },
+      "ssot_refs": [
+        "debug_observability.signals.signal_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "debug_observability.signals",
+      "content": "Implement debug/observability item signal_1",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref debug_observability.signals.signal_1",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_apb_regfile.sv"
+      ],
+      "detail": "This SSOT debug_observability.signals item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: debug_observability.signals.signal_1.\nOwner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via debug_observability.\nSSOT item context: value=debug_context_key.",
+      "evidence_terms": [
+        "context",
+        "debug",
+        "debug_context_key",
+        "key"
+      ],
+      "id": "RTL-0403",
+      "owner_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+      "owner_module": "mctp_assembler_scratch_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "debug_observability.signals.signal_1",
+      "ssot_context": {
+        "value": "debug_context_key"
+      },
+      "ssot_refs": [
+        "debug_observability.signals.signal_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "debug_observability.signals",
+      "content": "Implement debug/observability item signal_2",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref debug_observability.signals.signal_2",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_apb_regfile.sv"
+      ],
+      "detail": "This SSOT debug_observability.signals item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: debug_observability.signals.signal_2.\nOwner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via debug_observability.\nSSOT item context: value=debug_drop_pulse.",
+      "evidence_terms": [
+        "debug",
+        "debug_drop_pulse",
+        "drop",
+        "pulse"
+      ],
+      "id": "RTL-0404",
+      "owner_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+      "owner_module": "mctp_assembler_scratch_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "debug_observability.signals.signal_2",
+      "ssot_context": {
+        "value": "debug_drop_pulse"
+      },
+      "ssot_refs": [
+        "debug_observability.signals.signal_2"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "debug_observability.signals",
+      "content": "Implement debug/observability item signal_3",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref debug_observability.signals.signal_3",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_apb_regfile.sv"
+      ],
+      "detail": "This SSOT debug_observability.signals item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: debug_observability.signals.signal_3.\nOwner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via debug_observability.\nSSOT item context: value=debug_vdm_valid.",
+      "evidence_terms": [
+        "debug",
+        "debug_vdm_valid",
+        "valid",
+        "vdm"
+      ],
+      "id": "RTL-0405",
+      "owner_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+      "owner_module": "mctp_assembler_scratch_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "debug_observability.signals.signal_3",
+      "ssot_context": {
+        "value": "debug_vdm_valid"
+      },
+      "ssot_refs": [
+        "debug_observability.signals.signal_3"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    }
+  ],
+  "todo_plan_sha256": "740f93796c4f016836bc823fe2faf4054d926dc664b7d534ef5d5436d6585bb5",
+  "top": "mctp_assembler_scratch",
+  "type": "rtl_authoring_packet"
+}

@@ -1,9 +1,9 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-05-28T11:37:49Z",
+  "generated_at": "2026-05-31T11:08:38Z",
   "root": "doc/wiki",
-  "node_count": 98,
-  "edge_count": 443,
+  "node_count": 114,
+  "edge_count": 485,
   "tags": {
     "atcdmac100": [
       "atcdmac100-document-flow-ui-honesty-20260518"
@@ -16,7 +16,12 @@
       "atlas-dag-ip-flow-runbook",
       "atlas-e2e-validation-20260519",
       "orchestrator-singleworker-e2e-20260526",
+      "sim-debug-feature-review-2026-05-31",
+      "sim-debug-waveform-renderer-2026-05-31",
       "ssot-rtl-flow-verify-20260519"
+    ],
+    "atlas-modular": [
+      "atlas-refactoring-exceptions"
     ],
     "atlas-ui": [
       "atcdmac100-document-flow-ui-honesty-20260518",
@@ -73,7 +78,14 @@
       "orchestrator-chat-only-product-plan",
       "orchestrator-llm-loop-phase3"
     ],
+    "exception-register": [
+      "atlas-refactoring-exceptions"
+    ],
+    "file-size-policy": [
+      "atlas-refactoring-exceptions"
+    ],
     "frontend": [
+      "sim-debug-waveform-renderer-2026-05-31",
       "workspace-jsx-decomposition-plan"
     ],
     "grill-me": [
@@ -132,6 +144,9 @@
     "pdf-import": [
       "atcdmac100-document-flow-ui-honesty-20260518"
     ],
+    "performance": [
+      "sim-debug-waveform-renderer-2026-05-31"
+    ],
     "phase3": [
       "orchestrator-llm-loop-phase3"
     ],
@@ -154,6 +169,9 @@
     "production": [
       "multi-cycle-production-wiring-20260520"
     ],
+    "pyslang": [
+      "sim-debug-feature-review-2026-05-31"
+    ],
     "react-loop": [
       "orchestrator-loop-on-react-loop-plan"
     ],
@@ -161,11 +179,15 @@
       "pl330-real-orchestrator-ui-lessons-20260517"
     ],
     "refactor": [
+      "atlas-refactoring-exceptions",
       "orchestrator-loop-on-react-loop-plan",
       "workspace-jsx-decomposition-plan"
     ],
     "reviewed": [
       "orchestrator-loop-on-react-loop-plan"
+    ],
+    "rtl": [
+      "sim-debug-feature-review-2026-05-31"
     ],
     "rtl-audit": [
       "atcwdt200-flow-debugging-lessons"
@@ -189,6 +211,10 @@
     ],
     "sim": [
       "atcwdt200-ssot-rtl-tb-flow-시행착오-2026-05-17"
+    ],
+    "sim-debug": [
+      "sim-debug-feature-review-2026-05-31",
+      "sim-debug-waveform-renderer-2026-05-31"
     ],
     "single-worker": [
       "orchestrator-singleworker-e2e-20260526"
@@ -227,12 +253,19 @@
       "e2e-orchestrator-validation-plan",
       "orchestrator-singleworker-e2e-20260526"
     ],
+    "vcd": [
+      "sim-debug-feature-review-2026-05-31"
+    ],
     "verification": [
       "hardcoded-strip-honest-baseline-20260520",
       "multi-cycle-production-wiring-20260520",
       "orchestrator-verification-report",
       "silent-pass-exposure-tb-stimulus-gap-20260520",
       "ssot-rtl-flow-verify-20260519"
+    ],
+    "waveform": [
+      "sim-debug-feature-review-2026-05-31",
+      "sim-debug-waveform-renderer-2026-05-31"
     ],
     "worker": [
       "atlas-pipeline-worker-workspace-jump"
@@ -251,6 +284,7 @@
   },
   "types": {
     "process": [
+      "atlas-refactoring-exceptions",
       "orchestrator-chat-only-product-plan",
       "orchestrator-llm-loop-phase3",
       "orchestrator-loop-on-react-loop-plan",
@@ -280,7 +314,9 @@
       "atlas-test-feature-coverage",
       "atlas-test-hardening-2026-05-23",
       "atlas-ui-playwright-screenshot-recipe-2026-05-23",
+      "atlas-vite-e2e-verification",
       "auth-cookie-expiry-20260519",
+      "babel-retirement-cutover-20260529",
       "common-ai-agent-map",
       "concurrent-dispatch-queue-20260519",
       "cross-user-permission-20260519",
@@ -293,6 +329,7 @@
       "flow-fixes-r2-verify-20260519",
       "flow-fixes-r3-verify-20260519",
       "flow-fixes-verify-20260519",
+      "frontend-modernization-2026-05-29",
       "full-flow-pipeline",
       "golden-todo-evidence",
       "gpio-orchestrator-multiworker-run",
@@ -300,11 +337,13 @@
       "guide-tab-and-architect-my-ips-20260527",
       "hardcoded-strip-honest-baseline-20260520",
       "human-review-and-escalation",
+      "hw-agent-ip-experiment-batch-20260530",
       "index",
       "interactive-ask-user-ip-discovery",
       "interactive-ui-diagrams-2026-05-23",
       "ip-edge-inputs-20260519",
       "karpathy-llm-wiki-pattern",
+      "local-iproot-thin-llm-server-arch-20260529",
       "log",
       "mini-cpu-rerun-20260517",
       "multi-cycle-production-wiring-20260520",
@@ -324,11 +363,16 @@
       "pipeline-progress-debugging",
       "provider-and-llm-call-accounting",
       "quad-spi-orch-run-20260517",
+      "react-flow-adoption-20260529",
       "round2-retry-budget-cross-workflow-routing-20260517",
       "rtl-gen-ssot-contract",
       "rtl-version-run-history",
       "run-mode-and-provenance-policy",
       "silent-pass-exposure-tb-stimulus-gap-20260520",
+      "sim-debug-agent-tool-2026-05-31",
+      "sim-debug-feature-review-2026-05-31",
+      "sim-debug-module-signals-2026-05-30",
+      "sim-debug-waveform-renderer-2026-05-31",
       "single-main-loop-restore-20260519",
       "ssot-conversion-flow-20260519",
       "ssot-datasheet-authoring-20260527",
@@ -338,11 +382,16 @@
       "ssot-rtl-flow-verify-20260519",
       "stage-gate-strictness-20260519",
       "systematic-quality-gates-20260521",
+      "tauri-desktop-shell",
+      "tech-direction-recommendation-20260529",
+      "testing-methodology",
       "trace-jsonl-rotation-20260519",
       "triple-llm-rv32i-experiment",
+      "uart-tx-end-to-end-findings-20260530",
       "ui-design-references",
       "ui-resolution-matrix-20260519",
       "wiki-curation-policy",
+      "worker-model-gpt-switch",
       "workflow-feedback-and-scheduling",
       "workflow-improvement-candidates",
       "workflow-ownership-and-boundaries"
@@ -378,7 +427,8 @@
       ],
       "incoming": [
         "default-agent-ip-flow",
-        "index"
+        "index",
+        "uart-tx-end-to-end-findings-20260530"
       ],
       "broken_refs": [],
       "updated": "",
@@ -440,7 +490,8 @@
       "incoming": [
         "apb-uart-enhanced-signoff-20260527",
         "default-agent-ip-flow",
-        "index"
+        "index",
+        "uart-tx-end-to-end-findings-20260530"
       ],
       "broken_refs": [],
       "updated": "",
@@ -753,13 +804,15 @@
       "related": [],
       "outgoing": [],
       "incoming": [
-        "index"
+        "atlas-refactoring-exceptions",
+        "index",
+        "tech-direction-recommendation-20260529"
       ],
       "broken_refs": [],
       "updated": "",
       "summary": "> Living progress note for `refactor/atlas-modular`. Source of truth for > what's been extracted from `src/atlas_ui.py` + `frontend/atlas/workspace.jsx` > and how to verify the next phase without booting the server.",
       "path": "doc/wiki/atlas-modular-refactor-status-20260528.md",
-      "size_bytes": 6064
+      "size_bytes": 8985
     },
     {
       "id": "atlas-new-ip-recipe",
@@ -912,6 +965,34 @@
       "size_bytes": 1328
     },
     {
+      "id": "atlas-refactoring-exceptions",
+      "title": "Atlas refactoring — sub-1000-line exceptions registry",
+      "type": "process",
+      "tags": [
+        "refactor",
+        "atlas-modular",
+        "exception-register",
+        "file-size-policy"
+      ],
+      "related": [
+        "atlas-modular-refactor-status-20260528",
+        "workspace-jsx-decomposition-plan"
+      ],
+      "outgoing": [
+        "atlas-modular-refactor-status-20260528",
+        "workspace-jsx-decomposition-plan",
+        "frontend-modernization-2026-05-29"
+      ],
+      "incoming": [
+        "index"
+      ],
+      "broken_refs": [],
+      "updated": "2026-05-29",
+      "summary": "Every source file in `common_ai_agent/` is held to a soft cap of **1,000 lines per file**. Files exceeding the cap are either (a) refactored under the cap, or (b) recorded in this registry with concrete technical justification for why they're an exception.",
+      "path": "doc/wiki/atlas-refactoring-exceptions.md",
+      "size_bytes": 18396
+    },
+    {
       "id": "atlas-refactoring-review-20260528",
       "title": "Atlas refactoring review - single-worker readiness (2026-05-28)",
       "type": "reference",
@@ -919,7 +1000,8 @@
       "related": [],
       "outgoing": [],
       "incoming": [
-        "index"
+        "index",
+        "tech-direction-recommendation-20260529"
       ],
       "broken_refs": [],
       "updated": "",
@@ -1008,6 +1090,29 @@
       "size_bytes": 6547
     },
     {
+      "id": "atlas-vite-e2e-verification",
+      "title": "ATLAS vite frontend — automated E2E verification",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "project_ts_vite_tauri_cutover",
+        "project_merge_broke_prompt_delivery"
+      ],
+      "incoming": [
+        "index",
+        "testing-methodology"
+      ],
+      "broken_refs": [
+        "project_ts_vite_tauri_cutover",
+        "project_merge_broke_prompt_delivery"
+      ],
+      "updated": "",
+      "summary": "One command that proves the vite/.tsx frontend **actually works in a real browser** (not just `tsc`/`build` passing — that gap shipped a white screen + \"no response\" before). Lives in `scripts/`, runs in isolation on a **test port (3019)** so it never touches a running app on `:3000`.",
+      "path": "doc/wiki/atlas-vite-e2e-verification.md",
+      "size_bytes": 2188
+    },
+    {
       "id": "auth-cookie-expiry-20260519",
       "title": "Auth Cookie Expiry & Multi-Session Policy",
       "type": "reference",
@@ -1022,6 +1127,25 @@
       "summary": "**Date**: 2026-05-19 **Method**: Live curl against port 8001 (atlas_ui.py), user `validator`/`validate123` **Source**: `core/atlas_auth.py`",
       "path": "doc/wiki/auth-cookie-expiry-20260519.md",
       "size_bytes": 3968
+    },
+    {
+      "id": "babel-retirement-cutover-20260529",
+      "title": "Babel / legacy-JSX Retirement — cutover progress + plan (2026-05-29)",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "frontend-modernization-2026-05-29",
+        "tech-direction-recommendation-20260529"
+      ],
+      "incoming": [
+        "index"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "**STATUS: PAUSED** — stopped mid-Round-1 due to a working-tree conflict with parallel edits from another process (session-machine.ts / session-protocol.ts / tsconfig.json / workspace.jsx / .config / mctp_assembler/ are NOT part of this effort). Resume only after the working tree is reconciled.",
+      "path": "doc/wiki/babel-retirement-cutover-20260529.md",
+      "size_bytes": 7448
     },
     {
       "id": "common-ai-agent-map",
@@ -1041,7 +1165,9 @@
         "atcuart100-pipeline-run",
         "full-flow-pipeline",
         "guide-tab-and-architect-my-ips-20260527",
-        "index"
+        "index",
+        "local-iproot-thin-llm-server-arch-20260529",
+        "tech-direction-recommendation-20260529"
       ],
       "broken_refs": [],
       "updated": "",
@@ -1126,7 +1252,8 @@
         "apb-uart-enhanced-signoff-20260527",
         "apb-uart-real-uart-signoff-20260527",
         "guide-tab-and-architect-my-ips-20260527",
-        "index"
+        "index",
+        "uart-tx-end-to-end-findings-20260530"
       ],
       "broken_refs": [],
       "updated": "",
@@ -1158,6 +1285,7 @@
         "index",
         "karpathy-llm-wiki-pattern",
         "log",
+        "uart-tx-end-to-end-findings-20260530",
         "ui-design-references",
         "wiki-curation-policy",
         "workflow-improvement-candidates"
@@ -1282,6 +1410,30 @@
       "summary": "Live UI verification of five landed fixes (commits f17e66c41, 207f87c19, acb1c849e, 7709566d9 plus the partial DB-path unification). Verifier: `verifier-cmux`. Environment: ATLAS UI `127.0.0.1:62196`, model `gpt-5.5`, effort `xhigh`, restarted to pick up Python source changes.",
       "path": "doc/wiki/flow-fixes-verify-20260519.md",
       "size_bytes": 8317
+    },
+    {
+      "id": "frontend-modernization-2026-05-29",
+      "title": "Frontend modernization 2026-05-29 — TS migration · Vite cutover · Tauri desktop · gpt-5.5",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "worker-model-gpt-switch",
+        "tauri-desktop-shell",
+        "tech-direction-recommendation-20260529"
+      ],
+      "incoming": [
+        "atlas-refactoring-exceptions",
+        "babel-retirement-cutover-20260529",
+        "index",
+        "local-iproot-thin-llm-server-arch-20260529",
+        "react-flow-adoption-20260529"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "One-stop overview of the 2026-05-29 modernization arc on `main`. The codebase now runs the **TypeScript + Python + Rust** trio, applied per-layer (not a rewrite): frontend → TypeScript/Vite, backend → Python (unchanged), desktop shell → Rust/Tauri.",
+      "path": "doc/wiki/frontend-modernization-2026-05-29.md",
+      "size_bytes": 4667
     },
     {
       "id": "full-flow-pipeline",
@@ -1519,6 +1671,22 @@
       "size_bytes": 2955
     },
     {
+      "id": "hw-agent-ip-experiment-batch-20260530",
+      "title": "HW Agent IP Experiment Batch - 2026-05-30",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [],
+      "incoming": [
+        "log"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "여러 개의 작은 IP를 직접 만들어 보면서 `common_ai_agent` 운영 규칙과 실제 HW/IP signoff 규칙을 분리한다.",
+      "path": "doc/wiki/hw-agent-ip-experiment-batch-20260530.md",
+      "size_bytes": 41827
+    },
+    {
       "id": "index",
       "title": "common_ai_agent Wiki",
       "type": "reference",
@@ -1537,6 +1705,17 @@
         "andes-rtl-db-wiki-20260527",
         "ssot-datasheet-authoring-20260527",
         "atlas-refactoring-review-20260528",
+        "tech-direction-recommendation-20260529",
+        "frontend-modernization-2026-05-29",
+        "testing-methodology",
+        "uart-tx-end-to-end-findings-20260530",
+        "atlas-vite-e2e-verification",
+        "sim-debug-module-signals-2026-05-30",
+        "sim-debug-agent-tool-2026-05-31",
+        "sim-debug-waveform-renderer-2026-05-31",
+        "sim-debug-feature-review-2026-05-31",
+        "babel-retirement-cutover-20260529",
+        "local-iproot-thin-llm-server-arch-20260529",
         "run-mode-and-provenance-policy",
         "arm-m0-min-current-status",
         "multi-user-worker-isolation",
@@ -1597,6 +1776,7 @@
         "atcwdt200-ssot-rtl-tb-flow-시행착오-2026-05-17",
         "dma-real-sim-debug-knowhow",
         "atlas-modular-refactor-status-20260528",
+        "atlas-refactoring-exceptions",
         "workflow-improvement-candidates"
       ],
       "incoming": [
@@ -1609,7 +1789,7 @@
       "updated": "",
       "summary": "This wiki is the cross-linked operating map for common_ai_agent. It is optimized for long-context LLMs and agent handoffs: read the linked pages in order, then follow the source docs for implementation detail.",
       "path": "doc/wiki/index.md",
-      "size_bytes": 23801
+      "size_bytes": 26139
     },
     {
       "id": "interactive-ask-user-ip-discovery",
@@ -1686,12 +1866,35 @@
       "size_bytes": 4777
     },
     {
+      "id": "local-iproot-thin-llm-server-arch-20260529",
+      "title": "Local IP-root + thin LLM-license server (desktop-app architecture)",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "frontend-modernization-2026-05-29",
+        "tech-direction-recommendation-20260529",
+        "common-ai-agent-map"
+      ],
+      "incoming": [
+        "index"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "**STATUS: design concept / direction** — documents an architecture that ATLAS is *already mostly built for*, plus the small gap to fully realize it. Not a record of shipped behavior; the \"already works\" parts are verified against config/code (file:line below), the \"needed\" parts are not yet implemented.",
+      "path": "doc/wiki/local-iproot-thin-llm-server-arch-20260529.md",
+      "size_bytes": 8364
+    },
+    {
       "id": "log",
       "title": "Wiki Log",
       "type": "reference",
       "tags": [],
       "related": [],
       "outgoing": [
+        "sim-debug-feature-review-2026-05-31",
+        "sim-debug-waveform-renderer-2026-05-31",
+        "hw-agent-ip-experiment-batch-20260530",
         "workspace-jsx-decomposition-plan",
         "atlas-e2e-validation-20260519",
         "atlas-pipeline-screen",
@@ -1726,9 +1929,9 @@
       ],
       "broken_refs": [],
       "updated": "",
-      "summary": "- Added [[workspace-jsx-decomposition-plan]] as the parked, P0-gated plan for splitting `frontend/atlas/workspace.jsx`. It records the accepted review corrections: use explicit `window.AtlasWorkspace*` namespaces, split P1 into primitives and session-switcher, keep `AgentStatusPanel` out of P1 because it owns polling/cost/settings, extract SSOT QA cards…",
+      "summary": "- Added [[sim-debug-feature-review-2026-05-31]] as the consolidated Sim Debug review: four-pane UI, background preload/loading contract, scoped signal identity, source multi-select, waveform RC/radix/group/reorder behavior, agent tool/API bridge, tests, risks, and next work. - Added [[sim-debug-waveform-renderer-2026-05-31]] documenting the current…",
       "path": "doc/wiki/log.md",
-      "size_bytes": 76936
+      "size_bytes": 79072
     },
     {
       "id": "mini-cpu-rerun-20260517",
@@ -2278,7 +2481,7 @@
       "updated": "",
       "summary": "Background worker fanout that lets the main agent hand a *batch* of TODOs to `parallel_todo_dispatch(...)` and wait for aggregated results, instead of walking the workflow TODO tracker one item at a time.",
       "path": "doc/wiki/parallel-todo-sub-agent-workers.md",
-      "size_bytes": 9201
+      "size_bytes": 10259
     },
     {
       "id": "pipeline-progress-debugging",
@@ -2419,6 +2622,23 @@
       "size_bytes": 16631
     },
     {
+      "id": "react-flow-adoption-20260529",
+      "title": "React Flow adoption decision (2026-05-29)",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "frontend-modernization-2026-05-29",
+        "tech-direction-recommendation-20260529"
+      ],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "**Verdict: ADOPT `@xyflow/react` v12 — narrowly (SoC Architect first), and in the NEXT cycle (not now). Decision committed; execution scheduled.**",
+      "path": "doc/wiki/react-flow-adoption-20260529.md",
+      "size_bytes": 5387
+    },
+    {
       "id": "round2-retry-budget-cross-workflow-routing-20260517",
       "title": "Round 2 — Retry Budget + Cross-Workflow Routing Validation (2026-05-17)",
       "type": "reference",
@@ -2550,6 +2770,100 @@
       "summary": "Historical context page for the testbench and stimulus gaps that could produce silent-green results.",
       "path": "doc/wiki/silent-pass-exposure-tb-stimulus-gap-20260520.md",
       "size_bytes": 1164
+    },
+    {
+      "id": "sim-debug-agent-tool-2026-05-31",
+      "title": "Sim Debug agent tool — `sim_debug` (VCD + pyslang, drives the waveform UI)",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [],
+      "incoming": [
+        "index",
+        "sim-debug-feature-review-2026-05-31"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "2026-05-31. The chat agent can now drive AND query the Sim Debug waveform panel via one tool. It parses the VCD (Python) and the RTL (pyslang) server-side, returns the analysis as text to the agent, and pushes a UI intent the open panel applies (navigate / show signals / cursor / trace).",
+      "path": "doc/wiki/sim-debug-agent-tool-2026-05-31.md",
+      "size_bytes": 5730
+    },
+    {
+      "id": "sim-debug-feature-review-2026-05-31",
+      "title": "Sim Debug Feature Review",
+      "type": "reference",
+      "tags": [
+        "atlas",
+        "sim-debug",
+        "rtl",
+        "waveform",
+        "vcd",
+        "pyslang"
+      ],
+      "related": [
+        "sim-debug-module-signals-2026-05-30",
+        "sim-debug-agent-tool-2026-05-31",
+        "sim-debug-waveform-renderer-2026-05-31"
+      ],
+      "outgoing": [
+        "sim-debug-module-signals-2026-05-30",
+        "sim-debug-agent-tool-2026-05-31",
+        "sim-debug-waveform-renderer-2026-05-31"
+      ],
+      "incoming": [
+        "index",
+        "log"
+      ],
+      "broken_refs": [],
+      "updated": "2026-05-31 KST",
+      "summary": "Consolidated review of the Sim Debug feature as implemented across the Atlas frontend, backend API, pyslang elaboration layer, VCD tooling, agent tool bridge, and tests. This page is the current high-level operating map; the narrower implementation notes remain in [[sim-debug-module-signals-2026-05-30]], [[sim-debug-agent-tool-2026-05-31]], and…",
+      "path": "doc/wiki/sim-debug-feature-review-2026-05-31.md",
+      "size_bytes": 20236
+    },
+    {
+      "id": "sim-debug-module-signals-2026-05-30",
+      "title": "Sim Debug — RTL module signal panel (2026-05-30)",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "project_vite_env_stale_build"
+      ],
+      "incoming": [
+        "index",
+        "sim-debug-feature-review-2026-05-31"
+      ],
+      "broken_refs": [
+        "project_vite_env_stale_build"
+      ],
+      "updated": "",
+      "summary": "Adds a per-module signal browser to the Sim Debug left panel: click a module in the RTL hierarchy tree and the bottom panel lists **that module's signals** — ports (with `in` / `out` / `inout` direction) plus internal nets/variables — filterable by direction, searchable by regex, and addable to the waveform.",
+      "path": "doc/wiki/sim-debug-module-signals-2026-05-30.md",
+      "size_bytes": 10339
+    },
+    {
+      "id": "sim-debug-waveform-renderer-2026-05-31",
+      "title": "Sim Debug Waveform Renderer",
+      "type": "reference",
+      "tags": [
+        "atlas",
+        "sim-debug",
+        "waveform",
+        "frontend",
+        "performance"
+      ],
+      "related": [],
+      "outgoing": [],
+      "incoming": [
+        "index",
+        "log",
+        "sim-debug-feature-review-2026-05-31"
+      ],
+      "broken_refs": [],
+      "updated": "2026-05-31 KST",
+      "summary": "Decision: keep the current React DOM plus per-row SVG renderer for now. The current perceived speed is acceptable, and the UI still benefits from simple React-controlled rows, context menus, selection, grouping, and source/wave cross-highlighting.",
+      "path": "doc/wiki/sim-debug-waveform-renderer-2026-05-31.md",
+      "size_bytes": 2828
     },
     {
       "id": "single-main-loop-restore-20260519",
@@ -2768,6 +3082,77 @@
       "size_bytes": 3317
     },
     {
+      "id": "tauri-desktop-shell",
+      "title": "ATLAS desktop shell (Tauri v2) — MVP runbook",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [],
+      "incoming": [
+        "frontend-modernization-2026-05-29"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "A native desktop window for ATLAS, for distribution + native file access (OS file dialogs, arbitrary local paths) beyond what a sandboxed browser tab allows.",
+      "path": "doc/wiki/tauri-desktop-shell.md",
+      "size_bytes": 5179
+    },
+    {
+      "id": "tech-direction-recommendation-20260529",
+      "title": "Tech Direction Recommendation — language / runtime / build (2026-05-29)",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "common-ai-agent-map",
+        "atlas-modular-refactor-status-20260528",
+        "workspace-jsx-decomposition-plan",
+        "atlas-refactoring-review-20260528"
+      ],
+      "incoming": [
+        "babel-retirement-cutover-20260529",
+        "frontend-modernization-2026-05-29",
+        "index",
+        "local-iproot-thin-llm-server-arch-20260529",
+        "react-flow-adoption-20260529"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Strategic recommendation on which technologies `common_ai_agent` (ATLAS) should move toward, evaluated against Go, Rust, Python, Node.js, Bun, jsx, tsx, ts. Grounded in measured stack size and the latency bottlenecks already identified this session — not generic language opinions.",
+      "path": "doc/wiki/tech-direction-recommendation-20260529.md",
+      "size_bytes": 5979
+    },
+    {
+      "id": "testing-methodology",
+      "title": "ATLAS 테스트 방법론 — \"green-while-broken\"을 막는 4층 구조",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "feedback_regression_test_per_bug",
+        "project_merge_broke_prompt_delivery",
+        "atlas-vite-e2e-verification",
+        "project_ts_vite_tauri_cutover",
+        "project_vite_env_stale_build",
+        "project_silent_pass_exposure"
+      ],
+      "incoming": [
+        "index",
+        "uart-tx-end-to-end-findings-20260530"
+      ],
+      "broken_refs": [
+        "feedback_regression_test_per_bug",
+        "project_merge_broke_prompt_delivery",
+        "project_ts_vite_tauri_cutover",
+        "project_vite_env_stale_build",
+        "project_silent_pass_exposure"
+      ],
+      "updated": "",
+      "summary": "> 핵심 교훈(2026-05-30, 비싸게 배움): **빌드/타입/유닛이 전부 green이어도 실제 앱은 흰화면·무응답일 수 있다.** 조각 테스트는 \"부품 OK\"만 보장하지, \"사용자가 실제로 쓸 수 있다\"를 보장하지 않는다. 그래서 **최상층(실브라우저 E2E)** 이 반드시 필요하다.",
+      "path": "doc/wiki/testing-methodology.md",
+      "size_bytes": 3973
+    },
+    {
       "id": "trace-jsonl-rotation-20260519",
       "title": "trace.jsonl Growth + Rotation Audit (2026-05-19)",
       "type": "reference",
@@ -2803,6 +3188,29 @@
       "summary": "Reference page for the side-by-side test of three LLM providers running the same SSOT input through the entire common_ai_agent pipeline (`ssot-gen → fl-model-gen → cl-model-gen → equiv-goals → rtl-gen → tb-gen → sim → sim-debug → lint → coverage → goal-audit`).",
       "path": "doc/wiki/triple-llm-rv32i-experiment.md",
       "size_bytes": 8940
+    },
+    {
+      "id": "uart-tx-end-to-end-findings-20260530",
+      "title": "uart_tx 직접 end-to-end 실행 — flow 검증 + silent-PASS 실증 (2026-05-30)",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "default-agent-ip-flow",
+        "deterministic-emit-stages",
+        "workflow-ownership-and-boundaries",
+        "testing-methodology",
+        "agent-autonomous-ip-implementation-pattern",
+        "apb-uart-real-uart-signoff-20260527"
+      ],
+      "incoming": [
+        "index"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "> 핵심 교훈: **이 flow의 골격(사람이 lock한 진실 + evidence-gated + 코드에 박힌 치팅 방어)은 실제로 작동한다.** 약점은 골격이 아니라 \"무엇을 관측하느냐(observation depth)\"에 있고, 그 약점은 **MSB-first mutation 한 방으로 실물 재현**됐다. 가장 레버리지 큰 보강: audit을 goal *개수*가 아니라 **mutation kill-rate**로 채점.",
+      "path": "doc/wiki/uart-tx-end-to-end-findings-20260530.md",
+      "size_bytes": 8875
     },
     {
       "id": "ui-design-references",
@@ -2877,6 +3285,22 @@
       "summary": "Working policy for `common_ai_agent/doc/wiki/` and the per-IP `<ip>/wiki/` directories. Lives here so it can be revised in place as we learn from real use. Until this page is rewritten, the rules below apply.",
       "path": "doc/wiki/wiki-curation-policy.md",
       "size_bytes": 6067
+    },
+    {
+      "id": "worker-model-gpt-switch",
+      "title": "Worker / Orchestrator LLM model switch (glm → gpt-5.5 via Codex OAuth)",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [],
+      "incoming": [
+        "frontend-modernization-2026-05-29"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Runbook for switching ATLAS off the cost-optimized glm/deepseek worker models onto `gpt-5.5` (≈8× faster per call in measured comparison), and verifying it end-to-end without breaking the running pipeline.",
+      "path": "doc/wiki/worker-model-gpt-switch.md",
+      "size_bytes": 3088
     },
     {
       "id": "workflow-feedback-and-scheduling",
@@ -2975,6 +3399,7 @@
         "ssot-gen-pass-pipeline",
         "ssot-qa-workbench",
         "ssot-rtl-flow-verify-20260519",
+        "uart-tx-end-to-end-findings-20260530",
         "ui-design-references"
       ],
       "broken_refs": [],
@@ -3004,8 +3429,10 @@
         "atlas-ui-playwright-screenshot-recipe-2026-05-23"
       ],
       "incoming": [
+        "atlas-refactoring-exceptions",
         "index",
-        "log"
+        "log",
+        "tech-direction-recommendation-20260529"
       ],
       "broken_refs": [],
       "updated": "2026-05-25",

@@ -1,0 +1,326 @@
+# =============================================================================
+# apb_add_demo.ssot.yaml — Two-register combinational adder (OPA + OPB)
+# Same-cycle register+combinational IP (mirrors apb_xor_demo structure).
+# Locked truth: req/apb_add_demo_requirements.md
+# =============================================================================
+top_module:
+  name: apb_add_demo
+  file: rtl/apb_add_demo.sv
+  version: "1.0"
+  type: peripheral
+  description: "Two 8-bit registers (OPA, OPB) via APB. add_out = (OPA+OPB)[7:0], carry_out = (OPA+OPB)[8], combinational."
+  reference_spec: "user-defined (req/apb_add_demo_requirements.md)"
+  target:
+    technology: generic
+    clock_freq_mhz: 50
+
+decomposition:
+  units:
+    - { id: csr_decode, kind: control,  source_refs: [registers.register_list], rtl_candidates: [apb_add_demo], verification_impact: [test_requirements.scenarios] }
+    - { id: adder,      kind: datapath, source_refs: [function_model.transactions], rtl_candidates: [apb_add_demo], verification_impact: [test_requirements.scenarios] }
+
+sub_modules:
+  - name: apb_add_demo
+    file: rtl/apb_add_demo.sv
+    ownership: manifest
+    ssot_gen: true
+    source_sections: [io_list, registers, function_model]
+    implements: [io_list.interfaces.apb_slave, registers.register_list, function_model.transactions]
+    register_refs: [registers.register_list]
+    function_model_refs: [function_model.transactions.FM_WRITE, function_model.transactions.FM_IDLE]
+    description: "APB decode + two 8-bit registers + combinational add/carry output."
+
+parameters:
+  - { name: APB_ADDR_WIDTH, default: 4, type: int, description: "APB address width" }
+  - { name: APB_DATA_WIDTH, default: 8, type: int, description: "APB data width" }
+
+io_list:
+  clock_domains:
+    - name: pclk
+      frequency_mhz: 50
+      description: "APB clock"
+      ports:
+        - { name: PCLK, width: 1, direction: input }
+  resets:
+    - name: presetn
+      polarity: active_low
+      sync_async: async_assert_sync_deassert
+      description: "APB reset"
+      ports:
+        - { name: PRESETn, width: 1, direction: input }
+  interfaces:
+    - name: apb_slave
+      type: APB-Lite
+      role: slave
+      clock_domain: pclk
+      reset_domain: presetn
+      description: "APB-Lite CSR"
+      protocol:
+        setup_phase: "PSEL=1, PENABLE=0"
+        access_phase: "PSEL=1, PENABLE=1, PREADY=1"
+      ports:
+        - { name: PADDR,   width: 4, direction: input  }
+        - { name: PSEL,    width: 1, direction: input  }
+        - { name: PENABLE, width: 1, direction: input  }
+        - { name: PWRITE,  width: 1, direction: input  }
+        - { name: PWDATA,  width: 8, direction: input  }
+        - { name: PRDATA,  width: 8, direction: output }
+        - { name: PREADY,  width: 1, direction: output }
+        - { name: PSLVERR, width: 1, direction: output }
+    - name: add_output
+      type: custom
+      clock_domain: pclk
+      reset_domain: presetn
+      description: "Adder output"
+      ports:
+        - { name: add_out,   width: 8, direction: output, description: "(OPA+OPB)[7:0]" }
+        - { name: carry_out, width: 1, direction: output, description: "carry-out of OPA+OPB" }
+
+features:
+  - name: APB CSR access
+    trigger: "APB master read/write to OPA or OPB"
+    datapath: "Address decode selects register"
+    control: "0-wait-state PREADY"
+    output: "Register update / read-back"
+  - name: Adder output
+    trigger: "Continuous combinational add"
+    datapath: "{carry_out, add_out} = opa_q + opb_q"
+    control: "Combinational"
+    output: "add_out, carry_out"
+
+registers:
+  config:
+    register_width: 8
+    addr_width: 4
+    byte_addressable: true
+  bit_order: lsb0
+  bits_format: "[msb, lsb]"
+  reserved_field_policy:
+    read_value: 0
+    write_effect: ignore
+    rtl_requirement: "Reserved bits read zero"
+  register_list:
+    - name: OPA
+      offset: 0x0
+      width: 8
+      access: rw
+      reset: 0x00
+      category: data
+      description: "Operand A register"
+      write_side_effects:
+        - "PWDATA latched into opa_q on write access phase."
+      fields:
+        - { name: data, bits: [7, 0], access: rw, reset: 0, write_effect: "Update opa_q", description: "Operand A" }
+    - name: OPB
+      offset: 0x4
+      width: 8
+      access: rw
+      reset: 0x00
+      category: data
+      description: "Operand B register"
+      write_side_effects:
+        - "PWDATA latched into opb_q on write access phase."
+      fields:
+        - { name: data, bits: [7, 0], access: rw, reset: 0, write_effect: "Update opb_q", description: "Operand B" }
+
+memory:
+  instances: []
+  note: "No FIFO/SRAM."
+
+interrupts:
+  sources: []
+  output: null
+  note: "No interrupts."
+
+fsm:
+  apb_phase:
+    states: [IDLE, ACCESS]
+    transitions:
+      - { from: IDLE,   to: ACCESS, condition: "psel == 1 and penable == 1" }
+      - { from: ACCESS, to: IDLE,   condition: "psel == 0" }
+
+rtl_contract:
+  transaction: FM_WRITE
+  clock: PCLK
+  reset: PRESETn
+  reset_active: low
+  sample_condition: "PRESETn == 1"
+  input_map:
+    psel: PSEL
+    penable: PENABLE
+    pwrite: PWRITE
+    paddr: PADDR
+    pwdata: PWDATA
+  output_map:
+    prdata: PRDATA
+    pready: PREADY
+    pslverr: PSLVERR
+    add_out: add_out
+    carry_out: carry_out
+
+function_model:
+  purpose: "Executable FL contract"
+  state_variables:
+    - { name: opa_q, source: registers.OPA.data, reset: 0, description: "OPA register state" }
+    - { name: opb_q, source: registers.OPB.data, reset: 0, description: "OPB register state" }
+  transactions:
+    - id: FM_WRITE
+      name: apb_write
+      preconditions: ["psel == 1", "penable == 1", "pwrite == 1"]
+      inputs: [pwdata, paddr]
+      outputs: ["OPA/OPB register updates; add_out/carry_out reflect new sum"]
+      output_rules:
+        - { name: pready_rule,  port: PREADY,    expr: 1, width: 1 }
+        - { name: pslverr_rule, port: PSLVERR,   expr: 0, width: 1 }
+        - { name: add_rule,     port: add_out,   width: 8, description: "low 8 bits of post-write sum",
+            expr: "((pwdata if paddr == 0 else opa_q) + (pwdata if paddr == 4 else opb_q)) & 0xff" }
+        - { name: carry_rule,   port: carry_out, width: 1, description: "carry of post-write sum",
+            expr: "(((pwdata if paddr == 0 else opa_q) + (pwdata if paddr == 4 else opb_q)) >> 8) & 1" }
+      state_updates:
+        - { name: opa_q, expr: "pwdata if paddr == 0 else opa_q", width: 8 }
+        - { name: opb_q, expr: "pwdata if paddr == 4 else opb_q", width: 8 }
+      side_effects: ["Selected register updated"]
+      error_cases: []
+    - id: FM_IDLE
+      name: idle_or_read
+      preconditions: ["pwrite == 0 or psel == 0 or penable == 0"]
+      inputs: [paddr]
+      outputs: ["add_out/carry_out reflect existing sum; PRDATA on read"]
+      output_rules:
+        - { name: pready_rule,  port: PREADY,    expr: 1, width: 1 }
+        - { name: pslverr_rule, port: PSLVERR,   expr: 0, width: 1 }
+        - { name: add_rule,     port: add_out,   expr: "(opa_q + opb_q) & 0xff", width: 8 }
+        - { name: carry_rule,   port: carry_out, expr: "((opa_q + opb_q) >> 8) & 1", width: 1 }
+        - { name: prdata_rule,  port: PRDATA,    width: 8,
+            expr: "opa_q if (psel == 1 and penable == 1 and pwrite == 0 and paddr == 0) else (opb_q if (psel == 1 and penable == 1 and pwrite == 0 and paddr == 4) else 0)" }
+      state_updates:
+        - { name: opa_q, expr: opa_q, width: 8 }
+        - { name: opb_q, expr: opb_q, width: 8 }
+      side_effects: []
+      error_cases: []
+  invariants:
+    - "{carry_out, add_out} = opa_q + opb_q (combinational)."
+    - "PREADY=1 always, PSLVERR=0 always."
+
+cycle_model:
+  purpose: "Cycle contract"
+  executable: python
+  cosim: true
+  clock: PCLK
+  reset:
+    assertion: "PRESETn low clears opa_q=0, opb_q=0 -> add_out=0, carry_out=0."
+    deassertion: "First rising PCLK enables register updates."
+  latency:
+    apb_write: { min_cycles: 1, max_cycles: 1 }
+    apb_read:  { min_cycles: 0, max_cycles: 0 }
+  handshake_rules:
+    - { signal: PREADY,  rule: "Always 1 (0-wait-state)" }
+    - { signal: add_out, rule: "Combinational sum of opa_q and opb_q" }
+  pipeline:
+    - { stage: S0_DECODE, cycle: 0, action: "APB phase capture and address decode" }
+    - { stage: S1_UPDATE, cycle: 1, action: "Register write; add_out/carry_out update combinationally" }
+  ordering:
+    - "OPA/OPB write happens on access-phase rising edge; outputs update the same cycle."
+  backpressure: ["No backpressure."]
+  performance:
+    frequency_mhz: 50
+    throughput: { writes_per_cycle: 1 }
+  observability:
+    - "APB phase + add_out/carry_out observable each cycle."
+
+clock_reset_domains:
+  domains:
+    - { name: PCLK, frequency_mhz: 50 }
+  reset_scheme:
+    signal: PRESETn
+    polarity: active_low
+    type: async_assert_sync_deassert
+
+dataflow:
+  sequence:
+    - { id: sequence_0, source: pwdata, sink: opa_q,   path: "PWDATA -> opa_q on offset 0 write" }
+    - { id: sequence_1, source: pwdata, sink: opb_q,   path: "PWDATA -> opb_q on offset 4 write" }
+    - { id: sequence_2, source: opa_q,  sink: add_out, path: "opa_q + opb_q -> add_out/carry_out" }
+
+power:
+  domains: [PD_MAIN]
+  modes: ["ON"]
+
+security:
+  classifications: []
+
+error_handling:
+  error_sources:
+    - { id: ERR_NONE, condition: "No error sources", architectural_effect: "PSLVERR always 0" }
+
+debug_observability:
+  signals:
+    - { name: opa_q, source: function_model.state_variables.opa_q, description: "OPA register" }
+    - { name: opb_q, source: function_model.state_variables.opb_q, description: "OPB register" }
+
+dft:
+  scan: { enabled: false }
+
+synthesis:
+  target: { technology: generic, frequency_mhz: 50 }
+
+integration:
+  top_ports: [PCLK, PRESETn, PADDR, PSEL, PENABLE, PWRITE, PWDATA, PRDATA, PREADY, PSLVERR, add_out, carry_out]
+
+quality_gates:
+  rtl_gen:
+    manifest_hygiene: "tb_manifest.rtl_sources must list every .sv file."
+
+test_requirements:
+  scenarios:
+    - id: SC1
+      name: "Reset — add_out=0, carry_out=0"
+      stimulus: "After reset, OPA=OPB=0"
+      expected: "add_out=0, carry_out=0"
+      checker: "Scoreboard checks outputs=0 after reset."
+      coverage: [reset, adder]
+      stimulus_machine_spec:
+        assign: { pwdata: 0 }
+    - id: SC2
+      name: "Write OPA=0x12 — add_out=0x12"
+      stimulus: "Write 0x12 to OPA; OPB stays 0"
+      stimulus_machine_spec:
+        timeline:
+          - { csr_write: { offset: 0x0, data: 0x12 } }
+      expected: "opa_q=0x12, add_out=0x12, carry_out=0"
+      checker: "Scoreboard verifies add_out=0x12."
+      coverage: [FM_WRITE, adder]
+    - id: SC3
+      name: "Write OPA=0x30 then OPB=0x05 — add_out=0x35"
+      stimulus: "Write 0x30 to OPA then 0x05 to OPB"
+      stimulus_machine_spec:
+        timeline:
+          - { csr_write: { offset: 0x0, data: 0x30 } }
+          - { csr_write: { offset: 0x4, data: 0x05 } }
+      expected: "add_out=0x35, carry_out=0"
+      checker: "Scoreboard verifies add_out=0x35."
+      coverage: [FM_WRITE, adder]
+    - id: SC4
+      name: "Carry boundary — 0xFF + 0xFF = 0xFE, carry=1"
+      stimulus: "Write 0xFF to OPA then 0xFF to OPB"
+      stimulus_machine_spec:
+        timeline:
+          - { csr_write: { offset: 0x0, data: 0xFF } }
+          - { csr_write: { offset: 0x4, data: 0xFF } }
+      expected: "add_out=0xFE, carry_out=1"
+      checker: "Scoreboard verifies add_out=0xFE and carry_out=1."
+      coverage: [FM_WRITE, adder, carry]
+  scoreboard_checks:
+    - "add_out tracks (opa_q + opb_q) & 0xff"
+    - "carry_out tracks ((opa_q + opb_q) >> 8) & 1"
+    - "PREADY=1 always"
+  coverage_goals:
+    function:
+      target_pct: 100
+      model: function_model
+    cycle:
+      target_pct: 100
+      model: cycle_model
+
+workflow_todos:
+  - { id: ADD_DEMO_BRINGUP, description: "Full auto-flow run of apb_add_demo (ssot/fl/rtl/tb-gen/sim/lint)", status: planned }

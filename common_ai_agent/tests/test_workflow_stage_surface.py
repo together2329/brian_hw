@@ -1,9 +1,15 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from src.headless_workflow import _structured_ssot_yaml
-from src.workflow_stage_surface import compute_kpi_dots, is_common_stage, run_common_stage_surface
+from src.workflow_stage_surface import (
+    compute_kpi_dots,
+    compute_kpi_dots_labeled,
+    is_common_stage,
+    run_common_stage_surface,
+)
 
 SOURCE_ROOT = Path(__file__).resolve().parents[1]
 
@@ -135,3 +141,78 @@ def test_sim_kpi_accepts_empty_mismatch_list_reports(tmp_path: Path):
     dots = compute_kpi_dots(ip, "sim", root=tmp_path)
 
     assert dots[1] == "pass"
+
+
+def test_lint_kpi_labels_show_pyslang_and_verilator_checks(tmp_path: Path):
+    ip = "surface_lint_probe"
+    lint_dir = tmp_path / ip / "lint"
+    lint_dir.mkdir(parents=True)
+    (lint_dir / "dut_lint.json").write_text(
+        json.dumps(
+            {
+                "passed": True,
+                "tool": "pyslang+verilator",
+                "errors": 0,
+                "warnings": 0,
+                "waived_warnings": 0,
+                "suppression_violation_count": 0,
+                "style_violation_count": 0,
+                "tool_results": [
+                    {"tool": "pyslang", "passed": True, "returncode": 0, "errors": 0, "warnings": 0},
+                    {"tool": "verilator", "passed": True, "returncode": 0, "errors": 0, "warnings": 0},
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    dots = compute_kpi_dots_labeled(ip, "lint", root=tmp_path)
+
+    assert [dot["label"] for dot in dots] == ["pyslang", "verilator", "errors=0", "warnings<=waivers", "policy"]
+    assert [dot["state"] for dot in dots] == ["pass", "pass", "pass", "pass", "pass"]
+
+
+def test_lint_kpi_marks_individual_tool_failures(tmp_path: Path):
+    ip = "surface_lint_fail_probe"
+    lint_dir = tmp_path / ip / "lint"
+    lint_dir.mkdir(parents=True)
+    (lint_dir / "dut_lint.json").write_text(
+        json.dumps(
+            {
+                "passed": False,
+                "tool": "pyslang+verilator",
+                "errors": 1,
+                "warnings": 0,
+                "tool_results": [
+                    {"tool": "pyslang", "passed": True, "returncode": 0, "errors": 0, "warnings": 0},
+                    {"tool": "verilator", "passed": False, "returncode": 1, "errors": 1, "warnings": 0},
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    dots = compute_kpi_dots(ip, "lint", root=tmp_path)
+
+    assert dots[:3] == ["pass", "fail", "fail"]
+
+
+def test_lint_kpi_accepts_legacy_top_level_tool_keys(tmp_path: Path):
+    ip = "surface_lint_legacy_probe"
+    lint_dir = tmp_path / ip / "lint"
+    lint_dir.mkdir(parents=True)
+    (lint_dir / "dut_lint.json").write_text(
+        json.dumps(
+            {
+                "errors": 0,
+                "warnings": 0,
+                "pyslang": [],
+                "verilator": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    dots = compute_kpi_dots(ip, "lint", root=tmp_path)
+
+    assert dots[:2] == ["pass", "pass"]

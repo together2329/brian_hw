@@ -1,0 +1,3 @@
+[goal-audit] wrote mctp_assembler_scratch/sim/fl_rtl_goal_audit.json
+[goal-audit] status=fail passed=12/16 blockers=req,fl_rtl_compare,mismatch_classification,functional_coverage
+rc=1

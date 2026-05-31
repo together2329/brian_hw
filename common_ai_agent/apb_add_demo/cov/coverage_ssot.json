@@ -1,0 +1,1627 @@
+{
+  "source": "ssot_coverage_summary",
+  "status": "pass",
+  "ssot": "apb_add_demo/yaml/apb_add_demo.ssot.yaml",
+  "module": "apb_add_demo",
+  "dv_plan": {
+    "scenarios": 4,
+    "scoreboard_checks": [
+      "add_out tracks (opa_q + opb_q) & 0xff",
+      "carry_out tracks ((opa_q + opb_q) >> 8) & 1",
+      "PREADY=1 always"
+    ],
+    "coverage_goals": {
+      "function": {
+        "target_pct": 100,
+        "model": "function_model"
+      },
+      "cycle": {
+        "target_pct": 100,
+        "model": "cycle_model"
+      }
+    }
+  },
+  "functional": {
+    "hit": 22,
+    "total": 22,
+    "pct": 100.0
+  },
+  "function_coverage": {
+    "hit": 10,
+    "total": 10,
+    "pct": 100.0,
+    "target_pct": 100.0,
+    "meets_target": true,
+    "bins": {
+      "SC1_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_SCENARIO_SC1",
+        "scenario_id": "SC_003_EQ_SCENARIO_SC1",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "add_out",
+          "add_rule",
+          "carry_out",
+          "carry_rule",
+          "opa_q",
+          "opb_q",
+          "prdata_rule",
+          "pready_rule",
+          "pslverr_rule"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC1_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[0]",
+          "scenario": "SC1",
+          "description": "Reset \u2014 add_out=0, carry_out=0"
+        },
+        "class": "scenario",
+        "description": "Reset \u2014 add_out=0, carry_out=0",
+        "coverage_domain": "function"
+      },
+      "SC2_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_REGISTER_OPA",
+        "scenario_id": "SC_010_EQ_REGISTER_OPA",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "add_out",
+          "add_rule",
+          "carry_out",
+          "carry_rule",
+          "opa_q",
+          "opb_q",
+          "prdata_rule",
+          "pready_rule",
+          "pslverr_rule"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC2_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[1]",
+          "scenario": "SC2",
+          "description": "Write OPA=0x12 \u2014 add_out=0x12"
+        },
+        "class": "scenario",
+        "description": "Write OPA=0x12 \u2014 add_out=0x12",
+        "coverage_domain": "function"
+      },
+      "SC3_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_REGISTER_OPB",
+        "scenario_id": "SC_011_EQ_REGISTER_OPB",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "add_out",
+          "add_rule",
+          "carry_out",
+          "carry_rule",
+          "opa_q",
+          "opb_q",
+          "prdata_rule",
+          "pready_rule",
+          "pslverr_rule"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC3_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[2]",
+          "scenario": "SC3",
+          "description": "Write OPA=0x30 then OPB=0x05 \u2014 add_out=0x35"
+        },
+        "class": "scenario",
+        "description": "Write OPA=0x30 then OPB=0x05 \u2014 add_out=0x35",
+        "coverage_domain": "function"
+      },
+      "SC4_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_SCENARIO_SC4",
+        "scenario_id": "SC_006_EQ_SCENARIO_SC4",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "add_out",
+          "add_rule",
+          "carry_out",
+          "carry_rule",
+          "opa_q",
+          "opb_q",
+          "prdata_rule",
+          "pready_rule",
+          "pslverr_rule"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC4_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[3]",
+          "scenario": "SC4",
+          "description": "Carry boundary \u2014 0xFF + 0xFF = 0xFE, carry=1"
+        },
+        "class": "scenario",
+        "description": "Carry boundary \u2014 0xFF + 0xFF = 0xFE, carry=1",
+        "coverage_domain": "function"
+      },
+      "function_apb_write": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_TRANSACTION_FM_WRITE",
+        "scenario_id": "SC_001_EQ_TRANSACTION_FM_WRITE",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "add_out",
+          "add_rule",
+          "carry_out",
+          "carry_rule",
+          "opa_q",
+          "opb_q",
+          "prdata_rule",
+          "pready_rule",
+          "pslverr_rule"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "function_apb_write",
+          "class": "transaction_type",
+          "coverage_domain": "function",
+          "source": "function_model.transactions[0]",
+          "source_ref": "function_model.transactions.fm_write",
+          "description": "FM_WRITE apb_write"
+        },
+        "class": "transaction_type",
+        "coverage_domain": "function",
+        "description": "FM_WRITE apb_write",
+        "source_ref": "function_model.transactions.fm_write"
+      },
+      "function_idle_or_read": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1",
+        "scenario_id": "SC_014_EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "add_out",
+          "add_rule",
+          "carry_out",
+          "carry_rule",
+          "opa_q",
+          "opb_q",
+          "prdata_rule",
+          "pready_rule",
+          "pslverr_rule"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "function_idle_or_read",
+          "class": "transaction_type",
+          "coverage_domain": "function",
+          "source": "function_model.transactions[1]",
+          "source_ref": "function_model.transactions.fm_idle",
+          "description": "FM_IDLE idle_or_read"
+        },
+        "class": "transaction_type",
+        "coverage_domain": "function",
+        "description": "FM_IDLE idle_or_read",
+        "source_ref": "function_model.transactions.fm_idle"
+      },
+      "error_error_0": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_ERROR_NONE",
+        "scenario_id": "SC_012_EQ_ERROR_NONE",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "add_out",
+          "add_rule",
+          "carry_out",
+          "carry_rule",
+          "opa_q",
+          "opb_q",
+          "prdata_rule",
+          "pready_rule",
+          "pslverr_rule"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "error_error_0",
+          "class": "error",
+          "coverage_domain": "function",
+          "source": "error_handling.error_sources[0]",
+          "source_ref": "error_handling.error_sources[0]",
+          "description": "{'id': 'ERR_NONE', 'condition': 'No error sources', 'architectural_effect': 'PSLVERR always 0'}"
+        },
+        "class": "error",
+        "coverage_domain": "function",
+        "description": "{'id': 'ERR_NONE', 'condition': 'No error sources', 'architectural_effect': 'PSLVERR always 0'}",
+        "source_ref": "error_handling.error_sources[0]"
+      },
+      "fcov_fm_write": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+        "scenario_id": "SC_020_EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "add_out",
+          "add_rule",
+          "carry_out",
+          "carry_rule",
+          "opa_q",
+          "opb_q",
+          "prdata_rule",
+          "pready_rule",
+          "pslverr_rule"
+        ],
+        "raw_hit": null,
+        "coverage_domain": "function"
+      },
+      "fcov_fm_idle": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_TRANSACTION_FM_IDLE",
+        "scenario_id": "SC_002_EQ_TRANSACTION_FM_IDLE",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "add_out",
+          "add_rule",
+          "carry_out",
+          "carry_rule",
+          "opa_q",
+          "opb_q",
+          "prdata_rule",
+          "pready_rule",
+          "pslverr_rule"
+        ],
+        "raw_hit": null,
+        "coverage_domain": "function"
+      },
+      "ccov_pipeline_order": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_MODULE_APB_ADD_DEMO",
+        "scenario_id": "SC_015_EQ_MODULE_APB_ADD_DEMO",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "add_out",
+          "add_rule",
+          "carry_out",
+          "carry_rule",
+          "opa_q",
+          "opb_q",
+          "prdata_rule",
+          "pready_rule",
+          "pslverr_rule"
+        ],
+        "raw_hit": null,
+        "coverage_domain": "function"
+      }
+    }
+  },
+  "cycle_coverage": {
+    "hit": 12,
+    "total": 12,
+    "pct": 100.0,
+    "target_pct": 100.0,
+    "meets_target": true,
+    "bins": {
+      "cycle_handshake_0": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
+        "scenario_id": "SC_008_EQ_PROTOCOL_HANDSHAKE_1",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "add_out",
+          "add_rule",
+          "carry_out",
+          "carry_rule",
+          "opa_q",
+          "opb_q",
+          "prdata_rule",
+          "pready_rule",
+          "pslverr_rule"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_handshake_0",
+          "class": "protocol",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.handshake_rules[0]",
+          "source_ref": "cycle_model.handshake_rules[0]",
+          "description": "{'signal': 'PREADY', 'rule': 'Always 1 (0-wait-state)'}"
+        },
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "description": "{'signal': 'PREADY', 'rule': 'Always 1 (0-wait-state)'}",
+        "source_ref": "cycle_model.handshake_rules[0]"
+      },
+      "cycle_handshake_1": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_REGISTER_OPB",
+        "scenario_id": "SC_011_EQ_REGISTER_OPB",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "add_out",
+          "add_rule",
+          "carry_out",
+          "carry_rule",
+          "opa_q",
+          "opb_q",
+          "prdata_rule",
+          "pready_rule",
+          "pslverr_rule"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_handshake_1",
+          "class": "protocol",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.handshake_rules[1]",
+          "source_ref": "cycle_model.handshake_rules[1]",
+          "description": "{'signal': 'add_out', 'rule': 'Combinational sum of opa_q and opb_q'}"
+        },
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "description": "{'signal': 'add_out', 'rule': 'Combinational sum of opa_q and opb_q'}",
+        "source_ref": "cycle_model.handshake_rules[1]"
+      },
+      "cycle_latency_apb_write": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_TRANSACTION_FM_WRITE",
+        "scenario_id": "SC_001_EQ_TRANSACTION_FM_WRITE",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "add_out",
+          "add_rule",
+          "carry_out",
+          "carry_rule",
+          "opa_q",
+          "opb_q",
+          "prdata_rule",
+          "pready_rule",
+          "pslverr_rule"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_latency_apb_write",
+          "class": "latency",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.latency.apb_write",
+          "source_ref": "cycle_model.latency.apb_write",
+          "description": "{'min_cycles': 1, 'max_cycles': 1}"
+        },
+        "class": "latency",
+        "coverage_domain": "cycle",
+        "description": "{'min_cycles': 1, 'max_cycles': 1}",
+        "source_ref": "cycle_model.latency.apb_write"
+      },
+      "cycle_latency_apb_read": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_APB_READ",
+        "scenario_id": "SC_016_EQ_COVERAGE_CYCLE_LATENCY_APB_READ",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "add_out",
+          "add_rule",
+          "carry_out",
+          "carry_rule",
+          "opa_q",
+          "opb_q",
+          "prdata_rule",
+          "pready_rule",
+          "pslverr_rule"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_latency_apb_read",
+          "class": "latency",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.latency.apb_read",
+          "source_ref": "cycle_model.latency.apb_read",
+          "description": "{'min_cycles': 0, 'max_cycles': 0}"
+        },
+        "class": "latency",
+        "coverage_domain": "cycle",
+        "description": "{'min_cycles': 0, 'max_cycles': 0}",
+        "source_ref": "cycle_model.latency.apb_read"
+      },
+      "cycle_pipeline_s0_decode": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S0_DECODE",
+        "scenario_id": "SC_017_EQ_COVERAGE_CYCLE_PIPELINE_S0_DECODE",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "add_out",
+          "add_rule",
+          "carry_out",
+          "carry_rule",
+          "opa_q",
+          "opb_q",
+          "prdata_rule",
+          "pready_rule",
+          "pslverr_rule"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_pipeline_s0_decode",
+          "class": "pipeline_stage",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.pipeline[0]",
+          "source_ref": "cycle_model.pipeline[0]",
+          "description": "APB phase capture and address decode"
+        },
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "description": "APB phase capture and address decode",
+        "source_ref": "cycle_model.pipeline[0]"
+      },
+      "cycle_pipeline_s1_update": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_REGISTER_OPB",
+        "scenario_id": "SC_011_EQ_REGISTER_OPB",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "add_out",
+          "add_rule",
+          "carry_out",
+          "carry_rule",
+          "opa_q",
+          "opb_q",
+          "prdata_rule",
+          "pready_rule",
+          "pslverr_rule"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_pipeline_s1_update",
+          "class": "pipeline_stage",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.pipeline[1]",
+          "source_ref": "cycle_model.pipeline[1]",
+          "description": "Register write; add_out/carry_out update combinationally"
+        },
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "description": "Register write; add_out/carry_out update combinationally",
+        "source_ref": "cycle_model.pipeline[1]"
+      },
+      "cycle_ordering_0": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1",
+        "scenario_id": "SC_014_EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "add_out",
+          "add_rule",
+          "carry_out",
+          "carry_rule",
+          "opa_q",
+          "opb_q",
+          "prdata_rule",
+          "pready_rule",
+          "pslverr_rule"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_ordering_0",
+          "class": "ordering",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.ordering[0]",
+          "source_ref": "cycle_model.ordering[0]",
+          "description": "OPA/OPB write happens on access-phase rising edge; outputs update the same cycle."
+        },
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "description": "OPA/OPB write happens on access-phase rising edge; outputs update the same cycle.",
+        "source_ref": "cycle_model.ordering[0]"
+      },
+      "cycle_backpressure_0": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+        "scenario_id": "SC_018_EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "add_out",
+          "add_rule",
+          "carry_out",
+          "carry_rule",
+          "opa_q",
+          "opb_q",
+          "prdata_rule",
+          "pready_rule",
+          "pslverr_rule"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_backpressure_0",
+          "class": "backpressure",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.backpressure[0]",
+          "source_ref": "cycle_model.backpressure[0]",
+          "description": "No backpressure."
+        },
+        "class": "backpressure",
+        "coverage_domain": "cycle",
+        "description": "No backpressure.",
+        "source_ref": "cycle_model.backpressure[0]"
+      },
+      "cycle_perf_frequency_mhz": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+        "scenario_id": "SC_019_EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "add_out",
+          "add_rule",
+          "carry_out",
+          "carry_rule",
+          "opa_q",
+          "opb_q",
+          "prdata_rule",
+          "pready_rule",
+          "pslverr_rule"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_perf_frequency_mhz",
+          "class": "frequency",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.performance.frequency_mhz",
+          "source_ref": "cycle_model.performance.frequency_mhz",
+          "description": "50"
+        },
+        "class": "frequency",
+        "coverage_domain": "cycle",
+        "description": "50",
+        "source_ref": "cycle_model.performance.frequency_mhz"
+      },
+      "cycle_perf_throughput": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+        "scenario_id": "SC_020_EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "add_out",
+          "add_rule",
+          "carry_out",
+          "carry_rule",
+          "opa_q",
+          "opb_q",
+          "prdata_rule",
+          "pready_rule",
+          "pslverr_rule"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_perf_throughput",
+          "class": "throughput",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.performance.throughput",
+          "source_ref": "cycle_model.performance.throughput",
+          "description": "{'writes_per_cycle': 1}"
+        },
+        "class": "throughput",
+        "coverage_domain": "cycle",
+        "description": "{'writes_per_cycle': 1}",
+        "source_ref": "cycle_model.performance.throughput"
+      },
+      "fsm_apb_phase_idle_to_access_0": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1",
+        "scenario_id": "SC_014_EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "add_out",
+          "add_rule",
+          "carry_out",
+          "carry_rule",
+          "opa_q",
+          "opb_q",
+          "prdata_rule",
+          "pready_rule",
+          "pslverr_rule"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fsm_apb_phase_idle_to_access_0",
+          "class": "state_transition",
+          "coverage_domain": "cycle",
+          "source": "fsm.apb_phase.transitions[0]",
+          "source_ref": "fsm.apb_phase.transitions[0]",
+          "description": "psel == 1 and penable == 1"
+        },
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "description": "psel == 1 and penable == 1",
+        "source_ref": "fsm.apb_phase.transitions[0]"
+      },
+      "fsm_apb_phase_access_to_idle_1": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1",
+        "scenario_id": "SC_014_EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1",
+        "rtl_observed_keys": [
+          "PRDATA",
+          "PREADY",
+          "PSLVERR",
+          "add_out",
+          "add_rule",
+          "carry_out",
+          "carry_rule",
+          "opa_q",
+          "opb_q",
+          "prdata_rule",
+          "pready_rule",
+          "pslverr_rule"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fsm_apb_phase_access_to_idle_1",
+          "class": "state_transition",
+          "coverage_domain": "cycle",
+          "source": "fsm.apb_phase.transitions[1]",
+          "source_ref": "fsm.apb_phase.transitions[1]",
+          "description": "psel == 0"
+        },
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "description": "psel == 0",
+        "source_ref": "fsm.apb_phase.transitions[1]"
+      }
+    }
+  },
+  "coverage_model": {
+    "function": {
+      "source": "function_model",
+      "target_pct": 100.0,
+      "hit": 10,
+      "total": 10,
+      "pct": 100.0,
+      "meets_target": true
+    },
+    "cycle": {
+      "source": "cycle_model",
+      "target_pct": 100.0,
+      "hit": 12,
+      "total": 12,
+      "pct": 100.0,
+      "meets_target": true
+    }
+  },
+  "planned_bins": [
+    "SC1_executed",
+    "SC2_executed",
+    "SC3_executed",
+    "SC4_executed",
+    "function_apb_write",
+    "function_idle_or_read",
+    "cycle_handshake_0",
+    "cycle_handshake_1",
+    "cycle_latency_apb_write",
+    "cycle_latency_apb_read",
+    "cycle_pipeline_s0_decode",
+    "cycle_pipeline_s1_update",
+    "cycle_ordering_0",
+    "cycle_backpressure_0",
+    "cycle_perf_frequency_mhz",
+    "cycle_perf_throughput",
+    "fsm_apb_phase_idle_to_access_0",
+    "fsm_apb_phase_access_to_idle_1",
+    "error_error_0"
+  ],
+  "functional_bins": {
+    "SC1_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_SCENARIO_SC1",
+      "scenario_id": "SC_003_EQ_SCENARIO_SC1",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "add_out",
+        "add_rule",
+        "carry_out",
+        "carry_rule",
+        "opa_q",
+        "opb_q",
+        "prdata_rule",
+        "pready_rule",
+        "pslverr_rule"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC1_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[0]",
+        "scenario": "SC1",
+        "description": "Reset \u2014 add_out=0, carry_out=0"
+      },
+      "class": "scenario",
+      "description": "Reset \u2014 add_out=0, carry_out=0",
+      "coverage_domain": "function"
+    },
+    "SC2_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_REGISTER_OPA",
+      "scenario_id": "SC_010_EQ_REGISTER_OPA",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "add_out",
+        "add_rule",
+        "carry_out",
+        "carry_rule",
+        "opa_q",
+        "opb_q",
+        "prdata_rule",
+        "pready_rule",
+        "pslverr_rule"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC2_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[1]",
+        "scenario": "SC2",
+        "description": "Write OPA=0x12 \u2014 add_out=0x12"
+      },
+      "class": "scenario",
+      "description": "Write OPA=0x12 \u2014 add_out=0x12",
+      "coverage_domain": "function"
+    },
+    "SC3_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_REGISTER_OPB",
+      "scenario_id": "SC_011_EQ_REGISTER_OPB",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "add_out",
+        "add_rule",
+        "carry_out",
+        "carry_rule",
+        "opa_q",
+        "opb_q",
+        "prdata_rule",
+        "pready_rule",
+        "pslverr_rule"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC3_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[2]",
+        "scenario": "SC3",
+        "description": "Write OPA=0x30 then OPB=0x05 \u2014 add_out=0x35"
+      },
+      "class": "scenario",
+      "description": "Write OPA=0x30 then OPB=0x05 \u2014 add_out=0x35",
+      "coverage_domain": "function"
+    },
+    "SC4_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_SCENARIO_SC4",
+      "scenario_id": "SC_006_EQ_SCENARIO_SC4",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "add_out",
+        "add_rule",
+        "carry_out",
+        "carry_rule",
+        "opa_q",
+        "opb_q",
+        "prdata_rule",
+        "pready_rule",
+        "pslverr_rule"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC4_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[3]",
+        "scenario": "SC4",
+        "description": "Carry boundary \u2014 0xFF + 0xFF = 0xFE, carry=1"
+      },
+      "class": "scenario",
+      "description": "Carry boundary \u2014 0xFF + 0xFF = 0xFE, carry=1",
+      "coverage_domain": "function"
+    },
+    "function_apb_write": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_TRANSACTION_FM_WRITE",
+      "scenario_id": "SC_001_EQ_TRANSACTION_FM_WRITE",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "add_out",
+        "add_rule",
+        "carry_out",
+        "carry_rule",
+        "opa_q",
+        "opb_q",
+        "prdata_rule",
+        "pready_rule",
+        "pslverr_rule"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "function_apb_write",
+        "class": "transaction_type",
+        "coverage_domain": "function",
+        "source": "function_model.transactions[0]",
+        "source_ref": "function_model.transactions.fm_write",
+        "description": "FM_WRITE apb_write"
+      },
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "description": "FM_WRITE apb_write",
+      "source_ref": "function_model.transactions.fm_write"
+    },
+    "function_idle_or_read": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1",
+      "scenario_id": "SC_014_EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "add_out",
+        "add_rule",
+        "carry_out",
+        "carry_rule",
+        "opa_q",
+        "opb_q",
+        "prdata_rule",
+        "pready_rule",
+        "pslverr_rule"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "function_idle_or_read",
+        "class": "transaction_type",
+        "coverage_domain": "function",
+        "source": "function_model.transactions[1]",
+        "source_ref": "function_model.transactions.fm_idle",
+        "description": "FM_IDLE idle_or_read"
+      },
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "description": "FM_IDLE idle_or_read",
+      "source_ref": "function_model.transactions.fm_idle"
+    },
+    "cycle_handshake_0": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
+      "scenario_id": "SC_008_EQ_PROTOCOL_HANDSHAKE_1",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "add_out",
+        "add_rule",
+        "carry_out",
+        "carry_rule",
+        "opa_q",
+        "opb_q",
+        "prdata_rule",
+        "pready_rule",
+        "pslverr_rule"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_handshake_0",
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.handshake_rules[0]",
+        "source_ref": "cycle_model.handshake_rules[0]",
+        "description": "{'signal': 'PREADY', 'rule': 'Always 1 (0-wait-state)'}"
+      },
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "description": "{'signal': 'PREADY', 'rule': 'Always 1 (0-wait-state)'}",
+      "source_ref": "cycle_model.handshake_rules[0]"
+    },
+    "cycle_handshake_1": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_REGISTER_OPB",
+      "scenario_id": "SC_011_EQ_REGISTER_OPB",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "add_out",
+        "add_rule",
+        "carry_out",
+        "carry_rule",
+        "opa_q",
+        "opb_q",
+        "prdata_rule",
+        "pready_rule",
+        "pslverr_rule"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_handshake_1",
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.handshake_rules[1]",
+        "source_ref": "cycle_model.handshake_rules[1]",
+        "description": "{'signal': 'add_out', 'rule': 'Combinational sum of opa_q and opb_q'}"
+      },
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "description": "{'signal': 'add_out', 'rule': 'Combinational sum of opa_q and opb_q'}",
+      "source_ref": "cycle_model.handshake_rules[1]"
+    },
+    "cycle_latency_apb_write": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_TRANSACTION_FM_WRITE",
+      "scenario_id": "SC_001_EQ_TRANSACTION_FM_WRITE",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "add_out",
+        "add_rule",
+        "carry_out",
+        "carry_rule",
+        "opa_q",
+        "opb_q",
+        "prdata_rule",
+        "pready_rule",
+        "pslverr_rule"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_latency_apb_write",
+        "class": "latency",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.latency.apb_write",
+        "source_ref": "cycle_model.latency.apb_write",
+        "description": "{'min_cycles': 1, 'max_cycles': 1}"
+      },
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "description": "{'min_cycles': 1, 'max_cycles': 1}",
+      "source_ref": "cycle_model.latency.apb_write"
+    },
+    "cycle_latency_apb_read": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_APB_READ",
+      "scenario_id": "SC_016_EQ_COVERAGE_CYCLE_LATENCY_APB_READ",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "add_out",
+        "add_rule",
+        "carry_out",
+        "carry_rule",
+        "opa_q",
+        "opb_q",
+        "prdata_rule",
+        "pready_rule",
+        "pslverr_rule"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_latency_apb_read",
+        "class": "latency",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.latency.apb_read",
+        "source_ref": "cycle_model.latency.apb_read",
+        "description": "{'min_cycles': 0, 'max_cycles': 0}"
+      },
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "description": "{'min_cycles': 0, 'max_cycles': 0}",
+      "source_ref": "cycle_model.latency.apb_read"
+    },
+    "cycle_pipeline_s0_decode": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S0_DECODE",
+      "scenario_id": "SC_017_EQ_COVERAGE_CYCLE_PIPELINE_S0_DECODE",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "add_out",
+        "add_rule",
+        "carry_out",
+        "carry_rule",
+        "opa_q",
+        "opb_q",
+        "prdata_rule",
+        "pready_rule",
+        "pslverr_rule"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_pipeline_s0_decode",
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.pipeline[0]",
+        "source_ref": "cycle_model.pipeline[0]",
+        "description": "APB phase capture and address decode"
+      },
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "description": "APB phase capture and address decode",
+      "source_ref": "cycle_model.pipeline[0]"
+    },
+    "cycle_pipeline_s1_update": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_REGISTER_OPB",
+      "scenario_id": "SC_011_EQ_REGISTER_OPB",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "add_out",
+        "add_rule",
+        "carry_out",
+        "carry_rule",
+        "opa_q",
+        "opb_q",
+        "prdata_rule",
+        "pready_rule",
+        "pslverr_rule"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_pipeline_s1_update",
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.pipeline[1]",
+        "source_ref": "cycle_model.pipeline[1]",
+        "description": "Register write; add_out/carry_out update combinationally"
+      },
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "description": "Register write; add_out/carry_out update combinationally",
+      "source_ref": "cycle_model.pipeline[1]"
+    },
+    "cycle_ordering_0": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1",
+      "scenario_id": "SC_014_EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "add_out",
+        "add_rule",
+        "carry_out",
+        "carry_rule",
+        "opa_q",
+        "opb_q",
+        "prdata_rule",
+        "pready_rule",
+        "pslverr_rule"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_ordering_0",
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.ordering[0]",
+        "source_ref": "cycle_model.ordering[0]",
+        "description": "OPA/OPB write happens on access-phase rising edge; outputs update the same cycle."
+      },
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "description": "OPA/OPB write happens on access-phase rising edge; outputs update the same cycle.",
+      "source_ref": "cycle_model.ordering[0]"
+    },
+    "cycle_backpressure_0": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+      "scenario_id": "SC_018_EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "add_out",
+        "add_rule",
+        "carry_out",
+        "carry_rule",
+        "opa_q",
+        "opb_q",
+        "prdata_rule",
+        "pready_rule",
+        "pslverr_rule"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_backpressure_0",
+        "class": "backpressure",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.backpressure[0]",
+        "source_ref": "cycle_model.backpressure[0]",
+        "description": "No backpressure."
+      },
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "description": "No backpressure.",
+      "source_ref": "cycle_model.backpressure[0]"
+    },
+    "cycle_perf_frequency_mhz": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+      "scenario_id": "SC_019_EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "add_out",
+        "add_rule",
+        "carry_out",
+        "carry_rule",
+        "opa_q",
+        "opb_q",
+        "prdata_rule",
+        "pready_rule",
+        "pslverr_rule"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_perf_frequency_mhz",
+        "class": "frequency",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.performance.frequency_mhz",
+        "source_ref": "cycle_model.performance.frequency_mhz",
+        "description": "50"
+      },
+      "class": "frequency",
+      "coverage_domain": "cycle",
+      "description": "50",
+      "source_ref": "cycle_model.performance.frequency_mhz"
+    },
+    "cycle_perf_throughput": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "scenario_id": "SC_020_EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "add_out",
+        "add_rule",
+        "carry_out",
+        "carry_rule",
+        "opa_q",
+        "opb_q",
+        "prdata_rule",
+        "pready_rule",
+        "pslverr_rule"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_perf_throughput",
+        "class": "throughput",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.performance.throughput",
+        "source_ref": "cycle_model.performance.throughput",
+        "description": "{'writes_per_cycle': 1}"
+      },
+      "class": "throughput",
+      "coverage_domain": "cycle",
+      "description": "{'writes_per_cycle': 1}",
+      "source_ref": "cycle_model.performance.throughput"
+    },
+    "fsm_apb_phase_idle_to_access_0": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1",
+      "scenario_id": "SC_014_EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "add_out",
+        "add_rule",
+        "carry_out",
+        "carry_rule",
+        "opa_q",
+        "opb_q",
+        "prdata_rule",
+        "pready_rule",
+        "pslverr_rule"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fsm_apb_phase_idle_to_access_0",
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "source": "fsm.apb_phase.transitions[0]",
+        "source_ref": "fsm.apb_phase.transitions[0]",
+        "description": "psel == 1 and penable == 1"
+      },
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "description": "psel == 1 and penable == 1",
+      "source_ref": "fsm.apb_phase.transitions[0]"
+    },
+    "fsm_apb_phase_access_to_idle_1": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1",
+      "scenario_id": "SC_014_EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "add_out",
+        "add_rule",
+        "carry_out",
+        "carry_rule",
+        "opa_q",
+        "opb_q",
+        "prdata_rule",
+        "pready_rule",
+        "pslverr_rule"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fsm_apb_phase_access_to_idle_1",
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "source": "fsm.apb_phase.transitions[1]",
+        "source_ref": "fsm.apb_phase.transitions[1]",
+        "description": "psel == 0"
+      },
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "description": "psel == 0",
+      "source_ref": "fsm.apb_phase.transitions[1]"
+    },
+    "error_error_0": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_ERROR_NONE",
+      "scenario_id": "SC_012_EQ_ERROR_NONE",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "add_out",
+        "add_rule",
+        "carry_out",
+        "carry_rule",
+        "opa_q",
+        "opb_q",
+        "prdata_rule",
+        "pready_rule",
+        "pslverr_rule"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "error_error_0",
+        "class": "error",
+        "coverage_domain": "function",
+        "source": "error_handling.error_sources[0]",
+        "source_ref": "error_handling.error_sources[0]",
+        "description": "{'id': 'ERR_NONE', 'condition': 'No error sources', 'architectural_effect': 'PSLVERR always 0'}"
+      },
+      "class": "error",
+      "coverage_domain": "function",
+      "description": "{'id': 'ERR_NONE', 'condition': 'No error sources', 'architectural_effect': 'PSLVERR always 0'}",
+      "source_ref": "error_handling.error_sources[0]"
+    },
+    "fcov_fm_write": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "scenario_id": "SC_020_EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "add_out",
+        "add_rule",
+        "carry_out",
+        "carry_rule",
+        "opa_q",
+        "opb_q",
+        "prdata_rule",
+        "pready_rule",
+        "pslverr_rule"
+      ],
+      "raw_hit": null,
+      "coverage_domain": "function"
+    },
+    "fcov_fm_idle": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_TRANSACTION_FM_IDLE",
+      "scenario_id": "SC_002_EQ_TRANSACTION_FM_IDLE",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "add_out",
+        "add_rule",
+        "carry_out",
+        "carry_rule",
+        "opa_q",
+        "opb_q",
+        "prdata_rule",
+        "pready_rule",
+        "pslverr_rule"
+      ],
+      "raw_hit": null,
+      "coverage_domain": "function"
+    },
+    "ccov_pipeline_order": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_MODULE_APB_ADD_DEMO",
+      "scenario_id": "SC_015_EQ_MODULE_APB_ADD_DEMO",
+      "rtl_observed_keys": [
+        "PRDATA",
+        "PREADY",
+        "PSLVERR",
+        "add_out",
+        "add_rule",
+        "carry_out",
+        "carry_rule",
+        "opa_q",
+        "opb_q",
+        "prdata_rule",
+        "pready_rule",
+        "pslverr_rule"
+      ],
+      "raw_hit": null,
+      "coverage_domain": "function"
+    }
+  },
+  "raw_functional": {
+    "hit": 19,
+    "total": 19,
+    "pct": 100.0
+  },
+  "raw_functional_bins": {
+    "function_apb_write": {
+      "hit": true,
+      "goal_id": "EQ_TRANSACTION_FM_WRITE",
+      "scenario_id": "SC_001_EQ_TRANSACTION_FM_WRITE"
+    },
+    "cycle_latency_apb_write": {
+      "hit": true,
+      "goal_id": "EQ_TRANSACTION_FM_WRITE",
+      "scenario_id": "SC_001_EQ_TRANSACTION_FM_WRITE"
+    },
+    "function_idle_or_read": {
+      "hit": true,
+      "goal_id": "EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1",
+      "scenario_id": "SC_014_EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1"
+    },
+    "SC1_executed": {
+      "hit": true,
+      "goal_id": "EQ_SCENARIO_SC1",
+      "scenario_id": "SC_003_EQ_SCENARIO_SC1"
+    },
+    "SC2_executed": {
+      "hit": true,
+      "goal_id": "EQ_REGISTER_OPA",
+      "scenario_id": "SC_010_EQ_REGISTER_OPA"
+    },
+    "SC3_executed": {
+      "hit": true,
+      "goal_id": "EQ_REGISTER_OPB",
+      "scenario_id": "SC_011_EQ_REGISTER_OPB"
+    },
+    "SC4_executed": {
+      "hit": true,
+      "goal_id": "EQ_SCENARIO_SC4",
+      "scenario_id": "SC_006_EQ_SCENARIO_SC4"
+    },
+    "cycle_handshake_0": {
+      "hit": true,
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
+      "scenario_id": "SC_008_EQ_PROTOCOL_HANDSHAKE_1"
+    },
+    "cycle_handshake_1": {
+      "hit": true,
+      "goal_id": "EQ_REGISTER_OPB",
+      "scenario_id": "SC_011_EQ_REGISTER_OPB"
+    },
+    "cycle_ordering_0": {
+      "hit": true,
+      "goal_id": "EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1",
+      "scenario_id": "SC_014_EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1"
+    },
+    "cycle_pipeline_s1_update": {
+      "hit": true,
+      "goal_id": "EQ_REGISTER_OPB",
+      "scenario_id": "SC_011_EQ_REGISTER_OPB"
+    },
+    "error_error_0": {
+      "hit": true,
+      "goal_id": "EQ_ERROR_NONE",
+      "scenario_id": "SC_012_EQ_ERROR_NONE"
+    },
+    "fsm_apb_phase_idle_to_access_0": {
+      "hit": true,
+      "goal_id": "EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1",
+      "scenario_id": "SC_014_EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1"
+    },
+    "fsm_apb_phase_access_to_idle_1": {
+      "hit": true,
+      "goal_id": "EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1",
+      "scenario_id": "SC_014_EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1"
+    },
+    "cycle_latency_apb_read": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_APB_READ",
+      "scenario_id": "SC_016_EQ_COVERAGE_CYCLE_LATENCY_APB_READ"
+    },
+    "cycle_pipeline_s0_decode": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S0_DECODE",
+      "scenario_id": "SC_017_EQ_COVERAGE_CYCLE_PIPELINE_S0_DECODE"
+    },
+    "cycle_backpressure_0": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+      "scenario_id": "SC_018_EQ_COVERAGE_CYCLE_BACKPRESSURE_0"
+    },
+    "cycle_perf_frequency_mhz": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+      "scenario_id": "SC_019_EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ"
+    },
+    "cycle_perf_throughput": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "scenario_id": "SC_020_EQ_COVERAGE_CYCLE_PERF_THROUGHPUT"
+    }
+  },
+  "rtl_observed": {
+    "status": "pass",
+    "scoreboard_events": 20,
+    "scoreboard_passed_events_with_refs": 20,
+    "goal_refs": [
+      "SC1_executed",
+      "SC2_executed",
+      "SC3_executed",
+      "SC4_executed",
+      "cycle_backpressure_0",
+      "cycle_handshake_0",
+      "cycle_handshake_1",
+      "cycle_latency_apb_read",
+      "cycle_latency_apb_write",
+      "cycle_ordering_0",
+      "cycle_perf_frequency_mhz",
+      "cycle_perf_throughput",
+      "cycle_pipeline_s0_decode",
+      "cycle_pipeline_s1_update",
+      "error_error_0",
+      "fsm_apb_phase_access_to_idle_1",
+      "fsm_apb_phase_idle_to_access_0",
+      "function_apb_write",
+      "function_idle_or_read"
+    ],
+    "missing_bins": [],
+    "invalid_rows": []
+  },
+  "lines": {
+    "hit": 0,
+    "total": 0,
+    "pct": null,
+    "target_pct": null,
+    "meets_target": true,
+    "measured": true,
+    "status": "pass"
+  },
+  "branches": {
+    "hit": 0,
+    "total": 0,
+    "pct": null,
+    "target_pct": null,
+    "meets_target": true,
+    "measured": true,
+    "status": "pass"
+  },
+  "functions": {
+    "hit": 0,
+    "total": 0,
+    "pct": null
+  },
+  "fsm_state": {
+    "target_pct": null,
+    "hit": 2,
+    "total": 2,
+    "pct": 100.0,
+    "meets_target": true,
+    "source": "SSOT functional coverage bins"
+  },
+  "files": {},
+  "limitations": {},
+  "waived_limitations": {},
+  "static_universe_not_instrumented": {},
+  "total_checks": 0,
+  "passed": 0,
+  "failed": 0,
+  "escalations": []
+}

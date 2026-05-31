@@ -1,0 +1,5 @@
+[repair_ssot_schema] wrote mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.yaml
+[repair_ssot_schema] provenance: mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.provenance.json
+[repair_ssot_schema] sections: 36/36
+[repair_ssot_schema] downstream_readiness: clean
+[repair_ssot_schema] next: python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py" mctp_assembler_scratch --root "$ATLAS_PROJECT_ROOT" --mode signoff

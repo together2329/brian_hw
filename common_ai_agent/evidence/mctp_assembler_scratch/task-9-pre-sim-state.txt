@@ -1,0 +1,3 @@
+pre-task9 sim artifacts:
+scoreboard rows pre-task9:
+missing

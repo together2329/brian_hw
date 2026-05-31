@@ -1,0 +1,7 @@
+{
+  "cl_passed": true,
+  "cl_self": true,
+  "fl_errors": [],
+  "coverage_hit": 18,
+  "coverage_bins": 18
+}

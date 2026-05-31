@@ -1,0 +1,32 @@
+Task 8 adversarial summary
+
+Scope:
+- Add a requirement-derived directed scenario catalog under mctp_assembler_scratch/tc.
+- Cover 8 valid scenarios, 8 packet drops, and 6 assembly drops.
+- Assert negative drop contracts include no_sram_write, sram_write_count == 0, payload_bytes_written == 0, and the correct counter/drop reason.
+
+Probed classes:
+- malformed input: intentionally malformed JSON failed jq parsing with nonzero return code.
+  Evidence: task-8-adversarial-malformed.txt.
+- prompt injection: not applicable; scenario IDs and expectations are deterministic local Python/JSON data, not executed prose.
+- cancel/resume: Boulder active work and plan were reread before task closure.
+  Evidence: task-8-adversarial-state-dirty-stale.txt.
+- stale state: mctp_assembler_scratch/tc has no legacy mctp_assembler/ path.
+  Evidence: task-8-adversarial-state-dirty-stale.txt, task-8-final-green.txt.
+- dirty worktree: git status was captured; unrelated dirty files were left untouched.
+  Evidence: task-8-adversarial-state-dirty-stale.txt.
+- hung or long commands: py_compile, scenario manifest generation, and TB compile ran through a 30s subprocess timeout wrapper.
+  Evidence: task-8-adversarial-bounded-commands.txt.
+- flaky tests: two scenario manifest reruns produced stable semantic jq results.
+  Evidence: task-8-adversarial-rerun-and-json.txt.
+- misleading success output: success used jq semantic counts and negative-drop predicates, not stdout alone.
+  Evidence: task-8-final-green.txt, task-8-drop-no-write.txt.
+- repeated interruptions: plan, Boulder state, and ledger continuity were checked before marking Task 8 complete.
+  Evidence: task-8-adversarial-state-dirty-stale.txt.
+
+Cleanup:
+- ulw-qa-mctp-task8 tmux session killed and verified absent.
+- /tmp/mctp_task8_manifest_probe.json removed.
+- tc/__pycache__ removed after py_compile.
+- ./--help path verified absent.
+  Evidence: task-8-cleanup.txt.

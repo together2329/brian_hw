@@ -1,0 +1,109 @@
+boulder active work:
+{
+  "active_work_id": "mctp-assembler-req-to-audit-scratch",
+  "active_plan": "plans/mctp-assembler-req-to-audit-scratch.md",
+  "status": "active"
+}
+dirty worktree acknowledged:
+ m ../.claude/worktrees/wf_c8c8419b-dc0-1
+ M core/tool_schema.py
+ M core/tools.py
+ ? deepdeep_ip
+ M doc/wiki/_graph.json
+ M doc/wiki/index.md
+ M doc/wiki/log.md
+ A frontend/atlas/__tests__/preview-pane-lint-annotation.test.tsx
+ M frontend/atlas/__tests__/sim-debug-vcd-scope-annotation.test.jsx
+ M frontend/atlas/__tests__/wave-edge-click.test.jsx
+ A frontend/atlas/__tests__/workflow-report-click.test.tsx
+ M frontend/atlas/debug-shared.tsx
+ A frontend/atlas/lint-diagnostics.tsx
+ M frontend/atlas/pipeline-cards.tsx
+ M frontend/atlas/preview-pane.tsx
+ D frontend/atlas/sim-debug-chat.tsx
+ M frontend/atlas/sim-debug-header.tsx
+ M frontend/atlas/sim-debug-helpers.tsx
+ M frontend/atlas/sim-debug-panels-side.tsx
+ M frontend/atlas/sim-debug-panels.tsx
+ M frontend/atlas/sim-debug-root-shared.tsx
+ M frontend/atlas/sim-debug-wave.tsx
+ M frontend/atlas/sim-debug.tsx
+ M frontend/atlas/styles.css
+ M frontend/atlas/vcd-parser.js
+ M frontend/atlas/workflow-report.tsx
+ M frontend/atlas/workspace-lint-coverage.tsx
+ M frontend/atlas/workspace-root.tsx
+ M frontend/atlas/workspace-rootui-rail-tabs.tsx
+ M ip_examples/arm_m0_min/rtl/rtl_authoring_provenance.json
+ ? ip_examples/cmux_flow_alpha
+ m ip_examples/cmux_flow_gamma
+ m ip_examples/cmux_verify_5fix
+ M mctp_assembler/cov/coverage_functional.json
+ M mctp_assembler/lint/dut_lint.json
+ M mctp_assembler/lint/dut_lint.log
+ M mctp_assembler/list/mctp_assembler.f
+ M mctp_assembler/req/mctp_assembler_requirements.md
+ M mctp_assembler/rtl/mctp_assembler.sv
+ M mctp_assembler/rtl/rtl_compile.json
+ M mctp_assembler/sim/cocotb_build/mctp_assembler.vvp
+ M mctp_assembler/sim/results.xml
+ M mctp_assembler/sim/scoreboard_events.jsonl
+ M mctp_assembler/tb/cocotb/agents.py
+ M mctp_assembler/tb/cocotb/results.xml
+ M mctp_assembler/tb/cocotb/scoreboard.py
+ M mctp_assembler/tb/cocotb/tb_manifest.json
+ M mctp_assembler/tb/cocotb/test_mctp_assembler.py
+ M mctp_assembler/tb/cocotb/uvm_env.py
+ M mctp_assembler/tc/mctp_assembler_scenarios.py
+ M src/atlas_api_sim_debug.py
+ M src/atlas_api_vcd.py
+ M src/workflow_stage_surface.py
+ M tests/test_sim_debug_elab.py
+ M tests/test_workflow_stage_surface.py
+ M workflow/GUIDE.md
+ M workflow/fl-model-gen/scripts/emit_cycle_model.py
+ M workflow/fl-model-gen/scripts/emit_fl_model.py
+ M workflow/lint/scripts/dut_lint_report.py
+ M workflow/orchestrator/todo_templates/run-to-green.json
+ M workflow/rtl-gen/scripts/rtl_compile_report.py
+ M workflow/sim_debug/elab.py
+ M workflow/ssot-gen/scripts/new_ip_emit_chain.sh
+ M workflow/tb-gen/scripts/check_pyuvm_structure.sh
+ M workflow/tb-gen/scripts/check_scoreboard_events.py
+ M workflow/tb-gen/todo_templates/ssot-tb-cocotb.json
+ M workflow/tb-gen/todo_templates/ssot-tb-goal.json
+ M workflow/tb-gen/todo_templates/ssot-tb.json
+ m ../external_refs/open-design
+?? .omo/
+?? IP_SIGNOFF.md
+?? apb_add_demo/
+?? core/sim_debug_analyze.py
+?? core/sim_debug_intent.py
+?? core/vcd_timeline.py
+?? doc/wiki/hw-agent-ip-experiment-batch-20260530.md
+?? doc/wiki/sim-debug-agent-tool-2026-05-31.md
+?? doc/wiki/sim-debug-feature-review-2026-05-31.md
+?? doc/wiki/sim-debug-module-signals-2026-05-30.md
+?? doc/wiki/sim-debug-waveform-renderer-2026-05-31.md
+?? doc/wiki/uart-tx-end-to-end-findings-20260530.md
+?? evidence/
+?? frontend/atlas/__tests__/sim-debug-ctrlw-add.test.tsx
+?? frontend/atlas/__tests__/sim-debug-intent-hook.test.ts
+?? frontend/atlas/__tests__/sim-debug-source-viewer.test.tsx
+?? frontend/atlas/sim-debug-intent-hook.tsx
+?? frontend/atlas/sim-debug-module-signals.tsx
+?? mctp_assembler/req/source_references.md
+?? mctp_assembler/rtl/mctp_assembler_axi_read_egress.sv
+?? mctp_assembler/sim/cocotb_build/9pptyu_u_results.xml
+?? mctp_assembler/sim/cocotb_build/_ke8pske_results.xml
+?? mctp_assembler/sim/cocotb_build/bgc7n0gx_results.xml
+?? mctp_assembler/sim/cocotb_build/fccjekzr_results.xml
+?? mctp_assembler/sim/cocotb_build/h707e2wx_results.xml
+?? mctp_assembler/sim/cocotb_build/iwxgou3u_results.xml
+?? mctp_assembler/sim/cocotb_build/j9x5ia2x_results.xml
+?? mctp_assembler/sim/cocotb_build/p28k5eeq_results.xml
+?? mctp_assembler/sim/cocotb_build/u1ysnsi6_results.xml
+?? mctp_assembler_scratch/
+?? no_such_ip_for_task7/
+stale manifest scan:
+no stale mctp_assembler/ path in tb_manifest.json

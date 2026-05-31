@@ -1,0 +1,33 @@
+# Debug Journal - Task 9 scoreboard schema alias gap
+Started: 2026-05-31T11:18:00Z
+Goal: Make scratch simulation scoreboard schema gate pass without editing generated sim evidence by hand.
+
+## Environment snapshot
+- Runtime: Python 3.9 + cocotb + Icarus Verilog via mctp_assembler_scratch/tb/cocotb/test_runner.py
+- Entry: python3 mctp_assembler_scratch/tb/cocotb/test_runner.py
+- Failing gate: python3 workflow/tb-gen/scripts/check_scoreboard_events.py mctp_assembler_scratch --root . --source-check --require-events
+- References read: omo debugging python.md, 00-setup.md, 02-investigate.md, 06-fix.md
+
+## Hypotheses
+1. [CONFIRMED] TB rows miss canonical observable aliases; evidence is schema errors for bvalid_next/bresp_next/readback_* while manifest exposes axi_/m_axi_ aliases. Fix: scoreboard alias augmentation.
+2. [REFUTED] RTL top lacks the relevant signals; evidence is tb_manifest outputs containing axi_bvalid, axi_bresp, m_axi_rdata, m_axi_rlast, sram_wr_data.
+3. [PARTIAL] Some generated goals use abstract observables such as retention; schema treats retention as signal-like. Fix: add a DUT-derived retention proxy in TB rows for memory-retention goals.
+
+## Artifacts to revert
+- [ ] mctp_assembler_scratch/tb/cocotb/scoreboard.py - add alias augmentation. Revert with git/apply_patch if rejected.
+- [ ] .debug-journal.md - copy to evidence then remove.
+
+## Findings
+- Red schema evidence: evidence/mctp_assembler_scratch/task-9-scoreboard-schema.txt
+
+### Alias fix
+- File: mctp_assembler_scratch/tb/cocotb/scoreboard.py
+- Mechanism: enrich rtl_observed with canonical aliases before EquivalenceScoreboard.record.
+- Red: task-9-scoreboard-schema.txt failed on missing bvalid_next/bresp_next/readback_*/retention keys.
+
+### Green phase
+- Command: python3 mctp_assembler_scratch/tb/cocotb/test_runner.py
+- Result: sim_rc=0, TESTS=1 PASS=1 FAIL=0.
+- Command: python3 workflow/tb-gen/scripts/check_scoreboard_events.py mctp_assembler_scratch --root . --source-check --require-events
+- Result: PASS goals=91 required=91 scoreboard_rows=91 goals_with_rows=91.
+- Toggle proof: before alias augmentation schema gate failed on missing observable aliases; after alias augmentation it passes.

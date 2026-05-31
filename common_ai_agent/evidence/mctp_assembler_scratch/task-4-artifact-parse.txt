@@ -1,0 +1,1 @@
+parse_ok generated model/contract artifacts

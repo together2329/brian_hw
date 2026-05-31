@@ -1,0 +1,7 @@
+RUN python3 workflow/rtl-gen/scripts/rtl_compile_report.py mctp_assembler_scratch --root .
+returncode 0
+[rtl_compile_report] iverilog: errors=0 diagnostics=0 style_violations=0 returncode=0
+RUN python3 workflow/lint/scripts/dut_lint_report.py mctp_assembler_scratch --root .
+returncode 0
+[dut_lint_report]   verilator: errors=0 warnings=0 returncode=0
+bounded_command_probe=pass

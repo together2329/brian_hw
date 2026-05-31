@@ -1,0 +1,6 @@
+true
+true
+[check_tb_python_compile] PASS: compiled 9 file(s)
+[check_tb_python_compile] wrote mctp_assembler_scratch/tb/cocotb/tb_py_compile.json
+no_stale_tc_path
+no_help_path

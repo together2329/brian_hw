@@ -1,0 +1,7 @@
+{
+  "empty_rtl_observed": 0,
+  "legacy_goal_ids": 0,
+  "missing_required_fields": 0,
+  "rows": 91,
+  "scenario_rows": 22
+}

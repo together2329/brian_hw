@@ -17,6 +17,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { AtlasStatusBadge } from './workspace-report-status';
 import { _escHtml } from './workspace-feed-cards';
 import { ToolOutputPre } from './workspace-markdown-chips';
+import { LintToolResultCard } from './lint-diagnostics';
+
+export { LintToolResultCard } from './lint-diagnostics';
 
 export const _buildFoldTree = (ranges: any): any => {
   const sorted = (ranges || []).slice().sort((a: any, b: any) => {
@@ -127,71 +130,6 @@ export const _highlightYamlBlock = (text: any): string =>
 //   • click 💬 button on a summary → dispatch atlas-fold-comment
 //   • drag-select on line-number gutter → floating "Comment selection"
 
-export const LintToolResultCard = ({ result, onOpenDiagnostic }: any) => {
-  const passed = result?.passed === true;
-  const diagnostics = Array.isArray(result?.diagnostics) ? result.diagnostics : [];
-  return (
-    <div style={{
-      border: '1px solid ' + (passed ? 'color-mix(in oklch, var(--ok) 35%, var(--line))' : 'color-mix(in oklch, var(--err) 35%, var(--line))'),
-      background: 'var(--panel)',
-      borderRadius: 4,
-      padding: 10,
-      minWidth: 0,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-        <span style={{ fontFamily: 'var(--mono)', fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-          {result?.tool || 'tool'}
-        </span>
-        <AtlasStatusBadge status={passed ? 'approved' : 'error'} label={passed ? 'pass' : 'fail'} compact />
-        <span style={{ flex: 1 }} />
-        <span style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10 }}>
-          rc {result?.returncode ?? '?'}
-        </span>
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginBottom: 8 }}>
-        {[
-          ['errors', result?.errors ?? 0],
-          ['warnings', result?.warnings ?? 0],
-          ['diagnostics', diagnostics.length],
-        ].map(([label, value]: any) => (
-          <div key={label} style={{ border: '1px solid var(--line)', background: 'var(--bg)', borderRadius: 3, padding: '6px 7px' }}>
-            <div style={{ color: 'var(--fg-mute)', fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{label}</div>
-            <div style={{ fontFamily: 'var(--mono)', fontWeight: 800, fontSize: 14 }}>{value}</div>
-          </div>
-        ))}
-      </div>
-      <div className="trunc" title={result?.command || ''} style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10 }}>
-        {result?.command || '(no command)'}
-      </div>
-      {diagnostics.length > 0 && (
-        <div style={{ marginTop: 8, display: 'grid', gap: 5 }}>
-          {diagnostics.slice(0, 5).map((d: any, idx: number) => (
-            <button key={idx} type="button" onClick={() => onOpenDiagnostic?.(d)} style={{
-              textAlign: 'left',
-              border: 0,
-              background: 'transparent',
-              borderLeft: '2px solid ' + (String(d.severity || '').toLowerCase() === 'error' ? 'var(--err)' : 'var(--warn)'),
-              padding: '0 0 0 7px',
-              color: 'var(--fg)',
-              fontFamily: 'var(--mono)',
-              fontSize: 10,
-              lineHeight: 1.35,
-              cursor: d.path || d.file ? 'pointer' : 'default',
-            }}>
-              <span style={{ color: 'var(--fg-mute)' }}>
-                {d.severity || 'diag'} {d.file || ''}{d.line ? `:${d.line}` : ''}{d.column ? `:${d.column}` : ''}
-                {d.rule ? ` ${d.rule}` : ''}
-              </span>
-              <div>{String(d.message || '').slice(0, 260)}</div>
-              {d.source && <div style={{ color: 'var(--fg-mute)' }}>{String(d.source).slice(0, 220)}</div>}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
-
 export const LintReportSummary = ({ ip, onSelectPath, onOpenDiagnostic }: any) => {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -233,29 +171,31 @@ export const LintReportSummary = ({ ip, onSelectPath, onOpenDiagnostic }: any) =
       padding: 12,
       display: 'grid',
       gap: 10,
+      minWidth: 0,
+      overflow: 'hidden',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <div>
-          <div style={{ fontWeight: 900, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+        <div style={{ minWidth: 0 }}>
+          <div className="trunc" title="pyslang + verilator lint" style={{ fontWeight: 900, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 12 }}>
             pyslang + verilator lint
           </div>
-          <div style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10, marginTop: 2 }}>
+          <div className="trunc" title={`${data?.resolved_ip || ip}${data?.timestamp ? ` · ${data.timestamp}` : ''}`} style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10, marginTop: 2 }}>
             {data?.resolved_ip || ip} {data?.timestamp ? `· ${data.timestamp}` : ''}
           </div>
         </div>
-        <span style={{ flex: 1 }} />
+        <span style={{ flex: 1, minWidth: 0 }} />
         {hasReport && <AtlasStatusBadge status={passed ? 'approved' : 'error'} label={passed ? 'clean' : 'issues'} compact />}
         <button
           className="btn"
           onClick={() => setTick(v => v + 1)}
           disabled={loading}
-          style={{ padding: '2px 8px', fontSize: 10 }}
+          style={{ padding: '2px 8px', fontSize: 10, flex: '0 0 auto' }}
         >refresh</button>
         <button
           className="btn"
           onClick={() => load(true)}
           disabled={running || loading}
-          style={{ padding: '2px 8px', fontSize: 10 }}
+          style={{ padding: '2px 8px', fontSize: 10, flex: '0 0 auto' }}
         >run report</button>
       </div>
 
@@ -275,7 +215,7 @@ export const LintReportSummary = ({ ip, onSelectPath, onOpenDiagnostic }: any) =
 
       {hasReport && (
         <>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: 8 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 8, minWidth: 0 }}>
             {[
               ['tool', data.tool || 'pyslang+verilator'],
               ['errors', data.errors ?? 0],
@@ -289,7 +229,7 @@ export const LintReportSummary = ({ ip, onSelectPath, onOpenDiagnostic }: any) =
               </div>
             ))}
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(360px, 100%), 1fr))', gap: 10, minWidth: 0 }}>
             {tools.map((result: any, idx: number) => (
               <LintToolResultCard
                 key={`${result.tool || 'tool'}-${idx}`}
@@ -298,14 +238,14 @@ export const LintReportSummary = ({ ip, onSelectPath, onOpenDiagnostic }: any) =
               />
             ))}
           </div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <button className="btn" onClick={() => data.report_path && onSelectPath?.(data.report_path)} style={{ padding: '2px 8px', fontSize: 10 }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', minWidth: 0, overflow: 'hidden' }}>
+            <button className="btn" onClick={() => data.report_path && onSelectPath?.(data.report_path)} style={{ padding: '2px 8px', fontSize: 10, flex: '0 0 auto' }}>
               open json
             </button>
-            <button className="btn" onClick={() => data.log_path && onSelectPath?.(data.log_path)} disabled={!data.log_exists} style={{ padding: '2px 8px', fontSize: 10 }}>
+            <button className="btn" onClick={() => data.log_path && onSelectPath?.(data.log_path)} disabled={!data.log_exists} style={{ padding: '2px 8px', fontSize: 10, flex: '0 0 auto' }}>
               open log
             </button>
-            <span className="trunc" title={data.command || ''} style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10 }}>
+            <span className="trunc" title={data.command || ''} style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10, flex: '1 1 auto', minWidth: 0 }}>
               {data.command || '(no command)'}
             </span>
           </div>

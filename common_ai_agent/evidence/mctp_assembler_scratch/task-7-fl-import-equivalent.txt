@@ -1,0 +1,22 @@
+scoreboard adapter import:
+mctp_assembler_scratch/tb/cocotb/scoreboard.py:6:from equivalence_scoreboard import EquivalenceScoreboard
+mctp_assembler_scratch/tb/cocotb/scoreboard.py:12:        self.adapter = EquivalenceScoreboard(ip, root, reset_events=True)
+workflow/tb-gen/runtime/equivalence_scoreboard.py:8:- <ip>/model/functional_model.py
+workflow/tb-gen/runtime/equivalence_scoreboard.py:418:def _write_self_check_blocker(scoreboard: "EquivalenceScoreboard", report: dict[str, Any]) -> Path:
+workflow/tb-gen/runtime/equivalence_scoreboard.py:424:        evidence = str(gap.get("question") or gap.get("reason") or "missing comparable FunctionalModel contract")
+workflow/tb-gen/runtime/equivalence_scoreboard.py:442:        "reason": "SSOT/FunctionalModel contract is not concrete enough for FL-vs-RTL scoreboard comparison",
+workflow/tb-gen/runtime/equivalence_scoreboard.py:459:class EquivalenceScoreboard:
+workflow/tb-gen/runtime/equivalence_scoreboard.py:460:    """Small adapter between generated TB monitors and the SSOT FunctionalModel."""
+workflow/tb-gen/runtime/equivalence_scoreboard.py:474:        self.model_path = self.ip_dir / "model" / "functional_model.py"
+workflow/tb-gen/runtime/equivalence_scoreboard.py:564:            raise RuntimeError(f"missing generated FunctionalModel: {self.model_path}")
+workflow/tb-gen/runtime/equivalence_scoreboard.py:567:            raise RuntimeError(f"cannot import generated FunctionalModel: {self.model_path}")
+workflow/tb-gen/runtime/equivalence_scoreboard.py:571:        model_cls = getattr(module, "FunctionalModel", None)
+workflow/tb-gen/runtime/equivalence_scoreboard.py:573:            raise RuntimeError(f"{self.model_path} does not define FunctionalModel")
+workflow/tb-gen/runtime/equivalence_scoreboard.py:963:            "model_api": "FunctionalModel.apply",
+workflow/tb-gen/runtime/equivalence_scoreboard.py:1073:            return False, "rtl_observed must be DUT signal observations, not FunctionalModel model_result"
+workflow/tb-gen/runtime/equivalence_scoreboard.py:1115:        return False, "no comparable RTL observable for FunctionalModel result"
+workflow/tb-gen/runtime/equivalence_scoreboard.py:1128:        'no comparable RTL observable for FunctionalModel result'.
+workflow/tb-gen/runtime/equivalence_scoreboard.py:1295:                    "reason": "FunctionalModel returned unsupported_transaction for a required equivalence goal",
+workflow/tb-gen/runtime/equivalence_scoreboard.py:1338:    scoreboard = EquivalenceScoreboard(args.ip, args.root)
+generated test imports FunctionalModel for CL opt-in path:
+1219:            from functional_model import FunctionalModel as _CL  # type: ignore

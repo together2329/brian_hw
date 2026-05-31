@@ -791,7 +791,14 @@ def _fcov_bins(ssot: dict[str, Any]) -> list[dict[str, Any]]:
                 "coverage_domain": "function",
                 "source": f"function_model.transactions[{idx}]",
                 "source_ref": f"function_model.transactions.{_safe_name(tx.get('id') or tx.get('name'), f'transaction_{idx}')}",
-                "description": str(tx.get("description") or tx.get("expected") or name),
+                "description": " ".join(
+                    part
+                    for part in (
+                        str(tx.get("id") or "").strip(),
+                        str(tx.get("description") or tx.get("expected") or name).strip(),
+                    )
+                    if part
+                ),
             })
     cm = ssot.get("cycle_model") if isinstance(ssot.get("cycle_model"), dict) else {}
     def _add_cycle_bin(bid: str, klass: str, source: str, description: str) -> None:
@@ -1712,11 +1719,11 @@ class FunctionalModel:
             "transaction_name": tx.get("name"),
             "outputs_spec": tx.get("outputs") or [],
             "side_effects_spec": tx.get("side_effects") or [],
-            "ssot_question": (
-                "[SSOT QUESTION] structured output_rules/state_updates undefined "
-                "for transaction " + str(tx.get("id") or tx.get("name") or "<unknown>")
+            "ssot_gap": (
+                "structured output_rules/state_updates undefined for transaction "
+                + str(tx.get("id") or tx.get("name") or "<unknown>")
             ),
-            "fabricated_state": False,
+            "synthetic_state": False,
         }}
 
     def apply(self, txn):

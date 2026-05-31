@@ -21,6 +21,7 @@ for path in (_MODEL_DIR, _TC_DIR, _RUNTIME_DIR):
 
 from equivalence_scoreboard import EquivalenceScoreboard  # noqa: E402
 from functional_model import FunctionalModel  # noqa: E402
+from functional_model import _bytes_from_int  # noqa: E402
 from mctp_assembler_scenarios import (  # noqa: E402
     DEFAULT_LOCAL_EID,
     DEFAULT_SRAM_BASE,
@@ -333,6 +334,75 @@ class MctpScoreboard(uvm_scoreboard):
             )
             return
         self.record(scenario_id, rtl_obs, True)
+
+    def check_axi_read(
+        self,
+        scenario_id: str,
+        *,
+        rtl_beats: list[dict[str, int]],
+        araddr: int,
+        arlen: int,
+        arsize: int,
+        arburst: int,
+        byte_count: int,
+        desc_status_before: int,
+        desc_count_before: int,
+    ) -> None:
+        fm_result = self.fm.read_sram_burst(
+            {
+                "araddr": araddr,
+                "arlen": arlen,
+                "arsize": arsize,
+                "arburst": arburst,
+            }
+        )
+        rtl_bytes: list[int] = []
+        bytes_per_beat = min(1 << arsize, 32)
+        for beat in rtl_beats:
+            rtl_bytes.extend(_bytes_from_int(int(beat["data"]), bytes_per_beat))
+        rtl_bytes = rtl_bytes[:byte_count]
+
+        expected_bytes: list[int] = []
+        if fm_result.get("read_error"):
+            expected_bytes = []
+        else:
+            for beat in fm_result.get("rdata_beats") or []:
+                expected_bytes.extend(_bytes_from_int(int(beat["data"]), bytes_per_beat))
+            expected_bytes = expected_bytes[:byte_count]
+
+        resp_ok = all(int(b.get("rresp", 0)) == 0 for b in rtl_beats)
+        if fm_result.get("read_error"):
+            resp_ok = all(int(b.get("rresp", 0)) == 2 for b in rtl_beats)
+
+        rlast_ok = bool(rtl_beats) and int(rtl_beats[-1].get("rlast", 0)) == 1
+        bytes_ok = rtl_bytes == expected_bytes
+        state_ok = (desc_status_before & 0xF) == desc_count_before
+
+        passed = resp_ok and rlast_ok and bytes_ok and state_ok
+        mismatch_parts: list[str] = []
+        if not resp_ok:
+            mismatch_parts.append("rresp mismatch")
+        if not rlast_ok:
+            mismatch_parts.append("rlast not set on final beat")
+        if not bytes_ok:
+            mismatch_parts.append(f"payload fm={expected_bytes[:8]} rtl={rtl_bytes[:8]}")
+        if not state_ok:
+            mismatch_parts.append("descriptor/assembly state changed after read")
+        self.record(
+            scenario_id,
+            {
+                "araddr": araddr,
+                "arlen": arlen,
+                "arsize": arsize,
+                "byte_count": byte_count,
+                "rtl_bytes": rtl_bytes[:8],
+                "expected_bytes": expected_bytes[:8],
+                "beat_count": len(rtl_beats),
+            },
+            passed,
+            "; ".join(mismatch_parts),
+            coverage_refs=[scenario_id, "AXI_SRAM_READ", "FM_READ_SRAM_BURST"],
+        )
 
     def check_scenario(
         self,

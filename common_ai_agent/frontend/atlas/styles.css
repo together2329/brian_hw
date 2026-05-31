@@ -1106,6 +1106,15 @@ html[data-platform="windows"] .app {
 .token.deleted           { color: var(--err) !important; }
 .token.inserted          { color: var(--ok) !important; }
 
+.src-viewer .src-sig-hit {
+  color: var(--accent) !important;
+  background: color-mix(in oklch, var(--accent) 24%, transparent);
+  border: 1px solid color-mix(in oklch, var(--accent) 45%, var(--line));
+  border-radius: 3px;
+  padding: 0 1px;
+  margin: 0 -1px;
+}
+
 /* Readable YAML palette for Raw YAML cards. The renderer emits a small
    deterministic token set, so SSOT structure stays visible even when Prism
    does not have a YAML grammar loaded. */
@@ -2293,7 +2302,7 @@ html[data-platform="windows"] .app {
 }
 .wave-panel .wave-row {
   display: grid;
-  grid-template-columns: 180px 90px 1fr;
+  grid-template-columns: var(--wave-name-w, 180px) 90px 1fr;
   align-items: center;
   height: 24px;
   border-bottom: 1px solid #11141b;
@@ -2304,8 +2313,16 @@ html[data-platform="windows"] .app {
   background: #131720;
 }
 .wave-panel .wave-row.sel {
-  background: #1a2030;
-  border-left: 2px solid #ffb84d;
+  /* clicked-signal highlight — inset bar (no layout shift) + brighter tint */
+  background: color-mix(in oklch, #ffb84d 18%, #1a2030);
+  box-shadow: inset 3px 0 0 #ffb84d;
+}
+.wave-panel .wave-row.sel .wave-name {
+  color: #ffd24d;
+  font-weight: 700;
+}
+.wave-panel .wave-row.sel .wave-val {
+  color: #ffe9b0;
 }
 .wave-panel .wave-name {
   display: flex;
@@ -2351,6 +2368,17 @@ html[data-platform="windows"] .app {
     linear-gradient(to right, rgba(34,40,52,0.6) 1px, transparent 1px) repeat-x;
   background-size: 250px 100%, 50px 100%;
 }
+.wave-panel .wave-row.sel .wave-track {
+  /* .wave-track owns the grid background, so repeat the selected-row tint
+     here; otherwise selection only colors the name/value columns. */
+  background:
+    linear-gradient(to right, rgba(74,85,102,0.55) 1px, transparent 1px) repeat-x,
+    linear-gradient(to right, rgba(34,40,52,0.6) 1px, transparent 1px) repeat-x,
+    linear-gradient(to right,
+      color-mix(in oklch, #ffb84d 12%, #0a0d12),
+      color-mix(in oklch, #ffb84d 12%, #0a0d12));
+  background-size: 250px 100%, 50px 100%, 100% 100%;
+}
 .wave-panel .wave-svg {
   display: block;
   height: 24px;
@@ -2368,11 +2396,118 @@ html[data-platform="windows"] .app {
 }
 .wave-panel .bus-flag-text.x { fill: #ff5252; }
 
+/* ── Signal group header — a foldable, renameable band ABOVE its members.
+   Tag-based grouping leaves the underlying signals untouched (the header is
+   an extra row); --wgh-color tints the left rule + dot. */
+.wave-panel .wave-group-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  padding: 0 8px 0 6px;
+  background: linear-gradient(to right, color-mix(in oklch, var(--wgh-color, #8aa0b5) 16%, #131923), #11151d);
+  border-top: 1px solid #2a3140;
+  border-bottom: 1px solid #11141b;
+  border-left: 3px solid var(--wgh-color, #8aa0b5);
+  font-family: var(--mono);
+  font-size: 10px;
+  user-select: none;
+}
+.wave-panel .wgh-caret {
+  background: none; border: none; cursor: pointer;
+  color: #9fb0c3; font-size: 10px; padding: 0 2px; line-height: 1;
+}
+.wave-panel .wgh-dot { width: 8px; height: 8px; border-radius: 2px; flex: none; }
+.wave-panel .wgh-name {
+  color: #ffe066; font-weight: 700; letter-spacing: 0.04em;
+  text-transform: uppercase; cursor: text; white-space: nowrap;
+}
+.wave-panel .wgh-rename {
+  background: #0d1118; color: #ffe066; border: 1px solid var(--accent);
+  border-radius: 2px; font-family: var(--mono); font-size: 10px; font-weight: 700;
+  padding: 0 4px; width: 140px;
+}
+.wave-panel .wgh-count {
+  color: #6c7888; background: #0d1118; border-radius: 8px;
+  padding: 0 6px; font-size: 9px;
+}
+.wave-panel .wgh-act {
+  background: none; border: none; cursor: pointer; color: #8a98a8;
+  font-size: 13px; line-height: 1; padding: 0 4px;
+}
+.wave-panel .wgh-act:hover { color: #fff; }
+.wave-panel .wave-dnd-row,
+.wave-panel .wave-group-header {
+  cursor: grab;
+}
+.wave-panel .wave-dnd-row:active,
+.wave-panel .wave-group-header:active {
+  cursor: grabbing;
+}
+.wave-panel .wave-dnd-before {
+  box-shadow: inset 0 2px 0 var(--accent);
+}
+.wave-panel .wave-dnd-after {
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+/* ── Wave right-click menu — colour swatches + grouping/move actions. */
+.wave-ctx-menu {
+  min-width: 168px;
+  background: #11151d;
+  border: 1px solid #2a3140;
+  border-radius: 6px;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.5);
+  padding: 6px;
+  font-family: var(--mono);
+  font-size: 11px;
+}
+.wave-ctx-menu .wcm-swatches {
+  display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; margin-bottom: 4px;
+}
+.wave-ctx-menu .wcm-swatch {
+  width: 16px; height: 16px; border-radius: 3px; border: 1px solid rgba(255,255,255,0.18);
+  cursor: pointer; padding: 0;
+}
+.wave-ctx-menu .wcm-swatch:hover { outline: 2px solid #fff; }
+.wave-ctx-menu .wcm-label {
+  color: #6c7888;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 1px 2px 4px;
+}
+.wave-ctx-menu .wcm-radices {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  margin-bottom: 4px;
+}
+.wave-ctx-menu .wcm-radix {
+  background: #0d1118;
+  border: 1px solid #2a3140;
+  border-radius: 4px;
+  color: #cdd6e0;
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 3px 0;
+}
+.wave-ctx-menu .wcm-radix:hover { background: var(--accent); color: #000; border-color: var(--accent); }
+.wave-ctx-menu .wcm-item {
+  display: block; width: 100%; text-align: left;
+  background: none; border: none; cursor: pointer;
+  color: #cdd6e0; padding: 4px 8px; border-radius: 4px; font-size: 11px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.wave-ctx-menu .wcm-item:hover { background: var(--accent); color: #000; }
+.wave-ctx-menu .wcm-sep { height: 1px; background: #2a3140; margin: 4px 0; }
+
 /* Time ruler — Verdi-style. Markup is .time-ruler > .tr-corner +
    .tr-vcorner + .tr-axis (see window.TimeRuler). */
 .wave-panel .time-ruler {
   display: grid;
-  grid-template-columns: 180px 90px 1fr;
+  grid-template-columns: var(--wave-name-w, 180px) 90px 1fr;
   height: 22px;
   border-bottom: 1px solid #2a3140;
   background: #0d1118;
@@ -2515,59 +2650,43 @@ html[data-platform="windows"] .app {
 }
 .foldable-pane .line {
   white-space: pre;
-  color: #e6edf3;
+  color: var(--fg);
 }
-/* Syntax token palette — GitHub/Codex-dark inspired and scoped to
-   .foldable-pane so the rest of ATLAS keeps the global Prism colors. */
-.foldable-pane .line .token.keyword,
+/* Code token palette — mirrors the GLOBAL Prism theme (.token.*) so the
+   preview highlights IDENTICALLY to the Sim Debug source viewer (.src-viewer).
+   Theme-aware via the same vars; YAML keeps its own readable palette below
+   (.foldable-pane.yaml-pane). */
+.foldable-pane .line .token.property,
+.foldable-pane .line .token.tag,
 .foldable-pane .line .token.boolean,
-.foldable-pane .line .token.constant,
-.foldable-pane .line .token.atrule {
-  color: #ff7b72 !important;
-}
-.foldable-pane .line .token.string,
-.foldable-pane .line .token.attr-value,
-.foldable-pane .line .token.char {
-  color: #a5d6ff !important;
-}
 .foldable-pane .line .token.number,
-.foldable-pane .line .token.symbol {
-  color: #79c0ff !important;
-}
+.foldable-pane .line .token.constant,
+.foldable-pane .line .token.symbol { color: var(--magenta) !important; }
+.foldable-pane .line .token.selector,
+.foldable-pane .line .token.attr-name,
+.foldable-pane .line .token.string,
+.foldable-pane .line .token.char,
+.foldable-pane .line .token.builtin { color: var(--ok) !important; }
 .foldable-pane .line .token.operator,
-.foldable-pane .line .token.entity {
-  color: #ffdf5d !important;
-}
-.foldable-pane .line .token.punctuation {
-  color: #c9d1d9 !important;
-}
+.foldable-pane .line .token.entity,
+.foldable-pane .line .token.url { color: var(--cyan) !important; }
+.foldable-pane .line .token.atrule,
+.foldable-pane .line .token.attr-value,
+.foldable-pane .line .token.keyword { color: var(--accent) !important; font-weight: 600; }
+.foldable-pane .line .token.function,
+.foldable-pane .line .token.class-name { color: var(--warn) !important; }
+.foldable-pane .line .token.regex,
+.foldable-pane .line .token.important,
+.foldable-pane .line .token.variable { color: var(--err) !important; }
+.foldable-pane .line .token.namespace { opacity: 0.7; }
+.foldable-pane .line .token.punctuation { color: var(--fg) !important; opacity: 0.78; }
+[data-theme="light"] .foldable-pane .line .token.punctuation { color: #1f2630 !important; opacity: 1; }
 .foldable-pane .line .token.comment,
 .foldable-pane .line .token.prolog,
-.foldable-pane .line .token.cdata {
-  color: #8b949e !important;
-  font-style: italic;
-}
-.foldable-pane .line .token.function,
-.foldable-pane .line .token.class-name,
-.foldable-pane .line .token.attr-name,
-.foldable-pane .line .token.key {
-  color: #d2a8ff !important;
-}
-.foldable-pane .line .token.tag,
-.foldable-pane .line .token.selector {
-  color: #7ee787 !important;
-}
-.foldable-pane .line .token.regex,
-.foldable-pane .line .token.important {
-  color: #ffa657 !important;
-}
-.foldable-pane .line .token.builtin {
-  color: #ffa657 !important;
-}
-.foldable-pane .line .token.variable,
-.foldable-pane .line .token.namespace {
-  color: #ffa657 !important;
-}
+.foldable-pane .line .token.cdata { color: #8a96a3 !important; font-style: italic; }
+[data-theme="light"] .foldable-pane .line .token.comment,
+[data-theme="light"] .foldable-pane .line .token.prolog,
+[data-theme="light"] .foldable-pane .line .token.cdata { color: #4a5666 !important; }
 .foldable-pane.yaml-pane .line .token.key {
   color: #7dd3fc !important;
   font-weight: 700;
@@ -2586,50 +2705,8 @@ html[data-platform="windows"] .app {
   color: #94a3b8 !important;
   font-style: italic;
 }
-[data-theme="light"] .foldable-pane .line .token.keyword,
-[data-theme="light"] .foldable-pane .line .token.boolean,
-[data-theme="light"] .foldable-pane .line .token.constant {
-  color: #7a3492 !important;
-}
-[data-theme="light"] .foldable-pane .line {
-  color: #0f1720;
-}
-[data-theme="light"] .foldable-pane .line .token.string,
-[data-theme="light"] .foldable-pane .line .token.attr-value {
-  color: #1f7042 !important;
-}
-[data-theme="light"] .foldable-pane .line .token.number {
-  color: #9a5416 !important;
-}
-[data-theme="light"] .foldable-pane .line .token.operator {
-  color: #126a75 !important;
-}
-[data-theme="light"] .foldable-pane .line .token.comment {
-  color: #2f3a4a !important;
-  font-style: normal;
-}
-[data-theme="light"] .foldable-pane .line .token.function,
-[data-theme="light"] .foldable-pane .line .token.attr-name,
-[data-theme="light"] .foldable-pane .line .token.key {
-  color: #1559c7 !important;
-}
-[data-theme="light"] .foldable-pane .line .token.punctuation {
-  color: #111827 !important;
-}
-[data-theme="light"] .foldable-pane .line .token.variable,
-[data-theme="light"] .foldable-pane .line .token.namespace,
-[data-theme="light"] .foldable-pane .line .token.symbol {
-  color: #0f1720 !important;
-}
-[data-theme="light"] .foldable-pane .line .token.tag,
-[data-theme="light"] .foldable-pane .line .token.selector {
-  color: #8a3f0f !important;
-}
-[data-theme="light"] .foldable-pane .line .token.regex,
-[data-theme="light"] .foldable-pane .line .token.important,
-[data-theme="light"] .foldable-pane .line .token.builtin {
-  color: #76400f !important;
-}
+/* Light-theme code tokens now come from the shared var-based palette above
+   (matches the Sim Debug source viewer); only the YAML-pane keeps overrides. */
 [data-theme="light"] .foldable-pane.yaml-pane .fold-summary {
   background: #f8fafc;
   color: #0f1720 !important;

@@ -1,0 +1,9 @@
+[emit_goal_scoreboard_cocotb] wrote 8 Python files for mctp_assembler_scratch
+[emit_goal_scoreboard_cocotb] goals=91 rtl_sources=11
+[emit_goal_scoreboard_cocotb] runner=mctp_assembler_scratch/tb/cocotb/test_runner.py
+[check_tb_python_compile] PASS: compiled 9 file(s)
+[check_tb_python_compile] wrote mctp_assembler_scratch/tb/cocotb/tb_py_compile.json
+true
+true
+no_stale_manifest_path
+no_help_path

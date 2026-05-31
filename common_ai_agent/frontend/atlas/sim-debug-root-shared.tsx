@@ -4,7 +4,7 @@
 // window-owned components (AtlasTitle / TimeRuler / WaveRow / WaveCursor) that
 // previously lived inline at the top of sim-debug.tsx. Pulling them into a
 // shared module lets sim-debug.tsx and its presentational siblings
-// (sim-debug-shortcuts.tsx / sim-debug-chat.tsx) read the SAME window view
+// (sim-debug-shortcuts.tsx / sim-debug-wave.tsx) read the SAME window view
 // without duplicating the interface.
 //
 // Window-sourced values stay typed as `any` on purpose (same permissive house
@@ -26,6 +26,13 @@ export interface BackendBridge {
 export interface SimDebugProps {
   view?: string;
   initialTab?: string;
+  // When the panel is kept mounted but hidden (tab switched away), `active`
+  // is false: global keyboard shortcuts + intent polling pause so they don't
+  // fire on other tabs. State is fully preserved across the hide/show.
+  active?: boolean;
+  // When the sim_debug workflow is active but the Debug tab is hidden, preload
+  // data in the background while keeping interactive shortcuts disabled.
+  preload?: boolean;
 }
 export interface SimDebugRootWindow {
   ACTIVE_SESSION?: string;

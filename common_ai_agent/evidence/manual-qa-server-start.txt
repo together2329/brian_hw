@@ -1,0 +1,24 @@
+[atlas] Multi-user enabled (process_per_session=on)
+19:30:15 [rehydrate] 0 jobs reconciled (rescued=0, marked-error=0)
+
+  ATLAS UI → http://127.0.0.1:8791
+
+  [stdin] commands: 'status' (snapshot), 'heal' (force agent_running=False + dra
+in inbox), 'sessions' (list .session/), 'help', 'quit'
+[orchestrator-mode] portless process dispatch enabled; workflow jobs run as IPC
+subprocesses behind the Atlas port (set ATLAS_WORKER_TRANSPORT=http for the lega
+cy internal worker ports)
+
+
+
+
+
+
+
+
+
+
+
+
+
+

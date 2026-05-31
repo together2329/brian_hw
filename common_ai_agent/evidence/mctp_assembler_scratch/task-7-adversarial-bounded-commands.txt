@@ -1,0 +1,7 @@
+RUN python3 workflow/tb-gen/scripts/emit_goal_scoreboard_cocotb.py mctp_assembler_scratch --root .
+returncode 0
+[emit_goal_scoreboard_cocotb] runner=mctp_assembler_scratch/tb/cocotb/test_runner.py
+RUN python3 workflow/tb-gen/scripts/check_tb_python_compile.py mctp_assembler_scratch --root .
+returncode 0
+[check_tb_python_compile] wrote mctp_assembler_scratch/tb/cocotb/tb_py_compile.json
+bounded_command_probe=pass

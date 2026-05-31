@@ -18,6 +18,7 @@
     "rtl/mctp_assembler_mctp_parser.sv",
     "rtl/mctp_assembler_context_table.sv",
     "rtl/mctp_assembler_payload_writer.sv",
+    "rtl/mctp_assembler_axi_read_egress.sv",
     "rtl/mctp_assembler_apb_regfile.sv",
     "rtl/mctp_assembler_cdc.sv",
     "rtl/mctp_assembler.sv"
@@ -31,6 +32,8 @@
     "SC_INTERLEAVE_TWO",
     "SC_SEQ_ERROR",
     "SC_INTERLEAVED_TAGS",
-    "SC_CONTEXT_FULL"
+    "SC_CONTEXT_FULL",
+    "SC_AXI_READ_SINGLE",
+    "SC_AXI_READ_BURST"
   ]
 }

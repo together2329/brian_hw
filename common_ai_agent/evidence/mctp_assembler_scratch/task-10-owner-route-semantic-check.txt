@@ -1,0 +1,7 @@
+status owner_routed
+rtl_observed_status owner_routed
+missing_bins 57
+routed_missing_bins 57
+unrouted_missing_bins 0
+invalid_routes 0
+owner_route_semantic_check=PASS

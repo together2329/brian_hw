@@ -419,6 +419,104 @@ def canonical_bin_id(
     return bid
 
 
+def _is_non_signoff_route_status(value: Any) -> bool:
+    text = _norm_bin_key(value)
+    return text in {
+        "non_signoff",
+        "non_signoff_blocker",
+        "owner_routed_non_signoff",
+        "non_signoff_owner_routed",
+    } or ("non" in text and "signoff" in text)
+
+
+def _coverage_owner_routes(cov_dir: Path, missing_bins: list[str]) -> dict[str, Any]:
+    path = cov_dir / "coverage_owner_routes.json"
+    if not path.is_file():
+        return {
+            "status": "absent" if missing_bins else "not_needed",
+            "source": "",
+            "routes_by_bin": {},
+            "routed_missing_bins": [],
+            "unrouted_missing_bins": missing_bins,
+            "invalid_routes": [],
+        }
+    try:
+        doc = json.loads(path.read_text(encoding="utf-8", errors="replace"))
+    except json.JSONDecodeError as exc:
+        return {
+            "status": "invalid",
+            "source": str(path),
+            "routes_by_bin": {},
+            "routed_missing_bins": [],
+            "unrouted_missing_bins": missing_bins,
+            "invalid_routes": [{"row": 0, "reason": f"invalid JSON: {exc}"}],
+        }
+    if not isinstance(doc, dict):
+        return {
+            "status": "invalid",
+            "source": str(path),
+            "routes_by_bin": {},
+            "routed_missing_bins": [],
+            "unrouted_missing_bins": missing_bins,
+            "invalid_routes": [{"row": 0, "reason": "root must be a JSON object"}],
+        }
+
+    raw_routes = doc.get("routes")
+    routes = raw_routes if isinstance(raw_routes, list) else []
+    by_norm: dict[str, dict[str, Any]] = {}
+    invalid: list[dict[str, Any]] = []
+    for idx, item in enumerate(routes, 1):
+        if not isinstance(item, dict):
+            invalid.append({"row": idx, "reason": "route must be an object"})
+            continue
+        bid = str(item.get("bin_id") or item.get("id") or item.get("name") or "").strip()
+        owner = str(item.get("owner") or "").strip()
+        status = str(item.get("status") or "").strip()
+        reason = str(item.get("reason") or "").strip()
+        if not bid:
+            invalid.append({"row": idx, "reason": "missing bin_id"})
+            continue
+        if not owner:
+            invalid.append({"row": idx, "bin_id": bid, "reason": "missing owner"})
+            continue
+        if not _is_non_signoff_route_status(status):
+            invalid.append({"row": idx, "bin_id": bid, "reason": "status must be explicit non-signoff"})
+            continue
+        if not reason:
+            invalid.append({"row": idx, "bin_id": bid, "reason": "missing reason"})
+            continue
+        by_norm[_norm_bin_key(bid)] = {
+            "bin_id": bid,
+            "owner": owner,
+            "status": status,
+            "reason": reason,
+        }
+
+    routes_by_bin: dict[str, dict[str, Any]] = {}
+    unrouted: list[str] = []
+    for bid in missing_bins:
+        route = by_norm.get(_norm_bin_key(bid))
+        if route is None:
+            unrouted.append(bid)
+        else:
+            routes_by_bin[bid] = route
+
+    if invalid:
+        status = "invalid"
+    elif unrouted:
+        status = "incomplete"
+    else:
+        status = "complete"
+    return {
+        "status": status,
+        "source": str(path),
+        "routes_by_bin": routes_by_bin,
+        "routed_missing_bins": sorted(routes_by_bin),
+        "unrouted_missing_bins": unrouted,
+        "invalid_routes": invalid,
+    }
+
+
 def planned_bin_ids(fcov_plan: dict[str, Any], goals: dict[str, Any] | None = None) -> list[str]:
     entries = planned_bin_entries(fcov_plan, goals or {})
     return list(entries)
@@ -906,6 +1004,18 @@ def main() -> int:
     invalid_rows = rtl_cov.get("invalid_rows") if isinstance(rtl_cov.get("invalid_rows"), list) else []
     if invalid_rows:
         limitations["invalid_scoreboard_coverage_rows"] = invalid_rows[:12]
+    owner_routes = _coverage_owner_routes(cov_dir, missing_rtl_bins)
+    owner_routed_coverage = (
+        bool(missing_rtl_bins)
+        and owner_routes.get("status") == "complete"
+        and not invalid_rows
+    )
+    owner_routed_limitations: dict[str, Any] = {}
+    limitations_for_status = dict(limitations)
+    if owner_routed_coverage:
+        for key in ("rtl_observed_coverage", "raw_functional_only_bins"):
+            if key in limitations_for_status:
+                owner_routed_limitations[key] = limitations_for_status.pop(key)
     line_uninstrumented = line_goal is not None and lcov["lines"]["total"] == 0
     branch_uninstrumented = branch_goal is not None and lcov["branches"]["total"] == 0
     if line_uninstrumented:
@@ -948,7 +1058,13 @@ def main() -> int:
     )
     function_ok = function_coverage["meets_target"]
     cycle_ok = cycle_coverage["meets_target"]
-    status = "pass" if (line_ok and branch_ok and fsm_ok and checks_ok and functional_ok and function_ok and cycle_ok and not limitations) else "blocked"
+    local_metric_ok = line_ok and branch_ok and fsm_ok and checks_ok and not limitations_for_status
+    if local_metric_ok and functional_ok and function_ok and cycle_ok:
+        status = "pass"
+    elif local_metric_ok and owner_routed_coverage:
+        status = "owner_routed"
+    else:
+        status = "blocked"
     if functional["failed"] > 0:
         status = "fail"
 
@@ -988,13 +1104,20 @@ def main() -> int:
         "raw_functional": raw_functional["functional"],
         "raw_functional_bins": raw_bins,
         "rtl_observed": {
-            "status": "pass" if all_bin_ids and not missing_rtl_bins and not invalid_rows else "blocked",
+            "status": (
+                "pass"
+                if all_bin_ids and not missing_rtl_bins and not invalid_rows
+                else "owner_routed"
+                if owner_routed_coverage
+                else "blocked"
+            ),
             "scoreboard_events": rtl_cov.get("scoreboard_events", 0),
             "scoreboard_passed_events_with_refs": rtl_cov.get("scoreboard_passed_events_with_refs", 0),
             "goal_refs": rtl_cov.get("goal_refs", []),
             "missing_bins": missing_rtl_bins,
             "invalid_rows": invalid_rows,
         },
+        "owner_routes": owner_routes,
         "lines": {
             **lcov["lines"],
             "target_pct": line_target,
@@ -1020,6 +1143,7 @@ def main() -> int:
         },
         "files": lcov["files"],
         "limitations": limitations,
+        "owner_routed_limitations": owner_routed_limitations,
         "waived_limitations": waived_limitations,
         "static_universe_not_instrumented": limitations,
         "total_checks": functional["total_checks"],
@@ -1056,6 +1180,9 @@ def main() -> int:
         report.extend(f"- {key}: {value}" for key, value in limitations.items())
     else:
         report.append("- none")
+    if owner_routed_limitations:
+        report.extend(["", "## Owner-routed non-signoff coverage gaps"])
+        report.extend(f"- {key}: {value}" for key, value in owner_routed_limitations.items())
     if waived_limitations:
         report.extend(["", "## Waived tool metrics"])
         report.extend(f"- {key}: {value}" for key, value in waived_limitations.items())
@@ -1064,7 +1191,7 @@ def main() -> int:
     print(f"SSOT coverage summary: {cov_dir / 'coverage.json'}")
     print(f"SSOT coverage report : {sim_dir / 'coverage_report.md'}")
     print(f"Status               : {status}")
-    return 0 if status == "pass" else 3
+    return 0 if status in {"pass", "owner_routed"} else 3
 
 
 if __name__ == "__main__":

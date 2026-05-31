@@ -76,12 +76,22 @@ class BurstCheckpoint:
 
 
 @dataclass
+class AxiReadBurst:
+    araddr: int = 0
+    arlen: int = 0
+    arsize: int = 5
+    arburst: int = 1
+    byte_count: int = 0
+
+
+@dataclass
 class Scenario:
     scenario_id: str
     description: str
     apb_setup: List[ApbWrite] = field(default_factory=list)
     tlps: List[List[int]] = field(default_factory=list)
     axi_bursts: List[AxiTlpBurst] = field(default_factory=list)
+    axi_reads: List[AxiReadBurst] = field(default_factory=list)
     expect_descriptor: bool = False
     expect_descriptor_count: int = 0
     expect_packet_drop: bool = False
@@ -432,6 +442,51 @@ def _scenario_multi_fragment_over_64b() -> Scenario:
     )
 
 
+def _scenario_axi_read_single() -> Scenario:
+    tlp = build_mctp_pcie_vdm_packet(dest_eid=DEFAULT_LOCAL_EID, source_eid=3, payload=[0x7E, 0x55, 0xAA])
+    return Scenario(
+        scenario_id="SC_AXI_READ_SINGLE",
+        description="After message completion, read assembled payload through AXI read slave",
+        apb_setup=default_apb_setup(),
+        tlps=[tlp],
+        axi_bursts=[burst_from_tlp(tlp)],
+        expect_descriptor=True,
+        axi_reads=[AxiReadBurst(araddr=0, arlen=0, arsize=2, arburst=1, byte_count=3)],
+        coverage_refs=["SC_AXI_READ_SINGLE", "AXI_SRAM_READ", "SC_VALID_SINGLE_PACKET"],
+    )
+
+
+def _scenario_axi_read_burst() -> Scenario:
+    p0 = build_mctp_pcie_vdm_packet(
+        dest_eid=DEFAULT_LOCAL_EID,
+        source_eid=11,
+        som=1,
+        eom=0,
+        seq=0,
+        message_tag=6,
+        payload=_payload_bytes(20, seed=0x40),
+    )
+    p1 = build_mctp_pcie_vdm_packet(
+        dest_eid=DEFAULT_LOCAL_EID,
+        source_eid=11,
+        som=0,
+        eom=1,
+        seq=1,
+        message_tag=6,
+        payload=_payload_bytes(16, seed=0x60),
+    )
+    return Scenario(
+        scenario_id="SC_AXI_READ_BURST",
+        description="Multi-beat AXI read burst retrieves payload spanning multiple RDATA beats",
+        apb_setup=default_apb_setup(),
+        tlps=[p0, p1],
+        axi_bursts=[burst_from_tlp(p0), burst_from_tlp(p1)],
+        expect_descriptor=True,
+        axi_reads=[AxiReadBurst(araddr=0, arlen=1, arsize=5, arburst=1, byte_count=36)],
+        coverage_refs=["SC_AXI_READ_BURST", "AXI_SRAM_READ", "SC_MULTI_PACKET"],
+    )
+
+
 def _scenario_wstrb_final() -> Scenario:
     tlp = build_mctp_pcie_vdm_packet(dest_eid=DEFAULT_LOCAL_EID, source_eid=6, payload=[0x7E, 0x01])
     beats = tlp_bytes_to_axi_beats(tlp)
@@ -461,6 +516,8 @@ SCENARIOS: dict[str, Scenario] = {
         _scenario_seq_error(),
         _scenario_mtu_per_fragment(),
         _scenario_multi_fragment_over_64b(),
+        _scenario_axi_read_single(),
+        _scenario_axi_read_burst(),
         _scenario_wstrb_final(),
     ]
 }
@@ -470,6 +527,8 @@ def smoke_scenarios() -> List[Scenario]:
     return [
         SCENARIOS["SC_APB_REGS"],
         SCENARIOS["SC_VALID_SINGLE_PACKET"],
+        SCENARIOS["SC_AXI_READ_SINGLE"],
+        SCENARIOS["SC_AXI_READ_BURST"],
         SCENARIOS["SC_DROP_WRONG_VENDOR"],
         SCENARIOS["SC_MULTI_PACKET"],
         SCENARIOS["SC_INTERLEAVE_TWO"],

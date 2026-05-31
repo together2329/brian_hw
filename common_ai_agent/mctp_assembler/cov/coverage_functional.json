@@ -2,10 +2,10 @@
   "schema_version": 1,
   "type": "functional_coverage",
   "status": "pass",
-  "timestamp_iso": "2026-05-30T09:02:36Z",
+  "timestamp_iso": "2026-05-31T11:04:47Z",
   "functional": {
-    "hit": 10,
-    "total": 10,
+    "hit": 13,
+    "total": 13,
     "pct": 100.0,
     "bins": {
       "SC_APB_REGS": {
@@ -14,19 +14,31 @@
       },
       "SC_VALID_SINGLE_PACKET": {
         "hit": true,
-        "scenario_id": "SC_VALID_SINGLE_PACKET"
+        "scenario_id": "SC_AXI_READ_SINGLE"
       },
       "SC_AXI_ONE_BURST_ONE_TLP": {
         "hit": true,
         "scenario_id": "SC_VALID_SINGLE_PACKET"
       },
-      "SC_DROP_WRONG_VENDOR": {
+      "SC_AXI_READ_SINGLE": {
         "hit": true,
-        "scenario_id": "SC_DROP_WRONG_VENDOR"
+        "scenario_id": "SC_AXI_READ_SINGLE"
+      },
+      "AXI_SRAM_READ": {
+        "hit": true,
+        "scenario_id": "SC_AXI_READ_BURST"
+      },
+      "SC_AXI_READ_BURST": {
+        "hit": true,
+        "scenario_id": "SC_AXI_READ_BURST"
       },
       "SC_MULTI_PACKET": {
         "hit": true,
         "scenario_id": "SC_MULTI_PACKET"
+      },
+      "SC_DROP_WRONG_VENDOR": {
+        "hit": true,
+        "scenario_id": "SC_DROP_WRONG_VENDOR"
       },
       "SC_INTERLEAVE_TWO": {
         "hit": true,

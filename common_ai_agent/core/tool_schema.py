@@ -546,6 +546,42 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
         },
         required=[],
     ),
+    "sim_debug": _fn(
+        "sim_debug",
+        (
+            "Drive AND query the ATLAS Sim Debug waveform panel. Returns analysis text to you "
+            "and updates the open panel (it polls for the latest intent). Use the active IP unless `ip` is given. "
+            "Actions: 'show' add signal(s); 'goto' zoom the view to [t_start,t_end] ns; "
+            "'cursor' place cursor A/B; 'fit' reset view; 'reorder' set top-to-bottom row order (signals=desired order); "
+            "'group' tag signals into a named foldable group above them (group=name, signals, optional color); "
+            "'ungroup' remove signals from their group; 'color' recolor signals (color=#rrggbb, signals); "
+            "'fold'/'unfold' collapse/expand a group (group=name); "
+            "'trace' (pyslang) report a signal's driver + load sites with file:line and show the trace; "
+            "'find' (VCD) get the time of a signal edge (edge=rising|falling|any, nth) then jump the panel there; "
+            "'value' (VCD) value of a signal at time `at` ns. "
+            "Use `scope` when a leaf signal name may appear in multiple VCD scopes."
+        ),
+        {
+            "action": {"type": "string",
+                       "enum": ["show", "goto", "cursor", "fit", "reorder", "group", "ungroup",
+                                "color", "fold", "unfold", "trace", "find", "value"],
+                       "description": "What to do"},
+            "ip": {"type": "string", "description": "IP id (defaults to the active IP)", "default": ""},
+            "signals": {"type": "string", "description": "Comma/space separated signal names (show/reorder/group/ungroup/color)", "default": ""},
+            "signal": {"type": "string", "description": "Single signal name (show/trace/find/value)", "default": ""},
+            "scope": {"type": "string", "description": "Optional VCD/instance scope, e.g. tb.dut.u_core; disambiguates duplicate leaf signal names", "default": ""},
+            "group": {"type": "string", "description": "Group/tag name (group/ungroup/fold/unfold)", "default": ""},
+            "color": {"type": "string", "description": "Hex color like #4dd0e1 (group/color)", "default": ""},
+            "t_start": {"type": "integer", "description": "goto: window start (ns)"},
+            "t_end": {"type": "integer", "description": "goto: window end (ns)"},
+            "cursor_a": {"type": "integer", "description": "cursor/goto: cursor A time (ns)"},
+            "cursor_b": {"type": "integer", "description": "cursor/goto: cursor B time (ns)"},
+            "edge": {"type": "string", "enum": ["rising", "falling", "any"], "description": "find: edge kind", "default": "rising"},
+            "nth": {"type": "integer", "description": "find: which occurrence (1-based)", "default": 1},
+            "at": {"type": "integer", "description": "value: time (ns) to sample"},
+        },
+        required=["action"],
+    ),
     "read_pipeline_state": _fn(
         "read_pipeline_state",
         (

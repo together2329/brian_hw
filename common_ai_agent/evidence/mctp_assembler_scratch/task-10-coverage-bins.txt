@@ -1,0 +1,93 @@
+39:            "id": "FCOV_AXI_READBACK",
+40:            "source_ref": "function_model.transactions.FM_AXI_READBACK",
+171:      "SC_INTERLEAVE_TWO_KEYS_executed": {
+174:        "goal_id": "EQ_SCENARIO_SC_INTERLEAVE_TWO_KEYS",
+175:        "scenario_id": "SC_014_EQ_SCENARIO_SC_INTERLEAVE_TWO_KEYS",
+238:          "id": "SC_INTERLEAVE_TWO_KEYS_executed",
+241:          "scenario": "SC_INTERLEAVE_TWO_KEYS",
+248:      "SC_UNALIGNED_SRAM_PACK_NO_HOLES_executed": {
+257:          "id": "SC_UNALIGNED_SRAM_PACK_NO_HOLES_executed",
+260:          "scenario": "SC_UNALIGNED_SRAM_PACK_NO_HOLES",
+344:      "SC_AXI_READBACK_TRIM_executed": {
+353:          "id": "SC_AXI_READBACK_TRIM_executed",
+356:          "scenario": "SC_AXI_READBACK_TRIM",
+401:      "PD_MALFORMED_TLP_executed": {
+404:        "goal_id": "EQ_SCENARIO_PD_MALFORMED_TLP",
+405:        "scenario_id": "SC_020_EQ_SCENARIO_PD_MALFORMED_TLP",
+468:          "id": "PD_MALFORMED_TLP_executed",
+471:          "scenario": "PD_MALFORMED_TLP",
+785:      "AD_SEQUENCE_MISMATCH_executed": {
+794:          "id": "AD_SEQUENCE_MISMATCH_executed",
+797:          "scenario": "AD_SEQUENCE_MISMATCH",
+1032:          "source_ref": "function_model.transactions.FM_AXI_READBACK",
+1036:          "source": "function_model.transactions.FM_AXI_READBACK"
+1041:        "source_ref": "function_model.transactions.FM_AXI_READBACK"
+1230:        "goal_id": "EQ_SCENARIO_PD_MALFORMED_TLP",
+1231:        "scenario_id": "SC_020_EQ_SCENARIO_PD_MALFORMED_TLP",
+1299:          "description": "{'id': 'PD_MALFORMED_TLP', 'condition': 'malformed_tlp_header_or_length', 'architectural_effect': 'Status/error reporting follows the SSOT error policy'}"
+1303:        "description": "{'id': 'PD_MALFORMED_TLP', 'condition': 'malformed_tlp_header_or_length', 'architectural_effect': 'Status/error reporting follows the SSOT error policy'}",
+1641:          "description": "{'id': 'AD_SEQUENCE_MISMATCH', 'condition': 'packet_seq_not_expected', 'architectural_effect': 'Status/error reporting follows the SSOT error policy'}"
+1645:        "description": "{'id': 'AD_SEQUENCE_MISMATCH', 'condition': 'packet_seq_not_expected', 'architectural_effect': 'Status/error reporting follows the SSOT error policy'}",
+3119:          "source": "cycle_model.latency.FM_AXI_READBACK",
+3120:          "source_ref": "cycle_model.latency.FM_AXI_READBACK",
+3126:        "source_ref": "cycle_model.latency.FM_AXI_READBACK"
+3452:        "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_AXI_READBACK",
+3453:        "scenario_id": "SC_085_EQ_COVERAGE_CYCLE_PIPELINE_AXI_READBACK",
+4568:    "SC_INTERLEAVE_TWO_KEYS_executed",
+4569:    "SC_UNALIGNED_SRAM_PACK_NO_HOLES_executed",
+4571:    "SC_AXI_READBACK_TRIM_executed",
+4574:    "PD_MALFORMED_TLP_executed",
+4582:    "AD_SEQUENCE_MISMATCH_executed",
+4712:    "SC_INTERLEAVE_TWO_KEYS_executed": {
+4715:      "goal_id": "EQ_SCENARIO_SC_INTERLEAVE_TWO_KEYS",
+4716:      "scenario_id": "SC_014_EQ_SCENARIO_SC_INTERLEAVE_TWO_KEYS",
+4779:        "id": "SC_INTERLEAVE_TWO_KEYS_executed",
+4782:        "scenario": "SC_INTERLEAVE_TWO_KEYS",
+4789:    "SC_UNALIGNED_SRAM_PACK_NO_HOLES_executed": {
+4798:        "id": "SC_UNALIGNED_SRAM_PACK_NO_HOLES_executed",
+4801:        "scenario": "SC_UNALIGNED_SRAM_PACK_NO_HOLES",
+4885:    "SC_AXI_READBACK_TRIM_executed": {
+4894:        "id": "SC_AXI_READBACK_TRIM_executed",
+4897:        "scenario": "SC_AXI_READBACK_TRIM",
+4942:    "PD_MALFORMED_TLP_executed": {
+4945:      "goal_id": "EQ_SCENARIO_PD_MALFORMED_TLP",
+4946:      "scenario_id": "SC_020_EQ_SCENARIO_PD_MALFORMED_TLP",
+5009:        "id": "PD_MALFORMED_TLP_executed",
+5012:        "scenario": "PD_MALFORMED_TLP",
+5326:    "AD_SEQUENCE_MISMATCH_executed": {
+5335:        "id": "AD_SEQUENCE_MISMATCH_executed",
+5338:        "scenario": "AD_SEQUENCE_MISMATCH",
+5573:        "source_ref": "function_model.transactions.FM_AXI_READBACK",
+5577:        "source": "function_model.transactions.FM_AXI_READBACK"
+5582:      "source_ref": "function_model.transactions.FM_AXI_READBACK"
+6599:        "source": "cycle_model.latency.FM_AXI_READBACK",
+6600:        "source_ref": "cycle_model.latency.FM_AXI_READBACK",
+6606:      "source_ref": "cycle_model.latency.FM_AXI_READBACK"
+6932:      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_AXI_READBACK",
+6933:      "scenario_id": "SC_085_EQ_COVERAGE_CYCLE_PIPELINE_AXI_READBACK",
+8048:      "goal_id": "EQ_SCENARIO_PD_MALFORMED_TLP",
+8049:      "scenario_id": "SC_020_EQ_SCENARIO_PD_MALFORMED_TLP",
+8117:        "description": "{'id': 'PD_MALFORMED_TLP', 'condition': 'malformed_tlp_header_or_length', 'architectural_effect': 'Status/error reporting follows the SSOT error policy'}"
+8121:      "description": "{'id': 'PD_MALFORMED_TLP', 'condition': 'malformed_tlp_header_or_length', 'architectural_effect': 'Status/error reporting follows the SSOT error policy'}",
+8459:        "description": "{'id': 'AD_SEQUENCE_MISMATCH', 'condition': 'packet_seq_not_expected', 'architectural_effect': 'Status/error reporting follows the SSOT error policy'}"
+8463:      "description": "{'id': 'AD_SEQUENCE_MISMATCH', 'condition': 'packet_seq_not_expected', 'architectural_effect': 'Status/error reporting follows the SSOT error policy'}",
+9098:    "SC_INTERLEAVE_TWO_KEYS_executed": {
+9100:      "goal_id": "EQ_SCENARIO_SC_INTERLEAVE_TWO_KEYS",
+9101:      "scenario_id": "SC_014_EQ_SCENARIO_SC_INTERLEAVE_TWO_KEYS"
+9108:    "PD_MALFORMED_TLP_executed": {
+9110:      "goal_id": "EQ_SCENARIO_PD_MALFORMED_TLP",
+9111:      "scenario_id": "SC_020_EQ_SCENARIO_PD_MALFORMED_TLP"
+9115:      "goal_id": "EQ_SCENARIO_PD_MALFORMED_TLP",
+9116:      "scenario_id": "SC_020_EQ_SCENARIO_PD_MALFORMED_TLP"
+9255:      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_AXI_READBACK",
+9256:      "scenario_id": "SC_085_EQ_COVERAGE_CYCLE_PIPELINE_AXI_READBACK"
+9282:      "AD_SEQUENCE_MISMATCH_executed",
+9290:      "PD_MALFORMED_TLP_executed",
+9294:      "SC_AXI_READBACK_TRIM_executed",
+9296:      "SC_INTERLEAVE_TWO_KEYS_executed",
+9299:      "SC_UNALIGNED_SRAM_PACK_NO_HOLES_executed",
+9379:      "AD_SEQUENCE_MISMATCH_executed",
+9387:      "SC_AXI_READBACK_TRIM_executed",
+9390:      "SC_UNALIGNED_SRAM_PACK_NO_HOLES_executed",
+9469:    "rtl_observed_coverage": "Functional bins are not covered until a passing scoreboard row with real rtl_observed signals hits them: AD_DESCRIPTOR_FULL_executed, AD_DUPLICATE_SOM_executed, AD_MESSAGE_OVERFLOW_executed, AD_SEQUENCE_MISMATCH_executed, AD_SRAM_OVERFLOW_executed, AD_TIMEOUT_executed, PD_BAD_OR_EXPIRED_TAG_executed, PD_BAD_PAD_OR_ALIGNMENT_executed, PD_DISABLED_DROP_MODE_executed, PD_UNEXPECTED_MIDDLE_END_executed, SC_APB_REGS_PER_Q_executed, SC_AXI_READBACK_TRIM_executed, ... +45"
+9473:    "rtl_observed_coverage": "Functional bins are not covered until a passing scoreboard row with real rtl_observed signals hits them: AD_DESCRIPTOR_FULL_executed, AD_DUPLICATE_SOM_executed, AD_MESSAGE_OVERFLOW_executed, AD_SEQUENCE_MISMATCH_executed, AD_SRAM_OVERFLOW_executed, AD_TIMEOUT_executed, PD_BAD_OR_EXPIRED_TAG_executed, PD_BAD_PAD_OR_ALIGNMENT_executed, PD_DISABLED_DROP_MODE_executed, PD_UNEXPECTED_MIDDLE_END_executed, SC_APB_REGS_PER_Q_executed, SC_AXI_READBACK_TRIM_executed, ... +45"

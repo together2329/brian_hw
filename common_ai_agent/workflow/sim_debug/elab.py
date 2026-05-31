@@ -36,7 +36,7 @@ from core.pyslang_compat import import_pyslang, syntax_tree_class
 from core.pyslang_compat import root_symbol, source_manager as pyslang_source_manager
 
 
-ELAB_CACHE_VERSION = "sim-debug-elab-v8-dual-crosscheck"
+ELAB_CACHE_VERSION = "sim-debug-elab-v10-multi-driver-trace"
 
 
 def _project_root() -> Path:
@@ -222,15 +222,50 @@ def _static_hierarchy(top: str, sources: list[Path], reason: str) -> dict:
     }
 
 
+def _dedupe_file_line(rows: list[dict]) -> list[dict]:
+    out: list[dict] = []
+    seen: set[tuple[str, str]] = set()
+    for row in rows:
+        fl = str(row.get("file_line") or "")
+        kind = str(row.get("kind") or row.get("access") or "")
+        if not fl:
+            continue
+        key = (fl, kind)
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(row)
+    return out
+
+
+def _trace_payload(backend: str, drivers: list[dict], sinks: list[dict], **extra) -> dict:
+    all_drivers = _dedupe_file_line(drivers)
+    drivers = all_drivers[:20]
+    driver_lines = {str(d.get("file_line") or "") for d in drivers if d.get("file_line")}
+    deduped_sinks = [
+        sk for sk in _dedupe_file_line(sinks)
+        if str(sk.get("file_line") or "") not in driver_lines
+    ]
+    return {
+        **extra,
+        "backend": backend,
+        "driver": drivers[0] if drivers else None,
+        "drivers": drivers,
+        "driver_count": len(all_drivers),
+        "sinks": deduped_sinks[:20],
+        "sink_count": len(deduped_sinks),
+    }
+
+
 def _static_trace_driver(signal: str, sources: list[Path], reason: str) -> dict:
     bare = signal.rsplit(".", 1)[-1]
     bare = re.sub(r"\s*\[[^\]]+\]\s*$", "", bare).strip()
     if not bare:
-        return {"error": f"pyslang compile: {reason}", "driver": None, "sinks": []}
+        return {"error": f"pyslang compile: {reason}", "driver": None, "drivers": [], "sinks": []}
     word_re = re.compile(r"(?<![A-Za-z0-9_])" + re.escape(bare) + r"(?![A-Za-z0-9_])")
     assign_re = re.compile(r"<=|(?<![<>!=])=(?!=)")
     decl_re = re.compile(r"\b(input|output|inout|wire|reg|logic)\b[^;]*\b" + re.escape(bare) + r"\b")
-    driver = None
+    drivers: list[dict] = []
     decl = None
     sinks: list[dict] = []
     for src in sources:
@@ -247,21 +282,20 @@ def _static_trace_driver(signal: str, sources: list[Path], reason: str) -> dict:
             m = assign_re.search(line)
             if m:
                 lhs, rhs = line[:m.start()], line[m.end():]
-                if driver is None and word_re.search(lhs):
-                    driver = {"file_line": fl, "kind": "assignment (text fallback)"}
+                if word_re.search(lhs):
+                    drivers.append({"file_line": fl, "kind": "assignment (text fallback)"})
                 if word_re.search(rhs):
                     sinks.append({"file_line": fl, "context": bare, "access": "RD"})
             elif re.search(r"\.\s*[A-Za-z_]\w*\s*\(\s*" + re.escape(bare) + r"\s*\)", line):
                 sinks.append({"file_line": fl, "context": bare, "access": "PORT"})
-    if driver is None and decl is not None:
-        driver = decl
-    return {
-        "backend": "pyslang-text-fallback",
-        "warning": f"pyslang compile failed; used static RTL trace fallback: {reason}",
-        "driver": driver,
-        "sinks": sinks[:20],
-        "sink_count": len(sinks),
-    }
+    if not drivers and decl is not None:
+        drivers.append(decl)
+    return _trace_payload(
+        "pyslang-text-fallback",
+        drivers,
+        sinks,
+        warning=f"pyslang compile failed; used static RTL trace fallback: {reason}",
+    )
 
 
 # ── Base ─────────────────────────────────────────────────────────
@@ -618,7 +652,7 @@ class VerilatorElab(ElabBackend):
         name (e.g. it could be the signal itself for unscoped queries)."""
         ast = self._run(top, sources)
         if ast is None:
-            return {"error": "verilator failed (top=" + top + ")", "driver": None, "sinks": []}
+            return {"error": "verilator failed (top=" + top + ")", "driver": None, "drivers": [], "sinks": []}
 
         # Resolve loc → "<file>:<line>" using the meta.json file_map.
         out_dir = _cache_dir() / f"verilator_{top}"
@@ -644,11 +678,10 @@ class VerilatorElab(ElabBackend):
         # but the AST stores just the local var name.
         bare = signal.rsplit(".", 1)[-1]
 
-        driver = None
+        drivers: list[dict] = []
         sinks: list[dict] = []
 
         def _walk(node):
-            nonlocal driver
             if isinstance(node, list):
                 for n in node:
                     _walk(n)
@@ -659,8 +692,8 @@ class VerilatorElab(ElabBackend):
             # ASSIGNW / ALWAYS that mention bare signal → candidate driver.
             if t in ("ASSIGNW", "AstAssignW", "ALWAYS", "AstAlways"):
                 blob = json.dumps(node)
-                if bare in blob and driver is None:
-                    driver = {"file_line": _human_loc(node.get("loc", "")), "kind": t}
+                if bare in blob:
+                    drivers.append({"file_line": _human_loc(node.get("loc", "")), "kind": t})
             # VARREF whose name == bare signal → sink.
             elif t in ("VARREF", "AstVarRef") and node.get("name", "") == bare:
                 sinks.append({
@@ -672,7 +705,7 @@ class VerilatorElab(ElabBackend):
                 _walk(v)
 
         _walk(ast)
-        return {"backend": "verilator", "driver": driver, "sinks": sinks[:20]}
+        return _trace_payload("verilator", drivers, sinks)
 
 
 # ── Slang backend ────────────────────────────────────────────────
@@ -745,15 +778,14 @@ class SlangElab(ElabBackend):
     def trace_driver(self, top: str, signal: str, sources: list[Path]) -> dict:
         ast = self._run(top, sources)
         if ast is None:
-            return {"error": "slang failed (top=" + top + ")", "driver": None, "sinks": []}
+            return {"error": "slang failed (top=" + top + ")", "driver": None, "drivers": [], "sinks": []}
 
         # Slang's AST has Symbol nodes with `loc` (file:line). Walk and
         # collect any AssignmentExpression / AlwaysBlock that touches `signal`.
-        driver = None
+        drivers: list[dict] = []
         sinks: list[dict] = []
 
         def _walk(node):
-            nonlocal driver
             if not isinstance(node, (dict, list)):
                 return
             if isinstance(node, list):
@@ -763,15 +795,15 @@ class SlangElab(ElabBackend):
             kind = node.get("kind", "")
             blob = json.dumps(node)
             if signal in blob:
-                if kind in ("AlwaysBlock", "ContinuousAssign") and driver is None:
-                    driver = {"file_line": node.get("loc", ""), "kind": kind}
+                if kind in ("AlwaysBlock", "ContinuousAssign"):
+                    drivers.append({"file_line": node.get("loc", ""), "kind": kind})
                 elif kind == "ValueExpression":
                     sinks.append({"file_line": node.get("loc", ""), "context": node.get("symbol", "")})
             for v in node.values():
                 _walk(v)
 
         _walk(ast)
-        return {"backend": "slang", "driver": driver, "sinks": sinks[:20]}
+        return _trace_payload("slang", drivers, sinks)
 
 
 # ── pyslang backend (Python bindings to slang) ───────────────────
@@ -964,13 +996,12 @@ class PyslangElab(ElabBackend):
            (after stripping `<= ... else <= ...` ambiguity by
            tokenising). Cheap but reliable for synthesizable RTL.
 
-        Returns the FIRST driver found (closest to top) and up to 20
-        sinks. Multiple-driver designs would need merging — out of
-        scope for v1.
+        Returns every distinct driver line found (up to 20) and up to 20
+        sinks. `driver` is kept as the first entry for legacy callers.
         """
         comp = self._compile(sources)
         if comp is None:
-            return {"error": "pyslang not importable", "driver": None, "sinks": []}
+            return {"error": "pyslang not importable", "driver": None, "drivers": [], "sinks": []}
         if isinstance(comp, tuple) and comp[0] == "error":
             fallback = _static_trace_driver(signal, sources, comp[1])
             if fallback.get("driver") or fallback.get("sinks"):
@@ -983,7 +1014,7 @@ class PyslangElab(ElabBackend):
             if root_error:
                 raise RuntimeError(root_error)
         except Exception as e:
-            return {"error": f"pyslang root: {e}", "driver": None, "sinks": []}
+            return {"error": f"pyslang root: {e}", "driver": None, "drivers": [], "sinks": []}
 
         import re as _re
         bare = signal.rsplit(".", 1)[-1]
@@ -992,7 +1023,7 @@ class PyslangElab(ElabBackend):
         word_re = _re.compile(r"(?<![A-Za-z0-9_])" + _re.escape(bare) + r"(?![A-Za-z0-9_])")
 
         decl = None       # declaration site (Port / Var / Net)
-        driver = None     # first LHS assignment found
+        drivers: list = []  # every distinct LHS assignment found
         sinks: list = []
 
         def _resolve_loc(loc):
@@ -1007,45 +1038,41 @@ class PyslangElab(ElabBackend):
             f, l = _resolve_loc(loc)
             return f"{f}:{l}" if f else ""
 
-        # Line-level statement extractor. ProceduralBlock.syntax gives
-        # the ENTIRE always_ff text — too coarse for LHS/RHS. We split
-        # into individual *assignment statements* (terminated by `;`)
-        # and classify each one on its own.
-        def _extract_assigns(syntax_text):
-            """Return list of {'lhs_text','rhs_text'} per assignment."""
-            if not syntax_text:
-                return []
-            txt = _re.sub(r"//.*?$", "", syntax_text, flags=_re.MULTILINE)
-            txt = _re.sub(r"/\*.*?\*/", "", txt, flags=_re.DOTALL)
-            # Drop sensitivity list `@(...)` so ports there aren't counted as LHS.
-            txt = _re.sub(r"@\s*\([^)]*\)", "", txt)
-            # Each statement ends with `;`. Split, keep substantive ones.
-            stmts = [s.strip() for s in txt.split(";") if s.strip()]
-            out = []
-            for s in stmts:
-                # Skip control flow keywords without assignment.
-                if not _re.search(r"<=|(?<![<>!=])=(?!=)", s):
-                    continue
-                # Find the assignment operator (first `<=` or first standalone `=`)
-                m_nba = _re.search(r"<=", s)
-                m_ba  = _re.search(r"(?<![<>!=])=(?!=)", s)
-                pos = None; op = None
-                if m_nba and (not m_ba or m_nba.start() <= m_ba.start()):
-                    pos, op = m_nba.start(), "<="
-                elif m_ba:
-                    pos, op = m_ba.start(), "="
-                if pos is None:
-                    continue
-                lhs = s[:pos].strip()
-                rhs = s[pos + len(op):].strip()
-                # Drop `if (...)` prefix from LHS for proper analysis.
-                lhs = _re.sub(r"^.*\b(if|else|begin|end|case|default|for|while)\b\s*", "", lhs, count=1)
-                lhs = _re.sub(r"^.*\)", "", lhs).strip() if lhs.startswith("if") or "(" in lhs else lhs
-                out.append({"lhs": lhs, "rhs": rhs})
-            return out
+        # Per-line classifier. ProceduralBlock.syntax is the ENTIRE always
+        # text, so we scan it line by line (the block's str(syntax) lines map
+        # 1:1 onto consecutive source lines from sourceRange.start) and decide,
+        # for each line, whether `bare` is WRITTEN (the assignment target →
+        # driver) or merely READ (RHS / a condition like `if (sig)` / a port
+        # map `.x(sig)` → load). This lands the user on the exact statement
+        # instead of the `always`/`assign` keyword, and counts reads that are
+        # not on an assignment RHS (which the old splitter missed entirely).
+        def _classify_line(line: str):
+            """(is_write, is_read) for `bare` on one statement line."""
+            line = _re.sub(r"//.*$", "", line)
+            if not word_re.search(line):
+                return (False, False)
+            m_op = _re.search(r"<=(?!=)|(?<![<>=!])=(?!=)", line)
+            if m_op is None:
+                # No assignment operator → every occurrence is a read
+                # (condition, port connection, bare expression).
+                return (False, True)
+            lhs = line[:m_op.start()]
+            rhs = line[m_op.start():]
+            # An operator reached while still inside open parens is a
+            # comparison inside a condition (`if (a <= b)`), not an assignment.
+            if lhs.count("(") - lhs.count(")") > 0:
+                return (False, True)
+            # The write target is the identifier (with optional bit/part
+            # select) immediately to the left of the operator.
+            tgt = _re.search(r"([A-Za-z_]\w*)\s*(?:\[[^\]]*\])?\s*$", lhs)
+            target = tgt.group(1) if tgt else ""
+            lhs_rest = lhs[:tgt.start(1)] if tgt else lhs
+            is_write = (target == bare)
+            is_read = bool(word_re.search(lhs_rest) or word_re.search(rhs))
+            return (is_write, is_read)
 
         def _visit(scope):
-            nonlocal decl, driver
+            nonlocal decl
             try:
                 iter(scope)
             except TypeError:
@@ -1063,7 +1090,7 @@ class PyslangElab(ElabBackend):
                         decl = {"file_line": _file_line(m.location), "kind": kind}
                     continue
 
-                # 2) Assignments / always blocks — inspect syntax statement-by-statement
+                # 2) Assignments / always blocks — line-precise driver/load.
                 if "ContinuousAssign" in kind or "ProceduralBlock" in kind:
                     syn = getattr(m, "syntax", None)
                     if syn is None:
@@ -1071,20 +1098,29 @@ class PyslangElab(ElabBackend):
                     txt = str(syn)
                     if not word_re.search(txt):
                         continue
-                    fl = _file_line(m.location)
-                    is_lhs = False
-                    is_rhs = False
-                    for asn in _extract_assigns(txt):
-                        if word_re.search(asn["lhs"]):
-                            is_lhs = True
-                        if word_re.search(asn["rhs"]):
-                            is_rhs = True
-                    if is_lhs and driver is None:
-                        driver = {"file_line": fl, "kind": kind}
-                    if is_rhs and not is_lhs:
-                        sinks.append({"file_line": fl, "context": bare, "access": "RD"})
-                    elif is_rhs and is_lhs:
-                        sinks.append({"file_line": fl, "context": bare, "access": "RW"})
+                    # Map str(syntax) line offsets onto real source lines via
+                    # the syntax node's start location (NOT m.location, which
+                    # for an always block is the `always` keyword line). A
+                    # leading "\n" of trivia makes split()[0] an empty phantom
+                    # whose newline inflates the line count, and getLineNumber
+                    # reports the line AFTER the newline — so subtract one per
+                    # leading newline to re-anchor onto the first real token.
+                    try:
+                        fname0, base_line = _resolve_loc(syn.sourceRange.start)
+                    except Exception:
+                        fname0, base_line = _resolve_loc(m.location)
+                    base_line -= (len(txt) - len(txt.lstrip("\n")))
+                    for off, raw_line in enumerate(txt.split("\n")):
+                        is_w, is_r = _classify_line(raw_line)
+                        if not (is_w or is_r):
+                            continue
+                        fl = f"{fname0}:{base_line + off}" if fname0 else ""
+                        if is_w:
+                            drivers.append({"file_line": fl, "kind": kind})
+                        if is_r and not is_w:
+                            sinks.append({"file_line": fl, "context": bare, "access": "RD"})
+                        elif is_r and is_w:
+                            sinks.append({"file_line": fl, "context": bare, "access": "RW"})
                     continue
 
                 # 3) Recurse into Instance bodies (cell instantiations)
@@ -1115,19 +1151,19 @@ class PyslangElab(ElabBackend):
                 # same so waveform clicks remain connected to source.
                 _visit_top_instances(False)
         except Exception as e:
-            return {"error": f"pyslang walk: {e}", "driver": driver, "sinks": sinks[:20]}
+            return _trace_payload(
+                "pyslang",
+                drivers,
+                sinks,
+                error=f"pyslang walk: {e}",
+            )
 
         # Fall back to declaration site as 'driver' when no LHS assign
         # found (e.g. signal is a top-level input port).
-        if driver is None and decl is not None:
-            driver = {"file_line": decl["file_line"], "kind": decl["kind"] + " (declaration)"}
+        if not drivers and decl is not None:
+            drivers.append({"file_line": decl["file_line"], "kind": decl["kind"] + " (declaration)"})
 
-        return {
-            "backend": "pyslang",
-            "driver": driver,
-            "sinks": sinks[:20],
-            "sink_count": len(sinks),
-        }
+        return _trace_payload("pyslang", drivers, sinks)
 
     def module_signals(self, top: str, module: str, sources: list[Path]) -> dict:
         """Return every declared signal of `module`: ports (with In/Out/
@@ -1269,11 +1305,12 @@ class PyslangElab(ElabBackend):
 def _compact_backend_result(name: str, result: dict) -> dict:
     return {
         "backend": name,
-        "ok": bool(result.get("tree") or result.get("driver") or result.get("sinks")),
+        "ok": bool(result.get("tree") or result.get("driver") or result.get("drivers") or result.get("sinks")),
         "error": result.get("error") or "",
         "warning": result.get("warning") or "",
         "modules_found": result.get("modules_found") or [],
         "driver": result.get("driver"),
+        "driver_count": result.get("driver_count", len(result.get("drivers") or ([] if not result.get("driver") else [result.get("driver")]))),
         "sink_count": result.get("sink_count", len(result.get("sinks") or [])),
     }
 
@@ -1372,7 +1409,7 @@ class DualElab(ElabBackend):
         primary_name = next(
             (
                 name for name in self.order
-                if results.get(name, {}).get("driver") or results.get(name, {}).get("sinks")
+                if results.get(name, {}).get("driver") or results.get(name, {}).get("drivers") or results.get(name, {}).get("sinks")
             ),
             "",
         )

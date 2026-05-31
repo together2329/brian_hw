@@ -1,0 +1,2 @@
+   46466 mctp_assembler_scratch/req/mctp_assembler_scratch_requirements.md
+PASS task-1 req package exists and manifest parses

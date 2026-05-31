@@ -1,0 +1,5 @@
+{
+  "fl_passed": true,
+  "fl_self": true,
+  "fl_bins": 95
+}

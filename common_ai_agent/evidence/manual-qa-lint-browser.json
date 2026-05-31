@@ -1,0 +1,46 @@
+{
+  "url": "http://127.0.0.1:8791/?backend=live&ip=mctp_assembler&workflow=lint&session=lintqa_20260531%2Fmctp_assembler%2Flint&session_id=lintqa_20260531",
+  "lintReportTabCount": 1,
+  "groups": [
+    {
+      "testid": "lint-diagnostic-group-comparison-of-differently-signed-types-logic-4",
+      "open": true,
+      "text": "comparison of differently signed types ('logic[41warning mctp_assembler/rtl/mctp_assembler_payload_writer.sv:36comparison of differently signed types ('logic[4:0]' and 'integer')"
+    },
+    {
+      "testid": "lint-diagnostic-group-UNUSEDSIGNAL",
+      "open": true,
+      "text": "UNUSEDSIGNAL1warning rtl/mctp_assembler.sv:175:9Signal is not used: 'parse_fail_pulse'logic parse_fail_pulse;"
+    },
+    {
+      "testid": "lint-diagnostic-group-WIDTHEXPAND",
+      "open": false,
+      "text": "WIDTHEXPAND1warning rtl/mctp_assembler_payload_writer.sv:36:31Operator EQ expects 32 bits on the LHS, but LHS's VARREF 'lane_base' generates 5 bits.wire beat_full = (lane_base == (SRAM_DATA_BYTES - 1));"
+    },
+    {
+      "testid": "lint-diagnostic-group-WIDTHTRUNC",
+      "open": false,
+      "text": "WIDTHTRUNC1warning rtl/mctp_assembler_axi_write_ingress.sv:55:20Operator VAR 'EXPECTED_AWSIZE' expects 3 bits on the Initial value, but Initial value's CLOG2 generates 32 bits.localparam [2:0] EXPECTED_AWSIZE = $clog2(AX"
+    }
+  ],
+  "clickedText": "warning rtl/mctp_assembler_payload_writer.sv:36:31 Operator EQ expects 32 bits on the LHS, but LHS's VARREF 'lane_base' generates 5 bits. wire beat_full = (lane_base == (SRAM_DATA_BYTES - 1));",
+  "annotationText": "WARNING WIDTHEXPAND rtl/mctp_assembler_payload_writer.sv:36:31 Operator EQ expects 32 bits on the LHS, but LHS's VARREF 'lane_base' generates 5 bits. wire beat_full = (lane_base == (SRAM_DATA_BYTES - 1));",
+  "annotationHasWidthReason": true,
+  "previewHasSourceFile": true,
+  "overflow": {
+    "document": {
+      "scrollWidth": 1500,
+      "clientWidth": 1500,
+      "ok": true
+    },
+    "report": {
+      "scrollWidth": 429,
+      "clientWidth": 429,
+      "ok": true
+    }
+  },
+  "pageErrors": [],
+  "screenshots": {
+    "afterClick": "evidence/manual-qa-lint-after-click.png"
+  }
+}

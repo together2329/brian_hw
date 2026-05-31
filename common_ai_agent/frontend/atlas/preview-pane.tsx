@@ -14,8 +14,10 @@
 // Transitional: still bridges to `window.*` at the bottom so not-yet-migrated
 // .jsx files keep resolving `window.PreviewPane` / `window.FoldablePane` /
 // `window.DeferredMarkdownPreview`.
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { Fragment, useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import type { ReactNode, MouseEvent } from 'react';
+import { LintDiagnosticLineAnnotation, lintDiagnosticLine } from './lint-diagnostics';
+import type { LintDiagnostic } from './lint-diagnostics';
 
 // ── Cross-file globals owned by OTHER (unmigrated) files. These are NOT
 // declared in types/atlas-window.d.ts yet, so we read them through a locally
@@ -220,9 +222,10 @@ interface FoldablePaneProps {
   lineCount: number;
   focusLine?: number;
   feedbackMode?: boolean;
+  lintDiagnostic?: LintDiagnostic | null;
 }
 
-const FoldablePane = ({ path, body, lang, lineCount, focusLine = 0, feedbackMode = false }: FoldablePaneProps): ReactNode => {
+const FoldablePane = ({ path, body, lang, lineCount, focusLine = 0, feedbackMode = false, lintDiagnostic = null }: FoldablePaneProps): ReactNode => {
   const [ranges, setRanges] = useState<FoldRange[]>([]);
   const [skipped, setSkipped] = useState<string | null>(null);
   const [floating, setFloating] = useState<FloatingComment | null>(null);  // {top, left, lo, hi}
@@ -376,6 +379,7 @@ const FoldablePane = ({ path, body, lang, lineCount, focusLine = 0, feedbackMode
     .includes(String(lang).toLowerCase());
   const isCommentLine = (text: string): boolean => isHashCommentLang && /^\s*#/.test(text);
   const tree = useMemo(() => _buildFoldTree(ranges), [ranges]);
+  const annotationLine = lintDiagnosticLine(lintDiagnostic);
 
   // Render the source as nested <details> + line-rows. Fold controls are
   // deliberately separate rows above the source range: the original YAML/RTL
@@ -386,16 +390,26 @@ const FoldablePane = ({ path, body, lang, lineCount, focusLine = 0, feedbackMode
     const html = highlightLine(text);
     const inSel = sel && ln >= sel.lo && ln <= sel.hi;
     return (
-      <div key={`L${ln}`} className={'line-row' + (inSel ? ' sel' : '')} data-ln={ln}>
-        <span className="lineno"
-              data-ln={ln}
-              onMouseDown={(ev) => onLineMouseDown(ln, ev)}
-              onMouseEnter={() => onLineMouseEnter(ln)}>
-          {ln}
-        </span>
-        <span className="line"
-              dangerouslySetInnerHTML={{ __html: html === text ? _escHtml(text) || ' ' : html }} />
-      </div>
+      <Fragment key={`L${ln}`}>
+        <div className={'line-row' + (inSel ? ' sel' : '')} data-ln={ln}>
+          <span className="lineno"
+                data-ln={ln}
+                onMouseDown={(ev) => onLineMouseDown(ln, ev)}
+                onMouseEnter={() => onLineMouseEnter(ln)}>
+            {ln}
+          </span>
+          <span className="line"
+                dangerouslySetInnerHTML={{ __html: html === text ? _escHtml(text) || ' ' : html }} />
+        </div>
+        {lintDiagnostic && annotationLine === ln && (
+          <div className="line-row lint-diagnostic-row" data-ln={`${ln}-lint`}>
+            <span className="lineno" />
+            <span className="line" style={{ whiteSpace: 'normal', overflowWrap: 'anywhere' }}>
+              <LintDiagnosticLineAnnotation diagnostic={lintDiagnostic} />
+            </span>
+          </div>
+        )}
+      </Fragment>
     );
   };
 
@@ -496,9 +510,10 @@ interface PreviewPaneProps {
   path?: string;
   onClose?: () => void;
   focusLine?: number;
+  lintDiagnostic?: LintDiagnostic | null;
 }
 
-const PreviewPane = ({ path, onClose, focusLine = 0 }: PreviewPaneProps): ReactNode => {
+const PreviewPane = ({ path, onClose, focusLine = 0, lintDiagnostic = null }: PreviewPaneProps): ReactNode => {
   const ext = (path ? (path.split('.').pop() || '') : '').toLowerCase();
   const lang = (g.PRISM_LANG_MAP && g.PRISM_LANG_MAP[ext]) || 'none';
   const isMarkdown = ['md', 'markdown', 'mdown', 'mkdn'].includes(ext);
@@ -777,7 +792,7 @@ const PreviewPane = ({ path, onClose, focusLine = 0 }: PreviewPaneProps): ReactN
              gutter so drag-select-comment works universally. The
              server's fold extractor returns [] for unknown types,
              so the fold UI stays out of the way. */
-          <FoldablePane path={path} body={body} lang={lang} lineCount={lineCount} focusLine={focusLine} feedbackMode={previewMode === 'feedback'} />
+          <FoldablePane path={path} body={body} lang={lang} lineCount={lineCount} focusLine={focusLine} feedbackMode={previewMode === 'feedback'} lintDiagnostic={lintDiagnostic} />
         ) : (
           /* 2-column layout: line numbers (sticky left gutter) +
              code body. Both columns share the SAME font-size and

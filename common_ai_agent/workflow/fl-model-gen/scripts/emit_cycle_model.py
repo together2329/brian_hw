@@ -493,13 +493,58 @@ class CycleModel:
     def coverage(self) -> dict[str, int]:
         return dict(self.cov)
 
+    def _self_check_txn(self, kind: str, idx: int) -> dict:
+        """Build a minimal FL-valid transaction from SSOT required_fields.
+
+        The CL self-check exists to prove that the generated model can call the
+        FL oracle for every declared transaction. It should not fail merely
+        because a transaction-level FL rule requires ordinary input fields such
+        as APB paddr/pwrite/pwdata.
+        """
+        txn = {{"kind": kind}}
+        wanted = str(kind or "").strip().lower()
+        fm = SSOT_MODEL.get("function_model") if isinstance(SSOT_MODEL.get("function_model"), dict) else {{}}
+        selected = None
+        for tx in fm.get("transactions") or []:
+            if not isinstance(tx, dict):
+                continue
+            aliases = {{
+                str(tx.get("id") or "").strip().lower(),
+                str(tx.get("name") or "").strip().lower(),
+            }}
+            if wanted in aliases:
+                selected = tx
+                break
+        if not selected:
+            return txn
+
+        identity = " ".join(str(selected.get(key) or "") for key in ("id", "name")).lower()
+        is_read_like = "read" in identity or "idle" in identity
+        for field_idx, raw_name in enumerate(selected.get("required_fields") or []):
+            name = str(raw_name).strip()
+            if not name or name in txn:
+                continue
+            low = name.lower()
+            if low in {{"psel", "penable", "valid", "enable"}}:
+                value = 1
+            elif low in {{"pwrite", "write"}}:
+                value = 0 if is_read_like else 1
+            elif "addr" in low:
+                value = 0
+            elif "data" in low or "value" in low or "payload" in low:
+                value = (0x55 + idx + field_idx) & 0xFF
+            else:
+                value = field_idx + idx + 1
+            txn[name] = value
+        return txn
+
     def run_self_check(self) -> dict:
         """Smoke run: drive every known transaction kind once, tick, observe."""
         self.reset()
         kinds = list(_SELF_CHECK_KINDS) or ["reset"]
         t = 0
-        for kind in kinds:
-            self.drive({{"kind": kind}}, t=t)
+        for idx, kind in enumerate(kinds):
+            self.drive(self._self_check_txn(kind, idx), t=t)
             t += 1
             self.tick(t)
         # Drain with a long tick to let all latencies expire

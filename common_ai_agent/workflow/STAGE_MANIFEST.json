@@ -1,0 +1,170 @@
+{
+  "schema_version": 1,
+  "type": "workflow_stage_manifest",
+  "purpose": "Single routing table for common_ai_agent IP generation, verification, mutation, and signoff stages.",
+  "default_ip_root": "ip_examples",
+  "entrypoints": {
+    "new_ip_emit_chain": {
+      "description": "Deterministic FL/equivalence/TB/sim bootstrap chain after SSOT and RTL exist.",
+      "command": "bash workflow/ssot-gen/scripts/new_ip_emit_chain.sh <ip> --root <ip-parent>"
+    },
+    "signoff": {
+      "description": "Final local evidence gate against IP_SIGNOFF.md.",
+      "command": "python3 workflow/signoff/scripts/check_ip_signoff.py <ip> --root <ip-parent>"
+    },
+    "mutation_guard": {
+      "description": "Advisory mutant kill-rate check for harness depth.",
+      "command": "python3 workflow/mutation/scripts/mutation_guard.py <ip> --root <ip-parent>"
+    },
+    "derive_ip_contract": {
+      "description": "Derive per-IP verification/evidence obligations from SSOT/IO/goals without static profiles.",
+      "command": "python3 workflow/ip-contract/scripts/derive_ip_contract.py <ip> --root <ip-parent>"
+    }
+  },
+  "stages": [
+    {
+      "id": "ssot",
+      "owner": "human_or_ssot_gen",
+      "command": "existing SSOT authoring flow",
+      "inputs": ["req/spec.md"],
+      "outputs": ["<ip>/yaml/<ip>.ssot.yaml"],
+      "locked_truth": true,
+      "description": "Human-approved source of truth for behavior, interface, and targets."
+    },
+    {
+      "id": "emit_fl",
+      "owner": "fl-model-gen",
+      "command": "python3 workflow/fl-model-gen/scripts/emit_fl_model.py <ip> --root <ip-parent>",
+      "inputs": ["<ip>/yaml/<ip>.ssot.yaml"],
+      "outputs": ["<ip>/model/functional_model.py", "<ip>/model/fl_model_check.json"],
+      "locked_truth": false,
+      "description": "Generate and self-check the FunctionalModel used by the scoreboard."
+    },
+    {
+      "id": "emit_cl",
+      "owner": "fl-model-gen",
+      "command": "python3 workflow/fl-model-gen/scripts/emit_cycle_model.py <ip> --root <ip-parent>",
+      "inputs": ["<ip>/yaml/<ip>.ssot.yaml", "<ip>/model/functional_model.py"],
+      "outputs": ["<ip>/model/cycle_model.py", "<ip>/model/cl_model_check.json"],
+      "locked_truth": false,
+      "description": "Generate cycle/performance model and self-check metadata."
+    },
+    {
+      "id": "emit_equiv_goals",
+      "owner": "fl-model-gen",
+      "command": "python3 workflow/fl-model-gen/scripts/emit_equivalence_goals.py <ip> --root <ip-parent>",
+      "inputs": ["<ip>/yaml/<ip>.ssot.yaml", "<ip>/model/functional_model.py"],
+      "outputs": ["<ip>/verify/equivalence_goals.json"],
+      "locked_truth": false,
+      "description": "Emit scoreboard goals and expected observable contract."
+    },
+    {
+      "id": "derive_ip_contract",
+      "owner": "ip-contract",
+      "command": "python3 workflow/ip-contract/scripts/derive_ip_contract.py <ip> --root <ip-parent>",
+      "inputs": ["<ip>/yaml/<ip>.ssot.yaml", "<ip>/verify/equivalence_goals.json"],
+      "outputs": ["<ip>/verify/ip_contract.json"],
+      "locked_truth": false,
+      "description": "Derive per-IP capabilities, observables, monitor obligations, mutation obligations, and required evidence without selecting a static profile."
+    },
+    {
+      "id": "emit_goal_scoreboard",
+      "owner": "tb-gen",
+      "command": "python3 workflow/tb-gen/scripts/emit_goal_scoreboard_cocotb.py <ip> --root <ip-parent>",
+      "inputs": ["<ip>/verify/equivalence_goals.json", "<ip>/model/functional_model.py", "<ip>/rtl/*.sv"],
+      "outputs": ["<ip>/tb/cocotb/test_<ip>.py", "<ip>/tb/cocotb/test_runner.py", "<ip>/tb/cocotb/tb_manifest.json"],
+      "locked_truth": false,
+      "description": "Generate pyuvm/cocotb harness that emits structured scoreboard evidence."
+    },
+    {
+      "id": "tb_python_compile",
+      "owner": "tb-gen",
+      "command": "python3 workflow/tb-gen/scripts/check_tb_python_compile.py <ip> --root <ip-parent>",
+      "inputs": ["<ip>/tb/cocotb/*.py"],
+      "outputs": ["<ip>/tb/cocotb/tb_py_compile.json"],
+      "locked_truth": false,
+      "description": "Pre-simulation Python compile gate for generated TB."
+    },
+    {
+      "id": "rtl_compile",
+      "owner": "rtl-gen",
+      "command": "python3 workflow/rtl-gen/scripts/rtl_compile_report.py <ip> --root <ip-parent>",
+      "inputs": ["<ip>/rtl/*.sv", "<ip>/list/<ip>.f"],
+      "outputs": ["<ip>/rtl/rtl_compile.json", "<ip>/rtl/rtl_compile.log"],
+      "locked_truth": false,
+      "description": "DUT-only RTL compile report."
+    },
+    {
+      "id": "dut_lint",
+      "owner": "lint",
+      "command": "python3 workflow/lint/scripts/dut_lint_report.py <ip> --root <ip-parent>",
+      "inputs": ["<ip>/rtl/*.sv", "<ip>/yaml/<ip>.ssot.yaml"],
+      "outputs": ["<ip>/lint/dut_lint.json", "<ip>/lint/dut_lint.log"],
+      "locked_truth": false,
+      "description": "DUT-only lint and style/suppression gate."
+    },
+    {
+      "id": "sim",
+      "owner": "tb-gen",
+      "command": "python3 <ip-parent>/<ip>/tb/cocotb/test_runner.py",
+      "inputs": ["<ip>/tb/cocotb/test_runner.py", "<ip>/tb/cocotb/tb_manifest.json", "<ip>/rtl/*.sv", "<ip>/model/functional_model.py"],
+      "outputs": ["<ip>/sim/results.xml", "<ip>/sim/sim_report.txt", "<ip>/sim/scoreboard_events.jsonl"],
+      "locked_truth": false,
+      "description": "Run generated cocotb/pyuvm simulation and write scoreboard events."
+    },
+    {
+      "id": "scoreboard_schema",
+      "owner": "tb-gen",
+      "command": "python3 workflow/tb-gen/scripts/check_scoreboard_events.py <ip> --root <ip-parent> --source-check --require-events",
+      "inputs": ["<ip>/verify/equivalence_goals.json", "<ip>/sim/scoreboard_events.jsonl", "<ip>/tb/cocotb/*.py"],
+      "outputs": ["stdout"],
+      "locked_truth": false,
+      "description": "Validate scoreboard rows, FL source contract, and signal-like expected observable completeness."
+    },
+    {
+      "id": "coverage",
+      "owner": "coverage",
+      "command": "python3 workflow/coverage/scripts/ssot_coverage_summary.py <ip> --root <ip-parent>",
+      "inputs": ["<ip>/yaml/<ip>.ssot.yaml", "<ip>/sim/scoreboard_events.jsonl"],
+      "outputs": ["<ip>/cov/coverage.json", "<ip>/cov/coverage_functional.json"],
+      "locked_truth": false,
+      "description": "Build functional/scoreboard coverage summary."
+    },
+    {
+      "id": "rtl_provenance_refresh",
+      "owner": "rtl-gen",
+      "command": "python3 workflow/rtl-gen/scripts/refresh_rtl_provenance.py <ip> --root <ip-parent>",
+      "inputs": ["<ip>/rtl/rtl_todo_plan.json", "<ip>/rtl/*.sv"],
+      "outputs": ["<ip>/rtl/rtl_authoring_provenance.json"],
+      "locked_truth": false,
+      "description": "Refresh RTL provenance against current todo plan and RTL files."
+    },
+    {
+      "id": "rtl_final_gate",
+      "owner": "rtl-gen",
+      "command": "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py <ip> --root <ip-parent> --enforce",
+      "inputs": ["<ip>/yaml/<ip>.ssot.yaml", "<ip>/rtl/*.sv", "<ip>/rtl/rtl_authoring_provenance.json"],
+      "outputs": ["<ip>/rtl/rtl_todo_plan.json"],
+      "locked_truth": false,
+      "description": "Final RTL static/todo closure gate."
+    },
+    {
+      "id": "mutation_guard",
+      "owner": "mutation",
+      "command": "python3 workflow/mutation/scripts/mutation_guard.py <ip> --root <ip-parent>",
+      "inputs": ["<ip>/rtl/*.sv", "<ip>/tb/cocotb/test_runner.py", "<ip>/tb/cocotb/tb_manifest.json", "<ip>/verify/equivalence_goals.json", "<ip>/verify/ip_contract.json"],
+      "outputs": ["<ip>/mutation/mutation_report.json", "<ip>/mutation/mutation_report.md"],
+      "locked_truth": false,
+      "description": "Advisory deterministic mutant kill-rate signal for TB observation depth, annotated with per-IP mutation obligations."
+    },
+    {
+      "id": "signoff",
+      "owner": "signoff",
+      "command": "python3 workflow/signoff/scripts/check_ip_signoff.py <ip> --root <ip-parent>",
+      "inputs": ["IP_SIGNOFF.md", "<ip>/yaml/<ip>.ssot.yaml", "<ip>/verify/ip_contract.json", "<ip>/model/*.json", "<ip>/verify/equivalence_goals.json", "<ip>/rtl/*.json", "<ip>/lint/dut_lint.json", "<ip>/tb/cocotb/tb_py_compile.json", "<ip>/sim/*", "<ip>/cov/coverage.json", "<ip>/signoff/goal_ledger.json"],
+      "outputs": ["<ip>/signoff/ip_signoff.json", "<ip>/signoff/ip_signoff.md"],
+      "locked_truth": false,
+      "description": "Aggregate local evidence and fail/block missing machine-checkable signoff criteria from IP_SIGNOFF.md plus the derived per-IP contract."
+    }
+  ]
+}

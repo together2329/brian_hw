@@ -1,0 +1,30 @@
+# Debug Journal - Task4 CL self-check
+Started: 2026-05-31
+Goal: Diagnose why emit_cycle_model failed during Task 4 model chain.
+
+## Environment snapshot (Phase 0)
+- Runtime: Python via python3 workflow scripts.
+- Entry: python3 workflow/fl-model-gen/scripts/emit_cycle_model.py mctp_assembler_scratch --root .
+- References read: debugging/runtimes/python.md, methodology/00-setup.md, methodology/02-investigate.md, methodology/06-fix.md.
+- Working tree: dirty by active start-work artifacts.
+
+## Hypotheses
+1. [OPEN] Generated cycle_model imports FunctionalModel from the wrong path or module name. Distinguishing evidence: cl_model_check traceback/import details.
+2. [OPEN] SSOT cycle latency/handshake extraction produced a type or literal the generated CL self-check cannot evaluate. Distinguishing evidence: cl_model_check self-check error and generated cycle_model constants.
+3. [OPEN] FunctionalModel self-check passed but a transaction result shape is incompatible with CycleModel drain validation. Distinguishing evidence: cycle_model.run_self_check output values and queued transaction results.
+
+## Artifacts to revert
+- [ ] .debug-journal.md - local debug journal. Revert: rm .debug-journal.md.
+
+## Findings
+### 2026-05-31 - CL self-check failure details
+- Source: `mctp_assembler_scratch/model/cl_model_check.json`
+- Value: `fl_errors` reported unresolved names `context_id`, `eom`, `payload_data_word`, `payload_byte_strobe`, and `illegal_apb_access`.
+- Interpretation: CL self-check only populates `function_model.transactions[].required_fields`; FL self-check passed because it auto-injects unresolved rule names for its own smoke run.
+- Refutes/Confirms: Confirms H3 and narrows fix to SSOT transaction `required_fields`, not Python generator logic.
+
+## Root cause (confirmed 2026-05-31)
+- Mechanism: `cycle_model.py` self-check builds minimal transactions using only SSOT `required_fields`, so any executable FL output rule that references an undeclared input name becomes an `fl_error` during CL generation.
+- Evidence: `task-4-model-chain.txt` failed with CL self-check errors for the five undeclared names; after adding those names to the relevant SSOT `required_fields`, `task-4-model-chain-green.txt` reported `CL self-check passed=True`.
+- Toggle proof: Missing fields reproduced failure; adding only the missing fields made the same generation chain pass.
+- Fix scope: `mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.yaml` transaction required_fields only.

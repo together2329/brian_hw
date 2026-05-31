@@ -1,0 +1,3 @@
+[check_tb_python_compile] FAIL: wrote no_such_ip_for_task7/tb/cocotb/tb_py_compile.json
+[check_tb_python_compile]   no_such_ip_for_task7/tb/cocotb: no Python TB files
+compile_rc=1

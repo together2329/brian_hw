@@ -1,0 +1,24 @@
+[emit_goal_scoreboard_cocotb] wrote 8 Python files for mctp_assembler_scratch
+[emit_goal_scoreboard_cocotb] goals=91 rtl_sources=11
+[emit_goal_scoreboard_cocotb] runner=mctp_assembler_scratch/tb/cocotb/test_runne
+r.py
+[check_tb_python_compile] PASS: compiled 9 file(s)
+[check_tb_python_compile] wrote mctp_assembler_scratch/tb/cocotb/tb_py_compile.j
+son
+true
+true
+no_stale_manifest_path
+workflow/tb-gen/runtime/equivalence_scoreboard.py
+8:- <ip>/model/functional_model.py
+418:def _write_self_check_blocker(scoreboard: "EquivalenceScoreboard", report: d
+ict[str, Any]) -> Path:
+459:class EquivalenceScoreboard:
+963:            "model_api": "FunctionalModel.apply",
+1338:    scoreboard = EquivalenceScoreboard(args.ip, args.root)
+
+mctp_assembler_scratch/tb/cocotb/scoreboard.py
+6:from equivalence_scoreboard import EquivalenceScoreboard
+12:        self.adapter = EquivalenceScoreboard(ip, root, reset_events=True)
+manual_task7_surface=PASS
+
+

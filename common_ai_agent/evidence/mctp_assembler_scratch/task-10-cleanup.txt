@@ -1,0 +1,1 @@
+tmux_has_session_rc=1

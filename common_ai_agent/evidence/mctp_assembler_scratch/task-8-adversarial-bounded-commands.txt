@@ -1,0 +1,10 @@
+RUN python3 -m py_compile mctp_assembler_scratch/tc/mctp_assembler_scratch_scenarios.py mctp_assembler_scratch/tc/__init__.py
+returncode 0
+<no output>
+RUN python3 mctp_assembler_scratch/tc/mctp_assembler_scratch_scenarios.py
+returncode 0
+{
+RUN python3 workflow/tb-gen/scripts/check_tb_python_compile.py mctp_assembler_scratch --root .
+returncode 0
+[check_tb_python_compile] PASS: compiled 9 file(s)
+bounded_command_probe=pass

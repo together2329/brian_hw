@@ -28,6 +28,25 @@ python3 src/main.py -w <workspace_name>
 
 ## Quick Start
 
+### IP Stage Routing
+
+For SSOT/FL/CL/RTL/TB/sim/coverage/mutation/signoff IP work, read
+`workflow/STAGE_MANIFEST.json` first.  It is the canonical stage routing table
+for agents and scripts.
+
+Primary IP entrypoints:
+
+```bash
+bash workflow/ssot-gen/scripts/new_ip_emit_chain.sh <ip> --root <ip-parent>
+python3 workflow/ip-contract/scripts/derive_ip_contract.py <ip> --root <ip-parent>
+python3 workflow/mutation/scripts/mutation_guard.py <ip> --root <ip-parent>
+python3 workflow/signoff/scripts/check_ip_signoff.py <ip> --root <ip-parent>
+```
+
+`mutation_guard.py` is advisory by default.  Use `--enforce-threshold` only
+after the human owner approves a kill-rate policy for that IP.  Do not select
+static IP profiles; derive `<ip>/verify/ip_contract.json` from SSOT/IO/goals.
+
 ### Full RTL Project (recommended)
 
 ```bash

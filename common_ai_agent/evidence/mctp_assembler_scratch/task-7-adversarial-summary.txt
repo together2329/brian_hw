@@ -1,0 +1,31 @@
+Task 7 adversarial summary
+
+Scope:
+- Generate cocotb/pyuvm TB from equivalence goals and rtl_contract.json.
+- Compile generated Python TB.
+- Ensure manifest is scratch-only and scoreboard path resolves through FunctionalModel.apply.
+
+Probed classes:
+- malformed input: no_such_ip_for_task7 emit failed with missing SSOT, compile failed with no Python TB files.
+  Evidence: task-7-adversarial-malformed-emit.txt, task-7-adversarial-malformed-compile.txt.
+- prompt injection: not applicable; this stage executes deterministic local scripts and JSON/YAML artifacts, not natural-language content.
+- cancel/resume: plan and Boulder state were reread after context resume; active plan remained mctp-assembler-req-to-audit-scratch.
+  Evidence: task-7-adversarial-state-dirty-stale.txt.
+- stale state: tb_manifest.json has no legacy mctp_assembler/ path and generated manifest reports ip/top mctp_assembler_scratch.
+  Evidence: task-7-no-stale-manifest.txt, task-7-final-green.txt.
+- dirty worktree: git status was captured; unrelated dirty files were not reverted or touched.
+  Evidence: task-7-adversarial-state-dirty-stale.txt.
+- hung or long commands: emit and compile were run through bounded subprocess probes and completed inside the timeout.
+  Evidence: task-7-adversarial-bounded-commands.txt.
+- flaky tests: check_tb_python_compile passed two back-to-back reruns with jq semantic checks.
+  Evidence: task-7-adversarial-rerun-and-json.txt.
+- misleading success output: success required script exit 0 plus jq checks for tb_py_compile.passed, file count, zero errors, manifest ip/top/goal_count/source, and stale-path absence.
+  Evidence: task-7-final-green.txt, task-7-manual-tmux.txt.
+- repeated interruptions: durable plan, Boulder, and ledger state were reread before closing this task.
+  Evidence: plan reread in current transcript, task-7-adversarial-state-dirty-stale.txt.
+
+Cleanup:
+- ulw-qa-mctp-task7 tmux session killed and verified absent.
+- no_such_ip_for_task7 malformed-input probe directory removed.
+- ./--help path verified absent.
+  Evidence: task-7-cleanup.txt.

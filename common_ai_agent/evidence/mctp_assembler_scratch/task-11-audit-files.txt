@@ -1,0 +1,3 @@
+fl_rtl_goal_audit: status=fail passed=12/16 blockers=req,fl_rtl_compare,mismatch_classification,functional_coverage
+fl_rtl_compare: status=fail total=91 checked=91 passed=26 failed=65 blocked=0 untested=0 stale_evidence=0 orphan_scoreboard_events=0
+mismatch_classification: status=action_required count=65 by_class=rtl_bug:65 llm_loop_disallowed=0 unresolved=0

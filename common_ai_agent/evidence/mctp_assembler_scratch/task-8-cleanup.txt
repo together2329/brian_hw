@@ -1,0 +1,4 @@
+ulw-qa-mctp-task8 absent
+tc_pycache_cleanup=PASS
+tmp_manifest_probe_absent
+tc_pycache_cleanup_after_final=PASS

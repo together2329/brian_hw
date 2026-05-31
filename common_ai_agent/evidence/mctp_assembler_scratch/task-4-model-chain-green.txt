@@ -1,0 +1,9 @@
+[emit_fl_model] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/model/functional_model.py
+[emit_fl_model] decomposition_units=19 fcov_bins=95 passed=True
+[emit_cycle_model] trigger fired: cycle_model.handshake_rules is non-empty
+[emit_cycle_model] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/model/cycle_model.py
+[emit_cycle_model] CL self-check passed=True
+[emit_equivalence_goals] wrote mctp_assembler_scratch/verify/equivalence_goals.json
+[emit_equivalence_goals] total=91 required=91 blocked=0 unverified=1
+[derive_ip_contract] PASS: capabilities=14 monitors=11 evidence=14 wrote=/Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/verify/ip_contract.json
+exit=0

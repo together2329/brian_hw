@@ -4,7 +4,7 @@
   "scope": "dut",
   "dut_only": true,
   "tool": "pyslang+verilator",
-  "command": "pyslang rtl/mctp_assembler_axi_write_ingress.sv rtl/mctp_assembler_pcie_vdm_parser.sv rtl/mctp_assembler_mctp_parser.sv rtl/mctp_assembler_context_table.sv rtl/mctp_assembler_payload_writer.sv rtl/mctp_assembler_apb_regfile.sv rtl/mctp_assembler_cdc.sv rtl/mctp_assembler.sv && verilator --lint-only -Wall -Irtl -f list/mctp_assembler.f --top-module mctp_assembler",
+  "command": "pyslang rtl/mctp_assembler_axi_write_ingress.sv rtl/mctp_assembler_pcie_vdm_parser.sv rtl/mctp_assembler_mctp_parser.sv rtl/mctp_assembler_context_table.sv rtl/mctp_assembler_payload_writer.sv rtl/mctp_assembler_axi_read_egress.sv rtl/mctp_assembler_apb_regfile.sv rtl/mctp_assembler_cdc.sv rtl/mctp_assembler.sv && verilator --lint-only -Wall -Irtl -f list/mctp_assembler.f --top-module mctp_assembler",
   "cwd": "mctp_assembler",
   "top": "mctp_assembler",
   "filelist": "mctp_assembler/list/mctp_assembler.f",
@@ -14,30 +14,37 @@
     "rtl/mctp_assembler_mctp_parser.sv",
     "rtl/mctp_assembler_context_table.sv",
     "rtl/mctp_assembler_payload_writer.sv",
+    "rtl/mctp_assembler_axi_read_egress.sv",
     "rtl/mctp_assembler_apb_regfile.sv",
     "rtl/mctp_assembler_cdc.sv",
     "rtl/mctp_assembler.sv",
     "rtl/mctp_assembler_param.vh"
   ],
-  "timestamp": "2026-05-30T09:02:25.335784+00:00",
+  "timestamp": "2026-05-31T11:04:51.590606+00:00",
   "returncode": 1,
   "errors": 0,
-  "warnings": 4,
+  "warnings": 7,
   "waived_warnings": 0,
   "tool_results": [
     {
       "tool": "pyslang",
       "available": true,
-      "command": "pyslang rtl/mctp_assembler_axi_write_ingress.sv rtl/mctp_assembler_pcie_vdm_parser.sv rtl/mctp_assembler_mctp_parser.sv rtl/mctp_assembler_context_table.sv rtl/mctp_assembler_payload_writer.sv rtl/mctp_assembler_apb_regfile.sv rtl/mctp_assembler_cdc.sv rtl/mctp_assembler.sv",
+      "command": "pyslang rtl/mctp_assembler_axi_write_ingress.sv rtl/mctp_assembler_pcie_vdm_parser.sv rtl/mctp_assembler_mctp_parser.sv rtl/mctp_assembler_context_table.sv rtl/mctp_assembler_payload_writer.sv rtl/mctp_assembler_axi_read_egress.sv rtl/mctp_assembler_apb_regfile.sv rtl/mctp_assembler_cdc.sv rtl/mctp_assembler.sv",
       "returncode": 0,
       "errors": 0,
-      "warnings": 1,
+      "warnings": 2,
       "diagnostics": [
         {
           "severity": "warning",
           "file": "mctp_assembler/rtl/mctp_assembler_payload_writer.sv",
           "line": 36,
           "message": "comparison of differently signed types ('logic[4:0]' and 'integer')"
+        },
+        {
+          "severity": "warning",
+          "file": "mctp_assembler/rtl/mctp_assembler_axi_read_egress.sv",
+          "line": 54,
+          "message": "arithmetic between operands of different types ('logic[16:0]' and 'logic[15:0]')"
         }
       ],
       "passed": false
@@ -48,8 +55,17 @@
       "command": "verilator --lint-only -Wall -Irtl -f list/mctp_assembler.f --top-module mctp_assembler",
       "returncode": 1,
       "errors": 0,
-      "warnings": 3,
+      "warnings": 5,
       "diagnostics": [
+        {
+          "severity": "warning",
+          "rule": "PINCONNECTEMPTY",
+          "file": "rtl/mctp_assembler.sv",
+          "line": 459,
+          "column": 6,
+          "message": "Instance pin connected by name with empty reference: 'read_busy'",
+          "source": "    .read_busy()"
+        },
         {
           "severity": "warning",
           "rule": "WIDTHTRUNC",
@@ -58,6 +74,15 @@
           "column": 20,
           "message": "Operator VAR 'EXPECTED_AWSIZE' expects 3 bits on the Initial value, but Initial value's CLOG2 generates 32 bits.",
           "source": "  localparam [2:0] EXPECTED_AWSIZE = $clog2(AXI_DATA_BYTES);"
+        },
+        {
+          "severity": "warning",
+          "rule": "WIDTHTRUNC",
+          "file": "rtl/mctp_assembler_axi_read_egress.sv",
+          "line": 33,
+          "column": 20,
+          "message": "Operator VAR 'EXPECTED_ARSIZE' expects 3 bits on the Initial value, but Initial value's CLOG2 generates 32 bits.",
+          "source": "  localparam [2:0] EXPECTED_ARSIZE = $clog2(AXI_DATA_BYTES);"
         },
         {
           "severity": "warning",
@@ -72,7 +97,7 @@
           "severity": "warning",
           "rule": "UNUSEDSIGNAL",
           "file": "rtl/mctp_assembler.sv",
-          "line": 175,
+          "line": 190,
           "column": 9,
           "message": "Signal is not used: 'parse_fail_pulse'",
           "source": "  logic parse_fail_pulse;"

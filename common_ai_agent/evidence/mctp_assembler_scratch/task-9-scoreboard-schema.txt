@@ -1,0 +1,34 @@
+[check_scoreboard_events] FAIL: line 1: rtl_observed missing expected observable(s) for EQ_TRANSACTION_FM_ACCEPT_AXI_TLP: bresp_next, bvalid_next
+[check_scoreboard_events] FAIL: line 5: rtl_observed missing expected observable(s) for EQ_TRANSACTION_FM_SRAM_PACK_WRITE: sram_write_data
+[check_scoreboard_events] FAIL: line 10: rtl_observed missing expected observable(s) for EQ_TRANSACTION_FM_AXI_READBACK: readback_data_out, readback_last, readback_resp, readback_valid
+[check_scoreboard_events] FAIL: line 53: rtl_observed missing expected observable(s) for EQ_MEMORY_CONTEXT_TABLE: retention
+[check_scoreboard_events] FAIL: line 54: rtl_observed missing expected observable(s) for EQ_MEMORY_DESCRIPTOR_FIFO: retention
+[check_scoreboard_events] FAIL: line 55: rtl_observed missing expected observable(s) for EQ_MEMORY_PARTIAL_WORD_BUFFER: retention
+[check_scoreboard_events] FAIL: line 56: rtl_observed missing expected observable(s) for EQ_MEMORY_PAYLOAD_SRAM_WINDOW: retention
+[check_scoreboard_events] FAIL: line 66: rtl_observed missing expected observable(s) for EQ_MODULE_MCTP_ASSEMBLER_SCRATCH_AXI_WRITE_INGRESS: bresp_next, bvalid_next
+[check_scoreboard_events] FAIL: line 67: rtl_observed missing expected observable(s) for EQ_MODULE_MCTP_ASSEMBLER_SCRATCH_PCIE_VDM_PARSER: bresp_next, bvalid_next
+[check_scoreboard_events] FAIL: line 68: rtl_observed missing expected observable(s) for EQ_MODULE_MCTP_ASSEMBLER_SCRATCH_MCTP_PARSER: bresp_next, bvalid_next
+[check_scoreboard_events] FAIL: line 69: rtl_observed missing expected observable(s) for EQ_MODULE_MCTP_ASSEMBLER_SCRATCH_CONTEXT_TABLE: bresp_next, bvalid_next
+[check_scoreboard_events] FAIL: line 70: rtl_observed missing expected observable(s) for EQ_MODULE_MCTP_ASSEMBLER_SCRATCH_SRAM_PACKER: bresp_next, bvalid_next
+[check_scoreboard_events] FAIL: line 71: rtl_observed missing expected observable(s) for EQ_MODULE_MCTP_ASSEMBLER_SCRATCH_AXI_READ_EGRESS: bresp_next, bvalid_next
+[check_scoreboard_events] FAIL: line 72: rtl_observed missing expected observable(s) for EQ_MODULE_MCTP_ASSEMBLER_SCRATCH_SRAM_ARBITER: bresp_next, bvalid_next
+[check_scoreboard_events] FAIL: line 73: rtl_observed missing expected observable(s) for EQ_MODULE_MCTP_ASSEMBLER_SCRATCH_DESCRIPTOR_QUEUE: bresp_next, bvalid_next
+[check_scoreboard_events] FAIL: line 74: rtl_observed missing expected observable(s) for EQ_MODULE_MCTP_ASSEMBLER_SCRATCH_APB_REGFILE: bresp_next, bvalid_next
+[check_scoreboard_events] FAIL: line 75: rtl_observed missing expected observable(s) for EQ_COVERAGE_CCOV_SRAM_ARBITRATION: bresp_next, bvalid_next
+[check_scoreboard_events] FAIL: line 76: rtl_observed missing expected observable(s) for EQ_COVERAGE_CCOV_BACKPRESSURE: bresp_next, bvalid_next
+[check_scoreboard_events] FAIL: line 77: rtl_observed missing expected observable(s) for EQ_COVERAGE_CCOV_MAX_TLP_BEATS: bresp_next, bvalid_next
+[check_scoreboard_events] FAIL: line 78: rtl_observed missing expected observable(s) for EQ_COVERAGE_CYCLE_LATENCY_DEFAULT: bresp_next, bvalid_next
+[check_scoreboard_events] FAIL: line 79: rtl_observed missing expected observable(s) for EQ_COVERAGE_CYCLE_PIPELINE_AXI_WRITE_COLLECT: bresp_next, bvalid_next
+[check_scoreboard_events] FAIL: line 80: rtl_observed missing expected observable(s) for EQ_COVERAGE_CYCLE_PIPELINE_PCIE_VDM_FILTER: bresp_next, bvalid_next
+[check_scoreboard_events] FAIL: line 81: rtl_observed missing expected observable(s) for EQ_COVERAGE_CYCLE_PIPELINE_MCTP_PARSE: bresp_next, bvalid_next
+[check_scoreboard_events] FAIL: line 82: rtl_observed missing expected observable(s) for EQ_COVERAGE_CYCLE_PIPELINE_CONTEXT_LOOKUP_UPDATE: bresp_next, bvalid_next
+[check_scoreboard_events] FAIL: line 83: rtl_observed missing expected observable(s) for EQ_COVERAGE_CYCLE_PIPELINE_SRAM_PACK_WRITE: bresp_next, bvalid_next
+[check_scoreboard_events] FAIL: line 84: rtl_observed missing expected observable(s) for EQ_COVERAGE_CYCLE_PIPELINE_DESCRIPTOR_IRQ: bresp_next, bvalid_next
+[check_scoreboard_events] FAIL: line 85: rtl_observed missing expected observable(s) for EQ_COVERAGE_CYCLE_PIPELINE_AXI_READBACK: bresp_next, bvalid_next
+[check_scoreboard_events] FAIL: line 86: rtl_observed missing expected observable(s) for EQ_COVERAGE_CYCLE_BACKPRESSURE_0: bresp_next, bvalid_next
+[check_scoreboard_events] FAIL: line 87: rtl_observed missing expected observable(s) for EQ_COVERAGE_CYCLE_BACKPRESSURE_1: bresp_next, bvalid_next
+[check_scoreboard_events] FAIL: line 88: rtl_observed missing expected observable(s) for EQ_COVERAGE_CYCLE_BACKPRESSURE_2: bresp_next, bvalid_next
+[check_scoreboard_events] FAIL: line 89: rtl_observed missing expected observable(s) for EQ_COVERAGE_CYCLE_PERF_OUTSTANDING: bresp_next, bvalid_next
+[check_scoreboard_events] FAIL: line 90: rtl_observed missing expected observable(s) for EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ: bresp_next, bvalid_next
+[check_scoreboard_events] FAIL: line 91: rtl_observed missing expected observable(s) for EQ_COVERAGE_CYCLE_PERF_THROUGHPUT: bresp_next, bvalid_next
+scoreboard_schema_rc=1

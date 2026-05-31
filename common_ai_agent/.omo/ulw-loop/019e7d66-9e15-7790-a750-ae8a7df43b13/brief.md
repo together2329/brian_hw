@@ -1,0 +1,1 @@
+Perforce System 연동을 실제 서버를 켜서 Atlas Client에서 Add, Sync, Edit 동작이 실제로 되는지 검증하고, 실패하면 최소 수정한다. Evidence must include real server/client Add Sync Edit scenario artifacts, RED->GREEN automated tests for any production fix, cleanup receipts, and final reviewer approval if implementation touches multiple files.

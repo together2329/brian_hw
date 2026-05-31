@@ -1,0 +1,14 @@
+[verify_ssot] FAIL: mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.yaml mode=signoff
+blockers: 2
+warnings: 0
+report: mctp_assembler_scratch/req/ssot_validation.json
+
+blockers:
+  - /Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.yaml: SSOT YAML file does not exist.
+    fix: Run /to-ssot <ip> or write <ip>/yaml/<ip>.ssot.yaml first.
+  - mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.yaml: check_ssot_disk.sh failed with exit 1.
+    fix: [check_ssot_disk] FAIL: no SSOT YAML at mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.yaml or _ssot.yaml
+
+check_ssot_disk exit: 1
+[check_ssot_disk] FAIL: no SSOT YAML at mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.yaml or _ssot.yaml
+exit=1

@@ -169,6 +169,82 @@ class AxiWriteMaster(uvm_driver):
         return bresp
 
 
+class AxiReadMaster(uvm_driver):
+    """AXI4 read-only master for SRAM payload readback."""
+
+    def __init__(self, name: str = "axi_read_master", parent=None):
+        super().__init__(name, parent)
+        self.dut = None
+        self.clock_name = "axi_aclk"
+
+    def bind(self, dut, clock_name: str = "axi_aclk") -> None:
+        self.dut = dut
+        self.clock_name = clock_name
+
+    def _clk(self):
+        return getattr(self.dut, self.clock_name)
+
+    async def reset_bus(self) -> None:
+        dut = self.dut
+        dut.s_axi_araddr.value = 0
+        dut.s_axi_arlen.value = 0
+        dut.s_axi_arsize.value = 5
+        dut.s_axi_arburst.value = 1
+        dut.s_axi_arvalid.value = 0
+        dut.s_axi_rready.value = 0
+
+    async def read_burst(
+        self,
+        araddr: int,
+        arlen: int = 0,
+        arsize: int = 5,
+        arburst: int = 1,
+        timeout: int = 5000,
+    ) -> list[dict[str, int]]:
+        dut = self.dut
+        clk = self._clk()
+        dut.s_axi_araddr.value = int(araddr)
+        dut.s_axi_arlen.value = int(arlen)
+        dut.s_axi_arsize.value = int(arsize)
+        dut.s_axi_arburst.value = int(arburst)
+        dut.s_axi_arvalid.value = 1
+        dut.s_axi_rready.value = 1
+        accepted = False
+        for _ in range(timeout):
+            await RisingEdge(clk)
+            await ReadOnly()
+            if int(dut.s_axi_arready.value) and int(dut.s_axi_arvalid.value):
+                accepted = True
+                break
+        if not accepted:
+            raise TimeoutError(f"AXI arready timeout after {timeout} cycles")
+        await RisingEdge(clk)
+        dut.s_axi_arvalid.value = 0
+
+        beats: list[dict[str, int]] = []
+        expected = arlen + 1
+        while len(beats) < expected:
+            for _ in range(timeout):
+                await RisingEdge(clk)
+                await ReadOnly()
+                if int(dut.s_axi_rvalid.value):
+                    beats.append(
+                        {
+                            "data": int(dut.s_axi_rdata.value),
+                            "rresp": int(dut.s_axi_rresp.value),
+                            "rlast": int(dut.s_axi_rlast.value),
+                        }
+                    )
+                    break
+            else:
+                raise TimeoutError(f"AXI rvalid timeout after {timeout} cycles")
+            if beats[-1]["rlast"]:
+                break
+        await RisingEdge(clk)
+        dut.s_axi_rready.value = 0
+        return beats
+
+
 class SramMonitor(uvm_monitor):
     """Capture SRAM write beats from the DUT payload writer."""
 
@@ -188,6 +264,14 @@ class SramMonitor(uvm_monitor):
         dut = self.dut
         clk = getattr(dut, self.clock_name)
         while True:
+            await FallingEdge(clk)
+            if int(dut.sram_rd_valid.value):
+                addr = int(dut.sram_rd_addr.value)
+                packed = 0
+                for lane in range(AXI_DATA_BYTES):
+                    byte_val = self.memory.get(addr + lane, 0)
+                    packed |= byte_val << (8 * lane)
+                dut.sram_rd_data.value = packed
             await RisingEdge(clk)
             await ReadOnly()
             if int(dut.sram_wr_valid.value) and int(dut.sram_wr_ready.value):

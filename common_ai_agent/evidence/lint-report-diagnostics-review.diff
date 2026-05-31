@@ -1,0 +1,491 @@
+diff --git a/common_ai_agent/frontend/atlas/preview-pane.tsx b/common_ai_agent/frontend/atlas/preview-pane.tsx
+index f1045221..9fdbecc0 100644
+--- a/common_ai_agent/frontend/atlas/preview-pane.tsx
++++ b/common_ai_agent/frontend/atlas/preview-pane.tsx
+@@ -14,8 +14,10 @@
+ // Transitional: still bridges to `window.*` at the bottom so not-yet-migrated
+ // .jsx files keep resolving `window.PreviewPane` / `window.FoldablePane` /
+ // `window.DeferredMarkdownPreview`.
+-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
++import { Fragment, useState, useEffect, useRef, useCallback, useMemo } from 'react';
+ import type { ReactNode, MouseEvent } from 'react';
++import { LintDiagnosticLineAnnotation, lintDiagnosticLine } from './lint-diagnostics';
++import type { LintDiagnostic } from './lint-diagnostics';
+ 
+ // ── Cross-file globals owned by OTHER (unmigrated) files. These are NOT
+ // declared in types/atlas-window.d.ts yet, so we read them through a locally
+@@ -220,9 +222,10 @@ interface FoldablePaneProps {
+   lineCount: number;
+   focusLine?: number;
+   feedbackMode?: boolean;
++  lintDiagnostic?: LintDiagnostic | null;
+ }
+ 
+-const FoldablePane = ({ path, body, lang, lineCount, focusLine = 0, feedbackMode = false }: FoldablePaneProps): ReactNode => {
++const FoldablePane = ({ path, body, lang, lineCount, focusLine = 0, feedbackMode = false, lintDiagnostic = null }: FoldablePaneProps): ReactNode => {
+   const [ranges, setRanges] = useState<FoldRange[]>([]);
+   const [skipped, setSkipped] = useState<string | null>(null);
+   const [floating, setFloating] = useState<FloatingComment | null>(null);  // {top, left, lo, hi}
+@@ -376,6 +379,7 @@ const FoldablePane = ({ path, body, lang, lineCount, focusLine = 0, feedbackMode
+     .includes(String(lang).toLowerCase());
+   const isCommentLine = (text: string): boolean => isHashCommentLang && /^\s*#/.test(text);
+   const tree = useMemo(() => _buildFoldTree(ranges), [ranges]);
++  const annotationLine = lintDiagnosticLine(lintDiagnostic);
+ 
+   // Render the source as nested <details> + line-rows. Fold controls are
+   // deliberately separate rows above the source range: the original YAML/RTL
+@@ -386,16 +390,26 @@ const FoldablePane = ({ path, body, lang, lineCount, focusLine = 0, feedbackMode
+     const html = highlightLine(text);
+     const inSel = sel && ln >= sel.lo && ln <= sel.hi;
+     return (
+-      <div key={`L${ln}`} className={'line-row' + (inSel ? ' sel' : '')} data-ln={ln}>
+-        <span className="lineno"
+-              data-ln={ln}
+-              onMouseDown={(ev) => onLineMouseDown(ln, ev)}
+-              onMouseEnter={() => onLineMouseEnter(ln)}>
+-          {ln}
+-        </span>
+-        <span className="line"
+-              dangerouslySetInnerHTML={{ __html: html === text ? _escHtml(text) || ' ' : html }} />
+-      </div>
++      <Fragment key={`L${ln}`}>
++        <div className={'line-row' + (inSel ? ' sel' : '')} data-ln={ln}>
++          <span className="lineno"
++                data-ln={ln}
++                onMouseDown={(ev) => onLineMouseDown(ln, ev)}
++                onMouseEnter={() => onLineMouseEnter(ln)}>
++            {ln}
++          </span>
++          <span className="line"
++                dangerouslySetInnerHTML={{ __html: html === text ? _escHtml(text) || ' ' : html }} />
++        </div>
++        {lintDiagnostic && annotationLine === ln && (
++          <div className="line-row lint-diagnostic-row" data-ln={`${ln}-lint`}>
++            <span className="lineno" />
++            <span className="line" style={{ whiteSpace: 'normal', overflowWrap: 'anywhere' }}>
++              <LintDiagnosticLineAnnotation diagnostic={lintDiagnostic} />
++            </span>
++          </div>
++        )}
++      </Fragment>
+     );
+   };
+ 
+@@ -496,9 +510,10 @@ interface PreviewPaneProps {
+   path?: string;
+   onClose?: () => void;
+   focusLine?: number;
++  lintDiagnostic?: LintDiagnostic | null;
+ }
+ 
+-const PreviewPane = ({ path, onClose, focusLine = 0 }: PreviewPaneProps): ReactNode => {
++const PreviewPane = ({ path, onClose, focusLine = 0, lintDiagnostic = null }: PreviewPaneProps): ReactNode => {
+   const ext = (path ? (path.split('.').pop() || '') : '').toLowerCase();
+   const lang = (g.PRISM_LANG_MAP && g.PRISM_LANG_MAP[ext]) || 'none';
+   const isMarkdown = ['md', 'markdown', 'mdown', 'mkdn'].includes(ext);
+@@ -777,7 +792,7 @@ const PreviewPane = ({ path, onClose, focusLine = 0 }: PreviewPaneProps): ReactN
+              gutter so drag-select-comment works universally. The
+              server's fold extractor returns [] for unknown types,
+              so the fold UI stays out of the way. */
+-          <FoldablePane path={path} body={body} lang={lang} lineCount={lineCount} focusLine={focusLine} feedbackMode={previewMode === 'feedback'} />
++          <FoldablePane path={path} body={body} lang={lang} lineCount={lineCount} focusLine={focusLine} feedbackMode={previewMode === 'feedback'} lintDiagnostic={lintDiagnostic} />
+         ) : (
+           /* 2-column layout: line numbers (sticky left gutter) +
+              code body. Both columns share the SAME font-size and
+diff --git a/common_ai_agent/frontend/atlas/workflow-report.tsx b/common_ai_agent/frontend/atlas/workflow-report.tsx
+index ef86ef4f..580b4d37 100644
+--- a/common_ai_agent/frontend/atlas/workflow-report.tsx
++++ b/common_ai_agent/frontend/atlas/workflow-report.tsx
+@@ -26,6 +26,9 @@ import {
+   useCallback,
+   type ReactNode,
+ } from 'react';
++import { PreviewPane } from './preview-pane';
++import { CoverageReportSummary, LintReportSummary } from './workspace-lint-coverage';
++import { lintDiagnosticLine, lintDiagnosticPath, type LintDiagnostic } from './lint-diagnostics';
+ 
+ // ── Minimal local typings for cross-file window globals (owners unmigrated) ──
+ // These shapes mirror the runtime contract in workspace.jsx / preview-pane.jsx
+@@ -48,12 +51,6 @@ interface AtlasDataApi {
+   refreshFileTree?: (scope: string, opts?: { recursive?: boolean; quiet?: boolean }) => unknown;
+ }
+ 
+-type LintDiagnostic = {
+-  path?: string;
+-  file?: string;
+-  line?: number | string;
+-} | null | undefined;
+-
+ interface WorkflowReportCrossDeps {
+   WORKFLOW_REPORT_TABS?: Record<string, WorkflowReportTabMeta>;
+   ACTIVE_SESSION?: string;
+@@ -62,17 +59,6 @@ interface WorkflowReportCrossDeps {
+   atlasData?: AtlasDataApi;
+   readAtlasAsyncResource: (kind: string, rawPath: string, force?: boolean) => Promise<unknown>;
+   OrchestratorWorkflowPane: (props: { activeIp?: string }) => ReactNode;
+-  LintReportSummary: (props: {
+-    ip?: string;
+-    onSelectPath?: (path: string) => void;
+-    onOpenDiagnostic?: (diag: LintDiagnostic) => void;
+-  }) => ReactNode;
+-  CoverageReportSummary: (props: {
+-    ip?: string;
+-    onSelectPath?: (path: string) => void;
+-    onOpenDiagnostic?: (diag: LintDiagnostic) => void;
+-  }) => ReactNode;
+-  PreviewPane: (props: { path?: string; onClose?: () => void; focusLine?: number }) => ReactNode;
+ }
+ 
+ const w = window as unknown as Window & WorkflowReportCrossDeps;
+@@ -80,11 +66,10 @@ const w = window as unknown as Window & WorkflowReportCrossDeps;
+ // Cross-file components owned by unmigrated .jsx — referenced via window.* so
+ // behavior is identical to the bare-identifier resolution in the .jsx world.
+ const OrchestratorWorkflowPane = w.OrchestratorWorkflowPane;
+-const LintReportSummary = w.LintReportSummary;
+-const CoverageReportSummary = w.CoverageReportSummary;
+-const PreviewPane = w.PreviewPane;
+-const readAtlasAsyncResource = (kind: string, rawPath: string, force?: boolean): Promise<unknown> =>
+-  w.readAtlasAsyncResource(kind, rawPath, force);
++const readAtlasAsyncResource = (kind: string, rawPath: string, force?: boolean): Promise<unknown> => {
++  if (typeof w.readAtlasAsyncResource !== 'function') return Promise.resolve(null);
++  return w.readAtlasAsyncResource(kind, rawPath, force);
++};
+ 
+ export interface WorkflowReportPaneProps {
+   workflow: string;
+@@ -112,6 +97,7 @@ export const WorkflowReportPane = ({ workflow, activeIp }: WorkflowReportPanePro
+   const [dataTick, setDataTick] = useState(0);
+   const [selected, setSelected] = useState('');
+   const [focusLine, setFocusLine] = useState(0);
++  const [selectedLintDiagnostic, setSelectedLintDiagnostic] = useState<LintDiagnostic | null>(null);
+ 
+   useEffect(() => {
+     const handler = (ev: Event) => {
+@@ -150,17 +136,26 @@ export const WorkflowReportPane = ({ workflow, activeIp }: WorkflowReportPanePro
+   useEffect(() => {
+     if (!paths.length) {
+       setSelected('');
++      setFocusLine(0);
++      setSelectedLintDiagnostic(null);
+       return;
+     }
+     setSelected(current => (current && paths.includes(current)) ? current : paths[0]);
+   }, [pathsKey]);
+ 
+-  const openLintDiagnostic = useCallback((diag: LintDiagnostic) => {
+-    const diagPath = String(diag?.path || diag?.file || '').replace(/^\/+/, '');
+-    const line = Number(diag?.line || 0);
++  const selectPath = useCallback((path: string) => {
++    setSelected(path);
++    setFocusLine(0);
++    setSelectedLintDiagnostic(null);
++  }, []);
++
++  const openLintDiagnostic = useCallback((diag: LintDiagnostic | null | undefined) => {
++    const diagPath = lintDiagnosticPath(diag);
++    const line = lintDiagnosticLine(diag);
+     if (!diagPath) return;
+     setSelected(diagPath);
+     setFocusLine(line || 0);
++    setSelectedLintDiagnostic(diag || null);
+     readAtlasAsyncResource('file', diagPath, true).catch(() => {});
+   }, []);
+ 
+@@ -216,7 +211,7 @@ export const WorkflowReportPane = ({ workflow, activeIp }: WorkflowReportPanePro
+             return (
+               <div
+                 key={p}
+-                onClick={() => setSelected(p)}
++                onClick={() => selectPath(p)}
+                 onMouseEnter={() => readAtlasAsyncResource('file', p).catch(() => {})}
+                 title={p}
+                 style={{
+@@ -242,12 +237,12 @@ export const WorkflowReportPane = ({ workflow, activeIp }: WorkflowReportPanePro
+       </div>
+       <div style={{ minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+         {workflow === 'lint' && (
+-          <LintReportSummary ip={ip} onSelectPath={setSelected} onOpenDiagnostic={openLintDiagnostic} />
++          <LintReportSummary ip={ip} onSelectPath={selectPath} onOpenDiagnostic={openLintDiagnostic} />
+         )}
+         {workflow === 'coverage' && (
+-          <CoverageReportSummary ip={ip} onSelectPath={setSelected} onOpenDiagnostic={openLintDiagnostic} />
++          <CoverageReportSummary ip={ip} onSelectPath={selectPath} onOpenDiagnostic={openLintDiagnostic} />
+         )}
+-        <PreviewPane path={selected} onClose={() => {}} focusLine={focusLine} />
++        <PreviewPane path={selected} onClose={() => {}} focusLine={focusLine} lintDiagnostic={selectedLintDiagnostic} />
+       </div>
+     </div>
+   );
+diff --git a/common_ai_agent/frontend/atlas/workspace-lint-coverage.tsx b/common_ai_agent/frontend/atlas/workspace-lint-coverage.tsx
+index a98522fc..ae1e1164 100644
+--- a/common_ai_agent/frontend/atlas/workspace-lint-coverage.tsx
++++ b/common_ai_agent/frontend/atlas/workspace-lint-coverage.tsx
+@@ -17,6 +17,9 @@ import { useState, useEffect, useCallback } from 'react';
+ import { AtlasStatusBadge } from './workspace-report-status';
+ import { _escHtml } from './workspace-feed-cards';
+ import { ToolOutputPre } from './workspace-markdown-chips';
++import { LintToolResultCard } from './lint-diagnostics';
++
++export { LintToolResultCard } from './lint-diagnostics';
+ 
+ export const _buildFoldTree = (ranges: any): any => {
+   const sorted = (ranges || []).slice().sort((a: any, b: any) => {
+@@ -127,71 +130,6 @@ export const _highlightYamlBlock = (text: any): string =>
+ //   • click 💬 button on a summary → dispatch atlas-fold-comment
+ //   • drag-select on line-number gutter → floating "Comment selection"
+ 
+-export const LintToolResultCard = ({ result, onOpenDiagnostic }: any) => {
+-  const passed = result?.passed === true;
+-  const diagnostics = Array.isArray(result?.diagnostics) ? result.diagnostics : [];
+-  return (
+-    <div style={{
+-      border: '1px solid ' + (passed ? 'color-mix(in oklch, var(--ok) 35%, var(--line))' : 'color-mix(in oklch, var(--err) 35%, var(--line))'),
+-      background: 'var(--panel)',
+-      borderRadius: 4,
+-      padding: 10,
+-      minWidth: 0,
+-    }}>
+-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+-        <span style={{ fontFamily: 'var(--mono)', fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+-          {result?.tool || 'tool'}
+-        </span>
+-        <AtlasStatusBadge status={passed ? 'approved' : 'error'} label={passed ? 'pass' : 'fail'} compact />
+-        <span style={{ flex: 1 }} />
+-        <span style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10 }}>
+-          rc {result?.returncode ?? '?'}
+-        </span>
+-      </div>
+-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginBottom: 8 }}>
+-        {[
+-          ['errors', result?.errors ?? 0],
+-          ['warnings', result?.warnings ?? 0],
+-          ['diagnostics', diagnostics.length],
+-        ].map(([label, value]: any) => (
+-          <div key={label} style={{ border: '1px solid var(--line)', background: 'var(--bg)', borderRadius: 3, padding: '6px 7px' }}>
+-            <div style={{ color: 'var(--fg-mute)', fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{label}</div>
+-            <div style={{ fontFamily: 'var(--mono)', fontWeight: 800, fontSize: 14 }}>{value}</div>
+-          </div>
+-        ))}
+-      </div>
+-      <div className="trunc" title={result?.command || ''} style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10 }}>
+-        {result?.command || '(no command)'}
+-      </div>
+-      {diagnostics.length > 0 && (
+-        <div style={{ marginTop: 8, display: 'grid', gap: 5 }}>
+-          {diagnostics.slice(0, 5).map((d: any, idx: number) => (
+-            <button key={idx} type="button" onClick={() => onOpenDiagnostic?.(d)} style={{
+-              textAlign: 'left',
+-              border: 0,
+-              background: 'transparent',
+-              borderLeft: '2px solid ' + (String(d.severity || '').toLowerCase() === 'error' ? 'var(--err)' : 'var(--warn)'),
+-              padding: '0 0 0 7px',
+-              color: 'var(--fg)',
+-              fontFamily: 'var(--mono)',
+-              fontSize: 10,
+-              lineHeight: 1.35,
+-              cursor: d.path || d.file ? 'pointer' : 'default',
+-            }}>
+-              <span style={{ color: 'var(--fg-mute)' }}>
+-                {d.severity || 'diag'} {d.file || ''}{d.line ? `:${d.line}` : ''}{d.column ? `:${d.column}` : ''}
+-                {d.rule ? ` ${d.rule}` : ''}
+-              </span>
+-              <div>{String(d.message || '').slice(0, 260)}</div>
+-              {d.source && <div style={{ color: 'var(--fg-mute)' }}>{String(d.source).slice(0, 220)}</div>}
+-            </button>
+-          ))}
+-        </div>
+-      )}
+-    </div>
+-  );
+-};
+-
+ export const LintReportSummary = ({ ip, onSelectPath, onOpenDiagnostic }: any) => {
+   const [data, setData] = useState<any>(null);
+   const [loading, setLoading] = useState(false);
+@@ -233,29 +171,31 @@ export const LintReportSummary = ({ ip, onSelectPath, onOpenDiagnostic }: any) =
+       padding: 12,
+       display: 'grid',
+       gap: 10,
++      minWidth: 0,
++      overflow: 'hidden',
+     }}>
+-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+-        <div>
+-          <div style={{ fontWeight: 900, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 12 }}>
++      <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
++        <div style={{ minWidth: 0 }}>
++          <div className="trunc" title="pyslang + verilator lint" style={{ fontWeight: 900, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 12 }}>
+             pyslang + verilator lint
+           </div>
+-          <div style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10, marginTop: 2 }}>
++          <div className="trunc" title={`${data?.resolved_ip || ip}${data?.timestamp ? ` · ${data.timestamp}` : ''}`} style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10, marginTop: 2 }}>
+             {data?.resolved_ip || ip} {data?.timestamp ? `· ${data.timestamp}` : ''}
+           </div>
+         </div>
+-        <span style={{ flex: 1 }} />
++        <span style={{ flex: 1, minWidth: 0 }} />
+         {hasReport && <AtlasStatusBadge status={passed ? 'approved' : 'error'} label={passed ? 'clean' : 'issues'} compact />}
+         <button
+           className="btn"
+           onClick={() => setTick(v => v + 1)}
+           disabled={loading}
+-          style={{ padding: '2px 8px', fontSize: 10 }}
++          style={{ padding: '2px 8px', fontSize: 10, flex: '0 0 auto' }}
+         >refresh</button>
+         <button
+           className="btn"
+           onClick={() => load(true)}
+           disabled={running || loading}
+-          style={{ padding: '2px 8px', fontSize: 10 }}
++          style={{ padding: '2px 8px', fontSize: 10, flex: '0 0 auto' }}
+         >run report</button>
+       </div>
+ 
+@@ -275,7 +215,7 @@ export const LintReportSummary = ({ ip, onSelectPath, onOpenDiagnostic }: any) =
+ 
+       {hasReport && (
+         <>
+-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: 8 }}>
++          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 8, minWidth: 0 }}>
+             {[
+               ['tool', data.tool || 'pyslang+verilator'],
+               ['errors', data.errors ?? 0],
+@@ -289,7 +229,7 @@ export const LintReportSummary = ({ ip, onSelectPath, onOpenDiagnostic }: any) =
+               </div>
+             ))}
+           </div>
+-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 10 }}>
++          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(360px, 100%), 1fr))', gap: 10, minWidth: 0 }}>
+             {tools.map((result: any, idx: number) => (
+               <LintToolResultCard
+                 key={`${result.tool || 'tool'}-${idx}`}
+@@ -298,14 +238,14 @@ export const LintReportSummary = ({ ip, onSelectPath, onOpenDiagnostic }: any) =
+               />
+             ))}
+           </div>
+-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+-            <button className="btn" onClick={() => data.report_path && onSelectPath?.(data.report_path)} style={{ padding: '2px 8px', fontSize: 10 }}>
++          <div style={{ display: 'flex', gap: 8, alignItems: 'center', minWidth: 0, overflow: 'hidden' }}>
++            <button className="btn" onClick={() => data.report_path && onSelectPath?.(data.report_path)} style={{ padding: '2px 8px', fontSize: 10, flex: '0 0 auto' }}>
+               open json
+             </button>
+-            <button className="btn" onClick={() => data.log_path && onSelectPath?.(data.log_path)} disabled={!data.log_exists} style={{ padding: '2px 8px', fontSize: 10 }}>
++            <button className="btn" onClick={() => data.log_path && onSelectPath?.(data.log_path)} disabled={!data.log_exists} style={{ padding: '2px 8px', fontSize: 10, flex: '0 0 auto' }}>
+               open log
+             </button>
+-            <span className="trunc" title={data.command || ''} style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10 }}>
++            <span className="trunc" title={data.command || ''} style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10, flex: '1 1 auto', minWidth: 0 }}>
+               {data.command || '(no command)'}
+             </span>
+           </div>
+diff --git a/common_ai_agent/frontend/atlas/workspace-root.tsx b/common_ai_agent/frontend/atlas/workspace-root.tsx
+index 01b82fd3..53815d53 100644
+--- a/common_ai_agent/frontend/atlas/workspace-root.tsx
++++ b/common_ai_agent/frontend/atlas/workspace-root.tsx
+@@ -121,6 +121,12 @@ export const Workspace = ({
+   // as UseWorkspaceSessionDeps instead of `any`.
+   const [streamText, setStreamText] = useState<string>('');
+   const [mainTab, setMainTab] = useState<string>('chat');
++  // Sim Debug is expensive (VCD parse + RTL hierarchy/source fetch). Mount it
++  // as soon as the sim_debug workflow is active, then keep it mounted (hidden
++  // via CSS) so opening the Debug tab lands on already-prepared data.
++  const debugVisitedRef = useRef(false);
++  // Optional agent chat split beside Sim Debug (off → full-width waveform).
++  const [debugChatOpen, setDebugChatOpen] = useState(false);
+ 
+   const sessionDeps: UseWorkspaceSessionDeps = {
+     uiLang,
+@@ -168,6 +174,9 @@ export const Workspace = ({
+     setMainTab,
+   }), [session, dir, activeNamespace, streaming, streamText, mainTab]);
+   const data = useWorkspaceData(dataDeps);
++  const showDebugTabNow = data.showDebugTab === true;
++  if (mainTab === 'debug' || showDebugTabNow) debugVisitedRef.current = true;
++  const debugMounted = debugVisitedRef.current;
+ 
+   // Merge the two hook surfaces so destructuring below reads from one bag.
+   // (session first, data second — data wins on the few overlapping derived
+@@ -189,6 +198,8 @@ export const Workspace = ({
+     & ReturnType<typeof useWorkspaceData>
+     & WorkspaceComposerExtras;
+   const ws: WorkspaceBag = { ...session, ...data };
++  (ws as any).debugChatOpen = debugChatOpen;
++  (ws as any).setDebugChatOpen = setDebugChatOpen;
+ 
+   const {
+     // intent / workflow
+@@ -291,7 +302,6 @@ export const Workspace = ({
+     renderChatPane,
+     renderPromptRow,
+   } = ws;
+-
+   // Effective widths — sim_debug/coverage workflows can claim the full
+   // viewport; widths are preserved so switching back restores the layout.
+   const effLeftW: number = typeof ws.effLeftW === 'number' ? ws.effLeftW : leftW;
+@@ -473,11 +483,9 @@ export const Workspace = ({
+               </div>
+             )
+           ) : mainTab === 'debug' ? (
+-            w.SimDebug ? (
+-              <ErrorBoundary label="SimDebug">
+-                <w.SimDebug key="sim-debug-view" view="debug" initialTab="wave" />
+-              </ErrorBoundary>
+-            ) : w.DebugTab ? (
++            // The Debug SimDebug is rendered persistently below (kept mounted to
++            // preserve state); render nothing here when it's available.
++            w.SimDebug ? null : w.DebugTab ? (
+               <ErrorBoundary label="Debug">
+                 <w.DebugTab
+                   ip={(() => {
+@@ -653,6 +661,51 @@ export const Workspace = ({
+               )}
+             </div>
+           )}
++          {/* Persistent Sim Debug — mounted on first Debug visit, kept alive
++              (hidden via CSS) so source/hierarchy/signal selections + the view
++              survive tab switches instead of reloading. */}
++          {debugMounted && w.SimDebug && (
++            <div style={{
++              display: mainTab === 'debug' ? 'grid' : 'none',
++              gridTemplateColumns: debugChatOpen
++                ? `minmax(0, 1fr) 4px minmax(280px, ${splitRightW}px)`
++                : '1fr',
++              flex: mainTab === 'debug' ? 1 : '0 0 0',
++              minHeight: 0, overflow: 'hidden',
++            }}>
++              <div style={{ minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
++                <ErrorBoundary label="SimDebug">
++                  <w.SimDebug
++                    key="sim-debug-persistent"
++                    view="debug"
++                    initialTab="wave"
++                    active={mainTab === 'debug'}
++                    preload={showDebugTab}
++                  />
++                </ErrorBoundary>
++              </div>
++              {mainTab === 'debug' && debugChatOpen && (
++                <Splitter width={splitRightW} side="right" onResize={setSplitRightW}
++                          onToggle={() => setDebugChatOpen(false)}
++                          title="drag to resize · double-click to close chat" />
++              )}
++              {mainTab === 'debug' && debugChatOpen && (
++                <div style={{ minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', borderLeft: '1px solid var(--line)' }}>
++                  <div style={{
++                    padding: '4px 10px', borderBottom: '1px solid var(--line)',
++                    color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10,
++                    letterSpacing: '0.06em', textTransform: 'uppercase',
++                    display: 'flex', alignItems: 'center', gap: 8,
++                  }}>
++                    <span>chat · drives the waveform</span>
++                    <span style={{ flex: 1 }} />
++                    <span onClick={() => setDebugChatOpen(false)} style={{ cursor: 'pointer' }} title="close chat">✕</span>
++                  </div>
++                  {renderChatPane({ padding: '10px 12px' })}
++                </div>
++              )}
++            </div>
++          )}
+         </div>
+ 
+         {/* prompt — breathing room below so the input row isn't flush w/ edge. */}

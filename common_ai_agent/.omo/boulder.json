@@ -1,0 +1,16 @@
+{
+  "schema_version": 2,
+  "active_work_id": "mctp-assembler-req-to-audit-scratch",
+  "works": {
+    "mctp-assembler-req-to-audit-scratch": {
+      "work_id": "mctp-assembler-req-to-audit-scratch",
+      "active_plan": "plans/mctp-assembler-req-to-audit-scratch.md",
+      "plan_name": "mctp-assembler-req-to-audit-scratch",
+      "session_ids": [
+        "codex:019e78f6-947a-7d00-a244-58cefce570bd"
+      ],
+      "status": "active",
+      "worktree_path": null
+    }
+  }
+}

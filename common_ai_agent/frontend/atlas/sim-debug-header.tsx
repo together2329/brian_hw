@@ -9,6 +9,12 @@
 // Load order: imported by sim-debug.tsx. Owns no window bridge.
 import type { ReactNode } from 'react';
 import type { VcdData } from './sim-debug-helpers';
+import {
+  formatFrequencyFromDelta,
+  formatTimeDeltaDisplay,
+  formatTimeDisplay,
+  TIME_DISPLAY_UNITS,
+} from './sim-debug-helpers';
 
 interface DebugHeaderProps {
   summaryOnly: boolean;
@@ -23,11 +29,16 @@ interface DebugHeaderProps {
   vcdData: VcdData | null;
   waveCursor: number;
   waveCursorB: number;
+  timeDisplayUnit: string;
+  setTimeDisplayUnit: (v: string) => void;
+  cursorMetric: string;
+  setCursorMetric: (v: string) => void;
 }
 
 export const DebugHeader = ({
   summaryOnly, topTab, setTopTab, setLeftTab, expand, setExpand,
   vcdActive, setVcdActive, vcdFiles, vcdData, waveCursor, waveCursorB,
+  timeDisplayUnit, setTimeDisplayUnit, cursorMetric, setCursorMetric,
 }: DebugHeaderProps): ReactNode => {
   const selectTopTab = (id: string) => {
     setTopTab(id);
@@ -70,6 +81,12 @@ export const DebugHeader = ({
       }}
     >{glyph}</button>
   );
+
+  const ts = vcdData?.timescale || 'ns';
+  const delta = waveCursorB - waveCursor;
+  const cursorMetricText = cursorMetric === 'freq'
+    ? formatFrequencyFromDelta(delta, ts)
+    : formatTimeDeltaDisplay(delta, ts, timeDisplayUnit);
 
   return (
     <div style={{
@@ -126,12 +143,35 @@ export const DebugHeader = ({
       {!summaryOnly && (
         <>
           <span style={{ color: 'var(--line-2)', margin: '0 4px' }}>│</span>
+          <span style={{ color: 'var(--fg-mute)', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase' }}>res</span>
+          <select
+            value={timeDisplayUnit}
+            onChange={e => setTimeDisplayUnit(e.target.value)}
+            title={`display time resolution (VCD timescale: ${ts})`}
+            style={{
+              background: 'var(--bg)', color: 'var(--fg)', border: '1px solid var(--line)',
+              padding: '1px 4px', fontSize: 10, fontFamily: 'var(--mono)',
+            }}
+          >
+            {TIME_DISPLAY_UNITS.map(u => <option key={u} value={u}>{u}</option>)}
+          </select>
           <span style={{ color: 'var(--fg-mute)', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase' }}>cur A</span>
-          <span style={{ color: 'var(--accent)', fontWeight: 600, fontFamily: 'var(--mono)' }}>{waveCursor}ns</span>
+          <span style={{ color: 'var(--accent)', fontWeight: 600, fontFamily: 'var(--mono)' }}>{formatTimeDisplay(waveCursor, ts, timeDisplayUnit)}</span>
           <span style={{ color: 'var(--fg-mute)', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase' }}>B</span>
-          <span style={{ color: 'var(--cyan)', fontWeight: 600, fontFamily: 'var(--mono)' }}>{waveCursorB}ns</span>
-          <span style={{ color: 'var(--fg-mute)', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Δ</span>
-          <span style={{ color: 'var(--magenta)', fontWeight: 600, fontFamily: 'var(--mono)' }}>{waveCursorB - waveCursor}ns</span>
+          <span style={{ color: 'var(--cyan)', fontWeight: 600, fontFamily: 'var(--mono)' }}>{formatTimeDisplay(waveCursorB, ts, timeDisplayUnit)}</span>
+          <select
+            value={cursorMetric}
+            onChange={e => setCursorMetric(e.target.value)}
+            title="show A-B as interval or frequency"
+            style={{
+              background: 'var(--bg)', color: 'var(--fg)', border: '1px solid var(--line)',
+              padding: '1px 4px', fontSize: 10, fontFamily: 'var(--mono)',
+            }}
+          >
+            <option value="delta">Δ</option>
+            <option value="freq">freq</option>
+          </select>
+          <span style={{ color: 'var(--magenta)', fontWeight: 600, fontFamily: 'var(--mono)' }}>{cursorMetricText}</span>
         </>
       )}
       <span style={{ flex: 1 }} />

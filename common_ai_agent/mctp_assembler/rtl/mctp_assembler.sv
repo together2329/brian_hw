@@ -28,6 +28,17 @@ module mctp_assembler #(
   output logic [1:0]                  s_axi_bresp,
   output logic                        s_axi_bvalid,
   input  logic                        s_axi_bready,
+  input  logic [AXI_ADDR_WIDTH-1:0]   s_axi_araddr,
+  input  logic [7:0]                  s_axi_arlen,
+  input  logic [2:0]                  s_axi_arsize,
+  input  logic [1:0]                  s_axi_arburst,
+  input  logic                        s_axi_arvalid,
+  output logic                        s_axi_arready,
+  output logic [AXI_DATA_WIDTH-1:0]   s_axi_rdata,
+  output logic [1:0]                  s_axi_rresp,
+  output logic                        s_axi_rlast,
+  output logic                        s_axi_rvalid,
+  input  logic                        s_axi_rready,
   input  logic [APB_ADDR_WIDTH-1:0]   paddr,
   input  logic                        psel,
   input  logic                        penable,
@@ -42,6 +53,10 @@ module mctp_assembler #(
   output logic [SRAM_ADDR_WIDTH-1:0]  sram_wr_addr,
   output logic [SRAM_DATA_WIDTH-1:0]  sram_wr_data,
   output logic [SRAM_DATA_WIDTH/8-1:0] sram_wr_strb,
+  output logic                        sram_rd_valid,
+  input  logic                        sram_rd_ready,
+  output logic [SRAM_ADDR_WIDTH-1:0]  sram_rd_addr,
+  input  logic [SRAM_DATA_WIDTH-1:0]  sram_rd_data,
   output logic                        intr
 );
   logic tlp_valid;
@@ -167,6 +182,7 @@ module mctp_assembler #(
   logic [1:0] desc_final_sequence;
   logic [3:0] desc_context_id;
   logic [2:0] desc_routing_axi;
+  logic read_busy;
 
   logic [15:0] payload_idx_q;
   logic process_active_q;
@@ -413,6 +429,35 @@ module mctp_assembler #(
     .desc_final_sequence(desc_final_sequence),
     .desc_context_id(desc_context_id),
     .desc_push(desc_push)
+  );
+
+  mctp_assembler_axi_read_egress #(
+    .AXI_ADDR_WIDTH(AXI_ADDR_WIDTH),
+    .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
+    .SRAM_ADDR_WIDTH(SRAM_ADDR_WIDTH),
+    .SRAM_DATA_WIDTH(SRAM_DATA_WIDTH)
+  ) u_read_egress (
+    .axi_aclk(axi_aclk),
+    .axi_aresetn(axi_aresetn),
+    .soft_reset(cfg_soft_reset),
+    .sram_base(cfg_sram_base),
+    .sram_limit(cfg_sram_limit),
+    .s_axi_araddr(s_axi_araddr),
+    .s_axi_arlen(s_axi_arlen),
+    .s_axi_arsize(s_axi_arsize),
+    .s_axi_arburst(s_axi_arburst),
+    .s_axi_arvalid(s_axi_arvalid),
+    .s_axi_arready(s_axi_arready),
+    .s_axi_rdata(s_axi_rdata),
+    .s_axi_rresp(s_axi_rresp),
+    .s_axi_rlast(s_axi_rlast),
+    .s_axi_rvalid(s_axi_rvalid),
+    .s_axi_rready(s_axi_rready),
+    .sram_rd_valid(sram_rd_valid),
+    .sram_rd_ready(sram_rd_ready),
+    .sram_rd_addr(sram_rd_addr),
+    .sram_rd_data(sram_rd_data),
+    .read_busy(read_busy)
   );
 
   mctp_assembler_payload_writer #(

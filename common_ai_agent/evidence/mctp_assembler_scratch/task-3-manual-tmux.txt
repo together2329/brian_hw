@@ -1,0 +1,24 @@
+START_task3
+[verify_ssot] PASS: mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.yaml
+ mode=signoff
+blockers: 0
+warnings: 0
+report: mctp_assembler_scratch/req/ssot_validation.json
+
+check_ssot_disk exit: 0
+[check_ssot_disk] PASS: mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.
+yaml = 108157B, 36 sections, 0 TBDs, mode=signoff
+VERIFY_DONE
+MANUAL_QA_PASS_task3
+
+
+
+
+
+
+
+
+
+
+
+

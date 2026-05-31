@@ -1,0 +1,140 @@
+true
+true
+[check_tb_python_compile] PASS: compiled 9 file(s)
+[check_tb_python_compile] wrote mctp_assembler_scratch/tb/cocotb/tb_py_compile.j
+son
+mctp_assembler_scratch/cov/fcov_plan.json
+71:      "id": "SC_VALID_SINGLE_PACKET_executed",
+74:      "scenario": "SC_VALID_SINGLE_PACKET",
+85:      "id": "SC_MAX_TU_4096_129_BEATS_executed",
+88:      "scenario": "SC_MAX_TU_4096_129_BEATS",
+134:      "id": "PD_MALFORMED_TLP_executed",
+137:      "scenario": "PD_MALFORMED_TLP",
+218:      "id": "AD_TIMEOUT_executed",
+221:      "scenario": "AD_TIMEOUT",
+710:      "description": "{'id': 'PD_MALFORMED_TLP', 'condition': 'malformed_tlp
+_header_or_length', 'architectural_effect': 'Status/error reporting follows the
+SSOT error policy'}"
+806:      "description": "{'id': 'AD_TIMEOUT', 'condition': 'ctx_timeout_age_exc
+eeds_timeout_limit', 'architectural_effect': 'Status/error reporting follows the
+ SSOT error policy'}"
+
+mctp_assembler_scratch/verify/equivalence_goals.json
+401:        "error_policy": "{'id': 'PD_MALFORMED_TLP', 'condition': 'packet_dro
+p_reason == 2', 'action': 'no_sram_write_and_increment_packet_drop_count'}; {'id
+': 'PD_UNSUPPORTED_VDM', 'condition': 'packet_drop_reason == 3', 'action': 'no_s
+ram_write_and_increment_packet_drop_count'}"
+868:        "error_policy": "{'id': 'AD_MESSAGE_OVERFLOW', 'condition': 'assembl
+y_drop_reason == 22', 'action': 'no_sram_write_and_enter_error_state'}; {'id': '
+AD_SRAM_OVERFLOW', 'condition': 'assembly_drop_reason == 23', 'action': 'no_sram
+_write_and_enter_error_state'}; {'id': 'AD_TIMEOUT', 'condition': 'assembly_drop
+_reason == 25', 'action': 'clear_context_after_counting_drop'}"
+1042:      "goal_id": "EQ_SCENARIO_SC_VALID_SINGLE_PACKET",
+1043:      "title": "Scenario SC_VALID_SINGLE_PACKET: Valid single packet",
+1073:        "SC_VALID_SINGLE_PACKET_executed"
+1076:        "transaction_type": "SC_VALID_SINGLE_PACKET",
+1192:      "goal_id": "EQ_SCENARIO_SC_MAX_TU_4096_129_BEATS",
+1193:      "title": "Scenario SC_MAX_TU_4096_129_BEATS: Maximum 4096B transmissi
+on unit",
+1223:        "SC_MAX_TU_4096_129_BEATS_executed"
+1226:        "transaction_type": "SC_MAX_TU_4096_129_BEATS",
+1718:      "goal_id": "EQ_SCENARIO_PD_MALFORMED_TLP",
+1719:      "title": "Scenario PD_MALFORMED_TLP: Malformed TLP packet drop",
+1749:        "PD_MALFORMED_TLP_executed",
+1753:        "transaction_type": "PD_MALFORMED_TLP",
+1765:          "no_sram_write and PD_MALFORMED_TLP counted",
+2631:      "goal_id": "EQ_SCENARIO_AD_TIMEOUT",
+2632:      "title": "Scenario AD_TIMEOUT: Timeout assembly drop",
+2662:        "AD_TIMEOUT_executed",
+2666:        "transaction_type": "AD_TIMEOUT",
+2678:          "context clears and AD_TIMEOUT counted",
+
+mctp_assembler_scratch/tc/mctp_assembler_scratch_scenarios.py
+13:    "PD_MALFORMED_TLP",
+28:    "AD_TIMEOUT",
+131:        DirectedScenario("SC_VALID_SINGLE_PACKET", "SOM/EOM in one TLP", "FM
+_COMPLETE_MESSAGE", "valid", 32, 1, 1, "descriptor_count", "DROP_NONE", False, F
+alse, "single complete descriptor"),
+133:        DirectedScenario("SC_MAX_TU_4096_129_BEATS", "4096B TU plus headers
+in 129 AXI beats", "FM_ACCEPT_AXI_TLP", "valid", 4096, 1, 128, "collected_tlp_co
+unt", "DROP_NONE", False, False, "max burst boundary"),
+
+mctp_assembler_scratch/tc/scenario_manifest.json
+18:      "scenario_id": "SC_VALID_SINGLE_PACKET",
+46:      "scenario_id": "SC_MAX_TU_4096_129_BEATS",
+135:      "description": "packet drop PD_MALFORMED_TLP increments packet_drop_co
+unt without SRAM payload write",
+137:      "expected_drop_reason": "PD_MALFORMED_TLP",
+144:      "scenario_id": "PD_MALFORMED_TLP",
+303:      "description": "assembly drop AD_TIMEOUT increments assembly_drop_coun
+t without SRAM payload write",
+305:      "expected_drop_reason": "AD_TIMEOUT",
+312:      "scenario_id": "AD_TIMEOUT",
+mctp_assembler_scratch/tc/mctp_assembler_scratch_scenarios.py
+43:    no_sram_write: bool
+96:                        "payload_byte_strobe": 0 if self.no_sram_write else 0
+xFFFF_FFFF,
+104:                    "no_sram_write" if self.no_sram_write else "payload_byte
+s_written",
+109:                    f"no_sram_write={int(self.no_sram_write)}; "
+111:                    f"payload_bytes_written == {0 if self.no_sram_write else
+ self.payload_bytes}; "
+119:                f"payload_bytes_written == {0 if self.no_sram_write else sel
+f.payload_bytes}",
+158:        "negative scenario: no_sram_write, sram_write_count == 0, payload_by
+tes_written == 0",
+
+mctp_assembler_scratch/tc/scenario_manifest.json
+14:      "no_sram_write": false,
+28:      "no_sram_write": false,
+42:      "no_sram_write": false,
+56:      "no_sram_write": false,
+70:      "no_sram_write": false,
+84:      "no_sram_write": false,
+98:      "no_sram_write": false,
+112:      "no_sram_write": false,
+126:      "no_sram_write": true,
+127:      "notes": "negative scenario: no_sram_write, sram_write_count == 0, pay
+load_bytes_written == 0",
+140:      "no_sram_write": true,
+141:      "notes": "negative scenario: no_sram_write, sram_write_count == 0, pay
+load_bytes_written == 0",
+154:      "no_sram_write": true,
+155:      "notes": "negative scenario: no_sram_write, sram_write_count == 0, pay
+load_bytes_written == 0",
+168:      "no_sram_write": true,
+169:      "notes": "negative scenario: no_sram_write, sram_write_count == 0, pay
+load_bytes_written == 0",
+182:      "no_sram_write": true,
+183:      "notes": "negative scenario: no_sram_write, sram_write_count == 0, pay
+load_bytes_written == 0",
+196:      "no_sram_write": true,
+197:      "notes": "negative scenario: no_sram_write, sram_write_count == 0, pay
+load_bytes_written == 0",
+210:      "no_sram_write": true,
+211:      "notes": "negative scenario: no_sram_write, sram_write_count == 0, pay
+load_bytes_written == 0",
+224:      "no_sram_write": true,
+225:      "notes": "negative scenario: no_sram_write, sram_write_count == 0, pay
+load_bytes_written == 0",
+238:      "no_sram_write": true,
+239:      "notes": "negative scenario: no_sram_write, sram_write_count == 0, pay
+load_bytes_written == 0",
+252:      "no_sram_write": true,
+253:      "notes": "negative scenario: no_sram_write, sram_write_count == 0, pay
+load_bytes_written == 0",
+266:      "no_sram_write": true,
+267:      "notes": "negative scenario: no_sram_write, sram_write_count == 0, pay
+load_bytes_written == 0",
+280:      "no_sram_write": true,
+281:      "notes": "negative scenario: no_sram_write, sram_write_count == 0, pay
+load_bytes_written == 0",
+294:      "no_sram_write": true,
+295:      "notes": "negative scenario: no_sram_write, sram_write_count == 0, pay
+load_bytes_written == 0",
+308:      "no_sram_write": true,
+309:      "notes": "negative scenario: no_sram_write, sram_write_count == 0, pay
+load_bytes_written == 0",
+no_stale_tc_path
+manual_task8_surface=PASS
+

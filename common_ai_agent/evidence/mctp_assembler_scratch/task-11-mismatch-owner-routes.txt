@@ -1,0 +1,2 @@
+wrote mctp_assembler_scratch/sim/mismatch_owner_routes.json
+status=complete total=65 owners={'tb-gen': 33, 'rtl-gen': 32} classifications={'tb_bug': 33, 'rtl_bug': 32}

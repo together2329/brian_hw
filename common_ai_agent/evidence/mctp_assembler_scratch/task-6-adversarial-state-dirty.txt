@@ -1,0 +1,93 @@
+boulder active work:
+{
+  "active_work_id": "mctp-assembler-req-to-audit-scratch",
+  "active_plan": "plans/mctp-assembler-req-to-audit-scratch.md",
+  "status": "active"
+}
+ledger tail:
+{"event":"task-completed","plan":"plans/mctp-assembler-req-to-audit-scratch.md","task":"1. Create Fresh Scratch Requirement Package","session_id":"codex:019e78f6-947a-7d00-a244-58cefce570bd","commands":["test -f mctp_assembler_scratch/req/mctp_assembler_scratch_requirements.md && jq empty mctp_assembler_scratch/req/approval_manifest.json","find mctp_assembler_scratch \\( -path '*/sim/*' -o -path '*/rtl/*' -o -path '*/tb/*' \\) -print","shasum -a 256 mctp_assembler_scratch/req/mctp_assembler_scratch_requirements.md mctp_assembler_scratch/req/source_references.md","tmux new-session -d -s ulw-qa-mctp-task1 \"cd /Users/brian/Desktop/Project/brian_hw/common_ai_agent && test -f mctp_assembler_scratch/req/mctp_assembler_scratch_requirements.md && jq empty mctp_assembler_scratch/req/approval_manifest.json && echo MANUAL_QA_PASS_task1 && sleep 5\""],"artifact":["evidence/mctp_assembler_scratch/task-1-req-package.txt","evidence/mctp_assembler_scratch/task-1-no-stale-artifacts.txt","evidence/mctp_assembler_scratch/task-1-sha-manifest.txt","evidence/mctp_assembler_scratch/task-1-manual-tmux.txt","evidence/mctp_assembler_scratch/task-1-cleanup.txt"],"adversarial_classes":[{"class":"malformed input","result":"approval_manifest.json parsed with jq; invalid JSON would fail the gate"},{"class":"prompt injection","result":"not applicable: task creates static requirement files, no model prompt execution surface"},{"class":"cancel/resume","result":"Boulder state records active plan and session before task execution"},{"class":"stale state","result":"find gate proved no sim/rtl/tb artifacts under scratch tree at Task 1"},{"class":"dirty worktree","result":"new files are isolated under mctp_assembler_scratch/, evidence/mctp_assembler_scratch/, .omo/, and the plan file"},{"class":"hung or long commands","result":"only bounded file/jq/find/shasum/tmux commands were used; tmux session was killed"},{"class":"flaky tests","result":"not applicable: deterministic file existence/hash checks only"},{"class":"misleading success output","result":"success was checked by jq, wc byte count, find no-stale output, and tmux transcript"},{"class":"repeated interruptions","result":"Boulder ledger and plan checkbox preserve resume point after interruption"}],"cleanup":["cleanup: tmux kill-session -t ulw-qa-mctp-task1; verified absent"]}
+{"event":"task-completed","plan":"plans/mctp-assembler-req-to-audit-scratch.md","task":"2. Lock Executable Requirement Decisions","session_id":"codex:019e78f6-947a-7d00-a244-58cefce570bd","commands":["rg -n 'TBD|TODO|integration-policy dependent' mctp_assembler_scratch/req/mctp_assembler_scratch_requirements.md","rg -n 'no AXI IDs|linear bump|SLVERR|formal proof optional' mctp_assembler_scratch/req/mctp_assembler_scratch_requirements.md","jq empty mctp_assembler_scratch/req/approval_manifest.json","tmux new-session -d -s ulw-qa-mctp-task2 \"cd /Users/brian/Desktop/Project/brian_hw/common_ai_agent && ! rg -n 'TBD|TODO|integration-policy dependent|should be locked before SSOT' mctp_assembler_scratch/req/mctp_assembler_scratch_requirements.md && rg -n 'no AXI IDs|linear bump|SLVERR|formal proof optional' mctp_assembler_scratch/req/mctp_assembler_scratch_requirements.md && echo MANUAL_QA_PASS_task2 && sleep 5\""],"artifact":["evidence/mctp_assembler_scratch/task-2-red-placeholders.txt","evidence/mctp_assembler_scratch/task-2-red-defaults-individual.txt","evidence/mctp_assembler_scratch/task-2-no-placeholders.txt","evidence/mctp_assembler_scratch/task-2-defaults.txt","evidence/mctp_assembler_scratch/task-2-manifest-refresh.txt","evidence/mctp_assembler_scratch/task-2-manual-tmux.txt","evidence/mctp_assembler_scratch/task-2-cleanup.txt"],"adversarial_classes":[{"class":"malformed input","result":"approval_manifest.json parsed with jq and hash match check after req edit"},{"class":"prompt injection","result":"not applicable: static requirement lock, no prompt-execution surface"},{"class":"cancel/resume","result":"Boulder ledger and task checkbox preserve resume point after interruption"},{"class":"stale state","result":"RED evidence captured missing defaults before edit; GREEN evidence captured after edit"},{"class":"dirty worktree","result":"edits isolated to scratch req files and plan/ledger/evidence"},{"class":"hung or long commands","result":"bounded rg/jq/shasum/tmux commands; tmux session killed and verified absent"},{"class":"flaky tests","result":"not applicable: deterministic text/hash checks"},{"class":"misleading success output","result":"success requires negative placeholder search, positive default search, manifest hash match, and tmux transcript"},{"class":"repeated interruptions","result":"ledger includes RED and GREEN artifact paths for resumption"}],"cleanup":["cleanup: tmux kill-session -t ulw-qa-mctp-task2; verified absent"]}
+{"event":"task-completed","plan":"plans/mctp-assembler-req-to-audit-scratch.md","task":"3. Author Scratch SSOT and Schema Gate","session_id":"codex:019e78f6-947a-7d00-a244-58cefce570bd","commands":["python3 workflow/ssot-gen/scripts/verify_ssot.py mctp_assembler_scratch --root . --mode signoff","python3 workflow/ssot-gen/scripts/repair_ssot_schema.py mctp_assembler_scratch --root . --mode signoff","! rg -n 'replace before signoff|Repair marker|Auto-injected benign|Auto-injected transaction' mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.yaml","! rg -n '^\\\\s*expr:\\\\s*[01]\\\\s*$|^\\\\s*expr:\\\\s*[\\\"'\\'''][01][\\\"'\\''']\\\\s*$' mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.yaml","jq '.ok, (.blockers | length), .preview_contract, .check_ssot_disk.ok' mctp_assembler_scratch/req/ssot_validation.json","tmux new-session -d -s ulw-qa-mctp-task3d 'cd /Users/brian/Desktop/Project/brian_hw/common_ai_agent && echo START_task3 && python3 workflow/ssot-gen/scripts/verify_ssot.py mctp_assembler_scratch --root . --mode signoff && echo VERIFY_DONE && ! rg -n \"replace before signoff|Repair marker|Auto-injected benign|Auto-injected transaction\" mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.yaml && echo MANUAL_QA_PASS_task3 && sleep 10'"],"artifact":["evidence/mctp_assembler_scratch/task-3-red-missing-ssot.txt","evidence/mctp_assembler_scratch/task-3-repair-1.txt","evidence/mctp_assembler_scratch/task-3-verify-1.txt","mctp_assembler_scratch/req/ssot_validation.json","mctp_assembler_scratch/req/ssot_downstream_blockers.json","mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.yaml","mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.provenance.json","evidence/mctp_assembler_scratch/task-3-no-scaffold.txt","evidence/mctp_assembler_scratch/task-3-no-constant-expr.txt","evidence/mctp_assembler_scratch/task-3-validation-json.txt","evidence/mctp_assembler_scratch/task-3-content-anchors.txt","evidence/mctp_assembler_scratch/task-3-manual-tmux.txt","evidence/mctp_assembler_scratch/task-3-cleanup.txt","evidence/mctp_assembler_scratch/task-3-no-help-dir.txt"],"adversarial_classes":[{"class":"malformed input","result":"verify_ssot parsed YAML and jq confirmed ssot_validation.json ok=true with zero blockers"},{"class":"prompt injection","result":"not applicable: static YAML authoring from locked req; no prompt execution surface"},{"class":"cancel/resume","result":"Task 3 checkbox and ledger entry preserve resume point after SSOT signoff"},{"class":"stale state","result":"RED evidence captured missing SSOT before authoring; GREEN verify evidence proves fresh scratch SSOT path"},{"class":"dirty worktree","result":"edits isolated to mctp_assembler_scratch/yaml, mctp_assembler_scratch/req validation outputs, evidence, plan, and ledger; existing mctp_assembler evidence not used"},{"class":"hung or long commands","result":"repair/verify commands completed; tmux manual-QA session was killed and verified absent"},{"class":"flaky tests","result":"not applicable: deterministic schema, grep, jq, and disk checks"},{"class":"misleading success output","result":"success requires repair exit 0, verify exit 0, validation JSON ok=true, zero blockers, no scaffold markers, and tmux transcript"},{"class":"repeated interruptions","result":"Boulder state, plan checkbox, and evidence paths permit exact continuation at Task 4"}],"cleanup":["cleanup: tmux kill-session -t ulw-qa-mctp-task3d; verified absent","cleanup: verified ./--help directory absent"]}
+{"event":"task-completed","plan":"plans/mctp-assembler-req-to-audit-scratch.md","task":"4. Generate FL, CL, Equivalence Goals, and IP Contract","session_id":"codex:019e78f6-947a-7d00-a244-58cefce570bd","commands":["test generated model/contract files missing before Task 4","python3 workflow/fl-model-gen/scripts/emit_fl_model.py mctp_assembler_scratch --root .","python3 workflow/fl-model-gen/scripts/emit_cycle_model.py mctp_assembler_scratch --root .","python3 workflow/fl-model-gen/scripts/emit_equivalence_goals.py mctp_assembler_scratch --root .","python3 workflow/ip-contract/scripts/derive_ip_contract.py mctp_assembler_scratch --root .","jq empty generated JSON artifacts","python3 -m py_compile mctp_assembler_scratch/model/functional_model.py mctp_assembler_scratch/model/cycle_model.py","rg -n 'axi|apb|sram|packet|ready_valid|bus_transaction|memory_state|interrupt_behavior|backpressure|multi_cycle_timing' mctp_assembler_scratch/verify/ip_contract.json","tmux new-session -d -s ulw-qa-mctp-task4 '<model generation chain plus jq/rg checks>'"],"artifact":["evidence/mctp_assembler_scratch/task-4-red-missing-model-contract.txt","evidence/mctp_assembler_scratch/task-4-model-chain.txt","evidence/mctp_assembler_scratch/task-4-red-cl-selfcheck-runtime.txt","evidence/mctp_assembler_scratch/task-4-debug-journal.txt","evidence/mctp_assembler_scratch/task-4-ssot-repair-after-required-fields.txt","evidence/mctp_assembler_scratch/task-4-ssot-verify-after-required-fields.txt","evidence/mctp_assembler_scratch/task-4-model-chain-green.txt","evidence/mctp_assembler_scratch/task-4-artifact-parse.txt","evidence/mctp_assembler_scratch/task-4-fl-check-summary.txt","evidence/mctp_assembler_scratch/task-4-cl-check-summary.txt","evidence/mctp_assembler_scratch/task-4-contract-capabilities.txt","evidence/mctp_assembler_scratch/task-4-equivalence-summary.txt","evidence/mctp_assembler_scratch/task-4-no-stale-ip-paths.txt","evidence/mctp_assembler_scratch/task-4-generated-files.txt","evidence/mctp_assembler_scratch/task-4-final-ssot-verify.txt","evidence/mctp_assembler_scratch/task-4-manual-tmux.txt","evidence/mctp_assembler_scratch/task-4-cleanup.txt","evidence/mctp_assembler_scratch/task-4-debug-cleanup.txt","evidence/mctp_assembler_scratch/task-4-cleanup-extra.txt","mctp_assembler_scratch/model/functional_model.py","mctp_assembler_scratch/model/cycle_model.py","mctp_assembler_scratch/model/fl_model_check.json","mctp_assembler_scratch/model/cl_model_check.json","mctp_assembler_scratch/model/decomposition.json","mctp_assembler_scratch/model/manifest.json","mctp_assembler_scratch/cov/fcov_plan.json","mctp_assembler_scratch/verify/equivalence_goals.json","mctp_assembler_scratch/verify/ip_contract.json"],"adversarial_classes":[{"class":"malformed input","result":"jq parsed all generated JSON files and py_compile parsed generated Python models"},{"class":"prompt injection","result":"not applicable: generation is deterministic from local SSOT, no external prompt execution surface"},{"class":"cancel/resume","result":"RED, failing CL self-check, fix evidence, and GREEN chain artifacts record the exact resume path"},{"class":"stale state","result":"RED evidence showed model/contract artifacts missing before generation; no stale mctp_assembler/ paths found in generated scratch outputs"},{"class":"dirty worktree","result":"edits and generated artifacts isolated to scratch SSOT/model/verify/cov plus evidence, plan, and ledger"},{"class":"hung or long commands","result":"model chain and tmux manual-QA completed; tmux session killed and verified absent"},{"class":"flaky tests","result":"not applicable: deterministic generator, jq, py_compile, and rg checks"},{"class":"misleading success output","result":"success requires FL passed=true, CL passed=true, CL fl_errors empty, equivalence blocked=0, and ip_contract capability anchors present"},{"class":"repeated interruptions","result":"plan checkbox and ledger mark Task 4 complete with all generated artifact paths"}],"cleanup":["cleanup: tmux kill-session -t ulw-qa-mctp-task4; verified absent","cleanup: .debug-journal.md removed after copying to evidence","cleanup: verified ./--help directory absent"]}
+{"event":"task-completed","plan":"plans/mctp-assembler-req-to-audit-scratch.md","task":"5. Define RTL Architecture TODOs from SSOT","session_id":"codex:019e78f6-947a-7d00-a244-58cefce570bd","commands":["test rtl_todo_plan.json missing before Task 5","python3 workflow/rtl-gen/scripts/derive_rtl_todos.py mctp_assembler_scratch --root .","jq empty mctp_assembler_scratch/rtl/rtl_todo_plan.json","rg -n required module names mctp_assembler_scratch/rtl/rtl_todo_plan.json","rg -n top/APB/per-Q/SRAM/descriptor/drop obligations mctp_assembler_scratch/rtl/rtl_todo_plan.json","tmux new-session -d -s ulw-qa-mctp-task5 '<derive_rtl_todos plus jq/rg checks>'"],"artifact":["evidence/mctp_assembler_scratch/task-5-red-missing-rtl-todos.txt","evidence/mctp_assembler_scratch/task-5-derive-rtl-todos.txt","mctp_assembler_scratch/rtl/rtl_todo_plan.json","evidence/mctp_assembler_scratch/task-5-rtl-todo-summary.txt","evidence/mctp_assembler_scratch/task-5-rtl-module-todos.txt","evidence/mctp_assembler_scratch/task-5-rtl-obligations.txt","evidence/mctp_assembler_scratch/task-5-no-stale-ip-paths.txt","evidence/mctp_assembler_scratch/task-5-required-modules-exact.txt","evidence/mctp_assembler_scratch/task-5-manual-tmux.txt","evidence/mctp_assembler_scratch/task-5-cleanup.txt","evidence/mctp_assembler_scratch/task-5-cleanup-extra.txt"],"adversarial_classes":[{"class":"malformed input","result":"rtl_todo_plan.json parsed with jq and reported 453 tasks, 0 blockers, 0 orphans"},{"class":"prompt injection","result":"not applicable: deterministic local SSOT-to-JSON derivation, no prompt execution surface"},{"class":"cancel/resume","result":"RED missing-file evidence and GREEN rtl_todo_plan artifact provide exact resume point"},{"class":"stale state","result":"no stale mctp_assembler/ path found in scratch rtl_todo_plan.json"},{"class":"dirty worktree","result":"generated artifacts isolated to mctp_assembler_scratch/rtl plus evidence, plan, and ledger"},{"class":"hung or long commands","result":"derive_rtl_todos and tmux manual-QA completed; tmux session killed and verified absent"},{"class":"flaky tests","result":"not applicable: deterministic JSON derivation and text checks"},{"class":"misleading success output","result":"success requires script exit 0, JSON parse, zero blockers/orphans, required module paths, and obligation anchors present"},{"class":"repeated interruptions","result":"plan checkbox and ledger mark Task 5 complete with rtl_todo_plan path"}],"cleanup":["cleanup: tmux kill-session -t ulw-qa-mctp-task5; verified absent","cleanup: verified ./--help directory absent"]}
+dirty worktree acknowledged:
+ m ../.claude/worktrees/wf_c8c8419b-dc0-1
+ M core/tool_schema.py
+ M core/tools.py
+ ? deepdeep_ip
+ M doc/wiki/_graph.json
+ M doc/wiki/index.md
+ M doc/wiki/log.md
+ M frontend/atlas/__tests__/sim-debug-vcd-scope-annotation.test.jsx
+ M frontend/atlas/__tests__/wave-edge-click.test.jsx
+ M frontend/atlas/debug-shared.tsx
+ M frontend/atlas/pipeline-cards.tsx
+ M frontend/atlas/preview-pane.tsx
+ D frontend/atlas/sim-debug-chat.tsx
+ M frontend/atlas/sim-debug-header.tsx
+ M frontend/atlas/sim-debug-helpers.tsx
+ M frontend/atlas/sim-debug-panels-side.tsx
+ M frontend/atlas/sim-debug-panels.tsx
+ M frontend/atlas/sim-debug-root-shared.tsx
+ M frontend/atlas/sim-debug-wave.tsx
+ M frontend/atlas/sim-debug.tsx
+ M frontend/atlas/styles.css
+ M frontend/atlas/vcd-parser.js
+ M frontend/atlas/workflow-report.tsx
+ M frontend/atlas/workspace-lint-coverage.tsx
+ M frontend/atlas/workspace-root.tsx
+ M frontend/atlas/workspace-rootui-rail-tabs.tsx
+ M ip_examples/arm_m0_min/rtl/rtl_authoring_provenance.json
+ ? ip_examples/cmux_flow_alpha
+ m ip_examples/cmux_flow_gamma
+ m ip_examples/cmux_verify_5fix
+ M mctp_assembler/cov/coverage_functional.json
+ M mctp_assembler/lint/dut_lint.json
+ M mctp_assembler/lint/dut_lint.log
+ M mctp_assembler/list/mctp_assembler.f
+ M mctp_assembler/req/mctp_assembler_requirements.md
+ M mctp_assembler/rtl/mctp_assembler.sv
+ M mctp_assembler/rtl/rtl_compile.json
+ M mctp_assembler/sim/cocotb_build/mctp_assembler.vvp
+ M mctp_assembler/sim/results.xml
+ M mctp_assembler/sim/scoreboard_events.jsonl
+ M mctp_assembler/sim/sim_report.txt
+ M mctp_assembler/tb/cocotb/agents.py
+ M mctp_assembler/tb/cocotb/results.xml
+ M mctp_assembler/tb/cocotb/scoreboard.py
+ M mctp_assembler/tb/cocotb/tb_manifest.json
+ M mctp_assembler/tb/cocotb/test_mctp_assembler.py
+ M mctp_assembler/tb/cocotb/uvm_env.py
+ M mctp_assembler/tc/mctp_assembler_scenarios.py
+ M src/atlas_api_sim_debug.py
+ M src/atlas_api_vcd.py
+ M src/workflow_stage_surface.py
+ M tests/test_sim_debug_elab.py
+ M tests/test_workflow_stage_surface.py
+ M workflow/GUIDE.md
+ M workflow/fl-model-gen/scripts/emit_cycle_model.py
+ M workflow/fl-model-gen/scripts/emit_fl_model.py
+ M workflow/lint/scripts/dut_lint_report.py
+ M workflow/orchestrator/todo_templates/run-to-green.json
+ M workflow/rtl-gen/scripts/rtl_compile_report.py
+ M workflow/sim_debug/elab.py
+ M workflow/ssot-gen/scripts/new_ip_emit_chain.sh
+ M workflow/tb-gen/scripts/check_pyuvm_structure.sh
+ M workflow/tb-gen/scripts/check_scoreboard_events.py
+ M workflow/tb-gen/todo_templates/ssot-tb-cocotb.json
+ M workflow/tb-gen/todo_templates/ssot-tb-goal.json
+ M workflow/tb-gen/todo_templates/ssot-tb.json
+ m ../external_refs/open-design
+?? .omo/
+?? IP_SIGNOFF.md
+?? apb_add_demo/
+?? core/sim_debug_analyze.py
+?? core/sim_debug_intent.py
+?? core/vcd_timeline.py
+?? doc/wiki/hw-agent-ip-experiment-batch-20260530.md
+?? doc/wiki/sim-debug-agent-tool-2026-05-31.md
+?? doc/wiki/sim-debug-module-signals-2026-05-30.md
+?? doc/wiki/sim-debug-waveform-renderer-2026-05-31.md
+?? doc/wiki/uart-tx-end-to-end-findings-20260530.md
+?? evidence/
+?? frontend/atlas/__tests__/preview-pane-lint-annotation.test.tsx

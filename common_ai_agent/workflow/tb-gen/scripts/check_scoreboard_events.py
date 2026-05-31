@@ -10,8 +10,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 from typing import Any
+
+
+SIGNAL_OBSERVABLE_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_$]*(?:\[[^\]]+\])?$")
 
 
 def _load_json(path: Path) -> dict[str, Any]:
@@ -55,6 +59,29 @@ def _goal_map(goals_path: Path) -> dict[str, dict[str, Any]]:
         if gid:
             out[gid] = goal
     return out
+
+
+def _observable_signal_names(goal: dict[str, Any]) -> set[str]:
+    """Return expected DUT signal names from a goal's observables list.
+
+    Older goals often mix human-readable prose with actual signal names.  This
+    gate only hard-enforces entries that are unambiguously signal-like.
+    """
+
+    contract = goal.get("expected_contract") if isinstance(goal.get("expected_contract"), dict) else {}
+    observables = contract.get("observables")
+    if not isinstance(observables, list):
+        return set()
+
+    names: set[str] = set()
+    for item in observables:
+        if not isinstance(item, str):
+            continue
+        text = item.strip()
+        if not SIGNAL_OBSERVABLE_RE.fullmatch(text):
+            continue
+        names.add(text.split("[", 1)[0])
+    return names
 
 
 def _tb_sources(ip_dir: Path) -> str:
@@ -172,6 +199,14 @@ def _row_errors(
             errors.append(f"line {line_no}: rtl_observed must not be copied from FunctionalModel model_result")
         elif observed == fl_expected:
             errors.append(f"line {line_no}: rtl_observed must be DUT-observed signals, not the whole fl_expected payload")
+        if gid in known_goal_ids:
+            expected_observables = _observable_signal_names((goals or {}).get(gid, {}))
+            missing_observables = sorted(expected_observables - set(observed))
+            if missing_observables:
+                errors.append(
+                    f"line {line_no}: rtl_observed missing expected observable(s) for {gid}: "
+                    + ", ".join(missing_observables)
+                )
     fl_expected = row.get("fl_expected")
     if isinstance(fl_expected, dict) and fl_expected.get("model_api") != "FunctionalModel.apply":
         errors.append(f"line {line_no}: fl_expected must come from FunctionalModel.apply")
