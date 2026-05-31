@@ -1,0 +1,10 @@
+===== test_ip_dir =====
+CMD: test -d mctp_assembler_scratch
+RC: 0
+
+===== signoff_json_when_scoreboard_exists =====
+CMD: jq empty mctp_assembler_scratch/signoff/ip_signoff.json
+RC: 0
+
+===== verify_ssot =====
+CMD: python3 workflow/ssot-gen/scripts/verify_ssot.py mctp_assembler_scratch --root . --mode signoff
