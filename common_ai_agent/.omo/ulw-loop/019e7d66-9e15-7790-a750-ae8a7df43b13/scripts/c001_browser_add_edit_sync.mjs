@@ -43,6 +43,17 @@ const log = (step, data = {}) => {
 
 const countText = async (page, text) => page.getByText(text, { exact: true }).count();
 
+const waitForTextCount = async (page, text, minimum) => {
+  const deadline = Date.now() + 20000;
+  let count = 0;
+  while (Date.now() < deadline) {
+    count = await countText(page, text);
+    if (count >= minimum) return count;
+    await page.waitForTimeout(200);
+  }
+  throw new Error(`Expected at least ${minimum} occurrence(s) for ${text}, saw ${count}`);
+};
+
 const clickTextOccurrence = async (page, text, index) => {
   const locator = page.getByText(text, { exact: true });
   const count = await locator.count();
@@ -128,9 +139,9 @@ try {
   await waitForPerforceTab(page);
   log("perforce_tab_visible");
 
-  await page.getByText("rtl/new_file.sv", { exact: true }).waitFor({ timeout: 20000 });
-  await page.getByText("rtl/existing.sv", { exact: true }).waitFor({ timeout: 20000 });
-  await page.getByText("rtl/sync_target.sv", { exact: true }).waitFor({ timeout: 20000 });
+  await waitForTextCount(page, "rtl/new_file.sv", 1);
+  await waitForTextCount(page, "rtl/existing.sv", 2);
+  await waitForTextCount(page, "rtl/sync_target.sv", 2);
   result.assertions.initialRowsVisible = true;
 
   await clickTextOccurrence(page, "rtl/new_file.sv", 0);

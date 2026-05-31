@@ -186,7 +186,9 @@ stop_p4d() {
   local p4port="$2"
   P4CONFIG= P4TICKETS="$tmp/tickets" p4 -p "localhost:$p4port" -u super admin stop >/dev/null 2>&1 || true
   if [[ -f "$tmp/p4d.pid" ]]; then
-    stop_pid "$(cat "$tmp/p4d.pid")"
+    local pid
+    pid="$(cat "$tmp/p4d.pid" 2>/dev/null || true)"
+    stop_pid "$pid"
   fi
 }
 
