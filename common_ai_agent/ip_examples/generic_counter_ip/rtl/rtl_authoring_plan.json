@@ -18,13 +18,13 @@
         "task_id": "RTL-0006"
       },
       {
-        "gate_kind": "dut_lint",
+        "gate_kind": "dut_compile",
         "owner_module": "generic_counter_ip",
-        "reason": "lint/dut_lint.json is older than current RTL source rtl/generic_counter_ip.sv; rerun DUT lint after the final RTL edit.",
+        "reason": "rtl/rtl_compile.json is older than current RTL source rtl/generic_counter_ip.sv; rerun DUT compile after the final RTL edit.",
         "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.dut_lint",
+        "source_ref": "quality_gates.rtl_gen.dut_compile",
         "status": "open",
-        "task_id": "RTL-0018"
+        "task_id": "RTL-0017"
       },
       {
         "gate_kind": "dynamic_todo_closure",
@@ -90,27 +90,28 @@
         "task_id": "RTL-0006"
       },
       {
-        "artifact": "lint/dut_lint.json",
+        "artifact": "rtl/rtl_compile.json",
         "artifacts": [
-          "generic_counter_ip/lint/dut_lint.json"
+          "generic_counter_ip/rtl/rtl_compile.json",
+          "generic_counter_ip/rtl/rtl_compile.log"
         ],
-        "closure_rule": "dut_lint.json must be DUT-only, fresh, passed, and report zero warnings/errors.",
+        "closure_rule": "rtl_compile.json must be DUT-only, fresh, passed, and cover every current DUT RTL file.",
         "commands": [
-          "python3 workflow/lint/scripts/dut_lint_report.py generic_counter_ip --top generic_counter_ip",
+          "python3 workflow/rtl-gen/scripts/rtl_compile_report.py generic_counter_ip --top generic_counter_ip --project-root .",
           "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py generic_counter_ip --root . --audit-rtl"
         ],
-        "gate_kind": "dut_lint",
+        "gate_kind": "dut_compile",
         "prerequisites": [
-          "generic_counter_ip/list/generic_counter_ip.f covers the current DUT RTL/header sources."
+          "generic_counter_ip/list/generic_counter_ip.f covers the current DUT RTL sources."
         ],
-        "reason": "lint/dut_lint.json is older than current RTL source rtl/generic_counter_ip.sv; rerun DUT lint after the final RTL edit.",
-        "source_ref": "quality_gates.rtl_gen.dut_lint",
+        "reason": "rtl/rtl_compile.json is older than current RTL source rtl/generic_counter_ip.sv; rerun DUT compile after the final RTL edit.",
+        "source_ref": "quality_gates.rtl_gen.dut_compile",
         "stage_sequence": [
-          "lint",
-          "dut_lint"
+          "ssot-rtl",
+          "dut_compile"
         ],
         "status": "open",
-        "task_id": "RTL-0018"
+        "task_id": "RTL-0017"
       },
       {
         "artifact": "rtl/rtl_todo_plan.json",
@@ -153,13 +154,13 @@
             "task_id": "RTL-0006"
           },
           {
-            "gate_kind": "dut_lint",
+            "gate_kind": "dut_compile",
             "owner_module": "generic_counter_ip",
-            "reason": "lint/dut_lint.json is older than current RTL source rtl/generic_counter_ip.sv; rerun DUT lint after the final RTL edit.",
+            "reason": "rtl/rtl_compile.json is older than current RTL source rtl/generic_counter_ip.sv; rerun DUT compile after the final RTL edit.",
             "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.dut_lint",
+            "source_ref": "quality_gates.rtl_gen.dut_compile",
             "status": "open",
-            "task_id": "RTL-0018"
+            "task_id": "RTL-0017"
           },
           {
             "gate_kind": "dynamic_todo_closure",
@@ -212,27 +213,28 @@
             "task_id": "RTL-0006"
           },
           {
-            "artifact": "lint/dut_lint.json",
+            "artifact": "rtl/rtl_compile.json",
             "artifacts": [
-              "generic_counter_ip/lint/dut_lint.json"
+              "generic_counter_ip/rtl/rtl_compile.json",
+              "generic_counter_ip/rtl/rtl_compile.log"
             ],
-            "closure_rule": "dut_lint.json must be DUT-only, fresh, passed, and report zero warnings/errors.",
+            "closure_rule": "rtl_compile.json must be DUT-only, fresh, passed, and cover every current DUT RTL file.",
             "commands": [
-              "python3 workflow/lint/scripts/dut_lint_report.py generic_counter_ip --top generic_counter_ip",
+              "python3 workflow/rtl-gen/scripts/rtl_compile_report.py generic_counter_ip --top generic_counter_ip --project-root .",
               "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py generic_counter_ip --root . --audit-rtl"
             ],
-            "gate_kind": "dut_lint",
+            "gate_kind": "dut_compile",
             "prerequisites": [
-              "generic_counter_ip/list/generic_counter_ip.f covers the current DUT RTL/header sources."
+              "generic_counter_ip/list/generic_counter_ip.f covers the current DUT RTL sources."
             ],
-            "reason": "lint/dut_lint.json is older than current RTL source rtl/generic_counter_ip.sv; rerun DUT lint after the final RTL edit.",
-            "source_ref": "quality_gates.rtl_gen.dut_lint",
+            "reason": "rtl/rtl_compile.json is older than current RTL source rtl/generic_counter_ip.sv; rerun DUT compile after the final RTL edit.",
+            "source_ref": "quality_gates.rtl_gen.dut_compile",
             "stage_sequence": [
-              "lint",
-              "dut_lint"
+              "ssot-rtl",
+              "dut_compile"
             ],
             "status": "open",
-            "task_id": "RTL-0018"
+            "task_id": "RTL-0017"
           },
           {
             "artifact": "rtl/rtl_todo_plan.json",

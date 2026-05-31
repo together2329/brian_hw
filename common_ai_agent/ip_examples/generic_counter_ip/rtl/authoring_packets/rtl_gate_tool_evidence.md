@@ -30,11 +30,11 @@
 - Owner refs: top_module, function_model, cycle_model
 - Tool-evidence blockers:
   - common_ai_agent_authoring: RTL authoring provenance is incomplete: todo_plan_sha256
-  - dut_lint: lint/dut_lint.json is older than current RTL source rtl/generic_counter_ip.sv; rerun DUT lint after the final RTL edit.
+  - dut_compile: rtl/rtl_compile.json is older than current RTL source rtl/generic_counter_ip.sv; rerun DUT compile after the final RTL edit.
   - dynamic_todo_closure: 2 required non-closure TODO(s) remain open.
 - Tool-evidence runbook:
   - common_ai_agent_authoring: stages=ssot-rtl; artifact=generic_counter_ip/rtl/rtl_authoring_provenance.json
-  - dut_lint: stages=lint, dut_lint; artifact=generic_counter_ip/lint/dut_lint.json
+  - dut_compile: stages=ssot-rtl, dut_compile; artifact=generic_counter_ip/rtl/rtl_compile.json
   - dynamic_todo_closure: stages=audit-rtl; artifact=generic_counter_ip/rtl/rtl_todo_plan.json
 - SSOT top IO contracts: 4
 
@@ -67,13 +67,13 @@ Owner: generic_counter_ip in rtl/generic_counter_ip.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: pass
+- Status: open
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.dut_compile
 - Detail: Compile approval must come from the canonical rtl_compile_report.py artifact generated after RTL generation or repair.
 SSOT ref: quality_gates.rtl_gen.dut_compile.
 Owner: generic_counter_ip in rtl/generic_counter_ip.sv via top_module.
-- Current reason: DUT-only compile artifact passed with zero errors, diagnostics, and style violations.
+- Current reason: rtl/rtl_compile.json is older than current RTL source rtl/generic_counter_ip.sv; rerun DUT compile after the final RTL edit.
 - Criteria:
   - rtl/rtl_compile.json exists
   - rtl_compile.json reports dut_only=true
@@ -88,13 +88,13 @@ Owner: generic_counter_ip in rtl/generic_counter_ip.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.dut_lint
 - Detail: Lint approval must come from the canonical dut_lint_report.py artifact and must not rely on ad-hoc suppressions.
 SSOT ref: quality_gates.rtl_gen.dut_lint.
 Owner: generic_counter_ip in rtl/generic_counter_ip.sv via top_module.
-- Current reason: lint/dut_lint.json is older than current RTL source rtl/generic_counter_ip.sv; rerun DUT lint after the final RTL edit.
+- Current reason: DUT-only lint artifact passed with zero errors, warnings, and suppression violations.
 - Criteria:
   - lint/dut_lint.json exists
   - dut_lint.json reports dut_only=true
