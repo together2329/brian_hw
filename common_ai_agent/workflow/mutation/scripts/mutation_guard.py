@@ -578,6 +578,8 @@ def _write_markdown(path: Path, report: dict[str, Any]) -> None:
     summary = report["summary"]
     obligations = report.get("contract_mutation_obligations") if isinstance(report.get("contract_mutation_obligations"), dict) else {}
     unsupported = obligations.get("unsupported_by_current_guard") if isinstance(obligations.get("unsupported_by_current_guard"), list) else []
+    baseline = report.get("baseline") if isinstance(report.get("baseline"), dict) else {}
+    baseline_reason = str(baseline.get("reason") or "")
     lines = [
         f"# Mutation Guard - {report['ip']}",
         "",
@@ -590,12 +592,19 @@ def _write_markdown(path: Path, report: dict[str, Any]) -> None:
         f"- Invalid: `{summary['invalid']}`",
         f"- Kill rate: `{summary['kill_rate']}`",
         f"- Contract unsupported mutation categories: `{', '.join(unsupported) if unsupported else 'none'}`",
-        "",
-        "## Category Kill Rate",
-        "",
-        "| Category | Executed | Killed | Survived | Invalid | Kill rate |",
-        "| --- | ---: | ---: | ---: | ---: | ---: |",
     ]
+    if report.get("status") == "blocked_baseline" and baseline_reason:
+        lines.append(f"- Baseline blocker: {baseline_reason}")
+        lines.append(f"- Baseline source: `{baseline.get('source') or 'unknown'}`")
+    lines.extend(
+        [
+            "",
+            "## Category Kill Rate",
+            "",
+            "| Category | Executed | Killed | Survived | Invalid | Kill rate |",
+            "| --- | ---: | ---: | ---: | ---: | ---: |",
+        ]
+    )
     for row in report.get("category_summary", []):
         lines.append(
             f"| `{row['category']}` | {row['executed']} | {row['killed']} | {row['survived']} | {row['invalid']} | `{row['kill_rate']}` |"
