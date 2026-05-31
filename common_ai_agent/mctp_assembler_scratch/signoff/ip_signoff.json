@@ -135,7 +135,7 @@
       "summary": "waivers explicit and reviewable"
     }
   ],
-  "generated_at": "2026-05-31T11:58:48Z",
+  "generated_at": "2026-05-31T11:59:47Z",
   "ip": "mctp_assembler_scratch",
   "ip_contract": "verify/ip_contract.json",
   "mode": "local_evidence",
