@@ -1795,9 +1795,6 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
 
     const clearSubmittedInput = () => {
       recordInputHistory(raw);
-      try {
-        window.dispatchEvent(new CustomEvent('atlas-composer-draft-set', { detail: { text: '' } }));
-      } catch (_) {}
       setInput((cur: any) => {
         const curText = String(cur || '').trim();
         if (!curText || curText === raw) return '';
@@ -1826,9 +1823,6 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
         msgId: opts?.msgId || null,
         autoReplay: opts?.autoReplay !== false,
       };
-      try {
-        window.dispatchEvent(new CustomEvent('atlas-composer-draft-set', { detail: { text: raw } }));
-      } catch (_) {}
       setInput((cur: any) => {
         const curText = String(cur || '').trim();
         return curText ? cur : raw;

@@ -335,7 +335,28 @@ describe('submitMsg dispatch routing (the missing TDD gate)', () => {
     expect(container.textContent || '').toMatch(/Input not confirmed|kept it in the input box/i);
   });
 
-  it('(e) keeps transport-confirmed delivery latency pending instead of restoring Input not confirmed', async () => {
+  it('(e) keeps the composer draft owned by the React input state only', async () => {
+    const { container } = await mountWorkspace();
+    const textarea = container.querySelector('textarea') as HTMLTextAreaElement;
+
+    await act(async () => {
+      fireEvent.change(textarea, { target: { value: 'stable draft' } });
+      await Promise.resolve();
+    });
+
+    expect(textarea.value).toBe('stable draft');
+
+    await act(async () => {
+      window.dispatchEvent(new CustomEvent('atlas-composer-draft-set', {
+        detail: { text: 'external mutation' },
+      }));
+      await Promise.resolve();
+    });
+
+    expect(textarea.value).toBe('stable draft');
+  });
+
+  it('(f) keeps transport-confirmed delivery latency pending instead of restoring Input not confirmed', async () => {
     vi.useFakeTimers();
     const w = window as AnyWindow;
     w.ATLAS_EXEC_MODE = '';
