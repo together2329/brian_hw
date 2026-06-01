@@ -25,6 +25,8 @@ import {
   type ChangeEvent,
   useCallback,
   useEffect,
+  useRef,
+  useState,
 } from 'react';
 import { orchestratorFlowFromFeed } from './workspace-tool-theme';
 import { ToolCard, FeedEntry, LiveAgentPreview } from './workspace-feed-cards';
@@ -34,6 +36,7 @@ import { ToolCard, FeedEntry, LiveAgentPreview } from './workspace-feed-cards';
 // stay decoupled from them with a permissive cast).
 const Kbd: any = (window as any).Kbd
   || (({ children }: { children?: ReactNode }) => <span className="kbd">{children}</span>);
+const PARENT_INPUT_SYNC_DELAY_MS = 60;
 
 // ── renderWorkspaceFeedEntries ──────────────────────────────────────────────
 // Builds the windowed list of feed cards for the chat pane. Pairs adjacent
@@ -326,6 +329,7 @@ export interface WorkspacePromptRowProps {
   workerProgress: any;
   input: string;
   setInput: (value: string) => void;
+  inputResetToken?: number;
   inputRef: any;
   inputRouteState: any;
   inputRouteRef: any;
@@ -348,6 +352,7 @@ export const WorkspacePromptRow = ({
   workerProgress,
   input,
   setInput,
+  inputResetToken = 0,
   inputRef,
   inputRouteState,
   inputRouteRef,
@@ -360,14 +365,66 @@ export const WorkspacePromptRow = ({
   workflowForExecMode,
   defaultWorkflowForExecMode,
 }: WorkspacePromptRowProps) => {
+  const [draftInput, setDraftInput] = useState<string>(input);
+  const draftInputRef = useRef<string>(input);
+  const localDraftDirtyRef = useRef<boolean>(false);
+  const lastLocalParentSyncRef = useRef<string | null>(null);
+  const resetTokenRef = useRef<number>(inputResetToken);
+  const parentSyncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const resizeInput = useCallback((el: HTMLTextAreaElement | null) => {
     if (!el) return;
     el.style.height = 'auto';
     el.style.height = Math.min(el.scrollHeight, 192) + 'px';
   }, []);
+  const clearParentInputSync = useCallback(() => {
+    if (parentSyncTimerRef.current === null) return;
+    clearTimeout(parentSyncTimerRef.current);
+    parentSyncTimerRef.current = null;
+  }, []);
+  const applyDraftInput = useCallback((next: string) => {
+    draftInputRef.current = next;
+    setDraftInput(next);
+  }, []);
+  const scheduleParentInputSync = useCallback((next: string) => {
+    clearParentInputSync();
+    parentSyncTimerRef.current = setTimeout(() => {
+      parentSyncTimerRef.current = null;
+      lastLocalParentSyncRef.current = next;
+      setInput(next);
+    }, PARENT_INPUT_SYNC_DELAY_MS);
+  }, [clearParentInputSync, setInput]);
+  const updateDraftFromUser = useCallback((next: string, el: HTMLTextAreaElement) => {
+    localDraftDirtyRef.current = true;
+    inputHistoryIndexRef.current = null;
+    inputHistoryDraftRef.current = '';
+    applyDraftInput(next);
+    scheduleParentInputSync(next);
+    resizeInput(el);
+  }, [applyDraftInput, inputHistoryDraftRef, inputHistoryIndexRef, resizeInput, scheduleParentInputSync]);
+  useEffect(() => clearParentInputSync, [clearParentInputSync]);
+  useEffect(() => {
+    if (resetTokenRef.current === inputResetToken) return;
+    resetTokenRef.current = inputResetToken;
+    clearParentInputSync();
+    localDraftDirtyRef.current = false;
+    lastLocalParentSyncRef.current = null;
+    applyDraftInput(input);
+  }, [applyDraftInput, clearParentInputSync, input, inputResetToken]);
+  useEffect(() => {
+    if (input === draftInputRef.current) {
+      localDraftDirtyRef.current = false;
+      lastLocalParentSyncRef.current = null;
+      return;
+    }
+    if (localDraftDirtyRef.current && input === lastLocalParentSyncRef.current) return;
+    clearParentInputSync();
+    localDraftDirtyRef.current = false;
+    lastLocalParentSyncRef.current = null;
+    applyDraftInput(input);
+  }, [applyDraftInput, clearParentInputSync, input]);
   useEffect(() => {
     requestAnimationFrame(() => resizeInput(inputRef.current));
-  }, [input, inputRef, resizeInput]);
+  }, [draftInput, inputRef, resizeInput]);
   const orchestratorIdle = (window as any).AtlasBannerLogic
     ? (window as any).AtlasBannerLogic.shouldShowSelectIpBanner({ workflow, activeIp })
     : (workflow === 'orchestrator' && (!activeIp || String(activeIp).toLowerCase() === 'default'));
@@ -462,14 +519,11 @@ export const WorkspacePromptRow = ({
             {inputRouteLabel}
           </span>
         ) : null}
-        <textarea ref={inputRef} value={input}
+        <textarea ref={inputRef} value={draftInput}
           rows={1}
           disabled={workflowReadyBlocking}
           onChange={(e: ChangeEvent<HTMLTextAreaElement>) => {
-            inputHistoryIndexRef.current = null;
-            inputHistoryDraftRef.current = '';
-            setInput(e.target.value);
-            resizeInput(e.target);
+            updateDraftFromUser(e.target.value, e.target);
           }}
           onKeyDown={(e: KeyboardEvent<HTMLTextAreaElement>) => {
             if (e.key === 'Enter' && e.altKey) {
@@ -478,7 +532,7 @@ export const WorkspacePromptRow = ({
               const lo = el.selectionStart;
               const hi = el.selectionEnd;
               const next = el.value.slice(0, lo) + '\n' + el.value.slice(hi);
-              setInput(next);
+              updateDraftFromUser(next, el);
               requestAnimationFrame(() => {
                 el.selectionStart = el.selectionEnd = lo + 1;
                 resizeInput(el);

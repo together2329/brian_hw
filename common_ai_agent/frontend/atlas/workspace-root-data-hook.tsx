@@ -26,7 +26,7 @@
 // render. This is an INERT mirror — legacy workspace.jsx still serves the live
 // app. Window-sourced values are typed `any` on purpose; do not tighten them.
 
-import { useState, useEffect, useRef, useCallback, useMemo, useReducer } from 'react';
+import { type SetStateAction, useState, useEffect, useRef, useCallback, useMemo, useReducer } from 'react';
 
 import {
   refreshChatSession,
@@ -437,6 +437,11 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
 
   // ── Input + input history ───────────────────────────────────────
   const [input, setInput] = useState<string>('');
+  const [inputResetToken, setInputResetToken] = useState<number>(0);
+  const replaceInput = useCallback((value: SetStateAction<string>) => {
+    setInput(value);
+    setInputResetToken((token: number) => token + 1);
+  }, []);
   const heldSubmitRef = useRef<any>(null);
   // BUG A: when the held-input replay re-fires an ack-miss hold, this carries the
   // ORIGINAL send's msg_id so the re-entered submitMsg threads it into sendPrompt
@@ -478,7 +483,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
           block = `\n\n\`\`\`${fence}\n${text}\n\`\`\`\n\n`;
         }
         const next = `@${path} L${lo}-${hi}${labelStr}${block || '\n\n'}`;
-        setInput(next);
+        replaceInput(next);
         requestAnimationFrame(() => requestAnimationFrame(() => {
           const el = inputRef.current;
           if (!el) return;
@@ -498,7 +503,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       try {
         const text = String(ev?.detail?.text || '').trimEnd();
         if (!text) return;
-        setInput(text);
+        replaceInput(text);
         setMainTab('chat');
         requestAnimationFrame(() => requestAnimationFrame(() => {
           const el = inputRef.current;
@@ -1414,9 +1419,9 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       ? `${atQuery.ipPrefix}/${parent}`
       : parent;
     if (entry.type === 'dir') {
-      setInput(before + '@' + parent + entry.name + '/' + after);
+      replaceInput(before + '@' + parent + entry.name + '/' + after);
     } else {
-      setInput(before + '@' + fullParent + entry.name + ' ' + after);
+      replaceInput(before + '@' + fullParent + entry.name + ' ' + after);
       setShowAt(false);
     }
   };
@@ -1795,7 +1800,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
 
     const clearSubmittedInput = () => {
       recordInputHistory(raw);
-      setInput((cur: any) => {
+      replaceInput((cur: string) => {
         const curText = String(cur || '').trim();
         if (!curText || curText === raw) return '';
         if (cmd != null && curText.startsWith('/')) return '';
@@ -2701,11 +2706,11 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     if (idx < 0) idx = 0;
     if (idx >= inputHistory.length) {
       inputHistoryIndexRef.current = null;
-      setInput(inputHistoryDraftRef.current || '');
+      replaceInput(inputHistoryDraftRef.current || '');
       return true;
     }
     inputHistoryIndexRef.current = idx;
-    setInput(inputHistory[idx] || '');
+    replaceInput(inputHistory[idx] || '');
     setShowSlash(false);
     setShowAt(false);
     return true;
@@ -2719,7 +2724,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
         if (filtered[slashSel]) {
           e.preventDefault();
           if (e.key === 'Enter') submitMsg(filtered[slashSel].cmd);
-          else setInput(filtered[slashSel].cmd + ' ');
+          else replaceInput(filtered[slashSel].cmd + ' ');
           return;
         }
       }
@@ -2766,7 +2771,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
         const lo = el.selectionStart;
         const hi = el.selectionEnd;
         const next = el.value.slice(0, lo) + '\n' + el.value.slice(hi);
-        setInput(next);
+        replaceInput(next);
         requestAnimationFrame(() => {
           el.selectionStart = el.selectionEnd = lo + 1;
           el.style.height = 'auto';
@@ -2814,6 +2819,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       workerProgress={workerProgress}
       input={input}
       setInput={setInput}
+      inputResetToken={inputResetToken}
       inputRef={inputRef}
       inputRouteState={inputRouteState}
       inputRouteRef={inputRouteRef}
@@ -2870,7 +2876,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     // q&a card handlers (passed to AskUserPrompt / FeedEntry)
     toggleOpt, setCustom, submitCard, setActiveTab, advanceBatchedQuestion,
     // input / history / slash / at
-    input, setInput, heldSubmitRef,
+    input, setInput: replaceInput, heldSubmitRef,
     inputRef,
     inputHistory, setInputHistory,
     inputHistoryIndexRef, inputHistoryDraftRef,

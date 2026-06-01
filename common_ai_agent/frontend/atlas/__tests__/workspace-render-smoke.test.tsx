@@ -235,6 +235,48 @@ describe('Workspace render smoke (the behavioral gate)', () => {
     vi.useRealTimers();
   });
 
+  it('clears local prompt draft when the parent reset token advances', async () => {
+    vi.useFakeTimers();
+    const { WorkspacePromptRow } = await import('../workspace-root-render.tsx');
+    const setInput = vi.fn();
+    const inputRef = createRef<HTMLTextAreaElement>();
+    const inputRouteRef = { current: {} };
+    const props = {
+      workflow: 'default',
+      activeIp: 'demo',
+      feed: [],
+      orchWorkers: [],
+      workerProgress: null,
+      setInput,
+      inputRef,
+      inputRouteState: null,
+      inputRouteRef,
+      inputHistoryIndexRef: { current: null },
+      inputHistoryDraftRef: { current: '' },
+      onKey: vi.fn(),
+      pendingQcard: null,
+      workflowReady: null,
+      atlasUiOrchestratorMode: () => false,
+      workflowForExecMode: (wf: unknown) => String(wf || 'default'),
+      defaultWorkflowForExecMode: () => 'default',
+    };
+
+    const { getByRole, rerender } = render(<WorkspacePromptRow {...props} input="" inputResetToken={0} />);
+    const textarea = getByRole('textbox') as HTMLTextAreaElement;
+
+    fireEvent.change(textarea, { target: { value: 'submit before parent sync' } });
+    expect(textarea.value).toBe('submit before parent sync');
+
+    rerender(<WorkspacePromptRow {...props} input="" inputResetToken={1} />);
+    expect(textarea.value).toBe('');
+
+    await act(async () => {
+      vi.advanceTimersByTime(80);
+    });
+    expect(setInput).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
   it('submits the latest visible prompt value before deferred sync settles', async () => {
     const { Workspace } = await import('../workspace.tsx');
     const { container } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
