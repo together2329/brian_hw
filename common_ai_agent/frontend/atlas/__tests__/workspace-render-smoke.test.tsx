@@ -190,6 +190,27 @@ describe('Workspace render smoke (the behavioral gate)', () => {
     expect(queryByText(/End of loop/)).not.toBeNull();
   });
 
+  it('does not show Agent responding for workflow activation control tokens', async () => {
+    const { Workspace } = await import('../workspace.tsx');
+    const { queryByText } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
+    const backend = (window as AnyWindow).backend;
+
+    await act(async () => {
+      backend._emit('token', {
+        text: "Switching workflow 'default' -> 'rtl-gen'\n",
+        source: 'api/session/activate',
+        control: true,
+        stream: false,
+      });
+      backend._emit('flush', {
+        source: 'api/session/activate',
+        control: true,
+      });
+    });
+
+    expect(queryByText('Agent responding')).toBeNull();
+  });
+
   it('hides backend iteration markers from the visible chat feed', async () => {
     const { Workspace } = await import('../workspace.tsx');
     const { queryByText } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);

@@ -216,18 +216,33 @@
 
   <script>
     const ATLAS_RESOLUTION_PRESETS = {
+      'auto': [0, 0],
       '1366x768': [1366, 768],
       '1600x900': [1600, 900],
       '1920x1080': [1920, 1080],
       '2560x1440': [2560, 1440],
       '3840x2160': [3840, 2160],
     };
+    function atlasViewportResolution() {
+      return {
+        key: 'auto',
+        width: Math.max(1, Math.round(window.innerWidth || 1920)),
+        height: Math.max(1, Math.round(window.innerHeight || 1080)),
+      };
+    }
     function atlasResolution() {
-      let key = '1920x1080';
+      let key = 'auto';
       try {
-        const saved = localStorage.getItem('atlasResolution');
+        let saved = localStorage.getItem('atlasResolution');
+        const migrationKey = 'atlasResolutionMigratedSharpText';
+        if (saved === '1920x1080' && !localStorage.getItem(migrationKey)) {
+          saved = 'auto';
+          localStorage.setItem('atlasResolution', 'auto');
+          localStorage.setItem(migrationKey, '1');
+        }
         if (ATLAS_RESOLUTION_PRESETS[saved]) key = saved;
       } catch (_) {}
+      if (key === 'auto') return atlasViewportResolution();
       const size = ATLAS_RESOLUTION_PRESETS[key] || ATLAS_RESOLUTION_PRESETS['1920x1080'];
       return { key, width: size[0], height: size[1] };
     }
@@ -244,20 +259,16 @@
       window.ATLAS_RESOLUTION = res;
       return res;
     }
-    // Full-screen scaling: stretch the 1920x1080 design to fill the whole
-    // viewport on each axis (no letterbox bars). The design uses flex
-    // layouts internally so reflow stays sane up to ~3x scale.
+    // Auto uses the native viewport size so text/SVG render on real pixels.
+    // Fixed presets remain available as explicit scaled previews.
     function scale() {
       const s = document.getElementById('scaler');
       const res = applyAtlasResolution();
-      // On narrow (mobile) viewports skip the fixed-canvas scale transform
-      // and let the inner React tree reflow naturally via CSS media queries.
-      if (window.innerWidth < 900) {
+      if (res.key === 'auto' || window.innerWidth < 900) {
         s.style.transform = 'none';
         s.style.width = '100vw';
         s.style.height = '100dvh';
         s.style.position = 'static';
-        // No compositing layer needed on mobile — clear will-change.
         s.style.willChange = 'auto';
         return;
       }

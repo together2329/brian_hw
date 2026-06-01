@@ -142,6 +142,10 @@ function tToX(t: number, width: number): number {
   return ((t - start) / span) * width;
 }
 
+function snapStrokePixel(x: number): number {
+  return Math.round(x) + 0.5;
+}
+
 function nearestWaveEdgeTime(trace: Trace | unknown, x: number | string, width: number, thresholdPx = 8): number | null {
   if (!Array.isArray(trace) || trace.length < 2) return null;
   const clickX = Number(x);
@@ -229,14 +233,14 @@ function bitOf(v: number | string): number | string {
 // Render a single-bit (0/1/x/z) wave as SVG path.
 function bitWavePath(trace: Trace | null | undefined, width: number): string {
   if (!trace || trace.length === 0) return '';
-  const yHi = WAVE_PAD_Y;
-  const yLo = WAVE_HEIGHT - WAVE_PAD_Y;
-  const yMid = (yHi + yLo) / 2;
+  const yHi = snapStrokePixel(WAVE_PAD_Y);
+  const yLo = snapStrokePixel(WAVE_HEIGHT - WAVE_PAD_Y);
+  const yMid = snapStrokePixel((yHi + yLo) / 2);
   let d = '';
   for (let i = 0; i < trace.length; i++) {
     const [t, v] = trace[i];
-    const x = tToX(t, width);
-    const nx = i + 1 < trace.length ? tToX(trace[i + 1][0], width) : width;
+    const x = snapStrokePixel(tToX(t, width));
+    const nx = i + 1 < trace.length ? snapStrokePixel(tToX(trace[i + 1][0], width)) : snapStrokePixel(width);
     const b = bitOf(v);
     const y = b === 1 ? yHi : b === 0 ? yLo : yMid;
     if (i === 0) d += `M ${x} ${y}`;
@@ -257,14 +261,14 @@ interface BusWaveProps {
 
 function BusWave({ trace, width, radix = 'HEX', colorHint, valueMap }: BusWaveProps): ReactNode {
   if (!trace || trace.length === 0) return null;
-  const yTop = WAVE_PAD_Y;
-  const yBot = WAVE_HEIGHT - WAVE_PAD_Y;
+  const yTop = snapStrokePixel(WAVE_PAD_Y);
+  const yBot = snapStrokePixel(WAVE_HEIGHT - WAVE_PAD_Y);
   const slope = 2;
   const segs: ReactNode[] = [];
   for (let i = 0; i < trace.length; i++) {
     const [t, v] = trace[i];
-    const x = tToX(t, width);
-    const nx = i + 1 < trace.length ? tToX(trace[i + 1][0], width) : width;
+    const x = snapStrokePixel(tToX(t, width));
+    const nx = i + 1 < trace.length ? snapStrokePixel(tToX(trace[i + 1][0], width)) : snapStrokePixel(width);
     const segW = Math.max(0, nx - x);
     const isX = String(v).includes('x') || String(v).includes('X');
     // Verdi-style: bright outline + transparent fill, red for X. Honor
@@ -284,6 +288,7 @@ function BusWave({ trace, width, radix = 'HEX', colorHint, valueMap }: BusWavePr
           fill={fill}
           stroke={stroke}
           strokeWidth={1}
+          shapeRendering="crispEdges"
         >
           <title>{`${pretty} @ t=${t}ns`}</title>
         </polygon>
@@ -346,7 +351,7 @@ export const WaveRow = ({ name, scope, trace, width, isBus, radix = 'HEX', selec
           ) : (
             <path d={bitWavePath(trace, width)}
                   stroke={colorHint || '#7CFC4D'}
-                  strokeWidth={1.4} fill="none" shapeRendering="crispEdges" />
+                  strokeWidth={1} fill="none" shapeRendering="crispEdges" />
           )}
         </svg>
       </div>

@@ -77,18 +77,28 @@ export interface AtlasUiResolutionPreset {
   width: number;
   height: number;
 }
+const viewportResolutionPreset = (): AtlasUiResolutionPreset => {
+  const width = typeof window !== 'undefined' ? Math.max(1, Math.round(window.innerWidth || 0)) : 1920;
+  const height = typeof window !== 'undefined' ? Math.max(1, Math.round(window.innerHeight || 0)) : 1080;
+  return { key: 'auto', label: 'Auto', width, height };
+};
 export const ATLAS_UI_RESOLUTION_PRESETS: AtlasUiResolutionPreset[] = [
+  { key: 'auto', label: 'Auto', width: 0, height: 0 },
   { key: '1366x768', label: '1366x768', width: 1366, height: 768 },
   { key: '1600x900', label: '1600x900', width: 1600, height: 900 },
   { key: '1920x1080', label: '1920x1080', width: 1920, height: 1080 },
   { key: '2560x1440', label: '2560x1440', width: 2560, height: 1440 },
   { key: '3840x2160', label: '3840x2160', width: 3840, height: 2160 },
 ];
-export const DEFAULT_ATLAS_RESOLUTION = '1920x1080';
-export const atlasResolutionPreset = (key: string): AtlasUiResolutionPreset =>
-  ATLAS_UI_RESOLUTION_PRESETS.find(p => p.key === key) ||
-  ATLAS_UI_RESOLUTION_PRESETS.find(p => p.key === DEFAULT_ATLAS_RESOLUTION) ||
-  ATLAS_UI_RESOLUTION_PRESETS[0];
+export const DEFAULT_ATLAS_RESOLUTION = 'auto';
+export const atlasResolutionPreset = (key: string): AtlasUiResolutionPreset => {
+  if (key === 'auto' || !key) return viewportResolutionPreset();
+  const preset = ATLAS_UI_RESOLUTION_PRESETS.find(p => p.key === key);
+  if (preset && preset.key !== 'auto') return preset;
+  return DEFAULT_ATLAS_RESOLUTION === 'auto'
+    ? viewportResolutionPreset()
+    : ATLAS_UI_RESOLUTION_PRESETS.find(p => p.key === DEFAULT_ATLAS_RESOLUTION) || viewportResolutionPreset();
+};
 export const ATLAS_RUN_MODE_OPTIONS = [
   { key: 'starter', label: 'Starter' },
   { key: 'engineering', label: 'Engineering' },

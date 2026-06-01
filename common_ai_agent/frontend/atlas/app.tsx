@@ -693,6 +693,14 @@ const App = () => {
     if (!ok) return;
     const owner = loggedInOwner() || parsed.sessionId || activeSessionId || 'default';
     const ip = (parsed.ipId === 'soc' ? WORKFLOW_DEFAULT : parsed.ipId) || activeIp || WORKFLOW_DEFAULT;
+    if (screen === 'workspace') {
+      try {
+        window.dispatchEvent(new CustomEvent('atlas-workflow-view-request', {
+          detail: { workflow: wf, owner, ip, preserveRunning },
+        }));
+      } catch (_) {}
+      return;
+    }
     activateNamespace(owner, ip, wf, true, { preserveRunning });
   };
 

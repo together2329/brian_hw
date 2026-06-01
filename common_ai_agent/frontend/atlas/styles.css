@@ -358,11 +358,11 @@ html[data-platform="windows"][data-font-scale="xl"] {
   font-size: var(--ui-font-size);
   line-height: var(--ui-line-height);
   font-weight: var(--ui-text-weight);
-  letter-spacing: 0.01em;
+  letter-spacing: 0;
   font-feature-settings: "calt" 0, "liga" 0;
   text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: auto;
 }
 
 .atlas-mermaid-fsm svg {

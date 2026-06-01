@@ -603,9 +603,15 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
         if (!eventMatchesCurrentSession(m)) return;
         const text = String((m && (m.text ?? m.token ?? m.content)) || '').replace(/\u0000/g, '');
         if (!text) return;
+        const controlPlaneToken = !!(m && (
+          m.control === true ||
+          m.control_plane === true ||
+          m.stream === false ||
+          m.source === 'api/session/activate'
+        ));
         streamBufferRef.current += text;
         setStreamText(streamBufferRef.current);
-        setStreaming(true);
+        if (!controlPlaneToken) setStreaming(true);
       }));
       subs.push(w.backend.subscribe('reasoning', (m: any) => {
         if (!eventMatchesCurrentSession(m)) return;

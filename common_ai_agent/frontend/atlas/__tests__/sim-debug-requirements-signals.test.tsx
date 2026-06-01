@@ -199,6 +199,33 @@ describe('sim debug signal requirements', () => {
     expect(Array.from(view.container.querySelectorAll('.bus-flag-text')).map(el => el.textContent)).toContain('IDLE');
   });
 
+  it('renders scalar and bus transitions on the same snapped pixel grid', () => {
+    window.WAVE_TIME_START = 0;
+    window.WAVE_TIME_END = 20;
+    const scalarView = render(
+      <WaveRow
+        name="PCLK"
+        trace={[[0, '0'], [10, '1']]}
+        width={100}
+      />,
+    );
+    const busView = render(
+      <WaveRow
+        name="PADDR"
+        trace={[[0, '0000'], [10, '0100']]}
+        width={100}
+        isBus
+      />,
+    );
+
+    const scalarPath = scalarView.container.querySelector('path')?.getAttribute('d') || '';
+    const busPoints = Array.from(busView.container.querySelectorAll('polygon'))
+      .map(el => el.getAttribute('points') || '')
+      .join(' ');
+    expect(scalarPath).toContain('50.5');
+    expect(busPoints).toContain('50.5');
+  });
+
   it('SDR-013 keeps grouped waveform rows contiguous and reorders group blocks together', () => {
     const rows = [traceRow('a'), traceRow('b'), traceRow('c')];
     const displayRows = buildWaveDisplayRows(

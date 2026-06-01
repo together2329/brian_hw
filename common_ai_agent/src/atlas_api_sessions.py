@@ -361,8 +361,11 @@ def register_sessions_routes(
                 _emit_to_canonical(
                     "token",
                     text=f"🔄 Switching workflow '{prev_wf}' → '{wf}' (ip={ip})…\n",
+                    source="api/session/activate",
+                    control=True,
+                    stream=False,
                 )
-                _emit_to_canonical("flush")
+                _emit_to_canonical("flush", source="api/session/activate", control=True)
                 _emit_to_canonical("workspace_changing", workspace=wf, prev=prev_wf, ip=ip)
             except Exception:
                 pass
@@ -380,8 +383,11 @@ def register_sessions_routes(
                     _emit_to_canonical(
                         "token",
                         text=f"✅ Workflow switched to '{wf}' (was '{prev_wf}') · ip={ip}\n",
+                        source="api/session/activate",
+                        control=True,
+                        stream=False,
                     )
-                    _emit_to_canonical("flush")
+                    _emit_to_canonical("flush", source="api/session/activate", control=True)
                 except Exception:
                     pass
             else:
@@ -405,13 +411,25 @@ def register_sessions_routes(
                         _emit_to_canonical(
                             "token",
                             text=f"✅ Workflow switched to '{wf}' (was '{prev_wf}') · ip={ip}\n",
+                            source="api/session/activate",
+                            control=True,
+                            stream=False,
                         )
-                        _emit_to_canonical("flush")
+                        _emit_to_canonical("flush", source="api/session/activate", control=True)
                     except Exception:
                         pass
                 except Exception as exc:
                     print(f"[Workflow] activate→setup_workspace({wf!r}) failed: {exc}",
                           flush=True)
+            try:
+                if not preserve_running:
+                    _emit_to_canonical(
+                        "agent_state",
+                        running=False,
+                        source="api/session/activate",
+                    )
+            except Exception:
+                pass
         if triple_changed:
             try:
                 _emit_to_canonical("commands_changed")
