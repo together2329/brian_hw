@@ -272,6 +272,66 @@ describe('Workspace render smoke (the behavioral gate)', () => {
     expect(scrollTop).toBe(1000);
   });
 
+  it('keeps following delayed chat content growth only while pinned to the bottom', async () => {
+    const callbacks: ResizeObserverCallback[] = [];
+    const originalResizeObserver = (window as AnyWindow).ResizeObserver;
+    class TestResizeObserver {
+      constructor(callback: ResizeObserverCallback) {
+        callbacks.push(callback);
+      }
+      observe = vi.fn();
+      unobserve = vi.fn();
+      disconnect = vi.fn();
+    }
+    (window as AnyWindow).ResizeObserver = TestResizeObserver;
+
+    try {
+      const { Workspace } = await import('../workspace.tsx');
+      const { container } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
+      const backend = (window as AnyWindow).backend;
+      const pane = container.querySelector('.workspace-chat-scroll') as HTMLElement;
+      expect(pane).not.toBeNull();
+      expect(container.querySelector('[data-workspace-chat-content="true"]')).not.toBeNull();
+      expect(callbacks.length).toBeGreaterThan(0);
+
+      let scrollTop = 590;
+      let scrollHeight = 1000;
+      Object.defineProperty(pane, 'scrollTop', {
+        configurable: true,
+        get: () => scrollTop,
+        set: (value) => { scrollTop = Number(value); },
+      });
+      Object.defineProperty(pane, 'scrollHeight', { configurable: true, get: () => scrollHeight });
+      Object.defineProperty(pane, 'clientHeight', { configurable: true, get: () => 400 });
+
+      fireEvent.scroll(pane);
+      await act(async () => {
+        backend._emit('token', { text: 'new live token' });
+      });
+      expect(scrollTop).toBe(1000);
+
+      scrollHeight = 1400;
+      await act(async () => {
+        callbacks.forEach((callback) => callback([], {} as ResizeObserver));
+      });
+      expect(scrollTop).toBe(1400);
+
+      scrollTop = 100;
+      scrollHeight = 1800;
+      fireEvent.scroll(pane);
+      await act(async () => {
+        callbacks.forEach((callback) => callback([], {} as ResizeObserver));
+      });
+      expect(scrollTop).toBe(100);
+    } finally {
+      if (originalResizeObserver) {
+        (window as AnyWindow).ResizeObserver = originalResizeObserver;
+      } else {
+        delete (window as AnyWindow).ResizeObserver;
+      }
+    }
+  });
+
   it('surfaces ask_user websocket events as a pending Q&A prompt', async () => {
     const { Workspace } = await import('../workspace.tsx');
     const { getByTestId } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);

@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createRef, useState } from 'react';
+import { readFileSync } from 'node:fs';
 
 import { AppShell } from '../app-shell';
 
@@ -116,5 +117,20 @@ describe('AppShell font selector', () => {
     renderShell('missing-font');
 
     expect(screen.getByLabelText('Font family')).toHaveValue('mono');
+  });
+});
+
+describe('Atlas font CSS cascade', () => {
+  it('lets font mode selectors override Windows platform defaults', () => {
+    const css = readFileSync('styles.css', 'utf8');
+    const platformIndex = css.indexOf('html[data-platform="windows"]');
+
+    expect(platformIndex).toBeGreaterThan(-1);
+    for (const mode of ['mono', 'sans', 'windows', 'system']) {
+      const selector = `html[data-font="${mode}"]`;
+      const selectorIndex = css.indexOf(selector);
+
+      expect(selectorIndex).toBeGreaterThan(platformIndex);
+    }
   });
 });

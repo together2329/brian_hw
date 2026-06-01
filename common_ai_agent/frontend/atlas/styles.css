@@ -105,19 +105,23 @@ html[data-theme="light"] {
   --enh-mag:      #8b4fbf;
 }
 
+html[data-font="mono"],
 [data-font="mono"] {
   /* Opt-in to the old all-monospace EDA-workstation look */
   --mono: var(--mono-base);
 }
+html[data-font="sans"],
 [data-font="sans"] {
   --mono: var(--sans);
 }
+html[data-font="windows"],
 [data-font="windows"] {
   --mono: var(--windows-sans);
   --code-font: var(--windows-mono);
   --ui-text-weight: 500;
   --ui-control-weight: 600;
 }
+html[data-font="system"],
 [data-font="system"] {
   --mono: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }

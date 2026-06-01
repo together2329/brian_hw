@@ -1416,19 +1416,34 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   const requestFeedScrollToBottom = useCallback(() => {
     feedPinnedToBottomRef.current = true;
     const run = () => {
+      if (!feedPinnedToBottomRef.current) return;
       const el = feedRef.current;
       if (!el) return;
       el.scrollTop = el.scrollHeight;
     };
     run();
-    requestAnimationFrame(() => requestAnimationFrame(run));
+    requestAnimationFrame(() => {
+      run();
+      requestAnimationFrame(run);
+    });
   }, [feedRef]);
 
   useEffect(() => {
+    if (!feedPinnedToBottomRef.current) return;
+    requestFeedScrollToBottom();
+  }, [feed, streamText, mainTab, requestFeedScrollToBottom]);
+
+  useEffect(() => {
     const el = feedRef.current;
-    if (!el || !feedPinnedToBottomRef.current) return;
-    el.scrollTop = el.scrollHeight;
-  }, [feed, streamText, mainTab]);
+    if (!el || typeof ResizeObserver === 'undefined') return undefined;
+    const content = el.querySelector('[data-workspace-chat-content="true"]');
+    if (!content) return undefined;
+    const observer = new ResizeObserver(() => {
+      if (feedPinnedToBottomRef.current) requestFeedScrollToBottom();
+    });
+    observer.observe(content);
+    return () => observer.disconnect();
+  }, [feedRef, mainTab, requestFeedScrollToBottom]);
 
   useEffect(() => {
     if (!w.backend || typeof w.backend.subscribe !== 'function') return undefined;

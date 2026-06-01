@@ -186,8 +186,10 @@ export const WorkspaceChatPane = ({
     onScroll={onScroll}
     style={{ flex: 1, minHeight: 0, overflow: 'auto', padding: '14px 18px', ...style }}
   >
-    {renderWorkspaceFeedEntries(feedEntriesProps)}
-    <LiveAgentPreview text={streamText} />
+    <div className="workspace-chat-content" data-workspace-chat-content="true" style={{ minHeight: '100%' }}>
+      {renderWorkspaceFeedEntries(feedEntriesProps)}
+      <LiveAgentPreview text={streamText} />
+    </div>
   </div>
 );
 
