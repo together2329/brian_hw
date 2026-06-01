@@ -892,7 +892,7 @@ from typing import Any
 import cocotb
 from cocotb.binary import BinaryValue
 from cocotb.clock import Clock
-from cocotb.triggers import ClockCycles, FallingEdge, ReadOnly, RisingEdge
+from cocotb.triggers import ClockCycles, ReadOnly, RisingEdge
 
 
 def _ip_dir() -> Path:
@@ -1798,16 +1798,16 @@ async def _apply_goal_preconditions(dut, manifest: dict[str, Any], goal: dict[st
     if not {"req_valid", "req_data"}.issubset(input_ports):
         return
     clock = manifest["clock"]
+    clk = getattr(dut, clock)
     width = max(_port_width(manifest, "rsp_data"), _port_width(manifest, "req_data"), 1)
     max_count = (1 << width) - 1
+    await RisingEdge(clk)
     for _ in range(max_count):
-        await FallingEdge(getattr(dut, clock))
         _set_signal(dut, "req_valid", 1)
         _set_signal(dut, "req_data", _fit_port_value(manifest, "req_data", 1))
         if "rsp_ready" in input_ports:
             _set_signal(dut, "rsp_ready", 1)
-        await RisingEdge(getattr(dut, clock))
-    await FallingEdge(getattr(dut, clock))
+        await RisingEdge(clk)
     _clear_sample_inputs(dut, manifest)
 
 
@@ -1931,8 +1931,9 @@ def _apb_sweep_vectors(manifest: dict[str, Any]) -> list[dict[str, int]]:
 
 async def _drive_apb_sweep_access(dut, manifest: dict[str, Any], vector: dict[str, int]) -> None:
     clock = manifest["clock"]
+    clk = getattr(dut, clock)
     input_ports = set(manifest.get("input_ports") or [])
-    await FallingEdge(getattr(dut, clock))
+    await RisingEdge(clk)
     _set_signal(dut, "psel", 1)
     _set_signal(dut, "penable", 0)
     _set_signal(dut, "paddr", _fit_port_value(manifest, "paddr", vector["addr"]))
@@ -1942,11 +1943,9 @@ async def _drive_apb_sweep_access(dut, manifest: dict[str, Any], vector: dict[st
         _set_signal(dut, "pwdata", _fit_port_value(manifest, "pwdata", vector["data"]))
     if "pstrb" in input_ports:
         _set_signal(dut, "pstrb", _fit_port_value(manifest, "pstrb", vector["pstrb"]))
-    await RisingEdge(getattr(dut, clock))
-    await FallingEdge(getattr(dut, clock))
+    await RisingEdge(clk)
     _set_signal(dut, "penable", 1)
-    await RisingEdge(getattr(dut, clock))
-    await FallingEdge(getattr(dut, clock))
+    await RisingEdge(clk)
     _set_signal(dut, "psel", 0)
     _set_signal(dut, "penable", 0)
     if "pwrite" in input_ports:
@@ -1972,15 +1971,16 @@ async def _run_static_coverage_sweep(dut, manifest: dict[str, Any]) -> None:
         if port in {"psel", "penable"}:
             continue
         for value in _sweep_values_for_port(manifest, port)[:6]:
-            await FallingEdge(getattr(dut, clock))
+            await RisingEdge(getattr(dut, clock))
             _set_signal(dut, port, _fit_port_value(manifest, port, value))
             await RisingEdge(getattr(dut, clock))
     for idx, vector in enumerate(_apb_sweep_vectors(manifest)[:512]):
+        await RisingEdge(getattr(dut, clock))
         if "gpio_in" in input_ports:
             gpio_values = _sweep_values_for_port(manifest, "gpio_in")
             _set_signal(dut, "gpio_in", gpio_values[idx % len(gpio_values)])
         await _drive_apb_sweep_access(dut, manifest, vector)
-    await FallingEdge(getattr(dut, clock))
+    await RisingEdge(getattr(dut, clock))
     _clear_sample_inputs(dut, manifest)
 
 
@@ -2016,10 +2016,10 @@ async def _apb_write_one(dut, manifest: dict[str, Any], offset: int, data: int) 
     clk = getattr(dut, clock)
     input_ports = set(manifest.get("input_ports") or [])
     has_pready = _has_signal(dut, "PREADY")
-    await FallingEdge(clk)
+    await RisingEdge(clk)
     if "PSEL" in input_ports: _set_signal(dut, "PSEL", 0)
     if "PENABLE" in input_ports: _set_signal(dut, "PENABLE", 0)
-    await FallingEdge(clk)
+    await RisingEdge(clk)
     if "PADDR" in input_ports: _set_signal(dut, "PADDR", offset)
     if "PWDATA" in input_ports: _set_signal(dut, "PWDATA", data)
     if "PWRITE" in input_ports: _set_signal(dut, "PWRITE", 1)
@@ -2027,14 +2027,13 @@ async def _apb_write_one(dut, manifest: dict[str, Any], offset: int, data: int) 
     if "PSEL" in input_ports: _set_signal(dut, "PSEL", 1)
     if "PENABLE" in input_ports: _set_signal(dut, "PENABLE", 0)
     await RisingEdge(clk)
-    await FallingEdge(clk)
     if "PENABLE" in input_ports: _set_signal(dut, "PENABLE", 1)
     for _ in range(16):
-        await RisingEdge(clk)
         await ReadOnly()
-        if not has_pready or int(_get_signal(dut, "PREADY") or 0) == 1:
+        ready = (not has_pready) or int(_get_signal(dut, "PREADY") or 0) == 1
+        await RisingEdge(clk)
+        if ready:
             break
-    await FallingEdge(clk)
     if "PSEL" in input_ports: _set_signal(dut, "PSEL", 0)
     if "PENABLE" in input_ports: _set_signal(dut, "PENABLE", 0)
     if "PWRITE" in input_ports: _set_signal(dut, "PWRITE", 0)
@@ -2055,7 +2054,7 @@ async def _apply_machine_spec(dut, manifest: dict[str, Any], machine_spec: dict[
     input_ports = set(manifest.get("input_ports") or [])
     input_map = manifest.get("input_map") or {}
     if not timeline and machine_spec.get("assign"):
-        await FallingEdge(clk)
+        await RisingEdge(clk)
         for field, value in machine_spec["assign"].items():
             port = input_map.get(field, field)
             if port in input_ports:
@@ -2072,7 +2071,7 @@ async def _apply_machine_spec(dut, manifest: dict[str, Any], machine_spec: dict[
             cw = step["csr_write"]
             await _apb_write_one(dut, manifest, int(cw.get("offset", cw.get("addr", 0))), int(cw.get("data", cw.get("value", 0))))
         elif "assign" in step:
-            await FallingEdge(clk)
+            await RisingEdge(clk)
             for field, value in (step["assign"] or {}).items():
                 port = input_map.get(field, field)
                 if port in input_ports:
@@ -2189,7 +2188,7 @@ async def fl_rtl_equivalence_goals(dut):
                                 _cl.csr_write(int(cw.get("offset", cw.get("addr", 0))), int(cw.get("data", cw.get("value", 0))))
                             except Exception:
                                 pass
-            await FallingEdge(getattr(dut, clock))
+            await RisingEdge(getattr(dut, clock))
             _drive_inputs(dut, manifest, stimulus)
             _cycles = _goal_wait_cycles(goal, manifest)
             # Mirror both field name (used in cocotb stimulus) and port name
@@ -2264,7 +2263,7 @@ async def fl_rtl_equivalence_goals(dut):
                 rtl_observed=observed,
             )
         coverage.sample(goal, row)
-        await FallingEdge(getattr(dut, clock))
+        await RisingEdge(getattr(dut, clock))
         _clear_sample_inputs(dut, manifest)
 
     if _cl is not None and _cl_total > 0:

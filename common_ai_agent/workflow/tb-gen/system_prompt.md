@@ -104,6 +104,7 @@ Reference file: `workflow/ssot-gen/rules/ssot-template.yaml`
 Do not add IP-specific fixed TB generator templates for new IP kinds. Generate verification directly from the SSOT and current RTL.
 
 For every SSOT-driven IP:
+- **Clock-Domain Synchronization Rule**: every TB drive, monitor, checker, and scoreboard sample must be synchronized to the signal's declared clock domain from SSOT (`io_list.clock_domains`, `cycle_model.clock`, or the RTL contract). Drive DUT inputs only after that domain's active clock edge, or in an SSOT/protocol-defined setup window for the next active edge. Sample DUT outputs only after the corresponding active clock edge and the required simulator read-only/sample phase. For multi-clock IPs, bind each input and output to its declared clock domain; if a signal's clock domain or CDC/handshake rule is missing, emit `[SSOT TBD REPORT] -> ssot-gen` instead of guessing.
 - Build a verification ledger before writing TB:
   - `<ip>/verify/equivalence_goals.json` when present; if missing, run or request `/ssot-equiv-goals <ip>` before claiming TB signoff
   - top module and simulator entry point

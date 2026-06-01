@@ -65,6 +65,14 @@ task automatic tc_reset(
 endtask
 ```
 
+## Clock-Domain Synchronization Rule
+
+Every TB input drive, output monitor, checker, and scoreboard sample must be synchronized to the signal's declared clock domain from SSOT (`io_list.clock_domains`, `cycle_model.clock`, or the RTL contract).
+
+- Drive DUT inputs only after the corresponding clock domain's active edge, or in an SSOT/protocol-defined setup window for the next active edge. Do not free-run input changes on unrelated edges, arbitrary delays, or wall-clock time.
+- Sample DUT outputs only after the corresponding active clock edge and the simulator read-only/sample phase required for stable observations.
+- For multi-clock IPs, bind every input and output to its declared clock domain. Cross-domain signals require an SSOT-declared CDC or handshake rule; if it is missing, report `[SSOT TBD REPORT] -> ssot-gen` instead of guessing.
+
 ## Escalation Protocol
 
 If simulation fails due to suspected DUT bug:

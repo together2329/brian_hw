@@ -21,6 +21,7 @@ Reference: `workflow/ssot-gen/rules/ssot-template.yaml` for the canonical produc
 
 1. Parse `test_requirements.scenarios[]` → one test/subtest per scenario using the scenario's actual id/name, stimulus, and expected result
 2. Parse `io_list` → DUT signals, protocol helpers, clock period, reset sequence, and legal ready/valid/backpressure behavior
+   - **Clock-Domain Synchronization Rule**: every planned driver, monitor, checker, and scoreboard sample must be synchronized to the signal's declared clock domain from SSOT (`io_list.clock_domains`, `cycle_model.clock`, or the RTL contract). The plan must name the clock domain used for each DUT input drive and output sample, and must escalate `[SSOT TBD REPORT] -> ssot-gen` when the clock domain or CDC/handshake rule is absent.
 3. Parse `features` + `dataflow` → scoreboard model and expected output computation
 4. Parse `registers.register_list[]` only if registers exist; otherwise record explicit no-CSR policy
 5. Parse `memory.instances[]`, `interrupts.sources[]`, and `fsm` → memory model/checkers, interrupt tests, state/transition coverage
