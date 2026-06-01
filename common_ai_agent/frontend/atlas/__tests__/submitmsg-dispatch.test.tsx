@@ -62,7 +62,7 @@ const PassthroughPanel = ({ children }: { children?: unknown }) =>
 function makeBackend() {
   const subs: Record<string, Array<(m: any) => void>> = {};
   const sent: any[] = [];
-  let ackMode: 'accept' | 'withhold' = 'accept';
+  let ackMode: 'accept' | 'withhold' | 'receivedOnly' = 'accept';
   const emit = (event: string, m: any) => {
     (subs[event] || []).forEach((cb) => { try { cb(m); } catch (_) {} });
   };
@@ -78,6 +78,10 @@ function makeBackend() {
         Promise.resolve().then(() => {
           emit('agent_received', { msg_id: msg.msg_id });
           emit('agent_accepted', { msg_id: msg.msg_id, ok: true });
+        });
+      } else if (ackMode === 'receivedOnly') {
+        Promise.resolve().then(() => {
+          emit('agent_received', { msg_id: msg.msg_id });
         });
       }
       // ackMode === 'withhold' → emit nothing; we instead resolve the miss path
@@ -97,7 +101,7 @@ function makeBackend() {
   return {
     backend,
     sent,
-    setAckMode: (m: 'accept' | 'withhold') => { ackMode = m; },
+    setAckMode: (m: 'accept' | 'withhold' | 'receivedOnly') => { ackMode = m; },
     // For the held-input test: after send(), immediately resolve the ack as a
     // FAILED acceptance for the just-sent msg. This drives waitForPromptAck's
     // onMiss → holdUnacknowledgedInput WITHOUT the 7s real-backend timeout.
@@ -105,6 +109,11 @@ function makeBackend() {
       const last = sent[sent.length - 1];
       if (!last) return;
       emit('agent_accepted', { msg_id: last.msg_id, ok: false, error: 'no ack (test)' });
+    },
+    acceptLastSendLate: () => {
+      const last = sent[sent.length - 1];
+      if (!last) return;
+      emit('agent_accepted', { msg_id: last.msg_id, ok: true });
     },
   };
 }
@@ -200,6 +209,7 @@ describe('submitMsg dispatch routing (the missing TDD gate)', () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     cleanup();
     vi.restoreAllMocks();
   });
@@ -297,7 +307,7 @@ describe('submitMsg dispatch routing (the missing TDD gate)', () => {
     expect(usedOrchestrator).toBe(false);
   });
 
-  it('(d) clears immediately after local send, then restores input if sendPrompt ack never confirms', async () => {
+  it('(d) preserves input if sendPrompt ack explicitly fails', async () => {
     const w = window as AnyWindow;
     w.ATLAS_EXEC_MODE = '';
     w.ACTIVE_SESSION = 'alice/myip/rtl_gen';
@@ -323,5 +333,43 @@ describe('submitMsg dispatch routing (the missing TDD gate)', () => {
     expect(bk.backend.send).toHaveBeenCalled();
     expect(textarea.value).toBe('unacknowledged prompt');
     expect(container.textContent || '').toMatch(/Input not confirmed|kept it in the input box/i);
+  });
+
+  it('(e) keeps transport-confirmed delivery latency pending instead of restoring Input not confirmed', async () => {
+    vi.useFakeTimers();
+    const w = window as AnyWindow;
+    w.ATLAS_EXEC_MODE = '';
+    w.ACTIVE_SESSION = 'alice/myip/rtl_gen';
+    w.ACTIVE_IP = 'myip';
+    bk.setAckMode('receivedOnly');
+
+    const { container } = await mountWorkspace();
+    const textarea = container.querySelector('textarea') as HTMLTextAreaElement;
+
+    await act(async () => {
+      typeAndSubmit(container, 'slow worker prompt');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(textarea.value).toBe('');
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(7100);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(textarea.value).toBe('');
+    expect(container.textContent || '').not.toMatch(/Input not confirmed/i);
+    expect(container.textContent || '').toMatch(/전송 중|worker.*busy|pending/i);
+
+    await act(async () => {
+      bk.acceptLastSendLate();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(container.textContent || '').not.toMatch(/전송 중|worker.*busy|pending/i);
   });
 });

@@ -406,6 +406,18 @@ export const WorkspacePromptRow = ({
     setDraft(next);
     requestAnimationFrame(() => resizeInput(inputRef.current));
   }, [cancelDeferredInputSync, input, inputRef, resizeInput]);
+  useEffect(() => {
+    const handler = (ev: Event) => {
+      const detail = (ev as CustomEvent).detail || {};
+      const next = String(detail.text || '');
+      cancelDeferredInputSync();
+      draftRef.current = next;
+      setDraft(next);
+      requestAnimationFrame(() => resizeInput(inputRef.current));
+    };
+    window.addEventListener('atlas-composer-draft-set', handler);
+    return () => window.removeEventListener('atlas-composer-draft-set', handler);
+  }, [cancelDeferredInputSync, inputRef, resizeInput]);
   useEffect(() => () => cancelDeferredInputSync(), [cancelDeferredInputSync]);
   const orchestratorIdle = (window as any).AtlasBannerLogic
     ? (window as any).AtlasBannerLogic.shouldShowSelectIpBanner({ workflow, activeIp })

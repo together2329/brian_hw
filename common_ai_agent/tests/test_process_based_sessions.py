@@ -152,6 +152,36 @@ def test_session_process_manager_spawns_worker_from_project_root(monkeypatch, tm
     assert str((Path(PROJECT_ROOT) / "src").resolve()) in pythonpath
 
 
+def test_session_process_manager_uses_base_python_when_sys_executable_is_py_launcher(monkeypatch):
+    monkeypatch.setattr(os, "name", "nt", raising=False)
+    monkeypatch.setattr(sys, "executable", r"C:\Windows\py.exe")
+    monkeypatch.setattr(sys, "_base_executable", r"C:\Python312\python.exe", raising=False)
+
+    assert SessionProcessManager._worker_python_executable() == r"C:\Python312\python.exe"
+
+
+def test_send_input_bounds_session_queue_busy_timeout(monkeypatch):
+    manager = SessionProcessManager(db_path=":memory:")
+    enqueue_calls = []
+
+    class FakeDB:
+        def enqueue_message(self, *args, **kwargs):
+            enqueue_calls.append((args, kwargs))
+            return "queued-1"
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr(manager, "is_alive", lambda session_id: True)
+    monkeypatch.setattr(manager, "_get_db", lambda: FakeDB())
+
+    msg_id = manager.send_input("alice/spi_core/rtl-gen", "prompt", {"text": "hi"})
+
+    assert msg_id == "queued-1"
+    assert enqueue_calls
+    assert 0 < enqueue_calls[0][1]["busy_timeout_ms"] <= 4500
+
+
 def test_spawn_prunes_orphan_same_session_worker(monkeypatch, tmp_path):
     db_path = tmp_path / "atlas-custom.db"
     session_id = "alice/spi_core/ssot-gen"

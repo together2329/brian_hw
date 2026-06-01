@@ -24,7 +24,9 @@ from __future__ import annotations
 
 import os
 import shlex
+import shutil
 import signal
+import sqlite3
 import subprocess
 import sys
 import threading
@@ -72,6 +74,23 @@ class SessionProcessManager:
         if raw is None or not raw.strip():
             return default
         return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+    @staticmethod
+    def _path_basename(path: str) -> str:
+        return str(path or "").replace("\\", "/").rsplit("/", 1)[-1].lower()
+
+    @classmethod
+    def _worker_python_executable(cls) -> str:
+        executable = str(getattr(sys, "executable", "") or "").strip()
+        if os.name == "nt" and cls._path_basename(executable) == "py.exe":
+            base_executable = str(getattr(sys, "_base_executable", "") or "").strip()
+            if base_executable and cls._path_basename(base_executable) != "py.exe":
+                return base_executable
+            for candidate in ("python.exe", "python3.exe", "python"):
+                resolved = shutil.which(candidate)
+                if resolved and cls._path_basename(resolved) != "py.exe":
+                    return resolved
+        return executable or "python"
 
     def _resolve_db_path(self, db_path: Optional[str] = None) -> str:
         """Return the concrete DB path shared by UI and worker processes."""
@@ -270,7 +289,7 @@ class SessionProcessManager:
             self._terminate_external_session_workers(session_id, effective_db)
 
             cmd = [
-                sys.executable,
+                self._worker_python_executable(),
                 "-m",
                 "core.session_worker",
                 "--session-id",
@@ -410,7 +429,35 @@ class SessionProcessManager:
 
         db = self._get_db()
         try:
-            msg_id = db.enqueue_message(session_id, "in", msg_type, payload)
+            enqueue_budget_ms = 4500.0
+            started_at = time.monotonic()
+            msg_id = None
+            for _ in range(3):
+                remaining_ms = enqueue_budget_ms - ((time.monotonic() - started_at) * 1000.0)
+                if remaining_ms <= 0:
+                    break
+                try:
+                    msg_id = db.enqueue_message(
+                        session_id,
+                        "in",
+                        msg_type,
+                        payload,
+                        busy_timeout_ms=int(remaining_ms),
+                    )
+                    break
+                except sqlite3.OperationalError as exc:
+                    if "database is locked" not in str(exc).lower():
+                        raise
+                    if enqueue_budget_ms - ((time.monotonic() - started_at) * 1000.0) <= 0:
+                        break
+                    time.sleep(0.02)
+            blocked_ms = (time.monotonic() - started_at) * 1000.0
+            if blocked_ms > 500.0:
+                print(
+                    f"[prompt-latency] enqueue session={session_id} "
+                    f"type={msg_type} blocked={blocked_ms:.0f}ms",
+                    flush=True,
+                )
             return msg_id
         finally:
             db.close()

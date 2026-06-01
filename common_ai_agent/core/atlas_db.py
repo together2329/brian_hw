@@ -2392,19 +2392,33 @@ class AtlasDB:
         msg_type: str,
         payload: Any = None,
         expires_at: Optional[float] = None,
+        busy_timeout_ms: Optional[int] = None,
     ) -> str:
         """Insert a message into the session queue. Returns the message id."""
         msg_id = self._new_id()
         now = self._now()
         payload_json = self._dump_json(payload)
-        self._execute(
-            """
+        sql = """
             INSERT INTO session_queue
             (id, session_id, direction, msg_type, payload, created_at, processed_at, delivered_at, expires_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            (msg_id, session_id, direction, msg_type, payload_json, now, None, None, expires_at),
-        )
+            """
+        params = (msg_id, session_id, direction, msg_type, payload_json, now, None, None, expires_at)
+        if busy_timeout_ms is None:
+            self._execute(sql, params)
+            return msg_id
+
+        with self._lock:
+            conn = self._connect()
+            prev_row = conn.execute("PRAGMA busy_timeout").fetchone()
+            prev_ms = int(prev_row[0]) if prev_row is not None else None
+            conn.execute(f"PRAGMA busy_timeout={int(busy_timeout_ms)}")
+            try:
+                conn.execute(sql, params)
+                conn.commit()
+            finally:
+                if prev_ms is not None:
+                    conn.execute(f"PRAGMA busy_timeout={prev_ms}")
         return msg_id
 
     def dequeue_message(

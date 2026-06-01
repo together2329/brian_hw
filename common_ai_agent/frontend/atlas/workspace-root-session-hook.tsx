@@ -552,6 +552,8 @@ export function useWorkspaceSession(deps: UseWorkspaceSessionDeps) {
       }
     }
     let cancelAckWait: any = null;
+    let lateResolvedCb: ((e: any) => void) | null = null;
+    const onAckResolved = (cb: (e: any) => void) => { lateResolvedCb = cb; };
     const ack = (() => {
       if (!w.backend || typeof w.backend.subscribe !== 'function') {
         return Promise.resolve({ ok: false, error: 'backend ack unavailable' });
@@ -562,12 +564,15 @@ export function useWorkspaceSession(deps: UseWorkspaceSessionDeps) {
         let unsubReceived: any = null;
         let unsubAccepted: any = null;
         let timer: any = null;
-        const finish = (result: any) => {
-          if (done) return;
-          done = true;
+        const teardown = () => {
           try { if (unsubReceived) unsubReceived(); } catch (_) {}
           try { if (unsubAccepted) unsubAccepted(); } catch (_) {}
           try { clearTimeout(timer); } catch (_) {}
+        };
+        const finish = (result: any) => {
+          if (done) return;
+          done = true;
+          teardown();
           resolve(result);
         };
         cancelAckWait = () => finish({ ok: false, error: 'send failed before backend acceptance' });
@@ -578,6 +583,20 @@ export function useWorkspaceSession(deps: UseWorkspaceSessionDeps) {
         unsubAccepted = w.backend.subscribe('agent_accepted', (m: any) => {
           if (!m || m.msg_id !== msg_id) return;
           if (m.ok === false) {
+            if (done) {
+              try { teardown(); } catch (_) {}
+              try {
+                if (lateResolvedCb) {
+                  lateResolvedCb({
+                    ok: false,
+                    error: m.error || 'backend received input but did not accept it',
+                    event: m,
+                    transport: transportEvent,
+                  });
+                }
+              } catch (_) {}
+              return;
+            }
             finish({
               ok: false,
               error: m.error || 'backend received input but did not accept it',
@@ -586,15 +605,32 @@ export function useWorkspaceSession(deps: UseWorkspaceSessionDeps) {
             });
             return;
           }
+          if (done) {
+            try { teardown(); } catch (_) {}
+            try { if (lateResolvedCb) lateResolvedCb({ ok: true, event: m, transport: transportEvent }); } catch (_) {}
+            return;
+          }
           finish({ ok: true, event: m, transport: transportEvent });
         });
         timer = setTimeout(() => {
+          if (done) return;
+          if (transportEvent) {
+            done = true;
+            try { if (unsubReceived) { unsubReceived(); unsubReceived = null; } } catch (_) {}
+            try { clearTimeout(timer); } catch (_) {}
+            resolve({
+              ok: false,
+              pending: true,
+              latency: true,
+              msg_id,
+              error: 'backend received input but did not confirm worker delivery',
+              transport: transportEvent,
+            });
+            return;
+          }
           finish({
             ok: false,
-            error: transportEvent
-              ? 'backend received input but did not confirm worker delivery'
-              : 'backend did not acknowledge receipt',
-            transport: transportEvent,
+            error: 'backend did not acknowledge receipt',
           });
         }, 7000);
       });
@@ -614,7 +650,7 @@ export function useWorkspaceSession(deps: UseWorkspaceSessionDeps) {
       try { if (cancelAckWait) cancelAckWait(); } catch (_) {}
       return { ok: false, error: String(e && e.message || e) };
     }
-    return { ok: true, msg_id, session, workflow: promptWorkflow, ip: promptScope, ack };
+    return { ok: true, msg_id, session, workflow: promptWorkflow, ip: promptScope, ack, onAckResolved };
   }, [activeNamespace, activeSession, activeWorkflow, resolveSession, uiLang, workflow]);
 
   const switchToDefaultSession = useCallback(() => {

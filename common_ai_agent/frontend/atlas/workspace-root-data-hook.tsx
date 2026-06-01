@@ -449,6 +449,14 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   // the agent actually starts. (workspace.jsx L2737-L2738 component-scope refs.)
   const awaitingRunStartRef = useRef<boolean>(false);
   const backendRunStartedRef = useRef<boolean>(false);
+  const latencyStatusRef = useRef<{ msgId: any } | null>(null);
+  const latencyTimerRef = useRef<any>(null);
+
+  useEffect(() => () => {
+    try {
+      if (latencyTimerRef.current) clearTimeout(latencyTimerRef.current);
+    } catch (_) {}
+  }, []);
 
   // Fold/drag-select comment events from PreviewPane prefill the chat input
   // with `@<path> L<lo>-L<hi> (label)` and focus it.
@@ -1787,6 +1795,9 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
 
     const clearSubmittedInput = () => {
       recordInputHistory(raw);
+      try {
+        window.dispatchEvent(new CustomEvent('atlas-composer-draft-set', { detail: { text: '' } }));
+      } catch (_) {}
       setInput((cur: any) => {
         const curText = String(cur || '').trim();
         if (!curText || curText === raw) return '';
@@ -1815,6 +1826,9 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
         msgId: opts?.msgId || null,
         autoReplay: opts?.autoReplay !== false,
       };
+      try {
+        window.dispatchEvent(new CustomEvent('atlas-composer-draft-set', { detail: { text: raw } }));
+      } catch (_) {}
       setInput((cur: any) => {
         const curText = String(cur || '').trim();
         return curText ? cur : raw;
@@ -1826,12 +1840,53 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       setStreamText('');
       setFeed((f: any) => [...f, { kind: 'agent', text: reason, createdAt: Date.now() }]);
     };
+    const clearLatencyStatus = () => {
+      try {
+        if (latencyTimerRef.current) {
+          clearTimeout(latencyTimerRef.current);
+          latencyTimerRef.current = null;
+        }
+      } catch (_) {}
+      if (!latencyStatusRef.current) return;
+      latencyStatusRef.current = null;
+      setFeed((f: any) => f.filter((e: any) => !(e && e.pendingMsgId)));
+    };
     const promptBackendState = () => {
       if (!w.backend) return 'missing';
       if (typeof w.backend.getConnectionState === 'function') {
         return w.backend.getConnectionState() || backendState || 'unknown';
       }
       return backendState || 'unknown';
+    };
+    const showLatencyStatus = (msgId: any, onStranded?: () => void) => {
+      const id = msgId || '__latency__';
+      const prev = latencyStatusRef.current;
+      if (prev && prev.msgId === id) return;
+      latencyStatusRef.current = { msgId: id };
+      setFeed((f: any) => {
+        const filtered = f.filter((e: any) => !(e && e.pendingMsgId));
+        return [...filtered, {
+          kind: 'agent',
+          text: '전송 중 - 워커가 바쁩니다 (대기 중)',
+          pendingMsgId: id,
+          createdAt: Date.now(),
+        }];
+      });
+      try {
+        if (latencyTimerRef.current) clearTimeout(latencyTimerRef.current);
+      } catch (_) {}
+      const arm = () => {
+        latencyTimerRef.current = setTimeout(() => {
+          if (!latencyStatusRef.current || latencyStatusRef.current.msgId !== id) return;
+          if (!backendReadyForPrompt()) {
+            clearLatencyStatus();
+            if (typeof onStranded === 'function') onStranded();
+            return;
+          }
+          arm();
+        }, 30000);
+      };
+      arm();
     };
     const promptAckDebugDetail = (sent: any, msgId?: any) => {
       const pairs = [
@@ -1863,7 +1918,27 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       }
       sent.ack.then((ack: any) => {
         if (ack && ack.ok) {
+          clearLatencyStatus();
           onAck(ack.event || ack);
+          return;
+        }
+        if (ack && ack.pending) {
+          showLatencyStatus(sent.msg_id, () => {
+            onMiss('backend did not confirm worker delivery', sent.msg_id, sent);
+          });
+          if (typeof sent.onAckResolved === 'function') {
+            sent.onAckResolved((late: any) => {
+              clearLatencyStatus();
+              if (late && late.ok) {
+                onAck(late.event || late);
+                return;
+              }
+              onMiss((late && late.error) || 'backend did not acknowledge receipt', sent.msg_id, Object.assign({}, sent || {}, {
+                worker_session: late && late.event && late.event.session_id,
+                transport_session: late && late.transport && late.transport.session_id,
+              }));
+            });
+          }
           return;
         }
         onMiss((ack && ack.error) || 'backend did not acknowledge receipt', sent.msg_id, Object.assign({}, sent || {}, {
@@ -1873,6 +1948,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       });
     };
     const holdUnacknowledgedInput = (reason: string, msgId?: any, sent?: any) => {
+      clearLatencyStatus();
       const replayFailed = isAckMissReplay && msgId && String(replayMsgId) === String(msgId);
       const prefix = replayFailed ? 'Input not confirmed after retry.' : 'Input not confirmed.';
       const suffix = replayFailed
