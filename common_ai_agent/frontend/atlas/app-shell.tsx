@@ -95,6 +95,14 @@ export const AppShell = ({
   screen, setScreen, runMode, saveRunPolicy, WORKFLOW_OPTIONS, selectWorkflow,
   activateDashboardSession,
 }: AppShellProps) => {
+  const isFontMode = (value: string) => ATLAS_FONT_MODE_OPTIONS.some(opt => opt.key === value);
+  const selectedFontMode = isFontMode(fontMode) ? fontMode : 'mono';
+  const chooseFontMode = (value: string) => {
+    const next = isFontMode(value) ? value : 'mono';
+    setFontMode(next);
+    try { localStorage.setItem('atlasFontModeUserSet', '1'); } catch (_) {}
+  };
+
   return (
     <div className="app" data-dir={dir} data-theme={theme}>
       {topNotice && (
@@ -363,15 +371,17 @@ export const AppShell = ({
                   window.location.href = `/api/workspace/download.zip${sub}`;
                 }}>📦 .zip</button>
         <span style={{ width: 12 }} />
-        <label className="dir-select-wrap" title="Change UI font family">
+        <label className="dir-select-wrap font-select" title="Change UI font family">
           <span>font</span>
           <select
-            className="dir-select mini"
-            value={fontMode}
-            onChange={e => {
-              setFontMode(e.currentTarget.value);
-              try { localStorage.setItem('atlasFontModeUserSet', '1'); } catch (_) {}
-            }}>
+            aria-label="Font family"
+            title="Change UI font family"
+            className="dir-select font"
+            value={selectedFontMode}
+            onPointerDown={e => e.stopPropagation()}
+            onClick={e => e.stopPropagation()}
+            onInput={e => chooseFontMode(e.currentTarget.value)}
+            onChange={e => chooseFontMode(e.currentTarget.value)}>
             {ATLAS_FONT_MODE_OPTIONS.map(opt => (
               <option key={opt.key} value={opt.key}>{opt.label}</option>
             ))}

@@ -788,6 +788,21 @@ html[data-platform="windows"] .app {
   min-width: 58px;
   max-width: 76px;
 }
+.dir-select-wrap.font-select {
+  overflow: visible;
+}
+.dir-select.font {
+  min-width: 88px;
+  max-width: 108px;
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+  appearance: auto;
+  -webkit-appearance: menulist;
+  -moz-appearance: menulist;
+  background: var(--field-bg);
+  padding-right: 4px;
+}
 .dir-select.policy {
   min-width: 90px;
   max-width: 110px;
