@@ -1,0 +1,4 @@
+PASS C001 coverage browser QA
+Observed Verilator, pyslang static/elab, Simulation VCD toggle, FL, and CL coverage labels.
+Observed unmet reasons/details: Reset path never deasserted, 1/8 bits, rtl/missing.sv, FL/CL missing bin descriptions.
+Clicked VCD toggle unmet scope and observed RTL source plus diagnostic: toggle gap: only 1/8 bits toggled in tb.demo_ip.u_dut.

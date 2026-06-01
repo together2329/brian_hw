@@ -1,0 +1,39 @@
+[andes-wiki] wrote 1 block pages + AST facts + docs + coverage + index + rtl-inv
+entory + ae210p to /private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/tmp.
+nxoHjTeD4v/wiki
+[wiki/build_graph] wrote /private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/
+T/tmp.nxoHjTeD4v/wiki/_graph.json: nodes=9 edges=31 types=3 tags=20 broken_refs=
+14
+  broken: ae210p → [[atcbmc200]]
+  broken: ae210p → [[atcapbbrg100]]
+  broken: ae210p → [[atcdmac100]]
+  broken: ae210p → [[atceilmbrg100]]
+  broken: ae210p → [[atcexlmbrg100]]
+  broken: ae210p → [[atcapbdec100]]
+  broken: ae210p → [[atcuart100]]
+  broken: ae210p → [[atciic100]]
+  broken: ae210p → [[atcgpio100]]
+  broken: ae210p → [[atcpit100]]
+  broken: ae210p → [[atcrtc100]]
+  broken: ae210p → [[atcwdt200]]
+  … and 2 more broken links
+coverage_summary {'empty_hdl_roots': 0, 'missing_facts': [], 'missing_pages': []
+, 'nonempty_hdl_roots': 2, 'total_hdl_roots': 2}
+graph 9 31
+# wiki_query [scope=rtl-db] depth=3 matches=1/9 shown=1
+## rtlroot-platform-demo-soc-andes-ip-custom-core-top [reference] · updated=2026
+-05-31
+title: custom_core HDL root · path: tmp.nxoHjTeD4v/wiki/rtlroot-platform-demo-so
+c-andes-ip-custom-core-top.md · tags: rtl-db, andes, hdl-root, coverage, design,
+ module, clock, reset, register, datapath
+links: [[coverage]] [[rtl-inventory]] [[rtl-query-cookbook]] [[index]]
+Nested Andes HDL root indexed for the external RTL DB LLM Wiki. It exists so age
+nts can discover platform, VIP, model, macro, and copied IP RTL that is not a ca
+nonical top-level block.
+
+Drill deeper with `wiki_query(ip='rtl-db', topic="<keyword>", depth=3)` or re-ru
+n `python3 workflow/wiki/build_graph.py --wiki "$ATLAS_RTL_DB_WIKI" --quiet`.
+PASS C001 practical wiki
+ULW_QA_EXIT=0
+
+cleanup: killed tmux session ulw-qa-g002-c001; temp corpus removed by script trap; post-review rerun

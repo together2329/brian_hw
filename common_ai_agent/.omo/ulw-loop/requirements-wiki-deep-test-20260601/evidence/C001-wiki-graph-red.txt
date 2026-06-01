@@ -1,0 +1,22 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+___________ test_project_graph_indexes_sim_debug_requirements_ledger ___________
+
+    def test_project_graph_indexes_sim_debug_requirements_ledger():
+        build_graph = _load_build_graph()
+    
+        wiki_root = REPO / "doc" / "wiki"
+        page_path = wiki_root / "sim-debug-requirements-2026-06-01.md"
+        graph = build_graph.build(wiki_root)
+    
+        nodes = {node["id"]: node for node in graph["nodes"]}
+        assert "sim-debug-requirements-2026-06-01" in nodes
+        node = nodes["sim-debug-requirements-2026-06-01"]
+        assert "requirements" in node["tags"]
+>       assert "deep-test" in node["tags"]
+E       AssertionError: assert 'deep-test' in ['atlas', 'sim-debug', 'requirements', 'waveform', 'rtl', 'vcd', ...]
+
+tests/test_wiki_build_graph.py:93: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_wiki_build_graph.py::test_project_graph_indexes_sim_debug_requirements_ledger
+1 failed in 0.37s

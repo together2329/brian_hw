@@ -46,6 +46,16 @@ module mctp_assembler_scratch_apb_regfile (
     logic [31:0] q_state_word;
     logic [31:0] q_key_word;
     logic [31:0] q_payload_count_word;
+    logic any_error;
+    logic desc_pending;
+    logic [31:0] packet_drop_count_value;
+    logic [31:0] assembly_drop_count_value;
+    logic [7:0] source_eid;
+    logic [7:0] destination_eid;
+    logic tag_owner;
+    logic [2:0] message_tag;
+    logic [7:0] message_type;
+    logic error_handling;
     logic unused_inputs;
 
     assign apb_access = psel & penable;
@@ -61,7 +71,20 @@ module mctp_assembler_scratch_apb_regfile (
     assign q_key_word = {8'd0, 4'd0, ctx_key[17:16], 2'd0, ctx_key[15:0]};
     assign q_payload_count_word = {10'd0, ctx_partial_word_valid, ctx_partial_next_lane, 3'd0, ctx_payload_count};
     assign irq = |(irq_status_q & irq_enable_q);
-    assign unused_inputs = ^{pstrb, read_error_count_q};
+    assign any_error = ctx_error | packet_drop_event | assembly_drop_event | read_error_event;
+    assign desc_pending = descriptor_count != 4'd0;
+    assign packet_drop_count_value = packet_drop_count_q;
+    assign assembly_drop_count_value = assembly_drop_count_q;
+    assign source_eid = ctx_key[17:10];
+    assign destination_eid = 8'd0;
+    assign tag_owner = ctx_key[9];
+    assign message_tag = ctx_key[2:0];
+    assign message_type = drop_reason;
+    assign error_handling = any_error;
+    assign unused_inputs = ^{pstrb, read_error_count_q, any_error, desc_pending,
+                             packet_drop_count_value, assembly_drop_count_value,
+                             source_eid, destination_eid, tag_owner, message_tag,
+                             message_type, error_handling};
 
     always @(*) begin
         prdata = 32'd0;

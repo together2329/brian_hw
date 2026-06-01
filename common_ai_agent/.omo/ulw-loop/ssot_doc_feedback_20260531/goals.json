@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "createdAt": "2026-05-31T14:21:07.182Z",
+  "updatedAt": "2026-05-31T15:37:30.167Z",
+  "briefPath": ".omo/ulw-loop/ssot_doc_feedback_20260531/brief.md",
+  "goalsPath": ".omo/ulw-loop/ssot_doc_feedback_20260531/goals.json",
+  "ledgerPath": ".omo/ulw-loop/ssot_doc_feedback_20260531/ledger.jsonl",
+  "codexGoalMode": "aggregate",
+  "goals": [
+    {
+      "id": "G001-ssot-gen-doc-tab-feedback-mode-add-a",
+      "title": "SSOT-GEN DOC tab Feedback Mode: add a user-facing feedback workflow w...",
+      "objective": "SSOT-GEN DOC tab Feedback Mode: add a user-facing feedback workflow where DOC rendered HTML components can be clicked or drag-selected to highlight; comments on a highlighted component are inserted into chat so the linked SSOT can be revised; the UI must expose which SSOT source/section a document fragment maps to through a Show SSOT button; reuse existing SSOT drag/drop or comment affordances where appropriate; build iteratively with RED->GREEN tests, real browser QA artifacts, cleanup receipts, and final reviewer approval.",
+      "status": "blocked",
+      "successCriteria": [
+        {
+          "id": "C001",
+          "scenario": "Browser use: start Atlas on localhost:8765 with a fixture IP ssot_doc_feedback_demo, open /?backend=live&ip=ssot_doc_feedback_demo, enter SSOT-GEN DOC tab Feedback Mode, click a rendered DOC component with data-ssot-path, verify persistent highlight, click Show SSOT, verify source path/value snippet, type a comment, click Comment, verify chat composer is prefilled with SSOT edit prompt, then Apply Feedback and verify iframe refresh contains the feedback block.",
+          "userModel": "happy",
+          "expectedEvidence": ".omo/ulw-loop/ssot_doc_feedback_20260531/evidence/C001-browser-click-show-comment-apply.json plus .png; RED/GREEN evidence from frontend Vitest target tests, backend source-map pytest, tsc, build.",
+          "capturedEvidence": ".omo/ulw-loop/ssot_doc_feedback_20260531/evidence/C001-browser-click-show-comment-apply.json and .png show click highlight, Show SSOT source snippet, comment-to-chat prefill, apply feedback block, review_note source lookup; supporting RED/GREEN: evidence/task-cross-realm-selection-vitest-pass2.txt, evidence/task-object-path-red.txt, evidence/task-object-path-green.txt | cleanup: Playwright browser/context closed, ssot_doc_feedback_demo fixture restored, QA Atlas port 8766 stopped per .omo/ulw-loop/ssot_doc_feedback_20260531/evidence/server-cleanup.txt",
+          "status": "pass",
+          "capturedAt": "2026-05-31T15:18:14.802Z"
+        },
+        {
+          "id": "C002",
+          "scenario": "Browser/HTTP edge path: with the same live Atlas fixture, Feedback Mode has no selected component so Show SSOT and Comment are disabled; direct HTTP GET /api/ssot/doc-source?ip=ssot_doc_feedback_demo&path=../../.env returns HTTP 400 with the existing dot-path validation error; no uncaught browser console errors occur after iframe reload or Escape-clear.",
+          "userModel": "edge",
+          "expectedEvidence": ".omo/ulw-loop/ssot_doc_feedback_20260531/evidence/C002-edge-invalid-empty.txt and browser JSON; RED/GREEN evidence from tests/test_ssot_doc_source_map.py invalid path test and frontend no-selection tests.",
+          "capturedEvidence": ".omo/ulw-loop/ssot_doc_feedback_20260531/evidence/C002-edge-invalid-empty.json and .png show no-selection buttons disabled, Escape clears DOC highlight, invalid dot-path request returns HTTP 400 validation error, and no uncaught pageErrors; supporting tests: frontend no-selection/cross-realm target tests and tests/test_ssot_doc_source_map.py invalid path coverage | cleanup: Playwright browser/context closed, direct HTTP request ended, QA Atlas port 8766 stopped per .omo/ulw-loop/ssot_doc_feedback_20260531/evidence/server-cleanup.txt",
+          "status": "pass",
+          "capturedAt": "2026-05-31T15:19:22.543Z"
+        },
+        {
+          "id": "C003",
+          "scenario": "Regression path: existing SSOT inline export, existing /api/ssot/doc-feedback YAML/custom_blocks persistence, existing source-preview comment prefill, and DOC View Mode iframe download/refresh behavior still work after component mapping and feedback integration.",
+          "userModel": "regression",
+          "expectedEvidence": ".omo/ulw-loop/ssot_doc_feedback_20260531/evidence/C003-regression-suite.txt plus targeted browser/regression JSON; RED/GREEN evidence from tests/test_ssot_export.py, tests/test_ssot_inline_export_endpoint.py, tests/test_atlas_ssot_doc_tab.py, preview-pane-lint-annotation Vitest.",
+          "capturedEvidence": ".omo/ulw-loop/ssot_doc_feedback_20260531/evidence/C003-regression-browser.json/.png and C003-regression-http.txt show DOC View Mode remains usable, Feedback controls stay hidden in View Mode, iframe refresh changes version, /api/ssot/doc-feedback and inline export still persist/render custom blocks; supporting suites: C003-regression-suite-pass2.txt, C003-frontend-regression-pass2.txt, C003-tsc-pass2.txt, C003-compileall-pass2.txt, C003-build-pass2.txt | cleanup: Playwright browser/context closed, fixture YAML restored, HTTP requests ended, QA Atlas port 8766 stopped per .omo/ulw-loop/ssot_doc_feedback_20260531/evidence/server-cleanup.txt",
+          "status": "pass",
+          "capturedAt": "2026-05-31T15:19:35.760Z"
+        }
+      ],
+      "attempt": 0,
+      "createdAt": "2026-05-31T14:21:07.182Z",
+      "updatedAt": "2026-05-31T15:37:30.167Z",
+      "blockedReason": "Implementation, criteria, and final reviewer are complete, but terminal complete checkpoint is blocked because get_goal returns a different completed legacy lint objective instead of the SSOT DOC Feedback Mode aggregate objective. CLI instructed to record this non-terminal blocker and not repeat --status complete in this thread."
+    }
+  ],
+  "codexObjective": "Complete the durable ulw-loop plan in .omo/ulw-loop/ssot_doc_feedback_20260531/goals.json, including later accepted/appended stories, under the original brief constraints; use .omo/ulw-loop/ssot_doc_feedback_20260531/ledger.jsonl as the audit trail."
+}

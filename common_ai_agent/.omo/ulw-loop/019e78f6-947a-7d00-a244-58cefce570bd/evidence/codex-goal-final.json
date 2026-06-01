@@ -1,0 +1,14 @@
+{
+  "goal": {
+    "threadId": "019e78f6-947a-7d00-a244-58cefce570bd",
+    "objective": "make 10 ip with this each turn need to be enhanced.",
+    "status": "complete",
+    "tokensUsed": 402904,
+    "timeUsedSeconds": 1427,
+    "createdAt": 1780158345,
+    "updatedAt": 1780159773
+  },
+  "remainingTokens": null,
+  "completionBudgetReport": null,
+  "note": "The Codex goal preexisted this resumed MCTP assembler run and was already complete. The current completion is recorded through OMO ultrawork criteria, evidence, quality gate, and checkpoint artifacts."
+}

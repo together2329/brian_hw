@@ -1,0 +1,83 @@
+cd /Users/brian/Desktop/Project/brian_hw/common_ai_agent
+ULW_TMUX_SESSION=ulw-qa-reqwiki-c002-final bash .omo/ulw-loop/requirements-wiki-deep-test-20260601/evidence/qa-c002-deep-vitest.sh; ulw_status=$?; printf '\n__ULW_DONE__:%s\n' $ulw_status
+brian@Brianui-MacBookAir common_ai_agent % cd /Users/brian/Desktop/Project/brian_hw/common_ai_agent
+ULW_TMUX_SESSION=ulw-qa-reqwiki-c002-final bash .omo/ulw-loop/requirements-wiki-deep-test-20260601/evidence/qa-c002-deep-vitest.sh; ulw_status=$?; printf '\n__ULW_DONE__:%s\n' $ulw_status
+brian@Brianui-MacBookAir common_ai_agent % ULW_TMUX_SESSION=ulw-qa-reqwiki-c002-final bash .omo/ulw-loop/requirements-wiki-deep-test-20260601/evidence/qa-c002-deep-vitest.sh; ulw_status=$?; printf '\n
+__ULW_DONE__:%s\n' $ulw_status
+
+> test
+> vitest run --run __tests__/sim-debug-requirements-deep.test.tsx --reporter verbose
+
+
+ RUN  v1.6.1 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/frontend/atlas
+
+ ✓ __tests__/sim-debug-requirements-deep.test.tsx (50) 2439ms
+   ✓ SimDebug Ctrl+W signal add (6) 2165ms
+     ✓ shows waveform signals in the signal palette by default 457ms
+     ✓ adds the focused RTL signal with its instance scope 530ms
+     ✓ adds all Ctrl-selected RTL signals with their instance scope
+     ✓ adds source-dragged signals with Ctrl+W 306ms
+     ✓ adds source-dragged bus declarations with their RTL width range 311ms
+     ✓ keeps source-dragged missing bus declarations visibly multi-bit
+   ✓ sim debug intent polling decisions (2)
+     ✓ does not consume another IP intent before switching to that IP
+     ✓ applies blank-IP intents once globally
+   ✓ sim debug signal requirements (9)
+     ✓ SDR-007 SDR-014 keeps exact bus slices independent from the full VCD bus
+     ✓ SDR-020 keeps missing VCD bus placeholders visibly ranged and bus-typed
+     ✓ SDR-007 SDR-014 keeps single-bit selects scalar instead of widening to the full bus
+     ✓ SDR-020 SDR-021 SDR-022 SDR-023 resolves only proven VCD signals and marks missing or ambiguous rows
+     ✓ SDR-008 SDR-009 source multi-select tokenization ignores comments and numeric literal fragments
+     ✓ SDR-008 SDR-009 treats declaration widths as type syntax, not source-selected signals
+     ✓ SDR-015 SDR-016 maps parameter/localparam FSM values and renders PARAM display
+     ✓ SDR-013 keeps grouped waveform rows contiguous and reorders group blocks together
+     ✓ SDR-018 SDR-019 formats time resolution, cursor delta, frequency, and command-driven input
+   ✓ sim debug WaveBand requirements (4)
+     ✓ SDR-011 SDR-012 keeps the first waveform row outside the sticky header and reachable by bulk delete
+     ✓ SDR-013 keeps waveform drag previews anchored next to the pointer
+     ✓ SDR-013 does not reorder a row when drag starts in the waveform plot area
+     ✓ SDR-017 exposes rc save/restore controls and preserves rc filenames as user-facing state
+   ✓ sim debug source viewer (9)
+     ✓ highlights the selected signal leaf inside source text
+     ✓ highlights only the selected source bit slice when a range is selected
+     ✓ does not highlight selected signal names inside comments or numeric literal bases
+     ✓ clears native text selection after capturing source context-menu signals
+     ✓ ignores comments and Verilog numeric literals in native source selection menus
+     ✓ blocks plain drag text selection in source code
+     ✓ collects dragged source identifiers for bulk signal context menu
+     ✓ excludes comments and numeric literal bases from dragged source signals
+     ✓ picks the exact source bit slice under the cursor
+   ✓ sim debug VCD scoping and annotations (16)
+     ✓ keeps VCD picker entries scoped to the active IP
+     ✓ resolves the active IP from the live Atlas runtime first
+     ✓ builds source-line VCD value annotations for A and B cursors
+     ✓ selects which VCD annotation cursor axes are shown in the source viewer
+     ✓ adds pinned signals beyond the default waveform slice
+     ✓ keeps a pinned bus slice distinct from the full VCD bus
+     ✓ zero-extends short VCD bus values before slicing upper bits
+     ✓ extracts localparam and parameter numeric labels for FSM display
+     ✓ reorders one waveform signal before or after another
+     ✓ reorders a waveform group as one contiguous block
+     ✓ resolves tool-added waveform pins with a missing VCD top prefix
+     ✓ resolves scoped pins when the passed scope omits the VCD testbench prefix
+     ✓ resolves a unique single-bit leaf when the RTL scope does not match the VCD instance path
+     ✓ resolves common source port pins with the current RTL instance scope
+     ✓ resolves module-style pins through a unique VCD leaf fallback
+     ✓ keeps ambiguous leaf-only tool pins unresolved instead of guessing
+   ✓ waveform edge click (4)
+     ✓ snaps only to a nearby visible trace transition
+     ✓ emits the clicked transition time from WaveRow track clicks
+     ✓ applies colorHint to bus waveform segments
+     ✓ shows mapped parameter names for FSM-style bus values
+
+ Test Files  1 passed (1)
+      Tests  50 passed (50)
+   Start at  08:26:56
+   Duration  5.38s (transform 576ms, setup 166ms, collect 908ms, tests 2.44s, environment 1.29s, prepare 137ms)
+
+C002_DEEP_VITEST_PASS requirements=SDR-007,SDR-008,SDR-009,SDR-011,SDR-012,SDR-013,SDR-014,SDR-015,SDR-016,SDR-017,SDR-018,SDR-019,SDR-020,SDR-021,SDR-022,SDR-023
+C002_QA_SCRIPT_DONE tmux_session=ulw-qa-reqwiki-c002-final
+
+__ULW_DONE__:0
+brian@Brianui-MacBookAir common_ai_agent %
+C002_TMUX_CLEANUP session=ulw-qa-reqwiki-c002-final removed=1

@@ -11,6 +11,8 @@ import json
 import re
 from typing import Any
 
+from src.atlas_ssot_doc_map import ssot_doc_annotate_headings, ssot_doc_data_attrs
+
 
 def _import_html_helpers():
     g = globals()
@@ -19,6 +21,7 @@ def _import_html_helpers():
     from src import atlas_ssot_export as _se
     for name in (
         "_ssot_html_custom_blocks_for",
+        "_ssot_html_append_to_section",
         "_ssot_html_escape",
         "_ssot_html_insert_after_section",
         "_ssot_html_interfaces",
@@ -31,6 +34,7 @@ def _import_html_helpers():
         "_ssot_html_signal_values",
         "_ssot_html_submodules",
         "_ssot_html_value_block",
+        "_SSOT_EXPORT_SECTION_ORDER",
     ):
         if hasattr(_h, name): g[name] = getattr(_h, name)
         elif hasattr(_se, name): g[name] = getattr(_se, name)
@@ -46,8 +50,8 @@ def _ssot_html_block_diagram(data: dict) -> str:
     submods = _ssot_html_submodules(data)
     interfaces = _ssot_html_interfaces(data)
 
-    left_ifaces: list[dict] = []
-    right_ifaces: list[dict] = []
+    left_ifaces: list[tuple[int, dict]] = []
+    right_ifaces: list[tuple[int, dict]] = []
 
     def iface_port_dirs(iface: dict) -> set[str]:
         ports = iface.get("ports")
@@ -97,13 +101,13 @@ def _ssot_html_block_diagram(data: dict) -> str:
             return "out"
         return "bi"
 
-    for iface in interfaces:
+    for iface_index, iface in enumerate(interfaces):
         if iface_side(iface) == "right":
-            right_ifaces.append(iface)
+            right_ifaces.append((iface_index, iface))
         else:
-            left_ifaces.append(iface)
+            left_ifaces.append((iface_index, iface))
 
-    def iface_link(iface: dict, side: str) -> str:
+    def iface_link(iface_index: int, iface: dict, side: str) -> str:
         name = _ssot_html_escape(iface.get("name") or "(interface)")
         typ = _ssot_html_escape(iface.get("type") or iface.get("protocol") or iface.get("role") or "")
         ports = iface.get("ports")
@@ -113,22 +117,32 @@ def _ssot_html_block_diagram(data: dict) -> str:
         label = f"<div class=\"iface-label\"><strong>{name}</strong>{meta_html}</div>"
         wire = "<span class=\"iface-wire\" aria-hidden=\"true\"></span>"
         body = f"{label}{wire}" if side == "left" else f"{wire}{label}"
+        attrs = ssot_doc_data_attrs(
+            "io_list",
+            f"io_list.interfaces.{iface_index}",
+            name,
+            "interface",
+        )
         return (
-            f"<div class=\"iface-link {side} flow-{iface_flow(iface)}\">"
+            f"<div class=\"iface-link {side} flow-{iface_flow(iface)}\" {attrs}>"
             f"{body}</div>"
         )
 
-    left_html = "".join(iface_link(item, "left") for item in left_ifaces)
-    right_html = "".join(iface_link(item, "right") for item in right_ifaces)
+    left_html = "".join(iface_link(idx, item, "left") for idx, item in left_ifaces)
+    right_html = "".join(iface_link(idx, item, "right") for idx, item in right_ifaces)
 
     if submods:
-        module_html = "".join(
-            "<div class=\"module-node\">"
-            f"<strong>{_ssot_html_escape(_ssot_html_item_name(item, f'module_{idx}'))}</strong>"
-            f"<small>{_ssot_html_escape(item.get('description') or item.get('role') or item.get('file') or '')}</small>"
-            "</div>"
-            for idx, item in enumerate(submods, start=1)
-        )
+        module_blocks: list[str] = []
+        for idx, item in enumerate(submods, start=1):
+            module_name = _ssot_html_item_name(item, f"module_{idx}")
+            module_attrs = ssot_doc_data_attrs("sub_modules", f"sub_modules.{idx - 1}", module_name, "sub_module")
+            module_blocks.append(
+                f"<div class=\"module-node\" {module_attrs}>"
+                f"<strong>{_ssot_html_escape(module_name)}</strong>"
+                f"<small>{_ssot_html_escape(item.get('description') or item.get('role') or item.get('file') or '')}</small>"
+                "</div>"
+            )
+        module_html = "".join(module_blocks)
     else:
         module_html = "<div class=\"module-node single\"><strong>single block</strong><small>no sub_modules declared</small></div>"
 
@@ -138,7 +152,7 @@ def _ssot_html_block_diagram(data: dict) -> str:
         "<h3>Block Diagram</h3>"
         "<div class=\"block-graph\">"
         f"<div class=\"iface-column\">{left_html}</div>"
-        "<div class=\"top-node\">"
+        f"<div class=\"top-node\" {ssot_doc_data_attrs('top_module', 'top_module', top_name, 'section')}>"
         f"<div class=\"top-title\">{_ssot_html_escape(top_name)}</div>"
         f"{top_desc_html}"
         f"<div class=\"module-grid\">{module_html}</div>"
@@ -510,6 +524,7 @@ def _ssot_to_html(md_text: str, ip: str, data: dict | None = None) -> str:
         extensions=["tables", "fenced_code", "toc"],
     )
     html_body = _ssot_html_normalize_mermaid_fences(html_body)
+    html_body = ssot_doc_annotate_headings(html_body)
     css = (
         "body { font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", "
         "system-ui, sans-serif; max-width: 1180px; margin: 2em auto; "
@@ -654,7 +669,7 @@ def _ssot_to_html(md_text: str, ip: str, data: dict | None = None) -> str:
             for _key, _label in _SSOT_EXPORT_SECTION_ORDER:
                 _cb = _ssot_html_custom_blocks_for(data, _key, ip)
                 if _cb:
-                    html_body = _ssot_html_insert_after_section(html_body, _label, _cb)
+                    html_body = _ssot_html_append_to_section(html_body, _label, _cb)
 
     mermaid_head = _ssot_html_mermaid_runtime() if 'class="mermaid"' in html_body else ""
     return (
@@ -666,4 +681,3 @@ def _ssot_to_html(md_text: str, ip: str, data: dict | None = None) -> str:
         f"{html_body}"
         "</body></html>"
     )
-

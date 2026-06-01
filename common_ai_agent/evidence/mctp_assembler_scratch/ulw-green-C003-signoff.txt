@@ -1,0 +1,30 @@
+GREEN C003 full signoff evidence
+
+Command replayed:
+- python3 workflow/ssot-gen/scripts/verify_ssot.py mctp_assembler_scratch --root . --mode signoff
+- python3 workflow/ip-contract/scripts/derive_ip_contract.py mctp_assembler_scratch --root .
+- python3 workflow/rtl-gen/scripts/derive_rtl_todos.py mctp_assembler_scratch --root . --audit-rtl
+- python3 workflow/rtl-gen/scripts/rtl_compile_report.py mctp_assembler_scratch --root .
+- python3 workflow/lint/scripts/dut_lint_report.py mctp_assembler_scratch --root .
+- python3 mctp_assembler_scratch/tb/cocotb/test_runner.py
+- python3 workflow/tb-gen/scripts/check_scoreboard_events.py mctp_assembler_scratch --root . --source-check --require-events
+- python3 workflow/sim_debug/scripts/compare_fl_rtl_results.py mctp_assembler_scratch --root .
+- python3 workflow/sim_debug/scripts/audit_fl_rtl_equivalence_goal.py mctp_assembler_scratch --root .
+- python3 workflow/coverage/scripts/ssot_coverage_summary.py mctp_assembler_scratch --root .
+- python3 workflow/mutation/scripts/mutation_guard.py mctp_assembler_scratch --root . --max-mutants 32
+- python3 workflow/signoff/scripts/check_ip_signoff.py mctp_assembler_scratch --root .
+- python3 workflow/wiki/build_graph.py --wiki doc/wiki --check
+
+Observed result:
+- verify_ssot: PASS
+- rtl_todo_plan.json: gate.status=pass, open_required_todos=0, static_missing=0
+- rtl_compile.json: errors=0, diagnostics=0, style_violations=0
+- dut_lint.json: errors=0, warnings=0, style_violations=0
+- fl_rtl_compare.json: status=pass, checked=91, passed=91
+- fl_rtl_goal_audit.json: status=pass, passed=16/16
+- coverage.json: status=pass
+- mutation_report.json: status=pass, executed=32, killed=9, survived=23, kill_rate=0.2812
+- ip_signoff.json: status=pass, gates=15/15
+- wiki graph: broken_refs=0
+
+This is the GREEN proof paired with evidence/mctp_assembler_scratch/ulw-red-C003-signoff.txt.

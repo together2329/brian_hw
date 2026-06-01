@@ -44,7 +44,7 @@ export const useModuleSignals = ({
   const [moduleSignalsLoading, setModuleSignalsLoading] = useState(false);
   const [moduleSignalsError, setModuleSignalsError] = useState('');
   const [signalFilter, setSignalFilter] = useState('all');   // all | in | out | internal
-  const [signalSource, setSignalSource] = useState('rtl');   // rtl | vcd
+  const [signalSource, setSignalSource] = useState('vcd');   // rtl | vcd
 
   // Reset when the active IP changes — stale signals must not survive a
   // workspace switch.
@@ -54,6 +54,7 @@ export const useModuleSignals = ({
     setModuleSignalsModule('');
     setModuleSignalsScope('');
     setModuleSignalsError('');
+    setSignalSource('vcd');
   }, [ipName]);
 
   // Elaborate one module's ports + internal nets/vars via pyslang.

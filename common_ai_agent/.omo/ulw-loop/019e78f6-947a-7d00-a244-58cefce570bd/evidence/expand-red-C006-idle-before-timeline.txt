@@ -1,0 +1,17 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_______ test_cocotb_runner_applies_preconditions_before_machine_timeline _______
+
+    def test_cocotb_runner_applies_preconditions_before_machine_timeline() -> None:
+        source = COCOTB_RUNNER.read_text(encoding="utf-8")
+        precondition_pos = source.index("await _apply_goal_preconditions(dut, manifest, goal, stimulus)")
+        clear_pos = source.index("_clear_sample_inputs(dut, manifest)", precondition_pos)
+        machine_spec_pos = source.index("await _apply_machine_spec(dut, manifest, machine_spec)")
+    
+>       assert precondition_pos < clear_pos < machine_spec_pos
+E       assert 60985 < 59117
+
+tests/test_mctp_scenario_contract.py:129: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_mctp_scenario_contract.py::test_cocotb_runner_applies_preconditions_before_machine_timeline
+1 failed in 0.57s

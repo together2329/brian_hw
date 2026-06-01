@@ -1,0 +1,13 @@
+
+> test
+> vitest run --run __tests__/sim-debug-requirements-deep.test.tsx
+
+
+ RUN  v1.6.1 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/frontend/atlas
+
+filter:  __tests__/sim-debug-requirements-deep.test.tsx
+include: **/*.{test,spec}.?(c|m)[jt]s?(x)
+exclude:  **/node_modules/**, **/dist/**, **/cypress/**, **/.{idea,git,cache,output,temp}/**, **/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build,eslint,prettier}.config.*
+watch exclude:  **/node_modules/**, **/dist/**
+
+No test files found, exiting with code 1

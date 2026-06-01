@@ -1,0 +1,337 @@
+{
+  "ok": true,
+  "assertions": {
+    "noSelectionShowDisabled": true,
+    "noSelectionCommentDisabled": true,
+    "topSelectedStatus": true,
+    "topHighlighted": true,
+    "showSsotTopYaml": true,
+    "dragDropChangedSelection": true,
+    "staleTopSourceHiddenAfterSelectionChange": true,
+    "fieldHighlighted": true,
+    "showSsotFieldYaml": true,
+    "showSsotFieldNotTopYaml": true,
+    "commentPrefilledChat": true,
+    "commentUsesFieldSource": true,
+    "applyStatusVisible": true,
+    "iframeFeedbackBlockUpdated": true,
+    "yamlUpdated": true,
+    "yamlObjectNotClobbered": true,
+    "noPageErrors": true
+  },
+  "errors": [],
+  "console": [
+    {
+      "type": "info",
+      "text": "[atlas] backend ready · mode=live"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    }
+  ],
+  "network": [
+    {
+      "status": 200,
+      "url": "/api/session/list"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/list"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/list"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/activate"
+    },
+    {
+      "status": 200,
+      "url": "/api/ssot/export?ip=ssot_doc_feedback_demo&format=html&inline=1&v=0"
+    },
+    {
+      "status": 200,
+      "url": "/api/ssot/qa?ip=ssot_doc_feedback_demo&session=ssot_more_final_1780250799021%2Fssot_doc_feedback_demo%2Fdefault"
+    },
+    {
+      "status": 200,
+      "url": "/api/ssot/qa/sessions"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/list"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/state?session=ssot_more_final_1780250799021%2Fssot_doc_feedback_demo%2Fdefault&limit=80&mode=conversation"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/activate"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/state?session=ssot_more_final_1780250799021%2Fssot_doc_feedback_demo%2Fdefault&limit=30&mode=conversation"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/state?session=ssot_more_final_1780250799021%2Fssot_doc_feedback_demo%2Fssot-gen&limit=80&mode=conversation"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/list"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/activate"
+    },
+    {
+      "status": 200,
+      "url": "/api/ssot/qa?ip=ssot_doc_feedback_demo&session=ssot_more_final_1780250799021%2Fssot_doc_feedback_demo%2Fssot-gen"
+    },
+    {
+      "status": 200,
+      "url": "/api/ssot/qa/sessions"
+    },
+    {
+      "status": 200,
+      "url": "/api/ssot/qa?ip=ssot_doc_feedback_demo&session=ssot_more_final_1780250799021%2Fssot_doc_feedback_demo%2Fssot-gen"
+    },
+    {
+      "status": 200,
+      "url": "/api/ssot/qa/sessions"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/list"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/list"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/list"
+    },
+    {
+      "status": 200,
+      "url": "/api/ssot/qa?ip=ssot_doc_feedback_demo&session=ssot_more_final_1780250799021%2Fssot_doc_feedback_demo%2Fssot-gen"
+    },
+    {
+      "status": 200,
+      "url": "/api/ssot/qa/sessions"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/list"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/list"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/list"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/list"
+    },
+    {
+      "status": 200,
+      "url": "/api/ssot/doc-source?ip=ssot_doc_feedback_demo&path=top_module"
+    },
+    {
+      "status": 200,
+      "url": "/api/ssot/qa?ip=ssot_doc_feedback_demo&session=ssot_more_final_1780250799021%2Fssot_doc_feedback_demo%2Fssot-gen"
+    },
+    {
+      "status": 200,
+      "url": "/api/ssot/qa/sessions"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/state?session=ssot_more_final_1780250799021%2Fssot_doc_feedback_demo%2Fssot-gen&limit=80&mode=conversation"
+    },
+    {
+      "status": 200,
+      "url": "/api/ssot/qa?ip=ssot_doc_feedback_demo&session=ssot_more_final_1780250799021%2Fssot_doc_feedback_demo%2Fssot-gen"
+    },
+    {
+      "status": 200,
+      "url": "/api/ssot/qa/sessions"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/list"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/list"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/list"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/list"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/list"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/list"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/list"
+    },
+    {
+      "status": 200,
+      "url": "/api/ssot/doc-source?ip=ssot_doc_feedback_demo&path=registers.register_list.0.fields.0"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/state?session=ssot_more_final_1780250799021%2Fssot_doc_feedback_demo%2Fssot-gen&limit=80&mode=conversation"
+    },
+    {
+      "status": 200,
+      "url": "/api/ssot/qa?ip=ssot_doc_feedback_demo&session=ssot_more_final_1780250799021%2Fssot_doc_feedback_demo%2Fssot-gen"
+    },
+    {
+      "status": 200,
+      "url": "/api/ssot/qa/sessions"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/list"
+    },
+    {
+      "status": 200,
+      "url": "/api/ssot/export?ip=ssot_doc_feedback_demo&format=html&inline=1&v=0"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/list"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/list"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/state?session=ssot_more_final_1780250799021%2Fssot_doc_feedback_demo%2Fssot-gen&limit=80&mode=conversation"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/state?session=ssot_more_final_1780250799021%2Fssot_doc_feedback_demo%2Fssot-gen&limit=30&mode=conversation"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/list"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/state?session=ssot_more_final_1780250799021%2Fssot_doc_feedback_demo%2Fssot-gen&limit=80&mode=conversation"
+    },
+    {
+      "status": 200,
+      "url": "/api/ssot/qa?ip=ssot_doc_feedback_demo&session=ssot_more_final_1780250799021%2Fssot_doc_feedback_demo%2Fssot-gen"
+    },
+    {
+      "status": 200,
+      "url": "/api/ssot/qa/sessions"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/list"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/state?session=ssot_more_final_1780250799021%2Fssot_doc_feedback_demo%2Fssot-gen&limit=80&mode=conversation"
+    },
+    {
+      "status": 200,
+      "url": "/api/ssot/qa?ip=ssot_doc_feedback_demo&session=ssot_more_final_1780250799021%2Fssot_doc_feedback_demo%2Fssot-gen"
+    },
+    {
+      "status": 200,
+      "url": "/api/ssot/qa/sessions"
+    },
+    {
+      "status": 200,
+      "url": "/api/ssot/doc-feedback"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/list"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/state?session=ssot_more_final_1780250799021%2Fssot_doc_feedback_demo%2Fssot-gen&limit=80&mode=conversation"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/list"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/state?session=ssot_more_final_1780250799021%2Fssot_doc_feedback_demo%2Fssot-gen&limit=80&mode=conversation"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/list"
+    },
+    {
+      "status": 200,
+      "url": "/api/ssot/export?ip=ssot_doc_feedback_demo&format=html&inline=1&v=1"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/state?session=ssot_more_final_1780250799021%2Fssot_doc_feedback_demo%2Fssot-gen&limit=80&mode=conversation"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/list"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/state?session=ssot_more_final_1780250799021%2Fssot_doc_feedback_demo%2Fssot-gen&limit=80&mode=conversation"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/list"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/state?session=ssot_more_final_1780250799021%2Fssot_doc_feedback_demo%2Fssot-gen&limit=80&mode=conversation"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/list"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/state?session=ssot_more_final_1780250799021%2Fssot_doc_feedback_demo%2Fssot-gen&limit=30&mode=conversation"
+    },
+    {
+      "status": 200,
+      "url": "/api/session/list"
+    }
+  ],
+  "username": "ssot_more_final_1780250799021",
+  "registerStatus": 200,
+  "activateStatus": 200,
+  "composerPreview": "/to-ssot ssot_doc_feedback_demo\n\nDOC feedback selected from SSOT HTML.\nComponent: enable (register_field)\nSSOT path: registers.register_list.0.fields.0\nSource file: @ssot_doc_feedback_demo/yaml/ssot_doc_feedback_demo.ssot.yaml\n\nCurrent SSOT value:\n```yaml\nname: enable\nbits:\n- 0\n- 0\naccess: rw\nreset: 0\ndescription: Enable transfer when software starts the block.\n```\n\nRequested change:\nMore browser QA final: update enable field wording.",
+  "iframeTextSnippet": "lave\nName\tWidth\tDirection\tDescription\npclk\t1\tinput\t\nprdata\t32\toutput\t\nRegisters\nRegister Map\nCTRL\nOffset\t0x00\nWidth\t32\nAccess\trw\nField\tBits\tWidth\tAccess\tReset\tDescription\nenable\t0\t1\trw\t0\tEnable transfer when software starts the block.\nDoc Feedback: registers.register_list.0.fields.0.review_note\npath: registers.register_list.0.fields.0.review_note\nvalue: More browser QA final feedback block.\n\nMore browser QA final: apply feedback block near register map.\n\nCustom\n\natlas doc feedback:\n\nId\tSection\tPath\tField\tValue\t",
+  "cleanupFixture": "restored ssot_doc_feedback_demo fixture yaml",
+  "wrote": {
+    "json": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/.omo/ulw-loop/ssot_doc_feedback_20260531/evidence/C004-more-deep-browser-final.json",
+    "png": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/.omo/ulw-loop/ssot_doc_feedback_20260531/evidence/C004-more-deep-browser-final.png"
+  }
+}

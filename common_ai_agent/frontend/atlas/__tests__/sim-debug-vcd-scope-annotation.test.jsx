@@ -161,6 +161,23 @@ describe('sim debug VCD scoping and annotations', () => {
     expect(rows[0].scope).toBe('tb.dut.u_core');
   });
 
+  it('resolves a unique single-bit leaf when the RTL scope does not match the VCD instance path', () => {
+    const signals = [
+      { id: 'state', name: 'pnext_state', scope: 'mctp_axi.u_pkt_parser', range: '[1:0]', isBus: true },
+      { id: 'done', name: 'parse_done', scope: 'mctp_axi.u_pkt_parser', range: '', isBus: false },
+    ];
+    const rows = window.simDebugBuildWaveTraceList(
+      { signals, samples: { state: [[0, '00']], done: [[0, '0'], [10, '1']] } },
+      [{ name: 'parse_done', scope: 'pkt_parser' }],
+      0,
+    );
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0].notInVcd).toBeFalsy();
+    expect(rows[0].scope).toBe('mctp_axi.u_pkt_parser');
+    expect(rows[0].signalName).toBe('parse_done');
+  });
+
   it('resolves common source port pins with the current RTL instance scope', () => {
     const signals = [
       { id: 'a_clk', name: 'clk', scope: 'tb.dut.u_a', range: '', isBus: false },

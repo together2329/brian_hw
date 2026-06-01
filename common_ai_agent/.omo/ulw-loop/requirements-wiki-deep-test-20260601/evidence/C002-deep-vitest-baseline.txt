@@ -1,0 +1,14 @@
+
+> test
+> vitest run --run __tests__/sim-debug-requirements-deep.test.tsx
+
+
+ RUN  v1.6.1 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/frontend/atlas
+
+ ✓ __tests__/sim-debug-requirements-deep.test.tsx  (8 tests) 266ms
+
+ Test Files  1 passed (1)
+      Tests  8 passed (8)
+   Start at  07:45:10
+   Duration  2.29s (transform 360ms, setup 130ms, collect 584ms, tests 266ms, environment 786ms, prepare 173ms)
+

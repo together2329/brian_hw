@@ -1276,14 +1276,6 @@ def _direct_name_owner_match(ref: str, modules: list[dict[str, Any]]) -> dict[st
 
 
 def _owner_for(ref: str, modules: list[dict[str, Any]], top: str, value: Any = None) -> dict[str, str]:
-    if ref.startswith("cycle_model.handshake_rules."):
-        top_module = next((m for m in modules if str(m.get("name")) == top or Path(str(m.get("file"))).stem == top), None)
-        if top_module is not None:
-            return {
-                "module": str(top_module["name"]),
-                "file": str(top_module["file"]),
-                "matched_ref": "top_level_handshake_rule",
-            }
     matches: list[tuple[dict[str, Any], str]] = []
     for module in modules:
         refs = module.get("refs") if isinstance(module.get("refs"), list) else []
@@ -7537,6 +7529,8 @@ def _required_static_match_count(category: str, terms: list[str]) -> int:
         return 0
     if len(terms) == 1:
         return 1
+    if category == "function_model.output_rule":
+        return min(2, len(terms))
     if category.startswith("function_model."):
         return 1
     rich_categories = (
@@ -7584,7 +7578,12 @@ def _audit_static_evidence(ip_dir: Path, plan: dict[str, Any]) -> None:
         required_match_count = _required_static_match_count(str(task.get("category") or ""), terms)
         status = "pass" if len(matched) >= required_match_count else "missing"
         fallback_scope = ""
-        if status != "pass" and str(task.get("category") or "").startswith("function_model."):
+        owner_match = str(task.get("owner_match") or "")
+        if (
+            status != "pass"
+            and str(task.get("category") or "").startswith("function_model.")
+            and owner_match in {"", "control_owner_fallback", "top_fallback"}
+        ):
             # FunctionModel behavior may be decomposed across datapath/status
             # modules.  Prefer owner-file evidence, but accept live DUT-level
             # RTL evidence when a valid decomposition places related signals

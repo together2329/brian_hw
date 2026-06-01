@@ -2,8 +2,8 @@
   "schema_version": 1,
   "type": "fl_rtl_compare",
   "ip": "mctp_assembler_scratch",
-  "generated_at": "2026-05-31T11:33:46Z",
-  "status": "fail",
+  "generated_at": "2026-05-31T23:37:41Z",
+  "status": "pass",
   "sources": {
     "equivalence_goals": "mctp_assembler_scratch/verify/equivalence_goals.json",
     "scoreboard_events": "mctp_assembler_scratch/sim/scoreboard_events.jsonl",
@@ -12,13 +12,13 @@
     "fl_model_check": "mctp_assembler_scratch/model/fl_model_check.json"
   },
   "summary": {
-    "total": 91,
-    "goals_checked": 91,
-    "goals_passed": 26,
-    "goals_failed": 65,
+    "total": 86,
+    "goals_checked": 86,
+    "goals_passed": 86,
+    "goals_failed": 0,
     "goals_blocked": 0,
     "goals_untested": 0,
-    "scoreboard_events": 91,
+    "scoreboard_events": 86,
     "orphan_scoreboard_events": 0,
     "missing_evidence": [],
     "stale_evidence": [],
@@ -38,88 +38,106 @@
       "status": "pass",
       "events": 1,
       "coverage_refs": [
-        "fcov_accept_axi_tlp",
         "function_accept_one_axi4_write_burst_as_one_pcie_vdm_tlp",
-        "cycle_latency_fm_accept_axi_tlp"
+        "latency_fm_accept_axi_tlp_lt_min",
+        "latency_fm_accept_axi_tlp_at_min",
+        "latency_fm_accept_axi_tlp_mid",
+        "latency_fm_accept_axi_tlp_at_max",
+        "latency_fm_accept_axi_tlp_gt_max"
       ],
       "coverage_hit": true
     },
     {
       "goal_id": "EQ_TRANSACTION_FM_FILTER_VDM",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
         "function_validate_pcie_vdm_envelope_for_mctp_transport",
-        "cycle_latency_fm_filter_vdm"
+        "latency_fm_filter_vdm_lt_min",
+        "latency_fm_filter_vdm_at_min",
+        "latency_fm_filter_vdm_mid",
+        "latency_fm_filter_vdm_at_max",
+        "latency_fm_filter_vdm_gt_max"
       ],
-      "coverage_hit": false
+      "coverage_hit": true
     },
     {
       "goal_id": "EQ_TRANSACTION_FM_PARSE_MCTP",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
-        "fcov_parse_mctp",
         "function_decode_mctp_transport_header_and_context_key",
-        "cycle_latency_fm_parse_mctp"
+        "latency_fm_parse_mctp_lt_min",
+        "latency_fm_parse_mctp_at_min",
+        "latency_fm_parse_mctp_mid",
+        "latency_fm_parse_mctp_at_max",
+        "latency_fm_parse_mctp_gt_max"
       ],
-      "coverage_hit": false
+      "coverage_hit": true
     },
     {
       "goal_id": "EQ_TRANSACTION_FM_ASSEMBLE_FRAGMENT",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
-        "fcov_assemble_fragment",
         "function_allocate_or_update_a_q_context_for_one_mctp_fragment",
-        "cycle_latency_fm_assemble_fragment"
+        "latency_fm_assemble_fragment_lt_min",
+        "latency_fm_assemble_fragment_at_min",
+        "latency_fm_assemble_fragment_mid",
+        "latency_fm_assemble_fragment_at_max",
+        "latency_fm_assemble_fragment_gt_max"
       ],
-      "coverage_hit": false
+      "coverage_hit": true
     },
     {
       "goal_id": "EQ_TRANSACTION_FM_SRAM_PACK_WRITE",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
-        "fcov_sram_pack_write",
         "function_pack_payload_bytes_into_32_byte_sram_beats_with_no_holes",
-        "cycle_latency_fm_sram_pack_write"
+        "latency_fm_sram_pack_write_lt_min",
+        "latency_fm_sram_pack_write_at_min",
+        "latency_fm_sram_pack_write_mid",
+        "latency_fm_sram_pack_write_at_max",
+        "latency_fm_sram_pack_write_gt_max"
       ],
-      "coverage_hit": false
+      "coverage_hit": true
     },
     {
       "goal_id": "EQ_TRANSACTION_FM_COMPLETE_MESSAGE",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
         "function_complete_eom_message_and_publish_descriptor",
-        "cycle_latency_fm_complete_message"
+        "latency_fm_complete_message_lt_min",
+        "latency_fm_complete_message_at_min",
+        "latency_fm_complete_message_mid",
+        "latency_fm_complete_message_at_max",
+        "latency_fm_complete_message_gt_max"
       ],
-      "coverage_hit": false
+      "coverage_hit": true
     },
     {
       "goal_id": "EQ_TRANSACTION_FM_PACKET_DROP",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
-        "fcov_packet_drops",
         "function_packet_drop_without_sram_payload_write"
       ],
-      "coverage_hit": false
+      "coverage_hit": true
     },
     {
       "goal_id": "EQ_TRANSACTION_FM_ASSEMBLY_DROP",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
-        "fcov_assembly_drops",
         "function_assembly_drop_without_descriptor_publish"
       ],
-      "coverage_hit": false
+      "coverage_hit": true
     },
     {
       "goal_id": "EQ_TRANSACTION_FM_APB_ACCESS",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
         "function_apb_register_access"
@@ -128,41 +146,62 @@
     },
     {
       "goal_id": "EQ_TRANSACTION_FM_AXI_READBACK",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
-        "fcov_axi_readback",
         "function_axi_readback_from_descriptor_backed_sram_payload",
-        "cycle_latency_fm_axi_readback"
+        "latency_fm_axi_readback_lt_min",
+        "latency_fm_axi_readback_at_min",
+        "latency_fm_axi_readback_mid",
+        "latency_fm_axi_readback_at_max",
+        "latency_fm_axi_readback_gt_max"
       ],
-      "coverage_hit": false
+      "coverage_hit": true
     },
     {
       "goal_id": "EQ_SCENARIO_SC_VALID_SINGLE_PACKET",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
         "SC_VALID_SINGLE_PACKET_executed"
       ],
-      "coverage_hit": false
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_SINGLE_PACKET_32B",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC_SINGLE_PACKET_32B_executed"
+      ],
+      "coverage_hit": true
     },
     {
       "goal_id": "EQ_SCENARIO_SC_MULTI_FRAGMENT_TU64",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
         "SC_MULTI_FRAGMENT_TU64_executed"
       ],
-      "coverage_hit": false
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_MULTI_FRAGMENT_3PKT_SHORT_LAST",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC_MULTI_FRAGMENT_3PKT_SHORT_LAST_executed"
+      ],
+      "coverage_hit": true
     },
     {
       "goal_id": "EQ_SCENARIO_SC_MAX_TU_4096_129_BEATS",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
         "SC_MAX_TU_4096_129_BEATS_executed"
       ],
-      "coverage_hit": false
+      "coverage_hit": true
     },
     {
       "goal_id": "EQ_SCENARIO_SC_INTERLEAVE_TWO_KEYS",
@@ -174,13 +213,22 @@
       "coverage_hit": true
     },
     {
+      "goal_id": "EQ_SCENARIO_SC_INTERLEAVE_TWO_Q_COMPLETE",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC_INTERLEAVE_TWO_Q_COMPLETE_executed"
+      ],
+      "coverage_hit": true
+    },
+    {
       "goal_id": "EQ_SCENARIO_SC_UNALIGNED_SRAM_PACK_NO_HOLES",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
         "SC_UNALIGNED_SRAM_PACK_NO_HOLES_executed"
       ],
-      "coverage_hit": false
+      "coverage_hit": true
     },
     {
       "goal_id": "EQ_SCENARIO_SC_FIRST_LAST_TLP_HEADERS",
@@ -193,31 +241,40 @@
     },
     {
       "goal_id": "EQ_SCENARIO_SC_AXI_READBACK_TRIM",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
         "SC_AXI_READBACK_TRIM_executed"
       ],
-      "coverage_hit": false
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_READBACK_AFTER_MULTI_ASSEMBLE",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC_READBACK_AFTER_MULTI_ASSEMBLE_executed"
+      ],
+      "coverage_hit": true
     },
     {
       "goal_id": "EQ_SCENARIO_SC_APB_REGS_PER_Q",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
         "SC_APB_REGS_PER_Q_executed"
       ],
-      "coverage_hit": false
+      "coverage_hit": true
     },
     {
       "goal_id": "EQ_SCENARIO_PD_DISABLED_DROP_MODE",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
         "PD_DISABLED_DROP_MODE_executed",
         "error_error_0"
       ],
-      "coverage_hit": false
+      "coverage_hit": true
     },
     {
       "goal_id": "EQ_SCENARIO_PD_MALFORMED_TLP",
@@ -251,13 +308,13 @@
     },
     {
       "goal_id": "EQ_SCENARIO_PD_BAD_PAD_OR_ALIGNMENT",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
         "PD_BAD_PAD_OR_ALIGNMENT_executed",
         "error_error_4"
       ],
-      "coverage_hit": false
+      "coverage_hit": true
     },
     {
       "goal_id": "EQ_SCENARIO_PD_DEST_EID_REJECT",
@@ -271,91 +328,90 @@
     },
     {
       "goal_id": "EQ_SCENARIO_PD_UNEXPECTED_MIDDLE_END",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
         "PD_UNEXPECTED_MIDDLE_END_executed",
         "fsm_context_fsm_idle_to_error_3",
         "error_error_6"
       ],
-      "coverage_hit": false
+      "coverage_hit": true
     },
     {
       "goal_id": "EQ_SCENARIO_PD_BAD_OR_EXPIRED_TAG",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
         "PD_BAD_OR_EXPIRED_TAG_executed",
         "error_error_7"
       ],
-      "coverage_hit": false
+      "coverage_hit": true
     },
     {
       "goal_id": "EQ_SCENARIO_AD_DUPLICATE_SOM",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
         "AD_DUPLICATE_SOM_executed",
         "error_error_8"
       ],
-      "coverage_hit": false
+      "coverage_hit": true
     },
     {
       "goal_id": "EQ_SCENARIO_AD_SEQUENCE_MISMATCH",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
         "AD_SEQUENCE_MISMATCH_executed",
         "error_error_9"
       ],
-      "coverage_hit": false
+      "coverage_hit": true
     },
     {
       "goal_id": "EQ_SCENARIO_AD_MESSAGE_OVERFLOW",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
         "AD_MESSAGE_OVERFLOW_executed",
         "error_error_10"
       ],
-      "coverage_hit": false
+      "coverage_hit": true
     },
     {
       "goal_id": "EQ_SCENARIO_AD_SRAM_OVERFLOW",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
         "AD_SRAM_OVERFLOW_executed",
         "error_error_11"
       ],
-      "coverage_hit": false
+      "coverage_hit": true
     },
     {
       "goal_id": "EQ_SCENARIO_AD_DESCRIPTOR_FULL",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
         "AD_DESCRIPTOR_FULL_executed",
         "error_error_12"
       ],
-      "coverage_hit": false
+      "coverage_hit": true
     },
     {
       "goal_id": "EQ_SCENARIO_AD_TIMEOUT",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
         "AD_TIMEOUT_executed",
         "error_error_13"
       ],
-      "coverage_hit": false
+      "coverage_hit": true
     },
     {
       "goal_id": "EQ_PROTOCOL_AXI_WRITE_CHANNELS",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
-        "ccov_axi_handshakes",
         "cycle_axi_write_channels",
         "cycle_axi_read_channels",
         "cycle_apb_access",
@@ -365,10 +421,9 @@
     },
     {
       "goal_id": "EQ_PROTOCOL_AXI_READ_CHANNELS",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
-        "ccov_axi_handshakes",
         "cycle_axi_write_channels",
         "cycle_axi_read_channels",
         "cycle_apb_access",
@@ -378,10 +433,9 @@
     },
     {
       "goal_id": "EQ_PROTOCOL_APB_ACCESS",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
-        "ccov_axi_handshakes",
         "function_apb_register_access",
         "cycle_axi_write_channels",
         "cycle_axi_read_channels",
@@ -395,7 +449,6 @@
       "status": "pass",
       "events": 1,
       "coverage_refs": [
-        "ccov_axi_handshakes",
         "cycle_axi_write_channels",
         "cycle_axi_read_channels",
         "cycle_apb_access",
@@ -405,55 +458,55 @@
     },
     {
       "goal_id": "EQ_TIMING_ONE_TLP_PER_AXI_WRITE_TRANSACTION",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
-        "cycle_ordering_0",
-        "cycle_ordering_1",
-        "cycle_ordering_2",
-        "cycle_ordering_3"
+        "ordering_one_tlp_per_axi_write_transaction",
+        "ordering_per_key_fragment_order",
+        "ordering_descriptor_after_sram_flush",
+        "ordering_readback_after_descriptor"
       ],
-      "coverage_hit": false
+      "coverage_hit": true
     },
     {
       "goal_id": "EQ_TIMING_PER_KEY_FRAGMENT_ORDER",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
-        "cycle_ordering_0",
-        "cycle_ordering_1",
-        "cycle_ordering_2",
-        "cycle_ordering_3"
+        "ordering_one_tlp_per_axi_write_transaction",
+        "ordering_per_key_fragment_order",
+        "ordering_descriptor_after_sram_flush",
+        "ordering_readback_after_descriptor"
       ],
-      "coverage_hit": false
+      "coverage_hit": true
     },
     {
       "goal_id": "EQ_TIMING_DESCRIPTOR_AFTER_SRAM_FLUSH",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
-        "cycle_ordering_0",
-        "cycle_ordering_1",
-        "cycle_ordering_2",
-        "cycle_ordering_3"
+        "ordering_one_tlp_per_axi_write_transaction",
+        "ordering_per_key_fragment_order",
+        "ordering_descriptor_after_sram_flush",
+        "ordering_readback_after_descriptor"
       ],
-      "coverage_hit": false
+      "coverage_hit": true
     },
     {
       "goal_id": "EQ_TIMING_READBACK_AFTER_DESCRIPTOR",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
-        "cycle_ordering_0",
-        "cycle_ordering_1",
-        "cycle_ordering_2",
-        "cycle_ordering_3"
+        "ordering_one_tlp_per_axi_write_transaction",
+        "ordering_per_key_fragment_order",
+        "ordering_descriptor_after_sram_flush",
+        "ordering_readback_after_descriptor"
       ],
-      "coverage_hit": false
+      "coverage_hit": true
     },
     {
       "goal_id": "EQ_REGISTER_GLOBAL_CTRL",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
         "function_apb_register_access"
@@ -462,7 +515,7 @@
     },
     {
       "goal_id": "EQ_REGISTER_GLOBAL_STATUS",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
         "function_apb_register_access"
@@ -471,7 +524,7 @@
     },
     {
       "goal_id": "EQ_REGISTER_IRQ_STATUS",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
         "function_apb_register_access"
@@ -489,7 +542,7 @@
     },
     {
       "goal_id": "EQ_REGISTER_PACKET_DROP_COUNT",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
         "function_apb_register_access"
@@ -498,7 +551,7 @@
     },
     {
       "goal_id": "EQ_REGISTER_ASSEMBLY_DROP_COUNT",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
         "function_apb_register_access"
@@ -507,7 +560,7 @@
     },
     {
       "goal_id": "EQ_REGISTER_SRAM_BASE",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
         "function_apb_register_access"
@@ -526,7 +579,7 @@
     },
     {
       "goal_id": "EQ_REGISTER_Q_STATE",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
         "function_apb_register_access"
@@ -535,7 +588,7 @@
     },
     {
       "goal_id": "EQ_REGISTER_Q_KEY",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
         "function_apb_register_access"
@@ -544,7 +597,7 @@
     },
     {
       "goal_id": "EQ_REGISTER_Q_PAYLOAD_BASE",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
         "function_apb_register_access"
@@ -553,7 +606,7 @@
     },
     {
       "goal_id": "EQ_REGISTER_Q_PAYLOAD_COUNT",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
         "function_apb_register_access"
@@ -562,49 +615,39 @@
     },
     {
       "goal_id": "EQ_MEMORY_CONTEXT_TABLE",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
-      "coverage_refs": [
-        "fcov_sram_pack_write"
-      ],
-      "coverage_hit": false
+      "coverage_refs": [],
+      "coverage_hit": null
     },
     {
       "goal_id": "EQ_MEMORY_DESCRIPTOR_FIFO",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
-        "fcov_sram_pack_write",
-        "cycle_perf_depth",
         "error_error_12"
       ],
-      "coverage_hit": false
+      "coverage_hit": true
     },
     {
       "goal_id": "EQ_MEMORY_PARTIAL_WORD_BUFFER",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
-      "coverage_refs": [
-        "fcov_sram_pack_write"
-      ],
-      "coverage_hit": false
+      "coverage_refs": [],
+      "coverage_hit": null
     },
     {
       "goal_id": "EQ_MEMORY_PAYLOAD_SRAM_WINDOW",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
-      "coverage_refs": [
-        "fcov_sram_pack_write"
-      ],
-      "coverage_hit": false
+      "coverage_refs": [],
+      "coverage_hit": null
     },
     {
       "goal_id": "EQ_ERROR_NONE",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
-        "fcov_packet_drops",
-        "fcov_assembly_drops",
         "fsm_context_fsm_idle_to_error_3",
         "fsm_context_fsm_assembling_to_error_4",
         "fsm_context_fsm_error_to_idle_6",
@@ -623,14 +666,13 @@
         "error_error_12",
         "error_error_13"
       ],
-      "coverage_hit": false
+      "coverage_hit": true
     },
     {
       "goal_id": "EQ_STATE_CONTEXT_FSM_IDLE_TO_ASSEMBLING_0",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
-        "ccov_context_fsm",
         "fsm_context_fsm_idle_to_assembling_0",
         "fsm_context_fsm_assembling_to_assembling_1",
         "fsm_context_fsm_assembling_to_done_wait_descriptor_pop_2",
@@ -646,7 +688,6 @@
       "status": "pass",
       "events": 1,
       "coverage_refs": [
-        "ccov_context_fsm",
         "fsm_context_fsm_idle_to_assembling_0",
         "fsm_context_fsm_assembling_to_assembling_1",
         "fsm_context_fsm_assembling_to_done_wait_descriptor_pop_2",
@@ -659,10 +700,9 @@
     },
     {
       "goal_id": "EQ_STATE_CONTEXT_FSM_ASSEMBLING_TO_DONE_WAIT_DESCRIPTOR_POP_2",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
-        "ccov_context_fsm",
         "fsm_context_fsm_idle_to_assembling_0",
         "fsm_context_fsm_assembling_to_assembling_1",
         "fsm_context_fsm_assembling_to_done_wait_descriptor_pop_2",
@@ -675,12 +715,9 @@
     },
     {
       "goal_id": "EQ_STATE_CONTEXT_FSM_IDLE_TO_ERROR_3",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
-        "fcov_packet_drops",
-        "fcov_assembly_drops",
-        "ccov_context_fsm",
         "fsm_context_fsm_idle_to_assembling_0",
         "fsm_context_fsm_assembling_to_assembling_1",
         "fsm_context_fsm_assembling_to_done_wait_descriptor_pop_2",
@@ -703,16 +740,13 @@
         "error_error_12",
         "error_error_13"
       ],
-      "coverage_hit": false
+      "coverage_hit": true
     },
     {
       "goal_id": "EQ_STATE_CONTEXT_FSM_ASSEMBLING_TO_ERROR_4",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
-        "fcov_packet_drops",
-        "fcov_assembly_drops",
-        "ccov_context_fsm",
         "fsm_context_fsm_idle_to_assembling_0",
         "fsm_context_fsm_assembling_to_assembling_1",
         "fsm_context_fsm_assembling_to_done_wait_descriptor_pop_2",
@@ -735,14 +769,13 @@
         "error_error_12",
         "error_error_13"
       ],
-      "coverage_hit": false
+      "coverage_hit": true
     },
     {
       "goal_id": "EQ_STATE_CONTEXT_FSM_DONE_WAIT_DESCRIPTOR_POP_TO_IDLE_5",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
-        "ccov_context_fsm",
         "fsm_context_fsm_idle_to_assembling_0",
         "fsm_context_fsm_assembling_to_assembling_1",
         "fsm_context_fsm_assembling_to_done_wait_descriptor_pop_2",
@@ -755,12 +788,9 @@
     },
     {
       "goal_id": "EQ_STATE_CONTEXT_FSM_ERROR_TO_IDLE_6",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [
-        "fcov_packet_drops",
-        "fcov_assembly_drops",
-        "ccov_context_fsm",
         "fsm_context_fsm_idle_to_assembling_0",
         "fsm_context_fsm_assembling_to_assembling_1",
         "fsm_context_fsm_assembling_to_done_wait_descriptor_pop_2",
@@ -783,20 +813,20 @@
         "error_error_12",
         "error_error_13"
       ],
-      "coverage_hit": false
+      "coverage_hit": true
     },
     {
       "goal_id": "EQ_DEBUG_OBSERVABILITY",
       "status": "pass",
       "events": 1,
       "coverage_refs": [
-        "cycle_ordering_3"
+        "ordering_readback_after_descriptor"
       ],
       "coverage_hit": true
     },
     {
       "goal_id": "EQ_MODULE_MCTP_ASSEMBLER_SCRATCH_AXI_WRITE_INGRESS",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [],
       "coverage_hit": null
@@ -810,7 +840,7 @@
     },
     {
       "goal_id": "EQ_MODULE_MCTP_ASSEMBLER_SCRATCH_MCTP_PARSER",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [],
       "coverage_hit": null
@@ -824,7 +854,7 @@
     },
     {
       "goal_id": "EQ_MODULE_MCTP_ASSEMBLER_SCRATCH_SRAM_PACKER",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [],
       "coverage_hit": null
@@ -838,7 +868,7 @@
     },
     {
       "goal_id": "EQ_MODULE_MCTP_ASSEMBLER_SCRATCH_SRAM_ARBITER",
-      "status": "fail",
+      "status": "pass",
       "events": 1,
       "coverage_refs": [],
       "coverage_hit": null
@@ -858,155 +888,74 @@
       "coverage_hit": null
     },
     {
-      "goal_id": "EQ_COVERAGE_CCOV_SRAM_ARBITRATION",
+      "goal_id": "EQ_COVERAGE_INVARIANT_CONTEXT_BOUND_VIOLATED",
       "status": "pass",
       "events": 1,
       "coverage_refs": [
-        "ccov_sram_arbitration"
+        "invariant_context_bound_violated"
       ],
       "coverage_hit": true
     },
     {
-      "goal_id": "EQ_COVERAGE_CCOV_BACKPRESSURE",
-      "status": "fail",
-      "events": 1,
-      "coverage_refs": [
-        "ccov_backpressure"
-      ],
-      "coverage_hit": false
-    },
-    {
-      "goal_id": "EQ_COVERAGE_CCOV_MAX_TLP_BEATS",
+      "goal_id": "EQ_COVERAGE_INVARIANT_PAYLOAD_BOUND_VIOLATED",
       "status": "pass",
       "events": 1,
       "coverage_refs": [
-        "ccov_max_tlp_beats"
+        "invariant_payload_bound_violated"
       ],
       "coverage_hit": true
     },
     {
-      "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_DEFAULT",
-      "status": "fail",
-      "events": 1,
-      "coverage_refs": [
-        "cycle_latency_default"
-      ],
-      "coverage_hit": false
-    },
-    {
-      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_AXI_WRITE_COLLECT",
+      "goal_id": "EQ_COVERAGE_INVARIANT_DESCRIPTOR_BOUND_VIOLATED",
       "status": "pass",
       "events": 1,
       "coverage_refs": [
-        "cycle_pipeline_axi_write_collect"
+        "invariant_descriptor_bound_violated"
       ],
       "coverage_hit": true
     },
     {
-      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_PCIE_VDM_FILTER",
-      "status": "fail",
-      "events": 1,
-      "coverage_refs": [
-        "cycle_pipeline_pcie_vdm_filter"
-      ],
-      "coverage_hit": false
-    },
-    {
-      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_MCTP_PARSE",
+      "goal_id": "EQ_COVERAGE_LATENCY_DEFAULT_LT_MIN",
       "status": "pass",
       "events": 1,
       "coverage_refs": [
-        "cycle_pipeline_mctp_parse"
+        "latency_default_lt_min"
       ],
       "coverage_hit": true
     },
     {
-      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_CONTEXT_LOOKUP_UPDATE",
-      "status": "fail",
-      "events": 1,
-      "coverage_refs": [
-        "cycle_pipeline_context_lookup_update"
-      ],
-      "coverage_hit": false
-    },
-    {
-      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_SRAM_PACK_WRITE",
+      "goal_id": "EQ_COVERAGE_LATENCY_DEFAULT_AT_MIN",
       "status": "pass",
       "events": 1,
       "coverage_refs": [
-        "cycle_pipeline_sram_pack_write"
+        "latency_default_at_min"
       ],
       "coverage_hit": true
     },
     {
-      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_DESCRIPTOR_IRQ",
-      "status": "fail",
-      "events": 1,
-      "coverage_refs": [
-        "cycle_pipeline_descriptor_irq"
-      ],
-      "coverage_hit": false
-    },
-    {
-      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_AXI_READBACK",
+      "goal_id": "EQ_COVERAGE_LATENCY_DEFAULT_AT_MAX",
       "status": "pass",
       "events": 1,
       "coverage_refs": [
-        "cycle_pipeline_axi_readback"
+        "latency_default_at_max"
       ],
       "coverage_hit": true
     },
     {
-      "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
-      "status": "fail",
-      "events": 1,
-      "coverage_refs": [
-        "cycle_backpressure_0"
-      ],
-      "coverage_hit": false
-    },
-    {
-      "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_1",
+      "goal_id": "EQ_COVERAGE_LATENCY_DEFAULT_GT_MAX",
       "status": "pass",
       "events": 1,
       "coverage_refs": [
-        "cycle_backpressure_1"
+        "latency_default_gt_max"
       ],
       "coverage_hit": true
     },
     {
-      "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_2",
-      "status": "fail",
-      "events": 1,
-      "coverage_refs": [
-        "cycle_backpressure_2"
-      ],
-      "coverage_hit": false
-    },
-    {
-      "goal_id": "EQ_COVERAGE_CYCLE_PERF_OUTSTANDING",
+      "goal_id": "EQ_COVERAGE_OUTSTANDING_DEPTH_1",
       "status": "pass",
       "events": 1,
       "coverage_refs": [
-        "cycle_perf_outstanding"
-      ],
-      "coverage_hit": true
-    },
-    {
-      "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
-      "status": "fail",
-      "events": 1,
-      "coverage_refs": [
-        "cycle_perf_frequency_mhz"
-      ],
-      "coverage_hit": false
-    },
-    {
-      "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
-      "status": "pass",
-      "events": 1,
-      "coverage_refs": [
-        "cycle_perf_throughput"
+        "outstanding_depth_1"
       ],
       "coverage_hit": true
     }

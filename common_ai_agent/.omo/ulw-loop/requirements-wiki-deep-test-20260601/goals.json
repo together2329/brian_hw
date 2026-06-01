@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "createdAt": "2026-05-31T22:32:30.803Z",
+  "updatedAt": "2026-05-31T23:28:17.365Z",
+  "briefPath": ".omo/ulw-loop/requirements-wiki-deep-test-20260601/brief.md",
+  "goalsPath": ".omo/ulw-loop/requirements-wiki-deep-test-20260601/goals.json",
+  "ledgerPath": ".omo/ulw-loop/requirements-wiki-deep-test-20260601/ledger.jsonl",
+  "codexGoalMode": "aggregate",
+  "goals": [
+    {
+      "id": "G001-wiki-deep-test-sim-debug-requ",
+      "title": "요구사항을 wiki에 저장하고, 요구사항별로 deep test를 실행/검증할 수 있게 한다. 기존 sim-debug/requ...",
+      "objective": "요구사항을 wiki에 저장하고, 요구사항별로 deep test를 실행/검증할 수 있게 한다. 기존 sim-debug/requirements/deep-test 흐름과 wiki 문서화를 조사해서, 요구사항 저장 결과가 doc/wiki에서 조회되고 각 요구사항별 deep test가 실제로 통과/실패를 식별하도록 구현한다.",
+      "status": "blocked",
+      "successCriteria": [
+        {
+          "id": "C001",
+          "scenario": "tmux channel: create tmux session ulw-qa-reqwiki-c001, run 'python3 workflow/wiki/build_graph.py --wiki doc/wiki --check --quiet && python3 - <<PY ... PY' to assert doc/wiki/_graph.json contains node id sim-debug-requirements-2026-06-01 and index/log link text; PASS iff transcript contains C001_WIKI_GRAPH_PASS.",
+          "userModel": "happy",
+          "expectedEvidence": ".omo/ulw-loop/requirements-wiki-deep-test-20260601/evidence/C001-wiki-graph-red.txt, C001-wiki-graph-green.txt, C001-wiki-graph-tmux.txt, plus cleanup receipt for tmux session.",
+          "capturedEvidence": ".omo/ulw-loop/requirements-wiki-deep-test-20260601/evidence/C001-wiki-graph-red.txt; .omo/ulw-loop/requirements-wiki-deep-test-20260601/evidence/C001-wiki-graph-green.txt; .omo/ulw-loop/requirements-wiki-deep-test-20260601/evidence/C001-wiki-graph-tmux.txt contains current C001_WIKI_GRAPH_PASS, Requirement-Level Deep Evidence checks, and C001_TMUX_CLEANUP removed=1 session=ulw-qa-reqwiki-c001-final.",
+          "status": "pass",
+          "capturedAt": "2026-05-31T23:27:09.745Z",
+          "notes": "Refreshed after SDR-level matrix wording update and graph regeneration."
+        },
+        {
+          "id": "C002",
+          "scenario": "tmux channel: create tmux session ulw-qa-reqwiki-c002, run 'cd frontend/atlas && npm test -- --run __tests__/sim-debug-requirements-deep.test.tsx'; PASS iff transcript shows the SDR deep test file passes and test names cover SDR IDs for exact slices, scoped VCD lookup, source tokenization, PARAM radix, bulk delete, reorder, RC, and time controls.",
+          "userModel": "edge",
+          "expectedEvidence": ".omo/ulw-loop/requirements-wiki-deep-test-20260601/evidence/C002-deep-vitest-red.txt, C002-deep-vitest-green.txt, C002-deep-vitest-tmux.txt, plus cleanup receipt for tmux session.",
+          "capturedEvidence": ".omo/ulw-loop/requirements-wiki-deep-test-20260601/evidence/C002-deep-vitest-tmux.txt contains current npm vitest 50 tests passed through the aggregate Sim Debug deep suite, C002_DEEP_VITEST_PASS for SDR-007/008/009/011/012/013/014/015/016/017/018/019/020/021/022/023, and C002_TMUX_CLEANUP removed=1 session=ulw-qa-reqwiki-c002-final.",
+          "status": "pass",
+          "capturedAt": "2026-05-31T23:27:17.901Z",
+          "notes": "Refreshed after aggregate deep.test.tsx imported existing Sim Debug focused suites and after SDR label corrections."
+        },
+        {
+          "id": "C003",
+          "scenario": "tmux channel: create tmux session ulw-qa-reqwiki-c003, run 'python3 workflow/sim_debug/scripts/check_simulation_quality.py <temp_ip> --root <tmp> --require-class memory_pack --require-class drop --require-class readback --require-class register' against a generated temp IP and run pytest tests/test_simulation_quality_gate.py; PASS iff transcript shows malformed/missing cases fail in pytest, the valid temp IP prints status=pass, and generated simulation_quality.json reports pass.",
+          "userModel": "regression",
+          "expectedEvidence": ".omo/ulw-loop/requirements-wiki-deep-test-20260601/evidence/C003-sim-quality-red.txt, C003-sim-quality-green.txt, C003-sim-quality-tmux.txt, plus cleanup receipt for tmux session and temp dir.",
+          "capturedEvidence": ".omo/ulw-loop/requirements-wiki-deep-test-20260601/evidence/C003-sim-quality-baseline.txt; .omo/ulw-loop/requirements-wiki-deep-test-20260601/evidence/C003-sim-quality-tmux.txt contains C003_TEMP_IP_READY, simulation_quality status=pass rows=4, C003_REPORT_PASS, pytest 6 passed, C003_TEMP_CLEANUP, and C003_TMUX_CLEANUP removed=1.",
+          "status": "pass",
+          "capturedAt": "2026-05-31T23:01:02.913Z",
+          "notes": "Root verification reran python3 -m pytest tests/test_simulation_quality_gate.py -q. The tmux channel created and removed a temp IP while exercising memory_pack/drop/readback/register classes."
+        }
+      ],
+      "attempt": 1,
+      "createdAt": "2026-05-31T22:32:30.803Z",
+      "updatedAt": "2026-05-31T23:28:17.365Z",
+      "startedAt": "2026-05-31T23:05:16.491Z",
+      "blockedReason": "Completed legacy Codex goal for the prior coverage-tab objective remains attached to this thread and blocks OMO complete checkpoint for the requirements-wiki-deep-test objective. All current criteria are pass and evidence is captured, but terminal checkpoint is blocked by Codex goal mismatch."
+    }
+  ],
+  "codexObjective": "Complete the durable ulw-loop plan in .omo/ulw-loop/requirements-wiki-deep-test-20260601/goals.json, including later accepted/appended stories, under the original brief constraints; use .omo/ulw-loop/requirements-wiki-deep-test-20260601/ledger.jsonl as the audit trail."
+}

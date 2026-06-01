@@ -1,0 +1,162 @@
+FFFFF                                                                    [100%]
+=================================== FAILURES ===================================
+_________ test_scenario_contract_distinguishes_single_multi_interleave _________
+
+    def test_scenario_contract_distinguishes_single_multi_interleave() -> None:
+        scenarios = _load_module(SCENARIO_PATH, "mctp_scenarios_contract")
+    
+        goals = {goal["goal_id"]: goal for goal in scenarios.scenario_goals()}
+>       assert "EQ_SCENARIO_SC_SINGLE_PACKET_32B" in goals
+E       AssertionError: assert 'EQ_SCENARIO_SC_SINGLE_PACKET_32B' in {'EQ_SCENARIO_AD_DESCRIPTOR_FULL': {'blocked': False, 'blocker': '', 'coverage_refs': ['AD_DESCRIPTOR_FULL_executed'],...descriptor_count', ...], 'state_updates': ['no_sram_write', 'assembly_drop_count', 'AD_SEQUENCE_MISMATCH']}, ...}, ...}
+
+tests/test_mctp_scenario_contract.py:27: AssertionError
+________ test_contract_stimulus_uses_scenario_fields_for_encoded_packet ________
+
+    def test_contract_stimulus_uses_scenario_fields_for_encoded_packet() -> None:
+        sys.path.insert(0, str(COCOTB_DIR))
+        stimulus_mod = _load_module(COCOTB_DIR / "mctp_contract_stimulus.py", "mctp_contract_stimulus_under_test")
+        goal = {
+            "goal_id": "EQ_SCENARIO_SC_SINGLE_PACKET_32B",
+            "kind": "scenario",
+            "scenario": "SC_SINGLE_PACKET_32B",
+            "stimulus_contract": {
+                "transaction_type": "FM_COMPLETE_MESSAGE",
+                "scenario_payload_bytes": 32,
+                "scenario_source_eid": 0x55,
+                "scenario_destination_eid": 0xA0,
+                "scenario_tag_owner": 1,
+                "scenario_message_tag": 3,
+                "scenario_packet_seq": 2,
+                "scenario_payload_word": 0x112233445566778899AABBCC,
+            },
+        }
+    
+        stimulus = stimulus_mod.normalize_mctp_stimulus(goal, {"kind": "FM_COMPLETE_MESSAGE", "scenario_id": "SC_SINGLE_PACKET_32B"})
+    
+>       assert stimulus["payload_len"] == 32
+E       KeyError: 'payload_len'
+
+tests/test_mctp_scenario_contract.py:64: KeyError
+________________ test_scoreboard_rejects_weak_multi_observation ________________
+
+    def test_scoreboard_rejects_weak_multi_observation() -> None:
+        sys.path.insert(0, str(COCOTB_DIR))
+        sys.path.insert(0, str(RUNTIME_DIR))
+        scoreboard = _load_module(COCOTB_DIR / "scoreboard.py", "mctp_scoreboard_under_test")
+        stimulus = {
+            "kind": "FM_ASSEMBLE_FRAGMENT",
+            "scenario_id": "SC_MULTI_FRAGMENT_3PKT_SHORT_LAST",
+            "source_eid": 0x22,
+            "tag_owner": 1,
+            "message_tag": 5,
+            "scenario_payload_bytes": 76,
+            "scenario_packet_count": 3,
+        }
+        weak = {
+            "axi_bvalid": 1,
+            "axi_bresp": 0,
+            "debug_vdm_valid": 1,
+            "sram_wr_valid": 1,
+            "sram_wr_strb": 0xFFFF,
+            "ctx_state": 3,
+            "ctx_valid": 1,
+            "descriptor_count": 1,
+            "payload_byte_count": 16,
+            "debug_context_key": 0,
+        }
+        strong = {
+            **weak,
+            "payload_byte_count": 76,
+            "debug_context_key": (0x22 << 10) | (1 << 9) | 5,
+        }
+    
+>       assert not scoreboard._mctp_contract_verdict("EQ_SCENARIO_SC_MULTI_FRAGMENT_3PKT_SHORT_LAST", "SC_X", stimulus, weak)
+E       AssertionError: assert not True
+E        +  where True = <function _mctp_contract_verdict at 0x104653af0>('EQ_SCENARIO_SC_MULTI_FRAGMENT_3PKT_SHORT_LAST', 'SC_X', {'kind': 'FM_ASSEMBLE_FRAGMENT', 'message_tag': 5, 'scenario_id': 'SC_MULTI_FRAGMENT_3PKT_SHORT_LAST', 'scenario_packet_count': 3, ...}, {'axi_bresp': 0, 'axi_bvalid': 1, 'ctx_state': 3, 'ctx_valid': 1, ...})
+E        +    where <function _mctp_contract_verdict at 0x104653af0> = <module 'mctp_scoreboard_under_test' from '/Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/tb/cocotb/scoreboard.py'>._mctp_contract_verdict
+
+tests/test_mctp_scenario_contract.py:108: AssertionError
+___ test_simulation_quality_rejects_multi_assemble_without_distinct_context ____
+
+tmp_path = PosixPath('/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/pytest-of-brian/pytest-717/test_simulation_quality_reject0')
+
+    def test_simulation_quality_rejects_multi_assemble_without_distinct_context(tmp_path: Path) -> None:
+        ip_dir = _make_ip(tmp_path)
+        _write_rows(
+            ip_dir,
+            [
+                _row(
+                    "SC_MULTI_FRAGMENT_3PKT_SHORT_LAST",
+                    {
+                        "sram_wr_valid": 1,
+                        "sram_wr_addr": 0,
+                        "sram_wr_data": 0x1234,
+                        "sram_wr_strb": 0xFFFF,
+                        "payload_byte_count": 16,
+                        "descriptor_count": 1,
+                        "debug_context_key": 0,
+                        "readback_valid": 0,
+                        "pready": 0,
+                    },
+                )
+            ],
+        )
+    
+        result = subprocess.run(
+            ["python3", str(SCRIPT), "quality_ip", "--root", str(tmp_path), "--require-class", "multi_assemble"],
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+        )
+    
+        assert result.returncode == 1
+>       assert "multi assemble row lacks accumulated payload evidence" in result.stdout
+E       AssertionError: assert 'multi assemble row lacks accumulated payload evidence' in '[simulation_quality] status=fail rows=1 issues=1 classes=1/11\n[simulation_quality] issue: unknown required class multi_assemble\n'
+E        +  where '[simulation_quality] status=fail rows=1 issues=1 classes=1/11\n[simulation_quality] issue: unknown required class multi_assemble\n' = CompletedProcess(args=['python3', '/Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/sim_debug/scripts/ch...uality] status=fail rows=1 issues=1 classes=1/11\n[simulation_quality] issue: unknown required class multi_assemble\n').stdout
+
+tests/test_simulation_quality_gate.py:210: AssertionError
+_____________ test_mutation_guard_skips_noop_unused_evidence_lines _____________
+
+tmp_path = PosixPath('/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/pytest-of-brian/pytest-717/test_mutation_guard_skips_noop0')
+
+    def test_mutation_guard_skips_noop_unused_evidence_lines(tmp_path: Path) -> None:
+        ip_dir = tmp_path / "noop_mut_ip"
+        rtl_dir = ip_dir / "rtl"
+        rtl_dir.mkdir(parents=True)
+        (rtl_dir / "noop_mut_ip.sv").write_text(
+            "\n".join(
+                [
+                    "module noop_mut_ip(input logic a, input logic b, output logic y);",
+                    "  assign unused_inputs = ^{a, b};",
+                    "  assign unused_descriptor_evidence = ^{a, b};",
+                    "  assign y = a ^ b;",
+                    "endmodule",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
+    
+        result = subprocess.run(
+            ["python3", str(SCRIPT), "noop_mut_ip", "--root", str(tmp_path), "--list-only", "--max-mutants", "8"],
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+        )
+    
+        assert result.returncode == 0, result.stdout
+        report = json.loads((ip_dir / "mutation" / "mutation_report.json").read_text(encoding="utf-8"))
+        previews = [candidate["preview"] for candidate in report["candidates"]]
+        assert "assign y = a ^ b;" in previews
+>       assert all("unused_" not in preview and "evidence" not in preview for preview in previews)
+E       assert False
+E        +  where False = all(<generator object test_mutation_guard_skips_noop_unused_evidence_lines.<locals>.<genexpr> at 0x10465b7b0>)
+
+tests/test_mutation_guard.py:353: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_mctp_scenario_contract.py::test_scenario_contract_distinguishes_single_multi_interleave
+FAILED tests/test_mctp_scenario_contract.py::test_contract_stimulus_uses_scenario_fields_for_encoded_packet
+FAILED tests/test_mctp_scenario_contract.py::test_scoreboard_rejects_weak_multi_observation
+FAILED tests/test_simulation_quality_gate.py::test_simulation_quality_rejects_multi_assemble_without_distinct_context
+FAILED tests/test_mutation_guard.py::test_mutation_guard_skips_noop_unused_evidence_lines
+5 failed in 1.28s

@@ -1,9 +1,9 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-05-31T14:15:36Z",
+  "generated_at": "2026-05-31T23:26:38Z",
   "root": "doc/wiki",
-  "node_count": 121,
-  "edge_count": 510,
+  "node_count": 122,
+  "edge_count": 516,
   "tags": {
     "atcdmac100": [
       "atcdmac100-document-flow-ui-honesty-20260518"
@@ -17,6 +17,7 @@
       "atlas-e2e-validation-20260519",
       "orchestrator-singleworker-e2e-20260526",
       "sim-debug-feature-review-2026-05-31",
+      "sim-debug-requirements-2026-06-01",
       "sim-debug-waveform-renderer-2026-05-31",
       "ssot-rtl-flow-verify-20260519"
     ],
@@ -64,6 +65,9 @@
       "atcwdt200-flow-debugging-lessons",
       "atcwdt200-ssot-rtl-tb-flow-시행착오-2026-05-17",
       "pl330-real-orchestrator-ui-lessons-20260517"
+    ],
+    "deep-test": [
+      "sim-debug-requirements-2026-06-01"
     ],
     "dma": [
       "atcdmac100-document-flow-ui-honesty-20260518"
@@ -186,7 +190,8 @@
       "project_merge_broke_prompt_delivery"
     ],
     "pyslang": [
-      "sim-debug-feature-review-2026-05-31"
+      "sim-debug-feature-review-2026-05-31",
+      "sim-debug-requirements-2026-06-01"
     ],
     "react-loop": [
       "orchestrator-loop-on-react-loop-plan"
@@ -203,11 +208,15 @@
       "feedback_regression_test_per_bug",
       "project_merge_broke_prompt_delivery"
     ],
+    "requirements": [
+      "sim-debug-requirements-2026-06-01"
+    ],
     "reviewed": [
       "orchestrator-loop-on-react-loop-plan"
     ],
     "rtl": [
-      "sim-debug-feature-review-2026-05-31"
+      "sim-debug-feature-review-2026-05-31",
+      "sim-debug-requirements-2026-06-01"
     ],
     "rtl-audit": [
       "atcwdt200-flow-debugging-lessons"
@@ -238,6 +247,7 @@
     ],
     "sim-debug": [
       "sim-debug-feature-review-2026-05-31",
+      "sim-debug-requirements-2026-06-01",
       "sim-debug-waveform-renderer-2026-05-31"
     ],
     "single-worker": [
@@ -289,7 +299,8 @@
       "orchestrator-singleworker-e2e-20260526"
     ],
     "vcd": [
-      "sim-debug-feature-review-2026-05-31"
+      "sim-debug-feature-review-2026-05-31",
+      "sim-debug-requirements-2026-06-01"
     ],
     "verification": [
       "hardcoded-strip-honest-baseline-20260520",
@@ -304,6 +315,7 @@
     ],
     "waveform": [
       "sim-debug-feature-review-2026-05-31",
+      "sim-debug-requirements-2026-06-01",
       "sim-debug-waveform-renderer-2026-05-31"
     ],
     "worker": [
@@ -416,6 +428,7 @@
       "sim-debug-agent-tool-2026-05-31",
       "sim-debug-feature-review-2026-05-31",
       "sim-debug-module-signals-2026-05-30",
+      "sim-debug-requirements-2026-06-01",
       "sim-debug-waveform-renderer-2026-05-31",
       "single-main-loop-restore-20260519",
       "ssot-conversion-flow-20260519",
@@ -1806,6 +1819,7 @@
         "sim-debug-agent-tool-2026-05-31",
         "sim-debug-waveform-renderer-2026-05-31",
         "sim-debug-feature-review-2026-05-31",
+        "sim-debug-requirements-2026-06-01",
         "babel-retirement-cutover-20260529",
         "local-iproot-thin-llm-server-arch-20260529",
         "run-mode-and-provenance-policy",
@@ -1881,7 +1895,7 @@
       "updated": "",
       "summary": "This wiki is the cross-linked operating map for common_ai_agent. It is optimized for long-context LLMs and agent handoffs: read the linked pages in order, then follow the source docs for implementation detail.",
       "path": "doc/wiki/index.md",
-      "size_bytes": 26473
+      "size_bytes": 26676
     },
     {
       "id": "interactive-ask-user-ip-discovery",
@@ -1984,6 +1998,7 @@
       "tags": [],
       "related": [],
       "outgoing": [
+        "sim-debug-requirements-2026-06-01",
         "sim-debug-feature-review-2026-05-31",
         "sim-debug-waveform-renderer-2026-05-31",
         "hw-agent-ip-experiment-batch-20260530",
@@ -2021,9 +2036,9 @@
       ],
       "broken_refs": [],
       "updated": "",
-      "summary": "- Added [[sim-debug-feature-review-2026-05-31]] as the consolidated Sim Debug review: four-pane UI, background preload/loading contract, scoped signal identity, source multi-select, waveform RC/radix/group/reorder behavior, agent tool/API bridge, tests, risks, and next work. - Added [[sim-debug-waveform-renderer-2026-05-31]] documenting the current…",
+      "summary": "- Added [[sim-debug-requirements-2026-06-01]] as the user-raised Sim Debug requirements ledger: four-pane loading and preload behavior, source/signal multi-select, exact bit-slice handling, waveform delete/reorder/group/radix/RC controls, A/B cursor delta/frequency, tool-call VCD+pyslang lookup, and remaining browser-drag/performance follow-ups.",
       "path": "doc/wiki/log.md",
-      "size_bytes": 79072
+      "size_bytes": 79444
     },
     {
       "id": "mctp-assembler-scratch-flow-20260531",
@@ -2055,9 +2070,9 @@
       ],
       "broken_refs": [],
       "updated": "2026-05-31",
-      "summary": "This page records the fresh `mctp_assembler_scratch` req-to-audit run. It is a handoff map, not a production conformance claim. The scratch IP reached a complete local evidence bundle, but final local signoff remains `fail` with explicit owner-routed blockers.",
+      "summary": "This page records the fresh `mctp_assembler_scratch` req-to-audit run. It is a handoff map, not a production conformance claim. The scratch IP now has a complete local evidence bundle and local workflow signoff is `pass`.",
       "path": "doc/wiki/mctp-assembler-scratch-flow-20260531.md",
-      "size_bytes": 6965
+      "size_bytes": 7777
     },
     {
       "id": "mini-cpu-rerun-20260517",
@@ -3019,7 +3034,8 @@
       "outgoing": [],
       "incoming": [
         "index",
-        "sim-debug-feature-review-2026-05-31"
+        "sim-debug-feature-review-2026-05-31",
+        "sim-debug-requirements-2026-06-01"
       ],
       "broken_refs": [],
       "updated": "",
@@ -3051,7 +3067,8 @@
       ],
       "incoming": [
         "index",
-        "log"
+        "log",
+        "sim-debug-requirements-2026-06-01"
       ],
       "broken_refs": [],
       "updated": "2026-05-31 KST",
@@ -3071,13 +3088,50 @@
       "incoming": [
         "index",
         "project_vite_env_stale_build",
-        "sim-debug-feature-review-2026-05-31"
+        "sim-debug-feature-review-2026-05-31",
+        "sim-debug-requirements-2026-06-01"
       ],
       "broken_refs": [],
       "updated": "",
       "summary": "Adds a per-module signal browser to the Sim Debug left panel: click a module in the RTL hierarchy tree and the bottom panel lists **that module's signals** — ports (with `in` / `out` / `inout` direction) plus internal nets/variables — filterable by direction, searchable by regex, and addable to the waveform.",
       "path": "doc/wiki/sim-debug-module-signals-2026-05-30.md",
       "size_bytes": 10339
+    },
+    {
+      "id": "sim-debug-requirements-2026-06-01",
+      "title": "Sim Debug Requirements Ledger",
+      "type": "reference",
+      "tags": [
+        "atlas",
+        "sim-debug",
+        "requirements",
+        "deep-test",
+        "waveform",
+        "rtl",
+        "vcd",
+        "pyslang"
+      ],
+      "related": [
+        "sim-debug-feature-review-2026-05-31",
+        "sim-debug-module-signals-2026-05-30",
+        "sim-debug-agent-tool-2026-05-31",
+        "sim-debug-waveform-renderer-2026-05-31"
+      ],
+      "outgoing": [
+        "sim-debug-feature-review-2026-05-31",
+        "sim-debug-module-signals-2026-05-30",
+        "sim-debug-agent-tool-2026-05-31",
+        "sim-debug-waveform-renderer-2026-05-31"
+      ],
+      "incoming": [
+        "index",
+        "log"
+      ],
+      "broken_refs": [],
+      "updated": "2026-06-01 KST",
+      "summary": "This page consolidates the user-raised Sim Debug requirements from the 2026-05-30 to 2026-06-01 iteration. It is the product/UX ledger; implementation details remain in [[sim-debug-feature-review-2026-05-31]], [[sim-debug-module-signals-2026-05-30]], [[sim-debug-agent-tool-2026-05-31]], and [[sim-debug-waveform-renderer-2026-05-31]].",
+      "path": "doc/wiki/sim-debug-requirements-2026-06-01.md",
+      "size_bytes": 14896
     },
     {
       "id": "sim-debug-waveform-renderer-2026-05-31",
@@ -3095,7 +3149,8 @@
       "incoming": [
         "index",
         "log",
-        "sim-debug-feature-review-2026-05-31"
+        "sim-debug-feature-review-2026-05-31",
+        "sim-debug-requirements-2026-06-01"
       ],
       "broken_refs": [],
       "updated": "2026-05-31 KST",

@@ -1,0 +1,17 @@
+
+> build
+> vite build
+
+vite v7.3.3 building client environment for production...
+transforming...
+✓ 157 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/lobby.vite.html                     10.14 kB │ gzip:   3.89 kB
+dist/index.vite.html                     13.39 kB │ gzip:   5.20 kB
+dist/assets/index-Cg1sXqY3.css            1.31 kB │ gzip:   0.58 kB
+dist/assets/jsx-runtime-Dqowk6H2.css    138.59 kB │ gzip:  25.11 kB
+dist/assets/lobby-C_vJ-oXr.js            11.27 kB │ gzip:   3.47 kB
+dist/assets/jsx-runtime-BtCX_eaL.js     143.11 kB │ gzip:  46.18 kB
+dist/assets/index-IXiNFGwL.js         1,057.84 kB │ gzip: 295.07 kB
+✓ built in 6.11s

@@ -1,0 +1,44 @@
+......FFF..                                                              [100%]
+=================================== FAILURES ===================================
+________________ test_ssot_doc_tab_has_view_and_feedback_modes _________________
+
+    def test_ssot_doc_tab_has_view_and_feedback_modes():
+        src = _combined_doc_src()
+    
+        assert "const [docMode, setDocMode] = useState('view');" in src
+        assert "View Mode" in src
+        assert "Feedback Mode" in src
+>       assert "fetch('/api/ssot/doc-feedback'" in src
+E       assert "fetch('/api/ssot/doc-feedback'" in '/* workspace-root.tsx — THE COMPOSER + root component of the ATLAS workspace.\n *\n * Final slice of the strangler-fi...dded when consumers migrate).\n(window as unknown as { SsotDocPane: typeof SsotDocPane }).SsotDocPane = SsotDocPane;\n'
+
+tests/test_atlas_ssot_doc_tab.py:39: AssertionError
+_______ test_ssot_doc_feedback_mode_supports_drag_drop_comment_targeting _______
+
+    def test_ssot_doc_feedback_mode_supports_drag_drop_comment_targeting():
+        src = _combined_doc_src()
+    
+        assert "const docFrameRef = useRef<HTMLIFrameElement>(null);" in src
+        assert "const commentTextareaRef = useRef<HTMLTextAreaElement>(null);" in src
+        assert "const handleDocCommentDragStart = (ev: DragEvent<HTMLButtonElement>) =>" in src
+        assert "draggable={docMode === 'feedback'}" in src
+        assert "frameDoc.addEventListener('dragover', onDragOver);" in src
+        assert "frameDoc.addEventListener('drop', onDrop);" in src
+>       assert "applyDocDropSection(resolveDocDropSection(ev.target as Node));" in src
+E       AssertionError: assert 'applyDocDropSection(resolveDocDropSection(ev.target as Node));' in '/* workspace-root.tsx — THE COMPOSER + root component of the ATLAS workspace.\n *\n * Final slice of the strangler-fi...dded when consumers migrate).\n(window as unknown as { SsotDocPane: typeof SsotDocPane }).SsotDocPane = SsotDocPane;\n'
+
+tests/test_atlas_ssot_doc_tab.py:55: AssertionError
+__________ test_ssot_doc_feedback_mode_exposes_source_and_chat_hooks ___________
+
+    def test_ssot_doc_feedback_mode_exposes_source_and_chat_hooks():
+        src = _combined_doc_src()
+    
+        assert "Show SSOT" in src
+>       assert "atlas-ssot-doc-comment" in src
+E       AssertionError: assert 'atlas-ssot-doc-comment' in '/* workspace-root.tsx — THE COMPOSER + root component of the ATLAS workspace.\n *\n * Final slice of the strangler-fi...dded when consumers migrate).\n(window as unknown as { SsotDocPane: typeof SsotDocPane }).SsotDocPane = SsotDocPane;\n'
+
+tests/test_atlas_ssot_doc_tab.py:63: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_atlas_ssot_doc_tab.py::test_ssot_doc_tab_has_view_and_feedback_modes
+FAILED tests/test_atlas_ssot_doc_tab.py::test_ssot_doc_feedback_mode_supports_drag_drop_comment_targeting
+FAILED tests/test_atlas_ssot_doc_tab.py::test_ssot_doc_feedback_mode_exposes_source_and_chat_hooks
+3 failed, 8 passed in 13.27s

@@ -3,33 +3,15 @@
 ## Status
 
 - Top: mctp_assembler_scratch
-- Packets: 28
-- LLM-actionable tasks: 21
-- Human-locked tasks: 1
-- Tool-evidence tasks: 1
-- Deferred human QA allowed: True
-- PASS allowed: False
+- Packets: 29
+- LLM-actionable tasks: 0
+- Human-locked tasks: 0
+- Tool-evidence tasks: 0
+- Deferred human QA allowed: False
+- PASS allowed: True
 - Target scale locked: False
 - Pending connection-contract suggestions: 0
 - Recommended packet batch limit: 4
-
-## Next LLM Packets
-
-- module__mctp_assembler_scratch_axi_write_ingress__dataflow: rtl/authoring_packets/module__mctp_assembler_scratch_axi_write_ingress__dataflow.json (llm_open=6, human_locked=0)
-- module__mctp_assembler_scratch_context_table: rtl/authoring_packets/module__mctp_assembler_scratch_context_table.json (llm_open=1, human_locked=0)
-- module__mctp_assembler_scratch_descriptor_queue: rtl/authoring_packets/module__mctp_assembler_scratch_descriptor_queue.json (llm_open=1, human_locked=0)
-- module__mctp_assembler_scratch_apb_regfile__registers_01: rtl/authoring_packets/module__mctp_assembler_scratch_apb_regfile__registers_01.json (llm_open=9, human_locked=0)
-- module__mctp_assembler_scratch_apb_regfile__features: rtl/authoring_packets/module__mctp_assembler_scratch_apb_regfile__features.json (llm_open=1, human_locked=0)
-- module__mctp_assembler_scratch: rtl/authoring_packets/module__mctp_assembler_scratch.json (llm_open=1, human_locked=0)
-- rtl_gate_evidence_closure: rtl/authoring_packets/rtl_gate_evidence_closure.json (llm_open=2, human_locked=0)
-
-## Tool Evidence Queue
-
-- rtl_gate_tool_evidence: tool_evidence=1, next_tool=audit-rtl, json=rtl/authoring_packets/rtl_gate_tool_evidence.json
-
-## Human-Locked Queue
-
-- rtl_gate_human_closure: human_locked=1, json=rtl/authoring_packets/rtl_gate_human_closure.json
 
 ## Rules
 

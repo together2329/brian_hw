@@ -23,13 +23,13 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 6
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.handshake_rules.axi_write_channels, dataflow, function_model, function_model.transactions.FM_ACCEPT_AXI_TLP, io_list, io_list.interfaces.axi_write_slave, test_requirements
-- Module slice: 6/6 section=dataflow task_limit=48
-- Slice rule: Owner module mctp_assembler_scratch_axi_write_ingress is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- Module slice: 7/7 section=dataflow task_limit=48
+- Slice rule: Owner module mctp_assembler_scratch_axi_write_ingress is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
 - SSOT connection contracts:
   - mctp_assembler_scratch_axi_write_ingress.m_axi_awvalid <= m_axi_awvalid (integration.connections[0])
   - mctp_assembler_scratch_axi_write_ingress.m_axi_wvalid <= m_axi_wvalid (integration.connections[1])
@@ -60,14 +60,14 @@ SSOT item context: value=axi_write_ingress.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: dataflow.sequence
 - Source ref: dataflow.sequence.sequence_1
 - Detail: Dataflow steps must be reflected in real datapath/control/storage logic.
 SSOT ref: dataflow.sequence.sequence_1.
 Owner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via dataflow.
 SSOT item context: value=pcie_vdm_parse.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL data/control path implements the described step
   - Ordering/backpressure is consistent with cycle_model
@@ -80,14 +80,14 @@ SSOT item context: value=pcie_vdm_parse.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: dataflow.sequence
 - Source ref: dataflow.sequence.sequence_2
 - Detail: Dataflow steps must be reflected in real datapath/control/storage logic.
 SSOT ref: dataflow.sequence.sequence_2.
 Owner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via dataflow.
 SSOT item context: value=mctp_parse.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL data/control path implements the described step
   - Ordering/backpressure is consistent with cycle_model
@@ -100,14 +100,14 @@ SSOT item context: value=mctp_parse.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: dataflow.sequence
 - Source ref: dataflow.sequence.sequence_3
 - Detail: Dataflow steps must be reflected in real datapath/control/storage logic.
 SSOT ref: dataflow.sequence.sequence_3.
 Owner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via dataflow.
 SSOT item context: value=context_assembly.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL data/control path implements the described step
   - Ordering/backpressure is consistent with cycle_model
@@ -120,14 +120,14 @@ SSOT item context: value=context_assembly.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: dataflow.sequence
 - Source ref: dataflow.sequence.sequence_4
 - Detail: Dataflow steps must be reflected in real datapath/control/storage logic.
 SSOT ref: dataflow.sequence.sequence_4.
 Owner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via dataflow.
 SSOT item context: value=sram_pack.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL data/control path implements the described step
   - Ordering/backpressure is consistent with cycle_model
@@ -140,14 +140,14 @@ SSOT item context: value=sram_pack.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: dataflow.sequence
 - Source ref: dataflow.sequence.sequence_5
 - Detail: Dataflow steps must be reflected in real datapath/control/storage logic.
 SSOT ref: dataflow.sequence.sequence_5.
 Owner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via dataflow.
 SSOT item context: value=descriptor_publish.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL data/control path implements the described step
   - Ordering/backpressure is consistent with cycle_model
@@ -160,14 +160,14 @@ SSOT item context: value=descriptor_publish.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: dataflow.sequence
 - Source ref: dataflow.sequence.sequence_6
 - Detail: Dataflow steps must be reflected in real datapath/control/storage logic.
 SSOT ref: dataflow.sequence.sequence_6.
 Owner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via dataflow.
 SSOT item context: value=axi_readback.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL data/control path implements the described step
   - Ordering/backpressure is consistent with cycle_model

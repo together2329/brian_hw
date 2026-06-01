@@ -23,13 +23,11 @@
 - Work allowed: True
 - Draft allowed: False
 - Evidence closure allowed: True
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
-- Human-locked open tasks: 1
+- Human-locked open tasks: 0
 - Owner refs: dataflow, decomposition, integration, io_list, top_module
-- Locked-truth blockers:
-  - manifest_connection_contract_evidence: 1 SSOT connection contract issue(s) remain. mctp_assembler_scratch_sram_packer: SSOT connection contract port is not connected by the RTL named port map
 - SSOT connection contracts:
   - mctp_assembler_scratch_axi_write_ingress.m_axi_awvalid <= m_axi_awvalid (integration.connections[0])
   - mctp_assembler_scratch_axi_write_ingress.m_axi_wvalid <= m_axi_wvalid (integration.connections[1])
@@ -102,13 +100,13 @@ Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.manifest_connection_contract_evidence
 - Detail: Named port maps prove that child instances are wired, but not that they are wired to the SSOT-intended signals. When the SSOT provides integration.connections or sub_modules[].connections, rtl-gen must satisfy those machine-readable connection contracts. Production-profile multi-module RTL must provide such contracts.
 SSOT ref: quality_gates.rtl_gen.manifest_connection_contract_evidence.
 Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_module.
-- Current reason: 1 SSOT connection contract issue(s) remain. mctp_assembler_scratch_sram_packer: SSOT connection contract port is not connected by the RTL named port map
+- Current reason: SSOT connection contracts are satisfied by reachable RTL named port maps.
 - Criteria:
   - Production-profile multi-module IPs provide machine-readable integration.connections or sub_modules[].connections
   - Each SSOT connection contract resolves to a reachable manifest child module and port

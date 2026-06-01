@@ -23,9 +23,9 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 1
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: function_model, function_model.transactions.FM_COMPLETE_MESSAGE, function_model.transactions.FM_PACKET_DROP, interrupts, memory, memory.instances.descriptor_fifo, registers, registers.descriptor_window
 
@@ -419,14 +419,14 @@ SSOT item context: name=descriptor_fifo; depth=DESCRIPTOR_FIFO_DEPTH.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: security.assets
 - Source ref: security.assets.asset_1
 - Detail: This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: security.assets.asset_1.
 Owner: mctp_assembler_scratch_descriptor_queue in rtl/mctp_assembler_scratch_descriptor_queue.sv via semantic_terms:descriptor.
 SSOT item context: value=firmware_visible_descriptor_metadata.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code

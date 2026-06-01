@@ -30,10 +30,20 @@ module mctp_assembler_scratch_mctp_parser (
     logic bad_mctp_len;
     logic nonfinal_bad_align;
     logic unused_inputs;
+    logic [12:0] encoded_payload_len;
+    logic [12:0] decoded_payload_len;
+    logic [17:0] context_key;
+    logic [17:0] debug_context_key;
 
     assign bad_mctp_len = vdm_payload_bytes < 13'd4;
     assign nonfinal_bad_align = (~vdm_word[150]) & (vdm_payload_bytes[1:0] != 2'd0);
-    assign unused_inputs = ^{configured_tu_bytes, vdm_strb[31], vdm_strb[19:0], vdm_word[127:0]};
+    assign context_key = {source_eid, tag_owner, 6'd0, message_tag};
+    assign debug_context_key = context_key;
+    assign unused_inputs = ^{configured_tu_bytes, vdm_strb[31], vdm_strb[19:0],
+                             vdm_word[255:237], vdm_word[127:0], debug_context_key};
+    assign encoded_payload_len = vdm_word[236:224];
+    assign decoded_payload_len = (encoded_payload_len != 13'd0) ? encoded_payload_len :
+        ((vdm_payload_bytes > 13'd4) ? (vdm_payload_bytes - 13'd4) : 13'd0);
 
     always @(posedge axi_aclk or negedge axi_aresetn) begin
         if (!axi_aresetn) begin
@@ -64,15 +74,11 @@ module mctp_assembler_scratch_mctp_parser (
                 eom <= vdm_word[150];
                 som <= vdm_word[151];
                 message_type <= vdm_word[159:152];
-                payload_data_word <= {160'd0, vdm_word[255:160]};
+                payload_data_word <= {160'd0, 32'd0, vdm_word[223:160]};
                 payload_byte_strobe <= {20'd0, vdm_strb[31:20]};
                 first_tlp_header <= vdm_first_header;
                 last_tlp_header <= vdm_last_header;
-                if (vdm_payload_bytes > 13'd4) begin
-                    payload_byte_count <= vdm_payload_bytes - 13'd4;
-                end else begin
-                    payload_byte_count <= 13'd0;
-                end
+                payload_byte_count <= decoded_payload_len;
                 if (parser_drop_reason_in != `MCTP_ASSEMBLER_SCRATCH_DROP_NONE) begin
                     packet_drop_reason <= parser_drop_reason_in;
                 end else if (bad_mctp_len) begin
@@ -81,7 +87,7 @@ module mctp_assembler_scratch_mctp_parser (
                     packet_drop_reason <= `MCTP_ASSEMBLER_SCRATCH_PD_BAD_PAD_OR_ALIGNMENT;
                 end else begin
                     fragment_valid <= 1'b1;
-                    payload_byte_count <= ((vdm_payload_bytes - 13'd4) | {12'd0, unused_inputs & 1'b0});
+                    payload_byte_count <= (decoded_payload_len | {12'd0, unused_inputs & 1'b0});
                 end
             end
         end

@@ -12,7 +12,7 @@
       "enabled": false,
       "index": 1,
       "key": "all",
-      "module_task_count": 29,
+      "module_task_count": 30,
       "task_limit": 48
     },
     "owner": {
@@ -113,7 +113,7 @@
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": true,
+    "deferred_human_qa_allowed": false,
     "draft_allowed": true,
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
@@ -121,7 +121,7 @@
     "llm_actionable": false,
     "llm_actionable_open_count": 0,
     "open_required_count": 0,
-    "pass_allowed": false,
+    "pass_allowed": true,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -150,6 +150,7 @@
   "source_plan": "rtl/rtl_todo_plan.json",
   "summary": {
     "categories": {
+      "cycle_model.handshake_rules": 1,
       "equivalence.module": 1,
       "function_model.output": 9,
       "function_model.output_rule": 4,
@@ -164,11 +165,11 @@
       "enabled": false,
       "index": 1,
       "key": "all",
-      "module_task_count": 29,
+      "module_task_count": 30,
       "task_limit": 48
     },
     "open_required_count": 0,
-    "required_count": 29,
+    "required_count": 30,
     "source_refs": [
       "function_model.transactions.FM_AXI_READBACK",
       "function_model.transactions.FM_AXI_READBACK.preconditions.precondition_0",
@@ -187,18 +188,18 @@
       "function_model.transactions.FM_AXI_READBACK.output_rules.readback_last",
       "function_model.transactions.FM_AXI_READBACK.state_updates.read_error_count",
       "function_model.transactions.FM_AXI_READBACK.side_effects.side_effect_0",
+      "cycle_model.handshake_rules.axi_read_channels",
       "sub_modules.mctp_assembler_scratch_axi_read_egress.module_equivalence",
       "io_list.interfaces.axi_read_slave.ports.m_axi_araddr",
       "io_list.interfaces.axi_read_slave.ports.m_axi_arlen",
       "io_list.interfaces.axi_read_slave.ports.m_axi_arsize",
       "io_list.interfaces.axi_read_slave.ports.m_axi_arburst",
-      "io_list.interfaces.axi_read_slave.ports.m_axi_arvalid",
-      "io_list.interfaces.axi_read_slave.ports.m_axi_arready"
+      "io_list.interfaces.axi_read_slave.ports.m_axi_arvalid"
     ],
     "status_counts": {
-      "pass": 29
+      "pass": 30
     },
-    "task_count": 29
+    "task_count": 30
   },
   "tasks": [
     {
@@ -333,8 +334,9 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 1,
+        "matched_count": 2,
         "matched_terms": [
+          "readback",
           "valid"
         ],
         "owner_file_scoped": true,
@@ -392,9 +394,10 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 1,
+        "matched_count": 2,
         "matched_terms": [
-          "data"
+          "data",
+          "readback"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -451,8 +454,9 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 1,
+        "matched_count": 2,
         "matched_terms": [
+          "readback",
           "resp"
         ],
         "owner_file_scoped": true,
@@ -508,10 +512,12 @@
         "function_model.transactions.FM_AXI_READBACK.outputs.output_3"
       ],
       "static_evidence": {
-        "fallback_scope": "all_sources_without_owner",
-        "matched_count": 1,
+        "fallback_scope": "",
+        "matched_count": 3,
         "matched_terms": [
-          "last"
+          "last",
+          "readback",
+          "readback_last"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -577,10 +583,11 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 4,
+        "matched_count": 5,
         "matched_terms": [
           "axi",
           "m_axi_rvalid",
+          "readback",
           "rvalid",
           "valid"
         ],
@@ -656,7 +663,7 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 7,
+        "matched_count": 8,
         "matched_terms": [
           "axi",
           "data",
@@ -664,7 +671,8 @@
           "m_axi_rdata",
           "rdata",
           "read",
-          "read_has_descriptor"
+          "read_has_descriptor",
+          "readback"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -742,7 +750,7 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 11,
+        "matched_count": 12,
         "matched_terms": [
           "RESP",
           "RESP_OKAY",
@@ -753,6 +761,7 @@
           "m_axi_rresp",
           "read",
           "read_has_descriptor",
+          "readback",
           "resp",
           "rresp"
         ],
@@ -829,11 +838,14 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 4,
+        "matched_count": 7,
         "matched_terms": [
           "axi",
+          "last",
           "m_axi_rlast",
           "read",
+          "readback",
+          "readback_last",
           "rlast"
         ],
         "owner_file_scoped": true,
@@ -974,16 +986,17 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 4,
+        "matched_count": 5,
         "matched_terms": [
           "axi",
           "m_axi_rvalid",
+          "readback",
           "rvalid",
           "valid"
         ],
         "owner_file_scoped": true,
         "required": true,
-        "required_match_count": 1,
+        "required_match_count": 2,
         "required_terms": [
           "accept",
           "ar",
@@ -1056,7 +1069,7 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 7,
+        "matched_count": 8,
         "matched_terms": [
           "axi",
           "data",
@@ -1064,11 +1077,12 @@
           "m_axi_rdata",
           "rdata",
           "read",
-          "read_has_descriptor"
+          "read_has_descriptor",
+          "readback"
         ],
         "owner_file_scoped": true,
         "required": true,
-        "required_match_count": 1,
+        "required_match_count": 2,
         "required_terms": [
           "axi",
           "data",
@@ -1145,7 +1159,7 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 11,
+        "matched_count": 12,
         "matched_terms": [
           "RESP",
           "RESP_OKAY",
@@ -1156,12 +1170,13 @@
           "m_axi_rresp",
           "read",
           "read_has_descriptor",
+          "readback",
           "resp",
           "rresp"
         ],
         "owner_file_scoped": true,
         "required": true,
-        "required_match_count": 1,
+        "required_match_count": 2,
         "required_terms": [
           "RESP",
           "RESP_OKAY",
@@ -1235,16 +1250,19 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 4,
+        "matched_count": 7,
         "matched_terms": [
           "axi",
+          "last",
           "m_axi_rlast",
           "read",
+          "readback",
+          "readback_last",
           "rlast"
         ],
         "owner_file_scoped": true,
         "required": true,
-        "required_match_count": 1,
+        "required_match_count": 2,
         "required_terms": [
           "axi",
           "last",
@@ -1388,12 +1406,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 9,
+        "matched_count": 10,
         "matched_terms": [
           "axi",
           "data",
           "debug",
           "descriptor",
+          "last",
           "m_axi_rdata",
           "m_axi_rlast",
           "m_axi_rresp",
@@ -1420,6 +1439,93 @@
           "m_axi_rvalid",
           "no_descriptor_read_returns_zero_data_and_slverr_unless_raw_debug_enabled",
           "raw"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: axi_read_channels",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.axi_read_channels",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "axi_read_channels appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.axi_read_channels.\nOwner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via cycle_model.handshake_rules.axi_read_channels.\nSSOT item context: name=axi_read_channels; signal=m_axi_arvalid/m_axi_arready/m_axi_rvalid/m_axi_rready.",
+      "evidence_terms": [
+        "arready",
+        "arvalid",
+        "axi",
+        "axi_read_channels",
+        "channels",
+        "m_axi_arready",
+        "m_axi_arvalid",
+        "m_axi_rready",
+        "m_axi_rvalid",
+        "read",
+        "rready",
+        "rvalid"
+      ],
+      "id": "RTL-0298",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_read_egress",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.axi_read_channels",
+      "ssot_context": {
+        "name": "axi_read_channels",
+        "signal": "m_axi_arvalid/m_axi_arready/m_axi_rvalid/m_axi_rready"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.axi_read_channels"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 10,
+        "matched_terms": [
+          "arready",
+          "arvalid",
+          "axi",
+          "m_axi_arready",
+          "m_axi_arvalid",
+          "m_axi_rready",
+          "m_axi_rvalid",
+          "read",
+          "rready",
+          "rvalid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "arready",
+          "arvalid",
+          "axi",
+          "axi_read_channels",
+          "channels",
+          "m_axi_arready",
+          "m_axi_arvalid",
+          "m_axi_rready",
+          "m_axi_rvalid",
+          "read",
+          "rready",
+          "rvalid"
         ],
         "source_scope": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
         "status": "pass"
@@ -1974,7 +2080,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "740f93796c4f016836bc823fe2faf4054d926dc664b7d534ef5d5436d6585bb5",
+  "todo_plan_sha256": "f7d51fe86c7b2e93192acdcd2fb7e463badd1ca4416fc82440243aa7e8a43e3c",
   "top": "mctp_assembler_scratch",
   "type": "rtl_authoring_packet"
 }

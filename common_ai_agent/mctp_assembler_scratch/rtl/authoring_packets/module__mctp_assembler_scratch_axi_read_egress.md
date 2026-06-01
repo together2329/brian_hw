@@ -3,8 +3,8 @@
 - Kind: module
 - Owner module: mctp_assembler_scratch_axi_read_egress
 - Owner file: rtl/mctp_assembler_scratch_axi_read_egress.sv
-- Task count: 29
-- Required tasks: 29
+- Task count: 30
+- Required tasks: 30
 
 ## Rules
 
@@ -23,7 +23,7 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
@@ -401,6 +401,27 @@ SSOT item context: id=FM_AXI_READBACK; name=AXI readback from descriptor-backed 
   - Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_read_egress.sv
   - DUT port ["m_axi_rvalid", "m_axi_rdata", "m_axi_rresp", "m_axi_rlast"] is the implementation/observation point for AXI readback from descriptor-backed SRAM payload
 - SSOT refs: function_model.transactions.FM_AXI_READBACK.side_effects.side_effect_0
+
+### RTL-0298: Implement handshake rule: axi_read_channels
+
+- Priority: high
+- Required: True
+- Status: pass
+- Category: cycle_model.handshake_rules
+- Source ref: cycle_model.handshake_rules.axi_read_channels
+- Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
+SSOT ref: cycle_model.handshake_rules.axi_read_channels.
+Owner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via cycle_model.handshake_rules.axi_read_channels.
+SSOT item context: name=axi_read_channels; signal=m_axi_arvalid/m_axi_arready/m_axi_rvalid/m_axi_rready.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - RTL contains the control/state/handshake logic for this cycle rule
+  - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
+  - TB scoreboard/coverage can observe the rule at the declared phase
+  - Traceability keeps source_ref cycle_model.handshake_rules.axi_read_channels
+  - Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_read_egress.sv
+  - axi_read_channels appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
+- SSOT refs: cycle_model.handshake_rules.axi_read_channels
 
 ### RTL-0426: Prove module mctp_assembler_scratch_axi_read_egress is functionally equivalent to FL
 

@@ -172,6 +172,9 @@
       "ctx_payload_base",
       "ctx_payload_count",
       "ctx_valid"
+    ],
+    "ctx_payload_byte_count": [
+      "ctx_payload_count"
     ]
   },
   "rtl_signal_names": [

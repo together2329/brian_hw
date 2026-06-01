@@ -1,0 +1,40 @@
+{
+  "aiSlopCleaner": {
+    "status": "passed",
+    "evidence": "Scoped manual no-op cleanup review: final edits are limited to mctp_assembler_scratch, doc/wiki/mctp-assembler-scratch-flow-20260531.md, doc/wiki/_graph.json, and OMO/evidence artifacts; unrelated dirty worktree files were not reverted or folded into the signoff claim."
+  },
+  "verification": {
+    "status": "passed",
+    "commands": [
+      "python3 workflow/signoff/scripts/check_ip_signoff.py mctp_assembler_scratch --root .",
+      "python3 workflow/wiki/build_graph.py --wiki doc/wiki --check",
+      "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py mctp_assembler_scratch --root . --audit-rtl",
+      "omo ulw-loop criteria --goal-id G001-finish-mctp-assembler-scratch-end-to --json"
+    ],
+    "evidence": "Fresh post-cleanup verification passed: ip_signoff status=pass with 15/15 gates, wiki graph broken_refs=0, rtl_todo audit gate=pass with blockers=0/orphans=0/open_required_todos=0, and C001/C002/C003 criteria remain pass. tmux sessions ulw-qa-mctp-happy, ulw-qa-mctp-edge, and ulw-qa-mctp-signoff were verified absent."
+  },
+  "codeReview": {
+    "recommendation": "APPROVE",
+    "architectStatus": "CLEAR",
+    "evidence": "Two codex-ultrawork-reviewer attempts timed out and were closed without file modifications. A scoped local audit then checked the authoritative signoff, rtl_todo, coverage, mutation, full-signoff transcript, and wiki handoff. No blocker was found against local workflow signoff. Residual limitations are explicitly documented in doc/wiki/mctp-assembler-scratch-flow-20260531.md lines 24 and 111-126."
+  },
+  "criteriaCoverage": {
+    "totalCriteria": 3,
+    "passCount": 3,
+    "adversarialClassesCovered": [
+      "happy_path",
+      "edge_drop_readback",
+      "full_regression",
+      "malformed_input",
+      "stale_state",
+      "dirty_worktree",
+      "misleading_success",
+      "mutation_baseline"
+    ]
+  },
+  "residualRisks": [
+    "Local workflow signoff is not PCIe/MCTP production conformance, DMTF certification, PnR/PPA signoff, STA, or formal proof.",
+    "Mutation is advisory and currently low kill-rate: 32 executed, 9 killed, 23 survived, kill_rate=0.2812. This is recorded as next monitor-quality work, not as a functional blocker.",
+    "The scratch IP validates requested behavior through SSOT, cocotb scoreboard, coverage, and local gates; external standards, CDC strategy, synthesis, and formal invariants remain future gates."
+  ]
+}

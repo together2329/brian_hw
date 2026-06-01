@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "createdAt": "2026-05-31T14:23:56.458Z",
+  "updatedAt": "2026-05-31T15:13:45.603Z",
+  "briefPath": ".omo/ulw-loop/019e7e69-3956-76b0-89df-6acc580185bd/brief.md",
+  "goalsPath": ".omo/ulw-loop/019e7e69-3956-76b0-89df-6acc580185bd/goals.json",
+  "ledgerPath": ".omo/ulw-loop/019e7e69-3956-76b0-89df-6acc580185bd/ledger.jsonl",
+  "codexGoalMode": "aggregate",
+  "goals": [
+    {
+      "id": "G001-coverage-coverage-rtl",
+      "title": "coverage 관련 탭에 어떤 coverage가 있고 어떤 종류가 있으며 왜 만족되지 않았는지 RTL 코드와 연동해서 보여...",
+      "objective": "coverage 관련 탭에 어떤 coverage가 있고 어떤 종류가 있으며 왜 만족되지 않았는지 RTL 코드와 연동해서 보여준다. 기존 sim/lint 연동과 유사하게 coverage 탭에서 VCD toggle coverage는 어디가 얼마나 만족하는지 리포트와 상세를 RTL로 연결하고 static coverage도 동일하게 RTL 코드와 연결한다.",
+      "status": "complete",
+      "successCriteria": [
+        {
+          "id": "C001",
+          "scenario": "Browser use via local Vite app: start frontend/atlas dev server, open coverage workflow report for demo_ip with mocked /reports/cov payload, click a coverage unmet item, PASS iff the report lists Verilator/static/VCD/FL/CL coverage types and the preview opens demo_ip/rtl/demo.sv at the diagnostic line with the unmet reason visible.",
+          "userModel": "happy",
+          "expectedEvidence": ".omo/ulw-loop/019e7e69-3956-76b0-89df-6acc580185bd/evidence/C001-browser-coverage-kinds.txt and .omo/ulw-loop/019e7e69-3956-76b0-89df-6acc580185bd/evidence/C001-browser-coverage-kinds.png; RED/GREEN test: frontend/atlas/__tests__/workflow-report-click.test.tsx::passes selected coverage diagnostics and unmet reasons into source preview",
+          "capturedEvidence": ".omo/ulw-loop/019e7e69-3956-76b0-89df-6acc580185bd/evidence/C001-browser-coverage-kinds.txt; .omo/ulw-loop/019e7e69-3956-76b0-89df-6acc580185bd/evidence/C001-browser-coverage-kinds.png; targeted Vitest workflow-report-click passed; tsc --noEmit passed; temp Vite QA harness cleaned",
+          "status": "pass",
+          "capturedAt": "2026-05-31T14:50:31.196Z"
+        },
+        {
+          "id": "C002",
+          "scenario": "Browser use via local Vite app: open coverage report with malformed/empty /reports/cov payload where tools, artifacts, vcd_paths are invalid and no diagnostics have path/line, PASS iff the coverage tab does not crash, shows the existing empty-state guidance, and no preview source focus is attempted.",
+          "userModel": "edge",
+          "expectedEvidence": ".omo/ulw-loop/019e7e69-3956-76b0-89df-6acc580185bd/evidence/C002-browser-coverage-empty.txt and .omo/ulw-loop/019e7e69-3956-76b0-89df-6acc580185bd/evidence/C002-browser-coverage-empty.png; RED/GREEN test: frontend/atlas/__tests__/workflow-report-click.test.tsx::keeps malformed coverage reports stable without source focus",
+          "capturedEvidence": ".omo/ulw-loop/019e7e69-3956-76b0-89df-6acc580185bd/evidence/C002-browser-coverage-empty.txt; .omo/ulw-loop/019e7e69-3956-76b0-89df-6acc580185bd/evidence/C002-browser-coverage-empty.png; frontend/atlas/__tests__/workflow-report-click.test.tsx::keeps malformed coverage reports stable without source focus passed; temp Vite QA harness cleaned",
+          "status": "pass",
+          "capturedAt": "2026-05-31T14:50:36.050Z"
+        },
+        {
+          "id": "C003",
+          "scenario": "Browser use via local Vite app: open lint workflow report with a WIDTH diagnostic, click it, PASS iff the existing lint report still groups diagnostics and the preview still opens demo_ip/rtl/demo.sv at line 7 with the lint message.",
+          "userModel": "regression",
+          "expectedEvidence": ".omo/ulw-loop/019e7e69-3956-76b0-89df-6acc580185bd/evidence/C003-browser-lint-regression.txt and .omo/ulw-loop/019e7e69-3956-76b0-89df-6acc580185bd/evidence/C003-browser-lint-regression.png; RED/GREEN regression tests: frontend/atlas/__tests__/workflow-report-click.test.tsx::groups lint diagnostics by rule with foldable counts and ::passes the selected lint diagnostic into the source preview",
+          "capturedEvidence": ".omo/ulw-loop/019e7e69-3956-76b0-89df-6acc580185bd/evidence/C003-browser-lint-regression.txt; .omo/ulw-loop/019e7e69-3956-76b0-89df-6acc580185bd/evidence/C003-browser-lint-regression.png; lint grouping/source preview tests in workflow-report-click passed; temp Vite QA harness cleaned",
+          "status": "pass",
+          "capturedAt": "2026-05-31T14:50:40.167Z"
+        }
+      ],
+      "attempt": 1,
+      "createdAt": "2026-05-31T14:23:56.458Z",
+      "updatedAt": "2026-05-31T15:13:45.603Z",
+      "startedAt": "2026-05-31T14:33:17.200Z",
+      "completedAt": "2026-05-31T15:13:45.603Z",
+      "evidence": "C001/C002/C003 all pass. Coverage tab now lists Verilator/static/VCD/FL/CL coverage, shows unmet reasons and details, links static/VCD/source-backed coverage rows into the existing RTL preview path, preserves lint preview behavior, and has browser QA screenshots/text evidence plus targeted Vitest, tsc, build, diff-check, and slop audit evidence."
+    }
+  ],
+  "codexObjective": "Complete the durable ulw-loop plan in .omo/ulw-loop/019e7e69-3956-76b0-89df-6acc580185bd/goals.json, including later accepted/appended stories, under the original brief constraints; use .omo/ulw-loop/019e7e69-3956-76b0-89df-6acc580185bd/ledger.jsonl as the audit trail.",
+  "aggregateCompletion": {
+    "status": "complete",
+    "completedAt": "2026-05-31T15:13:45.603Z",
+    "evidence": "C001/C002/C003 all pass. Coverage tab now lists Verilator/static/VCD/FL/CL coverage, shows unmet reasons and details, links static/VCD/source-backed coverage rows into the existing RTL preview path, preserves lint preview behavior, and has browser QA screenshots/text evidence plus targeted Vitest, tsc, build, diff-check, and slop audit evidence.",
+    "codexGoal": {
+      "goal": {
+        "threadId": "019e7e69-3956-76b0-89df-6acc580185bd",
+        "objective": "Complete the durable ulw-loop plan in .omo/ulw-loop/019e7e69-3956-76b0-89df-6acc580185bd/goals.json: add a coverage tab that explains coverage types, unmet reasons, VCD toggle/static coverage details, and RTL code linkage analogous to existing sim/lint integration.",
+        "status": "complete",
+        "tokensUsed": 553278,
+        "timeUsedSeconds": 2968,
+        "createdAt": 1780237442,
+        "updatedAt": 1780240410
+      },
+      "remainingTokens": null,
+      "completionBudgetReport": null
+    }
+  }
+}

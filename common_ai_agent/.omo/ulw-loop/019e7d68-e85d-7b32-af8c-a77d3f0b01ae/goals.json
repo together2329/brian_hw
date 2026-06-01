@@ -1,7 +1,7 @@
 {
   "version": 1,
   "createdAt": "2026-05-31T12:14:30.301Z",
-  "updatedAt": "2026-05-31T12:26:37.808Z",
+  "updatedAt": "2026-05-31T15:08:32.636Z",
   "briefPath": ".omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/brief.md",
   "goalsPath": ".omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/goals.json",
   "ledgerPath": ".omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/ledger.jsonl",
@@ -11,39 +11,83 @@
       "id": "G001-build-an-optional-andes-rtl-db-llm-w",
       "title": "Build an optional Andes RTL DB LLM Wiki / knowledge graph under /User...",
       "objective": "Build an optional Andes RTL DB LLM Wiki / knowledge graph under /Users/brian/Desktop/andes and common_ai_agent integration so agents can consult it like pcie/nvme/ucie skills. Use pyslang AST-level extraction for RTL constructs including modules, ports, parameters, FSMs, datapaths, registers, memories, features, clocks, resets; convert existing docs into LLM wiki pages; support on/off via environment/config; provide reusable script and guide for other RTL DBs; verify with RED→GREEN tests and real usage scenarios.",
-      "status": "in_progress",
+      "status": "blocked",
       "successCriteria": [
         {
           "id": "C001",
           "scenario": "tmux happy path: build a temp RTL DB wiki from a synthetic SystemVerilog corpus with docs, then inspect generated markdown, _rtl_facts JSON, and _graph.json for pyslang-derived modules, ports, parameters, clocks, resets, registers, memories, FSM candidates, datapath expressions, features, and document wiki pages.",
           "userModel": "happy",
           "expectedEvidence": ".omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/evidence/C001-ast-doc-build.txt contains the tmux transcript plus cleanup receipt; supporting pytest RED/GREEN evidence in .omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/evidence/C001-pytest.txt.",
-          "capturedEvidence": null,
-          "status": "pending"
+          "capturedEvidence": ".omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/evidence/C001-ast-doc-build.txt shows tmux PASS for synthetic AST/doc wiki: _rtl_facts JSON, ast_extracted_files, graph nodes, doc page; C001-pytest.txt shows RED baseline and GREEN pytest. cleanup: removed temp RTL DB and killed tmux session ulw-qa-c001-andes-ast.",
+          "status": "pass",
+          "capturedAt": "2026-05-31T12:53:34.541Z"
         },
         {
           "id": "C002",
           "scenario": "tmux edge path: build from a temp RTL DB containing one malformed SystemVerilog file and an empty hdl directory; the builder must not crash, must emit diagnostics in _rtl_facts, must still emit doc inventory/page artifacts, and graph build must complete.",
           "userModel": "edge",
           "expectedEvidence": ".omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/evidence/C002-malformed-empty-build.txt contains tmux transcript with non-crashing builder output, diagnostics JSON inspection, graph build result, and cleanup receipt; supporting pytest evidence in C002-pytest.txt.",
-          "capturedEvidence": null,
-          "status": "pending"
+          "capturedEvidence": ".omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/evidence/C002-malformed-empty-build.txt shows tmux PASS for malformed RTL diagnostics and empty hdl diagnostics with graph output; C002-pytest.txt shows RED baseline and GREEN pytest. cleanup: removed temp RTL DB and killed tmux session ulw-qa-c002-andes-edge.",
+          "status": "pass",
+          "capturedAt": "2026-05-31T12:53:49.837Z"
         },
         {
           "id": "C003",
           "scenario": "tmux regression/use path: set ATLAS_RTL_DB_WIKI to the generated wiki, verify wiki_query(ip='rtl-db'/'andes') returns AST/doc facts; unset it and verify the on/off path reports missing config; run existing wiki_query external DB tests to prove builder/no-rebuild/query-adapter contracts still work; inspect the agent skill/guide for env-variable reuse instructions.",
           "userModel": "regression",
           "expectedEvidence": ".omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/evidence/C003-wiki-query-on-off.txt contains tmux transcript with wiki_query enabled output, disabled output, skill/guide grep checks, pytest regression command, and cleanup receipt.",
-          "capturedEvidence": null,
-          "status": "pending"
+          "capturedEvidence": ".omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/evidence/C003-wiki-query-on-off.txt shows tmux PASS for ATLAS_RTL_DB_WIKI enabled wiki_query returning AST/doc nodes, disabled env returning missing-config, docs/skill grep checks, and 4 external DB regression tests passing. cleanup: removed temp RTL DB and killed tmux session ulw-qa-c003-wiki-query.",
+          "status": "pass",
+          "capturedAt": "2026-05-31T12:53:58.326Z"
         }
       ],
       "attempt": 1,
       "createdAt": "2026-05-31T12:14:30.301Z",
-      "updatedAt": "2026-05-31T12:26:37.808Z",
-      "startedAt": "2026-05-31T12:26:37.808Z"
+      "updatedAt": "2026-05-31T13:17:54.129Z",
+      "startedAt": "2026-05-31T12:26:37.808Z",
+      "blockedReason": "Implementation and validation for G001-build-an-optional-andes-rtl-db-llm-w are complete: C001/C002/C003 pass with tmux evidence, pytest 12 passed 2 skipped, actual Andes wiki build nodes=42 edges=218 broken_refs=0, wiki_query returns atcuart100 AST/doc terms, and quality gate JSON is present. Blocker is process-only: get_goal still returns a different completed legacy Atlas report-crash objective in this same thread, so ulw-loop complete checkpoint is rejected until the Codex goal context is cleared or restarted."
+    },
+    {
+      "id": "G002",
+      "title": "Upgrade Andes RTL DB LLM Wiki to production-use quality",
+      "objective": "Improve the /Users/brian/Desktop/andes external RTL DB LLM Wiki so agents can use it in real RTL work: richer searchable wiki pages and sidecar facts, all discovered IP blocks verified for wiki/graph/facts/doc coverage, robust quality reports for missing/weak extraction, and reusable tests/manual QA proving practical query behavior across the corpus.",
+      "status": "blocked",
+      "successCriteria": [
+        {
+          "id": "C001",
+          "scenario": "tmux happy path: build a synthetic multi-root Andes-style corpus with one top-level IP, one nested core HDL root, and docs; run scripts/build_andes_rtl_db_wiki.py --andes-root <tmp> --build-graph; verify coverage.md, _coverage.json, rtl-query-cookbook.md, nested root page, nested fact sidecar, graph nodes, and wiki_query(ip='rtl-db', topic='custom core coverage module') all expose practical LLM Wiki content.",
+          "userModel": "happy",
+          "expectedEvidence": ".omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/evidence/G002-C001-practical-wiki.txt contains tmux transcript with command, assertions, wiki_query output, and cleanup receipt; RED/GREEN proof in G002-C001-redgreen.txt from tests/test_andes_rtl_db_wiki_builder.py::test_build_andes_wiki_emits_quality_coverage_for_nested_hdl_roots.",
+          "capturedEvidence": ".omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/evidence/G002-C001-practical-wiki.txt post-review rerun shows synthetic multi-root corpus still passes after collision-ID fix; coverage missing=0, nested page/facts, graph nodes, wiki_query output. G002-C001-redgreen.txt includes original RED/GREEN and post-review collision RED/GREEN. cleanup: killed tmux session ulw-qa-g002-c001; temp corpus removed by script trap; post-review rerun.",
+          "status": "pass",
+          "capturedAt": "2026-05-31T14:58:47.606Z"
+        },
+        {
+          "id": "C002",
+          "scenario": "tmux all-corpus coverage path: regenerate /Users/brian/Desktop/andes/wiki from the real Andes corpus; run a coverage verifier that scans every hdl directory under /Users/brian/Desktop/andes and asserts every root has either a canonical top-level wiki page or a generated nested-root page, every root has a fact sidecar or explicit empty-root diagnostics, _graph.json has zero broken refs, and the coverage manifest reports no missing pages/facts.",
+          "userModel": "edge",
+          "expectedEvidence": ".omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/evidence/G002-C002-all-ip-coverage.txt contains tmux transcript with real corpus counts, missing=0 assertions, graph stats, and cleanup receipt; RED/GREEN proof in G002-C002-redgreen.txt from tests/test_andes_rtl_db_wiki_builder.py::test_build_andes_wiki_marks_empty_and_malformed_roots_in_coverage.",
+          "capturedEvidence": ".omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/evidence/G002-C002-all-ip-coverage.txt post-review rerun shows real Andes rebuild: 93 hdl roots, 84 nonempty, 9 empty with diagnostics, coverage missing_pages=[], missing_facts=[], graph nodes=123 edges=641 broken_refs=0; collision RED/GREEN included in G002-C002-redgreen.txt. cleanup: killed tmux session ulw-qa-g002-c002; regenerated intended /Users/brian/Desktop/andes/wiki in place; post-review rerun.",
+          "status": "pass",
+          "capturedAt": "2026-05-31T14:58:47.416Z"
+        },
+        {
+          "id": "C003",
+          "scenario": "tmux regression/query path: with ATLAS_RTL_DB_WIKI=/Users/brian/Desktop/andes/wiki and ATLAS_RTL_DB_NO_REBUILD=1, run wiki_query for top-level peripheral topics (uart/spi/dma) and nested/platform topics (ae210 core, vip model, fpu or d10 core depending on corpus coverage); verify results include practical page titles, coverage/root pages, AST/fact terms, and existing external DB regression tests still pass.",
+          "userModel": "regression",
+          "expectedEvidence": ".omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/evidence/G002-C003-query-regression.txt contains tmux transcript with wiki_query outputs, pytest command, graph stats, and cleanup receipt; RED/GREEN proof in G002-C003-redgreen.txt from tests/test_andes_rtl_db_wiki_builder.py::test_wiki_query_finds_nested_coverage_root_terms.",
+          "capturedEvidence": ".omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/evidence/G002-C003-query-regression.txt post-review rerun shows no-rebuild wiki_query outputs for uart/spi/dma, ae210 nested design, i2c VIP model, fpu macro; regression tests 15 passed, 2 skipped; separate final pytest selection 16 passed, 2 skipped. cleanup: killed tmux session ulw-qa-g002-c003; no-rebuild env scoped to tmux script; post-review rerun.",
+          "status": "pass",
+          "capturedAt": "2026-05-31T14:58:47.550Z"
+        }
+      ],
+      "attempt": 1,
+      "createdAt": "2026-05-31T14:16:25.475Z",
+      "updatedAt": "2026-05-31T15:08:32.636Z",
+      "evidence": "User explicitly requested: LLM Wiki 더 보강해서 실전에서 쓸 수 있는 수준까지 퀄리티 끌어올려주고 모든 IP 에 대해 wiki화가 잘 되었는지 검증좀.",
+      "startedAt": "2026-05-31T14:29:10.316Z",
+      "blockedReason": "G002 implementation and validation are complete, but complete checkpoint is blocked by a completed legacy Codex goal from the earlier Atlas report-crash task in this same thread. get_goal returns that different completed objective instead of the expected .omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/goals.json aggregate objective, so OMO rejects --status complete. Completed evidence remains: G002 criteria C001/C002/C003 pass; pytest 16 passed, 2 skipped; compileall passed; real Andes wiki coverage reports 93 HDL roots with missing_pages=[] and missing_facts=[]; graph node_count=123 edge_count=641; G002-quality-gate.json records code review, verification, and residuals."
     }
   ],
-  "codexObjective": "Complete the durable ulw-loop plan in .omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/goals.json, including later accepted/appended stories, under the original brief constraints; use .omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/ledger.jsonl as the audit trail.",
-  "activeGoalId": "G001-build-an-optional-andes-rtl-db-llm-w"
+  "codexObjective": "Complete the durable ulw-loop plan in .omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/goals.json, including later accepted/appended stories, under the original brief constraints; use .omo/ulw-loop/019e7d68-e85d-7b32-af8c-a77d3f0b01ae/ledger.jsonl as the audit trail."
 }

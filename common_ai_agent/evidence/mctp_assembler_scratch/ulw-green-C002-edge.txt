@@ -1,0 +1,20 @@
+GREEN C002 edge/drop/readback evidence
+
+Command replayed:
+- python3 mctp_assembler_scratch/tb/cocotb/test_runner.py
+- python3 workflow/tb-gen/scripts/check_scoreboard_events.py mctp_assembler_scratch --root . --source-check --require-events
+- python3 workflow/coverage/scripts/ssot_coverage_summary.py mctp_assembler_scratch --root .
+
+Observed result:
+- cocotb: TESTS=1 PASS=1 FAIL=0
+- check_scoreboard_events: PASS, goals=91, required=91, scoreboard_rows=91, goals_with_rows=91
+- coverage.json: status=pass
+- Edge rows present and passed:
+  - EQ_SCENARIO_SC_UNALIGNED_SRAM_PACK_NO_HOLES
+  - EQ_SCENARIO_SC_MAX_TU_4096_129_BEATS
+  - EQ_SCENARIO_SC_AXI_READBACK_TRIM
+  - EQ_SCENARIO_SC_APB_REGS_PER_Q
+  - all EQ_SCENARIO_PD_* packet-drop rows
+  - all EQ_SCENARIO_AD_* assembly-drop rows
+
+This is the GREEN proof paired with evidence/mctp_assembler_scratch/ulw-red-C002-edge.txt.

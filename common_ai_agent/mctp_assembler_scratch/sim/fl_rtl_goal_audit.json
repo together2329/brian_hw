@@ -2,8 +2,8 @@
   "schema_version": 1,
   "type": "fl_rtl_goal_audit",
   "ip": "mctp_assembler_scratch",
-  "generated_at": "2026-05-31T11:46:48Z",
-  "status": "fail",
+  "generated_at": "2026-05-31T15:34:55Z",
+  "status": "pass",
   "source_of_truth": {
     "ssot": "mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.yaml",
     "functional_model": "mctp_assembler_scratch/model/functional_model.py",
@@ -12,13 +12,9 @@
   },
   "summary": {
     "total_checks": 16,
-    "passed_checks": 13,
-    "failed_checks": 3,
-    "blockers": [
-      "fl_rtl_compare",
-      "mismatch_classification",
-      "functional_coverage"
-    ]
+    "passed_checks": 16,
+    "failed_checks": 0,
+    "blockers": []
   },
   "checks": [
     {
@@ -158,28 +154,28 @@
     {
       "id": "fl_rtl_compare",
       "label": "FL-vs-RTL comparator passes all equivalence goals",
-      "status": "fail",
+      "status": "pass",
       "owner": "sim_debug",
       "evidence": "mctp_assembler_scratch/sim/fl_rtl_compare.json",
-      "detail": "status=fail summary={'total': 91, 'goals_checked': 91, 'goals_passed': 26, 'goals_failed': 65, 'goals_blocked': 0, 'goals_untested': 0, 'scoreboard_events': 91, 'orphan_scoreboard_events': 0, 'missing_evidence': [], 'stale_evidence': [], 'stale_oracle_evidence': [], 'sim_results': {'exists': True, 'total': 1, 'fail': 0, 'errors': 0, 'source': '/Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/sim/results.xml', 'failures': 0}}",
+      "detail": "status=pass summary={'total': 91, 'goals_checked': 91, 'goals_passed': 91, 'goals_failed': 0, 'goals_blocked': 0, 'goals_untested': 0, 'scoreboard_events': 91, 'orphan_scoreboard_events': 0, 'missing_evidence': [], 'stale_evidence': [], 'stale_oracle_evidence': [], 'sim_results': {'exists': True, 'total': 1, 'fail': 0, 'errors': 0, 'source': '/Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/sim/results.xml', 'failures': 0}}",
       "next_action": "run /sim-debug mctp_assembler_scratch; repair classified owner or answer human gate"
     },
     {
       "id": "mismatch_classification",
       "label": "Mismatches are absent or fully routed before signoff",
-      "status": "fail",
+      "status": "pass",
       "owner": "sim_debug",
       "evidence": "mctp_assembler_scratch/sim/mismatch_classification.json",
-      "detail": "status=action_required classifications=65 schema_ok=True",
+      "detail": "status=pass classifications=0 schema_ok=True",
       "next_action": "loopable classifications may repair the owner; human classifications must open ATLAS question and persist answer"
     },
     {
       "id": "functional_coverage",
       "label": "Functional coverage is backed by RTL-observed scoreboard evidence",
-      "status": "fail",
+      "status": "pass",
       "owner": "tb-gen",
       "evidence": "mctp_assembler_scratch/cov/coverage.json",
-      "detail": "source=ssot_coverage_summary status=owner_routed pct=43.0 required_refs=95 missing_refs=['AD_DESCRIPTOR_FULL_executed', 'AD_DUPLICATE_SOM_executed', 'AD_MESSAGE_OVERFLOW_executed', 'AD_SEQUENCE_MISMATCH_executed', 'AD_SRAM_OVERFLOW_executed', 'AD_TIMEOUT_executed', 'PD_BAD_OR_EXPIRED_TAG_executed', 'PD_BAD_PAD_OR_ALIGNMENT_executed'] missing_rtl_bins=['AD_DESCRIPTOR_FULL_executed', 'AD_DUPLICATE_SOM_executed', 'AD_MESSAGE_OVERFLOW_executed', 'AD_SEQUENCE_MISMATCH_executed', 'AD_SRAM_OVERFLOW_executed', 'AD_TIMEOUT_executed', 'PD_BAD_OR_EXPIRED_TAG_executed', 'PD_BAD_PAD_OR_ALIGNMENT_executed'] invalid_rows=[] rtl_observed_status=owner_routed function_domain_ok=False cycle_domain_ok=False",
+      "detail": "source=ssot_coverage_summary status=pass pct=100.0 required_refs=95 missing_refs=[] missing_rtl_bins=[] invalid_rows=[] rtl_observed_status=pass function_domain_ok=True cycle_domain_ok=True",
       "next_action": "rerun /coverage after /sim; coverage must be proven by passing scoreboard rows with real rtl_observed signals"
     },
     {
@@ -200,9 +196,9 @@
     "equivalence_goals_generated": true,
     "scoreboard_from_goals": true,
     "simulation_complete": true,
-    "fl_rtl_compare_complete": false,
+    "fl_rtl_compare_complete": true,
     "mismatches_classified_or_zero": true,
-    "coverage_linked": false,
-    "signoff_evidence_backed": false
+    "coverage_linked": true,
+    "signoff_evidence_backed": true
   }
 }

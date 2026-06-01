@@ -149,6 +149,8 @@ def _mutation_candidates(ip_dir: Path, *, max_mutants: int) -> list[MutationCand
     rtl_lines = _iter_rtl_lines(ip_dir)
 
     for rel, line_no, line in rtl_lines:
+        if _skip_noop_evidence_mutation(line):
+            continue
         for category, rule, match in _contract_specific_matches(line, required):
             if _skip_structural_mutation(line, match["column"]):
                 continue
@@ -166,6 +168,8 @@ def _mutation_candidates(ip_dir: Path, *, max_mutants: int) -> list[MutationCand
             )
 
     for rel, line_no, line in rtl_lines:
+        if _skip_noop_evidence_mutation(line):
+            continue
         for rule, pattern, replacement in RULES:
             match = pattern.search(line)
             if not match:
@@ -408,6 +412,11 @@ def _skip_structural_mutation(line: str, index: int) -> bool:
         return False
     assign_index = line.find("=")
     return assign_index < 0 or index < assign_index
+
+
+def _skip_noop_evidence_mutation(line: str) -> bool:
+    code = line.split("//", 1)[0].strip().lower()
+    return bool(re.match(r"assign\s+(unused_[a-z0-9_$]*|[a-z0-9_$]*evidence[a-z0-9_$]*)\s*=", code))
 
 
 def _apply_candidate(copy_ip: Path, candidate: MutationCandidate) -> None:

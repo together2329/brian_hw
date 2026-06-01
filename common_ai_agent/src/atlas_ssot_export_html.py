@@ -22,6 +22,8 @@ from pathlib import Path
 from typing import Any, Optional
 import yaml as _yaml
 
+from src.atlas_ssot_doc_map import ssot_doc_data_attrs
+
 # Helper functions imported lazily (from atlas_ssot_export module-globals)
 # to avoid the circular import; resolved at call time.
 def _import_ssot_export_helpers():
@@ -357,7 +359,7 @@ def _ssot_html_field_bits(field: dict) -> tuple[str, int | None]:
     display, lsb, _width = _ssot_field_bit_info(field)
     return display, lsb
 
-def _ssot_html_register_field_table(reg: dict) -> str:
+def _ssot_html_register_field_table(reg: dict, reg_index: int) -> str:
     """Bit-field table: Field | Bits | Width | Access | Reset | Description."""
     fields = reg.get("fields")
     if not isinstance(fields, list) or not fields:
@@ -375,11 +377,18 @@ def _ssot_html_register_field_table(reg: dict) -> str:
     if all(p[1] is not None for p in parsed):
         parsed.sort(key=lambda p: p[1], reverse=True)  # type: ignore[arg-type]
     rows: list[str] = []
-    for _order, _lsb, field, bits_disp, width in parsed:
+    for order, _lsb, field, bits_disp, width in parsed:
         reset = _ssot_pick(field, "reset", "reset_value", "default")
+        name = field.get("name") or field.get("id") or f"field_{order + 1}"
+        attrs = ssot_doc_data_attrs(
+            "registers",
+            f"registers.register_list.{reg_index}.fields.{order}",
+            str(name),
+            "register_field",
+        )
         rows.append(
-            "<tr>"
-            f"<td>{_ssot_html_escape(field.get('name') or field.get('id') or '')}</td>"
+            f"<tr {attrs}>"
+            f"<td>{_ssot_html_escape(name)}</td>"
             f"<td>{_ssot_html_escape(bits_disp)}</td>"
             f"<td>{_ssot_html_escape('' if width is None else width)}</td>"
             f"<td>{_ssot_html_escape(field.get('access') or field.get('rw') or '')}</td>"
@@ -399,6 +408,7 @@ def _ssot_html_register_block(reg: dict, idx: int) -> str:
     """Per-register properties table + bit-field table."""
     if not isinstance(reg, dict):
         return ""
+    reg_index = max(idx - 1, 0)
     name = reg.get("name") or reg.get("id") or f"register_{idx}"
     prop_keys = [
         (("offset", "address", "addr"), "Offset"),
@@ -425,9 +435,15 @@ def _ssot_html_register_block(reg: dict, idx: int) -> str:
         "<table class=\"register-props\"><tbody>" + "".join(prop_rows) + "</tbody></table>"
         if prop_rows else ""
     )
-    field_html = _ssot_html_register_field_table(reg)
+    field_html = _ssot_html_register_field_table(reg, reg_index)
+    attrs = ssot_doc_data_attrs(
+        "registers",
+        f"registers.register_list.{reg_index}",
+        str(name),
+        "register",
+    )
     return (
-        "<div class=\"register-block\">"
+        f"<div class=\"register-block\" {attrs}>"
         f"<h4>{_ssot_html_escape(name)}</h4>"
         f"{desc_html}{prop_html}{field_html}"
         "</div>"
@@ -500,6 +516,20 @@ def _ssot_html_insert_after_section(html_body: str, heading_text: str, html: str
     else:
         body_end = len(html_body)
     return html_body[:heading.end()] + html + html_body[body_end:]
+
+def _ssot_html_append_to_section(html_body: str, heading_text: str, html: str) -> str:
+    import re as _re
+
+    if not html:
+        return html_body
+    heading = _re.search(
+        rf"<h2\b[^>]*>\s*{_re.escape(heading_text)}\s*</h2>", html_body, _re.IGNORECASE
+    )
+    if not heading:
+        return html_body + html
+    next_h2 = _re.search(r"<h2\b", html_body[heading.end():], _re.IGNORECASE)
+    insert_at = heading.end() + next_h2.start() if next_h2 else len(html_body)
+    return html_body[:insert_at] + html + html_body[insert_at:]
 
 def _ssot_html_design_views(data: dict, ip: str) -> str:
     if not isinstance(data, dict):

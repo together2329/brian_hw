@@ -3,8 +3,8 @@
 - Kind: module
 - Owner module: mctp_assembler_scratch_axi_write_ingress
 - Owner file: rtl/mctp_assembler_scratch_axi_write_ingress.sv
-- Task count: 16
-- Required tasks: 16
+- Task count: 18
+- Required tasks: 18
 
 ## Rules
 
@@ -23,13 +23,13 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.handshake_rules.axi_write_channels, dataflow, function_model, function_model.transactions.FM_ACCEPT_AXI_TLP, io_list, io_list.interfaces.axi_write_slave, test_requirements
-- Module slice: 3/6 section=cycle_model task_limit=48
-- Slice rule: Owner module mctp_assembler_scratch_axi_write_ingress is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- Module slice: 3/7 section=cycle_model task_limit=48
+- Slice rule: Owner module mctp_assembler_scratch_axi_write_ingress is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
 - SSOT connection contracts:
   - mctp_assembler_scratch_axi_write_ingress.m_axi_awvalid <= m_axi_awvalid (integration.connections[0])
   - mctp_assembler_scratch_axi_write_ingress.m_axi_wvalid <= m_axi_wvalid (integration.connections[1])
@@ -97,6 +97,48 @@ Owner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_ax
   - Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv
   - cycle_model.latency appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.latency
+
+### RTL-0297: Implement handshake rule: axi_write_channels
+
+- Priority: high
+- Required: True
+- Status: pass
+- Category: cycle_model.handshake_rules
+- Source ref: cycle_model.handshake_rules.axi_write_channels
+- Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
+SSOT ref: cycle_model.handshake_rules.axi_write_channels.
+Owner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via cycle_model.handshake_rules.axi_write_channels.
+SSOT item context: name=axi_write_channels; signal=m_axi_awvalid/m_axi_awready/m_axi_wvalid/m_axi_wready.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - RTL contains the control/state/handshake logic for this cycle rule
+  - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
+  - TB scoreboard/coverage can observe the rule at the declared phase
+  - Traceability keeps source_ref cycle_model.handshake_rules.axi_write_channels
+  - Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv
+  - axi_write_channels appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
+- SSOT refs: cycle_model.handshake_rules.axi_write_channels
+
+### RTL-0299: Implement handshake rule: apb_access
+
+- Priority: high
+- Required: True
+- Status: pass
+- Category: cycle_model.handshake_rules
+- Source ref: cycle_model.handshake_rules.apb_access
+- Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
+SSOT ref: cycle_model.handshake_rules.apb_access.
+Owner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via cycle_model.
+SSOT item context: name=apb_access; signal=psel/penable/pready.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - RTL contains the control/state/handshake logic for this cycle rule
+  - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
+  - TB scoreboard/coverage can observe the rule at the declared phase
+  - Traceability keeps source_ref cycle_model.handshake_rules.apb_access
+  - Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv
+  - apb_access appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
+- SSOT refs: cycle_model.handshake_rules.apb_access
 
 ### RTL-0301: Implement pipeline stage: axi_write_collect
 

@@ -128,7 +128,7 @@
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": true,
+    "deferred_human_qa_allowed": false,
     "draft_allowed": true,
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
@@ -136,7 +136,7 @@
     "llm_actionable": false,
     "llm_actionable_open_count": 0,
     "open_required_count": 0,
-    "pass_allowed": false,
+    "pass_allowed": true,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -335,7 +335,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "740f93796c4f016836bc823fe2faf4054d926dc664b7d534ef5d5436d6585bb5",
+  "todo_plan_sha256": "f7d51fe86c7b2e93192acdcd2fb7e463badd1ca4416fc82440243aa7e8a43e3c",
   "top": "mctp_assembler_scratch",
   "type": "rtl_authoring_packet"
 }

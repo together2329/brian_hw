@@ -33,6 +33,7 @@ This section is additive; it does not replace the reading order below.
 | Sim Debug agent tool `sim_debug` (VCD parser + pyslang; show/goto/cursor/trace/find/value; file-intent + UI polling channel) | [[sim-debug-agent-tool-2026-05-31]] |
 | Sim Debug waveform renderer decision: current React/SVG row renderer, why not React Flow, future Canvas trigger, VCD slice zero-extension | [[sim-debug-waveform-renderer-2026-05-31]] |
 | Sim Debug full feature review: 4-pane UI, loading/preload, scoped signal identity, source selection, waveform interactions, tool/API contracts, verification and risks | [[sim-debug-feature-review-2026-05-31]] |
+| Sim Debug requirements ledger: four-pane loading, source/signal multi-select, exact slices, waveform RC/radix/cursors, tool-call lookup, pyslang/VCD contracts | [[sim-debug-requirements-2026-06-01]] |
 | Babel/legacy-jsx retirement cutover — PAUSED progress + resume plan (Step1 flip done; Round1 partial; 4 decisions; Rounds 2–4) | [[babel-retirement-cutover-20260529]] |
 | Local IP-root + thin LLM-license server (desktop-app arch): already half-built via --root, Tauri = delivery not enabler; + remote-brain/local-hands variant | [[local-iproot-thin-llm-server-arch-20260529]] |
 | Run Mode / Exec Mode and SSOT provenance policy | [[run-mode-and-provenance-policy]] |

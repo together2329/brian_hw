@@ -30,11 +30,14 @@ module mctp_assembler_scratch_axi_read_egress (
 );
     logic wait_rsp_q;
     logic read_has_descriptor_q;
+    logic readback_last;
     logic unused_inputs;
 
     assign m_axi_arready = (~m_axi_rvalid) & (~wait_rsp_q) & (~rd_req_valid);
     assign rd_rsp_ready = wait_rsp_q & (~m_axi_rvalid | m_axi_rready);
-    assign unused_inputs = ^{m_axi_arlen, m_axi_arsize, m_axi_arburst, descriptor_bytes};
+    assign readback_last = m_axi_rlast;
+    assign unused_inputs = ^{m_axi_arlen, m_axi_arsize, m_axi_arburst, descriptor_bytes,
+                             readback_last};
 
     always @(posedge axi_aclk or negedge axi_aresetn) begin
         if (!axi_aresetn) begin

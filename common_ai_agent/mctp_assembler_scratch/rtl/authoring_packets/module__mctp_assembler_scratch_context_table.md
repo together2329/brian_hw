@@ -23,9 +23,9 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 1
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: fsm, fsm.context_fsm, function_model, function_model.transactions.FM_ASSEMBLE_FRAGMENT, function_model.transactions.FM_COMPLETE_MESSAGE, memory, memory.instances.context_table, registers
 
@@ -421,14 +421,14 @@ SSOT item context: value=ERROR.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: fsm.state
 - Source ref: fsm.context_fsm.states.state_3
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.context_fsm.states.state_3.
 Owner: mctp_assembler_scratch_context_table in rtl/mctp_assembler_scratch_context_table.sv via fsm.context_fsm.
 SSOT item context: value=DONE_WAIT_DESCRIPTOR_POP.
-- Current reason: Required RTL static evidence is missing.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT

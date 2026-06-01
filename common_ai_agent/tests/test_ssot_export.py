@@ -316,6 +316,8 @@ def test_custom_blocks_render_after_anchor_sections(tmp_path, monkeypatch):
     assert 'class="mermaid-source"' in html and "stateDiagram-v2" in html
     assert 'class="mermaid"' not in html
     assert "../../vendor/mermaid.min.js" not in html
+    assert "Register Map" in html
+    assert html.find("Register Map") < html.find("Flow")
     assert html.find("Registers") < html.find("Flow")
     # path traversal (../) is rejected -> "not found", never embedded.
     assert "not found" in html

@@ -2383,6 +2383,26 @@ html[data-platform="windows"] .app {
   display: block;
   height: 24px;
 }
+.wave-panel .wave-top-click-gutter {
+  height: 7px;
+  background: #0a0d12;
+  border-bottom: 1px solid #11141b;
+  flex-shrink: 0;
+}
+.wave-drag-preview {
+  position: fixed;
+  left: -10000px;
+  top: -10000px;
+  z-index: 10000;
+  padding: 2px 8px;
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  background: #151a23;
+  color: #ffe066;
+  font: 11px var(--mono);
+  pointer-events: none;
+  white-space: nowrap;
+}
 /* Bit signal stroke — bright lime (matches Verdi clock/control) */
 .wave-panel .wave-svg path { shape-rendering: crispEdges; }
 

@@ -89,6 +89,16 @@ export interface WaveDecor {
 // Palette offered in the right-click colour menu (signal + group).
 const WAVE_COLOR_PALETTE = ['#4dd0e1', '#7CFC4D', '#ffb84d', '#ff6b6b', '#b388ff', '#ffd24d', '#9ccc65', '#ff5252'];
 
+const setWaveDragPreview = (e: ReactDragEvent<HTMLElement>, label: string) => {
+  if (typeof document === 'undefined' || typeof e.dataTransfer.setDragImage !== 'function') return;
+  const el = document.createElement('div');
+  el.textContent = label;
+  el.className = 'wave-drag-preview';
+  document.body.appendChild(el);
+  e.dataTransfer.setDragImage(el, 12, 12);
+  window.setTimeout(() => el.remove(), 0);
+};
+
 export const WaveBand = ({
   eff, showHelp, setShowHelp, vcdActive, effRange, vcdData, setViewRange,
   zoomIn, zoomOut, zoomFit, zoomToCursors, panBy, waveWidth: waveWidthProp, traceList,
@@ -611,6 +621,7 @@ export const WaveBand = ({
           </div>
         </div>
         </div>
+        <div className="wave-top-click-gutter" aria-hidden="true" />
         <div
           ref={plotRef}
           onMouseDown={startPlotDrag}
@@ -650,6 +661,7 @@ export const WaveBand = ({
                        dragItemRef.current = { kind: 'group', keys, label: item.tag };
                        e.dataTransfer.effectAllowed = 'move';
                        e.dataTransfer.setData('text/plain', item.tag);
+                       setWaveDragPreview(e, item.tag);
                      }}
                      onDragOver={e => onWaveDragOver(e, dropId, keys)}
                      onDragLeave={() => setDropHint(null)}
@@ -715,6 +727,7 @@ export const WaveBand = ({
                   dragItemRef.current = { kind: 'sig', keys: [rowKey], label: t.name || rowKey };
                   e.dataTransfer.effectAllowed = 'move';
                   e.dataTransfer.setData('text/plain', t.name || rowKey);
+                  setWaveDragPreview(e, t.name || rowKey);
                 }}
                 onDragOver={e => onWaveDragOver(e, dropId, [rowKey])}
                 onDragLeave={() => setDropHint(null)}

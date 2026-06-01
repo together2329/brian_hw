@@ -1,0 +1,3 @@
+PASS C003 lint browser regression QA
+Observed lint WIDTH diagnostic and clicked it.
+Observed RTL source line assign out = in[7:0]; and readAtlasAsyncResource path demo_ip/rtl/demo.sv.

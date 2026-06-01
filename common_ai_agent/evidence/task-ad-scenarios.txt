@@ -1,0 +1,11 @@
+ccd /Users/brian/Desktop/Project/brian [K__hw/common_ai_agent[?2004l
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest tests/test_mctp_ad_scenarios.py -q
+echo [cleanup] tmux-capture-complete
+[1m[7m%[27m[1m[0m                                                                                [0m[27m[24m[Jbrian@Brianui-MacBookAir common_ai_agent % [K[?2004hPPYTEST_DISABLE_PLUGIN_AUTOLOAD=1 pyth [Koon3 -m pytest tests/test_mctp_ad_scenarios.py -q[?2004l
+.echo [cleanup] tmux-capture-complete
+.                                                                       [100%]
+2 passed in 0.16s
+[1m[7m%[27m[1m[0m                                                                                [0m[27m[24m[Jbrian@Brianui-MacBookAir common_ai_agent % [K[?2004heecho [cleanup] tmux-capture-complete[?2004l
+zsh: no matches found: [cleanup]
+[1m[7m%[27m[1m[0m                                                                                [0m[27m[24m[Jbrian@Brianui-MacBookAir common_ai_agent % [K[?2004h
+[cleanup-receipt] tmux session ad_scenarios_log terminated after pytest command.

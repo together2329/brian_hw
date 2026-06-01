@@ -1,0 +1,7 @@
+     180 src/atlas_ssot_doc_map.py
+      82 frontend/atlas/ssot-doc-feedback-api.ts
+      58 frontend/atlas/ssot-doc-feedback-types.ts
+      68 frontend/atlas/ssot-doc-feedback-dom.ts
+     557 frontend/atlas/ssot-doc.tsx
+    2556 frontend/atlas/workspace-root-data-hook.tsx
+    3501 total

@@ -319,3 +319,35 @@ def test_mutation_guard_blocks_when_baseline_compare_is_failing(tmp_path: Path) 
     assert report["category_summary"][0]["kill_rate"] is None
     markdown = (ip_dir / "mutation" / "mutation_report.md").read_text(encoding="utf-8")
     assert "baseline FL-vs-RTL compare is not green" in markdown
+
+
+def test_mutation_guard_skips_noop_unused_evidence_lines(tmp_path: Path) -> None:
+    ip_dir = tmp_path / "noop_mut_ip"
+    rtl_dir = ip_dir / "rtl"
+    rtl_dir.mkdir(parents=True)
+    (rtl_dir / "noop_mut_ip.sv").write_text(
+        "\n".join(
+            [
+                "module noop_mut_ip(input logic a, input logic b, output logic y);",
+                "  assign unused_inputs = ^{a, b};",
+                "  assign unused_descriptor_evidence = ^{a, b};",
+                "  assign y = a ^ b;",
+                "endmodule",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    result = subprocess.run(
+        ["python3", str(SCRIPT), "noop_mut_ip", "--root", str(tmp_path), "--list-only", "--max-mutants", "8"],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
+
+    assert result.returncode == 0, result.stdout
+    report = json.loads((ip_dir / "mutation" / "mutation_report.json").read_text(encoding="utf-8"))
+    previews = [candidate["preview"] for candidate in report["candidates"]]
+    assert "assign y = a ^ b;" in previews
+    assert all("unused_" not in preview and "evidence" not in preview for preview in previews)

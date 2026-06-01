@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>ssot_doc_feedback_demo — SSOT</title><style>body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; max-width: 1180px; margin: 2em auto; padding: 0 1em; line-height: 1.55; color: #222; } h1, h2, h3 { border-bottom: 1px solid #eee; padding-bottom: .2em; } table { border-collapse: collapse; margin: .8em 0; width: 100%; } th, td { border: 1px solid #ddd; padding: .35em .6em; text-align: left; vertical-align: top; } th { background: #f7f7f7; } code, pre { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: .92em; } pre { background: #f6f8fa; padding: .8em; border-radius: 4px; overflow-x: auto; } blockquote { border-left: 3px solid #ccc; margin: 1em 0; padding: .3em .8em; color: #555; background: #fafafa; } .design-views { margin: 1.5em 0 2em; padding: 1em; border: 1px solid #d8dee9; border-radius: 8px; background: #fbfcff; } .design-note, .doc-empty { color: #5d6778; } .doc-empty.small { font-size: .86em; } .diagram-card { margin: 1em 0; padding: 1em; border: 1px solid #e3e7ef; border-radius: 8px; background: #fff; overflow-x: auto; } .diagram-card h3 { margin-top: 0; } .doc-lead { color: #475569; margin: .25em 0 1em; } .doc-subsection { margin: 1em 0 1.15em; } .doc-subsection h4 { margin: 0 0 .55em; font-size: 1.05em; border-bottom: 1px solid #edf0f5; padding-bottom: .25em; } .doc-list.compact { margin: .25em 0; padding-left: 1.2em; } .doc-stack { display: grid; gap: .45em; } .doc-nested-item { border: 1px solid #e5e9f0; border-radius: 6px; background: #fbfcff; padding: .55em .65em; } .mini-yaml { margin: .2em 0; padding: .55em .65em; background: #f7f9fc; border: 1px solid #e5e9f0; border-radius: 6px; white-space: pre-wrap; } .kv-list { display: grid; gap: .35em; margin: .25em 0; } .kv-row { display: grid; grid-template-columns: minmax(120px, .32fr) minmax(0, 1fr); gap: .75em; align-items: start; } .kv-row dt { color: #64748b; font-weight: 700; text-transform: none; } .kv-row dd { margin: 0; min-width: 0; } .doc-chip { display: inline-flex; align-items: center; border: 1px solid #cbd5e1; border-radius: 999px; padding: .08em .45em; background: #f8fafc; color: #334155; font: 700 .82em "SF Mono", Menlo, Consolas, monospace; white-space: nowrap; } .rule-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: .55em; } .rule-card { border: 1px solid #dbe3ee; border-radius: 7px; padding: .6em .7em; background: #fbfdff; min-width: 0; } .rule-head { display: flex; justify-content: space-between; gap: .5em; align-items: center; margin-bottom: .35em; } .rule-head strong { overflow-wrap: anywhere; } .rule-head span { display: inline-flex; gap: .25em; flex-wrap: wrap; justify-content: flex-end; } .rule-card p { margin: .35em 0 0; color: #475569; } .rule-expr { display: grid; grid-template-columns: 3.5em minmax(0,1fr); gap: .4em; align-items: start; margin-top: .25em; } .rule-expr span { color: #64748b; font-size: .82em; font-weight: 700; text-transform: uppercase; } .rule-expr code { display: block; white-space: pre-wrap; overflow-wrap: anywhere; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 5px; padding: .22em .38em; } .transaction-stack { display: grid; gap: 1em; } .transaction-card { border: 1px solid #d9e0ea; border-left: 4px solid #315fdc; border-radius: 8px; background: #fff; padding: .85em; } .transaction-title { display: flex; align-items: baseline; gap: .65em; flex-wrap: wrap; margin-bottom: .35em; } .transaction-title h4 { margin: 0; border: 0; padding: 0; font-size: 1.05em; } .tx-id { font: 800 .86em "SF Mono", Menlo, Consolas, monospace; color: #315fdc; background: #eef4ff; border: 1px solid #c8d8ff; border-radius: 5px; padding: .12em .45em; } .tx-desc { color: #475569; margin: .25em 0 .75em; } .transaction-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: .7em; align-items: start; } .transaction-panel { border: 1px solid #e5e9f0; border-radius: 7px; background: #fbfcff; padding: .65em; min-width: 0; } .transaction-panel.wide { grid-column: 1 / -1; } .transaction-panel h5 { margin: 0 0 .4em; color: #334155; font-size: .86em; text-transform: uppercase; letter-spacing: .03em; } .cycle-flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .65em; align-items: stretch; } .cycle-stage { position: relative; border: 1px solid #bfd0ea; border-radius: 8px; background: #f8fbff; padding: .75em; min-width: 0; } .cycle-stage-head { display: flex; justify-content: space-between; gap: .5em; align-items: center; margin-bottom: .35em; } .cycle-stage-head strong { overflow-wrap: anywhere; } .cycle-stage p { margin: .25em 0; color: #475569; } .cycle-note { margin-top: .45em; padding-top: .45em; border-top: 1px solid #dbe5f2; color: #475569; } .cycle-note strong { display: block; color: #64748b; font-size: .78em; text-transform: uppercase; margin-bottom: .2em; } .cycle-arrow { display: none; } .register-block { margin: .8em 0 1.1em; } .register-block h4 { margin: .2em 0; } .reg-desc { color: #475569; margin: .1em 0 .55em; } .register-props { margin: .35em 0 .55em; } .register-props th { width: 9em; text-align: left; } .register-fields { width: 100%; } .register-fields th:nth-child(2), .register-fields td:nth-child(2), .register-fields th:nth-child(3), .register-fields td:nth-child(3) { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; } .block-graph { display: grid; grid-template-columns: minmax(170px, 1fr) minmax(280px, 2fr) minmax(170px, 1fr); gap: 0; align-items: center; } .iface-column { display: grid; gap: .75em; align-content: center; } .iface-link { display: grid; align-items: center; min-height: 3em; } .iface-link.left { grid-template-columns: minmax(120px, 1fr) minmax(44px, .35fr); } .iface-link.right { grid-template-columns: minmax(44px, .35fr) minmax(120px, 1fr); } .iface-label { color: #1f2937; padding: .2em .45em; line-height: 1.25; } .iface-link.left .iface-label { text-align: right; } .iface-label strong { display: block; font-weight: 800; } .iface-label small, .module-node small { display: block; color: #64748b; margin-top: .2em; } .iface-wire { display: block; position: relative; height: 2px; min-width: 42px; background: #315fdc; } .iface-wire::before, .iface-wire::after { content: ""; display: none; position: absolute; top: 50%; width: .55em; height: .55em; border-top: 2px solid #315fdc; border-right: 2px solid #315fdc; } .iface-link.flow-out.left .iface-wire::before, .iface-link.flow-in.right .iface-wire::before, .iface-link.flow-bi .iface-wire::before { display: block; left: 0; transform: translateY(-50%) rotate(225deg); } .iface-link.flow-in.left .iface-wire::after, .iface-link.flow-out.right .iface-wire::after, .iface-link.flow-bi .iface-wire::after { display: block; right: 0; transform: translateY(-50%) rotate(45deg); } .top-node { border: 2px solid #315fdc; border-radius: 10px; padding: 1em; background: #f4f7ff; text-align: center; } .top-title { font-weight: 800; font-size: 1.15em; } .top-desc { color: #475569; margin-top: .3em; } .module-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: .65em; margin-top: 1em; } .module-node { border: 1px solid #b8c5dd; border-radius: 6px; padding: .65em; background: #fff; min-height: 3.4em; } .module-node.single { max-width: 280px; margin: 0 auto; } .fsm-machine { margin: .8em 0 1.1em; } .fsm-machine h4 { margin: .2em 0; } .reset-note { color: #475569; margin: .1em 0 .6em; } .fsm-rail { display: flex; flex-wrap: wrap; align-items: center; gap: .4em; margin: .55em 0 .8em; } .fsm-state { border: 1px solid #b8c5dd; border-radius: 999px; padding: .35em .7em; background: #f8fafc; font-family: monospace; } .fsm-state.reset { border-color: #16a34a; background: #ecfdf3; } .fsm-arrow { color: #64748b; } .fsm-flow-map { display: grid; gap: .5em; margin: .6em 0 .9em; min-width: 520px; } .fsm-flow-row { display: grid; grid-template-columns: minmax(110px,.7fr) minmax(180px,1.35fr) minmax(110px,.7fr); gap: .65em; align-items: center; border: 1px solid #e1e7f0; border-radius: 7px; background: #fbfcff; padding: .5em .6em; } .fsm-flow-row small { grid-column: 2 / -1; color: #64748b; } .fsm-flow-state { display: inline-flex; justify-content: center; border: 1px solid #b8c5dd; border-radius: 999px; padding: .3em .65em; background: #fff; font: 800 .9em "SF Mono", Menlo, Consolas, monospace; overflow-wrap: anywhere; text-align: center; } .fsm-flow-state.reset { border-color: #16a34a; background: #ecfdf3; } .fsm-flow-edge { display: flex; align-items: center; justify-content: center; color: #475569; min-width: 0; } .fsm-flow-edge::before, .fsm-flow-edge::after { content: ""; height: 1px; background: #94a3b8; flex: 1; min-width: 18px; } .fsm-flow-edge span { border: 1px solid #d4dbe8; border-radius: 5px; background: #fff; padding: .18em .42em; margin: 0 .35em; overflow-wrap: anywhere; text-align: center; } .wave-table { width: 100%; table-layout: fixed; } .wave-table th { width: 9em; } .wave-cell { text-align: center; font-family: monospace; padding: .25em .35em; } .wave-cell.high { background: #dff7e7; border-top: 3px solid #16a34a; } .wave-cell.low { background: #f8fafc; border-bottom: 3px solid #64748b; } .wave-cell.mark { background: #fff7d6; } .mermaid { margin: .6em 0 .9em; } .mermaid-source { margin: .6em 0 .9em; white-space: pre-wrap; overflow-wrap: anywhere; } @media (min-width: 920px) { .cycle-flow { display: flex; overflow-x: auto; padding-bottom: .2em; } .cycle-stage { flex: 1 0 190px; } .cycle-arrow { display: inline-flex; align-items: center; color: #64748b; font-weight: 900; } } @media (max-width: 760px) { .block-graph { grid-template-columns: 1fr; gap: .8em; } .kv-row { grid-template-columns: 1fr; gap: .15em; } .transaction-grid { grid-template-columns: 1fr; } .fsm-flow-map { min-width: 0; } .fsm-flow-row { grid-template-columns: 1fr; } .fsm-flow-row small { grid-column: auto; } .iface-link.left, .iface-link.right { grid-template-columns: minmax(44px, .25fr) minmax(120px, 1fr); } .iface-link.left .iface-wire { order: 1; } .iface-link.left .iface-label { order: 2; } .wave-table { table-layout: auto; } }</style></head><body><h1 id="ssot_doc_feedback_demo">ssot_doc_feedback_demo</h1>
+<blockquote>
+<p>SSOT specification — generated from <code>ssot_doc_feedback_demo/yaml/ssot_doc_feedback_demo.ssot.yaml</code>
+Export timestamp: 2026-05-31T18:07:01Z
+Source SSOT version: unspecified</p>
+</blockquote>
+<h2 id="top-module" data-ssot-section="top_module" data-ssot-path="top_module" data-ssot-label="Top Module" data-ssot-kind="section">Top Module</h2>
+<ul>
+<li><strong>name:</strong> ssot_doc_feedback_demo</li>
+<li><strong>file:</strong> rtl/ssot_doc_feedback_demo.sv</li>
+<li><strong>type:</strong> rtl</li>
+</ul>
+<p><em>Demo IP used to verify DOC Feedback Mode source mapping.</em></p>
+<h2 id="sub-modules" data-ssot-section="sub_modules" data-ssot-path="sub_modules" data-ssot-label="Sub-Modules" data-ssot-kind="section">Sub-Modules</h2>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>File</th>
+<th>Ownership</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>csr</td>
+<td></td>
+<td></td>
+<td>APB-visible control and status registers.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="io-list" data-ssot-section="io_list" data-ssot-path="io_list" data-ssot-label="I/O List" data-ssot-kind="section">I/O List</h2>
+<h3 id="interfaces">Interfaces</h3>
+<h4 id="apb">apb</h4>
+<ul>
+<li><strong>name:</strong> apb</li>
+<li><strong>type:</strong> APB</li>
+<li><strong>role:</strong> slave</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Width</th>
+<th>Direction</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>pclk</td>
+<td>1</td>
+<td>input</td>
+<td></td>
+</tr>
+<tr>
+<td>prdata</td>
+<td>32</td>
+<td>output</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="registers" data-ssot-section="registers" data-ssot-path="registers" data-ssot-label="Registers" data-ssot-kind="section">Registers</h2><section class="diagram-card"><h3>Register Map</h3><div class="register-block" data-ssot-section="registers" data-ssot-path="registers.register_list.0" data-ssot-label="CTRL" data-ssot-kind="register"><h4>CTRL</h4><table class="register-props"><tbody><tr><th>Offset</th><td>0x00</td></tr><tr><th>Width</th><td>32</td></tr><tr><th>Access</th><td>rw</td></tr></tbody></table><table class="register-fields"><thead><tr><th>Field</th><th>Bits</th><th>Width</th><th>Access</th><th>Reset</th><th>Description</th></tr></thead><tbody><tr data-ssot-section="registers" data-ssot-path="registers.register_list.0.fields.0" data-ssot-label="enable" data-ssot-kind="register_field"><td>enable</td><td>0</td><td>1</td><td>rw</td><td>0</td><td>Enable transfer when software starts the block.</td></tr></tbody></table></div></section><section class="diagram-card"><h3>Doc Feedback: registers.register_list.0.fields.0.review_note</h3><ul>
+<li>path: <code>registers.register_list.0.fields.0.review_note</code></li>
+<li>value: More browser QA final feedback block.</li>
+</ul>
+<p>More browser QA final: apply feedback block near register map.</p></section><h2 id="custom" data-ssot-section="custom" data-ssot-path="custom" data-ssot-label="Custom" data-ssot-kind="section">Custom</h2>
+<p><strong>atlas doc feedback:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Id</th>
+<th>Section</th>
+<th>Path</th>
+<th>Field</th>
+<th>Value</th>
+<th>Comment</th>
+<th>Source</th>
+<th>Created At Ms</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>doc_feedback_1780250820858_registers.register_list.0.fields.0.review_note</td>
+<td>registers</td>
+<td>registers.register_list.0.fields.0.review_note</td>
+<td></td>
+<td>More browser QA final feedback block.</td>
+<td>More browser QA final: apply feedback block near register map.</td>
+<td>ssot-doc</td>
+<td>1780250820858</td>
+</tr>
+</tbody>
+</table>
+<h2 id="other-sections">Other Sections</h2>
+<h3 id="custom_blocks">custom_blocks</h3>
+<table>
+<thead>
+<tr>
+<th>After</th>
+<th>Title</th>
+<th>Type</th>
+<th>Inline</th>
+<th>Source</th>
+<th>Id</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>registers</td>
+<td>Doc Feedback: registers.register_list.0.fields.0.review_note</td>
+<td>markdown</td>
+<td>- path: <code>registers.register_list.0.fields.0.review_note</code><br/>- value: More browser QA final feedback block.<br/><br/>More browser QA final: apply feedback block near register map.</td>
+<td>ssot-doc</td>
+<td>doc_feedback_1780250820858_registers.register_list.0.fields.0.review_note</td>
+</tr>
+</tbody>
+</table></body></html>

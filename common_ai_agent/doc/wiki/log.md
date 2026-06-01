@@ -1,5 +1,13 @@
 # Wiki Log
 
+## 2026-06-01
+
+- Added [[sim-debug-requirements-2026-06-01]] as the user-raised Sim Debug
+  requirements ledger: four-pane loading and preload behavior, source/signal
+  multi-select, exact bit-slice handling, waveform delete/reorder/group/radix/RC
+  controls, A/B cursor delta/frequency, tool-call VCD+pyslang lookup, and
+  remaining browser-drag/performance follow-ups.
+
 ## 2026-05-31
 
 - Added [[sim-debug-feature-review-2026-05-31]] as the consolidated Sim Debug review: four-pane UI, background preload/loading contract, scoped signal identity, source multi-select, waveform RC/radix/group/reorder behavior, agent tool/API bridge, tests, risks, and next work.

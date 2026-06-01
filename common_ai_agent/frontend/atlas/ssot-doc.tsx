@@ -33,10 +33,18 @@ import {
   useCallback,
   useMemo,
   type ReactNode,
-  type ChangeEvent,
   type DragEvent,
   type FormEvent,
 } from 'react';
+import { fetchSsotDocSource, sourceForSsotDocTarget, submitSsotDocFeedback } from './ssot-doc-feedback-api';
+import {
+  buildSsotDocTargetFromElement,
+  clearSsotDocSelection,
+  dispatchSsotDocComment,
+  findSsotDocSelectableElement,
+  markSsotDocSelection,
+} from './ssot-doc-feedback-dom';
+import type { SsotDocSelectedTarget, SsotDocSourceResponse } from './ssot-doc-feedback-types';
 
 // ── Local typed view of the cross-file window globals this file reads. ──
 // Owned by workspace.jsx (not yet migrated); mirror their runtime shapes
@@ -54,11 +62,6 @@ interface SsotDocWindow {
 // runtime `window.X` lookups while giving TS the shapes above.
 const ssotWin = window as unknown as SsotDocWindow;
 
-interface DocDropTarget {
-  section: string;
-  label: string;
-}
-
 export interface SsotDocPaneProps {
   uiLang?: string;
   ip?: string;
@@ -68,7 +71,7 @@ export interface SsotDocPaneProps {
 export const SsotDocPane = ({ uiLang = 'ko', ip = '', onBack }: SsotDocPaneProps): ReactNode => {
   // Late-bound helper lookups (workspace.jsx assigns these globals).
   const SSOT_SECTION_LABELS = ssotWin.SSOT_SECTION_LABELS || {};
-  const ssotIpFromSession = ssotWin.ssotIpFromSession || ((s: unknown) => '');
+  const ssotIpFromSession = ssotWin.ssotIpFromSession || ((_session: unknown) => '');
   const ssotTitleFor = ssotWin.ssotTitleFor || ((k: string) => k);
   const [reloadKey, setReloadKey] = useState(0);
   const [docMode, setDocMode] = useState('view');
@@ -80,6 +83,10 @@ export const SsotDocPane = ({ uiLang = 'ko', ip = '', onBack }: SsotDocPaneProps
   const [feedbackBusy, setFeedbackBusy] = useState(false);
   const [feedbackStatus, setFeedbackStatus] = useState('');
   const [docFrameReady, setDocFrameReady] = useState(0);
+  const [selectedTarget, setSelectedTarget] = useState<SsotDocSelectedTarget | null>(null);
+  const [sourceOpen, setSourceOpen] = useState(false);
+  const [sourceBusy, setSourceBusy] = useState(false);
+  const [sourceInfo, setSourceInfo] = useState<SsotDocSourceResponse | null>(null);
   const docFrameRef = useRef<HTMLIFrameElement>(null);
   const commentTextareaRef = useRef<HTMLTextAreaElement>(null);
   const effectiveIp = String(ip || ssotWin.ACTIVE_IP || ssotIpFromSession(ssotWin.ACTIVE_SESSION) || '').trim();
@@ -107,58 +114,29 @@ export const SsotDocPane = ({ uiLang = 'ko', ip = '', onBack }: SsotDocPaneProps
     });
   }, []);
   const canSubmitFeedback = !!(
-    feedbackComment.trim() || feedbackValue.trim() || feedbackPath.trim() || feedbackField.trim()
+    selectedTarget && (feedbackComment.trim() || feedbackValue.trim() || feedbackField.trim())
   );
-  const sectionKeyFromDocLabel = useCallback((label: string) => {
-    const norm = (value: unknown) => String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
-    const needle = norm(label);
-    if (!needle) return 'custom';
-    const matched = docSections.find(key => {
-      const title = SSOT_SECTION_LABELS[key] || ssotTitleFor(key);
-      return norm(title) === needle || norm(key) === needle;
-    });
-    return matched || 'custom';
-  }, [docSections]);
-  const resolveDocDropSection = useCallback((node: Node | null): DocDropTarget => {
-    const doc = docFrameRef.current?.contentDocument;
-    if (!doc || !node) return { section: 'custom', label: 'Custom' };
-    let el = node.nodeType === 1 ? (node as Element) : node.parentElement;
-    let heading: Element | null = null;
-    const findPreviousH2 = (start: Element | null) => {
-      let cur: Element | null = start;
-      while (cur && cur !== doc.body) {
-        let prev: Element | null = cur;
-        while (prev) {
-          if (String(prev.tagName || '').toUpperCase() === 'H2') return prev;
-          prev = prev.previousElementSibling;
-        }
-        cur = cur.parentElement;
-      }
-      return null;
-    };
-    heading = findPreviousH2(el);
-    if (!heading && el?.closest) heading = el.closest('h2');
-    const label = String(heading?.textContent || '').trim();
-    const section = sectionKeyFromDocLabel(label);
-    return { section, label: label || (SSOT_SECTION_LABELS[section] || ssotTitleFor(section)) };
-  }, [sectionKeyFromDocLabel]);
-  const applyDocDropSection = useCallback((target: DocDropTarget | null) => {
-    const section = target?.section || 'custom';
-    const label = target?.label || SSOT_SECTION_LABELS[section] || ssotTitleFor(section);
-    setFeedbackSection(section);
-    setFeedbackPath(prev => prev.trim() ? prev : `${section}.review_note`);
+  const selectedSourceInfo = sourceForSsotDocTarget(sourceInfo, selectedTarget);
+  const applyDocSelection = useCallback((target: SsotDocSelectedTarget | null, el?: Element | null) => {
+    if (!target) return;
+    setSelectedTarget(target);
+    setSourceOpen(false);
+    setSourceInfo(null);
+    setFeedbackSection(target.section || 'custom');
+    setFeedbackPath(target.path);
     setFeedbackStatus(uiLang === 'en'
-      ? `drop target: ${label}`
-      : `drop target: ${label}`);
+      ? `selected: ${target.label}`
+      : `selected: ${target.label}`);
+    if (el) markSsotDocSelection(el);
     requestAnimationFrame(() => commentTextareaRef.current?.focus());
   }, [uiLang]);
   const handleDocCommentDragStart = (ev: DragEvent<HTMLButtonElement>) => {
-    if (docMode !== 'feedback') return;
+    if (docMode !== 'feedback' || !selectedTarget) return;
     ev.dataTransfer.effectAllowed = 'copy';
     ev.dataTransfer.setData('text/plain', 'atlas-doc-comment');
     setFeedbackStatus(uiLang === 'en'
-      ? 'drop comment on a document section'
-      : 'comment를 DOC 섹션 위에 drop 하세요');
+      ? 'drop comment on a document component'
+      : 'comment를 DOC component 위에 drop 하세요');
   };
   useEffect(() => {
     if (docMode !== 'feedback') return undefined;
@@ -173,55 +151,118 @@ export const SsotDocPane = ({ uiLang = 'ko', ip = '', onBack }: SsotDocPaneProps
     if (!frameDoc || !frameDoc.body) return undefined;
     const style = frameDoc.createElement('style');
     style.textContent = [
-      'body.atlas-feedback-drop-mode h2 { cursor: copy; }',
-      'body.atlas-feedback-drop-mode h2:hover { outline: 2px dashed #315fdc; outline-offset: 4px; }',
+      'body.atlas-feedback-drop-mode [data-ssot-path] { cursor: copy; }',
+      'body.atlas-feedback-drop-mode [data-ssot-path]:hover { outline: 2px dashed #315fdc; outline-offset: 4px; }',
+      'body.atlas-feedback-drop-mode [data-atlas-doc-feedback-selected="1"] { outline: 3px solid #315fdc !important; outline-offset: 5px; background: rgba(49,95,220,.08) !important; }',
     ].join('\n');
     frameDoc.head.appendChild(style);
     frameDoc.body.classList.add('atlas-feedback-drop-mode');
+    const selectFromEvent = (ev: Event) => {
+      const el = findSsotDocSelectableElement(ev.target);
+      const target = buildSsotDocTargetFromElement(el);
+      if (target && el) applyDocSelection(target, el);
+    };
+    const onClick = (ev: Event) => {
+      selectFromEvent(ev);
+    };
     const onDragOver = (ev: Event) => {
       ev.preventDefault();
       const dt = (ev as globalThis.DragEvent).dataTransfer;
       if (dt) dt.dropEffect = 'copy';
+      const el = findSsotDocSelectableElement(ev.target);
+      if (el) markSsotDocSelection(el);
     };
     const onDrop = (ev: Event) => {
       ev.preventDefault();
-      applyDocDropSection(resolveDocDropSection(ev.target as Node));
+      selectFromEvent(ev);
     };
+    const onKeyDown = (ev: Event) => {
+      const key = (ev as KeyboardEvent).key;
+      if (key !== 'Escape') return;
+      clearSsotDocSelection(frameDoc);
+      setSelectedTarget(null);
+      setSourceInfo(null);
+      setSourceOpen(false);
+      setFeedbackStatus('');
+    };
+    frameDoc.addEventListener('click', onClick);
     frameDoc.addEventListener('dragover', onDragOver);
     frameDoc.addEventListener('drop', onDrop);
+    frameDoc.addEventListener('keydown', onKeyDown);
+    frameDoc.defaultView?.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keydown', onKeyDown);
     return () => {
+      frameDoc.removeEventListener('click', onClick);
       frameDoc.removeEventListener('dragover', onDragOver);
       frameDoc.removeEventListener('drop', onDrop);
+      frameDoc.removeEventListener('keydown', onKeyDown);
+      frameDoc.defaultView?.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('keydown', onKeyDown);
       frameDoc.body?.classList.remove('atlas-feedback-drop-mode');
       try { style.remove(); } catch (_) {}
     };
-  }, [docMode, docFrameReady, reloadKey, applyDocDropSection, resolveDocDropSection]);
+  }, [docMode, docFrameReady, reloadKey, applyDocSelection]);
+  const selectedDocText = useCallback(() => {
+    try {
+      return String(docFrameRef.current?.contentWindow?.getSelection?.()?.toString() || '').trim();
+    } catch (_) {
+      return '';
+    }
+  }, []);
+  const handleShowSsotSource = useCallback(async () => {
+    if (!effectiveIp || !selectedTarget || sourceBusy) return;
+    setSourceBusy(true);
+    setFeedbackStatus('');
+    try {
+      const payload = await fetchSsotDocSource({ ip: effectiveIp, target: selectedTarget });
+      setSourceInfo(payload);
+      setSourceOpen(true);
+    } catch (err) {
+      setFeedbackStatus(String((err as { message?: unknown })?.message || err || 'source lookup failed'));
+    } finally {
+      setSourceBusy(false);
+    }
+  }, [effectiveIp, selectedTarget, sourceBusy]);
+  const handleCommentToChat = useCallback(async () => {
+    if (!effectiveIp || !selectedTarget) return;
+    let source = sourceForSsotDocTarget(sourceInfo, selectedTarget);
+    if (!source) {
+      try {
+        source = await fetchSsotDocSource({ ip: effectiveIp, target: selectedTarget });
+        setSourceInfo(source);
+      } catch (_) {
+        source = null;
+      }
+    }
+    dispatchSsotDocComment({
+      ip: effectiveIp,
+      target: selectedTarget,
+      comment: feedbackComment,
+      selectedText: selectedDocText(),
+      source,
+    });
+    setFeedbackStatus(uiLang === 'en' ? 'comment moved to chat input' : 'comment를 chat input으로 보냈습니다');
+    onBack?.();
+  }, [effectiveIp, feedbackComment, onBack, selectedDocText, selectedTarget, sourceInfo, uiLang]);
   const handleDocFeedbackSubmit = async (ev: FormEvent<HTMLFormElement>) => {
     ev.preventDefault();
-    if (!effectiveIp || !canSubmitFeedback || feedbackBusy) return;
+    if (!effectiveIp || !selectedTarget || !canSubmitFeedback || feedbackBusy) return;
     setFeedbackBusy(true);
     setFeedbackStatus('');
     try {
-      const res = await fetch('/api/ssot/doc-feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ip: effectiveIp,
-          mode: 'feedback',
-          section: feedbackSection,
-          path: feedbackPath,
-          field: feedbackField,
-          value: feedbackValue,
-          comment: feedbackComment,
-        }),
+      const payload = await submitSsotDocFeedback({
+        ip: effectiveIp,
+        target: selectedTarget,
+        field: feedbackField,
+        value: feedbackValue,
+        comment: feedbackComment,
       });
-      const payload = await res.json().catch(() => ({}));
-      if (!res.ok || !payload?.ok) throw new Error(payload?.error || `feedback failed (${res.status})`);
       setFeedbackStatus(uiLang === 'en'
         ? `applied ${payload.path || payload.section || 'feedback'}`
         : `${payload.path || payload.section || 'feedback'} 반영 완료`);
       setFeedbackComment('');
       setFeedbackValue('');
+      setSourceInfo(null);
       setReloadKey(k => k + 1);
       window.dispatchEvent(new CustomEvent('atlas-ssot-doc-feedback', { detail: payload }));
     } catch (err) {
@@ -326,10 +367,11 @@ export const SsotDocPane = ({ uiLang = 'ko', ip = '', onBack }: SsotDocPaneProps
               fontSize: 'var(--ui-control-font-size)',
             }}
           >
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(120px, 0.7fr) minmax(160px, 1fr) auto', gap: 8, alignItems: 'center' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(120px, 0.7fr) minmax(160px, 1fr) auto auto', gap: 8, alignItems: 'center' }}>
               <select
                 value={feedbackSection}
                 onChange={e => setFeedbackSection(e.target.value)}
+                disabled={!!selectedTarget}
                 style={{
                   background: 'var(--bg)',
                   color: 'var(--fg)',
@@ -350,6 +392,7 @@ export const SsotDocPane = ({ uiLang = 'ko', ip = '', onBack }: SsotDocPaneProps
                   setFeedbackPath(e.target.value);
                   setFeedbackField('');
                 }}
+                readOnly={!!selectedTarget}
                 placeholder="yaml path or custom field"
                 style={{
                   background: 'var(--bg)',
@@ -364,13 +407,87 @@ export const SsotDocPane = ({ uiLang = 'ko', ip = '', onBack }: SsotDocPaneProps
               <button
                 type="button"
                 className="btn"
+                disabled={!selectedTarget || sourceBusy}
+                onClick={handleShowSsotSource}
+                style={{ fontSize: 10 }}
+              >
+                {sourceBusy ? 'Loading' : 'Show SSOT'}
+              </button>
+              <button
+                type="button"
+                className="btn"
+                disabled={!selectedTarget}
+                onClick={handleCommentToChat}
                 draggable={docMode === 'feedback'}
                 onDragStart={handleDocCommentDragStart}
-                style={{ fontSize: 10, cursor: docMode === 'feedback' ? 'grab' : 'default' }}
+                style={{ fontSize: 10, cursor: docMode === 'feedback' && selectedTarget ? 'grab' : 'default' }}
               >
-                comment
+                Comment
               </button>
             </div>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'minmax(0, 1fr) auto',
+              gap: 8,
+              alignItems: 'center',
+              border: '1px solid var(--line)',
+              background: 'var(--bg)',
+              padding: '6px 8px',
+            }}>
+              <span className="mute" style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {selectedTarget
+                  ? `${selectedTarget.kind} · ${selectedTarget.label} · ${selectedTarget.path}`
+                  : 'Select a DOC component by clicking it, or drop Comment onto it.'}
+              </span>
+              {selectedTarget ? (
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => {
+                    const frameDoc = docFrameRef.current?.contentDocument;
+                    if (frameDoc) clearSsotDocSelection(frameDoc);
+                    setSelectedTarget(null);
+                    setSourceInfo(null);
+                    setSourceOpen(false);
+                    setFeedbackPath('');
+                    setFeedbackStatus('');
+                  }}
+                  style={{ fontSize: 10 }}
+                >
+                  clear
+                </button>
+              ) : null}
+            </div>
+            {sourceOpen && selectedSourceInfo ? (
+              <div style={{
+                border: '1px solid var(--line)',
+                background: 'var(--bg)',
+                padding: 8,
+                display: 'grid',
+                gap: 6,
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
+                  <strong style={{ color: 'var(--fg)' }}>{selectedSourceInfo.label}</strong>
+                  <span className="mute">{selectedSourceInfo.kind}</span>
+                </div>
+                <div className="mute" style={{ overflowWrap: 'anywhere' }}>
+                  @{selectedSourceInfo.ssot_path} · {selectedSourceInfo.path}
+                </div>
+                <pre style={{
+                  margin: 0,
+                  maxHeight: 140,
+                  overflow: 'auto',
+                  background: 'var(--bg-2)',
+                  border: '1px solid var(--line)',
+                  padding: 8,
+                  color: 'var(--fg)',
+                  whiteSpace: 'pre-wrap',
+                }}>{selectedSourceInfo.yaml || '(empty)'}</pre>
+                {selectedSourceInfo.feedback.length ? (
+                  <div className="mute">{selectedSourceInfo.feedback.length} existing DOC feedback item(s)</div>
+                ) : null}
+              </div>
+            ) : null}
             <textarea
               ref={commentTextareaRef}
               value={feedbackComment}

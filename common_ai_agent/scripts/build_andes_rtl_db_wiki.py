@@ -39,6 +39,12 @@ import time
 from pathlib import Path
 from typing import Any, cast
 
+SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(SCRIPT_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_REPO_ROOT))
+
+from scripts.andes_rtl_db_quality import write_quality_artifacts
+
 JsonObject = dict[str, Any]
 FactMap = dict[str, Any]
 BlockMap = dict[str, Any]
@@ -1024,8 +1030,9 @@ def main(argv: list[str] | None = None) -> int:
     write_platform_page(wiki, blocks, today)
     write_index(wiki, blocks, andes, today)
     write_inventory(wiki, blocks, andes, today)
+    write_quality_artifacts(andes, wiki, today)
 
-    print(f"[andes-wiki] wrote {len(blocks)} block pages + AST facts + docs + index + rtl-inventory + {PLATFORM_ID} to {wiki}")
+    print(f"[andes-wiki] wrote {len(blocks)} block pages + AST facts + docs + coverage + index + rtl-inventory + {PLATFORM_ID} to {wiki}")
 
     if args.build_graph:
         builder = Path(__file__).resolve().parents[1] / "workflow" / "wiki" / "build_graph.py"

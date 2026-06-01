@@ -1,0 +1,13 @@
+{
+  "goal": {
+    "threadId": "019e7e69-3956-76b0-89df-6acc580185bd",
+    "objective": "Complete the durable ulw-loop plan in .omo/ulw-loop/019e7e69-3956-76b0-89df-6acc580185bd/goals.json: add a coverage tab that explains coverage types, unmet reasons, VCD toggle/static coverage details, and RTL code linkage analogous to existing sim/lint integration.",
+    "status": "complete",
+    "tokensUsed": 553278,
+    "timeUsedSeconds": 2968,
+    "createdAt": 1780237442,
+    "updatedAt": 1780240410
+  },
+  "remainingTokens": null,
+  "completionBudgetReport": null
+}

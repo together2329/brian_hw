@@ -1,0 +1,37 @@
+{
+  "aiSlopCleaner": {
+    "status": "passed",
+    "evidence": "Read-only slop audit over scripts/build_andes_rtl_db_wiki.py and tests/test_andes_rtl_db_wiki_builder.py: no TODO/FIXME/debug/breakpoint leftovers; CLI print calls are intentional status/error output; tests assert real generated files, AST sidecar facts, graph JSON, malformed/empty diagnostics, and wiki_query output. Residual accepted: generator is ~1040 LOC with SIZE_OK because it is a single-purpose external corpus adapter; future split into AST extraction/rendering/CLI modules would improve maintainability."
+  },
+  "verification": {
+    "status": "passed",
+    "commands": [
+      "python3 -m pytest tests/test_andes_rtl_db_wiki_builder.py tests/test_wiki_query_tool.py -q",
+      "python3 -m py_compile scripts/build_andes_rtl_db_wiki.py",
+      "git diff --check -- scripts/build_andes_rtl_db_wiki.py tests/test_andes_rtl_db_wiki_builder.py",
+      "python3 scripts/build_andes_rtl_db_wiki.py --andes-root /Users/brian/Desktop/andes --build-graph",
+      "ATLAS_RTL_DB_WIKI=/Users/brian/Desktop/andes/wiki ATLAS_RTL_DB_NO_REBUILD=1 COMMON_AI_AGENT_HOME=/Users/brian/Desktop/Project/brian_hw/common_ai_agent python3 -c 'from core.tools import wiki_query; print(wiki_query(ip=\"rtl-db\", topic=\"uart fsm register memory clock reset\", depth=3, max_nodes=1))'",
+      "omo ulw-loop criteria --goal-id G001-build-an-optional-andes-rtl-db-llm-w --json"
+    ],
+    "evidence": "Targeted pytest: 12 passed, 2 skipped. py_compile and git diff --check passed. Actual Andes build: nodes=42 edges=218 broken_refs=0, 14 AST fact files, 25 doc pages. Actual wiki_query returned atcuart100 with AST/doc content including fsm/register/memory/clock/reset/datapath terms. C001/C002/C003 are pass with tmux evidence and cleanup receipts."
+  },
+  "codeReview": {
+    "recommendation": "APPROVE",
+    "architectStatus": "CLEAR",
+    "evidence": "Parent final review plus context review found the core/env wiring consistent: skills/external-db/SKILL.md, doc/wiki/external-rtl-db-integration-guide.md, and core.tools wiki_query aliases/env variables align for ATLAS_EXTERNAL_DB_* and legacy ATLAS_RTL_DB_* names. Security review by parent found no source document content embedding, only metadata paths; writes are scoped to the selected wiki directory; external builder/query execution remains explicit opt-in via env vars. basedpyright reports 0 errors and 138 strict Any/Unknown warnings in the standalone pyslang JSON adapter; accepted as residual, not a blocker, because runtime and regression coverage passed."
+  },
+  "criteriaCoverage": {
+    "totalCriteria": 3,
+    "passCount": 3,
+    "adversarialClassesCovered": [
+      "happy_path",
+      "malformed_input",
+      "empty_corpus",
+      "missing_config",
+      "no_rebuild_regression",
+      "external_builder_adapter",
+      "external_query_adapter",
+      "dirty_worktree_generated_churn"
+    ]
+  }
+}

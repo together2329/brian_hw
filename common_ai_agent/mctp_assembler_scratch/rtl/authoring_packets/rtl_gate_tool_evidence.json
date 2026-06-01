@@ -802,57 +802,24 @@
   },
   "execution_policy": {
     "blocked_by_locked_truth": [],
-    "blocked_by_tool_evidence": [
-      {
-        "gate_kind": "dynamic_todo_closure",
-        "owner_module": "mctp_assembler_scratch",
-        "reason": "22 required non-closure TODO(s) remain open.",
-        "source": "packet_task",
-        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
-        "status": "open",
-        "task_id": "RTL-0019"
-      }
-    ],
+    "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": true,
+    "deferred_human_qa_allowed": false,
     "draft_allowed": false,
     "evidence_closure_allowed": true,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
     "llm_actionable": false,
     "llm_actionable_open_count": 0,
-    "open_required_count": 1,
-    "pass_allowed": false,
+    "open_required_count": 0,
+    "pass_allowed": true,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
       "Never use a fixed RTL template as the implementation."
     ],
-    "tool_evidence_open_count": 1,
-    "tool_evidence_plan": [
-      {
-        "artifact": "rtl/rtl_todo_plan.json",
-        "artifacts": [
-          "mctp_assembler_scratch/rtl/rtl_todo_plan.json",
-          "mctp_assembler_scratch/rtl/rtl_authoring_status.md"
-        ],
-        "closure_rule": "dynamic_todo_closure passes only when every required non-closure TODO is already pass.",
-        "commands": [
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py mctp_assembler_scratch --root . --audit-rtl"
-        ],
-        "gate_kind": "dynamic_todo_closure",
-        "prerequisites": [
-          "All non-closure required TODOs have pass status."
-        ],
-        "reason": "22 required non-closure TODO(s) remain open.",
-        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
-        "stage_sequence": [
-          "audit-rtl"
-        ],
-        "status": "open",
-        "task_id": "RTL-0019"
-      }
-    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
     "work_allowed": true
   },
   "ip": "mctp_assembler_scratch",
@@ -877,7 +844,7 @@
       "rtl_gate.rtl_gen": 4
     },
     "module_slice": {},
-    "open_required_count": 1,
+    "open_required_count": 0,
     "required_count": 4,
     "source_refs": [
       "quality_gates.rtl_gen.common_ai_agent_authoring",
@@ -886,8 +853,7 @@
       "quality_gates.rtl_gen.dynamic_todo_closure"
     ],
     "status_counts": {
-      "open": 1,
-      "pass": 3
+      "pass": 4
     },
     "task_count": 4
   },
@@ -1076,13 +1042,13 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "22 required non-closure TODO(s) remain open.",
+        "reason": "Every required non-closure TODO has pass status.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     }
   ],
-  "todo_plan_sha256": "740f93796c4f016836bc823fe2faf4054d926dc664b7d534ef5d5436d6585bb5",
+  "todo_plan_sha256": "f7d51fe86c7b2e93192acdcd2fb7e463badd1ca4416fc82440243aa7e8a43e3c",
   "top": "mctp_assembler_scratch",
   "type": "rtl_authoring_packet"
 }

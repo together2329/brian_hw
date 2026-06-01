@@ -3,8 +3,8 @@
 - Kind: module
 - Owner module: mctp_assembler_scratch_sram_arbiter
 - Owner file: rtl/mctp_assembler_scratch_sram_arbiter.sv
-- Task count: 16
-- Required tasks: 16
+- Task count: 17
+- Required tasks: 17
 
 ## Rules
 
@@ -23,13 +23,34 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.arbitration, io_list, io_list.interfaces.sram_read_port, io_list.interfaces.sram_write_port, memory
 
 ## Tasks
+
+### RTL-0300: Implement handshake rule: sram_ready_valid
+
+- Priority: high
+- Required: True
+- Status: pass
+- Category: cycle_model.handshake_rules
+- Source ref: cycle_model.handshake_rules.sram_ready_valid
+- Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
+SSOT ref: cycle_model.handshake_rules.sram_ready_valid.
+Owner: mctp_assembler_scratch_sram_arbiter in rtl/mctp_assembler_scratch_sram_arbiter.sv via cycle_model.
+SSOT item context: name=sram_ready_valid; signal=sram_wr_valid/sram_wr_ready/sram_rd_req_valid/sram_rd_req_ready.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - RTL contains the control/state/handshake logic for this cycle rule
+  - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
+  - TB scoreboard/coverage can observe the rule at the declared phase
+  - Traceability keeps source_ref cycle_model.handshake_rules.sram_ready_valid
+  - Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_arbiter.sv
+  - sram_ready_valid appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
+- SSOT refs: cycle_model.handshake_rules.sram_ready_valid
 
 ### RTL-0310: Implement ordering rule: descriptor_after_sram_flush
 

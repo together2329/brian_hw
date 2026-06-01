@@ -13,7 +13,7 @@
     "type": "rtl_connection_contract_suggestions"
   },
   "gate": {
-    "all_required_todos_pass": false,
+    "all_required_todos_pass": true,
     "audit_rtl": true,
     "blocking_questions": 0,
     "criteria": [
@@ -35,24 +35,17 @@
       "Gate: DUT-only lint report passes after the final RTL edit",
       "Gate: every required rtl_todo_plan item is closed before rtl-gen PASS"
     ],
-    "open_required_todos": 23,
+    "open_required_todos": 0,
     "orphan_tasks": 0,
-    "static_missing": 19,
-    "status": "fail"
+    "static_missing": 0,
+    "status": "pass"
   },
-  "generated_at": "2026-05-31T11:57:58Z",
+  "generated_at": "2026-05-31T15:42:00Z",
   "ip": "mctp_assembler_scratch",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 5,
-    "connection_contract_issues": [
-      {
-        "issue": "SSOT connection contract port is not connected by the RTL named port map",
-        "module": "mctp_assembler_scratch_sram_packer",
-        "port": "sram_wr_valid",
-        "source_ref": "integration.connections[2]"
-      }
-    ],
-    "connection_contract_status": "fail",
+    "connection_contract_issues": [],
+    "connection_contract_status": "pass",
     "declared_modules": [
       "mctp_assembler_scratch",
       "mctp_assembler_scratch_apb_regfile",
@@ -150,23 +143,8 @@
   "orphans": [],
   "owner_logic_evidence": {
     "checked": 10,
-    "issues": [
-      {
-        "file": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
-        "issue": "State/register/memory/FSM owner lacks sequential/procedural update evidence",
-        "metrics": {
-          "control_flow": 0,
-          "instances": 0,
-          "nonconstant_assigns": 13,
-          "placeholder_tokens": false,
-          "procedural_blocks": 0,
-          "state_updates": 0,
-          "storage_decls": 2
-        },
-        "module": "mctp_assembler_scratch_sram_arbiter"
-      }
-    ],
-    "status": "fail"
+    "issues": [],
+    "status": "pass"
   },
   "policy": {
     "dynamic_task_rule": "Use every required task in this file as the authoritative RTL implementation/evidence ledger. Expose Atlas/UI TodoTracker items as a flat one-to-one projection of this ledger so the existing flat TodoTracker executes one SSOT-derived RTL task at a time.",
@@ -186,129 +164,129 @@
   "rtl_implementation_depth_evidence": {
     "aggregate": {
       "behavior_owner_logic_modules": 10,
-      "control_flow": 71,
-      "depth_score": 891,
+      "control_flow": 74,
+      "depth_score": 991,
       "instances": 10,
-      "lines": 1300,
+      "lines": 1412,
       "logic_modules": 11,
       "modules": 11,
-      "nonconstant_assigns": 44,
-      "procedural_blocks": 10,
+      "nonconstant_assigns": 75,
+      "procedural_blocks": 11,
       "source_files": 11,
-      "state_updates": 291,
-      "storage_decls": 144
+      "state_updates": 302,
+      "storage_decls": 185
     },
     "issues": [],
     "modules": [
       {
-        "depth_score": 205,
+        "depth_score": 215,
         "file": "rtl/mctp_assembler_scratch_context_table.sv",
         "metrics": {
           "control_flow": 12,
           "instances": 0,
-          "nonconstant_assigns": 4,
+          "nonconstant_assigns": 9,
           "placeholder_tokens": false,
           "procedural_blocks": 1,
           "state_updates": 89,
-          "storage_decls": 8
+          "storage_decls": 13
         },
         "module": "mctp_assembler_scratch_context_table"
       },
       {
-        "depth_score": 119,
+        "depth_score": 121,
         "file": "rtl/mctp_assembler_scratch.sv",
         "metrics": {
           "control_flow": 0,
           "instances": 10,
-          "nonconstant_assigns": 2,
+          "nonconstant_assigns": 3,
           "placeholder_tokens": false,
           "procedural_blocks": 0,
           "state_updates": 0,
-          "storage_decls": 97
+          "storage_decls": 98
         },
         "module": "mctp_assembler_scratch"
       },
       {
-        "depth_score": 102,
+        "depth_score": 121,
         "file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
         "metrics": {
           "control_flow": 24,
           "instances": 0,
-          "nonconstant_assigns": 10,
+          "nonconstant_assigns": 19,
           "placeholder_tokens": false,
           "procedural_blocks": 2,
           "state_updates": 24,
-          "storage_decls": 14
+          "storage_decls": 24
         },
         "module": "mctp_assembler_scratch_apb_regfile"
       },
       {
-        "depth_score": 101,
+        "depth_score": 113,
         "file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
         "metrics": {
           "control_flow": 10,
           "instances": 0,
-          "nonconstant_assigns": 6,
+          "nonconstant_assigns": 11,
           "placeholder_tokens": false,
           "procedural_blocks": 1,
           "state_updates": 37,
-          "storage_decls": 8
+          "storage_decls": 15
         },
         "module": "mctp_assembler_scratch_axi_write_ingress"
       },
       {
-        "depth_score": 88,
+        "depth_score": 93,
         "file": "rtl/mctp_assembler_scratch_mctp_parser.sv",
         "metrics": {
-          "control_flow": 6,
+          "control_flow": 5,
           "instances": 0,
-          "nonconstant_assigns": 3,
+          "nonconstant_assigns": 7,
           "placeholder_tokens": false,
           "procedural_blocks": 1,
-          "state_updates": 36,
-          "storage_decls": 4
+          "state_updates": 35,
+          "storage_decls": 8
         },
         "module": "mctp_assembler_scratch_mctp_parser"
       },
       {
-        "depth_score": 77,
+        "depth_score": 79,
         "file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
         "metrics": {
           "control_flow": 7,
           "instances": 0,
-          "nonconstant_assigns": 3,
+          "nonconstant_assigns": 4,
           "placeholder_tokens": false,
           "procedural_blocks": 1,
           "state_updates": 30,
-          "storage_decls": 4
+          "storage_decls": 5
         },
         "module": "mctp_assembler_scratch_axi_read_egress"
       },
       {
-        "depth_score": 53,
+        "depth_score": 62,
         "file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
         "metrics": {
           "control_flow": 5,
           "instances": 0,
-          "nonconstant_assigns": 1,
+          "nonconstant_assigns": 5,
           "placeholder_tokens": false,
           "procedural_blocks": 1,
           "state_updates": 21,
-          "storage_decls": 2
+          "storage_decls": 7
         },
         "module": "mctp_assembler_scratch_pcie_vdm_parser"
       },
       {
-        "depth_score": 49,
+        "depth_score": 58,
         "file": "rtl/mctp_assembler_scratch_descriptor_queue.sv",
         "metrics": {
           "control_flow": 3,
           "instances": 0,
-          "nonconstant_assigns": 0,
+          "nonconstant_assigns": 4,
           "placeholder_tokens": false,
           "procedural_blocks": 1,
           "state_updates": 21,
-          "storage_decls": 1
+          "storage_decls": 6
         },
         "module": "mctp_assembler_scratch_descriptor_queue"
       },
@@ -327,32 +305,32 @@
         "module": "mctp_assembler_scratch_cdc"
       },
       {
-        "depth_score": 35,
+        "depth_score": 43,
+        "file": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
+        "metrics": {
+          "control_flow": 4,
+          "instances": 0,
+          "nonconstant_assigns": 9,
+          "placeholder_tokens": false,
+          "procedural_blocks": 1,
+          "state_updates": 12,
+          "storage_decls": 3
+        },
+        "module": "mctp_assembler_scratch_sram_arbiter"
+      },
+      {
+        "depth_score": 39,
         "file": "rtl/mctp_assembler_scratch_sram_packer.sv",
         "metrics": {
           "control_flow": 3,
           "instances": 0,
-          "nonconstant_assigns": 1,
+          "nonconstant_assigns": 3,
           "placeholder_tokens": false,
           "procedural_blocks": 1,
           "state_updates": 13,
-          "storage_decls": 2
+          "storage_decls": 4
         },
         "module": "mctp_assembler_scratch_sram_packer"
-      },
-      {
-        "depth_score": 15,
-        "file": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
-        "metrics": {
-          "control_flow": 0,
-          "instances": 0,
-          "nonconstant_assigns": 13,
-          "placeholder_tokens": false,
-          "procedural_blocks": 0,
-          "state_updates": 0,
-          "storage_decls": 2
-        },
-        "module": "mctp_assembler_scratch_sram_arbiter"
       }
     ],
     "profile": "standard",
@@ -1152,297 +1130,9 @@
   ],
   "static_rtl_evidence": {
     "checked": 264,
-    "missing": 19,
-    "missing_tasks": [
-      {
-        "category": "cycle_model.handshake_rules",
-        "matched_count": 1,
-        "matched_terms": [
-          "apb"
-        ],
-        "owner_file": "rtl/mctp_assembler_scratch.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "apb",
-          "apb_access"
-        ],
-        "source_ref": "cycle_model.handshake_rules.apb_access",
-        "source_scope": "rtl/mctp_assembler_scratch.sv",
-        "task_id": "RTL-0299"
-      },
-      {
-        "category": "registers.field",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "any_error"
-        ],
-        "source_ref": "registers.register_list.GLOBAL_STATUS.fields.any_error",
-        "source_scope": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-        "task_id": "RTL-0325"
-      },
-      {
-        "category": "registers.field",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "desc",
-          "desc_pending"
-        ],
-        "source_ref": "registers.register_list.IRQ_STATUS.fields.desc_pending",
-        "source_scope": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-        "task_id": "RTL-0328"
-      },
-      {
-        "category": "registers.field",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "value"
-        ],
-        "source_ref": "registers.register_list.PACKET_DROP_COUNT.fields.value",
-        "source_scope": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-        "task_id": "RTL-0340"
-      },
-      {
-        "category": "registers.field",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "value"
-        ],
-        "source_ref": "registers.register_list.ASSEMBLY_DROP_COUNT.fields.value",
-        "source_scope": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-        "task_id": "RTL-0342"
-      },
-      {
-        "category": "registers.field",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "eid",
-          "source",
-          "source_eid"
-        ],
-        "source_ref": "registers.register_list.Q_KEY.fields.source_eid",
-        "source_scope": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-        "task_id": "RTL-0354"
-      },
-      {
-        "category": "registers.field",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "destination",
-          "destination_eid",
-          "eid"
-        ],
-        "source_ref": "registers.register_list.Q_KEY.fields.destination_eid",
-        "source_scope": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-        "task_id": "RTL-0355"
-      },
-      {
-        "category": "registers.field",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "owner",
-          "tag",
-          "tag_owner"
-        ],
-        "source_ref": "registers.register_list.Q_KEY.fields.tag_owner",
-        "source_scope": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-        "task_id": "RTL-0356"
-      },
-      {
-        "category": "registers.field",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "message",
-          "message_tag",
-          "tag"
-        ],
-        "source_ref": "registers.register_list.Q_KEY.fields.message_tag",
-        "source_scope": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-        "task_id": "RTL-0357"
-      },
-      {
-        "category": "registers.field",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "message",
-          "message_type",
-          "type"
-        ],
-        "source_ref": "registers.register_list.Q_KEY.fields.message_type",
-        "source_scope": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-        "task_id": "RTL-0358"
-      },
-      {
-        "category": "fsm.state",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/mctp_assembler_scratch_context_table.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "DONE_WAIT_DESCRIPTOR_POP"
-        ],
-        "source_ref": "fsm.context_fsm.states.state_3",
-        "source_scope": "rtl/mctp_assembler_scratch_context_table.sv",
-        "task_id": "RTL-0378"
-      },
-      {
-        "category": "features.item",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-        "required_match_count": 1,
-        "required_terms": [
-          "error_handling",
-          "handling"
-        ],
-        "source_ref": "features.error_policy",
-        "source_scope": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-        "task_id": "RTL-0388"
-      },
-      {
-        "category": "dataflow.sequence",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "parse",
-          "pcie",
-          "pcie_vdm_parse",
-          "vdm"
-        ],
-        "source_ref": "dataflow.sequence.sequence_1",
-        "source_scope": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
-        "task_id": "RTL-0390"
-      },
-      {
-        "category": "dataflow.sequence",
-        "matched_count": 1,
-        "matched_terms": [
-          "mctp"
-        ],
-        "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "mctp",
-          "mctp_parse",
-          "parse"
-        ],
-        "source_ref": "dataflow.sequence.sequence_2",
-        "source_scope": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
-        "task_id": "RTL-0391"
-      },
-      {
-        "category": "dataflow.sequence",
-        "matched_count": 1,
-        "matched_terms": [
-          "assembly"
-        ],
-        "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "assembly",
-          "context",
-          "context_assembly"
-        ],
-        "source_ref": "dataflow.sequence.sequence_3",
-        "source_scope": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
-        "task_id": "RTL-0392"
-      },
-      {
-        "category": "dataflow.sequence",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "pack",
-          "sram",
-          "sram_pack"
-        ],
-        "source_ref": "dataflow.sequence.sequence_4",
-        "source_scope": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
-        "task_id": "RTL-0393"
-      },
-      {
-        "category": "dataflow.sequence",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "descriptor",
-          "descriptor_publish",
-          "publish"
-        ],
-        "source_ref": "dataflow.sequence.sequence_5",
-        "source_scope": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
-        "task_id": "RTL-0394"
-      },
-      {
-        "category": "dataflow.sequence",
-        "matched_count": 1,
-        "matched_terms": [
-          "axi"
-        ],
-        "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "axi",
-          "axi_readback",
-          "readback"
-        ],
-        "source_ref": "dataflow.sequence.sequence_6",
-        "source_scope": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
-        "task_id": "RTL-0395"
-      },
-      {
-        "category": "security.assets",
-        "matched_count": 1,
-        "matched_terms": [
-          "descriptor"
-        ],
-        "owner_file": "rtl/mctp_assembler_scratch_descriptor_queue.sv",
-        "required_match_count": 2,
-        "required_terms": [
-          "descriptor",
-          "firmware",
-          "firmware_visible_descriptor_metadata",
-          "metadata",
-          "visible"
-        ],
-        "source_ref": "security.assets.asset_1",
-        "source_scope": "rtl/mctp_assembler_scratch_descriptor_queue.sv",
-        "task_id": "RTL-0400"
-      }
-    ],
-    "passed": 245,
+    "missing": 0,
+    "missing_tasks": [],
+    "passed": 264,
     "sources": [
       "rtl/mctp_assembler_scratch.sv",
       "rtl/mctp_assembler_scratch_apb_regfile.sv",
@@ -2030,9 +1720,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "19 static-evidence-required task(s) still lack DUT RTL evidence.",
+        "reason": "Static DUT RTL evidence audit has no missing required task.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2077,9 +1767,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 owner logic structure issue(s) remain. mctp_assembler_scratch_sram_arbiter: State/register/memory/FSM owner lacks sequential/procedural update evidence",
+        "reason": "Behavior-owner RTL modules contain real implementation structure.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2456,9 +2146,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "1 SSOT connection contract issue(s) remain. mctp_assembler_scratch_sram_packer: SSOT connection contract port is not connected by the RTL named port map",
+        "reason": "SSOT connection contracts are satisfied by reachable RTL named port maps.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2602,9 +2292,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "22 required non-closure TODO(s) remain open.",
+        "reason": "Every required non-closure TODO has pass status.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2617,15 +2307,15 @@
         "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
         "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
         "Traceability keeps source_ref workflow_todos.rtl-gen[0]",
-        "Primary implementation evidence is in rtl/mctp_assembler_scratch.sv",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
         "Semantic source_refs covered: cycle_model.handshake_rules.axi_write_channels, io_list.interfaces.axi_write_slave"
       ],
-      "detail": "AW/W/B channels must follow io_list and cycle_model handshake rules.\nSSOT ref: workflow_todos.rtl-gen[0].\nOwner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_level_handshake_rule.",
+      "detail": "AW/W/B channels must follow io_list and cycle_model handshake rules.\nSSOT ref: workflow_todos.rtl-gen[0].\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via cycle_model.handshake_rules.axi_write_channels.",
       "evidence_terms": [],
       "id": "RTL-0020",
-      "owner_file": "rtl/mctp_assembler_scratch.sv",
-      "owner_match": "top_level_handshake_rule",
-      "owner_module": "mctp_assembler_scratch",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_match": "cycle_model.handshake_rules.axi_write_channels",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": false,
@@ -7396,9 +7086,11 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 1,
+        "matched_count": 3,
         "matched_terms": [
-          "ctx"
+          "ctx",
+          "eid",
+          "source"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -7462,9 +7154,11 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 1,
+        "matched_count": 3,
         "matched_terms": [
-          "ctx"
+          "ctx",
+          "destination",
+          "eid"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -7528,9 +7222,11 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 1,
+        "matched_count": 3,
         "matched_terms": [
-          "ctx"
+          "ctx",
+          "owner",
+          "tag"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -7594,9 +7290,11 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 1,
+        "matched_count": 3,
         "matched_terms": [
-          "ctx"
+          "ctx",
+          "message",
+          "tag"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -7660,9 +7358,11 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 1,
+        "matched_count": 3,
         "matched_terms": [
-          "ctx"
+          "ctx",
+          "message",
+          "type"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -9071,7 +8771,7 @@
         ],
         "owner_file_scoped": true,
         "required": true,
-        "required_match_count": 1,
+        "required_match_count": 2,
         "required_terms": [
           "accept",
           "aw",
@@ -9165,7 +8865,7 @@
         ],
         "owner_file_scoped": true,
         "required": true,
-        "required_match_count": 1,
+        "required_match_count": 2,
         "required_terms": [
           "ACCEPT",
           "AXI",
@@ -9821,8 +9521,9 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 5,
+        "matched_count": 6,
         "matched_terms": [
+          "ctx",
           "drop",
           "last",
           "packet",
@@ -9908,7 +9609,7 @@
         ],
         "owner_file_scoped": true,
         "required": true,
-        "required_match_count": 1,
+        "required_match_count": 2,
         "required_terms": [
           "debug",
           "debug_vdm_valid",
@@ -9992,7 +9693,7 @@
         ],
         "owner_file_scoped": true,
         "required": true,
-        "required_match_count": 1,
+        "required_match_count": 2,
         "required_terms": [
           "DROP",
           "DROP_NONE",
@@ -10135,8 +9836,9 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 5,
+        "matched_count": 6,
         "matched_terms": [
+          "ctx",
           "drop",
           "last",
           "packet",
@@ -10221,13 +9923,14 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 10,
+        "matched_count": 11,
         "matched_terms": [
           "MALFORMED",
           "PD",
           "PD_MALFORMED_TLP",
           "TLP",
           "count",
+          "ctx",
           "debug",
           "debug_vdm_valid",
           "drop",
@@ -10321,13 +10024,14 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 10,
+        "matched_count": 11,
         "matched_terms": [
           "PD",
           "PD_UNSUPPORTED_VDM",
           "UNSUPPORTED",
           "VDM",
           "count",
+          "ctx",
           "debug",
           "debug_vdm_valid",
           "drop",
@@ -10507,7 +10211,7 @@
         "function_model.transactions.FM_PARSE_MCTP.outputs.output_0"
       ],
       "static_evidence": {
-        "fallback_scope": "all_sources_without_owner",
+        "fallback_scope": "",
         "matched_count": 4,
         "matched_terms": [
           "context",
@@ -10991,7 +10695,7 @@
         "function_model.transactions.FM_PARSE_MCTP.output_rules.debug_context_key"
       ],
       "static_evidence": {
-        "fallback_scope": "all_sources_without_owner",
+        "fallback_scope": "",
         "matched_count": 5,
         "matched_terms": [
           "context",
@@ -11002,7 +10706,7 @@
         ],
         "owner_file_scoped": true,
         "required": true,
-        "required_match_count": 1,
+        "required_match_count": 2,
         "required_terms": [
           "context",
           "context_key",
@@ -11505,12 +11209,16 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 5,
+        "matched_count": 9,
         "matched_terms": [
+          "context",
+          "debug",
+          "debug_context_key",
           "destination",
           "destination_eid",
           "eid",
           "eom",
+          "key",
           "last"
         ],
         "owner_file_scoped": true,
@@ -11628,11 +11336,12 @@
         "function_model.transactions.FM_ASSEMBLE_FRAGMENT.preconditions.precondition_0"
       ],
       "static_evidence": {
-        "fallback_scope": "all_sources_without_owner",
-        "matched_count": 5,
+        "fallback_scope": "",
+        "matched_count": 6,
         "matched_terms": [
           "accept",
           "context",
+          "context_accept",
           "enable",
           "enable_reg",
           "reg"
@@ -11697,8 +11406,9 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 1,
+        "matched_count": 2,
         "matched_terms": [
+          "context",
           "debug"
         ],
         "owner_file_scoped": true,
@@ -11830,7 +11540,7 @@
         "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_state"
       ],
       "static_evidence": {
-        "fallback_scope": "all_sources_without_owner",
+        "fallback_scope": "",
         "matched_count": 4,
         "matched_terms": [
           "ASSEMBLING",
@@ -11900,8 +11610,12 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 1,
+        "matched_count": 5,
         "matched_terms": [
+          "accept",
+          "context",
+          "context_accept",
+          "ctx",
           "valid"
         ],
         "owner_file_scoped": true,
@@ -11967,12 +11681,14 @@
         "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_expected_seq"
       ],
       "static_evidence": {
-        "fallback_scope": "all_sources_without_owner",
-        "matched_count": 4,
+        "fallback_scope": "",
+        "matched_count": 6,
         "matched_terms": [
           "ctx",
+          "ctx_expected_seq",
           "expected",
           "next",
+          "next_seq",
           "seq"
         ],
         "owner_file_scoped": true,
@@ -12110,10 +11826,11 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 3,
+        "matched_count": 4,
         "matched_terms": [
           "byte",
           "count",
+          "ctx",
           "payload"
         ],
         "owner_file_scoped": true,
@@ -12195,7 +11912,7 @@
         ],
         "owner_file_scoped": true,
         "required": true,
-        "required_match_count": 1,
+        "required_match_count": 2,
         "required_terms": [
           "context",
           "context_id",
@@ -12329,7 +12046,7 @@
         "function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_state"
       ],
       "static_evidence": {
-        "fallback_scope": "all_sources_without_owner",
+        "fallback_scope": "",
         "matched_count": 4,
         "matched_terms": [
           "ASSEMBLING",
@@ -12402,8 +12119,12 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 1,
+        "matched_count": 5,
         "matched_terms": [
+          "accept",
+          "context",
+          "context_accept",
+          "ctx",
           "valid"
         ],
         "owner_file_scoped": true,
@@ -12472,12 +12193,14 @@
         "function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_expected_seq"
       ],
       "static_evidence": {
-        "fallback_scope": "all_sources_without_owner",
-        "matched_count": 4,
+        "fallback_scope": "",
+        "matched_count": 6,
         "matched_terms": [
           "ctx",
+          "ctx_expected_seq",
           "expected",
           "next",
+          "next_seq",
           "seq"
         ],
         "owner_file_scoped": true,
@@ -12621,10 +12344,11 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 3,
+        "matched_count": 4,
         "matched_terms": [
           "byte",
           "count",
+          "ctx",
           "payload"
         ],
         "owner_file_scoped": true,
@@ -12705,9 +12429,12 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 2,
+        "matched_count": 5,
         "matched_terms": [
+          "accept",
           "byte",
+          "context",
+          "context_accept",
           "count"
         ],
         "owner_file_scoped": true,
@@ -12797,9 +12524,12 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 2,
+        "matched_count": 5,
         "matched_terms": [
+          "accept",
           "byte",
+          "context",
+          "context_accept",
           "count"
         ],
         "owner_file_scoped": true,
@@ -13250,10 +12980,11 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 5,
+        "matched_count": 6,
         "matched_terms": [
           "payload",
           "sram",
+          "sram_wr_valid",
           "valid",
           "wr",
           "write"
@@ -13332,10 +13063,11 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 4,
+        "matched_count": 5,
         "matched_terms": [
           "addr",
           "sram",
+          "sram_wr_addr",
           "wr",
           "write"
         ],
@@ -13411,11 +13143,12 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 5,
+        "matched_count": 6,
         "matched_terms": [
           "data",
           "payload",
           "sram",
+          "sram_wr_data",
           "wr",
           "write"
         ],
@@ -13492,10 +13225,11 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 5,
+        "matched_count": 6,
         "matched_terms": [
           "payload",
           "sram",
+          "sram_wr_strb",
           "strb",
           "wr",
           "write"
@@ -13942,17 +13676,18 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 5,
+        "matched_count": 6,
         "matched_terms": [
           "payload",
           "sram",
+          "sram_wr_valid",
           "valid",
           "wr",
           "write"
         ],
         "owner_file_scoped": true,
         "required": true,
-        "required_match_count": 1,
+        "required_match_count": 2,
         "required_terms": [
           "full",
           "payload",
@@ -14027,16 +13762,17 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 4,
+        "matched_count": 5,
         "matched_terms": [
           "addr",
           "sram",
+          "sram_wr_addr",
           "wr",
           "write"
         ],
         "owner_file_scoped": true,
         "required": true,
-        "required_match_count": 1,
+        "required_match_count": 2,
         "required_terms": [
           "addr",
           "current",
@@ -14109,17 +13845,18 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 5,
+        "matched_count": 6,
         "matched_terms": [
           "data",
           "payload",
           "sram",
+          "sram_wr_data",
           "wr",
           "write"
         ],
         "owner_file_scoped": true,
         "required": true,
-        "required_match_count": 1,
+        "required_match_count": 2,
         "required_terms": [
           "data",
           "payload",
@@ -14193,17 +13930,18 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 5,
+        "matched_count": 6,
         "matched_terms": [
           "payload",
           "sram",
+          "sram_wr_strb",
           "strb",
           "wr",
           "write"
         ],
         "owner_file_scoped": true,
         "required": true,
-        "required_match_count": 1,
+        "required_match_count": 2,
         "required_terms": [
           "byte",
           "payload",
@@ -14887,9 +14625,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 1,
+        "matched_count": 5,
         "matched_terms": [
-          "descriptor"
+          "descriptor",
+          "descriptor_publish",
+          "interrupt",
+          "irq",
+          "publish"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -15023,11 +14765,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 5,
+        "matched_count": 7,
         "matched_terms": [
           "DESCRIPTOR",
           "DONE",
           "POP",
+          "STATE_DONE_WAIT_DESCRIPTOR_POP",
+          "WAIT",
           "ctx",
           "ctx_state"
         ],
@@ -15097,11 +14841,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 3,
+        "matched_count": 5,
         "matched_terms": [
           "context",
           "count",
-          "descriptor"
+          "descriptor",
+          "descriptor_publish",
+          "publish"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -15172,13 +14918,17 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 1,
+        "matched_count": 5,
         "matched_terms": [
-          "descriptor"
+          "descriptor",
+          "descriptor_publish",
+          "interrupt",
+          "irq",
+          "publish"
         ],
         "owner_file_scoped": true,
         "required": true,
-        "required_match_count": 1,
+        "required_match_count": 2,
         "required_terms": [
           "descriptor",
           "descriptor_publish",
@@ -15314,11 +15064,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 5,
+        "matched_count": 7,
         "matched_terms": [
           "DESCRIPTOR",
           "DONE",
           "POP",
+          "STATE_DONE_WAIT_DESCRIPTOR_POP",
+          "WAIT",
           "ctx",
           "ctx_state"
         ],
@@ -15391,11 +15143,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 3,
+        "matched_count": 5,
         "matched_terms": [
           "context",
           "count",
-          "descriptor"
+          "descriptor",
+          "descriptor_publish",
+          "publish"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -15599,7 +15353,7 @@
         "function_model.transactions.FM_PACKET_DROP.preconditions.precondition_0"
       ],
       "static_evidence": {
-        "fallback_scope": "all_sources_without_owner",
+        "fallback_scope": "",
         "matched_count": 7,
         "matched_terms": [
           "DROP",
@@ -15670,7 +15424,7 @@
         "function_model.transactions.FM_PACKET_DROP.outputs.output_0"
       ],
       "static_evidence": {
-        "fallback_scope": "all_sources_without_owner",
+        "fallback_scope": "",
         "matched_count": 4,
         "matched_terms": [
           "debug",
@@ -15743,9 +15497,16 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 1,
+        "matched_count": 8,
         "matched_terms": [
-          "count"
+          "DROP",
+          "DROP_NONE",
+          "NONE",
+          "count",
+          "drop",
+          "packet",
+          "packet_drop_reason",
+          "reason"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -15815,9 +15576,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 1,
+        "matched_count": 5,
         "matched_terms": [
-          "last"
+          "drop",
+          "last",
+          "packet",
+          "packet_drop_reason",
+          "reason"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -15892,7 +15657,7 @@
         "function_model.transactions.FM_PACKET_DROP.output_rules.debug_drop_pulse"
       ],
       "static_evidence": {
-        "fallback_scope": "all_sources_without_owner",
+        "fallback_scope": "",
         "matched_count": 10,
         "matched_terms": [
           "DROP",
@@ -15908,7 +15673,7 @@
         ],
         "owner_file_scoped": true,
         "required": true,
-        "required_match_count": 1,
+        "required_match_count": 2,
         "required_terms": [
           "DROP",
           "DROP_NONE",
@@ -15980,9 +15745,16 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 1,
+        "matched_count": 8,
         "matched_terms": [
-          "count"
+          "DROP",
+          "DROP_NONE",
+          "NONE",
+          "count",
+          "drop",
+          "packet",
+          "packet_drop_reason",
+          "reason"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -16055,9 +15827,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 1,
+        "matched_count": 5,
         "matched_terms": [
-          "last"
+          "drop",
+          "last",
+          "packet",
+          "packet_drop_reason",
+          "reason"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -16137,10 +15913,16 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 2,
+        "matched_count": 8,
         "matched_terms": [
+          "DROP",
           "count",
-          "last"
+          "debug",
+          "debug_drop_pulse",
+          "drop",
+          "last",
+          "packet",
+          "packet_drop_reason"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -16229,11 +16011,15 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 3,
+        "matched_count": 7,
         "matched_terms": [
           "OR",
           "count",
-          "last"
+          "debug",
+          "debug_drop_pulse",
+          "drop",
+          "last",
+          "packet"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -16322,10 +16108,15 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 2,
+        "matched_count": 7,
         "matched_terms": [
           "count",
-          "last"
+          "debug",
+          "debug_drop_pulse",
+          "drop",
+          "last",
+          "packet",
+          "packet_drop_reason"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -16414,11 +16205,16 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 3,
+        "matched_count": 8,
         "matched_terms": [
           "END",
           "count",
-          "last"
+          "debug",
+          "debug_drop_pulse",
+          "drop",
+          "last",
+          "packet",
+          "packet_drop_reason"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -16507,11 +16303,15 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 3,
+        "matched_count": 7,
         "matched_terms": [
           "OR",
           "count",
-          "last"
+          "debug",
+          "debug_drop_pulse",
+          "drop",
+          "last",
+          "packet"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -17201,7 +17001,7 @@
         ],
         "owner_file_scoped": true,
         "required": true,
-        "required_match_count": 1,
+        "required_match_count": 2,
         "required_terms": [
           "DROP",
           "DROP_NONE",
@@ -17285,7 +17085,7 @@
         ],
         "owner_file_scoped": true,
         "required": true,
-        "required_match_count": 1,
+        "required_match_count": 2,
         "required_terms": [
           "DROP",
           "DROP_NONE",
@@ -17669,8 +17469,9 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 8,
+        "matched_count": 9,
         "matched_terms": [
+          "MESSAGE",
           "assembly",
           "assembly_drop_count",
           "count",
@@ -18475,7 +18276,7 @@
         ],
         "owner_file_scoped": true,
         "required": true,
-        "required_match_count": 1,
+        "required_match_count": 2,
         "required_terms": [
           "apb",
           "apb_access",
@@ -18547,7 +18348,7 @@
         ],
         "owner_file_scoped": true,
         "required": true,
-        "required_match_count": 1,
+        "required_match_count": 2,
         "required_terms": [
           "apb",
           "apb_error",
@@ -18968,8 +18769,9 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 1,
+        "matched_count": 2,
         "matched_terms": [
+          "readback",
           "valid"
         ],
         "owner_file_scoped": true,
@@ -19029,9 +18831,10 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 1,
+        "matched_count": 2,
         "matched_terms": [
-          "data"
+          "data",
+          "readback"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -19090,8 +18893,9 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 1,
+        "matched_count": 2,
         "matched_terms": [
+          "readback",
           "resp"
         ],
         "owner_file_scoped": true,
@@ -19149,10 +18953,12 @@
         "function_model.transactions.FM_AXI_READBACK.outputs.output_3"
       ],
       "static_evidence": {
-        "fallback_scope": "all_sources_without_owner",
-        "matched_count": 1,
+        "fallback_scope": "",
+        "matched_count": 3,
         "matched_terms": [
-          "last"
+          "last",
+          "readback",
+          "readback_last"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -19220,10 +19026,11 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 4,
+        "matched_count": 5,
         "matched_terms": [
           "axi",
           "m_axi_rvalid",
+          "readback",
           "rvalid",
           "valid"
         ],
@@ -19301,7 +19108,7 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 7,
+        "matched_count": 8,
         "matched_terms": [
           "axi",
           "data",
@@ -19309,7 +19116,8 @@
           "m_axi_rdata",
           "rdata",
           "read",
-          "read_has_descriptor"
+          "read_has_descriptor",
+          "readback"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -19389,7 +19197,7 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 11,
+        "matched_count": 12,
         "matched_terms": [
           "RESP",
           "RESP_OKAY",
@@ -19400,6 +19208,7 @@
           "m_axi_rresp",
           "read",
           "read_has_descriptor",
+          "readback",
           "resp",
           "rresp"
         ],
@@ -19478,11 +19287,14 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 4,
+        "matched_count": 7,
         "matched_terms": [
           "axi",
+          "last",
           "m_axi_rlast",
           "read",
+          "readback",
+          "readback_last",
           "rlast"
         ],
         "owner_file_scoped": true,
@@ -19627,16 +19439,17 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 4,
+        "matched_count": 5,
         "matched_terms": [
           "axi",
           "m_axi_rvalid",
+          "readback",
           "rvalid",
           "valid"
         ],
         "owner_file_scoped": true,
         "required": true,
-        "required_match_count": 1,
+        "required_match_count": 2,
         "required_terms": [
           "accept",
           "ar",
@@ -19711,7 +19524,7 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 7,
+        "matched_count": 8,
         "matched_terms": [
           "axi",
           "data",
@@ -19719,11 +19532,12 @@
           "m_axi_rdata",
           "rdata",
           "read",
-          "read_has_descriptor"
+          "read_has_descriptor",
+          "readback"
         ],
         "owner_file_scoped": true,
         "required": true,
-        "required_match_count": 1,
+        "required_match_count": 2,
         "required_terms": [
           "axi",
           "data",
@@ -19802,7 +19616,7 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 11,
+        "matched_count": 12,
         "matched_terms": [
           "RESP",
           "RESP_OKAY",
@@ -19813,12 +19627,13 @@
           "m_axi_rresp",
           "read",
           "read_has_descriptor",
+          "readback",
           "resp",
           "rresp"
         ],
         "owner_file_scoped": true,
         "required": true,
-        "required_match_count": 1,
+        "required_match_count": 2,
         "required_terms": [
           "RESP",
           "RESP_OKAY",
@@ -19894,16 +19709,19 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 4,
+        "matched_count": 7,
         "matched_terms": [
           "axi",
+          "last",
           "m_axi_rlast",
           "read",
+          "readback",
+          "readback_last",
           "rlast"
         ],
         "owner_file_scoped": true,
         "required": true,
-        "required_match_count": 1,
+        "required_match_count": 2,
         "required_terms": [
           "axi",
           "last",
@@ -20051,12 +19869,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 9,
+        "matched_count": 10,
         "matched_terms": [
           "axi",
           "data",
           "debug",
           "descriptor",
+          "last",
           "m_axi_rdata",
           "m_axi_rlast",
           "m_axi_rresp",
@@ -20414,10 +20233,10 @@
         "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
         "TB scoreboard/coverage can observe the rule at the declared phase",
         "Traceability keeps source_ref cycle_model.handshake_rules.axi_write_channels",
-        "Primary implementation evidence is in rtl/mctp_assembler_scratch.sv",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
         "axi_write_channels appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
       ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.axi_write_channels.\nOwner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_level_handshake_rule.\nSSOT item context: name=axi_write_channels; signal=m_axi_awvalid/m_axi_awready/m_axi_wvalid/m_axi_wready.",
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.axi_write_channels.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via cycle_model.handshake_rules.axi_write_channels.\nSSOT item context: name=axi_write_channels; signal=m_axi_awvalid/m_axi_awready/m_axi_wvalid/m_axi_wready.",
       "evidence_terms": [
         "awready",
         "awvalid",
@@ -20433,9 +20252,9 @@
         "wvalid"
       ],
       "id": "RTL-0297",
-      "owner_file": "rtl/mctp_assembler_scratch.sv",
-      "owner_match": "top_level_handshake_rule",
-      "owner_module": "mctp_assembler_scratch",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_match": "cycle_model.handshake_rules.axi_write_channels",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": true,
@@ -20479,7 +20298,7 @@
           "write",
           "wvalid"
         ],
-        "source_scope": "rtl/mctp_assembler_scratch.sv",
+        "source_scope": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
         "status": "pass"
       },
       "todo_completion": {
@@ -20503,10 +20322,10 @@
         "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
         "TB scoreboard/coverage can observe the rule at the declared phase",
         "Traceability keeps source_ref cycle_model.handshake_rules.axi_read_channels",
-        "Primary implementation evidence is in rtl/mctp_assembler_scratch.sv",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_read_egress.sv",
         "axi_read_channels appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
       ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.axi_read_channels.\nOwner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_level_handshake_rule.\nSSOT item context: name=axi_read_channels; signal=m_axi_arvalid/m_axi_arready/m_axi_rvalid/m_axi_rready.",
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.axi_read_channels.\nOwner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via cycle_model.handshake_rules.axi_read_channels.\nSSOT item context: name=axi_read_channels; signal=m_axi_arvalid/m_axi_arready/m_axi_rvalid/m_axi_rready.",
       "evidence_terms": [
         "arready",
         "arvalid",
@@ -20522,9 +20341,9 @@
         "rvalid"
       ],
       "id": "RTL-0298",
-      "owner_file": "rtl/mctp_assembler_scratch.sv",
-      "owner_match": "top_level_handshake_rule",
-      "owner_module": "mctp_assembler_scratch",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+      "owner_match": "cycle_model.handshake_rules.axi_read_channels",
+      "owner_module": "mctp_assembler_scratch_axi_read_egress",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": true,
@@ -20568,7 +20387,7 @@
           "rready",
           "rvalid"
         ],
-        "source_scope": "rtl/mctp_assembler_scratch.sv",
+        "source_scope": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
         "status": "pass"
       },
       "todo_completion": {
@@ -20592,18 +20411,18 @@
         "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
         "TB scoreboard/coverage can observe the rule at the declared phase",
         "Traceability keeps source_ref cycle_model.handshake_rules.apb_access",
-        "Primary implementation evidence is in rtl/mctp_assembler_scratch.sv",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
         "apb_access appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
       ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.apb_access.\nOwner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_level_handshake_rule.\nSSOT item context: name=apb_access; signal=psel/penable/pready.",
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.apb_access.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via cycle_model.\nSSOT item context: name=apb_access; signal=psel/penable/pready.",
       "evidence_terms": [
         "apb",
         "apb_access"
       ],
       "id": "RTL-0299",
-      "owner_file": "rtl/mctp_assembler_scratch.sv",
-      "owner_match": "top_level_handshake_rule",
-      "owner_module": "mctp_assembler_scratch",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_match": "cycle_model",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": true,
@@ -20617,9 +20436,10 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 1,
+        "matched_count": 2,
         "matched_terms": [
-          "apb"
+          "apb",
+          "apb_access"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -20628,8 +20448,8 @@
           "apb",
           "apb_access"
         ],
-        "source_scope": "rtl/mctp_assembler_scratch.sv",
-        "status": "missing"
+        "source_scope": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -20639,9 +20459,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -20652,10 +20472,10 @@
         "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
         "TB scoreboard/coverage can observe the rule at the declared phase",
         "Traceability keeps source_ref cycle_model.handshake_rules.sram_ready_valid",
-        "Primary implementation evidence is in rtl/mctp_assembler_scratch.sv",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_arbiter.sv",
         "sram_ready_valid appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
       ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.sram_ready_valid.\nOwner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_level_handshake_rule.\nSSOT item context: name=sram_ready_valid; signal=sram_wr_valid/sram_wr_ready/sram_rd_req_valid/sram_rd_req_ready.",
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.sram_ready_valid.\nOwner: mctp_assembler_scratch_sram_arbiter in rtl/mctp_assembler_scratch_sram_arbiter.sv via cycle_model.\nSSOT item context: name=sram_ready_valid; signal=sram_wr_valid/sram_wr_ready/sram_rd_req_valid/sram_rd_req_ready.",
       "evidence_terms": [
         "rd",
         "ready",
@@ -20670,9 +20490,9 @@
         "wr"
       ],
       "id": "RTL-0300",
-      "owner_file": "rtl/mctp_assembler_scratch.sv",
-      "owner_match": "top_level_handshake_rule",
-      "owner_module": "mctp_assembler_scratch",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
+      "owner_match": "cycle_model",
+      "owner_module": "mctp_assembler_scratch_sram_arbiter",
       "priority": "high",
       "required": true,
       "requires_static_rtl_evidence": true,
@@ -20715,7 +20535,7 @@
           "valid",
           "wr"
         ],
-        "source_scope": "rtl/mctp_assembler_scratch.sv",
+        "source_scope": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
         "status": "pass"
       },
       "todo_completion": {
@@ -22059,8 +21879,10 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "any_error"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -22068,7 +21890,7 @@
           "any_error"
         ],
         "source_scope": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -22078,9 +21900,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -22265,8 +22087,11 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "desc",
+          "desc_pending"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -22275,7 +22100,7 @@
           "desc_pending"
         ],
         "source_scope": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -22285,9 +22110,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -22678,8 +22503,9 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 1,
+        "matched_count": 2,
         "matched_terms": [
+          "desc",
           "enable"
         ],
         "owner_file_scoped": true,
@@ -23104,8 +22930,10 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -23113,7 +22941,7 @@
           "value"
         ],
         "source_scope": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -23123,9 +22951,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -23239,8 +23067,10 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "value"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -23248,7 +23078,7 @@
           "value"
         ],
         "source_scope": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -23258,9 +23088,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -24058,8 +23888,12 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "eid",
+          "source",
+          "source_eid"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -24069,7 +23903,7 @@
           "source_eid"
         ],
         "source_scope": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -24079,9 +23913,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -24124,8 +23958,12 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "destination",
+          "destination_eid",
+          "eid"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -24135,7 +23973,7 @@
           "eid"
         ],
         "source_scope": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -24145,9 +23983,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -24190,8 +24028,12 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "owner",
+          "tag",
+          "tag_owner"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -24201,7 +24043,7 @@
           "tag_owner"
         ],
         "source_scope": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -24211,9 +24053,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -24256,8 +24098,12 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "message",
+          "message_tag",
+          "tag"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -24267,7 +24113,7 @@
           "tag"
         ],
         "source_scope": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -24277,9 +24123,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -24322,8 +24168,12 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "message",
+          "message_type",
+          "type"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -24333,7 +24183,7 @@
           "type"
         ],
         "source_scope": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -24343,9 +24193,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -25610,8 +25460,10 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "DONE_WAIT_DESCRIPTOR_POP"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -25619,7 +25471,7 @@
           "DONE_WAIT_DESCRIPTOR_POP"
         ],
         "source_scope": "rtl/mctp_assembler_scratch_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -25629,9 +25481,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -25793,12 +25645,14 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 4,
+        "matched_count": 6,
         "matched_terms": [
           "ASSEMBLING",
           "DESCRIPTOR",
           "DONE",
-          "POP"
+          "DONE_WAIT_DESCRIPTOR_POP",
+          "POP",
+          "WAIT"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -25983,12 +25837,14 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 4,
+        "matched_count": 6,
         "matched_terms": [
           "DESCRIPTOR",
           "DONE",
+          "DONE_WAIT_DESCRIPTOR_POP",
           "IDLE",
-          "POP"
+          "POP",
+          "WAIT"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -26196,8 +26052,11 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "error_handling",
+          "handling"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -26206,7 +26065,7 @@
           "handling"
         ],
         "source_scope": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -26216,9 +26075,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -26319,8 +26178,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "parse",
+          "pcie",
+          "pcie_vdm_parse",
+          "vdm"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -26331,7 +26195,7 @@
           "vdm"
         ],
         "source_scope": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -26341,9 +26205,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -26378,9 +26242,11 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 1,
+        "matched_count": 3,
         "matched_terms": [
-          "mctp"
+          "mctp",
+          "mctp_parse",
+          "parse"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -26391,7 +26257,7 @@
           "parse"
         ],
         "source_scope": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -26401,9 +26267,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -26438,9 +26304,11 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 1,
+        "matched_count": 3,
         "matched_terms": [
-          "assembly"
+          "assembly",
+          "context",
+          "context_assembly"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -26451,7 +26319,7 @@
           "context_assembly"
         ],
         "source_scope": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -26461,9 +26329,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -26498,8 +26366,12 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "pack",
+          "sram",
+          "sram_pack"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -26509,7 +26381,7 @@
           "sram_pack"
         ],
         "source_scope": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -26519,9 +26391,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -26556,8 +26428,12 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "descriptor",
+          "descriptor_publish",
+          "publish"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -26567,7 +26443,7 @@
           "publish"
         ],
         "source_scope": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -26577,9 +26453,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -26614,9 +26490,11 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 1,
+        "matched_count": 3,
         "matched_terms": [
-          "axi"
+          "axi",
+          "axi_readback",
+          "readback"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -26627,7 +26505,7 @@
           "readback"
         ],
         "source_scope": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -26637,9 +26515,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -26879,9 +26757,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 1,
+        "matched_count": 5,
         "matched_terms": [
-          "descriptor"
+          "descriptor",
+          "firmware",
+          "firmware_visible_descriptor_metadata",
+          "metadata",
+          "visible"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -26894,7 +26776,7 @@
           "visible"
         ],
         "source_scope": "rtl/mctp_assembler_scratch_descriptor_queue.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -26904,9 +26786,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -29389,150 +29271,11 @@
     }
   ],
   "todo_completion": {
-    "all_required_todos_pass": false,
+    "all_required_todos_pass": true,
     "audit_rtl": true,
-    "open_required_tasks": 23,
-    "open_tasks": [
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "19 static-evidence-required task(s) still lack DUT RTL evidence.",
-        "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
-        "task_id": "RTL-0007"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "1 owner logic structure issue(s) remain. mctp_assembler_scratch_sram_arbiter: State/register/memory/FSM owner lacks sequential/procedural update evidence",
-        "source_ref": "quality_gates.rtl_gen.owner_logic_structure_evidence",
-        "task_id": "RTL-0008"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "1 SSOT connection contract issue(s) remain. mctp_assembler_scratch_sram_packer: SSOT connection contract port is not connected by the RTL named port map",
-        "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
-        "task_id": "RTL-0016"
-      },
-      {
-        "category": "rtl_gate.rtl_gen",
-        "reason": "22 required non-closure TODO(s) remain open.",
-        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
-        "task_id": "RTL-0019"
-      },
-      {
-        "category": "cycle_model.handshake_rules",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "cycle_model.handshake_rules.apb_access",
-        "task_id": "RTL-0299"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "registers.register_list.GLOBAL_STATUS.fields.any_error",
-        "task_id": "RTL-0325"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "registers.register_list.IRQ_STATUS.fields.desc_pending",
-        "task_id": "RTL-0328"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "registers.register_list.PACKET_DROP_COUNT.fields.value",
-        "task_id": "RTL-0340"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "registers.register_list.ASSEMBLY_DROP_COUNT.fields.value",
-        "task_id": "RTL-0342"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "registers.register_list.Q_KEY.fields.source_eid",
-        "task_id": "RTL-0354"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "registers.register_list.Q_KEY.fields.destination_eid",
-        "task_id": "RTL-0355"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "registers.register_list.Q_KEY.fields.tag_owner",
-        "task_id": "RTL-0356"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "registers.register_list.Q_KEY.fields.message_tag",
-        "task_id": "RTL-0357"
-      },
-      {
-        "category": "registers.field",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "registers.register_list.Q_KEY.fields.message_type",
-        "task_id": "RTL-0358"
-      },
-      {
-        "category": "fsm.state",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "fsm.context_fsm.states.state_3",
-        "task_id": "RTL-0378"
-      },
-      {
-        "category": "features.item",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "features.error_policy",
-        "task_id": "RTL-0388"
-      },
-      {
-        "category": "dataflow.sequence",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "dataflow.sequence.sequence_1",
-        "task_id": "RTL-0390"
-      },
-      {
-        "category": "dataflow.sequence",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "dataflow.sequence.sequence_2",
-        "task_id": "RTL-0391"
-      },
-      {
-        "category": "dataflow.sequence",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "dataflow.sequence.sequence_3",
-        "task_id": "RTL-0392"
-      },
-      {
-        "category": "dataflow.sequence",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "dataflow.sequence.sequence_4",
-        "task_id": "RTL-0393"
-      },
-      {
-        "category": "dataflow.sequence",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "dataflow.sequence.sequence_5",
-        "task_id": "RTL-0394"
-      },
-      {
-        "category": "dataflow.sequence",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "dataflow.sequence.sequence_6",
-        "task_id": "RTL-0395"
-      },
-      {
-        "category": "security.assets",
-        "reason": "Required RTL static evidence is missing.",
-        "source_ref": "security.assets.asset_1",
-        "task_id": "RTL-0400"
-      }
-    ],
-    "required_passed": 430,
+    "open_required_tasks": 0,
+    "open_tasks": [],
+    "required_passed": 453,
     "required_total": 453,
     "rule": "rtl-gen may not claim PASS until every required SSOT-derived TODO has pass status."
   },

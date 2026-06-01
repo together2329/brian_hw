@@ -12,7 +12,7 @@
       "enabled": false,
       "index": 1,
       "key": "all",
-      "module_task_count": 16,
+      "module_task_count": 17,
       "task_limit": 48
     },
     "owner": {
@@ -100,7 +100,7 @@
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": true,
+    "deferred_human_qa_allowed": false,
     "draft_allowed": true,
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
@@ -108,7 +108,7 @@
     "llm_actionable": false,
     "llm_actionable_open_count": 0,
     "open_required_count": 0,
-    "pass_allowed": false,
+    "pass_allowed": true,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -138,6 +138,7 @@
   "summary": {
     "categories": {
       "cycle_model.arbitration": 2,
+      "cycle_model.handshake_rules": 1,
       "cycle_model.ordering": 1,
       "equivalence.module": 1,
       "io_list.port": 12
@@ -147,12 +148,13 @@
       "enabled": false,
       "index": 1,
       "key": "all",
-      "module_task_count": 16,
+      "module_task_count": 17,
       "task_limit": 48
     },
     "open_required_count": 0,
-    "required_count": 16,
+    "required_count": 17,
     "source_refs": [
+      "cycle_model.handshake_rules.sram_ready_valid",
       "cycle_model.ordering.descriptor_after_sram_flush",
       "cycle_model.arbitration.name",
       "cycle_model.arbitration.policy",
@@ -171,11 +173,96 @@
       "io_list.interfaces.sram_read_port.ports.sram_rd_rsp_error"
     ],
     "status_counts": {
-      "pass": 16
+      "pass": 17
     },
-    "task_count": 16
+    "task_count": 17
   },
   "tasks": [
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: sram_ready_valid",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.sram_ready_valid",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_arbiter.sv",
+        "sram_ready_valid appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.sram_ready_valid.\nOwner: mctp_assembler_scratch_sram_arbiter in rtl/mctp_assembler_scratch_sram_arbiter.sv via cycle_model.\nSSOT item context: name=sram_ready_valid; signal=sram_wr_valid/sram_wr_ready/sram_rd_req_valid/sram_rd_req_ready.",
+      "evidence_terms": [
+        "rd",
+        "ready",
+        "req",
+        "sram",
+        "sram_rd_req_ready",
+        "sram_rd_req_valid",
+        "sram_ready_valid",
+        "sram_wr_ready",
+        "sram_wr_valid",
+        "valid",
+        "wr"
+      ],
+      "id": "RTL-0300",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
+      "owner_module": "mctp_assembler_scratch_sram_arbiter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.sram_ready_valid",
+      "ssot_context": {
+        "name": "sram_ready_valid",
+        "signal": "sram_wr_valid/sram_wr_ready/sram_rd_req_valid/sram_rd_req_ready"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.sram_ready_valid"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 10,
+        "matched_terms": [
+          "rd",
+          "ready",
+          "req",
+          "sram",
+          "sram_rd_req_ready",
+          "sram_rd_req_valid",
+          "sram_wr_ready",
+          "sram_wr_valid",
+          "valid",
+          "wr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "rd",
+          "ready",
+          "req",
+          "sram",
+          "sram_rd_req_ready",
+          "sram_rd_req_valid",
+          "sram_ready_valid",
+          "sram_wr_ready",
+          "sram_wr_valid",
+          "valid",
+          "wr"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
     {
       "category": "cycle_model.ordering",
       "content": "Implement ordering rule: descriptor_after_sram_flush",
@@ -886,7 +973,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "740f93796c4f016836bc823fe2faf4054d926dc664b7d534ef5d5436d6585bb5",
+  "todo_plan_sha256": "f7d51fe86c7b2e93192acdcd2fb7e463badd1ca4416fc82440243aa7e8a43e3c",
   "top": "mctp_assembler_scratch",
   "type": "rtl_authoring_packet"
 }

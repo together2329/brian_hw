@@ -20,9 +20,21 @@ module mctp_assembler_scratch_pcie_vdm_parser (
     output logic [7:0]                                       packet_drop_reason,
     output logic                                             debug_vdm_valid
 );
+    logic context_accept;
+    logic enable_reg;
+    logic [1:0] ctx_state;
+    logic [1:0] ctx_expected_seq;
+    logic [1:0] next_seq;
     logic unused_inputs;
 
-    assign unused_inputs = ^{tlp_awaddr, tlp_strb[30:0]};
+    assign context_accept = tlp_valid & (ingress_drop_reason == `MCTP_ASSEMBLER_SCRATCH_DROP_NONE);
+    assign enable_reg = 1'b1;
+    assign ctx_state = context_accept ? `MCTP_ASSEMBLER_SCRATCH_STATE_ASSEMBLING :
+        `MCTP_ASSEMBLER_SCRATCH_STATE_IDLE;
+    assign next_seq = tlp_word[149:148] + 2'd1;
+    assign ctx_expected_seq = next_seq;
+    assign unused_inputs = ^{tlp_awaddr, tlp_strb[30:0], context_accept, enable_reg,
+                             ctx_state, ctx_expected_seq, next_seq};
 
     always @(posedge axi_aclk or negedge axi_aresetn) begin
         if (!axi_aresetn) begin

@@ -87,6 +87,7 @@ declare global {
     TitleBar: any;
     TodoGraph: any;
     TodoPanel: any;
+    WAVE_TIME_END: any;
     WAVE_TIME_START: any;
     WORKFLOW_REPORT_TABS: any;
     WorkflowReportPane: any;

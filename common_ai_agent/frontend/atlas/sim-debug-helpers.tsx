@@ -126,7 +126,8 @@ const compactTimeNumber = (n: number): string => {
   if (!Number.isFinite(n)) return '0';
   const abs = Math.abs(n);
   const digits = abs >= 1000 || Number.isInteger(n) ? 0 : (abs >= 100 ? 1 : abs >= 10 ? 2 : 3);
-  return n.toFixed(digits).replace(/\.?0+$/, '');
+  const text = n.toFixed(digits);
+  return text.includes('.') ? text.replace(/\.?0+$/, '') : text;
 };
 
 export const formatTimeDisplay = (rawTime: unknown, timescale: unknown, unit: unknown): string => {
@@ -400,8 +401,9 @@ export const resolvePinnedWaveSignal = (
   if (!wanted) return null;
   const wantedScope = String(pin?.scope || '').trim();
 
-  const exact = allRows.find(row => waveSignalMatches(row, wanted, wantedScope));
-  if (exact) return exact;
+  const exactMatches = uniqueWaveRows(allRows.filter(row => waveSignalMatches(row, wanted, wantedScope)));
+  if (exactMatches.length === 1) return exactMatches[0];
+  if (exactMatches.length > 1) return null;
   if (wantedScope) {
     const scopeKey = wantedScope.toLowerCase();
     const scopedMatches = uniqueWaveRows(allRows.filter(row => {
@@ -410,7 +412,8 @@ export const resolvePinnedWaveSignal = (
       return scopeOk && signalAliasKeys(row).some(alias =>
         alias === wanted || alias.endsWith(`.${wanted}`));
     }));
-    return scopedMatches.length === 1 ? scopedMatches[0] : null;
+    if (scopedMatches.length === 1) return scopedMatches[0];
+    if (scopedMatches.length > 1) return null;
   }
 
   // Tool calls commonly send RTL-ish paths without the VCD top/testbench prefix
@@ -635,7 +638,17 @@ export const buildWaveTraceList = (
       const scope = String(pin.scope || (dot >= 0 ? full.slice(0, dot) : '')).trim();
       const key = `${scope}/${leaf}${range}`.toLowerCase();
       if (present.has(key)) continue;
-      rows.push({ name: `${leaf}${range}`, signalName: leaf, scope, range, trace: [], notInVcd: true } as VcdSignal);
+      const rangeWidth = parseSignalRange(range)?.width || 1;
+      rows.push({
+        name: `${leaf}${range}`,
+        signalName: leaf,
+        scope,
+        range,
+        trace: [],
+        isBus: rangeWidth > 1,
+        radix: rangeWidth > 1 ? 'HEX' : undefined,
+        notInVcd: true,
+      } as VcdSignal);
       present.add(key);
     }
   }

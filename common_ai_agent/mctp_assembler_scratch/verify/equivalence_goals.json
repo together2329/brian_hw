@@ -268,8 +268,8 @@
     }
   },
   "summary": {
-    "total": 91,
-    "required": 91,
+    "total": 86,
+    "required": 86,
     "optional": 0,
     "blocked": 0,
     "unverified": 1,
@@ -298,9 +298,12 @@
         "mctp_assembler_scratch_error_model"
       ],
       "coverage_refs": [
-        "fcov_accept_axi_tlp",
         "function_accept_one_axi4_write_burst_as_one_pcie_vdm_tlp",
-        "cycle_latency_fm_accept_axi_tlp"
+        "latency_fm_accept_axi_tlp_lt_min",
+        "latency_fm_accept_axi_tlp_at_min",
+        "latency_fm_accept_axi_tlp_mid",
+        "latency_fm_accept_axi_tlp_at_max",
+        "latency_fm_accept_axi_tlp_gt_max"
       ],
       "stimulus_contract": {
         "transaction_type": "Accept one AXI4 write burst as one PCIe VDM TLP",
@@ -372,7 +375,11 @@
       ],
       "coverage_refs": [
         "function_validate_pcie_vdm_envelope_for_mctp_transport",
-        "cycle_latency_fm_filter_vdm"
+        "latency_fm_filter_vdm_lt_min",
+        "latency_fm_filter_vdm_at_min",
+        "latency_fm_filter_vdm_mid",
+        "latency_fm_filter_vdm_at_max",
+        "latency_fm_filter_vdm_gt_max"
       ],
       "stimulus_contract": {
         "transaction_type": "Validate PCIe VDM envelope for MCTP transport",
@@ -440,9 +447,12 @@
         "mctp_assembler_scratch_error_model"
       ],
       "coverage_refs": [
-        "fcov_parse_mctp",
         "function_decode_mctp_transport_header_and_context_key",
-        "cycle_latency_fm_parse_mctp"
+        "latency_fm_parse_mctp_lt_min",
+        "latency_fm_parse_mctp_at_min",
+        "latency_fm_parse_mctp_mid",
+        "latency_fm_parse_mctp_at_max",
+        "latency_fm_parse_mctp_gt_max"
       ],
       "stimulus_contract": {
         "transaction_type": "Decode MCTP transport header and context key",
@@ -524,9 +534,12 @@
         "mctp_assembler_scratch_error_model"
       ],
       "coverage_refs": [
-        "fcov_assemble_fragment",
         "function_allocate_or_update_a_q_context_for_one_mctp_fragment",
-        "cycle_latency_fm_assemble_fragment"
+        "latency_fm_assemble_fragment_lt_min",
+        "latency_fm_assemble_fragment_at_min",
+        "latency_fm_assemble_fragment_mid",
+        "latency_fm_assemble_fragment_at_max",
+        "latency_fm_assemble_fragment_gt_max"
       ],
       "stimulus_contract": {
         "transaction_type": "Allocate or update a Q context for one MCTP fragment",
@@ -605,9 +618,12 @@
         "mctp_assembler_scratch_error_model"
       ],
       "coverage_refs": [
-        "fcov_sram_pack_write",
         "function_pack_payload_bytes_into_32_byte_sram_beats_with_no_holes",
-        "cycle_latency_fm_sram_pack_write"
+        "latency_fm_sram_pack_write_lt_min",
+        "latency_fm_sram_pack_write_at_min",
+        "latency_fm_sram_pack_write_mid",
+        "latency_fm_sram_pack_write_at_max",
+        "latency_fm_sram_pack_write_gt_max"
       ],
       "stimulus_contract": {
         "transaction_type": "Pack payload bytes into 32-byte SRAM beats with no holes",
@@ -696,7 +712,11 @@
       ],
       "coverage_refs": [
         "function_complete_eom_message_and_publish_descriptor",
-        "cycle_latency_fm_complete_message"
+        "latency_fm_complete_message_lt_min",
+        "latency_fm_complete_message_at_min",
+        "latency_fm_complete_message_mid",
+        "latency_fm_complete_message_at_max",
+        "latency_fm_complete_message_gt_max"
       ],
       "stimulus_contract": {
         "transaction_type": "Complete EOM message and publish descriptor",
@@ -767,7 +787,6 @@
         "mctp_assembler_scratch_error_model"
       ],
       "coverage_refs": [
-        "fcov_packet_drops",
         "function_packet_drop_without_sram_payload_write"
       ],
       "stimulus_contract": {
@@ -834,7 +853,6 @@
         "mctp_assembler_scratch_error_model"
       ],
       "coverage_refs": [
-        "fcov_assembly_drops",
         "function_assembly_drop_without_descriptor_publish"
       ],
       "stimulus_contract": {
@@ -980,9 +998,12 @@
         "mctp_assembler_scratch_error_model"
       ],
       "coverage_refs": [
-        "fcov_axi_readback",
         "function_axi_readback_from_descriptor_backed_sram_payload",
-        "cycle_latency_fm_axi_readback"
+        "latency_fm_axi_readback_lt_min",
+        "latency_fm_axi_readback_at_min",
+        "latency_fm_axi_readback_mid",
+        "latency_fm_axi_readback_at_max",
+        "latency_fm_axi_readback_gt_max"
       ],
       "stimulus_contract": {
         "transaction_type": "AXI readback from descriptor-backed SRAM payload",
@@ -1114,6 +1135,100 @@
       "unverified": false
     },
     {
+      "goal_id": "EQ_SCENARIO_SC_SINGLE_PACKET_32B",
+      "title": "Scenario SC_SINGLE_PACKET_32B: Single 32B packet with nonzero key",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[1]"
+      ],
+      "decomposition_refs": [
+        "mctp_assembler_scratch_axi_write_ingress",
+        "mctp_assembler_scratch_pcie_vdm_parser",
+        "mctp_assembler_scratch_mctp_parser",
+        "mctp_assembler_scratch_context_table",
+        "mctp_assembler_scratch_sram_packer",
+        "mctp_assembler_scratch_axi_read_egress",
+        "mctp_assembler_scratch_sram_arbiter",
+        "mctp_assembler_scratch_descriptor_queue",
+        "mctp_assembler_scratch_apb_regfile",
+        "mctp_assembler_scratch_cdc",
+        "mctp_assembler_scratch_param",
+        "mctp_assembler_scratch",
+        "mctp_assembler_scratch_protocol_model",
+        "mctp_assembler_scratch_register_model",
+        "mctp_assembler_scratch_memory_model",
+        "mctp_assembler_scratch_datapath_model",
+        "mctp_assembler_scratch_fsm_model",
+        "mctp_assembler_scratch_error_model",
+        "mctp_assembler_scratch_security_model"
+      ],
+      "coverage_refs": [
+        "SC_SINGLE_PACKET_32B_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC_SINGLE_PACKET_32B",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "One AXI write TLP with SOM/EOM set, 32B payload, source_eid 0x11, and message_tag 1"
+        ],
+        "machine_spec": {
+          "metadata": {
+            "scenario_payload_bytes": 32,
+            "scenario_packet_count": 1,
+            "scenario_source_eid": 17,
+            "scenario_destination_eid": 160,
+            "scenario_tag_owner": 0,
+            "scenario_message_tag": 1,
+            "scenario_packet_seq": 0,
+            "scenario_som": 1,
+            "scenario_eom": 1,
+            "scenario_payload_len": 32,
+            "scenario_payload_word": 5281958097235398518379996774
+          },
+          "assign": {
+            "payload_data_word": 5281958097235398518379996774,
+            "payload_byte_strobe": 4294967295
+          }
+        }
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "One descriptor is published and debug_context_key reflects the nonzero key",
+          "Scenario expected result from SSOT"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
       "goal_id": "EQ_SCENARIO_SC_MULTI_FRAGMENT_TU64",
       "title": "Scenario SC_MULTI_FRAGMENT_TU64: Multi-fragment TU64",
       "kind": "transaction",
@@ -1121,7 +1236,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "test_requirements.scenarios[1]"
+        "test_requirements.scenarios[2]"
       ],
       "decomposition_refs": [
         "mctp_assembler_scratch_axi_write_ingress",
@@ -1155,12 +1270,220 @@
         ],
         "constraints": [
           "SOM then middle then EOM fragments using 64B TU"
-        ]
+        ],
+        "machine_spec": {
+          "metadata": {
+            "scenario_payload_bytes": 64,
+            "scenario_packet_count": 2,
+            "scenario_source_eid": 33,
+            "scenario_destination_eid": 1,
+            "scenario_tag_owner": 1,
+            "scenario_message_tag": 2,
+            "scenario_packet_seq": 1,
+            "scenario_som": 0,
+            "scenario_eom": 1,
+            "scenario_payload_len": 32,
+            "scenario_payload_word": 36426173456673
+          },
+          "timeline": [
+            {
+              "assign": {
+                "m_axi_awvalid": 1,
+                "m_axi_awlen": 0,
+                "m_axi_awsize": 5,
+                "m_axi_awburst": 1,
+                "m_axi_wvalid": 1,
+                "m_axi_wlast": 1,
+                "m_axi_bready": 1,
+                "m_axi_rready": 1,
+                "sram_wr_ready": 1,
+                "sram_rd_req_ready": 1,
+                "m_axi_wstrb": 4294967295,
+                "m_axi_wdata": 862718319160656666703795463033672103746898571983505929024655595667456
+              }
+            },
+            {
+              "wait_cycles": 1
+            },
+            {
+              "assign": {
+                "m_axi_awvalid": 0,
+                "m_axi_wvalid": 0,
+                "m_axi_wlast": 0,
+                "m_axi_wstrb": 0,
+                "m_axi_arvalid": 0,
+                "sram_wr_ready": 1,
+                "sram_rd_req_ready": 1
+              }
+            },
+            {
+              "wait_cycles": 5
+            }
+          ]
+        }
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
           "One completed message with ordered payload bytes",
+          "Scenario expected result from SSOT"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_MULTI_FRAGMENT_3PKT_SHORT_LAST",
+      "title": "Scenario SC_MULTI_FRAGMENT_3PKT_SHORT_LAST: Three-fragment message with short final payload",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[3]"
+      ],
+      "decomposition_refs": [
+        "mctp_assembler_scratch_axi_write_ingress",
+        "mctp_assembler_scratch_pcie_vdm_parser",
+        "mctp_assembler_scratch_mctp_parser",
+        "mctp_assembler_scratch_context_table",
+        "mctp_assembler_scratch_sram_packer",
+        "mctp_assembler_scratch_axi_read_egress",
+        "mctp_assembler_scratch_sram_arbiter",
+        "mctp_assembler_scratch_descriptor_queue",
+        "mctp_assembler_scratch_apb_regfile",
+        "mctp_assembler_scratch_cdc",
+        "mctp_assembler_scratch_param",
+        "mctp_assembler_scratch",
+        "mctp_assembler_scratch_protocol_model",
+        "mctp_assembler_scratch_register_model",
+        "mctp_assembler_scratch_memory_model",
+        "mctp_assembler_scratch_datapath_model",
+        "mctp_assembler_scratch_fsm_model",
+        "mctp_assembler_scratch_error_model",
+        "mctp_assembler_scratch_security_model"
+      ],
+      "coverage_refs": [
+        "SC_MULTI_FRAGMENT_3PKT_SHORT_LAST_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC_MULTI_FRAGMENT_3PKT_SHORT_LAST",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "SOM fragment, middle fragment, then EOM fragment with a 12B final payload"
+        ],
+        "machine_spec": {
+          "metadata": {
+            "scenario_payload_bytes": 76,
+            "scenario_packet_count": 3,
+            "scenario_source_eid": 34,
+            "scenario_destination_eid": 1,
+            "scenario_tag_owner": 1,
+            "scenario_message_tag": 5,
+            "scenario_packet_seq": 2,
+            "scenario_som": 0,
+            "scenario_eom": 1,
+            "scenario_payload_len": 12,
+            "scenario_payload_word": 56295281677653
+          },
+          "timeline": [
+            {
+              "assign": {
+                "m_axi_awvalid": 1,
+                "m_axi_awlen": 0,
+                "m_axi_awsize": 5,
+                "m_axi_awburst": 1,
+                "m_axi_wvalid": 1,
+                "m_axi_wlast": 1,
+                "m_axi_bready": 1,
+                "m_axi_rready": 1,
+                "sram_wr_ready": 1,
+                "sram_rd_req_ready": 1,
+                "m_axi_wstrb": 4294967295,
+                "m_axi_wdata": 862718320774314908617632564236462473361268415601269525453344203603968
+              }
+            },
+            {
+              "wait_cycles": 1
+            },
+            {
+              "assign": {
+                "m_axi_awvalid": 0,
+                "m_axi_wvalid": 0,
+                "m_axi_wlast": 0,
+                "m_axi_wstrb": 0,
+                "m_axi_arvalid": 0,
+                "sram_wr_ready": 1,
+                "sram_rd_req_ready": 1
+              }
+            },
+            {
+              "wait_cycles": 5
+            },
+            {
+              "assign": {
+                "m_axi_awvalid": 1,
+                "m_axi_awlen": 0,
+                "m_axi_awsize": 5,
+                "m_axi_awburst": 1,
+                "m_axi_wvalid": 1,
+                "m_axi_wlast": 1,
+                "m_axi_bready": 1,
+                "m_axi_rready": 1,
+                "sram_wr_ready": 1,
+                "sram_rd_req_ready": 1,
+                "m_axi_wstrb": 4294967295,
+                "m_axi_wdata": 862718348199390863970966669026664553692771400990906330528542860771328
+              }
+            },
+            {
+              "wait_cycles": 1
+            },
+            {
+              "assign": {
+                "m_axi_awvalid": 0,
+                "m_axi_wvalid": 0,
+                "m_axi_wlast": 0,
+                "m_axi_wstrb": 0,
+                "m_axi_arvalid": 0,
+                "sram_wr_ready": 1,
+                "sram_rd_req_ready": 1
+              }
+            },
+            {
+              "wait_cycles": 5
+            }
+          ]
+        }
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Payload byte count accumulates to 76B and one descriptor is published for source_eid 0x22/message_tag 5",
           "Scenario expected result from SSOT"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
@@ -1196,7 +1519,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "test_requirements.scenarios[2]"
+        "test_requirements.scenarios[4]"
       ],
       "decomposition_refs": [
         "mctp_assembler_scratch_axi_write_ingress",
@@ -1271,7 +1594,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "test_requirements.scenarios[3]"
+        "test_requirements.scenarios[5]"
       ],
       "decomposition_refs": [
         "mctp_assembler_scratch_axi_write_ingress",
@@ -1339,6 +1662,197 @@
       "unverified": false
     },
     {
+      "goal_id": "EQ_SCENARIO_SC_INTERLEAVE_TWO_Q_COMPLETE",
+      "title": "Scenario SC_INTERLEAVE_TWO_Q_COMPLETE: Interleaved two Q contexts complete",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[6]"
+      ],
+      "decomposition_refs": [
+        "mctp_assembler_scratch_axi_write_ingress",
+        "mctp_assembler_scratch_pcie_vdm_parser",
+        "mctp_assembler_scratch_mctp_parser",
+        "mctp_assembler_scratch_context_table",
+        "mctp_assembler_scratch_sram_packer",
+        "mctp_assembler_scratch_axi_read_egress",
+        "mctp_assembler_scratch_sram_arbiter",
+        "mctp_assembler_scratch_descriptor_queue",
+        "mctp_assembler_scratch_apb_regfile",
+        "mctp_assembler_scratch_cdc",
+        "mctp_assembler_scratch_param",
+        "mctp_assembler_scratch",
+        "mctp_assembler_scratch_protocol_model",
+        "mctp_assembler_scratch_register_model",
+        "mctp_assembler_scratch_memory_model",
+        "mctp_assembler_scratch_datapath_model",
+        "mctp_assembler_scratch_fsm_model",
+        "mctp_assembler_scratch_error_model",
+        "mctp_assembler_scratch_security_model"
+      ],
+      "coverage_refs": [
+        "SC_INTERLEAVE_TWO_Q_COMPLETE_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC_INTERLEAVE_TWO_Q_COMPLETE",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Alternate fragments for two active context keys and complete both without mixing payload"
+        ],
+        "machine_spec": {
+          "metadata": {
+            "scenario_payload_bytes": 64,
+            "scenario_packet_count": 4,
+            "scenario_source_eid": 49,
+            "scenario_destination_eid": 1,
+            "scenario_tag_owner": 1,
+            "scenario_message_tag": 6,
+            "scenario_packet_seq": 1,
+            "scenario_som": 0,
+            "scenario_eom": 1,
+            "scenario_payload_len": 32,
+            "scenario_payload_word": 3223857
+          },
+          "timeline": [
+            {
+              "assign": {
+                "m_axi_awvalid": 1,
+                "m_axi_awlen": 0,
+                "m_axi_awsize": 5,
+                "m_axi_awburst": 1,
+                "m_axi_wvalid": 1,
+                "m_axi_wlast": 1,
+                "m_axi_bready": 1,
+                "m_axi_rready": 1,
+                "sram_wr_ready": 1,
+                "sram_rd_req_ready": 1,
+                "m_axi_wstrb": 4294967295,
+                "m_axi_wdata": 862718293348825088945773536981696473941223863646023319301359667249152
+              }
+            },
+            {
+              "wait_cycles": 1
+            },
+            {
+              "assign": {
+                "m_axi_awvalid": 0,
+                "m_axi_wvalid": 0,
+                "m_axi_wlast": 0,
+                "m_axi_wstrb": 0,
+                "m_axi_arvalid": 0,
+                "sram_wr_ready": 1,
+                "sram_rd_req_ready": 1
+              }
+            },
+            {
+              "wait_cycles": 5
+            },
+            {
+              "assign": {
+                "m_axi_awvalid": 1,
+                "m_axi_awlen": 0,
+                "m_axi_awsize": 5,
+                "m_axi_awburst": 1,
+                "m_axi_wvalid": 1,
+                "m_axi_wlast": 1,
+                "m_axi_bready": 1,
+                "m_axi_rready": 1,
+                "sram_wr_ready": 1,
+                "sram_rd_req_ready": 1,
+                "m_axi_wstrb": 4294967295,
+                "m_axi_wdata": 862718293348825185030737427059887398092894309284859062195498000580608
+              }
+            },
+            {
+              "wait_cycles": 1
+            },
+            {
+              "assign": {
+                "m_axi_awvalid": 0,
+                "m_axi_wvalid": 0,
+                "m_axi_wlast": 0,
+                "m_axi_wstrb": 0,
+                "m_axi_arvalid": 0,
+                "sram_wr_ready": 1,
+                "sram_rd_req_ready": 1
+              }
+            },
+            {
+              "wait_cycles": 5
+            },
+            {
+              "assign": {
+                "m_axi_awvalid": 1,
+                "m_axi_awlen": 0,
+                "m_axi_awsize": 5,
+                "m_axi_awburst": 1,
+                "m_axi_wvalid": 1,
+                "m_axi_wlast": 1,
+                "m_axi_bready": 1,
+                "m_axi_rready": 1,
+                "sram_wr_ready": 1,
+                "sram_rd_req_ready": 1,
+                "m_axi_wstrb": 4294967295,
+                "m_axi_wdata": 862718293348825088877081889591374507315739882793880930256178550669312
+              }
+            },
+            {
+              "wait_cycles": 1
+            },
+            {
+              "assign": {
+                "m_axi_awvalid": 0,
+                "m_axi_wvalid": 0,
+                "m_axi_wlast": 0,
+                "m_axi_wstrb": 0,
+                "m_axi_arvalid": 0,
+                "sram_wr_ready": 1,
+                "sram_rd_req_ready": 1
+              }
+            },
+            {
+              "wait_cycles": 5
+            }
+          ]
+        }
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "The selected context completes with source_eid 0x31/message_tag 6 while the other key remains independent",
+          "Scenario expected result from SSOT"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
       "goal_id": "EQ_SCENARIO_SC_UNALIGNED_SRAM_PACK_NO_HOLES",
       "title": "Scenario SC_UNALIGNED_SRAM_PACK_NO_HOLES: Unaligned SRAM pack without holes",
       "kind": "transaction",
@@ -1346,7 +1860,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "test_requirements.scenarios[4]"
+        "test_requirements.scenarios[7]"
       ],
       "decomposition_refs": [
         "mctp_assembler_scratch_axi_write_ingress",
@@ -1421,7 +1935,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "test_requirements.scenarios[5]"
+        "test_requirements.scenarios[8]"
       ],
       "decomposition_refs": [
         "mctp_assembler_scratch_axi_write_ingress",
@@ -1496,7 +2010,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "test_requirements.scenarios[6]"
+        "test_requirements.scenarios[9]"
       ],
       "decomposition_refs": [
         "mctp_assembler_scratch_axi_write_ingress",
@@ -1564,6 +2078,100 @@
       "unverified": false
     },
     {
+      "goal_id": "EQ_SCENARIO_SC_READBACK_AFTER_MULTI_ASSEMBLE",
+      "title": "Scenario SC_READBACK_AFTER_MULTI_ASSEMBLE: AXI readback after multi-fragment assembly",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[10]"
+      ],
+      "decomposition_refs": [
+        "mctp_assembler_scratch_axi_write_ingress",
+        "mctp_assembler_scratch_pcie_vdm_parser",
+        "mctp_assembler_scratch_mctp_parser",
+        "mctp_assembler_scratch_context_table",
+        "mctp_assembler_scratch_sram_packer",
+        "mctp_assembler_scratch_axi_read_egress",
+        "mctp_assembler_scratch_sram_arbiter",
+        "mctp_assembler_scratch_descriptor_queue",
+        "mctp_assembler_scratch_apb_regfile",
+        "mctp_assembler_scratch_cdc",
+        "mctp_assembler_scratch_param",
+        "mctp_assembler_scratch",
+        "mctp_assembler_scratch_protocol_model",
+        "mctp_assembler_scratch_register_model",
+        "mctp_assembler_scratch_memory_model",
+        "mctp_assembler_scratch_datapath_model",
+        "mctp_assembler_scratch_fsm_model",
+        "mctp_assembler_scratch_error_model",
+        "mctp_assembler_scratch_security_model"
+      ],
+      "coverage_refs": [
+        "SC_READBACK_AFTER_MULTI_ASSEMBLE_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC_READBACK_AFTER_MULTI_ASSEMBLE",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Complete a multi-fragment message, publish a descriptor, then read through the AXI read path"
+        ],
+        "machine_spec": {
+          "metadata": {
+            "scenario_payload_bytes": 76,
+            "scenario_packet_count": 3,
+            "scenario_source_eid": 34,
+            "scenario_destination_eid": 1,
+            "scenario_tag_owner": 1,
+            "scenario_message_tag": 5,
+            "scenario_packet_seq": 0,
+            "scenario_som": 1,
+            "scenario_eom": 1,
+            "scenario_payload_len": 32,
+            "scenario_payload_word": 43981
+          },
+          "assign": {
+            "payload_data_word": 43981,
+            "payload_byte_strobe": 4294967295
+          }
+        }
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Firmware-visible readback uses the assembled descriptor length and SRAM base",
+          "Scenario expected result from SSOT"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
       "goal_id": "EQ_SCENARIO_SC_APB_REGS_PER_Q",
       "title": "Scenario SC_APB_REGS_PER_Q: APB per-Q visibility",
       "kind": "transaction",
@@ -1571,7 +2179,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "test_requirements.scenarios[7]"
+        "test_requirements.scenarios[11]"
       ],
       "decomposition_refs": [
         "mctp_assembler_scratch_axi_write_ingress",
@@ -1646,7 +2254,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "test_requirements.scenarios[8]"
+        "test_requirements.scenarios[12]"
       ],
       "decomposition_refs": [
         "mctp_assembler_scratch_axi_write_ingress",
@@ -1722,7 +2330,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "test_requirements.scenarios[9]"
+        "test_requirements.scenarios[13]"
       ],
       "decomposition_refs": [
         "mctp_assembler_scratch_axi_write_ingress",
@@ -1798,7 +2406,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "test_requirements.scenarios[10]"
+        "test_requirements.scenarios[14]"
       ],
       "decomposition_refs": [
         "mctp_assembler_scratch_axi_write_ingress",
@@ -1874,7 +2482,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "test_requirements.scenarios[11]"
+        "test_requirements.scenarios[15]"
       ],
       "decomposition_refs": [
         "mctp_assembler_scratch_axi_write_ingress",
@@ -1950,7 +2558,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "test_requirements.scenarios[12]"
+        "test_requirements.scenarios[16]"
       ],
       "decomposition_refs": [
         "mctp_assembler_scratch_axi_write_ingress",
@@ -2026,7 +2634,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "test_requirements.scenarios[13]"
+        "test_requirements.scenarios[17]"
       ],
       "decomposition_refs": [
         "mctp_assembler_scratch_axi_write_ingress",
@@ -2102,7 +2710,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "test_requirements.scenarios[14]"
+        "test_requirements.scenarios[18]"
       ],
       "decomposition_refs": [
         "mctp_assembler_scratch_axi_write_ingress",
@@ -2179,7 +2787,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "test_requirements.scenarios[15]"
+        "test_requirements.scenarios[19]"
       ],
       "decomposition_refs": [
         "mctp_assembler_scratch_axi_write_ingress",
@@ -2255,7 +2863,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "test_requirements.scenarios[16]"
+        "test_requirements.scenarios[20]"
       ],
       "decomposition_refs": [
         "mctp_assembler_scratch_axi_write_ingress",
@@ -2290,7 +2898,58 @@
         ],
         "constraints": [
           "SOM arrives for an already active key"
-        ]
+        ],
+        "machine_spec": {
+          "metadata": {
+            "scenario_payload_bytes": 16,
+            "scenario_packet_count": 2,
+            "scenario_source_eid": 66,
+            "scenario_destination_eid": 1,
+            "scenario_tag_owner": 1,
+            "scenario_message_tag": 2,
+            "scenario_packet_seq": 0,
+            "scenario_som": 1,
+            "scenario_eom": 0,
+            "scenario_payload_len": 16,
+            "scenario_payload_word": 72852346913346,
+            "scenario_force_valid_packet": 1
+          },
+          "timeline": [
+            {
+              "assign": {
+                "m_axi_awvalid": 1,
+                "m_axi_awlen": 0,
+                "m_axi_awsize": 5,
+                "m_axi_awburst": 1,
+                "m_axi_wvalid": 1,
+                "m_axi_wlast": 1,
+                "m_axi_bready": 1,
+                "m_axi_rready": 1,
+                "sram_wr_ready": 1,
+                "sram_rd_req_ready": 1,
+                "m_axi_wstrb": 4294967295,
+                "m_axi_wdata": 431359174099904671902960258729505936807532572925430331891647109922816
+              }
+            },
+            {
+              "wait_cycles": 1
+            },
+            {
+              "assign": {
+                "m_axi_awvalid": 0,
+                "m_axi_wvalid": 0,
+                "m_axi_wlast": 0,
+                "m_axi_wstrb": 0,
+                "m_axi_arvalid": 0,
+                "sram_wr_ready": 1,
+                "sram_rd_req_ready": 1
+              }
+            },
+            {
+              "wait_cycles": 5
+            }
+          ]
+        }
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
@@ -2331,7 +2990,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "test_requirements.scenarios[17]"
+        "test_requirements.scenarios[21]"
       ],
       "decomposition_refs": [
         "mctp_assembler_scratch_axi_write_ingress",
@@ -2407,7 +3066,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "test_requirements.scenarios[18]"
+        "test_requirements.scenarios[22]"
       ],
       "decomposition_refs": [
         "mctp_assembler_scratch_axi_write_ingress",
@@ -2483,7 +3142,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "test_requirements.scenarios[19]"
+        "test_requirements.scenarios[23]"
       ],
       "decomposition_refs": [
         "mctp_assembler_scratch_axi_write_ingress",
@@ -2518,7 +3177,40 @@
         ],
         "constraints": [
           "Linear bump allocator would exceed SRAM_LIMIT"
-        ]
+        ],
+        "machine_spec": {
+          "metadata": {
+            "scenario_payload_bytes": 32,
+            "scenario_packet_count": 1,
+            "scenario_source_eid": 67,
+            "scenario_destination_eid": 1,
+            "scenario_tag_owner": 0,
+            "scenario_message_tag": 4,
+            "scenario_packet_seq": 0,
+            "scenario_som": 1,
+            "scenario_eom": 1,
+            "scenario_payload_len": 32,
+            "scenario_payload_word": 73956170351427,
+            "scenario_force_valid_packet": 1
+          },
+          "timeline": [
+            {
+              "csr_write": {
+                "offset": 48,
+                "data": 0
+              }
+            },
+            {
+              "csr_write": {
+                "offset": 52,
+                "data": 16
+              }
+            },
+            {
+              "wait_cycles": 2
+            }
+          ]
+        }
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
@@ -2559,7 +3251,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "test_requirements.scenarios[20]"
+        "test_requirements.scenarios[24]"
       ],
       "decomposition_refs": [
         "mctp_assembler_scratch_axi_write_ingress",
@@ -2635,7 +3327,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "test_requirements.scenarios[21]"
+        "test_requirements.scenarios[25]"
       ],
       "decomposition_refs": [
         "mctp_assembler_scratch_axi_write_ingress",
@@ -2718,7 +3410,6 @@
         "mctp_assembler_scratch_fsm_model"
       ],
       "coverage_refs": [
-        "ccov_axi_handshakes",
         "cycle_axi_write_channels",
         "cycle_axi_read_channels",
         "cycle_apb_access",
@@ -2778,7 +3469,6 @@
         "mctp_assembler_scratch_fsm_model"
       ],
       "coverage_refs": [
-        "ccov_axi_handshakes",
         "cycle_axi_write_channels",
         "cycle_axi_read_channels",
         "cycle_apb_access",
@@ -2838,7 +3528,6 @@
         "mctp_assembler_scratch_fsm_model"
       ],
       "coverage_refs": [
-        "ccov_axi_handshakes",
         "function_apb_register_access",
         "cycle_axi_write_channels",
         "cycle_axi_read_channels",
@@ -2899,7 +3588,6 @@
         "mctp_assembler_scratch_fsm_model"
       ],
       "coverage_refs": [
-        "ccov_axi_handshakes",
         "cycle_axi_write_channels",
         "cycle_axi_read_channels",
         "cycle_apb_access",
@@ -2960,10 +3648,10 @@
         "mctp_assembler_scratch_fsm_model"
       ],
       "coverage_refs": [
-        "cycle_ordering_0",
-        "cycle_ordering_1",
-        "cycle_ordering_2",
-        "cycle_ordering_3"
+        "ordering_one_tlp_per_axi_write_transaction",
+        "ordering_per_key_fragment_order",
+        "ordering_descriptor_after_sram_flush",
+        "ordering_readback_after_descriptor"
       ],
       "stimulus_contract": {
         "transaction_type": "one_tlp_per_axi_write_transaction",
@@ -3019,10 +3707,10 @@
         "mctp_assembler_scratch_fsm_model"
       ],
       "coverage_refs": [
-        "cycle_ordering_0",
-        "cycle_ordering_1",
-        "cycle_ordering_2",
-        "cycle_ordering_3"
+        "ordering_one_tlp_per_axi_write_transaction",
+        "ordering_per_key_fragment_order",
+        "ordering_descriptor_after_sram_flush",
+        "ordering_readback_after_descriptor"
       ],
       "stimulus_contract": {
         "transaction_type": "per_key_fragment_order",
@@ -3078,10 +3766,10 @@
         "mctp_assembler_scratch_fsm_model"
       ],
       "coverage_refs": [
-        "cycle_ordering_0",
-        "cycle_ordering_1",
-        "cycle_ordering_2",
-        "cycle_ordering_3"
+        "ordering_one_tlp_per_axi_write_transaction",
+        "ordering_per_key_fragment_order",
+        "ordering_descriptor_after_sram_flush",
+        "ordering_readback_after_descriptor"
       ],
       "stimulus_contract": {
         "transaction_type": "descriptor_after_sram_flush",
@@ -3137,10 +3825,10 @@
         "mctp_assembler_scratch_fsm_model"
       ],
       "coverage_refs": [
-        "cycle_ordering_0",
-        "cycle_ordering_1",
-        "cycle_ordering_2",
-        "cycle_ordering_3"
+        "ordering_one_tlp_per_axi_write_transaction",
+        "ordering_per_key_fragment_order",
+        "ordering_descriptor_after_sram_flush",
+        "ordering_readback_after_descriptor"
       ],
       "stimulus_contract": {
         "transaction_type": "readback_after_descriptor",
@@ -3902,9 +4590,7 @@
       "decomposition_refs": [
         "mctp_assembler_scratch_memory_model"
       ],
-      "coverage_refs": [
-        "fcov_sram_pack_write"
-      ],
+      "coverage_refs": [],
       "stimulus_contract": {
         "transaction_type": "memory_access",
         "required_fields": [
@@ -3962,8 +4648,6 @@
         "mctp_assembler_scratch_memory_model"
       ],
       "coverage_refs": [
-        "fcov_sram_pack_write",
-        "cycle_perf_depth",
         "error_error_12"
       ],
       "stimulus_contract": {
@@ -4022,9 +4706,7 @@
       "decomposition_refs": [
         "mctp_assembler_scratch_memory_model"
       ],
-      "coverage_refs": [
-        "fcov_sram_pack_write"
-      ],
+      "coverage_refs": [],
       "stimulus_contract": {
         "transaction_type": "memory_access",
         "required_fields": [
@@ -4081,9 +4763,7 @@
       "decomposition_refs": [
         "mctp_assembler_scratch_memory_model"
       ],
-      "coverage_refs": [
-        "fcov_sram_pack_write"
-      ],
+      "coverage_refs": [],
       "stimulus_contract": {
         "transaction_type": "memory_access",
         "required_fields": [
@@ -4142,8 +4822,6 @@
         "mctp_assembler_scratch_error_model"
       ],
       "coverage_refs": [
-        "fcov_packet_drops",
-        "fcov_assembly_drops",
         "fsm_context_fsm_idle_to_error_3",
         "fsm_context_fsm_assembling_to_error_4",
         "fsm_context_fsm_error_to_idle_6",
@@ -4217,7 +4895,6 @@
         "mctp_assembler_scratch_fsm_model"
       ],
       "coverage_refs": [
-        "ccov_context_fsm",
         "fsm_context_fsm_idle_to_assembling_0",
         "fsm_context_fsm_assembling_to_assembling_1",
         "fsm_context_fsm_assembling_to_done_wait_descriptor_pop_2",
@@ -4281,7 +4958,6 @@
         "mctp_assembler_scratch_fsm_model"
       ],
       "coverage_refs": [
-        "ccov_context_fsm",
         "fsm_context_fsm_idle_to_assembling_0",
         "fsm_context_fsm_assembling_to_assembling_1",
         "fsm_context_fsm_assembling_to_done_wait_descriptor_pop_2",
@@ -4345,7 +5021,6 @@
         "mctp_assembler_scratch_fsm_model"
       ],
       "coverage_refs": [
-        "ccov_context_fsm",
         "fsm_context_fsm_idle_to_assembling_0",
         "fsm_context_fsm_assembling_to_assembling_1",
         "fsm_context_fsm_assembling_to_done_wait_descriptor_pop_2",
@@ -4409,9 +5084,6 @@
         "mctp_assembler_scratch_fsm_model"
       ],
       "coverage_refs": [
-        "fcov_packet_drops",
-        "fcov_assembly_drops",
-        "ccov_context_fsm",
         "fsm_context_fsm_idle_to_assembling_0",
         "fsm_context_fsm_assembling_to_assembling_1",
         "fsm_context_fsm_assembling_to_done_wait_descriptor_pop_2",
@@ -4489,9 +5161,6 @@
         "mctp_assembler_scratch_fsm_model"
       ],
       "coverage_refs": [
-        "fcov_packet_drops",
-        "fcov_assembly_drops",
-        "ccov_context_fsm",
         "fsm_context_fsm_idle_to_assembling_0",
         "fsm_context_fsm_assembling_to_assembling_1",
         "fsm_context_fsm_assembling_to_done_wait_descriptor_pop_2",
@@ -4569,7 +5238,6 @@
         "mctp_assembler_scratch_fsm_model"
       ],
       "coverage_refs": [
-        "ccov_context_fsm",
         "fsm_context_fsm_idle_to_assembling_0",
         "fsm_context_fsm_assembling_to_assembling_1",
         "fsm_context_fsm_assembling_to_done_wait_descriptor_pop_2",
@@ -4633,9 +5301,6 @@
         "mctp_assembler_scratch_fsm_model"
       ],
       "coverage_refs": [
-        "fcov_packet_drops",
-        "fcov_assembly_drops",
-        "ccov_context_fsm",
         "fsm_context_fsm_idle_to_assembling_0",
         "fsm_context_fsm_assembling_to_assembling_1",
         "fsm_context_fsm_assembling_to_done_wait_descriptor_pop_2",
@@ -4717,7 +5382,7 @@
         "mctp_assembler_scratch_error_model"
       ],
       "coverage_refs": [
-        "cycle_ordering_3"
+        "ordering_readback_after_descriptor"
       ],
       "stimulus_contract": {
         "transaction_type": "debug_probe_capture",
@@ -5674,14 +6339,14 @@
       "unverified": false
     },
     {
-      "goal_id": "EQ_COVERAGE_CCOV_SRAM_ARBITRATION",
-      "title": "Functional coverage bin ccov_sram_arbitration: SRAM write priority over firmware read exercised.",
+      "goal_id": "EQ_COVERAGE_INVARIANT_CONTEXT_BOUND_VIOLATED",
+      "title": "Functional coverage bin invariant_context_bound_violated: context_bound",
       "kind": "coverage",
       "scope": {
         "level": "top"
       },
       "ssot_refs": [
-        "cycle_model.arbitration"
+        "function_model.invariants[0]"
       ],
       "decomposition_refs": [
         "mctp_assembler_scratch_axi_write_ingress",
@@ -5705,7 +6370,7 @@
         "mctp_assembler_scratch_security_model"
       ],
       "coverage_refs": [
-        "ccov_sram_arbitration"
+        "invariant_context_bound_violated"
       ],
       "stimulus_contract": {
         "transaction_type": "Accept one AXI4 write burst as one PCIe VDM TLP",
@@ -5717,7 +6382,7 @@
         ],
         "constraints": [
           "axi_aw_accept and axi_wlast_seen",
-          "SRAM write priority over firmware read exercised."
+          "context_bound"
         ]
       },
       "expected_contract": {
@@ -5757,14 +6422,14 @@
       "unverified": false
     },
     {
-      "goal_id": "EQ_COVERAGE_CCOV_BACKPRESSURE",
-      "title": "Functional coverage bin ccov_backpressure: Input and output backpressure cases exercised.",
+      "goal_id": "EQ_COVERAGE_INVARIANT_PAYLOAD_BOUND_VIOLATED",
+      "title": "Functional coverage bin invariant_payload_bound_violated: payload_bound",
       "kind": "coverage",
       "scope": {
         "level": "top"
       },
       "ssot_refs": [
-        "cycle_model.backpressure"
+        "function_model.invariants[1]"
       ],
       "decomposition_refs": [
         "mctp_assembler_scratch_axi_write_ingress",
@@ -5788,7 +6453,7 @@
         "mctp_assembler_scratch_security_model"
       ],
       "coverage_refs": [
-        "ccov_backpressure"
+        "invariant_payload_bound_violated"
       ],
       "stimulus_contract": {
         "transaction_type": "Accept one AXI4 write burst as one PCIe VDM TLP",
@@ -5800,7 +6465,7 @@
         ],
         "constraints": [
           "axi_aw_accept and axi_wlast_seen",
-          "Input and output backpressure cases exercised."
+          "payload_bound"
         ]
       },
       "expected_contract": {
@@ -5840,14 +6505,14 @@
       "unverified": false
     },
     {
-      "goal_id": "EQ_COVERAGE_CCOV_MAX_TLP_BEATS",
-      "title": "Functional coverage bin ccov_max_tlp_beats: 129-beat 4096B plus header TLP path exercised.",
+      "goal_id": "EQ_COVERAGE_INVARIANT_DESCRIPTOR_BOUND_VIOLATED",
+      "title": "Functional coverage bin invariant_descriptor_bound_violated: descriptor_bound",
       "kind": "coverage",
       "scope": {
         "level": "top"
       },
       "ssot_refs": [
-        "cycle_model.pipeline"
+        "function_model.invariants[2]"
       ],
       "decomposition_refs": [
         "mctp_assembler_scratch_axi_write_ingress",
@@ -5871,7 +6536,7 @@
         "mctp_assembler_scratch_security_model"
       ],
       "coverage_refs": [
-        "ccov_max_tlp_beats"
+        "invariant_descriptor_bound_violated"
       ],
       "stimulus_contract": {
         "transaction_type": "Accept one AXI4 write burst as one PCIe VDM TLP",
@@ -5883,7 +6548,7 @@
         ],
         "constraints": [
           "axi_aw_accept and axi_wlast_seen",
-          "129-beat 4096B plus header TLP path exercised."
+          "descriptor_bound"
         ]
       },
       "expected_contract": {
@@ -5923,8 +6588,8 @@
       "unverified": false
     },
     {
-      "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_DEFAULT",
-      "title": "Functional coverage bin cycle_latency_default: {'min_cycles': 1, 'max_cycles': 1, 'description': 'Default bounded transaction latency'}",
+      "goal_id": "EQ_COVERAGE_LATENCY_DEFAULT_LT_MIN",
+      "title": "Functional coverage bin latency_default_lt_min: default latency < 1 cycles",
       "kind": "coverage",
       "scope": {
         "level": "top"
@@ -5954,7 +6619,7 @@
         "mctp_assembler_scratch_security_model"
       ],
       "coverage_refs": [
-        "cycle_latency_default"
+        "latency_default_lt_min"
       ],
       "stimulus_contract": {
         "transaction_type": "Accept one AXI4 write burst as one PCIe VDM TLP",
@@ -5966,7 +6631,7 @@
         ],
         "constraints": [
           "axi_aw_accept and axi_wlast_seen",
-          "{'min_cycles': 1, 'max_cycles': 1, 'description': 'Default bounded transaction latency'}"
+          "default latency < 1 cycles"
         ]
       },
       "expected_contract": {
@@ -6006,14 +6671,14 @@
       "unverified": false
     },
     {
-      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_AXI_WRITE_COLLECT",
-      "title": "Functional coverage bin cycle_pipeline_axi_write_collect: Collect one raw TLP write transaction through WLAST.",
+      "goal_id": "EQ_COVERAGE_LATENCY_DEFAULT_AT_MIN",
+      "title": "Functional coverage bin latency_default_at_min: default latency == 1 cycles",
       "kind": "coverage",
       "scope": {
         "level": "top"
       },
       "ssot_refs": [
-        "cycle_model.pipeline[0]"
+        "cycle_model.latency.default"
       ],
       "decomposition_refs": [
         "mctp_assembler_scratch_axi_write_ingress",
@@ -6037,7 +6702,7 @@
         "mctp_assembler_scratch_security_model"
       ],
       "coverage_refs": [
-        "cycle_pipeline_axi_write_collect"
+        "latency_default_at_min"
       ],
       "stimulus_contract": {
         "transaction_type": "Accept one AXI4 write burst as one PCIe VDM TLP",
@@ -6049,7 +6714,7 @@
         ],
         "constraints": [
           "axi_aw_accept and axi_wlast_seen",
-          "Collect one raw TLP write transaction through WLAST."
+          "default latency == 1 cycles"
         ]
       },
       "expected_contract": {
@@ -6089,14 +6754,14 @@
       "unverified": false
     },
     {
-      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_PCIE_VDM_FILTER",
-      "title": "Functional coverage bin cycle_pipeline_pcie_vdm_filter: Decode required PCIe VDM fields and classify packet drops.",
+      "goal_id": "EQ_COVERAGE_LATENCY_DEFAULT_AT_MAX",
+      "title": "Functional coverage bin latency_default_at_max: default latency == 1 cycles",
       "kind": "coverage",
       "scope": {
         "level": "top"
       },
       "ssot_refs": [
-        "cycle_model.pipeline[1]"
+        "cycle_model.latency.default"
       ],
       "decomposition_refs": [
         "mctp_assembler_scratch_axi_write_ingress",
@@ -6120,7 +6785,7 @@
         "mctp_assembler_scratch_security_model"
       ],
       "coverage_refs": [
-        "cycle_pipeline_pcie_vdm_filter"
+        "latency_default_at_max"
       ],
       "stimulus_contract": {
         "transaction_type": "Accept one AXI4 write burst as one PCIe VDM TLP",
@@ -6132,7 +6797,7 @@
         ],
         "constraints": [
           "axi_aw_accept and axi_wlast_seen",
-          "Decode required PCIe VDM fields and classify packet drops."
+          "default latency == 1 cycles"
         ]
       },
       "expected_contract": {
@@ -6172,14 +6837,14 @@
       "unverified": false
     },
     {
-      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_MCTP_PARSE",
-      "title": "Functional coverage bin cycle_pipeline_mctp_parse: Decode MCTP transport fields and form context key.",
+      "goal_id": "EQ_COVERAGE_LATENCY_DEFAULT_GT_MAX",
+      "title": "Functional coverage bin latency_default_gt_max: default latency > 1 cycles",
       "kind": "coverage",
       "scope": {
         "level": "top"
       },
       "ssot_refs": [
-        "cycle_model.pipeline[2]"
+        "cycle_model.latency.default"
       ],
       "decomposition_refs": [
         "mctp_assembler_scratch_axi_write_ingress",
@@ -6203,7 +6868,7 @@
         "mctp_assembler_scratch_security_model"
       ],
       "coverage_refs": [
-        "cycle_pipeline_mctp_parse"
+        "latency_default_gt_max"
       ],
       "stimulus_contract": {
         "transaction_type": "Accept one AXI4 write burst as one PCIe VDM TLP",
@@ -6215,7 +6880,7 @@
         ],
         "constraints": [
           "axi_aw_accept and axi_wlast_seen",
-          "Decode MCTP transport fields and form context key."
+          "default latency > 1 cycles"
         ]
       },
       "expected_contract": {
@@ -6255,14 +6920,14 @@
       "unverified": false
     },
     {
-      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_CONTEXT_LOOKUP_UPDATE",
-      "title": "Functional coverage bin cycle_pipeline_context_lookup_update: Allocate",
+      "goal_id": "EQ_COVERAGE_OUTSTANDING_DEPTH_1",
+      "title": "Functional coverage bin outstanding_depth_1: 1 outstanding transaction (min)",
       "kind": "coverage",
       "scope": {
         "level": "top"
       },
       "ssot_refs": [
-        "cycle_model.pipeline[3]"
+        "cycle_model.outstanding"
       ],
       "decomposition_refs": [
         "mctp_assembler_scratch_axi_write_ingress",
@@ -6286,7 +6951,7 @@
         "mctp_assembler_scratch_security_model"
       ],
       "coverage_refs": [
-        "cycle_pipeline_context_lookup_update"
+        "outstanding_depth_1"
       ],
       "stimulus_contract": {
         "transaction_type": "Accept one AXI4 write burst as one PCIe VDM TLP",
@@ -6298,754 +6963,7 @@
         ],
         "constraints": [
           "axi_aw_accept and axi_wlast_seen",
-          "Allocate"
-        ]
-      },
-      "expected_contract": {
-        "model_api": "FunctionalModel.apply",
-        "observables": [
-          "bvalid_next",
-          "bresp_next",
-          "{'name': 'bvalid_next', 'port': 'm_axi_bvalid', 'expr': 'axi_aw_accept and axi_wlast_seen', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
-          "{'name': 'bresp_next', 'port': 'm_axi_bresp', 'expr': 'BRESP_OKAY', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
-          "{'state': 'collected_tlp_count', 'expr': 'collected_tlp_count + axi_wlast_seen', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}"
-        ],
-        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
-        "state_updates": [
-          "raw TLP bytes captured until WLAST",
-          "write response emitted after packet classification",
-          "collected_tlp_count"
-        ],
-        "error_policy": ""
-      },
-      "pass_criteria": [
-        "Generated stimulus executes an SSOT-derived behavior path",
-        "Scoreboard expected result comes from FunctionalModel.apply",
-        "Coverage collector samples this planned bin only after the scoreboard row passes"
-      ],
-      "owner_on_fail": {
-        "default": "coverage",
-        "possible": [
-          "ssot",
-          "fl_model",
-          "tb",
-          "coverage",
-          "human"
-        ]
-      },
-      "blocked": false,
-      "blocker": "",
-      "unverified": false
-    },
-    {
-      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_SRAM_PACK_WRITE",
-      "title": "Functional coverage bin cycle_pipeline_sram_pack_write: Emit packed 256-bit SRAM writes without holes.",
-      "kind": "coverage",
-      "scope": {
-        "level": "top"
-      },
-      "ssot_refs": [
-        "cycle_model.pipeline[4]"
-      ],
-      "decomposition_refs": [
-        "mctp_assembler_scratch_axi_write_ingress",
-        "mctp_assembler_scratch_pcie_vdm_parser",
-        "mctp_assembler_scratch_mctp_parser",
-        "mctp_assembler_scratch_context_table",
-        "mctp_assembler_scratch_sram_packer",
-        "mctp_assembler_scratch_axi_read_egress",
-        "mctp_assembler_scratch_sram_arbiter",
-        "mctp_assembler_scratch_descriptor_queue",
-        "mctp_assembler_scratch_apb_regfile",
-        "mctp_assembler_scratch_cdc",
-        "mctp_assembler_scratch_param",
-        "mctp_assembler_scratch",
-        "mctp_assembler_scratch_protocol_model",
-        "mctp_assembler_scratch_register_model",
-        "mctp_assembler_scratch_memory_model",
-        "mctp_assembler_scratch_datapath_model",
-        "mctp_assembler_scratch_fsm_model",
-        "mctp_assembler_scratch_error_model",
-        "mctp_assembler_scratch_security_model"
-      ],
-      "coverage_refs": [
-        "cycle_pipeline_sram_pack_write"
-      ],
-      "stimulus_contract": {
-        "transaction_type": "Accept one AXI4 write burst as one PCIe VDM TLP",
-        "required_fields": [
-          "kind",
-          "axi_aw_accept",
-          "axi_wlast_seen",
-          "tlp_byte_count"
-        ],
-        "constraints": [
-          "axi_aw_accept and axi_wlast_seen",
-          "Emit packed 256-bit SRAM writes without holes."
-        ]
-      },
-      "expected_contract": {
-        "model_api": "FunctionalModel.apply",
-        "observables": [
-          "bvalid_next",
-          "bresp_next",
-          "{'name': 'bvalid_next', 'port': 'm_axi_bvalid', 'expr': 'axi_aw_accept and axi_wlast_seen', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
-          "{'name': 'bresp_next', 'port': 'm_axi_bresp', 'expr': 'BRESP_OKAY', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
-          "{'state': 'collected_tlp_count', 'expr': 'collected_tlp_count + axi_wlast_seen', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}"
-        ],
-        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
-        "state_updates": [
-          "raw TLP bytes captured until WLAST",
-          "write response emitted after packet classification",
-          "collected_tlp_count"
-        ],
-        "error_policy": ""
-      },
-      "pass_criteria": [
-        "Generated stimulus executes an SSOT-derived behavior path",
-        "Scoreboard expected result comes from FunctionalModel.apply",
-        "Coverage collector samples this planned bin only after the scoreboard row passes"
-      ],
-      "owner_on_fail": {
-        "default": "coverage",
-        "possible": [
-          "ssot",
-          "fl_model",
-          "tb",
-          "coverage",
-          "human"
-        ]
-      },
-      "blocked": false,
-      "blocker": "",
-      "unverified": false
-    },
-    {
-      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_DESCRIPTOR_IRQ",
-      "title": "Functional coverage bin cycle_pipeline_descriptor_irq: Publish descriptor",
-      "kind": "coverage",
-      "scope": {
-        "level": "top"
-      },
-      "ssot_refs": [
-        "cycle_model.pipeline[5]"
-      ],
-      "decomposition_refs": [
-        "mctp_assembler_scratch_axi_write_ingress",
-        "mctp_assembler_scratch_pcie_vdm_parser",
-        "mctp_assembler_scratch_mctp_parser",
-        "mctp_assembler_scratch_context_table",
-        "mctp_assembler_scratch_sram_packer",
-        "mctp_assembler_scratch_axi_read_egress",
-        "mctp_assembler_scratch_sram_arbiter",
-        "mctp_assembler_scratch_descriptor_queue",
-        "mctp_assembler_scratch_apb_regfile",
-        "mctp_assembler_scratch_cdc",
-        "mctp_assembler_scratch_param",
-        "mctp_assembler_scratch",
-        "mctp_assembler_scratch_protocol_model",
-        "mctp_assembler_scratch_register_model",
-        "mctp_assembler_scratch_memory_model",
-        "mctp_assembler_scratch_datapath_model",
-        "mctp_assembler_scratch_fsm_model",
-        "mctp_assembler_scratch_error_model",
-        "mctp_assembler_scratch_security_model"
-      ],
-      "coverage_refs": [
-        "cycle_pipeline_descriptor_irq"
-      ],
-      "stimulus_contract": {
-        "transaction_type": "Accept one AXI4 write burst as one PCIe VDM TLP",
-        "required_fields": [
-          "kind",
-          "axi_aw_accept",
-          "axi_wlast_seen",
-          "tlp_byte_count"
-        ],
-        "constraints": [
-          "axi_aw_accept and axi_wlast_seen",
-          "Publish descriptor"
-        ]
-      },
-      "expected_contract": {
-        "model_api": "FunctionalModel.apply",
-        "observables": [
-          "bvalid_next",
-          "bresp_next",
-          "{'name': 'bvalid_next', 'port': 'm_axi_bvalid', 'expr': 'axi_aw_accept and axi_wlast_seen', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
-          "{'name': 'bresp_next', 'port': 'm_axi_bresp', 'expr': 'BRESP_OKAY', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
-          "{'state': 'collected_tlp_count', 'expr': 'collected_tlp_count + axi_wlast_seen', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}"
-        ],
-        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
-        "state_updates": [
-          "raw TLP bytes captured until WLAST",
-          "write response emitted after packet classification",
-          "collected_tlp_count"
-        ],
-        "error_policy": ""
-      },
-      "pass_criteria": [
-        "Generated stimulus executes an SSOT-derived behavior path",
-        "Scoreboard expected result comes from FunctionalModel.apply",
-        "Coverage collector samples this planned bin only after the scoreboard row passes"
-      ],
-      "owner_on_fail": {
-        "default": "coverage",
-        "possible": [
-          "ssot",
-          "fl_model",
-          "tb",
-          "coverage",
-          "human"
-        ]
-      },
-      "blocked": false,
-      "blocker": "",
-      "unverified": false
-    },
-    {
-      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_AXI_READBACK",
-      "title": "Functional coverage bin cycle_pipeline_axi_readback: Read SRAM payload and return AXI R beats.",
-      "kind": "coverage",
-      "scope": {
-        "level": "top"
-      },
-      "ssot_refs": [
-        "cycle_model.pipeline[6]"
-      ],
-      "decomposition_refs": [
-        "mctp_assembler_scratch_axi_write_ingress",
-        "mctp_assembler_scratch_pcie_vdm_parser",
-        "mctp_assembler_scratch_mctp_parser",
-        "mctp_assembler_scratch_context_table",
-        "mctp_assembler_scratch_sram_packer",
-        "mctp_assembler_scratch_axi_read_egress",
-        "mctp_assembler_scratch_sram_arbiter",
-        "mctp_assembler_scratch_descriptor_queue",
-        "mctp_assembler_scratch_apb_regfile",
-        "mctp_assembler_scratch_cdc",
-        "mctp_assembler_scratch_param",
-        "mctp_assembler_scratch",
-        "mctp_assembler_scratch_protocol_model",
-        "mctp_assembler_scratch_register_model",
-        "mctp_assembler_scratch_memory_model",
-        "mctp_assembler_scratch_datapath_model",
-        "mctp_assembler_scratch_fsm_model",
-        "mctp_assembler_scratch_error_model",
-        "mctp_assembler_scratch_security_model"
-      ],
-      "coverage_refs": [
-        "cycle_pipeline_axi_readback"
-      ],
-      "stimulus_contract": {
-        "transaction_type": "Accept one AXI4 write burst as one PCIe VDM TLP",
-        "required_fields": [
-          "kind",
-          "axi_aw_accept",
-          "axi_wlast_seen",
-          "tlp_byte_count"
-        ],
-        "constraints": [
-          "axi_aw_accept and axi_wlast_seen",
-          "Read SRAM payload and return AXI R beats."
-        ]
-      },
-      "expected_contract": {
-        "model_api": "FunctionalModel.apply",
-        "observables": [
-          "bvalid_next",
-          "bresp_next",
-          "{'name': 'bvalid_next', 'port': 'm_axi_bvalid', 'expr': 'axi_aw_accept and axi_wlast_seen', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
-          "{'name': 'bresp_next', 'port': 'm_axi_bresp', 'expr': 'BRESP_OKAY', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
-          "{'state': 'collected_tlp_count', 'expr': 'collected_tlp_count + axi_wlast_seen', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}"
-        ],
-        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
-        "state_updates": [
-          "raw TLP bytes captured until WLAST",
-          "write response emitted after packet classification",
-          "collected_tlp_count"
-        ],
-        "error_policy": ""
-      },
-      "pass_criteria": [
-        "Generated stimulus executes an SSOT-derived behavior path",
-        "Scoreboard expected result comes from FunctionalModel.apply",
-        "Coverage collector samples this planned bin only after the scoreboard row passes"
-      ],
-      "owner_on_fail": {
-        "default": "coverage",
-        "possible": [
-          "ssot",
-          "fl_model",
-          "tb",
-          "coverage",
-          "human"
-        ]
-      },
-      "blocked": false,
-      "blocker": "",
-      "unverified": false
-    },
-    {
-      "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
-      "title": "Functional coverage bin cycle_backpressure_0: AXI write backpressure is applied when context table, descriptor FIFO, or SRAM pack resources cannot accept more data.",
-      "kind": "coverage",
-      "scope": {
-        "level": "top"
-      },
-      "ssot_refs": [
-        "cycle_model.backpressure[0]"
-      ],
-      "decomposition_refs": [
-        "mctp_assembler_scratch_axi_write_ingress",
-        "mctp_assembler_scratch_pcie_vdm_parser",
-        "mctp_assembler_scratch_mctp_parser",
-        "mctp_assembler_scratch_context_table",
-        "mctp_assembler_scratch_sram_packer",
-        "mctp_assembler_scratch_axi_read_egress",
-        "mctp_assembler_scratch_sram_arbiter",
-        "mctp_assembler_scratch_descriptor_queue",
-        "mctp_assembler_scratch_apb_regfile",
-        "mctp_assembler_scratch_cdc",
-        "mctp_assembler_scratch_param",
-        "mctp_assembler_scratch",
-        "mctp_assembler_scratch_protocol_model",
-        "mctp_assembler_scratch_register_model",
-        "mctp_assembler_scratch_memory_model",
-        "mctp_assembler_scratch_datapath_model",
-        "mctp_assembler_scratch_fsm_model",
-        "mctp_assembler_scratch_error_model",
-        "mctp_assembler_scratch_security_model"
-      ],
-      "coverage_refs": [
-        "cycle_backpressure_0"
-      ],
-      "stimulus_contract": {
-        "transaction_type": "Accept one AXI4 write burst as one PCIe VDM TLP",
-        "required_fields": [
-          "kind",
-          "axi_aw_accept",
-          "axi_wlast_seen",
-          "tlp_byte_count"
-        ],
-        "constraints": [
-          "axi_aw_accept and axi_wlast_seen",
-          "AXI write backpressure is applied when context table, descriptor FIFO, or SRAM pack resources cannot accept more data."
-        ]
-      },
-      "expected_contract": {
-        "model_api": "FunctionalModel.apply",
-        "observables": [
-          "bvalid_next",
-          "bresp_next",
-          "{'name': 'bvalid_next', 'port': 'm_axi_bvalid', 'expr': 'axi_aw_accept and axi_wlast_seen', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
-          "{'name': 'bresp_next', 'port': 'm_axi_bresp', 'expr': 'BRESP_OKAY', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
-          "{'state': 'collected_tlp_count', 'expr': 'collected_tlp_count + axi_wlast_seen', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}"
-        ],
-        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
-        "state_updates": [
-          "raw TLP bytes captured until WLAST",
-          "write response emitted after packet classification",
-          "collected_tlp_count"
-        ],
-        "error_policy": ""
-      },
-      "pass_criteria": [
-        "Generated stimulus executes an SSOT-derived behavior path",
-        "Scoreboard expected result comes from FunctionalModel.apply",
-        "Coverage collector samples this planned bin only after the scoreboard row passes"
-      ],
-      "owner_on_fail": {
-        "default": "coverage",
-        "possible": [
-          "ssot",
-          "fl_model",
-          "tb",
-          "coverage",
-          "human"
-        ]
-      },
-      "blocked": false,
-      "blocker": "",
-      "unverified": false
-    },
-    {
-      "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_1",
-      "title": "Functional coverage bin cycle_backpressure_1: AXI read backpressure is applied while waiting for SRAM read responses.",
-      "kind": "coverage",
-      "scope": {
-        "level": "top"
-      },
-      "ssot_refs": [
-        "cycle_model.backpressure[1]"
-      ],
-      "decomposition_refs": [
-        "mctp_assembler_scratch_axi_write_ingress",
-        "mctp_assembler_scratch_pcie_vdm_parser",
-        "mctp_assembler_scratch_mctp_parser",
-        "mctp_assembler_scratch_context_table",
-        "mctp_assembler_scratch_sram_packer",
-        "mctp_assembler_scratch_axi_read_egress",
-        "mctp_assembler_scratch_sram_arbiter",
-        "mctp_assembler_scratch_descriptor_queue",
-        "mctp_assembler_scratch_apb_regfile",
-        "mctp_assembler_scratch_cdc",
-        "mctp_assembler_scratch_param",
-        "mctp_assembler_scratch",
-        "mctp_assembler_scratch_protocol_model",
-        "mctp_assembler_scratch_register_model",
-        "mctp_assembler_scratch_memory_model",
-        "mctp_assembler_scratch_datapath_model",
-        "mctp_assembler_scratch_fsm_model",
-        "mctp_assembler_scratch_error_model",
-        "mctp_assembler_scratch_security_model"
-      ],
-      "coverage_refs": [
-        "cycle_backpressure_1"
-      ],
-      "stimulus_contract": {
-        "transaction_type": "Accept one AXI4 write burst as one PCIe VDM TLP",
-        "required_fields": [
-          "kind",
-          "axi_aw_accept",
-          "axi_wlast_seen",
-          "tlp_byte_count"
-        ],
-        "constraints": [
-          "axi_aw_accept and axi_wlast_seen",
-          "AXI read backpressure is applied while waiting for SRAM read responses."
-        ]
-      },
-      "expected_contract": {
-        "model_api": "FunctionalModel.apply",
-        "observables": [
-          "bvalid_next",
-          "bresp_next",
-          "{'name': 'bvalid_next', 'port': 'm_axi_bvalid', 'expr': 'axi_aw_accept and axi_wlast_seen', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
-          "{'name': 'bresp_next', 'port': 'm_axi_bresp', 'expr': 'BRESP_OKAY', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
-          "{'state': 'collected_tlp_count', 'expr': 'collected_tlp_count + axi_wlast_seen', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}"
-        ],
-        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
-        "state_updates": [
-          "raw TLP bytes captured until WLAST",
-          "write response emitted after packet classification",
-          "collected_tlp_count"
-        ],
-        "error_policy": ""
-      },
-      "pass_criteria": [
-        "Generated stimulus executes an SSOT-derived behavior path",
-        "Scoreboard expected result comes from FunctionalModel.apply",
-        "Coverage collector samples this planned bin only after the scoreboard row passes"
-      ],
-      "owner_on_fail": {
-        "default": "coverage",
-        "possible": [
-          "ssot",
-          "fl_model",
-          "tb",
-          "coverage",
-          "human"
-        ]
-      },
-      "blocked": false,
-      "blocker": "",
-      "unverified": false
-    },
-    {
-      "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_2",
-      "title": "Functional coverage bin cycle_backpressure_2: SRAM read requests yield to SRAM write requests in the first-target arbiter.",
-      "kind": "coverage",
-      "scope": {
-        "level": "top"
-      },
-      "ssot_refs": [
-        "cycle_model.backpressure[2]"
-      ],
-      "decomposition_refs": [
-        "mctp_assembler_scratch_axi_write_ingress",
-        "mctp_assembler_scratch_pcie_vdm_parser",
-        "mctp_assembler_scratch_mctp_parser",
-        "mctp_assembler_scratch_context_table",
-        "mctp_assembler_scratch_sram_packer",
-        "mctp_assembler_scratch_axi_read_egress",
-        "mctp_assembler_scratch_sram_arbiter",
-        "mctp_assembler_scratch_descriptor_queue",
-        "mctp_assembler_scratch_apb_regfile",
-        "mctp_assembler_scratch_cdc",
-        "mctp_assembler_scratch_param",
-        "mctp_assembler_scratch",
-        "mctp_assembler_scratch_protocol_model",
-        "mctp_assembler_scratch_register_model",
-        "mctp_assembler_scratch_memory_model",
-        "mctp_assembler_scratch_datapath_model",
-        "mctp_assembler_scratch_fsm_model",
-        "mctp_assembler_scratch_error_model",
-        "mctp_assembler_scratch_security_model"
-      ],
-      "coverage_refs": [
-        "cycle_backpressure_2"
-      ],
-      "stimulus_contract": {
-        "transaction_type": "Accept one AXI4 write burst as one PCIe VDM TLP",
-        "required_fields": [
-          "kind",
-          "axi_aw_accept",
-          "axi_wlast_seen",
-          "tlp_byte_count"
-        ],
-        "constraints": [
-          "axi_aw_accept and axi_wlast_seen",
-          "SRAM read requests yield to SRAM write requests in the first-target arbiter."
-        ]
-      },
-      "expected_contract": {
-        "model_api": "FunctionalModel.apply",
-        "observables": [
-          "bvalid_next",
-          "bresp_next",
-          "{'name': 'bvalid_next', 'port': 'm_axi_bvalid', 'expr': 'axi_aw_accept and axi_wlast_seen', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
-          "{'name': 'bresp_next', 'port': 'm_axi_bresp', 'expr': 'BRESP_OKAY', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
-          "{'state': 'collected_tlp_count', 'expr': 'collected_tlp_count + axi_wlast_seen', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}"
-        ],
-        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
-        "state_updates": [
-          "raw TLP bytes captured until WLAST",
-          "write response emitted after packet classification",
-          "collected_tlp_count"
-        ],
-        "error_policy": ""
-      },
-      "pass_criteria": [
-        "Generated stimulus executes an SSOT-derived behavior path",
-        "Scoreboard expected result comes from FunctionalModel.apply",
-        "Coverage collector samples this planned bin only after the scoreboard row passes"
-      ],
-      "owner_on_fail": {
-        "default": "coverage",
-        "possible": [
-          "ssot",
-          "fl_model",
-          "tb",
-          "coverage",
-          "human"
-        ]
-      },
-      "blocked": false,
-      "blocker": "",
-      "unverified": false
-    },
-    {
-      "goal_id": "EQ_COVERAGE_CYCLE_PERF_OUTSTANDING",
-      "title": "Functional coverage bin cycle_perf_outstanding: {'write_max': 1, 'read_max': 1, 'total_max': 2}",
-      "kind": "coverage",
-      "scope": {
-        "level": "top"
-      },
-      "ssot_refs": [
-        "cycle_model.performance.outstanding"
-      ],
-      "decomposition_refs": [
-        "mctp_assembler_scratch_axi_write_ingress",
-        "mctp_assembler_scratch_pcie_vdm_parser",
-        "mctp_assembler_scratch_mctp_parser",
-        "mctp_assembler_scratch_context_table",
-        "mctp_assembler_scratch_sram_packer",
-        "mctp_assembler_scratch_axi_read_egress",
-        "mctp_assembler_scratch_sram_arbiter",
-        "mctp_assembler_scratch_descriptor_queue",
-        "mctp_assembler_scratch_apb_regfile",
-        "mctp_assembler_scratch_cdc",
-        "mctp_assembler_scratch_param",
-        "mctp_assembler_scratch",
-        "mctp_assembler_scratch_protocol_model",
-        "mctp_assembler_scratch_register_model",
-        "mctp_assembler_scratch_memory_model",
-        "mctp_assembler_scratch_datapath_model",
-        "mctp_assembler_scratch_fsm_model",
-        "mctp_assembler_scratch_error_model",
-        "mctp_assembler_scratch_security_model"
-      ],
-      "coverage_refs": [
-        "cycle_perf_outstanding"
-      ],
-      "stimulus_contract": {
-        "transaction_type": "Accept one AXI4 write burst as one PCIe VDM TLP",
-        "required_fields": [
-          "kind",
-          "axi_aw_accept",
-          "axi_wlast_seen",
-          "tlp_byte_count"
-        ],
-        "constraints": [
-          "axi_aw_accept and axi_wlast_seen",
-          "{'write_max': 1, 'read_max': 1, 'total_max': 2}"
-        ]
-      },
-      "expected_contract": {
-        "model_api": "FunctionalModel.apply",
-        "observables": [
-          "bvalid_next",
-          "bresp_next",
-          "{'name': 'bvalid_next', 'port': 'm_axi_bvalid', 'expr': 'axi_aw_accept and axi_wlast_seen', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
-          "{'name': 'bresp_next', 'port': 'm_axi_bresp', 'expr': 'BRESP_OKAY', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
-          "{'state': 'collected_tlp_count', 'expr': 'collected_tlp_count + axi_wlast_seen', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}"
-        ],
-        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
-        "state_updates": [
-          "raw TLP bytes captured until WLAST",
-          "write response emitted after packet classification",
-          "collected_tlp_count"
-        ],
-        "error_policy": ""
-      },
-      "pass_criteria": [
-        "Generated stimulus executes an SSOT-derived behavior path",
-        "Scoreboard expected result comes from FunctionalModel.apply",
-        "Coverage collector samples this planned bin only after the scoreboard row passes"
-      ],
-      "owner_on_fail": {
-        "default": "coverage",
-        "possible": [
-          "ssot",
-          "fl_model",
-          "tb",
-          "coverage",
-          "human"
-        ]
-      },
-      "blocked": false,
-      "blocker": "",
-      "unverified": false
-    },
-    {
-      "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
-      "title": "Functional coverage bin cycle_perf_frequency_mhz: 250",
-      "kind": "coverage",
-      "scope": {
-        "level": "top"
-      },
-      "ssot_refs": [
-        "cycle_model.performance.frequency_mhz"
-      ],
-      "decomposition_refs": [
-        "mctp_assembler_scratch_axi_write_ingress",
-        "mctp_assembler_scratch_pcie_vdm_parser",
-        "mctp_assembler_scratch_mctp_parser",
-        "mctp_assembler_scratch_context_table",
-        "mctp_assembler_scratch_sram_packer",
-        "mctp_assembler_scratch_axi_read_egress",
-        "mctp_assembler_scratch_sram_arbiter",
-        "mctp_assembler_scratch_descriptor_queue",
-        "mctp_assembler_scratch_apb_regfile",
-        "mctp_assembler_scratch_cdc",
-        "mctp_assembler_scratch_param",
-        "mctp_assembler_scratch",
-        "mctp_assembler_scratch_protocol_model",
-        "mctp_assembler_scratch_register_model",
-        "mctp_assembler_scratch_memory_model",
-        "mctp_assembler_scratch_datapath_model",
-        "mctp_assembler_scratch_fsm_model",
-        "mctp_assembler_scratch_error_model",
-        "mctp_assembler_scratch_security_model"
-      ],
-      "coverage_refs": [
-        "cycle_perf_frequency_mhz"
-      ],
-      "stimulus_contract": {
-        "transaction_type": "Accept one AXI4 write burst as one PCIe VDM TLP",
-        "required_fields": [
-          "kind",
-          "axi_aw_accept",
-          "axi_wlast_seen",
-          "tlp_byte_count"
-        ],
-        "constraints": [
-          "axi_aw_accept and axi_wlast_seen",
-          "250"
-        ]
-      },
-      "expected_contract": {
-        "model_api": "FunctionalModel.apply",
-        "observables": [
-          "bvalid_next",
-          "bresp_next",
-          "{'name': 'bvalid_next', 'port': 'm_axi_bvalid', 'expr': 'axi_aw_accept and axi_wlast_seen', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
-          "{'name': 'bresp_next', 'port': 'm_axi_bresp', 'expr': 'BRESP_OKAY', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
-          "{'state': 'collected_tlp_count', 'expr': 'collected_tlp_count + axi_wlast_seen', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}"
-        ],
-        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
-        "state_updates": [
-          "raw TLP bytes captured until WLAST",
-          "write response emitted after packet classification",
-          "collected_tlp_count"
-        ],
-        "error_policy": ""
-      },
-      "pass_criteria": [
-        "Generated stimulus executes an SSOT-derived behavior path",
-        "Scoreboard expected result comes from FunctionalModel.apply",
-        "Coverage collector samples this planned bin only after the scoreboard row passes"
-      ],
-      "owner_on_fail": {
-        "default": "coverage",
-        "possible": [
-          "ssot",
-          "fl_model",
-          "tb",
-          "coverage",
-          "human"
-        ]
-      },
-      "blocked": false,
-      "blocker": "",
-      "unverified": false
-    },
-    {
-      "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
-      "title": "Functional coverage bin cycle_perf_throughput: {'ingress': 'one 256-bit AXI beat per cycle while resources are available', 'readback': 'one 256-bit AXI R beat per SRAM response'}",
-      "kind": "coverage",
-      "scope": {
-        "level": "top"
-      },
-      "ssot_refs": [
-        "cycle_model.performance.throughput"
-      ],
-      "decomposition_refs": [
-        "mctp_assembler_scratch_axi_write_ingress",
-        "mctp_assembler_scratch_pcie_vdm_parser",
-        "mctp_assembler_scratch_mctp_parser",
-        "mctp_assembler_scratch_context_table",
-        "mctp_assembler_scratch_sram_packer",
-        "mctp_assembler_scratch_axi_read_egress",
-        "mctp_assembler_scratch_sram_arbiter",
-        "mctp_assembler_scratch_descriptor_queue",
-        "mctp_assembler_scratch_apb_regfile",
-        "mctp_assembler_scratch_cdc",
-        "mctp_assembler_scratch_param",
-        "mctp_assembler_scratch",
-        "mctp_assembler_scratch_protocol_model",
-        "mctp_assembler_scratch_register_model",
-        "mctp_assembler_scratch_memory_model",
-        "mctp_assembler_scratch_datapath_model",
-        "mctp_assembler_scratch_fsm_model",
-        "mctp_assembler_scratch_error_model",
-        "mctp_assembler_scratch_security_model"
-      ],
-      "coverage_refs": [
-        "cycle_perf_throughput"
-      ],
-      "stimulus_contract": {
-        "transaction_type": "Accept one AXI4 write burst as one PCIe VDM TLP",
-        "required_fields": [
-          "kind",
-          "axi_aw_accept",
-          "axi_wlast_seen",
-          "tlp_byte_count"
-        ],
-        "constraints": [
-          "axi_aw_accept and axi_wlast_seen",
-          "{'ingress': 'one 256-bit AXI beat per cycle while resources are available', 'readback': 'one 256-bit AXI R beat per SRAM response'}"
+          "1 outstanding transaction (min)"
         ]
       },
       "expected_contract": {

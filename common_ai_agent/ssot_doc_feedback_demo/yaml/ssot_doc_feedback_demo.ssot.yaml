@@ -1,0 +1,33 @@
+top_module:
+  name: ssot_doc_feedback_demo
+  file: rtl/ssot_doc_feedback_demo.sv
+  type: rtl
+  description: Demo IP used to verify DOC Feedback Mode source mapping.
+sub_modules:
+  - name: csr
+    description: APB-visible control and status registers.
+io_list:
+  interfaces:
+    - name: apb
+      type: APB
+      role: slave
+      ports:
+        - name: pclk
+          direction: input
+          width: 1
+        - name: prdata
+          direction: output
+          width: 32
+registers:
+  register_list:
+    - name: CTRL
+      offset: '0x00'
+      width: 32
+      access: rw
+      fields:
+        - name: enable
+          bits: [0, 0]
+          access: rw
+          reset: 0
+          description: Enable transfer when software starts the block.
+custom: {}

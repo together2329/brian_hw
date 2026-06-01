@@ -1,0 +1,127 @@
+== mctp_assembler_scratch/sim/fl_rtl_compare.json ==
+{
+  "status": "fail",
+  "summary": {
+    "goals_blocked": 0,
+    "goals_checked": 91,
+    "goals_failed": 65,
+    "goals_passed": 26,
+    "goals_untested": 0,
+    "missing_evidence": [],
+    "orphan_scoreboard_events": 0,
+    "scoreboard_events": 91,
+    "sim_results": {
+      "errors": 0,
+      "exists": true,
+      "fail": 0,
+      "failures": 0,
+      "source": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/sim/results.xml",
+      "total": 1
+    },
+    "stale_evidence": [],
+    "stale_oracle_evidence": [],
+    "total": 91
+  }
+}
+== mctp_assembler_scratch/cov/coverage_owner_routes.json ==
+{
+  "status": "non_signoff",
+  "summary": {
+    "missing_bins": 57,
+    "owner": "sim_debug"
+  }
+}
+EDGE_FAILED_ROWS= 18
+[
+  {
+    "goal_id": "EQ_SCENARIO_SC_MAX_TU_4096_129_BEATS",
+    "mismatch": "bvalid_next: expected=0 observed=1; m_axi_bvalid: expected=0 observed=1",
+    "scenario_id": "SC_013_EQ_SCENARIO_SC_MAX_TU_4096_129_BEATS"
+  },
+  {
+    "goal_id": "EQ_SCENARIO_SC_UNALIGNED_SRAM_PACK_NO_HOLES",
+    "mismatch": "ctx_partial_next_lane: expected=5 observed=0",
+    "scenario_id": "SC_015_EQ_SCENARIO_SC_UNALIGNED_SRAM_PACK_NO_HOLES"
+  },
+  {
+    "goal_id": "EQ_SCENARIO_SC_AXI_READBACK_TRIM",
+    "mismatch": "readback_valid: expected=0 observed=1; m_axi_rvalid: expected=0 observed=1; readback_last: expected=0 observed=1; m_axi_rlast: expected=0 observed=1",
+    "scenario_id": "SC_017_EQ_SCENARIO_SC_AXI_READBACK_TRIM"
+  },
+  {
+    "goal_id": "EQ_SCENARIO_SC_APB_REGS_PER_Q",
+    "mismatch": "readback_resp: expected=2 observed=0; m_axi_rresp: expected=2 observed=0",
+    "scenario_id": "SC_018_EQ_SCENARIO_SC_APB_REGS_PER_Q"
+  },
+  {
+    "goal_id": "EQ_SCENARIO_PD_DISABLED_DROP_MODE",
+    "mismatch": "ctx_state: expected=1 observed=0; payload_byte_count: expected=16 observed=0",
+    "scenario_id": "SC_019_EQ_SCENARIO_PD_DISABLED_DROP_MODE"
+  },
+  {
+    "goal_id": "EQ_SCENARIO_PD_BAD_PAD_OR_ALIGNMENT",
+    "mismatch": "ctx_partial_next_lane: expected=5 observed=0",
+    "scenario_id": "SC_023_EQ_SCENARIO_PD_BAD_PAD_OR_ALIGNMENT"
+  },
+  {
+    "goal_id": "EQ_SCENARIO_PD_UNEXPECTED_MIDDLE_END",
+    "mismatch": "ctx_state: expected=1 observed=0; payload_byte_count: expected=16 observed=0",
+    "scenario_id": "SC_025_EQ_SCENARIO_PD_UNEXPECTED_MIDDLE_END"
+  },
+  {
+    "goal_id": "EQ_SCENARIO_PD_BAD_OR_EXPIRED_TAG",
+    "mismatch": "ctx_partial_next_lane: expected=5 observed=0",
+    "scenario_id": "SC_026_EQ_SCENARIO_PD_BAD_OR_EXPIRED_TAG"
+  },
+  {
+    "goal_id": "EQ_SCENARIO_AD_DUPLICATE_SOM",
+    "mismatch": "ctx_state: expected=1 observed=0; payload_byte_count: expected=16 observed=0",
+    "scenario_id": "SC_027_EQ_SCENARIO_AD_DUPLICATE_SOM"
+  },
+  {
+    "goal_id": "EQ_SCENARIO_AD_SEQUENCE_MISMATCH",
+    "mismatch": "ctx_state: expected=1 observed=0; payload_byte_count: expected=16 observed=0",
+    "scenario_id": "SC_028_EQ_SCENARIO_AD_SEQUENCE_MISMATCH"
+  },
+  {
+    "goal_id": "EQ_SCENARIO_AD_MESSAGE_OVERFLOW",
+    "mismatch": "ctx_partial_next_lane: expected=5 observed=0",
+    "scenario_id": "SC_029_EQ_SCENARIO_AD_MESSAGE_OVERFLOW"
+  },
+  {
+    "goal_id": "EQ_SCENARIO_AD_SRAM_OVERFLOW",
+    "mismatch": "ctx_partial_next_lane: expected=5 observed=0",
+    "scenario_id": "SC_030_EQ_SCENARIO_AD_SRAM_OVERFLOW"
+  },
+  {
+    "goal_id": "EQ_SCENARIO_AD_DESCRIPTOR_FULL",
+    "mismatch": "ctx_state: expected=2 observed=0",
+    "scenario_id": "SC_031_EQ_SCENARIO_AD_DESCRIPTOR_FULL"
+  },
+  {
+    "goal_id": "EQ_SCENARIO_AD_TIMEOUT",
+    "mismatch": "ctx_state: expected=1 observed=0; payload_byte_count: expected=16 observed=0",
+    "scenario_id": "SC_032_EQ_SCENARIO_AD_TIMEOUT"
+  },
+  {
+    "goal_id": "EQ_PROTOCOL_AXI_READ_CHANNELS",
+    "mismatch": "readback_resp: expected=2 observed=0; m_axi_rresp: expected=2 observed=0",
+    "scenario_id": "SC_034_EQ_PROTOCOL_AXI_READ_CHANNELS"
+  },
+  {
+    "goal_id": "EQ_REGISTER_Q_PAYLOAD_BASE",
+    "mismatch": "bvalid_next: expected=0 observed=1; m_axi_bvalid: expected=0 observed=1",
+    "scenario_id": "SC_051_EQ_REGISTER_Q_PAYLOAD_BASE"
+  },
+  {
+    "goal_id": "EQ_REGISTER_Q_PAYLOAD_COUNT",
+    "mismatch": "readback_resp: expected=2 observed=0; m_axi_rresp: expected=2 observed=0",
+    "scenario_id": "SC_052_EQ_REGISTER_Q_PAYLOAD_COUNT"
+  },
+  {
+    "goal_id": "EQ_MEMORY_PAYLOAD_SRAM_WINDOW",
+    "mismatch": "ctx_partial_next_lane: expected=5 observed=0",
+    "scenario_id": "SC_056_EQ_MEMORY_PAYLOAD_SRAM_WINDOW"
+  }
+]
+RED_RC=1

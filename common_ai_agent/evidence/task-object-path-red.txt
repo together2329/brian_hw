@@ -1,0 +1,67 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+_ test_doc_feedback_value_on_selected_object_writes_review_note_without_clobber _
+
+tmp_path = PosixPath('/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/pytest-of-brian/pytest-681/test_doc_feedback_value_on_sel0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x104c46b50>
+
+    def test_doc_feedback_value_on_selected_object_writes_review_note_without_clobber(tmp_path, monkeypatch):
+        client = _make_client(tmp_path, monkeypatch)
+        ssot_path = _write_ssot(tmp_path, "doc_source_ip")
+    
+        response = client.post("/api/ssot/doc-feedback", json={
+            "ip": "doc_source_ip",
+            "section": "top_module",
+            "path": "top_module",
+            "value": "Document intro should call out reset defaults.",
+            "comment": "Use this as a doc review note.",
+        })
+    
+        assert response.status_code == 200, response.text
+        payload = response.json()
+>       assert payload["path"] == "top_module.review_note"
+E       AssertionError: assert 'top_module' == 'top_module.review_note'
+E         
+E         - top_module.review_note
+E         + top_module
+
+/Users/brian/Desktop/Project/brian_hw/common_ai_agent/tests/test_ssot_doc_source_map.py:189: AssertionError
+----------------------------- Captured stdout call -----------------------------
+[opencode-oauth] no credential — run `python -m src.opencode_backend login`
+[atlas] Multi-user enabled (process_per_session=off)
+23:54:57 [rehydrate] 0 jobs reconciled (rescued=0, marked-error=0)
+___ test_doc_feedback_field_on_selected_object_appends_field_without_clobber ___
+
+tmp_path = PosixPath('/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/pytest-of-brian/pytest-681/test_doc_feedback_field_on_sel0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x105786f10>
+
+    def test_doc_feedback_field_on_selected_object_appends_field_without_clobber(tmp_path, monkeypatch):
+        client = _make_client(tmp_path, monkeypatch)
+        ssot_path = _write_ssot(tmp_path, "doc_source_ip")
+    
+        response = client.post("/api/ssot/doc-feedback", json={
+            "ip": "doc_source_ip",
+            "section": "registers",
+            "path": "registers.register_list.0.fields.0",
+            "field": "description",
+            "value": "Enable bit arms packet acceptance.",
+            "comment": "Update field description from DOC feedback.",
+        })
+    
+        assert response.status_code == 200, response.text
+        payload = response.json()
+>       assert payload["path"] == "registers.register_list.0.fields.0.description"
+E       AssertionError: assert 'registers.re...st.0.fields.0' == 'registers.re...0.description'
+E         
+E         - registers.register_list.0.fields.0.description
+E         ?                                   ------------
+E         + registers.register_list.0.fields.0
+
+/Users/brian/Desktop/Project/brian_hw/common_ai_agent/tests/test_ssot_doc_source_map.py:211: AssertionError
+----------------------------- Captured stdout call -----------------------------
+[atlas] Multi-user enabled (process_per_session=off)
+23:54:57 [rehydrate] 0 jobs reconciled (rescued=0, marked-error=0)
+=========================== short test summary info ============================
+FAILED tests/test_ssot_doc_source_map.py::test_doc_feedback_value_on_selected_object_writes_review_note_without_clobber
+FAILED tests/test_ssot_doc_source_map.py::test_doc_feedback_field_on_selected_object_appends_field_without_clobber
+2 failed in 2.68s

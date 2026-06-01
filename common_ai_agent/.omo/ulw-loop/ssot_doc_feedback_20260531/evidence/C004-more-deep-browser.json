@@ -1,0 +1,34 @@
+{
+  "ok": false,
+  "assertions": {
+    "noSelectionShowDisabled": true,
+    "noSelectionCommentDisabled": true,
+    "topSelectedStatus": true,
+    "topHighlighted": true,
+    "showSsotTopPath": false,
+    "dragDropChangedSelection": true,
+    "fieldHighlighted": true,
+    "showSsotFieldYaml": false,
+    "commentPrefilledChat": true,
+    "applyStatusVisible": true,
+    "yamlUpdated": true,
+    "yamlObjectNotClobbered": true,
+    "iframeUpdated": false,
+    "noPageErrors": true
+  },
+  "errors": [],
+  "console": [
+    {
+      "type": "info",
+      "text": "[atlas] backend ready · mode=live"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    }
+  ],
+  "registerStatus": 200,
+  "username": "ssot_more_1780249695610",
+  "composerPreview": "/to-ssot ssot_doc_feedback_demo\n\nDOC feedback selected from SSOT HTML.\nComponent: enable (register_field)\nSSOT path: registers.register_list.0.fields.0\nSource file: @ssot_doc_feedback_demo/yaml/ssot_doc_feedback_demo.ssot.yaml\n\nCurrent SSOT value:\n```yaml\nname: ssot_doc_feedback_demo\nfile: rtl/ssot_doc_feedback_demo.sv\ntype: rtl\ndescription: Demo IP used to verify DOC Feedback Mode source mapping.\n```\n\nRequested change:\nMore browser QA: update enable field wording.",
+  "cleanupFixture": "restored ssot_doc_feedback_demo fixture yaml"
+}

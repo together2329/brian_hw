@@ -4,6 +4,7 @@ import importlib
 import json
 import subprocess
 from pathlib import Path
+from typing import Any
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 BUILDER = PROJECT_ROOT / "scripts" / "build_andes_rtl_db_wiki.py"
@@ -70,6 +71,40 @@ endmodule
         encoding="utf-8",
     )
     return root / "wiki"
+
+
+def _write_nested_custom_core(root: Path) -> str:
+    hdl_rel = "platform/demo_soc/andes_ip/custom_core/top/hdl"
+    hdl = root / hdl_rel
+    hdl.mkdir(parents=True)
+    (hdl / "custom_core_top.sv").write_text(
+        """
+module custom_core_top (
+    input logic core_clk,
+    input logic core_rst_n,
+    input logic req_valid,
+    output logic rsp_valid
+);
+    logic [1:0] state;
+    always_ff @(posedge core_clk or negedge core_rst_n) begin
+        if (!core_rst_n) begin
+            state <= 2'b00;
+            rsp_valid <= 1'b0;
+        end else begin
+            state <= state + 2'b01;
+            rsp_valid <= req_valid;
+        end
+    end
+endmodule
+""".strip()
+        + "\n",
+        encoding="utf-8",
+    )
+    return hdl_rel
+
+
+def _load_coverage(wiki: Path) -> dict[str, Any]:
+    return json.loads((wiki / "_coverage.json").read_text(encoding="utf-8"))
 
 
 def test_build_andes_wiki_emits_ast_rtl_facts_and_doc_links(tmp_path: Path) -> None:
@@ -171,3 +206,94 @@ def test_wiki_query_surfaces_generated_ast_terms_for_andes_rtl_db(
     assert "memory" in output.lower()
     assert "clk" in output.lower()
     assert "rst" in output.lower()
+
+
+def test_build_andes_wiki_emits_quality_coverage_for_nested_hdl_roots(tmp_path: Path) -> None:
+    # Given: a canonical top-level IP plus a nested platform/core HDL root.
+    wiki = _write_demo_ip(tmp_path)
+    nested_rel = _write_nested_custom_core(tmp_path)
+    nested_id = "rtlroot-platform-demo-soc-andes-ip-custom-core-top"
+
+    # When: the Andes RTL DB wiki builder runs with graph generation.
+    result = _run_builder(tmp_path)
+
+    # Then: coverage artifacts make both roots visible to LLM Wiki queries.
+    assert result.returncode == 0, result.stderr
+    assert (wiki / "coverage.md").is_file()
+    assert (wiki / "rtl-query-cookbook.md").is_file()
+    coverage = _load_coverage(wiki)
+    summary = coverage["summary"]
+    assert summary["total_hdl_roots"] >= 2
+    assert summary["missing_pages"] == []
+    assert summary["missing_facts"] == []
+
+    nested_page = wiki / f"{nested_id}.md"
+    assert nested_page.is_file()
+    page_text = nested_page.read_text(encoding="utf-8")
+    assert nested_rel in page_text
+    assert "custom_core_top" in page_text
+    assert "module" in page_text.lower()
+    assert "clock" in page_text.lower()
+    assert "reset" in page_text.lower()
+
+    nested_facts = json.loads((wiki / "_rtl_facts" / f"{nested_id}.json").read_text(encoding="utf-8"))
+    assert nested_facts["block"] == nested_id
+    assert nested_facts["hdl_root"] == nested_rel
+    assert "custom_core_top" in nested_facts["modules"]
+    assert {"module", "clock", "reset"}.issubset(set(nested_facts["features"]))
+
+    graph = json.loads((wiki / "_graph.json").read_text(encoding="utf-8"))
+    node_ids = {node["id"] for node in graph["nodes"]}
+    assert {"coverage", "rtl-query-cookbook", nested_id}.issubset(node_ids)
+
+
+def test_build_andes_wiki_marks_empty_and_malformed_roots_in_coverage(tmp_path: Path) -> None:
+    # Given: malformed top-level RTL plus an empty nested HDL root.
+    broken_hdl = tmp_path / "broken_ip" / "hdl"
+    broken_hdl.mkdir(parents=True)
+    (broken_hdl / "broken_ip.sv").write_text(
+        "module broken_ip(input clk\nalways_ff @(posedge clk) begin\n",
+        encoding="utf-8",
+    )
+    empty_rel = "platform/demo_soc/andes_vip/models/empty_model/hdl"
+    (tmp_path / empty_rel).mkdir(parents=True)
+
+    # When: the builder indexes the imperfect corpus.
+    result = _run_builder(tmp_path)
+
+    # Then: coverage names the empty root explicitly and reports no dropped roots.
+    assert result.returncode == 0, result.stderr
+    wiki = tmp_path / "wiki"
+    coverage = _load_coverage(wiki)
+    assert coverage["summary"]["missing_pages"] == []
+    assert coverage["summary"]["missing_facts"] == []
+    entries = {entry["hdl_root"]: entry for entry in coverage["entries"]}
+    assert empty_rel in entries
+    empty_entry = entries[empty_rel]
+    assert empty_entry["status"] == "empty"
+    assert empty_entry["diagnostics"]
+    assert (wiki / "_graph.json").is_file()
+
+
+def test_wiki_query_finds_nested_coverage_root_terms(tmp_path: Path, monkeypatch) -> None:
+    # Given: a generated external RTL DB wiki that includes nested HDL coverage.
+    wiki = _write_demo_ip(tmp_path)
+    _write_nested_custom_core(tmp_path)
+    result = _run_builder(tmp_path)
+    assert result.returncode == 0, result.stderr
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.setenv("COMMON_AI_AGENT_HOME", str(PROJECT_ROOT))
+    monkeypatch.setenv("ATLAS_RTL_DB_WIKI", str(wiki))
+    monkeypatch.setenv("ATLAS_RTL_DB_NO_REBUILD", "1")
+    monkeypatch.delenv("ATLAS_RTL_DB_BUILDER", raising=False)
+    monkeypatch.delenv("ATLAS_ACTIVE_IP", raising=False)
+
+    # When: ATLAS queries for nested-root coverage and module facts.
+    wiki_query = importlib.import_module("core.tools").wiki_query
+    output = wiki_query(ip="rtl-db", topic="custom core coverage module", depth=3)
+
+    # Then: the search surface exposes the nested root and coverage page.
+    assert "custom_core_top" in output or "rtlroot-platform-demo-soc-andes-ip-custom-core-top" in output
+    assert "coverage" in output.lower()
+    assert "module" in output.lower()

@@ -1,0 +1,14 @@
+
+> test
+> vitest run __tests__/ssot-doc-feedback-target.test.tsx
+
+
+ RUN  v1.6.1 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/frontend/atlas
+
+ ✓ __tests__/ssot-doc-feedback-target.test.tsx  (4 tests) 727ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  00:05:29
+   Duration  5.00s (transform 171ms, setup 275ms, collect 786ms, tests 727ms, environment 2.00s, prepare 429ms)
+

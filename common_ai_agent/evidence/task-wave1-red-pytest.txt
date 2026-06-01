@@ -1,0 +1,146 @@
+FFFFF...FFF                                                              [100%]
+=================================== FAILURES ===================================
+_______________ test_doc_source_lookup_returns_top_level_section _______________
+
+tmp_path = PosixPath('/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/pytest-of-brian/pytest-670/test_doc_source_lookup_returns0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1031640a0>
+
+    def test_doc_source_lookup_returns_top_level_section(tmp_path, monkeypatch):
+        client = _make_client(tmp_path, monkeypatch)
+        _write_ssot(tmp_path, "doc_source_ip")
+    
+        response = client.get("/api/ssot/doc-source?ip=doc_source_ip&path=top_module")
+    
+>       assert response.status_code == 200, response.text
+E       AssertionError: {"detail":"Not Found"}
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+/Users/brian/Desktop/Project/brian_hw/common_ai_agent/tests/test_ssot_doc_source_map.py:91: AssertionError
+----------------------------- Captured stdout call -----------------------------
+[opencode-oauth] no credential — run `python -m src.opencode_backend login`
+[atlas] Multi-user enabled (process_per_session=off)
+23:39:56 [rehydrate] 0 jobs reconciled (rescued=0, marked-error=0)
+_____________ test_doc_source_lookup_returns_nested_register_field _____________
+
+tmp_path = PosixPath('/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/pytest-of-brian/pytest-670/test_doc_source_lookup_returns1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1039967c0>
+
+    def test_doc_source_lookup_returns_nested_register_field(tmp_path, monkeypatch):
+        client = _make_client(tmp_path, monkeypatch)
+        _write_ssot(tmp_path, "doc_source_ip")
+    
+        response = client.get(
+            "/api/ssot/doc-source"
+            "?ip=doc_source_ip&path=registers.register_list.0.fields.0.description"
+        )
+    
+>       assert response.status_code == 200, response.text
+E       AssertionError: {"detail":"Not Found"}
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+/Users/brian/Desktop/Project/brian_hw/common_ai_agent/tests/test_ssot_doc_source_map.py:111: AssertionError
+----------------------------- Captured stdout call -----------------------------
+[atlas] Multi-user enabled (process_per_session=off)
+23:39:58 [rehydrate] 0 jobs reconciled (rescued=0, marked-error=0)
+_________________ test_doc_source_lookup_rejects_invalid_path __________________
+
+tmp_path = PosixPath('/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/pytest-of-brian/pytest-670/test_doc_source_lookup_rejects0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1039dddc0>
+
+    def test_doc_source_lookup_rejects_invalid_path(tmp_path, monkeypatch):
+        client = _make_client(tmp_path, monkeypatch)
+        _write_ssot(tmp_path, "doc_source_ip")
+    
+        response = client.get("/api/ssot/doc-source?ip=doc_source_ip&path=../../.env")
+    
+>       assert response.status_code == 400
+E       assert 404 == 400
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+/Users/brian/Desktop/Project/brian_hw/common_ai_agent/tests/test_ssot_doc_source_map.py:129: AssertionError
+----------------------------- Captured stdout call -----------------------------
+[atlas] Multi-user enabled (process_per_session=off)
+23:39:59 [rehydrate] 0 jobs reconciled (rescued=0, marked-error=0)
+_____________ test_doc_source_lookup_requires_existing_ip_and_path _____________
+
+tmp_path = PosixPath('/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/pytest-of-brian/pytest-670/test_doc_source_lookup_require0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x103c8abb0>
+
+    def test_doc_source_lookup_requires_existing_ip_and_path(tmp_path, monkeypatch):
+        client = _make_client(tmp_path, monkeypatch)
+    
+        no_ip = client.get("/api/ssot/doc-source?ip=missing_ip&path=top_module")
+        no_path = client.get("/api/ssot/doc-source?ip=missing_ip")
+    
+        assert no_ip.status_code == 404
+>       assert no_path.status_code == 400
+E       assert 404 == 400
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+/Users/brian/Desktop/Project/brian_hw/common_ai_agent/tests/test_ssot_doc_source_map.py:140: AssertionError
+----------------------------- Captured stdout call -----------------------------
+[atlas] Multi-user enabled (process_per_session=off)
+23:40:00 [rehydrate] 0 jobs reconciled (rescued=0, marked-error=0)
+_______________ test_html_export_marks_selectable_doc_components _______________
+
+tmp_path = PosixPath('/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/pytest-of-brian/pytest-670/test_html_export_marks_selecta0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x103eb5130>
+
+    def test_html_export_marks_selectable_doc_components(tmp_path, monkeypatch):
+        monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+        _write_ssot(tmp_path, "doc_source_ip")
+        data = atlas_ui._load_ssot_yaml("doc_source_ip")
+        html = atlas_ui._ssot_to_html(atlas_ui._ssot_to_markdown(data, "doc_source_ip"), "doc_source_ip", data)
+    
+>       assert 'data-ssot-section="top_module"' in html
+E       assert 'data-ssot-section="top_module"' in '<!DOCTYPE html>\n<html><head><meta charset="utf-8"><title>doc_source_ip — SSOT</title><style>body { font-family: -app...fields.0.description</td>\n<td>Clarify enable timing.</td>\n<td>ssot-doc</td>\n</tr>\n</tbody>\n</table></body></html>'
+
+tests/test_ssot_doc_source_map.py:149: AssertionError
+__________ test_ssot_doc_feedback_mode_exposes_source_and_chat_hooks ___________
+
+    def test_ssot_doc_feedback_mode_exposes_source_and_chat_hooks():
+        src = _combined_doc_src()
+    
+>       assert "Show SSOT" in src
+E       AssertionError: assert 'Show SSOT' in '/* workspace-root.tsx — THE COMPOSER + root component of the ATLAS workspace.\n *\n * Final slice of the strangler-fi...dded when consumers migrate).\n(window as unknown as { SsotDocPane: typeof SsotDocPane }).SsotDocPane = SsotDocPane;\n'
+
+tests/test_atlas_ssot_doc_tab.py:62: AssertionError
+______________ test_default_workflow_shows_ssot_import_export_tab ______________
+
+    def test_default_workflow_shows_ssot_import_export_tab():
+        src = WORKSPACE_DATA_HOOK_TSX.read_text(encoding="utf-8") + "\n" + WORKSPACE_RAIL_TABS_TSX.read_text(encoding="utf-8")
+    
+        assert "const showSsotImportExportTab = workflow === 'ssot-gen' || workflow === 'default';" in src
+        assert ">Import / Export</span>" in src
+>       assert "importExportOnly={true}" in src
+E       assert 'importExportOnly={true}' in "// workspace-root-data-hook.tsx — strangler-fig migration slice of workspace.jsx.\n//\n// Owns: useWorkspaceData — th...     border: '1px solid var(--accent)', borderRadius: 2 }}>↵</span>\n        </span>\n      )}\n    </div>\n  );\n};\n"
+
+tests/test_atlas_ssot_doc_tab.py:74: AssertionError
+______ test_to_ssot_button_uses_same_plain_mini_button_as_deep_interview _______
+
+    def test_to_ssot_button_uses_same_plain_mini_button_as_deep_interview():
+        # The /to-ssot button render sites live in SsotQaBoard now → ssot-qa-board.jsx
+        # (extracted in Phase 13f). The negative assertion (borderColor not set)
+        # still applies across the union — if the highlighted-button style ever
+        # leaks back into any workspace-cluster file, this catches it.
+        src = WORKSPACE_ROOT_TSX.read_text(encoding="utf-8")
+        qa_board_src = SSOT_QA_BOARD_TSX.read_text(encoding="utf-8")
+        combined = src + "\n" + qa_board_src
+        assert "borderColor: 'var(--ok)', color: 'var(--ok)'" not in combined
+        assert "title=\"Run /to-ssot for this IP\"\n                  style={{ marginTop: 7 }}" in combined
+>       assert "title=\"Run /to-ssot for this IP\"\n              style={{ marginTop: 10 }}" in combined
+E       assert 'title="Run /to-ssot for this IP"\n              style={{ marginTop: 10 }}' in '/* workspace-root.tsx — THE COMPOSER + root component of the ATLAS workspace.\n *\n * Final slice of the strangler-fi...kspace.jsx aliases this back.\n(window as unknown as { SsotQaBoard: typeof SsotQaBoard }).SsotQaBoard = SsotQaBoard;\n'
+
+tests/test_atlas_ssot_doc_tab.py:87: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_ssot_doc_source_map.py::test_doc_source_lookup_returns_top_level_section
+FAILED tests/test_ssot_doc_source_map.py::test_doc_source_lookup_returns_nested_register_field
+FAILED tests/test_ssot_doc_source_map.py::test_doc_source_lookup_rejects_invalid_path
+FAILED tests/test_ssot_doc_source_map.py::test_doc_source_lookup_requires_existing_ip_and_path
+FAILED tests/test_ssot_doc_source_map.py::test_html_export_marks_selectable_doc_components
+FAILED tests/test_atlas_ssot_doc_tab.py::test_ssot_doc_feedback_mode_exposes_source_and_chat_hooks
+FAILED tests/test_atlas_ssot_doc_tab.py::test_default_workflow_shows_ssot_import_export_tab
+FAILED tests/test_atlas_ssot_doc_tab.py::test_to_ssot_button_uses_same_plain_mini_button_as_deep_interview
+8 failed, 3 passed in 8.44s

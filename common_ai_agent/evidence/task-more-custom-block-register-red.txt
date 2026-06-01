@@ -1,0 +1,41 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_______________ test_custom_blocks_render_after_anchor_sections ________________
+
+tmp_path = PosixPath('/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/pytest-of-brian/pytest-702/test_custom_blocks_render_afte0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10363eaf0>
+
+    def test_custom_blocks_render_after_anchor_sections(tmp_path, monkeypatch):
+        """SSOT custom_blocks (markdown/mermaid; inline or file) inject after their
+        anchor section in the HTML datasheet; path traversal is rejected."""
+        monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+        (tmp_path / "demo" / "doc").mkdir(parents=True, exist_ok=True)
+        (tmp_path / "demo" / "doc" / "flow.mmd").write_text(
+            "stateDiagram-v2\n[*] --> A\nA --> B\n", encoding="utf-8")
+        data = {
+            "top_module": {"name": "demo", "description": "demo top"},
+            "registers": {"register_list": [
+                {"name": "R0", "offset": 0, "fields": [{"name": "en", "lsb": 0, "width": 1}]},
+            ]},
+            "custom_blocks": [
+                {"after": "top_module", "title": "Arch note", "type": "markdown", "inline": "**bold** note"},
+                {"after": "registers", "title": "Flow", "type": "mermaid", "file": "demo/doc/flow.mmd"},
+                {"after": "top_module", "type": "html", "file": "../escape.html"},
+            ],
+        }
+        md = atlas_ui._ssot_to_markdown(data, "demo")
+        html = atlas_ui._ssot_to_html(md, "demo", data)
+        # markdown block rendered and placed after the Top Module heading.
+        assert "<strong>bold</strong>" in html
+        assert html.find("Top Module") < html.find("Arch note")
+        # mermaid FILE is shown as raw source, not auto-rendered into a fragile SVG.
+        assert 'class="mermaid-source"' in html and "stateDiagram-v2" in html
+        assert 'class="mermaid"' not in html
+        assert "../../vendor/mermaid.min.js" not in html
+>       assert "Register Map" in html
+E       assert 'Register Map' in '<!DOCTYPE html>\n<html><head><meta charset="utf-8"><title>demo — SSOT</title><style>body { font-family: -apple-system...top_module</td>\n<td></td>\n<td>html</td>\n<td></td>\n<td>../escape.html</td>\n</tr>\n</tbody>\n</table></body></html>'
+
+tests/test_ssot_export.py:319: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_ssot_export.py::test_custom_blocks_render_after_anchor_sections
+1 failed in 1.30s

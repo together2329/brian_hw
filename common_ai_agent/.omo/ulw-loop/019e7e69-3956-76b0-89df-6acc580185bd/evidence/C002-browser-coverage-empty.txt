@@ -1,0 +1,3 @@
+PASS C002 empty/malformed coverage browser QA
+Observed empty coverage guidance without crash.
+Confirmed no VCD diagnostic/source focus text appears for malformed tools/artifacts/vcd_paths.

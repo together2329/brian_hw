@@ -1,0 +1,5 @@
+RED baseline observed before production changes:
+python3 -m pytest tests/test_andes_rtl_db_wiki_builder.py -q => 3 failed; first semantic failure: assert wiki/_rtl_facts/demo_ip.json exists.
+GREEN verification after implementation:
+...                                                                      [100%]
+3 passed in 2.61s

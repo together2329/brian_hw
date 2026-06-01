@@ -1,0 +1,5 @@
+POST /api/ssot/doc-feedback HTTP 200
+{"ok":true,"ip":"ssot_doc_feedback_demo","section":"top_module","path":"top_module.review_note","field":"review_note","feedback_id":"doc_feedback_1780240338642_top_module.review_note","feedback_count":1,"ssot_path":"ssot_doc_feedback_demo/yaml/ssot_doc_feedback_demo.ssot.yaml","doc_url":"/api/ssot/export?ip=ssot_doc_feedback_demo&format=html&inline=1"}
+
+GET /api/ssot/export?ip=ssot_doc_feedback_demo&format=html&inline=1 HTTP 200
+contains custom block: true

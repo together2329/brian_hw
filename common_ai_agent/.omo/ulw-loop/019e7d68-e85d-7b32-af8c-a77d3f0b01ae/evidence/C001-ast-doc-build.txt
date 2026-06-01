@@ -1,0 +1,25 @@
+[andes-wiki] wrote 1 block pages + AST facts + docs + index + rtl-inventory + ae
+210p to /private/tmp/andes-wiki-c001.IK1Nk2/wiki
+[wiki/build_graph] wrote /private/tmp/andes-wiki-c001.IK1Nk2/wiki/_graph.json: n
+odes=6 edges=17 types=2 tags=10 broken_refs=14
+  broken: ae210p → [[atcbmc200]]
+  broken: ae210p → [[atcapbbrg100]]
+  broken: ae210p → [[atcdmac100]]
+  broken: ae210p → [[atceilmbrg100]]
+  broken: ae210p → [[atcexlmbrg100]]
+  broken: ae210p → [[atcapbdec100]]
+  broken: ae210p → [[atcuart100]]
+  broken: ae210p → [[atciic100]]
+  broken: ae210p → [[atcgpio100]]
+  broken: ae210p → [[atcpit100]]
+  broken: ae210p → [[atcrtc100]]
+  broken: ae210p → [[atcwdt200]]
+  … and 2 more broken links
+C001 PASS synthetic AST/doc wiki
+features= ['fsm', 'register', 'memory', 'clock', 'reset', 'datapath']
+ast_extracted_files= ['demo_ip/hdl/demo_ip.sv']
+graph_nodes= 6 graph_edges= 17
+cleanup: removed /tmp/andes-wiki-c001.IK1Nk2
+__DONE__
+
+cleanup receipt: killed tmux session ulw-qa-c001-andes-ast

@@ -7,7 +7,7 @@ related: [common-ai-agent-map, workflow-ownership-and-boundaries, rtl-gen-ssot-c
 
 # MCTP Assembler Scratch Flow - 2026-05-31
 
-This page records the fresh `mctp_assembler_scratch` req-to-audit run. It is a handoff map, not a production conformance claim. The scratch IP reached a complete local evidence bundle, but final local signoff remains `fail` with explicit owner-routed blockers.
+This page records the fresh `mctp_assembler_scratch` req-to-audit run. It is a handoff map, not a production conformance claim. The scratch IP now has a complete local evidence bundle and local workflow signoff is `pass`.
 
 ## Scope
 
@@ -33,6 +33,7 @@ Primary artifacts:
 - Goals/contract: `mctp_assembler_scratch/verify/equivalence_goals.json`, `mctp_assembler_scratch/verify/ip_contract.json`
 - RTL/TB: `mctp_assembler_scratch/rtl/`, `mctp_assembler_scratch/tb/cocotb/`
 - Sim/debug: `mctp_assembler_scratch/sim/`
+- Simulation quality: `mctp_assembler_scratch/sim/simulation_quality.json`
 - Coverage: `mctp_assembler_scratch/cov/`
 - Mutation: `mctp_assembler_scratch/mutation/mutation_report.json`
 - Signoff: `mctp_assembler_scratch/signoff/ip_signoff.json`
@@ -52,6 +53,7 @@ python3 workflow/rtl-gen/scripts/rtl_compile_report.py mctp_assembler_scratch --
 python3 workflow/lint/scripts/dut_lint_report.py mctp_assembler_scratch --root .
 python3 mctp_assembler_scratch/tb/cocotb/test_runner.py
 python3 workflow/tb-gen/scripts/check_scoreboard_events.py mctp_assembler_scratch --root . --source-check --require-events
+python3 workflow/sim_debug/scripts/check_simulation_quality.py mctp_assembler_scratch --root . --require-class write --require-class readback --require-class drop --require-class memory_pack --require-class register --require-class boundary --require-class interleave --require-class protocol --require-class fsm --require-class module --require-class coverage
 python3 workflow/coverage/scripts/ssot_coverage_summary.py mctp_assembler_scratch --root .
 python3 workflow/mutation/scripts/mutation_guard.py mctp_assembler_scratch --root . --max-mutants 32
 python3 workflow/signoff/scripts/check_ip_signoff.py mctp_assembler_scratch --root .
@@ -62,57 +64,69 @@ python3 workflow/signoff/scripts/check_ip_signoff.py mctp_assembler_scratch --ro
 Local signoff result:
 
 ```text
-status=fail
+status=pass
 gates=15
-passed=12
-failed=3
+passed=15
+failed=0
 blocked=0
 ```
 
-Passing gates include SSOT, IP contract, FL, CL, equivalence goals, RTL provenance, RTL compile, lint, TB Python compile, simulation, mutation guard, and waiver ledger.
+Passing gates include SSOT, IP contract, FL, CL, equivalence goals, RTL provenance, RTL static TODO audit, RTL compile, lint, TB Python compile, simulation, scoreboard source-check, coverage, mutation guard, and waiver ledger.
 
-Remaining failed gates are owner-routed:
+The local evidence replay produced:
 
-| Gate | Owner | Summary |
-| --- | --- | --- |
-| `rtl_todo` | `rtl-gen` | 23 open required RTL TODOs, including 19 static-evidence gaps. |
-| `scoreboard` | `tb-gen` + `rtl-gen` | 65 FL-vs-RTL mismatches classified: 33 TB stimulus/encoder gaps, 32 RTL bugs. |
-| `coverage` | `sim_debug` | Coverage status is `owner_routed`; 57 missing bins are routed to `sim_debug`. |
-
-The important point is not that the IP is green. It is that failure is now explicit, machine-readable, and routed to the right owner workflow instead of being hidden behind a passing cocotb test.
+```text
+rtl_todo: gate=pass, open_required_todos=0, static_missing=0
+simulation: TESTS=1 PASS=1 FAIL=0
+fl_rtl_compare: status=pass, checked=91, passed=91, failed=0
+simulation_quality: status=pass, rows=91, issues=0, classes=11/11
+goal_audit: status=pass, passed=16/16
+coverage: status=pass
+mutation: status=pass, executed=32, killed=9, survived=23, kill_rate=0.2812
+signoff: status=pass, gates=15/15
+```
 
 Some adversarial evidence transcripts intentionally include dirty-worktree scans that mention the earlier `mctp_assembler/` directory. Those files are diagnostic logs only, not proof sources. The authoritative scratch evidence roots and diagnostic-only legacy-reference files are listed in `signoff/evidence_authority_manifest.json`.
 
 ## Mutation Interpretation
 
-Mutation did not produce a kill-rate for this IP, by design. `mutation_report.json` is:
+Mutation now runs on a green baseline and produces category kill-rate evidence. `mutation_report.json` is:
 
 ```text
-status=blocked_baseline
-mode=baseline_blocked
-executed=0
+status=pass
+mode=advisory
+executed=32
+killed=9
+survived=23
+kill_rate=0.2812
 ```
 
-Reason: baseline FL-vs-RTL comparison is not green. Running mutation before the scoreboard baseline is correct would create a misleading quality number. This matches [[mutation-baseline-2026-05-23]]: mutation is useful only after the baseline can fail for the right reason and pass for the right implementation.
+Category summary:
 
-The report still lists candidate categories and unsupported follow-up categories, so the next green baseline run can immediately convert this into category kill-rate evidence.
+| Category | Killed/Executed | Survived | Kill rate |
+| --- | ---: | ---: | ---: |
+| `comparator_flip` | 5/7 | 2 | 0.7143 |
+| `constant_flip` | 1/7 | 6 | 0.1429 |
+| `handshake_hold_drop` | 0/3 | 3 | 0.0 |
+| `operator_flip` | 0/8 | 8 | 0.0 |
+| `state_update_drop` | 3/7 | 4 | 0.4286 |
+
+Interpretation: the workflow signoff treats mutation as advisory unless threshold enforcement is requested. The low kill-rate is not a functional failure, but it is a concrete next-improvement signal: reusable monitors should observe more internal protocol effects, especially handshake-hold, operator, and constant-change classes.
 
 ## Lessons
 
 - For a broad "General IP" flow, static profiles are the wrong abstraction. Obligations must derive from `io_list`, SSOT goals, and `ip_contract.json`.
-- Owner routing is more important than a single green headline. This run has 1 cocotb pass but 65 scoreboard mismatches, proving why signoff must read scoreboard rows, coverage ownership, and goal audit artifacts.
+- Owner routing is more important than a single green headline. Earlier runs had 1 cocotb pass but many scoreboard mismatches; the final signoff only passed after scoreboard rows, coverage, goal audit, and RTL TODO evidence were all clean.
 - `rtl_authoring_provenance.json` and `signoff/goal_ledger.json` are not optional paperwork. Missing provenance made signoff fail even though compile/lint passed.
 - `rtl_todo_plan.json --audit-rtl` is the canonical RTL evidence gate. Compile/lint clean is necessary but not enough for a generated IP.
-- Mutation should be baseline-gated. A blocked mutation report is better than a fake kill-rate when FL-vs-RTL is still red.
+- `simulation_quality.json` is the stronger simulation evidence gate. It catches shallow green runs by enforcing required observable presence, scenario-class coverage, no-SRAM-write drop behavior, contiguous SRAM write strobes, readback observability, APB readiness, and interleave context-key observability.
+- Mutation should be baseline-gated and interpreted by class. A green mutation status without threshold enforcement is a measurement, not a proof.
 - Formal proof remains an optional future workflow. It should be added for small safety invariants after simulation ownership is clean, not used as a substitute for missing stimulus or broken RTL.
 
 ## Next Repair Order
 
-1. Run `rtl-gen` on `rtl/rtl_todo_plan.json` until the static audit gate passes.
-2. Run `tb-gen` on the 33 TB-owned mismatch routes, then replay sim and scoreboard.
-3. Run `rtl-gen` on the 32 RTL-owned mismatch routes, then replay sim and scoreboard.
-4. Recompute coverage after scoreboard rows are all green.
-5. Run mutation again only after baseline FL-vs-RTL is green.
-6. Re-run signoff and keep production claims blocked until the report is `pass`.
+1. Raise mutation kill-rate with stronger reusable monitors for handshake-hold, operator, and constant-change classes.
+2. Add optional formal checks for small safety invariants such as no descriptor before EOM, no SRAM write on packet drop, and AXI valid/ready hold stability.
+3. Keep production claims blocked until external standard conformance, CDC strategy review, synthesis/PnR/PPA, and formal/STA signoff are explicitly added.
 
 Related pages: [[common-ai-agent-map]], [[workflow-ownership-and-boundaries]], [[rtl-gen-ssot-contract]], [[human-review-and-escalation]].

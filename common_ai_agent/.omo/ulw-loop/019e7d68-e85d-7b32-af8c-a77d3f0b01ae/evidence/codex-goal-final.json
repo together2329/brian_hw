@@ -1,0 +1,13 @@
+{
+  "goal": {
+    "threadId": "019e7d68-e85d-7b32-af8c-a77d3f0b01ae",
+    "objective": "Fix Atlas UI crash when clicking coverage report or lint report. Success criteria: (1) clicking Coverage Report from localhost:3000 does not throw console errors and shows the expected report/error-empty state; automated regression test is added first and demonstrates RED->GREEN; manual browser QA captures screenshot/log. (2) clicking Lint Report from localhost:3000 does not throw console errors and shows the expected report/error-empty state; automated regression test is added first and demonstrates RED->GREEN; manual browser QA captures screenshot/log. (3) adjacent report navigation remains stable for malformed/empty report data, with a named regression test and manual browser check. Validate with affected tests, typecheck/lint/build where available, and real browser interaction against the running app.",
+    "status": "complete",
+    "tokensUsed": 587128,
+    "timeUsedSeconds": 1478,
+    "createdAt": 1780220609,
+    "updatedAt": 1780222128
+  },
+  "remainingTokens": null,
+  "completionBudgetReport": null
+}

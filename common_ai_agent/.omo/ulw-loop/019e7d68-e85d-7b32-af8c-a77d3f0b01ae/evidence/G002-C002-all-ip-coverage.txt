@@ -1,0 +1,25 @@
+[andes-wiki] wrote 14 block pages + AST facts + docs + coverage + index + rtl-in
+ventory + ae210p to /Users/brian/Desktop/andes/wiki
+[wiki/build_graph] wrote /Users/brian/Desktop/andes/wiki/_graph.json: nodes=123
+edges=641 types=3 tags=33 broken_refs=0
+hdl_roots 93
+coverage_summary {'empty_hdl_roots': 9, 'missing_facts': [], 'missing_pages': []
+, 'nonempty_hdl_roots': 84, 'total_hdl_roots': 93}
+empty_roots 9
+graph 123 641 broken_refs 0
+PASS C002 all corpus coverage
+ULW_QA_EXIT=0
+
+
+
+
+
+
+
+
+
+
+
+
+
+cleanup: killed tmux session ulw-qa-g002-c002; regenerated intended /Users/brian/Desktop/andes/wiki in place; post-review rerun

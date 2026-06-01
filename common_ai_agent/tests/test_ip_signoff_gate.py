@@ -139,6 +139,10 @@ def _make_ip(root: Path, ip: str, *, bad_provenance: bool = False, missing_obser
         encoding="utf-8",
     )
     (ip_dir / "sim" / "sim_report.txt").write_text("TESTS=1 PASS=1 FAIL=0\n", encoding="utf-8")
+    _write_json(
+        ip_dir / "sim" / "simulation_quality.json",
+        {"status": "pass", "summary": {"issues": 0}, "issues": []},
+    )
     (ip_dir / "sim" / "scoreboard_events.jsonl").write_text(
         json.dumps(
             {
@@ -233,3 +237,28 @@ def test_ip_signoff_gate_rejects_scoreboard_missing_expected_observable(tmp_path
     gates = {gate["name"]: gate for gate in report["gates"]}
     assert gates["scoreboard"]["status"] == "fail"
     assert "y" in "; ".join(gates["scoreboard"]["issues"])
+
+
+def test_ip_signoff_gate_rejects_failed_simulation_quality(tmp_path: Path) -> None:
+    ip_dir = _make_ip(tmp_path, "bad_quality_ip")
+    _write_json(
+        ip_dir / "sim" / "simulation_quality.json",
+        {
+            "status": "fail",
+            "summary": {"issues": 1},
+            "issues": ["SC_MAX: payload evidence 16 below expected 4096"],
+        },
+    )
+
+    result = subprocess.run(
+        ["python3", str(SCRIPT), "bad_quality_ip", "--root", str(tmp_path)],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
+
+    assert result.returncode == 1
+    report = json.loads((tmp_path / "bad_quality_ip" / "signoff" / "ip_signoff.json").read_text(encoding="utf-8"))
+    gates = {gate["name"]: gate for gate in report["gates"]}
+    assert gates["simulation_quality"]["status"] == "fail"
+    assert "payload evidence" in "; ".join(gates["simulation_quality"]["issues"])

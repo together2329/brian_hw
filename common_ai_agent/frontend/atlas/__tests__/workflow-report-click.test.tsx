@@ -198,7 +198,113 @@ describe('Workflow report click surfaces', () => {
     expect((window as TestWindow).readAtlasAsyncResource).toHaveBeenCalledWith('file', 'demo_ip/rtl/demo.sv', true);
   });
 
-  it('renders coverage report summary when the report endpoint returns malformed empty data', async () => {
+  it('passes selected coverage diagnostics and unmet reasons into source preview', async () => {
+    installWorkflowReportGlobals({
+      exists: true,
+      resolved_ip: 'demo_ip',
+      status: 'warning',
+      report_exists: true,
+      report_path: 'demo_ip/cov/coverage.json',
+      tools: [
+        {
+          id: 'verilator',
+          label: 'Verilator code coverage',
+          available: true,
+          status: 'fail',
+          metrics: [{ label: 'line', hit: 31, total: 42, pct: 73.8, target_pct: 90 }],
+          path: 'demo_ip/cov/verilator_coverage.dat',
+        },
+        {
+          id: 'static',
+          label: 'pyslang static/elab coverage',
+          available: true,
+          status: 'fail',
+          metrics: [{ label: 'static rtl files', value: 1 }],
+          diagnostics: [
+            {
+              severity: 'warning',
+              rule: 'STATIC_ELAB',
+              path: 'demo_ip/rtl/demo.sv',
+              file: 'rtl/demo.sv',
+              line: 9,
+              message: 'Static elaboration could not resolve WIDTH parameter',
+            },
+          ],
+          files: [
+            { path: 'demo_ip/rtl/demo.sv', modules: 1, always_blocks: 1, assigns: 2, lines: 42 },
+          ],
+          missing: ['rtl/missing.sv'],
+        },
+        {
+          id: 'sim-vcd',
+          label: 'Simulation VCD toggle coverage',
+          available: true,
+          status: 'fail',
+          metrics: [{ label: 'toggle', hit: 1, total: 8, pct: 12.5, target_pct: 90 }],
+          vcd: 'demo_ip/sim/waves.vcd',
+          scopes: [
+            {
+              scope: 'tb.demo_ip.u_dut',
+              pct: 12.5,
+              toggled: 1,
+              total: 8,
+              nets: 3,
+              path: 'demo_ip/rtl/demo.sv',
+              line: 12,
+              message: 'toggle gap: only 1/8 bits toggled in tb.demo_ip.u_dut',
+              reason: 'Reset path never deasserted',
+            },
+          ],
+        },
+        {
+          id: 'fl',
+          label: 'FL function coverage',
+          available: true,
+          status: 'fail',
+          metrics: [{ label: 'functions', hit: 7, total: 10, pct: 70, target_pct: 95 }],
+          missing_bins: [
+            { id: 'idle_read', description: 'idle/read transaction not observed' },
+          ],
+        },
+        {
+          id: 'cl',
+          label: 'CL cycle coverage',
+          available: true,
+          status: 'fail',
+          metrics: [{ label: 'cycles', hit: 18, total: 24, pct: 75, target_pct: 95 }],
+          missing_bins: [
+            { id: 'ready_latency', description: 'ready latency transition not observed' },
+          ],
+        },
+      ],
+      artifacts: [],
+      vcd_paths: ['demo_ip/sim/waves.vcd'],
+    });
+    const { WorkflowReportPane } = await import('../workflow-report.tsx');
+
+    render(<WorkflowReportPane workflow="coverage" activeIp="demo_ip" />);
+
+    expect(await screen.findByText('Verilator code coverage')).toBeInTheDocument();
+    expect(screen.getByText('pyslang static/elab coverage')).toBeInTheDocument();
+    expect(screen.getByText('Simulation VCD toggle coverage')).toBeInTheDocument();
+    expect(screen.getByText('FL function coverage')).toBeInTheDocument();
+    expect(screen.getByText('CL cycle coverage')).toBeInTheDocument();
+    expect(screen.getByText('Reset path never deasserted')).toBeInTheDocument();
+    expect(screen.getByText('1/8 bits')).toBeInTheDocument();
+    expect(screen.getByText('rtl/missing.sv')).toBeInTheDocument();
+    expect(screen.getByText('idle/read transaction not observed')).toBeInTheDocument();
+    expect(screen.getByText('ready latency transition not observed')).toBeInTheDocument();
+    expect(screen.getByText(/modules 1/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /Reset path never deasserted/ }));
+
+    expect(await screen.findByTestId('preview-pane')).toHaveTextContent(
+      'demo_ip/rtl/demo.sv|L12|toggle gap: only 1/8 bits toggled in tb.demo_ip.u_dut',
+    );
+    expect((window as TestWindow).readAtlasAsyncResource).toHaveBeenCalledWith('file', 'demo_ip/rtl/demo.sv', true);
+  });
+
+  it('keeps malformed coverage reports stable without source focus', async () => {
     installWorkflowReportGlobals({
       exists: false,
       resolved_ip: 'demo_ip',
@@ -212,5 +318,6 @@ describe('Workflow report click surfaces', () => {
     expect(() => render(<WorkflowReportPane workflow="coverage" activeIp="demo_ip" />)).not.toThrow();
 
     expect(await screen.findByText(/No coverage artifacts found yet/)).toBeInTheDocument();
+    expect(screen.getByTestId('preview-pane')).toHaveTextContent('demo_ip/cov/coverage.json|L0|no lint diagnostic');
   });
 });

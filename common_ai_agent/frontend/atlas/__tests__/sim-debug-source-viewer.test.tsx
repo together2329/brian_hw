@@ -6,7 +6,7 @@ import { SourceViewer } from '../sim-debug-panels';
 describe('sim debug source viewer', () => {
   afterEach(() => {
     vi.restoreAllMocks();
-    delete (document as Document & { caretRangeFromPoint?: unknown }).caretRangeFromPoint;
+    Reflect.deleteProperty(document, 'caretRangeFromPoint');
   });
 
   it('highlights the selected signal leaf inside source text', () => {

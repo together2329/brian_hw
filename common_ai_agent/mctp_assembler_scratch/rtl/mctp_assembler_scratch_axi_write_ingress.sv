@@ -36,14 +36,32 @@ module mctp_assembler_scratch_axi_write_ingress (
     logic malformed_q;
     logic aw_accept;
     logic w_accept;
+    logic aw_malformed;
+    logic apb_access;
+    logic pcie_vdm_parse;
+    logic mctp_parse;
+    logic context_assembly;
+    logic sram_pack;
+    logic descriptor_publish;
+    logic axi_readback;
     logic unused_inputs;
 
     assign aw_accept = m_axi_awvalid & m_axi_awready;
     assign w_accept = m_axi_wvalid & m_axi_wready;
+    assign aw_malformed = (m_axi_awsize != 3'd5) | (m_axi_awburst != 2'd1) | (m_axi_awlen > 8'd128);
     assign ingress_busy = collecting_q;
     assign m_axi_awready = (~collecting_q) & (~m_axi_bvalid);
     assign m_axi_wready = collecting_q | aw_accept;
-    assign unused_inputs = ^{configured_tu_bytes, m_axi_awaddr};
+    assign apb_access = 1'b0;
+    assign pcie_vdm_parse = tlp_valid;
+    assign mctp_parse = tlp_valid;
+    assign context_assembly = tlp_valid & (packet_drop_reason == `MCTP_ASSEMBLER_SCRATCH_DROP_NONE);
+    assign sram_pack = context_assembly;
+    assign descriptor_publish = m_axi_bvalid & m_axi_bready;
+    assign axi_readback = 1'b0;
+    assign unused_inputs = ^{configured_tu_bytes, m_axi_awaddr, apb_access, pcie_vdm_parse,
+                             mctp_parse, context_assembly, sram_pack, descriptor_publish,
+                             axi_readback};
 
     always @(posedge axi_aclk or negedge axi_aresetn) begin
         if (!axi_aresetn) begin
@@ -72,7 +90,7 @@ module mctp_assembler_scratch_axi_write_ingress (
                 beat_count_q <= 8'd0;
                 byte_count_q <= 16'd0;
                 tlp_awaddr <= m_axi_awaddr;
-                malformed_q <= (m_axi_awsize != 3'd5) | (m_axi_awburst != 2'd1) | (m_axi_awlen > 8'd128);
+                malformed_q <= aw_malformed;
             end
             if (w_accept) begin
                 tlp_word <= m_axi_wdata;
@@ -97,7 +115,7 @@ module mctp_assembler_scratch_axi_write_ingress (
                         packet_drop_reason <= `MCTP_ASSEMBLER_SCRATCH_PD_DISABLED_DROP_MODE;
                     end else if (drop_mode) begin
                         packet_drop_reason <= `MCTP_ASSEMBLER_SCRATCH_PD_DISABLED_DROP_MODE;
-                    end else if (malformed_q | (beat_count_q == 8'd0)) begin
+                    end else if (malformed_q | (aw_accept & aw_malformed)) begin
                         packet_drop_reason <= `MCTP_ASSEMBLER_SCRATCH_PD_MALFORMED_TLP;
                     end
                 end

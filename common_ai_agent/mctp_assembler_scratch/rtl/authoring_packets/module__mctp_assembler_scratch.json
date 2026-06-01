@@ -12,7 +12,7 @@
       "enabled": false,
       "index": 1,
       "key": "all",
-      "module_task_count": 25,
+      "module_task_count": 20,
       "task_limit": 48
     },
     "owner": {
@@ -812,15 +812,15 @@
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": true,
+    "deferred_human_qa_allowed": false,
     "draft_allowed": true,
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
-    "llm_actionable": true,
-    "llm_actionable_open_count": 1,
-    "open_required_count": 1,
-    "pass_allowed": false,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -849,7 +849,6 @@
   "source_plan": "rtl/rtl_todo_plan.json",
   "summary": {
     "categories": {
-      "cycle_model.handshake_rules": 4,
       "equivalence.module": 1,
       "integration.connections": 5,
       "integration.dependencies": 3,
@@ -857,27 +856,21 @@
       "rtl_flow.top": 1,
       "security.assets": 2,
       "synthesis.constraints": 4,
-      "synthesis.ppa_targets": 3,
-      "workflow_todo.rtl_gen": 1
+      "synthesis.ppa_targets": 3
     },
     "module_slice": {
       "count": 1,
       "enabled": false,
       "index": 1,
       "key": "all",
-      "module_task_count": 25,
+      "module_task_count": 20,
       "task_limit": 48
     },
-    "open_required_count": 1,
-    "required_count": 25,
+    "open_required_count": 0,
+    "required_count": 20,
     "source_refs": [
       "top_module",
       "io_list",
-      "workflow_todos.rtl-gen[0]",
-      "cycle_model.handshake_rules.axi_write_channels",
-      "cycle_model.handshake_rules.axi_read_channels",
-      "cycle_model.handshake_rules.apb_access",
-      "cycle_model.handshake_rules.sram_ready_valid",
       "security.assets.asset_0",
       "security.assets.asset_2",
       "integration.dependencies.external_modules",
@@ -894,13 +887,13 @@
       "synthesis.constraints.constraint_3",
       "synthesis.ppa_targets.frequency_mhz_min",
       "synthesis.ppa_targets.area_um2_max",
-      "synthesis.ppa_targets.power_mw_max"
+      "synthesis.ppa_targets.power_mw_max",
+      "sub_modules.mctp_assembler_scratch.module_equivalence"
     ],
     "status_counts": {
-      "open": 1,
-      "pass": 24
+      "pass": 20
     },
-    "task_count": 25
+    "task_count": 20
   },
   "tasks": [
     {
@@ -977,376 +970,6 @@
       },
       "todo_completion": {
         "criteria_total": 5,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      }
-    },
-    {
-      "category": "workflow_todo.rtl_gen",
-      "content": "Implement AXI write ingress and no-ID one-outstanding write behavior.",
-      "criteria": [
-        "rtl_compile_passes",
-        "lint_passes",
-        "axi_write_module_present",
-        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
-        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
-        "Traceability keeps source_ref workflow_todos.rtl-gen[0]",
-        "Primary implementation evidence is in rtl/mctp_assembler_scratch.sv",
-        "Semantic source_refs covered: cycle_model.handshake_rules.axi_write_channels, io_list.interfaces.axi_write_slave"
-      ],
-      "detail": "AW/W/B channels must follow io_list and cycle_model handshake rules.\nSSOT ref: workflow_todos.rtl-gen[0].\nOwner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_level_handshake_rule.",
-      "evidence_terms": [],
-      "id": "RTL-0020",
-      "owner_file": "rtl/mctp_assembler_scratch.sv",
-      "owner_module": "mctp_assembler_scratch",
-      "priority": "high",
-      "required": true,
-      "source_ref": "workflow_todos.rtl-gen[0]",
-      "ssot_context": {},
-      "ssot_refs": [
-        "cycle_model.handshake_rules.axi_write_channels",
-        "io_list.interfaces.axi_write_slave",
-        "workflow_todos.rtl-gen[0]"
-      ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
-      "todo_completion": {
-        "criteria_total": 8,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      },
-      "workflow_todo": {
-        "id": "RTL_WORKFLOW_TODO_001",
-        "source_refs": [
-          "cycle_model.handshake_rules.axi_write_channels",
-          "io_list.interfaces.axi_write_slave"
-        ],
-        "stage": "rtl-gen",
-        "user_category": ""
-      }
-    },
-    {
-      "category": "cycle_model.handshake_rules",
-      "content": "Implement handshake rule: axi_write_channels",
-      "criteria": [
-        "RTL contains the control/state/handshake logic for this cycle rule",
-        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
-        "TB scoreboard/coverage can observe the rule at the declared phase",
-        "Traceability keeps source_ref cycle_model.handshake_rules.axi_write_channels",
-        "Primary implementation evidence is in rtl/mctp_assembler_scratch.sv",
-        "axi_write_channels appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
-      ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.axi_write_channels.\nOwner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_level_handshake_rule.\nSSOT item context: name=axi_write_channels; signal=m_axi_awvalid/m_axi_awready/m_axi_wvalid/m_axi_wready.",
-      "evidence_terms": [
-        "awready",
-        "awvalid",
-        "axi",
-        "axi_write_channels",
-        "channels",
-        "m_axi_awready",
-        "m_axi_awvalid",
-        "m_axi_wready",
-        "m_axi_wvalid",
-        "wready",
-        "write",
-        "wvalid"
-      ],
-      "id": "RTL-0297",
-      "owner_file": "rtl/mctp_assembler_scratch.sv",
-      "owner_module": "mctp_assembler_scratch",
-      "priority": "high",
-      "required": true,
-      "source_ref": "cycle_model.handshake_rules.axi_write_channels",
-      "ssot_context": {
-        "name": "axi_write_channels",
-        "signal": "m_axi_awvalid/m_axi_awready/m_axi_wvalid/m_axi_wready"
-      },
-      "ssot_refs": [
-        "cycle_model.handshake_rules.axi_write_channels"
-      ],
-      "static_evidence": {
-        "fallback_scope": "",
-        "matched_count": 10,
-        "matched_terms": [
-          "awready",
-          "awvalid",
-          "axi",
-          "m_axi_awready",
-          "m_axi_awvalid",
-          "m_axi_wready",
-          "m_axi_wvalid",
-          "wready",
-          "write",
-          "wvalid"
-        ],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 2,
-        "required_terms": [
-          "awready",
-          "awvalid",
-          "axi",
-          "axi_write_channels",
-          "channels",
-          "m_axi_awready",
-          "m_axi_awvalid",
-          "m_axi_wready",
-          "m_axi_wvalid",
-          "wready",
-          "write",
-          "wvalid"
-        ],
-        "source_scope": "rtl/mctp_assembler_scratch.sv",
-        "status": "pass"
-      },
-      "todo_completion": {
-        "criteria_total": 6,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      }
-    },
-    {
-      "category": "cycle_model.handshake_rules",
-      "content": "Implement handshake rule: axi_read_channels",
-      "criteria": [
-        "RTL contains the control/state/handshake logic for this cycle rule",
-        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
-        "TB scoreboard/coverage can observe the rule at the declared phase",
-        "Traceability keeps source_ref cycle_model.handshake_rules.axi_read_channels",
-        "Primary implementation evidence is in rtl/mctp_assembler_scratch.sv",
-        "axi_read_channels appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
-      ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.axi_read_channels.\nOwner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_level_handshake_rule.\nSSOT item context: name=axi_read_channels; signal=m_axi_arvalid/m_axi_arready/m_axi_rvalid/m_axi_rready.",
-      "evidence_terms": [
-        "arready",
-        "arvalid",
-        "axi",
-        "axi_read_channels",
-        "channels",
-        "m_axi_arready",
-        "m_axi_arvalid",
-        "m_axi_rready",
-        "m_axi_rvalid",
-        "read",
-        "rready",
-        "rvalid"
-      ],
-      "id": "RTL-0298",
-      "owner_file": "rtl/mctp_assembler_scratch.sv",
-      "owner_module": "mctp_assembler_scratch",
-      "priority": "high",
-      "required": true,
-      "source_ref": "cycle_model.handshake_rules.axi_read_channels",
-      "ssot_context": {
-        "name": "axi_read_channels",
-        "signal": "m_axi_arvalid/m_axi_arready/m_axi_rvalid/m_axi_rready"
-      },
-      "ssot_refs": [
-        "cycle_model.handshake_rules.axi_read_channels"
-      ],
-      "static_evidence": {
-        "fallback_scope": "",
-        "matched_count": 10,
-        "matched_terms": [
-          "arready",
-          "arvalid",
-          "axi",
-          "m_axi_arready",
-          "m_axi_arvalid",
-          "m_axi_rready",
-          "m_axi_rvalid",
-          "read",
-          "rready",
-          "rvalid"
-        ],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 2,
-        "required_terms": [
-          "arready",
-          "arvalid",
-          "axi",
-          "axi_read_channels",
-          "channels",
-          "m_axi_arready",
-          "m_axi_arvalid",
-          "m_axi_rready",
-          "m_axi_rvalid",
-          "read",
-          "rready",
-          "rvalid"
-        ],
-        "source_scope": "rtl/mctp_assembler_scratch.sv",
-        "status": "pass"
-      },
-      "todo_completion": {
-        "criteria_total": 6,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
-        "required": true,
-        "status": "pass"
-      }
-    },
-    {
-      "category": "cycle_model.handshake_rules",
-      "content": "Implement handshake rule: apb_access",
-      "criteria": [
-        "RTL contains the control/state/handshake logic for this cycle rule",
-        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
-        "TB scoreboard/coverage can observe the rule at the declared phase",
-        "Traceability keeps source_ref cycle_model.handshake_rules.apb_access",
-        "Primary implementation evidence is in rtl/mctp_assembler_scratch.sv",
-        "apb_access appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
-      ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.apb_access.\nOwner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_level_handshake_rule.\nSSOT item context: name=apb_access; signal=psel/penable/pready.",
-      "evidence_terms": [
-        "apb",
-        "apb_access"
-      ],
-      "id": "RTL-0299",
-      "owner_file": "rtl/mctp_assembler_scratch.sv",
-      "owner_module": "mctp_assembler_scratch",
-      "priority": "high",
-      "required": true,
-      "source_ref": "cycle_model.handshake_rules.apb_access",
-      "ssot_context": {
-        "name": "apb_access",
-        "signal": "psel/penable/pready"
-      },
-      "ssot_refs": [
-        "cycle_model.handshake_rules.apb_access"
-      ],
-      "static_evidence": {
-        "fallback_scope": "",
-        "matched_count": 1,
-        "matched_terms": [
-          "apb"
-        ],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 2,
-        "required_terms": [
-          "apb",
-          "apb_access"
-        ],
-        "source_scope": "rtl/mctp_assembler_scratch.sv",
-        "status": "missing"
-      },
-      "todo_completion": {
-        "criteria_total": 6,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Required RTL static evidence is missing.",
-        "required": true,
-        "status": "open"
-      }
-    },
-    {
-      "category": "cycle_model.handshake_rules",
-      "content": "Implement handshake rule: sram_ready_valid",
-      "criteria": [
-        "RTL contains the control/state/handshake logic for this cycle rule",
-        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
-        "TB scoreboard/coverage can observe the rule at the declared phase",
-        "Traceability keeps source_ref cycle_model.handshake_rules.sram_ready_valid",
-        "Primary implementation evidence is in rtl/mctp_assembler_scratch.sv",
-        "sram_ready_valid appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
-      ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.sram_ready_valid.\nOwner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_level_handshake_rule.\nSSOT item context: name=sram_ready_valid; signal=sram_wr_valid/sram_wr_ready/sram_rd_req_valid/sram_rd_req_ready.",
-      "evidence_terms": [
-        "rd",
-        "ready",
-        "req",
-        "sram",
-        "sram_rd_req_ready",
-        "sram_rd_req_valid",
-        "sram_ready_valid",
-        "sram_wr_ready",
-        "sram_wr_valid",
-        "valid",
-        "wr"
-      ],
-      "id": "RTL-0300",
-      "owner_file": "rtl/mctp_assembler_scratch.sv",
-      "owner_module": "mctp_assembler_scratch",
-      "priority": "high",
-      "required": true,
-      "source_ref": "cycle_model.handshake_rules.sram_ready_valid",
-      "ssot_context": {
-        "name": "sram_ready_valid",
-        "signal": "sram_wr_valid/sram_wr_ready/sram_rd_req_valid/sram_rd_req_ready"
-      },
-      "ssot_refs": [
-        "cycle_model.handshake_rules.sram_ready_valid"
-      ],
-      "static_evidence": {
-        "fallback_scope": "",
-        "matched_count": 10,
-        "matched_terms": [
-          "rd",
-          "ready",
-          "req",
-          "sram",
-          "sram_rd_req_ready",
-          "sram_rd_req_valid",
-          "sram_wr_ready",
-          "sram_wr_valid",
-          "valid",
-          "wr"
-        ],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 2,
-        "required_terms": [
-          "rd",
-          "ready",
-          "req",
-          "sram",
-          "sram_rd_req_ready",
-          "sram_rd_req_valid",
-          "sram_ready_valid",
-          "sram_wr_ready",
-          "sram_wr_valid",
-          "valid",
-          "wr"
-        ],
-        "source_scope": "rtl/mctp_assembler_scratch.sv",
-        "status": "pass"
-      },
-      "todo_completion": {
-        "criteria_total": 6,
         "evidence_basis": [
           "rtl_todo_plan.json task criteria",
           "rtl_traceability.json source_ref mapping",
@@ -2179,7 +1802,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "740f93796c4f016836bc823fe2faf4054d926dc664b7d534ef5d5436d6585bb5",
+  "todo_plan_sha256": "f7d51fe86c7b2e93192acdcd2fb7e463badd1ca4416fc82440243aa7e8a43e3c",
   "top": "mctp_assembler_scratch",
   "type": "rtl_authoring_packet"
 }

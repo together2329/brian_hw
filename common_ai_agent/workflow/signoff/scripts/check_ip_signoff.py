@@ -405,6 +405,24 @@ class SignoffChecker:
                 issues.append(f"simulation failures={failures} errors={errors}")
         self.add("simulation", "fail" if issues else "pass", results, f"tests={tests} failures={failures} errors={errors}", issues)
 
+    def check_simulation_quality(self) -> None:
+        path = self.ip_dir / "sim" / "simulation_quality.json"
+        doc, err = _read_json(path)
+        issues = [err] if err else []
+        if not issues and doc.get("status") != "pass":
+            raw_issues = doc.get("issues") if isinstance(doc.get("issues"), list) else []
+            issue_text = [str(item) for item in raw_issues[:20]]
+            issues.append(f"simulation_quality status is {doc.get('status')!r}, expected pass")
+            issues.extend(issue_text)
+        summary = doc.get("summary") if isinstance(doc.get("summary"), dict) else {}
+        self.add(
+            "simulation_quality",
+            "fail" if issues else "pass",
+            path,
+            f"status={doc.get('status')} issues={summary.get('issues')}",
+            issues,
+        )
+
     def check_scoreboard(self) -> None:
         path = self.ip_dir / "sim" / "scoreboard_events.jsonl"
         goals_path = self.ip_dir / "verify" / "equivalence_goals.json"
@@ -529,6 +547,7 @@ class SignoffChecker:
             self.check_lint()
             self.check_tb_compile()
             self.check_sim()
+            self.check_simulation_quality()
             self.check_scoreboard()
             self.check_coverage()
             self.check_mutation_guard()

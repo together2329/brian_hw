@@ -12,6 +12,8 @@ from cocotb.binary import BinaryValue
 from cocotb.clock import Clock
 from cocotb.triggers import ClockCycles, FallingEdge, ReadOnly, RisingEdge
 
+from mctp_contract_stimulus import normalize_mctp_stimulus
+
 
 def _ip_dir() -> Path:
     return Path(__file__).resolve().parents[2]
@@ -829,7 +831,7 @@ def _stimulus_for_goal(goal: dict[str, Any], manifest: dict[str, Any], idx: int)
         if constraint_value is not None:
             sample_active = bool(constraint_value)
     _set_sample_activity(stimulus, manifest, sample_active)
-    return stimulus
+    return normalize_mctp_stimulus(goal, stimulus)
 
 
 def _goal_wait_cycles(goal: dict[str, Any], manifest: dict[str, Any]) -> int:
@@ -847,20 +849,62 @@ def _goal_wait_cycles(goal: dict[str, Any], manifest: dict[str, Any]) -> int:
         return max(base, 3)
     if any(token in text for token in ("bus_error", "bus error", "fault_halt", "fault halt")):
         return max(base, 3)
+    if any(token in text for token in ("readback", "axi_readback")):
+        return max(base, 6)
+    if any(token in text for token in ("mctp", "vdm", "tlp", "packet", "fragment", "sram_pack", "complete_message", "descriptor")):
+        return max(base, 8)
     return base
 
 
 def _idle_input_value(manifest: dict[str, Any], port: str) -> int:
+    if str(port) in {"psel", "penable", "pwrite"}:
+        return 0
     input_map = manifest.get("input_map") or {}
     for field, mapped_port in input_map.items():
         if str(mapped_port) == str(port):
             low = str(field).lower()
             if low in {"clear", "clr", "enable", "en", "valid", "req", "request", "start", "go", "fire"} or low.endswith(
-                ("_clear", "_clr", "_enable", "_en", "_valid", "_req", "_request", "_start", "_go", "_fire")
+                (
+                    "_clear",
+                    "_clr",
+                    "_enable",
+                    "_en",
+                    "_valid",
+                    "valid",
+                    "_req",
+                    "_request",
+                    "_start",
+                    "_go",
+                    "_fire",
+                    "wlast",
+                    "wstrb",
+                    "pstrb",
+                )
             ):
                 return 0
             return _fit_port_value(manifest, str(port), _stimulus_value_for_field(manifest, str(field), 0, {}))
     return _fit_port_value(manifest, str(port), _default_field_value(str(port), 0))
+
+
+def _is_clock_port(manifest: dict[str, Any], port: str) -> bool:
+    low = str(port).lower()
+    return str(port) == str(manifest["clock"]) or low in {"pclk"} or low.endswith(("clk", "clock"))
+
+
+def _is_reset_port(manifest: dict[str, Any], port: str) -> bool:
+    low = str(port).lower()
+    return (
+        str(port) == str(manifest["reset"])
+        or low in {"rst", "reset", "rst_n", "reset_n", "aresetn", "presetn"}
+        or low.endswith(("reset", "resetn", "rst", "rstn", "aresetn", "presetn"))
+    )
+
+
+def _reset_active_value(manifest: dict[str, Any], port: str) -> int:
+    if str(port) == str(manifest["reset"]):
+        return 0 if manifest.get("reset_active") == "low" else 1
+    low = str(port).lower()
+    return 0 if low.endswith("n") else 1
 
 
 async def _reset_dut(dut, manifest: dict[str, Any], *, release: bool = True) -> None:
@@ -868,23 +912,37 @@ async def _reset_dut(dut, manifest: dict[str, Any], *, release: bool = True) -> 
     inout_ports = _inout_ports(manifest)
     clock = manifest["clock"]
     reset = manifest["reset"]
-    active = 0 if manifest.get("reset_active") == "low" else 1
-    inactive = 1 - active
     for port in input_ports:
-        if port == clock:
+        if _is_clock_port(manifest, str(port)):
             continue
         if port in inout_ports and port != reset:
             _set_signal(dut, port, _highz_value(manifest, port))
             continue
-        _set_signal(dut, port, active if port == reset else _idle_input_value(manifest, str(port)))
+        if _is_reset_port(manifest, str(port)):
+            _set_signal(dut, port, _reset_active_value(manifest, str(port)))
+        else:
+            _set_signal(dut, port, _idle_input_value(manifest, str(port)))
     await ClockCycles(getattr(dut, clock), 3)
     if not release:
         return
-    _set_signal(dut, reset, inactive)
+    for port in input_ports:
+        if _is_reset_port(manifest, str(port)):
+            _set_signal(dut, str(port), 1 - _reset_active_value(manifest, str(port)))
     _clear_sample_inputs(dut, manifest)
 
 
-async def _apply_goal_preconditions(dut, manifest: dict[str, Any], goal: dict[str, Any]) -> None:
+def _needs_mctp_control_setup(goal: dict[str, Any], stimulus: dict[str, Any]) -> bool:
+    text = _goal_text(goal)
+    kind = str(stimulus.get("kind") or "").lower()
+    if any(token in text for token in ("apb", "csr", "register", "reset")):
+        return False
+    return (
+        kind.startswith("fm_")
+        or any(token in text for token in ("mctp", "vdm", "tlp", "packet", "fragment", "sram", "descriptor", "readback"))
+    )
+
+
+async def _apply_goal_preconditions(dut, manifest: dict[str, Any], goal: dict[str, Any], stimulus: dict[str, Any]) -> None:
     """Drive simple state preconditions that cannot be expressed by one vector.
 
     Generic SSOT starter goals often include transaction preconditions such as
@@ -892,6 +950,17 @@ async def _apply_goal_preconditions(dut, manifest: dict[str, Any], goal: dict[st
     exercise the public increment handshake to reach that state before the
     actual scoreboard sample.
     """
+    if _needs_mctp_control_setup(goal, stimulus):
+        ctrl = 0x1
+        if int(stimulus.get("m_axi_arvalid", 0) or 0) or "readback" in _goal_text(goal):
+            ctrl |= 0x4
+        await _apb_write_one(dut, manifest, 0x0000, ctrl)
+        await _apb_write_one(dut, manifest, 0x0014, 0x0000000F)
+        base_addr = stimulus.get("current_word_addr", stimulus.get("payload_base_addr"))
+        if base_addr is not None:
+            await _apb_write_one(dut, manifest, 0x0030, int(base_addr))
+        await ClockCycles(getattr(dut, manifest["clock"]), 2)
+
     contract = goal.get("stimulus_contract") if isinstance(goal.get("stimulus_contract"), dict) else {}
     text = " ".join(str(item).lower() for item in contract.get("constraints") or [])
     compact = re.sub(r"\s+", "", text)
@@ -919,7 +988,12 @@ def _drive_inputs(dut, manifest: dict[str, Any], stimulus: dict[str, Any]) -> No
     reset = manifest["reset"]
     input_map = manifest.get("input_map") or {}
     inout_ports = _inout_ports(manifest)
-    driven = {clock, reset}
+    driven = {
+        str(port)
+        for port in (manifest.get("input_ports") or [])
+        if _is_clock_port(manifest, str(port)) or _is_reset_port(manifest, str(port))
+    }
+    driven.update({clock, reset})
     for field, port in input_map.items():
         if port in {clock, reset}:
             continue
@@ -979,6 +1053,16 @@ def _clear_sample_inputs(dut, manifest: dict[str, Any]) -> None:
     for port in ("psel", "penable", "pwrite", "paddr", "pwdata", "pstrb"):
         if port in set(manifest.get("input_ports") or []):
             _set_signal(dut, port, 0)
+
+
+def _clear_single_shot_inputs(dut, manifest: dict[str, Any]) -> None:
+    inout_ports = _inout_ports(manifest)
+    for port in (manifest.get("input_map") or {}).values():
+        if port in {manifest["clock"], manifest["reset"]} or port in inout_ports:
+            continue
+        low = str(port).lower()
+        if low.endswith(("valid", "wlast", "wstrb", "pstrb")):
+            _set_signal(dut, str(port), _idle_input_value(manifest, str(port)))
 
 
 def _sweep_values_for_port(manifest: dict[str, Any], port: str) -> list[int]:
@@ -1098,6 +1182,56 @@ def _observe_outputs(dut, manifest: dict[str, Any], stimulus: dict[str, Any] | N
     return observed
 
 
+def _merge_observation_window(observed: dict[str, Any], sample: dict[str, Any]) -> dict[str, Any]:
+    merged = dict(sample)
+    pulse_names = {
+        "axi_bvalid",
+        "axi_rvalid",
+        "debug_drop",
+        "debug_drop_pulse",
+        "debug_vdm_valid",
+        "interrupt",
+        "irq",
+        "m_axi_bvalid",
+        "m_axi_rvalid",
+        "readback_last",
+        "readback_valid",
+        "sram_write_valid",
+        "sram_wr_valid",
+    }
+    for name in pulse_names:
+        if name in observed or name in sample:
+            merged[name] = int(bool(observed.get(name, 0)) or bool(sample.get(name, 0)))
+
+    if int(sample.get("sram_wr_valid", sample.get("sram_write_valid", 0)) or 0):
+        for name in ("sram_wr_addr", "sram_wr_data", "sram_wr_strb", "sram_write_addr", "sram_write_data", "sram_write_strb"):
+            if name in sample:
+                merged[name] = sample[name]
+    else:
+        for name in ("sram_wr_addr", "sram_wr_data", "sram_wr_strb", "sram_write_addr", "sram_write_data", "sram_write_strb"):
+            if name in observed and int(observed.get("sram_wr_valid", observed.get("sram_write_valid", 0)) or 0):
+                merged[name] = observed[name]
+
+    if int(sample.get("m_axi_rvalid", sample.get("readback_valid", 0)) or 0):
+        for name in ("m_axi_rdata", "m_axi_rresp", "m_axi_rlast", "readback_data_out", "readback_resp", "readback_last"):
+            if name in sample:
+                merged[name] = sample[name]
+    else:
+        for name in ("m_axi_rdata", "m_axi_rresp", "m_axi_rlast", "readback_data_out", "readback_resp", "readback_last"):
+            if name in observed and int(observed.get("m_axi_rvalid", observed.get("readback_valid", 0)) or 0):
+                merged[name] = observed[name]
+
+    if int(sample.get("debug_context_key", 0) or 0):
+        for name in ("debug_context_id", "debug_context_key"):
+            if name in sample:
+                merged[name] = sample[name]
+    elif int(observed.get("debug_context_key", 0) or 0):
+        for name in ("debug_context_id", "debug_context_key"):
+            if name in observed:
+                merged[name] = observed[name]
+    return merged
+
+
 def _is_reset_stimulus(stimulus: dict[str, Any]) -> bool:
     text = " ".join(str(stimulus.get(k, "")) for k in ("kind", "scenario_id")).lower()
     return "reset" in text
@@ -1108,29 +1242,29 @@ async def _apb_write_one(dut, manifest: dict[str, Any], offset: int, data: int) 
     clock = manifest["clock"]
     clk = getattr(dut, clock)
     input_ports = set(manifest.get("input_ports") or [])
-    has_pready = _has_signal(dut, "PREADY")
+    has_pready = _has_signal(dut, "pready")
     await FallingEdge(clk)
-    if "PSEL" in input_ports: _set_signal(dut, "PSEL", 0)
-    if "PENABLE" in input_ports: _set_signal(dut, "PENABLE", 0)
+    if "psel" in input_ports: _set_signal(dut, "psel", 0)
+    if "penable" in input_ports: _set_signal(dut, "penable", 0)
     await FallingEdge(clk)
-    if "PADDR" in input_ports: _set_signal(dut, "PADDR", offset)
-    if "PWDATA" in input_ports: _set_signal(dut, "PWDATA", data)
-    if "PWRITE" in input_ports: _set_signal(dut, "PWRITE", 1)
-    if "PSTRB" in input_ports: _set_signal(dut, "PSTRB", 0xF)
-    if "PSEL" in input_ports: _set_signal(dut, "PSEL", 1)
-    if "PENABLE" in input_ports: _set_signal(dut, "PENABLE", 0)
+    if "paddr" in input_ports: _set_signal(dut, "paddr", offset)
+    if "pwdata" in input_ports: _set_signal(dut, "pwdata", data)
+    if "pwrite" in input_ports: _set_signal(dut, "pwrite", 1)
+    if "pstrb" in input_ports: _set_signal(dut, "pstrb", 0xF)
+    if "psel" in input_ports: _set_signal(dut, "psel", 1)
+    if "penable" in input_ports: _set_signal(dut, "penable", 0)
     await RisingEdge(clk)
     await FallingEdge(clk)
-    if "PENABLE" in input_ports: _set_signal(dut, "PENABLE", 1)
+    if "penable" in input_ports: _set_signal(dut, "penable", 1)
     for _ in range(16):
         await RisingEdge(clk)
         await ReadOnly()
-        if not has_pready or int(_get_signal(dut, "PREADY") or 0) == 1:
+        if not has_pready or int(_get_signal(dut, "pready") or 0) == 1:
             break
     await FallingEdge(clk)
-    if "PSEL" in input_ports: _set_signal(dut, "PSEL", 0)
-    if "PENABLE" in input_ports: _set_signal(dut, "PENABLE", 0)
-    if "PWRITE" in input_ports: _set_signal(dut, "PWRITE", 0)
+    if "psel" in input_ports: _set_signal(dut, "psel", 0)
+    if "penable" in input_ports: _set_signal(dut, "penable", 0)
+    if "pwrite" in input_ports: _set_signal(dut, "pwrite", 0)
 
 
 async def _apply_machine_spec(dut, manifest: dict[str, Any], machine_spec: dict[str, Any]) -> None:
@@ -1191,6 +1325,9 @@ async def fl_rtl_equivalence_goals(dut):
     ip = manifest["ip"]
     clock = manifest["clock"]
     cocotb.start_soon(Clock(getattr(dut, clock), 10, units="ns").start())
+    for port in manifest.get("input_ports") or []:
+        if str(port) != str(clock) and _is_clock_port(manifest, str(port)) and _has_signal(dut, str(port)):
+            cocotb.start_soon(Clock(getattr(dut, str(port)), 10, units="ns").start())
     await _reset_dut(dut, manifest)
 
     from scoreboard import GoalScoreboard
@@ -1237,6 +1374,7 @@ async def fl_rtl_equivalence_goals(dut):
             else None
         )
         _cl_result = None
+        observed: dict[str, Any] = {}
         # State-accumulating IPs (per_goal_reset=false) still need a clean
         # baseline for *non-scenario* goals (handshake/ordering/coverage/
         # register/error/module): these are standalone property checks not
@@ -1261,6 +1399,9 @@ async def fl_rtl_equivalence_goals(dut):
                 await _reset_dut(dut, manifest)
                 if _cl is not None:
                     _cl.reset()
+            await _apply_goal_preconditions(dut, manifest, goal, stimulus)
+            _clear_sample_inputs(dut, manifest)
+            await ClockCycles(getattr(dut, clock), 4)
             if isinstance(machine_spec, dict) and (
                 machine_spec.get("timeline") or machine_spec.get("assign") or machine_spec.get("csr_writes")
             ):
@@ -1279,7 +1420,6 @@ async def fl_rtl_equivalence_goals(dut):
                                 _cl.csr_write(int(cw.get("offset", cw.get("addr", 0))), int(cw.get("data", cw.get("value", 0))))
                             except Exception:
                                 pass
-            await _apply_goal_preconditions(dut, manifest, goal)
             await FallingEdge(getattr(dut, clock))
             _drive_inputs(dut, manifest, stimulus)
             _cycles = _goal_wait_cycles(goal, manifest)
@@ -1295,8 +1435,7 @@ async def fl_rtl_equivalence_goals(dut):
                 await RisingEdge(getattr(dut, clock))
                 if _cycle_idx == 0:
                     _step_inputs = _cl_inputs
-                    if bool(stimulus.get("_sample_active", True)) and (manifest.get("sample_inputs") or []):
-                        _clear_sample_inputs(dut, manifest)
+                    _clear_single_shot_inputs(dut, manifest)
                 else:
                     _step_inputs = {}
                     for _field, _port in (manifest.get("input_map") or {}).items():
@@ -1315,8 +1454,11 @@ async def fl_rtl_equivalence_goals(dut):
                             _cl_result = _next_cl_result
                     except Exception:
                         _cl_result = None
-        await ReadOnly()
-        observed = _observe_outputs(dut, manifest, stimulus)
+                await ReadOnly()
+                observed = _merge_observation_window(observed, _observe_outputs(dut, manifest, stimulus))
+        if not observed:
+            await ReadOnly()
+            observed = _observe_outputs(dut, manifest, stimulus)
         # CL ↔ RTL agreement check across CL result keys that also appear
         # in observed. Skip when CL result is unresolved or all-idle.
         cl_agrees = False

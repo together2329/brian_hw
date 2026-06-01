@@ -1,0 +1,8 @@
+GET /api/ssot/doc-source?ip=ssot_doc_feedback_demo&path=../../.env
+HTTP 400
+{"ok":false,"error":"path must use dot notation, e.g. top_module.review_note or registers.register_list.0.description"}
+
+browser no-selection Show SSOT disabled: true
+browser no-selection Comment disabled: true
+escape selected before/after: 1/0
+pageErrors: []

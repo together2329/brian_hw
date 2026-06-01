@@ -1,0 +1,17 @@
+GREEN C001 happy assembly evidence
+
+Command replayed:
+- python3 mctp_assembler_scratch/tb/cocotb/test_runner.py
+- python3 workflow/sim_debug/scripts/compare_fl_rtl_results.py mctp_assembler_scratch --root .
+
+Observed result:
+- cocotb: TESTS=1 PASS=1 FAIL=0
+- scoreboard_events.jsonl: rows=91, failed_rows=0
+- fl_rtl_compare.json: status=pass, checked=91, passed=91, failed=0
+- Happy-path goal rows present and passed:
+  - EQ_SCENARIO_SC_VALID_SINGLE_PACKET
+  - EQ_SCENARIO_SC_MULTI_FRAGMENT_TU64
+  - EQ_SCENARIO_SC_INTERLEAVE_TWO_KEYS
+  - EQ_SCENARIO_SC_FIRST_LAST_TLP_HEADERS
+
+This is the GREEN proof paired with evidence/mctp_assembler_scratch/ulw-red-C001-happy.txt.

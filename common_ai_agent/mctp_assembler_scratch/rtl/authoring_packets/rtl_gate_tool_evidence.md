@@ -23,15 +23,11 @@
 - Work allowed: True
 - Draft allowed: False
 - Evidence closure allowed: True
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: dataflow, decomposition, integration, io_list, top_module
-- Tool-evidence blockers:
-  - dynamic_todo_closure: 22 required non-closure TODO(s) remain open.
-- Tool-evidence runbook:
-  - dynamic_todo_closure: stages=audit-rtl; artifact=mctp_assembler_scratch/rtl/rtl_todo_plan.json
 - SSOT connection contracts:
   - mctp_assembler_scratch_axi_write_ingress.m_axi_awvalid <= m_axi_awvalid (integration.connections[0])
   - mctp_assembler_scratch_axi_write_ingress.m_axi_wvalid <= m_axi_wvalid (integration.connections[1])
@@ -112,13 +108,13 @@ Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.dynamic_todo_closure
 - Detail: rtl-gen PASS is forbidden until all required implementation, SSOT workflow, and RTL gate TODOs have pass status.
 SSOT ref: quality_gates.rtl_gen.dynamic_todo_closure.
 Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_module.
-- Current reason: 22 required non-closure TODO(s) remain open.
+- Current reason: Every required non-closure TODO has pass status.
 - Criteria:
   - Every required non-closure task has todo_completion.status=pass
   - open_required_todos is zero

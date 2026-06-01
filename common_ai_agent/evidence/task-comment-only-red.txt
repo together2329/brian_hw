@@ -1,0 +1,32 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+______ test_doc_feedback_comment_only_does_not_overwrite_selected_mapping ______
+
+tmp_path = PosixPath('/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/pytest-of-brian/pytest-677/test_doc_feedback_comment_only0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1071c2d90>
+
+    def test_doc_feedback_comment_only_does_not_overwrite_selected_mapping(tmp_path, monkeypatch):
+        client = _make_client(tmp_path, monkeypatch)
+        ssot_path = _write_ssot(tmp_path, "doc_source_ip")
+    
+        response = client.post("/api/ssot/doc-feedback", json={
+            "ip": "doc_source_ip",
+            "section": "top_module",
+            "path": "top_module",
+            "comment": "Top-module intro is unclear.",
+        })
+    
+        assert response.status_code == 200, response.text
+        saved = yaml.safe_load(ssot_path.read_text(encoding="utf-8"))
+>       assert isinstance(saved["top_module"], dict)
+E       AssertionError: assert False
+E        +  where False = isinstance('Top-module intro is unclear.', dict)
+
+/Users/brian/Desktop/Project/brian_hw/common_ai_agent/tests/test_ssot_doc_source_map.py:170: AssertionError
+----------------------------- Captured stdout call -----------------------------
+[opencode-oauth] no credential — run `python -m src.opencode_backend login`
+[atlas] Multi-user enabled (process_per_session=off)
+23:49:43 [rehydrate] 0 jobs reconciled (rescued=0, marked-error=0)
+=========================== short test summary info ============================
+FAILED tests/test_ssot_doc_source_map.py::test_doc_feedback_comment_only_does_not_overwrite_selected_mapping
+1 failed in 2.49s

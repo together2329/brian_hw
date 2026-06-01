@@ -1,0 +1,24 @@
+{
+  "ok": true,
+  "assertions": {
+    "viewModeShowsTopModule": true,
+    "feedbackControlsHiddenInView": true,
+    "refreshChangesFrameVersion": true,
+    "docFeedbackStatus200": true,
+    "docFeedbackPathCompatible": true,
+    "exportContainsCustomBlock": true
+  },
+  "pageErrors": [],
+  "consoleMessages": [
+    {
+      "type": "info",
+      "text": "[atlas] backend ready · mode=live"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    }
+  ],
+  "cleanupFixture": "restored ssot_doc_feedback_demo fixture yaml",
+  "cleanupBrowser": "closed playwright browser/context"
+}

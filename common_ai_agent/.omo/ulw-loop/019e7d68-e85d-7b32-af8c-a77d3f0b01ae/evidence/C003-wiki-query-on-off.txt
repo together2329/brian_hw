@@ -1,0 +1,92 @@
+[andes-wiki] wrote 1 block pages + AST facts + docs + index + rtl-inventory + ae
+210p to /private/tmp/andes-wiki-c003.jx5h3e/wiki
+[wiki/build_graph] wrote /private/tmp/andes-wiki-c003.jx5h3e/wiki/_graph.json: n
+odes=6 edges=17 types=2 tags=10 broken_refs=14
+  broken: ae210p → [[atcbmc200]]
+  broken: ae210p → [[atcapbbrg100]]
+  broken: ae210p → [[atcdmac100]]
+  broken: ae210p → [[atceilmbrg100]]
+  broken: ae210p → [[atcexlmbrg100]]
+  broken: ae210p → [[atcapbdec100]]
+  broken: ae210p → [[atcuart100]]
+  broken: ae210p → [[atciic100]]
+  broken: ae210p → [[atcgpio100]]
+  broken: ae210p → [[atcpit100]]
+  broken: ae210p → [[atcrtc100]]
+  broken: ae210p → [[atcwdt200]]
+  … and 2 more broken links
+# wiki_query [scope=rtl-db] depth=3 matches=1/6 shown=1
+## demo_ip [reference] · updated=2026-05-31
+title: demo_ip RTL reference · path: andes-wiki-c003.jx5h3e/wiki/demo_ip.md · ta
+gs: rtl-db, andes, other
+links: [[ae210p]] [[rtl-inventory]] [[doc-demo_ip-demo-ip-user-guide]]
+Andes `demo_ip` RTL block. AST RTL facts for module/port/parameter/fsm/datapath/
+register/memory/clock/reset queries: fsm register memory clock reset datapath; c
+locks clk; resets rst_n; registers state, mem; memories mem.
+
+Drill deeper with `wiki_query(ip='rtl-db', topic="<keyword>", depth=3)` or re-ru
+n `python3 workflow/wiki/build_graph.py --wiki "$ATLAS_RTL_DB_WIKI" --quiet`.
+# wiki_query [scope=rtl-db] depth=3 matches=1/6 shown=1
+## doc-demo_ip-demo-ip-user-guide [reference] · updated=2026-05-31
+title: Demo IP User Guide · path: andes-wiki-c003.jx5h3e/wiki/doc-demo_ip-demo-i
+p-user-guide.md · tags: rtl-db, andes, doc
+links: [[demo_ip]] [[doc-inventory]]
+Document metadata for [[demo_ip]] in the external Andes RTL DB. Use this page to
+ find the local datasheet, guide, release note, or spec without embedding source
+ document contents.
+
+Drill deeper with `wiki_query(ip='rtl-db', topic="<keyword>", depth=3)` or re-ru
+n `python3 workflow/wiki/build_graph.py --wiki "$ATLAS_RTL_DB_WIKI" --quiet`.
+C003 enabled query PASS
+[wiki_query] ATLAS_RTL_DB_WIKI is not configured or the path does not exist.
+C003 disabled query PASS
+skills/external-db/SKILL.md
+20:             bridge, timer, watchdog, wdt, rtc, pit, fifo, "local memory", lm
+brg,
+32:existing, proven source. Reuse interface conventions, module decomposition, r
+egister
+63:wiki_query(ip="external-db", topic="module port parameter fsm datapath regist
+er memory clock reset docs datasheet", depth=3)
+74:   `parameter`, `fsm`, `datapath`, `register`, `memory`, `clock`, `reset`, `d
+ocs`,
+78:   module decomposition, register map, reset/clock conventions.
+
+doc/wiki/andes-rtl-db-wiki-20260527.md
+6:> as an external "previous-project RTL DB" via `ATLAS_RTL_DB_WIKI` or
+7:> `ATLAS_EXTERNAL_DB_WIKI`.
+37:`~/Desktop/andes/wiki/_rtl_facts/<block>.json`. These sidecars are for agent
+queries
+38:that need concrete `module`, `port`, `parameter`, `fsm`, `datapath`, `registe
+r`,
+39:`memory`, `clock`, `reset`, docs, or datasheet evidence instead of prose-only
+ reuse
+50:export ATLAS_RTL_DB_WIKI=/Users/brian/Desktop/andes/wiki
+52:export ATLAS_EXTERNAL_DB_WIKI=/Users/brian/Desktop/andes/wiki
+60:and workers after changing `ATLAS_RTL_DB_WIKI` / `ATLAS_EXTERNAL_DB_WIKI`.
+66:wiki_query(ip="rtl-db",      topic="atcspi200 module port register", depth=3)
+67:wiki_query(ip="andes",       topic="fsm clock reset memory datapath", depth=3
+)
+75:`wiki_query(ip="external-db")` normally reads a normalized
+84:| `ATLAS_EXTERNAL_DB_QUERY=/abs/query_adapter` or `ATLAS_RTL_DB_QUERY=/abs/qu
+ery_adapter` | External owns the whole lookup. ATLAS pipes `{ip,topic,depth,max_
+nodes}` as JSON on stdin and returns stdout verbatim. No wiki dir or `_graph.jso
+n` is required. Contract + sample: `scripts/example_external_rtl_db_query.py`. |
+90:call `wiki_query(ip="external-db")` (aliases: `rtl-db` / `andes`) **before**
+writing RTL
+
+doc/wiki/external-rtl-db-integration-guide.md
+31:- `<db>/wiki/_rtl_facts/<ip>.json` — AST-level `module`, `port`, `parameter`,
+ `fsm`,
+32:  `datapath`, `register`, `memory`, `clock`, and `reset` facts.
+38:export ATLAS_EXTERNAL_DB_WIKI=<db>/wiki
+40:export ATLAS_RTL_DB_WIKI=<db>/wiki
+50:wiki_query(ip="external-db", topic="uart apb module port register", depth=3)
+51:wiki_query(ip="external-db", topic="fsm datapath memory clock reset docs data
+sheet", depth=3)
+72:export ATLAS_RTL_DB_QUERY=/abs/query_foreign_db
+....                                                                     [100%]
+4 passed in 1.15s
+cleanup: removed /tmp/andes-wiki-c003.jx5h3e
+__DONE__
+
+cleanup receipt: killed tmux session ulw-qa-c003-wiki-query

@@ -1,0 +1,145 @@
+RED before implementation
+FFF                                                                      [100%]
+=================================== FAILURES ===================================
+______ test_build_andes_wiki_emits_quality_coverage_for_nested_hdl_roots _______
+
+tmp_path = PosixPath('/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/pytest-of-brian/pytest-664/test_build_andes_wiki_emits_qu0')
+
+    def test_build_andes_wiki_emits_quality_coverage_for_nested_hdl_roots(tmp_path: Path) -> None:
+        # Given: a canonical top-level IP plus a nested platform/core HDL root.
+        wiki = _write_demo_ip(tmp_path)
+        nested_rel = _write_nested_custom_core(tmp_path)
+        nested_id = "rtlroot-platform-demo-soc-andes-ip-custom-core-top"
+    
+        # When: the Andes RTL DB wiki builder runs with graph generation.
+        result = _run_builder(tmp_path)
+    
+        # Then: coverage artifacts make both roots visible to LLM Wiki queries.
+        assert result.returncode == 0, result.stderr
+>       assert (wiki / "coverage.md").is_file()
+E       AssertionError: assert False
+E        +  where False = is_file()
+E        +    where is_file = (PosixPath('/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/pytest-of-brian/pytest-664/test_build_andes_wiki_emits_qu0/wiki') / 'coverage.md').is_file
+
+tests/test_andes_rtl_db_wiki_builder.py:222: AssertionError
+______ test_build_andes_wiki_marks_empty_and_malformed_roots_in_coverage _______
+
+tmp_path = PosixPath('/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/pytest-of-brian/pytest-664/test_build_andes_wiki_marks_em0')
+
+    def test_build_andes_wiki_marks_empty_and_malformed_roots_in_coverage(tmp_path: Path) -> None:
+        # Given: malformed top-level RTL plus an empty nested HDL root.
+        broken_hdl = tmp_path / "broken_ip" / "hdl"
+        broken_hdl.mkdir(parents=True)
+        (broken_hdl / "broken_ip.sv").write_text(
+            "module broken_ip(input clk\nalways_ff @(posedge clk) begin\n",
+            encoding="utf-8",
+        )
+        empty_rel = "platform/demo_soc/andes_vip/models/empty_model/hdl"
+        (tmp_path / empty_rel).mkdir(parents=True)
+    
+        # When: the builder indexes the imperfect corpus.
+        result = _run_builder(tmp_path)
+    
+        # Then: coverage names the empty root explicitly and reports no dropped roots.
+        assert result.returncode == 0, result.stderr
+        wiki = tmp_path / "wiki"
+>       coverage = _load_coverage(wiki)
+
+tests/test_andes_rtl_db_wiki_builder.py:267: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_andes_rtl_db_wiki_builder.py:107: in _load_coverage
+    return json.loads((wiki / "_coverage.json").read_text(encoding="utf-8"))
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py:1256: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py:1242: in open
+    return io.open(self, mode, buffering, encoding, errors, newline,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/pytest-of-brian/pytest-664/test_build_andes_wiki_marks_em0/wiki/_coverage.json')
+name = '/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/pytest-of-brian/pytest-664/test_build_andes_wiki_marks_em0/wiki/_coverage.json'
+flags = 16777216, mode = 438
+
+    def _opener(self, name, flags, mode=0o666):
+        # A stub for the opener argument to built-in open()
+>       return self._accessor.open(self, flags, mode)
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/pytest-of-brian/pytest-664/test_build_andes_wiki_marks_em0/wiki/_coverage.json'
+
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py:1110: FileNotFoundError
+_______________ test_wiki_query_finds_nested_coverage_root_terms _______________
+
+tmp_path = PosixPath('/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/pytest-of-brian/pytest-664/test_wiki_query_finds_nested_c0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x103be36a0>
+
+    def test_wiki_query_finds_nested_coverage_root_terms(tmp_path: Path, monkeypatch) -> None:
+        # Given: a generated external RTL DB wiki that includes nested HDL coverage.
+        wiki = _write_demo_ip(tmp_path)
+        _write_nested_custom_core(tmp_path)
+        result = _run_builder(tmp_path)
+        assert result.returncode == 0, result.stderr
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+        monkeypatch.setenv("COMMON_AI_AGENT_HOME", str(PROJECT_ROOT))
+        monkeypatch.setenv("ATLAS_RTL_DB_WIKI", str(wiki))
+        monkeypatch.setenv("ATLAS_RTL_DB_NO_REBUILD", "1")
+        monkeypatch.delenv("ATLAS_RTL_DB_BUILDER", raising=False)
+        monkeypatch.delenv("ATLAS_ACTIVE_IP", raising=False)
+    
+        # When: ATLAS queries for nested-root coverage and module facts.
+        wiki_query = importlib.import_module("core.tools").wiki_query
+        output = wiki_query(ip="rtl-db", topic="custom core coverage module", depth=3)
+    
+        # Then: the search surface exposes the nested root and coverage page.
+>       assert "custom_core_top" in output or "rtlroot-platform-demo-soc-andes-ip-custom-core-top" in output
+E       assert ('custom_core_top' in '# wiki_query [scope=rtl-db] depth=3 matches=0/6 shown=0\n\nDrill deeper with `wiki_query(ip=\'rtl-db\', topic="<keyword>", depth=3)` or re-run `python3 workflow/wiki/build_graph.py --wiki "$ATLAS_RTL_DB_WIKI" --quiet`.' or 'rtlroot-platform-demo-soc-andes-ip-custom-core-top' in '# wiki_query [scope=rtl-db] depth=3 matches=0/6 shown=0\n\nDrill deeper with `wiki_query(ip=\'rtl-db\', topic="<keyword>", depth=3)` or re-run `python3 workflow/wiki/build_graph.py --wiki "$ATLAS_RTL_DB_WIKI" --quiet`.')
+
+/Users/brian/Desktop/Project/brian_hw/common_ai_agent/tests/test_andes_rtl_db_wiki_builder.py:297: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_andes_rtl_db_wiki_builder.py::test_build_andes_wiki_emits_quality_coverage_for_nested_hdl_roots
+FAILED tests/test_andes_rtl_db_wiki_builder.py::test_build_andes_wiki_marks_empty_and_malformed_roots_in_coverage
+FAILED tests/test_andes_rtl_db_wiki_builder.py::test_wiki_query_finds_nested_coverage_root_terms
+3 failed in 6.54s
+
+GREEN after implementation
+..F                                                                      [100%]
+=================================== FAILURES ===================================
+_______________ test_wiki_query_finds_nested_coverage_root_terms _______________
+
+tmp_path = PosixPath('/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/pytest-of-brian/pytest-665/test_wiki_query_finds_nested_c0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1024ad1f0>
+
+    def test_wiki_query_finds_nested_coverage_root_terms(tmp_path: Path, monkeypatch) -> None:
+        # Given: a generated external RTL DB wiki that includes nested HDL coverage.
+        wiki = _write_demo_ip(tmp_path)
+        _write_nested_custom_core(tmp_path)
+        result = _run_builder(tmp_path)
+        assert result.returncode == 0, result.stderr
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+        monkeypatch.setenv("COMMON_AI_AGENT_HOME", str(PROJECT_ROOT))
+        monkeypatch.setenv("ATLAS_RTL_DB_WIKI", str(wiki))
+        monkeypatch.setenv("ATLAS_RTL_DB_NO_REBUILD", "1")
+        monkeypatch.delenv("ATLAS_RTL_DB_BUILDER", raising=False)
+        monkeypatch.delenv("ATLAS_ACTIVE_IP", raising=False)
+    
+        # When: ATLAS queries for nested-root coverage and module facts.
+        wiki_query = importlib.import_module("core.tools").wiki_query
+        output = wiki_query(ip="rtl-db", topic="custom core coverage module", depth=3)
+    
+        # Then: the search surface exposes the nested root and coverage page.
+>       assert "custom_core_top" in output or "rtlroot-platform-demo-soc-andes-ip-custom-core-top" in output
+E       assert ('custom_core_top' in '# wiki_query [scope=rtl-db] depth=3 matches=0/9 shown=0\n\nDrill deeper with `wiki_query(ip=\'rtl-db\', topic="<keyword>", depth=3)` or re-run `python3 workflow/wiki/build_graph.py --wiki "$ATLAS_RTL_DB_WIKI" --quiet`.' or 'rtlroot-platform-demo-soc-andes-ip-custom-core-top' in '# wiki_query [scope=rtl-db] depth=3 matches=0/9 shown=0\n\nDrill deeper with `wiki_query(ip=\'rtl-db\', topic="<keyword>", depth=3)` or re-run `python3 workflow/wiki/build_graph.py --wiki "$ATLAS_RTL_DB_WIKI" --quiet`.')
+
+/Users/brian/Desktop/Project/brian_hw/common_ai_agent/tests/test_andes_rtl_db_wiki_builder.py:297: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_andes_rtl_db_wiki_builder.py::test_wiki_query_finds_nested_coverage_root_terms
+1 failed, 2 passed in 5.86s
+
+GREEN retry after query tag fix
+...                                                                      [100%]
+3 passed in 4.70s
+
+POST-REVIEW collision regression
+RED before collision fix: test_build_andes_wiki_disambiguates_nested_hdl_slug_collisions failed because both roots produced rtlroot-platform-a-b-c (len(set(ids)) == 1).
+GREEN after collision fix:
+.                                                                        [100%]
+1 passed in 2.05s

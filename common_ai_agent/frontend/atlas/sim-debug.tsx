@@ -31,7 +31,7 @@ import {
   waveSignalMatches,
   waveSignalKey,
 } from './sim-debug-helpers';
-import type { VcdData, PinnedSignal, WaveGroupState } from './sim-debug-helpers';
+import type { ModuleSignal, VcdData, PinnedSignal, WaveGroupState } from './sim-debug-helpers';
 import { SimSummaryPanel, Splitter } from './sim-debug-panels';
 import { useModuleSignals } from './sim-debug-module-signals';
 import { useSimDebugIntent } from './sim-debug-intent-hook';
@@ -45,6 +45,34 @@ import type { SimDebugProps, ViewRange } from './sim-debug-root-shared';
 import { WaveBand } from './sim-debug-wave';
 import { HierarchyPanel, SourceBand } from './sim-debug-panels-side';
 import { DebugHeader } from './sim-debug-header';
+
+type CleanPinnedSignal = {
+  readonly name: string;
+  readonly scope: string;
+};
+
+const scopeMatchesLoosely = (a: unknown, b: unknown): boolean => {
+  const aa = String(a || '').trim().toLowerCase();
+  const bb = String(b || '').trim().toLowerCase();
+  if (!aa && !bb) return true;
+  if (!aa || !bb) return false;
+  return aa === bb || aa.endsWith(`.${bb}`) || bb.endsWith(`.${aa}`);
+};
+
+const pinWithModuleWidth = (
+  item: CleanPinnedSignal,
+  moduleSignals: ModuleSignal[],
+  moduleScope: string,
+): CleanPinnedSignal => {
+  const name = String(item.name || '').trim();
+  if (!name || signalRangeOf(name)) return item;
+  const leaf = stripSignalRange(name).split('.').pop() || '';
+  const matches = moduleSignals.filter(sig => stripSignalRange(sig.name).toLowerCase() === leaf.toLowerCase());
+  const scoped = matches.filter(() => scopeMatchesLoosely(item.scope || '', moduleScope));
+  const sig = scoped.length === 1 ? scoped[0] : (matches.length === 1 ? matches[0] : null);
+  const width = Number(sig?.width || 0);
+  return width > 1 ? { ...item, name: `${name}[${width - 1}:0]` } : item;
+};
 
 export const SimDebug = ({ view = 'debug', initialTab = '', active = true, preload = false }: SimDebugProps = {}) => {
   const summaryOnly = view === 'summary';
@@ -709,12 +737,15 @@ export const SimDebug = ({ view = 'debug', initialTab = '', active = true, prelo
   // range-selects. The whole set can be added to the wave at once (Ctrl+W,
   // the "add to wave" button, or the right-click "Add N to waveform").
   const [waveSel, setWaveSel] = useState<PinnedSignal[]>([]);
+  const moduleWidthLookupRef = useRef<{ signals: ModuleSignal[]; scope: string }>({ signals: [], scope: '' });
 
   // Pin one or more explicit signals to the waveform. Dedupes on name+scope,
   // then jumps to the Wave tab so the user sees the traces appear.
   const pinSignalsToWave = useCallback((items: PinnedSignal[]) => {
+    const widthLookup = moduleWidthLookupRef.current;
     const clean = (items || [])
       .map(it => ({ name: String(it.name || '').trim(), scope: String(it.scope || '').trim() }))
+      .map(it => pinWithModuleWidth(it, widthLookup.signals, widthLookup.scope))
       .filter(it => it.name);
     if (!clean.length) return;
     setWavePinnedSignals(prev => {
@@ -736,7 +767,7 @@ export const SimDebug = ({ view = 'debug', initialTab = '', active = true, prelo
     setRemovedSignals(prev => prev.filter(rm => !clean.some(it =>
       stripSignalRange(it.name).toLowerCase() === stripSignalRange(rm.name).toLowerCase()
       && signalRangeOf(it.name).toLowerCase() === signalRangeOf(rm.name).toLowerCase()
-      && scopeMatches(it.scope, String(rm.scope || '').trim()))));
+      && scopeMatches(String(it.scope || '').trim(), String(rm.scope || '').trim()))));
     setTopTab('wave');
   }, [sameSignalSpec]);
 
@@ -860,6 +891,7 @@ export const SimDebug = ({ view = 'debug', initialTab = '', active = true, prelo
     moduleSignalsError, signalFilter, setSignalFilter, signalSource, setSignalSource,
     loadModuleSignals, onSelectModuleSignal,
   } = useModuleSignals({ ipName, rtlTop, loadSourceFile, setSelectedSig, setSelectedSigScope });
+  moduleWidthLookupRef.current = { signals: moduleSignals, scope: moduleSignalsScope };
 
   const sourceSignalScope = useMemo(() => {
     if (!srcPath || !moduleSignalsScope || !moduleSignals.length) return '';

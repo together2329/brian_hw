@@ -1,0 +1,68 @@
+........F..F                                                             [100%]
+=================================== FAILURES ===================================
+__________ test_ssot_doc_feedback_mode_exposes_source_and_chat_hooks ___________
+
+    def test_ssot_doc_feedback_mode_exposes_source_and_chat_hooks():
+        src = _combined_doc_src()
+    
+        assert "Show SSOT" in src
+        assert "atlas-ssot-doc-comment" in src
+>       assert "/api/ssot/doc-source" in src
+E       AssertionError: assert '/api/ssot/doc-source' in '/* workspace-root.tsx — THE COMPOSER + root component of the ATLAS workspace.\n *\n * Final slice of the strangler-fi...dded when consumers migrate).\n(window as unknown as { SsotDocPane: typeof SsotDocPane }).SsotDocPane = SsotDocPane;\n'
+
+tests/test_atlas_ssot_doc_tab.py:67: AssertionError
+________________ test_ssot_doc_feedback_updates_yaml_and_export ________________
+
+tmp_path = PosixPath('/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/pytest-of-brian/pytest-675/test_ssot_doc_feedback_updates0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x107012580>
+
+    def test_ssot_doc_feedback_updates_yaml_and_export(tmp_path, monkeypatch):
+        import yaml
+    
+        ip = "doc_feedback_ip"
+        ssot_path = tmp_path / ip / "yaml" / f"{ip}.ssot.yaml"
+        ssot_path.parent.mkdir(parents=True, exist_ok=True)
+        ssot_path.write_text(
+            yaml.safe_dump({
+                "top_module": {"name": ip, "description": "demo top"},
+                "custom": {},
+            }, sort_keys=False),
+            encoding="utf-8",
+        )
+        client = _make_client(tmp_path, monkeypatch)
+    
+        response = client.post("/api/ssot/doc-feedback", json={
+            "ip": ip,
+            "section": "top_module",
+            "field": "review_note",
+            "value": "Reset policy needs W1C detail.",
+            "comment": "Please show this near top module.",
+        })
+    
+        assert response.status_code == 200, response.text
+        payload = response.json()
+        assert payload["ok"] is True
+        assert payload["path"] == "top_module.review_note"
+    
+        saved = yaml.safe_load(ssot_path.read_text(encoding="utf-8"))
+        assert saved["top_module"]["review_note"] == "Reset policy needs W1C detail."
+        feedback = saved["custom"]["atlas_doc_feedback"]
+        assert feedback[0]["comment"] == "Please show this near top module."
+        blocks = saved["custom_blocks"]
+        assert blocks[-1]["after"] == "top_module"
+        assert "Reset policy needs W1C detail." in blocks[-1]["inline"]
+    
+        html_response = client.get(f"/api/ssot/export?ip={ip}&format=html&inline=1")
+>       assert html_response.status_code == 200, html_response.text
+E       AssertionError: {"error":"render failed: name '_SSOT_EXPORT_SECTION_ORDER' is not defined"}
+E       assert 500 == 200
+E        +  where 500 = <Response [500 Internal Server Error]>.status_code
+
+/Users/brian/Desktop/Project/brian_hw/common_ai_agent/tests/test_ssot_export.py:361: AssertionError
+----------------------------- Captured stdout call -----------------------------
+[atlas] Multi-user enabled (process_per_session=off)
+23:47:46 [rehydrate] 0 jobs reconciled (rescued=0, marked-error=0)
+=========================== short test summary info ============================
+FAILED tests/test_atlas_ssot_doc_tab.py::test_ssot_doc_feedback_mode_exposes_source_and_chat_hooks
+FAILED tests/test_ssot_export.py::test_ssot_doc_feedback_updates_yaml_and_export
+2 failed, 10 passed in 12.03s

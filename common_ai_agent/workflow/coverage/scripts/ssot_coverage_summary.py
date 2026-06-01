@@ -597,6 +597,7 @@ def _coverage_alias_refs(row: dict[str, Any]) -> list[str]:
         for item in (
             row.get("goal_id"),
             row.get("scenario_id"),
+            " ".join(str(ref) for ref in (row.get("coverage_refs") or [])),
             fl_expected.get("goal_id"),
             fl_expected.get("title"),
             fl_expected.get("goal_kind"),
@@ -613,12 +614,37 @@ def _coverage_alias_refs(row: dict[str, Any]) -> list[str]:
 
     tx_id = str(model_result.get("transaction_id") or txn.get("kind") or "").strip()
     if tx_id:
-        alias = f"fcov_{_norm_bin_key(tx_id)}"
+        tx_key = _norm_bin_key(tx_id)
+        alias = f"fcov_{tx_key}"
         if alias and alias not in aliases:
             aliases.append(alias)
+        if tx_key.startswith("fm_"):
+            ssot_key = tx_key.removeprefix("fm_")
+            ssot_alias = f"fcov_{ssot_key}"
+            if ssot_alias and ssot_alias not in aliases:
+                aliases.append(ssot_alias)
+            if ssot_key.endswith("_drop"):
+                plural_alias = f"fcov_{ssot_key}s"
+                if plural_alias not in aliases:
+                    aliases.append(plural_alias)
 
     if "if_stall" in norm or "instruction_fetch_backpressure" in norm:
         aliases.append("ccov_if_stall")
+    if (
+        "cycle_axi_write_channels" in norm
+        or "cycle_axi_read_channels" in norm
+        or "axi_write_channels" in norm
+        or "axi_read_channels" in norm
+    ):
+        aliases.append("ccov_axi_handshakes")
+    if "sram_arbiter" in norm or "cycle_model_arbitration" in norm:
+        aliases.append("ccov_sram_arbitration")
+    if "backpressure" in norm:
+        aliases.append("ccov_backpressure")
+    if "fsm_context_fsm" in norm or "context_fsm" in norm:
+        aliases.append("ccov_context_fsm")
+    if "max_tu_4096" in norm or "max_tlp_beats" in norm:
+        aliases.append("ccov_max_tlp_beats")
     if (
         "mem_stall" in norm
         or "stall_mem" in norm

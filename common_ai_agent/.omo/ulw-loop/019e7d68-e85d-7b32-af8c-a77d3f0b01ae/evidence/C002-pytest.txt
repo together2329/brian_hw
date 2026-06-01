@@ -1,0 +1,5 @@
+RED baseline observed before production changes:
+malformed/empty corpus test failed because wiki/_rtl_facts/broken_ip.json did not exist.
+GREEN verification after implementation:
+...                                                                      [100%]
+3 passed in 1.97s

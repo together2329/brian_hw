@@ -271,3 +271,132 @@ def test_scoreboard_coverage_adds_ssot_aliases_only_from_rtl_observed_pass_rows(
     assert bins["ccov_pipeline_order"]["hit"] is True
     assert bins["ccov_if_stall"]["hit"] is True
     assert "fcov_tx_fake" not in bins
+
+
+def test_scoreboard_coverage_aliases_fm_transactions_to_ssot_fcov_bins(tmp_path: Path):
+    cov = _load_module()
+    ip_dir = tmp_path / "mctp_ip"
+    (ip_dir / "verify").mkdir(parents=True)
+    (ip_dir / "sim").mkdir(parents=True)
+    (ip_dir / "verify" / "equivalence_goals.json").write_text(
+        '{"goals":[{"goal_id":"EQ_TRANSACTION_FM_ACCEPT_AXI_TLP","coverage_refs":["function_accept_one_axi4_write_burst_as_one_pcie_vdm_tlp"]}]}\n',
+        encoding="utf-8",
+    )
+    rows = [
+        {
+            "goal_id": "EQ_TRANSACTION_FM_ACCEPT_AXI_TLP",
+            "coverage_refs": ["function_accept_one_axi4_write_burst_as_one_pcie_vdm_tlp"],
+            "passed": True,
+            "fl_expected": {
+                "model_result": {"transaction_id": "FM_ACCEPT_AXI_TLP"},
+                "transaction": {"kind": "FM_ACCEPT_AXI_TLP"},
+            },
+            "rtl_observed": {"m_axi_awready": 1, "m_axi_wready": 1},
+        },
+        {
+            "goal_id": "EQ_TRANSACTION_FM_PACKET_DROP",
+            "coverage_refs": ["function_packet_drop_without_sram_payload_write"],
+            "passed": True,
+            "fl_expected": {
+                "model_result": {"transaction_id": "FM_PACKET_DROP"},
+                "transaction": {"kind": "FM_PACKET_DROP"},
+            },
+            "rtl_observed": {"debug_drop_pulse": 1, "sram_wr_valid": 0},
+        },
+        {
+            "goal_id": "EQ_TRANSACTION_FM_ASSEMBLY_DROP",
+            "coverage_refs": ["function_assembly_drop_without_descriptor_push"],
+            "passed": True,
+            "fl_expected": {
+                "model_result": {"transaction_id": "FM_ASSEMBLY_DROP"},
+                "transaction": {"kind": "FM_ASSEMBLY_DROP"},
+            },
+            "rtl_observed": {"ctx_error": 1, "descriptor_count": 0},
+        },
+        {
+            "goal_id": "EQ_TRANSACTION_FM_AXI_READBACK_COPY",
+            "coverage_refs": [],
+            "passed": True,
+            "fl_expected": {"model_result": {"transaction_id": "FM_AXI_READBACK"}},
+            "rtl_observed": {"model_result": {"transaction_id": "FM_AXI_READBACK"}},
+        },
+    ]
+    (ip_dir / "sim" / "scoreboard_events.jsonl").write_text(
+        "\n".join(json.dumps(row) for row in rows) + "\n",
+        encoding="utf-8",
+    )
+
+    result = cov.scoreboard_coverage(ip_dir)
+    bins = result["bins"]
+
+    assert bins["fcov_accept_axi_tlp"]["hit"] is True
+    assert bins["fcov_packet_drops"]["hit"] is True
+    assert bins["fcov_assembly_drops"]["hit"] is True
+    assert "fcov_axi_readback" not in bins
+
+
+def test_scoreboard_coverage_aliases_cycle_evidence_to_ssot_ccov_bins(tmp_path: Path):
+    cov = _load_module()
+    ip_dir = tmp_path / "mctp_ip"
+    (ip_dir / "verify").mkdir(parents=True)
+    (ip_dir / "sim").mkdir(parents=True)
+    (ip_dir / "verify" / "equivalence_goals.json").write_text(
+        '{"goals":[{"goal_id":"EQ_PROTOCOL_AXI_WRITE_CHANNELS","coverage_refs":["cycle_axi_write_channels"]}]}\n',
+        encoding="utf-8",
+    )
+    rows = [
+        {
+            "goal_id": "EQ_PROTOCOL_AXI_WRITE_CHANNELS",
+            "coverage_refs": ["cycle_axi_write_channels", "cycle_axi_read_channels"],
+            "passed": True,
+            "fl_expected": {
+                "ssot_refs": ["cycle_model.handshake_rules.axi_write_channels"],
+                "model_result": {"transaction_id": "FM_ACCEPT_AXI_TLP"},
+            },
+            "rtl_observed": {"axi_awready": 1, "axi_wready": 1},
+        },
+        {
+            "goal_id": "EQ_MODULE_MCTP_SRAM_ARBITER",
+            "coverage_refs": [],
+            "passed": True,
+            "fl_expected": {
+                "title": "Module mctp_sram_arbiter functionality equals FunctionalModel",
+                "ssot_refs": ["cycle_model.arbitration", "cycle_model.handshake_rules.sram_ready_valid"],
+            },
+            "rtl_observed": {"sram_wr_ready": 1, "sram_rd_valid": 0},
+        },
+        {
+            "goal_id": "EQ_MODULE_MCTP_AXI_WRITE_INGRESS",
+            "coverage_refs": [],
+            "passed": True,
+            "fl_expected": {"ssot_refs": ["cycle_model.backpressure.backpressure_0"]},
+            "rtl_observed": {"axi_wready": 0},
+        },
+        {
+            "goal_id": "EQ_STATE_CONTEXT_FSM_IDLE_TO_ASSEMBLING_0",
+            "coverage_refs": ["fsm_context_fsm_idle_to_assembling_0"],
+            "passed": True,
+            "fl_expected": {"title": "FSM transition context_fsm: IDLE -> ASSEMBLING"},
+            "rtl_observed": {"ctx_state": 1},
+        },
+        {
+            "goal_id": "EQ_SCENARIO_SC_MAX_TU_4096_129_BEATS",
+            "coverage_refs": ["SC_MAX_TU_4096_129_BEATS_executed"],
+            "passed": True,
+            "fl_expected": {"title": "Scenario SC_MAX_TU_4096_129_BEATS: Maximum 4096B transmission unit"},
+            "rtl_observed": {"ctx_payload_count": 4096},
+        },
+    ]
+    (ip_dir / "sim" / "scoreboard_events.jsonl").write_text(
+        "\n".join(json.dumps(row) for row in rows) + "\n",
+        encoding="utf-8",
+    )
+
+    result = cov.scoreboard_coverage(ip_dir)
+    bins = result["bins"]
+
+    assert bins["ccov_axi_handshakes"]["hit"] is True
+    assert bins["ccov_sram_arbitration"]["hit"] is True
+    assert bins["ccov_backpressure"]["hit"] is True
+    assert bins["ccov_context_fsm"]["hit"] is True
+    assert bins["ccov_max_tlp_beats"]["hit"] is True

@@ -102,15 +102,15 @@
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": true,
+    "deferred_human_qa_allowed": false,
     "draft_allowed": true,
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
-    "llm_actionable": true,
-    "llm_actionable_open_count": 1,
-    "open_required_count": 1,
-    "pass_allowed": false,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -158,7 +158,7 @@
       "module_task_count": 20,
       "task_limit": 48
     },
-    "open_required_count": 1,
+    "open_required_count": 0,
     "required_count": 20,
     "source_refs": [
       "function_model.transactions.FM_COMPLETE_MESSAGE.outputs.descriptor_count",
@@ -183,8 +183,7 @@
       "sub_modules.mctp_assembler_scratch_descriptor_queue.module_equivalence"
     ],
     "status_counts": {
-      "open": 1,
-      "pass": 19
+      "pass": 20
     },
     "task_count": 20
   },
@@ -492,7 +491,7 @@
         "function_model.transactions.FM_PACKET_DROP.preconditions.precondition_0"
       ],
       "static_evidence": {
-        "fallback_scope": "all_sources_without_owner",
+        "fallback_scope": "",
         "matched_count": 7,
         "matched_terms": [
           "DROP",
@@ -561,7 +560,7 @@
         "function_model.transactions.FM_PACKET_DROP.outputs.output_0"
       ],
       "static_evidence": {
-        "fallback_scope": "all_sources_without_owner",
+        "fallback_scope": "",
         "matched_count": 4,
         "matched_terms": [
           "debug",
@@ -632,9 +631,16 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 1,
+        "matched_count": 8,
         "matched_terms": [
-          "count"
+          "DROP",
+          "DROP_NONE",
+          "NONE",
+          "count",
+          "drop",
+          "packet",
+          "packet_drop_reason",
+          "reason"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -702,9 +708,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 1,
+        "matched_count": 5,
         "matched_terms": [
-          "last"
+          "drop",
+          "last",
+          "packet",
+          "packet_drop_reason",
+          "reason"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -777,7 +787,7 @@
         "function_model.transactions.FM_PACKET_DROP.output_rules.debug_drop_pulse"
       ],
       "static_evidence": {
-        "fallback_scope": "all_sources_without_owner",
+        "fallback_scope": "",
         "matched_count": 10,
         "matched_terms": [
           "DROP",
@@ -793,7 +803,7 @@
         ],
         "owner_file_scoped": true,
         "required": true,
-        "required_match_count": 1,
+        "required_match_count": 2,
         "required_terms": [
           "DROP",
           "DROP_NONE",
@@ -863,9 +873,16 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 1,
+        "matched_count": 8,
         "matched_terms": [
-          "count"
+          "DROP",
+          "DROP_NONE",
+          "NONE",
+          "count",
+          "drop",
+          "packet",
+          "packet_drop_reason",
+          "reason"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -936,9 +953,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 1,
+        "matched_count": 5,
         "matched_terms": [
-          "last"
+          "drop",
+          "last",
+          "packet",
+          "packet_drop_reason",
+          "reason"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -1016,10 +1037,16 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 2,
+        "matched_count": 8,
         "matched_terms": [
+          "DROP",
           "count",
-          "last"
+          "debug",
+          "debug_drop_pulse",
+          "drop",
+          "last",
+          "packet",
+          "packet_drop_reason"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -1106,11 +1133,15 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 3,
+        "matched_count": 7,
         "matched_terms": [
           "OR",
           "count",
-          "last"
+          "debug",
+          "debug_drop_pulse",
+          "drop",
+          "last",
+          "packet"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -1197,10 +1228,15 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 2,
+        "matched_count": 7,
         "matched_terms": [
           "count",
-          "last"
+          "debug",
+          "debug_drop_pulse",
+          "drop",
+          "last",
+          "packet",
+          "packet_drop_reason"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -1287,11 +1323,16 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 3,
+        "matched_count": 8,
         "matched_terms": [
           "END",
           "count",
-          "last"
+          "debug",
+          "debug_drop_pulse",
+          "drop",
+          "last",
+          "packet",
+          "packet_drop_reason"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -1378,11 +1419,15 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 3,
+        "matched_count": 7,
         "matched_terms": [
           "OR",
           "count",
-          "last"
+          "debug",
+          "debug_drop_pulse",
+          "drop",
+          "last",
+          "packet"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -1557,9 +1602,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 1,
+        "matched_count": 5,
         "matched_terms": [
-          "descriptor"
+          "descriptor",
+          "firmware",
+          "firmware_visible_descriptor_metadata",
+          "metadata",
+          "visible"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -1572,7 +1621,7 @@
           "visible"
         ],
         "source_scope": "rtl/mctp_assembler_scratch_descriptor_queue.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -1582,9 +1631,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Required RTL static evidence is missing.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1629,7 +1678,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "740f93796c4f016836bc823fe2faf4054d926dc664b7d534ef5d5436d6585bb5",
+  "todo_plan_sha256": "f7d51fe86c7b2e93192acdcd2fb7e463badd1ca4416fc82440243aa7e8a43e3c",
   "top": "mctp_assembler_scratch",
   "type": "rtl_authoring_packet"
 }

@@ -221,6 +221,10 @@ def _state_observable_aliases(state_names: list[str], rtl_names: list[str]) -> d
         for suffix in ("_state", "_next", "_set_next", "_w1c_next"):
             if norm.endswith(suffix):
                 stems.add(norm[: -len(suffix)])
+        if norm.endswith("_byte_count"):
+            stems.add(f"{norm[: -len('_byte_count')]}_count")
+        if norm.endswith("_base_addr"):
+            stems.add(f"{norm[: -len('_base_addr')]}_base")
         found: list[str] = []
         for rtl_norm, rtl_name in norm_to_rtl.items():
             if rtl_name == state_name:
@@ -1734,7 +1738,22 @@ def _idle_input_value(manifest: dict[str, Any], port: str) -> int:
         if str(mapped_port) == str(port):
             low = str(field).lower()
             if low in {"clear", "clr", "enable", "en", "valid", "req", "request", "start", "go", "fire"} or low.endswith(
-                ("_clear", "_clr", "_enable", "_en", "_valid", "_req", "_request", "_start", "_go", "_fire")
+                (
+                    "_clear",
+                    "_clr",
+                    "_enable",
+                    "_en",
+                    "_valid",
+                    "valid",
+                    "_req",
+                    "_request",
+                    "_start",
+                    "_go",
+                    "_fire",
+                    "wlast",
+                    "wstrb",
+                    "pstrb",
+                )
             ):
                 return 0
             return _fit_port_value(manifest, str(port), _stimulus_value_for_field(manifest, str(field), 0, {}))
@@ -1857,6 +1876,16 @@ def _clear_sample_inputs(dut, manifest: dict[str, Any]) -> None:
     for port in ("psel", "penable", "pwrite", "paddr", "pwdata", "pstrb"):
         if port in set(manifest.get("input_ports") or []):
             _set_signal(dut, port, 0)
+
+
+def _clear_single_shot_inputs(dut, manifest: dict[str, Any]) -> None:
+    inout_ports = _inout_ports(manifest)
+    for port in (manifest.get("input_map") or {}).values():
+        if port in {manifest["clock"], manifest["reset"]} or port in inout_ports:
+            continue
+        low = str(port).lower()
+        if low.endswith(("valid", "wlast", "wstrb", "pstrb")):
+            _set_signal(dut, str(port), _idle_input_value(manifest, str(port)))
 
 
 def _sweep_values_for_port(manifest: dict[str, Any], port: str) -> list[int]:
@@ -2139,6 +2168,9 @@ async def fl_rtl_equivalence_goals(dut):
                 await _reset_dut(dut, manifest)
                 if _cl is not None:
                     _cl.reset()
+            await _apply_goal_preconditions(dut, manifest, goal)
+            _clear_sample_inputs(dut, manifest)
+            await ClockCycles(getattr(dut, clock), 4)
             if isinstance(machine_spec, dict) and (
                 machine_spec.get("timeline") or machine_spec.get("assign") or machine_spec.get("csr_writes")
             ):
@@ -2157,7 +2189,6 @@ async def fl_rtl_equivalence_goals(dut):
                                 _cl.csr_write(int(cw.get("offset", cw.get("addr", 0))), int(cw.get("data", cw.get("value", 0))))
                             except Exception:
                                 pass
-            await _apply_goal_preconditions(dut, manifest, goal)
             await FallingEdge(getattr(dut, clock))
             _drive_inputs(dut, manifest, stimulus)
             _cycles = _goal_wait_cycles(goal, manifest)
@@ -2173,8 +2204,7 @@ async def fl_rtl_equivalence_goals(dut):
                 await RisingEdge(getattr(dut, clock))
                 if _cycle_idx == 0:
                     _step_inputs = _cl_inputs
-                    if bool(stimulus.get("_sample_active", True)) and (manifest.get("sample_inputs") or []):
-                        _clear_sample_inputs(dut, manifest)
+                    _clear_single_shot_inputs(dut, manifest)
                 else:
                     _step_inputs = {}
                     for _field, _port in (manifest.get("input_map") or {}).items():

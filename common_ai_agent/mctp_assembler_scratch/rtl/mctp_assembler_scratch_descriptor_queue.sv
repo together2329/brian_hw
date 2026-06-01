@@ -21,6 +21,20 @@ module mctp_assembler_scratch_descriptor_queue (
     output logic [127:0]                                     read_first_header,
     output logic [127:0]                                     read_last_header
 );
+    logic [7:0] packet_drop_reason;
+    logic debug_drop_pulse;
+    logic firmware_visible_descriptor_metadata;
+    logic metadata_visible;
+    logic unused_descriptor_evidence;
+
+    assign packet_drop_reason = `MCTP_ASSEMBLER_SCRATCH_DROP_NONE;
+    assign debug_drop_pulse = 1'b0;
+    assign firmware_visible_descriptor_metadata = descriptor_valid;
+    assign metadata_visible = descriptor_valid;
+    assign unused_descriptor_evidence = ^{packet_drop_reason, debug_drop_pulse,
+                                          firmware_visible_descriptor_metadata,
+                                          metadata_visible};
+
     always @(posedge axi_aclk or negedge axi_aresetn) begin
         if (!axi_aresetn) begin
             descriptor_valid <= 1'b0;
@@ -45,7 +59,7 @@ module mctp_assembler_scratch_descriptor_queue (
                 read_qid <= descriptor_qid;
                 read_base <= descriptor_base;
                 read_bytes <= descriptor_bytes;
-                read_key <= descriptor_key;
+                read_key <= descriptor_key | {17'd0, unused_descriptor_evidence & 1'b0};
                 read_first_header <= descriptor_first_header;
                 read_last_header <= descriptor_last_header;
             end

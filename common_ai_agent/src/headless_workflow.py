@@ -956,11 +956,14 @@ module {ip} (
     output wire       ready,
     output wire       result_valid
 );
+    wire valid_sample = valid && ready;
+
     {ip}_core u_core (
         .clk(clk),
         .rst_n(rst_n),
         .valid(valid),
         .data_in(data_in),
+        .valid_sample(valid_sample),
         .result(result),
         .ready(ready),
         .result_valid(result_valid)
@@ -979,6 +982,7 @@ module {ip}_core (
     input  wire       rst_n,
     input  wire       valid,
     input  wire [7:0] data_in,
+    input  wire       valid_sample,
     output reg  [8:0] result,
     output reg        ready,
     output reg        result_valid
@@ -997,7 +1001,7 @@ module {ip}_core (
     wire workflow_todos_rtl_gen = quality_gates_rtl;
     wire ssot_evidence_keep = workflow_todos_rtl_gen;
 
-    wire sample_condition_valid_ready = valid && ready;
+    wire sample_condition_valid_ready = valid_sample;
     wire [8:0] function_model_result = {{1'b0, data_in}} << 1;
 
     always @* begin

@@ -1,0 +1,366 @@
+QUERY uart
+# wiki_query [scope=rtl-db] depth=3 matches=4/123 shown=4
+## doc-atcuart100-andeshape-atcuart100-rn100-v1-2 [reference] · updated=2026-05-
+31
+title: AndeShape ATCUART100 RN100 V1.2 · path: andes/wiki/doc-atcuart100-andesha
+pe-atcuart100-rn100-v1-2.md · tags: rtl-db, andes, doc
+links: [[atcuart100]] [[doc-inventory]]
+Document metadata for [[atcuart100]] in the external Andes RTL DB. Use this page
+ to find the local datasheet, guide, release note, or spec without embedding sou
+rce document contents.
+## doc-atcuart100-andeshape-atcuart100-ds093-v1-1 [reference] · updated=2026-05-
+31
+title: AndeShape ATCUART100 DS093 V1.1 · path: andes/wiki/doc-atcuart100-andesha
+pe-atcuart100-ds093-v1-1.md · tags: rtl-db, andes, doc
+links: [[atcuart100]] [[doc-inventory]]
+Document metadata for [[atcuart100]] in the external Andes RTL DB. Use this page
+ to find the local datasheet, guide, release note, or spec without embedding sou
+rce document contents.
+## atcuart100 [reference] · updated=2026-05-31
+title: atcuart100 RTL reference · path: andes/wiki/atcuart100.md · tags: rtl-db,
+ andes, comm, apb, dma, interrupt
+links: [[ae210p]] [[rtl-inventory]] [[atcapbbrg100]] [[atcapbdec100]] [[atcdmac1
+00]] [[doc-atcuart100-andeshape-atcuart100-ds093-v1-1]] [[doc-atcuart100-andesha
+pe-atcuart100-rn100-v1-2]]
+16550-style UART — serial console / data link with FIFOs, modem control, and opt
+ional DMA. AST RTL facts for module/port/parameter/fsm/datapath/register/memory/
+clock/reset queries: fsm register memory clock reset datapath; clocks uclk, pclk
+, rxfifo_empty_uclk, rxfifo_read_uclk; resets urstn, presetn, fcr_txfifo_rst, fc
+r_rxfifo_rst; registers prdata,…
+## rtlroot-platform-ae210p-20161118-ae210p-andes-ip-peripheral-ip-atcuart100 [re
+ference] · updated=2026-05-31
+title: atcuart100 HDL root · path: andes/wiki/rtlroot-platform-ae210p-20161118-a
+e210p-andes-ip-peripheral-ip-atcuart100.md · tags: rtl-db, andes, hdl-root, cove
+rage, design, module, clock, reset, fsm, datapath
+links: [[coverage]] [[rtl-inventory]] [[rtl-query-cookbook]] [[index]]
+Nested Andes HDL root indexed for the external RTL DB LLM Wiki. It exists so age
+nts can discover platform, VIP, model, macro, and copied IP RTL that is not a ca
+nonical top-level block.
+
+Drill deeper with `wiki_query(ip='rtl-db', topic="<keyword>", depth=3)` or re-ru
+n `python3 workflow/wiki/build_graph.py --wiki "$ATLAS_RTL_DB_WIKI" --quiet`.
+QUERY spi
+# wiki_query [scope=rtl-db] depth=3 matches=7/123 shown=7
+## atcspi200 [reference] · updated=2026-05-31
+title: atcspi200 RTL reference · path: andes/wiki/atcspi200.md · tags: rtl-db, a
+ndes, comm, apb, ahb, spi, dma, interrupt, fifo
+links: [[ae210p]] [[rtl-inventory]] [[atcapbbrg100]] [[atcapbdec100]] [[atcbmc20
+0]] [[atcdmac100]] [[atcahb2spi200]] [[doc-atcspi200-andeshape-atcspi200-ds087-v
+1-6]]
+SPI controller — full-duplex serial master/slave with FIFO, local-memory path, a
+nd DMA. AST RTL facts for module/port/parameter/fsm/datapath/register/memory/clo
+ck/reset queries: fsm register memory clock reset datapath; clocks spi_clk_in, s
+pi_clock, spi_clk_oe, spi_clk_out, hclk, eilm_clk, pclk, ahb2eilm_clken, apb2ahb
+_clken, apb2eilm_clken, sysclk,…
+## atcahb2spi200 [reference] · updated=2026-05-31
+title: atcahb2spi200 RTL reference · path: andes/wiki/atcahb2spi200.md · tags: r
+tl-db, andes, bridge, apb, ahb, spi, dma, interrupt, fifo
+links: [[ae210p]] [[rtl-inventory]] [[atcbmc200]] [[atcdmac100]] [[atcspi200]]
+AHB-to-SPI bridge — exposes SPI flash as memory-mapped AHB reads (XIP-style boot
+/code fetch). AST RTL facts for module/port/parameter/fsm/datapath/register/memo
+ry/clock/reset queries: fsm register memory clock reset datapath; clocks spi_clk
+_in, spi_clock, spi_clk_oe, spi_clk_out, hclk, eilm_clk, pclk, ahb2eilm_clken, a
+pb2ahb_clken, apb2eilm_clken, sysclk,…
+## doc-atcspi200-andeshape-atcspi200-rn098-v1-5 [reference] · updated=2026-05-31
+title: AndeShape ATCSPI200 RN098 V1.5 · path: andes/wiki/doc-atcspi200-andeshape
+-atcspi200-rn098-v1-5.md · tags: rtl-db, andes, doc
+links: [[atcspi200]] [[doc-inventory]]
+Document metadata for [[atcspi200]] in the external Andes RTL DB. Use this page
+to find the local datasheet, guide, release note, or spec without embedding sour
+ce document contents.
+## doc-atcspi200-andeshape-atcspi200-ds087-v1-6 [reference] · updated=2026-05-31
+title: AndeShape ATCSPI200 DS087 V1.6 · path: andes/wiki/doc-atcspi200-andeshape
+-atcspi200-ds087-v1-6.md · tags: rtl-db, andes, doc
+links: [[atcspi200]] [[doc-inventory]]
+Document metadata for [[atcspi200]] in the external Andes RTL DB. Use this page
+to find the local datasheet, guide, release note, or spec without embedding sour
+ce document contents.
+## rtlroot-platform-ae210p-20161118-ae210p-andes-vip-models-spi-flash [reference
+] · updated=2026-05-31
+title: spi_flash HDL root · path: andes/wiki/rtlroot-platform-ae210p-20161118-ae
+210p-andes-vip-models-spi-flash.md · tags: rtl-db, andes, hdl-root, coverage, ve
+rification, module, clock, reset, fsm, datapath
+links: [[coverage]] [[rtl-inventory]] [[rtl-query-cookbook]] [[index]]
+Nested Andes HDL root indexed for the external RTL DB LLM Wiki. It exists so age
+nts can discover platform, VIP, model, macro, and copied IP RTL that is not a ca
+nonical top-level block.
+## rtlroot-platform-ae210p-20161118-ae210p-andes-ip-peripheral-ip-atcspi200 [ref
+erence] · updated=2026-05-31
+title: atcspi200 HDL root · path: andes/wiki/rtlroot-platform-ae210p-20161118-ae
+210p-andes-ip-peripheral-ip-atcspi200.md · tags: rtl-db, andes, hdl-root, covera
+ge, design, module, clock, reset, fsm, datapath
+links: [[coverage]] [[rtl-inventory]] [[rtl-query-cookbook]] [[index]]
+Nested Andes HDL root indexed for the external RTL DB LLM Wiki. It exists so age
+nts can discover platform, VIP, model, macro, and copied IP RTL that is not a ca
+nonical top-level block.
+## rtlroot-platform-ae210p-20161118-ae210p-andes-ip-peripheral-ip-atcahb2spi200
+[reference] · updated=2026-05-31
+title: atcahb2spi200 HDL root · path: andes/wiki/rtlroot-platform-ae210p-2016111
+8-ae210p-andes-ip-peripheral-ip-atcahb2spi200.md · tags: rtl-db, andes, hdl-root
+, coverage, design, module, clock, reset, fsm, datapath
+links: [[coverage]] [[rtl-inventory]] [[rtl-query-cookbook]] [[index]]
+Nested Andes HDL root indexed for the external RTL DB LLM Wiki. It exists so age
+nts can discover platform, VIP, model, macro, and copied IP RTL that is not a ca
+nonical top-level block.
+
+Drill deeper with `wiki_query(ip='rtl-db', topic="<keyword>", depth=3)` or re-ru
+n `python3 workflow/wiki/build_graph.py --wiki "$ATLAS_RTL_DB_WIKI" --quiet`.
+QUERY dma
+# wiki_query [scope=rtl-db] depth=3 matches=11/123 shown=8
+## atcdmac100 [reference] · updated=2026-05-31
+title: atcdmac100 RTL reference · path: andes/wiki/atcdmac100.md · tags: rtl-db,
+ andes, dma, ahb, interrupt, fifo
+links: [[ae210p]] [[rtl-inventory]] [[atcbmc200]] [[doc-atcdmac100-andeshape-atc
+dmac100-ds079-v1-2]] [[doc-atcdmac100-andeshape-atcdmac100-rn093-v1-3]]
+DMA controller — multi-channel AHB master that offloads memory/peripheral transf
+ers from the CPU. AST RTL facts for module/port/parameter/fsm/datapath/register/
+memory/clock/reset queries: fsm register memory clock reset datapath; clocks hcl
+k; resets hburst, hresetn, hburst_mst, dma_mst_burst, first_addr, dma_soft_reset
+, ch_0_src_burst_size,…
+## doc-atcdmac100-andeshape-atcdmac100-rn093-v1-3 [reference] · updated=2026-05-
+31
+title: AndeShape ATCDMAC100 RN093 V1.3 · path: andes/wiki/doc-atcdmac100-andesha
+pe-atcdmac100-rn093-v1-3.md · tags: rtl-db, andes, doc
+links: [[atcdmac100]] [[doc-inventory]]
+Document metadata for [[atcdmac100]] in the external Andes RTL DB. Use this page
+ to find the local datasheet, guide, release note, or spec without embedding sou
+rce document contents.
+## doc-atcdmac100-andeshape-atcdmac100-ds079-v1-2 [reference] · updated=2026-05-
+31
+title: AndeShape ATCDMAC100 DS079 V1.2 · path: andes/wiki/doc-atcdmac100-andesha
+pe-atcdmac100-ds079-v1-2.md · tags: rtl-db, andes, doc
+links: [[atcdmac100]] [[doc-inventory]]
+Document metadata for [[atcdmac100]] in the external Andes RTL DB. Use this page
+ to find the local datasheet, guide, release note, or spec without embedding sou
+rce document contents.
+## rtlroot-platform-d1088-20161118-test-d1088-s-andes-ip-d10-core-ldma [referenc
+e] · updated=2026-05-31
+title: ldma HDL root · path: andes/wiki/rtlroot-platform-d1088-20161118-test-d10
+88-s-andes-ip-d10-core-ldma.md · tags: rtl-db, andes, hdl-root, coverage, design
+, module, clock, reset, fsm, datapath
+links: [[coverage]] [[rtl-inventory]] [[rtl-query-cookbook]] [[index]]
+Nested Andes HDL root indexed for the external RTL DB LLM Wiki. It exists so age
+nts can discover platform, VIP, model, macro, and copied IP RTL that is not a ca
+nonical top-level block.
+## rtlroot-platform-d1088-20161118-d1088-s-andes-ip-d10-core-ldma [reference] ·
+updated=2026-05-31
+title: ldma HDL root · path: andes/wiki/rtlroot-platform-d1088-20161118-d1088-s-
+andes-ip-d10-core-ldma.md · tags: rtl-db, andes, hdl-root, coverage, design, mod
+ule, clock, reset, fsm, datapath
+links: [[coverage]] [[rtl-inventory]] [[rtl-query-cookbook]] [[index]]
+Nested Andes HDL root indexed for the external RTL DB LLM Wiki. It exists so age
+nts can discover platform, VIP, model, macro, and copied IP RTL that is not a ca
+nonical top-level block.
+## rtlroot-platform-ae210p-20161118-ae210p-andes-ip-peripheral-ip-atcdmac100 [re
+ference] · updated=2026-05-31
+title: atcdmac100 HDL root · path: andes/wiki/rtlroot-platform-ae210p-20161118-a
+e210p-andes-ip-peripheral-ip-atcdmac100.md · tags: rtl-db, andes, hdl-root, cove
+rage, design, module, clock, reset, fsm, datapath
+links: [[coverage]] [[rtl-inventory]] [[rtl-query-cookbook]] [[index]]
+Nested Andes HDL root indexed for the external RTL DB LLM Wiki. It exists so age
+nts can discover platform, VIP, model, macro, and copied IP RTL that is not a ca
+nonical top-level block.
+## atcuart100 [reference] · updated=2026-05-31
+title: atcuart100 RTL reference · path: andes/wiki/atcuart100.md · tags: rtl-db,
+ andes, comm, apb, dma, interrupt
+links: [[ae210p]] [[rtl-inventory]] [[atcapbbrg100]] [[atcapbdec100]] [[atcdmac1
+00]] [[doc-atcuart100-andeshape-atcuart100-ds093-v1-1]] [[doc-atcuart100-andesha
+pe-atcuart100-rn100-v1-2]]
+16550-style UART — serial console / data link with FIFOs, modem control, and opt
+ional DMA. AST RTL facts for module/port/parameter/fsm/datapath/register/memory/
+clock/reset queries: fsm register memory clock reset datapath; clocks uclk, pclk
+, rxfifo_empty_uclk, rxfifo_read_uclk; resets urstn, presetn, fcr_txfifo_rst, fc
+r_rxfifo_rst; registers prdata,…
+## atcspi200 [reference] · updated=2026-05-31
+title: atcspi200 RTL reference · path: andes/wiki/atcspi200.md · tags: rtl-db, a
+ndes, comm, apb, ahb, spi, dma, interrupt, fifo
+links: [[ae210p]] [[rtl-inventory]] [[atcapbbrg100]] [[atcapbdec100]] [[atcbmc20
+0]] [[atcdmac100]] [[atcahb2spi200]] [[doc-atcspi200-andeshape-atcspi200-ds087-v
+1-6]]
+SPI controller — full-duplex serial master/slave with FIFO, local-memory path, a
+nd DMA. AST RTL facts for module/port/parameter/fsm/datapath/register/memory/clo
+ck/reset queries: fsm register memory clock reset datapath; clocks spi_clk_in, s
+pi_clock, spi_clk_oe, spi_clk_out, hclk, eilm_clk, pclk, ahb2eilm_clken, apb2ahb
+_clken, apb2eilm_clken, sysclk,…
+
+…3 more matches truncated. Re-query with a narrower topic= or higher max_nodes.
+
+Drill deeper with `wiki_query(ip='rtl-db', topic="<keyword>", depth=3)` or re-ru
+n `python3 workflow/wiki/build_graph.py --wiki "$ATLAS_RTL_DB_WIKI" --quiet`.
+QUERY ae210 design coverage module
+# wiki_query [scope=rtl-db] depth=3 matches=15/123 shown=8
+## rtlroot-platform-ae210p-20161118-ae210p-andes-ip-ae210-top [reference] · upda
+ted=2026-05-31
+title: ae210 HDL root · path: andes/wiki/rtlroot-platform-ae210p-20161118-ae210p
+-andes-ip-ae210-top.md · tags: rtl-db, andes, hdl-root, coverage, design, module
+, clock, reset, datapath
+links: [[coverage]] [[rtl-inventory]] [[rtl-query-cookbook]] [[index]]
+Nested Andes HDL root indexed for the external RTL DB LLM Wiki. It exists so age
+nts can discover platform, VIP, model, macro, and copied IP RTL that is not a ca
+nonical top-level block.
+## rtlroot-platform-ae210p-20161118-ae210p-andes-ip-peripheral-ip-atcwdt200 [ref
+erence] · updated=2026-05-31
+title: atcwdt200 HDL root · path: andes/wiki/rtlroot-platform-ae210p-20161118-ae
+210p-andes-ip-peripheral-ip-atcwdt200.md · tags: rtl-db, andes, hdl-root, covera
+ge, design, module, clock, reset, fsm, datapath
+links: [[coverage]] [[rtl-inventory]] [[rtl-query-cookbook]] [[index]]
+Nested Andes HDL root indexed for the external RTL DB LLM Wiki. It exists so age
+nts can discover platform, VIP, model, macro, and copied IP RTL that is not a ca
+nonical top-level block.
+## rtlroot-platform-ae210p-20161118-ae210p-andes-ip-peripheral-ip-atcuart100 [re
+ference] · updated=2026-05-31
+title: atcuart100 HDL root · path: andes/wiki/rtlroot-platform-ae210p-20161118-a
+e210p-andes-ip-peripheral-ip-atcuart100.md · tags: rtl-db, andes, hdl-root, cove
+rage, design, module, clock, reset, fsm, datapath
+links: [[coverage]] [[rtl-inventory]] [[rtl-query-cookbook]] [[index]]
+Nested Andes HDL root indexed for the external RTL DB LLM Wiki. It exists so age
+nts can discover platform, VIP, model, macro, and copied IP RTL that is not a ca
+nonical top-level block.
+## rtlroot-platform-ae210p-20161118-ae210p-andes-ip-peripheral-ip-atcspi200 [ref
+erence] · updated=2026-05-31
+title: atcspi200 HDL root · path: andes/wiki/rtlroot-platform-ae210p-20161118-ae
+210p-andes-ip-peripheral-ip-atcspi200.md · tags: rtl-db, andes, hdl-root, covera
+ge, design, module, clock, reset, fsm, datapath
+links: [[coverage]] [[rtl-inventory]] [[rtl-query-cookbook]] [[index]]
+Nested Andes HDL root indexed for the external RTL DB LLM Wiki. It exists so age
+nts can discover platform, VIP, model, macro, and copied IP RTL that is not a ca
+nonical top-level block.
+## rtlroot-platform-ae210p-20161118-ae210p-andes-ip-peripheral-ip-atcrtc100 [ref
+erence] · updated=2026-05-31
+title: atcrtc100 HDL root · path: andes/wiki/rtlroot-platform-ae210p-20161118-ae
+210p-andes-ip-peripheral-ip-atcrtc100.md · tags: rtl-db, andes, hdl-root, covera
+ge, design, module, clock, reset, datapath
+links: [[coverage]] [[rtl-inventory]] [[rtl-query-cookbook]] [[index]]
+Nested Andes HDL root indexed for the external RTL DB LLM Wiki. It exists so age
+nts can discover platform, VIP, model, macro, and copied IP RTL that is not a ca
+nonical top-level block.
+## rtlroot-platform-ae210p-20161118-ae210p-andes-ip-peripheral-ip-atcpit100 [ref
+erence] · updated=2026-05-31
+title: atcpit100 HDL root · path: andes/wiki/rtlroot-platform-ae210p-20161118-ae
+210p-andes-ip-peripheral-ip-atcpit100.md · tags: rtl-db, andes, hdl-root, covera
+ge, design, module, clock, reset, datapath
+links: [[coverage]] [[rtl-inventory]] [[rtl-query-cookbook]] [[index]]
+Nested Andes HDL root indexed for the external RTL DB LLM Wiki. It exists so age
+nts can discover platform, VIP, model, macro, and copied IP RTL that is not a ca
+nonical top-level block.
+## rtlroot-platform-ae210p-20161118-ae210p-andes-ip-peripheral-ip-atciic100 [ref
+erence] · updated=2026-05-31
+title: atciic100 HDL root · path: andes/wiki/rtlroot-platform-ae210p-20161118-ae
+210p-andes-ip-peripheral-ip-atciic100.md · tags: rtl-db, andes, hdl-root, covera
+ge, design, module, clock, reset, fsm, datapath
+links: [[coverage]] [[rtl-inventory]] [[rtl-query-cookbook]] [[index]]
+Nested Andes HDL root indexed for the external RTL DB LLM Wiki. It exists so age
+nts can discover platform, VIP, model, macro, and copied IP RTL that is not a ca
+nonical top-level block.
+## rtlroot-platform-ae210p-20161118-ae210p-andes-ip-peripheral-ip-atcgpio100 [re
+ference] · updated=2026-05-31
+title: atcgpio100 HDL root · path: andes/wiki/rtlroot-platform-ae210p-20161118-a
+e210p-andes-ip-peripheral-ip-atcgpio100.md · tags: rtl-db, andes, hdl-root, cove
+rage, design, module, clock, reset, datapath
+links: [[coverage]] [[rtl-inventory]] [[rtl-query-cookbook]] [[index]]
+Nested Andes HDL root indexed for the external RTL DB LLM Wiki. It exists so age
+nts can discover platform, VIP, model, macro, and copied IP RTL that is not a ca
+nonical top-level block.
+
+…7 more matches truncated. Re-query with a narrower topic= or higher max_nodes.
+
+Drill deeper with `wiki_query(ip='rtl-db', topic="<keyword>", depth=3)` or re-ru
+n `python3 workflow/wiki/build_graph.py --wiki "$ATLAS_RTL_DB_WIKI" --quiet`.
+QUERY i2c verification coverage module
+# wiki_query [scope=rtl-db] depth=3 matches=1/123 shown=1
+## rtlroot-platform-ae210p-20161118-ae210p-andes-vip-models-i2c [reference] · up
+dated=2026-05-31
+title: i2c HDL root · path: andes/wiki/rtlroot-platform-ae210p-20161118-ae210p-a
+ndes-vip-models-i2c.md · tags: rtl-db, andes, hdl-root, coverage, verification,
+module, clock, reset, fsm, datapath
+links: [[coverage]] [[rtl-inventory]] [[rtl-query-cookbook]] [[index]]
+Nested Andes HDL root indexed for the external RTL DB LLM Wiki. It exists so age
+nts can discover platform, VIP, model, macro, and copied IP RTL that is not a ca
+nonical top-level block.
+
+Drill deeper with `wiki_query(ip='rtl-db', topic="<keyword>", depth=3)` or re-ru
+n `python3 workflow/wiki/build_graph.py --wiki "$ATLAS_RTL_DB_WIKI" --quiet`.
+QUERY fpu macro coverage module
+# wiki_query [scope=rtl-db] depth=3 matches=8/123 shown=8
+## rtlroot-platform-ncefpu100-20161118-test-ncefpu100-andes-ip-cop-fpu-macro [re
+ference] · updated=2026-05-31
+title: macro HDL root · path: andes/wiki/rtlroot-platform-ncefpu100-20161118-tes
+t-ncefpu100-andes-ip-cop-fpu-macro.md · tags: rtl-db, andes, hdl-root, coverage,
+ macro, module, clock, datapath
+links: [[coverage]] [[rtl-inventory]] [[rtl-query-cookbook]] [[index]]
+Nested Andes HDL root indexed for the external RTL DB LLM Wiki. It exists so age
+nts can discover platform, VIP, model, macro, and copied IP RTL that is not a ca
+nonical top-level block.
+## rtlroot-platform-ncefpu100-20161118-ncefpu100-andes-ip-cop-fpu-macro [referen
+ce] · updated=2026-05-31
+title: macro HDL root · path: andes/wiki/rtlroot-platform-ncefpu100-20161118-nce
+fpu100-andes-ip-cop-fpu-macro.md · tags: rtl-db, andes, hdl-root, coverage, macr
+o, module, clock, datapath
+links: [[coverage]] [[rtl-inventory]] [[rtl-query-cookbook]] [[index]]
+Nested Andes HDL root indexed for the external RTL DB LLM Wiki. It exists so age
+nts can discover platform, VIP, model, macro, and copied IP RTL that is not a ca
+nonical top-level block.
+## rtlroot-platform-ncefpu100-20161118-test-ncefpu100-andes-ip-cop-fpu [referenc
+e] · updated=2026-05-31
+title: fpu HDL root · path: andes/wiki/rtlroot-platform-ncefpu100-20161118-test-
+ncefpu100-andes-ip-cop-fpu.md · tags: rtl-db, andes, hdl-root, coverage, design,
+ module, clock, reset, fsm, datapath
+links: [[coverage]] [[rtl-inventory]] [[rtl-query-cookbook]] [[index]]
+Nested Andes HDL root indexed for the external RTL DB LLM Wiki. It exists so age
+nts can discover platform, VIP, model, macro, and copied IP RTL that is not a ca
+nonical top-level block.
+## rtlroot-platform-ncefpu100-20161118-ncefpu100-andes-ip-cop-fpu [reference] ·
+updated=2026-05-31
+title: fpu HDL root · path: andes/wiki/rtlroot-platform-ncefpu100-20161118-ncefp
+u100-andes-ip-cop-fpu.md · tags: rtl-db, andes, hdl-root, coverage, design, modu
+le, clock, reset, fsm, datapath
+links: [[coverage]] [[rtl-inventory]] [[rtl-query-cookbook]] [[index]]
+Nested Andes HDL root indexed for the external RTL DB LLM Wiki. It exists so age
+nts can discover platform, VIP, model, macro, and copied IP RTL that is not a ca
+nonical top-level block.
+## rtlroot-platform-ncefpu100-20161118-test-ncefpu100-andes-vip-monitors [refere
+nce] · updated=2026-05-31
+title: monitors HDL root · path: andes/wiki/rtlroot-platform-ncefpu100-20161118-
+test-ncefpu100-andes-vip-monitors.md · tags: rtl-db, andes, hdl-root, coverage,
+verification, module, clock, datapath
+links: [[coverage]] [[rtl-inventory]] [[rtl-query-cookbook]] [[index]]
+Nested Andes HDL root indexed for the external RTL DB LLM Wiki. It exists so age
+nts can discover platform, VIP, model, macro, and copied IP RTL that is not a ca
+nonical top-level block.
+## rtlroot-platform-ncefpu100-20161118-test-ncefpu100-andes-vip-models-cpif [ref
+erence] · updated=2026-05-31
+title: cpif HDL root · path: andes/wiki/rtlroot-platform-ncefpu100-20161118-test
+-ncefpu100-andes-vip-models-cpif.md · tags: rtl-db, andes, hdl-root, coverage, v
+erification, module, clock, reset, fsm, datapath
+links: [[coverage]] [[rtl-inventory]] [[rtl-query-cookbook]] [[index]]
+Nested Andes HDL root indexed for the external RTL DB LLM Wiki. It exists so age
+nts can discover platform, VIP, model, macro, and copied IP RTL that is not a ca
+nonical top-level block.
+## rtlroot-platform-ncefpu100-20161118-ncefpu100-andes-vip-monitors [reference]
+· updated=2026-05-31
+title: monitors HDL root · path: andes/wiki/rtlroot-platform-ncefpu100-20161118-
+ncefpu100-andes-vip-monitors.md · tags: rtl-db, andes, hdl-root, coverage, verif
+ication, module, clock, datapath
+links: [[coverage]] [[rtl-inventory]] [[rtl-query-cookbook]] [[index]]
+Nested Andes HDL root indexed for the external RTL DB LLM Wiki. It exists so age
+nts can discover platform, VIP, model, macro, and copied IP RTL that is not a ca
+nonical top-level block.
+## rtlroot-platform-ncefpu100-20161118-ncefpu100-andes-vip-models-cpif [referenc
+e] · updated=2026-05-31
+title: cpif HDL root · path: andes/wiki/rtlroot-platform-ncefpu100-20161118-ncef
+pu100-andes-vip-models-cpif.md · tags: rtl-db, andes, hdl-root, coverage, verifi
+cation, module, clock, reset, fsm, datapath
+links: [[coverage]] [[rtl-inventory]] [[rtl-query-cookbook]] [[index]]
+Nested Andes HDL root indexed for the external RTL DB LLM Wiki. It exists so age
+nts can discover platform, VIP, model, macro, and copied IP RTL that is not a ca
+nonical top-level block.
+
+Drill deeper with `wiki_query(ip='rtl-db', topic="<keyword>", depth=3)` or re-ru
+n `python3 workflow/wiki/build_graph.py --wiki "$ATLAS_RTL_DB_WIKI" --quiet`.
+....ss...........                                                        [100%]
+15 passed, 2 skipped in 13.13s
+graph 123 641
+PASS C003 query regression
+ULW_QA_EXIT=0
+
+cleanup: killed tmux session ulw-qa-g002-c003; no-rebuild env scoped to tmux script; post-review rerun

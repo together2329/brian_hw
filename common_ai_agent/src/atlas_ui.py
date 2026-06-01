@@ -5079,6 +5079,22 @@ def create_app():
                 cur[token] = [] if isinstance(nxt, int) else {}
             cur = cur[token]
 
+    def _get_ssot_feedback_path(root: dict[str, Any], tokens: list[Any]) -> Any:
+        cur: Any = root
+        for token in tokens:
+            if isinstance(token, int):
+                if not isinstance(cur, list) or token >= len(cur):
+                    raise KeyError(token)
+                cur = cur[token]
+                continue
+            if not isinstance(cur, dict) or token not in cur:
+                raise KeyError(token)
+            cur = cur[token]
+        return cur
+
+    def _ssot_feedback_tokens_to_path(tokens: list[Any]) -> str:
+        return ".".join(str(token) for token in tokens)
+
     def _ssot_feedback_section(raw: str, fallback: str = "custom") -> str:
         section = str(raw or "").strip()
         known = {key for key, _label in _SSOT_EXPORT_SECTION_ORDER}
@@ -8155,6 +8171,7 @@ def create_app():
 
         section = _ssot_feedback_section(str(body.get("section") or "custom"))
         yaml_path = str(body.get("path") or body.get("yaml_path") or "").strip()
+        raw_yaml_path = yaml_path
         field = str(body.get("field") or "").strip()
         value = body.get("value")
         comment = str(body.get("comment") or "").strip()
@@ -8166,11 +8183,27 @@ def create_app():
             yaml_path = f"{section}.{field}"
         try:
             tokens = _parse_ssot_feedback_path(yaml_path) if yaml_path else []
-            if tokens:
+            if tokens and (value_text or field):
+                write_tokens = list(tokens)
+                if raw_yaml_path and field:
+                    field_tokens = _parse_ssot_feedback_path(field)
+                    if field_tokens and write_tokens[-len(field_tokens):] != field_tokens:
+                        write_tokens.extend(field_tokens)
+                elif value_text:
+                    try:
+                        current_value = _get_ssot_feedback_path(doc, write_tokens)
+                    except KeyError:
+                        current_value = None
+                    if isinstance(current_value, dict):
+                        write_tokens.append("review_note")
+                    elif isinstance(current_value, list):
+                        write_tokens = []
                 target_value = value if value_text else comment
-                _set_ssot_feedback_path(doc, tokens, target_value)
-                if isinstance(tokens[0], str):
-                    section = _ssot_feedback_section(tokens[0], section)
+                if write_tokens:
+                    _set_ssot_feedback_path(doc, write_tokens, target_value)
+                    yaml_path = _ssot_feedback_tokens_to_path(write_tokens)
+                    if isinstance(write_tokens[0], str):
+                        section = _ssot_feedback_section(write_tokens[0], section)
         except ValueError as exc:
             return JSONResponse({"ok": False, "error": str(exc)}, status_code=400)
 
@@ -8242,6 +8275,38 @@ def create_app():
             "ssot_path": rel_path,
             "doc_url": f"/api/ssot/export?ip={ip}&format=html&inline=1",
         })
+
+    @app.get("/api/ssot/doc-source")
+    async def api_ssot_doc_source(ip: str = "", path: str = ""):
+        yaml_path = str(path or "").strip()
+        if not yaml_path:
+            return JSONResponse({"ok": False, "error": "path is required"}, status_code=400)
+        clean_ip = str(ip or "").strip()
+        if not _valid_ip_name(clean_ip):
+            return JSONResponse({"ok": False, "error": f"invalid ip {ip!r}"}, status_code=400)
+        ssot_path = _ssot_yaml_path(clean_ip)
+        if not ssot_path.is_file():
+            return JSONResponse({"ok": False, "error": f"ssot yaml not found for ip {clean_ip!r}"}, status_code=404)
+        try:
+            tokens = _parse_ssot_feedback_path(yaml_path)
+        except ValueError as exc:
+            return JSONResponse({"ok": False, "error": str(exc)}, status_code=400)
+        doc = _load_ssot_draft(clean_ip)
+        if not isinstance(doc, dict) or not doc:
+            return JSONResponse({"ok": False, "error": f"ssot yaml could not be parsed for ip {clean_ip!r}"}, status_code=400)
+        try:
+            from src.atlas_ssot_doc_map import lookup_ssot_doc_source
+
+            try:
+                rel_path = str(ssot_path.relative_to(PROJECT_ROOT))
+            except Exception:
+                rel_path = str(ssot_path)
+            payload = lookup_ssot_doc_source(doc, path=yaml_path, tokens=tokens, ip=clean_ip, ssot_path=rel_path)
+        except KeyError:
+            return JSONResponse({"ok": False, "error": "path not found"}, status_code=404)
+        except Exception as exc:
+            return JSONResponse({"ok": False, "error": f"failed to resolve ssot source: {exc}"}, status_code=500)
+        return JSONResponse(payload)
 
     @app.get("/api/ssot/export")
     async def api_ssot_export(ip: str, format: str = "md", inline: bool = False):
@@ -10387,4 +10452,3 @@ def _access_url(host: str, port: int, path: str = "") -> str:
 # invocation, so the guard belongs here for the canonical CLI path.
 if __name__ == "__main__":
     main()
-

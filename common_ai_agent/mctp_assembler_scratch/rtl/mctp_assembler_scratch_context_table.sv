@@ -55,13 +55,23 @@ module mctp_assembler_scratch_context_table (
     logic [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] alloc_ptr_q;
     logic [12:0] next_payload_count;
     logic [15:0] next_alloc_addr;
+    logic [15:0] write_start_addr;
+    logic [4:0] write_next_lane;
     logic [17:0] incoming_key;
+    logic descriptor_publish;
+    logic interrupt;
+    logic irq;
     logic unused_context_inputs;
 
-    assign incoming_key = {source_eid, tag_owner, message_tag, destination_eid[5:0]};
+    assign incoming_key = {source_eid, tag_owner, 6'd0, message_tag};
     assign next_payload_count = ctx_payload_count + payload_byte_count;
     assign next_alloc_addr = next_addr_q + {3'd0, payload_byte_count};
-    assign unused_context_inputs = ^{message_type, destination_eid[7:6]};
+    assign write_start_addr = som ? (alloc_ptr_q | sram_base) : next_addr_q;
+    assign write_next_lane = write_start_addr[4:0] + payload_byte_count[4:0];
+    assign descriptor_publish = descriptor_push;
+    assign interrupt = descriptor_push | packet_drop_pulse | assembly_drop_pulse;
+    assign irq = interrupt;
+    assign unused_context_inputs = ^{message_type, destination_eid, descriptor_publish, interrupt, irq};
 
     always @(posedge axi_aclk or negedge axi_aresetn) begin
         if (!axi_aresetn) begin
@@ -152,15 +162,15 @@ module mctp_assembler_scratch_context_table (
                     payload_write_valid <= 1'b1;
                     payload_write_data <= payload_data_word;
                     payload_write_strb <= payload_byte_strobe;
-                    payload_write_addr <= som ? (alloc_ptr_q | sram_base) : next_addr_q;
+                    payload_write_addr <= write_start_addr;
                     payload_write_bytes <= payload_byte_count;
                     ctx_payload_count <= som ? payload_byte_count : next_payload_count;
                     next_addr_q <= som ? ((alloc_ptr_q | sram_base) + {3'd0, payload_byte_count}) : next_alloc_addr;
                     expected_seq_q <= packet_seq + 2'd1;
-                    ctx_partial_next_lane <= (som ? payload_byte_count[4:0] : next_payload_count[4:0]);
-                    ctx_partial_word_valid <= |(som ? payload_byte_count[4:0] : next_payload_count[4:0]);
+                    ctx_partial_next_lane <= write_next_lane;
+                    ctx_partial_word_valid <= |write_next_lane;
                     if (eom) begin
-                        ctx_state <= `MCTP_ASSEMBLER_SCRATCH_STATE_DONE;
+                        ctx_state <= `MCTP_ASSEMBLER_SCRATCH_STATE_DONE_WAIT_DESCRIPTOR_POP;
                         descriptor_push <= 1'b1;
                         descriptor_qid <= {1'b0, message_tag};
                         descriptor_base <= som ? (alloc_ptr_q | sram_base) : ctx_payload_base;

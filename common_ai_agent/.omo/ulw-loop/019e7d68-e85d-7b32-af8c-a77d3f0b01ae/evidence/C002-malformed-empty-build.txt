@@ -1,0 +1,27 @@
+[andes-wiki] wrote 2 block pages + AST facts + docs + index + rtl-inventory + ae
+210p to /private/tmp/andes-wiki-c002.c8Jg2W/wiki
+[wiki/build_graph] wrote /private/tmp/andes-wiki-c002.c8Jg2W/wiki/_graph.json: n
+odes=7 edges=22 types=2 tags=10 broken_refs=14
+  broken: ae210p → [[atcbmc200]]
+  broken: ae210p → [[atcapbbrg100]]
+  broken: ae210p → [[atcdmac100]]
+  broken: ae210p → [[atceilmbrg100]]
+  broken: ae210p → [[atcexlmbrg100]]
+  broken: ae210p → [[atcapbdec100]]
+  broken: ae210p → [[atcuart100]]
+  broken: ae210p → [[atciic100]]
+  broken: ae210p → [[atcgpio100]]
+  broken: ae210p → [[atcpit100]]
+  broken: ae210p → [[atcrtc100]]
+  broken: ae210p → [[atcwdt200]]
+  … and 2 more broken links
+C002 PASS malformed/empty corpus
+broken_diagnostics= ['broken_ip.sv: DiagCode(ExpectedIdentifier) at SourceLocati
+on(1, 26) args=[]', "broken_ip.sv: DiagCode(ExpectedToken) at SourceLocation(1,
+57) args=[')']"]
+empty_diagnostics= ['empty_ip: no .v/.sv RTL files found under hdl/']
+graph_nodes= 7 graph_edges= 22
+cleanup: removed /tmp/andes-wiki-c002.c8Jg2W
+__DONE__
+
+cleanup receipt: killed tmux session ulw-qa-c002-andes-edge

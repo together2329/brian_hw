@@ -60,3 +60,29 @@ def test_ip_graph_reads_generated_and_user_wiki_dirs(tmp_path: Path):
     assert nodes["workflow-stages"]["path"] == f"{ip}/wiki/_generated/workflow-stages.md"
     assert "bringup-note" in nodes
     assert nodes["bringup-note"]["path"] == f"{ip}/wiki/user/bringup-note.md"
+
+
+def test_project_graph_indexes_sim_debug_requirements_ledger():
+    build_graph = _load_build_graph()
+
+    wiki_root = REPO / "doc" / "wiki"
+    page_path = wiki_root / "sim-debug-requirements-2026-06-01.md"
+    graph = build_graph.build(wiki_root)
+
+    nodes = {node["id"]: node for node in graph["nodes"]}
+    assert "sim-debug-requirements-2026-06-01" in nodes
+    node = nodes["sim-debug-requirements-2026-06-01"]
+    assert "requirements" in node["tags"]
+    assert "deep-test" in node["tags"]
+    assert node["path"] == "doc/wiki/sim-debug-requirements-2026-06-01.md"
+    assert node["summary"].startswith("This page consolidates the user-raised Sim Debug requirements")
+
+    body = page_path.read_text(encoding="utf-8")
+    assert "Deep Test Coverage Matrix" in body
+    assert "Requirement-Level Deep Evidence" in body
+    assert "SDR-007, SDR-014" in body
+    assert "SDR-020, SDR-021, SDR-022, SDR-023" in body
+    assert "frontend/atlas/__tests__/sim-debug-requirements-deep.test.tsx" in body
+    assert "frontend/atlas/__tests__/sim-debug-requirements-signals.test.tsx" in body
+    assert "frontend/atlas/__tests__/sim-debug-requirements-waveband.test.tsx" in body
+    assert "tests/test_simulation_quality_gate.py" in body

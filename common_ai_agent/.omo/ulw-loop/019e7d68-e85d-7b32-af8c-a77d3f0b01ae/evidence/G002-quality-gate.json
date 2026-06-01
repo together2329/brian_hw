@@ -1,0 +1,35 @@
+{
+  "aiSlopCleaner": {
+    "status": "passed",
+    "evidence": "Scoped audit over scripts/andes_rtl_db_quality.py, scripts/build_andes_rtl_db_wiki.py, tests/test_andes_rtl_db_wiki_builder.py, and tests/test_andes_rtl_db_quality.py: no debug/breakpoint/TODO leftovers; generated markdown strings are intentional page templates; BDD comments in tests describe Given/When/Then fixtures. New helper is 247 pure LOC and new focused test file is 36 pure LOC."
+  },
+  "verification": {
+    "status": "passed",
+    "commands": [
+      "omo ulw-loop criteria --goal-id G002 --json",
+      "python3 -m pytest tests/test_andes_rtl_db_quality.py tests/test_andes_rtl_db_wiki_builder.py tests/test_wiki_query_tool.py -q",
+      "python3 -m compileall scripts/andes_rtl_db_quality.py scripts/build_andes_rtl_db_wiki.py tests/test_andes_rtl_db_wiki_builder.py tests/test_andes_rtl_db_quality.py",
+      "python3 scripts/build_andes_rtl_db_wiki.py --andes-root /Users/brian/Desktop/andes --build-graph"
+    ],
+    "evidence": "G002 C001/C002/C003 are pass with tmux transcripts and cleanup receipts. Targeted pytest: 16 passed, 2 skipped. compileall passed. Real Andes wiki coverage: 93 HDL roots, 84 nonempty, 9 empty with diagnostics, missing_pages=[], missing_facts=[], graph node_count=123, edge_count=641; C002 evidence records broken_refs=0."
+  },
+  "codeReview": {
+    "recommendation": "APPROVE_WITH_RESIDUALS",
+    "architectStatus": "CLEAR_FOR_G002",
+    "evidence": "Code-quality review found a real nested HDL slug collision; it was fixed with hash-suffixed duplicate IDs and locked by tests/test_andes_rtl_db_quality.py::test_build_andes_wiki_disambiguates_nested_hdl_slug_collisions. Context review passed: generated coverage.md, _coverage.json, rtl-query-cookbook.md, and existing external DB docs/skill cover practical agent use. Residuals: ruff is not installed in the active python3 environment; LSP reports strict typing warnings but no errors, with many pre-existing warnings in the legacy builder; the broader repo has unrelated dirty files outside G002 scope."
+  },
+  "criteriaCoverage": {
+    "totalCriteria": 3,
+    "passCount": 3,
+    "adversarialClassesCovered": [
+      "synthetic_multi_root",
+      "nested_hdl_root",
+      "all_corpus_coverage",
+      "empty_hdl_roots",
+      "slug_collision",
+      "graph_integrity",
+      "no_rebuild_query",
+      "external_db_regression"
+    ]
+  }
+}

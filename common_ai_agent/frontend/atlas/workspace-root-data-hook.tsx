@@ -364,6 +364,27 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     return () => window.removeEventListener('atlas-fold-comment', handler);
   }, []);
 
+  useEffect(() => {
+    const handler = (ev: any) => {
+      try {
+        const text = String(ev?.detail?.text || '').trimEnd();
+        if (!text) return;
+        setInput(text);
+        setMainTab('chat');
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          const el = inputRef.current;
+          if (!el) return;
+          el.focus();
+          try { el.selectionStart = el.selectionEnd = el.value.length; } catch (_) {}
+          el.style.height = 'auto';
+          el.style.height = Math.min(el.scrollHeight, 192) + 'px';
+        }));
+      } catch (_) {}
+    };
+    window.addEventListener('atlas-ssot-doc-comment', handler);
+    return () => window.removeEventListener('atlas-ssot-doc-comment', handler);
+  }, []);
+
   const [inputHistory, setInputHistory] = useState<string[]>(
     () => loadStoredInputHistory(INPUT_HISTORY_LIMIT),
   );

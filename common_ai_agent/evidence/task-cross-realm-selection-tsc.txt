@@ -1,0 +1,1 @@
+ssot-doc-feedback-dom.ts(19,32): error TS2339: Property 'closest' does not exist on type '{}'.

@@ -1,0 +1,70 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+______ test_tb_generator_aliases_payload_byte_count_state_to_rtl_counter _______
+
+    def test_tb_generator_aliases_payload_byte_count_state_to_rtl_counter() -> None:
+        generator = _load_module(TB_GEN, "tb_generator_under_test")
+    
+        aliases = generator._state_observable_aliases(["ctx_payload_byte_count"], ["ctx_payload_count"])
+    
+>       assert aliases == {"ctx_payload_byte_count": ["ctx_payload_count"]}
+E       AssertionError: assert {} == {'ctx_payload...yload_count']}
+E         
+E         Right contains 1 more item:
+E         {'ctx_payload_byte_count': ['ctx_payload_count']}
+E         Use -v to get more diff
+
+tests/test_mctp_scenario_contract.py:136: AssertionError
+________________ test_scoreboard_rejects_weak_multi_observation ________________
+
+    def test_scoreboard_rejects_weak_multi_observation() -> None:
+        sys.path.insert(0, str(COCOTB_DIR))
+        sys.path.insert(0, str(RUNTIME_DIR))
+        scoreboard = _load_module(COCOTB_DIR / "scoreboard.py", "mctp_scoreboard_under_test")
+        stimulus = {
+            "kind": "FM_ASSEMBLE_FRAGMENT",
+            "scenario_id": "SC_MULTI_FRAGMENT_3PKT_SHORT_LAST",
+            "source_eid": 0x22,
+            "tag_owner": 1,
+            "message_tag": 5,
+            "scenario_payload_bytes": 76,
+            "scenario_packet_count": 3,
+        }
+        weak = {
+            "axi_bvalid": 1,
+            "axi_bresp": 0,
+            "debug_vdm_valid": 1,
+            "sram_wr_valid": 1,
+            "sram_wr_strb": 0xFFFF,
+            "ctx_state": 3,
+            "ctx_valid": 1,
+            "descriptor_count": 1,
+            "payload_byte_count": 16,
+            "debug_context_key": 0,
+        }
+        strong = {
+            **weak,
+            "payload_byte_count": 76,
+            "debug_context_key": (0x22 << 10) | (1 << 9) | 5,
+        }
+        strong_done_state = {
+            **weak,
+            "payload_byte_count": 12,
+            "ctx_payload_byte_count": 76,
+            "debug_context_key": (0x22 << 10) | (1 << 9) | 5,
+            "descriptor_count": 0,
+            "ctx_state": 3,
+        }
+    
+        assert not scoreboard._mctp_contract_verdict("EQ_SCENARIO_SC_MULTI_FRAGMENT_3PKT_SHORT_LAST", "SC_X", stimulus, weak)
+        assert scoreboard._mctp_contract_verdict("EQ_SCENARIO_SC_MULTI_FRAGMENT_3PKT_SHORT_LAST", "SC_X", stimulus, strong)
+>       assert scoreboard._mctp_contract_verdict("EQ_SCENARIO_SC_MULTI_FRAGMENT_3PKT_SHORT_LAST", "SC_X", stimulus, strong_done_state)
+E       AssertionError: assert False
+E        +  where False = <function _mctp_contract_verdict at 0x10450c040>('EQ_SCENARIO_SC_MULTI_FRAGMENT_3PKT_SHORT_LAST', 'SC_X', {'kind': 'FM_ASSEMBLE_FRAGMENT', 'message_tag': 5, 'scenario_id': 'SC_MULTI_FRAGMENT_3PKT_SHORT_LAST', 'scenario_packet_count': 3, ...}, {'axi_bresp': 0, 'axi_bvalid': 1, 'ctx_payload_byte_count': 76, 'ctx_state': 3, ...})
+E        +    where <function _mctp_contract_verdict at 0x10450c040> = <module 'mctp_scoreboard_under_test' from '/Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/tb/cocotb/scoreboard.py'>._mctp_contract_verdict
+
+tests/test_mctp_scenario_contract.py:120: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_mctp_scenario_contract.py::test_tb_generator_aliases_payload_byte_count_state_to_rtl_counter
+FAILED tests/test_mctp_scenario_contract.py::test_scoreboard_rejects_weak_multi_observation
+2 failed in 0.56s
