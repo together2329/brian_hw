@@ -14,12 +14,8 @@
     "single": 2,
     "write": 23
   },
-  "generated_at": "2026-05-31T23:50:08Z",
-  "issues": [
-    "SC_015_EQ_SCENARIO_SC_MAX_TU_4096_129_BEATS: payload evidence 16 below expected 4096",
-    "SC_017_EQ_SCENARIO_SC_INTERLEAVE_TWO_Q_COMPLETE: valid/interleave scenario asserted drop or error",
-    "SC_021_EQ_SCENARIO_SC_READBACK_AFTER_MULTI_ASSEMBLE: payload evidence 0 below expected 76"
-  ],
+  "generated_at": "2026-06-01T11:22:14Z",
+  "issues": [],
   "missing_observables": [],
   "required_observables": [
     "apb_error",
@@ -61,10 +57,10 @@
     "sram_write_strb",
     "sram_write_valid"
   ],
-  "status": "fail",
+  "status": "pass",
   "summary": {
     "class_count": 13,
-    "issues": 3,
+    "issues": 0,
     "missing_required_observables": 0,
     "rows": 86
   },

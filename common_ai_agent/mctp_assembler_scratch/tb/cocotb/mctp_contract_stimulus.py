@@ -70,10 +70,29 @@ def normalize_mctp_stimulus(goal: dict[str, Any], stimulus: dict[str, Any]) -> d
 
     text = _goal_text(goal, out)
     apply_scenario_contract_defaults(goal, out)
+    if "sc_max_tu_4096" in text:
+        out["scenario_payload_bytes"] = 4096
+        out["payload_len"] = 4096
+        out["payload_byte_count"] = 4096
+        out["m_axi_awlen"] = 128
     if "filter_vdm" in text and int(out.get("vdm_supported", 1) or 0):
         out["packet_drop_reason"] = 0
     _idle_axi(out)
     if _is_readback_goal(text):
+        if "readback_after_multi_assemble" in text:
+            out["payload_len"] = int(out.get("scenario_payload_bytes", 76) or 76)
+            out["payload_byte_count"] = out["payload_len"]
+            out["som"] = 1
+            out["eom"] = 1
+            _apply_axi_write_defaults(out, malformed=False)
+            _encode_mctp_word(out)
+            out["m_axi_arvalid"] = 1
+            out["m_axi_arsize"] = 5
+            out["m_axi_arburst"] = 1
+            out["m_axi_arlen"] = 0
+            out["sram_rd_rsp_valid"] = 1
+            out["sram_rd_rsp_error"] = 0
+            return out
         _apply_readback_defaults(out)
         return out
     if _is_apb_only_goal(text):

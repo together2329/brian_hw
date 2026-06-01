@@ -320,4 +320,28 @@ describe('Workflow report click surfaces', () => {
     expect(await screen.findByText(/No coverage artifacts found yet/)).toBeInTheDocument();
     expect(screen.getByTestId('preview-pane')).toHaveTextContent('demo_ip/cov/coverage.json|L0|no lint diagnostic');
   });
+
+  it('runs VCD coverage with the selected VCD artifact', async () => {
+    installWorkflowReportGlobals({
+      exists: true,
+      resolved_ip: 'demo_ip',
+      report_exists: true,
+      report_path: 'demo_ip/cov/coverage.json',
+      tools: [],
+      artifacts: [],
+      vcd_paths: ['demo_ip/sim/base.vcd', 'demo_ip/sim/nested/alt.vcd'],
+    });
+    const { WorkflowReportPane } = await import('../workflow-report.tsx');
+
+    render(<WorkflowReportPane workflow="coverage" activeIp="demo_ip" />);
+
+    const select = await screen.findByLabelText('VCD file');
+    fireEvent.change(select, { target: { value: 'demo_ip/sim/nested/alt.vcd' } });
+    fireEvent.click(screen.getByRole('button', { name: /run vcd/i }));
+
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+    const lastCall = fetchMock.mock.calls.at(-1);
+    expect(String(lastCall?.[0] || '')).toContain('vcd=1');
+    expect(String(lastCall?.[0] || '')).toContain('vcd_path=demo_ip%2Fsim%2Fnested%2Falt.vcd');
+  });
 });

@@ -32,6 +32,7 @@ module mctp_assembler_scratch_mctp_parser (
     logic unused_inputs;
     logic [12:0] encoded_payload_len;
     logic [12:0] decoded_payload_len;
+    logic payload_tu_overflow;
     logic [17:0] context_key;
     logic [17:0] debug_context_key;
 
@@ -44,6 +45,20 @@ module mctp_assembler_scratch_mctp_parser (
     assign encoded_payload_len = vdm_word[236:224];
     assign decoded_payload_len = (encoded_payload_len != 13'd0) ? encoded_payload_len :
         ((vdm_payload_bytes > 13'd4) ? (vdm_payload_bytes - 13'd4) : 13'd0);
+    assign payload_tu_overflow = (configured_tu_bytes != 13'd0) &
+        (decoded_payload_len > configured_tu_bytes);
+
+    function automatic [31:0] strobe_for_bytes(input logic [12:0] byte_count);
+        begin
+            if (byte_count >= 13'd32) begin
+                strobe_for_bytes = 32'hffff_ffff;
+            end else if (byte_count == 13'd0) begin
+                strobe_for_bytes = 32'd0;
+            end else begin
+                strobe_for_bytes = (32'h0000_0001 << byte_count[4:0]) - 32'd1;
+            end
+        end
+    endfunction
 
     always @(posedge axi_aclk or negedge axi_aresetn) begin
         if (!axi_aresetn) begin
@@ -74,14 +89,16 @@ module mctp_assembler_scratch_mctp_parser (
                 eom <= vdm_word[150];
                 som <= vdm_word[151];
                 message_type <= vdm_word[159:152];
-                payload_data_word <= {160'd0, 32'd0, vdm_word[223:160]};
-                payload_byte_strobe <= {20'd0, vdm_strb[31:20]};
+                payload_data_word <= vdm_word;
+                payload_byte_strobe <= strobe_for_bytes(decoded_payload_len);
                 first_tlp_header <= vdm_first_header;
                 last_tlp_header <= vdm_last_header;
                 payload_byte_count <= decoded_payload_len;
                 if (parser_drop_reason_in != `MCTP_ASSEMBLER_SCRATCH_DROP_NONE) begin
                     packet_drop_reason <= parser_drop_reason_in;
                 end else if (bad_mctp_len) begin
+                    packet_drop_reason <= `MCTP_ASSEMBLER_SCRATCH_PD_BAD_MCTP_HEADER;
+                end else if (payload_tu_overflow) begin
                     packet_drop_reason <= `MCTP_ASSEMBLER_SCRATCH_PD_BAD_MCTP_HEADER;
                 end else if (nonfinal_bad_align) begin
                     packet_drop_reason <= `MCTP_ASSEMBLER_SCRATCH_PD_BAD_PAD_OR_ALIGNMENT;

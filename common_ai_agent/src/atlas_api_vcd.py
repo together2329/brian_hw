@@ -18,13 +18,15 @@ from typing import Callable
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
+from src.atlas_vcd_conversion import list_waveform_vcd_entries, read_vcd_target
+
 
 def register_vcd_routes(
     app: FastAPI,
     *,
     project_root: Callable[[], Path],
     safe_path: Callable[[str], "Path | None"],
-    skip_dirs: set,
+    skip_dirs: set[str],
     max_vcd_bytes: int,
 ) -> None:
     """Mount the VCD waveform API onto *app*.
@@ -54,6 +56,12 @@ def register_vcd_routes(
             return None
         return base / "sim"
 
+    def _rel(path: Path) -> str | None:
+        try:
+            return path.resolve().relative_to(project_root().resolve()).as_posix()
+        except ValueError:
+            return None
+
     @app.get("/api/vcd/list")
     async def api_vcd_list(ip: str = "", scope: str = ""):
         """Discover VCD files under PROJECT_ROOT.
@@ -73,43 +81,35 @@ def register_vcd_routes(
             if base is None or not base.is_dir():
                 return 404, {"files": [], "error": "scope not found"}
 
-            results = []
             root = project_root().resolve()
             if ip:
-                # Active-IP scoped recursive scan. Keep this broader than
-                # `<ip>/sim/*.vcd` so cocotb build dirs and `sim/waves/`
-                # still appear, but never leak another IP into the picker.
-                for f in base.rglob("*.vcd"):
-                    if not f.is_file():
-                        continue
-                    rel_path = f.resolve().relative_to(root)
-                    if any(p in skip_dirs for p in rel_path.parts):
-                        continue
-                    st = f.stat()
-                    rel = rel_path.as_posix()
-                    results.append({"path": rel, "size": st.st_size, "mtime": st.st_mtime})
+                results, waveform_errors = list_waveform_vcd_entries(
+                    root=root,
+                    base=base,
+                    skip_dirs=skip_dirs,
+                    recursive=True,
+                    max_depth=None,
+                    convert_fst=True,
+                )
             elif scope:
-                # Direct *.vcd in chosen dir.
-                for f in base.glob("*.vcd"):
-                    if f.is_file():
-                        st = f.stat()
-                        rel = f.resolve().relative_to(root).as_posix()
-                        results.append({"path": rel, "size": st.st_size, "mtime": st.st_mtime})
+                results, waveform_errors = list_waveform_vcd_entries(
+                    root=root,
+                    base=base,
+                    skip_dirs=skip_dirs,
+                    recursive=False,
+                    max_depth=None,
+                    convert_fst=True,
+                )
             else:
-                # Recursive scan (capped depth).
-                for f in base.rglob("*.vcd"):
-                    try:
-                        rel = f.resolve().relative_to(root)
-                    except ValueError:
-                        continue
-                    if any(p in skip_dirs for p in rel.parts):
-                        continue
-                    if len(rel.parts) > 5:
-                        continue
-                    st = f.stat()
-                    results.append({"path": str(rel), "size": st.st_size, "mtime": st.st_mtime})
-            results.sort(key=lambda x: x["mtime"], reverse=True)
-            return 200, {"files": results, "project_root": str(project_root())}
+                results, waveform_errors = list_waveform_vcd_entries(
+                    root=root,
+                    base=base,
+                    skip_dirs=skip_dirs,
+                    recursive=True,
+                    max_depth=5,
+                    convert_fst=False,
+                )
+            return 200, {"files": results, "waveform_errors": waveform_errors, "project_root": str(project_root())}
         try:
             status_code, payload = await asyncio.to_thread(_work)
         except OSError as e:
@@ -214,19 +214,27 @@ def register_vcd_routes(
             target = safe_path(path)
             if target is None or not target.is_file():
                 return 404, {"error": "not found"}
-            if target.suffix.lower() != ".vcd":
-                return 400, {"error": "not a .vcd file"}
-            st = target.stat()
+            conversion, vcd_target = read_vcd_target(project_root().resolve(), target)
+            if vcd_target is None:
+                status = 503 if conversion.status in {"converter_missing", "conversion_timeout"} else 400
+                return status, {"error": conversion.status, "message": conversion.message}
+            st = vcd_target.stat()
             truncated = st.st_size > max_vcd_bytes
-            data = target.read_bytes()[:max_vcd_bytes]
+            data = vcd_target.read_bytes()[:max_vcd_bytes]
             content = data.decode("utf-8", errors="replace")
-            return 200, {
-                "path": path,
+            payload = {
+                "path": _rel(vcd_target) or path,
                 "size": st.st_size,
                 "mtime": st.st_mtime,
                 "truncated": truncated,
                 "content": content,
             }
+            if target.suffix.lower() == ".fst":
+                payload["source"] = "converted_fst"
+                payload["converted_from"] = _rel(target) or path
+            else:
+                payload["source"] = "native_vcd"
+            return 200, payload
         try:
             status_code, payload = await asyncio.to_thread(_work)
         except OSError as e:

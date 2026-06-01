@@ -73,6 +73,17 @@ Every TB input drive, output monitor, checker, and scoreboard sample must be syn
 - Sample DUT outputs only after the corresponding active clock edge and the simulator read-only/sample phase required for stable observations.
 - For multi-clock IPs, bind every input and output to its declared clock domain. Cross-domain signals require an SSOT-declared CDC or handshake rule; if it is missing, report `[SSOT TBD REPORT] -> ssot-gen` instead of guessing.
 
+## Layered Transaction TB Rule
+
+For any non-trivial protocol, pipeline, memory, bus, accelerator, interrupt, backpressure, multi-beat, or multi-clock IP, generate a layered transaction testbench instead of a flat pin-poke script.
+
+- Define transaction models from SSOT scenario fields, payloads, addresses, channels, IDs, side effects, and expected response metadata.
+- Generate scenario sequences that emit transactions, not direct DUT pin writes, except for reset/default or explicitly trivial combinational/CSR smoke checks.
+- Implement clock-bound drivers and monitors for every declared clock domain. Drivers translate transactions to DUT pins; monitors translate sampled DUT pins back to observed transactions.
+- Implement a latency-aware scoreboard with pending queues or match tables keyed by SSOT ordering, response ID, channel, and multi-beat packet rules.
+- Enqueue expected transactions at the SSOT-defined accept/sample point and compare only when `cycle_model` says the response is observable. Same-cycle comparisons are forbidden unless SSOT declares the output combinational in the same cycle.
+- If SSOT lacks the latency, handshake, ordering, response matching, or CDC facts needed to build that structure, report `[SSOT TBD REPORT] -> ssot-gen` instead of guessing.
+
 ## Escalation Protocol
 
 If simulation fails due to suspected DUT bug:

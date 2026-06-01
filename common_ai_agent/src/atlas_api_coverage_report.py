@@ -8,17 +8,24 @@ Phase 17 of refactor/atlas-modular (backend extraction).
 """
 from __future__ import annotations
 
+import asyncio
 import json
 import re
+import shlex
+import subprocess
 from pathlib import Path
 from typing import Any
 
 from fastapi.responses import JSONResponse
 
+from src.atlas_coverage_vcd import list_vcd_artifacts, select_vcd_artifact
+
 
 def register_coverage_report_routes(
     app, *,
     PROJECT_ROOT,
+    WORKFLOW_ROOT,
+    _python_cmd,
     _safe,
     _parse_lcov_summary,
     _choose_coverage_ip_dir,
@@ -38,7 +45,13 @@ def register_coverage_report_routes(
     @app.get("/api/reports/cov")
     @app.get("/api/reports/coverage")
     @app.get("/api/coverage/report")
-    async def api_coverage_report(ip: str, top: str = "", refresh: int = 0, vcd: int = 0):
+    async def api_coverage_report(
+        ip: str,
+        top: str = "",
+        refresh: int = 0,
+        vcd: int = 0,
+        vcd_path: str = "",
+    ):
         """Return a consolidated coverage report for Atlas.
 
         The endpoint intentionally aggregates existing workflow artifacts
@@ -86,32 +99,38 @@ def register_coverage_report_routes(
         if vcd:
             script = WORKFLOW_ROOT / "coverage" / "scripts" / "coverage_vcd_toggle.sh"
             cmd = ["bash", str(script), rel_ip, "--json"]
+            selected_vcd = select_vcd_artifact(PROJECT_ROOT, ip_dir, vcd_path)
             if top:
                 cmd.extend(["--top", top])
+            if selected_vcd.error:
+                run_info["vcd"] = {"command": shlex.join(cmd), "returncode": 2, "output": selected_vcd.error}
+            elif selected_vcd.relative_path:
+                cmd.extend(["--vcd", selected_vcd.relative_path])
 
-            def _run_vcd_toggle():
-                return subprocess.run(
-                    cmd,
-                    cwd=PROJECT_ROOT,
-                    text=True,
-                    encoding="utf-8",
-                    errors="replace",
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    timeout=180,
-                )
+            if not selected_vcd.error:
+                def _run_vcd_toggle():
+                    return subprocess.run(
+                        cmd,
+                        cwd=PROJECT_ROOT,
+                        text=True,
+                        encoding="utf-8",
+                        errors="replace",
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.STDOUT,
+                        timeout=180,
+                    )
 
-            try:
-                proc = await asyncio.to_thread(_run_vcd_toggle)
-                run_info["vcd"] = {
-                    "command": shlex.join(cmd),
-                    "returncode": proc.returncode,
-                    "output": proc.stdout[-12000:] if proc.stdout else "",
-                }
-            except subprocess.TimeoutExpired as exc:
-                run_info["vcd"] = {"command": shlex.join(cmd), "returncode": 124, "output": str(exc)}
-            except Exception as exc:
-                run_info["vcd"] = {"command": shlex.join(cmd), "returncode": 1, "output": str(exc)}
+                try:
+                    proc = await asyncio.to_thread(_run_vcd_toggle)
+                    run_info["vcd"] = {
+                        "command": shlex.join(cmd),
+                        "returncode": proc.returncode,
+                        "output": proc.stdout[-12000:] if proc.stdout else "",
+                    }
+                except subprocess.TimeoutExpired as exc:
+                    run_info["vcd"] = {"command": shlex.join(cmd), "returncode": 124, "output": str(exc)}
+                except (OSError, subprocess.SubprocessError) as exc:
+                    run_info["vcd"] = {"command": shlex.join(cmd), "returncode": 1, "output": str(exc)}
 
         coverage_json_path = cov_dir / "coverage.json"
         coverage_ssot_path = cov_dir / "coverage_ssot.json"
@@ -203,11 +222,7 @@ def register_coverage_report_routes(
             ),
         ]
 
-        vcd_paths = [
-            p.relative_to(PROJECT_ROOT).as_posix()
-            for p in sorted(list(sim_dir.glob("**/*.vcd")) + list(cov_dir.glob("**/*.vcd")))
-            if p.is_file()
-        ]
+        vcd_paths = list_vcd_artifacts(PROJECT_ROOT, ip_dir)
         artifact_paths = [
             p.relative_to(PROJECT_ROOT).as_posix()
             for p in (coverage_json_path, coverage_ssot_path, coverage_info_path, toggle_path, report_md_path)
@@ -233,6 +248,7 @@ def register_coverage_report_routes(
             "markdown_exists": report_md_path.is_file(),
             "artifacts": artifact_paths,
             "vcd_paths": vcd_paths,
+            "selected_vcd_path": select_vcd_artifact(PROJECT_ROOT, ip_dir, vcd_path).relative_path,
             "tools": tools,
             "coverage": coverage_doc,
             "lcov": lcov,
@@ -240,4 +256,3 @@ def register_coverage_report_routes(
             "static": static_report,
             "run": run_info,
         })
-

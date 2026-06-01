@@ -105,6 +105,9 @@ Do not add IP-specific fixed TB generator templates for new IP kinds. Generate v
 
 For every SSOT-driven IP:
 - **Clock-Domain Synchronization Rule**: every TB drive, monitor, checker, and scoreboard sample must be synchronized to the signal's declared clock domain from SSOT (`io_list.clock_domains`, `cycle_model.clock`, or the RTL contract). Drive DUT inputs only after that domain's active clock edge, or in an SSOT/protocol-defined setup window for the next active edge. Sample DUT outputs only after the corresponding active clock edge and the required simulator read-only/sample phase. For multi-clock IPs, bind each input and output to its declared clock domain; if a signal's clock domain or CDC/handshake rule is missing, emit `[SSOT TBD REPORT] -> ssot-gen` instead of guessing.
+- **Layered Transaction TB Rule**: for any non-trivial protocol, pipeline, memory, bus, accelerator, interrupt, backpressure, multi-beat, or multi-clock IP, build a layered environment with transaction models, SSOT scenario sequences, clock-bound drivers, clock-bound monitors, a FunctionalModel/reference adapter, a latency-aware scoreboard, and coverage collectors. Flat direct signal pokes are allowed only for reset/default or explicitly trivial combinational/CSR smoke checks.
+- The latency-aware scoreboard must enqueue expected transactions at the SSOT-defined accept/sample point and compare them only when the SSOT `cycle_model` says the corresponding response is observable. It must handle fixed latency, variable latency, valid/ready backpressure, ordering, response IDs, channels, and multi-beat packet boundaries when those concepts exist in SSOT. Same-cycle expected-vs-observed comparisons are forbidden unless SSOT explicitly declares the output combinational in the same cycle.
+- Drivers and monitors must never invent transaction timing. If `cycle_model` lacks latency, handshake, ordering, response matching, or CDC rules required to bind a transaction to DUT pins, emit `[SSOT TBD REPORT] -> ssot-gen` and block TB DONE.
 - Build a verification ledger before writing TB:
   - `<ip>/verify/equivalence_goals.json` when present; if missing, run or request `/ssot-equiv-goals <ip>` before claiming TB signoff
   - top module and simulator entry point
@@ -194,6 +197,13 @@ Preferred ATLAS pyuvm/cocotb layout:
 <ip_name>/cov/toggle.json              VCD toggle summary
 <ip_name>/sim/coverage_report.md       sim_debug-readable coverage summary
 ```
+
+For complex SSOTs, the generated files must preserve these responsibilities:
+- `transactions.py`: typed transaction objects carrying scenario id, operation kind, payload, address/channel/ID fields, and expected response metadata from SSOT.
+- `sequences.py`: scenario-level transaction streams; no direct DUT pin pokes except reset/default smoke.
+- `agents.py`: drivers and monitors synchronized to each declared clock domain; drivers translate transactions to pins, monitors translate sampled pins back to observed transactions.
+- `scoreboard.py`: latency-aware pending queues or match tables keyed by SSOT ordering/ID/channel rules; compares FunctionalModel expected data to monitor observations only at legal observe points.
+- `coverage.py`: functional bins tied to scenarios, protocol states, backpressure, error paths, FSM transitions, and boundary cases named in SSOT.
 
 Legacy SV layout:
 

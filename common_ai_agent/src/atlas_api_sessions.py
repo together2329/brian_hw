@@ -19,6 +19,10 @@ from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 
 from core.atlas_exec_policy import EXEC_MODE_SINGLE, current_exec_mode
+from src.atlas_workflow_switch import (
+    WorkflowCheckpointRequest,
+    schedule_workflow_checkpoint,
+)
 
 
 def register_sessions_routes(
@@ -441,17 +445,13 @@ def register_sessions_routes(
         # so the IP history reads like a workflow timeline. Skipped when
         # prev_wf is empty / default (no real work to seal).
         if wf and prev_wf and wf != prev_wf and prev_wf != "default":
-            _ip_dir = _root / ip
-            if (_ip_dir / ".git").is_dir():
-                try:
-                    import subprocess as _sp_wf
-                    _sp_wf.run(["git", "add", "--", "."],
-                               cwd=str(_ip_dir), capture_output=True, timeout=10)
-                    _sp_wf.run(["git", "commit", "--allow-empty",
-                                "-m", f"workflow: {prev_wf} → {wf}"],
-                               cwd=str(_ip_dir), capture_output=True, timeout=10)
-                except Exception:
-                    pass
+            schedule_workflow_checkpoint(
+                WorkflowCheckpointRequest(
+                    ip_dir=_root / ip,
+                    previous_workflow=prev_wf,
+                    next_workflow=wf,
+                )
+            )
         _session_dir = _root / ".session" / sid / ip / wf
         try:
             _session_dir.mkdir(parents=True, exist_ok=True)

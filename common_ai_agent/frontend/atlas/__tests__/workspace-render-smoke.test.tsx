@@ -26,6 +26,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 vi.setConfig({ testTimeout: 30000, hookTimeout: 30000 }); // full-app mount in jsdom is >5s under load
 
 import { render, cleanup, within, act, waitFor, fireEvent } from '@testing-library/react';
+import { createRef } from 'react';
 
 // Establish the SAME window bridges the live app loads before the workspace
 // bundle. ui-utils.tsx publishes window.CopyBtn / window._copyToClipboard on
@@ -141,6 +142,65 @@ describe('Workspace render smoke (the behavioral gate)', () => {
     const textarea = container.querySelector('textarea');
     expect(textarea).not.toBeNull();
     expect(textarea?.getAttribute('placeholder') || '').toMatch(/Type a message|Answer pending|Preparing/);
+  });
+
+  it('keeps prompt typing local and defers parent input sync', async () => {
+    vi.useFakeTimers();
+    const { WorkspacePromptRow } = await import('../workspace-root-render.tsx');
+    const setInput = vi.fn();
+    const inputRef = createRef<HTMLTextAreaElement>();
+    const inputRouteRef = { current: {} };
+
+    const { getByRole } = render(
+      <WorkspacePromptRow
+        workflow="default"
+        activeIp="demo"
+        feed={[]}
+        orchWorkers={[]}
+        workerProgress={null}
+        input=""
+        setInput={setInput}
+        inputRef={inputRef}
+        inputRouteState={null}
+        inputRouteRef={inputRouteRef}
+        inputHistoryIndexRef={{ current: null }}
+        inputHistoryDraftRef={{ current: '' }}
+        onKey={vi.fn()}
+        pendingQcard={null}
+        workflowReady={null}
+        atlasUiOrchestratorMode={() => false}
+        workflowForExecMode={(wf: unknown) => String(wf || 'default')}
+        defaultWorkflowForExecMode={() => 'default'}
+      />,
+    );
+
+    const textarea = getByRole('textbox') as HTMLTextAreaElement;
+    fireEvent.change(textarea, { target: { value: 'abc' } });
+
+    expect(textarea.value).toBe('abc');
+    expect(setInput).not.toHaveBeenCalled();
+
+    await act(async () => {
+      vi.advanceTimersByTime(80);
+    });
+
+    expect(setInput).toHaveBeenLastCalledWith('abc');
+    vi.useRealTimers();
+  });
+
+  it('submits the latest visible prompt value before deferred sync settles', async () => {
+    const { Workspace } = await import('../workspace.tsx');
+    const { container } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
+    const textarea = container.querySelector('textarea') as HTMLTextAreaElement;
+
+    fireEvent.change(textarea, { target: { value: 'send immediately' } });
+    fireEvent.keyDown(textarea, { key: 'Enter' });
+
+    const send = (window as AnyWindow).backend.send as ReturnType<typeof vi.fn>;
+    expect(send).toHaveBeenCalledWith(expect.objectContaining({
+      type: 'prompt',
+      text: 'send immediately',
+    }));
   });
 
   it('renders the center chat stream pane (renderChatPane resolved to a real fn)', async () => {

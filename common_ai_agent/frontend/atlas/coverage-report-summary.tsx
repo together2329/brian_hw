@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 
 import type { LintDiagnostic } from './lint-diagnostics';
 import { ToolOutputPre } from './workspace-markdown-chips';
@@ -45,6 +45,9 @@ export const CoverageReportSummary = ({
   const [err, setErr] = useState('');
   const [running, setRunning] = useState('');
   const [tick, setTick] = useState(0);
+  const [selectedVcdPath, setSelectedVcdPath] = useState('');
+  const selectedVcdPathRef = useRef('');
+  selectedVcdPathRef.current = selectedVcdPath;
 
   const load = useCallback(async (mode = ''): Promise<void> => {
     if (!ip) return;
@@ -54,11 +57,18 @@ export const CoverageReportSummary = ({
     const params = new URLSearchParams({ ip });
     if (mode === 'summary' || mode === 'all') params.set('refresh', '1');
     if (mode === 'vcd' || mode === 'all') params.set('vcd', '1');
+    if ((mode === 'vcd' || mode === 'all') && selectedVcdPathRef.current) {
+      params.set('vcd_path', selectedVcdPathRef.current);
+    }
     try {
       const response = await fetch(`/reports/cov?${params.toString()}`, { cache: 'no-store' });
       const body = normalizeCoverageReport(await response.json().catch(() => ({})));
       if (!response.ok) throw reportFetchError(body, response.status);
       setData(body);
+      const paths = body.vcd_paths;
+      if (paths.length > 0 && !paths.includes(selectedVcdPathRef.current)) {
+        setSelectedVcdPath(paths[0]);
+      }
       const preferred = preferredCoveragePath(body);
       if (preferred) onSelectPath?.(preferred);
     } catch (error) {
@@ -76,6 +86,9 @@ export const CoverageReportSummary = ({
   const tools = data?.tools || [];
   const artifacts = data?.artifacts || [];
   const vcdPaths = data?.vcd_paths || [];
+  const selectedVcd = selectedVcdPath && vcdPaths.includes(selectedVcdPath)
+    ? selectedVcdPath
+    : vcdPaths[0] || '';
   const missingTools = tools.filter(tool => !tool.available).length;
 
   return (
@@ -101,6 +114,37 @@ export const CoverageReportSummary = ({
           run vcd
         </button>
       </div>
+
+      {vcdPaths.length > 0 && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'auto minmax(0, 1fr) auto', gap: 8, alignItems: 'center' }}>
+          <span style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10 }}>vcd</span>
+          <select
+            aria-label="VCD file"
+            value={selectedVcd}
+            onChange={event => {
+              selectedVcdPathRef.current = event.currentTarget.value;
+              setSelectedVcdPath(event.currentTarget.value);
+            }}
+            style={{
+              minWidth: 0,
+              background: 'var(--panel)',
+              color: 'var(--fg)',
+              border: '1px solid var(--line)',
+              borderRadius: 3,
+              padding: '3px 6px',
+              fontFamily: 'var(--mono)',
+              fontSize: 10,
+            }}
+          >
+            {vcdPaths.map(path => (
+              <option key={path} value={path}>{path}</option>
+            ))}
+          </select>
+          <button className="btn" onClick={() => selectedVcd && onSelectPath?.(selectedVcd)} disabled={!selectedVcd} style={{ padding: '2px 8px', fontSize: 10 }}>
+            open vcd
+          </button>
+        </div>
+      )}
 
       {err && <div style={{ color: 'var(--err)', fontFamily: 'var(--mono)', fontSize: 11 }}>{err}</div>}
       {loading && (

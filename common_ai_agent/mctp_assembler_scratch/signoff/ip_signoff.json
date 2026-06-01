@@ -80,15 +80,10 @@
     },
     {
       "artifact": "sim/simulation_quality.json",
-      "issues": [
-        "simulation_quality status is 'fail', expected pass",
-        "SC_015_EQ_SCENARIO_SC_MAX_TU_4096_129_BEATS: payload evidence 16 below expected 4096",
-        "SC_017_EQ_SCENARIO_SC_INTERLEAVE_TWO_Q_COMPLETE: valid/interleave scenario asserted drop or error",
-        "SC_021_EQ_SCENARIO_SC_READBACK_AFTER_MULTI_ASSEMBLE: payload evidence 0 below expected 76"
-      ],
+      "issues": [],
       "name": "simulation_quality",
-      "status": "fail",
-      "summary": "status=fail issues=3"
+      "status": "pass",
+      "summary": "status=pass issues=0"
     },
     {
       "artifact": "sim/scoreboard_events.jsonl",
@@ -109,7 +104,7 @@
       "issues": [],
       "name": "mutation_guard",
       "status": "pass",
-      "summary": "status=pass kill_rate=0.2812"
+      "summary": "status=pass kill_rate=0.5938"
     },
     {
       "artifact": "signoff/goal_ledger.json",
@@ -119,16 +114,16 @@
       "summary": "waivers explicit and reviewable"
     }
   ],
-  "generated_at": "2026-05-31T23:50:09Z",
+  "generated_at": "2026-06-01T11:37:45Z",
   "ip": "mctp_assembler_scratch",
   "ip_contract": "verify/ip_contract.json",
   "mode": "local_evidence",
   "schema_version": 1,
-  "status": "fail",
+  "status": "pass",
   "summary": {
     "blocked": 0,
-    "failed": 1,
-    "passed": 15,
+    "failed": 0,
+    "passed": 16,
     "total_gates": 16
   },
   "type": "ip_signoff"

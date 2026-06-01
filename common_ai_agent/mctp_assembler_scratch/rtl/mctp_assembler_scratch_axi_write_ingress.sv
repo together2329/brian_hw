@@ -33,6 +33,8 @@ module mctp_assembler_scratch_axi_write_ingress (
     logic collecting_q;
     logic [7:0] beat_count_q;
     logic [15:0] byte_count_q;
+    logic [`MCTP_ASSEMBLER_SCRATCH_AXI_DATA_WIDTH-1:0] first_word_q;
+    logic [`MCTP_ASSEMBLER_SCRATCH_AXI_STRB_WIDTH-1:0] first_strb_q;
     logic malformed_q;
     logic aw_accept;
     logic w_accept;
@@ -45,6 +47,9 @@ module mctp_assembler_scratch_axi_write_ingress (
     logic descriptor_publish;
     logic axi_readback;
     logic unused_inputs;
+    logic first_w_beat;
+    logic [15:0] byte_count_base;
+    logic [15:0] byte_count_next;
 
     assign aw_accept = m_axi_awvalid & m_axi_awready;
     assign w_accept = m_axi_wvalid & m_axi_wready;
@@ -62,12 +67,27 @@ module mctp_assembler_scratch_axi_write_ingress (
     assign unused_inputs = ^{configured_tu_bytes, m_axi_awaddr, apb_access, pcie_vdm_parse,
                              mctp_parse, context_assembly, sram_pack, descriptor_publish,
                              axi_readback};
+    assign first_w_beat = aw_accept | (beat_count_q == 8'd0);
+    assign byte_count_base = aw_accept ? 16'd0 : byte_count_q;
+    assign byte_count_next = byte_count_base + {10'd0, strobe_byte_count(m_axi_wstrb)};
+
+    function automatic [5:0] strobe_byte_count(input logic [31:0] strobe);
+        integer idx;
+        begin
+            strobe_byte_count = 6'd0;
+            for (idx = 0; idx < 32; idx = idx + 1) begin
+                strobe_byte_count = strobe_byte_count + {5'd0, strobe[idx]};
+            end
+        end
+    endfunction
 
     always @(posedge axi_aclk or negedge axi_aresetn) begin
         if (!axi_aresetn) begin
             collecting_q <= 1'b0;
             beat_count_q <= 8'd0;
             byte_count_q <= 16'd0;
+            first_word_q <= 256'd0;
+            first_strb_q <= 32'd0;
             malformed_q <= 1'b0;
             m_axi_bresp <= `MCTP_ASSEMBLER_SCRATCH_BRESP_OKAY;
             m_axi_bvalid <= 1'b0;
@@ -89,26 +109,26 @@ module mctp_assembler_scratch_axi_write_ingress (
                 collecting_q <= 1'b1;
                 beat_count_q <= 8'd0;
                 byte_count_q <= 16'd0;
+                first_word_q <= 256'd0;
+                first_strb_q <= 32'd0;
                 tlp_awaddr <= m_axi_awaddr;
                 malformed_q <= aw_malformed;
             end
             if (w_accept) begin
-                tlp_word <= m_axi_wdata;
-                tlp_strb <= m_axi_wstrb;
                 last_tlp_header <= m_axi_wdata[127:0];
-                if (beat_count_q == 8'd0) begin
+                if (first_w_beat) begin
                     first_tlp_header <= m_axi_wdata[127:0];
+                    first_word_q <= m_axi_wdata;
+                    first_strb_q <= m_axi_wstrb;
                 end
-                beat_count_q <= beat_count_q + 8'd1;
-                if (m_axi_wstrb == 32'd0) begin
-                    byte_count_q <= byte_count_q;
-                end else begin
-                    byte_count_q <= byte_count_q + 16'd32;
-                end
+                beat_count_q <= (aw_accept ? 8'd0 : beat_count_q) + 8'd1;
+                byte_count_q <= byte_count_next;
                 if (m_axi_wlast) begin
                     collecting_q <= 1'b0;
                     tlp_valid <= 1'b1;
-                    tlp_byte_count <= (m_axi_wstrb == 32'd0) ? byte_count_q : (byte_count_q + 16'd32);
+                    tlp_word <= first_w_beat ? m_axi_wdata : first_word_q;
+                    tlp_strb <= first_w_beat ? m_axi_wstrb : first_strb_q;
+                    tlp_byte_count <= byte_count_next;
                     m_axi_bvalid <= 1'b1;
                     m_axi_bresp <= `MCTP_ASSEMBLER_SCRATCH_BRESP_OKAY | {1'b0, unused_inputs & 1'b0};
                     if (!assembly_enable) begin

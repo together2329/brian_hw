@@ -133,4 +133,39 @@ describe('Atlas font CSS cascade', () => {
       expect(selectorIndex).toBeGreaterThan(platformIndex);
     }
   });
+
+  it('keeps Windows text on the native hinting path instead of fuzzy geometric rendering', () => {
+    const css = readFileSync('styles.css', 'utf8');
+
+    expect(css).not.toMatch(/text-rendering:\s*(?:geometricPrecision|optimizeLegibility)\b/);
+    expect(css).toMatch(/html\[data-platform="windows"\]\s+\.app\s*\{[^}]*text-rendering:\s*auto\b/s);
+    expect(css).toMatch(/--windows-mono:\s*Consolas,/);
+  });
+
+  it('applies font mode changes to UI, code, and enhanced panel font tokens', () => {
+    const css = readFileSync('styles.css', 'utf8');
+    const blockFor = (mode: string): string => {
+      const match = css.match(new RegExp(`html\\[data-font="${mode}"\\],[\\s\\S]*?\\[data-font="${mode}"\\]\\s*\\{([\\s\\S]*?)\\n\\}`));
+      return match ? match[1] : '';
+    };
+
+    for (const mode of ['mono', 'sans', 'windows', 'system']) {
+      const block = blockFor(mode);
+
+      expect(block).toContain('--mono:');
+      expect(block).toContain('--code-font:');
+      expect(block).toContain('--enh-mono:');
+    }
+  });
+});
+
+describe('Atlas sharp resolution defaults', () => {
+  it('migrates saved fixed canvas presets back to auto to avoid startup scaling blur', () => {
+    const html = readFileSync('index.vite.html', 'utf8');
+
+    expect(html).toContain('atlasResolutionMigratedSharpText2');
+    expect(html).toMatch(/saved\s+&&\s+saved\s+!==\s+'auto'/);
+    expect(html).toContain("localStorage.setItem('atlasResolution', 'auto')");
+    expect(html).toContain("res.key === 'auto'");
+  });
 });

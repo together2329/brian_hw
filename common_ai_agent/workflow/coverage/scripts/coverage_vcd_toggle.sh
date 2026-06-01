@@ -4,19 +4,35 @@
 # the first *.vcd found under <DUT>/.
 set -e
 
-DUT="${HOOK_CMD_ARGS:-${1:-gpio_pad}}"
-DUT="${DUT// /}"
+DUT="gpio_pad"
 WANT_JSON=0
 TOP=10
-for ((i=1; i<=$#; i++)); do
-    case "${!i}" in
-        --json) WANT_JSON=1 ;;
+VCD_PATH=""
+if [ "$#" -eq 0 ] && [ -n "${HOOK_CMD_ARGS:-}" ]; then
+    set -- ${HOOK_CMD_ARGS}
+fi
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        --json)
+            WANT_JSON=1
+            ;;
         --top)
-            j=$((i+1))
-            TOP="${!j}"
+            shift
+            TOP="${1:-${TOP}}"
+            ;;
+        --vcd)
+            shift
+            VCD_PATH="${1:-}"
+            ;;
+        *)
+            if [ "${DUT}" = "gpio_pad" ]; then
+                DUT="$1"
+            fi
             ;;
     esac
+    shift || true
 done
+DUT="${DUT// /}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ADAPTER="${SCRIPT_DIR}/../adapters/vcd_toggle.py"
@@ -27,7 +43,29 @@ fi
 
 # Pick a VCD: prefer merged.vcd from /coverage-vcd-merge, else first under <DUT>/
 TARGET=""
-if [ -f "${DUT}/cov/merged.vcd" ]; then
+if [ -n "${VCD_PATH}" ]; then
+    if [ ! -f "${VCD_PATH}" ]; then
+        echo "ERROR: VCD not found: ${VCD_PATH}"
+        exit 1
+    fi
+    case "${VCD_PATH}" in
+        *.[Vv][Cc][Dd]) ;;
+        *)
+            echo "ERROR: VCD path must end with .vcd: ${VCD_PATH}"
+            exit 1
+            ;;
+    esac
+    DUT_ROOT="$(python3 -c 'from pathlib import Path; import sys; print(Path(sys.argv[1]).resolve())' "${DUT}")"
+    VCD_REAL="$(python3 -c 'from pathlib import Path; import sys; print(Path(sys.argv[1]).resolve())' "${VCD_PATH}")"
+    case "${VCD_REAL}" in
+        "${DUT_ROOT}"/*) ;;
+        *)
+            echo "ERROR: VCD outside DUT: ${VCD_PATH}"
+            exit 1
+            ;;
+    esac
+    TARGET="${VCD_PATH}"
+elif [ -f "${DUT}/cov/merged.vcd" ]; then
     TARGET="${DUT}/cov/merged.vcd"
 else
     while IFS= read -r line; do

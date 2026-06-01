@@ -8,7 +8,7 @@
      Windows networks. Keep preferred web font names for machines that have
      them installed locally, but do not depend on remote font downloads. */
   --windows-sans: 'Segoe UI Variable Text', 'Segoe UI', 'Malgun Gothic', 'Noto Sans KR', Arial, 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
-  --windows-mono: 'Cascadia Mono', 'Cascadia Code', Consolas, 'D2Coding', 'Courier New', 'Segoe UI Emoji', 'Segoe UI Symbol', monospace;
+  --windows-mono: Consolas, 'Cascadia Mono', 'Cascadia Code', 'D2Coding', 'Courier New', 'Segoe UI Emoji', 'Segoe UI Symbol', monospace;
   /* SF Mono first so the whole UI matches the orchestrator-chat look the
      user signed off on (doc/orch-chat-feel-demo.html used
      ui-monospace, SFMono-Regular, Menlo). JetBrains/IBM Plex remain as
@@ -82,7 +82,9 @@ html[data-platform="windows"] {
   --mono: var(--mono-base);
   --code-font: var(--mono-base);
   --enh-sans: 'Segoe UI Variable Text', 'Segoe UI', 'Malgun Gothic', sans-serif;
-  --enh-mono: 'Cascadia Mono', 'Cascadia Code', Consolas, monospace;
+  --enh-mono: Consolas, 'Cascadia Mono', 'Cascadia Code', monospace;
+  --ui-text-weight: 600;
+  --ui-control-weight: 600;
 }
 
 /* ── Enhancement tokens — Light-mode overrides ───────────────────────────
@@ -109,21 +111,31 @@ html[data-font="mono"],
 [data-font="mono"] {
   /* Opt-in to the old all-monospace EDA-workstation look */
   --mono: var(--mono-base);
+  --code-font: var(--mono-base);
+  --enh-mono: var(--mono-base);
 }
 html[data-font="sans"],
 [data-font="sans"] {
   --mono: var(--sans);
+  --code-font: var(--sans);
+  --enh-mono: var(--sans);
+  --enh-sans: var(--sans);
 }
 html[data-font="windows"],
 [data-font="windows"] {
   --mono: var(--windows-sans);
   --code-font: var(--windows-mono);
+  --enh-mono: var(--windows-mono);
+  --enh-sans: var(--windows-sans);
   --ui-text-weight: 500;
   --ui-control-weight: 600;
 }
 html[data-font="system"],
 [data-font="system"] {
   --mono: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --code-font: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --enh-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --enh-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 [data-font-scale="compact"] {
   --ui-font-size: 13px;
@@ -364,7 +376,7 @@ html[data-platform="windows"][data-font-scale="xl"] {
   font-weight: var(--ui-text-weight);
   letter-spacing: 0;
   font-feature-settings: "calt" 0, "liga" 0;
-  text-rendering: optimizeLegibility;
+  text-rendering: auto;
   -webkit-font-smoothing: auto;
   -moz-osx-font-smoothing: auto;
 }
@@ -404,7 +416,7 @@ html[data-platform="windows"][data-font-scale="xl"] {
 }
 
 html[data-platform="windows"] .app {
-  text-rendering: optimizeLegibility;
+  text-rendering: auto;
   -webkit-font-smoothing: auto;
   -moz-osx-font-smoothing: auto;
   letter-spacing: 0;
@@ -3020,17 +3032,12 @@ html[data-platform="windows"] .app {
   font-variant-numeric: tabular-nums;
 }
 
-/* Crisper monospace on Windows. Chromium-on-Windows uses sub-pixel
-   positioning by default which makes Cascadia / Consolas appear
-   slightly fuzzy at small sizes. Forcing `text-rendering: geometricPrecision`
-   on code blocks aligns each glyph to integer pixels — small win,
-   especially in the file preview pane. */
 .code,
 pre,
 code,
 .md-code,
 .tool-card-args {
-  text-rendering: geometricPrecision;
+  text-rendering: auto;
 }
 
 /* OrchestratorChatPanel (right sidebar Chat tab) hooks. Inline

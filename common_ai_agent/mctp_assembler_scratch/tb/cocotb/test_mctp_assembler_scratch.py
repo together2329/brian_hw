@@ -951,7 +951,9 @@ async def _apply_goal_preconditions(dut, manifest: dict[str, Any], goal: dict[st
     actual scoreboard sample.
     """
     if _needs_mctp_control_setup(goal, stimulus):
-        ctrl = 0x1
+        tu_bytes = int(stimulus.get("configured_tu_bytes", stimulus.get("scenario_payload_bytes", 64)) or 64)
+        tu_bytes = max(64, min(tu_bytes, 4096))
+        ctrl = 0x1 | (tu_bytes << 3)
         if int(stimulus.get("m_axi_arvalid", 0) or 0) or "readback" in _goal_text(goal):
             ctrl |= 0x4
         await _apb_write_one(dut, manifest, 0x0000, ctrl)

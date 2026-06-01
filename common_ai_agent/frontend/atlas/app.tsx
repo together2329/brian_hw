@@ -535,7 +535,6 @@ const App = () => {
     // fallback only because stale queued slash prompts can land late during
     // fast dropdown sweeps and split active_workflow from ACTIVE_WORKSPACE.
     const _activateAndDispatch = async () => {
-      const loadStartedAt = Date.now();
       let activated = false;
       try {
         const res = await fetch('/api/session/activate', {
@@ -558,12 +557,9 @@ const App = () => {
       if (syncWorkflow && !activated) activateBackendWorkflow(wf, namespace);
       if (workflowChanged) {
         if (!preserveRunning) setAgentRunningState(false);
-        const delay = Math.max(0, 450 - (Date.now() - loadStartedAt));
-        setTimeout(() => {
-          setWfSwitching((cur: any) => (
-            cur && cur.to === wf && cur.ip === ip ? null : cur
-          ));
-        }, delay);
+        setWfSwitching((cur: any) => (
+          cur && cur.to === wf && cur.ip === ip ? null : cur
+        ));
       }
     };
     _activateAndDispatch();

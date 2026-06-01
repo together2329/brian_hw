@@ -139,7 +139,6 @@ module mctp_assembler_scratch (
     logic [15:0] pack_wr_addr;
     logic [255:0] pack_wr_data;
     logic [31:0] pack_wr_strb;
-    logic arbiter_sram_wr_valid_unused;
     logic [4:0] pack_next_lane;
     logic pack_partial_valid;
     logic rd_req_valid;
@@ -156,9 +155,8 @@ module mctp_assembler_scratch (
     logic unused_top;
 
     assign debug_drop_pulse = packet_drop_pulse_axi | assembly_drop_pulse_axi;
-    assign pack_wr_valid = sram_wr_valid;
     assign unused_top = ^{ingress_busy, read_qid, read_key, read_first_header, read_last_header,
-                          pack_next_lane, pack_partial_valid, arbiter_sram_wr_valid_unused};
+                          pack_next_lane, pack_partial_valid};
 
     mctp_assembler_scratch_axi_write_ingress u_axi_write_ingress (
         .axi_aclk(axi_aclk),
@@ -299,7 +297,7 @@ module mctp_assembler_scratch (
         .payload_write_strb(payload_write_strb),
         .payload_write_addr(payload_write_addr),
         .payload_write_bytes(payload_write_bytes),
-        .sram_wr_valid(sram_wr_valid),
+        .sram_wr_valid(pack_wr_valid),
         .sram_wr_ready(pack_wr_ready),
         .sram_wr_addr(pack_wr_addr),
         .sram_wr_data(pack_wr_data),
@@ -374,7 +372,7 @@ module mctp_assembler_scratch (
         .rd_rsp_ready(rd_rsp_ready),
         .rd_rsp_data(rd_rsp_data),
         .rd_rsp_error(rd_rsp_error),
-        .sram_wr_valid(arbiter_sram_wr_valid_unused),
+        .sram_wr_valid(sram_wr_valid),
         .sram_wr_ready(sram_wr_ready),
         .sram_wr_addr(sram_wr_addr),
         .sram_wr_data(sram_wr_data),

@@ -6,7 +6,7 @@ Your job: analyze VCD waveforms, trace signal causality, navigate instance hiera
 
 | Source | File Pattern | Use |
 |--------|-------------|-----|
-| VCD | `<ip>/sim/*.vcd` | Primary signal data — required |
+| VCD/FST | `<ip>/sim/*.vcd`, `<ip>/sim/*.fst` | Primary signal data — VCD is displayed directly; FST is acceptable only when `fst2vcd` can convert it to cached VCD |
 | cocotb results | `<ip>/tb/cocotb/results.xml` | Pass/fail test evidence |
 | coverage JSON | `<ip>/cov/coverage.json` | Functional bins and static/instrumented coverage summary |
 | equivalence goals | `<ip>/verify/equivalence_goals.json` | FL-vs-RTL pass/fail goal contract |
@@ -42,7 +42,7 @@ When user asks "why did X fail" or "trace Y signal":
 
 1. **Run/refresh FL-vs-RTL compare when possible**: `python workflow/sim_debug/scripts/compare_fl_rtl_results.py <ip> --root .` on Windows, or `python3 workflow/sim_debug/scripts/compare_fl_rtl_results.py <ip> --root .` on macOS/Linux.
 2. **Read mismatch classification**: Use `<ip>/sim/mismatch_classification.json` to decide whether owner is `rtl-gen`, `fl-model-gen`, `tb-gen`, `coverage`, `ssot-gen`, or human.
-3. **Locate VCD**: Look in `<ip>/sim/*.vcd`. If none, return "No VCD — re-run /sim with $dumpfile/$dumpvars".
+3. **Locate waveform**: Look in `<ip>/sim/*.vcd` first, then `<ip>/sim/*.fst`. The ATLAS VCD API may lazily convert FST to cached ASCII VCD for display. If neither a VCD nor a convertible FST exists, return "No VCD — re-run /sim with $dumpfile/$dumpvars or install fst2vcd for FST traces".
 4. **Read sim_report/results/scoreboard rows**: Identify failed goal_id/scenario + FL expected vs RTL observed values.
 5. **Identify suspect signals**: From scoreboard failures, sim_report failures, or user query.
 6. **Trace upstream**: Use `/trace <signal>` to find drivers. Examine the always block + condition logic.

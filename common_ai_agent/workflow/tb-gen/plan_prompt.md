@@ -22,22 +22,24 @@ Reference: `workflow/ssot-gen/rules/ssot-template.yaml` for the canonical produc
 1. Parse `test_requirements.scenarios[]` → one test/subtest per scenario using the scenario's actual id/name, stimulus, and expected result
 2. Parse `io_list` → DUT signals, protocol helpers, clock period, reset sequence, and legal ready/valid/backpressure behavior
    - **Clock-Domain Synchronization Rule**: every planned driver, monitor, checker, and scoreboard sample must be synchronized to the signal's declared clock domain from SSOT (`io_list.clock_domains`, `cycle_model.clock`, or the RTL contract). The plan must name the clock domain used for each DUT input drive and output sample, and must escalate `[SSOT TBD REPORT] -> ssot-gen` when the clock domain or CDC/handshake rule is absent.
-3. Parse `features` + `dataflow` → scoreboard model and expected output computation
-4. Parse `registers.register_list[]` only if registers exist; otherwise record explicit no-CSR policy
-5. Parse `memory.instances[]`, `interrupts.sources[]`, and `fsm` → memory model/checkers, interrupt tests, state/transition coverage
-6. Parse `parameters` → TB parameter declarations and signal widths
-7. Parse `timing`, `security`, `error_handling`, `debug_observability`, and `integration` → latency/timeouts, negative tests, waveform probes, and protocol model topology
-8. Parse `dft`, `synthesis`, and `quality_gates` → identify evidence that TB can produce versus EDA/signoff evidence that must be escalated to downstream workflows
-9. Parse `filelist` and actual `<ip>/list/<ip>.f` → compile sources
-10. Plan sim loop with cocotb pytest by default for complex IPs, or SV simulator when SSOT/project requires it
-11. Use `/ssot-tb <module>` or `/ssot-tb-goal <module>` to load SSOT-specific todo structure, then refine detail/criteria from the current SSOT
+3. Classify TB complexity from `io_list`, `cycle_model`, `integration`, `memory`, `interrupts`, and `test_requirements`. For any non-trivial protocol, pipeline, memory, bus, accelerator, interrupt, backpressure, multi-beat, or multi-clock IP, plan a layered transaction environment: transaction schema, scenario sequences, clock-bound driver(s), clock-bound monitor(s), FunctionalModel/reference adapter, latency-aware scoreboard, coverage collector, env wiring, and tests. Flat direct pin-poke tests are allowed only for reset/default or explicitly trivial combinational/CSR smoke checks.
+4. Parse `features` + `dataflow` → scoreboard model and expected output computation
+5. Parse `cycle_model` → accept/sample points, fixed or variable latency, valid/ready backpressure, ordering, response IDs, channels, multi-beat packet boundaries, timeout limits, and waveform expectations. If any timing or matching fact required by the planned transaction scoreboard is absent, plan `[SSOT TBD REPORT] -> ssot-gen` instead of guessing.
+6. Parse `registers.register_list[]` only if registers exist; otherwise record explicit no-CSR policy
+7. Parse `memory.instances[]`, `interrupts.sources[]`, and `fsm` → memory model/checkers, interrupt tests, state/transition coverage
+8. Parse `parameters` → TB parameter declarations and signal widths
+9. Parse `timing`, `security`, `error_handling`, `debug_observability`, and `integration` → latency/timeouts, negative tests, waveform probes, and protocol model topology
+10. Parse `dft`, `synthesis`, and `quality_gates` → identify evidence that TB can produce versus EDA/signoff evidence that must be escalated to downstream workflows
+11. Parse `filelist` and actual `<ip>/list/<ip>.f` → compile sources
+12. Plan sim loop with cocotb pytest by default for complex IPs, or SV simulator when SSOT/project requires it
+13. Use `/ssot-tb <module>` or `/ssot-tb-goal <module>` to load SSOT-specific todo structure, then refine detail/criteria from the current SSOT
 
 ### Generic IP Requirement
 
 Plan for any leaf IP whose SSOT and RTL are present. If the IP kind is unfamiliar, do not request a new fixed TB template. Instead:
 
 1. Generate protocol drivers from `io_list`.
-2. Generate checks from `test_requirements`, `features`, and `dataflow`.
+2. Generate transaction models, sequences, monitors, and latency-aware scoreboard matching from `function_model`, `cycle_model`, `test_requirements`, `features`, and `dataflow`.
 3. Generate functional bins from scenarios/features/FSM/error paths.
 4. Run simulation, repair TB-only failures, and escalate RTL/spec failures precisely.
 

@@ -72,9 +72,7 @@ export function useAtlasAgentRunning(): AtlasAgentRunning {
       }));
       subs.push(window.backend.subscribe('workspace_changed', (m: any) => {
         const loaded = m?.workspace || '';
-        setTimeout(() => {
-          setWfSwitching((cur: any) => (!loaded || (cur && cur.to === loaded)) ? null : cur);
-        }, 300);
+        setWfSwitching((cur: any) => (!loaded || (cur && cur.to === loaded)) ? null : cur);
         setAgentRunningState(false);
       }));
     } catch (_) {}

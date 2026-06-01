@@ -18,6 +18,8 @@ SSOT mode activates when `<ip>/yaml/<ip>_config.yaml` (or `<ip>_ssot.yaml`) exis
 | `memory.instances[]` | Memory fill/verify tasks | Template: {% for mem in instances %} |
 | `features[]` | Expected value computation | LLM-written |
 | `dataflow` | Scoreboard reference model | LLM-written |
+| `function_model` | FunctionalModel/reference adapter | LLM-written |
+| `cycle_model` | Latency, handshake, ordering, and observe points | LLM-written |
 | `top_module` | TB module naming | Direct mapping |
 
 ## TB File Structure (SSOT-driven)
@@ -25,6 +27,17 @@ SSOT mode activates when `<ip>/yaml/<ip>_config.yaml` (or `<ip>_ssot.yaml`) exis
 ```
 [CODE_FENCE(22 chars)]
 ```
+
+## Layered Transaction TB Rule
+
+Complex SSOTs must generate transaction-layer TB structure before scenario tests are written:
+
+1. `transactions.py` or equivalent SV structs/classes define operation kind, scenario id, payload, address/channel/ID fields, and expected response metadata.
+2. `sequences.py` or scenario tasks emit transactions from `test_requirements.scenarios[]`; direct pin pokes are limited to reset/default or explicitly trivial combinational/CSR smoke checks.
+3. Drivers and monitors bind each transaction interface to the declared clock domain from SSOT and convert between transactions and DUT pins.
+4. The latency-aware scoreboard uses pending queues or match tables for SSOT latency, valid/ready backpressure, ordering, response IDs, channels, and multi-beat packet boundaries.
+5. The scoreboard compares only at `cycle_model` observe points; same-cycle comparison is legal only when SSOT declares same-cycle combinational output.
+6. Missing latency, handshake, ordering, matching, or CDC facts produce `[SSOT TBD REPORT] -> ssot-gen`.
 
 ## Test Case Generation Order
 

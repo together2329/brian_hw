@@ -23,6 +23,10 @@ import {
   type CSSProperties,
   type KeyboardEvent,
   type ChangeEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
 } from 'react';
 import { orchestratorFlowFromFeed } from './workspace-tool-theme';
 import { ToolCard, FeedEntry, LiveAgentPreview } from './workspace-feed-cards';
@@ -358,6 +362,38 @@ export const WorkspacePromptRow = ({
   workflowForExecMode,
   defaultWorkflowForExecMode,
 }: WorkspacePromptRowProps) => {
+  const [draft, setDraft] = useState<string>(() => String(input || ''));
+  const draftRef = useRef<string>(draft);
+  const syncTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
+  const resizeInput = useCallback((el: HTMLTextAreaElement | null) => {
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 192) + 'px';
+  }, []);
+  const cancelDeferredInputSync = useCallback(() => {
+    if (syncTimerRef.current === null) return;
+    window.clearTimeout(syncTimerRef.current);
+    syncTimerRef.current = null;
+  }, []);
+  const applyDraft = useCallback((next: string, syncParent = true) => {
+    draftRef.current = next;
+    setDraft(next);
+    if (!syncParent) return;
+    cancelDeferredInputSync();
+    syncTimerRef.current = window.setTimeout(() => {
+      syncTimerRef.current = null;
+      setInput(draftRef.current);
+    }, 50);
+  }, [cancelDeferredInputSync, setInput]);
+  useEffect(() => {
+    const next = String(input || '');
+    if (next === draftRef.current) return;
+    cancelDeferredInputSync();
+    draftRef.current = next;
+    setDraft(next);
+    requestAnimationFrame(() => resizeInput(inputRef.current));
+  }, [cancelDeferredInputSync, input, inputRef, resizeInput]);
+  useEffect(() => () => cancelDeferredInputSync(), [cancelDeferredInputSync]);
   const orchestratorIdle = (window as any).AtlasBannerLogic
     ? (window as any).AtlasBannerLogic.shouldShowSelectIpBanner({ workflow, activeIp })
     : (workflow === 'orchestrator' && (!activeIp || String(activeIp).toLowerCase() === 'default'));
@@ -452,21 +488,35 @@ export const WorkspacePromptRow = ({
             {inputRouteLabel}
           </span>
         ) : null}
-        <textarea ref={inputRef} value={input}
+        <textarea ref={inputRef} value={draft}
           rows={1}
           disabled={workflowReadyBlocking}
           onChange={(e: ChangeEvent<HTMLTextAreaElement>) => {
             inputHistoryIndexRef.current = null;
             inputHistoryDraftRef.current = '';
-            setInput(e.target.value);
-            // Auto-grow up to 8 rows (~12em). Shrinks back when the user
-            // deletes content. min-height keeps the row aligned with the
-            // ❯ prompt sigil even when empty.
-            const el = e.target;
-            el.style.height = 'auto';
-            el.style.height = Math.min(el.scrollHeight, 192) + 'px';
+            applyDraft(e.target.value);
+            resizeInput(e.target);
           }}
-          onKeyDown={onKey}
+          onKeyDown={(e: KeyboardEvent<HTMLTextAreaElement>) => {
+            if (e.key === 'Enter' && e.altKey) {
+              e.preventDefault();
+              const el = e.currentTarget;
+              const lo = el.selectionStart;
+              const hi = el.selectionEnd;
+              const next = el.value.slice(0, lo) + '\n' + el.value.slice(hi);
+              applyDraft(next);
+              requestAnimationFrame(() => {
+                el.selectionStart = el.selectionEnd = lo + 1;
+                resizeInput(el);
+              });
+              return;
+            }
+            if (e.key === 'Enter' && !e.shiftKey) {
+              cancelDeferredInputSync();
+              setInput(draftRef.current);
+            }
+            onKey(e);
+          }}
           placeholder={workflowReadyBlocking
             ? `Preparing ${workflowReady.target || 'workflow'}...`
             : (pendingQcard

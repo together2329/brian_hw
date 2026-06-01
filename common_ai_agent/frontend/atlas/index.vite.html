@@ -16,7 +16,7 @@
     } catch (_) {}
   })();
 </script>
-<link rel="stylesheet" href="/styles.css?v=atlas-20260521-windows-fonts">
+<link rel="stylesheet" href="/styles.css?v=atlas-20260601-sharp-text">
 <style>
   html, body {
     margin: 0; padding: 0;
@@ -234,8 +234,8 @@
       let key = 'auto';
       try {
         let saved = localStorage.getItem('atlasResolution');
-        const migrationKey = 'atlasResolutionMigratedSharpText';
-        if (saved === '1920x1080' && !localStorage.getItem(migrationKey)) {
+        const migrationKey = 'atlasResolutionMigratedSharpText2';
+        if (saved && saved !== 'auto' && !localStorage.getItem(migrationKey)) {
           saved = 'auto';
           localStorage.setItem('atlasResolution', 'auto');
           localStorage.setItem(migrationKey, '1');

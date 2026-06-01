@@ -2956,6 +2956,8 @@ def create_app():
     _register_coverage_report_routes(
         app,
         PROJECT_ROOT=PROJECT_ROOT,
+        WORKFLOW_ROOT=WORKFLOW_ROOT,
+        _python_cmd=_python_cmd,
         _safe=_safe,
         _parse_lcov_summary=_parse_lcov_summary,
         _choose_coverage_ip_dir=_choose_coverage_ip_dir,

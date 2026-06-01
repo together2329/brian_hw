@@ -21,48 +21,62 @@ module mctp_assembler_scratch_descriptor_queue (
     output logic [127:0]                                     read_first_header,
     output logic [127:0]                                     read_last_header
 );
-    logic [7:0] packet_drop_reason;
-    logic debug_drop_pulse;
-    logic firmware_visible_descriptor_metadata;
-    logic metadata_visible;
-    logic unused_descriptor_evidence;
+    localparam DESC_DEPTH = 4;
 
-    assign packet_drop_reason = `MCTP_ASSEMBLER_SCRATCH_DROP_NONE;
-    assign debug_drop_pulse = 1'b0;
-    assign firmware_visible_descriptor_metadata = descriptor_valid;
-    assign metadata_visible = descriptor_valid;
-    assign unused_descriptor_evidence = ^{packet_drop_reason, debug_drop_pulse,
-                                          firmware_visible_descriptor_metadata,
-                                          metadata_visible};
+    logic [3:0] qid_q [0:DESC_DEPTH-1];
+    logic [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] base_q [0:DESC_DEPTH-1];
+    logic [12:0] bytes_q [0:DESC_DEPTH-1];
+    logic [17:0] key_q [0:DESC_DEPTH-1];
+    logic [127:0] first_header_q [0:DESC_DEPTH-1];
+    logic [127:0] last_header_q [0:DESC_DEPTH-1];
+    logic [1:0] rd_ptr_q;
+    logic [1:0] wr_ptr_q;
+    logic push_ok;
+    logic pop_ok;
+    integer reset_i;
+
+    assign descriptor_valid = descriptor_count != 4'd0;
+    assign descriptor_full = descriptor_count >= 4'd4;
+    assign push_ok = descriptor_push & (!descriptor_full | pop_ok);
+    assign pop_ok = descriptor_pop & descriptor_valid;
+    assign read_qid = descriptor_valid ? qid_q[rd_ptr_q] : 4'd0;
+    assign read_base = descriptor_valid ? base_q[rd_ptr_q] : 16'd0;
+    assign read_bytes = descriptor_valid ? bytes_q[rd_ptr_q] : 13'd0;
+    assign read_key = descriptor_valid ? key_q[rd_ptr_q] : 18'd0;
+    assign read_first_header = descriptor_valid ? first_header_q[rd_ptr_q] : 128'd0;
+    assign read_last_header = descriptor_valid ? last_header_q[rd_ptr_q] : 128'd0;
 
     always @(posedge axi_aclk or negedge axi_aresetn) begin
         if (!axi_aresetn) begin
-            descriptor_valid <= 1'b0;
-            descriptor_full <= 1'b0;
+            for (reset_i = 0; reset_i < DESC_DEPTH; reset_i = reset_i + 1) begin
+                qid_q[reset_i] <= 4'd0;
+                base_q[reset_i] <= 16'd0;
+                bytes_q[reset_i] <= 13'd0;
+                key_q[reset_i] <= 18'd0;
+                first_header_q[reset_i] <= 128'd0;
+                last_header_q[reset_i] <= 128'd0;
+            end
             descriptor_count <= 4'd0;
-            read_qid <= 4'd0;
-            read_base <= 16'd0;
-            read_bytes <= 13'd0;
-            read_key <= 18'd0;
-            read_first_header <= 128'd0;
-            read_last_header <= 128'd0;
+            rd_ptr_q <= 2'd0;
+            wr_ptr_q <= 2'd0;
         end else begin
-            if (descriptor_pop & descriptor_valid) begin
-                descriptor_valid <= 1'b0;
-                descriptor_full <= 1'b0;
-                descriptor_count <= 4'd0;
+            if (push_ok) begin
+                qid_q[wr_ptr_q] <= descriptor_qid;
+                base_q[wr_ptr_q] <= descriptor_base;
+                bytes_q[wr_ptr_q] <= descriptor_bytes;
+                key_q[wr_ptr_q] <= descriptor_key;
+                first_header_q[wr_ptr_q] <= descriptor_first_header;
+                last_header_q[wr_ptr_q] <= descriptor_last_header;
+                wr_ptr_q <= wr_ptr_q + 2'd1;
             end
-            if (descriptor_push & (~descriptor_valid | descriptor_pop)) begin
-                descriptor_valid <= 1'b1;
-                descriptor_full <= 1'b1;
-                descriptor_count <= 4'd1;
-                read_qid <= descriptor_qid;
-                read_base <= descriptor_base;
-                read_bytes <= descriptor_bytes;
-                read_key <= descriptor_key | {17'd0, unused_descriptor_evidence & 1'b0};
-                read_first_header <= descriptor_first_header;
-                read_last_header <= descriptor_last_header;
+            if (pop_ok) begin
+                rd_ptr_q <= rd_ptr_q + 2'd1;
             end
+            case ({push_ok, pop_ok})
+                2'b10: descriptor_count <= descriptor_count + 4'd1;
+                2'b01: descriptor_count <= descriptor_count - 4'd1;
+                default: descriptor_count <= descriptor_count;
+            endcase
         end
     end
 endmodule

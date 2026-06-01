@@ -1766,7 +1766,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   // TYPED deps above — the old `deps as any` cast (which left setStreamText
   // undefined at runtime) is gone. setStreamText is the data hook's OWN state.
   const submitMsg = useCallback((cmd?: any) => {
-    const raw = String(cmd ?? input).trim();
+    const raw = String(cmd ?? inputRef.current?.value ?? input).trim();
     if (!raw) return;
     requestFeedScrollToBottom();
 
@@ -2616,7 +2616,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     let idx = inputHistoryIndexRef.current;
     if (idx === null || idx === undefined) {
       if (delta > 0) return false;
-      inputHistoryDraftRef.current = input;
+      inputHistoryDraftRef.current = String(inputRef.current?.value ?? input);
       idx = inputHistory.length - 1;
     } else {
       idx += delta;
@@ -2699,7 +2699,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       }
       if (!e.shiftKey) {
         e.preventDefault();
-        submitMsg();
+        submitMsg(e.currentTarget?.value ?? input);
       }
       // Shift+Enter: textarea native handles newline; onChange fires auto-grow.
     }
