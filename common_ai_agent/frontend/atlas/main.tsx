@@ -2,9 +2,9 @@
 //
 // This replaces the legacy <script type="text/babel" data-presets="react">
 // chain from index.html (in-browser Babel transpilation of the .jsx files).
-// The side-effect imports below are ordered to MIRROR that legacy index.html
-// script order exactly — each module registers its globals / components as a
-// side effect, and later modules depend on earlier ones being present.
+// The modules below are loaded to MIRROR that legacy index.html script order
+// exactly — each module registers its globals / components as a side effect,
+// and later modules depend on earlier ones being present.
 //
 // IMPORTANT ordering rules:
 //   1. "./_react-global" MUST be imported FIRST so that window.React and
@@ -17,38 +17,48 @@
 
 import "./_react-global";
 
-import "./login";
-import "./axi-dma-mock";
-import "./data";
-import "./shared";
-import "./ui-utils";
-import "./ssot-doc";
-import "./workflow-report";
-import "./preview-pane";
-import "./block-diagram";
-import "./ssot-digest";
-import "./ssot-digest-content";
-import "./ssot-review";
-import "./ssot-qa-board";
-import "./agent-status-panel";
-import "./workspace-panels";
-import "./progress-todo-panels";
-import "./debug-shared";
-import "./debug-inline-cards";
-import "./sim-debug";
-import "./debug-tab";
-import "./git-tab";
-import "./perforce-sync";
-import "./coverage";
-import "./user-dashboard";
-import "./workspace";
-import "./soc-data";
-import "./soc-shared";
-import "./soc-architect";
-import "./pipeline";
-import "./pipe-width";
-import "./pipeline-helpers";
-import "./pipeline-trace";
-import "./pipeline-flow-stage";
-import "./guide";
-import "./app";
+async function bootstrapAtlas(): Promise<void> {
+  await import("./login");
+  await import("./axi-dma-mock");
+  await import("./data");
+  await import("./shared");
+  await import("./ui-utils");
+  await import("./ssot-doc");
+  await import("./workflow-report");
+  await import("./preview-pane");
+  await import("./block-diagram");
+  await import("./ssot-digest");
+  await import("./ssot-digest-content");
+  await import("./ssot-review");
+  await import("./ssot-qa-board");
+  await import("./agent-status-panel");
+  await import("./workspace-panels");
+  await import("./progress-todo-panels");
+  await import("./debug-shared");
+  await import("./debug-inline-cards");
+  await import("./sim-debug");
+  await import("./debug-tab");
+  await import("./git-tab");
+  await import("./perforce-sync");
+  await import("./coverage");
+  await import("./user-dashboard");
+  await import("./workspace");
+  await import("./soc-data");
+  await import("./soc-shared");
+  await import("./soc-architect");
+  await import("./pipeline");
+  await import("./pipe-width");
+  await import("./pipeline-helpers");
+  await import("./pipeline-trace");
+  await import("./pipeline-flow-stage");
+  await import("./guide");
+  await import("./app");
+}
+
+bootstrapAtlas().catch((error) => {
+  if (typeof window.__atlasReportError === 'function') {
+    window.__atlasReportError('bootstrap failed', error?.stack || error?.message || String(error));
+  } else {
+    console.error(error);
+  }
+});

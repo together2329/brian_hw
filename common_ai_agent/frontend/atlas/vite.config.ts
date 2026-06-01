@@ -28,6 +28,32 @@ export default defineConfig({
         index: 'index.vite.html',
         lobby: 'lobby.vite.html',
       },
+      output: {
+        manualChunks(id) {
+          const file = id.replace(/\\/g, '/');
+          if (file.includes('/node_modules/react') || file.includes('/node_modules/scheduler')) {
+            return 'vendor-react';
+          }
+          if (file.includes('/node_modules/')) {
+            return 'vendor';
+          }
+          if (file.includes('/frontend/atlas/workspace')) {
+            return 'atlas-workspace';
+          }
+          if (file.includes('/frontend/atlas/sim-debug')) {
+            return 'atlas-sim-debug';
+          }
+          if (file.includes('/frontend/atlas/pipeline')) {
+            return 'atlas-pipeline';
+          }
+          if (file.includes('/frontend/atlas/soc-')) {
+            return 'atlas-soc';
+          }
+          if (file.includes('/frontend/atlas/ssot-')) {
+            return 'atlas-ssot';
+          }
+        },
+      },
     },
   },
   test: {

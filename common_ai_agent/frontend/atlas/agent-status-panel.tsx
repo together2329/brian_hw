@@ -515,7 +515,7 @@ const AgentStatusPanel = ({ intent, workflow, activeIp = '', agentAlive = false,
           </div>
         )}
         {(_ctx.provider || _ctx.baseUrl) && (
-          <div style={{ display: 'grid', gridTemplateColumns: '64px 1fr', gap: 8, marginBottom: 4, fontSize: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '64px 1fr', gap: 8, marginBottom: 4, fontSize: 'var(--ui-font-size)' }}>
             <span className="mute">via</span>
             <span className="mute trunc" title={_ctx.baseUrl}>
               {_ctx.provider || ''}{_ctx.baseUrl ? ' · ' + _ctx.baseUrl.replace(/^https?:\/\//, '') : ''}
@@ -531,7 +531,7 @@ const AgentStatusPanel = ({ intent, workflow, activeIp = '', agentAlive = false,
             </span>
             <span className="mute"> / {ctxMaxLabel} · </span>
             <span className={pct > 70 ? 'warn' : 'ok'} style={{ display: 'inline-block', minWidth: 30, textAlign: 'right' }}>{pct}%</span>
-            <span className="mute" style={{ fontSize: 9, marginLeft: 4 }}>worker</span>
+            <span className="mute" style={{ fontSize: 'var(--ui-control-font-size)', marginLeft: 4 }}>worker</span>
           </span>
         </div>
         <div style={{ marginLeft: 72, marginBottom: 10, height: 4, background: 'var(--bg-2)', borderRadius: 1, overflow: 'hidden' }}>
@@ -565,19 +565,19 @@ const AgentStatusPanel = ({ intent, workflow, activeIp = '', agentAlive = false,
           const cTot = numericValue(_ctx.costUsd, 0) > 0 ? numericValue(_ctx.costUsd, 0) : cCalc;
           return (
             <>
-              <div className="mute" style={{ fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>
+              <div className="mute" style={{ fontSize: 'var(--ui-font-size)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>
                 Cost
-                <span className="mute" style={{ fontSize: 9, fontWeight: 400, letterSpacing: 0, textTransform: 'none', marginLeft: 4 }}>
+                <span className="mute" style={{ fontSize: 'var(--ui-control-font-size)', fontWeight: 400, letterSpacing: 0, textTransform: 'none', marginLeft: 4 }}>
                   · {(_ctx.costScope === 'user_ip' ? `user/IP${_ctx.costIp ? ` ${_ctx.costIp}` : ''}` : 'worker session')}
                   {_ctx.costCalls ? ` · ${_ctx.costCalls} calls` : ''}
                 </span>
                 {_ctx.pricing && (
-                  <span className="mute" style={{ fontSize: 9, fontWeight: 400, letterSpacing: 0, textTransform: 'none', marginLeft: 4 }}>
+                  <span className="mute" style={{ fontSize: 'var(--ui-control-font-size)', fontWeight: 400, letterSpacing: 0, textTransform: 'none', marginLeft: 4 }}>
                     @ ${pi}/${pc}/${po} per 1M
                   </span>
                 )}
               </div>
-              <div data-role="cost" style={{ display: 'grid', gridTemplateColumns: '64px minmax(56px, 1fr) 76px', gap: 4, fontSize: 'var(--ui-control-font-size)', lineHeight: 1.55, fontVariantNumeric: 'tabular-nums' }}>
+              <div data-role="cost" style={{ display: 'grid', gridTemplateColumns: '64px minmax(56px, 1fr) 76px', gap: 4, fontSize: 'var(--ui-font-size)', lineHeight: 1.55, fontVariantNumeric: 'tabular-nums' }}>
                 <span className="mute">Input</span>
                 <span style={{ color: 'var(--fg)', textAlign: 'right' }}>{fmt(ti)}</span>
                 <span style={{ color: 'var(--fg)', textAlign: 'right' }}>{usd(cIn)}</span>

@@ -160,6 +160,9 @@ export function useWorkspaceSession(deps: UseWorkspaceSessionDeps) {
       clearTimeout(workflowReadyTimeoutRef.current);
       workflowReadyTimeoutRef.current = null;
     }
+    if (workflowReadySeqRef.current === seq && switchGateRef.current) {
+      switchGateRef.current.markReady();
+    }
     updateWorkflowReady(seq, { phase: 'ready', message: 'Ready to receive input', ...(patch || {}) });
     dismissWorkflowReady(seq, delay);
   }, [dismissWorkflowReady, updateWorkflowReady]);

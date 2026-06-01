@@ -297,12 +297,7 @@ describe('submitMsg dispatch routing (the missing TDD gate)', () => {
     expect(usedOrchestrator).toBe(false);
   });
 
-  // (d) ACK NEVER CONFIRMS → input is HELD, not silently cleared.
-  // CATCHES THE STUB: the stub cleared the box on send with no ack handling, so
-  // heldSubmitRef would stay null and the text would be lost. Here we withhold the
-  // ack, fail it fast, and assert the input was preserved (heldSubmitRef set AND
-  // the textarea repopulated with the original text).
-  it('(d) when sendPrompt ack never confirms, the input is HELD (not silently cleared)', async () => {
+  it('(d) clears immediately after local send, then restores input if sendPrompt ack never confirms', async () => {
     const w = window as AnyWindow;
     w.ATLAS_EXEC_MODE = '';
     w.ACTIVE_SESSION = 'alice/myip/rtl_gen';
@@ -314,24 +309,19 @@ describe('submitMsg dispatch routing (the missing TDD gate)', () => {
     const textarea = container.querySelector('textarea') as HTMLTextAreaElement;
     await act(async () => {
       typeAndSubmit(container, 'unacknowledged prompt');
-      // sendPrompt ran and subscribed its ack listeners; now deterministically
-      // resolve the ack as a FAILED acceptance for the just-sent msg (drives
-      // waitForPromptAck → onMiss → holdUnacknowledgedInput) without a 7s wait.
       await Promise.resolve();
+    });
+
+    expect(textarea.value).toBe('');
+
+    await act(async () => {
       bk.failLastSendFast();
       await Promise.resolve();
       await Promise.resolve();
     });
 
-    // sendPrompt WAS attempted (this is not the not-ready path)...
     expect(bk.backend.send).toHaveBeenCalled();
-    // ...but because the ack never confirmed, the input is HELD. heldSubmitRef is
-    // internal to the hook, so assert its OBSERVABLE contract: the textarea was
-    // repopulated with the held text (holdSubmittedInput restores raw into the
-    // box via setInput) rather than emptied.
     expect(textarea.value).toBe('unacknowledged prompt');
-    // A held-input notice was appended to the feed (the "kept it in the input box"
-    // agent message), proving the held branch — not a silent send — executed.
     expect(container.textContent || '').toMatch(/Input not confirmed|kept it in the input box/i);
   });
 });

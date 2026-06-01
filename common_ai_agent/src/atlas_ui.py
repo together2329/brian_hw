@@ -10033,12 +10033,21 @@ def create_app():
                     continue
                 if t in ("prompt", "send") and msg.get("text"):
                     _txt = msg["text"].strip()
+                    _msg_id = str(msg.get("msg_id") or "").strip()
+                    _txt_preview = str(msg.get("text") or "")[:80].replace("\n", " ")
                     _session_raw = str(msg.get("session") or "").strip()
                     _session = session.session_id
                     if _session_raw:
                         _session = _prompt_target_session(_session_raw, msg)
                         if not _session:
-                            session.emit("error", message=f"invalid or forbidden session: {_session_raw!r}")
+                            for frame in _prompt_ack_frames(
+                                msg_id=_msg_id,
+                                text_preview=_txt_preview,
+                                session_id=session.session_id,
+                                ok=False,
+                                error=f"invalid or forbidden session: {_session_raw!r}",
+                            ):
+                                await websocket.send_json(frame)
                             continue
                         if _session != session.session_id:
                             bridge.bind_client(websocket, _session)
@@ -10052,8 +10061,6 @@ def create_app():
                     # ack within ~3s. Send the ack directly on this
                     # websocket before any session setup/spawn work so
                     # slow worker startup cannot trigger a duplicate send.
-                    _msg_id = str(msg.get("msg_id") or "").strip()
-                    _txt_preview = str(msg.get("text") or "")[:80].replace("\n", " ")
 
                     async def _send_prompt_acceptance(
                         *,

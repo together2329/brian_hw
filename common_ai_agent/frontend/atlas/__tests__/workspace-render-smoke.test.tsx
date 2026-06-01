@@ -49,6 +49,12 @@ const PassthroughPanel = ({ children }: { children?: unknown }) =>
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (children as any) ?? null;
 
+const AskUserPromptStub = ({ flowId, state }: { flowId?: string; state?: unknown }) => (
+  <div data-testid="ask-prompt-stub">
+    ask_user:{flowId}:{state ? 'ready' : 'missing'}
+  </div>
+);
+
 function installWindowStubs() {
   const w = window as AnyWindow;
 
@@ -61,6 +67,7 @@ function installWindowStubs() {
   ]) {
     w[name] = PassthroughPanel;
   }
+  w.AskUserPrompt = AskUserPromptStub;
 
   // `Kbd` is read from window with an inline fallback, but supply it anyway.
   w.Kbd = ({ children }: { children?: unknown }) => children ?? null;
@@ -242,6 +249,27 @@ describe('Workspace render smoke (the behavioral gate)', () => {
     });
 
     expect(scrollTop).toBe(1000);
+  });
+
+  it('surfaces ask_user websocket events as a pending Q&A prompt', async () => {
+    const { Workspace } = await import('../workspace.tsx');
+    const { getByTestId } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
+    const backend = (window as AnyWindow).backend;
+
+    await act(async () => {
+      backend._emit('ask_user', {
+        flow_id: 'flow-ask-1',
+        question: 'Pick an implementation path?',
+        kind: 'single',
+        options: [{ id: 'a', label: 'Use existing worker' }],
+      });
+    });
+
+    await waitFor(() => {
+      expect(getByTestId('ask-prompt-stub').textContent).toContain('flow-ask-1');
+    });
+    expect(getByTestId('ask-prompt-stub').textContent).toContain('ready');
+    expect((window as AnyWindow).QA_FLOWS['flow-ask-1'].question).toBe('Pick an implementation path?');
   });
 
   it('ignores NUL-only stream tokens so keepalives do not create blank running turns', async () => {

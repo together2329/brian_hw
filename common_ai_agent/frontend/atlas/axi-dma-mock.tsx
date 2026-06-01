@@ -222,3 +222,5 @@ type AxiDmaTestWindow = Window & {
     return _origFetch(input, init);
   };
 })();
+
+export {};

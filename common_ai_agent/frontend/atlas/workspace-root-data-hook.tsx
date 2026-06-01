@@ -94,6 +94,127 @@ import type { WorkspaceDataDeps } from './workspace-rootdata-telemetry';
 
 const w = window as any;
 
+const askText = (value: any, fallback = ''): string => {
+  const text = String(value ?? '').trim();
+  return text || fallback;
+};
+
+const askNumber = (value: any, fallback: number): number => {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+};
+
+const askKind = (value: any): string => {
+  const kind = String(value || '').toLowerCase();
+  if (kind === 'multi') return 'multi';
+  if (kind === 'input' || kind === 'text') return 'input';
+  return 'single';
+};
+
+const askOptionFrom = (option: any, index: number): any => {
+  const obj = option && typeof option === 'object' ? option : { label: option };
+  const id = askText(obj.id ?? obj.value ?? obj.key ?? obj.label, String(index + 1));
+  const label = askText(obj.label ?? obj.text ?? obj.title ?? obj.value, id);
+  return {
+    ...obj,
+    id,
+    label,
+    detail: askText(obj.detail ?? obj.description ?? obj.hint),
+    selected: !!obj.selected || !!obj.default || !!obj.locked,
+    locked: !!obj.locked,
+  };
+};
+
+const askQuestionFrom = (raw: any, index: number): any => {
+  const q = raw && typeof raw === 'object' ? raw : { question: raw };
+  const options = Array.isArray(q.options)
+    ? q.options.map((option: any, optIndex: number) => askOptionFrom(option, optIndex))
+    : [];
+  return {
+    ...q,
+    id: askText(q.id ?? q.decision_key ?? q.key, `q${index + 1}`),
+    question: askText(q.question ?? q.prompt ?? q.text, 'Answer required'),
+    subtitle: askText(q.subtitle ?? q.decision_label ?? q.label),
+    kind: askKind(q.kind),
+    multiline: !!q.multiline,
+    placeholder: askText(q.placeholder),
+    options,
+  };
+};
+
+const buildAskUserFlow = (message: any): any => {
+  const flowId = askText(message?.flow_id ?? message?.flowId);
+  if (!flowId) return null;
+  const session = normalizeUiSession(message?.session ?? message?.session_id ?? message?.namespace ?? '');
+  const ip = askText(message?.ip ?? ssotIpFromSession(session));
+  const wf = askText(message?.workflow ?? workflowFromSession(session));
+  const source = askText(message?.source);
+  const stage = askText(message?.stage ?? wf, 'ask_user');
+  const questions = Array.isArray(message?.questions)
+    ? message.questions.map((q: any, index: number) => askQuestionFrom(q, index))
+    : [];
+
+  if (questions.length) {
+    return {
+      flowId,
+      flow: {
+        flow_id: flowId,
+        batched: true,
+        questions,
+        stage,
+        step: askNumber(message?.step, 1),
+        total: askNumber(message?.total, questions.length),
+        session,
+        ip,
+        workflow: wf,
+        source,
+      },
+      state: {
+        batched: true,
+        active: 0,
+        states: questions.map((q: any) => ({
+          opts: (q.options || []).map((option: any) => ({ ...option })),
+          custom: '',
+        })),
+      },
+    };
+  }
+
+  const single = askQuestionFrom({
+    question: message?.question,
+    prompt: message?.prompt,
+    text: message?.text,
+    subtitle: message?.subtitle,
+    kind: message?.kind,
+    multiline: message?.multiline,
+    placeholder: message?.placeholder,
+    options: message?.options,
+  }, 0);
+  return {
+    flowId,
+    flow: {
+      flow_id: flowId,
+      question: single.question,
+      subtitle: single.subtitle,
+      kind: single.kind,
+      multiline: single.multiline,
+      placeholder: single.placeholder,
+      options: single.options,
+      stage,
+      step: askNumber(message?.step, 1),
+      total: askNumber(message?.total, 1),
+      session,
+      ip,
+      workflow: wf,
+      source,
+    },
+    state: {
+      opts: single.options.map((option: any) => ({ ...option })),
+      custom: '',
+    },
+  };
+};
+
 export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   const {
     dir,
@@ -1014,7 +1135,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     } else if (!_qcardActiveFlow && mainTab === 'qa' && workflow !== 'ssot-gen') {
       setMainTab('chat');
     }
-  }, [centerLayout, _qcardActiveFlow, _qcardSubmitted, workflow]);
+  }, [centerLayout, mainTab, _qcardActiveFlow, _qcardSubmitted, setMainTab, workflow]);
 
   const [askSel, setAskSel] = useState<number>(0);
 
@@ -1102,6 +1223,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     // when a toggle was just queued (e.g. single-kind Enter = toggle+submit)
     // and we'd otherwise see pre-toggle state.
     let snapshot: any = null;
+    requestFeedScrollToBottom();
     setQaState((s: any) => {
       const st = s[flowId];
       if (!st || st.submitted) return s;
@@ -1285,11 +1407,84 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     feedPinnedToBottomRef.current = distance <= 96;
   }, [feedRef]);
 
+  const requestFeedScrollToBottom = useCallback(() => {
+    feedPinnedToBottomRef.current = true;
+    const run = () => {
+      const el = feedRef.current;
+      if (!el) return;
+      el.scrollTop = el.scrollHeight;
+    };
+    run();
+    requestAnimationFrame(() => requestAnimationFrame(run));
+  }, [feedRef]);
+
   useEffect(() => {
     const el = feedRef.current;
     if (!el || !feedPinnedToBottomRef.current) return;
     el.scrollTop = el.scrollHeight;
   }, [feed, streamText, mainTab]);
+
+  useEffect(() => {
+    if (!w.backend || typeof w.backend.subscribe !== 'function') return undefined;
+    const unsubAsk = w.backend.subscribe('ask_user', (message: any) => {
+      const built = buildAskUserFlow(message);
+      if (!built) return;
+      const eventSession = normalizeUiSession(
+        message?.session_id || message?.session || message?.namespace || built.flow.session || '',
+      );
+      const eventIp = askText(message?.ip ?? built.flow.ip ?? ssotIpFromSession(eventSession));
+      const eventWorkflow = askText(message?.workflow ?? built.flow.workflow ?? workflowFromSession(eventSession));
+      if (eventSession && !eventMatchesCurrentSession(message)) {
+        activateAskUserSession(eventSession, eventIp, eventWorkflow);
+      }
+      w.QA_FLOWS = w.QA_FLOWS || {};
+      w.QA_FLOWS[built.flowId] = built.flow;
+      liveFeedStartedRef.current = true;
+      feedPinnedToBottomRef.current = true;
+      setQaState((state: any) => {
+        const cur = state[built.flowId];
+        if (cur && cur.submitted) return state;
+        return { ...state, [built.flowId]: built.state };
+      });
+      setFeed((items: any) => {
+        const list = Array.isArray(items) ? items : [];
+        if (list.some((entry: any) => entry?.kind === 'qcard' && entry.flowId === built.flowId)) {
+          return items;
+        }
+        return trimAtlasFeedState([
+          ...list,
+          { kind: 'qcard', flowId: built.flowId, createdAt: Date.now(), live: true },
+        ]);
+      });
+      if (centerLayout === 'tabbed') setMainTab('qa');
+      requestFeedScrollToBottom();
+    });
+    const closePending = (message: any) => {
+      const flowId = askText(message?.flow_id ?? message?.flowId);
+      if (!flowId) return;
+      setQaState((state: any) => {
+        const cur = state[flowId];
+        if (!cur || cur.submitted) return state;
+        return { ...state, [flowId]: { ...cur, submitted: true } };
+      });
+    };
+    const unsubAnswered = w.backend.subscribe('ask_user_answered', closePending);
+    const unsubClosed = w.backend.subscribe('ask_user_closed', closePending);
+    return () => {
+      try { if (unsubAsk) unsubAsk(); } catch (_) {}
+      try { if (unsubAnswered) unsubAnswered(); } catch (_) {}
+      try { if (unsubClosed) unsubClosed(); } catch (_) {}
+    };
+  }, [
+    activateAskUserSession,
+    centerLayout,
+    eventMatchesCurrentSession,
+    feedRef,
+    liveFeedStartedRef,
+    requestFeedScrollToBottom,
+    setFeed,
+    setMainTab,
+  ]);
 
   // shift+tab swaps Normal ↔ Plan.
   useEffect(() => {
@@ -1552,6 +1747,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   const submitMsg = useCallback((cmd?: any) => {
     const raw = String(cmd ?? input).trim();
     if (!raw) return;
+    requestFeedScrollToBottom();
 
     // BUG A: read-and-clear the replay msg_id for THIS dispatch. Set only by the
     // held-input replay when re-firing an ack-miss hold; threaded into sendPrompt
@@ -1559,6 +1755,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     // Cleared immediately so a fresh submit in the same tick can't inherit it.
     const replayMsgId = replayMsgIdRef.current;
     replayMsgIdRef.current = null;
+    const isAckMissReplay = !!replayMsgId;
 
     const clearSubmittedInput = () => {
       recordInputHistory(raw);
@@ -1570,14 +1767,26 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       });
       setShowSlash(false);
     };
-    const holdSubmittedInput = (reason: string, opts?: { msgId?: any }) => {
+    const acknowledgeLocalSend = () => {
+      clearSubmittedInput();
+      if (!isAckMissReplay) {
+        setFeed((f: any) => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
+      }
+    };
+    const holdSubmittedInput = (reason: string, opts?: { msgId?: any; autoReplay?: boolean }) => {
       // msgId is set ONLY for an ack-miss hold (the prompt WAS sent under a
       // concrete msg_id but the worker dropped it / never confirmed). The replay
       // re-fires under that SAME msg_id so the backend's per-session has_msg_id
       // dedup collapses the duplicate — closing BUG A's double-execution race.
       // A backend-down / switch hold was never sent, so it carries no msgId and
       // the replay mints a fresh id as usual.
-      heldSubmitRef.current = { raw, cmd, createdAt: Date.now(), msgId: opts?.msgId || null };
+      heldSubmitRef.current = {
+        raw,
+        cmd,
+        createdAt: Date.now(),
+        msgId: opts?.msgId || null,
+        autoReplay: opts?.autoReplay !== false,
+      };
       setInput((cur: any) => {
         const curText = String(cur || '').trim();
         return curText ? cur : raw;
@@ -1596,14 +1805,28 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       }
       return backendState || 'unknown';
     };
+    const promptAckDebugDetail = (sent: any, msgId?: any) => {
+      const pairs = [
+        ['session', sent && sent.session],
+        ['worker_session', sent && sent.worker_session],
+        ['transport_session', sent && sent.transport_session],
+        ['ip', sent && sent.ip],
+        ['workflow', sent && sent.workflow],
+        ['msg_id', msgId || (sent && sent.msg_id)],
+        ['backend', promptBackendState()],
+      ].filter(([, value]) => String(value || '').trim());
+      return pairs.length
+        ? ` (${pairs.map(([key, value]) => `${key}=${String(value)}`).join(' ')})`
+        : '';
+    };
     const backendReadyForPrompt = () => w.backend && promptBackendState() === 'open';
     // onMiss receives the reason AND the original msg_id (when one exists) so the
     // held-input replay can re-fire under the SAME msg_id. The id is only present
     // for a prompt that actually reached backend.send (sent.ok === true with a
     // sent.msg_id) — i.e. the worker dropped it or never confirmed delivery.
-    const waitForPromptAck = (sent: any, onAck: (e: any) => void, onMiss: (r: any, msgId?: any) => void) => {
+    const waitForPromptAck = (sent: any, onAck: (e: any) => void, onMiss: (r: any, msgId?: any, sent?: any) => void) => {
       if (!sent || sent.ok === false) {
-        onMiss(sent?.error || backendState || 'unknown');
+        onMiss(sent?.error || backendState || 'unknown', sent?.msg_id, sent);
         return;
       }
       if (!sent.ack || typeof sent.ack.then !== 'function') {
@@ -1615,13 +1838,21 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
           onAck(ack.event || ack);
           return;
         }
-        onMiss((ack && ack.error) || 'backend did not acknowledge receipt', sent.msg_id);
+        onMiss((ack && ack.error) || 'backend did not acknowledge receipt', sent.msg_id, Object.assign({}, sent || {}, {
+          worker_session: ack && ack.event && ack.event.session_id,
+          transport_session: ack && ack.transport && ack.transport.session_id,
+        }));
       });
     };
-    const holdUnacknowledgedInput = (reason: string, msgId?: any) => {
+    const holdUnacknowledgedInput = (reason: string, msgId?: any, sent?: any) => {
+      const replayFailed = isAckMissReplay && msgId && String(replayMsgId) === String(msgId);
+      const prefix = replayFailed ? 'Input not confirmed after retry.' : 'Input not confirmed.';
+      const suffix = replayFailed
+        ? 'kept it in the input box.'
+        : 'kept it in the input box and will retry once if unchanged.';
       holdSubmittedInput(
-        `Input not confirmed. ${reason || 'Backend did not acknowledge receipt'}; kept it in the input box.`,
-        { msgId },
+        `${prefix} ${reason || 'Backend did not acknowledge receipt'}${promptAckDebugDetail(sent, msgId)}; ${suffix}`,
+        { msgId, autoReplay: !replayFailed },
       );
     };
 
@@ -1631,9 +1862,11 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     // closed-over workflowReady is still the stale null. Either signal holds the
     // input via the held-input mechanism, which the replay effect below flushes
     // once the switch settles.
+    const workflowReadyBlocking = !!(workflowReady && workflowReady.phase !== 'ready');
     const switchingNow = !!(switchGateRef && switchGateRef.current && switchGateRef.current.isSwitching());
-    if (workflowReady || switchingNow) {
+    if (workflowReadyBlocking || switchingNow) {
       const holdTarget = (workflowReady && workflowReady.target) || workflow || 'workflow';
+      let queued = 0;
       // While SWITCHING, enqueue into the gate's FIFO so that N>1 prompts typed
       // during a single switch are all preserved (the single-slot heldSubmitRef
       // would otherwise overwrite all but the last). The replay effect below
@@ -1641,9 +1874,28 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       // action:"held" while switching; if the gate already reopened (ready) we
       // fall through to the normal single-slot hold below.
       if (switchingNow && switchGateRef.current) {
-        switchGateRef.current.submit({ text: raw, meta: { cmd: cmd ?? null } });
+        const outcome = switchGateRef.current.submit({ text: raw, meta: { cmd: cmd ?? null } });
+        queued = Number((outcome as any)?.queued || 0);
       }
-      holdSubmittedInput(`Input held. Waiting for \`${holdTarget}\` to be ready; it will send automatically if unchanged.`);
+      const gateRoute = switchGateRef?.current?.route?.();
+      const targetSession = normalizeUiSession(
+        (workflowReady && workflowReady.session) ||
+        (gateRoute && (gateRoute as any).target) ||
+        currentSession ||
+        w.ACTIVE_SESSION ||
+        '',
+      );
+      const detailPairs = [
+        ['target', holdTarget],
+        ['session', targetSession],
+        ['phase', workflowReady && workflowReady.phase],
+        ['backend', promptBackendState()],
+        ['queued', queued || switchGateRef?.current?.pendingCount?.()],
+      ].filter(([, value]) => String(value || '').trim());
+      const debug = detailPairs.length
+        ? ` (${detailPairs.map(([key, value]) => `${key}=${String(value)}`).join(' ')})`
+        : '';
+      holdSubmittedInput(`Input queued during route switch${debug}. It will auto-send when the route is ready; a copy is kept in the input box.`);
       return;
     }
 
@@ -2061,12 +2313,10 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
         return;
       }
       if (busyState) setCommandBusy(busyState);
+      acknowledgeLocalSend();
       waitForPromptAck(
         sent,
-        () => {
-          clearSubmittedInput();
-          setFeed((f: any) => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
-        },
+        () => {},
         (reason: any, msgId?: any) => {
           if (busyState) setCommandBusy(null);
           holdUnacknowledgedInput(reason, msgId);
@@ -2084,16 +2334,14 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       holdSubmittedInput(`Input held. Backend is not ready (${sent?.error || backendState || 'unknown'}); it will send automatically if unchanged.`);
       return;
     }
+    acknowledgeLocalSend();
+    setStreaming(true);
+    awaitingRunStartRef.current = true;
+    backendRunStartedRef.current = false;
+    setStreamText('');
     waitForPromptAck(
       sent,
-      () => {
-        clearSubmittedInput();
-        setFeed((f: any) => [...f, { kind: 'user', text: raw }]);
-        setStreaming(true);
-        awaitingRunStartRef.current = true;
-        backendRunStartedRef.current = false;
-        setStreamText('');
-      },
+      () => {},
       holdUnacknowledgedInput,
     );
     // Keep the submitted user message clean. Active IP/path scope is already
@@ -2107,6 +2355,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     sessionForInputRoute, setChatViewSession, setOrchestratorInputRoute,
     switchToDefaultSession, switchWorkflow, activeSsotIp,
     activeSessionRef, chatViewSessionRef, hydratedConversationSessionRef, inputRouteRef,
+    requestFeedScrollToBottom,
   ]);
 
   // Held-input replay: when the switch settles (workflowReady cleared) and the
@@ -2126,7 +2375,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   // that last entry; earlier FIFO entries are committed prompts and replay
   // unconditionally once the switch is over.
   useEffect(() => {
-    if (workflowReady) return undefined;
+    if (workflowReady && workflowReady.phase !== 'ready') return undefined;
     const state = w.backend && typeof w.backend.getConnectionState === 'function'
       ? w.backend.getConnectionState()
       : backendState;
@@ -2163,7 +2412,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       // it (i.e. it was a backend-down hold, not a switch hold) and the box still
       // matches it. A switch hold already lives in the FIFO, so we skip it here
       // to avoid a duplicate send.
-      if (latest && !fifo.length && String(input || '').trim() === latest.raw) {
+      if (latest && latest.autoReplay !== false && !fifo.length && String(input || '').trim() === latest.raw) {
         // Carry the ack-miss hold's ORIGINAL msg_id so the re-fire below re-sends
         // under the same id (BUG A: backend has_msg_id dedup collapses the dup).
         fifo.push({ text: latest.raw, meta: { cmd: latest.cmd ?? null, msgId: latest.msgId || null } });

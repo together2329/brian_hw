@@ -46,25 +46,38 @@ import {
   renderWorkspaceCenterTabStrip,
 } from './workspace-rootui-rail-tabs';
 
-// `Kbd` is published on window by shared.tsx for not-yet-migrated consumers;
-// read it through window here with a permissive cast + inline fallback so the
-// mirror stays decoupled from the global type decls.
-const Kbd: any = (window as any).Kbd
-  || (({ children }: { children?: ReactNode }) => <span className="kbd">{children}</span>);
+const MissingWorkspacePanel = ({ label }: { label: string }) => (
+  <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fg-mute)' }}>
+    {label} · loading...
+  </div>
+);
 
-// Panel children are read from window, identical to the legacy workspace.jsx
-// tail (L13257–L13286). These ATLAS panels live in sibling files / earlier
-// bundles that publish themselves onto window before Workspace mounts.
-const SsotReviewPane: any = (window as any).SsotReviewPane;
-const SsotQaBoard: any = (window as any).SsotQaBoard;
-const SsotDocPane: any = (window as any).SsotDocPane;
-const PreviewPane: any = (window as any).PreviewPane;
-const AskUserPrompt: any = (window as any).AskUserPrompt;
-const ProgressPanel: any = (window as any).ProgressPanel;
-const TodoPanel: any = (window as any).TodoPanel;
-const OrchestratorChatPanel: any = (window as any).OrchestratorChatPanel;
-const GitPanel: any = (window as any).GitPanel;
-const AgentStatusPanel: any = (window as any).AgentStatusPanel;
+const windowPanel = (name: string, label: string) => {
+  const Panel = (props: any) => {
+    const Component = (window as any)[name];
+    return typeof Component === 'function'
+      ? <Component {...props} />
+      : <MissingWorkspacePanel label={label} />;
+  };
+  Panel.displayName = `${name}Bridge`;
+  return Panel;
+};
+
+const Kbd: any = ({ children }: { children?: ReactNode }) => {
+  const Component = (window as any).Kbd;
+  return typeof Component === 'function' ? <Component>{children}</Component> : <span className="kbd">{children}</span>;
+};
+
+const SsotReviewPane: any = windowPanel('SsotReviewPane', 'SSOT Review');
+const SsotQaBoard: any = windowPanel('SsotQaBoard', 'SSOT Q&A');
+const SsotDocPane: any = windowPanel('SsotDocPane', 'SSOT DOC');
+const PreviewPane: any = windowPanel('PreviewPane', 'Preview');
+const AskUserPrompt: any = windowPanel('AskUserPrompt', 'Q&A');
+const ProgressPanel: any = windowPanel('ProgressPanel', 'Progress');
+const TodoPanel: any = windowPanel('TodoPanel', 'Todo');
+const OrchestratorChatPanel: any = windowPanel('OrchestratorChatPanel', 'Chat');
+const GitPanel: any = windowPanel('GitPanel', 'Git');
+const AgentStatusPanel: any = windowPanel('AgentStatusPanel', 'Agent Status');
 
 // `window` carries the runtime ATLAS bridges (FLOW_STAGES, TODOS, CONTEXT,
 // FILE_TREE_*, ACTIVE_SESSION, backend, etc.). Aliased to `any` so the dozens

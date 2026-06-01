@@ -160,22 +160,22 @@
   </script>
 
   <!-- Markdown renderer for agent replies (code fences, lists, links…). -->
-  <script src="/vendor/marked.min.js?v=9.1.6"></script>
+  <script vite-ignore src="/vendor/marked.min.js?v=9.1.6"></script>
   <!-- FSM/state diagrams. workspace.jsx renders through mermaid.render()
        and falls back to an internal SVG when this library is unavailable. -->
-  <script src="/vendor/mermaid.min.js?v=11.15.0"></script>
+  <script vite-ignore src="/vendor/mermaid.min.js?v=11.15.0"></script>
 
   <!-- DOMPurify — strips <script>, on*-handlers, javascript: URIs, etc.
        Without it, agent text containing raw HTML (relayed from a
        malicious file read, web fetch, or grep result) would inject via
        dangerouslySetInnerHTML and execute. -->
-  <script src="/vendor/purify.min.js?v=3.1.6"></script>
+  <script vite-ignore src="/vendor/purify.min.js?v=3.1.6"></script>
 
   <!-- Syntax highlighting for the file preview pane (Prism core +
        autoloader → loads language grammars on demand from CDN). -->
   <link rel="stylesheet" href="/vendor/prism-tomorrow.css?v=1.29.0">
-  <script src="/vendor/prism-core.min.js?v=1.29.0"></script>
-  <script src="/vendor/prism-autoloader.min.js?v=1.29.0"></script>
+  <script vite-ignore src="/vendor/prism-core.min.js?v=1.29.0"></script>
+  <script vite-ignore src="/vendor/prism-autoloader.min.js?v=1.29.0"></script>
   <script>
     // Map file extension → Prism language id. Covers what Atlas
     // actually opens (RTL/SV, YAML, Python, MD, JSON, shell, etc.).
@@ -196,10 +196,10 @@
 
   <!-- Backend adapter: window.backend (live WebSocket) -->
   <!-- CACHE-BUSTER: bump ?v= whenever backend.js changes, or browsers serve stale copies -->
-  <script src="/backend.js?v=atlas-20260529-qa-ackfix"></script>
+  <script vite-ignore src="/backend.js?v=atlas-20260529-qa-ackfix"></script>
 
   <!-- VCD parser (pure JS, no Babel — ships as plain script). -->
-  <script src="/vcd-parser.js"></script>
+  <script vite-ignore src="/vcd-parser.js"></script>
 
   <!-- Pure-logic helpers: ES-module exports + window.Atlas* UMD shims.
        Loaded BEFORE JSX modules so workspace.jsx / user-dashboard.jsx

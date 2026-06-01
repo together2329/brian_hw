@@ -11,6 +11,7 @@
 // gate's method names or hold semantics, the hook wiring breaks and this fails.
 
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
 import { createSwitchGate } from '../session-machine';
 
 // Mirror of the hook's submitMsg gate-consult: returns 'held' iff the gate is
@@ -119,5 +120,22 @@ describe('switch-gate wiring (the .tsx live-app contract)', () => {
     onServerSwitchReopen(gate);
     expect(gate.isSwitching()).toBe(false);
     expect(gate.drain().map((m) => m.text)).toEqual(['held during server switch']);
+  });
+
+  it('Ready phase opens the live gate immediately instead of waiting for overlay dismissal', () => {
+    const sessionHook = readFileSync(`${process.cwd()}/workspace-root-session-hook.tsx`, 'utf8');
+    const finishStart = sessionHook.indexOf('const finishWorkflowReady');
+    const finishBody = sessionHook.slice(finishStart, sessionHook.indexOf('const failWorkflowReady', finishStart));
+    expect(finishBody).toContain('switchGateRef.current.markReady();');
+    expect(finishBody.indexOf('switchGateRef.current.markReady();')).toBeLessThan(
+      finishBody.indexOf("updateWorkflowReady(seq, { phase: 'ready'"),
+    );
+
+    const dataHook = readFileSync(`${process.cwd()}/workspace-root-data-hook.tsx`, 'utf8');
+    expect(dataHook).toContain("workflowReady && workflowReady.phase !== 'ready'");
+
+    const renderPath = readFileSync(`${process.cwd()}/workspace-root-render.tsx`, 'utf8');
+    expect(renderPath).toContain("workflowReady && workflowReady.phase !== 'ready'");
+    expect(renderPath).toContain('disabled={workflowReadyBlocking}');
   });
 });

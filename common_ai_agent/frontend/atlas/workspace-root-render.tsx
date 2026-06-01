@@ -377,6 +377,7 @@ export const WorkspacePromptRow = ({
   const flowState = workflow === 'orchestrator'
     ? orchestratorFlowFromFeed(feed, orchWorkers, activeIp)
     : null;
+  const workflowReadyBlocking = !!(workflowReady && workflowReady.phase !== 'ready');
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
       {orchestratorIdle ? (
@@ -451,7 +452,7 @@ export const WorkspacePromptRow = ({
         ) : null}
         <textarea ref={inputRef} value={input}
           rows={1}
-          disabled={!!workflowReady}
+          disabled={workflowReadyBlocking}
           onChange={(e: ChangeEvent<HTMLTextAreaElement>) => {
             inputHistoryIndexRef.current = null;
             inputHistoryDraftRef.current = '';
@@ -464,7 +465,7 @@ export const WorkspacePromptRow = ({
             el.style.height = Math.min(el.scrollHeight, 192) + 'px';
           }}
           onKeyDown={onKey}
-          placeholder={workflowReady
+          placeholder={workflowReadyBlocking
             ? `Preparing ${workflowReady.target || 'workflow'}...`
             : (pendingQcard
                 ? 'Answer pending Q&A here · "/" for commands'

@@ -94,6 +94,7 @@ declare global {
     Workspace: any;
     X: any;
     __atlasClearAssetLoadErrors: any;
+    __atlasReportError: any;
     _copyToClipboard: any;
     activateAtlasNamespace: any;
     atlasData: any;

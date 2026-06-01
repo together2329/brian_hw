@@ -197,6 +197,48 @@ describe('BUG A — dropped-prompt replay reuses the ORIGINAL msg_id (no double 
     expect(promptSends.every((m) => m.text === 'implement the FIFO')).toBe(true);
   });
 
+  it('an ack-miss replay is capped after one automatic retry', async () => {
+    const w = window as AnyWindow;
+    w.ATLAS_EXEC_MODE = '';
+    w.ACTIVE_SESSION = 'alice/myip/rtl-gen';
+    w.ACTIVE_IP = 'myip';
+    w.FLOW_STAGES = [{ id: 'rtl-gen' }];
+    bk.setPolicy(() => 'drop');
+
+    const { container } = await mountWorkspace();
+    const textarea = container.querySelector('textarea') as HTMLTextAreaElement;
+
+    await act(async () => {
+      typeAndSubmit(container, 'implement the FIFO');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      fireEvent.change(textarea, { target: { value: 'implement the FIFO ' } });
+      await flush(160);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    let promptSends = bk.sent.filter((m) => m && m.type === 'prompt');
+    expect(promptSends.length).toBe(2);
+    expect(new Set(promptSends.map((m) => m.msg_id)).size).toBe(1);
+
+    await act(async () => {
+      fireEvent.change(textarea, { target: { value: 'implement the FIFO  ' } });
+      await flush(160);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    promptSends = bk.sent.filter((m) => m && m.type === 'prompt');
+    expect(promptSends.length).toBe(2);
+    expect(textarea.value.trim()).toBe('implement the FIFO');
+    expect(container.textContent || '').toMatch(/Input not confirmed after retry/i);
+    expect(container.textContent || '').toMatch(/session=.*alice\/myip\/rtl-gen.*ip=.*myip.*workflow=.*rtl-gen.*msg_id=/i);
+  });
+
   it('a normal accepted send mints exactly one id and is never replayed', async () => {
     const w = window as AnyWindow;
     w.ATLAS_EXEC_MODE = '';

@@ -345,7 +345,7 @@ html[data-platform="windows"][data-font-scale="xl"] {
    Shared primitives
    ────────────────────────────────────────────── */
 .app {
-  --atlas-topbar-h: 56px; /* dir-switcher 2 rows × 28px, gives row 1 enough vertical room so labels (SESSION_ID, WORKFLOW, FONT, RES, etc.) aren't clipped at the top edge */
+  --atlas-topbar-h: 80px;
   font-family: var(--mono);
   background: var(--bg);
   color: var(--fg);
@@ -353,6 +353,8 @@ html[data-platform="windows"][data-font-scale="xl"] {
   height: var(--atlas-canvas-h, 1080px);
   overflow: hidden;
   position: relative;
+  display: flex;
+  flex-direction: column;
   font-size: var(--ui-font-size);
   line-height: var(--ui-line-height);
   font-weight: var(--ui-text-weight);
@@ -379,7 +381,8 @@ html[data-platform="windows"][data-font-scale="xl"] {
 .app-main {
   display: flex;
   flex-direction: column;
-  height: calc(100% - var(--atlas-topbar-h));
+  flex: 1 1 auto;
+  height: auto;
   min-height: 0;
 }
 
@@ -476,6 +479,7 @@ html[data-platform="windows"] .app {
   right: auto;
   z-index: 100;
   display: flex;
+  flex: 0 0 auto;
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-start;
@@ -490,7 +494,7 @@ html[data-platform="windows"] .app {
   font-family: var(--mono);
   max-width: none;
   overflow-x: hidden;
-  overflow-y: hidden;
+  overflow-y: visible;
   white-space: nowrap;
 }
 .dir-switcher > span {
