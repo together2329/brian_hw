@@ -1,0 +1,31 @@
+---
+description: Hardware IP workflow, SSOT authority, RTL/TB/sim rules
+globs: "workflow/**/*, **/rtl/**, **/yaml/**, **/tb/**, **/tc/**, **/sim/**, **/req/**, **/model/**, **/cov/**, **/verify/**, apb_uart_txrx_demo/**/*, atlas_flow_gpio_demo/**/*, ip_examples/**/*"
+alwaysApply: false
+---
+
+# Hardware Workflow
+
+SSOT is the authority for generated hardware work. Treat `yaml/<ip>.ssot.yaml` and `req/<ip>_requirements.md` as the contract, then route implementation through the owning workflow.
+
+Do not hand-edit generated IP artifacts during pipeline tests to fake a pass. Follow `doc/wiki/workflow-ownership-and-boundaries.md`: read evidence, classify the owner, repair through `ssot-gen`, `fl-model-gen`, `cl-model-gen`, `rtl-gen`, `tb-gen`, `sim`, `coverage`, `tool-fix`, or `human`, then rerun the validator.
+
+Typical IP layout:
+
+- `req/`: requirements and acceptance criteria.
+- `yaml/`: SSOT YAML.
+- `model/`: functional and cycle models.
+- `rtl/` and `list/`: RTL source and filelists.
+- `tb/`, `tc/`, `sim/`: testbench, scenarios, simulation evidence.
+- `cov/`, `verify/`, `lint/`, `syn/`, `sta/`, `pnr/`: quality and EDA evidence.
+
+Default RTL dialect is Verilog-2001 style unless the active config says otherwise. Even in SystemVerilog mode, avoid `package`, `endpackage`, `import`, `interface`, and `modport`; prefer module ports and localparams.
+
+Simulation guidance:
+
+- For the tracked demo, use `cd apb_uart_txrx_demo && ./sim/run_sim.sh`.
+- For orchestrator flow, use workflow scripts such as `workflow/tb-gen/scripts/sim.sh` or `workflow/sim/scripts/run_sim.py <ip> --root .`.
+- Do not pipe HDL simulation output through `head`, `tail`, or `grep` in ways that hide hangs or failures.
+- Read fresh logs, scoreboard data, coverage, and waveform manifests before claiming PASS.
+
+Never lower SSOT coverage goals, timing targets, or requirements to match broken RTL. Fix the owning artifact or open a human gate.

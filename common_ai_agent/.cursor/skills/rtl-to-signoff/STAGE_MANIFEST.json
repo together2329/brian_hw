@@ -1,0 +1,316 @@
+{
+  "schema_version": 1,
+  "description": "Cursor-facing RTL-to-signoff manifest. Delegates DV stages to WorkflowStageEngine and EDA stages to workflow command scripts.",
+  "profiles": {
+    "dv": [
+      "ssot-fl-model",
+      "ssot-cycle-model",
+      "ssot-equiv-goals",
+      "ssot-rtl",
+      "lint",
+      "ssot-tb-cocotb",
+      "sim",
+      "coverage",
+      "sim-debug",
+      "goal-audit"
+    ],
+    "eda": [
+      "syn",
+      "sta",
+      "pnr",
+      "sta-post"
+    ],
+    "full": [
+      "ssot-fl-model",
+      "ssot-cycle-model",
+      "ssot-equiv-goals",
+      "ssot-rtl",
+      "lint",
+      "ssot-tb-cocotb",
+      "sim",
+      "coverage",
+      "sim-debug",
+      "goal-audit",
+      "syn",
+      "sta",
+      "pnr",
+      "sta-post",
+      "final-goal-audit"
+    ],
+    "headless-dv": [
+      "headless-pipeline",
+      "goal-audit"
+    ],
+    "ssot-to-signoff": [
+      "ssot-gen",
+      "ssot-fl-model",
+      "ssot-cycle-model",
+      "ssot-equiv-goals",
+      "ssot-rtl",
+      "lint",
+      "ssot-tb-cocotb",
+      "sim",
+      "coverage",
+      "sim-debug",
+      "goal-audit",
+      "syn",
+      "sta",
+      "pnr",
+      "sta-post",
+      "final-goal-audit"
+    ]
+  },
+  "stages": {
+    "ssot-gen": {
+      "pipeline_id": "ssot",
+      "invoke": "headless",
+      "owner": "ssot-gen",
+      "slash": "/to-ssot <ip>",
+      "command_json": "workflow/ssot-gen/commands/to-ssot.json",
+      "stages_arg": "ssot-gen",
+      "evidence": [
+        "<ip>/req/<ip>_requirements.md",
+        "<ip>/req/approval_manifest.json",
+        "<ip>/yaml/<ip>.ssot.yaml",
+        "<ip>/wiki/import-evidence.md"
+      ],
+      "human_gate_artifacts": [
+        "<ip>/req/approval_manifest.json"
+      ]
+    },
+    "ssot-fl-model": {
+      "pipeline_id": "fl-model",
+      "invoke": "engine",
+      "engine_stage": "ssot-fl-model",
+      "owner": "fl-model-gen",
+      "slash": "/ssot-fl-model <ip>",
+      "command_json": "workflow/fl-model-gen/commands/ssot-fl-model.json",
+      "evidence": [
+        "<ip>/model/functional_model.py",
+        "<ip>/model/fl_model_check.json",
+        "<ip>/cov/fcov_plan.json",
+        "<ip>/logs/stage_engine/ssot-fl-model.json"
+      ]
+    },
+    "ssot-cycle-model": {
+      "pipeline_id": "cl-model",
+      "invoke": "engine",
+      "engine_stage": "ssot-cycle-model",
+      "owner": "fl-model-gen",
+      "slash": "/ssot-cycle-model <ip>",
+      "command_json": "workflow/fl-model-gen/commands/ssot-cycle-model.json",
+      "evidence": [
+        "<ip>/model/cycle_model.py",
+        "<ip>/model/cl_model_check.json",
+        "<ip>/logs/stage_engine/ssot-cycle-model.json"
+      ]
+    },
+    "ssot-equiv-goals": {
+      "pipeline_id": "equivalence",
+      "invoke": "engine",
+      "engine_stage": "ssot-equiv-goals",
+      "owner": "fl-model-gen",
+      "slash": "/ssot-equiv-goals <ip>",
+      "command_json": "workflow/fl-model-gen/commands/ssot-equiv-goals.json",
+      "evidence": [
+        "<ip>/verify/equivalence_goals.json",
+        "<ip>/logs/stage_engine/ssot-equiv-goals.json"
+      ]
+    },
+    "ssot-rtl": {
+      "pipeline_id": "rtl",
+      "invoke": "engine",
+      "engine_stage": "ssot-rtl",
+      "owner": "rtl-gen",
+      "slash": "/ssot-rtl <ip>",
+      "command_json": "workflow/rtl-gen/commands/ssot-rtl.json",
+      "evidence": [
+        "<ip>/rtl/rtl_todo_plan.json",
+        "<ip>/rtl/rtl_compile.json",
+        "<ip>/lint/dut_lint.json",
+        "<ip>/rtl/rtl_blocked.json",
+        "<ip>/logs/stage_engine/ssot-rtl.json"
+      ],
+      "human_gate_artifacts": [
+        "<ip>/rtl/rtl_blocked.json"
+      ]
+    },
+    "lint": {
+      "pipeline_id": "lint",
+      "invoke": "engine",
+      "engine_stage": "lint",
+      "owner": "lint",
+      "slash": "/lint-ip <ip>",
+      "command_json": "workflow/lint/commands/lint-ip.json",
+      "evidence": [
+        "<ip>/lint/dut_lint.json",
+        "<ip>/lint/dut_lint.log",
+        "<ip>/logs/stage_engine/lint.json"
+      ]
+    },
+    "ssot-tb-cocotb": {
+      "pipeline_id": "tb",
+      "invoke": "engine",
+      "engine_stage": "ssot-tb-cocotb",
+      "owner": "tb-gen",
+      "slash": "/ssot-tb-cocotb <ip>",
+      "command_json": "workflow/tb-gen/commands/ssot-tb-cocotb.json",
+      "evidence": [
+        "<ip>/tb/cocotb/tb_manifest.json",
+        "<ip>/tb/cocotb/tb_generation.json",
+        "<ip>/tb/tb_todo_plan.json",
+        "<ip>/logs/stage_engine/ssot-tb-cocotb.json"
+      ],
+      "human_gate_artifacts": [
+        "<ip>/tb/cocotb/tb_blocked.json"
+      ]
+    },
+    "sim": {
+      "pipeline_id": "sim",
+      "invoke": "engine",
+      "engine_stage": "sim",
+      "owner": "sim",
+      "slash": "/ssot-sim <ip>",
+      "command_json": "workflow/sim/commands/ssot-sim.json",
+      "evidence": [
+        "<ip>/sim/results.xml",
+        "<ip>/sim/scoreboard_events.jsonl",
+        "<ip>/sim/sim_report.txt",
+        "<ip>/cov/coverage.json",
+        "<ip>/logs/stage_engine/sim.json"
+      ]
+    },
+    "coverage": {
+      "pipeline_id": "coverage",
+      "invoke": "engine",
+      "engine_stage": "coverage",
+      "owner": "coverage",
+      "slash": "/ssot-coverage <ip>",
+      "command_json": "workflow/coverage/commands/ssot-coverage.json",
+      "evidence": [
+        "<ip>/cov/coverage_functional.json",
+        "<ip>/cov/coverage.json",
+        "<ip>/cov/coverage_ssot.json",
+        "<ip>/logs/stage_engine/coverage.json"
+      ]
+    },
+    "sim-debug": {
+      "pipeline_id": "sim-debug",
+      "invoke": "engine",
+      "engine_stage": "sim-debug",
+      "owner": "sim_debug",
+      "slash": "/sim-debug <ip>",
+      "command_json": "workflow/sim_debug/commands/sim-debug.json",
+      "evidence": [
+        "<ip>/sim/fl_rtl_compare.json",
+        "<ip>/sim/mismatch_classification.json",
+        "<ip>/sim/simulation_quality.json",
+        "<ip>/sim/simulation_quality.md",
+        "<ip>/logs/stage_engine/sim-debug.json"
+      ],
+      "human_gate_artifacts": [
+        "<ip>/sim/mismatch_classification.json"
+      ]
+    },
+    "goal-audit": {
+      "pipeline_id": "goal-audit",
+      "invoke": "engine",
+      "engine_stage": "goal-audit",
+      "owner": "sim_debug",
+      "slash": "/goal-audit <ip>",
+      "command_json": "workflow/sim_debug/commands/goal-audit.json",
+      "evidence": [
+        "<ip>/sim/fl_rtl_goal_audit.json",
+        "<ip>/logs/stage_engine/goal-audit.json"
+      ]
+    },
+    "final-goal-audit": {
+      "pipeline_id": "goal-audit",
+      "invoke": "engine",
+      "engine_stage": "goal-audit",
+      "owner": "sim_debug",
+      "slash": "/goal-audit <ip>",
+      "command_json": "workflow/sim_debug/commands/goal-audit.json",
+      "evidence": [
+        "<ip>/sim/fl_rtl_goal_audit.json",
+        "<ip>/logs/stage_engine/goal-audit.json"
+      ]
+    },
+    "headless-pipeline": {
+      "pipeline_id": "pipeline",
+      "invoke": "headless",
+      "owner": "orchestrator",
+      "slash": "headless pipeline",
+      "stages_arg": "pipeline",
+      "evidence": [
+        "<ip>/logs/stage_engine/*.json",
+        "<ip>/todo/*_todo_tracker.json"
+      ]
+    },
+    "syn": {
+      "pipeline_id": "syn",
+      "invoke": "bash",
+      "owner": "syn",
+      "slash": "/syn-auto <ip>",
+      "command_json": "workflow/syn/commands/syn-auto.json",
+      "script": "workflow/syn/scripts/auto_syn.sh",
+      "timeout_sec": 300,
+      "evidence": [
+        "<ip>/syn/out/synth.v",
+        "<ip>/syn/out/area.json",
+        "<ip>/syn/out/syn.report.md"
+      ]
+    },
+    "sta": {
+      "pipeline_id": "sta",
+      "invoke": "bash",
+      "owner": "sta",
+      "slash": "/sta-auto <ip>",
+      "command_json": "workflow/sta/commands/sta-auto.json",
+      "script": "workflow/sta/scripts/auto_sta.sh",
+      "timeout_sec": 300,
+      "evidence": [
+        "<ip>/sta/out/wns.json",
+        "<ip>/sta/out/sta.report.md"
+      ]
+    },
+    "pnr": {
+      "pipeline_id": "pnr",
+      "invoke": "bash",
+      "owner": "pnr",
+      "slash": "/pnr-auto <ip>",
+      "command_json": "workflow/pnr/commands/pnr-auto.json",
+      "script": "workflow/pnr/scripts/auto_pnr.sh",
+      "timeout_sec": 600,
+      "evidence": [
+        "<ip>/pnr/out/pnr.report.md"
+      ]
+    },
+    "sta-post": {
+      "pipeline_id": "sta-post",
+      "invoke": "bash",
+      "owner": "sta-post",
+      "slash": "/sta-post-auto <ip>",
+      "command_json": "workflow/sta-post/commands/sta-post-auto.json",
+      "script": "workflow/sta-post/scripts/auto_sta_post.sh",
+      "timeout_sec": 300,
+      "evidence": [
+        "<ip>/sta-post/out/wns.json",
+        "<ip>/sta-post/out/sta-post.report.md"
+      ]
+    },
+    "dft": {
+      "pipeline_id": "dft",
+      "invoke": "bash",
+      "owner": "dft",
+      "slash": "/dft-auto <ip>",
+      "command_json": "workflow/dft/commands/dft-auto.json",
+      "script": "workflow/dft/scripts/auto_dft.sh",
+      "timeout_sec": 600,
+      "optional": true,
+      "evidence": [
+        "<ip>/dft/out/*"
+      ]
+    }
+  }
+}

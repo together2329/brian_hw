@@ -1,0 +1,29 @@
+---
+description: Core project context for ATLAS/Common AI Agent
+alwaysApply: true
+---
+
+# ATLAS / Common AI Agent
+
+This repository is the ATLAS/Common AI Agent system: a Python ReAct agent, a hardware IP workflow engine, and the Atlas web UI. It is used to turn requirements into traceable RTL, verification, simulation, and signoff evidence.
+
+Start from the existing documentation instead of inventing a new mental model:
+
+- `doc/wiki/index.md` is the LLM navigation map.
+- `doc/wiki/common-ai-agent-map.md` explains the source-of-truth hierarchy.
+- `workflow/COMMON_ENGINE_FLOW.md` defines the canonical IP pipeline.
+- `doc/wiki/workflow-ownership-and-boundaries.md` defines generated-artifact ownership.
+
+Important directories:
+
+- `core/`: agent tools, tool schemas, ReAct loop, slash commands, server helpers.
+- `lib/`: display, memory, and todo/evidence helpers.
+- `src/`: entrypoints such as `main.py`, `atlas_ui.py`, `textual_main.py`, config, and orchestration adapters.
+- `workflow/`: stage workspaces, prompts, scripts, validators, and pipeline docs.
+- `frontend/atlas/`: Atlas browser UI.
+- `apb_uart_txrx_demo/`: tracked reference IP, not a throwaway sandbox.
+- `ip_examples/`: mostly generated/transient example outputs.
+
+Configuration is layered as shell environment, workflow `workspace.json` env, `.config`, then `.env`. Secrets belong in `.env`, not in committed files. Key roots include `ATLAS_SOURCE_ROOT`, `ATLAS_WORKFLOW_ROOT`, `ATLAS_PROJECT_ROOT`, and `ATLAS_IP_ROOT`.
+
+Keep changes scoped. Do not touch unrelated IP evidence, `.session/`, `cmd_output_*.txt`, generated sim outputs, or EDA outputs unless the task explicitly requires it. Only commit when the user explicitly asks.

@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeShellExecution": [
+      {
+        "command": ".cursor/hooks/guard-shell.py",
+        "timeout": 5,
+        "failClosed": false
+      }
+    ],
+    "preToolUse": [
+      {
+        "command": ".cursor/hooks/protect-generated-artifacts.py",
+        "timeout": 5,
+        "failClosed": false
+      }
+    ],
+    "stop": [
+      {
+        "command": ".cursor/hooks/stop-loop-check.py",
+        "timeout": 10,
+        "failClosed": false,
+        "loop_limit": 1
+      }
+    ]
+  }
+}

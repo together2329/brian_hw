@@ -1,0 +1,24 @@
+---
+description: Todo and evidence discipline for Cursor agents
+alwaysApply: true
+---
+
+# Todo Evidence
+
+Treat todos as evidence contracts, not prompt decoration.
+
+For multi-step work, keep one active item in progress and move through:
+
+```text
+pending -> in_progress -> completed
+```
+
+Only say work is done after fresh evidence exists: test output, validator output, logs, JSON artifacts, or a direct file read. Do not mark a stage complete from model confidence or prose.
+
+Map runtime todo policy from `doc/wiki/golden-todo-evidence.md`:
+
+- `evidence_required`: provide concrete evidence.
+- `human_review_required`: stop and ask; do not infer product/spec authority.
+- `llm_reason_allowed`: use only for low-risk docs, comments, explanations, or non-behavioral cleanup.
+
+If a change affects SSOT, RTL, TB, sim, coverage, or signoff evidence, rerun the owning command before claiming PASS. Green artifacts from before the edit are stale.

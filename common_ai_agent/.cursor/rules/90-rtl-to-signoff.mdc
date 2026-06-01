@@ -1,0 +1,19 @@
+---
+description: Cursor RTL-to-signoff must follow common_ai_agent workflow semantics
+globs: ".cursor/skills/rtl-to-signoff/**, workflow/**/*, src/workflow_stage_engine.py, src/workflow_stage_surface.py, src/headless_workflow.py, **/rtl/**, **/tb/**, **/sim/**, **/cov/**, **/syn/**, **/sta/**, **/pnr/**"
+alwaysApply: false
+---
+
+# RTL To Signoff
+
+For real RTL-to-signoff work, use `.cursor/skills/rtl-to-signoff/`.
+
+Rules:
+
+- DV stages must delegate to `WorkflowStageEngine.run_stage()` or `src/headless_workflow.py --stages pipeline`.
+- EDA stages must delegate to workflow command scripts such as `workflow/syn/scripts/auto_syn.sh`.
+- Do not use disk-check-only scripts as final signoff gates when a common-engine stage exists.
+- Treat `STAGE_MANIFEST.json` as the Cursor routing table: stage id, owner workflow, slash surface, invocation type, and evidence paths.
+- Stop on `blocked` or `human_gate`; route to the owner workflow instead of patching evidence.
+- Treat `sim/simulation_quality.json` as sim-debug-owned generated evidence. Regenerate it via `sim-debug` or `workflow/sim_debug/scripts/check_simulation_quality.py`; do not hand-edit it.
+- Regenerate `verify/cursor_rtl_to_signoff_summary.json` by rerunning the runner. Do not edit it directly.

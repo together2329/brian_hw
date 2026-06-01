@@ -1,0 +1,34 @@
+---
+description: Python backend conventions, tests, and engine boundaries
+globs: "core/**/*.py, lib/**/*.py, src/**/*.py, tests/**/*.py, scripts/**/*.py, workflow/**/*.py"
+alwaysApply: false
+---
+
+# Python Backend
+
+Match the local style in the file you edit. This repo does not currently define a global Ruff, Black, MyPy, or `pyproject.toml` formatting policy.
+
+Use the canonical test wrapper:
+
+- `./scripts/run_tests.sh smoke` for critical-path checks.
+- `./scripts/run_tests.sh quick` for the normal no-live-LLM suite.
+- `./scripts/run_tests.sh full` for broader non-live coverage.
+- `./scripts/run_tests.sh frontend` for Atlas UI tests.
+- `./scripts/run_tests.sh live --yes` only when the user accepts API cost and required `.env` keys are present.
+
+For direct pytest runs on macOS, prefer `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest tests/ -q` to avoid stale user-site pytest plugins. `tests/conftest.py` intentionally adjusts import paths and ignores dead collection paths; do not remove that without checking the wiki.
+
+Engine boundaries matter:
+
+- `src/workflow_stage_engine.py` owns deterministic stage execution, artifact paths, validators, return status, and run logs.
+- `src/workflow_stage_surface.py` owns UI-neutral adapter policy.
+- UI and CLI files should call the engine/surface and render results; they must not reimplement RTL, TB, sim, or coverage validators.
+
+Common entrypoints:
+
+- `python3 src/main.py -w <workspace>` for the CLI ReAct agent.
+- `python3 src/textual_main.py -w <workspace>` for the Textual UI.
+- `python3 src/atlas_ui.py --port 8765` for the Atlas web UI.
+- `python3 src/main.py --serve --all-workflows --port 5601` for worker mode.
+
+`scripts/cli_tests/` contains standalone scripts, not pytest tests. Run them with `python3 <script>` when needed.

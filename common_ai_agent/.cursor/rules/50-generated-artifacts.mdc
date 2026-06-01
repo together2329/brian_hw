@@ -1,0 +1,33 @@
+---
+description: Generated artifacts, evidence files, and local runtime state
+globs: "**/sim/*.vvp, **/sim/*.log, **/sim/*.json, **/sim/*.csv, **/sim/*.xml, **/sim/random/**, **/sim/waves/**, **/*.vcd, **/verify/**, **/lint/*.log, **/lint/*.json, **/cov/**, **/syn/out/**, **/sta/out/**, **/pnr/out/**, **/dft/out/**, .session/**, **/.session/**, cmd_output_*.txt, current_todos.json, ip_examples/**/*"
+alwaysApply: false
+---
+
+# Generated Artifacts
+
+Treat these files as evidence or local runtime state, not ordinary source. Read them for debugging, but do not hand-edit them to manufacture success.
+
+Common generated evidence includes:
+
+- `sim/sim_results.json`, `sim/sim_report.txt`, `sim/results.xml`
+- `sim/scoreboard_events.csv`, `sim/scoreboard_events.jsonl`
+- `sim/simulation_quality.json`, `sim/simulation_quality.md`
+- `sim/coverage_results.json`, `cov/coverage*.json`
+- `sim/waveform_manifest.json`, `sim/*.vcd`, `sim/waves/**`
+- `verify/static_signoff_results.json` and other signoff bundles
+- compiled simulator outputs such as `*.vvp`
+- EDA reports and output directories under `lint/`, `syn/out/`, `sta/out/`, `pnr/out/`, and `dft/out/`
+
+Freshness matters. A green JSON file is not enough if RTL, TB, SSOT, or scripts changed after it was generated. Rerun the owning command and cite the fresh result.
+
+Local/session artifacts should normally not be committed or manually curated:
+
+- `.session/` and `**/.session/`
+- `cmd_output_*.txt`
+- `current_todos.json`
+- `.pytest_cache/`, `htmlcov/`, `mutants/`
+- `node_modules/` and `frontend/atlas/node_modules/`
+- almost all of `ip_examples/` except its README and ignore files
+
+Some generated demo artifacts are tracked as reference evidence, especially under `apb_uart_txrx_demo/sim/`. Even when tracked, regenerate them through the demo scripts instead of editing them directly.
