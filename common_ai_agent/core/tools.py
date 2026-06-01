@@ -3499,11 +3499,9 @@ def todo_write(todos=None, tasks=None, **kwargs):
         if "activeForm" not in todo:
             todo["activeForm"] = _generate_active_form(todo["content"])
 
-        # Default status to pending if not provided
         if "status" not in todo:
             todo["status"] = "pending"
 
-        # Normalize status aliases (e.g. "todo" → "pending", "done" → "completed")
         from lib.todo_tracker import STATUS_ALIASES
         valid_statuses = ["pending", "in_progress", "completed", "approved", "rejected"]
         raw_status = todo["status"]
@@ -3515,6 +3513,8 @@ def todo_write(todos=None, tasks=None, **kwargs):
                 err = f"Error: todos[{i}] has invalid status '{raw_status}'. Must be one of: {', '.join(valid_statuses)}"
                 _save_todo_write_error(err, todos)
                 return err
+        if is_plan:
+            todo["status"], todo["completed_at"] = "pending", None
 
         # Enforce the schema's "detail/criteria must be filled in" claim.
         # Until now this was advertised in the tool description but never

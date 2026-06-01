@@ -139,6 +139,35 @@ def test_todo_write_status_aliases(temp_todo_file):
     assert "Error" not in result, f"Expected success but got: {result}"
 
 
+def test_todo_write_keeps_all_tasks_pending_in_plan_mode(temp_todo_file, monkeypatch):
+    monkeypatch.setenv("PLAN_MODE", "true")
+
+    result = todo_write(todos=[
+        _todo("Write implementation plan", "wip"),
+        _todo("Run verification", "completed"),
+    ])
+
+    assert "Error" not in result, f"Expected success but got: {result}"
+    import main as main_mod
+    assert [todo.status for todo in main_mod.todo_tracker.todos] == ["pending", "pending"]
+
+
+def test_todo_update_blocks_status_changes_in_plan_mode(temp_todo_file, monkeypatch):
+    monkeypatch.setenv("PLAN_MODE", "true")
+    todo_write(todos=[_todo("Write implementation plan")])
+
+    result = todo_update(index=1, status="in_progress")
+
+    assert "blocked in plan mode" in result
+    import main as main_mod
+    assert main_mod.todo_tracker.todos[0].status == "pending"
+
+    result = todo_update(index=1, detail="Expanded planning detail")
+
+    assert "updated" in result
+    assert main_mod.todo_tracker.todos[0].detail == "Expanded planning detail"
+
+
 def test_todo_update_status_aliases(temp_todo_file):
     """Status aliases in todo_update should be auto-normalized"""
     todo_write(todos=[_todo("Alias Test")])

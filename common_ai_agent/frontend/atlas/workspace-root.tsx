@@ -544,7 +544,7 @@ export const Workspace = ({
             )
           ) : mainTab === 'todo' ? (
             <ErrorBoundary label="TodoEditor">
-              <TodoEditorPane />
+              <TodoEditorPane intent={intent} />
             </ErrorBoundary>
             ) : (
             /* mainTab === 'qa' — SSOT-GEN QA board or active ask_user */

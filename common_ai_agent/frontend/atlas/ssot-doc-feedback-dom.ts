@@ -62,7 +62,4 @@ export function markSsotDocSelection(el: Element): void {
   const doc = el.ownerDocument;
   if (doc) clearSsotDocSelection(doc);
   el.setAttribute('data-atlas-doc-feedback-selected', '1');
-  if (typeof el.scrollIntoView === 'function') {
-    el.scrollIntoView({ block: 'center', inline: 'nearest' });
-  }
 }

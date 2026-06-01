@@ -251,7 +251,8 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
             "Create or REPLACE the entire task list. Use at the start of a multi-step task.\n"
             "CRITICAL: Pass 'todos' as a real JSON array — NOT a JSON string.\n"
             "Every task MUST have 'detail' (how to implement) and 'criteria' (acceptance checklist) filled in — empty strings are rejected.\n"
-            "After writing, immediately set the first task to in_progress using todo_update.\n"
+            "In plan mode, all tasks must stay pending until the user approves execution.\n"
+            "After approval in execution mode, set the first task to in_progress using todo_update.\n"
             "\n"
             "SIZE LIMIT — keep the call small enough that the streaming\n"
             "tool-call argument JSON fits inside the model's output budget:\n"
@@ -279,7 +280,7 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
                     "properties": {
                         "content":    {"type": "string", "description": "Imperative verb + deliverable (e.g. 'Write counter.sv — 8-bit up-counter')"},
                         "activeForm": {"type": "string", "description": "Present-continuous description (e.g. 'Writing counter.sv')"},
-                        "status":     {"type": "string", "enum": ["pending", "in_progress", "completed", "approved", "rejected"], "description": "Task status. New tasks should default to pending; the agent flips to in_progress / completed / approved as it works through them."},
+                        "status":     {"type": "string", "enum": ["pending", "in_progress", "completed", "approved", "rejected"], "description": "Task status. Plan mode uses pending only; execution mode flips to in_progress / completed / approved as work proceeds."},
                         "priority":   {"type": "string", "enum": ["high", "medium", "low"], "description": "Task priority"},
                         "detail":     {"type": "string", "description": "REQUIRED: HOW to implement — specific implementation notes, constraints, approach. Must not be empty."},
                         "criteria":   {"type": "string", "description": "REQUIRED: Newline-separated acceptance criteria checklist. Each line is one verifiable condition. Must not be empty."},

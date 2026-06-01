@@ -696,7 +696,7 @@ export const renderWorkspaceCenterTabStrip = (ws: any): ReactNode => {
         </span>
       ) : mainTab === 'todo' ? (
         <span className="mute trunc" style={{ fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', maxWidth: 380 }}>
-          TODO editor · add / modify / remove / clear
+          TODO list · detail · edit
         </span>
       ) : (
         <span className="mute trunc" style={{ fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', maxWidth: 380 }}

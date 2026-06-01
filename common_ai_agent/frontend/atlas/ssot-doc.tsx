@@ -34,9 +34,8 @@ import {
   useMemo,
   type ReactNode,
   type DragEvent,
-  type FormEvent,
 } from 'react';
-import { fetchSsotDocSource, sourceForSsotDocTarget, submitSsotDocFeedback } from './ssot-doc-feedback-api';
+import { fetchSsotDocSource, sourceForSsotDocTarget } from './ssot-doc-feedback-api';
 import {
   buildSsotDocTargetFromElement,
   clearSsotDocSelection,
@@ -77,8 +76,6 @@ export const SsotDocPane = ({ uiLang = 'ko', ip = '', onBack }: SsotDocPaneProps
   const [docMode, setDocMode] = useState('view');
   const [feedbackSection, setFeedbackSection] = useState('custom');
   const [feedbackPath, setFeedbackPath] = useState('');
-  const [feedbackField, setFeedbackField] = useState('');
-  const [feedbackValue, setFeedbackValue] = useState('');
   const [feedbackComment, setFeedbackComment] = useState('');
   const [feedbackBusy, setFeedbackBusy] = useState(false);
   const [feedbackStatus, setFeedbackStatus] = useState('');
@@ -88,7 +85,6 @@ export const SsotDocPane = ({ uiLang = 'ko', ip = '', onBack }: SsotDocPaneProps
   const [sourceBusy, setSourceBusy] = useState(false);
   const [sourceInfo, setSourceInfo] = useState<SsotDocSourceResponse | null>(null);
   const docFrameRef = useRef<HTMLIFrameElement>(null);
-  const commentTextareaRef = useRef<HTMLTextAreaElement>(null);
   const effectiveIp = String(ip || ssotWin.ACTIVE_IP || ssotIpFromSession(ssotWin.ACTIVE_SESSION) || '').trim();
   const qs = effectiveIp ? new URLSearchParams({
     ip: effectiveIp,
@@ -113,9 +109,7 @@ export const SsotDocPane = ({ uiLang = 'ko', ip = '', onBack }: SsotDocPaneProps
       return true;
     });
   }, []);
-  const canSubmitFeedback = !!(
-    selectedTarget && (feedbackComment.trim() || feedbackValue.trim() || feedbackField.trim())
-  );
+  const canSendFeedback = !!selectedTarget && !feedbackBusy;
   const selectedSourceInfo = sourceForSsotDocTarget(sourceInfo, selectedTarget);
   const applyDocSelection = useCallback((target: SsotDocSelectedTarget | null, el?: Element | null) => {
     if (!target) return;
@@ -128,7 +122,6 @@ export const SsotDocPane = ({ uiLang = 'ko', ip = '', onBack }: SsotDocPaneProps
       ? `selected: ${target.label}`
       : `selected: ${target.label}`);
     if (el) markSsotDocSelection(el);
-    requestAnimationFrame(() => commentTextareaRef.current?.focus());
   }, [uiLang]);
   const handleDocCommentDragStart = (ev: DragEvent<HTMLButtonElement>) => {
     if (docMode !== 'feedback' || !selectedTarget) return;
@@ -224,7 +217,8 @@ export const SsotDocPane = ({ uiLang = 'ko', ip = '', onBack }: SsotDocPaneProps
     }
   }, [effectiveIp, selectedTarget, sourceBusy]);
   const handleCommentToChat = useCallback(async () => {
-    if (!effectiveIp || !selectedTarget) return;
+    if (!effectiveIp || !selectedTarget || feedbackBusy) return;
+    setFeedbackBusy(true);
     let source = sourceForSsotDocTarget(sourceInfo, selectedTarget);
     if (!source) {
       try {
@@ -234,43 +228,20 @@ export const SsotDocPane = ({ uiLang = 'ko', ip = '', onBack }: SsotDocPaneProps
         source = null;
       }
     }
-    dispatchSsotDocComment({
-      ip: effectiveIp,
-      target: selectedTarget,
-      comment: feedbackComment,
-      selectedText: selectedDocText(),
-      source,
-    });
-    setFeedbackStatus(uiLang === 'en' ? 'comment moved to chat input' : 'comment를 chat input으로 보냈습니다');
-    onBack?.();
-  }, [effectiveIp, feedbackComment, onBack, selectedDocText, selectedTarget, sourceInfo, uiLang]);
-  const handleDocFeedbackSubmit = async (ev: FormEvent<HTMLFormElement>) => {
-    ev.preventDefault();
-    if (!effectiveIp || !selectedTarget || !canSubmitFeedback || feedbackBusy) return;
-    setFeedbackBusy(true);
-    setFeedbackStatus('');
     try {
-      const payload = await submitSsotDocFeedback({
+      dispatchSsotDocComment({
         ip: effectiveIp,
         target: selectedTarget,
-        field: feedbackField,
-        value: feedbackValue,
         comment: feedbackComment,
+        selectedText: selectedDocText(),
+        source,
       });
-      setFeedbackStatus(uiLang === 'en'
-        ? `applied ${payload.path || payload.section || 'feedback'}`
-        : `${payload.path || payload.section || 'feedback'} 반영 완료`);
-      setFeedbackComment('');
-      setFeedbackValue('');
-      setSourceInfo(null);
-      setReloadKey(k => k + 1);
-      window.dispatchEvent(new CustomEvent('atlas-ssot-doc-feedback', { detail: payload }));
-    } catch (err) {
-      setFeedbackStatus(String((err as { message?: unknown })?.message || err || 'feedback failed'));
+      setFeedbackStatus(uiLang === 'en' ? 'sent to chat input' : 'chat input으로 보냈습니다');
+      onBack?.();
     } finally {
       setFeedbackBusy(false);
     }
-  };
+  }, [effectiveIp, feedbackBusy, feedbackComment, onBack, selectedDocText, selectedTarget, sourceInfo, uiLang]);
 
   if (!effectiveIp) {
     return (
@@ -356,7 +327,10 @@ export const SsotDocPane = ({ uiLang = 'ko', ip = '', onBack }: SsotDocPaneProps
       }}>
         {docMode === 'feedback' ? (
           <form
-            onSubmit={handleDocFeedbackSubmit}
+            onSubmit={event => {
+              event.preventDefault();
+              void handleCommentToChat();
+            }}
             style={{
               border: '1px solid var(--line)',
               background: 'var(--bg-2)',
@@ -388,10 +362,7 @@ export const SsotDocPane = ({ uiLang = 'ko', ip = '', onBack }: SsotDocPaneProps
               </select>
               <input
                 value={feedbackPath}
-                onChange={e => {
-                  setFeedbackPath(e.target.value);
-                  setFeedbackField('');
-                }}
+                onChange={e => setFeedbackPath(e.target.value)}
                 readOnly={!!selectedTarget}
                 placeholder="yaml path or custom field"
                 style={{
@@ -414,15 +385,14 @@ export const SsotDocPane = ({ uiLang = 'ko', ip = '', onBack }: SsotDocPaneProps
                 {sourceBusy ? 'Loading' : 'Show SSOT'}
               </button>
               <button
-                type="button"
+                type="submit"
                 className="btn"
-                disabled={!selectedTarget}
-                onClick={handleCommentToChat}
+                disabled={!canSendFeedback}
                 draggable={docMode === 'feedback'}
                 onDragStart={handleDocCommentDragStart}
                 style={{ fontSize: 10, cursor: docMode === 'feedback' && selectedTarget ? 'grab' : 'default' }}
               >
-                Comment
+                {feedbackBusy ? 'Sending' : 'Send to chat'}
               </button>
             </div>
             <div style={{
@@ -437,7 +407,7 @@ export const SsotDocPane = ({ uiLang = 'ko', ip = '', onBack }: SsotDocPaneProps
               <span className="mute" style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {selectedTarget
                   ? `${selectedTarget.kind} · ${selectedTarget.label} · ${selectedTarget.path}`
-                  : 'Select a DOC component by clicking it, or drop Comment onto it.'}
+                  : 'Select a DOC component by clicking it, then send feedback to chat.'}
               </span>
               {selectedTarget ? (
                 <button
@@ -489,10 +459,9 @@ export const SsotDocPane = ({ uiLang = 'ko', ip = '', onBack }: SsotDocPaneProps
               </div>
             ) : null}
             <textarea
-              ref={commentTextareaRef}
               value={feedbackComment}
               onChange={e => setFeedbackComment(e.target.value)}
-              placeholder="comment"
+              placeholder="chat feedback note (optional)"
               rows={2}
               style={{
                 background: 'var(--bg)',
@@ -505,27 +474,10 @@ export const SsotDocPane = ({ uiLang = 'ko', ip = '', onBack }: SsotDocPaneProps
                 resize: 'vertical',
               }}
             />
-            <input
-              value={feedbackValue}
-              onChange={e => setFeedbackValue(e.target.value)}
-              placeholder="value to write into the selected yaml path"
-              style={{
-                background: 'var(--bg)',
-                color: 'var(--fg)',
-                border: '1px solid var(--line)',
-                borderRadius: 2,
-                fontFamily: 'var(--mono)',
-                fontSize: 'var(--ui-control-font-size)',
-                padding: '5px 7px',
-              }}
-            />
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
               <span className="mute" style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {feedbackStatus || ' '}
               </span>
-              <button type="submit" className="btn primary" disabled={!canSubmitFeedback || feedbackBusy} style={{ fontSize: 10 }}>
-                {feedbackBusy ? 'applying' : 'apply feedback'}
-              </button>
             </div>
           </form>
         ) : null}

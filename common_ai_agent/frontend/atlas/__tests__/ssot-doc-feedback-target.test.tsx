@@ -6,6 +6,7 @@ import {
   buildSsotDocTargetFromElement,
   dispatchSsotDocComment,
   findSsotDocSelectableElement,
+  markSsotDocSelection,
 } from '../ssot-doc-feedback-dom';
 
 describe('SSOT DOC Feedback Mode target selection', () => {
@@ -63,13 +64,39 @@ describe('SSOT DOC Feedback Mode target selection', () => {
     });
   });
 
+  it('marks a DOC component without forcing the page to scroll', () => {
+    const row = document.createElement('section');
+    const scrollIntoView = vi.fn();
+    Object.defineProperty(row, 'scrollIntoView', {
+      configurable: true,
+      value: scrollIntoView,
+    });
+    document.body.appendChild(row);
+
+    markSsotDocSelection(row);
+
+    expect(row.getAttribute('data-atlas-doc-feedback-selected')).toBe('1');
+    expect(scrollIntoView).not.toHaveBeenCalled();
+  });
+
   it('renders source/comment actions disabled until a component is selected', () => {
     render(<SsotDocPane uiLang="en" ip="doc_source_ip" />);
 
     fireEvent.click(screen.getByRole('button', { name: /Feedback Mode/i }));
 
     expect(screen.getByRole('button', { name: /Show SSOT/i })).toBeDisabled();
-    expect(screen.getByRole('button', { name: /^Comment$/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Send to chat/i })).toBeDisabled();
+  });
+
+  it('uses chat-style feedback entry instead of an inline value writer', () => {
+    render(<SsotDocPane uiLang="en" ip="doc_source_ip" />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Feedback Mode/i }));
+
+    expect(screen.getByPlaceholderText(/chat feedback/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /send to chat/i })).toBeDisabled();
+    expect(screen.queryByPlaceholderText(/value to write/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /apply feedback/i })).not.toBeInTheDocument();
   });
 
   it('dispatches a structured chat prefill event for the selected DOC source', () => {
