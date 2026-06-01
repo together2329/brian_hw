@@ -365,6 +365,7 @@ export const WorkspacePromptRow = ({
   const [draft, setDraft] = useState<string>(() => String(input || ''));
   const draftRef = useRef<string>(draft);
   const syncTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
+  const parentEchoRef = useRef<Set<string>>(new Set());
   const resizeInput = useCallback((el: HTMLTextAreaElement | null) => {
     if (!el) return;
     el.style.height = 'auto';
@@ -375,6 +376,14 @@ export const WorkspacePromptRow = ({
     window.clearTimeout(syncTimerRef.current);
     syncTimerRef.current = null;
   }, []);
+  const syncParentInput = useCallback((next: string) => {
+    parentEchoRef.current.add(next);
+    if (parentEchoRef.current.size > 8) {
+      const first = parentEchoRef.current.values().next().value;
+      parentEchoRef.current.delete(first);
+    }
+    setInput(next);
+  }, [setInput]);
   const applyDraft = useCallback((next: string, syncParent = true) => {
     draftRef.current = next;
     setDraft(next);
@@ -382,12 +391,16 @@ export const WorkspacePromptRow = ({
     cancelDeferredInputSync();
     syncTimerRef.current = window.setTimeout(() => {
       syncTimerRef.current = null;
-      setInput(draftRef.current);
+      syncParentInput(draftRef.current);
     }, 50);
-  }, [cancelDeferredInputSync, setInput]);
+  }, [cancelDeferredInputSync, syncParentInput]);
   useEffect(() => {
     const next = String(input || '');
-    if (next === draftRef.current) return;
+    if (next === draftRef.current) {
+      parentEchoRef.current.delete(next);
+      return;
+    }
+    if (parentEchoRef.current.delete(next)) return;
     cancelDeferredInputSync();
     draftRef.current = next;
     setDraft(next);
@@ -513,7 +526,7 @@ export const WorkspacePromptRow = ({
             }
             if (e.key === 'Enter' && !e.shiftKey) {
               cancelDeferredInputSync();
-              setInput(draftRef.current);
+              syncParentInput(draftRef.current);
             }
             onKey(e);
           }}

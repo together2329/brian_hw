@@ -188,6 +188,48 @@ describe('Workspace render smoke (the behavioral gate)', () => {
     vi.useRealTimers();
   });
 
+  it('does not let stale parent echoes erase fast typing', async () => {
+    vi.useFakeTimers();
+    const { WorkspacePromptRow } = await import('../workspace-root-render.tsx');
+    const setInput = vi.fn();
+    const inputRef = createRef<HTMLTextAreaElement>();
+    const inputRouteRef = { current: {} };
+    const props = {
+      workflow: 'default',
+      activeIp: 'demo',
+      feed: [],
+      orchWorkers: [],
+      workerProgress: null,
+      setInput,
+      inputRef,
+      inputRouteState: null,
+      inputRouteRef,
+      inputHistoryIndexRef: { current: null },
+      inputHistoryDraftRef: { current: '' },
+      onKey: vi.fn(),
+      pendingQcard: null,
+      workflowReady: null,
+      atlasUiOrchestratorMode: () => false,
+      workflowForExecMode: (wf: unknown) => String(wf || 'default'),
+      defaultWorkflowForExecMode: () => 'default',
+    };
+
+    const { getByRole, rerender } = render(<WorkspacePromptRow {...props} input="" />);
+    const textarea = getByRole('textbox') as HTMLTextAreaElement;
+
+    fireEvent.change(textarea, { target: { value: 'l' } });
+    await act(async () => {
+      vi.advanceTimersByTime(60);
+    });
+    expect(setInput).toHaveBeenLastCalledWith('l');
+
+    fireEvent.change(textarea, { target: { value: 'latency smoke prompt' } });
+    rerender(<WorkspacePromptRow {...props} input="l" />);
+
+    expect(textarea.value).toBe('latency smoke prompt');
+    vi.useRealTimers();
+  });
+
   it('submits the latest visible prompt value before deferred sync settles', async () => {
     const { Workspace } = await import('../workspace.tsx');
     const { container } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
