@@ -77,9 +77,14 @@ function installWindowStubs() {
   w.CONTEXT = w.CONTEXT || {};
   w.ACTIVE_SESSION = '';
   w.ATLAS_UI_LANG = 'ko';
+  w.ATLAS_USER = { username: 'alice' };
   w.FLOW_STAGES = [];
   w.TODOS = [];
   w.atlasData = {};
+  const normalize = (s: unknown) => String(s || '').trim().toLowerCase();
+  w.normalizeAtlasSessionName = normalize;
+  w.atlasData.normalizeSessionName = normalize;
+  w.atlasData.sessionFor = (ip: string, wf: string) => `alice/${ip}/${wf}`;
   w.FILE_TREE_LOADING = false;
   w.FILE_TREE_ERROR = null;
   w.FILE_TREE_LAST_REFRESH = 0;
@@ -311,6 +316,57 @@ describe('Workspace render smoke (the behavioral gate)', () => {
     });
 
     expect(queryByText('Agent responding')).toBeNull();
+  });
+
+  it('does not show Agent responding for workflow activation agent_state events', async () => {
+    const { Workspace } = await import('../workspace.tsx');
+    const { queryByText } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
+    const backend = (window as AnyWindow).backend;
+
+    await act(async () => {
+      backend._emit('agent_state', {
+        running: true,
+        source: 'api/session/activate',
+        control: true,
+      });
+    });
+
+    expect(queryByText('Agent responding')).toBeNull();
+  });
+
+  it('clears stale Agent responding state when switching orchestrator workflow views', async () => {
+    const w = window as AnyWindow;
+    w.ATLAS_EXEC_MODE = 'orchestrator';
+    w.ACTIVE_SESSION = 'alice/demo/orchestrator';
+    w.ACTIVE_IP = 'demo';
+    w.SCOPE_PATH = 'demo';
+
+    const { Workspace } = await import('../workspace.tsx');
+    const { queryByText } = render(
+      <Workspace
+        dir="/tmp/ws"
+        uiLang="ko"
+        activeNamespace="alice/demo/orchestrator"
+        activeWorkflow="orchestrator"
+      />,
+    );
+    const backend = (window as AnyWindow).backend;
+
+    await act(async () => {
+      backend._emit('token', {
+        session_id: 'alice/demo/orchestrator',
+        text: 'orchestrator reply in progress',
+      });
+    });
+    await waitFor(() => expect(queryByText('Agent responding')).not.toBeNull());
+
+    await act(async () => {
+      window.dispatchEvent(new CustomEvent('atlas-workflow-view-request', {
+        detail: { workflow: 'rtl-gen' },
+      }));
+    });
+
+    await waitFor(() => expect(queryByText('Agent responding')).toBeNull());
   });
 
   it('hides backend iteration markers from the visible chat feed', async () => {

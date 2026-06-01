@@ -380,7 +380,7 @@ export const WorkspacePromptRow = ({
     parentEchoRef.current.add(next);
     if (parentEchoRef.current.size > 8) {
       const first = parentEchoRef.current.values().next().value;
-      parentEchoRef.current.delete(first);
+      if (first !== undefined) parentEchoRef.current.delete(first);
     }
     setInput(next);
   }, [setInput]);

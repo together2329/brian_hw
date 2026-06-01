@@ -695,8 +695,10 @@ export function useWorkspaceSession(deps: UseWorkspaceSessionDeps) {
         }).catch(() => {});
       } catch (_) {}
     }
+    setStreaming(false);
+    streamBufferRef.current = '';
+    setStreamText('');
     if (!orchestratorMode) {
-      setStreaming(false);
       try {
         w.ATLAS_AGENT_RUNNING = false;
         window.dispatchEvent(new CustomEvent('atlas-agent-running', { detail: { running: false } }));

@@ -654,7 +654,14 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       }));
       subs.push(w.backend.subscribe('agent_state', (m: any) => {
         if (!eventMatchesCurrentSession(m)) return;
+        const controlPlaneState = !!(m && (
+          m.control === true ||
+          m.control_plane === true ||
+          m.stream === false ||
+          m.source === 'api/session/activate'
+        ));
         if (m && m.running === true) {
+          if (controlPlaneState) return;
           backendRunStartedRef.current = true;
           setStreaming(true);
           return;
