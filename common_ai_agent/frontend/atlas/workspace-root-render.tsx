@@ -23,8 +23,10 @@ import {
   type CSSProperties,
   type KeyboardEvent,
   type ChangeEvent,
+  memo,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -122,6 +124,38 @@ export const renderWorkspaceFeedEntries = ({
   return out;
 };
 
+const sameFeedEntriesProps = (
+  prev: RenderWorkspaceFeedEntriesProps,
+  next: RenderWorkspaceFeedEntriesProps,
+): boolean => (
+  prev.feed === next.feed
+  && prev.qaState === next.qaState
+  && prev.chatFeedSummary === next.chatFeedSummary
+  && prev.toggleOpt === next.toggleOpt
+  && prev.setCustom === next.setCustom
+  && prev.submitCard === next.submitCard
+  && prev.dir === next.dir
+);
+
+const WorkspaceFeedList = memo(
+  ({ feedEntriesProps }: { feedEntriesProps: RenderWorkspaceFeedEntriesProps }) => {
+    const entries = useMemo(
+      () => renderWorkspaceFeedEntries(feedEntriesProps),
+      [
+        feedEntriesProps.feed,
+        feedEntriesProps.qaState,
+        feedEntriesProps.chatFeedSummary,
+        feedEntriesProps.toggleOpt,
+        feedEntriesProps.setCustom,
+        feedEntriesProps.submitCard,
+        feedEntriesProps.dir,
+      ],
+    );
+    return <>{entries}</>;
+  },
+  (prev, next) => sameFeedEntriesProps(prev.feedEntriesProps, next.feedEntriesProps),
+);
+
 // ── renderWorkspaceWorkerProgress ───────────────────────────────────────────
 // Compact live-status strip for a worker session (hidden in orchestrator mode
 // or when no worker progress is being tracked). Shows the workflow name,
@@ -192,7 +226,7 @@ export const WorkspaceChatPane = ({
     style={{ flex: 1, minHeight: 0, overflow: 'auto', padding: '14px 18px', ...style }}
   >
     <div className="workspace-chat-content" data-workspace-chat-content="true" style={{ minHeight: '100%' }}>
-      {renderWorkspaceFeedEntries(feedEntriesProps)}
+      <WorkspaceFeedList feedEntriesProps={feedEntriesProps} />
       <LiveAgentPreview text={streamText} />
     </div>
   </div>

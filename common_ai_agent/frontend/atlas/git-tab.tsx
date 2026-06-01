@@ -1,7 +1,7 @@
 // git-tab.tsx — TypeScript migration of git-tab.jsx (strangler-fig).
 //
-// ATLAS Git tab — per-IP commit history (graph + structured list +
-// diff + explicit revert). Registers window.GitTab consumed by workspace.jsx when
+// ATLAS Git tab — per-IP commit history (structured list + split diff +
+// explicit revert). Registers window.GitTab consumed by workspace.jsx when
 // mainTab === 'git' or the built-in Git companion tab.
 //
 // TS migration: converted from ambient global React + IIFE window-glue to a
@@ -72,14 +72,12 @@ export interface GitTabProps {
 export function GitTab({ initialIp, provider = '' }: GitTabProps): ReactNode {
   const [ipList, setIpList] = useState<string[]>([]);
   const [ip, setIp] = useState(initialIp || '');
-  const [graph, setGraph] = useState('');
   const [commits, setCommits] = useState<GitCommit[]>([]);
   const [gitStatus, setGitStatus] = useState<GitStatus | null>(null);
   const [selectedCommit, setSelectedCommit] = useState<GitCommit | null>(null);
   const [diffBody, setDiffBody] = useState('');
   const [diffBusy, setDiffBusy] = useState(false);
   const [diffErr, setDiffErr] = useState('');
-  const [diffFull, setDiffFull] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [revertTarget, setRevertTarget] = useState<GitCommit | null>(null);
@@ -100,7 +98,6 @@ export function GitTab({ initialIp, provider = '' }: GitTabProps): ReactNode {
     setDiffBody('');
     setDiffErr('');
     setDiffBusy(false);
-    setDiffFull(false);
     setRevertTarget(null);
   }, []);
 
@@ -139,7 +136,6 @@ export function GitTab({ initialIp, provider = '' }: GitTabProps): ReactNode {
 
   const refresh = useCallback(() => {
     if (!ip) {
-      setGraph('');
       setCommits([]);
       setGitStatus(null);
       return;
@@ -156,7 +152,6 @@ export function GitTab({ initialIp, provider = '' }: GitTabProps): ReactNode {
       .then(([d, status]) => {
         if (!mountedRef.current) return;
         const nextCommits: GitCommit[] = Array.isArray(d.commits) ? d.commits : [];
-        setGraph(d.graph || '');
         setCommits(nextCommits);
         setGitStatus(status && !status.error ? status : null);
         if (status && status.error) setErr(status.error);
@@ -167,7 +162,6 @@ export function GitTab({ initialIp, provider = '' }: GitTabProps): ReactNode {
       })
       .catch(e => {
         if (!mountedRef.current) return;
-        setGraph('');
         setCommits([]);
         setGitStatus(null);
         clearSelection();
@@ -184,7 +178,6 @@ export function GitTab({ initialIp, provider = '' }: GitTabProps): ReactNode {
     setSelectedCommit(commit);
     setDiffBody('');
     setDiffErr('');
-    setDiffFull(true);
     setDiffBusy(true);
     fetch(withProvider(`/api/git/show?sha=${encodeURIComponent(commit.hash)}&ip=${encodeURIComponent(ip)}`),
           { cache: 'no-store' })
@@ -235,17 +228,12 @@ export function GitTab({ initialIp, provider = '' }: GitTabProps): ReactNode {
     display: 'flex', alignItems: 'center', gap: 10,
   };
   const sxBody: CSSProperties = { flex: 1, overflow: 'hidden', display: 'flex', minHeight: 0 };
-  const sxGraphPane: CSSProperties = {
-    flex: '0 0 30%', minWidth: 240, overflow: 'auto', padding: '8px 12px',
-    borderRight: '1px solid var(--line)',
-    whiteSpace: 'pre',
-  };
   const sxListPane: CSSProperties = {
-    flex: '0 0 32%', minWidth: 280, overflow: 'auto',
+    flex: '0 0 36%', minWidth: 320, overflow: 'auto',
     borderRight: '1px solid var(--line)',
   };
   const sxDiffPane: CSSProperties = {
-    flex: '1 1 38%', minWidth: 320, overflow: 'hidden',
+    flex: '1 1 64%', minWidth: 360, overflow: 'hidden',
     display: 'flex', flexDirection: 'column', background: 'var(--bg-3)',
   };
   const sxRow = (selected: boolean): CSSProperties => ({
@@ -346,58 +334,49 @@ export function GitTab({ initialIp, provider = '' }: GitTabProps): ReactNode {
         </span>
       </div>
       <div style={sxBody}>
-        {!(diffFull && selectedCommit) && (
-          <div style={sxGraphPane}>
-            {graph || (busy ? 'loading…' : '(no commits)')}
+        <div style={sxListPane}>
+          <div style={{
+            padding: '6px 12px', borderBottom: '1px solid var(--line)',
+            color: 'var(--fg-mute)', fontSize: 10,
+            textTransform: 'uppercase', letterSpacing: '0.08em',
+            position: 'sticky', top: 0, background: 'var(--bg-2)', zIndex: 1,
+          }}>
+            history · select commit to view diff
           </div>
-        )}
-        {!(diffFull && selectedCommit) && (
-          <div style={sxListPane}>
-            <div style={{
-              padding: '6px 12px', borderBottom: '1px solid var(--line)',
-              color: 'var(--fg-mute)', fontSize: 10,
-              textTransform: 'uppercase', letterSpacing: '0.08em',
-              position: 'sticky', top: 0, background: 'var(--bg-2)', zIndex: 1,
-            }}>
-              history · select commit to view diff
+          {commits.map(c => (
+            <div key={c.hash}
+                 style={sxRow(!!(selectedCommit && selectedCommit.hash === c.hash))}
+                 onClick={() => loadCommitDiff(c)}>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
+                <code style={{ color: 'var(--accent)' }}>{c.short}</code>
+                <span style={{ color: 'var(--fg-mute)', fontSize: 10 }}>
+                  {_fmtRel(c.time)}
+                </span>
+                <span style={{ color: 'var(--fg-mute)', fontSize: 10 }}>
+                  {c.author}
+                </span>
+                <span style={{ flex: 1 }} />
+                {selectedCommit && selectedCommit.hash === c.hash && (
+                  <button
+                    onClick={(ev: MouseEvent<HTMLButtonElement>) => {
+                      ev.stopPropagation();
+                      setRevertTarget(c);
+                    }}
+                    style={sxMiniButton}
+                    title="hard reset requires confirmation"
+                  >Revert…</button>
+                )}
+              </div>
+              <div style={{ marginTop: 2 }}>{c.subject}</div>
             </div>
-            {commits.map(c => (
-              <div key={c.hash}
-                   style={sxRow(!!(selectedCommit && selectedCommit.hash === c.hash))}
-                   onClick={() => loadCommitDiff(c)}>
-                <div style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
-                  <code style={{ color: 'var(--accent)' }}>{c.short}</code>
-                  <span style={{ color: 'var(--fg-mute)', fontSize: 10 }}>
-                    {_fmtRel(c.time)}
-                  </span>
-                  <span style={{ color: 'var(--fg-mute)', fontSize: 10 }}>
-                    {c.author}
-                  </span>
-                  <span style={{ flex: 1 }} />
-                  {selectedCommit && selectedCommit.hash === c.hash && (
-                    <button
-                      onClick={(ev: MouseEvent<HTMLButtonElement>) => {
-                        ev.stopPropagation();
-                        setRevertTarget(c);
-                      }}
-                      style={sxMiniButton}
-                      title="hard reset requires confirmation"
-                    >Revert…</button>
-                  )}
-                </div>
-                <div style={{ marginTop: 2 }}>{c.subject}</div>
-              </div>
-            ))}
-            {commits.length === 0 && !busy && (
-              <div style={{ padding: 16, color: 'var(--fg-mute)' }}>
-                no commits yet
-              </div>
-            )}
-          </div>
-        )}
-        <div style={(diffFull && selectedCommit)
-          ? { ...sxDiffPane, flex: '1 1 100%', minWidth: 0 }
-          : sxDiffPane}>
+          ))}
+          {commits.length === 0 && !busy && (
+            <div style={{ padding: 16, color: 'var(--fg-mute)' }}>
+              no commits yet
+            </div>
+          )}
+        </div>
+        <div style={sxDiffPane}>
           <div style={{
             padding: '6px 12px', borderBottom: '1px solid var(--line)',
             display: 'flex', alignItems: 'center', gap: 8,
@@ -414,15 +393,6 @@ export function GitTab({ initialIp, provider = '' }: GitTabProps): ReactNode {
               </>
             )}
             <span style={{ flex: 1 }} />
-            {selectedCommit && (
-              <button
-                onClick={() => setDiffFull(v => !v)}
-                style={sxMiniButton}
-                title={diffFull ? 'show history beside the diff' : 'expand diff to full width'}
-              >
-                {diffFull ? 'History' : 'Full diff'}
-              </button>
-            )}
             {diffBusy && <span style={{ color: 'var(--fg-mute)', fontSize: 11 }}>loading…</span>}
           </div>
           {!selectedCommit ? (

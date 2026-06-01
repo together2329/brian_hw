@@ -78,6 +78,10 @@ function installWindowStubs() {
   w.ACTIVE_SESSION = '';
   w.ATLAS_UI_LANG = 'ko';
   w.ATLAS_USER = { username: 'alice' };
+  w.ATLAS_AGENT_RUNNING = false;
+  w.ATLAS_EXEC_MODE = '';
+  delete w.ATLAS_DEFAULT_EXEC_MODE;
+  delete w.ATLAS_BOOT_CONFIG;
   w.FLOW_STAGES = [];
   w.TODOS = [];
   w.atlasData = {};
@@ -93,6 +97,7 @@ function installWindowStubs() {
   const backendHandlers: Record<string, Set<(payload: any) => void>> = {};
   w.backend = {
     send: vi.fn(),
+    switchSession: vi.fn(),
     on: vi.fn(),
     off: vi.fn(),
     state: 'open',
@@ -411,6 +416,141 @@ describe('Workspace render smoke (the behavioral gate)', () => {
     await waitFor(() => expect(queryByText('Agent responding')).toBeNull());
   });
 
+  it('keeps the active IP when a workflow chip switches with an empty scope path', async () => {
+    const w = window as AnyWindow;
+    w.FLOW_STAGES = [
+      { id: 'default', label: 'default', glyph: 'GP', color: '#9ca3af' },
+      { id: 'coverage', label: 'coverage', glyph: 'CV', color: '#22c55e' },
+    ];
+    w.ACTIVE_SESSION = 'alice/demo/default';
+    w.ACTIVE_IP = 'demo';
+    w.SCOPE_PATH = '';
+    w.atlasData.sessionFor = vi.fn((ip: string, wf: string) => `alice/${ip || 'default'}/${wf || 'default'}`);
+    let resolveActivate: ((response: Response) => void) | null = null;
+    const activateResponse = new Promise<Response>((resolve) => {
+      resolveActivate = resolve;
+    });
+    const fetchSpy = vi.fn(async (url: RequestInfo | URL, _init?: RequestInit) => {
+      if (String(url) === '/api/session/activate') return activateResponse;
+      return new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } });
+    });
+    global.fetch = fetchSpy as unknown as typeof fetch;
+    const activateOkResponse = () =>
+      new Response(JSON.stringify({ session_worker_warmup: { enabled: false } }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+    const { Workspace } = await import('../workspace.tsx');
+    const { getByRole } = render(
+      <Workspace
+        dir="/tmp/ws"
+        uiLang="ko"
+        activeNamespace="alice/demo/default"
+        activeWorkflow="default"
+      />,
+    );
+
+    await act(async () => {
+      fireEvent.click(getByRole('button', { name: /coverage/i }));
+      await Promise.resolve();
+    });
+
+    await waitFor(() => {
+      const activateCall = fetchSpy.mock.calls.find(([url]) => String(url) === '/api/session/activate');
+      expect(activateCall).toBeTruthy();
+      const body = JSON.parse(String(activateCall[1]?.body || '{}'));
+      expect(body).toMatchObject({ owner: 'alice', ip: 'demo', workflow: 'coverage' });
+    });
+    expect(w.atlasData.sessionFor).toHaveBeenCalledWith('demo', 'coverage');
+    expect(w.backend.switchSession).toHaveBeenCalledWith('alice/demo/coverage');
+    expect(w.backend.switchSession).not.toHaveBeenCalledWith('alice/default/coverage');
+
+    await act(async () => {
+      resolveActivate?.(activateOkResponse());
+      await activateResponse;
+    });
+  });
+
+  it('does not fallback-dispatch a workflow slash prompt when activation is forbidden', async () => {
+    const w = window as AnyWindow;
+    w.FLOW_STAGES = [
+      { id: 'default', label: 'default', glyph: 'GP', color: '#9ca3af' },
+      { id: 'coverage', label: 'coverage', glyph: 'CV', color: '#22c55e' },
+    ];
+    w.ACTIVE_SESSION = 'alice/demo/default';
+    w.ACTIVE_IP = 'demo';
+    w.SCOPE_PATH = '';
+    w.atlasData.sessionFor = vi.fn((ip: string, wf: string) => `alice/${ip || 'default'}/${wf || 'default'}`);
+    global.fetch = vi.fn(async (url: RequestInfo | URL, _init?: RequestInit) => {
+      if (String(url) === '/api/session/activate') {
+        return new Response(JSON.stringify({ error: 'session owner mismatch' }), {
+          status: 403,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      return new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }) as unknown as typeof fetch;
+
+    const { Workspace } = await import('../workspace.tsx');
+    const { getByRole } = render(
+      <Workspace
+        dir="/tmp/ws"
+        uiLang="ko"
+        activeNamespace="alice/demo/default"
+        activeWorkflow="default"
+      />,
+    );
+
+    await act(async () => {
+      fireEvent.click(getByRole('button', { name: /coverage/i }));
+      await Promise.resolve();
+    });
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        '/api/session/activate',
+        expect.objectContaining({ method: 'POST' }),
+      );
+    });
+    expect(w.backend.send).not.toHaveBeenCalledWith(expect.objectContaining({
+      type: 'prompt',
+      text: '/wf coverage',
+    }));
+  });
+
+  it('coalesces rapid token display updates to the next animation frame', async () => {
+    const { Workspace } = await import('../workspace.tsx');
+    const { queryByText } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
+    const w = window as AnyWindow;
+    const originalRaf = window.requestAnimationFrame;
+    const pendingFrames: FrameRequestCallback[] = [];
+    window.requestAnimationFrame = ((cb: FrameRequestCallback) => {
+      pendingFrames.push(cb);
+      return pendingFrames.length;
+    }) as typeof window.requestAnimationFrame;
+
+    try {
+      await act(async () => {
+        w.backend._emit('token', { text: 'front' });
+        w.backend._emit('token', { text: 'end' });
+        w.backend._emit('token', { text: ' lag' });
+        await Promise.resolve();
+      });
+
+      expect(queryByText('frontend lag')).toBeNull();
+
+      await act(async () => {
+        pendingFrames.shift()?.(performance.now());
+        await Promise.resolve();
+      });
+
+      expect(queryByText('frontend lag')).not.toBeNull();
+    } finally {
+      window.requestAnimationFrame = originalRaf;
+    }
+  });
+
   it('hides backend iteration markers from the visible chat feed', async () => {
     const { Workspace } = await import('../workspace.tsx');
     const { queryByText } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
@@ -475,6 +615,13 @@ describe('Workspace render smoke (the behavioral gate)', () => {
   it('keeps following delayed chat content growth only while pinned to the bottom', async () => {
     const callbacks: ResizeObserverCallback[] = [];
     const originalResizeObserver = (window as AnyWindow).ResizeObserver;
+    const flushAnimationFrame = () => new Promise<void>((resolve) => {
+      if (typeof window.requestAnimationFrame === 'function') {
+        window.requestAnimationFrame(() => resolve());
+        return;
+      }
+      setTimeout(resolve, 0);
+    });
     class TestResizeObserver {
       constructor(callback: ResizeObserverCallback) {
         callbacks.push(callback);
@@ -507,12 +654,15 @@ describe('Workspace render smoke (the behavioral gate)', () => {
       fireEvent.scroll(pane);
       await act(async () => {
         backend._emit('token', { text: 'new live token' });
+        await flushAnimationFrame();
+        await flushAnimationFrame();
       });
       expect(scrollTop).toBe(1000);
 
       scrollHeight = 1400;
       await act(async () => {
         callbacks.forEach((callback) => callback([], {} as ResizeObserver));
+        await flushAnimationFrame();
       });
       expect(scrollTop).toBe(1400);
 
@@ -521,6 +671,7 @@ describe('Workspace render smoke (the behavioral gate)', () => {
       fireEvent.scroll(pane);
       await act(async () => {
         callbacks.forEach((callback) => callback([], {} as ResizeObserver));
+        await flushAnimationFrame();
       });
       expect(scrollTop).toBe(100);
     } finally {

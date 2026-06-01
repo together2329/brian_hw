@@ -337,6 +337,59 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   const [peerCount, setPeerCount] = useState<number>(1);
   // streamText is composer-owned now (destructured from deps above).
   const feedPinnedToBottomRef = useRef<boolean>(true);
+  const feedScrollFrameRef = useRef<number | null>(null);
+  const feedScrollFallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const streamTextFrameRef = useRef<number | null>(null);
+  const streamTextFallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const cancelStreamTextDisplay = useCallback(() => {
+    if (streamTextFrameRef.current !== null) {
+      if (typeof window.cancelAnimationFrame === 'function') {
+        window.cancelAnimationFrame(streamTextFrameRef.current);
+      }
+      streamTextFrameRef.current = null;
+    }
+    if (streamTextFallbackTimerRef.current !== null) {
+      clearTimeout(streamTextFallbackTimerRef.current);
+      streamTextFallbackTimerRef.current = null;
+    }
+  }, []);
+
+  const scheduleStreamTextDisplay = useCallback(() => {
+    if (streamTextFrameRef.current !== null || streamTextFallbackTimerRef.current !== null) return;
+    if (typeof window.requestAnimationFrame === 'function') {
+      streamTextFrameRef.current = window.requestAnimationFrame(() => {
+        streamTextFrameRef.current = null;
+        setStreamText(streamBufferRef.current);
+      });
+      return;
+    }
+    streamTextFallbackTimerRef.current = setTimeout(() => {
+      streamTextFallbackTimerRef.current = null;
+      setStreamText(streamBufferRef.current);
+    }, 16);
+  }, [setStreamText, streamBufferRef]);
+
+  useEffect(() => () => {
+    cancelStreamTextDisplay();
+  }, [cancelStreamTextDisplay]);
+
+  const cancelFeedScrollRequest = useCallback(() => {
+    if (feedScrollFrameRef.current !== null) {
+      if (typeof window.cancelAnimationFrame === 'function') {
+        window.cancelAnimationFrame(feedScrollFrameRef.current);
+      }
+      feedScrollFrameRef.current = null;
+    }
+    if (feedScrollFallbackTimerRef.current !== null) {
+      clearTimeout(feedScrollFallbackTimerRef.current);
+      feedScrollFallbackTimerRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => () => {
+    cancelFeedScrollRequest();
+  }, [cancelFeedScrollRequest]);
 
   // streaming is owned by the composer (shared with the session half) but the
   // ref-sync + window-broadcast side effects live here next to the chat feed,
@@ -593,13 +646,14 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   }, [activeSessionRef, currentSession]);
 
   const parkLiveStream = useCallback(() => {
+    cancelStreamTextDisplay();
     const text = String(streamBufferRef.current || '').replace(/\u0000/g, '');
     if (text.trim()) {
       appendLiveFeedEntries({ kind: 'agent', text, createdAt: Date.now(), live: true });
     }
     streamBufferRef.current = '';
     setStreamText('');
-  }, [appendLiveFeedEntries, setStreamText, streamBufferRef]);
+  }, [appendLiveFeedEntries, cancelStreamTextDisplay, setStreamText, streamBufferRef]);
 
   useEffect(() => {
     if (!w.backend || typeof w.backend.subscribe !== 'function') return undefined;
@@ -623,7 +677,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
           m.source === 'api/session/activate'
         ));
         streamBufferRef.current += text;
-        setStreamText(streamBufferRef.current);
+        scheduleStreamTextDisplay();
         if (!controlPlaneToken) setStreaming(true);
       }));
       subs.push(w.backend.subscribe('reasoning', (m: any) => {
@@ -697,6 +751,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     appendLiveFeedEntries,
     eventMatchesCurrentSession,
     parkLiveStream,
+    scheduleStreamTextDisplay,
     setStreamText,
     setStreaming,
     streamBufferRef,
@@ -1435,17 +1490,23 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
 
   const requestFeedScrollToBottom = useCallback(() => {
     feedPinnedToBottomRef.current = true;
+    if (feedScrollFrameRef.current !== null || feedScrollFallbackTimerRef.current !== null) return;
     const run = () => {
+      feedScrollFrameRef.current = null;
+      if (feedScrollFallbackTimerRef.current !== null) {
+        clearTimeout(feedScrollFallbackTimerRef.current);
+        feedScrollFallbackTimerRef.current = null;
+      }
       if (!feedPinnedToBottomRef.current) return;
       const el = feedRef.current;
       if (!el) return;
       el.scrollTop = el.scrollHeight;
     };
-    run();
-    requestAnimationFrame(() => {
-      run();
-      requestAnimationFrame(run);
-    });
+    if (typeof window.requestAnimationFrame === 'function') {
+      feedScrollFrameRef.current = window.requestAnimationFrame(run);
+      return;
+    }
+    feedScrollFallbackTimerRef.current = setTimeout(run, 16);
   }, [feedRef]);
 
   useEffect(() => {

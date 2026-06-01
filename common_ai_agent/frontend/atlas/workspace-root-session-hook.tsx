@@ -807,17 +807,30 @@ export function useWorkspaceSession(deps: UseWorkspaceSessionDeps) {
     setWorkflow(next);
     w.CONTEXT = Object.assign({}, w.CONTEXT || {}, { workspace: next });
     refreshFeed(intent, next);
-    const sid = activateSession(w.SCOPE_PATH || '', next);
-    const parts = (activeSession || w.ACTIVE_SESSION || '').split('/');
+    const routeIp = activeIpForRoute([
+      w.ACTIVE_SESSION,
+      activeSessionRef.current,
+      activeSession,
+      activeNamespace,
+    ]) || 'default';
+    const sid = activateSession(routeIp, next);
+    const parts = (sid || activeSession || w.ACTIVE_SESSION || '').split('/');
     const owner = normalizeUiSession((w.ATLAS_USER && w.ATLAS_USER.username) || '') || parts[0] || 'default';
-    const ip = w.SCOPE_PATH || parts[1] || 'default';
+    const ip = routeSessionIp(sid) || routeIp || parts[1] || 'default';
+    w.ACTIVE_IP = ip;
     setWorkflowDispatchInputRoute(next, ip);
     setChatViewSession(sid);
     const readySeq = beginWorkflowReady(next, sid, ip);
     updateWorkflowReady(readySeq, { phase: 'session', message: 'Session selected' });
+    if (w.backend) {
+      updateWorkflowReady(readySeq, { phase: 'session', message: 'Binding websocket to workflow session' });
+      if (w.backend.switchSession) w.backend.switchSession(sid);
+      else if (w.backend.connect) w.backend.connect(sid);
+    }
     let activated = false;
     let activationPayload: any = null;
     let activationReadyFailed = false;
+    let activationStatus = 0;
     try {
       updateWorkflowReady(readySeq, { phase: 'backend', message: 'Activating backend session' });
       const res = await fetch('/api/session/activate', {
@@ -829,10 +842,15 @@ export function useWorkspaceSession(deps: UseWorkspaceSessionDeps) {
           workflow: next,
         }),
       });
+      activationStatus = Number((res && res.status) || 0);
       activationPayload = await res.json().catch(() => null);
       activated = !!(res && res.ok);
       if (!activated) {
-        updateWorkflowReady(readySeq, { phase: 'backend', message: 'Backend activation fallback queued' });
+        const rejected = activationStatus >= 400 && activationStatus < 500;
+        updateWorkflowReady(readySeq, {
+          phase: 'backend',
+          message: rejected ? 'Backend activation rejected' : 'Backend activation fallback queued',
+        });
       } else {
         const warm = activationPayload && activationPayload.session_worker_warmup;
         const warmStatus = warm && String(warm.status || '').trim();
@@ -856,10 +874,8 @@ export function useWorkspaceSession(deps: UseWorkspaceSessionDeps) {
       }
     } catch (_) {}
     if (w.backend) {
-      updateWorkflowReady(readySeq, { phase: 'worker', message: 'Binding websocket to workflow session' });
-      if (w.backend.switchSession) w.backend.switchSession(sid);
-      else if (w.backend.connect) w.backend.connect(sid);
-      if (!activated && next !== 'orchestrator') {
+      const canFallbackPrompt = !activated && !(activationStatus >= 400 && activationStatus < 500);
+      if (canFallbackPrompt && next !== 'orchestrator') {
         sendPrompt(`/wf ${next}`, sid);
       }
     }
@@ -867,7 +883,11 @@ export function useWorkspaceSession(deps: UseWorkspaceSessionDeps) {
       return;
     }
     if (!activated) {
-      if (w.backend) {
+      if (activationStatus >= 400 && activationStatus < 500) {
+        const message = (activationPayload && (activationPayload.error || activationPayload.message))
+          || `Backend activation rejected (${activationStatus})`;
+        failWorkflowReady(readySeq, message);
+      } else if (w.backend) {
         finishWorkflowReady(readySeq, { message: 'Fallback route queued; input route ready' }, 1200);
       } else {
         failWorkflowReady(readySeq, 'Backend is not connected');
