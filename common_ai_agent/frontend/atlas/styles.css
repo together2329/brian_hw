@@ -27,6 +27,9 @@
      dropdown to "sans" for the older chat-client look. */
   --mono: var(--mono-base);
   --code-font: var(--mono-base);
+  --source-code-font: var(--mono-base);
+  --preview-code-font-size: 12px;
+  --preview-code-line-height: 1.55;
   --ui-font-size: 14.5px;
   --ui-control-font-size: 12.5px;
   --ui-small-font-size: 11.5px;
@@ -81,6 +84,7 @@ html[data-platform="windows"] {
   --mono-base: var(--windows-mono);
   --mono: var(--mono-base);
   --code-font: var(--mono-base);
+  --source-code-font: var(--windows-mono);
   --enh-sans: 'Segoe UI Variable Text', 'Segoe UI', 'Malgun Gothic', sans-serif;
   --enh-mono: Consolas, 'Cascadia Mono', 'Cascadia Code', monospace;
   --ui-text-weight: 600;
@@ -112,12 +116,14 @@ html[data-font="mono"],
   /* Opt-in to the old all-monospace EDA-workstation look */
   --mono: var(--mono-base);
   --code-font: var(--mono-base);
+  --source-code-font: var(--mono-base);
   --enh-mono: var(--mono-base);
 }
 html[data-font="sans"],
 [data-font="sans"] {
   --mono: var(--sans);
   --code-font: var(--sans);
+  --source-code-font: var(--mono-base);
   --enh-mono: var(--sans);
   --enh-sans: var(--sans);
 }
@@ -125,6 +131,7 @@ html[data-font="windows"],
 [data-font="windows"] {
   --mono: var(--windows-sans);
   --code-font: var(--windows-mono);
+  --source-code-font: var(--windows-mono);
   --enh-mono: var(--windows-mono);
   --enh-sans: var(--windows-sans);
   --ui-text-weight: 500;
@@ -134,6 +141,7 @@ html[data-font="system"],
 [data-font="system"] {
   --mono: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --code-font: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --source-code-font: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --enh-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --enh-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
@@ -1102,6 +1110,21 @@ html[data-platform="windows"] .app {
      light grey on the cream `--bg-3` light backdrop. Force theme-aware
      foreground here so unmatched tokens read like normal text. */
   color: var(--fg);
+}
+.code-pane,
+.code-pane pre[class*="language-"],
+.code-pane code[class*="language-"] {
+  font-family: var(--source-code-font, var(--mono-base)) !important;
+  font-size: var(--preview-code-font-size, 12px) !important;
+  line-height: var(--preview-code-line-height, 1.55) !important;
+  font-synthesis: none;
+  font-variant-ligatures: none;
+  letter-spacing: 0;
+}
+.code-pane .token {
+  font-family: inherit !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
 }
 [data-theme="dark"] .token.comment,
 [data-theme="dark"] .token.prolog,
@@ -2617,9 +2640,9 @@ html[data-platform="windows"] .app {
 .foldable-pane {
   display: flex;
   flex-direction: column;
-  font-family: var(--code-font, var(--mono));
-  font-size: 12px;
-  line-height: 1.55;
+  font-family: var(--source-code-font, var(--code-font, var(--mono-base)));
+  font-size: var(--preview-code-font-size, 12px);
+  line-height: var(--preview-code-line-height, 1.55);
   tab-size: 2;
   -moz-tab-size: 2;
   /* Codex-like dark code surface: near-black, high contrast text, and
@@ -2707,6 +2730,16 @@ html[data-platform="windows"] .app {
   white-space: pre;
   color: var(--fg);
 }
+.foldable-pane .lineno,
+.foldable-pane .line,
+.foldable-pane .line .token {
+  font-family: inherit !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+  font-synthesis: none;
+  font-variant-ligatures: none;
+  letter-spacing: 0;
+}
 /* Code token palette — mirrors the GLOBAL Prism theme (.token.*) so the
    preview highlights IDENTICALLY to the Sim Debug source viewer (.src-viewer).
    Theme-aware via the same vars; YAML keeps its own readable palette below
@@ -2742,6 +2775,10 @@ html[data-platform="windows"] .app {
 [data-theme="light"] .foldable-pane .line .token.comment,
 [data-theme="light"] .foldable-pane .line .token.prolog,
 [data-theme="light"] .foldable-pane .line .token.cdata { color: #4a5666 !important; }
+.foldable-pane:not(.yaml-pane) .line .token {
+  font-style: inherit !important;
+  font-weight: inherit !important;
+}
 .foldable-pane.yaml-pane .line .token.key {
   color: #7dd3fc !important;
   font-weight: 700;
@@ -2817,7 +2854,9 @@ html[data-platform="windows"] .app {
   background: #101010;
   border-left: 3px solid;
   list-style: none;
-  font-weight: 600;
+  font-size: inherit;
+  line-height: inherit;
+  font-weight: 500;
   user-select: none;
   display: flex;
   align-items: baseline;
@@ -2838,7 +2877,8 @@ html[data-platform="windows"] .app {
   content: "▾";
   display: inline-block;
   width: 14px;
-  font-size: 10px;
+  font-size: inherit;
+  line-height: inherit;
   opacity: 0.7;
 }
 .foldable-pane details:not([open]) > .fold-summary::before {
@@ -2888,7 +2928,8 @@ html[data-platform="windows"] .app {
 }
 .foldable-pane .fold-range {
   font-weight: normal;
-  font-size: 10px;
+  font-size: inherit;
+  line-height: inherit;
   white-space: nowrap;
   color: #8b949e;
   opacity: 1;
@@ -2901,7 +2942,8 @@ html[data-platform="windows"] .app {
   border-radius: 3px;
   cursor: pointer;
   font-family: inherit;
-  font-size: 11px;
+  font-size: inherit;
+  line-height: inherit;
   height: 18px;
   align-self: center;
 }

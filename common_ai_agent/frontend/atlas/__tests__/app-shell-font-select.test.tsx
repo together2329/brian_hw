@@ -157,6 +157,27 @@ describe('Atlas font CSS cascade', () => {
       expect(block).toContain('--enh-mono:');
     }
   });
+
+  it('keeps source previews on one fixed monospace size independent of UI font mode', () => {
+    const css = readFileSync('styles.css', 'utf8');
+
+    expect(css).toContain('--source-code-font: var(--mono-base);');
+    expect(css).toContain('--preview-code-font-size: 12px;');
+    expect(css).toContain('--preview-code-line-height: 1.55;');
+    expect(css).toMatch(/\.foldable-pane\s*\{[^}]*font-family:\s*var\(--source-code-font/s);
+    expect(css).toMatch(/\.foldable-pane\s*\{[^}]*font-size:\s*var\(--preview-code-font-size/s);
+    expect(css).toMatch(/\.foldable-pane\s+\.lineno,[\s\S]*\.foldable-pane\s+\.line,[\s\S]*\.foldable-pane\s+\.line\s+\.token\s*\{[^}]*font-size:\s*inherit\s*!important/s);
+    expect(css).toMatch(/\.code-pane,[\s\S]*\.code-pane\s+code\[class\*="language-"\]\s*\{[^}]*font-size:\s*var\(--preview-code-font-size/s);
+  });
+
+  it('maps SystemVerilog extensions to the Prism SystemVerilog grammar', () => {
+    const html = readFileSync('index.vite.html', 'utf8');
+
+    expect(html).toMatch(/sv:\s*'systemverilog'/);
+    expect(html).toMatch(/svh:\s*'systemverilog'/);
+    expect(html).toMatch(/v:\s*'verilog'/);
+    expect(html).toMatch(/vh:\s*'verilog'/);
+  });
 });
 
 describe('Atlas sharp resolution defaults', () => {
