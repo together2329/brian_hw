@@ -1,15 +1,18 @@
 ---
-description: Cursor RTL-to-signoff must follow common_ai_agent workflow semantics
-globs: ".cursor/skills/rtl-to-signoff/**, workflow/**/*, src/workflow_stage_engine.py, src/workflow_stage_surface.py, src/headless_workflow.py, **/rtl/**, **/tb/**, **/sim/**, **/cov/**, **/syn/**, **/sta/**, **/pnr/**"
+description: Cursor SSOT/RTL-to-signoff must follow common_ai_agent workflow semantics
+globs: ".cursor/skills/rtl-to-signoff/**, workflow/**/*, src/workflow_stage_engine.py, src/workflow_stage_surface.py, src/headless_workflow.py, **/req/**, **/yaml/**, **/model/**, **/rtl/**, **/tb/**, **/sim/**, **/cov/**, **/verify/**, **/lint/**, **/syn/**, **/sta/**, **/pnr/**, **/sta-post/**"
 alwaysApply: false
 ---
 
-# RTL To Signoff
+# SSOT / RTL To Signoff
 
-For real RTL-to-signoff work, use `.cursor/skills/rtl-to-signoff/`.
+For real RTL-to-signoff or SSOT-to-signoff work, use `.cursor/skills/rtl-to-signoff/`.
 
 Rules:
 
+- Use the `ssot-to-signoff` profile when the work starts from requirements or needs SSOT generation before DV/EDA closure.
+- `ssot-gen` must run through `src/headless_workflow.py --stages ssot-gen` in Cursor, or the runtime `/to-ssot` / `/grill-me` / `/verify-ssot` surfaces outside Cursor.
+- Do not bypass `req/approval_manifest.json`, semantic questions, or human gates by editing SSOT YAML directly.
 - DV stages must delegate to `WorkflowStageEngine.run_stage()` or `src/headless_workflow.py --stages pipeline`.
 - EDA stages must delegate to workflow command scripts such as `workflow/syn/scripts/auto_syn.sh`.
 - Do not use disk-check-only scripts as final signoff gates when a common-engine stage exists.
