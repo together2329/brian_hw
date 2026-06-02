@@ -248,7 +248,47 @@ def _usage_context_rows(db: Any, user_id: str) -> tuple[list[dict[str, Any]], di
     }
 
 
+def _workflow_runs_runtime(db: Any, user_id: str) -> list[dict[str, Any]]:
+    """Workflow runs in runtime (session) mode: control rows, NO llm join.
+
+    The per-run usage aggregate is unjoinable from control (llm_calls is sharded
+    to runtime DBs), so calls/cost/tokens are 0 and each row carries an explicit
+    ``runtime_usage_unavailable`` flag so the UI/agent does not read 0 as fact.
+    """
+    rows = db._fetchall(
+        """
+        SELECT r.id AS run_id, r.session_id, r.workflow, r.mode,
+               r.status, r.started_at, r.ended_at, r.duration_ms,
+               r.error_summary, r.created_at, r.updated_at,
+               s.project_id, s.title, w.name AS workspace_name, i.ip_name,
+               0 AS calls, 0 AS cost, 0 AS tokens
+          FROM workflow_runs r
+          JOIN sessions s ON s.id = r.session_id
+          LEFT JOIN workspaces w ON w.id = r.workspace_id
+          LEFT JOIN ip_blocks i ON i.id = r.ip_id
+         WHERE s.user_id = ?
+         ORDER BY r.started_at DESC, r.created_at DESC
+        """,
+        (user_id,),
+    )
+    result: list[dict[str, Any]] = []
+    for row in rows:
+        item = dict(row)
+        item["ip"] = _context_ip(item)
+        item["workspace"] = _context_workspace(item)
+        item["runtime_usage_unavailable"] = True
+        result.append(item)
+    return result
+
+
 def _workflow_runs(db: Any, user_id: str) -> list[dict[str, Any]]:
+    # Read-path routing (plan §2.10 / R7): workflow_runs rows stay in CONTROL,
+    # but the per-run llm_calls aggregate (calls/cost/tokens) MOVES to per-session
+    # runtime DBs in session mode. A control-side join there silently reports 0 —
+    # a false ground truth. In session mode we skip the llm join and tag rows with
+    # an explicit ``runtime_usage_unavailable`` flag so 0 is never read as fact.
+    if _runtime_mode_active():
+        return _workflow_runs_runtime(db, user_id)
     rows = db._fetchall(
         """
         SELECT r.id AS run_id, r.session_id, r.workflow, r.mode,

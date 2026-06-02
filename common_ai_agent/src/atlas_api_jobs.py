@@ -463,6 +463,35 @@ def _recent_chat_context_for_ip(
     owners = list(dict.fromkeys(owners))
     if not ip or not owners:
         return []
+    # Chat lives in CONTROL (Task 6 write predicate). In session mode the passed
+    # ``db`` may be bound to a per-session runtime file (a worker context with
+    # ATLAS_TRACE_DB_PATH=runtime), where the chat_message rows do NOT exist — a
+    # silent-empty here would drop the user's latest requirement from the worker
+    # prompt (plan §2.10 / R7). Re-route the chat read to the control DB. No-op in
+    # central mode (``_control_db_for_chat`` returns None there).
+    chat_control = None
+    try:
+        chat_control = db._control_db_for_chat()
+    except Exception:
+        chat_control = None
+    read_db = chat_control if chat_control is not None else db
+    try:
+        return _read_recent_chat_rows(read_db, ip=ip, owners=owners, limit=limit)
+    finally:
+        if chat_control is not None:
+            try:
+                chat_control.close()
+            except Exception:
+                pass
+
+
+def _read_recent_chat_rows(
+    db: Any,
+    *,
+    ip: str,
+    owners: list[str],
+    limit: int,
+) -> list[dict[str, Any]]:
     placeholders = ",".join("?" for _ in owners)
     rows = db._fetchall(
         f"""

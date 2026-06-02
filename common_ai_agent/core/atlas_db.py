@@ -4187,7 +4187,18 @@ class AtlasDB:
         self,
         workflows: List[str] = None,
     ) -> List[Dict[str, Any]]:
-        """Return one row per run with artifact versions grouped by type."""
+        """Return one row per run with artifact versions grouped by type.
+
+        Read-path routing (plan §2.10 / R7): the artifact rows (workflow_runs +
+        run_artifact_versions) stay in CONTROL and are unchanged. The per-run
+        ``llm_calls``/tokens/cost aggregate, however, is sourced from ``llm_calls``
+        which MOVES to per-session runtime DBs in session mode. A control-side
+        LEFT JOIN there would silently report 0 calls / $0 — a false ground truth.
+        In session mode we therefore SKIP the llm join and tag each row with an
+        explicit ``runtime_usage_unavailable`` flag (the usage now lives in the
+        per-session rollups, not joinable per-run) so 0 is never mistaken for fact.
+        """
+        runtime_split = self._runtime_split_active()
         clauses: list[str] = []
         values: list[Any] = []
         if workflows:
@@ -4195,39 +4206,59 @@ class AtlasDB:
             clauses.append(f"r.workflow IN ({placeholders})")
             values.extend(workflows)
         where = f" WHERE {' AND '.join(clauses)}" if clauses else ""
-        rows = self._fetchall(
-            f"""
-            SELECT r.id AS run_id, r.session_id, r.workspace_id, r.ip_id,
-                   r.workflow, r.mode, r.model_profile, r.reasoning_effort,
-                   r.status, r.started_at, r.ended_at, r.duration_ms,
-                   r.error_summary, w.name AS workspace_name, i.ip_name AS ip_name,
-                   COALESCE(llm.llm_calls, 0) AS llm_calls,
-                   COALESCE(llm.tokens_input, 0) AS tokens_input,
-                   COALESCE(llm.tokens_output, 0) AS tokens_output,
-                   COALESCE(llm.tokens_reasoning, 0) AS tokens_reasoning,
-                   COALESCE(llm.cost, 0) AS cost
-              FROM workflow_runs r
-              LEFT JOIN workspaces w ON w.id = r.workspace_id
-              LEFT JOIN ip_blocks i ON i.id = r.ip_id
-              LEFT JOIN (
-                  SELECT run_id,
-                         COUNT(*) AS llm_calls,
-                         SUM(tokens_input) AS tokens_input,
-                         SUM(tokens_output) AS tokens_output,
-                         SUM(tokens_reasoning) AS tokens_reasoning,
-                         SUM(cost_usd) AS cost
-                    FROM llm_calls
-                   WHERE run_id IS NOT NULL AND run_id != ''
-                   GROUP BY run_id
-              ) llm ON llm.run_id = r.id
-            {where}
-             ORDER BY r.started_at DESC, r.created_at DESC
-            """,
-            tuple(values),
-        )
+        if runtime_split:
+            rows = self._fetchall(
+                f"""
+                SELECT r.id AS run_id, r.session_id, r.workspace_id, r.ip_id,
+                       r.workflow, r.mode, r.model_profile, r.reasoning_effort,
+                       r.status, r.started_at, r.ended_at, r.duration_ms,
+                       r.error_summary, w.name AS workspace_name, i.ip_name AS ip_name,
+                       0 AS llm_calls, 0 AS tokens_input, 0 AS tokens_output,
+                       0 AS tokens_reasoning, 0 AS cost
+                  FROM workflow_runs r
+                  LEFT JOIN workspaces w ON w.id = r.workspace_id
+                  LEFT JOIN ip_blocks i ON i.id = r.ip_id
+                {where}
+                 ORDER BY r.started_at DESC, r.created_at DESC
+                """,
+                tuple(values),
+            )
+        else:
+            rows = self._fetchall(
+                f"""
+                SELECT r.id AS run_id, r.session_id, r.workspace_id, r.ip_id,
+                       r.workflow, r.mode, r.model_profile, r.reasoning_effort,
+                       r.status, r.started_at, r.ended_at, r.duration_ms,
+                       r.error_summary, w.name AS workspace_name, i.ip_name AS ip_name,
+                       COALESCE(llm.llm_calls, 0) AS llm_calls,
+                       COALESCE(llm.tokens_input, 0) AS tokens_input,
+                       COALESCE(llm.tokens_output, 0) AS tokens_output,
+                       COALESCE(llm.tokens_reasoning, 0) AS tokens_reasoning,
+                       COALESCE(llm.cost, 0) AS cost
+                  FROM workflow_runs r
+                  LEFT JOIN workspaces w ON w.id = r.workspace_id
+                  LEFT JOIN ip_blocks i ON i.id = r.ip_id
+                  LEFT JOIN (
+                      SELECT run_id,
+                             COUNT(*) AS llm_calls,
+                             SUM(tokens_input) AS tokens_input,
+                             SUM(tokens_output) AS tokens_output,
+                             SUM(tokens_reasoning) AS tokens_reasoning,
+                             SUM(cost_usd) AS cost
+                        FROM llm_calls
+                       WHERE run_id IS NOT NULL AND run_id != ''
+                       GROUP BY run_id
+                  ) llm ON llm.run_id = r.id
+                {where}
+                 ORDER BY r.started_at DESC, r.created_at DESC
+                """,
+                tuple(values),
+            )
         result: list[Dict[str, Any]] = []
         for row in rows:
             item = dict(row)
+            if runtime_split:
+                item["runtime_usage_unavailable"] = True
             links = self.list_run_artifact_versions(run_id=item["run_id"])
             versions_by_type: dict[str, list[Dict[str, Any]]] = {}
             for link in links:
@@ -4689,6 +4720,22 @@ class AtlasDB:
         return AtlasDB(db_path=control_path, schema_set="full")
 
     @staticmethod
+    def _runtime_split_active() -> bool:
+        """True when ``ATLAS_RUNTIME_DB_MODE=session`` (the per-session split).
+
+        Read paths that aggregate IP-scoped runtime data (non-chat trace +
+        llm_calls, sharded across per-session runtime DBs) branch on this so they
+        return an explicit unavailable marker instead of a false-empty control
+        read (plan §2.10 / R7). Defaults to False (central mode) and never raises.
+        """
+        try:
+            from core.atlas_db_router import AtlasDBRouter
+
+            return AtlasDBRouter().mode() == "session"
+        except Exception:
+            return False
+
+    @staticmethod
     def _same_path(a: str, b: str) -> bool:
         """True when *a* and *b* resolve to the same SQLite file (or both memory)."""
         if a == ":memory:" or b == ":memory:":
@@ -4900,7 +4947,25 @@ class AtlasDB:
     ) -> List[Dict[str, Any]]:
         """Return chat messages for a room, newest first. ip_id=None or ""
         selects the global room (ip_id IS NULL or = '').
-        since: unix timestamp (float); only rows with created_at > since are returned."""
+        since: unix timestamp (float); only rows with created_at > since are returned.
+
+        Read-path routing (plan §2.10 / R7/R17): chat (``chat_message``) ALWAYS
+        lives in the CONTROL DB (Task 6 write predicate). When this AtlasDB is
+        bound to a per-session RUNTIME file (e.g. a worker with
+        ATLAS_DB_PATH=runtime in session mode), the chat ledger is NOT here — so
+        we delegate this read to the control DB instead of returning false-empty.
+        In central mode (default) this is a no-op (chat is already here)."""
+        chat_control = self._control_db_for_chat()
+        if chat_control is not None:
+            try:
+                return chat_control.list_chat_messages(
+                    ip_id, limit=limit, after_id=after_id, since=since
+                )
+            finally:
+                try:
+                    chat_control.close()
+                except Exception:
+                    pass
         clauses = ["event_type = ?"]
         values: list[Any] = ["chat_message"]
         if ip_id:
@@ -4931,7 +4996,23 @@ class AtlasDB:
     ) -> List[Dict[str, Any]]:
         """Return chat messages the given session bridge has NOT yet
         recorded as consumed. Ordered oldest-first so the agent reads them
-        in chronological order on its next iteration."""
+        in chronological order on its next iteration.
+
+        Chat + chat_consumed both live in CONTROL (Task 6 write predicate); when
+        this AtlasDB is bound to a per-session RUNTIME file in session mode we
+        delegate the read to the control DB so the agent's unread-chat slice is
+        never false-empty (plan §2.10 / R7). No-op in central mode."""
+        chat_control = self._control_db_for_chat()
+        if chat_control is not None:
+            try:
+                return chat_control.list_chat_unconsumed_for(
+                    session_id, ip_id, after_id=after_id
+                )
+            finally:
+                try:
+                    chat_control.close()
+                except Exception:
+                    pass
         clauses = ["event_type = ?"]
         values: list[Any] = ["chat_message"]
         if ip_id:
@@ -5429,7 +5510,20 @@ class AtlasDB:
         ]
 
     def _recent_events_for_ip(self, ip_id: str, limit: int = 20) -> List[Dict[str, Any]]:
-        """Mixed slice of recent trace_events + llm_calls scoped to one IP."""
+        """Mixed slice of recent trace_events + llm_calls scoped to one IP.
+
+        Read-path routing (plan §2.10 / R7): in ``ATLAS_RUNTIME_DB_MODE=session``
+        the non-chat ``trace_events`` + ``llm_calls`` rows that feed this slice
+        live in the per-session runtime DBs — SHARDED across all sessions of this
+        IP — so a control-DB SELECT here returns silently-empty rows and would
+        tell the orchestrator/agent "nothing happened". Instead we return an
+        EXPLICIT runtime-unavailable marker so the caller surfaces the staleness
+        honestly. In central mode (default) this is the unchanged control read.
+        """
+        if self._runtime_split_active():
+            from core.runtime_rollup import runtime_unavailable_events
+
+            return runtime_unavailable_events()
         trace_rows = self._fetchall(
             """
             SELECT id, event_type, payload, created_at FROM trace_events
@@ -5568,7 +5662,14 @@ class AtlasDB:
             })
 
         ip_id_filter = {ip["id"] for ip in ip_rows}
-        if ip_id_filter:
+        if self._runtime_split_active():
+            # Cross-IP non-chat trace is sharded across per-session runtime DBs
+            # in session mode; a control read here is silently empty (R7). Surface
+            # the explicit unavailable marker instead of false-empty.
+            from core.runtime_rollup import runtime_unavailable_events
+
+            recent = runtime_unavailable_events()
+        elif ip_id_filter:
             placeholders = ",".join("?" for _ in ip_id_filter)
             recent_rows = self._fetchall(
                 f"""

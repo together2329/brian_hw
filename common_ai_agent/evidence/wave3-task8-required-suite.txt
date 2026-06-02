@@ -1,0 +1,5 @@
+Wave 3 / Task 8 — REQUIRED COMMAND (exact)
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest tests/test_chat_full_multiuser_system.py tests/test_runtime_persistence_routing.py tests/test_runtime_rollup.py tests/test_runtime_read_paths_task8.py tests/test_session_authz_fail_closed_task8.py -q
+---
+.................................................................        [100%]
+65 passed in 3.66s

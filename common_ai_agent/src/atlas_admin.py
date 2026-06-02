@@ -464,6 +464,43 @@ def create_admin_app(project_root: Path):
             return JSONResponse({"error": err}, status_code=400)
         return JSONResponse(payload)
 
+    @app.get("/api/admin/db/runtime/{session_uid}")
+    async def api_admin_db_runtime(session_uid: str, request: Request,
+                                   table: str = "", limit: int = 50,
+                                   offset: int = 0, order: str = "desc"):
+        """Inspect ONE session's per-session runtime DB.
+
+        Hardened by the shared resolver (plan §2.11 / R14/R21/R24): session_uid
+        ONLY (path-like input rejected), resolved through the control manifest +
+        containment-checked under ATLAS_RUNTIME_DB_ROOT, OWNERSHIP enforced even
+        under local-admin bypass, and NO filesystem path ever returned.
+        """
+        admin = _admin_required(request)
+        if admin is None:
+            return _admin_denied(request)
+        from core.atlas_admin_db import inspect_runtime_table, RuntimeInspectError
+        user = request.scope.get("user") or {}
+        try:
+            with AtlasDB() as db:
+                payload = inspect_runtime_table(
+                    db,
+                    session_uid=session_uid,
+                    requesting_user_id=str(user.get("id") or admin.get("id") or ""),
+                    requesting_username=str(user.get("username") or admin.get("username") or ""),
+                    is_admin=True,
+                    table=(table or None),
+                    limit=limit,
+                    offset=offset,
+                    order=order,
+                )
+            return JSONResponse(payload)
+        except RuntimeInspectError as exc:
+            return JSONResponse({"error": exc.message}, status_code=exc.status)
+        except Exception:
+            # Never echo str(exc): an unexpected error message could leak a
+            # filesystem path. Path-free generic 500 (mirrors atlas_ui, R24).
+            return JSONResponse({"error": "runtime inspect failed"}, status_code=500)
+
     @app.post("/api/admin/feedback/{fid}/resolve")
     async def api_admin_feedback_resolve(fid: str, request: Request):
         admin = _admin_required(request)

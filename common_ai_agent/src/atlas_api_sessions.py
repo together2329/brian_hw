@@ -637,7 +637,18 @@ def register_sessions_routes(
         session_id: str,
         user_id: str = "",
     ) -> Optional[list[dict[str, Any]]]:
-        """Return DB-backed conversation messages when *session_id* is a DB session."""
+        """Return DB-backed conversation messages when *session_id* is a DB session.
+
+        Read-path routing (plan §2.10 / Task 8 item 1): the session/ownership row
+        is resolved from the CONTROL DB, but the per-session ``messages``/``parts``
+        rows MOVE to the per-session runtime DB in ``ATLAS_RUNTIME_DB_MODE=session``.
+        We therefore resolve the session against control, then read messages/parts
+        through ``AtlasDBRouter().runtime_db(db_session_id, create=False)``. In
+        central mode (default) the router returns the control path, so this is the
+        unchanged behavior. A missing runtime DB is NOT treated as authoritative
+        empty: we fall through to the control read so a freshly-activated session
+        (manifest not yet created) still shows any control-side history.
+        """
         try:
             with _atlas_db() as db:
                 session_row = (
@@ -647,36 +658,74 @@ def register_sessions_routes(
                 if session_row is None:
                     return None
                 db_session_id = str(session_row.get("id") or session_id)
-                messages: list[dict[str, Any]] = []
-                for msg in db.get_messages(db_session_id):
-                    if msg.get("role") == "system":
-                        continue
-                    parts = db.get_parts(msg["id"])
-                    text_chunks = [
-                        str(part.get("text") or "")
-                        for part in parts
-                        if part.get("type") == "text" and part.get("text")
-                    ]
-                    text = "\n".join(chunk for chunk in text_chunks if chunk)
-                    item = {
-                        "id": msg.get("id"),
-                        "role": msg.get("role"),
-                        "agent": msg.get("agent") or "",
-                        "model_id": msg.get("model_id") or "",
-                        "created_at": msg.get("created_at"),
-                        "cost": msg.get("cost") or 0,
-                        "tokens_input": msg.get("tokens_input") or 0,
-                        "tokens_output": msg.get("tokens_output") or 0,
-                        "tokens_reasoning": msg.get("tokens_reasoning") or 0,
-                        "parts": parts,
-                    }
-                    if text:
-                        item["text"] = text
-                        item["content"] = text
-                    messages.append(item)
-                return messages
+                msg_db, close_msg_db = _runtime_read_db_for_messages(db, db_session_id)
+                try:
+                    return _collect_conversation_messages(msg_db, db_session_id)
+                finally:
+                    if close_msg_db and msg_db is not None:
+                        try:
+                            msg_db.close()
+                        except Exception:
+                            pass
         except Exception:
             return None
+
+    def _runtime_read_db_for_messages(control_db: Any, db_session_id: str):
+        """Resolve which DB holds this session's messages/parts.
+
+        Returns ``(db, should_close)``. In central mode (or when the session has no
+        runtime manifest yet) returns the already-open control ``db`` with
+        should_close=False. In session mode with a resolvable runtime file, opens
+        the per-session runtime DB read-only and returns it with should_close=True.
+        """
+        try:
+            from core.atlas_db_router import AtlasDBRouter
+
+            router = AtlasDBRouter()
+            if router.mode() != "session":
+                return control_db, False
+            # Only route when a runtime DB actually exists for this session; a
+            # not-yet-activated session has no manifest -> read control (which may
+            # legitimately carry pre-split history) rather than fail closed.
+            manifest = control_db.get_session_runtime_db(db_session_id)
+            if not manifest:
+                return control_db, False
+            return router.runtime_db(db_session_id, create=False), True
+        except Exception:
+            return control_db, False
+
+    def _collect_conversation_messages(
+        db: Any,
+        db_session_id: str,
+    ) -> list[dict[str, Any]]:
+        messages: list[dict[str, Any]] = []
+        for msg in db.get_messages(db_session_id):
+            if msg.get("role") == "system":
+                continue
+            parts = db.get_parts(msg["id"])
+            text_chunks = [
+                str(part.get("text") or "")
+                for part in parts
+                if part.get("type") == "text" and part.get("text")
+            ]
+            text = "\n".join(chunk for chunk in text_chunks if chunk)
+            item = {
+                "id": msg.get("id"),
+                "role": msg.get("role"),
+                "agent": msg.get("agent") or "",
+                "model_id": msg.get("model_id") or "",
+                "created_at": msg.get("created_at"),
+                "cost": msg.get("cost") or 0,
+                "tokens_input": msg.get("tokens_input") or 0,
+                "tokens_output": msg.get("tokens_output") or 0,
+                "tokens_reasoning": msg.get("tokens_reasoning") or 0,
+                "parts": parts,
+            }
+            if text:
+                item["text"] = text
+                item["content"] = text
+            messages.append(item)
+        return messages
 
     def _conversation_message_key(msg: dict[str, Any]) -> tuple[str, str, str, str]:
         role = str(msg.get("role") or "")
@@ -1017,6 +1066,10 @@ def register_sessions_routes(
         namespace_owner = _namespace_owner(session)
         if namespace_owner and namespace_owner != owner:
             return JSONResponse({"error": "session owner mismatch"}, status_code=403)
+        # FAIL CLOSED (plan §2.11 / R20): the ownership lookup is the authorization
+        # decision, so a DB error must DENY, never allow. We keep the lookup on the
+        # CONTROL DB (``_atlas_db``) — never a per-session runtime file — so a
+        # corrupt/missing runtime DB can never affect who is allowed in.
         try:
             with _atlas_db() as db:
                 owned = db.get_session_for_user(user_id, session)
@@ -1026,7 +1079,8 @@ def register_sessions_routes(
                 if existing is not None and existing.get("user_id") != user_id:
                     return JSONResponse({"error": "session owner mismatch"}, status_code=403)
         except Exception:
-            pass
+            # Authz lookup failed -> we cannot prove ownership -> deny.
+            return JSONResponse({"error": "authorization unavailable"}, status_code=403)
         return None
 
     def _public_session(session: dict, include_summary: bool = False) -> dict:

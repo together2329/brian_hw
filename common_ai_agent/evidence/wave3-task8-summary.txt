@@ -1,0 +1,64 @@
+Wave 3 / Task 8 — route runtime read paths + harden raw-DB inspect
+Branch feat/runtime-db-100users. 2026-06-03.
+
+SCOPE IMPLEMENTED
+1. Session-scoped READS routed to runtime DB:
+   - src/atlas_api_sessions.py _db_conversation_messages: resolves session+ownership
+     on CONTROL, reads messages/parts via AtlasDBRouter().runtime_db(db_session_id,
+     create=False). Central mode -> control path (unchanged). Not-yet-activated
+     (no manifest) -> control read (no false-empty).
+2. OMITTED readers (R7) — route or explicit stale signal, NEVER false-empty:
+   - core/atlas_db.py _recent_events_for_ip / summarize_global_room_context inline
+     recent slice: session mode -> runtime_unavailable_events() marker (IP-scoped
+     trace+llm are sharded across per-session runtime DBs; no single file to open).
+     summarize_ip_room_context inherits the marker via _recent_events_for_ip.
+   - core/atlas_db.py list_chat_messages / list_chat_unconsumed_for: chat lives in
+     CONTROL; when bound to a runtime file they re-route the read to control via
+     _control_db_for_chat() (no false-empty for the agent's unread-chat slice).
+   - core/atlas_db.py list_run_artifact_version_sets: session mode skips the llm
+     join (sharded) + tags rows runtime_usage_unavailable=True (0 != fact).
+   - src/atlas_api_jobs.py _recent_chat_context_for_ip: re-routes the chat read to
+     CONTROL (worker prompt context never reads chat from a runtime file).
+   - core/atlas_user_dashboard.py _workflow_runs: session mode -> _workflow_runs_runtime
+     (control rows, no llm join, runtime_usage_unavailable=True flag).
+   New explicit signal: core/runtime_rollup.py runtime_unavailable_events() /
+   is_runtime_unavailable() (distinct from the count-rollup summary_only marker).
+3. Admin overview/usage/dashboard prefer Task-7 rollups; NO all-runtime fanout on a
+   normal admin page load (build_admin_usage_payload + dashboard read rollups; the
+   new _workflow_runs_runtime adds no fanout).
+4. RAW-DB BROWSER hardening (R14/R21/R24) — ONE shared helper in
+   core/atlas_admin_db.py: resolve_runtime_inspect_db() + inspect_runtime_table()
+   used by BOTH src/atlas_admin.py and src/atlas_ui.py via the new
+   GET /api/admin/db/runtime/{session_uid}:
+     - session_uid ONLY; rejects / \ .. : (RuntimeInspectError 404, no path echo).
+     - resolves THROUGH manifest (control) + recomputes expected path from uid+root
+       + asserts containment under Path(ATLAS_RUNTIME_DB_ROOT).resolve(); stored
+       manifest path must equal the recomputed one (R23).
+     - OWNERSHIP enforced even under is_admin/local-admin bypass (requesting user
+       must own the session) -> cross-user = 403.
+     - NEVER returns a path/db_path/runtime_db_path field.
+5. _authorize_session_request (src/atlas_api_sessions.py) FAILS CLOSED: lookup error
+   -> 403 (was except:pass -> None = fail-open). Ownership lookup stays on CONTROL DB.
+
+TESTS (new)
+  tests/test_runtime_read_paths_task8.py            (20)
+  tests/test_session_authz_fail_closed_task8.py     (5)
+  Covers: runtime-message history read (central unchanged); cross-user runtime read
+  DENIED (403, no rows, no path); path-like input rejected incl. admin bypass; no
+  path field ever returned; omitted readers return explicit stale marker not [];
+  per-run usage flagged unavailable; chat re-route to control; authz fail-closed;
+  admin-usage summary-only parity (marker in session mode, real lists in central).
+
+REQUIRED SUITE (clean)
+  test_chat_full_multiuser_system + test_runtime_persistence_routing +
+  test_runtime_rollup + the two new files: 65 passed.
+
+PRE-EXISTING FAILURES (NOT mine — verified by reasoning, no git stash):
+  test_atlas_multiuser_session_scope.py (18), test_atlas_user_dashboard.py (2),
+  test_atlas_admin_auth.py (2) all fail in test SETUP at `assert session is not None`
+  / KeyError on 'user/ip/wf' because /api/session/activate downgrades to
+  default/default ("IP '<x>' not found on disk — falling back") — the phantom-IP
+  guard (commit 814f8cdc) documented in evidence/baseline-f2a-NOTE.txt and
+  evidence/wave2-task6-preexisting-failures.txt. The 18 session-scope failures are
+  byte-identical to the prior baseline. The failures occur BEFORE any read path I
+  changed is invoked (setup-time), so Task 8 introduces ZERO new failures.

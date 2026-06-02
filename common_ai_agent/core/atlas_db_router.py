@@ -309,6 +309,9 @@ class AtlasDBRouter:
         route = self.runtime_route(session_id, create=create)
         if route.mode == "central":
             return AtlasDB(db_path=route.runtime_db_path, schema_set="full")
-        # Ensure the parent shard dir exists before opening.
-        Path(route.runtime_db_path).parent.mkdir(parents=True, exist_ok=True)
+        # Only materialize the shard dir when actually opening to write
+        # (create=True). A read-only resolve (create=False) must not have the
+        # filesystem side effect of creating directories.
+        if create:
+            Path(route.runtime_db_path).parent.mkdir(parents=True, exist_ok=True)
         return AtlasDB(db_path=route.runtime_db_path, schema_set="runtime")

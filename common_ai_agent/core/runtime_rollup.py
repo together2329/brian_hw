@@ -442,6 +442,43 @@ def summary_only_payload() -> List[Dict[str, Any]]:
     return [dict(SUMMARY_ONLY_MARKER)]
 
 
+# Sentinel for IP-SCOPED readers (orchestrator ground-truth panel + worker
+# prompt context) whose source rows (non-chat ``trace_events`` + ``llm_calls``)
+# are now SHARDED across the many per-session runtime DBs that belong to one IP
+# (plan §2.10 / R7). A single control-DB read can no longer reconstruct them, and
+# there is no single runtime file to open (an IP has N sessions). Returning an
+# EXPLICIT "unavailable in runtime mode" marker — instead of a silently-empty
+# list — keeps the AGENT from being told "nothing happened" when the truth is
+# "the data moved". The orchestrator/UI can render this honestly.
+RUNTIME_UNAVAILABLE_MARKER = {
+    "__runtime_unavailable__": True,
+    "reason": (
+        "runtime-db session mode: per-IP trace/llm rows are sharded across "
+        "per-session runtime DBs and are not available from a single control read"
+    ),
+}
+
+
+def runtime_unavailable_events() -> List[Dict[str, Any]]:
+    """Explicit 'this IP-scoped runtime slice is unavailable in session mode' marker.
+
+    Used by the omitted IP-scoped readers (``_recent_events_for_ip`` and the
+    room-context summaries) so they NEVER false-empty when the runtime split is
+    active. A reader can detect the marker via :func:`is_runtime_unavailable`.
+    """
+    return [dict(RUNTIME_UNAVAILABLE_MARKER)]
+
+
+def is_runtime_unavailable(events: Any) -> bool:
+    """True when *events* is the explicit runtime-unavailable marker list."""
+    return (
+        isinstance(events, list)
+        and len(events) == 1
+        and isinstance(events[0], dict)
+        and bool(events[0].get("__runtime_unavailable__"))
+    )
+
+
 def rollup_totals_by_user(control: AtlasDB) -> Dict[str, Dict[str, Any]]:
     """Aggregate rollup rows into per-user totals (control DB read, no fanout).
 
