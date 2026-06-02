@@ -1,0 +1,4 @@
+TSX LSP: frontend/atlas/perforce-sync.tsx - No diagnostics found.
+TSX test LSP: frontend/atlas/__tests__/perforce-sync.test.tsx - No diagnostics found.
+Python LSP: core/scm_perforce.py has no new errors; remaining basedpyright warnings are existing broad strictness items (Any/implicit override/unused call result). provider/_selected_stream/_selected_client annotation warnings were removed.
+Python test LSP: tests/test_scm_perforce_adapter.py still reports existing implicit-relative-import errors and strict pytest fixture/type warnings; pytest regression passes.

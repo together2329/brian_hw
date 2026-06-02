@@ -1,0 +1,1 @@
+//GOOD_SOC/GOOD_IP/rtl/ui_edit_seed.sv#2 - edit default change (text)

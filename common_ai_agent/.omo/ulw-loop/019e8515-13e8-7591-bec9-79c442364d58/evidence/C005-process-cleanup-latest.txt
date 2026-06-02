@@ -1,0 +1,17 @@
+timestamp: 2026-06-02T14:02:00+09:00
+
+pre-clean p4 opened:
+File(s) not opened on this client.
+
+pre-clean listeners:
+127.0.0.1:18767 -> PID 30991, python -m src.atlas_ui --host 127.0.0.1 --port 18767 --root /tmp/atlas_p4_split_ui_1780364766_75182/project
+127.0.0.1:17889 -> PID 75182, p4d -r /tmp/atlas_p4_split_ui_1780364766_75182/p4d_root -p localhost:17889 -v security=0
+
+cleanup action:
+kill 30991 75182
+
+post-clean verification:
+lsof -nP -iTCP:18767 -sTCP:LISTEN -> no listeners
+lsof -nP -iTCP:17889 -sTCP:LISTEN -> no listeners
+ps -p 30991 -o pid,command -> no process
+ps -p 75182 -o pid,command -> no process

@@ -1,0 +1,18 @@
+
+> test
+> vitest run perforce-sync.test.tsx
+
+
+ RUN  v3.2.4 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/frontend/atlas
+
+ ✓ __tests__/perforce-sync.test.tsx (7 tests) 2195ms
+   ✓ PerforceSyncTab directory actions > shows directory roots when local and Perforce panes first load  410ms
+   ✓ PerforceSyncTab directory actions > enters local and Perforce directories by clicking folder rows  392ms
+   ✓ PerforceSyncTab directory actions > adds a selected local file to the selected Perforce target folder and changelist  321ms
+   ✓ PerforceSyncTab directory actions > checks out a selected Perforce file into the selected pending changelist  323ms
+
+ Test Files  1 passed (1)
+      Tests  7 passed (7)
+   Start at  13:50:23
+   Duration  5.16s (transform 182ms, setup 155ms, collect 631ms, tests 2.19s, environment 1.27s, prepare 262ms)
+

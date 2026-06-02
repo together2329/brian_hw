@@ -1,0 +1,6 @@
+== p4 opened ==
+File(s) not opened on this client.
+== p4 files ==
+//GOOD_SOC/GOOD_IP/rtl/ui_latest_dir_add.sv#1 - add change 13 (text)
+== p4 changes ==
+Change 13 on 2026/06/02 by atlasdemo@atlas_GOOD_IP 'ulw latest directory add submit'

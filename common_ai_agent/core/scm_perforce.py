@@ -11,6 +11,7 @@ root; UI calls may pass a separate local IP root for the left pane.
 """
 from __future__ import annotations
 
+import filecmp
 import os
 import re
 import shutil
@@ -55,16 +56,23 @@ _RECONCILE_LOCAL_STATES: Final[Mapping[str, str]] = {
     "move/delete": "missing",
 }
 _STREAM_NAME_RE: Final[re.Pattern[str]] = re.compile(r"^//[A-Za-z0-9_.-]+/[A-Za-z0-9_./-]+$")
+_CLIENT_ENV_VARS: Final[tuple[str, ...]] = (
+    "ATLAS_SCM_CLIENT_PERFORCE",
+    "ATLAS_PERFORCE_CLIENT",
+    "ATLAS_P4CLIENT",
+    "P4CLIENT",
+)
+_PROJECT_ROOT: Final[Path] = Path(__file__).resolve().parents[1]
 
 
 class PerforceP4Adapter(SCMAdapter):
-    provider = "perforce"
+    provider: str = "perforce"
 
     def __init__(self, root: str | Path, executable: str = "p4") -> None:
         super().__init__(root, executable=executable)
         self._info_cache: dict[str, str] | None = None
-        self._selected_stream = ""
-        self._selected_client = ""
+        self._selected_stream: str = ""
+        self._selected_client: str = ""
 
     # ------------------------------------------------------------------ caps
     def capabilities(self) -> dict[str, bool]:
@@ -84,7 +92,8 @@ class PerforceP4Adapter(SCMAdapter):
 
     # --------------------------------------------------------------- runners
     def _run_p4(self, *args: str, timeout: int = DEFAULT_TIMEOUT_SEC) -> SCMCommandResult:
-        client_args = ("-c", self._selected_client) if self._selected_client else ()
+        selected_client = self._configured_client()
+        client_args = ("-c", selected_client) if selected_client else ()
         command = (self.executable, *client_args, "-d", str(self.root), *args)
         try:
             completed = subprocess.run(
@@ -202,6 +211,69 @@ class PerforceP4Adapter(SCMAdapter):
         body = stream.strip().rstrip("/").rsplit("/", 1)[-1]
         body = re.sub(r"[^A-Za-z0-9_.-]+", "_", body).strip("_")
         return f"atlas_{body}" if body else "atlas_GOOD_IP"
+
+    @staticmethod
+    def _client_override_from_mapping(values: Mapping[str, str]) -> str:
+        for name in _CLIENT_ENV_VARS:
+            value = values.get(name, "").strip()
+            if value:
+                return value
+        return ""
+
+    @staticmethod
+    def _env_client_override() -> str:
+        return PerforceP4Adapter._client_override_from_mapping(os.environ)
+
+    @staticmethod
+    def _dotenv_assignment(line: str) -> tuple[str, str] | None:
+        raw = line.strip()
+        if not raw or raw.startswith("#") or "=" not in raw:
+            return None
+        if raw.startswith("export "):
+            raw = raw[7:].strip()
+        key, value = raw.split("=", 1)
+        key = key.strip()
+        value = value.strip()
+        if len(value) >= 2 and value[0] in ("'", '"') and value[-1] == value[0]:
+            value = value[1:-1]
+        elif "#" in value:
+            value = value.split("#", 1)[0].strip()
+        if not key:
+            return None
+        return key, value
+
+    def _dotenv_paths(self) -> tuple[Path, ...]:
+        return (
+            Path.cwd() / ".env",
+            _PROJECT_ROOT / ".env",
+            self.root / ".env",
+        )
+
+    def _dotenv_client_override(self) -> str:
+        seen: set[Path] = set()
+        for env_path in self._dotenv_paths():
+            path = env_path.resolve(strict=False)
+            if path in seen:
+                continue
+            seen.add(path)
+            try:
+                lines = path.read_text(encoding="utf-8").splitlines()
+            except OSError:
+                continue
+            values: dict[str, str] = {}
+            for line in lines:
+                parsed = self._dotenv_assignment(line)
+                if parsed is None:
+                    continue
+                key, value = parsed
+                values[key] = value
+            client = self._client_override_from_mapping(values)
+            if client:
+                return client
+        return ""
+
+    def _configured_client(self) -> str:
+        return self._env_client_override() or self._dotenv_client_override() or self._selected_client
 
     def _select_stream(self, stream: str = "") -> None:
         clean = str(stream or "").strip()
@@ -345,11 +417,17 @@ class PerforceP4Adapter(SCMAdapter):
             return "/".join(parts[2:])
         return parts[-1]
 
-    def _output_path_from_target(self, target: str, local_root: str | Path | None = None) -> Path | None:
+    def _output_path_from_target(
+        self,
+        target: str,
+        local_root: str | Path | None = None,
+        source_name: str = "",
+    ) -> Path | None:
         text = str(target or "").strip()
         if not text:
             return None
         base = self._local_root_path(local_root)
+        is_folder_target = text.endswith("/")
         if text.startswith("//"):
             rel = self._depot_output_rel(text, base)
             cand = base / rel
@@ -357,6 +435,8 @@ class PerforceP4Adapter(SCMAdapter):
             cand = Path(text)
             if not cand.is_absolute():
                 cand = base / text
+        if is_folder_target and source_name:
+            cand = cand / source_name
         try:
             resolved = cand.resolve()
             resolved.relative_to(base)
@@ -383,7 +463,13 @@ class PerforceP4Adapter(SCMAdapter):
         local_root: str | Path | None = None,
         target_path: str = "",
     ) -> SCMCommandResult:
-        output = self._output_path_from_target(target_path, local_root) if target_path else self._depot_output_path(output_from, local_root)
+        rel = self._depot_output_rel(output_from, local_root)
+        source_name = Path(rel).name if rel else ""
+        output = (
+            self._output_path_from_target(target_path, local_root, source_name)
+            if target_path
+            else self._depot_output_path(output_from, local_root)
+        )
         if output is None:
             return self._result(ok=False, returncode=2, error=f"cannot map depot path to local root: {output_from}")
         try:
@@ -425,7 +511,12 @@ class PerforceP4Adapter(SCMAdapter):
         originals = [original_paths] if isinstance(original_paths, str) else list(original_paths or [])
         out: list[Path] = []
         for idx, source in enumerate(sources):
-            target_text = targets[idx] if idx < len(targets) else targets[0] if len(targets) == 1 else ""
+            if idx < len(targets):
+                target_text = targets[idx]
+            elif len(targets) == 1 and targets[0].endswith("/"):
+                target_text = targets[0]
+            else:
+                target_text = ""
             if target_text.startswith("//"):
                 if target_text.endswith("/"):
                     rel = self._depot_output_rel(target_text)
@@ -511,6 +602,26 @@ class PerforceP4Adapter(SCMAdapter):
             return (self._local_root_path(local_root) / rel).resolve().as_posix()
         except (OSError, RuntimeError, ValueError):
             return ""
+
+    def _split_local_state(self, rel: str, client_file: str, local_root: str | Path | None = None) -> tuple[str, str]:
+        mapped_key = self._mapped_local_key(rel, local_root)
+        if not mapped_key:
+            return "", ""
+        local_path = Path(mapped_key)
+        if not local_path.exists():
+            return mapped_key, "missing"
+        client_path = Path(client_file) if client_file else None
+        if client_path is None:
+            return mapped_key, "same"
+        if not client_path.exists():
+            return mapped_key, "modified"
+        if local_path.is_file() and client_path.is_file():
+            try:
+                if not filecmp.cmp(local_path, client_path, shallow=False):
+                    return mapped_key, "modified"
+            except OSError:
+                return mapped_key, "modified"
+        return mapped_key, "same"
 
     def _local_disk_rows(self, known_paths: set[str], local_root: str | Path | None = None) -> list[dict[str, str]]:
         rows: list[dict[str, str]] = []
@@ -726,13 +837,14 @@ class PerforceP4Adapter(SCMAdapter):
             key = self._local_key(cf)
             depot_path = rec.get("depotFile", "") or self._rel(cf)
             rel = self._rel(cf) if key else ""
-            mapped_key = key if local_base == self.root else self._mapped_local_key(rel, local_base)
             head_rev = rec.get("headRev", "")
             head_action = rec.get("headAction", "")
             have_rev = rec.get("haveRev", "")
             if head_rev and head_action != "delete":
                 depot.append({"path": depot_path, "rev": head_rev})
-            if have_rev and key and (local_base == self.root or (mapped_key and Path(mapped_key).exists())):
+            if not have_rev or not key:
+                continue
+            if local_base == self.root:
                 act = recon_action.get(key, "")
                 if act == "edit":
                     state = "modified"
@@ -741,8 +853,12 @@ class PerforceP4Adapter(SCMAdapter):
                 else:
                     state = "same"
                 local.append({"path": rel, "state": state})
-                if mapped_key:
-                    known_local_paths.add(mapped_key)
+                known_local_paths.add(key)
+                continue
+            mapped_key, state = self._split_local_state(rel, cf, local_base)
+            if mapped_key:
+                local.append({"path": rel, "state": state})
+                known_local_paths.add(mapped_key)
         for key, act in recon_action.items():
             if key in known_local_paths:
                 continue
@@ -875,6 +991,11 @@ class PerforceP4Adapter(SCMAdapter):
             results.append(self._soften(self._run_p4("sync", "-f", *local_specs)))
         targets = self._target_values(target_paths)
         for idx, spec in enumerate(depot_specs):
-            target = targets[idx] if idx < len(targets) else targets[0] if len(targets) == 1 else ""
+            if idx < len(targets):
+                target = targets[idx]
+            elif len(targets) == 1 and targets[0].endswith("/"):
+                target = targets[0]
+            else:
+                target = ""
             results.append(self._copy_depot_to_local(spec + tag, spec, local_root, target))
         return self._combine_results(results)

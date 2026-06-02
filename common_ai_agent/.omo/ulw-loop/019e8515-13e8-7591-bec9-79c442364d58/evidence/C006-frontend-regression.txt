@@ -1,0 +1,14 @@
+
+> test
+> vitest run perforce-sync.test.tsx
+
+
+ RUN  v3.2.4 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/frontend/atlas
+
+ ✓ __tests__/perforce-sync.test.tsx (7 tests) 921ms
+
+ Test Files  1 passed (1)
+      Tests  7 passed (7)
+   Start at  16:19:13
+   Duration  2.96s (transform 235ms, setup 110ms, collect 511ms, tests 921ms, environment 704ms, prepare 214ms)
+

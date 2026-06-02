@@ -1,0 +1,6 @@
+== before cleanup opened ==
+//GOOD_SOC/GOOD_IP/rtl/ui_edit_seed.sv#2 - edit default change (text)
+== revert ==
+//GOOD_SOC/GOOD_IP/rtl/ui_edit_seed.sv#2 - was edit, reverted
+== after cleanup opened ==
+File(s) not opened on this client.

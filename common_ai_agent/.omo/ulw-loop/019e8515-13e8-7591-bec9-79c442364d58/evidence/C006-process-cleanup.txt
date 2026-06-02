@@ -1,0 +1,9 @@
+timestamp: 2026-06-02T16:19:00+09:00
+pre-clean:
+  PID COMMAND
+74286 p4d -r /tmp/atlas_p4_split_ui_1780364702_74286/p4d_root -p localhost:17888
+COMMAND   PID  USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
+p4d     74286 brian    4u  IPv4 0x20f447f8ed9ff242      0t0  TCP 127.0.0.1:17888 (LISTEN)
+cleanup action: kill 74286
+post-clean:
+  PID COMMAND

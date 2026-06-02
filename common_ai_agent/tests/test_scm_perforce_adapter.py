@@ -48,6 +48,80 @@ def test_override_loads_real_adapter(monkeypatch, tmp_path):
     assert caps["status"] is True
 
 
+def test_env_client_override_adds_p4_client_arg(monkeypatch, tmp_path):
+    monkeypatch.setenv("ATLAS_SCM_CLIENT_PERFORCE", "atlas_env_client")
+
+    result = PerforceP4Adapter(tmp_path, executable="__missing_p4__")._run_p4("info")
+
+    assert result.command == (
+        "__missing_p4__",
+        "-c",
+        "atlas_env_client",
+        "-d",
+        str(tmp_path.resolve()),
+        "info",
+    )
+
+
+def test_p4client_env_override_beats_selected_stream_client(monkeypatch, tmp_path):
+    monkeypatch.delenv("ATLAS_SCM_CLIENT_PERFORCE", raising=False)
+    monkeypatch.delenv("ATLAS_PERFORCE_CLIENT", raising=False)
+    monkeypatch.delenv("ATLAS_P4CLIENT", raising=False)
+    monkeypatch.setenv("P4CLIENT", "atlas_env_client")
+    adapter = PerforceP4Adapter(tmp_path, executable="__missing_p4__")
+    adapter._select_stream("//GOOD_SOC/GOOD_IP_DEV")
+
+    result = adapter._run_p4("info")
+
+    assert result.command == (
+        "__missing_p4__",
+        "-c",
+        "atlas_env_client",
+        "-d",
+        str(tmp_path.resolve()),
+        "info",
+    )
+
+
+def test_configured_client_reads_override_from_dotenv(monkeypatch, tmp_path):
+    monkeypatch.delenv("ATLAS_SCM_CLIENT_PERFORCE", raising=False)
+    monkeypatch.delenv("ATLAS_PERFORCE_CLIENT", raising=False)
+    monkeypatch.delenv("ATLAS_P4CLIENT", raising=False)
+    monkeypatch.delenv("P4CLIENT", raising=False)
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / ".env").write_text("ATLAS_P4CLIENT=atlas_dotenv_client\n", encoding="utf-8")
+    adapter = PerforceP4Adapter(tmp_path, executable="__missing_p4__")
+    adapter._select_stream("//GOOD_SOC/GOOD_IP_DEV")
+
+    result = adapter._run_p4("info")
+
+    assert result.command == (
+        "__missing_p4__",
+        "-c",
+        "atlas_dotenv_client",
+        "-d",
+        str(tmp_path.resolve()),
+        "info",
+    )
+
+
+def test_process_env_client_override_beats_dotenv_client(monkeypatch, tmp_path):
+    monkeypatch.setenv("ATLAS_SCM_CLIENT_PERFORCE", "atlas_env_client")
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / ".env").write_text("ATLAS_P4CLIENT=atlas_dotenv_client\n", encoding="utf-8")
+
+    result = PerforceP4Adapter(tmp_path, executable="__missing_p4__")._run_p4("info")
+
+    assert result.command == (
+        "__missing_p4__",
+        "-c",
+        "atlas_env_client",
+        "-d",
+        str(tmp_path.resolve()),
+        "info",
+    )
+
+
 def test_safe_filespecs_rejects_escapes(tmp_path):
     a = PerforceP4Adapter(tmp_path)
     (tmp_path / "a.txt").write_text("x", encoding="utf-8")
@@ -220,7 +294,6 @@ def test_sync_state_keeps_local_root_and_depot_scope_independent(tmp_path):
                         "clientFile": depot_client_file.as_posix(),
                         "headRev": "3",
                         "headAction": "edit",
-                        "haveRev": "3",
                     },
                 ], self._result(ok=True)
             return [], self._result(ok=True)
@@ -239,6 +312,7 @@ def test_sync_state_maps_split_root_have_revision_to_visible_local_path(tmp_path
     (p4_root / "shared").mkdir(parents=True)
     (local_root / "shared" / "remote_only.txt").write_text("x", encoding="utf-8")
     depot_client_file = p4_root / "shared" / "remote_only.txt"
+    depot_client_file.write_text("x", encoding="utf-8")
 
     class SplitPaneAdapter(PerforceP4Adapter):
         def _info(self) -> dict[str, str]:
@@ -264,6 +338,51 @@ def test_sync_state_maps_split_root_have_revision_to_visible_local_path(tmp_path
 
     assert state["ok"] is True
     assert state["local"] == [{"path": "shared/remote_only.txt", "state": "same"}]
+
+
+def test_sync_state_marks_split_root_modified_and_missing_files(tmp_path):
+    local_root = tmp_path / "local_ip"
+    p4_root = tmp_path / "perforce_workspace"
+    (local_root / "rtl").mkdir(parents=True)
+    (p4_root / "rtl").mkdir(parents=True)
+    (local_root / "rtl" / "edited.sv").write_text("module edited_local; endmodule\n", encoding="utf-8")
+    (p4_root / "rtl" / "edited.sv").write_text("module edited_depot; endmodule\n", encoding="utf-8")
+    (p4_root / "rtl" / "deleted.sv").write_text("module deleted; endmodule\n", encoding="utf-8")
+
+    class SplitPaneAdapter(PerforceP4Adapter):
+        def _info(self) -> dict[str, str]:
+            return {"clientName": "atlas_GOOD_IP", "clientStream": "//GOOD_SOC/GOOD_IP"}
+
+        def _latest_change(self) -> str:
+            return "7"
+
+        def _records(self, *args: str, timeout: int = 60):
+            if args and args[0] == "fstat":
+                return [
+                    {
+                        "depotFile": "//GOOD_SOC/GOOD_IP/rtl/deleted.sv",
+                        "clientFile": (p4_root / "rtl" / "deleted.sv").as_posix(),
+                        "headRev": "3",
+                        "headAction": "edit",
+                        "haveRev": "3",
+                    },
+                    {
+                        "depotFile": "//GOOD_SOC/GOOD_IP/rtl/edited.sv",
+                        "clientFile": (p4_root / "rtl" / "edited.sv").as_posix(),
+                        "headRev": "3",
+                        "headAction": "edit",
+                        "haveRev": "3",
+                    },
+                ], self._result(ok=True)
+            return [], self._result(ok=True)
+
+    state = SplitPaneAdapter(p4_root).sync_state(local_root=local_root)
+
+    assert state["ok"] is True
+    assert state["local"] == [
+        {"path": "rtl/deleted.sv", "state": "missing"},
+        {"path": "rtl/edited.sv", "state": "modified"},
+    ]
 
 
 def test_sync_paths_copies_depot_filespecs_into_local_root(tmp_path):
@@ -297,6 +416,84 @@ def test_sync_paths_copies_depot_filespecs_into_local_root(tmp_path):
             "print", "-q", "-o",
             (ip_root / "req" / "main_note.txt").as_posix(),
             "//GOOD_SOC/GOOD_IP/dma_prompt_ip/req/main_note.txt",
+        ),
+    ]
+
+
+def test_sync_paths_does_not_reuse_single_target_for_multiple_depot_files(tmp_path):
+    class RecordingAdapter(PerforceP4Adapter):
+        def __init__(self, root: Union[str, Path], executable: str = "p4") -> None:
+            super().__init__(root, executable=executable)
+            self.calls: list[tuple[str, ...]] = []
+
+        def _run_p4(self, *args: str, timeout: int = 60):
+            self.calls.append(args)
+            return self._result(ok=True, stdout="synced")
+
+    ip_root = tmp_path / "local_ip"
+    p4_root = tmp_path / "perforce_workspace"
+    p4_root.mkdir()
+    adapter = RecordingAdapter(p4_root)
+
+    result = adapter.sync_paths(
+        [
+            "//GOOD_SOC/GOOD_IP/rtl/a.sv",
+            "//GOOD_SOC/GOOD_IP/rtl/b.sv",
+        ],
+        local_root=ip_root,
+        target_paths=["rtl/selected_target.sv"],
+    )
+
+    assert result.ok is True
+    assert adapter.calls == [
+        (
+            "print", "-q", "-o",
+            (ip_root / "rtl" / "selected_target.sv").as_posix(),
+            "//GOOD_SOC/GOOD_IP/rtl/a.sv",
+        ),
+        (
+            "print", "-q", "-o",
+            (ip_root / "rtl" / "b.sv").as_posix(),
+            "//GOOD_SOC/GOOD_IP/rtl/b.sv",
+        ),
+    ]
+
+
+def test_sync_paths_reuses_single_folder_target_for_multiple_depot_files(tmp_path):
+    class RecordingAdapter(PerforceP4Adapter):
+        def __init__(self, root: Union[str, Path], executable: str = "p4") -> None:
+            super().__init__(root, executable=executable)
+            self.calls: list[tuple[str, ...]] = []
+
+        def _run_p4(self, *args: str, timeout: int = 60):
+            self.calls.append(args)
+            return self._result(ok=True, stdout="synced")
+
+    ip_root = tmp_path / "local_ip"
+    p4_root = tmp_path / "perforce_workspace"
+    p4_root.mkdir()
+    adapter = RecordingAdapter(p4_root)
+
+    result = adapter.sync_paths(
+        [
+            "//GOOD_SOC/GOOD_IP/rtl/a.sv",
+            "//GOOD_SOC/GOOD_IP/rtl/b.sv",
+        ],
+        local_root=ip_root,
+        target_paths=["synced/"],
+    )
+
+    assert result.ok is True
+    assert adapter.calls == [
+        (
+            "print", "-q", "-o",
+            (ip_root / "synced" / "a.sv").as_posix(),
+            "//GOOD_SOC/GOOD_IP/rtl/a.sv",
+        ),
+        (
+            "print", "-q", "-o",
+            (ip_root / "synced" / "b.sv").as_posix(),
+            "//GOOD_SOC/GOOD_IP/rtl/b.sv",
         ),
     ]
 
@@ -365,6 +562,47 @@ def test_open_paths_maps_selected_depot_folder_target(tmp_path):
     assert result.ok is True
     assert (p4_root / "rtl" / "mapped.sv").read_text(encoding="utf-8") == "module mapped; endmodule\n"
     assert adapter.calls == [("reconcile", (p4_root / "rtl" / "mapped.sv").as_posix())]
+
+
+def test_open_paths_does_not_reuse_single_file_target_for_multiple_sources(tmp_path):
+    local_root = tmp_path / "local_ip"
+    p4_root = tmp_path / "perforce_workspace"
+    (local_root / "src").mkdir(parents=True)
+    p4_root.mkdir()
+    (local_root / "src" / "first.sv").write_text("module first; endmodule\n", encoding="utf-8")
+    (local_root / "src" / "second.sv").write_text("module second; endmodule\n", encoding="utf-8")
+
+    class RecordingAdapter(PerforceP4Adapter):
+        def __init__(self, root: Union[str, Path], executable: str = "p4") -> None:
+            super().__init__(root, executable=executable)
+            self.calls: list[tuple[str, ...]] = []
+
+        def _info(self) -> dict[str, str]:
+            return {"clientRoot": p4_root.as_posix()}
+
+        def _records(self, *args: str, timeout: int = 60):
+            if args and args[0] == "fstat":
+                return [{"clientFile": (p4_root / "rtl" / "target.sv").as_posix()}], self._result(ok=True)
+            return [], self._result(ok=True)
+
+        def _run_p4(self, *args: str, timeout: int = 60):
+            self.calls.append(args)
+            return self._result(ok=True, stdout="opened")
+
+    adapter = RecordingAdapter(p4_root)
+
+    result = adapter.open_paths(
+        ["src/first.sv", "src/second.sv"],
+        local_root=local_root,
+        target_paths=["//GOOD_SOC/GOOD_IP/rtl/target.sv"],
+    )
+
+    assert result.ok is True
+    assert (p4_root / "rtl" / "target.sv").read_text(encoding="utf-8") == "module first; endmodule\n"
+    assert (p4_root / "src" / "second.sv").read_text(encoding="utf-8") == "module second; endmodule\n"
+    assert adapter.calls == [
+        ("reconcile", (p4_root / "rtl" / "target.sv").as_posix(), (p4_root / "src" / "second.sv").as_posix()),
+    ]
 
 
 def test_open_paths_moves_opened_files_to_selected_pending_changelist(tmp_path):

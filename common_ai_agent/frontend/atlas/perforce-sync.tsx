@@ -32,7 +32,7 @@ const w = window as unknown as {
 
 interface LocalRow { path: string; state: string }
 interface DepotRow { path: string; rev: string }
-interface DepotTargetRow { path: string; rev: string; kind: 'file' | 'folder' }
+interface TreeRow { key: string; name: string; path: string; kind: 'up' | 'folder' | 'file'; state?: string; rev?: string }
 interface PendRow { path: string; action: string; change?: string }
 interface PendingChange { id: string; label?: string; description?: string }
 interface PaneState {
@@ -72,6 +72,88 @@ const ACTION_COLOR: Record<string, string> = {
   'move/delete': 'var(--err)',
 };
 
+const parentLocalDir = (dir: string): string => {
+  const clean = dir.replace(/\/+$/, '');
+  const slash = clean.lastIndexOf('/');
+  return slash > 0 ? clean.slice(0, slash) : '';
+};
+
+const parentDepotDir = (dir: string, root: string): string => {
+  const clean = dir.replace(/\/+$/, '');
+  const slash = clean.lastIndexOf('/');
+  if (slash < root.length - 1) return root;
+  const parent = `${clean.slice(0, slash + 1)}`;
+  return parent.length >= root.length ? parent : root;
+};
+
+const localFileRowsInDir = (rows: LocalRow[], dir: string): LocalRow[] => {
+  const prefix = dir ? `${dir.replace(/\/+$/, '')}/` : '';
+  return rows.filter(row => {
+    if (!row.path.startsWith(prefix)) return false;
+    return !row.path.slice(prefix.length).includes('/');
+  });
+};
+
+const localTreeRows = (rows: LocalRow[], dir: string): TreeRow[] => {
+  const prefix = dir ? `${dir.replace(/\/+$/, '')}/` : '';
+  const folders = new Set<string>();
+  const out: TreeRow[] = [];
+  if (dir) out.push({ key: '..', name: '← ..', path: parentLocalDir(dir), kind: 'up' });
+  for (const row of rows) {
+    if (!row.path.startsWith(prefix)) continue;
+    const rest = row.path.slice(prefix.length);
+    const slash = rest.indexOf('/');
+    if (slash >= 0) {
+      const name = rest.slice(0, slash + 1);
+      folders.add(name);
+      continue;
+    }
+    out.push({ key: row.path, name: rest, path: row.path, kind: 'file', state: row.state });
+  }
+  for (const name of [...folders].sort()) {
+    const path = `${prefix}${name}`.replace(/\/+$/, '');
+    out.push({ key: `${prefix}${name}`, name, path, kind: 'folder' });
+  }
+  return out.sort((a, b) => {
+    if (a.kind === 'up') return -1;
+    if (b.kind === 'up') return 1;
+    if (a.kind !== b.kind) return a.kind === 'folder' ? -1 : 1;
+    return a.name.localeCompare(b.name);
+  });
+};
+
+const depotFileRowsInDir = (rows: DepotRow[], dir: string): DepotRow[] => rows.filter(row => {
+  if (!row.path.startsWith(dir)) return false;
+  return !row.path.slice(dir.length).includes('/');
+});
+
+const depotTreeRows = (rows: DepotRow[], dir: string, root: string): TreeRow[] => {
+  const folders = new Set<string>();
+  const out: TreeRow[] = [];
+  if (dir && dir !== root) out.push({ key: '..', name: '← ..', path: parentDepotDir(dir, root), kind: 'up' });
+  for (const row of rows) {
+    if (!row.path.startsWith(dir)) continue;
+    const rest = row.path.slice(dir.length);
+    const slash = rest.indexOf('/');
+    if (slash >= 0) {
+      const name = rest.slice(0, slash + 1);
+      folders.add(name);
+      continue;
+    }
+    out.push({ key: row.path, name: rest, path: row.path, kind: 'file', rev: row.rev });
+  }
+  for (const name of [...folders].sort()) {
+    const path = `${dir}${name}`;
+    out.push({ key: path, name, path, kind: 'folder' });
+  }
+  return out.sort((a, b) => {
+    if (a.kind === 'up') return -1;
+    if (b.kind === 'up') return 1;
+    if (a.kind !== b.kind) return a.kind === 'folder' ? -1 : 1;
+    return a.name.localeCompare(b.name);
+  });
+};
+
 const sx: Record<string, CSSProperties> = {
   root: { display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, fontSize: 12, color: 'var(--fg)' },
   bar: { display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderBottom: '1px solid var(--line)', background: 'var(--bg-2)', flexWrap: 'wrap' },
@@ -80,6 +162,7 @@ const sx: Record<string, CSSProperties> = {
   paneHead: { padding: '6px 10px', borderBottom: '1px solid var(--line)', color: 'var(--fg-mute)', display: 'flex', justifyContent: 'space-between', gap: 8, background: 'var(--bg-2)' },
   list: { flex: 1, overflow: 'auto', minHeight: 0 },
   rowLi: { display: 'flex', alignItems: 'center', gap: 8, padding: '3px 10px', borderBottom: '1px solid var(--line)', cursor: 'pointer', fontFamily: 'var(--mono, monospace)' },
+  crumb: { color: 'var(--fg-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
   center: { display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 10, padding: '0 12px', borderLeft: '1px solid var(--line)', borderRight: '1px solid var(--line)', background: 'var(--bg)' },
   bottom: { borderTop: '1px solid var(--line)', background: 'var(--bg-2)', padding: '8px 12px', maxHeight: '34%', display: 'flex', flexDirection: 'column', minHeight: 0 },
   pendList: { overflow: 'auto', flex: 1, minHeight: 40, border: '1px solid var(--line)', borderRadius: 4, background: 'var(--bg)' },
@@ -107,13 +190,22 @@ function PerforceSyncTab(props: PerforceSyncProps) {
   const [err, setErr] = useState('');
   const [desc, setDesc] = useState('');
   const [selectedChange, setSelectedChange] = useState('default');
+  const [localDir, setLocalDir] = useState('');
+  const [depotDir, setDepotDir] = useState('');
   const [selLocal, setSelLocal] = useState<Set<string>>(new Set());
   const [selDepot, setSelDepot] = useState<Set<string>>(new Set());
   const [selPend, setSelPend] = useState<Set<string>>(new Set());
   const mounted = useRef(true);
   const reqRef = useRef(0);
+  const activeStream = stream || pane?.stream || '';
+  const depotRoot = activeStream ? `${activeStream.replace(/\/+$/, '')}/` : '';
 
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
+
+  useEffect(() => {
+    if (!depotRoot) return;
+    setDepotDir(current => current && current.startsWith(depotRoot) ? current : depotRoot);
+  }, [depotRoot]);
 
   // IP dropdown
   useEffect(() => {
@@ -145,6 +237,9 @@ function PerforceSyncTab(props: PerforceSyncProps) {
         if (!targetScmRoot && d.scmRoot) setScmRoot(d.scmRoot);
         const changeIds = (d.pendingChanges || []).map(change => change.id);
         setSelectedChange(current => (changeIds.includes(current) ? current : 'default'));
+        const nextStream = targetStream || d.stream || '';
+        const nextDepotRoot = nextStream ? `${nextStream.replace(/\/+$/, '')}/` : '';
+        if (nextDepotRoot) setDepotDir(current => current && current.startsWith(nextDepotRoot) ? current : nextDepotRoot);
         if (!d.ok && d.error) setErr(d.error);
         setSelLocal(new Set()); setSelDepot(new Set()); setSelPend(new Set());
       })
@@ -178,19 +273,41 @@ function PerforceSyncTab(props: PerforceSyncProps) {
     setter(next);
   };
 
-  const onAdd = () => {
-    const paths = selLocal.size ? [...selLocal] : (pane?.local || []).filter(r => r.state !== 'same').map(r => r.path);
-    if (!paths.length) { setErr('no local changes to add'); return; }
-    post('/api/scm/add', { paths, targetPaths: [...selDepot] }, `opened ${paths.length} file(s)`);
+  const local = pane?.local || [];
+  const depot = pane?.depot || [];
+  const pending = pane?.pending || [];
+  const localRows = useMemo(() => localTreeRows(local, localDir), [local, localDir]);
+  const depotRows = useMemo(() => depotTreeRows(depot, depotDir || depotRoot, depotRoot), [depot, depotDir, depotRoot]);
+  const pendingChanges = pane?.pendingChanges || [{ id: 'default', label: 'default' }];
+  const visiblePending = pending.filter(row => (row.change || 'default') === selectedChange);
+  const streams = pane?.streams || (pane?.stream ? [pane.stream] : []);
+
+  const onLocalRow = (row: TreeRow) => {
+    if (row.kind === 'up' || row.kind === 'folder') {
+      setLocalDir(row.path);
+      setSelLocal(new Set());
+      return;
+    }
+    toggle(selLocal, row.path, setSelLocal);
   };
-  const onEdit = () => {
-    const paths = [...selLocal];
-    if (!paths.length) { setErr('select local files to edit'); return; }
-    post('/api/scm/edit', { paths, targetPaths: [...selDepot] }, `opened ${paths.length} file(s) for edit`);
+
+  const onDepotRow = (row: TreeRow) => {
+    if (row.kind === 'up' || row.kind === 'folder') {
+      setDepotDir(row.path);
+      setSelDepot(new Set());
+      return;
+    }
+    toggle(selDepot, row.path, setSelDepot);
+  };
+
+  const onAdd = () => {
+    const localFiles = localFileRowsInDir(local, localDir);
+    const paths = selLocal.size ? [...selLocal] : localFiles.filter(r => r.state !== 'same').map(r => r.path);
+    if (!paths.length) { setErr('no local changes to add'); return; }
+    post('/api/scm/add', { paths, targetPaths: depotDir ? [depotDir] : [] }, `opened ${paths.length} file(s)`);
   };
   const onCheckout = () => {
-    const depotRows = pane?.depot || [];
-    const paths = depotRows.filter(row => selDepot.has(row.path)).map(row => row.path);
+    const paths = depot.filter(row => selDepot.has(row.path)).map(row => row.path);
     if (!paths.length) { setErr('select Perforce files to checkout'); return; }
     post('/api/scm/edit', { paths, sourceRoot: 'scm' }, `checked out ${paths.length} file(s)`);
   };
@@ -200,11 +317,12 @@ function PerforceSyncTab(props: PerforceSyncProps) {
     setDesc('');
   };
   const onSync = () => {
-    const depotRows = pane?.depot || [];
-    const selectedFiles = depotRows.filter(row => selDepot.has(row.path)).map(row => row.path);
-    const paths = selectedFiles.length ? selectedFiles : depotRows.map(r => r.path);
+    const depotFiles = depotFileRowsInDir(depot, depotDir || depotRoot);
+    const selectedFiles = depot.filter(row => selDepot.has(row.path)).map(row => row.path);
+    const paths = selectedFiles.length ? selectedFiles : depotFiles.map(r => r.path);
     if (!paths.length) { setErr('no Perforce files to sync'); return; }
-    post('/api/scm/sync', { paths, targetPaths: [...selLocal] }, `copied ${paths.length} file(s) to local`);
+    const targetPaths = localDir ? [`${localDir.replace(/\/+$/, '')}/`] : [];
+    post('/api/scm/sync', { paths, targetPaths }, `copied ${paths.length} file(s) to local`);
   };
   const onRevert = () => {
     const pendingRows = (pane?.pending || []).filter(row => (row.change || 'default') === selectedChange);
@@ -213,32 +331,12 @@ function PerforceSyncTab(props: PerforceSyncProps) {
     post('/api/scm/revert', { paths }, `reverted ${paths.length} file(s)`);
   };
 
-  const local = pane?.local || [];
-  const depot = pane?.depot || [];
-  const pending = pane?.pending || [];
-  const pendingChanges = pane?.pendingChanges || [{ id: 'default', label: 'default' }];
-  const visiblePending = pending.filter(row => (row.change || 'default') === selectedChange);
-  const streams = pane?.streams || (pane?.stream ? [pane.stream] : []);
-  const activeStream = stream || pane?.stream || '';
-  const depotTargetRows = useMemo<DepotTargetRow[]>(() => {
-    const rows = new Map<string, DepotTargetRow>();
-    for (const row of depot) {
-      const lastSlash = row.path.lastIndexOf('/');
-      if (lastSlash > 1) {
-        const folder = row.path.slice(0, lastSlash + 1);
-        if (!rows.has(folder)) rows.set(folder, { path: folder, rev: '', kind: 'folder' });
-      }
-      rows.set(row.path, { ...row, kind: 'file' });
-    }
-    return [...rows.values()].sort((a, b) => a.path.localeCompare(b.path));
-  }, [depot]);
-
   return (
     <div style={sx.root}>
       <div style={sx.bar}>
         <strong style={{ color: 'var(--accent)' }}>Perforce</strong>
         <label style={sx.mute}>IP:</label>
-        <select value={ip} onChange={e => { setIp(e.target.value); setStream(''); }} style={{ ...sx.input, flex: 'none', minWidth: 160 }}>
+        <select value={ip} onChange={e => { setIp(e.target.value); setStream(''); setLocalDir(''); setDepotDir(''); }} style={{ ...sx.input, flex: 'none', minWidth: 160 }}>
           {!ips.includes(ip) && ip ? <option value={ip}>{ip}</option> : null}
           {ips.map(n => <option key={n} value={n}>{n}</option>)}
         </select>
@@ -276,17 +374,21 @@ function PerforceSyncTab(props: PerforceSyncProps) {
       <div style={sx.mid}>
         {/* LEFT — Local IP */}
         <div style={sx.pane}>
-          <div style={sx.paneHead}><span>LOCAL IP</span><span className="mono">{local.length} file(s)</span></div>
+          <div style={sx.paneHead}>
+            <span>LOCAL IP</span>
+            <span style={sx.crumb} className="mono">/{localDir}</span>
+            <span className="mono">{local.length} file(s)</span>
+          </div>
           <div style={sx.list}>
-            {local.length === 0 ? <div style={sx.empty}>no local files tracked / changed</div> :
-              local.map(r => {
+            {localRows.length === 0 ? <div style={sx.empty}>empty folder</div> :
+              localRows.map(r => {
                 const b = STATE_BADGE[r.state] || { label: r.state, color: 'var(--fg-dim)' };
                 const checked = selLocal.has(r.path);
                 return (
-                  <div key={r.path} style={sx.rowLi} onClick={() => toggle(selLocal, r.path, setSelLocal)}>
-                    <input type="checkbox" checked={checked} readOnly />
-                    <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.path}</span>
-                    <span style={{ color: b.color, flex: 'none' }}>{b.label}</span>
+                  <div key={r.key} style={sx.rowLi} onClick={() => onLocalRow(r)} title={r.path}>
+                    {r.kind === 'file' ? <input type="checkbox" checked={checked} readOnly /> : <span style={{ width: 13, flex: 'none' }}>▸</span>}
+                    <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</span>
+                    {r.kind === 'file' ? <span style={{ color: b.color, flex: 'none' }}>{b.label}</span> : <span style={{ color: 'var(--fg-dim)', flex: 'none' }}>dir</span>}
                   </div>
                 );
               })}
@@ -297,23 +399,25 @@ function PerforceSyncTab(props: PerforceSyncProps) {
         <div style={sx.center}>
           <button style={sx.btn} onClick={onAdd} disabled={busy || !ip} title="Open selected local files (p4 reconcile)">＋ Add</button>
           <button style={sx.btn} onClick={onCheckout} disabled={busy || !ip} title="Open selected Perforce files into the pending changelist">☑ Checkout</button>
-          <button style={sx.btn} onClick={onEdit} disabled={busy || !ip} title="Open selected tracked files for edit (p4 edit)">✎ Edit</button>
-          <button style={sx.btnPrimary} onClick={onSubmit} disabled={busy || !ip} title="Submit the pending changelist">Submit ▶</button>
           <button style={sx.btn} onClick={onSync} disabled={busy || !ip} title="Copy selected Perforce files into the local IP root">◀ Sync</button>
         </div>
 
         {/* RIGHT — Perforce depot */}
         <div style={sx.pane}>
-          <div style={sx.paneHead}><span>PERFORCE TARGET</span><span className="mono">{depot.length} file(s)</span></div>
+          <div style={sx.paneHead}>
+            <span>PERFORCE TARGET</span>
+            <span style={sx.crumb} className="mono">{depotDir || depotRoot}</span>
+            <span className="mono">{depot.length} file(s)</span>
+          </div>
           <div style={sx.list}>
-            {depotTargetRows.length === 0 ? <div style={sx.empty}>no files in depot for this IP</div> :
-              depotTargetRows.map(r => {
+            {depotRows.length === 0 ? <div style={sx.empty}>empty folder</div> :
+              depotRows.map(r => {
                 const checked = selDepot.has(r.path);
                 return (
-                  <div key={r.path} style={sx.rowLi} onClick={() => toggle(selDepot, r.path, setSelDepot)}>
-                    <input type="checkbox" checked={checked} readOnly />
-                    <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.path}</span>
-                    <span style={{ color: 'var(--fg-dim)', flex: 'none' }}>{r.kind === 'folder' ? 'folder' : `#${r.rev}`}</span>
+                  <div key={r.key} style={sx.rowLi} onClick={() => onDepotRow(r)} title={r.path}>
+                    {r.kind === 'file' ? <input type="checkbox" checked={checked} readOnly /> : <span style={{ width: 13, flex: 'none' }}>▸</span>}
+                    <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</span>
+                    <span style={{ color: 'var(--fg-dim)', flex: 'none' }}>{r.kind === 'file' ? `#${r.rev}` : 'dir'}</span>
                   </div>
                 );
               })}
