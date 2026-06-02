@@ -212,13 +212,18 @@ def test_sync_state_lists_local_disk_files_when_p4_has_no_records(tmp_path):
         def _latest_change(self) -> str:
             return ""
 
+        def _run_p4(self, *args: str, timeout: int = 60):
+            if args and args[0] == "dirs":
+                return self._result(ok=True)
+            return self._result(ok=True)
+
         def _records(self, *args: str, timeout: int = 60):
             return [], self._result(ok=True)
 
-    state = EmptyPaneAdapter(tmp_path).sync_state()
+    state = EmptyPaneAdapter(tmp_path).sync_state(local_dir="rtl")
 
     assert state["ok"] is True
-    assert state["local"] == [{"path": "rtl/brian_dma.sv", "state": "new"}]
+    assert state["local"] == [{"path": "rtl/brian_dma.sv", "state": "new", "kind": "file"}]
 
 
 def test_sync_state_reports_p4_lookup_errors_instead_of_silent_empty_panes(tmp_path):
@@ -232,6 +237,11 @@ def test_sync_state_reports_p4_lookup_errors_instead_of_silent_empty_panes(tmp_p
         def _latest_change(self) -> str:
             return ""
 
+        def _run_p4(self, *args: str, timeout: int = 60):
+            if args and args[0] == "dirs":
+                return self._result(ok=True)
+            return self._result(ok=True)
+
         def _records(self, *args: str, timeout: int = 60):
             return [], self._result(
                 ok=False,
@@ -240,11 +250,11 @@ def test_sync_state_reports_p4_lookup_errors_instead_of_silent_empty_panes(tmp_p
                 returncode=1,
             )
 
-    state = ExpiredSessionAdapter(tmp_path).sync_state()
+    state = ExpiredSessionAdapter(tmp_path).sync_state(local_dir="rtl")
 
     assert state["ok"] is False
     assert "session has expired" in state["error"]
-    assert state["local"] == [{"path": "rtl/brian_dma.sv", "state": "new"}]
+    assert state["local"] == [{"path": "rtl/brian_dma.sv", "state": "new", "kind": "file"}]
 
 
 def test_sync_state_accepts_selected_stream_and_lists_available_streams(tmp_path):
@@ -257,6 +267,11 @@ def test_sync_state_accepts_selected_stream_and_lists_available_streams(tmp_path
 
         def _latest_change(self) -> str:
             return ""
+
+        def _run_p4(self, *args: str, timeout: int = 60):
+            if args and args[0] == "dirs":
+                return self._result(ok=True)
+            return self._result(ok=True)
 
         def _records(self, *args: str, timeout: int = 60):
             if args and args[0] == "streams":
@@ -286,6 +301,11 @@ def test_sync_state_keeps_local_root_and_depot_scope_independent(tmp_path):
         def _latest_change(self) -> str:
             return "7"
 
+        def _run_p4(self, *args: str, timeout: int = 60):
+            if args and args[0] == "dirs":
+                return self._result(ok=True)
+            return self._result(ok=True)
+
         def _records(self, *args: str, timeout: int = 60):
             if args and args[0] == "fstat":
                 return [
@@ -301,11 +321,94 @@ def test_sync_state_keeps_local_root_and_depot_scope_independent(tmp_path):
     state = SplitPaneAdapter(local_root).sync_state()
 
     assert state["ok"] is True
-    assert state["local"] == [{"path": "req/local_only.txt", "state": "new"}]
-    assert state["depot"] == [{"path": "//GOOD_SOC/GOOD_IP/shared/remote_only.txt", "rev": "3"}]
+    assert state["local"] == [{"path": "req", "state": "", "kind": "folder"}]
+    assert state["depot"] == [{"path": "//GOOD_SOC/GOOD_IP/shared/remote_only.txt", "rev": "3", "kind": "file"}]
 
 
-def test_sync_state_maps_split_root_have_revision_to_visible_local_path(tmp_path):
+def test_sync_state_browses_only_current_directories(tmp_path):
+    local_root = tmp_path / "local_ip"
+    (local_root / "rtl").mkdir(parents=True)
+    (local_root / "rtl" / "nested.sv").write_text("module nested; endmodule\n", encoding="utf-8")
+    (local_root / "top.sv").write_text("module top; endmodule\n", encoding="utf-8")
+    calls: list[tuple[str, ...]] = []
+
+    class ScopedPaneAdapter(PerforceP4Adapter):
+        def _info(self) -> dict[str, str]:
+            return {"clientName": "atlas_GOOD_IP", "clientStream": "//GOOD_SOC/GOOD_IP"}
+
+        def _latest_change(self) -> str:
+            return "7"
+
+        def _run_p4(self, *args: str, timeout: int = 60):
+            calls.append(args)
+            if args and args[0] == "dirs":
+                return self._result(ok=True, stdout="//GOOD_SOC/GOOD_IP/rtl\n")
+            return self._result(ok=True)
+
+        def _records(self, *args: str, timeout: int = 60):
+            calls.append(args)
+            if args and args[0] == "fstat":
+                return [
+                    {
+                        "depotFile": "//GOOD_SOC/GOOD_IP/top.sv",
+                        "headRev": "3",
+                        "headAction": "edit",
+                    },
+                ], self._result(ok=True)
+            return [], self._result(ok=True)
+
+    state = ScopedPaneAdapter(tmp_path / "p4_workspace").sync_state(
+        stream="//GOOD_SOC/GOOD_IP",
+        local_root=local_root,
+    )
+
+    assert state["ok"] is True
+    assert state["local"] == [
+        {"path": "rtl", "state": "", "kind": "folder"},
+        {"path": "top.sv", "state": "new", "kind": "file"},
+    ]
+    assert state["depot"] == [
+        {"path": "//GOOD_SOC/GOOD_IP/rtl/", "rev": "", "kind": "folder"},
+        {"path": "//GOOD_SOC/GOOD_IP/top.sv", "rev": "3", "kind": "file"},
+    ]
+    assert ("dirs", "//GOOD_SOC/GOOD_IP/*") in calls
+    assert any(call[-1] == "//GOOD_SOC/GOOD_IP/*" for call in calls if call and call[0] == "fstat")
+    assert not any(call[-1] == "//GOOD_SOC/GOOD_IP/..." for call in calls if call and call[0] == "fstat")
+    assert not any(row["path"] == "rtl/nested.sv" for row in state["local"])
+
+
+def test_sync_state_clamps_depot_dir_to_selected_stream(tmp_path):
+    calls: list[tuple[str, ...]] = []
+
+    class ScopedPaneAdapter(PerforceP4Adapter):
+        def _info(self) -> dict[str, str]:
+            return {"clientName": "atlas_GOOD_IP", "clientStream": "//GOOD_SOC/GOOD_IP"}
+
+        def _latest_change(self) -> str:
+            return "7"
+
+        def _run_p4(self, *args: str, timeout: int = 60):
+            calls.append(args)
+            if args and args[0] == "dirs":
+                return self._result(ok=True)
+            return self._result(ok=True)
+
+        def _records(self, *args: str, timeout: int = 60):
+            calls.append(args)
+            return [], self._result(ok=True)
+
+    state = ScopedPaneAdapter(tmp_path).sync_state(
+        stream="//GOOD_SOC/GOOD_IP",
+        depot_dir="//OTHER_DEPOT/OTHER_IP/rtl/...",
+    )
+
+    assert state["ok"] is True
+    assert state["depotDir"] == "//GOOD_SOC/GOOD_IP/"
+    assert ("dirs", "//GOOD_SOC/GOOD_IP/*") in calls
+    assert not any("//OTHER_DEPOT" in part for call in calls for part in call)
+
+
+def test_sync_state_lists_split_root_visible_local_path_without_missing_projection(tmp_path):
     local_root = tmp_path / "local_ip"
     p4_root = tmp_path / "perforce_workspace"
     (local_root / "shared").mkdir(parents=True)
@@ -321,6 +424,11 @@ def test_sync_state_maps_split_root_have_revision_to_visible_local_path(tmp_path
         def _latest_change(self) -> str:
             return "7"
 
+        def _run_p4(self, *args: str, timeout: int = 60):
+            if args and args[0] == "dirs":
+                return self._result(ok=True)
+            return self._result(ok=True)
+
         def _records(self, *args: str, timeout: int = 60):
             if args and args[0] == "fstat":
                 return [
@@ -334,13 +442,20 @@ def test_sync_state_maps_split_root_have_revision_to_visible_local_path(tmp_path
                 ], self._result(ok=True)
             return [], self._result(ok=True)
 
-    state = SplitPaneAdapter(p4_root).sync_state(local_root=local_root)
+    state = SplitPaneAdapter(p4_root).sync_state(
+        local_root=local_root,
+        local_dir="shared",
+        depot_dir="//GOOD_SOC/GOOD_IP/shared/",
+    )
 
     assert state["ok"] is True
-    assert state["local"] == [{"path": "shared/remote_only.txt", "state": "same"}]
+    assert state["local"] == [{"path": "shared/remote_only.txt", "state": "new", "kind": "file"}]
+    assert state["depot"] == [
+        {"path": "//GOOD_SOC/GOOD_IP/shared/remote_only.txt", "rev": "3", "kind": "file"},
+    ]
 
 
-def test_sync_state_marks_split_root_modified_and_missing_files(tmp_path):
+def test_sync_state_does_not_mark_split_root_absent_depot_files_missing(tmp_path):
     local_root = tmp_path / "local_ip"
     p4_root = tmp_path / "perforce_workspace"
     (local_root / "rtl").mkdir(parents=True)
@@ -355,6 +470,11 @@ def test_sync_state_marks_split_root_modified_and_missing_files(tmp_path):
 
         def _latest_change(self) -> str:
             return "7"
+
+        def _run_p4(self, *args: str, timeout: int = 60):
+            if args and args[0] == "dirs":
+                return self._result(ok=True)
+            return self._result(ok=True)
 
         def _records(self, *args: str, timeout: int = 60):
             if args and args[0] == "fstat":
@@ -376,13 +496,59 @@ def test_sync_state_marks_split_root_modified_and_missing_files(tmp_path):
                 ], self._result(ok=True)
             return [], self._result(ok=True)
 
-    state = SplitPaneAdapter(p4_root).sync_state(local_root=local_root)
+    state = SplitPaneAdapter(p4_root).sync_state(
+        local_root=local_root,
+        local_dir="rtl",
+        depot_dir="//GOOD_SOC/GOOD_IP/rtl/",
+    )
 
     assert state["ok"] is True
-    assert state["local"] == [
-        {"path": "rtl/deleted.sv", "state": "missing"},
-        {"path": "rtl/edited.sv", "state": "modified"},
-    ]
+    assert state["local"] == [{"path": "rtl/edited.sv", "state": "new", "kind": "file"}]
+    assert all(row.get("state") != "missing" for row in state["local"])
+
+
+def test_sync_state_does_not_project_split_root_depot_files_as_missing(tmp_path):
+    local_root = tmp_path / "local_ip"
+    p4_root = tmp_path / "perforce_workspace"
+    local_root.mkdir()
+    p4_root.mkdir()
+
+    class SplitPaneAdapter(PerforceP4Adapter):
+        def _info(self) -> dict[str, str]:
+            return {"clientName": "atlas_GOOD_IP", "clientStream": "//GOOD_SOC/GOOD_IP"}
+
+        def _latest_change(self) -> str:
+            return "7"
+
+        def _run_p4(self, *args: str, timeout: int = 60):
+            if args and args[0] == "dirs":
+                return self._result(ok=True)
+            return self._result(ok=True)
+
+        def _records(self, *args: str, timeout: int = 60):
+            if args and args[0] == "fstat":
+                return [
+                    {
+                        "depotFile": f"//GOOD_SOC/GOOD_IP/rtl/missing_{idx}.sv",
+                        "clientFile": (p4_root / "rtl" / f"missing_{idx}.sv").as_posix(),
+                        "headRev": "3",
+                        "headAction": "edit",
+                        "haveRev": "3",
+                    }
+                    for idx in range(50)
+                ], self._result(ok=True)
+            return [], self._result(ok=True)
+
+    state = SplitPaneAdapter(p4_root).sync_state(
+        stream="//GOOD_SOC/GOOD_IP",
+        local_root=local_root,
+        depot_dir="//GOOD_SOC/GOOD_IP/rtl/",
+    )
+
+    assert state["ok"] is True
+    assert state["local"] == []
+    assert all(row.get("state") != "missing" for row in state["local"])
+    assert len(state["depot"]) == 50
 
 
 def test_sync_paths_copies_depot_filespecs_into_local_root(tmp_path):

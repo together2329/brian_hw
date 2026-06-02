@@ -313,6 +313,110 @@ def test_scm_edit_route_can_checkout_perforce_target_without_local_root(tmp_path
     }
 
 
+def test_scm_pane_route_passes_directory_scope_to_perforce_adapter(tmp_path: Path, monkeypatch):
+    (tmp_path / "alpha").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "p4_workspace").mkdir(parents=True, exist_ok=True)
+    seen: dict[str, object] = {}
+
+    class FakePerforceAdapter:
+        provider = "perforce"
+
+        def __init__(self, root: str) -> None:
+            self.root = root
+
+        def sync_state(
+            self,
+            *,
+            local_root=None,
+            stream="",
+            local_dir="",
+            depot_dir="",
+        ):
+            seen["local_root"] = local_root
+            seen["stream"] = stream
+            seen["local_dir"] = local_dir
+            seen["depot_dir"] = depot_dir
+            return {
+                "ok": True,
+                "provider": self.provider,
+                "local": [],
+                "depot": [],
+                "pending": [],
+            }
+
+    def fake_resolve_scm_adapter(root: str, provider=None):
+        seen["root"] = root
+        seen["provider"] = provider
+        return FakePerforceAdapter(root)
+
+    monkeypatch.setattr("atlas_api_git.resolve_scm_adapter", fake_resolve_scm_adapter)
+    client = _authenticated_client(_create_app(tmp_path, monkeypatch))
+
+    response = client.get(
+        "/api/scm/pane",
+        params={
+            "ip": "alpha",
+            "provider": "perforce",
+            "scm_root": str(tmp_path / "p4_workspace"),
+            "stream": "//GOOD_SOC/GOOD_IP",
+            "local_dir": "rtl",
+            "depot_dir": "//GOOD_SOC/GOOD_IP/rtl/",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["ok"] is True
+    assert seen == {
+        "root": str(tmp_path / "p4_workspace"),
+        "provider": "perforce",
+        "local_root": str(tmp_path / "alpha"),
+        "stream": "//GOOD_SOC/GOOD_IP",
+        "local_dir": "rtl",
+        "depot_dir": "//GOOD_SOC/GOOD_IP/rtl/",
+    }
+
+
+def test_scm_sync_route_rejects_empty_perforce_selection_with_target_folder(tmp_path: Path, monkeypatch):
+    (tmp_path / "alpha").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "p4_workspace").mkdir(parents=True, exist_ok=True)
+    seen: dict[str, object] = {}
+
+    class FakePerforceAdapter:
+        provider = "perforce"
+
+        def __init__(self, root: str) -> None:
+            self.root = root
+
+        def sync(self, revision: str = "", stream: str = ""):
+            seen["sync_called"] = True
+            return SCMCommandResult(ok=True, provider=self.provider, root=self.root)
+
+    def fake_resolve_scm_adapter(root: str, provider=None):
+        seen["root"] = root
+        seen["provider"] = provider
+        return FakePerforceAdapter(root)
+
+    monkeypatch.setattr("atlas_api_git.resolve_scm_adapter", fake_resolve_scm_adapter)
+    client = _authenticated_client(_create_app(tmp_path, monkeypatch))
+
+    response = client.post(
+        "/api/scm/sync",
+        json={
+            "ip": "alpha",
+            "provider": "perforce",
+            "scmRoot": str(tmp_path / "p4_workspace"),
+            "paths": [],
+            "targetPaths": ["rtl/"],
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["ok"] is False
+    assert payload["error"] == "no Perforce files selected to sync"
+    assert "sync_called" not in seen
+
+
 def test_scm_submit_route_passes_selected_perforce_changelist(tmp_path: Path, monkeypatch):
     (tmp_path / "alpha").mkdir(parents=True, exist_ok=True)
     (tmp_path / "p4_workspace").mkdir(parents=True, exist_ok=True)

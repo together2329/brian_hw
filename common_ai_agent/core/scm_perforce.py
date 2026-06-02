@@ -27,6 +27,14 @@ from .scm import (
     SCMCommit,
     SCMFileStatus,
 )
+from .scm_perforce_browse import (
+    DEPOT_BROWSE_LIMIT,
+    depot_file_entries,
+    depot_folder_entries,
+    local_entries,
+    merge_depot_entries,
+    pane_browse_scope,
+)
 
 # Non-zero p4 exits that just mean "nothing here", not a real failure.
 _BENIGN = (
@@ -796,7 +804,13 @@ class PerforceP4Adapter(SCMAdapter):
         return self._soften(self._run_p4("sync", "-f", scope))
 
     # ------------------------------------------------------- two-pane UI API
-    def sync_state(self, stream: str = "", local_root: str | Path | None = None) -> dict[str, Any]:
+    def sync_state(
+        self,
+        stream: str = "",
+        local_root: str | Path | None = None,
+        local_dir: str = "",
+        depot_dir: str = "",
+    ) -> dict[str, Any]:
         """Left (local) / right (depot) / pending data for the Perforce Sync UI."""
         self._select_stream(stream)
         local_base = self._local_root_path(local_root)
@@ -816,55 +830,22 @@ class PerforceP4Adapter(SCMAdapter):
             if message not in p4_errors:
                 p4_errors.append(message)
 
-        recon_action: dict[str, str] = {}
-        if local_base == self.root:
-            recon, recon_result = self._records("reconcile", "-n", "-a", "-e", "-d", self._workspace_scope())
-            remember_error(recon_result)
-            for rec in recon:
-                cf = rec.get("clientFile", "")
-                if cf:
-                    recon_action[str(Path(cf).resolve())] = rec.get("action", "")
-
-        fstat, fstat_result = self._records(
-            "fstat", "-T", "depotFile,clientFile,headRev,headAction,haveRev", self._perforce_scope(),
-        )
-        remember_error(fstat_result)
-        depot: list[dict[str, Any]] = []
-        local: list[dict[str, Any]] = []
-        known_local_paths: set[str] = set()
-        for rec in fstat:
-            cf = rec.get("clientFile", "")
-            key = self._local_key(cf)
-            depot_path = rec.get("depotFile", "") or self._rel(cf)
-            rel = self._rel(cf) if key else ""
-            head_rev = rec.get("headRev", "")
-            head_action = rec.get("headAction", "")
-            have_rev = rec.get("haveRev", "")
-            if head_rev and head_action != "delete":
-                depot.append({"path": depot_path, "rev": head_rev})
-            if not have_rev or not key:
-                continue
-            if local_base == self.root:
-                act = recon_action.get(key, "")
-                if act == "edit":
-                    state = "modified"
-                elif act in ("delete", "move/delete"):
-                    state = "missing"
-                else:
-                    state = "same"
-                local.append({"path": rel, "state": state})
-                known_local_paths.add(key)
-                continue
-            mapped_key, state = self._split_local_state(rel, cf, local_base)
-            if mapped_key:
-                local.append({"path": rel, "state": state})
-                known_local_paths.add(mapped_key)
-        for key, act in recon_action.items():
-            if key in known_local_paths:
-                continue
-            local.append({"path": self._rel(key, local_base), "state": _RECONCILE_LOCAL_STATES.get(act, act or "new")})
-            known_local_paths.add(key)
-        local.extend(self._local_disk_rows(known_local_paths, local_base))
+        scope = pane_browse_scope(local_base, local_dir, depot_dir, self._branch())
+        local = local_entries(local_base, scope.local_dir, _LOCAL_SCAN_SKIP_DIRS, _LOCAL_SCAN_SKIP_FILES)
+        depot: list[Any] = []
+        fstat: list[dict[str, str]] = []
+        if scope.depot_pattern:
+            dirs_result = self._run_p4("dirs", scope.depot_pattern, timeout=10)
+            remember_error(dirs_result)
+            fstat, fstat_result = self._records(
+                "fstat",
+                "-m", str(DEPOT_BROWSE_LIMIT),
+                "-T", "depotFile,clientFile,headRev,headAction,haveRev",
+                scope.depot_pattern,
+                timeout=10,
+            )
+            remember_error(fstat_result)
+            depot = merge_depot_entries(depot_folder_entries(dirs_result.stdout), depot_file_entries(fstat))
 
         pending: list[dict[str, Any]] = []
         opened, opened_result = self._records("opened", self._perforce_scope())
@@ -878,8 +859,6 @@ class PerforceP4Adapter(SCMAdapter):
         pending_changes, changes_result = self._pending_changes()
         remember_error(changes_result)
 
-        local.sort(key=lambda r: r["path"])
-        depot.sort(key=lambda r: r["path"])
         payload = {
             "ok": not p4_errors, "provider": self.provider, "root": str(self.root),
             "client": info.get("clientName", ""), "stream": self._branch(),
@@ -887,6 +866,9 @@ class PerforceP4Adapter(SCMAdapter):
             "head": self._latest_change(),
             "local": local, "depot": depot, "pending": pending,
             "pendingChanges": pending_changes,
+            "localDir": scope.local_dir,
+            "depotDir": scope.depot_dir,
+            "truncated": len(fstat) >= DEPOT_BROWSE_LIMIT,
         }
         if p4_errors:
             payload["error"] = "; ".join(p4_errors)

@@ -359,13 +359,28 @@ def register_git_routes(
             )
             if not supported:
                 result = await _scm_call(scm_root_path, "sync", revision, provider=provider)
+        elif _request_provider(provider) == "perforce" and target_paths:
+            return JSONResponse({
+                "ok": False,
+                "provider": "perforce",
+                "ip": resolved_ip,
+                "error": "no Perforce files selected to sync",
+                **_root_fields(local_root, scm_root_path),
+            }, status_code=200)
         else:
             kwargs = {"stream": stream} if stream and _request_provider(provider) == "perforce" else {}
             result = await _scm_call(scm_root_path, "sync", revision, provider=provider, **kwargs)
         return _scm_result_json(result, resolved_ip, local_root, scm_root_path)
 
     @app.get("/api/scm/pane")
-    async def api_scm_pane(ip: str = "", provider: str = "", stream: str = "", scm_root: str = ""):
+    async def api_scm_pane(
+        ip: str = "",
+        provider: str = "",
+        stream: str = "",
+        scm_root: str = "",
+        local_dir: str = "",
+        depot_dir: str = "",
+    ):
         # Two-pane Perforce Sync view: local / depot / pending. Provider-specific.
         local_root, scm_root_path, error, resolved_ip = _route_roots(ip, provider=provider, scm_root_value=scm_root)
         if error is not None:
@@ -373,6 +388,9 @@ def register_git_routes(
         kwargs = {"local_root": local_root}
         if stream:
             kwargs["stream"] = stream
+        if _request_provider(provider) == "perforce":
+            kwargs["local_dir"] = local_dir
+            kwargs["depot_dir"] = depot_dir
         state, prov, supported = await _scm_optional(scm_root_path, "sync_state", provider=provider, **kwargs)
         if not supported:
             return JSONResponse({

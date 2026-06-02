@@ -22,12 +22,14 @@ const readBody = (init?: RequestInit): Body => {
 };
 
 describe('PerforceSyncTab directory actions', () => {
+  const paneUrls: string[] = [];
   const editBodies: Body[] = [];
   const addBodies: Body[] = [];
   const syncBodies: Body[] = [];
   const submitBodies: Body[] = [];
 
   beforeEach(() => {
+    paneUrls.length = 0;
     editBodies.length = 0;
     addBodies.length = 0;
     syncBodies.length = 0;
@@ -38,18 +40,28 @@ describe('PerforceSyncTab directory actions', () => {
         return jsonResponse({ items: [{ name: 'ulw_p4' }] });
       }
       if (url.startsWith('/api/scm/pane')) {
+        paneUrls.push(url);
+        const parsed = new URL(url, 'http://atlas.test');
+        const localDir = parsed.searchParams.get('local_dir') || '';
+        const depotDir = parsed.searchParams.get('depot_dir') || '//GOOD_SOC/GOOD_IP/';
         return jsonResponse({
           ok: true,
           stream: '//GOOD_SOC/GOOD_IP',
           scmRoot: '/tmp/p4_workspace',
           streams: ['//GOOD_SOC/GOOD_IP'],
-          local: [
-            { path: 'rtl/existing.sv', state: 'same' },
-            { path: 'rtl/new_file.sv', state: 'new' },
+          localDir,
+          depotDir,
+          local: localDir === 'rtl' ? [
+            { path: 'rtl/existing.sv', state: 'same', kind: 'file' },
+            { path: 'rtl/new_file.sv', state: 'new', kind: 'file' },
+          ] : [
+            { path: 'rtl', state: '', kind: 'folder' },
           ],
-          depot: [
-            { path: '//GOOD_SOC/GOOD_IP/rtl/main.sv', rev: '1' },
-            { path: '//GOOD_SOC/GOOD_IP/rtl/other.sv', rev: '1' },
+          depot: depotDir === '//GOOD_SOC/GOOD_IP/rtl/' ? [
+            { path: '//GOOD_SOC/GOOD_IP/rtl/main.sv', rev: '1', kind: 'file' },
+            { path: '//GOOD_SOC/GOOD_IP/rtl/other.sv', rev: '1', kind: 'file' },
+          ] : [
+            { path: '//GOOD_SOC/GOOD_IP/rtl/', rev: '', kind: 'folder' },
           ],
           pending: [{ path: '//GOOD_SOC/GOOD_IP/rtl/opened.sv', action: 'edit', change: '12' }],
           pendingChanges: [
@@ -111,6 +123,8 @@ describe('PerforceSyncTab directory actions', () => {
     expect(screen.getByText('new_file.sv')).toBeVisible();
     expect(await screen.findByText('main.sv')).toBeVisible();
     expect(screen.getByText('other.sv')).toBeVisible();
+    expect(paneUrls.some(url => url.includes('local_dir=rtl'))).toBe(true);
+    expect(paneUrls.some(url => url.includes('depot_dir=%2F%2FGOOD_SOC%2FGOOD_IP%2Frtl%2F'))).toBe(true);
   });
 
   it('keeps middle actions to add checkout and sync while pending can submit', async () => {
@@ -138,6 +152,7 @@ describe('PerforceSyncTab directory actions', () => {
     fireEvent.click(localRtl);
     await screen.findByText('new_file.sv');
     fireEvent.click(screen.getByText('rtl/'));
+    await screen.findByText('main.sv');
     fireEvent.change(screen.getByLabelText('Pending changelist'), { target: { value: '12' } });
 
     // When: the user selects a new local file and presses Add.

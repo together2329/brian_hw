@@ -30,8 +30,9 @@ const w = window as unknown as {
   PerforceSyncTab?: any;
 };
 
-interface LocalRow { path: string; state: string }
-interface DepotRow { path: string; rev: string }
+type PaneRowKind = 'folder' | 'file';
+interface LocalRow { path: string; state: string; kind?: PaneRowKind }
+interface DepotRow { path: string; rev: string; kind?: PaneRowKind }
 interface TreeRow { key: string; name: string; path: string; kind: 'up' | 'folder' | 'file'; state?: string; rev?: string }
 interface PendRow { path: string; action: string; change?: string }
 interface PendingChange { id: string; label?: string; description?: string }
@@ -43,6 +44,8 @@ interface PaneState {
   localRoot?: string;
   scmRoot?: string;
   head?: string;
+  localDir?: string;
+  depotDir?: string;
   local: LocalRow[];
   depot: DepotRow[];
   pending: PendRow[];
@@ -86,9 +89,23 @@ const parentDepotDir = (dir: string, root: string): string => {
   return parent.length >= root.length ? parent : root;
 };
 
+const localEntryName = (path: string, dir: string): string => {
+  const prefix = dir ? `${dir.replace(/\/+$/, '')}/` : '';
+  const raw = path.startsWith(prefix) ? path.slice(prefix.length) : path;
+  return raw.replace(/\/+$/, '').split('/').pop() || raw;
+};
+
+const depotEntryName = (path: string, dir: string): string => {
+  const cleanDir = dir.replace(/\/+$/, '');
+  const prefix = cleanDir ? `${cleanDir}/` : '';
+  const raw = path.startsWith(prefix) ? path.slice(prefix.length) : path;
+  return raw.replace(/\/+$/, '').split('/').pop() || raw;
+};
+
 const localFileRowsInDir = (rows: LocalRow[], dir: string): LocalRow[] => {
   const prefix = dir ? `${dir.replace(/\/+$/, '')}/` : '';
   return rows.filter(row => {
+    if (row.kind && row.kind !== 'file') return false;
     if (!row.path.startsWith(prefix)) return false;
     return !row.path.slice(prefix.length).includes('/');
   });
@@ -100,6 +117,14 @@ const localTreeRows = (rows: LocalRow[], dir: string): TreeRow[] => {
   const out: TreeRow[] = [];
   if (dir) out.push({ key: '..', name: '← ..', path: parentLocalDir(dir), kind: 'up' });
   for (const row of rows) {
+    if (row.kind === 'folder') {
+      out.push({ key: row.path, name: `${localEntryName(row.path, dir)}/`, path: row.path, kind: 'folder' });
+      continue;
+    }
+    if (row.kind === 'file') {
+      out.push({ key: row.path, name: localEntryName(row.path, dir), path: row.path, kind: 'file', state: row.state });
+      continue;
+    }
     if (!row.path.startsWith(prefix)) continue;
     const rest = row.path.slice(prefix.length);
     const slash = rest.indexOf('/');
@@ -123,6 +148,7 @@ const localTreeRows = (rows: LocalRow[], dir: string): TreeRow[] => {
 };
 
 const depotFileRowsInDir = (rows: DepotRow[], dir: string): DepotRow[] => rows.filter(row => {
+  if (row.kind && row.kind !== 'file') return false;
   if (!row.path.startsWith(dir)) return false;
   return !row.path.slice(dir.length).includes('/');
 });
@@ -132,6 +158,14 @@ const depotTreeRows = (rows: DepotRow[], dir: string, root: string): TreeRow[] =
   const out: TreeRow[] = [];
   if (dir && dir !== root) out.push({ key: '..', name: '← ..', path: parentDepotDir(dir, root), kind: 'up' });
   for (const row of rows) {
+    if (row.kind === 'folder') {
+      out.push({ key: row.path, name: `${depotEntryName(row.path, dir)}/`, path: row.path, kind: 'folder' });
+      continue;
+    }
+    if (row.kind === 'file') {
+      out.push({ key: row.path, name: depotEntryName(row.path, dir), path: row.path, kind: 'file', rev: row.rev });
+      continue;
+    }
     if (!row.path.startsWith(dir)) continue;
     const rest = row.path.slice(dir.length);
     const slash = rest.indexOf('/');
@@ -198,6 +232,7 @@ function PerforceSyncTab(props: PerforceSyncProps) {
   const mounted = useRef(true);
   const reqRef = useRef(0);
   const activeStream = stream || pane?.stream || '';
+  const activeScmRoot = scmRoot || pane?.scmRoot || '';
   const depotRoot = activeStream ? `${activeStream.replace(/\/+$/, '')}/` : '';
 
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
@@ -221,13 +256,21 @@ function PerforceSyncTab(props: PerforceSyncProps) {
       .catch(() => {});
   }, []); // eslint-disable-line
 
-  const loadPane = useCallback((targetIp: string, targetStream = stream, targetScmRoot = scmRoot) => {
+  const loadPane = useCallback((
+    targetIp: string,
+    targetStream = stream,
+    targetScmRoot = scmRoot,
+    targetLocalDir = '',
+    targetDepotDir = '',
+  ) => {
     if (!targetIp) { setPane(null); return; }
     const reqId = ++reqRef.current;
     setBusy(true); setErr('');
     const params = new URLSearchParams({ ip: targetIp, provider: 'perforce' });
     if (targetStream) params.set('stream', targetStream);
     if (targetScmRoot) params.set('scm_root', targetScmRoot);
+    if (targetLocalDir) params.set('local_dir', targetLocalDir);
+    if (targetDepotDir) params.set('depot_dir', targetDepotDir);
     fetch(`/api/scm/pane?${params.toString()}`, { cache: 'no-store' })
       .then(r => r.json())
       .then((d: PaneState) => {
@@ -239,7 +282,9 @@ function PerforceSyncTab(props: PerforceSyncProps) {
         setSelectedChange(current => (changeIds.includes(current) ? current : 'default'));
         const nextStream = targetStream || d.stream || '';
         const nextDepotRoot = nextStream ? `${nextStream.replace(/\/+$/, '')}/` : '';
-        if (nextDepotRoot) setDepotDir(current => current && current.startsWith(nextDepotRoot) ? current : nextDepotRoot);
+        setLocalDir(d.localDir ?? targetLocalDir);
+        const nextDepotDir = d.depotDir || targetDepotDir || nextDepotRoot;
+        if (nextDepotDir) setDepotDir(nextDepotDir);
         if (!d.ok && d.error) setErr(d.error);
         setSelLocal(new Set()); setSelDepot(new Set()); setSelPend(new Set());
       })
@@ -264,8 +309,8 @@ function PerforceSyncTab(props: PerforceSyncProps) {
         else setErr((d && (d.error || d.stderr)) || 'operation failed');
       })
       .catch(e => { if (mounted.current) setErr(String(e)); })
-      .finally(() => { if (mounted.current) { setBusy(false); loadPane(ip, activeStream, activeScmRoot); } });
-  }, [ip, stream, scmRoot, pane?.stream, pane?.scmRoot, selectedChange, loadPane]);
+      .finally(() => { if (mounted.current) { setBusy(false); loadPane(ip, activeStream, activeScmRoot, localDir, depotDir); } });
+  }, [ip, stream, scmRoot, pane?.stream, pane?.scmRoot, selectedChange, localDir, depotDir, loadPane]);
 
   const toggle = (set: Set<string>, key: string, setter: (s: Set<string>) => void) => {
     const next = new Set(set);
@@ -284,8 +329,11 @@ function PerforceSyncTab(props: PerforceSyncProps) {
 
   const onLocalRow = (row: TreeRow) => {
     if (row.kind === 'up' || row.kind === 'folder') {
-      setLocalDir(row.path);
+      const activeStream = stream || pane?.stream || '';
+      const activeScmRoot = scmRoot || pane?.scmRoot || '';
       setSelLocal(new Set());
+      setLocalDir(row.path);
+      loadPane(ip, activeStream, activeScmRoot, row.path, depotDir);
       return;
     }
     toggle(selLocal, row.path, setSelLocal);
@@ -293,8 +341,11 @@ function PerforceSyncTab(props: PerforceSyncProps) {
 
   const onDepotRow = (row: TreeRow) => {
     if (row.kind === 'up' || row.kind === 'folder') {
-      setDepotDir(row.path);
+      const activeStream = stream || pane?.stream || '';
+      const activeScmRoot = scmRoot || pane?.scmRoot || '';
       setSelDepot(new Set());
+      setDepotDir(row.path);
+      loadPane(ip, activeStream, activeScmRoot, localDir, row.path);
       return;
     }
     toggle(selDepot, row.path, setSelDepot);
@@ -367,7 +418,7 @@ function PerforceSyncTab(props: PerforceSyncProps) {
           {busy ? <span style={sx.mute}>…</span> : null}
           {err ? <span style={{ color: 'var(--err)' }} title={err}>⚠ {err.slice(0, 80)}</span> : null}
           {msg ? <span style={{ color: 'var(--ok)' }}>{msg.slice(0, 80)}</span> : null}
-          <button style={sx.btn} onClick={() => loadPane(ip, activeStream, scmRoot)} disabled={busy || !ip}>↻ Refresh</button>
+          <button style={sx.btn} onClick={() => loadPane(ip, activeStream, activeScmRoot, localDir, depotDir)} disabled={busy || !ip}>↻ Refresh</button>
         </span>
       </div>
 
