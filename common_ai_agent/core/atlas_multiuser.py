@@ -15,6 +15,12 @@ from typing import Any, Callable
 from core.session_process_manager import SessionProcessManager  # pyright: ignore[reportMissingImports]
 from core.session_names import normalize_session_name
 
+try:  # The defined non-silent absent-cursor signal (plan §2.4 / R5).
+    from core.atlas_db import QueueCursorNotFound as _QueueCursorNotFound
+except Exception:  # pragma: no cover - defensive: keep poll path importable.
+    class _QueueCursorNotFound(Exception):
+        """Fallback so the poll path imports even if atlas_db is unavailable."""
+
 
 _SESSION_PRIVATE_BROADCAST_TYPES = {
     "agent",
@@ -343,6 +349,83 @@ class _MultiUserBridge:
     def _using_processes(self) -> bool:
         return self._process_manager is not None
 
+    @staticmethod
+    def _poll_session_outputs(manager: Any, session_id: str, since_id: Any) -> list:
+        """Poll a session's outputs, surfacing the absent-cursor signal (R5).
+
+        Passes ``on_absent_cursor='raise'`` to the real SessionProcessManager so
+        a recreated/swapped runtime DB raises :class:`QueueCursorNotFound` rather
+        than silently returning 0 rows. Test/legacy managers whose ``poll_output``
+        does not accept the keyword fall back to the 2-arg call (they never swap
+        the DB underneath the cursor, so the silent path is acceptable there).
+        """
+        try:
+            return list(
+                manager.poll_output(
+                    session_id, since_id=since_id, on_absent_cursor="raise"
+                )
+            )
+        except TypeError:
+            return list(manager.poll_output(session_id, since_id=since_id))
+
+    @staticmethod
+    def _reseed_output_cursor(manager: Any, session_id: str) -> Any:
+        """Ask the manager to re-seed the cursor; None if unsupported/no rows."""
+        reseed = getattr(manager, "reseed_output_cursor", None)
+        if not callable(reseed):
+            return None
+        try:
+            return reseed(session_id)
+        except Exception:
+            return None
+
+    @staticmethod
+    def _mark_outputs_delivered(manager: Any, session_id: str, up_to_id: Any) -> None:
+        """Durably mark a delivered out-row BATCH after the outbox put succeeds.
+
+        Called once per poll batch per session (NOT per token): ``up_to_id`` is
+        the highest out-row id just pushed to this session's outbox. Marking
+        ``delivered_at`` durably is what gives ``reseed_output_cursor`` a real
+        resume point after a runtime-DB swap and lets ``cleanup_old_messages``
+        purge old delivered out-rows so runtime DBs don't grow unbounded (plan
+        §2.4/§2.12 / R5/R22). One UPDATE per batch keeps write amplification low.
+
+        Prefers a manager-level ``mark_outputs_delivered`` if present; otherwise
+        reaches the session's runtime DB handle (``_get_runtime_db``) — the SAME
+        file ``poll_output`` read from — and marks there. Best-effort: a failure
+        here must not break the deliver loop (the in-memory cursor already
+        advanced; the next batch's mark re-covers any rows missed)."""
+        if not up_to_id:
+            return
+        marker = getattr(manager, "mark_outputs_delivered", None)
+        if callable(marker):
+            try:
+                marker(session_id, up_to_id)
+                return
+            except Exception:
+                return
+        get_runtime_db = getattr(manager, "_get_runtime_db", None)
+        if not callable(get_runtime_db):
+            return
+        try:
+            db = get_runtime_db(session_id)
+            db.mark_outputs_delivered(session_id, up_to_id, "out")
+        except Exception:
+            return
+
+    def _emit_runtime_db_recovery(self, session_id: str, *, reason: str) -> None:
+        """Emit a non-silent recovery signal so a DB swap is observable (R5/R13).
+
+        Surfaces as a per-session ``runtime_db_recreated`` event (never silent).
+        The browser ignores unknown event types, so this is safe to broadcast;
+        its value is the audit/metric trail proving the stall-recovery fired.
+        """
+        try:
+            session = self._ensure_session(session_id)
+            session.emit("runtime_db_recreated", reason=str(reason))
+        except Exception:
+            pass
+
     def _poll_process_outputs(self) -> None:
         manager = self._process_manager
         if manager is None:
@@ -357,7 +440,33 @@ class _MultiUserBridge:
         for session_id in list(dict.fromkeys([*manager.list_active(), *dead_sessions])):
             since_id = self._process_output_cursors.get(session_id)
             saw_lifecycle_end = False
-            for msg in manager.poll_output(session_id, since_id=since_id):
+            try:
+                outputs = self._poll_session_outputs(manager, session_id, since_id)
+            except _QueueCursorNotFound:
+                # Non-silent recoverable signal (plan §2.4 / R5): the cursor id is
+                # absent from the (recreated/swapped) runtime DB. Re-seed the
+                # cursor ATOMICALLY from the runtime DB's current state — the
+                # newest already-delivered out-row — then re-poll from there.
+                # This avoids BOTH a silent permanent stall (0 rows forever) and
+                # restarting from the top (which would re-deliver). If nothing
+                # was delivered yet, the re-seed is None -> poll from the top is
+                # correct (no client has seen the buffered output).
+                reseeded = self._reseed_output_cursor(manager, session_id)
+                if reseeded is None:
+                    self._process_output_cursors.pop(session_id, None)
+                else:
+                    self._process_output_cursors[session_id] = reseeded
+                self._emit_runtime_db_recovery(session_id, reason="cursor_reseeded")
+                try:
+                    outputs = self._poll_session_outputs(manager, session_id, reseeded)
+                except _QueueCursorNotFound:
+                    outputs = []
+            # Highest out-row id pushed to each session's outbox this batch.
+            # After the put succeeds we mark those rows delivered DURABLY in ONE
+            # UPDATE per session (not per token), so reseed has a resume point and
+            # cleanup can purge them (plan §2.4/§2.12 / R5/R22).
+            delivered_up_to: dict[str, Any] = {}
+            for msg in outputs:
                 msg_session_id = str(msg.get("session_id") or session_id)
                 session = self._ensure_session(msg_session_id)
                 payload = msg.get("payload")
@@ -400,6 +509,11 @@ class _MultiUserBridge:
                 if event["type"] == "tool_result":
                     self._maybe_emit_file_changed(session, event)
                 self._process_output_cursors[msg_session_id] = msg.get("id")
+                if str(msg.get("direction") or "out") == "out":
+                    delivered_up_to[msg_session_id] = msg.get("id")
+            # One durable delivery UPDATE per session for the whole batch.
+            for marked_session_id, up_to_id in delivered_up_to.items():
+                self._mark_outputs_delivered(manager, marked_session_id, up_to_id)
             if session_id in dead_sessions and not saw_lifecycle_end:
                 session = self._ensure_session(session_id)
                 if session.agent_alive or session.agent_running:

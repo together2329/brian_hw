@@ -1,0 +1,21 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.9.6, pytest-8.4.1, pluggy-1.6.0 -- /Library/Developer/CommandLineTools/usr/bin/python3
+cachedir: .pytest_cache
+rootdir: /Users/brian/Desktop/Project/brian_hw/common_ai_agent
+collecting ... collected 13 items
+
+tests/test_runtime_queue_hardening.py::test_worker_opens_runtime_subset_schema_in_session_mode PASSED [  7%]
+tests/test_runtime_queue_hardening.py::test_worker_uses_full_schema_in_central_mode PASSED [ 15%]
+tests/test_runtime_queue_hardening.py::test_worker_full_schema_when_runtime_equals_control PASSED [ 23%]
+tests/test_runtime_queue_hardening.py::test_two_sessions_queue_rows_isolated_control_empty PASSED [ 30%]
+tests/test_runtime_queue_hardening.py::test_spawn_retry_delivers_prompt_exactly_once PASSED [ 38%]
+tests/test_runtime_queue_hardening.py::test_runtime_db_not_initialized_is_recoverable_not_silent_none PASSED [ 46%]
+tests/test_runtime_queue_hardening.py::test_poll_messages_absent_cursor_raises_when_requested PASSED [ 53%]
+tests/test_runtime_queue_hardening.py::test_reseed_output_cursor_resumes_without_redelivery PASSED [ 61%]
+tests/test_runtime_queue_hardening.py::test_recreated_runtime_db_midstream_no_stall_no_duplicate PASSED [ 69%]
+tests/test_runtime_queue_hardening.py::test_cleanup_keeps_old_undelivered_prompt_purges_delivered PASSED [ 76%]
+tests/test_runtime_queue_hardening.py::test_cleanup_purges_expired_regardless_of_delivery PASSED [ 84%]
+tests/test_runtime_queue_hardening.py::test_missing_runtime_db_recreated_with_nonsilent_signal PASSED [ 92%]
+tests/test_runtime_queue_hardening.py::test_corrupt_runtime_db_is_quarantined_and_surfaced PASSED [100%]
+
+============================== 13 passed in 0.23s ==============================

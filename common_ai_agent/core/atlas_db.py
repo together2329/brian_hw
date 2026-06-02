@@ -25,6 +25,30 @@ _IP_PERMISSION_LEVELS = {
 }
 
 
+class QueueCursorNotFound(LookupError):
+    """A poll ``since_id`` cursor is absent from THIS database (plan §2.4 / R5).
+
+    Raised by :meth:`AtlasDB.poll_messages` when called with
+    ``on_absent_cursor='raise'`` and the cursor id cannot be resolved in the
+    target ``session_queue`` (a recreated/swapped runtime DB, a mode switch, or
+    a stale id). The OLD correlated-subselect silently returned 0 rows in this
+    case, which produced a permanent output stall with no signal. This is the
+    DISTINCT, non-silent recoverable signal the manager/poll path maps to an
+    atomic cursor RE-SEED instead of either stalling or restarting from the top
+    (which would re-deliver). ``session_id`` / ``direction`` identify the queue
+    so the caller can re-seed deterministically.
+    """
+
+    def __init__(self, session_id: str, direction: str, since_id: str) -> None:
+        self.session_id = session_id
+        self.direction = direction
+        self.since_id = since_id
+        super().__init__(
+            f"poll cursor since_id={since_id!r} not found in session_queue for "
+            f"session_id={session_id!r} direction={direction!r}"
+        )
+
+
 # ============================================================
 # Schema
 # ============================================================
@@ -2202,6 +2226,30 @@ class AtlasDB:
             "last_rollup_at": None,
         }
 
+    def update_session_runtime_db_status(
+        self,
+        session_id: str,
+        status: str,
+    ) -> Optional[Dict[str, Any]]:
+        """Set the manifest ``status`` for *session_id* (plan §2.12 / R5/R13).
+
+        Used by the recovery contract: a corrupt runtime file is quarantined and
+        its manifest row is flipped to ``status='error'`` so reads can surface a
+        non-silent error instead of hiding the corruption behind empty results.
+        Returns the refreshed row, or None when no manifest row exists.
+        """
+        with self._lock:
+            conn = self._connect()
+            cursor = conn.execute(
+                "UPDATE session_runtime_dbs SET status = ?, updated_at = ? "
+                "WHERE session_id = ?",
+                (status, self._now(), session_id),
+            )
+            conn.commit()
+            if cursor.rowcount == 0:
+                return None
+        return self.get_session_runtime_db(session_id)
+
     def get_session_runtime_db(self, session_id: str) -> Optional[Dict[str, Any]]:
         """Return the manifest row for *session_id*, or None."""
         row = self._fetchone(
@@ -2819,6 +2867,7 @@ class AtlasDB:
         direction: str,
         since_id: Optional[str] = None,
         limit: int = 100,
+        on_absent_cursor: str = "empty",
     ) -> List[Dict[str, Any]]:
         """Non-blocking fetch of undelivered messages for a session and direction.
 
@@ -2831,9 +2880,18 @@ class AtlasDB:
         cursor's created_at, and (b) return 0 rows forever if the cursor id was
         absent (``created_at > NULL`` is never true). The value-based tuple
         cursor ``(created_at, rowid) > (cursor_created_at, cursor_rowid)`` fixes
-        the skip; absent-cursor handling below preserves the historical 0-rows
-        contract for now (Unit B / Task 4 will replace that with a non-silent
-        recoverable status — see backward_compat_notes).
+        the skip.
+
+        Absent-cursor contract (``on_absent_cursor``, plan §2.4 / R5):
+
+        * ``'empty'`` (DEFAULT) — historical behavior: an absent ``since_id``
+          yields ``[]``. Kept as the default so existing callers and the
+          equal-timestamp backward-compat test are unchanged.
+        * ``'raise'`` — raise :class:`QueueCursorNotFound`, a DISTINCT non-silent
+          recoverable signal. This is what the manager/atlas_multiuser poll path
+          uses so a recreated/swapped runtime DB does NOT silently stall (0 rows
+          forever) NOR restart from the top (re-deliver). The caller catches it
+          and atomically RE-SEEDS the cursor from the runtime DB's current state.
 
         ``since_id`` remains the queue row's TEXT ``id`` (unchanged for callers).
         """
@@ -2845,9 +2903,11 @@ class AtlasDB:
             )
             if cursor is None:
                 # Cursor id not present in THIS db (recreated/swapped runtime DB,
-                # or a stale id). Historically this yielded 0 rows (the
-                # correlated subselect returned NULL). Preserve that for callers
-                # in this unit; Task 4 (R5) makes this a non-silent status.
+                # or a stale id). 'empty' preserves the historical 0-rows
+                # contract; 'raise' surfaces the non-silent recoverable signal
+                # the poll path re-seeds on (plan §2.4 / R5).
+                if on_absent_cursor == "raise":
+                    raise QueueCursorNotFound(session_id, direction, since_id)
                 return []
             cursor_created_at = cursor["created_at"]
             cursor_rowid = cursor["_rowid"]
@@ -2892,8 +2952,99 @@ class AtlasDB:
             (self._now(), msg_id),
         )
 
+    def mark_outputs_delivered(
+        self,
+        session_id: str,
+        up_to_id: str,
+        direction: str = "out",
+    ) -> int:
+        """Durably mark a delivered BATCH of out-rows in ONE update (R5/R22).
+
+        After the broadcaster has successfully pushed a poll batch to a session's
+        outbox, those rows have reached a client and must carry a durable
+        ``delivered_at`` so (a) :meth:`reseed_output_cursor` has a true resume
+        point after a runtime-DB swap and (b) :meth:`cleanup_old_messages` can
+        purge them (its R22 guard keeps only undelivered/unprocessed rows). Both
+        were no-ops while nothing ever set ``delivered_at`` on out-rows.
+
+        Batched, not per-token: ``up_to_id`` is the TEXT id of the batch's LAST
+        (highest) row in the strict total order ``(created_at, rowid)``; this sets
+        ``delivered_at = now`` for every row of *session_id*/*direction* with
+        ``rowid <= up_to_id``'s rowid that is still ``delivered_at IS NULL``. One
+        UPDATE per poll-batch per session keeps write amplification minimal; an
+        absent / already-marked ``up_to_id`` is a no-op (returns 0). Returns the
+        number of rows newly marked delivered.
+        """
+        if not up_to_id:
+            return 0
+        with self._lock:
+            conn = self._connect()
+            cursor_row = conn.execute(
+                "SELECT rowid FROM session_queue WHERE id = ?",
+                (up_to_id,),
+            ).fetchone()
+            if cursor_row is None:
+                return 0
+            up_to_rowid = cursor_row["rowid"]
+            cursor = conn.execute(
+                """
+                UPDATE session_queue
+                   SET delivered_at = ?
+                 WHERE session_id = ?
+                   AND direction = ?
+                   AND delivered_at IS NULL
+                   AND rowid <= ?
+                """,
+                (self._now(), session_id, direction, up_to_rowid),
+            )
+            conn.commit()
+            return cursor.rowcount
+
+    def reseed_output_cursor(self, session_id: str, direction: str = "out") -> Optional[str]:
+        """Return the cursor that resumes delivery without re-delivering (R5).
+
+        When a runtime DB was recreated/swapped, the in-memory poll cursor points
+        at an id that no longer exists, and the next ``poll_messages`` would
+        either stall (``on_absent_cursor='empty'``) or, if reset to ``None``,
+        re-deliver every undelivered row from the top. The correct recovery is to
+        re-seed the cursor to the NEWEST ALREADY-DELIVERED row in the current DB:
+        a subsequent ``poll_messages(since_id=<this>)`` then returns exactly the
+        rows after it that are still ``delivered_at IS NULL`` — no duplicates, no
+        stall. If NOTHING has been delivered yet, returns ``None`` so polling
+        starts from the top (delivering the buffered output is correct, since
+        none of it has reached a client).
+
+        Ordered by the strict total order ``(created_at, rowid)`` to match the
+        queue's monotonic ordering (plan §2.3).
+        """
+        row = self._fetchone(
+            """
+            SELECT id FROM session_queue
+            WHERE session_id = ? AND direction = ? AND delivered_at IS NOT NULL
+            ORDER BY created_at DESC, rowid DESC
+            LIMIT 1
+            """,
+            (session_id, direction),
+        )
+        return str(row["id"]) if row is not None else None
+
     def cleanup_old_messages(self, age_seconds: float = 3600) -> int:
-        """Delete expired or old messages. Returns the number of rows deleted."""
+        """Delete expired or old messages. Returns the number of rows deleted.
+
+        Cleanup safety (plan §2.12 / R22): the age purge MUST NOT remove a row
+        that has never been delivered AND never been processed — that would
+        silently drop an undelivered prompt queued for a worker that is still
+        cold (not yet polled / not yet spawned). Such rows are excluded from the
+        ``created_at`` age branch via ``(delivered_at IS NOT NULL OR
+        processed_at IS NOT NULL)``: an old row only ages out once it has been
+        delivered to a client OR consumed by the worker.
+
+        The ``expires_at`` branch is an explicit per-message TTL chosen by the
+        enqueuer (not a wall-clock age heuristic), so it still purges on expiry
+        regardless of delivery — callers that need a guaranteed-survival prompt
+        simply do not set ``expires_at``. The OR/AND grouping is now explicitly
+        parenthesized (the old SQL relied on precedence).
+        """
         now = self._now()
         cutoff = now - age_seconds
         with self._lock:
@@ -2901,8 +3052,11 @@ class AtlasDB:
             cursor = conn.execute(
                 """
                 DELETE FROM session_queue
-                WHERE expires_at IS NOT NULL AND expires_at < ?
-                OR created_at < ?
+                WHERE (expires_at IS NOT NULL AND expires_at < ?)
+                   OR (
+                        created_at < ?
+                        AND (delivered_at IS NOT NULL OR processed_at IS NOT NULL)
+                   )
                 """,
                 (now, cutoff),
             )

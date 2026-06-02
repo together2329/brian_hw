@@ -96,6 +96,10 @@ class SessionProcessManager:
         # so the cache is keyed by thread id + path.
         self._db_handles: Dict[tuple, AtlasDB] = {}
         self._db_handles_lock = threading.RLock()
+        # Non-silent recovery audit trail (plan §2.12 / R5/R13): each entry is
+        # {"session_id", "event", "at"} for a runtime-DB recreate/error. Guarded
+        # by _db_handles_lock (same lifecycle as the handle cache).
+        self._runtime_recovery_events: List[Dict[str, Any]] = []
 
     @staticmethod
     def _env_enabled(name: str, default: bool = True) -> bool:
@@ -178,6 +182,16 @@ class SessionProcessManager:
         In central mode a cache miss is built through ``_get_db()`` so the
         historical hook (tests monkeypatch ``_get_db``) keeps working; in session
         mode we open the routed runtime file directly with the runtime schema.
+
+        Recovery contract (plan §2.12 / Task 4(c), R5/R13). In session mode, on a
+        cache MISS we run the open through ``_open_runtime_db_with_recovery``:
+
+        * MISSING file -> ``AtlasDB(...).init_db()`` recreates an initialized
+          runtime DB; we record a non-silent ``runtime_db_recreated`` signal
+          (never a silent empty result).
+        * CORRUPT file -> quarantine the file (rename to ``*.corrupt-<ts>``),
+          flip the manifest ``status='error'`` on the control DB, and RE-RAISE so
+          the failure surfaces. We do NOT hide corruption behind empty results.
         """
         resolved = self._resolve_runtime_db_path(session_id, db_path=db_path)
         key = (threading.get_ident(), resolved)
@@ -187,10 +201,67 @@ class SessionProcessManager:
                 if self._router.mode() == "central":
                     db = self._get_db()
                 else:
-                    db = AtlasDB(resolved, schema_set="runtime")
-                    db.init_db()
+                    db = self._open_runtime_db_with_recovery(session_id, resolved)
                 self._db_handles[key] = db
             return db
+
+    def _record_runtime_recovery(self, session_id: str, event: str) -> None:
+        """Append a non-silent recovery event (plan §2.12 / R5/R13).
+
+        ``event`` is e.g. ``'runtime_db_recreated'`` or ``'runtime_db_error'``.
+        The list is the manager's observable audit trail (read by tests / the
+        Task 9 fleet metrics). It is intentionally NOT swallowed — a missing or
+        corrupt runtime DB must never be hidden behind empty results.
+        """
+        with self._db_handles_lock:
+            self._runtime_recovery_events.append(
+                {"session_id": session_id, "event": event, "at": time.time()}
+            )
+
+    def runtime_recovery_events(self) -> List[Dict[str, Any]]:
+        """Return a copy of the recorded runtime-DB recovery events."""
+        with self._db_handles_lock:
+            return list(self._runtime_recovery_events)
+
+    def _open_runtime_db_with_recovery(self, session_id: str, resolved: str) -> AtlasDB:
+        """Open a per-session runtime DB, applying the recovery contract."""
+        path = Path(resolved)
+        existed_before = path.exists()
+        try:
+            db = AtlasDB(resolved, schema_set="runtime")
+            db.init_db()
+        except sqlite3.DatabaseError as exc:
+            # Corrupt/unreadable runtime file: quarantine + manifest status=error
+            # + surface. Never hide corruption behind empty results.
+            self._quarantine_corrupt_runtime_db(session_id, resolved)
+            self._record_runtime_recovery(session_id, "runtime_db_error")
+            raise RuntimeError(
+                f"runtime DB for session {session_id!r} is corrupt and was "
+                f"quarantined: {exc}"
+            ) from exc
+        if not existed_before:
+            # Missing file was just recreated + initialized. Emit a non-silent
+            # signal (plan §2.12 / Task 4(c)). On a genuine first-spawn this also
+            # fires; that is acceptable — the manifest distinguishes lifecycle.
+            self._record_runtime_recovery(session_id, "runtime_db_recreated")
+        return db
+
+    def _quarantine_corrupt_runtime_db(self, session_id: str, resolved: str) -> None:
+        """Rename a corrupt runtime file aside and flag the manifest as error."""
+        path = Path(resolved)
+        ts = int(time.time() * 1000)
+        for suffix in ("", "-wal", "-shm"):
+            src = Path(str(path) + suffix)
+            if src.exists():
+                try:
+                    src.rename(Path(f"{src}.corrupt-{ts}"))
+                except Exception:
+                    pass
+        try:
+            control = self._get_db()
+            control.update_session_runtime_db_status(session_id, "error")
+        except Exception:
+            pass
 
     def build_worker_env(
         self,
@@ -566,6 +637,7 @@ class SessionProcessManager:
         session_id: str,
         since_id: Optional[str] = None,
         limit: int = 100,
+        on_absent_cursor: str = "empty",
     ) -> List[Dict[str, Any]]:
         """Fetch undelivered output messages from the session worker.
 
@@ -573,6 +645,12 @@ class SessionProcessManager:
             session_id: The Atlas session identifier.
             since_id: Optional message id to fetch messages after.
             limit: Maximum number of messages to return.
+            on_absent_cursor: ``'empty'`` (default, historical 0-rows) or
+                ``'raise'`` to surface :class:`core.atlas_db.QueueCursorNotFound`
+                when ``since_id`` is absent from the (possibly recreated/swapped)
+                runtime DB. The atlas_multiuser poll path passes ``'raise'`` so a
+                swapped runtime DB triggers an atomic cursor re-seed instead of a
+                silent permanent stall (plan §2.4 / R5).
 
         Returns:
             List of output message dicts.
@@ -580,7 +658,21 @@ class SessionProcessManager:
         # Reuse the long-lived runtime handle; no close() on this hot poll path
         # (plan §2.6 / R2). SAME-DB invariant with send_input / latest_output_id.
         db = self._get_runtime_db(session_id)
-        return db.poll_messages(session_id, "out", since_id, limit)
+        return db.poll_messages(
+            session_id, "out", since_id, limit, on_absent_cursor=on_absent_cursor
+        )
+
+    def reseed_output_cursor(self, session_id: str) -> Optional[str]:
+        """Re-seed the output cursor for *session_id* after a runtime-DB swap.
+
+        Returns the newest already-delivered out-row id (resume point that does
+        not re-deliver), or ``None`` when nothing has been delivered yet (resume
+        from the top is then correct — no client has seen the buffered output).
+        Reuses the long-lived runtime handle (R2); SAME-DB invariant. See
+        :meth:`core.atlas_db.AtlasDB.reseed_output_cursor` (plan §2.4 / R5).
+        """
+        db = self._get_runtime_db(session_id)
+        return db.reseed_output_cursor(session_id, "out")
 
     def latest_output_id(self, session_id: str) -> Optional[str]:
         """Return the newest output queue id for *session_id*, if any.

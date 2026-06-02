@@ -102,12 +102,67 @@ def _message_text(msg: dict[str, Any]) -> str:
     return str(payload)
 
 
+def _runtime_db_mode() -> bool:
+    """True when this worker is running against a per-session RUNTIME db.
+
+    The manager binds the worker's queue DB via ``--db-path`` and, in session
+    mode (plan §2.1/§2.9), that file is the per-session runtime ``.db`` — which
+    must materialize ONLY the 5-table IPC/trace subset, NOT the ~24 control
+    tables. The signals ``build_worker_env`` sets:
+
+    * ``ATLAS_RUNTIME_DB_MODE=session`` — the explicit mode flag (authoritative),
+      OR
+    * ``ATLAS_RUNTIME_DB_PATH`` DIFFERS from ``ATLAS_CONTROL_DB_PATH`` — the true
+      shape signal. CRITICAL: ``build_worker_env`` sets ``ATLAS_RUNTIME_DB_PATH``
+      in BOTH modes; in CENTRAL mode it EQUALS the control path. So a non-empty
+      ``ATLAS_RUNTIME_DB_PATH`` alone does NOT imply session mode — opening the
+      CONTROL DB with the runtime 5-table subset would be wrong (the control DB
+      needs the full schema). We therefore require the runtime path to be
+      DISTINCT from the control path.
+
+    Defaulting to the FULL schema when neither holds keeps the historical
+    single-DB (central) behavior byte-identical.
+    """
+    mode = str(os.environ.get("ATLAS_RUNTIME_DB_MODE") or "").strip().lower()
+    if mode == "session":
+        return True
+    runtime_path = str(os.environ.get("ATLAS_RUNTIME_DB_PATH") or "").strip()
+    control_path = str(os.environ.get("ATLAS_CONTROL_DB_PATH") or "").strip()
+    if not runtime_path:
+        return False
+    # Runtime distinct from control => sharded per-session file => runtime subset.
+    return bool(control_path) and not _same_path(runtime_path, control_path)
+
+
+def _same_path(left: str, right: str) -> bool:
+    try:
+        from pathlib import Path as _Path
+
+        return (
+            _Path(os.path.expanduser(left)).resolve()
+            == _Path(os.path.expanduser(right)).resolve()
+        )
+    except Exception:
+        return left == right
+
+
+def _worker_schema_set() -> str:
+    return "runtime" if _runtime_db_mode() else "full"
+
+
 class SessionWorker:
     """Bridge ``main.chat_loop`` callbacks to the SQLite session queue."""
 
     def __init__(self, session_id: str, db_path: str) -> None:
         self.session_id = session_id
-        self.db = AtlasDB(os.path.expanduser(db_path))
+        # In session mode the worker's queue DB IS the per-session runtime file;
+        # open it with the runtime-only 5-table schema so it does not bootstrap
+        # ~24 unused control tables (defeats plan §2.9). In central mode this
+        # stays the FULL schema == today's single-DB behavior. The worker still
+        # reads/writes session_queue, messages, trace_events and llm_calls —
+        # every one of those tables is in the runtime subset (RUNTIME_SCHEMA_SQL).
+        self._schema_set = _worker_schema_set()
+        self.db = AtlasDB(os.path.expanduser(db_path), schema_set=self._schema_set)
         self.db.init_db()
         self._agent_running = False
         self._closed_ask_flows: set[str] = set()
