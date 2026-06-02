@@ -126,6 +126,49 @@ interrupt, baud-rate divider, and FIFO control are available in hdl/*.v.
     assert (wiki_dir / "_graph.json").is_file()
 
 
+def test_external_db_query_tool_wraps_external_wiki_lookup(tmp_path: Path, monkeypatch) -> None:
+    rtl_root = tmp_path / "external"
+    wiki_dir = rtl_root / "wiki"
+    wiki_dir.mkdir(parents=True)
+    (wiki_dir / "_graph.json").write_text(
+        json.dumps(
+            {
+                "schema_version": "wiki_graph.v1",
+                "node_count": 1,
+                "edge_count": 0,
+                "nodes": [
+                    {
+                        "id": "vendor_uart",
+                        "title": "Vendor UART Reference",
+                        "type": "reference",
+                        "tags": ["rtl-db", "external", "uart", "apb"],
+                        "summary": "Reusable UART reference with APB register interface.",
+                        "path": "external/wiki/vendor_uart.md",
+                        "outgoing": [],
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.setenv("COMMON_AI_AGENT_HOME", str(PROJECT_ROOT))
+    monkeypatch.setenv("ATLAS_EXTERNAL_DB_WIKI", str(rtl_root))
+    monkeypatch.setenv("ATLAS_EXTERNAL_DB_NO_REBUILD", "1")
+    monkeypatch.delenv("ATLAS_RTL_DB_WIKI", raising=False)
+    monkeypatch.delenv("ATLAS_ACTIVE_IP", raising=False)
+
+    from core.tools import external_db_query
+
+    result = external_db_query(topic="uart apb", depth=3, max_nodes=2)
+
+    assert "scope=rtl-db" in result
+    assert "Vendor UART Reference" in result
+    assert "Reusable UART reference" in result
+    assert "IP directory not found" not in result
+
+
 def test_wiki_query_reports_missing_external_rtl_db_config(monkeypatch) -> None:
     monkeypatch.delenv("ATLAS_RTL_DB_WIKI", raising=False)
     monkeypatch.delenv("ATLAS_ACTIVE_IP", raising=False)

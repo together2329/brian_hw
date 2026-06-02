@@ -62,6 +62,7 @@ and workers after changing `ATLAS_RTL_DB_WIKI` / `ATLAS_EXTERNAL_DB_WIKI`.
 ## Query
 
 ```sh
+external_db_query(topic="uart apb dma", depth=3)
 wiki_query(ip="external-db", topic="uart apb dma", depth=3)
 wiki_query(ip="rtl-db",      topic="atcspi200 module port register", depth=3)
 wiki_query(ip="andes",       topic="fsm clock reset memory datapath", depth=3)
@@ -87,9 +88,10 @@ differs. When a foreign RTL DB has a non-ATLAS structure, plug it in with env ho
 
 The `skills/external-db/` skill auto-triggers on reuse/reference keywords (uart, spi,
 dma, apb, ahb, "reference design", "reuse", "external db"…) and instructs the agent to
-call `wiki_query(ip="external-db")` (aliases: `rtl-db` / `andes`) **before** writing RTL
-or citing a reference. It is data-source-agnostic and optional/on-off via the env
-configuration above. This is comparable to loading a protocol skill such as
+call `external_db_query(...)` **before** writing RTL or citing a reference. The tool is
+a dedicated wrapper over the same external scope as `wiki_query(ip="external-db")`
+(aliases: `rtl-db` / `andes`). It is data-source-agnostic and optional/on-off via the
+env configuration above. This is comparable to loading a protocol skill such as
 `pcie-expert`, `nvme-expert`, or `ucie-expert`: the skill tells agents when to ask; the
 configured data source determines what facts are available.
 

@@ -1,6 +1,6 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-06-01T14:41:50Z",
+  "generated_at": "2026-06-02T04:25:07Z",
   "root": "doc/wiki",
   "node_count": 124,
   "edge_count": 525,
@@ -532,7 +532,7 @@
       "updated": "",
       "summary": "> **Updated**: 2026-05-27 > **Scope**: Generated an LLM knowledge-graph wiki over the external Andes peripheral > RTL corpus (`~/Desktop/andes`) and documented how ATLAS can optionally point at it > as an external \"previous-project RTL DB\" via `ATLAS_RTL_DB_WIKI` or > `ATLAS_EXTERNAL_DB_WIKI`. > **Related**: [[rtl-gen-ssot-contract]] ·…",
       "path": "doc/wiki/andes-rtl-db-wiki-20260527.md",
-      "size_bytes": 5202
+      "size_bytes": 5341
     },
     {
       "id": "apb-uart-enhanced-signoff-20260527",

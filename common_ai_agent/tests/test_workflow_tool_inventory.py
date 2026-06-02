@@ -155,6 +155,14 @@ class TestToolSchemaRegistry(unittest.TestCase):
         """read_pipeline_state must be in TOOL_SCHEMAS."""
         self.assertIn("read_pipeline_state", self.registry)
 
+    def test_external_db_query_registered_in_schema(self):
+        self.assertIn(
+            "external_db_query",
+            self.registry,
+            "external_db_query missing from TOOL_SCHEMAS — "
+            "external-db skill cannot expose a dedicated tool in native tool-call mode",
+        )
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # 2. AVAILABLE_TOOLS runtime presence (web tools depend on successful import)
@@ -211,6 +219,9 @@ class TestAvailableToolsRuntime(unittest.TestCase):
     def test_read_pipeline_state_in_available_tools(self):
         """read_pipeline_state must be in AVAILABLE_TOOLS."""
         self._assert_present("read_pipeline_state")
+
+    def test_external_db_query_in_available_tools(self):
+        self._assert_present("external_db_query")
 
 
 # ══════════════════════════════════════════════════════════════════════════════

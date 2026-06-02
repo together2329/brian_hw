@@ -2479,6 +2479,16 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
     if workflow_tools:
         tool_lines["Workflow"] = workflow_tools
 
+    wiki_tools = [
+        _tool_line("wiki_query", 'ip="", topic="", depth=2, max_nodes=12',
+                   "Query project/IP wiki graphs. Use ip='external-db' only when the dedicated external_db_query tool is unavailable."),
+        _tool_line("external_db_query", 'topic="", depth=3, max_nodes=12',
+                   "Query the configured external reference DB before RTL reuse/reference claims."),
+    ]
+    wiki_tools = [t for t in wiki_tools if t]
+    if wiki_tools:
+        tool_lines["Wiki / External DB"] = wiki_tools
+
     tool_lines["Sub-Agents"] = [
         _tool_line("background_task", 'agent, prompt', "Delegate to sub-agent (explore/workflow)."),
         _tool_line("background_output", 'task_id', "Get sub-agent result."),

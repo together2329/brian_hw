@@ -21,7 +21,7 @@ activation:
              peripheral, "soc integration"]
   file_patterns: ["*.md", "*.yaml", "*.yml", "*.sv", "*.v", "*.txt"]
   auto_detect: true
-requires_tools: [wiki_query]
+requires_tools: [external_db_query]
 related_skills: [verilog-expert, testbench-expert]
 ---
 
@@ -43,7 +43,9 @@ names are preferred; legacy `ATLAS_RTL_DB_*` still work):
 - `…_QUERY` — an external executable that owns the *entire* query (its own structure /
   search / transport: files, DB, HTTP, vector store…).
 
-You never need to know which is configured — always go through `wiki_query`.
+You never need to know which is configured — always go through `external_db_query`
+for external DB lookup. `wiki_query(ip="external-db", ...)` is the underlying
+compatible path when a caller needs the generic wiki tool.
 This activation model is the same style as protocol/reference skills such as
 `pcie-expert`, `nvme-expert`, or `ucie-expert`: the skill can trigger whenever the work
 needs prior art, but useful answers depend on the configured data source.
@@ -51,16 +53,17 @@ needs prior art, but useful answers depend on the configured data source.
 ## How to query
 
 ```
-wiki_query(ip="external-db", topic="<block / interface / topic>", depth=3)
+external_db_query(topic="<block / interface / topic>", depth=3)
 ```
-(`ip="rtl-db"` / `"andes"` are accepted aliases for the same source.)
+Equivalent generic form: `wiki_query(ip="external-db", topic="<topic>", depth=3)`.
+(`ip="rtl-db"` / `"andes"` are accepted aliases on `wiki_query` for the same source.)
 
 Examples:
 ```
-wiki_query(ip="external-db", topic="uart apb dma fifo", depth=3)
-wiki_query(ip="external-db", topic="ahb bus matrix interconnect", depth=2)
-wiki_query(ip="external-db", topic="spi flash bridge", depth=3)
-wiki_query(ip="external-db", topic="module port parameter fsm datapath register memory clock reset docs datasheet", depth=3)
+external_db_query(topic="uart apb dma fifo", depth=3)
+external_db_query(topic="ahb bus matrix interconnect", depth=2)
+external_db_query(topic="spi flash bridge", depth=3)
+external_db_query(topic="module port parameter fsm datapath register memory clock reset docs datasheet", depth=3)
 ```
 
 `depth`: 1 = id+title, 2 = +status/meta, 3 = +summary. Start broad (a family keyword

@@ -8093,6 +8093,10 @@ def wiki_query(ip: str = "", topic: str = "", depth: int = 2, max_nodes: int = 1
     return "\n".join(lines)
 
 
+def external_db_query(topic: str = "", depth: int = 3, max_nodes: int = 12) -> str:
+    return wiki_query(ip="external-db", topic=topic, depth=depth, max_nodes=max_nodes)
+
+
 def verify_ssot(ip: str = "", mode: str = "engineering", root: str = "", preview: str = "strict") -> str:
     """Run the script-backed SSOT validator used by ssot-gen.
 
@@ -8325,6 +8329,7 @@ AVAILABLE_TOOLS = {
     "replace_in_file": replace_in_file,
     "replace_lines": replace_lines,
     "wiki_query": wiki_query,
+    "external_db_query": external_db_query,
     "verify_ssot": verify_ssot,
     # Image Analysis (conditional — requires ENABLE_IMAGE_READ=true)
     "read_image": read_image,

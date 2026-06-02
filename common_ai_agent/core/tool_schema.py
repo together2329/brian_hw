@@ -1165,6 +1165,30 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
         },
         required=[],
     ),
+    "external_db_query": _fn(
+        "external_db_query",
+        (
+            "Dedicated read-only query for the configured external reference DB. "
+            "Equivalent to wiki_query(ip=\"external-db\", ...). Use before RTL "
+            "generation or reference-design claims to find prior art, reusable "
+            "interfaces, and exact RTL facts."
+        ),
+        properties={
+            "topic": {
+                "type": "string",
+                "description": "Case-insensitive keyword filter over external DB id/title/tags/path/summary.",
+            },
+            "depth": {
+                "type": "integer",
+                "description": "Detail: 1 (id+title), 2 (+status/meta), 3 (+summary). Default 3.",
+            },
+            "max_nodes": {
+                "type": "integer",
+                "description": "Cap on rendered nodes (default 12).",
+            },
+        },
+        required=[],
+    ),
 
     # ── Document ingestion (Word / PDF / etc. → markdown) ────────────────────
     "read_doc": _fn(
