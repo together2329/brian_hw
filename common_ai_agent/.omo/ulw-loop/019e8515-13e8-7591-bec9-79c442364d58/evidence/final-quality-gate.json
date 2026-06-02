@@ -1,0 +1,35 @@
+{
+  "aiSlopCleaner": {
+    "status": "passed_with_warning",
+    "evidence": "C007-ai-slop-cleaner-report.txt records a bounded manual slop audit because no standalone cleaner executable was present. No optional cleanup was needed. Residual accepted warning: core/scm_perforce.py, tests/test_scm_perforce_adapter.py, and frontend/atlas/perforce-sync.tsx remain legacy oversized files that were already above the guideline before this gate."
+  },
+  "verification": {
+    "status": "passed",
+    "commands": [
+      "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest tests/test_scm_perforce_adapter.py tests/test_atlas_git_api.py -q -k 'not live'",
+      "cd frontend/atlas && npm test -- perforce-sync.test.tsx",
+      "cd frontend/atlas && npx tsc --noEmit",
+      "cd frontend/atlas && npm run build",
+      "git diff --check HEAD~1 -- core/scm_perforce.py tests/test_scm_perforce_adapter.py frontend/atlas/perforce-sync.tsx frontend/atlas/__tests__/perforce-sync.test.tsx"
+    ],
+    "evidence": "C007-python-regression-final.txt shows 32 passed, 1 skipped, 2 deselected. C007-frontend-regression-final.txt shows 7 Vitest tests passed. C007-frontend-typecheck-final.txt records tsc --noEmit exit_code 0 with no diagnostics. C007-frontend-build-final.txt shows Vite build passed. C007-git-diff-check-final.txt is empty, indicating diff-check passed."
+  },
+  "codeReview": {
+    "recommendation": "APPROVE",
+    "architectStatus": "CLEAR",
+    "evidence": "Final direct review found the current Perforce source delta after commit 73527f3c is limited to a strict TypeScript narrowing fix in frontend/atlas/perforce-sync.tsx. The implemented split-root workflow remains covered by C001/C002/C003/C005/C006/C007 evidence: real Safari/Computer Use UI screenshots, split local/scm roots, two streams, Add/Checkout/Sync/Pending Submit behavior, env/.env client override tests, cleanup receipts, and passing Python/frontend/build/typecheck/diff checks."
+  },
+  "criteriaCoverage": {
+    "totalCriteria": 3,
+    "passCount": 3,
+    "adversarialClassesCovered": [
+      "happy_path_real_desktop_ui",
+      "invalid_folder_checkout_edge",
+      "split_root_regression",
+      "stream_selector_regression",
+      "env_dotenv_client_override",
+      "strict_typescript_regression",
+      "cleanup_receipts"
+    ]
+  }
+}

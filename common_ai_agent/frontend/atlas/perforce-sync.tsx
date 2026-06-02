@@ -382,7 +382,8 @@ function PerforceSyncTab(props: PerforceSyncProps) {
           <div style={sx.list}>
             {localRows.length === 0 ? <div style={sx.empty}>empty folder</div> :
               localRows.map(r => {
-                const b = STATE_BADGE[r.state] || { label: r.state, color: 'var(--fg-dim)' };
+                const state = r.state || 'unknown';
+                const b = STATE_BADGE[state] || { label: state, color: 'var(--fg-dim)' };
                 const checked = selLocal.has(r.path);
                 return (
                   <div key={r.key} style={sx.rowLi} onClick={() => onLocalRow(r)} title={r.path}>

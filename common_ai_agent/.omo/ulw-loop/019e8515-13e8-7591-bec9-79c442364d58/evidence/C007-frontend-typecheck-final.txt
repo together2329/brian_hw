@@ -1,0 +1,7 @@
+command: npx tsc --noEmit
+cwd: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/frontend/atlas
+exit_code: 0
+result: passed
+stdout: no diagnostics
+stderr: no diagnostics
+captured_at: 2026-06-02T07:37:14Z

@@ -1,0 +1,26 @@
+AI slop cleaner final-gate report
+
+Scope:
+- core/scm_perforce.py
+- tests/test_scm_perforce_adapter.py
+- frontend/atlas/perforce-sync.tsx
+- frontend/atlas/__tests__/perforce-sync.test.tsx
+
+Tool availability:
+- No standalone ai-slop-cleaner executable was present in PATH.
+- OMO remove-ai-slops skill instructions were loaded and applied as a bounded manual audit.
+
+Behavior lock before cleanup:
+- C007-python-regression-final.txt: 32 passed, 1 skipped, 2 deselected.
+- C007-frontend-regression-final.txt: 7 passed.
+- C007-frontend-build-final.txt: Vite build passed.
+- C007-frontend-typecheck-final.txt: tsc --noEmit passed after fixing the strict indexed-access error in perforce-sync.tsx.
+- C007-git-diff-check-final.txt: clean.
+
+Audit result:
+- Removed no optional cleanup. No high-confidence behavior-preserving dead code, obvious comments, speculative abstraction, debug leftovers, or duplicate branches were found that should be changed in this final gate.
+- One strict TypeScript issue was found by tsc and fixed: local TreeRow.state is optional, so the badge lookup now narrows through a string fallback before indexing STATE_BADGE.
+- Oversized source files remain as known architectural debt: core/scm_perforce.py, tests/test_scm_perforce_adapter.py, and frontend/atlas/perforce-sync.tsx were already above the 250 pure-LOC guideline at HEAD~1 and remain above it. Splitting them would be a separate structural refactor beyond the Perforce split-root acceptance scope.
+
+Status:
+- passed with residual oversized-file warning; no cleanup edits pending for the final Perforce split-root gate.

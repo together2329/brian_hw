@@ -1,0 +1,16 @@
+
+> test
+> vitest run perforce-sync.test.tsx
+
+
+ RUN  v3.2.4 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/frontend/atlas
+
+ ✓ __tests__/perforce-sync.test.tsx (7 tests) 1445ms
+   ✓ PerforceSyncTab directory actions > enters local and Perforce directories by clicking folder rows  307ms
+   ✓ PerforceSyncTab directory actions > keeps middle actions to add checkout and sync while pending can submit  308ms
+
+ Test Files  1 passed (1)
+      Tests  7 passed (7)
+   Start at  16:29:37
+   Duration  3.98s (transform 145ms, setup 189ms, collect 394ms, tests 1.45s, environment 1.04s, prepare 307ms)
+

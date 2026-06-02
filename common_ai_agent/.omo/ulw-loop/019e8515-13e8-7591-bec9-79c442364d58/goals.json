@@ -1,7 +1,7 @@
 {
   "version": 1,
   "createdAt": "2026-06-02T02:26:23.349Z",
-  "updatedAt": "2026-06-02T07:19:41.317Z",
+  "updatedAt": "2026-06-02T07:37:14Z",
   "briefPath": ".omo/ulw-loop/019e8515-13e8-7591-bec9-79c442364d58/brief.md",
   "goalsPath": ".omo/ulw-loop/019e8515-13e8-7591-bec9-79c442364d58/goals.json",
   "ledgerPath": ".omo/ulw-loop/019e8515-13e8-7591-bec9-79c442364d58/ledger.jsonl",
@@ -11,7 +11,7 @@
       "id": "G001-use-computer-use-os-level-gui-automa",
       "title": "Use Computer Use / OS-level GUI automation to properly test the ATLAS...",
       "objective": "Use Computer Use / OS-level GUI automation to properly test the ATLAS Perforce split-root UI. The running UI must be driven through a real desktop browser/app surface, not only API calls. Verify localRoot and scmRoot are different paths, stream selection exposes two streams, and Add, Sync, Edit, and Submit operate between Local Root and Perforce SCM Root against a real local p4d server. Capture action logs, screenshots, and depot/local state evidence.",
-      "status": "in_progress",
+      "status": "complete",
       "successCriteria": [
         {
           "id": "C001",
@@ -36,17 +36,24 @@
           "scenario": "Regression: stream selector exposes //GOOD_SOC/GOOD_IP and //GOOD_SOC/GOOD_IP_DEV, Local Root and SCM Root remain independent, directory-mode Perforce UI has Add/Checkout/Sync only, env client override selects the p4 client, and existing split-root unit/frontend/build checks pass.",
           "userModel": "regression",
           "expectedEvidence": "C003/C005 evidence includes stream/root screenshots, pytest/Vitest/build output, diff-check/LSP output, and env client override unit assertions.",
-          "capturedEvidence": "Latest C006 regression/update: .env/process client helper covered by C006-dotenv-client-helper-tests.txt (4 passed), Python regression C006-python-regression.txt (32 passed, 1 skipped, 2 deselected), frontend regression C006-frontend-regression.txt (7 passed), Vite build C006-frontend-build.txt (passed), diff-check C006-git-diff-check.txt clean; cleanup C006-process-cleanup.txt shows leftover temporary p4d on 17888 killed and port empty.",
+          "capturedEvidence": "Final C007 regression/gate: Python regression C007-python-regression-final.txt shows 32 passed, 1 skipped, 2 deselected; frontend regression C007-frontend-regression-final.txt shows 7 passed; tsc --noEmit receipt C007-frontend-typecheck-final.txt shows exit_code 0 with no diagnostics; Vite build C007-frontend-build-final.txt passed; diff-check C007-git-diff-check-final.txt clean; C007-ai-slop-cleaner-report.txt passed with residual oversized-file warning. Prior C003/C005/C006 evidence covers stream selector, split roots, directory-mode actions, env/.env client override, and cleanup receipts.",
           "status": "pass",
-          "capturedAt": "2026-06-02T07:19:41.317Z"
+          "capturedAt": "2026-06-02T07:37:14Z"
         }
       ],
       "attempt": 1,
       "createdAt": "2026-06-02T02:26:23.349Z",
-      "updatedAt": "2026-06-02T07:19:41.317Z",
-      "startedAt": "2026-06-02T02:27:21.157Z"
+      "updatedAt": "2026-06-02T07:37:14Z",
+      "startedAt": "2026-06-02T02:27:21.157Z",
+      "completedAt": "2026-06-02T07:37:14Z",
+      "evidence": "C001/C002/C003 all pass. ATLAS Perforce split-root UI was driven through a real Safari/Computer Use desktop surface against local p4d; Local Root and SCM Root differ; two streams are exposed; directory panes navigate by folder clicks; middle actions are Add/Checkout/Sync only; bottom Pending Submit submits; Checkout appears in Pending List; Sync restores local files from Perforce; env/.env client override is covered; cleanup receipts show no opened files or temporary listeners left. Final C007 regression gate passes Python, Vitest, tsc --noEmit, Vite build, and git diff-check."
     }
   ],
   "codexObjective": "Complete the durable ulw-loop plan in .omo/ulw-loop/019e8515-13e8-7591-bec9-79c442364d58/goals.json, including later accepted/appended stories, under the original brief constraints; use .omo/ulw-loop/019e8515-13e8-7591-bec9-79c442364d58/ledger.jsonl as the audit trail.",
-  "activeGoalId": "G001-use-computer-use-os-level-gui-automa"
+  "aggregateCompletion": {
+    "status": "complete",
+    "completedAt": "2026-06-02T07:37:14Z",
+    "evidence": "C001/C002/C003 all pass. ATLAS Perforce split-root UI was driven through a real Safari/Computer Use desktop surface against local p4d; Local Root and SCM Root differ; two streams are exposed; directory panes navigate by folder clicks; middle actions are Add/Checkout/Sync only; bottom Pending Submit submits; Checkout appears in Pending List; Sync restores local files from Perforce; env/.env client override is covered; cleanup receipts show no opened files or temporary listeners left. Final C007 regression gate passes Python, Vitest, tsc --noEmit, Vite build, and git diff-check.",
+    "codexGoal": null
+  }
 }
