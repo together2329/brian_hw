@@ -39,6 +39,7 @@ import { ToolCard, FeedEntry, LiveAgentPreview } from './workspace-feed-cards';
 const Kbd: any = (window as any).Kbd
   || (({ children }: { children?: ReactNode }) => <span className="kbd">{children}</span>);
 const PARENT_INPUT_SYNC_DELAY_MS = 60;
+export type WorkspacePromptKeyResult = 'handled' | 'submitted' | void;
 
 // ── renderWorkspaceFeedEntries ──────────────────────────────────────────────
 // Builds the windowed list of feed cards for the chat pane. Pairs adjacent
@@ -369,7 +370,7 @@ export interface WorkspacePromptRowProps {
   inputRouteRef: any;
   inputHistoryIndexRef: any;
   inputHistoryDraftRef: any;
-  onKey: (event: KeyboardEvent<HTMLTextAreaElement>) => void;
+  onKey: (event: KeyboardEvent<HTMLTextAreaElement>) => WorkspacePromptKeyResult;
   pendingQcard: any;
   workflowReady: any;
   // exec-mode helpers (from workspace-session-routing; supplied by root)
@@ -435,6 +436,13 @@ export const WorkspacePromptRow = ({
     scheduleParentInputSync(next);
     resizeInput(el);
   }, [applyDraftInput, inputHistoryDraftRef, inputHistoryIndexRef, resizeInput, scheduleParentInputSync]);
+  const clearDraftAfterSubmittedKey = useCallback((el: HTMLTextAreaElement) => {
+    clearParentInputSync();
+    localDraftDirtyRef.current = false;
+    lastLocalParentSyncRef.current = null;
+    applyDraftInput('');
+    resizeInput(el);
+  }, [applyDraftInput, clearParentInputSync, resizeInput]);
   useEffect(() => clearParentInputSync, [clearParentInputSync]);
   useEffect(() => {
     if (resetTokenRef.current === inputResetToken) return;
@@ -573,7 +581,10 @@ export const WorkspacePromptRow = ({
               });
               return;
             }
-            onKey(e);
+            const result = onKey(e);
+            if (result === 'submitted') {
+              clearDraftAfterSubmittedKey(e.currentTarget);
+            }
           }}
           placeholder={workflowReadyBlocking
             ? `Preparing ${workflowReady.target || 'workflow'}...`

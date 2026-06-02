@@ -282,6 +282,47 @@ describe('Workspace render smoke (the behavioral gate)', () => {
     vi.useRealTimers();
   });
 
+  it('clears local prompt draft immediately when the key handler confirms submit', async () => {
+    const { WorkspacePromptRow } = await import('../workspace-root-render.tsx');
+    const setInput = vi.fn();
+    const inputRef = createRef<HTMLTextAreaElement>();
+    const inputRouteRef = { current: {} };
+
+    const { getByRole } = render(
+      <WorkspacePromptRow
+        workflow="default"
+        activeIp="demo"
+        feed={[]}
+        orchWorkers={[]}
+        workerProgress={null}
+        input=""
+        setInput={setInput}
+        inputRef={inputRef}
+        inputRouteState={null}
+        inputRouteRef={inputRouteRef}
+        inputHistoryIndexRef={{ current: null }}
+        inputHistoryDraftRef={{ current: '' }}
+        onKey={(event) => {
+          event.preventDefault();
+          return 'submitted';
+        }}
+        pendingQcard={null}
+        workflowReady={null}
+        atlasUiOrchestratorMode={() => false}
+        workflowForExecMode={(wf: unknown) => String(wf || 'default')}
+        defaultWorkflowForExecMode={() => 'default'}
+      />,
+    );
+
+    const textarea = getByRole('textbox') as HTMLTextAreaElement;
+    fireEvent.change(textarea, { target: { value: 'visible residue' } });
+    expect(textarea.value).toBe('visible residue');
+
+    fireEvent.keyDown(textarea, { key: 'Enter', code: 'Enter' });
+
+    expect(textarea.value).toBe('');
+  });
+
   it('submits the latest visible prompt value before deferred sync settles', async () => {
     const { Workspace } = await import('../workspace.tsx');
     const { container } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);

@@ -272,6 +272,78 @@ export const _processBlockquoteKinds = (node: any): void => {
   });
 };
 
+let _mermaidBlockSeq = 0;
+
+export const _ensureMarkdownMermaid = (): any => {
+  const mermaid = window.mermaid;
+  if (!mermaid || !mermaid.render) return null;
+  if (!(window as any).__ATLAS_MERMAID_INITIALIZED) {
+    try {
+      if (typeof mermaid.initialize === 'function') {
+        mermaid.initialize({
+          startOnLoad: false,
+          securityLevel: 'strict',
+          htmlLabels: false,
+          theme: 'base',
+          themeVariables: {
+            background: 'transparent',
+            primaryColor: '#101827',
+            primaryBorderColor: '#38bdf8',
+            primaryTextColor: '#f7fbff',
+            lineColor: '#38bdf8',
+            secondaryColor: '#152235',
+            tertiaryColor: '#0b111c',
+            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+          },
+        });
+      }
+      (window as any).__ATLAS_MERMAID_INITIALIZED = true;
+    } catch (_) {
+      return null;
+    }
+  }
+  return mermaid;
+};
+
+const _sanitizeMermaidSvg = (rawSvg: unknown): string => {
+  const svg = String(rawSvg || '');
+  return (window.DOMPurify && window.DOMPurify.sanitize)
+    ? window.DOMPurify.sanitize(svg, { USE_PROFILES: { svg: true, svgFilters: true } })
+    : svg;
+};
+
+export const _renderMermaidBlocks = (node: any): void => {
+  if (!node) return;
+  const mermaid = _ensureMarkdownMermaid();
+  if (!mermaid) return;
+  node.querySelectorAll('pre > code.language-mermaid, pre > code[class*="language-mermaid"]').forEach((codeEl: any) => {
+    const pre = codeEl.parentElement;
+    if (!pre || pre.dataset.mermaidState) return;
+    const source = String(codeEl.textContent || '').trim();
+    if (!source) return;
+    const renderId = `atlas-mermaid-md-${Date.now().toString(36)}-${++_mermaidBlockSeq}`.replace(/[^a-zA-Z0-9_-]/g, '-');
+    pre.dataset.mermaidState = 'rendering';
+    pre.classList.add('atlas-mermaid-pending');
+    pre.textContent = 'rendering mermaid diagram...';
+    Promise.resolve(mermaid.render(renderId, source))
+      .then((result: any) => {
+        const rawSvg = typeof result === 'string' ? result : (result && result.svg) || '';
+        const svg = _sanitizeMermaidSvg(rawSvg);
+        const block = document.createElement('div');
+        block.className = 'atlas-mermaid-block';
+        block.innerHTML = svg;
+        if (pre.parentElement) pre.replaceWith(block);
+      })
+      .catch((err: any) => {
+        const message = err && err.message ? err.message : String(err || 'Mermaid render failed.');
+        pre.dataset.mermaidState = 'error';
+        pre.classList.remove('atlas-mermaid-pending');
+        pre.classList.add('atlas-mermaid-error');
+        pre.textContent = `Mermaid render failed: ${message}\n\n${source}`;
+      });
+  });
+};
+
 export const _postProcessMarkdownNode = (node: any): void => {
   if (!node) return;
   node.querySelectorAll('a[href]').forEach((a: any) => {
@@ -279,6 +351,7 @@ export const _postProcessMarkdownNode = (node: any): void => {
     a.setAttribute('rel', 'noopener noreferrer');
   });
   _sanitizePrismLanguageClasses(node);
+  _renderMermaidBlocks(node);
   if (window.Prism) {
     try { window.Prism.highlightAllUnder(node); } catch (_) {}
   }

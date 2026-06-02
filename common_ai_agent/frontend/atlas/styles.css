@@ -402,6 +402,36 @@ html[data-platform="windows"][data-font-scale="xl"] {
   font-family: var(--mono);
 }
 
+.atlas-mermaid-block {
+  margin: 10px 0;
+  padding: 10px;
+  overflow: auto;
+  background: var(--code-bg);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+.atlas-mermaid-block svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+.atlas-mermaid-block .edgeLabel,
+.atlas-mermaid-block .nodeLabel,
+.atlas-mermaid-block .stateLabel,
+.atlas-mermaid-block .label {
+  font-family: var(--mono);
+}
+.atlas-mermaid-pending,
+.atlas-mermaid-error {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.atlas-mermaid-error {
+  color: var(--err);
+  border-color: color-mix(in oklch, var(--err) 55%, var(--line));
+}
+
 .app-main {
   display: flex;
   flex-direction: column;

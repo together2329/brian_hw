@@ -41,7 +41,7 @@ import {
   QA_HISTORY_LEGACY_STORAGE_KEY,
 } from './workspace-tool-theme';
 import { useResizable, useVerticalResizable } from './workspace-resize-splitters';
-import { WorkspaceChatPane, WorkspacePromptRow } from './workspace-root-render';
+import { WorkspaceChatPane, WorkspacePromptRow, type WorkspacePromptKeyResult } from './workspace-root-render';
 import {
   WORKFLOW_REPORT_TABS,
   workspaceTelemetryFromMessages,
@@ -524,6 +524,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     setInputResetToken((token: number) => token + 1);
   }, []);
   const heldSubmitRef = useRef<any>(null);
+  const submittedInputConsumedRef = useRef<boolean>(false);
   // BUG A: when the held-input replay re-fires an ack-miss hold, this carries the
   // ORIGINAL send's msg_id so the re-entered submitMsg threads it into sendPrompt
   // (re-send under the same id → backend has_msg_id dedup collapses the duplicate
@@ -1886,6 +1887,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   // undefined at runtime) is gone. setStreamText is the data hook's OWN state.
   const submitMsg = useCallback((cmd?: any) => {
     const raw = String(cmd ?? inputRef.current?.value ?? input).trim();
+    submittedInputConsumedRef.current = false;
     if (!raw) return;
     requestFeedScrollToBottom();
 
@@ -1898,6 +1900,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     const isAckMissReplay = !!replayMsgId;
 
     const clearSubmittedInput = () => {
+      submittedInputConsumedRef.current = true;
       recordInputHistory(raw);
       replaceInput((cur: string) => {
         const curText = String(cur || '').trim();
@@ -1914,6 +1917,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       }
     };
     const holdSubmittedInput = (reason: string, opts?: { msgId?: any; autoReplay?: boolean }) => {
+      submittedInputConsumedRef.current = false;
       // msgId is set ONLY for an ack-miss hold (the prompt WAS sent under a
       // concrete msg_id but the worker dropped it / never confirmed). The replay
       // re-fires under that SAME msg_id so the backend's per-session has_msg_id
@@ -2815,31 +2819,36 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     return true;
   };
 
-  const onPromptKey = (e: any) => {
+  const submitMsgKeyResult = (cmd?: any): WorkspacePromptKeyResult => {
+    submitMsg(cmd);
+    return submittedInputConsumedRef.current ? 'submitted' : 'handled';
+  };
+
+  const onPromptKey = (e: any): WorkspacePromptKeyResult => {
     if (showSlash) {
-      if (e.key === 'ArrowDown') { e.preventDefault(); setSlashSel((s: number) => Math.min(s + 1, filtered.length - 1)); return; }
-      if (e.key === 'ArrowUp')   { e.preventDefault(); setSlashSel((s: number) => Math.max(s - 1, 0)); return; }
+      if (e.key === 'ArrowDown') { e.preventDefault(); setSlashSel((s: number) => Math.min(s + 1, filtered.length - 1)); return 'handled'; }
+      if (e.key === 'ArrowUp')   { e.preventDefault(); setSlashSel((s: number) => Math.max(s - 1, 0)); return 'handled'; }
       if (e.key === 'Tab' || e.key === 'Enter') {
         if (filtered[slashSel]) {
           e.preventDefault();
-          if (e.key === 'Enter') submitMsg(filtered[slashSel].cmd);
-          else replaceInput(filtered[slashSel].cmd + ' ');
-          return;
+          if (e.key === 'Enter') return submitMsgKeyResult(filtered[slashSel].cmd);
+          replaceInput(filtered[slashSel].cmd + ' ');
+          return 'handled';
         }
       }
-      if (e.key === 'Escape') { e.preventDefault(); setShowSlash(false); return; }
+      if (e.key === 'Escape') { e.preventDefault(); setShowSlash(false); return 'handled'; }
     }
     if (showAt) {
-      if (e.key === 'ArrowDown') { e.preventDefault(); setAtSel((s: number) => Math.min(s + 1, fileMatches.length - 1)); return; }
-      if (e.key === 'ArrowUp')   { e.preventDefault(); setAtSel((s: number) => Math.max(s - 1, 0)); return; }
+      if (e.key === 'ArrowDown') { e.preventDefault(); setAtSel((s: number) => Math.min(s + 1, fileMatches.length - 1)); return 'handled'; }
+      if (e.key === 'ArrowUp')   { e.preventDefault(); setAtSel((s: number) => Math.max(s - 1, 0)); return 'handled'; }
       if (e.key === 'Tab' || e.key === 'Enter') {
         if (fileMatches[atSel]) {
           e.preventDefault();
           acceptAtCompletion(fileMatches[atSel]);
-          return;
+          return 'handled';
         }
       }
-      if (e.key === 'Escape') { e.preventDefault(); setShowAt(false); return; }
+      if (e.key === 'Escape') { e.preventDefault(); setShowAt(false); return 'handled'; }
     }
     if (e.key === 'ArrowUp') {
       if (navigateInputHistory(-1)) {
@@ -2848,6 +2857,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
           const el = inputRef.current;
           if (el) el.setSelectionRange(el.value.length, el.value.length);
         });
+        return 'handled';
       }
       return;
     }
@@ -2858,6 +2868,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
           const el = inputRef.current;
           if (el) el.setSelectionRange(el.value.length, el.value.length);
         });
+        return 'handled';
       }
       return;
     }
@@ -2876,11 +2887,11 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
           el.style.height = 'auto';
           el.style.height = Math.min(el.scrollHeight, 192) + 'px';
         });
-        return;
+        return 'handled';
       }
       if (!e.shiftKey) {
         e.preventDefault();
-        submitMsg(e.currentTarget?.value ?? input);
+        return submitMsgKeyResult(e.currentTarget?.value ?? input);
       }
       // Shift+Enter: textarea native handles newline; onChange fires auto-grow.
     }

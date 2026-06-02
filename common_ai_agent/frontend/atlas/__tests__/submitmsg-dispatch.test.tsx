@@ -307,6 +307,33 @@ describe('submitMsg dispatch routing (the missing TDD gate)', () => {
     expect(usedOrchestrator).toBe(false);
   });
 
+  it('(c2) keeps the composer empty after a fast submit and deferred parent sync expiry', async () => {
+    vi.useFakeTimers();
+    const w = window as AnyWindow;
+    w.ATLAS_EXEC_MODE = '';
+    w.ACTIVE_SESSION = 'alice/myip/rtl_gen';
+    w.ACTIVE_IP = 'myip';
+    bk.setAckMode('accept');
+
+    const { container } = await mountWorkspace();
+    const textarea = container.querySelector('textarea') as HTMLTextAreaElement;
+
+    await act(async () => {
+      typeAndSubmit(container, 'fast clear prompt');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(textarea.value).toBe('');
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(120);
+      await Promise.resolve();
+    });
+
+    expect(textarea.value).toBe('');
+  });
+
   it('(d) preserves input if sendPrompt ack explicitly fails', async () => {
     const w = window as AnyWindow;
     w.ATLAS_EXEC_MODE = '';
