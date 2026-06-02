@@ -341,6 +341,99 @@ export const ToolOutputPre = ({ text, tool, truncated }: any): ReactNode => {
   );
 };
 
+export type GrepOutputRowKind = 'header' | 'separator' | 'raw' | 'match' | 'context';
+export type GrepOutputRow = {
+  readonly kind: GrepOutputRowKind;
+  readonly file: string;
+  readonly lineNumber: string;
+  readonly code: string;
+  readonly text: string;
+};
+
+const _GREP_FORMATTED_ROW_RE = /^(?:(>>>)\s*)?(\s*\d+):(\s?)(.*)$/;
+const _GREP_SYSTEM_MATCH_ROW_RE = /^(.+?):(\d+):(.*)$/;
+const _GREP_SYSTEM_CONTEXT_ROW_RE = /^(.+)-(\d+)-(.*)$/;
+
+export const _grepOutputRows = (text: unknown): readonly GrepOutputRow[] => {
+  const body = _normalizeDisplayedToolPaths(text);
+  return body.split('\n').map((line) => {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed === '--') {
+      return { kind: 'separator', file: '', lineNumber: '', code: '', text: line };
+    }
+    if (
+      /^=== .* ===$/.test(trimmed)
+      || /^Found \d+ matches? in\b/.test(trimmed)
+      || /^No matches found\b/.test(trimmed)
+      || /^…\[truncated\]$/.test(trimmed)
+    ) {
+      return { kind: 'header', file: '', lineNumber: '', code: '', text: line };
+    }
+
+    const formatted = line.match(_GREP_FORMATTED_ROW_RE);
+    if (formatted) {
+      const marker = formatted[1] || '';
+      return {
+        kind: marker ? 'match' : 'context',
+        file: '',
+        lineNumber: formatted[2].trim(),
+        code: formatted[4] || '',
+        text: line,
+      };
+    }
+
+    const systemMatch = line.match(_GREP_SYSTEM_MATCH_ROW_RE);
+    if (systemMatch) {
+      return {
+        kind: 'match',
+        file: systemMatch[1],
+        lineNumber: systemMatch[2],
+        code: systemMatch[3] || '',
+        text: line,
+      };
+    }
+
+    const systemContext = line.match(_GREP_SYSTEM_CONTEXT_ROW_RE);
+    if (systemContext) {
+      return {
+        kind: 'context',
+        file: systemContext[1],
+        lineNumber: systemContext[2],
+        code: systemContext[3] || '',
+        text: line,
+      };
+    }
+
+    return { kind: 'raw', file: '', lineNumber: '', code: '', text: line };
+  });
+};
+
+export const GrepOutputPre = ({ text, truncated }: any): ReactNode => {
+  const body = _normalizeDisplayedToolPaths(text) + (truncated ? '\n…[truncated]' : '');
+  const rows = _grepOutputRows(body);
+
+  return (
+    <pre className="tool-output-pre tool-output-grep language-none">
+      {rows.map((row, i) => {
+        if (!row.lineNumber) {
+          return (
+            <div className={`grep-line grep-${row.kind}`} key={i}>
+              {row.text || ' '}
+            </div>
+          );
+        }
+        return (
+          <div className={`grep-line grep-${row.kind}`} key={i}>
+            <span className="grep-prefix">{row.lineNumber}</span>
+            <span className="grep-sep">|</span>
+            <code className="grep-code language-none" data-grep-code="true">{row.code}</code>
+          </div>
+        );
+      })}
+    </pre>
+  );
+};
+
 export const _highlightInlineCode = (code: string, lang: string): string => {
   const Prism = window.Prism;
   if (!Prism || !lang || lang === 'none' || !Prism.languages || !Prism.languages[lang]) {

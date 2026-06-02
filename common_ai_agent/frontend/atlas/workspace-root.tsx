@@ -85,6 +85,11 @@ const AgentStatusPanel: any = windowPanel('AgentStatusPanel', 'Agent Status');
 // type decls.
 const w: any = window;
 
+const cleanRuntimeLabel = (value: any): string => {
+  const text = String(value || '').trim();
+  return text && text !== '—' && text !== '-' ? text : '';
+};
+
 // ── Workspace : root composer ──────────────────────────────────────
 // Two-axis mode model (intent: normal|plan, workflow: null|ssot|…) plus the
 // resizable 5-track grid. All state + effects + callbacks live in the two
@@ -306,6 +311,7 @@ export const Workspace = ({
     feed, setFeed,
     backendState,
     commandBusy,
+    liveLlmRuntime,
     workerProgress,
     orchWorkers,
     workspaceTelemetry,
@@ -325,6 +331,13 @@ export const Workspace = ({
   const scmProvider: any = ws.scmProvider;
   const ScmTabComponent: any = ws.ScmTabComponent;
   const scmTabLabel: any = ws.scmTabLabel;
+  const liveRuntimeModel = cleanRuntimeLabel(liveLlmRuntime?.model);
+  const liveRuntimeEffort = cleanRuntimeLabel(liveLlmRuntime?.reasoningEffort);
+  const agentRespondingText = [
+    'Agent responding',
+    liveRuntimeModel,
+    liveRuntimeEffort ? `effort:${liveRuntimeEffort}` : '',
+  ].filter(Boolean).join(' · ');
 
   return (
     <div style={{
@@ -810,7 +823,7 @@ export const Workspace = ({
               : liveWorkerActive
                 ? { icon: '▶', text: `Worker running · ${liveWorkerWorkflow}`, color: 'var(--warn)', bg: 'color-mix(in oklch, var(--warn) 14%, transparent)' }
               : streaming
-                ? { icon: '◉', text: 'Agent responding', color: 'var(--accent)', bg: 'color-mix(in oklch, var(--accent) 16%, transparent)', spin: true }
+                ? { icon: '◉', text: agentRespondingText, color: 'var(--accent)', bg: 'color-mix(in oklch, var(--accent) 16%, transparent)', spin: true }
               : terminalWorkerProgress
                 ? {
                     icon: workerFinishedOk ? '✓' : '!',

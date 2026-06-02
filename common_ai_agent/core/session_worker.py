@@ -438,6 +438,24 @@ class SessionWorker:
     def emit_flush(self) -> None:
         self.emit("flush", {})
 
+    def emit_context(self, tokens: int, max_tok: int, **runtime: Any) -> None:
+        payload: dict[str, Any] = {
+            "session_id": self.session_id,
+            "used": int(tokens or 0),
+            "max": int(max_tok or 0),
+        }
+        model = str(runtime.get("model") or self._active_model_name()).strip()
+        effort = str(
+            runtime.get("reasoning_effort")
+            or runtime.get("effort")
+            or self._active_reasoning_effort()
+        ).strip()
+        if model:
+            payload["model"] = model
+        if effort:
+            payload["reasoning_effort"] = effort
+        self.emit("context", payload)
+
     def _active_model_name(self) -> str:
         try:
             import config as _cfg  # type: ignore
@@ -452,6 +470,23 @@ class SessionWorker:
             or os.environ.get("LLM_MODEL_NAME", "").strip()
             or os.environ.get("LLM_ACTIVE_BASE_NAME", "").strip()
             or os.environ.get("LLM_BASE_NAME", "").strip()
+        )
+
+    def _active_reasoning_effort(self) -> str:
+        try:
+            import config as _cfg  # type: ignore
+            effort = str(
+                getattr(_cfg, "REASONING_EFFORT", "")
+                or getattr(_cfg, "REASONING_MODE", "")
+            ).strip()
+            if effort:
+                return effort
+        except Exception:
+            pass
+        return (
+            os.environ.get("REASONING_EFFORT", "").strip()
+            or os.environ.get("REASONING_MODE", "").strip()
+            or os.environ.get("ATLAS_REASONING_EFFORT", "").strip()
         )
 
     def _persist_cost_ledger(
@@ -807,6 +842,7 @@ def run_worker(session_id: str, db_path: str) -> int:
     agent._textual_emit_reasoning_fn = worker.emit_reasoning
     agent._textual_emit_todo_fn = worker.emit_todo
     agent._textual_emit_flush_fn = worker.emit_flush
+    agent._textual_emit_context_fn = worker.emit_context
     agent._textual_emit_token_fn = worker.emit_token_usage
     agent._textual_emit_tool_fn = worker.emit_tool
     agent._textual_emit_tool_result_fn = worker.emit_tool_result

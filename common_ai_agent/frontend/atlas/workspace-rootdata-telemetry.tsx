@@ -167,6 +167,7 @@ export function mergeContextTelemetry(prev: any, ctx: any): any {
     costIp: ctx.costIp || prev.costIp || '',
     costCalls: ctx.costCalls != null ? Number(ctx.costCalls || 0) : Number(prev.costCalls || 0),
     model: ctx.model || prev.model || '',
+    reasoningEffort: ctx.reasoningEffort || prev.reasoningEffort || '',
   };
 }
 

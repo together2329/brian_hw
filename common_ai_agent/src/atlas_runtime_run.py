@@ -295,8 +295,15 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
             pass
     _main._textual_emit_tool_result_fn = _emit_tool_result
 
-    def _ctx_update(tokens, max_tok):
-        _emit_agent_event("context", used=tokens, max=max_tok)
+    def _ctx_update(tokens, max_tok, **runtime):
+        payload = {"used": tokens, "max": max_tok}
+        model = str(runtime.get("model") or "").strip()
+        effort = str(runtime.get("reasoning_effort") or runtime.get("effort") or "").strip()
+        if model:
+            payload["model"] = model
+        if effort:
+            payload["reasoning_effort"] = effort
+        _emit_agent_event("context", **payload)
     _main._textual_emit_context_fn = _ctx_update
     def _emit_token(in_tok, cache_tok, out_tok):
         # Resolve display/runtime model first; pricing then tries this exact

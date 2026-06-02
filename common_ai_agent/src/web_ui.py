@@ -294,7 +294,7 @@ def run_web_ui(port: int = 8080, host: str = "0.0.0.0"):
     _main._textual_emit_flush_fn = app.state.emit_flush
 
     # Context/tokens — update SSE status bar
-    def _ctx_update(tokens, max_tok):
+    def _ctx_update(tokens, max_tok, **_runtime):
         app.state.sse_queue.put_nowait("line", json.dumps({
             "tokens": f"✽ {tokens/1000:.0f}k / {max_tok/1000:.0f}k tokens"
         }))

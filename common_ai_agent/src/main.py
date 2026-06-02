@@ -1344,6 +1344,48 @@ def run_react_agent(messages, tracker, task_description, mode='interactive', pre
     # In TUI mode suppress stderr spinner so it doesn't bleed through Textual's display
     _is_tui = _textual_emit_content_fn is not None
     effective_available_tools = tools.filtered_available_tools()
+
+    def _runtime_model_label():
+        return (
+            os.environ.get("LLM_ACTIVE_MODEL_NAME", "").strip()
+            or str(getattr(config, "MODEL_NAME", "") or "").strip()
+            or os.environ.get("MODEL_NAME", "").strip()
+            or os.environ.get("LLM_MODEL_NAME", "").strip()
+            or os.environ.get("LLM_ACTIVE_BASE_NAME", "").strip()
+            or os.environ.get("LLM_BASE_NAME", "").strip()
+        )
+
+    def _runtime_reasoning_effort():
+        return str(
+            getattr(config, "REASONING_EFFORT", "")
+            or getattr(config, "REASONING_MODE", "")
+            or os.environ.get("REASONING_EFFORT", "")
+            or os.environ.get("REASONING_MODE", "")
+        ).strip().lower()
+
+    def _emit_llm_runtime_context(llm_messages):
+        if _textual_emit_context_fn is None:
+            return
+        try:
+            used = sum(estimate_message_tokens(m) for m in (llm_messages or []))
+        except Exception:
+            used = 0
+        try:
+            max_tok = getattr(config, "MAX_CONTEXT_TOKENS", 0)
+            _textual_emit_context_fn(
+                used,
+                max_tok,
+                model=_runtime_model_label(),
+                reasoning_effort=_runtime_reasoning_effort(),
+            )
+        except TypeError:
+            try:
+                _textual_emit_context_fn(used, getattr(config, "MAX_CONTEXT_TOKENS", 0))
+            except Exception:
+                pass
+        except Exception:
+            pass
+
     # Native tool call mode: pass tools schemas to LLM API
     _native_tools = None
     if getattr(config, "ENABLE_NATIVE_TOOL_CALLS", False):
@@ -1354,11 +1396,19 @@ def run_react_agent(messages, tracker, task_description, mode='interactive', pre
         except Exception:
             pass
     if _native_tools:
-        _llm_fn = (lambda msg, stop=None, _t=_native_tools: chat_completion_stream(msg, stop=stop, suppress_spinner=True, tools=_t)) \
-            if _is_tui else (lambda msg, stop=None, _t=_native_tools: chat_completion_stream(msg, stop=stop, tools=_t))
+        def _llm_fn(msg, stop=None, _t=_native_tools):
+            _emit_llm_runtime_context(msg)
+            if _is_tui:
+                yield from chat_completion_stream(msg, stop=stop, suppress_spinner=True, tools=_t)
+            else:
+                yield from chat_completion_stream(msg, stop=stop, tools=_t)
     else:
-        _llm_fn = (lambda msg, stop=None: chat_completion_stream(msg, stop=stop, suppress_spinner=True)) \
-            if _is_tui else chat_completion_stream
+        def _llm_fn(msg, stop=None):
+            _emit_llm_runtime_context(msg)
+            if _is_tui:
+                yield from chat_completion_stream(msg, stop=stop, suppress_spinner=True)
+            else:
+                yield from chat_completion_stream(msg, stop=stop)
     # Orchestrator chat injector — best-effort. Built lazily so test
     # harnesses that don't import the atlas DB still work. The bridge
     # is resolved via the shared registry written by atlas_ui at boot;

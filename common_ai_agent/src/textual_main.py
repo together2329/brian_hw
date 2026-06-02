@@ -151,7 +151,7 @@ def _run_agent(app: AgentTUI) -> None:
     _agent._textual_emit_reasoning_fn = lambda line, blank=False: app.post_message(ReasoningChunk(line, blank))
     _agent._textual_emit_todo_fn      = _todo_and_context
     _agent._textual_emit_flush_fn     = lambda: app.post_message(FlushResponse())
-    _agent._textual_emit_context_fn   = lambda tok, max_tok: _emit_context(app, tok, max_tok)
+    _agent._textual_emit_context_fn   = lambda tok, max_tok, **_runtime: _emit_context(app, tok, max_tok)
     _agent._textual_emit_token_fn     = lambda in_tok, cache_tok, out_tok: app.post_message(TokenUsage(in_tok, cache_tok, out_tok))
     _agent._textual_esc_check_fn          = app.check_and_reset_interrupt
     _agent._textual_poll_human_input_fn   = app._input_bridge.poll_interrupt

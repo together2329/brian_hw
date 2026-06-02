@@ -565,12 +565,14 @@ const w = window as any;
           w.CONTEXT.maxTokens = m.max || w.CONTEXT.maxTokens;
           changed = true;
         }
-        if (m.reasoning_effort) {
-          w.CONTEXT.reasoningEffort = m.reasoning_effort;
+        const reasoningEffort = m.reasoning_effort || m.reasoningEffort || m.effort;
+        const model = m.model || m.active_model || m.activeModel || m.runtime_model;
+        if (reasoningEffort) {
+          w.CONTEXT.reasoningEffort = reasoningEffort;
           changed = true;
         }
-        if (m.model) {
-          w.CONTEXT.model = m.model;
+        if (model) {
+          w.CONTEXT.model = model;
           changed = true;
         }
         if (Array.isArray(m.model_options)) {

@@ -1208,6 +1208,7 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
                 with config.scoped_model_runtime(effective_model):
                     with config.scoped_runtime_extra(runtime_extra):
                         active_model = getattr(config, "MODEL_NAME", effective_model)
+                        entry.model = str(active_model or effective_model or "")
                         entry.add_log(
                             "system",
                             f"LLM runtime active: model={active_model}"

@@ -344,6 +344,24 @@ describe('Workspace render smoke (the behavioral gate)', () => {
     expect(queryByText(/End of loop/)).not.toBeNull();
   });
 
+  it('shows the live LLM model and effort beside Agent responding', async () => {
+    const { Workspace } = await import('../workspace.tsx');
+    const { queryByText } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
+    const backend = (window as AnyWindow).backend;
+
+    await act(async () => {
+      backend._emit('agent_state', { running: true });
+      backend._emit('context', {
+        model: 'sol-soc-gpt-5.5',
+        reasoning_effort: 'xhigh',
+      });
+    });
+
+    await waitFor(() => {
+      expect(queryByText(/Agent responding.*sol-soc-gpt-5\.5.*xhigh/)).not.toBeNull();
+    });
+  });
+
   it('does not show Agent responding for workflow activation control tokens', async () => {
     const { Workspace } = await import('../workspace.tsx');
     const { queryByText } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
@@ -609,7 +627,9 @@ describe('Workspace render smoke (the behavioral gate)', () => {
       backend._emit('token', { text: 'new live token' });
     });
 
-    expect(scrollTop).toBe(1000);
+    await waitFor(() => {
+      expect(scrollTop).toBe(1000);
+    });
   });
 
   it('keeps following delayed chat content growth only while pinned to the bottom', async () => {

@@ -34,6 +34,10 @@ import {
   _relTime,
   _unwrapAtlasOutputFence,
   _cleanTodoToolText,
+  _formatTodoStepStatus,
+  _parseTodoStepUpdate,
+  atlasStatusMeta,
+  AtlasStatusBadge,
 } from './workspace-report-status';
 import {
   _markdownHtml,
@@ -42,6 +46,7 @@ import {
   _CHIP_PATH_RE,
   _normalizeDisplayedToolPaths,
   ToolOutputPre,
+  GrepOutputPre,
   DiffOutputPre,
   CopyBtn,
 } from './workspace-markdown-chips';
@@ -137,6 +142,7 @@ export const ObsCard = ({ entry, embedded, summaryMode = true, hintText = '' }: 
   const looksLikeDiff = displayFormat === 'diff'
                      || /(^|\n)\s*⎿?\s*Added \d+ lines?,? removed \d+ lines?/.test(txt)
                      || (entry.tool && _DIFF_RESULT_TOOL_RE.test(entry.tool));
+  const isGrepTool = String(entry?.tool || '').toLowerCase() === 'grep_file';
 
   const renderMarkdownBody = () => (
     <div
@@ -205,6 +211,8 @@ export const ObsCard = ({ entry, embedded, summaryMode = true, hintText = '' }: 
               truncated={entry.truncated}
               hintText={hintText || entry.hintText || entry.path || entry.file || ''}
             />
+          ) : isGrepTool ? (
+            <GrepOutputPre text={txt} truncated={entry.truncated} />
           ) : (
             <ToolOutputPre text={txt} tool={entry.tool} truncated={entry.truncated} />
           )
@@ -296,6 +304,42 @@ export const HandoffRow = ({ label, children }: any) => (
     <span className="handoff-val">{children}</span>
   </div>
 );
+
+export const TodoStepUpdateCard = ({ action, obs, tool, info }: any) => {
+  const theme = _toolTheme(tool);
+  const meta = atlasStatusMeta(info?.toStatus || 'pending');
+  const ts = (action && action.createdAt) || (obs && obs.createdAt) || 0;
+  const target = info?.index ? `Task #${info.index}` : 'Task';
+  const fromLabel = info?.fromStatus ? _formatTodoStepStatus(info.fromStatus) : '';
+  const toLabel = info?.toStatus ? _formatTodoStepStatus(info.toStatus) : '';
+  const transition = fromLabel && toLabel && fromLabel !== toLabel ? `${fromLabel} → ${toLabel}` : toLabel;
+  const hasBody = !!(info?.title || info?.reason || info?.note || info?.next || info?.tally || info?.rawSummary);
+  return (
+    <div className="tool-card step-update-card has-hover-affordance" style={{ borderLeftColor: meta.color || theme.color }}>
+      <span className="tool-card-ts">{_relTime(ts)}</span>
+      <div className="tool-card-head step-update-head">
+        <span className="tool-card-glyph" style={{ color: 'var(--fg)' }}>{theme.glyph}</span>
+        <span className="tool-card-tool">{_toolDisplay(tool)}</span>
+        <AtlasStatusBadge status={info?.toStatus || 'pending'} compact />
+        <span className="step-update-target">{target}</span>
+        {transition && <span className="step-update-transition">{transition}</span>}
+      </div>
+      {hasBody && (
+        <>
+          <div className="tool-card-sep" />
+          <div className="step-update-body">
+            {info.title && <HandoffRow label="task">{info.title}</HandoffRow>}
+            {info.reason && <HandoffRow label={String(info.reasonLabel || 'detail').toLowerCase()}>{info.reason}</HandoffRow>}
+            {info.note && <HandoffRow label="note">{info.note}</HandoffRow>}
+            {info.next && <HandoffRow label="next">{info.next}</HandoffRow>}
+            {info.tally && <HandoffRow label="todo">{info.tally}</HandoffRow>}
+            {info.rawSummary && <HandoffRow label="output">{info.rawSummary}</HandoffRow>}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
 
 // HandoffCard: clean labeled rendering for orchestrator handoffs
 // (dispatch_workflow / write_handoff). Replaces the raw "key={json}" args
@@ -475,6 +519,10 @@ export const _StandardToolCardRaw = ({ action, obs, summaryMode = true, tool }: 
         .replace(/^[▶⏺]\s*/, '')
         .replace(tool ? new RegExp('^' + tool.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*') : /^\?\s*/, '')
     : '';
+  const todoStepInfo = _parseTodoStepUpdate(obs ? obs.text || '' : '', tool, rawArgsText || (action && action.text) || '');
+  if (todoStepInfo) {
+    return <TodoStepUpdateCard action={action} obs={obs} tool={tool} info={todoStepInfo} />;
+  }
   let argsText = rawArgsText;
   // Replace/write/edit tools dump the new file content into args, which
   // produces a noisy single-line preview next to the tool name (just

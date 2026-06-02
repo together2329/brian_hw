@@ -277,6 +277,7 @@ export const _limitAtlasLines = (text: any, maxLines = 5): string => {
 };
 
 export const TODO_TOOL_RE = /^todo_(write|update|add|remove|status|note)$/i;
+export const TODO_STEP_TOOL_RE = /^(?:todo|step)_(write|update|add|remove|status|note)$/i;
 export const TODO_STATUS_MARKS: Record<string, string> = {
   '⏸': 'pending',
   '▶': 'in-progress',
@@ -309,7 +310,7 @@ export const _todoTallyLine = (tally: Record<string, number>): string =>
 
 export const _cleanTodoToolText = (text: any, tool: any): string => {
   let txt = cleanAtlasTerminalText(text).trim();
-  if (!TODO_TOOL_RE.test(String(tool || ''))) return txt;
+  if (!TODO_STEP_TOOL_RE.test(String(tool || ''))) return txt;
 
   const tally = _todoStatusTally(txt);
   const tallyStr = _todoTallyLine(tally);
@@ -355,6 +356,182 @@ export const _cleanTodoToolText = (text: any, tool: any): string => {
   }
 
   return txt + (tallyStr && !txt.includes(tallyStr) ? `\nTodo: ${tallyStr}` : '');
+};
+
+export type TodoStepUpdateInfo = {
+  readonly operation: string;
+  readonly index: string;
+  readonly fromStatus: string;
+  readonly toStatus: string;
+  readonly title: string;
+  readonly reasonLabel: string;
+  readonly reason: string;
+  readonly next: string;
+  readonly note: string;
+  readonly tally: string;
+  readonly rawSummary: string;
+};
+
+const _todoStepOperation = (tool: unknown): string => {
+  const match = String(tool || '').trim().match(TODO_STEP_TOOL_RE);
+  return match ? String(match[1] || '').toLowerCase() : '';
+};
+
+const _unescapeTodoArg = (value: string): string =>
+  value.replace(/\\"/g, '"').replace(/\\'/g, "'").replace(/\\n/g, '\n').trim();
+
+const _todoToolArg = (text: string, name: string): string => {
+  const safe = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const re = new RegExp(`(?:^|[\\s,(])${safe}\\s*=\\s*(?:"((?:[^"\\\\]|\\\\.)*)"|'((?:[^'\\\\]|\\\\.)*)'|([^,\\n)]+))`, 'i');
+  const match = text.match(re);
+  if (!match) return '';
+  return _unescapeTodoArg(String(match[1] || match[2] || match[3] || ''));
+};
+
+const _firstTodoMatch = (text: string, patterns: readonly RegExp[]): string => {
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match && match[1]) return String(match[1]).trim();
+  }
+  return '';
+};
+
+export const _formatTodoStepStatus = (status: unknown): string => atlasStatusMeta(status).label;
+
+const _todoStepReasonLabel = (status: string, operation: string): string => {
+  const normalized = normalizeAtlasStatus(status);
+  if (normalized === 'approved') return 'Approved';
+  if (normalized === 'rejected') return 'Rejected';
+  if (normalized === 'completed') return 'Review';
+  if (normalized === 'in_progress') return 'Started';
+  if (normalized === 'pending') return 'Pending';
+  if (normalized === 'blocked') return 'Blocked';
+  if (normalized === 'error') return 'Error';
+  if (operation === 'add') return 'Added';
+  if (operation === 'remove') return 'Removed';
+  if (operation === 'note') return 'Note';
+  return 'Detail';
+};
+
+const _todoStepTransition = (text: string): { readonly index: string; readonly fromStatus: string; readonly toStatus: string } => {
+  const match = text.match(/#\s*(\d+)\s+([A-Za-z][A-Za-z0-9_-]*)\s*(?:->|→)\s*([A-Za-z][A-Za-z0-9_-]*)/i);
+  if (!match) return { index: '', fromStatus: '', toStatus: '' };
+  return {
+    index: String(match[1] || '').trim(),
+    fromStatus: normalizeAtlasStatus(match[2]),
+    toStatus: normalizeAtlasStatus(match[3]),
+  };
+};
+
+export const _parseTodoStepUpdate = (text: unknown, tool: unknown, actionText: unknown = ''): TodoStepUpdateInfo | null => {
+  const toolText = String(tool || '').trim();
+  if (!TODO_STEP_TOOL_RE.test(toolText)) return null;
+
+  const operation = _todoStepOperation(toolText);
+  const rawObs = cleanAtlasTerminalText(text).trim();
+  const rawAction = cleanAtlasTerminalText(actionText).trim();
+  const cleaned = _cleanTodoToolText(rawObs, toolText);
+  const combined = [rawAction, rawObs, cleaned].filter(Boolean).join('\n');
+  const transition = _todoStepTransition(combined);
+  const actionStatus = normalizeAtlasStatus(_todoToolArg(rawAction, 'status'));
+  const index = _todoToolArg(rawAction, 'index')
+    || _todoToolArg(rawAction, 'id')
+    || transition.index
+    || _firstTodoMatch(combined, [
+      /\bTask\s+(\d+)\b/i,
+      /\bto\s+Task\s+(\d+)\b/i,
+      /\bindex\s*=\s*(\d+)\b/i,
+    ]);
+  const tally = _todoTallyLine(_todoStatusTally(rawObs || cleaned));
+  const nextLine = combined.split(/\r?\n/)
+    .map((line: string) => line.trim())
+    .find((line: string) => /^→?\s*Next:/i.test(line)) || '';
+  const next = nextLine.replace(/^→?\s*Next:\s*/i, '').trim();
+
+  let toStatus = transition.toStatus || actionStatus;
+  let fromStatus = transition.fromStatus;
+  let title = '';
+  let reason = _todoToolArg(rawAction, 'reason');
+  let note = '';
+  let rawSummary = _limitAtlasLines(cleaned.replace(/\n\s*── TODO ──[\s\S]*$/m, '').trim(), 7);
+
+  let match = rawObs.match(/Task\s+(\d+)\s+approved\.\s*\[([\s\S]*?)\]/i);
+  if (match) {
+    toStatus = 'approved';
+    reason = String(match[2] || reason).trim();
+  }
+
+  match = rawObs.match(/Task\s+(\d+)\s+rejected:?\s*([\s\S]*)$/i);
+  if (match) {
+    toStatus = 'rejected';
+    reason = String(match[2] || reason).trim();
+  }
+
+  match = rawObs.match(/Task\s+(\d+)\s+marked\s+completed\.\s*([\s\S]*)$/i);
+  if (match) {
+    toStatus = 'completed';
+    reason = String(match[2] || reason).trim();
+  }
+
+  match = rawObs.match(/Task\s+(\d+)\s+in\s+progress:\s*([^\n]*)/i);
+  if (match) {
+    toStatus = 'in_progress';
+    title = String(match[2] || '').trim();
+  }
+
+  match = rawObs.match(/Task\s+(\d+)\s+set\s+to\s+pending:\s*([^\n]*)/i);
+  if (match) {
+    toStatus = 'pending';
+    title = String(match[2] || '').trim();
+  }
+
+  match = rawObs.match(/Task\s+(\d+)\s+\[command:\s*([^\]]+)\]\s+(passed|failed)\./i);
+  if (match) {
+    toStatus = String(match[3]).toLowerCase() === 'passed' ? 'completed' : 'rejected';
+    reason = `command: ${String(match[2] || '').trim()}`;
+  }
+
+  match = rawObs.match(/Note\s+\[(\d+)\]\s+added\s+to\s+Task\s+\d+:\s*([\s\S]*)$/i);
+  if (match) {
+    toStatus = 'review';
+    note = `[${String(match[1] || '').trim()}] ${_limitAtlasLines(match[2], 5)}`;
+  }
+
+  match = rawObs.match(/^Removed:\s*"([\s\S]*?)"/i);
+  if (match) {
+    toStatus = 'completed';
+    title = String(match[1] || '').trim();
+  }
+
+  if (/^\s*(?:Error:|Status Conflict:|\[Plan Mode\]|❌\s+Cannot\b)/im.test(rawObs)) {
+    toStatus = /\[Plan Mode\]|blocked/i.test(rawObs) ? 'blocked' : 'error';
+    reason = rawObs;
+  }
+
+  if (!toStatus) {
+    if (operation === 'add' || operation === 'write' || operation === 'status') toStatus = 'pending';
+    else if (operation === 'remove') toStatus = 'completed';
+    else if (operation === 'note') toStatus = 'review';
+    else toStatus = 'pending';
+  }
+  const normalizedStatus = normalizeAtlasStatus(toStatus);
+  const reasonLabel = _todoStepReasonLabel(normalizedStatus, operation);
+  if (!title) title = _todoToolArg(rawAction, 'content');
+  if (reason) rawSummary = '';
+
+  return {
+    operation,
+    index,
+    fromStatus,
+    toStatus: normalizedStatus,
+    title: _limitAtlasLines(title, 3),
+    reasonLabel,
+    reason: _limitAtlasLines(reason, 6),
+    next: _limitAtlasLines(next, 3),
+    note,
+    tally,
+    rawSummary,
+  };
 };
 
 // Relative timestamp helper for hover-revealed "5m ago" labels.

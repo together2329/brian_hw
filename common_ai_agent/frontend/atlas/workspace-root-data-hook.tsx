@@ -104,6 +104,30 @@ const askNumber = (value: any, fallback: number): number => {
   return Number.isFinite(n) ? n : fallback;
 };
 
+type LiveLlmRuntime = {
+  model: string;
+  reasoningEffort: string;
+};
+
+const liveLlmRuntimeFrom = (message: any): LiveLlmRuntime => ({
+  model: String(
+    message?.model
+    ?? message?.active_model
+    ?? message?.activeModel
+    ?? message?.runtime_model
+    ?? '',
+  ).trim(),
+  reasoningEffort: String(
+    message?.reasoning_effort
+    ?? message?.reasoningEffort
+    ?? message?.effort
+    ?? '',
+  ).trim(),
+});
+
+const hasLiveLlmRuntime = (runtime: LiveLlmRuntime): boolean =>
+  !!(runtime.model || runtime.reasoningEffort);
+
 const askKind = (value: any): string => {
   const kind = String(value || '').toLowerCase();
   if (kind === 'multi') return 'multi';
@@ -275,6 +299,10 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     return w.backend.getConnectionState ? w.backend.getConnectionState() : 'connecting';
   });
   const [commandBusy, setCommandBusy] = useState<any>(null);
+  const [liveLlmRuntime, setLiveLlmRuntime] = useState<LiveLlmRuntime>({
+    model: '',
+    reasoningEffort: '',
+  });
   const [workspaceTelemetry, setWorkspaceTelemetry] = useState<any>({
     toolCount: 0,
     lastTool: '',
@@ -661,6 +689,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     const finishRun = () => {
       parkLiveStream();
       setStreaming(false);
+      setLiveLlmRuntime({ model: '', reasoningEffort: '' });
       awaitingRunStartRef.current = false;
       backendRunStartedRef.current = false;
       setCommandBusy(null);
@@ -668,6 +697,8 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     try {
       subs.push(w.backend.subscribe('token', (m: any) => {
         if (!eventMatchesCurrentSession(m)) return;
+        const runtime = liveLlmRuntimeFrom(m);
+        if (hasLiveLlmRuntime(runtime)) setLiveLlmRuntime(runtime);
         const text = String((m && (m.text ?? m.token ?? m.content)) || '').replace(/\u0000/g, '');
         if (!text) return;
         const controlPlaneToken = !!(m && (
@@ -715,6 +746,11 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
         if (!eventMatchesCurrentSession(m)) return;
         parkLiveStream();
       }));
+      subs.push(w.backend.subscribe('context', (m: any) => {
+        if (!eventMatchesCurrentSession(m)) return;
+        const runtime = liveLlmRuntimeFrom(m);
+        if (hasLiveLlmRuntime(runtime)) setLiveLlmRuntime(runtime);
+      }));
       subs.push(w.backend.subscribe('done', (m: any) => {
         if (!eventMatchesCurrentSession(m)) return;
         finishRun();
@@ -729,6 +765,8 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
         ));
         if (m && m.running === true) {
           if (controlPlaneState) return;
+          const runtime = liveLlmRuntimeFrom(m);
+          if (hasLiveLlmRuntime(runtime)) setLiveLlmRuntime(runtime);
           backendRunStartedRef.current = true;
           setStreaming(true);
           return;
@@ -2899,6 +2937,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     // telemetry / backend
     backendState, setBackendState,
     commandBusy, setCommandBusy,
+    liveLlmRuntime,
     workspaceTelemetry, setWorkspaceTelemetry,
     peerCount, setPeerCount,
     streamText, setStreamText,

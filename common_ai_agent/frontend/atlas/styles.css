@@ -1969,6 +1969,43 @@ html[data-platform="windows"] .app {
   opacity: 0; transition: opacity .15s;
   font-size: var(--ui-small-font-size); font-family: var(--mono); color: var(--fg-mute);
 }
+.step-update-card {
+  background: color-mix(in oklch, var(--bg-2) 82%, transparent);
+}
+.step-update-card .step-update-head {
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.step-update-target {
+  color: var(--fg);
+  font-weight: 800;
+  white-space: nowrap;
+}
+.step-update-transition {
+  color: var(--fg-mute);
+  font-size: var(--ui-small-font-size);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.step-update-body {
+  display: grid;
+  gap: 5px;
+  padding: 2px 0 3px;
+  font-family: var(--mono);
+  font-size: var(--ui-font-size);
+  line-height: 1.45;
+}
+.step-update-card .handoff-row {
+  padding-left: 24px;
+}
+.step-update-card .handoff-label {
+  min-width: 8ch;
+  color: var(--fg-dim);
+  font-weight: 700;
+  text-transform: uppercase;
+}
 .tool-card-sep {
   height: 1px; background: var(--line);
   margin: 4px 0; opacity: 0.45;
@@ -2079,6 +2116,48 @@ html[data-platform="windows"] .app {
   font-size: inherit;
   line-height: inherit;
   text-shadow: none;
+}
+.tool-output-grep {
+  white-space: pre;
+}
+.tool-output-grep .grep-line {
+  min-height: 1.55em;
+  color: var(--fg);
+}
+.tool-output-grep .grep-match,
+.tool-output-grep .grep-context {
+  display: grid;
+  grid-template-columns: minmax(4ch, max-content) 1ch minmax(0, 1fr);
+  column-gap: 7px;
+  align-items: baseline;
+}
+.tool-output-grep .grep-header {
+  color: var(--fg-mute);
+  font-weight: 700;
+}
+.tool-output-grep .grep-separator {
+  color: var(--fg-dim);
+}
+.tool-output-grep .grep-prefix {
+  min-width: 4ch;
+  color: var(--fg-mute);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  user-select: none;
+}
+.tool-output-grep .grep-sep {
+  color: var(--fg-dim);
+  user-select: none;
+}
+.tool-output-grep .grep-code {
+  min-width: 0;
+  overflow: visible;
+  white-space: pre;
+}
+.tool-output-grep .grep-match .grep-prefix,
+.tool-output-grep .grep-match .grep-sep {
+  color: var(--accent);
+  font-weight: 700;
 }
 .tool-output-diff .diff-line {
   min-height: 1.55em;
@@ -2261,6 +2340,9 @@ html[data-platform="windows"] .app {
 [data-theme="light"] .tool-card .tool-card-meta span {
   border-color: #d8e1ec;
   color: var(--fg-mute);
+}
+[data-theme="light"] .step-update-card {
+  background: #ffffff;
 }
 [data-theme="light"] .tool-card-sep {
   background: #d8e1ec;
