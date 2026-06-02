@@ -1,0 +1,69 @@
+[
+  {
+    "type": "activate-start",
+    "body": {
+      "owner": "brian",
+      "ip": "axi_dma",
+      "workflow": "default"
+    },
+    "t": 3762.899999976158
+  },
+  {
+    "type": "activate-403",
+    "body": {
+      "owner": "brian",
+      "ip": "axi_dma",
+      "workflow": "default"
+    },
+    "t": 3763
+  },
+  {
+    "type": "activate-start",
+    "body": {
+      "owner": "brian",
+      "ip": "axi_dma",
+      "workflow": "default",
+      "preserve_running": false
+    },
+    "t": 4106.699999928474
+  },
+  {
+    "type": "activate-403",
+    "body": {
+      "owner": "brian",
+      "ip": "axi_dma",
+      "workflow": "default",
+      "preserve_running": false
+    },
+    "t": 4106.699999928474
+  },
+  {
+    "type": "loaded",
+    "session": "brian/axi_dma/default",
+    "ip": "axi_dma",
+    "t": 4108.100000023842
+  },
+  {
+    "type": "switchSession",
+    "sid": "brian/axi_dma/coverage",
+    "t": 4267.899999976158
+  },
+  {
+    "type": "activate-start",
+    "body": {
+      "owner": "brian",
+      "ip": "axi_dma",
+      "workflow": "coverage"
+    },
+    "t": 4268
+  },
+  {
+    "type": "activate-403",
+    "body": {
+      "owner": "brian",
+      "ip": "axi_dma",
+      "workflow": "coverage"
+    },
+    "t": 4268
+  }
+]

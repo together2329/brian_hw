@@ -1,0 +1,3 @@
+RED evidence gate: expecting Computer Use action log and screenshot before run
+expected failure: evidence does not exist yet
+ULW_RED_EXIT=1

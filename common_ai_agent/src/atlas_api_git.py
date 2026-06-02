@@ -10,6 +10,7 @@ this module never reaches into the host's mutable globals.
 from __future__ import annotations
 
 import asyncio
+import os
 import re
 from pathlib import Path
 from typing import Any, Callable, Optional
@@ -43,28 +44,62 @@ def register_git_routes(
         provider = str(value or "").strip().lower()
         return "" if provider in {"", "auto", "default"} else provider
 
-    async def _scm_call(cwd: str | None, method: str, *args, provider: str = "", **kwargs):
+    async def _scm_call(scm_root: str | None, method: str, *args, provider: str = "", **kwargs):
         # `cwd` lets callers target the per-IP SCM workspace
         # (PROJECT_ROOT/<ip>) instead of the outer project workspace.
         # The actual provider is resolved per request so a deployment can
         # switch from Git to Perforce via ATLAS_SCM_PROVIDER.
-        adapter = resolve_scm_adapter(cwd or str(project_root()), provider=_request_provider(provider) or None)
+        adapter = resolve_scm_adapter(scm_root or str(project_root()), provider=_request_provider(provider) or None)
         func = getattr(adapter, method)
         return await asyncio.to_thread(func, *args, **kwargs)
 
-    async def _scm_optional(cwd: str | None, method: str, *args, provider: str = "", **kwargs):
+    async def _scm_optional(scm_root: str | None, method: str, *args, provider: str = "", **kwargs):
         # Like _scm_call but for provider-specific methods (e.g. Perforce-only
         # sync_state/open_paths). Returns (result_or_None, provider, supported).
-        adapter = resolve_scm_adapter(cwd or str(project_root()), provider=_request_provider(provider) or None)
+        adapter = resolve_scm_adapter(scm_root or str(project_root()), provider=_request_provider(provider) or None)
         if not hasattr(adapter, method):
             return None, adapter.provider, False
         func = getattr(adapter, method)
         return (await asyncio.to_thread(func, *args, **kwargs)), adapter.provider, True
 
-    def _scm_provider_for_cwd(cwd: str | None, provider: str = ""):
-        return resolve_scm_adapter(cwd or str(project_root()), provider=_request_provider(provider) or None).provider
+    def _scm_provider_for_root(scm_root: str | None, provider: str = ""):
+        return resolve_scm_adapter(scm_root or str(project_root()), provider=_request_provider(provider) or None).provider
 
-    def _scm_cwd_for_ip(ip: str, provider: str = "") -> tuple[str | None, JSONResponse | None, str]:
+    def _resolve_existing_root(value: str, label: str) -> tuple[Path | None, JSONResponse | None]:
+        clean = str(value or "").strip()
+        if not clean:
+            return None, None
+        candidate = Path(clean).expanduser()
+        if not candidate.is_absolute():
+            candidate = project_root() / candidate
+        resolved = candidate.resolve()
+        if not resolved.is_dir():
+            return None, JSONResponse({"error": f"{label} not found", label: str(resolved)}, status_code=404)
+        return resolved, None
+
+    def _default_scm_root(provider: str, local_root: Path) -> Path:
+        selected = _request_provider(provider) or configured_scm_provider()
+        if selected != "perforce":
+            return local_root
+        configured = (
+            os.environ.get("ATLAS_SCM_ROOT_PERFORCE", "").strip()
+            or os.environ.get("ATLAS_PERFORCE_ROOT", "").strip()
+            or os.environ.get("P4_WORKSPACE_ROOT", "").strip()
+        )
+        if configured:
+            candidate = Path(configured).expanduser()
+            if not candidate.is_absolute():
+                candidate = project_root() / candidate
+            if candidate.is_dir():
+                return candidate.resolve()
+        candidate = project_root() / "perforce"
+        return candidate.resolve() if candidate.is_dir() else project_root().resolve()
+
+    def _scm_roots_for_ip(
+        ip: str,
+        provider: str = "",
+        scm_root_value: str = "",
+    ) -> tuple[str | None, str | None, JSONResponse | None, str]:
         """Resolve the cwd for a per-IP SCM workspace.
 
         Empty IP keeps the legacy project-root SCM view. A non-empty IP is
@@ -74,33 +109,50 @@ def register_git_routes(
         """
         clean = str(ip or "").strip()
         if not clean:
-            return str(project_root()), None, ""
+            local_root = project_root().resolve()
+            explicit_scm, explicit_error = _resolve_existing_root(scm_root_value, "scmRoot")
+            if explicit_error is not None:
+                return None, None, explicit_error, ""
+            scm_root = explicit_scm or _default_scm_root(provider, local_root)
+            return str(local_root), str(scm_root), None, ""
         if not valid_ip_name(clean):
-            return None, JSONResponse({"error": "invalid ip", "ip": clean}, status_code=400), clean
+            return None, None, JSONResponse({"error": "invalid ip", "ip": clean}, status_code=400), clean
         candidate = (project_root() / clean).resolve()
         try:
             candidate.relative_to(project_root().resolve())
         except ValueError:
-            return None, JSONResponse({"error": "ip path escapes project root", "ip": clean}, status_code=400), clean
+            return None, None, JSONResponse({"error": "ip path escapes project root", "ip": clean}, status_code=400), clean
         if not candidate.is_dir():
-            return None, JSONResponse({"error": "ip not found", "ip": clean}, status_code=404), clean
+            return None, None, JSONResponse({"error": "ip not found", "ip": clean}, status_code=404), clean
         if (
             not scm_provider_allows_missing_git_dir(_request_provider(provider) or configured_scm_provider())
             and not (candidate / ".git").is_dir()
         ):
-            return None, JSONResponse({"error": "ip has no .git", "ip": clean}, status_code=409), clean
-        return str(candidate), None, clean
+            return None, None, JSONResponse({"error": "ip has no .git", "ip": clean}, status_code=409), clean
+        explicit_scm, explicit_error = _resolve_existing_root(scm_root_value, "scmRoot")
+        if explicit_error is not None:
+            return None, None, explicit_error, clean
+        scm_root = explicit_scm or _default_scm_root(provider, candidate)
+        return str(candidate), str(scm_root), None, clean
 
-    def _route_cwd(ip: str, provider: str = "") -> tuple[str | None, JSONResponse | None, str]:
-        return _scm_cwd_for_ip(ip or active_ip_value(), provider=provider)
+    def _route_roots(
+        ip: str,
+        provider: str = "",
+        scm_root_value: str = "",
+    ) -> tuple[str | None, str | None, JSONResponse | None, str]:
+        return _scm_roots_for_ip(ip or active_ip_value(), provider=provider, scm_root_value=scm_root_value)
+
+    def _root_fields(local_root: str | None, scm_root: str | None) -> dict[str, str | None]:
+        return {"cwd": local_root, "localRoot": local_root, "scmRoot": scm_root}
 
     @app.get("/api/scm/status")
     @app.get("/api/git/status")
-    async def api_git_status(ip: str = "", provider: str = ""):
-        cwd, error, resolved_ip = _route_cwd(ip, provider=provider)
+    async def api_git_status(ip: str = "", provider: str = "", scm_root: str = ""):
+        local_root, scm_root_path, error, resolved_ip = _route_roots(ip, provider=provider, scm_root_value=scm_root)
         if error is not None:
             return error
-        status = await _scm_call(cwd, "status", provider=provider)
+        kwargs = {"local_root": local_root} if _request_provider(provider) == "perforce" else {}
+        status = await _scm_call(scm_root_path, "status", provider=provider, **kwargs)
         payload = {
             "provider": status.get("provider", "git"),
             "branch": status.get("branch", ""),
@@ -111,7 +163,7 @@ def register_git_routes(
             "dirty": bool(status.get("dirty", False)),
             "files": status.get("files", []),
             "ip": resolved_ip,
-            "cwd": cwd,
+            **_root_fields(local_root, scm_root_path),
         }
         if not status.get("ok", True):
             payload["error"] = status.get("error") or "scm status failed"
@@ -119,11 +171,11 @@ def register_git_routes(
 
     @app.get("/api/scm/log")
     @app.get("/api/git/log")
-    async def api_git_log(ip: str = "", limit: int = 60, provider: str = ""):
-        cwd, error, resolved_ip = _route_cwd(ip, provider=provider)
+    async def api_git_log(ip: str = "", limit: int = 60, provider: str = "", scm_root: str = ""):
+        local_root, scm_root_path, error, resolved_ip = _route_roots(ip, provider=provider, scm_root_value=scm_root)
         if error is not None:
             return error
-        log = await _scm_call(cwd, "log", limit, provider=provider)
+        log = await _scm_call(scm_root_path, "log", limit, provider=provider)
         if not log.get("ok", True):
             return JSONResponse({
                 "error": log.get("error") or "scm log failed",
@@ -131,34 +183,36 @@ def register_git_routes(
                 "branch": log.get("branch", ""),
                 "provider": log.get("provider", "git"),
                 "ip": resolved_ip,
+                **_root_fields(local_root, scm_root_path),
             }, status_code=200)
         return JSONResponse({
             "commits": log.get("commits", []),
             "branch": log.get("branch", ""),
             "provider": log.get("provider", "git"),
-            "ip": resolved_ip, "cwd": cwd,
+            "ip": resolved_ip, **_root_fields(local_root, scm_root_path),
         })
 
     @app.get("/api/scm/show")
     @app.get("/api/git/show")
-    async def api_git_show(sha: str = "", revision: str = "", ip: str = "", provider: str = ""):
-        cwd, error, resolved_ip = _route_cwd(ip, provider=provider)
+    async def api_git_show(sha: str = "", revision: str = "", ip: str = "", provider: str = "", scm_root: str = ""):
+        local_root, scm_root_path, error, resolved_ip = _route_roots(ip, provider=provider, scm_root_value=scm_root)
         if error is not None:
             return error
         selected_revision = (sha or revision).strip()
-        provider_name = _scm_provider_for_cwd(cwd, provider=provider)
+        provider_name = _scm_provider_for_root(scm_root_path, provider=provider)
         if not selected_revision:
             return JSONResponse({"error": "invalid revision"}, status_code=400)
         if provider_name == "git" and not re.match(r"^[0-9a-f]{4,40}$", selected_revision):
             return JSONResponse({"error": "invalid sha"}, status_code=400)
         if provider_name != "git" and not re.match(r"^[0-9A-Za-z._/@#:+-]{1,160}$", selected_revision):
             return JSONResponse({"error": "invalid revision"}, status_code=400)
-        result = await _scm_call(cwd, "show", selected_revision, provider=provider)
+        result = await _scm_call(scm_root_path, "show", selected_revision, provider=provider)
         if not result.ok:
             return JSONResponse({
                 "error": result.error or f"scm show {selected_revision} failed",
                 "diff": "",
                 "provider": result.provider,
+                **_root_fields(local_root, scm_root_path),
             }, status_code=200)
         return JSONResponse({
             "sha": selected_revision,
@@ -166,26 +220,30 @@ def register_git_routes(
             "diff": result.stdout,
             "provider": result.provider,
             "ip": resolved_ip,
+            **_root_fields(local_root, scm_root_path),
         })
 
     @app.get("/api/scm/diff")
     @app.get("/api/git/diff")
-    async def api_git_diff(path: str = "", staged: int = 0, ip: str = "", provider: str = ""):
-        cwd, error, resolved_ip = _route_cwd(ip, provider=provider)
+    async def api_git_diff(path: str = "", staged: int = 0, ip: str = "", provider: str = "", scm_root: str = ""):
+        local_root, scm_root_path, error, resolved_ip = _route_roots(ip, provider=provider, scm_root_value=scm_root)
         if error is not None:
             return error
-        result = await _scm_call(cwd, "diff", path, bool(staged), provider=provider)
+        kwargs = {"local_root": local_root} if _request_provider(provider) == "perforce" else {}
+        result = await _scm_call(scm_root_path, "diff", path, bool(staged), provider=provider, **kwargs)
         if not result.ok and not result.stdout:
             return JSONResponse({
                 "error": result.error or "diff failed",
                 "diff": "",
                 "provider": result.provider,
+                **_root_fields(local_root, scm_root_path),
             }, status_code=200)
         return JSONResponse({
             "diff": result.stdout,
             "path": path,
             "provider": result.provider,
             "ip": resolved_ip,
+            **_root_fields(local_root, scm_root_path),
         })
 
     @app.post("/api/scm/submit")
@@ -195,13 +253,21 @@ def register_git_routes(
         message = str(body.get("message", "")).strip()
         add_all = bool((payload or {}).get("add_all", True))
         provider = str(body.get("provider") or "")
+        stream = str(body.get("stream") or "")
+        changelist = str(body.get("changelist") or body.get("change") or "")
+        scm_root_value = str(body.get("scmRoot") or body.get("scm_root") or "")
         if not message:
             return JSONResponse({"error": "commit message required"},
                                  status_code=400)
-        cwd, error, resolved_ip = _route_cwd(str(body.get("ip") or ""), provider=provider)
+        local_root, scm_root_path, error, resolved_ip = _route_roots(
+            str(body.get("ip") or ""), provider=provider, scm_root_value=scm_root_value,
+        )
         if error is not None:
             return error
-        result = await _scm_call(cwd, "submit", message, add_all=add_all, provider=provider)
+        kwargs = {"stream": stream} if stream and _request_provider(provider) == "perforce" else {}
+        if changelist and _request_provider(provider) == "perforce":
+            kwargs["changelist"] = changelist
+        result = await _scm_call(scm_root_path, "submit", message, add_all=add_all, provider=provider, **kwargs)
         return JSONResponse({
             "ok": result.ok,
             "stdout": result.stdout,
@@ -210,6 +276,7 @@ def register_git_routes(
             "returncode": result.returncode,
             "provider": result.provider,
             "ip": resolved_ip,
+            **_root_fields(local_root, scm_root_path),
         })
 
     @app.post("/api/scm/push")
@@ -217,10 +284,13 @@ def register_git_routes(
     async def api_git_push(payload: Optional[dict[str, Any]] = None):
         body = payload or {}
         provider = str(body.get("provider") or "")
-        cwd, error, resolved_ip = _route_cwd(str(body.get("ip") or ""), provider=provider)
+        scm_root_value = str(body.get("scmRoot") or body.get("scm_root") or "")
+        local_root, scm_root_path, error, resolved_ip = _route_roots(
+            str(body.get("ip") or ""), provider=provider, scm_root_value=scm_root_value,
+        )
         if error is not None:
             return error
-        status = await _scm_call(cwd, "status", provider=provider)
+        status = await _scm_call(scm_root_path, "status", provider=provider)
         if not status.get("ok", True):
             return JSONResponse({
                 "ok": False,
@@ -231,12 +301,13 @@ def register_git_routes(
                 "returncode": 78,
                 "provider": status.get("provider", "git"),
                 "ip": resolved_ip,
+                **_root_fields(local_root, scm_root_path),
             }, status_code=200)
         branch = str(status.get("branch", "")).strip()
         if not branch or branch == "HEAD":
             return JSONResponse({"error": "no current branch (detached HEAD?)"},
                                  status_code=400)
-        result = await _scm_call(cwd, "push", branch, provider=provider)
+        result = await _scm_call(scm_root_path, "push", branch, provider=provider)
         return JSONResponse({
             "ok": result.ok,
             "stdout": result.stdout,
@@ -246,9 +317,10 @@ def register_git_routes(
             "returncode": result.returncode,
             "provider": result.provider,
             "ip": resolved_ip,
+            **_root_fields(local_root, scm_root_path),
         })
 
-    def _scm_result_json(result, resolved_ip: str):
+    def _scm_result_json(result, resolved_ip: str, local_root: str | None, scm_root: str | None):
         return JSONResponse({
             "ok": result.ok,
             "stdout": result.stdout,
@@ -257,6 +329,7 @@ def register_git_routes(
             "returncode": result.returncode,
             "provider": result.provider,
             "ip": resolved_ip,
+            **_root_fields(local_root, scm_root),
         })
 
     @app.post("/api/scm/sync")
@@ -268,25 +341,39 @@ def register_git_routes(
         body = payload or {}
         provider = str(body.get("provider") or "")
         revision = str(body.get("revision") or "")
-        cwd, error, resolved_ip = _route_cwd(str(body.get("ip") or ""), provider=provider)
+        stream = str(body.get("stream") or "")
+        scm_root_value = str(body.get("scmRoot") or body.get("scm_root") or "")
+        target_paths = body.get("targetPaths") or body.get("target_paths") or []
+        local_root, scm_root_path, error, resolved_ip = _route_roots(
+            str(body.get("ip") or ""), provider=provider, scm_root_value=scm_root_value,
+        )
         if error is not None:
             return error
         paths = body.get("paths") or []
         if paths:
-            result, _prov, supported = await _scm_optional(cwd, "sync_paths", paths, revision, provider=provider)
+            kwargs = {"local_root": local_root, "target_paths": target_paths}
+            if stream:
+                kwargs["stream"] = stream
+            result, _prov, supported = await _scm_optional(
+                scm_root_path, "sync_paths", paths, revision, provider=provider, **kwargs,
+            )
             if not supported:
-                result = await _scm_call(cwd, "sync", revision, provider=provider)
+                result = await _scm_call(scm_root_path, "sync", revision, provider=provider)
         else:
-            result = await _scm_call(cwd, "sync", revision, provider=provider)
-        return _scm_result_json(result, resolved_ip)
+            kwargs = {"stream": stream} if stream and _request_provider(provider) == "perforce" else {}
+            result = await _scm_call(scm_root_path, "sync", revision, provider=provider, **kwargs)
+        return _scm_result_json(result, resolved_ip, local_root, scm_root_path)
 
     @app.get("/api/scm/pane")
-    async def api_scm_pane(ip: str = "", provider: str = ""):
+    async def api_scm_pane(ip: str = "", provider: str = "", stream: str = "", scm_root: str = ""):
         # Two-pane Perforce Sync view: local / depot / pending. Provider-specific.
-        cwd, error, resolved_ip = _route_cwd(ip, provider=provider)
+        local_root, scm_root_path, error, resolved_ip = _route_roots(ip, provider=provider, scm_root_value=scm_root)
         if error is not None:
             return error
-        state, prov, supported = await _scm_optional(cwd, "sync_state", provider=provider)
+        kwargs = {"local_root": local_root}
+        if stream:
+            kwargs["stream"] = stream
+        state, prov, supported = await _scm_optional(scm_root_path, "sync_state", provider=provider, **kwargs)
         if not supported:
             return JSONResponse({
                 "ok": False,
@@ -294,10 +381,11 @@ def register_git_routes(
                 "ip": resolved_ip,
                 "error": f"pane view is not supported for provider '{prov}'",
                 "local": [], "depot": [], "pending": [],
+                **_root_fields(local_root, scm_root_path),
             }, status_code=200)
         state = dict(state or {})
         state["ip"] = resolved_ip
-        state["cwd"] = cwd
+        state.update(_root_fields(local_root, scm_root_path))
         return JSONResponse(state, status_code=200)
 
     @app.post("/api/scm/add")
@@ -306,47 +394,76 @@ def register_git_routes(
         # pending changelist. Provider-specific (Perforce).
         body = payload or {}
         provider = str(body.get("provider") or "")
+        stream = str(body.get("stream") or "")
         paths = body.get("paths") or []
-        cwd, error, resolved_ip = _route_cwd(str(body.get("ip") or ""), provider=provider)
+        target_paths = body.get("targetPaths") or body.get("target_paths") or []
+        changelist = str(body.get("changelist") or body.get("change") or "")
+        scm_root_value = str(body.get("scmRoot") or body.get("scm_root") or "")
+        local_root, scm_root_path, error, resolved_ip = _route_roots(
+            str(body.get("ip") or ""), provider=provider, scm_root_value=scm_root_value,
+        )
         if error is not None:
             return error
-        result, prov, supported = await _scm_optional(cwd, "open_paths", paths, provider=provider)
+        kwargs = {"local_root": local_root, "target_paths": target_paths, "changelist": changelist}
+        if stream:
+            kwargs["stream"] = stream
+        result, prov, supported = await _scm_optional(scm_root_path, "open_paths", paths, provider=provider, **kwargs)
         if not supported:
             return JSONResponse({
                 "ok": False, "provider": prov, "ip": resolved_ip,
                 "error": f"add/open is not supported for provider '{prov}'",
+                **_root_fields(local_root, scm_root_path),
             }, status_code=200)
-        return _scm_result_json(result, resolved_ip)
+        return _scm_result_json(result, resolved_ip, local_root, scm_root_path)
 
     @app.post("/api/scm/revert")
     async def api_scm_revert(payload: dict[str, Any]):
         # Revert selected pending paths (p4 revert). Provider-specific (Perforce).
         body = payload or {}
         provider = str(body.get("provider") or "")
+        stream = str(body.get("stream") or "")
         paths = body.get("paths") or []
-        cwd, error, resolved_ip = _route_cwd(str(body.get("ip") or ""), provider=provider)
+        scm_root_value = str(body.get("scmRoot") or body.get("scm_root") or "")
+        local_root, scm_root_path, error, resolved_ip = _route_roots(
+            str(body.get("ip") or ""), provider=provider, scm_root_value=scm_root_value,
+        )
         if error is not None:
             return error
-        result, prov, supported = await _scm_optional(cwd, "revert_paths", paths, provider=provider)
+        kwargs = {"stream": stream} if stream else {}
+        result, prov, supported = await _scm_optional(scm_root_path, "revert_paths", paths, provider=provider, **kwargs)
         if not supported:
             return JSONResponse({
                 "ok": False, "provider": prov, "ip": resolved_ip,
                 "error": f"revert is not supported for provider '{prov}'",
+                **_root_fields(local_root, scm_root_path),
             }, status_code=200)
-        return _scm_result_json(result, resolved_ip)
+        return _scm_result_json(result, resolved_ip, local_root, scm_root_path)
 
     @app.post("/api/scm/edit")
     async def api_scm_edit(payload: dict[str, Any]):
         body = payload or {}
         provider = str(body.get("provider") or "")
+        stream = str(body.get("stream") or "")
         paths = body.get("paths") or []
-        cwd, error, resolved_ip = _route_cwd(str(body.get("ip") or ""), provider=provider)
+        target_paths = body.get("targetPaths") or body.get("target_paths") or []
+        source_root = str(body.get("sourceRoot") or body.get("source_root") or "local").strip().lower()
+        changelist = str(body.get("changelist") or body.get("change") or "")
+        scm_root_value = str(body.get("scmRoot") or body.get("scm_root") or "")
+        local_root, scm_root_path, error, resolved_ip = _route_roots(
+            str(body.get("ip") or ""), provider=provider, scm_root_value=scm_root_value,
+        )
         if error is not None:
             return error
-        result, prov, supported = await _scm_optional(cwd, "edit_paths", paths, provider=provider)
+        kwargs = {"target_paths": target_paths, "changelist": changelist}
+        if source_root != "scm":
+            kwargs["local_root"] = local_root
+        if stream:
+            kwargs["stream"] = stream
+        result, prov, supported = await _scm_optional(scm_root_path, "edit_paths", paths, provider=provider, **kwargs)
         if not supported:
             return JSONResponse({
                 "ok": False, "provider": prov, "ip": resolved_ip,
                 "error": f"edit/open is not supported for provider '{prov}'",
+                **_root_fields(local_root, scm_root_path),
             }, status_code=200)
-        return _scm_result_json(result, resolved_ip)
+        return _scm_result_json(result, resolved_ip, local_root, scm_root_path)

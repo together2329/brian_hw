@@ -1,0 +1,16 @@
+[2026-06-02T03:35:43Z] open -a Google Chrome file:///Users/brian/Desktop/andes/wiki/atcuart100.md
+[2026-06-02T03:36:23Z] mcp__computer_use.get_app_state app=Google Chrome observed window title atcuart100.md URL file:///Users/brian/Desktop/andes/wiki/atcuart100.md; accessibility text included id: atcuart100, title: atcuart100 RTL reference, AST RTL facts, register term oscr_reg, APB/DMA interface rows.
+[2026-06-02T03:36:23Z] screencapture -x .omo/ulw-loop/019e865e-3bba-78d2-9f85-9f52c53a37e2/evidence/C003-computer-use-screenshot.png
+[2026-06-02T03:37:42Z] mcp__computer_use.press_key app=Google Chrome key=Escape dismissed local permission prompt without granting access.
+[2026-06-02T03:37:42Z] recaptured clean screenshot after prompt dismissal: C003-computer-use-screenshot.png
+[2026-06-02T03:40:01Z] cleanup: killed hung osascript permission-dismiss attempt pids 92116 92117 if still present; pgrep check recorded separately.
+[2026-06-02T03:40:38Z] mcp__computer_use.click app=Google Chrome x=590 y=395 clicked '허용 안 함' (deny) on permission prompt; no permission granted.
+[2026-06-02T03:40:38Z] recaptured clean screenshot after deny click: C003-computer-use-screenshot.png
+[2026-06-02T03:41:48Z] swift CoreGraphics click x=1320 y=710 attempted to click '허용 안 함' on global permission prompt without granting; screenshot recaptured.
+[2026-06-02T03:42:31Z] swift CoreGraphics click x=705 y=462 attempted point-coordinate deny click on global permission prompt; screenshot recaptured.
+[2026-06-02T03:43:28Z] swift HID CoreGraphics click x=660 y=355 attempted top-prompt deny click without granting; screenshot recaptured.
+[2026-06-02T03:44:21Z] swift HID key Escape attempted to dismiss remaining screen/audio permission prompt without granting; screenshot recaptured.
+[2026-06-02T03:45:36Z] cleanup: remaining permission prompt dismissed without granting; raised Google Chrome and recaptured wiki screenshot.
+[2026-06-02T03:47:28Z] mcp__computer_use.press_key super+f then type_text oscr_reg; Chrome find showed 1/1 and highlighted oscr_reg on atcuart100.md.
+[2026-06-02T03:47:28Z] final screenshot captured with oscr_reg find highlight: C003-computer-use-screenshot.png
+[2026-06-02T03:48:03Z] cleanup: mcp__computer_use.press_key super+w closed QA atcuart100.md tab; Chrome returned to pre-existing ATLAS tab.

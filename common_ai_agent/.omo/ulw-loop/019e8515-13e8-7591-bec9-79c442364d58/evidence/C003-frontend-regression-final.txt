@@ -1,0 +1,15 @@
+
+> test
+> vitest run perforce-sync.test.tsx
+
+
+ RUN  v3.2.4 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/frontend/atlas
+
+ ✓ __tests__/perforce-sync.test.tsx (6 tests) 1389ms
+   ✓ PerforceSyncTab edit action > posts selected local path to /api/scm/edit  646ms
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  12:17:54
+   Duration  4.39s (transform 169ms, setup 139ms, collect 566ms, tests 1.39s, environment 1.33s, prepare 224ms)
+

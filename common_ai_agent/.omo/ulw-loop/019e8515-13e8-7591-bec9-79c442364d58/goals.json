@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "createdAt": "2026-06-02T02:26:23.349Z",
+  "updatedAt": "2026-06-02T03:20:02.304Z",
+  "briefPath": ".omo/ulw-loop/019e8515-13e8-7591-bec9-79c442364d58/brief.md",
+  "goalsPath": ".omo/ulw-loop/019e8515-13e8-7591-bec9-79c442364d58/goals.json",
+  "ledgerPath": ".omo/ulw-loop/019e8515-13e8-7591-bec9-79c442364d58/ledger.jsonl",
+  "codexGoalMode": "aggregate",
+  "goals": [
+    {
+      "id": "G001-use-computer-use-os-level-gui-automa",
+      "title": "Use Computer Use / OS-level GUI automation to properly test the ATLAS...",
+      "objective": "Use Computer Use / OS-level GUI automation to properly test the ATLAS Perforce split-root UI. The running UI must be driven through a real desktop browser/app surface, not only API calls. Verify localRoot and scmRoot are different paths, stream selection exposes two streams, and Add, Sync, Edit, and Submit operate between Local Root and Perforce SCM Root against a real local p4d server. Capture action logs, screenshots, and depot/local state evidence.",
+      "status": "in_progress",
+      "successCriteria": [
+        {
+          "id": "C001",
+          "scenario": "Computer Use happy path: drive Chrome UI with MCP Computer Use for login/navigation and OS-level browser automation for precise clicks; Local Root and Perforce SCM Root are different paths; Add, Submit, Sync, Edit, and Submit complete against real p4d",
+          "userModel": "happy",
+          "expectedEvidence": "C001 evidence includes Computer Use app-state transcript, action log, before/final screenshots, depot/local verification showing added and edited depot files plus synced local file, and no files left opened.",
+          "capturedEvidence": "Computer Use/Safari drove split-root Perforce UI at http://127.0.0.1:18767 with Local Root /tmp/atlas_p4_split_ui_1780364766_75182/project/split_ip and SCM Root /tmp/atlas_p4_split_ui_1780364766_75182/perforce_workspace. Evidence: C001-local-pane-no-blanks-after-fix.png, C001-add-selected-cl-pending.png, C001-add-selected-cl-p4-opened.txt, C001-submit-selected-cl-ui.png, C001-submit-selected-cl-p4.txt, C001-checkout-default-pending.png, C001-checkout-default-p4-opened.txt, C001-checkout-and-edit-pending.png, C001-checkout-and-edit-p4-opened.txt, C001-sync-before-local-missing.png, C001-sync-from-perforce-ui.png, C001-sync-from-perforce-verify.txt. cleanup: p4 opened clean in C001-sync-opened-cleanup.txt; UI/p4d intentionally left running for user validation on 127.0.0.1:18767 and localhost:17889.",
+          "status": "pass",
+          "capturedAt": "2026-06-02T03:19:41.338Z"
+        },
+        {
+          "id": "C002",
+          "scenario": "Computer Use edge case: attempt an invalid/empty UI action in the Perforce tab and prove the UI/API refuses it without leaving Perforce opened files.",
+          "userModel": "edge",
+          "expectedEvidence": "C002 evidence includes Computer Use/browser action log, screenshot or UI text for the invalid action, HTTP/p4 verification that no opened files remain, and cleanup receipt.",
+          "capturedEvidence": "Computer Use/Safari selected only Perforce folder target //GOOD_SOC/GOOD_IP/rtl/ and clicked Checkout; UI rejected it with 'select Perforce files to checkout'. Evidence: C002-folder-checkout-rejected.png and C002-folder-checkout-rejected-opened.txt. cleanup: p4 opened clean; no pending files left opened.",
+          "status": "pass",
+          "capturedAt": "2026-06-02T03:19:53.755Z"
+        },
+        {
+          "id": "C003",
+          "scenario": "Regression: stream selector exposes //GOOD_SOC/GOOD_IP and //GOOD_SOC/GOOD_IP_DEV, Local Root and SCM Root remain independent, and existing Perforce split-root unit/frontend/build checks pass.",
+          "userModel": "regression",
+          "expectedEvidence": "C003 evidence includes browser/UI state dump for roots and streams plus pytest/Vitest/build output.",
+          "capturedEvidence": "Regression evidence: Stream selector opened by Computer Use and showed //GOOD_SOC/GOOD_IP plus //GOOD_SOC/GOOD_IP_DEV; screenshot C003-stream-selector-two-streams.png; roots are separated in C003-split-roots-final.txt; p4 streams in C003-p4-streams-final.txt; Python regression C003-python-regression-final.txt shows 24 passed, 1 skipped, 2 deselected; Vitest C003-frontend-regression-final.txt shows 6 passed; frontend build C003-frontend-build-final.txt passed; git diff check C003-git-diff-check-final.txt is empty. cleanup: no test sessions left running; UI/p4d intentionally left running for user validation.",
+          "status": "pass",
+          "capturedAt": "2026-06-02T03:20:02.304Z"
+        }
+      ],
+      "attempt": 1,
+      "createdAt": "2026-06-02T02:26:23.349Z",
+      "updatedAt": "2026-06-02T03:20:02.304Z",
+      "startedAt": "2026-06-02T02:27:21.157Z"
+    }
+  ],
+  "codexObjective": "Complete the durable ulw-loop plan in .omo/ulw-loop/019e8515-13e8-7591-bec9-79c442364d58/goals.json, including later accepted/appended stories, under the original brief constraints; use .omo/ulw-loop/019e8515-13e8-7591-bec9-79c442364d58/ledger.jsonl as the audit trail.",
+  "activeGoalId": "G001-use-computer-use-os-level-gui-automa"
+}

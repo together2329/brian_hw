@@ -1,0 +1,55 @@
+set -euo pipefail
+
+The default interactive shell is now zsh.
+To update your account to use zsh, please run `chsh -s /bin/zsh`.
+For more details, please visit https://support.apple.com/kb/HT208050.
+bash-3.2$ set -euo pipefail
+bash-3.2$ date -u
+Mon Jun  1 22:37:59 UTC 2026
+bash-3.2$ python3 workflow/mutation/scripts/classify_survivors.py mctp_assembler
+_scratch --root .
+python3 -m pytest -q tests/test_mctp_hardening_artifacts.py
+python3 -c 'import json; from pathlib import Path; c=json.loads(Path("mctp_assem
+bler_scratch/mutation/survivor_classification.json").read_text()); f=json.loads(
+Path("mctp_assembler_scratch/verify/formal_status.json").read_text()); assert c[
+"status"] == "pass" and c["summary"]["classified"] == c["summary"]["total_surviv
+ors"] == 16; assert f["status"] == "optional_not_run" and f["tool"] == "sby" and
+ len(f["properties"]) >= 5; assert Path("mctp_assembler_scratch/verify/safety_pr
+operties.sva").is_file(); print("C002 survivors", c["summary"]); print("C002 for
+mal", f["status"], f["tool"], len(f["properties"]))'
+echo __C002_DONE__; sleep 3600
+[classify_survivors] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent
+/mctp_assembler_scratch/mutation/survivor_classification.json
+[classify_survivors] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent
+/mctp_assembler_scratch/mutation/survivor_classification.md
+[classify_survivors] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent
+/mctp_assembler_scratch/verify/formal_status.json
+[classify_survivors] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent
+/mctp_assembler_scratch/verify/safety_properties.sva
+bash-3.2$ python3 -m pytest -q tests/test_mctp_hardening_artifacts.py
+.python3 -c 'import json; from pathlib import Path; c=json.loads(Path("mctp_asse
+mbler_scratch/mutation/survivor_classification.json").read_text()); f=json.loads
+(Path("mctp_assembler_scratch/verify/formal_status.json").read_text()); assert c
+["status"] == "pass" and c["summary"]["classified"] == c["summary"]["total_survi
+vors"] == 16; assert f["status"] == "optional_not_run" and f["tool"] == "sby" an
+d len(f["properties"]) >= 5; assert Path("mctp_assembler_scratch/verify/safety_p
+roperties.sva").is_file(); print("C002 survivors", c["summary"]); print("C002 fo
+rmal", f["status"], f["tool"], len(f["properties"]))'
+echo __C002_DONE__; sleep 3600
+..                                                                      [100%]
+3 passed in 0.72s
+bash-3.2$ python3 -c 'import json; from pathlib import Path; c=json.loads(Path("
+mctp_assembler_scratch/mutation/survivor_classification.json").read_text()); f=j
+son.loads(Path("mctp_assembler_scratch/verify/formal_status.json").read_text());
+ assert c["status"] == "pass" and c["summary"]["classified"] == c["summary"]["to
+tal_survivors"] == 16; assert f["status"] == "optional_not_run" and f["tool"] ==
+ "sby" and len(f["properties"]) >= 5; assert Path("mctp_assembler_scratch/verify
+/safety_properties.sva").is_file(); print("C002 survivors", c["summary"]); print
+("C002 formal", f["status"], f["tool"], len(f["properties"]))'
+echo __C002_DONE__; sleep 3600
+C002 survivors {'classified': 16, 'equivalent': 0, 'irrelevant': 3, 'test_hole':
+ 13, 'total_survivors': 16}
+C002 formal optional_not_run sby 6
+bash-3.2$ echo __C002_DONE__; sleep 3600
+__C002_DONE__
+

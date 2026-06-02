@@ -1,0 +1,3 @@
+Scenario: C002 missing external DB config edge path
+Command: env -u ATLAS_EXTERNAL_DB_WIKI -u ATLAS_RTL_DB_WIKI python3 -c wiki_query(ip="external-db", topic="atcuart100 register", depth=3)
+[wiki_query] ATLAS_RTL_DB_WIKI is not configured or the path does not exist.

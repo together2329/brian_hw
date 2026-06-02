@@ -1,0 +1,2 @@
+//GOOD_SOC/GOOD_IP/rtl/cu_113300_add.sv#1 - edit default change (text)
+//GOOD_SOC/GOOD_IP/rtl/cu_113300_edit.sv#1 - edit default change (text)

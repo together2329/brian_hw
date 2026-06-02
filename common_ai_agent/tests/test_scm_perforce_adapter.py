@@ -25,7 +25,9 @@ ADAPTER_REF = "core.scm_perforce:PerforceP4Adapter"
 def _p4_ready() -> bool:
     try:
         a = PerforceP4Adapter(PROJECT_ROOT)
-        return a.detect().ok and a._client_root() is not None
+        if not a.detect().ok or a._client_root() is None:
+            return False
+        return a._soften(a._run_p4("opened", a._workspace_scope(), timeout=5)).ok
     except Exception:
         return False
 
@@ -54,6 +56,38 @@ def test_safe_filespecs_rejects_escapes(tmp_path):
     assert specs == [(tmp_path / "a.txt").resolve().as_posix()]
 
 
+def test_safe_filespecs_preserves_literal_client_root(tmp_path):
+    actual_root = tmp_path / "actual_workspace"
+    client_root = tmp_path / "client_workspace"
+    actual_root.mkdir()
+    os.symlink(actual_root, client_root)
+    (client_root / "a.txt").write_text("x", encoding="utf-8")
+
+    class ClientRootAdapter(PerforceP4Adapter):
+        def _info(self) -> dict[str, str]:
+            return {"clientRoot": client_root.as_posix()}
+
+    adapter = ClientRootAdapter(client_root)
+
+    assert adapter.root == actual_root.resolve()
+    assert adapter._safe_filespecs(["a.txt"]) == [(client_root / "a.txt").as_posix()]
+
+
+def test_safe_filespecs_accepts_client_and_depot_specs_for_same_ip(tmp_path):
+    ip_root = tmp_path / "dma_prompt_ip"
+    (ip_root / "req").mkdir(parents=True)
+    (ip_root / "req" / "a.txt").write_text("x", encoding="utf-8")
+
+    adapter = PerforceP4Adapter(ip_root)
+    specs = adapter._safe_filespecs([
+        "//atlas_GOOD_IP/dma_prompt_ip/req/a.txt",
+        "//GOOD_SOC/GOOD_IP/dma_prompt_ip/req/a.txt",
+    ])
+
+    expected = (ip_root / "req" / "a.txt").resolve().as_posix()
+    assert specs == [expected, expected]
+
+
 def test_submit_refused_at_client_root(monkeypatch):
     # When the adapter root equals the client root, submit must refuse so a
     # blanket reconcile can never sweep the whole workspace (.env, etc.).
@@ -70,6 +104,9 @@ def test_edit_paths_runs_p4_edit_and_rejects_escapes(tmp_path):
         def __init__(self, root: Union[str, Path], executable: str = "p4") -> None:
             super().__init__(root, executable=executable)
             self.calls: list[tuple[str, ...]] = []
+
+        def _info(self) -> dict[str, str]:
+            return {}
 
         def _run_p4(self, *args: str, timeout: int = 60):
             self.calls.append(args)
@@ -88,6 +125,382 @@ def test_edit_paths_runs_p4_edit_and_rejects_escapes(tmp_path):
     assert bad.returncode == 2
     assert "no valid paths" in bad.error
     assert invalid.calls == []
+
+
+def test_sync_state_lists_local_disk_files_when_p4_has_no_records(tmp_path):
+    (tmp_path / "rtl").mkdir()
+    (tmp_path / "rtl" / "brian_dma.sv").write_text("module brian_dma; endmodule\n", encoding="utf-8")
+
+    class EmptyPaneAdapter(PerforceP4Adapter):
+        def _info(self) -> dict[str, str]:
+            return {"clientName": "atlas_GOOD_IP", "clientStream": "//GOOD_SOC/GOOD_IP"}
+
+        def _latest_change(self) -> str:
+            return ""
+
+        def _records(self, *args: str, timeout: int = 60):
+            return [], self._result(ok=True)
+
+    state = EmptyPaneAdapter(tmp_path).sync_state()
+
+    assert state["ok"] is True
+    assert state["local"] == [{"path": "rtl/brian_dma.sv", "state": "new"}]
+
+
+def test_sync_state_reports_p4_lookup_errors_instead_of_silent_empty_panes(tmp_path):
+    (tmp_path / "rtl").mkdir()
+    (tmp_path / "rtl" / "brian_dma.sv").write_text("module brian_dma; endmodule\n", encoding="utf-8")
+
+    class ExpiredSessionAdapter(PerforceP4Adapter):
+        def _info(self) -> dict[str, str]:
+            return {"clientName": "atlas_GOOD_IP", "clientStream": "//GOOD_SOC/GOOD_IP"}
+
+        def _latest_change(self) -> str:
+            return ""
+
+        def _records(self, *args: str, timeout: int = 60):
+            return [], self._result(
+                ok=False,
+                stderr="Your session has expired, please login again.",
+                error="Your session has expired, please login again.",
+                returncode=1,
+            )
+
+    state = ExpiredSessionAdapter(tmp_path).sync_state()
+
+    assert state["ok"] is False
+    assert "session has expired" in state["error"]
+    assert state["local"] == [{"path": "rtl/brian_dma.sv", "state": "new"}]
+
+
+def test_sync_state_accepts_selected_stream_and_lists_available_streams(tmp_path):
+    class StreamPaneAdapter(PerforceP4Adapter):
+        def _info(self) -> dict[str, str]:
+            return {
+                "clientName": self._client_for_stream(self._selected_stream),
+                "clientStream": self._selected_stream,
+            }
+
+        def _latest_change(self) -> str:
+            return ""
+
+        def _records(self, *args: str, timeout: int = 60):
+            if args and args[0] == "streams":
+                return [
+                    {"Stream": "//GOOD_SOC/GOOD_IP"},
+                    {"Stream": "//GOOD_SOC/GOOD_IP_DEV"},
+                ], self._result(ok=True)
+            return [], self._result(ok=True)
+
+    state = StreamPaneAdapter(tmp_path).sync_state(stream="//GOOD_SOC/GOOD_IP_DEV")
+
+    assert state["stream"] == "//GOOD_SOC/GOOD_IP_DEV"
+    assert state["client"] == "atlas_GOOD_IP_DEV"
+    assert state["streams"] == ["//GOOD_SOC/GOOD_IP", "//GOOD_SOC/GOOD_IP_DEV"]
+
+
+def test_sync_state_keeps_local_root_and_depot_scope_independent(tmp_path):
+    local_root = tmp_path / "dma_prompt_ip"
+    (local_root / "req").mkdir(parents=True)
+    (local_root / "req" / "local_only.txt").write_text("x", encoding="utf-8")
+    depot_client_file = tmp_path / "perforce_checkout" / "shared" / "remote_only.txt"
+
+    class SplitPaneAdapter(PerforceP4Adapter):
+        def _info(self) -> dict[str, str]:
+            return {"clientName": "atlas_GOOD_IP", "clientStream": "//GOOD_SOC/GOOD_IP"}
+
+        def _latest_change(self) -> str:
+            return "7"
+
+        def _records(self, *args: str, timeout: int = 60):
+            if args and args[0] == "fstat":
+                return [
+                    {
+                        "depotFile": "//GOOD_SOC/GOOD_IP/shared/remote_only.txt",
+                        "clientFile": depot_client_file.as_posix(),
+                        "headRev": "3",
+                        "headAction": "edit",
+                        "haveRev": "3",
+                    },
+                ], self._result(ok=True)
+            return [], self._result(ok=True)
+
+    state = SplitPaneAdapter(local_root).sync_state()
+
+    assert state["ok"] is True
+    assert state["local"] == [{"path": "req/local_only.txt", "state": "new"}]
+    assert state["depot"] == [{"path": "//GOOD_SOC/GOOD_IP/shared/remote_only.txt", "rev": "3"}]
+
+
+def test_sync_state_maps_split_root_have_revision_to_visible_local_path(tmp_path):
+    local_root = tmp_path / "local_ip"
+    p4_root = tmp_path / "perforce_workspace"
+    (local_root / "shared").mkdir(parents=True)
+    (p4_root / "shared").mkdir(parents=True)
+    (local_root / "shared" / "remote_only.txt").write_text("x", encoding="utf-8")
+    depot_client_file = p4_root / "shared" / "remote_only.txt"
+
+    class SplitPaneAdapter(PerforceP4Adapter):
+        def _info(self) -> dict[str, str]:
+            return {"clientName": "atlas_GOOD_IP", "clientStream": "//GOOD_SOC/GOOD_IP"}
+
+        def _latest_change(self) -> str:
+            return "7"
+
+        def _records(self, *args: str, timeout: int = 60):
+            if args and args[0] == "fstat":
+                return [
+                    {
+                        "depotFile": "//GOOD_SOC/GOOD_IP/shared/remote_only.txt",
+                        "clientFile": depot_client_file.as_posix(),
+                        "headRev": "3",
+                        "headAction": "edit",
+                        "haveRev": "3",
+                    },
+                ], self._result(ok=True)
+            return [], self._result(ok=True)
+
+    state = SplitPaneAdapter(p4_root).sync_state(local_root=local_root)
+
+    assert state["ok"] is True
+    assert state["local"] == [{"path": "shared/remote_only.txt", "state": "same"}]
+
+
+def test_sync_paths_copies_depot_filespecs_into_local_root(tmp_path):
+    class RecordingAdapter(PerforceP4Adapter):
+        def __init__(self, root: Union[str, Path], executable: str = "p4") -> None:
+            super().__init__(root, executable=executable)
+            self.calls: list[tuple[str, ...]] = []
+
+        def _run_p4(self, *args: str, timeout: int = 60):
+            self.calls.append(args)
+            return self._result(ok=True, stdout="synced")
+
+    ip_root = tmp_path / "dma_prompt_ip"
+    p4_root = tmp_path / "perforce_workspace"
+    p4_root.mkdir()
+    adapter = RecordingAdapter(p4_root)
+
+    result = adapter.sync_paths([
+        "//GOOD_SOC/GOOD_IP/shared/remote_only.txt",
+        "//GOOD_SOC/GOOD_IP/dma_prompt_ip/req/main_note.txt",
+    ], local_root=ip_root)
+
+    assert result.ok is True
+    assert adapter.calls == [
+        (
+            "print", "-q", "-o",
+            (ip_root / "shared" / "remote_only.txt").as_posix(),
+            "//GOOD_SOC/GOOD_IP/shared/remote_only.txt",
+        ),
+        (
+            "print", "-q", "-o",
+            (ip_root / "req" / "main_note.txt").as_posix(),
+            "//GOOD_SOC/GOOD_IP/dma_prompt_ip/req/main_note.txt",
+        ),
+    ]
+
+
+def test_open_paths_copies_local_file_to_perforce_target(tmp_path):
+    local_root = tmp_path / "local_ip"
+    p4_root = tmp_path / "perforce_workspace"
+    (local_root / "rtl").mkdir(parents=True)
+    p4_root.mkdir()
+    (local_root / "rtl" / "mapped.sv").write_text("module mapped; endmodule\n", encoding="utf-8")
+
+    class RecordingAdapter(PerforceP4Adapter):
+        def __init__(self, root: Union[str, Path], executable: str = "p4") -> None:
+            super().__init__(root, executable=executable)
+            self.calls: list[tuple[str, ...]] = []
+
+        def _records(self, *args: str, timeout: int = 60):
+            if args and args[0] == "fstat":
+                return [{"clientFile": (p4_root / "rtl" / "target.sv").as_posix()}], self._result(ok=True)
+            return [], self._result(ok=True)
+
+        def _run_p4(self, *args: str, timeout: int = 60):
+            self.calls.append(args)
+            return self._result(ok=True, stdout="opened")
+
+    adapter = RecordingAdapter(p4_root)
+
+    result = adapter.open_paths(
+        ["rtl/mapped.sv"],
+        local_root=local_root,
+        target_paths=["//GOOD_SOC/GOOD_IP/rtl/target.sv"],
+    )
+
+    assert result.ok is True
+    assert (p4_root / "rtl" / "target.sv").read_text(encoding="utf-8") == "module mapped; endmodule\n"
+    assert adapter.calls == [("reconcile", (p4_root / "rtl" / "target.sv").as_posix())]
+
+
+def test_open_paths_maps_selected_depot_folder_target(tmp_path):
+    local_root = tmp_path / "local_ip"
+    p4_root = tmp_path / "perforce_workspace"
+    (local_root / "src").mkdir(parents=True)
+    p4_root.mkdir()
+    (local_root / "src" / "mapped.sv").write_text("module mapped; endmodule\n", encoding="utf-8")
+
+    class RecordingAdapter(PerforceP4Adapter):
+        def __init__(self, root: Union[str, Path], executable: str = "p4") -> None:
+            super().__init__(root, executable=executable)
+            self.calls: list[tuple[str, ...]] = []
+
+        def _info(self) -> dict[str, str]:
+            return {"clientRoot": p4_root.as_posix()}
+
+        def _run_p4(self, *args: str, timeout: int = 60):
+            self.calls.append(args)
+            return self._result(ok=True, stdout="opened")
+
+    adapter = RecordingAdapter(p4_root)
+
+    result = adapter.open_paths(
+        ["src/mapped.sv"],
+        local_root=local_root,
+        target_paths=["//GOOD_SOC/GOOD_IP/rtl/"],
+    )
+
+    assert result.ok is True
+    assert (p4_root / "rtl" / "mapped.sv").read_text(encoding="utf-8") == "module mapped; endmodule\n"
+    assert adapter.calls == [("reconcile", (p4_root / "rtl" / "mapped.sv").as_posix())]
+
+
+def test_open_paths_moves_opened_files_to_selected_pending_changelist(tmp_path):
+    local_root = tmp_path / "local_ip"
+    p4_root = tmp_path / "perforce_workspace"
+    (local_root / "rtl").mkdir(parents=True)
+    p4_root.mkdir()
+    (local_root / "rtl" / "mapped.sv").write_text("module mapped; endmodule\n", encoding="utf-8")
+
+    class RecordingAdapter(PerforceP4Adapter):
+        def __init__(self, root: Union[str, Path], executable: str = "p4") -> None:
+            super().__init__(root, executable=executable)
+            self.calls: list[tuple[str, ...]] = []
+
+        def _info(self) -> dict[str, str]:
+            return {"clientRoot": p4_root.as_posix()}
+
+        def _run_p4(self, *args: str, timeout: int = 60):
+            self.calls.append(args)
+            return self._result(ok=True, stdout="opened")
+
+    adapter = RecordingAdapter(p4_root)
+
+    result = adapter.open_paths(
+        ["rtl/mapped.sv"],
+        local_root=local_root,
+        changelist="12",
+    )
+
+    target = p4_root / "rtl" / "mapped.sv"
+    assert result.ok is True
+    assert adapter.calls == [
+        ("reconcile", target.as_posix()),
+        ("reopen", "-c", "12", target.as_posix()),
+    ]
+
+
+def test_pending_changes_list_is_client_wide_so_empty_changelists_are_selectable(tmp_path):
+    class RecordingAdapter(PerforceP4Adapter):
+        def __init__(self, root: Union[str, Path], executable: str = "p4") -> None:
+            super().__init__(root, executable=executable)
+            self.calls: list[tuple[str, ...]] = []
+
+        def _info(self) -> dict[str, str]:
+            return {"clientName": "atlas_GOOD_IP", "clientStream": "//GOOD_SOC/GOOD_IP"}
+
+        def _records(self, *args: str, timeout: int = 60):
+            self.calls.append(args)
+            return [
+                {"change": "12", "desc": "CU selected pending changelist"},
+            ], self._result(ok=True)
+
+    adapter = RecordingAdapter(tmp_path)
+
+    changes, result = adapter._pending_changes()
+
+    assert result.ok is True
+    assert changes == [
+        {"id": "default", "label": "default", "description": ""},
+        {
+            "id": "12",
+            "label": "12 CU selected pending changelist",
+            "description": "CU selected pending changelist",
+        },
+    ]
+    assert adapter.calls == [("changes", "-s", "pending", "-c", "atlas_GOOD_IP")]
+
+
+def test_edit_paths_checks_out_depot_file_to_selected_pending_changelist(tmp_path):
+    p4_root = tmp_path / "perforce_workspace"
+    p4_root.mkdir()
+
+    class RecordingAdapter(PerforceP4Adapter):
+        def __init__(self, root: Union[str, Path], executable: str = "p4") -> None:
+            super().__init__(root, executable=executable)
+            self.calls: list[tuple[str, ...]] = []
+
+        def _run_p4(self, *args: str, timeout: int = 60):
+            self.calls.append(args)
+            return self._result(ok=True, stdout="opened")
+
+    adapter = RecordingAdapter(p4_root)
+
+    result = adapter.edit_paths(["//GOOD_SOC/GOOD_IP/rtl/main.sv"], changelist="12")
+
+    assert result.ok is True
+    assert adapter.calls == [
+        ("edit", "//GOOD_SOC/GOOD_IP/rtl/main.sv"),
+        ("reopen", "-c", "12", "//GOOD_SOC/GOOD_IP/rtl/main.sv"),
+    ]
+
+
+def test_edit_paths_opens_existing_target_before_copy(tmp_path):
+    local_root = tmp_path / "local_ip"
+    p4_root = tmp_path / "perforce_workspace"
+    (local_root / "rtl").mkdir(parents=True)
+    (p4_root / "rtl").mkdir(parents=True)
+    source = local_root / "rtl" / "mapped.sv"
+    target = p4_root / "rtl" / "target.sv"
+    source.write_text("module mapped; endmodule\n", encoding="utf-8")
+    target.write_text("module old; endmodule\n", encoding="utf-8")
+    os.chmod(target, 0o444)
+
+    class RecordingAdapter(PerforceP4Adapter):
+        def __init__(self, root: Union[str, Path], executable: str = "p4") -> None:
+            super().__init__(root, executable=executable)
+            self.calls: list[tuple[str, ...]] = []
+
+        def _info(self) -> dict[str, str]:
+            return {"clientRoot": p4_root.as_posix()}
+
+        def _records(self, *args: str, timeout: int = 60):
+            if args and args[0] == "fstat":
+                return [{"clientFile": target.as_posix()}], self._result(ok=True)
+            return [], self._result(ok=True)
+
+        def _run_p4(self, *args: str, timeout: int = 60):
+            self.calls.append(args)
+            if args and args[0] == "edit":
+                os.chmod(args[1], 0o644)
+            return self._result(ok=True, stdout="opened")
+
+    adapter = RecordingAdapter(p4_root)
+
+    result = adapter.edit_paths(
+        ["rtl/mapped.sv"],
+        local_root=local_root,
+        target_paths=["//GOOD_SOC/GOOD_IP/rtl/target.sv"],
+    )
+
+    assert result.ok is True
+    assert target.read_text(encoding="utf-8") == "module mapped; endmodule\n"
+    assert adapter.calls == [
+        ("edit", target.as_posix()),
+        ("reconcile", target.as_posix()),
+    ]
 
 
 # --------------------------------------------------------------- live server
@@ -130,7 +543,7 @@ def test_live_submit_sync_roundtrip():
 
         assert a.status()["dirty"] is False
     finally:
-        a._run_p4("revert", a._scope)
+        a._run_p4("revert", a._workspace_scope())
         subprocess.run(["p4", "obliterate", "-y", depot_path], capture_output=True, text=True)
         for p in sorted(smoke.rglob("*"), reverse=True):
             try:

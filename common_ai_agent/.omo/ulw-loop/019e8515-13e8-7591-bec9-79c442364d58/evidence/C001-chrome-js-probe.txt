@@ -1,0 +1,2 @@
+--- chrome js probe ---
+71:373: execution error: Google Chrome에 오류 발생: AppleScript를 통한 자바스크립트 실행 기능이 꺼져 있습니다. 이 기능을 사용하도록 설정하려면 메뉴 바에서 보기 > 개발자 > Apple Events의 자바스크립트 허용으로 이동하세요. 자세한 내용은 다음 페이지에서 확인하세요. https://support.google.com/chrome/?p=applescript (12)

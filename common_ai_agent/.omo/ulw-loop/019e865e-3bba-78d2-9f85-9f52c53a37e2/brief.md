@@ -1,0 +1,1 @@
+Test the external RTL wiki skill/tool-call path using ultrawork: verify skills/external-db/SKILL.md instructs wiki_query usage, verify wiki_query can read /Users/brian/Desktop/andes/wiki through ATLAS_EXTERNAL_DB_WIKI, and drive a local GUI view of the external RTL wiki with Computer Use evidence.

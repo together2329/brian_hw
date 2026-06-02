@@ -1,0 +1,11 @@
+Scenario: C001 skill recipe grep
+Command: rg -n "requires_tools|wiki_query\(ip=|Never claim|If nothing matches|ATLAS_EXTERNAL_DB" skills/external-db/SKILL.md
+24:requires_tools: [wiki_query]
+38:SSOT/spec. The deployment wires the source via any one of (newer `ATLAS_EXTERNAL_DB_*`
+54:wiki_query(ip="external-db", topic="<block / interface / topic>", depth=3)
+60:wiki_query(ip="external-db", topic="uart apb dma fifo", depth=3)
+61:wiki_query(ip="external-db", topic="ahb bus matrix interconnect", depth=2)
+62:wiki_query(ip="external-db", topic="spi flash bridge", depth=3)
+63:wiki_query(ip="external-db", topic="module port parameter fsm datapath register memory clock reset docs datasheet", depth=3)
+79:4. **If nothing matches**, say so explicitly and proceed cleanly — never fabricate a citation.
+83:- Never claim something exists in the external DB without a `wiki_query` result backing it.

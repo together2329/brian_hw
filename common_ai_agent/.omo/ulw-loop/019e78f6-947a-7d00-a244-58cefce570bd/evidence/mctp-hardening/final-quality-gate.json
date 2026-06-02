@@ -1,0 +1,33 @@
+{
+  "aiSlopCleaner": {
+    "status": "passed",
+    "evidence": "ai-slop-cleaner executable not present in PATH; scoped no-op recorded. Scoped review and regression were run after blocker fixes."
+  },
+  "verification": {
+    "status": "passed",
+    "commands": [
+      "python3 -m pytest -q tests/test_ip_signoff_gate.py tests/test_mctp_hardening_artifacts.py tests/test_headless_llm_contracts.py::test_rtl_contract_owner_resolution_overrides_existing_owner tests/test_headless_llm_contracts.py::test_axi_readback_last_evidence_accepts_axi_rlast_alias",
+      "python3 workflow/signoff/scripts/check_ip_signoff.py mctp_assembler_scratch --root ."
+    ],
+    "evidence": "11 pytest checks passed; mctp_assembler_scratch signoff status=pass with 18/18 gates."
+  },
+  "codeReview": {
+    "recommendation": "APPROVE",
+    "architectStatus": "CLEAR",
+    "evidence": ".omo/ulw-loop/019e78f6-947a-7d00-a244-58cefce570bd/evidence/mctp-hardening/C003-reviewer.txt"
+  },
+  "criteriaCoverage": {
+    "totalCriteria": 3,
+    "passCount": 3,
+    "adversarialClassesCovered": [
+      "malformed_input",
+      "stale_state",
+      "dirty_worktree",
+      "hung_or_long_commands",
+      "misleading_success_output",
+      "regression",
+      "sampling_limit",
+      "optional_formal_not_overclaimed"
+    ]
+  }
+}

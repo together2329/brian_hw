@@ -1,0 +1,65 @@
+{
+  "status": "pass",
+  "generatedAt": "2026-06-02T03:51:23Z",
+  "scope": "external RTL wiki skill/tool-call QA with Computer Use evidence",
+  "sourceCodeChanges": "none",
+  "aiSlopCleaner": {
+    "status": "not_applicable",
+    "reason": "No production code was changed; the work generated ULW evidence and a planning artifact only."
+  },
+  "reviewer": {
+    "status": "attempted_no_verdict",
+    "evidence": "reviewer-attempts.txt",
+    "reason": "Two codex-ultrawork-reviewer agents were started with the complete evidence set, but neither returned an APPROVE/BLOCK verdict before being closed."
+  },
+  "criteria": [
+    {
+      "id": "C001",
+      "status": "pass",
+      "evidence": [
+        "C001-skill-recipe.txt",
+        "C001-wiki-query-happy.txt"
+      ]
+    },
+    {
+      "id": "C002",
+      "status": "pass",
+      "evidence": [
+        "C002-missing-config-edge.txt"
+      ]
+    },
+    {
+      "id": "C003",
+      "status": "pass",
+      "evidence": [
+        "C003-computer-use-action-log.txt",
+        "C003-computer-use-screenshot.png",
+        "C003-adjacent-regression.txt",
+        "C003-dma-term-check.txt"
+      ]
+    }
+  ],
+  "verification": [
+    {
+      "command": "python3 -m pytest tests/test_wiki_query_tool.py::test_wiki_query_reads_external_rtl_db_wiki_without_ip_scope tests/test_wiki_query_tool.py::test_wiki_query_reports_missing_external_rtl_db_config tests/test_andes_rtl_db_quality.py::test_wiki_query_finds_exact_top_level_fact_terms -q",
+      "result": "3 passed in 1.27s"
+    },
+    {
+      "command": "omo ulw-loop criteria --goal-id G001-test-the-external-rtl-wiki-skill-too --json",
+      "result": "C001 pass, C002 pass, C003 pass"
+    },
+    {
+      "command": "pgrep -fl \"osascript.*System Events\" || true",
+      "result": "no output"
+    }
+  ],
+  "cleanup": [
+    "Chrome QA tab closed with super+w",
+    "Hung osascript processes killed",
+    "No tmux session, bound port, or temporary directory left by this task"
+  ],
+  "notes": [
+    "atcdmac100 exposes canonical DMA request term dma_req, not dma_req_i",
+    "macOS permission prompts were denied or dismissed; no accessibility/screen/audio permission was granted"
+  ]
+}

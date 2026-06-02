@@ -191,6 +191,7 @@ def test_git_provider_override_stays_git_when_default_scm_is_perforce(tmp_path: 
 
 def test_scm_edit_route_uses_perforce_adapter(tmp_path: Path, monkeypatch):
     (tmp_path / "alpha").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "p4_workspace").mkdir(parents=True, exist_ok=True)
     seen: dict[str, object] = {}
 
     class FakePerforceAdapter:
@@ -199,8 +200,12 @@ def test_scm_edit_route_uses_perforce_adapter(tmp_path: Path, monkeypatch):
         def __init__(self, root: str) -> None:
             self.root = root
 
-        def edit_paths(self, paths):
+        def edit_paths(self, paths, *, local_root=None, target_paths=None, stream="", changelist=""):
             seen["paths"] = list(paths)
+            seen["local_root"] = local_root
+            seen["target_paths"] = list(target_paths or [])
+            seen["stream"] = stream
+            seen["changelist"] = changelist
             return SCMCommandResult(
                 ok=True,
                 provider=self.provider,
@@ -219,12 +224,147 @@ def test_scm_edit_route_uses_perforce_adapter(tmp_path: Path, monkeypatch):
     client = _authenticated_client(_create_app(tmp_path, monkeypatch))
     response = client.post(
         "/api/scm/edit",
-        json={"ip": "alpha", "provider": "perforce", "paths": ["foo.v"]},
+        json={
+            "ip": "alpha",
+            "provider": "perforce",
+            "scmRoot": str(tmp_path / "p4_workspace"),
+            "stream": "//GOOD_SOC/GOOD_IP",
+            "paths": ["foo.v"],
+            "targetPaths": ["//GOOD_SOC/GOOD_IP/rtl/foo.v"],
+        },
     )
     assert response.status_code == 200
     payload = response.json()
     assert payload["ok"] is True
     assert payload["provider"] == "perforce"
     assert payload["ip"] == "alpha"
+    assert payload["cwd"] == str(tmp_path / "alpha")
+    assert payload["localRoot"] == str(tmp_path / "alpha")
+    assert payload["scmRoot"] == str(tmp_path / "p4_workspace")
     assert payload["stdout"] == "edit ok"
-    assert seen == {"root": str(tmp_path / "alpha"), "provider": "perforce", "paths": ["foo.v"]}
+    assert seen == {
+        "root": str(tmp_path / "p4_workspace"),
+        "provider": "perforce",
+        "paths": ["foo.v"],
+        "local_root": str(tmp_path / "alpha"),
+        "target_paths": ["//GOOD_SOC/GOOD_IP/rtl/foo.v"],
+        "stream": "//GOOD_SOC/GOOD_IP",
+        "changelist": "",
+    }
+
+
+def test_scm_edit_route_can_checkout_perforce_target_without_local_root(tmp_path: Path, monkeypatch):
+    (tmp_path / "alpha").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "p4_workspace").mkdir(parents=True, exist_ok=True)
+    seen: dict[str, object] = {}
+
+    class FakePerforceAdapter:
+        provider = "perforce"
+
+        def __init__(self, root: str) -> None:
+            self.root = root
+
+        def edit_paths(self, paths, *, local_root=None, target_paths=None, stream="", changelist=""):
+            seen["paths"] = list(paths)
+            seen["local_root"] = local_root
+            seen["target_paths"] = list(target_paths or [])
+            seen["stream"] = stream
+            seen["changelist"] = changelist
+            return SCMCommandResult(
+                ok=True,
+                provider=self.provider,
+                root=self.root,
+                stdout="checkout ok",
+                returncode=0,
+                command=("p4", "edit"),
+            )
+
+    def fake_resolve_scm_adapter(root: str, provider=None):
+        seen["root"] = root
+        seen["provider"] = provider
+        return FakePerforceAdapter(root)
+
+    monkeypatch.setattr("atlas_api_git.resolve_scm_adapter", fake_resolve_scm_adapter)
+    client = _authenticated_client(_create_app(tmp_path, monkeypatch))
+    response = client.post(
+        "/api/scm/edit",
+        json={
+            "ip": "alpha",
+            "provider": "perforce",
+            "scmRoot": str(tmp_path / "p4_workspace"),
+            "stream": "//GOOD_SOC/GOOD_IP",
+            "sourceRoot": "scm",
+            "changelist": "12",
+            "paths": ["//GOOD_SOC/GOOD_IP/rtl/foo.v"],
+        },
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["ok"] is True
+    assert payload["stdout"] == "checkout ok"
+    assert seen == {
+        "root": str(tmp_path / "p4_workspace"),
+        "provider": "perforce",
+        "paths": ["//GOOD_SOC/GOOD_IP/rtl/foo.v"],
+        "local_root": None,
+        "target_paths": [],
+        "stream": "//GOOD_SOC/GOOD_IP",
+        "changelist": "12",
+    }
+
+
+def test_scm_submit_route_passes_selected_perforce_changelist(tmp_path: Path, monkeypatch):
+    (tmp_path / "alpha").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "p4_workspace").mkdir(parents=True, exist_ok=True)
+    seen: dict[str, object] = {}
+
+    class FakePerforceAdapter:
+        provider = "perforce"
+
+        def __init__(self, root: str) -> None:
+            self.root = root
+
+        def submit(self, message: str, *, add_all=True, stream="", changelist=""):
+            seen["message"] = message
+            seen["add_all"] = add_all
+            seen["stream"] = stream
+            seen["changelist"] = changelist
+            return SCMCommandResult(
+                ok=True,
+                provider=self.provider,
+                root=self.root,
+                stdout="submit ok",
+                returncode=0,
+                command=("p4", "submit"),
+            )
+
+    def fake_resolve_scm_adapter(root: str, provider=None):
+        seen["root"] = root
+        seen["provider"] = provider
+        return FakePerforceAdapter(root)
+
+    monkeypatch.setattr("atlas_api_git.resolve_scm_adapter", fake_resolve_scm_adapter)
+    client = _authenticated_client(_create_app(tmp_path, monkeypatch))
+    response = client.post(
+        "/api/scm/submit",
+        json={
+            "ip": "alpha",
+            "provider": "perforce",
+            "scmRoot": str(tmp_path / "p4_workspace"),
+            "stream": "//GOOD_SOC/GOOD_IP",
+            "message": "submit selected pending",
+            "add_all": False,
+            "changelist": "12",
+        },
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["ok"] is True
+    assert seen == {
+        "root": str(tmp_path / "p4_workspace"),
+        "provider": "perforce",
+        "message": "submit selected pending",
+        "add_all": False,
+        "stream": "//GOOD_SOC/GOOD_IP",
+        "changelist": "12",
+    }

@@ -1,0 +1,14 @@
+{
+  "goal": {
+    "threadId": "019e78f6-947a-7d00-a244-58cefce570bd",
+    "objective": "make 10 ip with this each turn need to be enhanced.",
+    "status": "complete",
+    "tokensUsed": 402904,
+    "timeUsedSeconds": 1427,
+    "createdAt": 1780158345,
+    "updatedAt": 1780159773
+  },
+  "remainingTokens": null,
+  "completionBudgetReport": null,
+  "note": "Codex goal state was already complete for an older aggregate objective in this thread; OMO ulw-loop state is the authoritative active signoff state for G001-mctp-signoff-refresh-close-mctp-asse."
+}

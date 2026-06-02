@@ -1,0 +1,9 @@
+Scenario: C001 wiki_query happy path
+Command: wiki_query(ip="external-db", topic="atcuart100 register oscr_reg", depth=3, max_nodes=3)
+# wiki_query [scope=rtl-db] depth=3 matches=1/502 shown=1
+## fact-atcuart100-registers-001 [reference]
+title: atcuart100 register facts 1-59 · path: andes/wiki/fact-atcuart100-registers-001.md · tags: rtl-db, andes, fact, atcuart100, registers, register, prdata, oscr_reg, ier_reg, dll_reg, dlm_reg, fcr_reg, lcr_reg, mcr_reg, scr_reg, txfifo_empty_d1_r, txfifo_empty_intr_r, msr_ddcd_r, msr_teri_r, msr_ddsr_r, msr_dcts_r, baud_initial_r, baud_cnt_r, baud_active_d_r, loop_cts_d_r, loop_dsr_d_r, loop_ri_d_r, loop_dcd_d_r, auto_cts_d_r, rxfifo_overrun_r, rx_timeout_r, lsr_readed_r, rx_buffer_empty_d_r, stfifo_temp_r, stfifo_error_r, stfifo_error_ptr_r, triggerred_r, dma_rx_req_r, uart_tx_busy_d_r, dma_tx_req_r, uart_rx_cs_r, uart_rx_ns, bit_period_cnt_r, bit_period_cnt_nx, loop_sin_sample_r, loop_sin_sample_nx, rx_buffer_r, rx_buffer_nx, parity_err_r, parity_err_nx, framing_err_r, framing_err_nx, rx_break_r, rx_break_nx, timeout_cnt_r, timeout_cnt_nx, uart_tx_cs_r, uart_tx_ns, tx_buffer_out_r, tx_buffer_out_nx, data_parity_r, data_parity_nx, pre_uart_sout, tx_buffer_r, tx_buffer_nx
+links: [[atcuart100]] [[facts-atcuart100-registers]] [[rtl-inventory]] [[coverage]]
+Exact `register` terms generated from `_rtl_facts/atcuart100.json`: `prdata`, `oscr_reg`, `ier_reg`, `dll_reg`, `dlm_reg`, `fcr_reg`, `lcr_reg`, `mcr_reg`, `scr_reg`, `txfifo_empty_d1_r`, `txfifo_empty_intr_r`, `msr_ddcd_r`, `msr_teri_r`, `msr_ddsr_r`, `msr_dcts_r`, `baud_initial_r`, `baud_cnt_r`, `baud_active_d_r`, `loop_cts_d_r`, `loop_dsr_d_r`,…
+
+Drill deeper with `wiki_query(ip='rtl-db', topic="<keyword>", depth=3)` or re-run `python3 workflow/wiki/build_graph.py --wiki "$ATLAS_RTL_DB_WIKI" --quiet`.

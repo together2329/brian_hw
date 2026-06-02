@@ -1,0 +1,15 @@
+[delay] console:info: [atlas-shim] static preview shim active — backend calls are mocked
+[delay] console:info: [atlas] backend ready · mode=live
+[delay] console:debug: [vite] connecting...
+[delay] console:info: %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+[delay] emit token burst: frontend burst qa 1780323726942
+[delay] PASS token burst visible and agent running cleared
+[delay] PASS switchSession brian/axi_dma/coverage happened before delayed activate-end and no default IP route was used
+[delay] cleanup: closed Playwright context
+[forbidden] console:info: [atlas-shim] static preview shim active — backend calls are mocked
+[forbidden] console:info: [atlas] backend ready · mode=live
+[forbidden] console:debug: [vite] connecting...
+[forbidden] console:info: %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+[forbidden] PASS 403 activation produced no /wf coverage prompt
+[forbidden] cleanup: closed Playwright context
+cleanup: browser.close() completed

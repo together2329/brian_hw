@@ -1,0 +1,20 @@
+Change 12 on 2026/06/02 by atlasdemo@atlas_GOOD_IP 'CU selected pending changelist '
+Change 11 on 2026/06/02 by atlasdemo@atlas_GOOD_IP 'computer use add cu_113300'
+Change 10 on 2026/06/02 by atlasdemo@atlas_GOOD_IP 'seed cu_113300 sync edit files'
+--- opened:
+--- fstat new file:
+... depotFile //GOOD_SOC/GOOD_IP/rtl/cu_120910_selected_add.sv
+... clientFile /tmp/atlas_p4_split_ui_1780364766_75182/perforce_workspace/rtl/cu_120910_selected_add.sv
+... isMapped 
+... headAction add
+... headType text
+... headTime 1780369884
+... headRev 1
+... headChange 12
+... headModTime 1780369781
+... pathSource //GOOD_SOC/GOOD_IP
+... pathType share
+... pathPermissions writable
+... effectiveComponentType none
+... haveRev 1
+

@@ -1,0 +1,27 @@
+Reviewer status for C003 final signoff
+
+codex-ultrawork-reviewer attempts:
+- mctp_signoff_reviewer: closed after repeated timeouts while running.
+- mctp_signoff_reviewer_2: closed after repeated timeouts while running.
+- mctp_signoff_reviewer_3: closed after timeout while running.
+
+Fallback independent reviewer:
+- Agent: /root/mctp_fallback_independent_review
+- Status: PASS
+
+Reviewer finding summary:
+- The three requested evidence transcripts are real tmux QA runs with cleanup receipts.
+- The recorded transcript outputs match current JSON artifacts:
+  - ip_signoff.json reports 17/17 gates pass.
+  - truth_coverage.json reports 95/95 covered with uncovered_required=0.
+  - mutation_report.json reports pass, 32 candidates, 16 killed, 16 survived, kill_rate=0.5.
+  - simulation_quality.json reports pass with 0 issues.
+- The RTL style scan over mctp_assembler_scratch/rtl/*.sv returned no forbidden constructs.
+- The truth-coverage gate does not hide missing requirements:
+  - workflow/reqcov/scripts/check_truth_coverage.py builds obligations from direct SSOT and optional requirement ledger.
+  - Missing required obligations are emitted as failures.
+  - tests/test_truth_coverage_gate.py covers direct SSOT pass, direct SSOT missing-obligation fail, optional req ledger fail, and structured alias crediting.
+- Targeted verification observed by reviewer: pytest -q tests/test_truth_coverage_gate.py returned 4 passed.
+
+Residual risk:
+- codex-ultrawork-reviewer role did not return a completed result in this session; fallback independent read-only review was used to avoid silently skipping final review.

@@ -1,0 +1,90 @@
+FFF                                                                      [100%]
+=================================== FAILURES ===================================
+____________ test_directed_scenarios_have_dut_observed_e2e_summary _____________
+
+    def test_directed_scenarios_have_dut_observed_e2e_summary() -> None:
+        manifest = _read_json(IP_DIR / "tc" / "scenario_manifest.json")
+        scenario_items = cast(list[dict[str, Any]], manifest["scenarios"])
+        expected_ids = {
+            str(item["scenario_id"])
+            for item in scenario_items
+            if isinstance(item, dict)
+        }
+    
+>       summary = _read_json(IP_DIR / "sim" / "scenario_e2e_summary.json")
+
+tests/test_mctp_hardening_artifacts.py:25: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_mctp_hardening_artifacts.py:13: in _read_json
+    return json.loads(path.read_text(encoding="utf-8"))
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py:1256: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py:1242: in open
+    return io.open(self, mode, buffering, encoding, errors, newline,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/sim/scenario_e2e_summary.json')
+name = '/Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/sim/scenario_e2e_summary.json'
+flags = 16777216, mode = 438
+
+    def _opener(self, name, flags, mode=0o666):
+        # A stub for the opener argument to built-in open()
+>       return self._accessor.open(self, flags, mode)
+E       FileNotFoundError: [Errno 2] No such file or directory: '/Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/sim/scenario_e2e_summary.json'
+
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py:1110: FileNotFoundError
+________________ test_monitors_prove_sram_axi_and_apb_hardening ________________
+
+    def test_monitors_prove_sram_axi_and_apb_hardening() -> None:
+>       monitor = _read_json(IP_DIR / "sim" / "monitor_evidence.json")
+
+tests/test_mctp_hardening_artifacts.py:42: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_mctp_hardening_artifacts.py:13: in _read_json
+    return json.loads(path.read_text(encoding="utf-8"))
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py:1256: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py:1242: in open
+    return io.open(self, mode, buffering, encoding, errors, newline,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/sim/monitor_evidence.json')
+name = '/Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/sim/monitor_evidence.json'
+flags = 16777216, mode = 438
+
+    def _opener(self, name, flags, mode=0o666):
+        # A stub for the opener argument to built-in open()
+>       return self._accessor.open(self, flags, mode)
+E       FileNotFoundError: [Errno 2] No such file or directory: '/Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/sim/monitor_evidence.json'
+
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py:1110: FileNotFoundError
+_________ test_survived_mutants_are_classified_and_formal_is_recorded __________
+
+    def test_survived_mutants_are_classified_and_formal_is_recorded() -> None:
+>       classification = _read_json(IP_DIR / "mutation" / "survivor_classification.json")
+
+tests/test_mctp_hardening_artifacts.py:63: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_mctp_hardening_artifacts.py:13: in _read_json
+    return json.loads(path.read_text(encoding="utf-8"))
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py:1256: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py:1242: in open
+    return io.open(self, mode, buffering, encoding, errors, newline,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/mutation/survivor_classification.json')
+name = '/Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/mutation/survivor_classification.json'
+flags = 16777216, mode = 438
+
+    def _opener(self, name, flags, mode=0o666):
+        # A stub for the opener argument to built-in open()
+>       return self._accessor.open(self, flags, mode)
+E       FileNotFoundError: [Errno 2] No such file or directory: '/Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/mutation/survivor_classification.json'
+
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py:1110: FileNotFoundError
+=========================== short test summary info ============================
+FAILED tests/test_mctp_hardening_artifacts.py::test_directed_scenarios_have_dut_observed_e2e_summary
+FAILED tests/test_mctp_hardening_artifacts.py::test_monitors_prove_sram_axi_and_apb_hardening
+FAILED tests/test_mctp_hardening_artifacts.py::test_survived_mutants_are_classified_and_formal_is_recorded
+3 failed in 1.11s

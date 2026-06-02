@@ -1,0 +1,3 @@
+PASS local file restored and matches SCM workspace
+local=/tmp/atlas_p4_split_ui_1780364766_75182/project/split_ip/rtl/ui_sync_seed.sv
+scm=/tmp/atlas_p4_split_ui_1780364766_75182/perforce_workspace/rtl/ui_sync_seed.sv

@@ -1,0 +1,2 @@
+Stream //GOOD_SOC/GOOD_IP mainline none 'GOOD_IP'
+Stream //GOOD_SOC/GOOD_IP_DEV development //GOOD_SOC/GOOD_IP 'GOOD_IP_DEV'

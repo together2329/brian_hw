@@ -1,0 +1,25 @@
+[check_truth_coverage] status=pass summary={'obligations': 95, 'covered': 95, 'u
+ncovered_required': 0, 'evidence_tokens': 758}
+[check_truth_coverage] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_age
+nt/mctp_assembler_scratch/signoff/truth_coverage.json
+QA_EXIT:0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+cleanup: killed tmux session ulw-qa-mctp-truth; verified session absent

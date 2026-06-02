@@ -1,0 +1,73 @@
+FFFF                                                                     [100%]
+=================================== FAILURES ===================================
+___________ test_scenario_e2e_summary_has_all_26_directed_scenarios ____________
+
+    def test_scenario_e2e_summary_has_all_26_directed_scenarios() -> None:
+>       payload = _read_json(IP_DIR / "sim" / "scenario_e2e_summary.json")
+
+tests/test_mctp_hardening_artifacts.py:19: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/sim/scenario_e2e_summary.json')
+
+    def _read_json(path: Path) -> dict[str, object]:
+>       assert path.is_file(), f"missing artifact: {path}"
+E       AssertionError: missing artifact: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/sim/scenario_e2e_summary.json
+E       assert False
+E        +  where False = is_file()
+E        +    where is_file = PosixPath('/Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/sim/scenario_e2e_summary.json').is_file
+
+tests/test_mctp_hardening_artifacts.py:12: AssertionError
+_____________ test_monitor_evidence_has_required_hardening_checks ______________
+
+    def test_monitor_evidence_has_required_hardening_checks() -> None:
+>       payload = _read_json(IP_DIR / "sim" / "monitor_evidence.json")
+
+tests/test_mctp_hardening_artifacts.py:36: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/sim/monitor_evidence.json')
+
+    def _read_json(path: Path) -> dict[str, object]:
+>       assert path.is_file(), f"missing artifact: {path}"
+E       AssertionError: missing artifact: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/sim/monitor_evidence.json
+E       assert False
+E        +  where False = is_file()
+E        +    where is_file = PosixPath('/Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/sim/monitor_evidence.json').is_file
+
+tests/test_mctp_hardening_artifacts.py:12: AssertionError
+______________ test_survivor_classification_covers_all_survivors _______________
+
+    def test_survivor_classification_covers_all_survivors() -> None:
+>       payload = _read_json(IP_DIR / "mutation" / "survivor_classification.json")
+
+tests/test_mctp_hardening_artifacts.py:47: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/mutation/survivor_classification.json')
+
+    def _read_json(path: Path) -> dict[str, object]:
+>       assert path.is_file(), f"missing artifact: {path}"
+E       AssertionError: missing artifact: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/mutation/survivor_classification.json
+E       assert False
+E        +  where False = is_file()
+E        +    where is_file = PosixPath('/Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/mutation/survivor_classification.json').is_file
+
+tests/test_mctp_hardening_artifacts.py:12: AssertionError
+_______________ test_optional_formal_status_and_properties_exist _______________
+
+    def test_optional_formal_status_and_properties_exist() -> None:
+        properties = IP_DIR / "verify" / "safety_properties.sva"
+>       assert properties.is_file(), f"missing artifact: {properties}"
+E       AssertionError: missing artifact: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/verify/safety_properties.sva
+E       assert False
+E        +  where False = is_file()
+E        +    where is_file = PosixPath('/Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/verify/safety_properties.sva').is_file
+
+tests/test_mctp_hardening_artifacts.py:63: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_mctp_hardening_artifacts.py::test_scenario_e2e_summary_has_all_26_directed_scenarios
+FAILED tests/test_mctp_hardening_artifacts.py::test_monitor_evidence_has_required_hardening_checks
+FAILED tests/test_mctp_hardening_artifacts.py::test_survivor_classification_covers_all_survivors
+FAILED tests/test_mctp_hardening_artifacts.py::test_optional_formal_status_and_properties_exist
+4 failed in 0.74s

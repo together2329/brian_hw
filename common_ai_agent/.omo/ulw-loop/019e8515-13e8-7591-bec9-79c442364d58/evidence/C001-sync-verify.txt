@@ -1,0 +1,13 @@
+--- local root files ---
+/tmp/atlas_p4_split_ui_1780364766_75182/project/split_ip/rtl/cu_113300_add.sv
+/tmp/atlas_p4_split_ui_1780364766_75182/project/split_ip/rtl/cu_113300_edit.sv
+/tmp/atlas_p4_split_ui_1780364766_75182/project/split_ip/rtl/cu_113300_sync.sv
+/tmp/atlas_p4_split_ui_1780364766_75182/project/split_ip/rtl/local_add_seed.sv
+/tmp/atlas_p4_split_ui_1780364766_75182/project/split_ip/rtl/remote_seed.sv
+/tmp/atlas_p4_split_ui_1780364766_75182/project/split_ip/rtl/ui_add_seed.sv
+/tmp/atlas_p4_split_ui_1780364766_75182/project/split_ip/rtl/ui_edit_seed.sv
+/tmp/atlas_p4_split_ui_1780364766_75182/project/split_ip/rtl/ui_sync_seed.sv
+--- synced file content ---
+module cu_113300_sync; endmodule
+--- p4 opened ---
+File(s) not opened on this client.

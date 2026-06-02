@@ -1,0 +1,19 @@
+run_id=cu_113300
+local_root=/tmp/atlas_p4_split_ui_1780364766_75182/project/split_ip
+scm_root=/tmp/atlas_p4_split_ui_1780364766_75182/perforce_workspace
+add_file=rtl/cu_113300_add.sv
+sync_file=rtl/cu_113300_sync.sv
+edit_file=rtl/cu_113300_edit.sv
+local_root_real=/private/tmp/atlas_p4_split_ui_1780364766_75182/project/split_ip
+scm_root_real=/private/tmp/atlas_p4_split_ui_1780364766_75182/perforce_workspace
+--- create local add/edit sources
+--- seed depot sync/edit files
+//GOOD_SOC/GOOD_IP/rtl/cu_113300_sync.sv#1 - opened for add
+//GOOD_SOC/GOOD_IP/rtl/cu_113300_edit.sv#1 - opened for add
+Submitting change 10.
+Locking 2 files ...
+add //GOOD_SOC/GOOD_IP/rtl/cu_113300_edit.sv#1
+add //GOOD_SOC/GOOD_IP/rtl/cu_113300_sync.sv#1
+Change 10 submitted.
+--- opened after seed
+File(s) not opened on this client.
