@@ -616,6 +616,60 @@ CREATE INDEX IF NOT EXISTS idx_session_runtime_dbs_uid
     ON session_runtime_dbs(session_uid);
 CREATE INDEX IF NOT EXISTS idx_session_runtime_dbs_status
     ON session_runtime_dbs(status, updated_at);
+
+-- runtime_usage_rollups (CONTROL-DB periodic aggregate of per-session runtime DBs)
+-- One row per session. Once IPC/trace/llm rows live in per-session runtime files
+-- (plan §2.1), admin/dashboard usage that historically SELECTed the single
+-- control DB would either go empty or have to fan out across ~100 runtime files
+-- per request. Instead a periodic rollup (core/runtime_rollup.py) folds NEW rows
+-- from each runtime DB INTO this table; readers query rollups WITHOUT opening a
+-- runtime file (plan §2.10 / R8). Counts/sums only — admin tabs that need
+-- per-row dimensions (per-tool usage, interventions, todo-flow) are marked
+-- "summary-only in runtime mode" rather than reconstructed from these totals.
+CREATE TABLE IF NOT EXISTS runtime_usage_rollups (
+    session_id TEXT PRIMARY KEY,
+    session_uid TEXT,
+    user_id TEXT,
+    owner TEXT,
+    ip TEXT,
+    workflow TEXT,
+    runtime_db_path TEXT,
+    llm_calls INTEGER NOT NULL DEFAULT 0,
+    tokens_input INTEGER NOT NULL DEFAULT 0,
+    tokens_output INTEGER NOT NULL DEFAULT 0,
+    tokens_reasoning INTEGER NOT NULL DEFAULT 0,
+    cache_read_tokens INTEGER NOT NULL DEFAULT 0,
+    cache_write_tokens INTEGER NOT NULL DEFAULT 0,
+    cost_usd REAL NOT NULL DEFAULT 0,
+    trace_events INTEGER NOT NULL DEFAULT 0,
+    messages INTEGER NOT NULL DEFAULT 0,
+    queue_in INTEGER NOT NULL DEFAULT 0,
+    queue_out INTEGER NOT NULL DEFAULT 0,
+    status TEXT NOT NULL DEFAULT 'ok',
+    updated_at REAL,
+    rollup_lag_s REAL
+);
+CREATE INDEX IF NOT EXISTS idx_runtime_usage_rollups_user
+    ON runtime_usage_rollups(user_id, updated_at);
+CREATE INDEX IF NOT EXISTS idx_runtime_usage_rollups_status
+    ON runtime_usage_rollups(status, updated_at);
+
+-- runtime_rollup_offsets (per session_id + per source table monotonic high-water)
+-- The rollup is idempotent: for each runtime source table it stores the highest
+-- SQLite ``rowid`` already folded into runtime_usage_rollups. A re-run aggregates
+-- ONLY rows with rowid > last_rowid, then advances the offset, so repeated runs
+-- never double-count (plan §2.10 / R1: high-water is the monotonic per-file
+-- rowid, NEVER (created_at, uuid) — created_at is wall-clock and the id is a
+-- random uuid).
+CREATE TABLE IF NOT EXISTS runtime_rollup_offsets (
+    session_id TEXT NOT NULL,
+    source_table TEXT NOT NULL,
+    last_rowid INTEGER NOT NULL DEFAULT 0,
+    updated_at REAL,
+    PRIMARY KEY (session_id, source_table)
+);
+CREATE INDEX IF NOT EXISTS idx_runtime_rollup_offsets_session
+    ON runtime_rollup_offsets(session_id);
 """
 
 # Runtime-only schema subset.
@@ -2297,6 +2351,430 @@ class AtlasDB:
                 (status,),
             )
         return [self._row_to_dict(row, "session_runtime_dbs") for row in rows]
+
+    # ---------- Runtime usage rollups (control DB only) ----------
+    #
+    # These helpers are the control-DB persistence surface used by
+    # ``core/runtime_rollup.py`` (Task 7). They are intentionally thin: the
+    # aggregation logic + idempotency contract live in the rollup module; here we
+    # only read/advance the high-water offsets and upsert the per-session
+    # aggregate row. All methods are control-DB-only (the rollup module always
+    # opens them via ``AtlasDBRouter().control_db()``).
+
+    def get_rollup_offset(self, session_id: str, source_table: str) -> int:
+        """Return the stored monotonic high-water rowid for one source table.
+
+        Zero means "nothing folded yet" (a runtime DB rowid is >= 1), so the
+        first rollup aggregates every row with ``rowid > 0`` (all of them).
+        """
+        row = self._fetchone(
+            "SELECT last_rowid FROM runtime_rollup_offsets "
+            "WHERE session_id = ? AND source_table = ?",
+            (session_id, source_table),
+        )
+        if row is None:
+            return 0
+        try:
+            return int(row["last_rowid"] or 0)
+        except (TypeError, ValueError):
+            return 0
+
+    def set_rollup_offset(
+        self, session_id: str, source_table: str, last_rowid: int
+    ) -> None:
+        """Advance (upsert) the high-water rowid for one source table.
+
+        Never regresses: an offset only moves forward. This makes a re-run on a
+        runtime DB that gained no new rows a no-op (R1 idempotency).
+        """
+        now = self._now()
+        with self._lock:
+            conn = self._connect()
+            conn.execute(
+                """
+                INSERT INTO runtime_rollup_offsets
+                    (session_id, source_table, last_rowid, updated_at)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(session_id, source_table) DO UPDATE SET
+                    last_rowid = MAX(runtime_rollup_offsets.last_rowid, excluded.last_rowid),
+                    updated_at = excluded.updated_at
+                """,
+                (session_id, source_table, int(last_rowid or 0), now),
+            )
+            conn.commit()
+
+    def get_runtime_usage_rollup(self, session_id: str) -> Optional[Dict[str, Any]]:
+        """Return the rollup row for *session_id*, or None."""
+        row = self._fetchone(
+            "SELECT * FROM runtime_usage_rollups WHERE session_id = ?",
+            (session_id,),
+        )
+        if row is None:
+            return None
+        return self._row_to_dict(row, "runtime_usage_rollups")
+
+    def list_runtime_usage_rollups(
+        self, user_id: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """List rollup rows, optionally scoped to one user."""
+        if user_id is None:
+            rows = self._fetchall(
+                "SELECT * FROM runtime_usage_rollups ORDER BY updated_at DESC"
+            )
+        else:
+            rows = self._fetchall(
+                "SELECT * FROM runtime_usage_rollups WHERE user_id = ? "
+                "ORDER BY updated_at DESC",
+                (user_id,),
+            )
+        return [self._row_to_dict(row, "runtime_usage_rollups") for row in rows]
+
+    def add_runtime_usage_rollup_delta(
+        self,
+        session_id: str,
+        *,
+        deltas: Dict[str, Any],
+        identity: Optional[Dict[str, Any]] = None,
+        status: str = "ok",
+        rollup_lag_s: Optional[float] = None,
+    ) -> Dict[str, Any]:
+        """Fold a batch of NEW-row aggregates into the session's rollup row.
+
+        ``deltas`` carries integer/float counters (llm_calls, tokens_*,
+        cache_*, cost_usd, trace_events, messages, queue_in, queue_out). They are
+        ADDED to the existing row (idempotency comes from the caller only passing
+        rows beyond the stored offset — see ``runtime_rollup``). ``identity`` sets
+        the descriptive columns (session_uid/user_id/owner/ip/workflow/
+        runtime_db_path) which are overwritten, not summed.
+
+        ``status`` / ``rollup_lag_s`` are set absolutely so a fresh, healthy
+        rollup clears a previously-recorded 'stale'/'error' status.
+        """
+        identity = identity or {}
+        now = self._now()
+        _COUNTERS = (
+            "llm_calls",
+            "tokens_input",
+            "tokens_output",
+            "tokens_reasoning",
+            "cache_read_tokens",
+            "cache_write_tokens",
+            "cost_usd",
+            "trace_events",
+            "messages",
+            "queue_in",
+            "queue_out",
+        )
+
+        def _num(value: Any) -> float:
+            try:
+                return float(value or 0)
+            except (TypeError, ValueError):
+                return 0.0
+
+        with self._lock:
+            conn = self._connect()
+            existing = conn.execute(
+                "SELECT * FROM runtime_usage_rollups WHERE session_id = ?",
+                (session_id,),
+            ).fetchone()
+            base = dict(existing) if existing is not None else {}
+            merged: Dict[str, Any] = {}
+            for col in _COUNTERS:
+                merged[col] = _num(base.get(col)) + _num(deltas.get(col))
+            # Integer counters stay integers; cost stays float.
+            for col in _COUNTERS:
+                if col != "cost_usd":
+                    merged[col] = int(round(merged[col]))
+            ident = {
+                "session_uid": identity.get("session_uid", base.get("session_uid")),
+                "user_id": identity.get("user_id", base.get("user_id")),
+                "owner": identity.get("owner", base.get("owner")),
+                "ip": identity.get("ip", base.get("ip")),
+                "workflow": identity.get("workflow", base.get("workflow")),
+                "runtime_db_path": identity.get(
+                    "runtime_db_path", base.get("runtime_db_path")
+                ),
+            }
+            conn.execute(
+                """
+                INSERT INTO runtime_usage_rollups
+                    (session_id, session_uid, user_id, owner, ip, workflow,
+                     runtime_db_path, llm_calls, tokens_input, tokens_output,
+                     tokens_reasoning, cache_read_tokens, cache_write_tokens,
+                     cost_usd, trace_events, messages, queue_in, queue_out,
+                     status, updated_at, rollup_lag_s)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(session_id) DO UPDATE SET
+                    session_uid = excluded.session_uid,
+                    user_id = excluded.user_id,
+                    owner = excluded.owner,
+                    ip = excluded.ip,
+                    workflow = excluded.workflow,
+                    runtime_db_path = excluded.runtime_db_path,
+                    llm_calls = excluded.llm_calls,
+                    tokens_input = excluded.tokens_input,
+                    tokens_output = excluded.tokens_output,
+                    tokens_reasoning = excluded.tokens_reasoning,
+                    cache_read_tokens = excluded.cache_read_tokens,
+                    cache_write_tokens = excluded.cache_write_tokens,
+                    cost_usd = excluded.cost_usd,
+                    trace_events = excluded.trace_events,
+                    messages = excluded.messages,
+                    queue_in = excluded.queue_in,
+                    queue_out = excluded.queue_out,
+                    status = excluded.status,
+                    updated_at = excluded.updated_at,
+                    rollup_lag_s = excluded.rollup_lag_s
+                """,
+                (
+                    session_id,
+                    ident["session_uid"],
+                    ident["user_id"],
+                    ident["owner"],
+                    ident["ip"],
+                    ident["workflow"],
+                    ident["runtime_db_path"],
+                    merged["llm_calls"],
+                    merged["tokens_input"],
+                    merged["tokens_output"],
+                    merged["tokens_reasoning"],
+                    merged["cache_read_tokens"],
+                    merged["cache_write_tokens"],
+                    merged["cost_usd"],
+                    merged["trace_events"],
+                    merged["messages"],
+                    merged["queue_in"],
+                    merged["queue_out"],
+                    status,
+                    now,
+                    rollup_lag_s,
+                ),
+            )
+            conn.commit()
+        return self.get_runtime_usage_rollup(session_id) or {}
+
+    def fold_runtime_usage_rollup(
+        self,
+        session_id: str,
+        *,
+        deltas: Optional[Dict[str, Any]] = None,
+        absolutes: Optional[Dict[str, Any]] = None,
+        offsets: Optional[Dict[str, int]] = None,
+        identity: Optional[Dict[str, Any]] = None,
+        status: str = "ok",
+        rollup_lag_s: Optional[float] = None,
+    ) -> Dict[str, Any]:
+        """Atomically fold one session's rollup AND advance its offsets.
+
+        This is the exactly-once variant of ``add_runtime_usage_rollup_delta`` +
+        ``set_rollup_offset``: the counter write to ``runtime_usage_rollups`` and
+        the high-water advances to ``runtime_rollup_offsets`` happen in ONE
+        control-DB transaction (single connection, single commit). A crash before
+        the commit leaves BOTH untouched, so the next run re-reads the same slice
+        and folds it exactly once — no double-count (LOW#1).
+
+        ``deltas`` carries counters that are ADDED to the existing row (the
+        append-only incremental case: caller only passes rows beyond the stored
+        offset). ``absolutes`` carries counters that OVERWRITE the existing row's
+        value for just those columns (the rowid-regression recount case: a
+        drained-then-reused source table whose rowids were reused must be recounted
+        as an absolute current-window total rather than added). A column present in
+        ``absolutes`` wins over the same column in ``deltas``.
+
+        ``offsets`` maps ``source_table -> new last_rowid``; each is upserted with
+        the same MAX()-never-regress semantics as ``set_rollup_offset`` EXCEPT a
+        recount path resets an offset to a LOWER value, which it does by writing
+        the value directly (the caller passes the recomputed MAX(rowid), which may
+        be below the previous high-water after a drain). ``identity`` /
+        ``status`` / ``rollup_lag_s`` behave as in ``add_runtime_usage_rollup_delta``.
+        """
+        deltas = deltas or {}
+        absolutes = absolutes or {}
+        offsets = offsets or {}
+        identity = identity or {}
+        now = self._now()
+        _COUNTERS = (
+            "llm_calls",
+            "tokens_input",
+            "tokens_output",
+            "tokens_reasoning",
+            "cache_read_tokens",
+            "cache_write_tokens",
+            "cost_usd",
+            "trace_events",
+            "messages",
+            "queue_in",
+            "queue_out",
+        )
+
+        def _num(value: Any) -> float:
+            try:
+                return float(value or 0)
+            except (TypeError, ValueError):
+                return 0.0
+
+        with self._lock:
+            conn = self._connect()
+            try:
+                conn.execute("BEGIN IMMEDIATE")
+                existing = conn.execute(
+                    "SELECT * FROM runtime_usage_rollups WHERE session_id = ?",
+                    (session_id,),
+                ).fetchone()
+                base = dict(existing) if existing is not None else {}
+                merged: Dict[str, Any] = {}
+                for col in _COUNTERS:
+                    if col in absolutes:
+                        # Recount: overwrite ONLY this column's value.
+                        merged[col] = _num(absolutes.get(col))
+                    else:
+                        merged[col] = _num(base.get(col)) + _num(deltas.get(col))
+                for col in _COUNTERS:
+                    if col != "cost_usd":
+                        merged[col] = int(round(merged[col]))
+                ident = {
+                    "session_uid": identity.get(
+                        "session_uid", base.get("session_uid")
+                    ),
+                    "user_id": identity.get("user_id", base.get("user_id")),
+                    "owner": identity.get("owner", base.get("owner")),
+                    "ip": identity.get("ip", base.get("ip")),
+                    "workflow": identity.get("workflow", base.get("workflow")),
+                    "runtime_db_path": identity.get(
+                        "runtime_db_path", base.get("runtime_db_path")
+                    ),
+                }
+                conn.execute(
+                    """
+                    INSERT INTO runtime_usage_rollups
+                        (session_id, session_uid, user_id, owner, ip, workflow,
+                         runtime_db_path, llm_calls, tokens_input, tokens_output,
+                         tokens_reasoning, cache_read_tokens, cache_write_tokens,
+                         cost_usd, trace_events, messages, queue_in, queue_out,
+                         status, updated_at, rollup_lag_s)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(session_id) DO UPDATE SET
+                        session_uid = excluded.session_uid,
+                        user_id = excluded.user_id,
+                        owner = excluded.owner,
+                        ip = excluded.ip,
+                        workflow = excluded.workflow,
+                        runtime_db_path = excluded.runtime_db_path,
+                        llm_calls = excluded.llm_calls,
+                        tokens_input = excluded.tokens_input,
+                        tokens_output = excluded.tokens_output,
+                        tokens_reasoning = excluded.tokens_reasoning,
+                        cache_read_tokens = excluded.cache_read_tokens,
+                        cache_write_tokens = excluded.cache_write_tokens,
+                        cost_usd = excluded.cost_usd,
+                        trace_events = excluded.trace_events,
+                        messages = excluded.messages,
+                        queue_in = excluded.queue_in,
+                        queue_out = excluded.queue_out,
+                        status = excluded.status,
+                        updated_at = excluded.updated_at,
+                        rollup_lag_s = excluded.rollup_lag_s
+                    """,
+                    (
+                        session_id,
+                        ident["session_uid"],
+                        ident["user_id"],
+                        ident["owner"],
+                        ident["ip"],
+                        ident["workflow"],
+                        ident["runtime_db_path"],
+                        merged["llm_calls"],
+                        merged["tokens_input"],
+                        merged["tokens_output"],
+                        merged["tokens_reasoning"],
+                        merged["cache_read_tokens"],
+                        merged["cache_write_tokens"],
+                        merged["cost_usd"],
+                        merged["trace_events"],
+                        merged["messages"],
+                        merged["queue_in"],
+                        merged["queue_out"],
+                        status,
+                        now,
+                        rollup_lag_s,
+                    ),
+                )
+                for source_table, new_offset in offsets.items():
+                    # A recount resets the offset DOWN (rowids were reused), so we
+                    # write the value directly instead of MAX()-ing against the
+                    # stale high-water. The caller decides the correct new_offset.
+                    conn.execute(
+                        """
+                        INSERT INTO runtime_rollup_offsets
+                            (session_id, source_table, last_rowid, updated_at)
+                        VALUES (?, ?, ?, ?)
+                        ON CONFLICT(session_id, source_table) DO UPDATE SET
+                            last_rowid = excluded.last_rowid,
+                            updated_at = excluded.updated_at
+                        """,
+                        (session_id, source_table, int(new_offset or 0), now),
+                    )
+                conn.commit()
+            except Exception:
+                conn.rollback()
+                raise
+        return self.get_runtime_usage_rollup(session_id) or {}
+
+    def mark_runtime_usage_rollup_status(
+        self,
+        session_id: str,
+        *,
+        status: str,
+        rollup_lag_s: Optional[float] = None,
+        identity: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """Set status/lag on a session's rollup row WITHOUT changing counters.
+
+        Used when a runtime DB is MISSING or corrupt: the existing aggregate (if
+        any) is preserved, but the row is flipped to ``status='stale'`` /
+        ``'error'`` and ``rollup_lag_s`` records how long it has been unreadable,
+        so a reader surfaces a non-silent staleness signal (plan §2.10 / R7/R8)
+        instead of a false-empty. Creates a zero-count row if none exists yet.
+        """
+        identity = identity or {}
+        now = self._now()
+        with self._lock:
+            conn = self._connect()
+            existing = conn.execute(
+                "SELECT session_id FROM runtime_usage_rollups WHERE session_id = ?",
+                (session_id,),
+            ).fetchone()
+            if existing is None:
+                conn.execute(
+                    """
+                    INSERT INTO runtime_usage_rollups
+                        (session_id, session_uid, user_id, owner, ip, workflow,
+                         runtime_db_path, status, updated_at, rollup_lag_s)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        session_id,
+                        identity.get("session_uid"),
+                        identity.get("user_id"),
+                        identity.get("owner"),
+                        identity.get("ip"),
+                        identity.get("workflow"),
+                        identity.get("runtime_db_path"),
+                        status,
+                        now,
+                        rollup_lag_s,
+                    ),
+                )
+            else:
+                conn.execute(
+                    "UPDATE runtime_usage_rollups "
+                    "SET status = ?, updated_at = ?, rollup_lag_s = ? "
+                    "WHERE session_id = ?",
+                    (status, now, rollup_lag_s, session_id),
+                )
+            conn.commit()
+        return self.get_runtime_usage_rollup(session_id) or {}
 
     def archive_session(self, session_id: str):
         """Mark a session as archived."""

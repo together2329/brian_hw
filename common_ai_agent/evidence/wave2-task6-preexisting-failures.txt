@@ -1,0 +1,7 @@
+Pre-existing failures on feat/runtime-db-100users BEFORE Task 6 changes
+(my 3 files reverted to committed HEAD, then restored). Same 23 failures
+with and without my changes => Task 6 introduces ZERO new failures.
+
+FAILED tests/test_atlas_multiuser_session_scope.py::test_multiuser_and_process_isolation_default_on
+FAILED tests/test_orchestrator_budgets.py::TestBridgeIntegration::test_mark_downstream_stale_resets_downstream_budget
+23 failed, 47 passed in 9.36s

@@ -109,8 +109,155 @@ def _cost_context(row: dict[str, Any]) -> dict[str, str]:
     return {"ip": ip, "workspace": workspace, "session": session_label}
 
 
+def _runtime_mode_active() -> bool:
+    """True when the per-session runtime split is active (session mode).
+
+    Read lazily from the router so a live server / test flip is observed and so
+    importing this module never forces the router import at module top.
+    """
+    try:
+        from core.runtime_rollup import runtime_mode_active
+
+        return runtime_mode_active()
+    except Exception:
+        return False
+
+
+def _build_admin_usage_payload_runtime(db) -> dict[str, Any]:
+    """Admin usage payload sourced from control-DB rollups (runtime mode).
+
+    TOTALS (per-user, per-context, fleet) come from ``runtime_usage_rollups`` so
+    a NORMAL request never opens a runtime file (plan §2.10 / R8). The tabs a
+    count-only rollup CANNOT reconstruct (per-tool usage, interventions,
+    todo-flow, input history, trace events) are returned with an EXPLICIT
+    "summary-only in runtime mode" marker rather than a silently-empty list, so
+    the UI can show the operator the tab is de-scoped, not idle.
+
+    Control-resident data (users, workflow runs/stages, rtl history, artifact
+    sets, memory rules) is read from the control DB exactly as today.
+    """
+    from core.runtime_rollup import (
+        rollup_totals_by_user,
+        summary_only_payload,
+    )
+
+    rollups = db.list_runtime_usage_rollups()
+    totals_by_user = rollup_totals_by_user(db)
+
+    # Per-user totals: join control ``users`` with their rollup aggregate.
+    user_rows = [dict(r) for r in db._fetchall(
+        "SELECT id AS user_id, username, role, created_at, last_login_at FROM users"
+    )]
+    # Per-user session counts (control sessions row count, no runtime fanout).
+    session_counts = {
+        str(r["user_id"]): int(r["cnt"] or 0)
+        for r in db._fetchall(
+            "SELECT user_id, COUNT(*) AS cnt FROM sessions GROUP BY user_id"
+        )
+    }
+    totals: list[dict[str, Any]] = []
+    for user in user_rows:
+        uid = str(user.get("user_id") or "")
+        agg = totals_by_user.get(uid, {})
+        totals.append({
+            **user,
+            "session_count": session_counts.get(uid, 0),
+            "message_count": int(agg.get("llm_calls", 0)),
+            "total_cost_usd": float(agg.get("total_cost_usd", 0.0)),
+            "tokens_in": int(agg.get("tokens_in", 0)),
+            "tokens_out": int(agg.get("tokens_out", 0)),
+            "tokens_reasoning": int(agg.get("tokens_reasoning", 0)),
+            "last_message_at": None,
+            "stale_sessions": int(agg.get("stale_sessions", 0)),
+            "max_rollup_lag_s": float(agg.get("max_rollup_lag_s", 0.0)),
+            "models": [],
+            "tools": [],
+        })
+    totals.sort(key=lambda r: (r["total_cost_usd"], r["message_count"]), reverse=True)
+
+    # Per-session/context cost rows straight from the rollup (no runtime open).
+    cost_by_context: list[dict[str, Any]] = []
+    username_by_user = {str(u.get("user_id")): u.get("username") for u in user_rows}
+    for row in rollups:
+        uid = str(row.get("user_id") or "")
+        tokens = int(row.get("tokens_input") or 0) + int(row.get("tokens_output") or 0)
+        cost_by_context.append({
+            "ip": _text(row.get("ip")) or "unknown",
+            "workspace": "default",
+            "session": _short_id(row.get("session_id")) or "session",
+            "session_id": row.get("session_id"),
+            "user_id": uid,
+            "username": username_by_user.get(uid) or "unknown",
+            "calls": int(row.get("llm_calls") or 0),
+            "tokens": tokens,
+            "tokens_reasoning": int(row.get("tokens_reasoning") or 0),
+            "cost": float(row.get("cost_usd") or 0),
+            "workflow": _text(row.get("workflow")),
+            "last_message_at": row.get("updated_at"),
+            "rollup_status": _text(row.get("status")) or "ok",
+            "rollup_lag_s": float(row.get("rollup_lag_s") or 0),
+        })
+    cost_by_context.sort(key=lambda r: (r["cost"], r["calls"]), reverse=True)
+
+    # Control-resident tables read exactly as today.
+    rtl_history_rows = db.list_rtl_run_history()
+    artifact_version_rows = db.list_artifact_versions()
+    run_artifact_set_rows = db.list_run_artifact_version_sets()
+    memory_rule_rows = db.list_all_user_memory_rules(limit=500)
+
+    memory_rules = [{
+        "id": row.get("id") or "",
+        "user_id": row.get("user_id") or "",
+        "username": row.get("username") or "unknown",
+        "display_name": row.get("display_name") or "",
+        "role": row.get("role") or "",
+        "scope": row.get("scope") or "global",
+        "workflow": row.get("workflow") or "",
+        "rule": row.get("rule") or "",
+        "position": row.get("position") or 0,
+        "created_at": row.get("created_at"),
+        "updated_at": row.get("updated_at"),
+    } for row in memory_rule_rows]
+
+    artifact_versions = []
+    for row in artifact_version_rows:
+        context = _cost_context(row)
+        artifact_versions.append({**context, "artifact_version_id": row.get("id") or ""})
+
+    return {
+        "users": totals,
+        "cost_by_context": cost_by_context,
+        # Date-bucketing requires per-row created_at which a count-only rollup
+        # does not keep -> summary-only marker.
+        "cost_by_date": summary_only_payload(),
+        # Per-row admin tabs a count-only rollup cannot reconstruct (R8): mark
+        # them summary-only instead of returning a silently-empty list.
+        "todo_usage": summary_only_payload(),
+        "todo_flow": summary_only_payload(),
+        "trace_events": summary_only_payload(),
+        "tool_usage": summary_only_payload(),
+        "interventions": summary_only_payload(),
+        "input_history": summary_only_payload(),
+        "memory_rules": memory_rules,
+        "workflow_stages": summary_only_payload(),
+        "rtl_run_history": [dict(r) for r in rtl_history_rows],
+        "artifact_versions": artifact_versions,
+        "run_artifact_sets": [dict(r) for r in run_artifact_set_rows],
+        "runtime_mode": True,
+        "generated_at": time.time(),
+    }
+
+
 def build_admin_usage_payload(db) -> dict[str, Any]:
-    """Return all admin usage tables consumed by the React admin page."""
+    """Return all admin usage tables consumed by the React admin page.
+
+    In runtime mode (``ATLAS_RUNTIME_DB_MODE=session``) totals come from the
+    control-DB rollups and per-row tabs become explicit "summary-only" markers
+    (plan §2.10 / R8). In central mode (default) the control DB is read exactly
+    as before — no behavior change.
+    """
+    if _runtime_mode_active():
+        return _build_admin_usage_payload_runtime(db)
 
     llm_call_count = db._fetchone("SELECT COUNT(*) AS cnt FROM llm_calls")
     use_llm_calls = bool(llm_call_count and int(llm_call_count["cnt"] or 0) > 0)
@@ -935,5 +1082,6 @@ def build_admin_usage_payload(db) -> dict[str, Any]:
         "rtl_run_history": rtl_run_history,
         "artifact_versions": artifact_versions,
         "run_artifact_sets": run_artifact_sets,
+        "runtime_mode": False,
         "generated_at": time.time(),
     }

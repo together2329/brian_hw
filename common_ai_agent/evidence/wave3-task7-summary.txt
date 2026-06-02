@@ -1,0 +1,26 @@
+Wave 3 / Task 7 — control-DB runtime usage rollups
+Date: #오후
+Branch: feat/runtime-db-100users
+
+=== Required regression command ===
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest tests/test_db_schema_complete.py tests/test_runtime_persistence_routing.py tests/test_runtime_rollup.py -q
+........................................................................ [ 75%]
+........................                                                 [100%]
+96 passed in 2.20s
+
+=== Task 7 rollup tests (verbose) ===
+tests/test_runtime_rollup.py::test_rollup_is_idempotent_across_runs PASSED [  9%]
+tests/test_runtime_rollup.py::test_rollup_picks_up_only_new_rows PASSED  [ 18%]
+tests/test_runtime_rollup.py::test_rollup_all_active_marks_missing_stale_and_succeeds PASSED [ 27%]
+tests/test_runtime_rollup.py::test_rollup_corrupt_runtime_db_marks_error PASSED [ 36%]
+tests/test_runtime_rollup.py::test_rollup_all_active_does_not_raise_on_corrupt PASSED [ 45%]
+tests/test_runtime_rollup.py::test_rollup_totals_equal_raw_runtime_totals PASSED [ 54%]
+tests/test_runtime_rollup.py::test_rollup_queue_in_out_counts PASSED     [ 63%]
+tests/test_runtime_rollup.py::test_admin_usage_totals_come_from_rollups_no_runtime_open PASSED [ 72%]
+tests/test_runtime_rollup.py::test_dashboard_totals_come_from_rollups_no_runtime_open PASSED [ 81%]
+tests/test_runtime_rollup.py::test_central_mode_admin_usage_reads_control_db PASSED [ 90%]
+tests/test_runtime_rollup.py::test_central_mode_dashboard_reads_control_db PASSED [100%]
+============================== 11 passed in 0.68s ==============================
+
+=== Pre-existing failures (NOT introduced by Task 7; phantom-IP) ===
+test_atlas_user_dashboard.py / test_atlas_admin_auth.py: 4 failures present on HEAD before this change (verified by reverting the two touched files).

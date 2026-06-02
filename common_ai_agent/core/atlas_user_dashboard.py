@@ -89,7 +89,71 @@ def _safe_user(user: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _runtime_mode_active() -> bool:
+    """True when the per-session runtime split is active (session mode)."""
+    try:
+        from core.runtime_rollup import runtime_mode_active
+
+        return runtime_mode_active()
+    except Exception:
+        return False
+
+
+def _usage_context_rows_runtime(db: Any, user_id: str) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """Usage rows + totals from control-DB rollups (runtime mode, no fanout).
+
+    Mirrors the shape of :func:`_usage_context_rows` so the rest of the
+    dashboard builder is unchanged. TOTALS and per-session/context cost come from
+    ``runtime_usage_rollups`` so a NORMAL request never opens a runtime file
+    (plan §2.10 / R8).
+    """
+    rollups = db.list_runtime_usage_rollups(user_id=user_id)
+    contexts: list[dict[str, Any]] = []
+    totals = {
+        "llm_calls": 0,
+        "total_cost_usd": 0.0,
+        "tokens_in": 0,
+        "tokens_out": 0,
+        "tokens_reasoning": 0,
+        "last_activity": None,
+    }
+    max_activity = 0.0
+    for row in rollups:
+        tokens = _int(row.get("tokens_input")) + _int(row.get("tokens_output"))
+        item = {
+            "session_id": row.get("session_id"),
+            "project_id": "",
+            "title": "",
+            "workflow": _text(row.get("workflow")),
+            "workspace_name": "",
+            "ip_name": _text(row.get("ip")),
+            "calls": _int(row.get("llm_calls")),
+            "cost": _num(row.get("cost_usd")),
+            "tokens": tokens,
+            "tokens_reasoning": _int(row.get("tokens_reasoning")),
+            "last_activity": row.get("updated_at"),
+            "rollup_status": _text(row.get("status")) or "ok",
+            "rollup_lag_s": _num(row.get("rollup_lag_s")),
+        }
+        item["ip"] = _context_ip(item)
+        item["workspace"] = _context_workspace(item)
+        item["workflow"] = _text(item.get("workflow")) or _session_parts(_text(item.get("session_id")))[2] or "default"
+        contexts.append(item)
+        totals["llm_calls"] += _int(row.get("llm_calls"))
+        totals["total_cost_usd"] += _num(row.get("cost_usd"))
+        totals["tokens_in"] += _int(row.get("tokens_input"))
+        totals["tokens_out"] += _int(row.get("tokens_output"))
+        totals["tokens_reasoning"] += _int(row.get("tokens_reasoning"))
+        max_activity = max(max_activity, _num(row.get("updated_at")))
+    if max_activity > 0:
+        totals["last_activity"] = max_activity
+    contexts.sort(key=lambda r: (_num(r.get("cost")), _int(r.get("calls"))), reverse=True)
+    return contexts, totals
+
+
 def _usage_context_rows(db: Any, user_id: str) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    if _runtime_mode_active():
+        return _usage_context_rows_runtime(db, user_id)
     llm_count = db._fetchone(
         """
         SELECT COUNT(*) AS cnt
