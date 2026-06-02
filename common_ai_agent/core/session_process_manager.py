@@ -35,6 +35,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from core.atlas_db import AtlasDB
+from core.atlas_db_router import AtlasDBRouter
 
 
 class SessionProcessManager:
@@ -42,20 +43,33 @@ class SessionProcessManager:
 
     Each session gets its own ``python -m core.session_worker`` subprocess.
     Input/output is routed through the SQLite queue in :class:`AtlasDB`.
+
+    DB-path resolution goes through an :class:`AtlasDBRouter` (Wave 1 / Unit A).
+    In ``ATLAS_RUNTIME_DB_MODE=central`` (default) the router returns the control
+    path everywhere, so behavior is byte-identical to the historical single-DB
+    layout. In ``=session`` mode the router shards each session onto its own
+    runtime ``.db`` file; ``send_input`` / ``poll_output`` / ``latest_output_id``
+    then all open the SAME runtime DB for a given session (the SAME-DB invariant).
     """
 
     def __init__(
         self,
         db_path: Optional[str] = None,
         project_root: Optional[str | Path] = None,
+        router: Optional[AtlasDBRouter] = None,
     ) -> None:
         """Initialize the process manager.
 
         Args:
-            db_path: Path to the Atlas SQLite database. Defaults to
-                ``~/.common_ai_agent/atlas.db``.
+            db_path: Path to the Atlas *control* SQLite database. Defaults to
+                ``~/.common_ai_agent/atlas.db``. When provided, it pins the
+                router's control path so a per-call/per-instance db override
+                stays authoritative (e.g. ``:memory:`` or a temp file in tests).
             project_root: Artifact root served by Atlas. Defaults to
                 ``ATLAS_PROJECT_ROOT`` or the current working directory.
+            router: Optional :class:`AtlasDBRouter`. Defaults to one whose
+                control path is pinned to ``db_path`` when given (so existing
+                callers that pass an explicit db keep working in central mode).
         """
         self.db_path = db_path
         self._source_root = Path(__file__).resolve().parents[1]
@@ -67,6 +81,21 @@ class SessionProcessManager:
         self._project_root = Path(os.path.expanduser(str(raw_project_root))).resolve()
         self._processes: Dict[str, Dict[str, Any]] = {}
         self._lock = threading.RLock()
+        # Router is the single DB-path resolution point. Pin the control path to
+        # an explicit db_path so a constructor override (tests, :memory:) wins
+        # over env in central mode without re-implementing AtlasDB's own default.
+        self._router = router or AtlasDBRouter(control_path=db_path)
+        # Hot-path connection reuse (plan §2.6 / R2). send_input/poll_output/
+        # latest_output_id used to do ``db = AtlasDB(...); finally: db.close()``;
+        # close() pops the thread-local cached connection so the very next poll
+        # re-opens + re-runs busy_timeout + the WAL retry loop. At 100 sessions
+        # that is 100 reconnect cycles per broadcaster pass on one thread. We
+        # instead hold a long-lived AtlasDB handle per (thread, resolved path)
+        # so AtlasDB's ``_TLS`` connection survives between polls. The handle is
+        # only ever touched by its owning thread (AtlasDB._TLS is thread-local),
+        # so the cache is keyed by thread id + path.
+        self._db_handles: Dict[tuple, AtlasDB] = {}
+        self._db_handles_lock = threading.RLock()
 
     @staticmethod
     def _env_enabled(name: str, default: bool = True) -> bool:
@@ -93,20 +122,75 @@ class SessionProcessManager:
         return executable or "python"
 
     def _resolve_db_path(self, db_path: Optional[str] = None) -> str:
-        """Return the concrete DB path shared by UI and worker processes."""
+        """Return the concrete CONTROL DB path shared by UI and worker processes.
+
+        This is the control path (== today's single DB). Per-session runtime
+        paths are resolved through :meth:`_resolve_runtime_db_path`. An explicit
+        ``db_path`` argument still wins (per-call override), then the manager's
+        ``self.db_path``, then the router's control resolution (which honors
+        ``ATLAS_CONTROL_DB_PATH`` / ``ATLAS_DB_PATH`` / the home default).
+        """
         raw = (
             db_path
             or self.db_path
-            or os.environ.get("ATLAS_DB_PATH")
-            or str(Path.home() / ".common_ai_agent" / "atlas.db")
+            or self._router.control_db_path()
         )
         return str(Path(os.path.expanduser(raw)).resolve())
 
+    def _resolve_runtime_db_path(
+        self,
+        session_id: str,
+        db_path: Optional[str] = None,
+        create: bool = True,
+    ) -> str:
+        """Return the runtime DB path for *session_id* via the router.
+
+        - central mode -> the control path (== ``_resolve_db_path``), so the
+          ``--db-path`` channel and env stay byte-identical to today.
+        - session mode -> the per-session runtime ``.db`` file. When an explicit
+          ``db_path`` override is passed AND we are in central mode, the override
+          wins (preserves per-call control overrides used by tests).
+        """
+        if self._router.mode() == "central":
+            return self._resolve_db_path(db_path)
+        return str(
+            Path(os.path.expanduser(self._router.runtime_db_path(session_id, create=create))).resolve()
+        )
+
     def _get_db(self) -> AtlasDB:
-        """Return an initialized AtlasDB instance."""
+        """Return an initialized AtlasDB instance on the control path."""
         db = AtlasDB(self._resolve_db_path())
         db.init_db()
         return db
+
+    def _get_runtime_db(self, session_id: str, db_path: Optional[str] = None) -> AtlasDB:
+        """Return a long-lived AtlasDB handle for *session_id*'s runtime DB.
+
+        Hot-path connection reuse (plan §2.6 / R2): we cache one AtlasDB per
+        (thread, resolved path) and NEVER call ``close()`` on the hot poll /
+        enqueue path, so AtlasDB's thread-local sqlite connection survives
+        between polls instead of being re-opened (busy_timeout + WAL retry) on
+        every call. The cache is keyed by thread id because AtlasDB's ``_TLS``
+        connection cache is thread-local — a handle reused from another thread
+        would build its own connection on first touch anyway, but keying by
+        thread keeps each handle's lifetime aligned with the connection it owns.
+
+        In central mode a cache miss is built through ``_get_db()`` so the
+        historical hook (tests monkeypatch ``_get_db``) keeps working; in session
+        mode we open the routed runtime file directly with the runtime schema.
+        """
+        resolved = self._resolve_runtime_db_path(session_id, db_path=db_path)
+        key = (threading.get_ident(), resolved)
+        with self._db_handles_lock:
+            db = self._db_handles.get(key)
+            if db is None:
+                if self._router.mode() == "central":
+                    db = self._get_db()
+                else:
+                    db = AtlasDB(resolved, schema_set="runtime")
+                    db.init_db()
+                self._db_handles[key] = db
+            return db
 
     def build_worker_env(
         self,
@@ -131,7 +215,12 @@ class SessionProcessManager:
             ip_name = env.get("ATLAS_ACTIVE_IP") or "default"
             workflow = env.get("ATLAS_DEFAULT_WORKFLOW") or "default"
 
-        effective_db = self._resolve_db_path(db_path)
+        control_db = self._resolve_db_path(db_path)
+        # In central mode runtime == control (behavior-identical); in session
+        # mode the worker's queue, llm_calls and trace_events all land in the
+        # per-session runtime DB. The worker binds its queue from --db-path; the
+        # env vars below redirect its secondary AtlasDB opens to the SAME file.
+        runtime_db = self._resolve_runtime_db_path(session_id, db_path=db_path)
         env["ATLAS_ACTIVE_SESSION"] = session_key
         env["ATLAS_DEFAULT_SESSION_ID"] = owner
         env["ATLAS_MEMORY_USER"] = owner
@@ -139,8 +228,10 @@ class SessionProcessManager:
         env["ATLAS_DEFAULT_WORKFLOW"] = workflow
         env["ACTIVE_WORKSPACE"] = workflow
         env["ATLAS_TRACE_ENABLE"] = "1"
-        env["ATLAS_DB_PATH"] = effective_db
-        env["ATLAS_TRACE_DB_PATH"] = effective_db
+        env["ATLAS_CONTROL_DB_PATH"] = control_db
+        env["ATLAS_RUNTIME_DB_PATH"] = runtime_db
+        env["ATLAS_DB_PATH"] = runtime_db
+        env["ATLAS_TRACE_DB_PATH"] = runtime_db
         env["ATLAS_SOURCE_ROOT"] = str(self._source_root)
         env.setdefault("COMMON_AI_AGENT_HOME", str(self._source_root))
         env["ATLAS_PROJECT_ROOT"] = str(self._project_root)
@@ -285,8 +376,14 @@ class SessionProcessManager:
                 # Dead entry — clean it up before respawning.
                 self._processes.pop(session_id, None)
 
-            effective_db = self._resolve_db_path(db_path)
-            self._terminate_external_session_workers(session_id, effective_db)
+            # The worker binds its queue DB from --db-path. In session mode that
+            # MUST be the per-session runtime file so the worker's queue (and,
+            # via env, its llm_calls/trace_events) co-locate with what
+            # send_input/poll_output open here. In central mode this resolves to
+            # the control path == today's behavior. Orphan pruning matches on
+            # this same --db-path, so it must use the runtime path too.
+            runtime_db = self._resolve_runtime_db_path(session_id, db_path=db_path)
+            self._terminate_external_session_workers(session_id, runtime_db)
 
             cmd = [
                 self._worker_python_executable(),
@@ -295,14 +392,14 @@ class SessionProcessManager:
                 "--session-id",
                 session_id,
             ]
-            cmd.extend(["--db-path", effective_db])
+            cmd.extend(["--db-path", runtime_db])
 
             proc = subprocess.Popen(
                 cmd,
                 stdin=subprocess.DEVNULL,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
-                env=self.build_worker_env(session_id, db_path=effective_db),
+                env=self.build_worker_env(session_id, db_path=db_path),
                 cwd=str(self._project_root),
                 # Detach from parent TTY so signals/shells don't propagate.
                 start_new_session=True,
@@ -326,26 +423,27 @@ class SessionProcessManager:
         """
         with self._lock:
             entry = self._processes.pop(session_id, None)
-            if entry is None:
-                return True
-
-            proc = entry["proc"]
-            if proc.poll() is not None:
-                return True
-
-            try:
-                proc.terminate()
-                proc.wait(timeout=5)
-            except subprocess.TimeoutExpired:
-                try:
-                    proc.kill()
-                    proc.wait(timeout=2)
-                except Exception:
-                    pass
-            except Exception:
-                # Process may have exited between poll and terminate.
-                pass
-            return True
+            if entry is not None:
+                proc = entry["proc"]
+                if proc.poll() is None:
+                    try:
+                        proc.terminate()
+                        proc.wait(timeout=5)
+                    except subprocess.TimeoutExpired:
+                        try:
+                            proc.kill()
+                            proc.wait(timeout=2)
+                        except Exception:
+                            pass
+                    except Exception:
+                        # Process may have exited between poll and terminate.
+                        pass
+        # Evict any cached runtime DB handle for this session (R2): a killed
+        # session's long-lived connection must not be reused by a later spawn
+        # that may delete/recreate the runtime file (stale-inode reuse). Done
+        # outside self._lock — _evict_db_handles takes _db_handles_lock.
+        self._evict_db_handles(session_id)
+        return True
 
     def is_alive(self, session_id: str) -> bool:
         """Check whether the worker process for *session_id* is still running.
@@ -427,40 +525,41 @@ class SessionProcessManager:
             if not self.is_alive(session_id):
                 return None
 
-        db = self._get_db()
-        try:
-            enqueue_budget_ms = 4500.0
-            started_at = time.monotonic()
-            msg_id = None
-            for _ in range(3):
-                remaining_ms = enqueue_budget_ms - ((time.monotonic() - started_at) * 1000.0)
-                if remaining_ms <= 0:
-                    break
-                try:
-                    msg_id = db.enqueue_message(
-                        session_id,
-                        "in",
-                        msg_type,
-                        payload,
-                        busy_timeout_ms=int(remaining_ms),
-                    )
-                    break
-                except sqlite3.OperationalError as exc:
-                    if "database is locked" not in str(exc).lower():
-                        raise
-                    if enqueue_budget_ms - ((time.monotonic() - started_at) * 1000.0) <= 0:
-                        break
-                    time.sleep(0.02)
-            blocked_ms = (time.monotonic() - started_at) * 1000.0
-            if blocked_ms > 500.0:
-                print(
-                    f"[prompt-latency] enqueue session={session_id} "
-                    f"type={msg_type} blocked={blocked_ms:.0f}ms",
-                    flush=True,
+        # Route to the session's runtime DB (control DB in central mode) and
+        # reuse the long-lived handle — do NOT close() on this hot enqueue path
+        # (plan §2.6 / R2). SAME-DB invariant: this opens the SAME file that
+        # poll_output / latest_output_id open for the session.
+        db = self._get_runtime_db(session_id)
+        enqueue_budget_ms = 4500.0
+        started_at = time.monotonic()
+        msg_id = None
+        for _ in range(3):
+            remaining_ms = enqueue_budget_ms - ((time.monotonic() - started_at) * 1000.0)
+            if remaining_ms <= 0:
+                break
+            try:
+                msg_id = db.enqueue_message(
+                    session_id,
+                    "in",
+                    msg_type,
+                    payload,
+                    busy_timeout_ms=int(remaining_ms),
                 )
-            return msg_id
-        finally:
-            db.close()
+                break
+            except sqlite3.OperationalError as exc:
+                if "database is locked" not in str(exc).lower():
+                    raise
+                if enqueue_budget_ms - ((time.monotonic() - started_at) * 1000.0) <= 0:
+                    break
+                time.sleep(0.02)
+        blocked_ms = (time.monotonic() - started_at) * 1000.0
+        if blocked_ms > 500.0:
+            print(
+                f"[prompt-latency] enqueue session={session_id} "
+                f"type={msg_type} blocked={blocked_ms:.0f}ms",
+                flush=True,
+            )
+        return msg_id
 
     def poll_output(
         self,
@@ -478,35 +577,79 @@ class SessionProcessManager:
         Returns:
             List of output message dicts.
         """
-        db = self._get_db()
-        try:
-            return db.poll_messages(session_id, "out", since_id, limit)
-        finally:
-            db.close()
+        # Reuse the long-lived runtime handle; no close() on this hot poll path
+        # (plan §2.6 / R2). SAME-DB invariant with send_input / latest_output_id.
+        db = self._get_runtime_db(session_id)
+        return db.poll_messages(session_id, "out", since_id, limit)
 
     def latest_output_id(self, session_id: str) -> Optional[str]:
-        """Return the newest output queue id for *session_id*, if any."""
-        db = self._get_db()
-        try:
-            row = db._fetchone(
-                """
-                SELECT id FROM session_queue
-                WHERE session_id = ? AND direction = 'out'
-                ORDER BY created_at DESC
-                LIMIT 1
-                """,
-                (session_id,),
-            )
-            return str(row["id"]) if row is not None else None
-        finally:
-            db.close()
+        """Return the newest output queue id for *session_id*, if any.
+
+        Orders by the strict total order ``(created_at DESC, rowid DESC)`` to
+        match Unit A's monotonic-rowid queue ordering (plan §2.3 / R1): plain
+        ``created_at DESC`` could return either of two rows sharing a wall-clock
+        timestamp, so the seed cursor could skip the genuinely-last row.
+        """
+        # Reuse the long-lived runtime handle (R2); SAME-DB invariant.
+        db = self._get_runtime_db(session_id)
+        row = db._fetchone(
+            """
+            SELECT id FROM session_queue
+            WHERE session_id = ? AND direction = 'out'
+            ORDER BY created_at DESC, rowid DESC
+            LIMIT 1
+            """,
+            (session_id,),
+        )
+        return str(row["id"]) if row is not None else None
 
     def stop_all(self) -> None:
-        """Kill all tracked worker processes."""
+        """Kill all tracked worker processes and release cached DB handles."""
         with self._lock:
             session_ids = list(self._processes.keys())
         for session_id in session_ids:
             self.kill(session_id)
+        self._close_db_handles()
+
+    def _close_db_handles(self) -> None:
+        """Close every cached long-lived AtlasDB handle (releases sqlite conns).
+
+        Called on shutdown. Mid-flight reuse keeps the thread-local connection
+        alive (R2); this is the explicit release path so the pooled handles do
+        not outlive the manager.
+        """
+        with self._db_handles_lock:
+            handles = list(self._db_handles.values())
+            self._db_handles.clear()
+        for db in handles:
+            try:
+                db.close()
+            except Exception:
+                pass
+
+    def _evict_db_handles(self, session_id: str) -> None:
+        """Close + drop cached runtime DB handles for one session (all threads).
+
+        Called from ``kill()`` (and, later, the Task 9 session-delete path) so a
+        killed/deleted session's pooled connection is never reused after the
+        underlying runtime file may have been removed or recreated. Without this
+        the (thread, path) cache would hand back a connection to a stale/unlinked
+        inode. Bounded-growth fix for the hot-path handle cache.
+        """
+        try:
+            resolved = self._resolve_runtime_db_path(session_id, create=False)
+        except Exception:
+            resolved = None
+        if not resolved:
+            return
+        with self._db_handles_lock:
+            keys = [k for k in self._db_handles if k[1] == resolved]
+            handles = [self._db_handles.pop(k) for k in keys]
+        for db in handles:
+            try:
+                db.close()
+            except Exception:
+                pass
 
     # -- Context manager support -------------------------------------------
 

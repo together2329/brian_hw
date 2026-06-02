@@ -1,0 +1,5 @@
+..........................................                               [100%]
+42 passed in 6.68s
+
+=== PRE-EXISTING UNRELATED FAILURES (NOT introduced by Task 3) ===
+tests/test_atlas_multiuser_session_scope.py: 16 failures present WITH and WITHOUT this change (phantom-IP 'not found on disk' guard). Verified by git-stash A/B. Out of Task 3 scope.
