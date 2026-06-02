@@ -164,9 +164,17 @@ export const _CHIP_PATH_RE = /^[A-Za-z0-9_./-]+\.(?:sv|v|svh|vh|vlt|sdc|tcl|md|y
 export const _CHIP_DIR_RE = /^[A-Za-z0-9_-]+\/(?:[A-Za-z0-9_./-]*)$/;
 export const _CHIP_CMD_RE = /^\/[a-z][a-z0-9-]+(?:\s.*)?$/i;
 export const _CHIP_IP_RE = /^[a-z][a-z0-9_]{1,40}$/i;
+const _BACKSLASH_PATH_TOKEN_RE = /(^|[^\w./:-])((?:[A-Za-z]:\\+[A-Za-z0-9_.$~@-]+(?:\\+[A-Za-z0-9_.$~@-]+)*|[A-Za-z0-9_.$~@-]+(?:\\+[A-Za-z0-9_.$~@-]+)+(?:\\+)?))/g;
+
+export const _normalizeDisplayedToolPaths = (text: unknown): string => (
+  String(text || '').replace(
+    _BACKSLASH_PATH_TOKEN_RE,
+    (_match, lead: string, path: string) => `${lead}${String(path).replace(/\\+/g, '/')}`,
+  )
+);
 
 export const _chipKindFor = (text: unknown): string => {
-  const t = String(text || '').trim();
+  const t = _normalizeDisplayedToolPaths(text).trim();
   if (!t) return '';
   if (_CHIP_CMD_RE.test(t)) return 'cmd';
   if (_CHIP_PATH_RE.test(t)) return 'path';
@@ -178,7 +186,7 @@ export const _chipKindFor = (text: unknown): string => {
 export const _activateChipPath = (path: unknown): void => {
   try {
     window.dispatchEvent(new CustomEvent('atlas-chip-open', {
-      detail: { path: String(path || '') },
+      detail: { path: _normalizeDisplayedToolPaths(path) },
     }));
   } catch (_) {}
 };
@@ -196,9 +204,11 @@ export const _processInlineChips = (node: any): void => {
   node.querySelectorAll('code').forEach((el: any) => {
     if (el.closest('pre')) return;
     if (el.dataset && el.dataset.chip) return;     // already processed
-    const txt = el.textContent || '';
+    const rawTxt = el.textContent || '';
+    const txt = _normalizeDisplayedToolPaths(rawTxt);
     const kind = _chipKindFor(txt);
     if (!kind) return;
+    if (txt !== rawTxt) el.textContent = txt;
     el.dataset.chip = kind;
     el.classList.add('chip', `chip-${kind}`);
     if (kind === 'path') {
@@ -305,7 +315,7 @@ export const _toolOutputLanguage = (tool: unknown, text: unknown): string => {
 
 export const ToolOutputPre = ({ text, tool, truncated }: any): ReactNode => {
   const codeRef = useRef<any>(null);
-  const body = String(text || '') + (truncated ? '\n…[truncated]' : '');
+  const body = _normalizeDisplayedToolPaths(text) + (truncated ? '\n…[truncated]' : '');
   const tooLarge = body.length > 60000;
   const lang = tooLarge ? 'none' : _toolOutputLanguage(tool, body);
   const className = lang && lang !== 'none' ? `language-${lang}` : 'language-none';
@@ -344,7 +354,7 @@ export const _highlightInlineCode = (code: string, lang: string): string => {
 };
 
 export const DiffOutputPre = ({ text, tool, truncated, hintText = '' }: any): ReactNode => {
-  const body = String(text || '') + (truncated ? '\n…[truncated]' : '');
+  const body = _normalizeDisplayedToolPaths(text) + (truncated ? '\n…[truncated]' : '');
   // Unified row format from format_diff_snippet:
   //   context  : "{num}  {content}"        (num + 2 spaces + content)
   //   removed  : "{num} -{content}"        (num + space + '-' + content)

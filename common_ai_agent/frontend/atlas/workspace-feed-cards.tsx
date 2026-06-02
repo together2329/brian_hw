@@ -40,6 +40,7 @@ import {
   _postProcessMarkdownNode,
   _DIFF_RESULT_TOOL_RE,
   _CHIP_PATH_RE,
+  _normalizeDisplayedToolPaths,
   ToolOutputPre,
   DiffOutputPre,
   CopyBtn,
@@ -125,7 +126,7 @@ export const ObsCard = ({ entry, embedded, summaryMode = true, hintText = '' }: 
   // Strip ANSI escape sequences leaked from terminal-style backends
   // (e.g. `\x1b[1m`, `\x1b[38;5;71m`, `\x1b[0m`) so they don't show as
   // raw `[1m`, `[96m`, etc. in the chat feed.
-  txt = cleanAtlasTerminalText(txt).replace(/\x1b\[[\d;]*m/g, '');
+  txt = _normalizeDisplayedToolPaths(cleanAtlasTerminalText(txt).replace(/\x1b\[[\d;]*m/g, ''));
 
   const lines = txt.split('\n');
   const isMulti = lines.length > 1;

@@ -1110,6 +1110,21 @@ def _command_references_active_ip_path(command, active_ip):
     )
 
 
+def _atlas_command_cwd_for(command=""):
+    project_root = _atlas_project_root()
+    active_ip = (os.environ.get("ATLAS_ACTIVE_IP", "") or "").strip()
+    command_cwd = None
+    if project_root:
+        uses_project_root_path = _command_references_active_ip_path(command, active_ip)
+        if active_ip and active_ip != "default" and not uses_project_root_path:
+            ip_path = os.path.join(project_root, active_ip)
+            if os.path.isdir(ip_path):
+                command_cwd = ip_path
+        if command_cwd is None:
+            command_cwd = project_root
+    return command_cwd
+
+
 def run_command(command, timeout=60):
     """
     Runs a shell command and returns output.
@@ -1154,17 +1169,7 @@ def run_command(command, timeout=60):
         # the active IP as a path prefix (`uart_v2/rtl/...`), run from
         # PROJECT_ROOT instead so legacy project-root paths do not create
         # nested `<ip>/<ip>/...` artifacts.
-        _proj_root = _atlas_project_root()
-        _active_ip = (os.environ.get("ATLAS_ACTIVE_IP", "") or "").strip()
-        _cmd_cwd = None
-        if _proj_root:
-            _uses_project_root_path = _command_references_active_ip_path(command, _active_ip)
-            if _active_ip and _active_ip != "default" and not _uses_project_root_path:
-                _ip_path = os.path.join(_proj_root, _active_ip)
-                if os.path.isdir(_ip_path):
-                    _cmd_cwd = _ip_path
-            if _cmd_cwd is None:
-                _cmd_cwd = _proj_root
+        _cmd_cwd = _atlas_command_cwd_for(command)
 
         # Receive raw bytes; decode with platform-aware fallback chain in
         # _decode_robust(). text=True + encoding='utf-8' breaks on Windows
@@ -1739,6 +1744,35 @@ def find_files(pattern=None, directory=".", max_depth=None, path=None, recursive
     except Exception as e:
         return f"Error finding files: {e}"
 
+def _is_path_inside(child, parent):
+    try:
+        child_abs = os.path.abspath(child)
+        parent_abs = os.path.abspath(parent)
+        return os.path.commonpath([child_abs, parent_abs]) == parent_abs
+    except (OSError, ValueError):
+        return False
+
+
+def _git_diff_target(path):
+    cwd = _atlas_command_cwd_for("git diff")
+    if not path:
+        return cwd, None, ""
+
+    resolved_path = _resolve_asset_path(path)
+    if not os.path.exists(resolved_path):
+        return cwd, None, f"Error: Path '{_normalize_tool_path(resolved_path)}' does not exist."
+
+    abs_path = os.path.abspath(resolved_path)
+    git_root = _find_git_root(abs_path)
+    if git_root:
+        cwd = git_root
+    if cwd and _is_path_inside(abs_path, cwd):
+        pathspec = os.path.relpath(abs_path, cwd).replace(os.sep, "/")
+    else:
+        pathspec = _normalize_tool_path(resolved_path)
+    return cwd, pathspec, ""
+
+
 def git_diff(path=None):
     """
     Shows git diff for unstaged changes.
@@ -1748,21 +1782,22 @@ def git_diff(path=None):
         Git diff output
     """
     try:
-        cmd = "git diff"
-        if path:
-            path = _resolve_asset_path(path)
-            if not os.path.exists(path):
-                return f"Error: Path '{path}' does not exist."
-            cmd += f" {path}"
-        
+        cwd, pathspec, error = _git_diff_target(path)
+        if error:
+            return error
+
+        cmd = ["git", "diff"]
+        if pathspec:
+            cmd += ["--", pathspec]
+
         result = subprocess.run(
             cmd,
-            shell=True,
             capture_output=True,
             text=True,
             encoding='utf-8',
             errors='replace',
-            timeout=10
+            timeout=10,
+            cwd=cwd
         )
 
         if result.returncode != 0:
@@ -1785,14 +1820,15 @@ def git_status():
         Git status output
     """
     try:
+        cwd = _atlas_command_cwd_for("git status")
         result = subprocess.run(
-            "git status --short",
-            shell=True,
+            ["git", "status", "--short"],
             capture_output=True,
             text=True,
             encoding='utf-8',
             errors='replace',
-            timeout=10
+            timeout=10,
+            cwd=cwd
         )
         
         if result.returncode != 0:

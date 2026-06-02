@@ -1,4 +1,5 @@
 import sys
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -278,3 +279,56 @@ def test_run_command_falls_back_to_atlas_project_root_without_active_ip_dir(tmp_
     result = tools.run_command("pwd", timeout=5)
 
     assert result == str(project_root)
+
+
+def _setup_active_ip_git_repo(tmp_path, monkeypatch):
+    ip = "uart_core"
+    project_root = tmp_path / "served_root"
+    server_cwd = tmp_path / "common_ai_agent"
+    ip_root = project_root / ip
+    source_file = ip_root / "rtl" / "top.sv"
+    source_file.parent.mkdir(parents=True)
+    server_cwd.mkdir(parents=True)
+
+    subprocess.run(["git", "init", "-q"], cwd=ip_root, check=True)
+    subprocess.run(["git", "config", "user.email", "atlas@example.local"], cwd=ip_root, check=True)
+    subprocess.run(["git", "config", "user.name", "Atlas Test"], cwd=ip_root, check=True)
+    source_file.write_text("module old_top;\nendmodule\n", encoding="utf-8")
+    subprocess.run(["git", "add", "rtl/top.sv"], cwd=ip_root, check=True)
+    subprocess.run(["git", "commit", "-q", "-m", "initial"], cwd=ip_root, check=True)
+    source_file.write_text("module new_top;\nendmodule\n", encoding="utf-8")
+
+    monkeypatch.chdir(server_cwd)
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(project_root))
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", ip)
+    return ip
+
+
+def test_git_status_runs_inside_active_ip_repo(tmp_path, monkeypatch):
+    _setup_active_ip_git_repo(tmp_path, monkeypatch)
+
+    result = tools.git_status()
+
+    assert "Git status:" in result
+    assert "rtl/top.sv" in result
+    assert "not a git repository" not in result.lower()
+
+
+def test_git_diff_runs_inside_active_ip_repo(tmp_path, monkeypatch):
+    _setup_active_ip_git_repo(tmp_path, monkeypatch)
+
+    result = tools.git_diff()
+
+    assert "-module old_top;" in result
+    assert "+module new_top;" in result
+    assert "not a git repository" not in result.lower()
+
+
+def test_git_diff_accepts_active_ip_backslash_path(tmp_path, monkeypatch):
+    ip = _setup_active_ip_git_repo(tmp_path, monkeypatch)
+
+    result = tools.git_diff(rf"{ip}\rtl\top.sv")
+
+    assert "-module old_top;" in result
+    assert "+module new_top;" in result
+    assert "not a git repository" not in result.lower()
