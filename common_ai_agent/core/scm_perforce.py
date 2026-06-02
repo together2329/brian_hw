@@ -887,6 +887,7 @@ class PerforceP4Adapter(SCMAdapter):
         local_root: str | Path | None = None,
         target_paths: Any = None,
         changelist: str = "",
+        checkout_existing: bool = False,
     ) -> SCMCommandResult:
         sources = self._safe_local_paths(paths, local_root)
         if not sources:
@@ -895,22 +896,38 @@ class PerforceP4Adapter(SCMAdapter):
         if len(targets) != len(sources):
             return self._result(ok=False, returncode=2, error="cannot map local paths to Perforce target paths")
         specs: list[str] = []
+        reconcile_specs: list[str] = []
+        results: list[SCMCommandResult] = []
+        target_values = self._target_values(target_paths)
         for source, target in zip(sources, targets):
+            idx = len(specs)
+            target_value = target_values[idx] if idx < len(target_values) else ""
+            depot_file_target = target_value.startswith("//") and not target_value.endswith("/")
             try:
                 target.parent.mkdir(parents=True, exist_ok=True)
-                if target.exists():
+                if checkout_existing and depot_file_target and not target.exists():
+                    synced = self._soften(self._run_p4("sync", "-f", target_value))
+                    if not synced.ok:
+                        return synced
+                    results.append(synced)
+                if checkout_existing and (depot_file_target or target.exists()):
                     opened = self._soften(self._run_p4("edit", target.as_posix()))
                     if not opened.ok:
                         return opened
+                    results.append(opened)
+                else:
+                    reconcile_specs.append(target.as_posix())
                 if source.resolve() != target.resolve():
                     shutil.copy2(source, target)
             except OSError as exc:
                 return self._result(ok=False, returncode=1, error=str(exc))
             specs.append(target.as_posix())
-        result = self._soften(self._run_p4("reconcile", *specs))
-        if not result.ok:
-            return result
-        return self._combine_results([result, self._move_to_changelist(changelist, specs)])
+        if reconcile_specs:
+            result = self._soften(self._run_p4("reconcile", *reconcile_specs))
+            if not result.ok:
+                return result
+            results.append(result)
+        return self._combine_results([*results, self._move_to_changelist(changelist, specs)])
 
     def open_paths(
         self,
@@ -922,7 +939,7 @@ class PerforceP4Adapter(SCMAdapter):
     ) -> SCMCommandResult:
         self._select_stream(stream)
         if local_root is not None or target_paths:
-            return self._stage_local_sources(paths, local_root, target_paths, changelist)
+            return self._stage_local_sources(paths, local_root, target_paths, changelist, checkout_existing=False)
         specs = self._safe_filespecs(paths)
         if not specs:
             return self._result(ok=False, returncode=2, error="no valid paths to open")
@@ -941,7 +958,7 @@ class PerforceP4Adapter(SCMAdapter):
     ) -> SCMCommandResult:
         self._select_stream(stream)
         if local_root is not None or target_paths:
-            return self._stage_local_sources(paths, local_root, target_paths, changelist)
+            return self._stage_local_sources(paths, local_root, target_paths, changelist, checkout_existing=True)
         specs = self._filespecs_for_perforce_selection(paths)
         if not specs:
             return self._result(ok=False, returncode=2, error="no valid paths to edit/open")

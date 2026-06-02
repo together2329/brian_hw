@@ -925,7 +925,55 @@ def test_edit_paths_opens_existing_target_before_copy(tmp_path):
     assert target.read_text(encoding="utf-8") == "module mapped; endmodule\n"
     assert adapter.calls == [
         ("edit", target.as_posix()),
-        ("reconcile", target.as_posix()),
+    ]
+
+
+def test_edit_paths_syncs_missing_depot_target_before_copy(tmp_path):
+    local_root = tmp_path / "local_ip"
+    p4_root = tmp_path / "perforce_workspace"
+    (local_root / "rtl").mkdir(parents=True)
+    (p4_root / "rtl").mkdir(parents=True)
+    source = local_root / "rtl" / "mapped.sv"
+    target = p4_root / "rtl" / "target.sv"
+    source.write_text("module mapped; endmodule\n", encoding="utf-8")
+
+    class RecordingAdapter(PerforceP4Adapter):
+        def __init__(self, root: Union[str, Path], executable: str = "p4") -> None:
+            super().__init__(root, executable=executable)
+            self.calls: list[tuple[str, ...]] = []
+
+        def _info(self) -> dict[str, str]:
+            return {"clientRoot": p4_root.as_posix()}
+
+        def _records(self, *args: str, timeout: int = 60):
+            if args and args[0] == "fstat":
+                return [{"clientFile": target.as_posix()}], self._result(ok=True)
+            return [], self._result(ok=True)
+
+        def _run_p4(self, *args: str, timeout: int = 60):
+            self.calls.append(args)
+            if args[:2] == ("sync", "-f"):
+                target.write_text("module old; endmodule\n", encoding="utf-8")
+                os.chmod(target, 0o444)
+            if args and args[0] == "edit":
+                os.chmod(args[1], 0o644)
+            return self._result(ok=True, stdout="opened")
+
+    adapter = RecordingAdapter(p4_root)
+
+    result = adapter.edit_paths(
+        ["rtl/mapped.sv"],
+        local_root=local_root,
+        target_paths=["//GOOD_SOC/GOOD_IP/rtl/target.sv"],
+        changelist="12",
+    )
+
+    assert result.ok is True
+    assert target.read_text(encoding="utf-8") == "module mapped; endmodule\n"
+    assert adapter.calls == [
+        ("sync", "-f", "//GOOD_SOC/GOOD_IP/rtl/target.sv"),
+        ("edit", target.as_posix()),
+        ("reopen", "-c", "12", target.as_posix()),
     ]
 
 

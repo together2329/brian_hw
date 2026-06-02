@@ -29,6 +29,7 @@ const bodyStrings = (value: unknown): string[] => {
 
 describe('PerforceSyncTab pane navigation', () => {
   const editBodies: Body[] = [];
+  const submitBodies: Body[] = [];
   const diffUrls: string[] = [];
   const checkedOut: PendingFixture[] = [];
   let delayRootLocalPane = false;
@@ -67,6 +68,7 @@ describe('PerforceSyncTab pane navigation', () => {
 
   beforeEach(() => {
     editBodies.length = 0;
+    submitBodies.length = 0;
     diffUrls.length = 0;
     checkedOut.length = 0;
     delayRootLocalPane = false;
@@ -91,9 +93,16 @@ describe('PerforceSyncTab pane navigation', () => {
         const body = readBody(init);
         editBodies.push(body);
         const change = String(body.changelist || 'default');
-        for (const path of bodyStrings(body.paths)) {
+        const targetPaths = bodyStrings(body.targetPaths)
+          .filter(path => path.startsWith('//') && !path.endsWith('/'));
+        const pendingPaths = targetPaths.length ? targetPaths : bodyStrings(body.paths);
+        for (const path of pendingPaths) {
           checkedOut.push({ path, change });
         }
+        return jsonResponse({ ok: true });
+      }
+      if (url === '/api/scm/submit') {
+        submitBodies.push(readBody(init));
         return jsonResponse({ ok: true });
       }
       if (url.startsWith('/api/scm/diff')) {
@@ -182,6 +191,7 @@ describe('PerforceSyncTab pane navigation', () => {
       });
       expect(editBodies[0]).not.toHaveProperty('sourceRoot');
     });
+    expect(await screen.findByText('//GOOD_SOC/GOOD_IP/rtl/main.sv')).toBeVisible();
   });
 
   it('loads a pending file diff so submit changes are visible before submit', async () => {
@@ -191,5 +201,36 @@ describe('PerforceSyncTab pane navigation', () => {
 
     expect(await screen.findByText(/\+module changed;/)).toBeVisible();
     expect(diffUrls.some(url => url.includes('path=%2F%2FGOOD_SOC%2FGOOD_IP%2Frtl%2Fopened.sv'))).toBe(true);
+  });
+
+  it('can diff and submit the target file after local checkout', async () => {
+    render(<PerforceSyncTab initialIp="ulw_p4" provider="perforce" />);
+    const [localRtl] = await screen.findAllByText('rtl/');
+    fireEvent.click(localRtl);
+    await screen.findByText('new_file.sv');
+    fireEvent.click(screen.getByText('rtl/'));
+    await screen.findByText('main.sv');
+
+    fireEvent.click(screen.getByText('new_file.sv'));
+    fireEvent.click(screen.getByText('main.sv'));
+    fireEvent.click(screen.getByRole('button', { name: /checkout/i }));
+    const pendingTarget = await screen.findByText('//GOOD_SOC/GOOD_IP/rtl/main.sv');
+    fireEvent.click(pendingTarget);
+
+    expect(await screen.findByText(/\+module changed;/)).toBeVisible();
+    fireEvent.change(screen.getByPlaceholderText('changelist description…'), {
+      target: { value: 'submit checkout diff' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /submit/i }));
+
+    await waitFor(() => {
+      expect(submitBodies).toHaveLength(1);
+      expect(submitBodies[0]).toMatchObject({
+        provider: 'perforce',
+        ip: 'ulw_p4',
+        message: 'submit checkout diff',
+        changelist: 'default',
+      });
+    });
   });
 });
