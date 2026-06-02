@@ -861,6 +861,28 @@ def test_edit_paths_checks_out_depot_file_to_selected_pending_changelist(tmp_pat
     ]
 
 
+def test_diff_accepts_pending_depot_file_path(tmp_path):
+    p4_root = tmp_path / "perforce_workspace"
+    p4_root.mkdir()
+
+    class RecordingAdapter(PerforceP4Adapter):
+        def __init__(self, root: Union[str, Path], executable: str = "p4") -> None:
+            super().__init__(root, executable=executable)
+            self.calls: list[tuple[str, ...]] = []
+
+        def _run_p4(self, *args: str, timeout: int = 60):
+            self.calls.append(args)
+            return self._result(ok=True, stdout="--- depot\n+++ client\n")
+
+    adapter = RecordingAdapter(p4_root)
+
+    result = adapter.diff("//GOOD_SOC/GOOD_IP/rtl/main.sv")
+
+    assert result.ok is True
+    assert result.stdout == "--- depot\n+++ client\n"
+    assert adapter.calls == [("diff", "-du", "//GOOD_SOC/GOOD_IP/rtl/main.sv")]
+
+
 def test_edit_paths_opens_existing_target_before_copy(tmp_path):
     local_root = tmp_path / "local_ip"
     p4_root = tmp_path / "perforce_workspace"

@@ -225,11 +225,20 @@ def register_git_routes(
 
     @app.get("/api/scm/diff")
     @app.get("/api/git/diff")
-    async def api_git_diff(path: str = "", staged: int = 0, ip: str = "", provider: str = "", scm_root: str = ""):
+    async def api_git_diff(
+        path: str = "",
+        staged: int = 0,
+        ip: str = "",
+        provider: str = "",
+        scm_root: str = "",
+        stream: str = "",
+    ):
         local_root, scm_root_path, error, resolved_ip = _route_roots(ip, provider=provider, scm_root_value=scm_root)
         if error is not None:
             return error
         kwargs = {"local_root": local_root} if _request_provider(provider) == "perforce" else {}
+        if stream and _request_provider(provider) == "perforce":
+            kwargs["stream"] = stream
         result = await _scm_call(scm_root_path, "diff", path, bool(staged), provider=provider, **kwargs)
         if not result.ok and not result.stdout:
             return JSONResponse({

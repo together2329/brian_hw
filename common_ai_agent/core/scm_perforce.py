@@ -713,10 +713,17 @@ class PerforceP4Adapter(SCMAdapter):
             "dirty": bool(files), "files": files,
         }
 
-    def diff(self, path: str = "", staged: bool = False, local_root: str | Path | None = None) -> SCMCommandResult:
+    def diff(
+        self,
+        path: str = "",
+        staged: bool = False,
+        local_root: str | Path | None = None,
+        stream: str = "",
+    ) -> SCMCommandResult:
         _ = staged  # Perforce has no staging area; opened files are the working set.
         _ = local_root
-        target = self._safe_filespecs([path])
+        self._select_stream(stream)
+        target = self._filespecs_for_perforce_selection([path])
         return self._soften(self._run_p4("diff", "-du", *(target or [self._workspace_scope()])))
 
     def log(self, limit: int = 60) -> dict[str, Any]:

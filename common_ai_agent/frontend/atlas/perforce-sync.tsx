@@ -36,6 +36,9 @@ interface DepotRow { path: string; rev: string; kind?: PaneRowKind }
 interface TreeRow { key: string; name: string; path: string; kind: 'up' | 'folder' | 'file'; state?: string; rev?: string }
 interface PendRow { path: string; action: string; change?: string }
 interface PendingChange { id: string; label?: string; description?: string }
+interface PaneLocation { localDir: string; depotDir: string }
+interface NavigationState { entries: PaneLocation[]; index: number }
+interface LoadPaneOptions { remember?: boolean; clearLocal?: boolean; clearDepot?: boolean }
 interface PaneState {
   ok: boolean;
   client?: string;
@@ -88,6 +91,9 @@ const parentDepotDir = (dir: string, root: string): string => {
   const parent = `${clean.slice(0, slash + 1)}`;
   return parent.length >= root.length ? parent : root;
 };
+
+const sameLocation = (left: PaneLocation, right: PaneLocation): boolean =>
+  left.localDir === right.localDir && left.depotDir === right.depotDir;
 
 const localEntryName = (path: string, dir: string): string => {
   const prefix = dir ? `${dir.replace(/\/+$/, '')}/` : '';
@@ -199,7 +205,10 @@ const sx: Record<string, CSSProperties> = {
   crumb: { color: 'var(--fg-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
   center: { display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 10, padding: '0 12px', borderLeft: '1px solid var(--line)', borderRight: '1px solid var(--line)', background: 'var(--bg)' },
   bottom: { borderTop: '1px solid var(--line)', background: 'var(--bg-2)', padding: '8px 12px', maxHeight: '34%', display: 'flex', flexDirection: 'column', minHeight: 0 },
+  pendingBody: { display: 'flex', gap: 8, flex: 1, minHeight: 72, minWidth: 0 },
   pendList: { overflow: 'auto', flex: 1, minHeight: 40, border: '1px solid var(--line)', borderRadius: 4, background: 'var(--bg)' },
+  diffPane: { overflow: 'hidden', flex: 1, minHeight: 40, border: '1px solid var(--line)', borderRadius: 4, background: 'var(--bg)', display: 'flex', flexDirection: 'column', minWidth: 0 },
+  diffPre: { margin: 0, padding: '8px 10px', overflow: 'auto', flex: 1, minHeight: 0, whiteSpace: 'pre', fontFamily: 'var(--mono, monospace)', fontSize: 11, color: 'var(--fg)' },
   btn: { background: 'transparent', color: 'var(--accent)', border: '1px solid var(--accent)', borderRadius: 4, padding: '5px 12px', font: 'inherit', fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap' },
   btnPrimary: { background: 'var(--accent)', color: 'var(--bg)', border: '1px solid var(--accent)', borderRadius: 4, padding: '5px 12px', font: 'inherit', fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap' },
   input: { flex: 1, background: 'var(--bg)', color: 'var(--fg)', border: '1px solid var(--line-2)', borderRadius: 4, padding: '5px 8px', font: 'inherit', fontSize: 12, fontFamily: 'var(--mono, monospace)' },
@@ -226,11 +235,17 @@ function PerforceSyncTab(props: PerforceSyncProps) {
   const [selectedChange, setSelectedChange] = useState('default');
   const [localDir, setLocalDir] = useState('');
   const [depotDir, setDepotDir] = useState('');
+  const [nav, setNav] = useState<NavigationState>({ entries: [], index: -1 });
   const [selLocal, setSelLocal] = useState<Set<string>>(new Set());
   const [selDepot, setSelDepot] = useState<Set<string>>(new Set());
   const [selPend, setSelPend] = useState<Set<string>>(new Set());
+  const [diffPath, setDiffPath] = useState('');
+  const [diffText, setDiffText] = useState('');
+  const [diffBusy, setDiffBusy] = useState(false);
+  const [diffErr, setDiffErr] = useState('');
   const mounted = useRef(true);
   const reqRef = useRef(0);
+  const diffReqRef = useRef(0);
   const activeStream = stream || pane?.stream || '';
   const activeScmRoot = scmRoot || pane?.scmRoot || '';
   const depotRoot = activeStream ? `${activeStream.replace(/\/+$/, '')}/` : '';
@@ -262,10 +277,18 @@ function PerforceSyncTab(props: PerforceSyncProps) {
     targetScmRoot = scmRoot,
     targetLocalDir = '',
     targetDepotDir = '',
+    options: LoadPaneOptions = {},
   ) => {
     if (!targetIp) { setPane(null); return; }
     const reqId = ++reqRef.current;
     setBusy(true); setErr('');
+    if (options.clearLocal || options.clearDepot) {
+      setPane(current => current ? {
+        ...current,
+        local: options.clearLocal ? [] : current.local,
+        depot: options.clearDepot ? [] : current.depot,
+      } : current);
+    }
     const params = new URLSearchParams({ ip: targetIp, provider: 'perforce' });
     if (targetStream) params.set('stream', targetStream);
     if (targetScmRoot) params.set('scm_root', targetScmRoot);
@@ -285,6 +308,16 @@ function PerforceSyncTab(props: PerforceSyncProps) {
         setLocalDir(d.localDir ?? targetLocalDir);
         const nextDepotDir = d.depotDir || targetDepotDir || nextDepotRoot;
         if (nextDepotDir) setDepotDir(nextDepotDir);
+        if (options.remember) {
+          const nextLocation = { localDir: d.localDir ?? targetLocalDir, depotDir: nextDepotDir };
+          setNav(current => {
+            const kept = current.index >= 0 ? current.entries.slice(0, current.index + 1) : [];
+            const last = kept.length ? kept[kept.length - 1] : null;
+            if (last && sameLocation(last, nextLocation)) return current;
+            const entries = [...kept, nextLocation].slice(-50);
+            return { entries, index: entries.length - 1 };
+          });
+        }
         if (!d.ok && d.error) setErr(d.error);
         setSelLocal(new Set()); setSelDepot(new Set()); setSelPend(new Set());
       })
@@ -292,7 +325,10 @@ function PerforceSyncTab(props: PerforceSyncProps) {
       .finally(() => { if (mounted.current && reqRef.current === reqId) setBusy(false); });
   }, [stream, scmRoot]);
 
-  useEffect(() => { loadPane(ip, stream, scmRoot); }, [ip, stream, scmRoot, loadPane]);
+  useEffect(() => {
+    setNav({ entries: [], index: -1 });
+    loadPane(ip, stream, scmRoot, '', '', { remember: true, clearLocal: true, clearDepot: true });
+  }, [ip]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const post = useCallback((url: string, body: any, okMsg: string) => {
     setBusy(true); setErr(''); setMsg('');
@@ -312,6 +348,41 @@ function PerforceSyncTab(props: PerforceSyncProps) {
       .finally(() => { if (mounted.current) { setBusy(false); loadPane(ip, activeStream, activeScmRoot, localDir, depotDir); } });
   }, [ip, stream, scmRoot, pane?.stream, pane?.scmRoot, selectedChange, localDir, depotDir, loadPane]);
 
+  const goHistory = useCallback((offset: number) => {
+    const targetIndex = nav.index + offset;
+    if (targetIndex < 0 || targetIndex >= nav.entries.length) return;
+    const target = nav.entries[targetIndex];
+    setNav(current => ({ ...current, index: targetIndex }));
+    setSelLocal(new Set());
+    setSelDepot(new Set());
+    setLocalDir(target.localDir);
+    setDepotDir(target.depotDir);
+    loadPane(ip, activeStream, activeScmRoot, target.localDir, target.depotDir, {
+      clearLocal: target.localDir !== localDir,
+      clearDepot: target.depotDir !== depotDir,
+    });
+  }, [nav, ip, activeStream, activeScmRoot, localDir, depotDir, loadPane]);
+
+  const loadPendingDiff = useCallback((path: string) => {
+    const reqId = ++diffReqRef.current;
+    setDiffPath(path);
+    setDiffText('');
+    setDiffErr('');
+    setDiffBusy(true);
+    const params = new URLSearchParams({ ip, provider: 'perforce', path });
+    if (activeStream) params.set('stream', activeStream);
+    if (activeScmRoot) params.set('scm_root', activeScmRoot);
+    fetch(`/api/scm/diff?${params.toString()}`, { cache: 'no-store' })
+      .then(r => r.json())
+      .then(d => {
+        if (!mounted.current || diffReqRef.current !== reqId) return;
+        if (d && d.error) setDiffErr(String(d.error));
+        setDiffText(String((d && d.diff) || ''));
+      })
+      .catch(e => { if (mounted.current && diffReqRef.current === reqId) setDiffErr(String(e)); })
+      .finally(() => { if (mounted.current && diffReqRef.current === reqId) setDiffBusy(false); });
+  }, [ip, activeStream, activeScmRoot]);
+
   const toggle = (set: Set<string>, key: string, setter: (s: Set<string>) => void) => {
     const next = new Set(set);
     next.has(key) ? next.delete(key) : next.add(key);
@@ -326,6 +397,8 @@ function PerforceSyncTab(props: PerforceSyncProps) {
   const pendingChanges = pane?.pendingChanges || [{ id: 'default', label: 'default' }];
   const visiblePending = pending.filter(row => (row.change || 'default') === selectedChange);
   const streams = pane?.streams || (pane?.stream ? [pane.stream] : []);
+  const canGoBack = nav.index > 0;
+  const canGoForward = nav.index >= 0 && nav.index < nav.entries.length - 1;
 
   const onLocalRow = (row: TreeRow) => {
     if (row.kind === 'up' || row.kind === 'folder') {
@@ -333,7 +406,7 @@ function PerforceSyncTab(props: PerforceSyncProps) {
       const activeScmRoot = scmRoot || pane?.scmRoot || '';
       setSelLocal(new Set());
       setLocalDir(row.path);
-      loadPane(ip, activeStream, activeScmRoot, row.path, depotDir);
+      loadPane(ip, activeStream, activeScmRoot, row.path, depotDir, { remember: true, clearLocal: true });
       return;
     }
     toggle(selLocal, row.path, setSelLocal);
@@ -345,7 +418,7 @@ function PerforceSyncTab(props: PerforceSyncProps) {
       const activeScmRoot = scmRoot || pane?.scmRoot || '';
       setSelDepot(new Set());
       setDepotDir(row.path);
-      loadPane(ip, activeStream, activeScmRoot, localDir, row.path);
+      loadPane(ip, activeStream, activeScmRoot, localDir, row.path, { remember: true, clearDepot: true });
       return;
     }
     toggle(selDepot, row.path, setSelDepot);
@@ -358,9 +431,19 @@ function PerforceSyncTab(props: PerforceSyncProps) {
     post('/api/scm/add', { paths, targetPaths: depotDir ? [depotDir] : [] }, `opened ${paths.length} file(s)`);
   };
   const onCheckout = () => {
-    const paths = depot.filter(row => selDepot.has(row.path)).map(row => row.path);
-    if (!paths.length) { setErr('select Perforce files to checkout'); return; }
-    post('/api/scm/edit', { paths, sourceRoot: 'scm' }, `checked out ${paths.length} file(s)`);
+    const selectedDepotFiles = depot.filter(row => row.kind !== 'folder' && selDepot.has(row.path)).map(row => row.path);
+    if (selLocal.size) {
+      const localPaths = [...selLocal];
+      if (selectedDepotFiles.length > 0 && selectedDepotFiles.length !== localPaths.length) {
+        setErr('match local files to Perforce targets one-to-one');
+        return;
+      }
+      const targetPaths = selectedDepotFiles.length ? selectedDepotFiles : [depotDir || depotRoot];
+      post('/api/scm/edit', { paths: localPaths, targetPaths }, `checked out ${localPaths.length} file(s)`);
+      return;
+    }
+    if (!selectedDepotFiles.length) { setErr('select Perforce files to checkout'); return; }
+    post('/api/scm/edit', { paths: selectedDepotFiles, sourceRoot: 'scm' }, `checked out ${selectedDepotFiles.length} file(s)`);
   };
   const onSubmit = () => {
     if (!desc.trim()) { setErr('description required'); return; }
@@ -404,7 +487,15 @@ function PerforceSyncTab(props: PerforceSyncProps) {
           id="perforce-stream-select"
           aria-label="Perforce stream"
           value={activeStream}
-          onChange={e => setStream(e.target.value)}
+          onChange={e => {
+            const nextStream = e.target.value;
+            const nextDepotRoot = nextStream ? `${nextStream.replace(/\/+$/, '')}/` : '';
+            setStream(nextStream);
+            setLocalDir('');
+            setDepotDir(nextDepotRoot);
+            setNav({ entries: [], index: -1 });
+            loadPane(ip, nextStream, activeScmRoot, '', nextDepotRoot, { remember: true, clearLocal: true, clearDepot: true });
+          }}
           style={{ ...sx.input, flex: 'none', minWidth: 220 }}
           disabled={!streams.length}
         >
@@ -418,6 +509,8 @@ function PerforceSyncTab(props: PerforceSyncProps) {
           {busy ? <span style={sx.mute}>…</span> : null}
           {err ? <span style={{ color: 'var(--err)' }} title={err}>⚠ {err.slice(0, 80)}</span> : null}
           {msg ? <span style={{ color: 'var(--ok)' }}>{msg.slice(0, 80)}</span> : null}
+          <button style={sx.btn} onClick={() => goHistory(-1)} disabled={busy || !canGoBack}>‹ Back</button>
+          <button style={sx.btn} onClick={() => goHistory(1)} disabled={busy || !canGoForward}>Forward ›</button>
           <button style={sx.btn} onClick={() => loadPane(ip, activeStream, activeScmRoot, localDir, depotDir)} disabled={busy || !ip}>↻ Refresh</button>
         </span>
       </div>
@@ -498,19 +591,38 @@ function PerforceSyncTab(props: PerforceSyncProps) {
             <button style={sx.btn} onClick={onRevert} disabled={busy || !visiblePending.length}>Revert</button>
           </span>
         </div>
-        <div style={sx.pendList}>
-          {visiblePending.length === 0 ? <div style={sx.empty}>nothing opened — select local files and press ＋ Add</div> :
-            visiblePending.map(r => {
-              const checked = selPend.has(r.path);
-              return (
-                <div key={r.path} style={sx.rowLi} onClick={() => toggle(selPend, r.path, setSelPend)}>
-                  <input type="checkbox" checked={checked} readOnly />
-                  <span style={{ color: ACTION_COLOR[r.action] || 'var(--fg-mute)', width: 76, flex: 'none' }}>{r.action}</span>
-                  <span style={{ color: 'var(--fg-dim)', width: 64, flex: 'none' }}>{r.change || 'default'}</span>
-                  <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.path}</span>
-                </div>
-              );
-            })}
+        <div style={sx.pendingBody}>
+          <div style={sx.pendList}>
+            {visiblePending.length === 0 ? <div style={sx.empty}>nothing opened — select local files and press ＋ Add</div> :
+              visiblePending.map(r => {
+                const checked = selPend.has(r.path);
+                return (
+                  <div
+                    key={r.path}
+                    style={sx.rowLi}
+                    onClick={() => {
+                      toggle(selPend, r.path, setSelPend);
+                      loadPendingDiff(r.path);
+                    }}
+                  >
+                    <input type="checkbox" checked={checked} readOnly />
+                    <span style={{ color: ACTION_COLOR[r.action] || 'var(--fg-mute)', width: 76, flex: 'none' }}>{r.action}</span>
+                    <span style={{ color: 'var(--fg-dim)', width: 64, flex: 'none' }}>{r.change || 'default'}</span>
+                    <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.path}</span>
+                  </div>
+                );
+              })}
+          </div>
+          <div style={sx.diffPane}>
+            <div style={{ ...sx.paneHead, padding: '4px 8px' }}>
+              <span>DIFF</span>
+              <span style={sx.crumb} className="mono">{diffPath}</span>
+            </div>
+            {diffBusy ? <div style={sx.empty}>loading diff…</div> :
+              diffErr ? <div style={{ ...sx.empty, color: 'var(--err)' }}>{diffErr}</div> :
+                diffText ? <pre style={sx.diffPre}>{diffText}</pre> :
+                  <div style={sx.empty}>select pending file</div>}
+          </div>
         </div>
         <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
           <input style={sx.input} placeholder="changelist description…" value={desc}
