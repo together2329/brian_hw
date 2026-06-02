@@ -24,6 +24,19 @@ _IP_PERMISSION_LEVELS = {
     "admin": 4,
 }
 
+# Trace-event types that are part of the ROOM CHAT ledger (plan §2.10 / R17).
+#
+# Chat is stored ON trace_events (record_chat_message -> record_trace_event with
+# event_type='chat_message' and NO session_id). It is room-scoped (per-IP or the
+# _global room), NOT session-scoped, so it must live in the CONTROL DB even when
+# the calling AtlasDB happens to be bound to a per-session runtime file (e.g. a
+# worker process whose ATLAS_DB_PATH points at its runtime DB). 'chat_consumed'
+# is the read-watermark for the SAME ledger — the unconsumed query joins
+# chat_message against chat_consumed within ONE database, so both must co-locate
+# in control or the cross-DB join silently breaks. record_trace_event() applies a
+# write-time predicate that re-routes these to the control DB.
+_CONTROL_TRACE_EVENT_TYPES = frozenset({"chat_message", "chat_consumed"})
+
 
 class QueueCursorNotFound(LookupError):
     """A poll ``since_id`` cursor is absent from THIS database (plan §2.4 / R5).
@@ -4166,6 +4179,47 @@ class AtlasDB:
         rows = self._fetchall("SELECT * FROM todo_events WHERE id = ?", (event_id,))
         return self._row_to_dict(rows[0], "todo_events")
 
+    def _control_db_for_chat(self) -> Optional["AtlasDB"]:
+        """Return a CONTROL-bound AtlasDB for chat re-routing, or None.
+
+        Returns None — meaning "write chat in place on THIS db" — whenever the
+        control/runtime split is NOT active for this write:
+
+        * ``ATLAS_RUNTIME_DB_MODE`` is ``central`` (the DEFAULT): there is no
+          split; every AtlasDB IS the control DB, so chat writes in place. This
+          keeps behavior byte-identical to before the split, including callers
+          that opened an explicit (e.g. test tmp_path) db that does not match
+          the env-derived control default.
+        * This instance is ALREADY bound to the resolved control path (no
+          re-open, no recursion).
+
+        Only in ``session`` mode, when ``self.db_path`` is a per-session RUNTIME
+        file distinct from the control path, do we open a fresh AtlasDB on the
+        control path so room chat lands in control (plan §2.10 / R17). The
+        control path reuses :class:`AtlasDBRouter` (the single config point:
+        explicit ATLAS_CONTROL_DB_PATH, else ATLAS_DB_PATH, else the home
+        default). The router import is lazy to avoid an import cycle (the router
+        imports AtlasDB at module top).
+        """
+        from core.atlas_db_router import AtlasDBRouter
+        router = AtlasDBRouter()
+        if router.mode() != "session":
+            return None
+        control_path = router.control_db_path()
+        if self._same_path(self.db_path, control_path):
+            return None
+        return AtlasDB(db_path=control_path, schema_set="full")
+
+    @staticmethod
+    def _same_path(a: str, b: str) -> bool:
+        """True when *a* and *b* resolve to the same SQLite file (or both memory)."""
+        if a == ":memory:" or b == ":memory:":
+            return a == b
+        try:
+            return str(Path(a).resolve()) == str(Path(b).resolve())
+        except Exception:
+            return os.path.abspath(a) == os.path.abspath(b)
+
     def record_trace_event(
         self,
         event_type: str,
@@ -4186,7 +4240,39 @@ class AtlasDB:
         idempotency_key: str = "",
         created_at: float = None,
     ) -> Dict[str, Any]:
-        """Append a canonical trace event, returning an existing row for duplicate keys."""
+        """Append a canonical trace event, returning an existing row for duplicate keys.
+
+        Write-time routing (plan §2.10 / R17): room CHAT events
+        (``event_type`` in :data:`_CONTROL_TRACE_EVENT_TYPES`) ALWAYS land in the
+        CONTROL DB, even when this AtlasDB is bound to a per-session runtime file.
+        This keeps the room-chat ledger (chat_message + its chat_consumed
+        watermark) a single-DB join and prevents a worker (ATLAS_DB_PATH=runtime)
+        from scattering chat across runtime files. Session-scoped non-chat trace
+        stays in whatever DB this instance is bound to (the runtime file in
+        session mode; the control file in central mode — byte-identical to today).
+        """
+        if event_type in _CONTROL_TRACE_EVENT_TYPES:
+            target = self._control_db_for_chat()
+            if target is not None:
+                return target.record_trace_event(
+                    event_type=event_type,
+                    payload=payload,
+                    session_id=session_id,
+                    workspace_id=workspace_id,
+                    ip_id=ip_id,
+                    workflow=workflow,
+                    run_id=run_id,
+                    stage_id=stage_id,
+                    todo_id=todo_id,
+                    message_id=message_id,
+                    llm_call_id=llm_call_id,
+                    artifact_id=artifact_id,
+                    actor_user_id=actor_user_id,
+                    correlation_id=correlation_id,
+                    causation_id=causation_id,
+                    idempotency_key=idempotency_key,
+                    created_at=created_at,
+                )
         key = str(idempotency_key or "").strip()
         if key:
             existing = self._fetchone(

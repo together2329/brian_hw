@@ -34,6 +34,53 @@ except ModuleNotFoundError:  # pragma: no cover - direct script execution fallba
 SOURCE_ROOT = Path(__file__).resolve().parents[1]
 
 
+class WorkerSessionRoutingError(RuntimeError):
+    """A headless worker in session mode could not resolve its session.
+
+    Surfaced (plan §2.10 / R16) instead of the old silent ``try/except: pass``
+    that let a worker write ``session_id=''`` rows — those are unroutable and
+    silently swallowed, so token/cost accounting for that worker vanished. In
+    session mode we FAIL LOUD rather than mis-attribute spend.
+    """
+
+
+def _resolve_worker_session_id() -> str:
+    """Resolve the worker's session id from the spawn env (plan §2.10 / R16).
+
+    ``SessionProcessManager.build_worker_env`` sets ``ATLAS_ACTIVE_SESSION``
+    (owner/ip/workflow), NOT ``ATLAS_SESSION_ID`` — so the old code that read
+    ``ATLAS_SESSION_ID`` always saw '' and wrote unroutable rows. Resolution
+    order: ATLAS_ACTIVE_SESSION (the real spawn key) -> ATLAS_SESSION_ID
+    (legacy fallback for any caller that still sets it).
+    """
+    return (
+        os.environ.get("ATLAS_ACTIVE_SESSION", "").strip()
+        or os.environ.get("ATLAS_SESSION_ID", "").strip()
+    )
+
+
+def _resolve_worker_accounting_session(*, require_in_session_mode: bool = True) -> str:
+    """Resolve the session id for a worker accounting write, surfacing failure.
+
+    In ``ATLAS_RUNTIME_DB_MODE=session`` a worker with no resolvable session is
+    a routing BUG (the spawn env should always carry ATLAS_ACTIVE_SESSION): we
+    raise :class:`WorkerSessionRoutingError` instead of silently writing
+    ``session_id=''`` (R16). In central mode (the default) an empty session is
+    historically valid, so we return '' unchanged.
+    """
+    session_id = _resolve_worker_session_id()
+    if session_id:
+        return session_id
+    mode = (os.environ.get("ATLAS_RUNTIME_DB_MODE") or "central").strip().lower()
+    if require_in_session_mode and mode == "session":
+        raise WorkerSessionRoutingError(
+            "headless worker in ATLAS_RUNTIME_DB_MODE=session has no resolvable "
+            "session (ATLAS_ACTIVE_SESSION / ATLAS_SESSION_ID both empty); "
+            "refusing to write an unroutable session_id='' llm_calls row."
+        )
+    return session_id
+
+
 def _resolve_workflow_root(raw: str | Path | None = None) -> Path:
     value = str(raw or os.environ.get("ATLAS_WORKFLOW_ROOT") or "").strip()
     base = Path(os.path.expandvars(value)).expanduser() if value else SOURCE_ROOT / "workflow"
@@ -1976,6 +2023,15 @@ class HeadlessWorkflowRunner:
             elapsed_sec=round(llm_elapsed, 3),
             error=response.error,
         )
+        # Resolve the worker session FIRST, OUTSIDE the best-effort guard below
+        # (plan §2.10 / R16). In session mode a worker with no resolvable session
+        # must NOT silently write session_id='' — that row is unroutable and the
+        # spend vanishes. _resolve_worker_accounting_session() raises
+        # WorkerSessionRoutingError in that case so the failure is visible.
+        # In session mode the worker's ATLAS_DB_PATH is already the per-session
+        # RUNTIME file (build_worker_env), so a plain AtlasDB(_db_path) writes the
+        # llm_calls row into the runtime DB without any extra routing here.
+        _session_id = _resolve_worker_accounting_session()
         try:
             _usage = response.usage if isinstance(response.usage, dict) else {}
             _cost_block = _usage.get("cost") if isinstance(_usage.get("cost"), dict) else {}
@@ -1991,11 +2047,13 @@ class HeadlessWorkflowRunner:
             )
             with AtlasDB(_db_path) as _db:
                 _db.record_llm_call(
-                    session_id=os.environ.get("ATLAS_SESSION_ID", ""),
-                    ip_id=os.environ.get("ATLAS_IP_ID", "") or ip,
+                    session_id=_session_id,
+                    ip_id=os.environ.get("ATLAS_IP_ID", "")
+                        or os.environ.get("ATLAS_ACTIVE_IP", "") or ip,
                     workflow=(
                         os.environ.get("ATLAS_WORKFLOW", "")
                         or os.environ.get("ATLAS_WORKER_NAME", "")
+                        or os.environ.get("ACTIVE_WORKSPACE", "")
                         or stage
                     ),
                     model=self.model,
@@ -2008,6 +2066,8 @@ class HeadlessWorkflowRunner:
                     latency_ms=round(llm_elapsed * 1000, 1),
                     status="ok" if not response.error else "error",
                 )
+        except WorkerSessionRoutingError:
+            raise
         except Exception:
             pass
         return response

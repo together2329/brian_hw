@@ -42,6 +42,41 @@ from src.orchestrator.ui_formatter import format_tool_call
 _live_event_emitter: Optional[Callable[[str, Dict[str, Any]], None]] = None
 
 
+def _runtime_db_for_session(control_db: Any, session_id: str) -> Any:
+    """Return the DB that session-scoped writes (llm_calls / trace / messages)
+    should target for *session_id* (plan §2.10, Task 6 step 2).
+
+    The orchestrator is the ONE main-process caller with a real
+    ``ctx.session_id`` (the worker side resolves session via the
+    ATLAS_ACTIVE_SESSION env chain). In ``ATLAS_RUNTIME_DB_MODE=session`` a
+    concrete session_id routes to that session's RUNTIME DB
+    (``AtlasDBRouter().runtime_db(session_id)``); a missing session_id, central
+    mode, or any router failure falls back to the passed CONTROL ``db`` so
+    behavior is byte-identical to today. Hot tables keep ``session_id`` as the
+    local query key; only the FILE is chosen by path (no cross-DB transaction).
+
+    The returned object is the live ``control_db`` (caller-owned) OR a fresh
+    runtime AtlasDB the caller must use within a ``with`` block / close. We
+    return the AtlasDB instance directly; callers wrap their write in
+    ``with _runtime_db_for_session(...) as wdb:`` — entering the control db is a
+    no-op (__enter__ returns self) and __exit__ keeps its cached connection.
+    """
+    sid = str(session_id or "").strip()
+    if not sid:
+        return control_db
+    try:
+        from core.atlas_db_router import AtlasDBRouter
+        router = AtlasDBRouter()
+        if router.mode() == "central":
+            return control_db
+        return router.runtime_db(sid, create=True)
+    except Exception:
+        # Routing failure for ORCHESTRATOR accounting is non-fatal: the row
+        # still lands in the control DB (visible, never lost). The worker path
+        # (headless_workflow) surfaces routing failures explicitly instead.
+        return control_db
+
+
 def register_live_event_emitter(
     emitter: Optional[Callable[[str, Dict[str, Any]], None]],
 ) -> None:
@@ -700,23 +735,28 @@ def build_orchestrator_deps(*, ctx: Any, runner: Any, db: Any) -> OrchestratorRe
                         ) / 1_000_000.0
                 except Exception:
                     pass
-                db.record_llm_call(
-                    session_id=ctx.session_id or "",
-                    run_id=ctx.run_id,
-                    workspace_id=getattr(ctx, "workspace_id", "") or "",
-                    ip_id=ctx.ip_id or "",
-                    workflow="orchestrator",
-                    model=ORCHESTRATOR_MODEL,
-                    provider=getattr(config, "API_PROVIDER", "") or "",
-                    call_role="orchestrator",
-                    tokens_input=tokens_input,
-                    tokens_output=tokens_output,
-                    cache_read_tokens=cache_read,
-                    cache_write_tokens=cache_write,
-                    cost_usd=cost_usd,
-                    latency_ms=(time.monotonic() - started) * 1000.0,
-                    status="ok",
-                )
+                # Session-scoped accounting: route to the session's RUNTIME DB
+                # in session mode (control DB in central mode / no session). The
+                # row keeps session_id as its query key; the FILE is chosen by
+                # the router (no cross-DB transaction).
+                with _runtime_db_for_session(db, ctx.session_id or "") as _acct_db:
+                    _acct_db.record_llm_call(
+                        session_id=ctx.session_id or "",
+                        run_id=ctx.run_id,
+                        workspace_id=getattr(ctx, "workspace_id", "") or "",
+                        ip_id=ctx.ip_id or "",
+                        workflow="orchestrator",
+                        model=ORCHESTRATOR_MODEL,
+                        provider=getattr(config, "API_PROVIDER", "") or "",
+                        call_role="orchestrator",
+                        tokens_input=tokens_input,
+                        tokens_output=tokens_output,
+                        cache_read_tokens=cache_read,
+                        cache_write_tokens=cache_write,
+                        cost_usd=cost_usd,
+                        latency_ms=(time.monotonic() - started) * 1000.0,
+                        status="ok",
+                    )
             except Exception:
                 # Accounting must not break the LLM call itself.
                 pass
