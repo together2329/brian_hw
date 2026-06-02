@@ -1,0 +1,11 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.9.6, pytest-8.4.1, pluggy-1.6.0 -- /Library/Developer/CommandLineTools/usr/bin/python3
+cachedir: .pytest_cache
+rootdir: /Users/brian/Desktop/Project/brian_hw/common_ai_agent
+collecting ... collected 17 items / 14 deselected / 3 selected
+
+tests/test_output_coalescing.py::test_expansion_parity_token_batch_matches_browser_shape PASSED [ 33%]
+tests/test_output_coalescing.py::test_expansion_parity_reasoning_batch_matches_browser_shape PASSED [ 66%]
+tests/test_output_coalescing.py::test_expansion_parity_matches_uncoalesced_single_row PASSED [100%]
+
+======================= 3 passed, 14 deselected in 0.10s =======================

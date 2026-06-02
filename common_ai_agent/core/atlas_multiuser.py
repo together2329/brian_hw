@@ -469,48 +469,27 @@ class _MultiUserBridge:
             for msg in outputs:
                 msg_session_id = str(msg.get("session_id") or session_id)
                 session = self._ensure_session(msg_session_id)
-                payload = msg.get("payload")
-                event = dict(payload) if isinstance(payload, dict) else {}
-                event["type"] = str(msg.get("msg_type") or "")
-                if event["type"] == "agent_state" and isinstance(event.get("running"), bool):
-                    session.agent_running = bool(event["running"])
-                    if session.agent_running:
-                        session.agent_alive = True
-                    event.setdefault("alive", session.agent_alive)
-                elif event["type"] == "worker_started":
-                    session.agent_alive = True
-                    event.setdefault("alive", True)
-                elif event["type"] in {"worker_exited", "worker_stopped"}:
-                    session.agent_alive = False
-                    session.agent_running = False
-                    event.setdefault("alive", False)
-                    saw_lifecycle_end = True
-                if session.session_id != "default":
-                    event.setdefault("session_id", session.session_id)
-                if event["type"] == "ask_user":
-                    normalized = normalize_session_name(str(event.get("session") or session.session_id or ""))
-                    if normalized:
-                        event.setdefault("session", normalized)
-                flow_id = str(event.get("flow_id") or "")
-                if flow_id:
-                    with session._pending_ask_user_lock:
-                        if event["type"] == "ask_user":
-                            session._pending_ask_user[flow_id] = dict(event)
-                        elif event["type"] in {"ask_user_answered", "ask_user_closed"}:
-                            session._pending_ask_user.pop(flow_id, None)
-                session.touch()
-                session._outbox.put_nowait(event)
-                # Mirror atlas_ui._emit_tool_result's file_changed emit
-                # for process-mode worker writes. The main process's
-                # _textual_emit_tool_result_fn never fires here (workers
-                # generate tool_result rows themselves), so without this
-                # the open SSOT preview / file tree wouldn't auto-reload
-                # when an agent in a subprocess wrote a yaml/rtl file.
-                if event["type"] == "tool_result":
-                    self._maybe_emit_file_changed(session, event)
+                # SINGLE expansion point (plan §2.8 / Task 5): a coalesced
+                # ``token_batch``/``reasoning_batch`` row carries N chunks; re-
+                # expand it here into N ordered individual ``token``/``reasoning``
+                # events so the browser (no ``*_batch`` subscriber exists) is
+                # unchanged. Normal rows expand to a single event. Expansion runs
+                # BEFORE the Task-4 delivery-marking below (which keys off the
+                # ROW id, once per row) and preserves order. Per-row bookkeeping
+                # (cursor advance, delivered_up_to) still happens once per row.
+                events = self._expand_outbox_events(msg)
+                for event in events:
+                    self._deliver_outbox_event(session, msg_session_id, event)
                 self._process_output_cursors[msg_session_id] = msg.get("id")
                 if str(msg.get("direction") or "out") == "out":
                     delivered_up_to[msg_session_id] = msg.get("id")
+                # NOTE: lifecycle-end tracking is set inside _deliver_outbox_event
+                # via the shared flag below; we read it back here.
+                if any(
+                    e.get("type") in {"worker_exited", "worker_stopped"}
+                    for e in events
+                ):
+                    saw_lifecycle_end = True
             # One durable delivery UPDATE per session for the whole batch.
             for marked_session_id, up_to_id in delivered_up_to.items():
                 self._mark_outputs_delivered(manager, marked_session_id, up_to_id)
@@ -521,6 +500,86 @@ class _MultiUserBridge:
                         session,
                         reason="process exited before producing worker_exited",
                     )
+
+    @staticmethod
+    def _expand_outbox_events(msg: dict[str, Any]) -> list[dict[str, Any]]:
+        """Turn ONE queue out-row into the ordered list of browser events.
+
+        Normal rows → exactly one event ``{**payload, "type": msg_type}``.
+        Coalesced ``token_batch``/``reasoning_batch`` rows → one event per chunk
+        (plan §2.8 / Task 5), preserving chunk order, so a re-expanded
+        ``token_batch`` is byte-for-byte the same per-event shape the browser
+        already consumes for un-coalesced ``token``/``reasoning`` rows.
+        """
+        msg_type = str(msg.get("msg_type") or "")
+        payload = msg.get("payload")
+        body = dict(payload) if isinstance(payload, dict) else {}
+        if msg_type in ("token_batch", "reasoning_batch"):
+            target = "token" if msg_type == "token_batch" else "reasoning"
+            chunks = body.get("chunks")
+            events: list[dict[str, Any]] = []
+            for chunk in chunks or []:
+                if not isinstance(chunk, dict):
+                    continue
+                event = dict(chunk)
+                event["type"] = target
+                # Carry any session_id stamped on the batch row onto each
+                # expanded event so per-session routing below is unchanged.
+                if "session_id" in body and "session_id" not in event:
+                    event["session_id"] = body["session_id"]
+                events.append(event)
+            return events
+        body["type"] = msg_type
+        return [body]
+
+    def _deliver_outbox_event(
+        self,
+        session: "_SessionBridge",
+        msg_session_id: str,
+        event: dict[str, Any],
+    ) -> None:
+        """Apply the per-event side effects and push it to the session outbox.
+
+        Identical to the historical inline body; factored out so the batch
+        expansion can feed N events through the SAME delivery path (lifecycle
+        state, ask_user bookkeeping, session_id stamping, file_changed). The
+        caller detects lifecycle-end by inspecting the expanded events, so this
+        helper no longer owns the ``saw_lifecycle_end`` flag."""
+        if event["type"] == "agent_state" and isinstance(event.get("running"), bool):
+            session.agent_running = bool(event["running"])
+            if session.agent_running:
+                session.agent_alive = True
+            event.setdefault("alive", session.agent_alive)
+        elif event["type"] == "worker_started":
+            session.agent_alive = True
+            event.setdefault("alive", True)
+        elif event["type"] in {"worker_exited", "worker_stopped"}:
+            session.agent_alive = False
+            session.agent_running = False
+            event.setdefault("alive", False)
+        if session.session_id != "default":
+            event.setdefault("session_id", session.session_id)
+        if event["type"] == "ask_user":
+            normalized = normalize_session_name(str(event.get("session") or session.session_id or ""))
+            if normalized:
+                event.setdefault("session", normalized)
+        flow_id = str(event.get("flow_id") or "")
+        if flow_id:
+            with session._pending_ask_user_lock:
+                if event["type"] == "ask_user":
+                    session._pending_ask_user[flow_id] = dict(event)
+                elif event["type"] in {"ask_user_answered", "ask_user_closed"}:
+                    session._pending_ask_user.pop(flow_id, None)
+        session.touch()
+        session._outbox.put_nowait(event)
+        # Mirror atlas_ui._emit_tool_result's file_changed emit
+        # for process-mode worker writes. The main process's
+        # _textual_emit_tool_result_fn never fires here (workers
+        # generate tool_result rows themselves), so without this
+        # the open SSOT preview / file tree wouldn't auto-reload
+        # when an agent in a subprocess wrote a yaml/rtl file.
+        if event["type"] == "tool_result":
+            self._maybe_emit_file_changed(session, event)
 
     def _maybe_emit_file_changed(self, session: "_SessionBridge", event: dict) -> None:
         tool = str(event.get("tool") or "")

@@ -1,0 +1,10 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.9.6, pytest-8.4.1, pluggy-1.6.0 -- /Library/Developer/CommandLineTools/usr/bin/python3
+cachedir: .pytest_cache
+rootdir: /Users/brian/Desktop/Project/brian_hw/common_ai_agent
+collecting ... collected 17 items / 15 deselected / 2 selected
+
+tests/test_output_coalescing.py::test_time_trigger_advancing_past_50ms_flushes_exactly_once PASSED [ 50%]
+tests/test_output_coalescing.py::test_time_trigger_does_not_double_count_with_size PASSED [100%]
+
+======================= 2 passed, 15 deselected in 0.07s =======================

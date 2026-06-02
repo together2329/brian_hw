@@ -1,0 +1,10 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.9.6, pytest-8.4.1, pluggy-1.6.0 -- /Library/Developer/CommandLineTools/usr/bin/python3
+cachedir: .pytest_cache
+rootdir: /Users/brian/Desktop/Project/brian_hw/common_ai_agent
+collecting ... collected 17 items / 15 deselected / 2 selected
+
+tests/test_output_coalescing.py::test_size_trigger_bounds_rows_and_preserves_text_exactly PASSED [ 50%]
+tests/test_output_coalescing.py::test_size_trigger_no_single_row_exceeds_cap_plus_one_chunk PASSED [100%]
+
+======================= 2 passed, 15 deselected in 0.10s =======================

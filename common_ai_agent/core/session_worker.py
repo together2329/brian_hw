@@ -24,7 +24,7 @@ import sys
 import time
 import uuid
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any, Callable, Iterable
 
 
 # ── Path setup ──────────────────────────────────────────────────────────────
@@ -47,7 +47,153 @@ DEFAULT_DB_PATH = os.environ.get("ATLAS_DB_PATH") or "~/.common_ai_agent/atlas.d
 POLL_INTERVAL = 0.05
 ASK_USER_TIMEOUT = 900.0
 
+# Output-coalescing thresholds (plan §2.8 / Task 5). Only ``token`` and
+# ``reasoning`` are merged; the row count is a wall-time function:
+#   rows ≈ ceil(wall_ms / FLUSH_INTERVAL_MS) + ceil(bytes / FLUSH_MAX_BYTES)
+#          + non_mergeable_count
+# i.e. a flat "<=30 rows" is wrong — it depends on how long the stream ran.
+COALESCE_FLUSH_INTERVAL_S = 0.05  # 50ms timer trigger
+COALESCE_FLUSH_MAX_BYTES = 4096   # 4KB size trigger
+
 _shutdown_requested = False
+
+
+class _OutputBatcher:
+    """Merge consecutive ``token``/``reasoning`` worker emits into batch rows.
+
+    Plan §2.8 / Task 5: token-by-token / reasoning-by-reasoning inserts amplify
+    ``session_queue`` rows ~1:1 with stream chunks. This batcher coalesces ONLY
+    those two mergeable event types into ``token_batch`` / ``reasoning_batch``
+    rows that the SINGLE expansion point in :func:`core.atlas_multiuser.
+    _MultiUserBridge._poll_process_outputs` re-expands back into ordered
+    individual ``token``/``reasoning`` events — so the browser (which has NO
+    ``*_batch`` subscriber) needs ZERO change.
+
+    Order preservation is total: token and reasoning are kept in SEPARATE
+    buffers, but a switch from one mergeable kind to the other (or to ANY
+    non-mergeable event) flushes the currently-open buffer FIRST, so the
+    emitted row order is exactly the call order. There is never a token_batch
+    and a reasoning_batch buffered at the same time.
+
+    Flush triggers (plan §2.8):
+      * 50ms timer (``COALESCE_FLUSH_INTERVAL_S``);
+      * buffered payload reaches 4KB (``COALESCE_FLUSH_MAX_BYTES``);
+      * before ANY non-mergeable event;
+      * before ``flush`` and before ``agent_state`` (subset of the above —
+        both are non-mergeable, called out by the plan for emphasis);
+      * at worker shutdown.
+
+    Clock seam (R9): ``now_fn`` (wall) and ``monotonic_fn`` (timer) are
+    injectable so the size-trigger test can FREEZE time and the time-trigger
+    test can advance a fake clock deterministically. Defaults are the real
+    clocks. ``flush()`` is public so tests can force a flush with the timer
+    frozen.
+    """
+
+    # token+reasoning are the ONLY mergeable types (plan §2.8). Every other
+    # verified worker emit (tool, tool_result, cost, token_usage, context,
+    # ask_user*, agent_state, worker_*, error, flush) MUST pass through
+    # un-coalesced and force a flush of any open buffer first.
+    _MERGEABLE = {"token", "reasoning"}
+
+    def __init__(
+        self,
+        sink: "Callable[[str, Any], Any]",
+        *,
+        now_fn: "Callable[[], float] | None" = None,
+        monotonic_fn: "Callable[[], float] | None" = None,
+        max_bytes: int = COALESCE_FLUSH_MAX_BYTES,
+        flush_interval: float = COALESCE_FLUSH_INTERVAL_S,
+    ) -> None:
+        # ``sink(msg_type, payload)`` performs the real DB enqueue. The batcher
+        # never touches the DB itself — it only decides WHAT row to enqueue.
+        self._sink = sink
+        self._now = now_fn or time.time
+        self._monotonic = monotonic_fn or time.monotonic
+        self._max_bytes = int(max_bytes)
+        self._flush_interval = float(flush_interval)
+        # Exactly one of these is non-empty at a time (see class docstring).
+        self._kind: str = ""             # "token" | "reasoning" | ""
+        self._chunks: list[dict[str, Any]] = []
+        self._bytes = 0
+        self._opened_monotonic: float | None = None
+
+    def _chunk_bytes(self, chunk: dict[str, Any]) -> int:
+        # Approximate the JSON payload growth by the text length (the dominant
+        # term); cls/blank are tiny. Exact-to-the-byte is unnecessary — the 4KB
+        # trigger only needs to be monotonic in accumulated text so the row
+        # count stays bounded by the documented ceil(bytes/4096) math.
+        return len(str(chunk.get("text") or "").encode("utf-8"))
+
+    def add_content(self, text: str, cls: str = "") -> None:
+        """Buffer a ``token`` chunk (mergeable)."""
+        chunk: dict[str, Any] = {"text": text}
+        if cls:
+            chunk["cls"] = cls
+        self._add("token", chunk)
+
+    def add_reasoning(self, text: str, blank: bool = False) -> None:
+        """Buffer a ``reasoning`` chunk (mergeable)."""
+        self._add("reasoning", {"text": text, "blank": bool(blank)})
+
+    def _add(self, kind: str, chunk: dict[str, Any]) -> None:
+        # Switching mergeable kind flushes the open buffer first (preserve order
+        # AND never mix token + reasoning chunks in one batch row).
+        if self._kind and self._kind != kind:
+            self.flush()
+        if not self._chunks:
+            self._kind = kind
+            self._opened_monotonic = self._monotonic()
+        self._chunks.append(chunk)
+        self._bytes += self._chunk_bytes(chunk)
+        # Size trigger: flush as soon as the buffered payload reaches the cap so
+        # a single huge burst can never hold >4KB in one row.
+        if self._bytes >= self._max_bytes:
+            self.flush()
+
+    def emit_passthrough(self, msg_type: str, payload: Any) -> Any:
+        """Flush any open buffer, THEN emit a non-mergeable event in-position.
+
+        This is the ordering guarantee: a non-mergeable event (tool / ask_user /
+        cost / flush / agent_state / …) can never be delivered behind a token
+        that was emitted AFTER it — the open token buffer is flushed first, then
+        the event row is written, so expansion yields ``…, token, event, token``.
+        """
+        self.flush()
+        return self._sink(msg_type, payload)
+
+    def maybe_flush_timer(self) -> None:
+        """Flush if the open buffer has been held longer than the 50ms timer.
+
+        Called from the worker poll loop so a slow/sparse stream still flushes
+        promptly. With the real monotonic clock this bounds latency to
+        ~flush_interval; tests drive it via an injected ``monotonic_fn``.
+        """
+        if not self._chunks or self._opened_monotonic is None:
+            return
+        if (self._monotonic() - self._opened_monotonic) >= self._flush_interval:
+            self.flush()
+
+    def flush(self) -> Any:
+        """Emit the buffered chunks as ONE ``token_batch``/``reasoning_batch`` row.
+
+        Public so tests can force a deterministic flush with the timer frozen.
+        No-op when nothing is buffered. Returns the sink result (queue row id)
+        or ``None`` when empty.
+        """
+        if not self._chunks:
+            return None
+        kind = self._kind
+        chunks = self._chunks
+        self._chunks = []
+        self._kind = ""
+        self._bytes = 0
+        self._opened_monotonic = None
+        batch_type = "token_batch" if kind == "token" else "reasoning_batch"
+        return self._sink(batch_type, {"chunks": chunks})
+
+    def is_mergeable(self, msg_type: str) -> bool:
+        return msg_type in self._MERGEABLE
 
 
 def _load_agent() -> Any:
@@ -153,7 +299,14 @@ def _worker_schema_set() -> str:
 class SessionWorker:
     """Bridge ``main.chat_loop`` callbacks to the SQLite session queue."""
 
-    def __init__(self, session_id: str, db_path: str) -> None:
+    def __init__(
+        self,
+        session_id: str,
+        db_path: str,
+        *,
+        now_fn: "Callable[[], float] | None" = None,
+        monotonic_fn: "Callable[[], float] | None" = None,
+    ) -> None:
         self.session_id = session_id
         # In session mode the worker's queue DB IS the per-session runtime file;
         # open it with the runtime-only 5-table schema so it does not bootstrap
@@ -166,6 +319,15 @@ class SessionWorker:
         self.db.init_db()
         self._agent_running = False
         self._closed_ask_flows: set[str] = set()
+        # Output coalescer (plan §2.8 / Task 5). token/reasoning emits funnel
+        # through it; every other emit flushes the open buffer first so order is
+        # preserved. ``now_fn``/``monotonic_fn`` are the injectable clock seam
+        # (R9) — real clocks by default, fake clocks in tests.
+        self._batcher = _OutputBatcher(
+            self._enqueue_out,
+            now_fn=now_fn,
+            monotonic_fn=monotonic_fn,
+        )
 
     @staticmethod
     def _normalize_session(value: str | None) -> str:
@@ -401,13 +563,53 @@ class SessionWorker:
             f"for {target_session}"
         )
 
-    def emit(self, msg_type: str, payload: Any | None = None) -> str:
+    def _enqueue_out(self, msg_type: str, payload: Any | None = None) -> str:
+        """Raw single out-row enqueue. The batcher's sink AND the passthrough
+        path both land here; nothing else writes the out queue directly."""
         return self.db.enqueue_message(
             self.session_id,
             "out",
             msg_type,
             {} if payload is None else payload,
         )
+
+    def emit(self, msg_type: str, payload: Any | None = None) -> str:
+        """Enqueue an out-row, coalescing ONLY token/reasoning (plan §2.8).
+
+        token/reasoning go into the batcher (merged into ``token_batch`` /
+        ``reasoning_batch`` rows). EVERY other event type — the verified
+        never-coalesce set (tool, tool_result, cost, token_usage [two rows],
+        context, ask_user*, agent_state, worker_*, error, flush, and any other
+        emit) — flushes the open batch FIRST, then writes its own row, so the
+        re-expanded outbox order is exactly the call order."""
+        if self._batcher.is_mergeable(msg_type):
+            body = {} if payload is None else payload
+            if msg_type == "token":
+                self._batcher.add_content(
+                    str(body.get("text") or ""),
+                    str(body.get("cls") or ""),
+                )
+            else:  # reasoning
+                self._batcher.add_reasoning(
+                    str(body.get("text") or ""),
+                    bool(body.get("blank")),
+                )
+            return ""
+        # Non-mergeable: flush any open token/reasoning batch in-position, then
+        # emit this event. Returns the new row's id (passthrough preserves the
+        # historical return contract for callers that read it).
+        return self._batcher.emit_passthrough(
+            msg_type,
+            {} if payload is None else payload,
+        )
+
+    def flush_batcher(self) -> None:
+        """Force-flush the output coalescer (worker poll loop + shutdown)."""
+        self._batcher.flush()
+
+    def maybe_flush_batcher_timer(self) -> None:
+        """Flush the coalescer if the 50ms timer elapsed (worker poll loop)."""
+        self._batcher.maybe_flush_timer()
 
     def acknowledge(self, msg: dict[str, Any]) -> None:
         msg_id = _message_id(msg)
@@ -433,6 +635,11 @@ class SessionWorker:
         deadline = None if timeout is None else time.monotonic() + timeout
         wanted = set(msg_types)
         while not _shutdown_requested:
+            # 50ms-timer flush (plan §2.8): while the worker waits between turns,
+            # drain any token/reasoning chunks the prior turn left buffered so a
+            # slow/sparse stream is delivered promptly rather than held until the
+            # next non-mergeable event.
+            self.maybe_flush_batcher_timer()
             msgs = self.db.poll_messages(self.session_id, "in", since_id=None, limit=100)
             for msg in msgs or []:
                 msg_type = _message_type(msg)
@@ -854,6 +1061,12 @@ class SessionWorker:
         return " · ".join(parts) if parts else "(user submitted with no selection)"
 
     def close(self) -> None:
+        # Mandatory shutdown flush (plan §2.8): drain any token/reasoning chunks
+        # still buffered so the final partial stream is never lost on exit.
+        try:
+            self._batcher.flush()
+        except Exception:
+            pass
         close = getattr(self.db, "close", None)
         if callable(close):
             close()

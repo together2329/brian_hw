@@ -1,0 +1,18 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.9.6, pytest-8.4.1, pluggy-1.6.0 -- /Library/Developer/CommandLineTools/usr/bin/python3
+cachedir: .pytest_cache
+rootdir: /Users/brian/Desktop/Project/brian_hw/common_ai_agent
+collecting ... collected 17 items / 7 deselected / 10 selected
+
+tests/test_output_coalescing.py::test_ordering_non_mergeable_flushes_between_tokens[tool] PASSED [ 10%]
+tests/test_output_coalescing.py::test_ordering_non_mergeable_flushes_between_tokens[cost] PASSED [ 20%]
+tests/test_output_coalescing.py::test_ordering_non_mergeable_flushes_between_tokens[flush] PASSED [ 30%]
+tests/test_output_coalescing.py::test_ordering_non_mergeable_flushes_between_tokens[agent_state] PASSED [ 40%]
+tests/test_output_coalescing.py::test_ordering_non_mergeable_flushes_between_tokens[ask_user] PASSED [ 50%]
+tests/test_output_coalescing.py::test_ordering_non_mergeable_flushes_between_tokens[tool_result] PASSED [ 60%]
+tests/test_output_coalescing.py::test_ordering_non_mergeable_flushes_between_tokens[context] PASSED [ 70%]
+tests/test_output_coalescing.py::test_ordering_non_mergeable_flushes_between_tokens[error] PASSED [ 80%]
+tests/test_output_coalescing.py::test_ordering_token_usage_emits_two_rows_uncoalesced PASSED [ 90%]
+tests/test_output_coalescing.py::test_ordering_reasoning_then_token_does_not_mix_buffers PASSED [100%]
+
+======================= 10 passed, 7 deselected in 0.17s =======================
