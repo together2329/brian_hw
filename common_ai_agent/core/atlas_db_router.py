@@ -312,6 +312,11 @@ class AtlasDBRouter:
         # Only materialize the shard dir when actually opening to write
         # (create=True). A read-only resolve (create=False) must not have the
         # filesystem side effect of creating directories.
+        runtime_path = Path(route.runtime_db_path)
+        if not create and not runtime_path.is_file():
+            raise RuntimeDBError(
+                f"runtime DB file missing for session_id={session_id!r}"
+            )
         if create:
-            Path(route.runtime_db_path).parent.mkdir(parents=True, exist_ok=True)
-        return AtlasDB(db_path=route.runtime_db_path, schema_set="runtime")
+            runtime_path.parent.mkdir(parents=True, exist_ok=True)
+        return AtlasDB(db_path=str(runtime_path), schema_set="runtime")

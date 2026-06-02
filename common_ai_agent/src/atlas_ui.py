@@ -3478,9 +3478,6 @@ def create_app():
                     name = parts[1]
                     workflow = parts[2]
                     mtime = float(row.get("updated_at") or row.get("created_at") or 0.0)
-                    project_ip_dir = PROJECT_ROOT / name
-                    if not _looks_like_project_ip(project_ip_dir):
-                        continue
                     ip_dir = (session_root / name) if session_root is not None else None
                     try:
                         if ip_dir is not None and ip_dir.is_dir():

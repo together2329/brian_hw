@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import hashlib
 import os
+import sqlite3
 from pathlib import Path
 
 import pytest
@@ -196,6 +197,38 @@ def test_same_session_id_same_path_across_two_calls(paths):
     u1 = r.runtime_route(sid).session_uid
     u2 = r.runtime_route(sid).session_uid
     assert u1 == u2
+
+
+def test_session_route_resolution_reuses_control_connection(paths, monkeypatch):
+    control, runtime_root = paths
+    r = AtlasDBRouter(control_path=control, runtime_root=runtime_root, mode="session")
+    sid = "alice/ip_deep/rtl-gen"
+    r.runtime_route(sid, create=True)
+    real_connect = sqlite3.connect
+    opens = {"count": 0}
+
+    def counting_connect(*args, **kwargs):
+        opens["count"] += 1
+        return real_connect(*args, **kwargs)
+
+    monkeypatch.setattr(sqlite3, "connect", counting_connect)
+    for _ in range(20):
+        r.runtime_route(sid, create=False)
+
+    assert opens["count"] == 0
+
+
+def test_create_false_runtime_db_does_not_create_missing_file(paths):
+    control, runtime_root = paths
+    r = AtlasDBRouter(control_path=control, runtime_root=runtime_root, mode="session")
+    sid = "alice/ip_deep/rtl-gen"
+    route = r.runtime_route(sid, create=True)
+    runtime_path = Path(route.runtime_db_path)
+
+    assert not runtime_path.exists()
+    with pytest.raises(RuntimeDBError):
+        r.runtime_db(sid, create=False)
+    assert not runtime_path.exists()
 
 
 def test_no_remint_across_fresh_router_instances(paths):

@@ -186,6 +186,8 @@ def register_sessions_routes(
             if isinstance(raw_preserve, bool)
             else str(raw_preserve or "").strip().lower() in ("1", "true", "yes", "on")
         )
+        request_owner = _request_username(req)
+        multi_user_on = _multi_user_enabled()
         # Phantom-IP guard. A stale session (URL param, localStorage, or DB)
         # can restore an IP that no longer exists on disk — e.g. `uart` after
         # it was renamed to `uart_v2`. Activating that phantom IP (a) 404s the
@@ -195,7 +197,7 @@ def register_sessions_routes(
         # the UI (which shows `default`) from the backend. If the requested IP
         # is neither "default" nor a real project-IP directory, fall back to
         # default/default so the whole stale triple is dropped at the source.
-        if ip and ip != "default":
+        if ip and ip != "default" and not multi_user_on:
             try:
                 if not (project_root() / ip).is_dir():
                     print(
@@ -217,8 +219,6 @@ def register_sessions_routes(
                     {"error": f"invalid {label}: {val!r}"},
                     status_code=400,
                 )
-        request_owner = _request_username(req)
-        multi_user_on = _multi_user_enabled()
         if multi_user_on and not request_owner:
             return JSONResponse({"error": "login required"}, status_code=401)
         if multi_user_on and request_owner and sid != request_owner:

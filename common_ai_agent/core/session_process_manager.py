@@ -32,7 +32,7 @@ import sys
 import threading
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from core.atlas_db import AtlasDB
 from core.atlas_db_router import AtlasDBRouter
@@ -85,16 +85,8 @@ class SessionProcessManager:
         # an explicit db_path so a constructor override (tests, :memory:) wins
         # over env in central mode without re-implementing AtlasDB's own default.
         self._router = router or AtlasDBRouter(control_path=db_path)
-        # Hot-path connection reuse (plan §2.6 / R2). send_input/poll_output/
-        # latest_output_id used to do ``db = AtlasDB(...); finally: db.close()``;
-        # close() pops the thread-local cached connection so the very next poll
-        # re-opens + re-runs busy_timeout + the WAL retry loop. At 100 sessions
-        # that is 100 reconnect cycles per broadcaster pass on one thread. We
-        # instead hold a long-lived AtlasDB handle per (thread, resolved path)
-        # so AtlasDB's ``_TLS`` connection survives between polls. The handle is
-        # only ever touched by its owning thread (AtlasDB._TLS is thread-local),
-        # so the cache is keyed by thread id + path.
-        self._db_handles: Dict[tuple, AtlasDB] = {}
+        self._runtime_path_cache: Dict[Tuple[str, str, str, str], str] = {}
+        self._db_handles: Dict[Tuple[int, str], AtlasDB] = {}
         self._db_handles_lock = threading.RLock()
         # Non-silent recovery audit trail (plan §2.12 / R5/R13): each entry is
         # {"session_id", "event", "at"} for a runtime-DB recreate/error. Guarded
@@ -163,9 +155,22 @@ class SessionProcessManager:
         """
         if self._router.mode() == "central":
             return self._resolve_db_path(db_path)
-        return str(
+        cache_key = (
+            session_id,
+            str(db_path or ""),
+            str(Path(os.path.expanduser(self._router.control_db_path())).resolve()),
+            str(Path(os.path.expanduser(self._router.runtime_root())).resolve()),
+        )
+        with self._db_handles_lock:
+            cached = self._runtime_path_cache.get(cache_key)
+            if cached is not None:
+                return cached
+        resolved = str(
             Path(os.path.expanduser(self._router.runtime_db_path(session_id, create=create))).resolve()
         )
+        with self._db_handles_lock:
+            self._runtime_path_cache[cache_key] = resolved
+        return resolved
 
     def _get_db(self) -> AtlasDB:
         """Return an initialized AtlasDB instance on the control path."""
@@ -745,6 +750,7 @@ class SessionProcessManager:
         with self._db_handles_lock:
             handles = list(self._db_handles.values())
             self._db_handles.clear()
+            self._runtime_path_cache.clear()
         for db in handles:
             try:
                 db.close()
@@ -769,6 +775,9 @@ class SessionProcessManager:
         with self._db_handles_lock:
             keys = [k for k in self._db_handles if k[1] == resolved]
             handles = [self._db_handles.pop(k) for k in keys]
+            path_keys = [k for k, value in self._runtime_path_cache.items() if value == resolved]
+            for key in path_keys:
+                self._runtime_path_cache.pop(key, None)
         for db in handles:
             try:
                 db.close()
