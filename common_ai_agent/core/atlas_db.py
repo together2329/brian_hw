@@ -670,6 +670,29 @@ CREATE TABLE IF NOT EXISTS runtime_rollup_offsets (
 );
 CREATE INDEX IF NOT EXISTS idx_runtime_rollup_offsets_session
     ON runtime_rollup_offsets(session_id);
+
+-- runtime_db_audit (CONTROL-DB append-only log of guardrail operations)
+-- One row per operationally-sensitive runtime-DB lifecycle action (plan §2.12 /
+-- Task 9, R12/R18): a FORCE session-delete that ran while the queue was
+-- non-empty, a forced rollback (runtime->control queue copy), or a recovery
+-- decision. This is the durable, queryable record an operator/postmortem reads;
+-- it is NEVER deleted by ``cleanup_old_messages`` or the session-delete path
+-- (the audit OUTLIVES the thing it describes, by design). ``detail`` is a JSON
+-- blob with operation-specific fields (queue_depth, copied_rows, files_removed).
+CREATE TABLE IF NOT EXISTS runtime_db_audit (
+    id TEXT PRIMARY KEY,
+    session_id TEXT,
+    session_uid TEXT,
+    action TEXT NOT NULL,
+    forced INTEGER NOT NULL DEFAULT 0,
+    queue_depth INTEGER NOT NULL DEFAULT 0,
+    detail TEXT,
+    created_at REAL NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_runtime_db_audit_session
+    ON runtime_db_audit(session_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_runtime_db_audit_action
+    ON runtime_db_audit(action, created_at);
 """
 
 # Runtime-only schema subset.
@@ -2352,6 +2375,160 @@ class AtlasDB:
             )
         return [self._row_to_dict(row, "session_runtime_dbs") for row in rows]
 
+    # ---------- Operational guardrails (control DB only) ----------
+    #
+    # These helpers back the Task-9 lifecycle/observability surface (plan §2.12,
+    # R12/R18/R25): a durable audit log, control-side scrub of the runtime
+    # manifest/rollup/offset rows when a session is deleted, and the queue-depth
+    # probe the delete/rollback/health paths gate on. They are control-DB-only —
+    # the per-session runtime FILE deletion lives in core/runtime_rollup.py
+    # (it owns the router + filesystem), keeping atlas_db focused on SQL.
+
+    def session_queue_depth(self, session_id: str) -> Dict[str, int]:
+        """Return outstanding queue counts for *session_id* in THIS db.
+
+        Used by the session-delete gate and the fleet-health report (plan §2.12 /
+        R12/R25). ``undelivered`` = out-rows not yet pushed to a client
+        (``delivered_at IS NULL``); ``unprocessed`` = in-rows the worker has not
+        consumed (``processed_at IS NULL``); ``total`` is the gate value — a
+        session with ``total == 0`` has no work in flight and is safe to delete
+        without a force flag. Counts only THIS db's ``session_queue`` (in session
+        mode that is the per-session runtime file; in central mode the control
+        DB), so the caller opens the right db before calling.
+        """
+        row = self._fetchone(
+            """
+            SELECT
+                COALESCE(SUM(CASE WHEN direction = 'out' AND delivered_at IS NULL
+                                  THEN 1 ELSE 0 END), 0) AS undelivered,
+                COALESCE(SUM(CASE WHEN direction = 'in' AND processed_at IS NULL
+                                  THEN 1 ELSE 0 END), 0) AS unprocessed,
+                COUNT(*) AS rows_total
+              FROM session_queue
+             WHERE session_id = ?
+            """,
+            (session_id,),
+        )
+        d = dict(row) if row is not None else {}
+        undelivered = int(d.get("undelivered") or 0)
+        unprocessed = int(d.get("unprocessed") or 0)
+        return {
+            "undelivered": undelivered,
+            "unprocessed": unprocessed,
+            "rows_total": int(d.get("rows_total") or 0),
+            # The gate value: any in-flight (undelivered OR unprocessed) work.
+            "total": undelivered + unprocessed,
+        }
+
+    def record_runtime_db_audit(
+        self,
+        action: str,
+        *,
+        session_id: Optional[str] = None,
+        session_uid: Optional[str] = None,
+        forced: bool = False,
+        queue_depth: int = 0,
+        detail: Any = None,
+    ) -> Dict[str, Any]:
+        """Append one row to the durable ``runtime_db_audit`` log (control DB).
+
+        ``action`` is a short verb e.g. ``'force_delete'`` / ``'rollback'`` /
+        ``'delete'``. ``detail`` is JSON-serialized. Append-only and never purged
+        (plan §2.12 / R12/R18: the force-delete / rollback record must outlive the
+        deleted session). Returns the written row.
+        """
+        audit_id = self._new_id()
+        now = self._now()
+        self._execute(
+            """
+            INSERT INTO runtime_db_audit
+                (id, session_id, session_uid, action, forced, queue_depth,
+                 detail, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                audit_id,
+                session_id,
+                session_uid,
+                action,
+                1 if forced else 0,
+                int(queue_depth or 0),
+                self._dump_json(detail),
+                now,
+            ),
+        )
+        return {
+            "id": audit_id,
+            "session_id": session_id,
+            "session_uid": session_uid,
+            "action": action,
+            "forced": 1 if forced else 0,
+            "queue_depth": int(queue_depth or 0),
+            "detail": detail,
+            "created_at": now,
+        }
+
+    def list_runtime_db_audit(
+        self,
+        session_id: Optional[str] = None,
+        action: Optional[str] = None,
+        limit: int = 200,
+    ) -> List[Dict[str, Any]]:
+        """List audit rows newest-first, optionally filtered by session/action."""
+        clauses: list[str] = []
+        params: list[Any] = []
+        if session_id is not None:
+            clauses.append("session_id = ?")
+            params.append(session_id)
+        if action is not None:
+            clauses.append("action = ?")
+            params.append(action)
+        where = f" WHERE {' AND '.join(clauses)}" if clauses else ""
+        params.append(int(limit))
+        rows = self._fetchall(
+            f"SELECT * FROM runtime_db_audit{where} "
+            f"ORDER BY created_at DESC, id DESC LIMIT ?",
+            tuple(params),
+        )
+        out: List[Dict[str, Any]] = []
+        for row in rows:
+            d = dict(row)
+            d["detail"] = self._load_json(d.get("detail"))
+            out.append(d)
+        return out
+
+    def delete_runtime_db_manifest(self, session_id: str) -> Dict[str, int]:
+        """Scrub the control-side runtime bookkeeping for *session_id* atomically.
+
+        Deletes the ``session_runtime_dbs`` manifest row, the
+        ``runtime_usage_rollups`` row, and ALL ``runtime_rollup_offsets`` rows for
+        the session in ONE control-DB transaction (plan §2.12 / R12). The audit
+        log row is deliberately NOT touched — it outlives the deletion. Returns a
+        per-table deleted-count dict. Safe to call in central mode (the rows
+        simply may not exist -> zero counts).
+        """
+        counts: Dict[str, int] = {}
+        with self._lock:
+            conn = self._connect()
+            try:
+                counts["runtime_rollup_offsets"] = int(conn.execute(
+                    "DELETE FROM runtime_rollup_offsets WHERE session_id = ?",
+                    (session_id,),
+                ).rowcount or 0)
+                counts["runtime_usage_rollups"] = int(conn.execute(
+                    "DELETE FROM runtime_usage_rollups WHERE session_id = ?",
+                    (session_id,),
+                ).rowcount or 0)
+                counts["session_runtime_dbs"] = int(conn.execute(
+                    "DELETE FROM session_runtime_dbs WHERE session_id = ?",
+                    (session_id,),
+                ).rowcount or 0)
+                conn.commit()
+            except Exception:
+                conn.rollback()
+                raise
+        return counts
+
     # ---------- Runtime usage rollups (control DB only) ----------
     #
     # These helpers are the control-DB persistence surface used by
@@ -2787,14 +2964,60 @@ class AtlasDB:
             ("archived", self._now(), self._now(), session_id),
         )
 
-    def delete_session(self, session_id: str):
-        """Delete a session and all associated messages and parts."""
+    def delete_session(
+        self,
+        session_id: str,
+        *,
+        force: bool = False,
+        process_manager: Any = None,
+    ) -> Dict[str, Any]:
+        """Delete a session and all associated messages and parts.
+
+        Runtime-DB safety (plan §2.12 / R12 + carried Task-7 LOW#2): in session
+        mode this session may also own a per-session runtime ``.db`` file plus a
+        manifest / rollup / offset bookkeeping set. Deleting only the control
+        tables would orphan that file forever. So we ALSO route through
+        :func:`core.runtime_rollup.delete_session_runtime`, which (a) gates on the
+        runtime queue depth — a non-empty queue requires ``force=True`` and writes
+        an audit row, otherwise the runtime delete is skipped — (b) evicts any
+        cached runtime handle via ``process_manager``, (c) removes the
+        ``.db``/``-wal``/``-shm`` files, and (d) atomically scrubs the
+        manifest/rollup/offset rows.
+
+        In central mode the runtime step is a no-op (there is no runtime file),
+        so behavior is byte-identical to before. The control-table delete here is
+        unchanged. Returns a dict with the control delete plus the runtime delete
+        outcome so callers can surface a "force required" signal.
+        """
         with self._lock:
             conn = self._connect()
             conn.execute("DELETE FROM parts WHERE session_id = ?", (session_id,))
             conn.execute("DELETE FROM messages WHERE session_id = ?", (session_id,))
             conn.execute("DELETE FROM sessions WHERE id = ?", (session_id,))
             conn.commit()
+
+        runtime_outcome: Dict[str, Any] = {"deleted": False, "skipped_reason": "central_mode"}
+        try:
+            # Imported lazily to avoid a control<->router import cycle at module
+            # load (runtime_rollup imports AtlasDB).
+            from core.runtime_rollup import delete_session_runtime
+
+            result = delete_session_runtime(
+                session_id,
+                force=force,
+                process_manager=process_manager,
+            )
+            runtime_outcome = {
+                "deleted": result.deleted,
+                "forced": result.forced,
+                "queue_depth": result.queue_depth,
+                "files_removed": result.files_removed,
+                "control_counts": result.control_counts,
+                "skipped_reason": result.skipped_reason,
+            }
+        except Exception as exc:  # never let runtime cleanup break a control delete
+            runtime_outcome = {"deleted": False, "error": str(exc)}
+        return {"session_id": session_id, "runtime": runtime_outcome}
 
     # ---------- Messages ----------
 

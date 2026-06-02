@@ -100,6 +100,12 @@ class SessionProcessManager:
         # {"session_id", "event", "at"} for a runtime-DB recreate/error. Guarded
         # by _db_handles_lock (same lifecycle as the handle cache).
         self._runtime_recovery_events: List[Dict[str, Any]] = []
+        # Cheap fleet-health counter (plan §2.12 / R25): how many times the hot
+        # enqueue path hit a 'database is locked' and retried. Surfaced via
+        # ``locked_retry_count()`` so ``runtime_rollup.fleet_health`` can report
+        # it. Guarded by its own tiny lock so the hot path stays uncontended.
+        self._locked_retry_count = 0
+        self._metrics_lock = threading.Lock()
 
     @staticmethod
     def _env_enabled(name: str, default: bool = True) -> bool:
@@ -222,6 +228,14 @@ class SessionProcessManager:
         """Return a copy of the recorded runtime-DB recovery events."""
         with self._db_handles_lock:
             return list(self._runtime_recovery_events)
+
+    def locked_retry_count(self) -> int:
+        """Return the cumulative 'database is locked' enqueue retry count (R25).
+
+        Read by ``core.runtime_rollup.fleet_health`` for the fleet metrics JSON.
+        """
+        with self._metrics_lock:
+            return self._locked_retry_count
 
     def _open_runtime_db_with_recovery(self, session_id: str, resolved: str) -> AtlasDB:
         """Open a per-session runtime DB, applying the recovery contract."""
@@ -620,6 +634,8 @@ class SessionProcessManager:
             except sqlite3.OperationalError as exc:
                 if "database is locked" not in str(exc).lower():
                     raise
+                with self._metrics_lock:
+                    self._locked_retry_count += 1
                 if enqueue_budget_ms - ((time.monotonic() - started_at) * 1000.0) <= 0:
                     break
                 time.sleep(0.02)
@@ -702,6 +718,22 @@ class SessionProcessManager:
         for session_id in session_ids:
             self.kill(session_id)
         self._close_db_handles()
+
+    def recover_after_restart(self) -> List[Any]:
+        """Build the restart-recovery plan for every manifest session (R13).
+
+        Thin entrypoint the UI calls once on startup. Delegates to
+        :func:`core.runtime_rollup.recover_all_sessions`, passing ``self`` so the
+        orphan-PID reconcile (matching ``--session-id`` AND ``--db-path``) can run
+        against this manager's runtime paths. Returns the list of RecoveryPlan
+        objects (each carries the oldest-undelivered resume cursor so the
+        broadcaster replays buffered output without re-delivering, plus any pruned
+        orphan worker PIDs). The ``_jobs``-loss policy is documented on
+        ``runtime_rollup.JOBS_LOSS_POLICY``.
+        """
+        from core.runtime_rollup import recover_all_sessions
+
+        return recover_all_sessions(router=self._router, process_manager=self)
 
     def _close_db_handles(self) -> None:
         """Close every cached long-lived AtlasDB handle (releases sqlite conns).

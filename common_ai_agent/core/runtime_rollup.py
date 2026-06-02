@@ -589,3 +589,732 @@ def _mark_error(
         rollup_lag_s=lag,
         error=message,
     )
+
+
+# --------------------------------------------------------------------------- #
+# Operational guardrails: delete / restart-recovery / rollback / fleet health
+# (Wave 3 / Task 9, plan §2.12 + R12/R13/R18/R25)
+#
+# These live here (NOT in atlas_db) because they need the ROUTER (path
+# resolution + containment) and the FILESYSTEM (the on-disk runtime .db / -wal /
+# -shm). atlas_db owns only the control-DB SQL primitives they call.
+# --------------------------------------------------------------------------- #
+
+
+# Runtime sidecar suffixes that must be removed alongside the main .db file.
+_RUNTIME_DB_SIDECARS = ("", "-wal", "-shm")
+
+
+@dataclass
+class DeleteResult:
+    """Outcome of a runtime-DB session delete (plan §2.12 / R12)."""
+
+    session_id: str
+    session_uid: Optional[str] = None
+    deleted: bool = False
+    forced: bool = False
+    queue_depth: int = 0
+    files_removed: List[str] = field(default_factory=list)
+    control_counts: Dict[str, int] = field(default_factory=dict)
+    skipped_reason: Optional[str] = None
+
+
+def _runtime_files_for(runtime_path: str) -> List[str]:
+    """Return the .db + -wal + -shm sidecar paths that EXIST on disk."""
+    out: List[str] = []
+    for suffix in _RUNTIME_DB_SIDECARS:
+        candidate = runtime_path + suffix
+        if os.path.exists(candidate):
+            out.append(candidate)
+    return out
+
+
+def _safe_runtime_path(
+    router: AtlasDBRouter, manifest: Dict[str, Any]
+) -> Optional[str]:
+    """Recompute the containment-checked runtime path from the manifest's uid.
+
+    NEVER trusts the stored ``runtime_db_path`` blindly (plan §2.11 / R23): the
+    path is recomputed from ``session_uid`` + root and rejected if it escapes the
+    root. Returns None when the uid is missing/unsafe (caller treats as no file).
+    """
+    uid = manifest.get("session_uid")
+    if not uid:
+        return None
+    try:
+        return router._expected_runtime_path(uid)  # containment-guarded
+    except RuntimeDBError:
+        return None
+
+
+def delete_session_runtime(
+    session_id: str,
+    *,
+    force: bool = False,
+    router: Optional[AtlasDBRouter] = None,
+    process_manager: Any = None,
+) -> DeleteResult:
+    """Delete a session's runtime DB + control bookkeeping without orphaning state.
+
+    Plan §2.12 / R12 + carried Task-7 LOW#2. In SESSION mode this:
+
+      1. resolves the manifest -> session_uid -> containment-checked runtime path;
+      2. reads the queue depth (undelivered out-rows + unprocessed in-rows);
+      3. GATE: if depth > 0 and ``force`` is False, does NOT delete — returns a
+         skipped result. The caller must pass ``force=True`` to proceed, which
+         writes a ``force_delete`` audit row capturing the lost depth;
+      4. evicts any cached runtime-DB handle via the process manager (so no stale
+         connection survives to a now-unlinked inode);
+      5. removes the on-disk .db + -wal + -shm files;
+      6. atomically scrubs the manifest row + rollup row + ALL offset rows.
+
+    After this returns ``deleted=True`` there are ZERO orphan files and ZERO
+    manifest/rollup/offset rows for the session. A normal (depth==0) delete still
+    writes a lightweight ``delete`` audit row. In CENTRAL mode there is no runtime
+    file/manifest to remove: the function is a no-op returning ``deleted=False``
+    with ``skipped_reason='central_mode'`` so the caller's existing control-table
+    delete remains the whole story.
+    """
+    router = router or AtlasDBRouter()
+    try:
+        mode = router.mode()
+    except RuntimeDBError:
+        mode = "central"
+    if mode != "session":
+        return DeleteResult(
+            session_id=session_id,
+            deleted=False,
+            skipped_reason="central_mode",
+        )
+
+    control = router.control_db()
+    try:
+        manifest = control.get_session_runtime_db(session_id)
+        if not manifest:
+            # No runtime DB was ever activated for this session: nothing to do.
+            return DeleteResult(
+                session_id=session_id,
+                deleted=False,
+                skipped_reason="no_manifest",
+            )
+
+        session_uid = manifest.get("session_uid")
+        runtime_path = _safe_runtime_path(router, manifest)
+
+        # Queue depth gate (R12): count in-flight work in the runtime file.
+        depth = 0
+        if runtime_path and os.path.exists(runtime_path):
+            try:
+                rdb = AtlasDB(runtime_path, schema_set="runtime")
+                try:
+                    depth = rdb.session_queue_depth(session_id).get("total", 0)
+                finally:
+                    rdb.close()
+            except sqlite3.DatabaseError:
+                # Corrupt file: treat as 0 in-flight work but still delete it.
+                depth = 0
+
+        if depth > 0 and not force:
+            # NON-SILENT: refuse to delete, leaving everything intact. The
+            # operator must re-issue with force=True (audited below).
+            return DeleteResult(
+                session_id=session_id,
+                session_uid=session_uid,
+                deleted=False,
+                forced=False,
+                queue_depth=depth,
+                skipped_reason="queue_non_empty",
+            )
+
+        # Evict any cached handle BEFORE unlinking the file so a later reuse can
+        # never hand back a connection to a stale/unlinked inode (R2 + R12).
+        if process_manager is not None:
+            try:
+                process_manager._evict_db_handles(session_id)
+            except Exception:
+                pass
+
+        files_removed: List[str] = []
+        if runtime_path:
+            for path in _runtime_files_for(runtime_path):
+                try:
+                    os.remove(path)
+                    files_removed.append(path)
+                except OSError:
+                    pass
+
+        control_counts = control.delete_runtime_db_manifest(session_id)
+
+        # Audit: a forced delete (lost in-flight work) is the operationally
+        # sensitive case, but record every runtime delete for traceability.
+        control.record_runtime_db_audit(
+            "force_delete" if (force and depth > 0) else "delete",
+            session_id=session_id,
+            session_uid=session_uid,
+            forced=bool(force and depth > 0),
+            queue_depth=depth,
+            detail={
+                "files_removed": files_removed,
+                "control_counts": control_counts,
+                "runtime_path": runtime_path,
+            },
+        )
+        return DeleteResult(
+            session_id=session_id,
+            session_uid=session_uid,
+            deleted=True,
+            forced=bool(force and depth > 0),
+            queue_depth=depth,
+            files_removed=files_removed,
+            control_counts=control_counts,
+        )
+    finally:
+        try:
+            control.close()
+        except Exception:
+            pass
+
+
+# --------------------------------------------------------------------------- #
+# UI-restart recovery (plan §2.12 / R13)
+# --------------------------------------------------------------------------- #
+
+
+@dataclass
+class RecoveryPlan:
+    """One session's restart-recovery decision (plan §2.12 / R13)."""
+
+    session_id: str
+    session_uid: Optional[str] = None
+    runtime_db_path: Optional[str] = None
+    # The cursor a restarted broadcaster should resume the OUT stream from:
+    #   * an out-row id -> resume strictly AFTER it (already-delivered up to here)
+    #   * None          -> poll from the TOP (nothing delivered yet -> replay all
+    #                      buffered, undelivered output; correct, no dupes)
+    resume_cursor: Optional[str] = None
+    undelivered_out: int = 0
+    unprocessed_in: int = 0
+    status: str = "ok"  # ok | missing | error
+    orphan_pids_pruned: List[int] = field(default_factory=list)
+
+
+# Documented policy for the in-memory ``_jobs`` map lost on a UI restart.
+# ``_jobs`` is volatile main-process state (no DB backing); after a restart it is
+# EMPTY. The recovery policy is: do NOT attempt to resurrect ``_jobs`` — instead
+# the durable runtime queues are the source of truth. A reconnecting client's
+# next poll re-seeds its output cursor from the runtime DB (resume_cursor below),
+# so buffered-but-undelivered output is replayed and in-flight prompts are still
+# in the runtime ``session_queue`` for the (re)spawned worker to consume. Any
+# job-level progress UI that depended on ``_jobs`` is rebuilt lazily from the
+# rollups/manifest, never blocking delivery.
+JOBS_LOSS_POLICY = (
+    "drop-and-rebuild-from-runtime-queues: _jobs is volatile; after restart the "
+    "runtime session_queue + reseeded output cursor are the source of truth, so "
+    "undelivered output is replayed and in-flight prompts are reconsumed without "
+    "resurrecting _jobs"
+)
+
+
+def plan_session_recovery(
+    session_id: str,
+    *,
+    router: Optional[AtlasDBRouter] = None,
+    process_manager: Any = None,
+) -> RecoveryPlan:
+    """Compute the restart-recovery decision for ONE session (plan §2.12 / R13).
+
+    Key correctness point: the resume cursor is the OLDEST-undelivered boundary,
+    NOT ``latest_output_id``. Using ``latest_output_id`` would skip every buffered
+    out-row a disconnected client never received. We instead resume from the
+    NEWEST ALREADY-DELIVERED row (``reseed_output_cursor``): the next poll then
+    returns exactly the still-undelivered rows after it (replayed, no dupes). When
+    nothing was ever delivered the cursor is None -> poll from the top (replay all
+    buffered output, which is correct since no client saw it).
+
+    Also reconciles orphan worker PIDs: a UI restart starts with an empty
+    ``_processes`` map, so a worker left running by the previous server is a
+    ghost that would consume prompts the new server never polls. The orphan prune
+    matches BOTH ``--session-id`` AND ``--db-path`` (the runtime file), so it only
+    kills the worker bound to THIS session's runtime DB.
+    """
+    router = router or AtlasDBRouter()
+    control = router.control_db()
+    try:
+        manifest = control.get_session_runtime_db(session_id)
+        session_uid = manifest.get("session_uid") if manifest else None
+        runtime_path = _safe_runtime_path(router, manifest) if manifest else None
+
+        if not runtime_path or not os.path.exists(runtime_path):
+            return RecoveryPlan(
+                session_id=session_id,
+                session_uid=session_uid,
+                runtime_db_path=runtime_path,
+                resume_cursor=None,
+                status="missing",
+            )
+
+        try:
+            rdb = AtlasDB(runtime_path, schema_set="runtime")
+        except sqlite3.DatabaseError:
+            return RecoveryPlan(
+                session_id=session_id,
+                session_uid=session_uid,
+                runtime_db_path=runtime_path,
+                resume_cursor=None,
+                status="error",
+            )
+        try:
+            depth = rdb.session_queue_depth(session_id)
+            # Resume from newest-already-delivered (None => from the top). This is
+            # the oldest-undelivered boundary expressed as a "since" cursor.
+            resume_cursor = rdb.reseed_output_cursor(session_id, "out")
+        except sqlite3.DatabaseError:
+            return RecoveryPlan(
+                session_id=session_id,
+                session_uid=session_uid,
+                runtime_db_path=runtime_path,
+                resume_cursor=None,
+                status="error",
+            )
+        finally:
+            try:
+                rdb.close()
+            except Exception:
+                pass
+
+        pruned: List[int] = []
+        if process_manager is not None:
+            try:
+                pids = process_manager._external_worker_pids(session_id, runtime_path)
+                if pids:
+                    process_manager._terminate_external_session_workers(
+                        session_id, runtime_path
+                    )
+                    pruned = list(pids)
+            except Exception:
+                pruned = []
+
+        return RecoveryPlan(
+            session_id=session_id,
+            session_uid=session_uid,
+            runtime_db_path=runtime_path,
+            resume_cursor=resume_cursor,
+            undelivered_out=int(depth.get("undelivered", 0)),
+            unprocessed_in=int(depth.get("unprocessed", 0)),
+            status="ok",
+            orphan_pids_pruned=pruned,
+        )
+    finally:
+        try:
+            control.close()
+        except Exception:
+            pass
+
+
+def recover_all_sessions(
+    *,
+    router: Optional[AtlasDBRouter] = None,
+    process_manager: Any = None,
+) -> List[RecoveryPlan]:
+    """Scan the manifest and build a RecoveryPlan per active/stale session.
+
+    Called once on UI startup (plan §2.12 / R13). Never raises out of the loop.
+    """
+    router = router or AtlasDBRouter()
+    control = router.control_db()
+    try:
+        rows = control.list_session_runtime_dbs()
+        rows = [r for r in rows if r.get("status") in ("active", "stale", "error")]
+    finally:
+        try:
+            control.close()
+        except Exception:
+            pass
+    plans: List[RecoveryPlan] = []
+    for manifest in rows:
+        session_id = manifest.get("session_id")
+        if not session_id:
+            continue
+        try:
+            plans.append(
+                plan_session_recovery(
+                    session_id, router=router, process_manager=process_manager
+                )
+            )
+        except Exception as exc:
+            plans.append(
+                RecoveryPlan(
+                    session_id=session_id,
+                    session_uid=manifest.get("session_uid"),
+                    status="error",
+                    resume_cursor=None,
+                    orphan_pids_pruned=[],
+                )
+            )
+            _ = exc
+    return plans
+
+
+# --------------------------------------------------------------------------- #
+# Forced rollback: runtime -> control (plan §2.12 / R18)
+# --------------------------------------------------------------------------- #
+
+
+@dataclass
+class RollbackResult:
+    """Outcome of a forced runtime->control queue rollback (plan §2.12 / R18)."""
+
+    session_id: str
+    session_uid: Optional[str] = None
+    copied_rows: int = 0
+    skipped_existing: int = 0
+    workers_running: int = 0
+    aborted: bool = False
+    reason: Optional[str] = None
+
+
+# What rollback copies, and the documented decision on what it does NOT.
+ROLLBACK_HISTORY_POLICY = (
+    "queue-only: a forced runtime->control rollback copies ONLY undelivered "
+    "session_queue rows (the in-flight prompts/outputs that must not be lost). "
+    "Historical runtime messages / trace_events / llm_calls are LEFT ORPHANED in "
+    "the runtime files and are NOT re-imported into control — control-mode "
+    "history therefore truncates at the rollback boundary. This keeps rollback "
+    "idempotent and cheap; the rollups already folded the runtime usage TOTALS "
+    "into control before the rollback, so accounting is preserved even though the "
+    "per-row history is not."
+)
+
+
+def rollback_session_to_central(
+    session_id: str,
+    *,
+    router: Optional[AtlasDBRouter] = None,
+    process_manager: Any = None,
+    require_workers_stopped: bool = True,
+) -> RollbackResult:
+    """Copy a session's UNDELIVERED runtime queue rows back into the control DB.
+
+    Plan §2.12 / R18. Contract:
+
+      * Workers MUST be stopped/drained first. If a live worker for this session
+        is detected (orphan PID scan on the runtime path) and
+        ``require_workers_stopped`` is True, the rollback ABORTS (no partial copy)
+        rather than racing a writer. Pass ``require_workers_stopped=False`` only
+        in tests with no real subprocess.
+      * Copies undelivered ``session_queue`` rows from the runtime DB into the
+        control DB with ``INSERT OR IGNORE`` PRESERVING the original TEXT row id,
+        so a re-run copies nothing new (idempotent: run-twice => one row).
+      * Writes a ``rollback`` audit row capturing copied/skipped counts.
+      * Historical messages/traces/llm_calls are LEFT ORPHANED (documented in
+        ``ROLLBACK_HISTORY_POLICY``); they are NOT re-imported.
+
+    Returns a RollbackResult. Safe in central mode (nothing to copy -> 0 rows).
+    """
+    router = router or AtlasDBRouter()
+    try:
+        mode = router.mode()
+    except RuntimeDBError:
+        mode = "central"
+    if mode != "session":
+        return RollbackResult(
+            session_id=session_id,
+            copied_rows=0,
+            reason="central_mode",
+        )
+
+    control = router.control_db()
+    runtime_db: Optional[AtlasDB] = None
+    try:
+        manifest = control.get_session_runtime_db(session_id)
+        if not manifest:
+            return RollbackResult(session_id=session_id, reason="no_manifest")
+        session_uid = manifest.get("session_uid")
+        runtime_path = _safe_runtime_path(router, manifest)
+        if not runtime_path or not os.path.exists(runtime_path):
+            return RollbackResult(
+                session_id=session_id,
+                session_uid=session_uid,
+                reason="no_runtime_file",
+            )
+
+        # Workers-stopped guard (R18): refuse to copy while a writer is live.
+        workers_running = 0
+        if process_manager is not None:
+            try:
+                pids = process_manager._external_worker_pids(session_id, runtime_path)
+                workers_running = len(pids)
+            except Exception:
+                workers_running = 0
+        if workers_running > 0 and require_workers_stopped:
+            return RollbackResult(
+                session_id=session_id,
+                session_uid=session_uid,
+                workers_running=workers_running,
+                aborted=True,
+                reason="workers_running",
+            )
+
+        try:
+            runtime_db = AtlasDB(runtime_path, schema_set="runtime")
+        except sqlite3.DatabaseError as exc:
+            return RollbackResult(
+                session_id=session_id,
+                session_uid=session_uid,
+                aborted=True,
+                reason=f"runtime_open_failed: {exc}",
+            )
+
+        # Read undelivered rows in strict total order (created_at, rowid) so the
+        # control DB receives them in the same order they would have been polled.
+        rows = runtime_db._fetchall(
+            """
+            SELECT id, session_id, direction, msg_type, payload, created_at,
+                   processed_at, delivered_at, expires_at
+              FROM session_queue
+             WHERE session_id = ? AND delivered_at IS NULL
+             ORDER BY created_at ASC, rowid ASC
+            """,
+            (session_id,),
+        )
+
+        copied = 0
+        skipped = 0
+        with control._lock:
+            conn = control._connect()
+            try:
+                for row in rows:
+                    cursor = conn.execute(
+                        """
+                        INSERT OR IGNORE INTO session_queue
+                            (id, session_id, direction, msg_type, payload,
+                             created_at, processed_at, delivered_at, expires_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            row["id"], row["session_id"], row["direction"],
+                            row["msg_type"], row["payload"], row["created_at"],
+                            row["processed_at"], row["delivered_at"],
+                            row["expires_at"],
+                        ),
+                    )
+                    if cursor.rowcount and cursor.rowcount > 0:
+                        copied += 1
+                    else:
+                        skipped += 1
+                conn.commit()
+            except Exception:
+                conn.rollback()
+                raise
+
+        control.record_runtime_db_audit(
+            "rollback",
+            session_id=session_id,
+            session_uid=session_uid,
+            forced=True,
+            queue_depth=len(rows),
+            detail={
+                "copied_rows": copied,
+                "skipped_existing": skipped,
+                "history_policy": "queue-only; messages/traces/llm_calls orphaned",
+            },
+        )
+        return RollbackResult(
+            session_id=session_id,
+            session_uid=session_uid,
+            copied_rows=copied,
+            skipped_existing=skipped,
+            workers_running=workers_running,
+        )
+    finally:
+        if runtime_db is not None:
+            try:
+                runtime_db.close()
+            except Exception:
+                pass
+        try:
+            control.close()
+        except Exception:
+            pass
+
+
+# --------------------------------------------------------------------------- #
+# Fleet health / audit (plan §2.12 / R25 — JSON the Task-10 harness consumes)
+# --------------------------------------------------------------------------- #
+
+
+def fleet_health(
+    *,
+    router: Optional[AtlasDBRouter] = None,
+    process_manager: Any = None,
+) -> Dict[str, Any]:
+    """Return a JSON-serializable fleet health/audit report (plan §2.12 / R25).
+
+    Per-session: queue depth (undelivered/unprocessed), rollup_lag_s,
+    runtime-file presence + size, oldest-undelivered age. Fleet-wide:
+    manifest-row-count vs on-disk-file-count, total runtime bytes, total
+    undelivered rows, orphan-file count (files under the root with NO manifest
+    row), runtime-DB open/init failure count, and the 'database is locked' retry
+    count surfaced by the process manager (when wired). ``rollback_allowed`` is
+    True iff EVERY session's in-flight queue depth is 0 (safe to flip back to
+    central). The Task-10 harness asserts on this shape.
+
+    Never raises: a per-session probe failure is captured as that session's
+    ``status='error'`` and incremented into ``open_init_failures``.
+    """
+    router = router or AtlasDBRouter()
+    control = router.control_db()
+    report: Dict[str, Any] = {
+        "mode": "central",
+        "sessions": [],
+        "manifest_count": 0,
+        "on_disk_file_count": 0,
+        "orphan_file_count": 0,
+        "total_runtime_bytes": 0,
+        "total_undelivered": 0,
+        "total_unprocessed": 0,
+        "oldest_undelivered_age_s": 0.0,
+        "max_rollup_lag_s": 0.0,
+        "open_init_failures": 0,
+        "locked_retry_count": 0,
+        "rollback_allowed": True,
+    }
+    try:
+        try:
+            report["mode"] = router.mode()
+        except RuntimeDBError:
+            report["mode"] = "central"
+
+        # locked-retry counter from the process manager when available (cheap
+        # wire-up; absent in central / direct-DB tests).
+        if process_manager is not None:
+            getter = getattr(process_manager, "locked_retry_count", None)
+            try:
+                if callable(getter):
+                    report["locked_retry_count"] = int(getter())
+            except Exception:
+                pass
+
+        manifests = control.list_session_runtime_dbs()
+        report["manifest_count"] = len(manifests)
+
+        # Map rollup rows by session for lag reporting (no runtime open).
+        rollups = {
+            r.get("session_id"): r for r in control.list_runtime_usage_rollups()
+        }
+
+        known_paths: set[str] = set()
+        now = time.time()
+        max_lag = 0.0
+        oldest_undelivered_age = 0.0
+
+        for manifest in manifests:
+            session_id = manifest.get("session_id")
+            session_uid = manifest.get("session_uid")
+            runtime_path = _safe_runtime_path(router, manifest)
+            entry: Dict[str, Any] = {
+                "session_id": session_id,
+                "session_uid": session_uid,
+                "status": manifest.get("status"),
+                "file_present": False,
+                "file_bytes": 0,
+                "undelivered": 0,
+                "unprocessed": 0,
+                "queue_total": 0,
+                "rollup_lag_s": float(
+                    (rollups.get(session_id) or {}).get("rollup_lag_s") or 0
+                ),
+                "oldest_undelivered_age_s": 0.0,
+            }
+            if runtime_path:
+                known_paths.add(os.path.abspath(runtime_path))
+                if os.path.exists(runtime_path):
+                    entry["file_present"] = True
+                    report["on_disk_file_count"] += 1
+                    try:
+                        size = os.path.getsize(runtime_path)
+                        for suffix in ("-wal", "-shm"):
+                            sc = runtime_path + suffix
+                            if os.path.exists(sc):
+                                size += os.path.getsize(sc)
+                        entry["file_bytes"] = size
+                        report["total_runtime_bytes"] += size
+                    except OSError:
+                        pass
+                    try:
+                        rdb = AtlasDB(runtime_path, schema_set="runtime")
+                        try:
+                            depth = rdb.session_queue_depth(session_id)
+                            entry["undelivered"] = depth["undelivered"]
+                            entry["unprocessed"] = depth["unprocessed"]
+                            entry["queue_total"] = depth["total"]
+                            oldest = rdb._fetchone(
+                                """
+                                SELECT MIN(created_at) AS oldest
+                                  FROM session_queue
+                                 WHERE session_id = ? AND direction = 'out'
+                                   AND delivered_at IS NULL
+                                """,
+                                (session_id,),
+                            )
+                            oldest_ts = (dict(oldest).get("oldest")
+                                         if oldest is not None else None)
+                            if oldest_ts:
+                                age = max(0.0, now - float(oldest_ts))
+                                entry["oldest_undelivered_age_s"] = age
+                                oldest_undelivered_age = max(
+                                    oldest_undelivered_age, age
+                                )
+                        finally:
+                            rdb.close()
+                    except sqlite3.DatabaseError:
+                        entry["status"] = "error"
+                        report["open_init_failures"] += 1
+                else:
+                    entry["status"] = entry["status"] or "missing"
+
+            report["total_undelivered"] += int(entry["undelivered"])
+            report["total_unprocessed"] += int(entry["unprocessed"])
+            max_lag = max(max_lag, entry["rollup_lag_s"])
+            report["sessions"].append(entry)
+
+        report["max_rollup_lag_s"] = max_lag
+        report["oldest_undelivered_age_s"] = oldest_undelivered_age
+        # rollback_allowed = no session has in-flight queue work.
+        report["rollback_allowed"] = all(
+            int(s["queue_total"]) == 0 for s in report["sessions"]
+        )
+
+        # Orphan files: .db files physically under the root with NO manifest row.
+        report["orphan_file_count"] = _count_orphan_runtime_files(
+            router, known_paths
+        )
+
+        return report
+    finally:
+        try:
+            control.close()
+        except Exception:
+            pass
+
+
+def _count_orphan_runtime_files(
+    router: AtlasDBRouter, known_paths: set
+) -> int:
+    """Count *.db files under the runtime root that no manifest row points to."""
+    try:
+        root = router.runtime_root()
+    except RuntimeDBError:
+        return 0
+    root_path = os.path.abspath(root)
+    if not os.path.isdir(root_path):
+        return 0
+    orphans = 0
+    for dirpath, _dirs, files in os.walk(root_path):
+        for name in files:
+            if not name.endswith(".db"):
+                continue
+            full = os.path.abspath(os.path.join(dirpath, name))
+            if full not in known_paths:
+                orphans += 1
+    return orphans

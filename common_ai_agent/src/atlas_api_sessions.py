@@ -1193,7 +1193,12 @@ def register_sessions_routes(
                 session = db.get_session_for_user(user_id, session_id)
                 if not _owns_session(session, user_id):
                     return _session_not_found()
-                db.delete_session(session["id"])
+                # Thread the LIVE process manager so the per-session runtime DB
+                # handle is evicted (no stale-inode reuse / fd leak) and the
+                # runtime .db/-wal/-shm + manifest/rollup/offset rows are scrubbed
+                # in session mode (T9 R12). Central mode = no-op.
+                manager = getattr(bridge, "_process_manager", None)
+                db.delete_session(session["id"], process_manager=manager)
                 return JSONResponse({"deleted": True})
         except Exception as e:
             print(f"api_delete_session error: {e}")
