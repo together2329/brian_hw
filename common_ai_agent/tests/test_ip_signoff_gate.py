@@ -4,6 +4,7 @@ import importlib.util
 import json
 import subprocess
 import sys
+from collections.abc import Mapping
 from pathlib import Path
 
 
@@ -20,7 +21,7 @@ def _load_signoff_module():
     return module
 
 
-def _write_json(path: Path, payload: dict) -> None:
+def _write_json(path: Path, payload: Mapping[str, object]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
@@ -163,6 +164,17 @@ def _make_ip(root: Path, ip: str, *, bad_provenance: bool = False, missing_obser
     )
     _write_json(ip_dir / "cov" / "coverage.json", {"status": "pass", "limitations": []})
     _write_json(
+        ip_dir / "signoff" / "truth_coverage.json",
+        {
+            "schema_version": 1,
+            "type": "truth_coverage",
+            "status": "pass",
+            "source_mode": "direct_ssot",
+            "summary": {"obligations": 1, "covered": 1, "uncovered_required": 0},
+            "uncovered_required": [],
+        },
+    )
+    _write_json(
         ip_dir / "signoff" / "goal_ledger.json",
         {"status": "approved_by_local_evidence", "human_review_needed": [], "known_waivers": []},
     )
@@ -220,6 +232,24 @@ def test_ip_signoff_gate_requires_derived_ip_contract(tmp_path: Path) -> None:
     gates = {gate["name"]: gate for gate in report["gates"]}
     assert gates["ip_contract"]["status"] == "fail"
     assert "missing" in "; ".join(gates["ip_contract"]["issues"])
+
+
+def test_ip_signoff_gate_requires_truth_coverage(tmp_path: Path) -> None:
+    ip_dir = _make_ip(tmp_path, "missing_truth_ip")
+    (ip_dir / "signoff" / "truth_coverage.json").unlink()
+
+    result = subprocess.run(
+        ["python3", str(SCRIPT), "missing_truth_ip", "--root", str(tmp_path)],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
+
+    assert result.returncode == 1
+    report = json.loads((tmp_path / "missing_truth_ip" / "signoff" / "ip_signoff.json").read_text(encoding="utf-8"))
+    gates = {gate["name"]: gate for gate in report["gates"]}
+    assert gates["truth_coverage"]["status"] == "fail"
+    assert "missing" in "; ".join(gates["truth_coverage"]["issues"])
 
 
 def test_ip_signoff_gate_rejects_scoreboard_missing_expected_observable(tmp_path: Path) -> None:

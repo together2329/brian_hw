@@ -78,5 +78,57 @@
       "axi_readback"
     ],
     "source": "scratch RTL + SSOT io_list + function_model output rules"
-  }
+  },
+  "owner_resolutions": [
+    {
+      "source_ref": "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_state",
+      "owner_module": "mctp_assembler_scratch_context_table",
+      "owner_file": "rtl/mctp_assembler_scratch_context_table.sv"
+    },
+    {
+      "source_ref": "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_expected_seq",
+      "owner_module": "mctp_assembler_scratch_context_table",
+      "owner_file": "rtl/mctp_assembler_scratch_context_table.sv"
+    },
+    {
+      "source_ref": "function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_state",
+      "owner_module": "mctp_assembler_scratch_context_table",
+      "owner_file": "rtl/mctp_assembler_scratch_context_table.sv"
+    },
+    {
+      "source_ref": "function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_expected_seq",
+      "owner_module": "mctp_assembler_scratch_context_table",
+      "owner_file": "rtl/mctp_assembler_scratch_context_table.sv"
+    },
+    {
+      "source_ref": "function_model.transactions.FM_COMPLETE_MESSAGE.output_rules.interrupt",
+      "owner_module": "mctp_assembler_scratch",
+      "owner_file": "rtl/mctp_assembler_scratch.sv"
+    },
+    {
+      "source_ref": "function_model.transactions.FM_PACKET_DROP.preconditions.precondition_0",
+      "owner_module": "mctp_assembler_scratch",
+      "owner_file": "rtl/mctp_assembler_scratch.sv"
+    },
+    {
+      "source_ref": "function_model.transactions.FM_PACKET_DROP.outputs.output_0",
+      "owner_module": "mctp_assembler_scratch",
+      "owner_file": "rtl/mctp_assembler_scratch.sv"
+    },
+    {
+      "source_ref": "function_model.transactions.FM_PACKET_DROP.output_rules.debug_drop_pulse",
+      "owner_module": "mctp_assembler_scratch",
+      "owner_file": "rtl/mctp_assembler_scratch.sv"
+    },
+    {
+      "source_ref": "function_model.transactions.FM_AXI_READBACK.outputs.output_3",
+      "owner_module": "mctp_assembler_scratch_axi_read_egress",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_read_egress.sv"
+    },
+    {
+      "source_ref": "security.assets.asset_1",
+      "owner_module": "mctp_assembler_scratch_descriptor_queue",
+      "owner_file": "rtl/mctp_assembler_scratch_descriptor_queue.sv"
+    }
+  ]
 }

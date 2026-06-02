@@ -86,7 +86,7 @@
           "enabled": true,
           "index": 3,
           "key": "cycle_model",
-          "module_task_count": 85,
+          "module_task_count": 89,
           "rule": "Owner module mctp_assembler_scratch_axi_write_ingress is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "cycle_model",
           "section_chunk_count": 1,
@@ -159,7 +159,7 @@
           "enabled": true,
           "index": 7,
           "key": "dataflow",
-          "module_task_count": 85,
+          "module_task_count": 89,
           "rule": "Owner module mctp_assembler_scratch_axi_write_ingress is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "dataflow",
           "section_chunk_count": 1,
@@ -221,7 +221,7 @@
           "enabled": true,
           "index": 5,
           "key": "equivalence",
-          "module_task_count": 85,
+          "module_task_count": 89,
           "rule": "Owner module mctp_assembler_scratch_axi_write_ingress is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "equivalence",
           "section_chunk_count": 1,
@@ -283,7 +283,7 @@
           "enabled": true,
           "index": 2,
           "key": "function_model",
-          "module_task_count": 85,
+          "module_task_count": 89,
           "rule": "Owner module mctp_assembler_scratch_axi_write_ingress is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "function_model",
           "section_chunk_count": 1,
@@ -351,7 +351,7 @@
           "enabled": true,
           "index": 1,
           "key": "io_list",
-          "module_task_count": 85,
+          "module_task_count": 89,
           "rule": "Owner module mctp_assembler_scratch_axi_write_ingress is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "io_list",
           "section_chunk_count": 1,
@@ -422,14 +422,14 @@
       "packet_id": "module__mctp_assembler_scratch_axi_write_ingress__test_requirements",
       "summary": {
         "categories": {
-          "test_requirements.scenario": 22
+          "test_requirements.scenario": 26
         },
         "module_slice": {
           "count": 7,
           "enabled": true,
           "index": 4,
           "key": "test_requirements",
-          "module_task_count": 85,
+          "module_task_count": 89,
           "rule": "Owner module mctp_assembler_scratch_axi_write_ingress is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "test_requirements",
           "section_chunk_count": 1,
@@ -437,15 +437,19 @@
           "task_limit": 48
         },
         "open_required_count": 0,
-        "required_count": 22,
+        "required_count": 26,
         "source_refs": [
           "test_requirements.scenarios.SC_VALID_SINGLE_PACKET",
+          "test_requirements.scenarios.SC_SINGLE_PACKET_32B",
           "test_requirements.scenarios.SC_MULTI_FRAGMENT_TU64",
+          "test_requirements.scenarios.SC_MULTI_FRAGMENT_3PKT_SHORT_LAST",
           "test_requirements.scenarios.SC_MAX_TU_4096_129_BEATS",
           "test_requirements.scenarios.SC_INTERLEAVE_TWO_KEYS",
+          "test_requirements.scenarios.SC_INTERLEAVE_TWO_Q_COMPLETE",
           "test_requirements.scenarios.SC_UNALIGNED_SRAM_PACK_NO_HOLES",
           "test_requirements.scenarios.SC_FIRST_LAST_TLP_HEADERS",
           "test_requirements.scenarios.SC_AXI_READBACK_TRIM",
+          "test_requirements.scenarios.SC_READBACK_AFTER_MULTI_ASSEMBLE",
           "test_requirements.scenarios.SC_APB_REGS_PER_Q",
           "test_requirements.scenarios.PD_DISABLED_DROP_MODE",
           "test_requirements.scenarios.PD_MALFORMED_TLP",
@@ -458,14 +462,12 @@
           "test_requirements.scenarios.AD_DUPLICATE_SOM",
           "test_requirements.scenarios.AD_SEQUENCE_MISMATCH",
           "test_requirements.scenarios.AD_MESSAGE_OVERFLOW",
-          "test_requirements.scenarios.AD_SRAM_OVERFLOW",
-          "test_requirements.scenarios.AD_DESCRIPTOR_FULL",
-          "test_requirements.scenarios.AD_TIMEOUT"
+          "test_requirements.scenarios.AD_SRAM_OVERFLOW"
         ],
         "status_counts": {
-          "pass": 22
+          "pass": 26
         },
-        "task_count": 22
+        "task_count": 26
       }
     },
     {
@@ -506,7 +508,7 @@
           "enabled": true,
           "index": 6,
           "key": "workflow_todo",
-          "module_task_count": 85,
+          "module_task_count": 89,
           "rule": "Owner module mctp_assembler_scratch_axi_write_ingress is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "workflow_todo",
           "section_chunk_count": 1,
@@ -558,10 +560,10 @@
           "equivalence.module": 1,
           "error_handling.recovery": 3,
           "function_model.error_case": 4,
-          "function_model.output": 10,
+          "function_model.output": 8,
           "function_model.output_rule": 2,
           "function_model.precondition": 2,
-          "function_model.state_update": 7,
+          "function_model.state_update": 5,
           "function_model.transaction": 2,
           "workflow_todo.rtl_gen": 3
         },
@@ -570,11 +572,11 @@
           "enabled": false,
           "index": 1,
           "key": "all",
-          "module_task_count": 34,
+          "module_task_count": 30,
           "task_limit": 48
         },
         "open_required_count": 0,
-        "required_count": 34,
+        "required_count": 30,
         "source_refs": [
           "workflow_todos.rtl-gen[1]",
           "workflow_todos.rtl-gen[2]",
@@ -594,17 +596,17 @@
           "function_model.transactions.FM_ASSEMBLE_FRAGMENT",
           "function_model.transactions.FM_ASSEMBLE_FRAGMENT.preconditions.precondition_0",
           "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.output_0",
-          "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_state",
           "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_valid",
-          "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_expected_seq",
           "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.payload_byte_count",
           "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_payload_byte_count",
-          "function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_state"
+          "function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_valid",
+          "function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.payload_byte_count",
+          "function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_payload_byte_count"
         ],
         "status_counts": {
-          "pass": 34
+          "pass": 30
         },
-        "task_count": 34
+        "task_count": 30
       }
     },
     {
@@ -717,10 +719,10 @@
           "fsm.state": 4,
           "fsm.transition": 7,
           "function_model.invariant": 1,
-          "function_model.output": 5,
-          "function_model.output_rule": 2,
+          "function_model.output": 7,
+          "function_model.output_rule": 1,
           "function_model.precondition": 1,
-          "function_model.state_update": 3,
+          "function_model.state_update": 5,
           "function_model.transaction": 1,
           "memory.instances": 2
         },
@@ -729,22 +731,25 @@
           "enabled": false,
           "index": 1,
           "key": "all",
-          "module_task_count": 27,
+          "module_task_count": 30,
           "task_limit": 48
         },
         "open_required_count": 0,
-        "required_count": 27,
+        "required_count": 30,
         "source_refs": [
           "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.active_context_count",
+          "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_state",
+          "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_expected_seq",
           "function_model.transactions.FM_ASSEMBLE_FRAGMENT.output_rules.debug_context_id",
           "function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.active_context_count",
+          "function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_state",
+          "function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_expected_seq",
           "function_model.transactions.FM_COMPLETE_MESSAGE",
           "function_model.transactions.FM_COMPLETE_MESSAGE.preconditions.precondition_0",
           "function_model.transactions.FM_COMPLETE_MESSAGE.outputs.output_0",
           "function_model.transactions.FM_COMPLETE_MESSAGE.outputs.interrupt",
           "function_model.transactions.FM_COMPLETE_MESSAGE.outputs.ctx_state",
           "function_model.transactions.FM_COMPLETE_MESSAGE.outputs.active_context_count",
-          "function_model.transactions.FM_COMPLETE_MESSAGE.output_rules.interrupt",
           "function_model.transactions.FM_COMPLETE_MESSAGE.state_updates.ctx_state",
           "function_model.transactions.FM_COMPLETE_MESSAGE.state_updates.active_context_count",
           "function_model.invariants.context_bound",
@@ -755,15 +760,12 @@
           "fsm.context_fsm.states.state_2",
           "fsm.context_fsm.states.state_3",
           "fsm.context_fsm.transitions.transition_0",
-          "fsm.context_fsm.transitions.transition_1",
-          "fsm.context_fsm.transitions.transition_2",
-          "fsm.context_fsm.transitions.transition_3",
-          "fsm.context_fsm.transitions.transition_4"
+          "fsm.context_fsm.transitions.transition_1"
         ],
         "status_counts": {
-          "pass": 27
+          "pass": 30
         },
-        "task_count": 27
+        "task_count": 30
       }
     },
     {
@@ -1037,9 +1039,7 @@
           "equivalence.module": 1,
           "function_model.error_case": 6,
           "function_model.invariant": 1,
-          "function_model.output": 4,
-          "function_model.output_rule": 1,
-          "function_model.precondition": 1,
+          "function_model.output": 3,
           "function_model.state_update": 3,
           "function_model.transaction": 1,
           "memory.instances": 1,
@@ -1050,21 +1050,18 @@
           "enabled": false,
           "index": 1,
           "key": "all",
-          "module_task_count": 20,
+          "module_task_count": 17,
           "task_limit": 48
         },
         "open_required_count": 0,
-        "required_count": 20,
+        "required_count": 17,
         "source_refs": [
           "function_model.transactions.FM_COMPLETE_MESSAGE.outputs.descriptor_count",
           "function_model.transactions.FM_COMPLETE_MESSAGE.state_updates.descriptor_count",
           "function_model.transactions.FM_COMPLETE_MESSAGE.error_cases.AD_DESCRIPTOR_FULL",
           "function_model.transactions.FM_PACKET_DROP",
-          "function_model.transactions.FM_PACKET_DROP.preconditions.precondition_0",
-          "function_model.transactions.FM_PACKET_DROP.outputs.output_0",
           "function_model.transactions.FM_PACKET_DROP.outputs.packet_drop_count",
           "function_model.transactions.FM_PACKET_DROP.outputs.ctx_last_drop_reason",
-          "function_model.transactions.FM_PACKET_DROP.output_rules.debug_drop_pulse",
           "function_model.transactions.FM_PACKET_DROP.state_updates.packet_drop_count",
           "function_model.transactions.FM_PACKET_DROP.state_updates.ctx_last_drop_reason",
           "function_model.transactions.FM_PACKET_DROP.error_cases.PD_DISABLED_DROP_MODE",
@@ -1078,9 +1075,9 @@
           "sub_modules.mctp_assembler_scratch_descriptor_queue.module_equivalence"
         ],
         "status_counts": {
-          "pass": 20
+          "pass": 17
         },
-        "task_count": 20
+        "task_count": 17
       }
     },
     {
@@ -1833,6 +1830,9 @@
       "summary": {
         "categories": {
           "equivalence.module": 1,
+          "function_model.output": 1,
+          "function_model.output_rule": 2,
+          "function_model.precondition": 1,
           "integration.connections": 5,
           "integration.dependencies": 3,
           "rtl_flow.seed": 1,
@@ -1846,14 +1846,18 @@
           "enabled": false,
           "index": 1,
           "key": "all",
-          "module_task_count": 20,
+          "module_task_count": 24,
           "task_limit": 48
         },
         "open_required_count": 0,
-        "required_count": 20,
+        "required_count": 24,
         "source_refs": [
           "top_module",
           "io_list",
+          "function_model.transactions.FM_COMPLETE_MESSAGE.output_rules.interrupt",
+          "function_model.transactions.FM_PACKET_DROP.preconditions.precondition_0",
+          "function_model.transactions.FM_PACKET_DROP.outputs.output_0",
+          "function_model.transactions.FM_PACKET_DROP.output_rules.debug_drop_pulse",
           "security.assets.asset_0",
           "security.assets.asset_2",
           "integration.dependencies.external_modules",
@@ -1861,7 +1865,7 @@
           "integration.dependencies.external_resets",
           "integration.connections.m_axi_awvalid",
           "integration.connections.m_axi_wvalid",
-          "integration.connections.sram_wr_valid",
+          "integration.connections.pack_wr_valid",
           "integration.connections.m_axi_rvalid",
           "integration.connections.pready",
           "synthesis.constraints.constraint_0",
@@ -1874,9 +1878,9 @@
           "sub_modules.mctp_assembler_scratch.module_equivalence"
         ],
         "status_counts": {
-          "pass": 20
+          "pass": 24
         },
-        "task_count": 20
+        "task_count": 24
       }
     },
     {
@@ -2077,16 +2081,16 @@
     "recommended_packet_batch_limit": 4,
     "reference_profile_present": false,
     "reference_scale_gap_present": false,
-    "required_tasks": 453,
+    "required_tasks": 457,
     "sliced_module_packets": 16,
     "target_scale_present": false,
     "tool_evidence_packets": 0,
     "tool_evidence_tasks": 0,
-    "total_tasks": 453,
+    "total_tasks": 457,
     "unowned_packets": 0
   },
   "target_scale": {},
-  "todo_plan_sha256": "f7d51fe86c7b2e93192acdcd2fb7e463badd1ca4416fc82440243aa7e8a43e3c",
+  "todo_plan_sha256": "a6a5a0fbc9df7cbf10ab017b46631a16a00f0b454b4cee41da9ba28dbc65043d",
   "top": "mctp_assembler_scratch",
   "type": "rtl_authoring_plan"
 }

@@ -1,62 +1,62 @@
 `include "mctp_assembler_scratch_param.vh"
 
 module mctp_assembler_scratch_apb_regfile (
-    input  logic        pclk,
-    input  logic        presetn,
-    input  logic [15:0] paddr,
-    input  logic        psel,
-    input  logic        penable,
-    input  logic        pwrite,
-    input  logic [31:0] pwdata,
-    input  logic [3:0]  pstrb,
-    output logic [31:0] prdata,
-    output logic        pready,
-    output logic        pslverr,
-    input  logic [1:0]  ctx_state,
-    input  logic        ctx_valid,
-    input  logic        ctx_error,
-    input  logic [17:0] ctx_key,
-    input  logic [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] ctx_payload_base,
-    input  logic [12:0] ctx_payload_count,
-    input  logic [4:0]  ctx_partial_next_lane,
-    input  logic        ctx_partial_word_valid,
-    input  logic [3:0]  descriptor_count,
-    input  logic        descriptor_event,
-    input  logic        packet_drop_event,
-    input  logic        assembly_drop_event,
-    input  logic        read_error_event,
-    input  logic [7:0]  drop_reason,
-    output logic        enable_reg,
-    output logic        drop_mode_reg,
-    output logic        raw_debug_read_enable,
-    output logic [12:0] configured_tu_bytes,
-    output logic [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] sram_base,
-    output logic [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] sram_limit,
-    output logic        irq
+    input  wire        pclk,
+    input  wire        presetn,
+    input  wire [15:0] paddr,
+    input  wire        psel,
+    input  wire        penable,
+    input  wire        pwrite,
+    input  wire [31:0] pwdata,
+    input  wire [3:0]  pstrb,
+    output reg [31:0] prdata,
+    output wire        pready,
+    output wire        pslverr,
+    input  wire [1:0]  ctx_state,
+    input  wire        ctx_valid,
+    input  wire        ctx_error,
+    input  wire [17:0] ctx_key,
+    input  wire [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] ctx_payload_base,
+    input  wire [12:0] ctx_payload_count,
+    input  wire [4:0]  ctx_partial_next_lane,
+    input  wire        ctx_partial_word_valid,
+    input  wire [3:0]  descriptor_count,
+    input  wire        descriptor_event,
+    input  wire        packet_drop_event,
+    input  wire        assembly_drop_event,
+    input  wire        read_error_event,
+    input  wire [7:0]  drop_reason,
+    output reg        enable_reg,
+    output reg        drop_mode_reg,
+    output reg        raw_debug_read_enable,
+    output reg [12:0] configured_tu_bytes,
+    output reg [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] sram_base,
+    output reg [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] sram_limit,
+    output wire        irq
 );
-    logic apb_access;
-    logic legal_addr;
-    logic [31:0] irq_status_q;
-    logic [31:0] irq_enable_q;
-    logic [31:0] packet_drop_count_q;
-    logic [31:0] assembly_drop_count_q;
-    logic [31:0] read_error_count_q;
-    logic [31:0] global_ctrl_q;
-    logic [31:0] status_word;
-    logic [31:0] q_state_word;
-    logic [31:0] q_key_word;
-    logic [31:0] q_payload_count_word;
-    logic any_error;
-    logic desc_pending;
-    logic [31:0] packet_drop_count_value;
-    logic [31:0] assembly_drop_count_value;
-    logic [7:0] source_eid;
-    logic [7:0] destination_eid;
-    logic tag_owner;
-    logic [2:0] message_tag;
-    logic [7:0] message_type;
-    logic error_handling;
-    logic unused_inputs;
+    wire apb_access;
+    wire legal_addr;
+    reg [31:0] irq_status_q;
+    reg [31:0] irq_enable_q;
+    reg [31:0] packet_drop_count_q;
+    reg [31:0] assembly_drop_count_q;
+    reg [31:0] read_error_count_q;
+    reg [31:0] global_ctrl_q;
+    wire [31:0] status_word;
+    wire [31:0] q_state_word;
+    wire [31:0] q_key_word;
+    wire [31:0] q_payload_count_word;
+    wire any_error;
+    wire desc_pending;
+    wire [31:0] packet_drop_count_value;
+    wire [31:0] assembly_drop_count_value;
+    wire [7:0] source_eid;
+    wire [7:0] destination_eid;
+    wire tag_owner;
+    wire [2:0] message_tag;
+    wire [7:0] message_type;
+    wire error_handling;
+    wire unused_inputs;
 
     assign apb_access = psel & penable;
     assign pready = apb_access;

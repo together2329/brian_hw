@@ -2,7 +2,7 @@
   "schema_version": 1,
   "type": "fl_rtl_compare",
   "ip": "mctp_assembler_scratch",
-  "generated_at": "2026-05-31T23:37:41Z",
+  "generated_at": "2026-06-01T12:19:01Z",
   "status": "pass",
   "sources": {
     "equivalence_goals": "mctp_assembler_scratch/verify/equivalence_goals.json",
@@ -25,7 +25,7 @@
     "stale_oracle_evidence": [],
     "sim_results": {
       "exists": true,
-      "total": 1,
+      "total": 3,
       "fail": 0,
       "errors": 0,
       "source": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/sim/results.xml",

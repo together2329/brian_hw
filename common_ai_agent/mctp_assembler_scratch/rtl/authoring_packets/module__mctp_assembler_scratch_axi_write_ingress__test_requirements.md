@@ -3,8 +3,8 @@
 - Kind: module
 - Owner module: mctp_assembler_scratch_axi_write_ingress
 - Owner file: rtl/mctp_assembler_scratch_axi_write_ingress.sv
-- Task count: 22
-- Required tasks: 22
+- Task count: 26
+- Required tasks: 26
 
 ## Rules
 
@@ -57,7 +57,28 @@ SSOT item context: id=SC_VALID_SINGLE_PACKET; name=Valid single packet; expected
   - Downstream checker compares RTL-observed behavior against expected result: Descriptor published and SRAM payload byte count matches payload
 - SSOT refs: test_requirements.scenarios.SC_VALID_SINGLE_PACKET
 
-### RTL-0433: Keep RTL observable for scenario SC_MULTI_FRAGMENT_TU64
+### RTL-0433: Keep RTL observable for scenario SC_SINGLE_PACKET_32B
+
+- Priority: normal
+- Required: True
+- Status: pass
+- Category: test_requirements.scenario
+- Source ref: test_requirements.scenarios.SC_SINGLE_PACKET_32B
+- Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
+SSOT ref: test_requirements.scenarios.SC_SINGLE_PACKET_32B.
+Owner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via test_requirements.
+SSOT item context: id=SC_SINGLE_PACKET_32B; name=Single 32B packet with nonzero key; expected=One descriptor is published and debug_context_key reflects the nonzero key.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - RTL exposes enough signals/status/outputs for the scenario checker
+  - FunctionalModel expected result and RTL observed result can be compared
+  - Scenario has coverage refs or a precise SSOT reason for exclusion
+  - Traceability keeps source_ref test_requirements.scenarios.SC_SINGLE_PACKET_32B
+  - Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv
+  - Downstream checker compares RTL-observed behavior against expected result: One descriptor is published and debug_context_key reflects the nonzero key
+- SSOT refs: test_requirements.scenarios.SC_SINGLE_PACKET_32B
+
+### RTL-0434: Keep RTL observable for scenario SC_MULTI_FRAGMENT_TU64
 
 - Priority: normal
 - Required: True
@@ -78,7 +99,28 @@ SSOT item context: id=SC_MULTI_FRAGMENT_TU64; name=Multi-fragment TU64; expected
   - Downstream checker compares RTL-observed behavior against expected result: One completed message with ordered payload bytes
 - SSOT refs: test_requirements.scenarios.SC_MULTI_FRAGMENT_TU64
 
-### RTL-0434: Keep RTL observable for scenario SC_MAX_TU_4096_129_BEATS
+### RTL-0435: Keep RTL observable for scenario SC_MULTI_FRAGMENT_3PKT_SHORT_LAST
+
+- Priority: normal
+- Required: True
+- Status: pass
+- Category: test_requirements.scenario
+- Source ref: test_requirements.scenarios.SC_MULTI_FRAGMENT_3PKT_SHORT_LAST
+- Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
+SSOT ref: test_requirements.scenarios.SC_MULTI_FRAGMENT_3PKT_SHORT_LAST.
+Owner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via test_requirements.
+SSOT item context: id=SC_MULTI_FRAGMENT_3PKT_SHORT_LAST; name=Three-fragment message with short final payload; expected=Payload byte count accumulates to 76B and one descriptor is published for source_eid 0x22/message_tag 5.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - RTL exposes enough signals/status/outputs for the scenario checker
+  - FunctionalModel expected result and RTL observed result can be compared
+  - Scenario has coverage refs or a precise SSOT reason for exclusion
+  - Traceability keeps source_ref test_requirements.scenarios.SC_MULTI_FRAGMENT_3PKT_SHORT_LAST
+  - Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv
+  - Downstream checker compares RTL-observed behavior against expected result: Payload byte count accumulates to 76B and one descriptor is published for source_eid 0x22/message_tag 5
+- SSOT refs: test_requirements.scenarios.SC_MULTI_FRAGMENT_3PKT_SHORT_LAST
+
+### RTL-0436: Keep RTL observable for scenario SC_MAX_TU_4096_129_BEATS
 
 - Priority: normal
 - Required: True
@@ -99,7 +141,7 @@ SSOT item context: id=SC_MAX_TU_4096_129_BEATS; name=Maximum 4096B transmission 
   - Downstream checker compares RTL-observed behavior against expected result: No overflow and descriptor byte count equals 4096
 - SSOT refs: test_requirements.scenarios.SC_MAX_TU_4096_129_BEATS
 
-### RTL-0435: Keep RTL observable for scenario SC_INTERLEAVE_TWO_KEYS
+### RTL-0437: Keep RTL observable for scenario SC_INTERLEAVE_TWO_KEYS
 
 - Priority: normal
 - Required: True
@@ -120,7 +162,28 @@ SSOT item context: id=SC_INTERLEAVE_TWO_KEYS; name=Interleaved two keys; expecte
   - Downstream checker compares RTL-observed behavior against expected result: Two independent Q FSMs complete without cross-contamination
 - SSOT refs: test_requirements.scenarios.SC_INTERLEAVE_TWO_KEYS
 
-### RTL-0436: Keep RTL observable for scenario SC_UNALIGNED_SRAM_PACK_NO_HOLES
+### RTL-0438: Keep RTL observable for scenario SC_INTERLEAVE_TWO_Q_COMPLETE
+
+- Priority: normal
+- Required: True
+- Status: pass
+- Category: test_requirements.scenario
+- Source ref: test_requirements.scenarios.SC_INTERLEAVE_TWO_Q_COMPLETE
+- Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
+SSOT ref: test_requirements.scenarios.SC_INTERLEAVE_TWO_Q_COMPLETE.
+Owner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via test_requirements.
+SSOT item context: id=SC_INTERLEAVE_TWO_Q_COMPLETE; name=Interleaved two Q contexts complete; expected=The selected context completes with source_eid 0x31/message_tag 6 while the other key remains independent.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - RTL exposes enough signals/status/outputs for the scenario checker
+  - FunctionalModel expected result and RTL observed result can be compared
+  - Scenario has coverage refs or a precise SSOT reason for exclusion
+  - Traceability keeps source_ref test_requirements.scenarios.SC_INTERLEAVE_TWO_Q_COMPLETE
+  - Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv
+  - Downstream checker compares RTL-observed behavior against expected result: The selected context completes with source_eid 0x31/message_tag 6 while the other key remains independent
+- SSOT refs: test_requirements.scenarios.SC_INTERLEAVE_TWO_Q_COMPLETE
+
+### RTL-0439: Keep RTL observable for scenario SC_UNALIGNED_SRAM_PACK_NO_HOLES
 
 - Priority: normal
 - Required: True
@@ -141,7 +204,7 @@ SSOT item context: id=SC_UNALIGNED_SRAM_PACK_NO_HOLES; name=Unaligned SRAM pack 
   - Downstream checker compares RTL-observed behavior against expected result: SRAM byte lanes are contiguous and final strobe trims only trailing bytes
 - SSOT refs: test_requirements.scenarios.SC_UNALIGNED_SRAM_PACK_NO_HOLES
 
-### RTL-0437: Keep RTL observable for scenario SC_FIRST_LAST_TLP_HEADERS
+### RTL-0440: Keep RTL observable for scenario SC_FIRST_LAST_TLP_HEADERS
 
 - Priority: normal
 - Required: True
@@ -162,7 +225,7 @@ SSOT item context: id=SC_FIRST_LAST_TLP_HEADERS; name=First and last TLP headers
   - Downstream checker compares RTL-observed behavior against expected result: Per-Q first snapshot equals first TLP header and last snapshot equals EOM TLP header
 - SSOT refs: test_requirements.scenarios.SC_FIRST_LAST_TLP_HEADERS
 
-### RTL-0438: Keep RTL observable for scenario SC_AXI_READBACK_TRIM
+### RTL-0441: Keep RTL observable for scenario SC_AXI_READBACK_TRIM
 
 - Priority: normal
 - Required: True
@@ -183,7 +246,28 @@ SSOT item context: id=SC_AXI_READBACK_TRIM; name=AXI readback trims final short 
   - Downstream checker compares RTL-observed behavior against expected result: AXI R data returns exactly descriptor byte count and zero SLVERR on extra no-descriptor read
 - SSOT refs: test_requirements.scenarios.SC_AXI_READBACK_TRIM
 
-### RTL-0439: Keep RTL observable for scenario SC_APB_REGS_PER_Q
+### RTL-0442: Keep RTL observable for scenario SC_READBACK_AFTER_MULTI_ASSEMBLE
+
+- Priority: normal
+- Required: True
+- Status: pass
+- Category: test_requirements.scenario
+- Source ref: test_requirements.scenarios.SC_READBACK_AFTER_MULTI_ASSEMBLE
+- Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
+SSOT ref: test_requirements.scenarios.SC_READBACK_AFTER_MULTI_ASSEMBLE.
+Owner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via test_requirements.
+SSOT item context: id=SC_READBACK_AFTER_MULTI_ASSEMBLE; name=AXI readback after multi-fragment assembly; expected=Firmware-visible readback uses the assembled descriptor length and SRAM base.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - RTL exposes enough signals/status/outputs for the scenario checker
+  - FunctionalModel expected result and RTL observed result can be compared
+  - Scenario has coverage refs or a precise SSOT reason for exclusion
+  - Traceability keeps source_ref test_requirements.scenarios.SC_READBACK_AFTER_MULTI_ASSEMBLE
+  - Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv
+  - Downstream checker compares RTL-observed behavior against expected result: Firmware-visible readback uses the assembled descriptor length and SRAM base
+- SSOT refs: test_requirements.scenarios.SC_READBACK_AFTER_MULTI_ASSEMBLE
+
+### RTL-0443: Keep RTL observable for scenario SC_APB_REGS_PER_Q
 
 - Priority: normal
 - Required: True
@@ -204,7 +288,7 @@ SSOT item context: id=SC_APB_REGS_PER_Q; name=APB per-Q visibility; expected=Reg
   - Downstream checker compares RTL-observed behavior against expected result: Register values match selected context model
 - SSOT refs: test_requirements.scenarios.SC_APB_REGS_PER_Q
 
-### RTL-0440: Keep RTL observable for scenario PD_DISABLED_DROP_MODE
+### RTL-0444: Keep RTL observable for scenario PD_DISABLED_DROP_MODE
 
 - Priority: normal
 - Required: True
@@ -225,7 +309,7 @@ SSOT item context: id=PD_DISABLED_DROP_MODE; name=Drop mode packet drop; expecte
   - Downstream checker compares RTL-observed behavior against expected result: no_sram_write and packet drop counter increments
 - SSOT refs: test_requirements.scenarios.PD_DISABLED_DROP_MODE
 
-### RTL-0441: Keep RTL observable for scenario PD_MALFORMED_TLP
+### RTL-0445: Keep RTL observable for scenario PD_MALFORMED_TLP
 
 - Priority: normal
 - Required: True
@@ -246,7 +330,7 @@ SSOT item context: id=PD_MALFORMED_TLP; name=Malformed TLP packet drop; expected
   - Downstream checker compares RTL-observed behavior against expected result: no_sram_write and PD_MALFORMED_TLP counted
 - SSOT refs: test_requirements.scenarios.PD_MALFORMED_TLP
 
-### RTL-0442: Keep RTL observable for scenario PD_UNSUPPORTED_VDM
+### RTL-0446: Keep RTL observable for scenario PD_UNSUPPORTED_VDM
 
 - Priority: normal
 - Required: True
@@ -267,7 +351,7 @@ SSOT item context: id=PD_UNSUPPORTED_VDM; name=Unsupported VDM packet drop; expe
   - Downstream checker compares RTL-observed behavior against expected result: no_sram_write and PD_UNSUPPORTED_VDM counted
 - SSOT refs: test_requirements.scenarios.PD_UNSUPPORTED_VDM
 
-### RTL-0443: Keep RTL observable for scenario PD_BAD_MCTP_HEADER
+### RTL-0447: Keep RTL observable for scenario PD_BAD_MCTP_HEADER
 
 - Priority: normal
 - Required: True
@@ -288,7 +372,7 @@ SSOT item context: id=PD_BAD_MCTP_HEADER; name=Bad MCTP header packet drop; expe
   - Downstream checker compares RTL-observed behavior against expected result: no_sram_write and PD_BAD_MCTP_HEADER counted
 - SSOT refs: test_requirements.scenarios.PD_BAD_MCTP_HEADER
 
-### RTL-0444: Keep RTL observable for scenario PD_BAD_PAD_OR_ALIGNMENT
+### RTL-0448: Keep RTL observable for scenario PD_BAD_PAD_OR_ALIGNMENT
 
 - Priority: normal
 - Required: True
@@ -309,7 +393,7 @@ SSOT item context: id=PD_BAD_PAD_OR_ALIGNMENT; name=Bad pad or alignment packet 
   - Downstream checker compares RTL-observed behavior against expected result: no_sram_write and PD_BAD_PAD_OR_ALIGNMENT counted
 - SSOT refs: test_requirements.scenarios.PD_BAD_PAD_OR_ALIGNMENT
 
-### RTL-0445: Keep RTL observable for scenario PD_DEST_EID_REJECT
+### RTL-0449: Keep RTL observable for scenario PD_DEST_EID_REJECT
 
 - Priority: normal
 - Required: True
@@ -330,7 +414,7 @@ SSOT item context: id=PD_DEST_EID_REJECT; name=Destination EID reject packet dro
   - Downstream checker compares RTL-observed behavior against expected result: no_sram_write and PD_DEST_EID_REJECT counted
 - SSOT refs: test_requirements.scenarios.PD_DEST_EID_REJECT
 
-### RTL-0446: Keep RTL observable for scenario PD_UNEXPECTED_MIDDLE_END
+### RTL-0450: Keep RTL observable for scenario PD_UNEXPECTED_MIDDLE_END
 
 - Priority: normal
 - Required: True
@@ -351,7 +435,7 @@ SSOT item context: id=PD_UNEXPECTED_MIDDLE_END; name=Unexpected middle or end pa
   - Downstream checker compares RTL-observed behavior against expected result: no_sram_write and PD_UNEXPECTED_MIDDLE_END counted
 - SSOT refs: test_requirements.scenarios.PD_UNEXPECTED_MIDDLE_END
 
-### RTL-0447: Keep RTL observable for scenario PD_BAD_OR_EXPIRED_TAG
+### RTL-0451: Keep RTL observable for scenario PD_BAD_OR_EXPIRED_TAG
 
 - Priority: normal
 - Required: True
@@ -372,7 +456,7 @@ SSOT item context: id=PD_BAD_OR_EXPIRED_TAG; name=Bad or expired tag packet drop
   - Downstream checker compares RTL-observed behavior against expected result: no_sram_write and PD_BAD_OR_EXPIRED_TAG counted
 - SSOT refs: test_requirements.scenarios.PD_BAD_OR_EXPIRED_TAG
 
-### RTL-0448: Keep RTL observable for scenario AD_DUPLICATE_SOM
+### RTL-0452: Keep RTL observable for scenario AD_DUPLICATE_SOM
 
 - Priority: normal
 - Required: True
@@ -393,7 +477,7 @@ SSOT item context: id=AD_DUPLICATE_SOM; name=Duplicate SOM assembly drop; expect
   - Downstream checker compares RTL-observed behavior against expected result: no_sram_write and AD_DUPLICATE_SOM counted
 - SSOT refs: test_requirements.scenarios.AD_DUPLICATE_SOM
 
-### RTL-0449: Keep RTL observable for scenario AD_SEQUENCE_MISMATCH
+### RTL-0453: Keep RTL observable for scenario AD_SEQUENCE_MISMATCH
 
 - Priority: normal
 - Required: True
@@ -414,7 +498,7 @@ SSOT item context: id=AD_SEQUENCE_MISMATCH; name=Sequence mismatch assembly drop
   - Downstream checker compares RTL-observed behavior against expected result: no_sram_write and AD_SEQUENCE_MISMATCH counted
 - SSOT refs: test_requirements.scenarios.AD_SEQUENCE_MISMATCH
 
-### RTL-0450: Keep RTL observable for scenario AD_MESSAGE_OVERFLOW
+### RTL-0454: Keep RTL observable for scenario AD_MESSAGE_OVERFLOW
 
 - Priority: normal
 - Required: True
@@ -435,7 +519,7 @@ SSOT item context: id=AD_MESSAGE_OVERFLOW; name=Message overflow assembly drop; 
   - Downstream checker compares RTL-observed behavior against expected result: no_sram_write and AD_MESSAGE_OVERFLOW counted
 - SSOT refs: test_requirements.scenarios.AD_MESSAGE_OVERFLOW
 
-### RTL-0451: Keep RTL observable for scenario AD_SRAM_OVERFLOW
+### RTL-0455: Keep RTL observable for scenario AD_SRAM_OVERFLOW
 
 - Priority: normal
 - Required: True
@@ -456,7 +540,7 @@ SSOT item context: id=AD_SRAM_OVERFLOW; name=SRAM overflow assembly drop; expect
   - Downstream checker compares RTL-observed behavior against expected result: no_sram_write and AD_SRAM_OVERFLOW counted
 - SSOT refs: test_requirements.scenarios.AD_SRAM_OVERFLOW
 
-### RTL-0452: Keep RTL observable for scenario AD_DESCRIPTOR_FULL
+### RTL-0456: Keep RTL observable for scenario AD_DESCRIPTOR_FULL
 
 - Priority: normal
 - Required: True
@@ -477,7 +561,7 @@ SSOT item context: id=AD_DESCRIPTOR_FULL; name=Descriptor full assembly drop; ex
   - Downstream checker compares RTL-observed behavior against expected result: no descriptor publish and AD_DESCRIPTOR_FULL counted
 - SSOT refs: test_requirements.scenarios.AD_DESCRIPTOR_FULL
 
-### RTL-0453: Keep RTL observable for scenario AD_TIMEOUT
+### RTL-0457: Keep RTL observable for scenario AD_TIMEOUT
 
 - Priority: normal
 - Required: True

@@ -40,12 +40,15 @@ Primary IP entrypoints:
 bash workflow/ssot-gen/scripts/new_ip_emit_chain.sh <ip> --root <ip-parent>
 python3 workflow/ip-contract/scripts/derive_ip_contract.py <ip> --root <ip-parent>
 python3 workflow/mutation/scripts/mutation_guard.py <ip> --root <ip-parent>
+python3 workflow/reqcov/scripts/check_truth_coverage.py <ip> --root <ip-parent>
 python3 workflow/signoff/scripts/check_ip_signoff.py <ip> --root <ip-parent>
 ```
 
 `mutation_guard.py` is advisory by default.  Use `--enforce-threshold` only
 after the human owner approves a kill-rate policy for that IP.  Do not select
 static IP profiles; derive `<ip>/verify/ip_contract.json` from SSOT/IO/goals.
+`check_truth_coverage.py` accepts direct SSOT authoring; a separate req ledger
+is optional, but every required locked-truth obligation must have evidence.
 
 ### Full RTL Project (recommended)
 

@@ -58,6 +58,7 @@ TB Python compile gate passes before simulation.
 Simulation passes with at least one executed test.
 Scoreboard events exist and compare FL expected values to RTL observed values.
 Coverage summary reports pass.
+Truth coverage reports pass: every required locked-truth obligation has executable evidence.
 Waivers are explicit, sourced, and reviewable.
 ```
 
@@ -76,6 +77,7 @@ them.
 The canonical executable gate is:
 
 ```text
+python3 workflow/reqcov/scripts/check_truth_coverage.py <ip> --root <ip-parent>
 python3 workflow/signoff/scripts/check_ip_signoff.py <ip> --root <ip-parent>
 ```
 

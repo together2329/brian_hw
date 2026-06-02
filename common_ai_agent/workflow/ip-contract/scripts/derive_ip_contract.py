@@ -92,6 +92,13 @@ BASE_EVIDENCE = [
         "required": True,
         "rationale": "Required scenarios and bins must close against RTL-observed evidence.",
     },
+    {
+        "id": "truth_coverage",
+        "stage_id": "truth_coverage",
+        "artifact": "signoff/truth_coverage.json",
+        "required": True,
+        "rationale": "Every required locked-truth obligation must have executable evidence.",
+    },
 ]
 
 

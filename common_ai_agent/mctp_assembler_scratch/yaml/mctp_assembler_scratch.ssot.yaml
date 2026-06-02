@@ -2763,7 +2763,7 @@ integration:
     signal: m_axi_wvalid
   - module: mctp_assembler_scratch_sram_packer
     port: sram_wr_valid
-    signal: sram_wr_valid
+    signal: pack_wr_valid
   - module: mctp_assembler_scratch_axi_read_egress
     port: m_axi_rvalid
     signal: m_axi_rvalid

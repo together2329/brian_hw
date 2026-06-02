@@ -27,7 +27,8 @@ This section is additive; it does not replace the reading order below.
 | Frontend modernization arc (overview): .jsx→.tsx migration + Vite cutover (ATLAS_FRONTEND_MODE) + Tauri desktop + gpt-5.5 | [[frontend-modernization-2026-05-29]] |
 | 테스트 방법론 — 4층 피라미드 + green-while-broken 교훈 + 프론트 컷오버 전 E2E 필수 | [[testing-methodology]] |
 | uart_tx 직접 end-to-end 실행 — flow 골격 검증 + MSB-first mutation으로 shallow-observation silent-PASS 실증 + same-cycle 생성기 경계 + 직접 구동 cheat-sheet (audit=mutation kill-rate 권고) | [[uart-tx-end-to-end-findings-20260530]] |
-| MCTP assembler scratch req-to-audit run — AXI4/VDM/MCTP/SRAM/APB scope, signoff 12/15 pass, remaining owner-routed blockers, mutation baseline-blocked interpretation | [[mctp-assembler-scratch-flow-20260531]] |
+| MCTP assembler scratch req-to-audit run — AXI4/VDM/MCTP/SRAM/APB scope, truth_coverage refresh, local signoff 17/17 pass, mutation advisory interpretation | [[mctp-assembler-scratch-flow-20260531]] |
+| General IP 시행착오 종합 — PyMTL식 FL/CL/RTL, small IP/UART/SPI/CPU/MCTP lessons, mutation/formal/truth_coverage 경계, direct SSOT 허용 정책 | [[general-ip-flow-trial-and-error-20260601]] |
 | ATLAS vite 프론트 자동 E2E 검증(실브라우저) 런북 + `scripts/atlas_vite_e2e_verify.sh` | [[atlas-vite-e2e-verification]] |
 | Sim Debug RTL module-signal panel (pyslang ports+internal, in/out/internal filter, regex search, Ctrl+W/right-click→wave, wave-scroll fix, 50/50 split) | [[sim-debug-module-signals-2026-05-30]] |
 | Sim Debug agent tool `sim_debug` (VCD parser + pyslang; show/goto/cursor/trace/find/value; file-intent + UI polling channel) | [[sim-debug-agent-tool-2026-05-31]] |
@@ -82,6 +83,8 @@ regression.
 3. [[ssot-qa-workbench]] — SSOT authoring UX: import, interview, requirement progress, and To SSOT. Internal pass mechanism: [[ssot-gen-pass-pipeline]] — LLM → deterministic canonicalize → validator → LLM-repair loop, with the actual progress-log signatures and `ATLAS_HEADLESS_LLM_TIMEOUT` knob.
 4. [[full-flow-pipeline]] — SSOT to signoff stage order and commands.
 4a. [[default-agent-ip-flow]] — conversational front-door flow where the default agent hides stage jargon and directly performs read/edit/run/signoff loops for IP creation.
+4b. [[truth-coverage-gate]] — direct-SSOT or req-ledger locked-truth coverage gate required before signoff.
+4c. [[general-ip-flow-trial-and-error-20260601]] — consolidated trial/error record behind the current General IP workflow.
 5. [[run-mode-and-provenance-policy]] — why `Starter` / `Engineering` / `Signoff` are work-maturity modes, why `Exec Mode` is separate, and how clean SSOT YAML pairs with resolved SSOT plus sidecar provenance.
 6. [[rtl-gen-ssot-contract]] — why rtl-gen must follow SSOT exactly before downstream stages run.
 7. [[workflow-feedback-and-scheduling]] — worker-aware serial/DAG scheduling and workflow repair feedback.

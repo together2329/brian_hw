@@ -1,57 +1,49 @@
 `include "mctp_assembler_scratch_param.vh"
 
 module mctp_assembler_scratch_axi_read_egress (
-    input  logic                                             axi_aclk,
-    input  logic                                             axi_aresetn,
-    input  logic                                             raw_debug_read_enable,
-    input  logic                                             descriptor_valid,
-    input  logic [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] descriptor_base,
-    input  logic [12:0]                                      descriptor_bytes,
-    input  logic [`MCTP_ASSEMBLER_SCRATCH_AXI_ADDR_WIDTH-1:0] m_axi_araddr,
-    input  logic [7:0]                                       m_axi_arlen,
-    input  logic [2:0]                                       m_axi_arsize,
-    input  logic [1:0]                                       m_axi_arburst,
-    input  logic                                             m_axi_arvalid,
-    output logic                                             m_axi_arready,
-    output logic [`MCTP_ASSEMBLER_SCRATCH_AXI_DATA_WIDTH-1:0] m_axi_rdata,
-    output logic [1:0]                                       m_axi_rresp,
-    output logic                                             m_axi_rlast,
-    output logic                                             m_axi_rvalid,
-    input  logic                                             m_axi_rready,
-    output logic                                             rd_req_valid,
-    input  logic                                             rd_req_ready,
-    output logic [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] rd_req_addr,
-    input  logic                                             rd_rsp_valid,
-    output logic                                             rd_rsp_ready,
-    input  logic [`MCTP_ASSEMBLER_SCRATCH_SRAM_DATA_WIDTH-1:0] rd_rsp_data,
-    input  logic                                             rd_rsp_error,
-    output logic                                             descriptor_pop,
-    output logic                                             read_error_pulse
+    input  wire                                             axi_aclk,
+    input  wire                                             axi_aresetn,
+    input  wire                                             raw_debug_read_enable,
+    input  wire                                             descriptor_valid,
+    input  wire [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] descriptor_base,
+    input  wire [12:0]                                      descriptor_bytes,
+    input  wire [`MCTP_ASSEMBLER_SCRATCH_AXI_ADDR_WIDTH-1:0] m_axi_araddr,
+    input  wire [7:0]                                       m_axi_arlen,
+    input  wire [2:0]                                       m_axi_arsize,
+    input  wire [1:0]                                       m_axi_arburst,
+    input  wire                                             m_axi_arvalid,
+    output wire                                             m_axi_arready,
+    output reg [`MCTP_ASSEMBLER_SCRATCH_AXI_DATA_WIDTH-1:0] m_axi_rdata,
+    output reg [1:0]                                       m_axi_rresp,
+    output reg                                             m_axi_rlast,
+    output reg                                             m_axi_rvalid,
+    input  wire                                             m_axi_rready,
+    output reg                                             rd_req_valid,
+    input  wire                                             rd_req_ready,
+    output reg [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] rd_req_addr,
+    input  wire                                             rd_rsp_valid,
+    output wire                                             rd_rsp_ready,
+    input  wire [`MCTP_ASSEMBLER_SCRATCH_SRAM_DATA_WIDTH-1:0] rd_rsp_data,
+    input  wire                                             rd_rsp_error,
+    output reg                                             descriptor_pop,
+    output reg                                             read_error_pulse
 );
-    logic active_q;
-    logic wait_rsp_q;
-    logic read_has_descriptor_q;
-    logic [8:0] beats_left_q;
-    logic [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] next_addr_q;
-    logic [8:0] start_beats;
-    logic ar_ok;
-    logic unused_inputs;
+    reg active_q;
+    reg wait_rsp_q;
+    reg read_has_descriptor_q;
+    reg [8:0] beats_left_q;
+    reg [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] next_addr_q;
+    wire [8:0] start_beats;
+    wire ar_ok;
+    wire unused_inputs;
 
-    assign start_beats = descriptor_valid ? bytes_to_beats(descriptor_bytes) : ({1'b0, m_axi_arlen} + 9'd1);
+    assign start_beats = descriptor_valid ?
+        ((descriptor_bytes == 13'd0) ? 9'd1 : ({1'b0, descriptor_bytes[12:5]} + {8'd0, |descriptor_bytes[4:0]})) :
+        ({1'b0, m_axi_arlen} + 9'd1);
     assign ar_ok = m_axi_arvalid & m_axi_arready;
     assign m_axi_arready = (!active_q) & (!m_axi_rvalid) & (!rd_req_valid) & (!wait_rsp_q);
     assign rd_rsp_ready = wait_rsp_q & (!m_axi_rvalid | m_axi_rready);
     assign unused_inputs = ^{m_axi_arsize, m_axi_arburst};
-
-    function automatic [8:0] bytes_to_beats(input logic [12:0] byte_count);
-        begin
-            if (byte_count == 13'd0) begin
-                bytes_to_beats = 9'd1;
-            end else begin
-                bytes_to_beats = {1'b0, byte_count[12:5]} + {8'd0, |byte_count[4:0]};
-            end
-        end
-    endfunction
 
     always @(posedge axi_aclk or negedge axi_aresetn) begin
         if (!axi_aresetn) begin

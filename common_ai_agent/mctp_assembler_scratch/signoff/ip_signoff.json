@@ -13,7 +13,7 @@
       "issues": [],
       "name": "ip_contract",
       "status": "pass",
-      "summary": "capabilities=14 required_evidence=14"
+      "summary": "capabilities=14 required_evidence=15"
     },
     {
       "artifact": "model/fl_model_check.json",
@@ -76,7 +76,7 @@
       "issues": [],
       "name": "simulation",
       "status": "pass",
-      "summary": "tests=1 failures=0 errors=0"
+      "summary": "tests=3 failures=0 errors=0"
     },
     {
       "artifact": "sim/simulation_quality.json",
@@ -100,11 +100,25 @@
       "summary": "status=pass"
     },
     {
+      "artifact": "signoff/truth_coverage.json",
+      "issues": [],
+      "name": "truth_coverage",
+      "status": "pass",
+      "summary": "status=pass uncovered_required=0"
+    },
+    {
       "artifact": "mutation/mutation_report.json",
       "issues": [],
       "name": "mutation_guard",
       "status": "pass",
-      "summary": "status=pass kill_rate=0.5938"
+      "summary": "status=pass kill_rate=0.5"
+    },
+    {
+      "artifact": "sim/scenario_e2e_summary.json + sim/monitor_evidence.json + mutation/survivor_classification.json + verify/formal_status.json",
+      "issues": [],
+      "name": "verification_hardening",
+      "status": "pass",
+      "summary": "directed scenarios, protocol monitors, survivor classification, and optional formal artifacts present"
     },
     {
       "artifact": "signoff/goal_ledger.json",
@@ -114,7 +128,7 @@
       "summary": "waivers explicit and reviewable"
     }
   ],
-  "generated_at": "2026-06-01T11:37:45Z",
+  "generated_at": "2026-06-02T00:11:55Z",
   "ip": "mctp_assembler_scratch",
   "ip_contract": "verify/ip_contract.json",
   "mode": "local_evidence",
@@ -123,8 +137,8 @@
   "summary": {
     "blocked": 0,
     "failed": 0,
-    "passed": 16,
-    "total_gates": 16
+    "passed": 18,
+    "total_gates": 18
   },
   "type": "ip_signoff"
 }

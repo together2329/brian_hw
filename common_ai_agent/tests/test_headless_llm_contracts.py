@@ -1347,6 +1347,46 @@ endmodule
     assert evidence["connection_contract_issues"] == []
 
 
+def test_rtl_contract_owner_resolution_overrides_existing_owner():
+    derive = _load_derive_rtl_todos()
+    tasks = [
+        {
+            "source_ref": "function_model.transactions.FM_RUN.outputs.ctx_state",
+            "owner_module": "auto_wrong",
+            "owner_file": "rtl/auto_wrong.sv",
+            "owner_match": "auto",
+        }
+    ]
+
+    derive._apply_rtl_contract_owner_overrides(
+        tasks,
+        {
+            "function_model.transactions.FM_RUN.outputs.ctx_state": {
+                "module": "context_table",
+                "file": "rtl/context_table.sv",
+                "matched_ref": "rtl_contract.owner_resolution",
+            }
+        },
+    )
+
+    assert tasks[0]["owner_module"] == "context_table"
+    assert tasks[0]["owner_file"] == "rtl/context_table.sv"
+    assert tasks[0]["owner_match"] == "rtl_contract.owner_resolution"
+
+
+def test_axi_readback_last_evidence_accepts_axi_rlast_alias():
+    derive = _load_derive_rtl_todos()
+
+    terms = derive._evidence_terms(
+        "function_model.output",
+        "function_model.transactions.FM_AXI_READBACK.outputs.output_3",
+        "readback_last",
+    )
+
+    assert "m_axi_rlast" in terms
+    assert "rlast" in terms
+
+
 def test_reserved_register_field_uses_parent_register_evidence_terms():
     derive = _load_derive_rtl_todos()
 

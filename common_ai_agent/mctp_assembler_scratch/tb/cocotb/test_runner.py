@@ -7,6 +7,7 @@ import sys
 import time
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from typing import Any
 
 from cocotb_test.simulator import run
 
@@ -15,7 +16,7 @@ def _ip_dir() -> Path:
     return Path(__file__).resolve().parents[2]
 
 
-def _manifest() -> dict:
+def _manifest() -> dict[str, Any]:
     return json.loads((_ip_dir() / "tb" / "cocotb" / "tb_manifest.json").read_text(encoding="utf-8"))
 
 
@@ -104,6 +105,123 @@ def _scoreboard_escalations(path: Path) -> list[str]:
     ]
 
 
+def _write_scenario_e2e_summary(ip_dir: Path, sim_dir: Path) -> None:
+    goals_path = ip_dir / "verify" / "equivalence_goals.json"
+    manifest_path = ip_dir / "tc" / "scenario_manifest.json"
+    scoreboard_path = sim_dir / "scoreboard_events.jsonl"
+    out_path = sim_dir / "scenario_e2e_summary.json"
+
+    issues: list[str] = []
+    if not goals_path.is_file():
+        issues.append(f"missing {goals_path}")
+    if not manifest_path.is_file():
+        issues.append(f"missing {manifest_path}")
+    if not scoreboard_path.is_file():
+        issues.append(f"missing {scoreboard_path}")
+
+    scenario_ids: list[str] = []
+    rows_by_goal: dict[str, dict[str, Any]] = {}
+    if not issues:
+        manifest_doc = json.loads(manifest_path.read_text(encoding="utf-8"))
+        raw_scenarios = manifest_doc.get("scenarios")
+        if not isinstance(raw_scenarios, list):
+            issues.append("scenario_manifest.json scenarios[] missing")
+        else:
+            for scenario in raw_scenarios:
+                if isinstance(scenario, dict) and scenario.get("scenario_id"):
+                    scenario_ids.append(str(scenario["scenario_id"]))
+
+        goals_doc = json.loads(goals_path.read_text(encoding="utf-8"))
+        raw_goals = goals_doc.get("goals")
+        if not isinstance(raw_goals, list):
+            issues.append("equivalence_goals.json goals[] missing")
+        else:
+            goal_ids = {
+                str(goal.get("goal_id") or "")
+                for goal in raw_goals
+                if isinstance(goal, dict)
+            }
+            missing_goals = [f"EQ_SCENARIO_{scenario_id}" for scenario_id in scenario_ids if f"EQ_SCENARIO_{scenario_id}" not in goal_ids]
+            issues.extend(f"missing directed goal for {goal_id}" for goal_id in missing_goals)
+
+        for raw in scoreboard_path.read_text(encoding="utf-8", errors="replace").splitlines():
+            line = raw.strip()
+            if not line:
+                continue
+            try:
+                row = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if not isinstance(row, dict):
+                continue
+            goal_id = str(row.get("goal_id") or "")
+            if goal_id.startswith("EQ_SCENARIO_") and goal_id not in rows_by_goal:
+                rows_by_goal[goal_id] = row
+
+    scenarios: list[dict[str, object]] = []
+    missing_scenarios: list[str] = []
+    failed_scenarios: list[str] = []
+    for scenario_key in scenario_ids:
+        goal_id = f"EQ_SCENARIO_{scenario_key}"
+        row = rows_by_goal.get(goal_id, {})
+        rtl_observed = row.get("rtl_observed")
+        scoreboard_passed = row.get("passed") is True
+        dut_observed = isinstance(rtl_observed, dict) and bool(rtl_observed)
+        scoreboard_scenario_id = str(row.get("scenario_id") or "")
+        rtl_observable_count = len(rtl_observed) if isinstance(rtl_observed, dict) else 0
+        if not row:
+            issues.append(f"missing scoreboard row for {goal_id}")
+            missing_scenarios.append(scenario_key)
+        elif not scoreboard_scenario_id:
+            issues.append(f"missing scenario_id for {goal_id}")
+            failed_scenarios.append(scenario_key)
+        elif not scoreboard_passed:
+            issues.append(f"scoreboard failed for {goal_id}")
+            failed_scenarios.append(scenario_key)
+        elif not dut_observed:
+            issues.append(f"dut_observed missing for {goal_id}")
+            failed_scenarios.append(scenario_key)
+        scenarios.append(
+            {
+                "goal_id": goal_id,
+                "scenario_id": scenario_key,
+                "scoreboard_scenario_id": scoreboard_scenario_id,
+                "scoreboard_passed": scoreboard_passed,
+                "dut_observed": dut_observed,
+                "rtl_observable_count": rtl_observable_count,
+                "cycle": row.get("cycle"),
+                "coverage_refs": row.get("coverage_refs") if isinstance(row.get("coverage_refs"), list) else [],
+            }
+        )
+
+    unique_scenario_ids = {entry["scenario_id"] for entry in scenarios if isinstance(entry.get("scenario_id"), str) and entry["scenario_id"]}
+    if len(scenario_ids) != 26:
+        issues.append(f"expected 26 scenario manifest entries, found {len(scenario_ids)}")
+    if len(scenarios) != 26:
+        issues.append(f"expected 26 directed scenario rows, found {len(scenarios)}")
+    if len(unique_scenario_ids) != 26:
+        issues.append(f"expected 26 unique scenario_id values, found {len(unique_scenario_ids)}")
+
+    payload = {
+        "schema_version": 1,
+        "type": "scenario_e2e_summary",
+        "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "status": "pass" if not issues else "fail",
+        "total_directed_scenarios": len(scenarios),
+        "observed_directed_scenarios": len(rows_by_goal),
+        "missing_scenarios": missing_scenarios,
+        "failed_scenarios": failed_scenarios,
+        "scenarios": scenarios,
+        "issues": issues,
+        "source_artifacts": {
+            "equivalence_goals": str(goals_path.relative_to(ip_dir.parent)),
+            "scenario_manifest": str(manifest_path.relative_to(ip_dir.parent)),
+            "scoreboard_events": str(scoreboard_path.relative_to(ip_dir.parent)),
+        },
+    }
+    out_path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
 def main() -> int:
     ip_dir = _ip_dir()
     project_root = ip_dir.parent
@@ -139,11 +257,12 @@ def main() -> int:
         if simulator == "icarus":
             run_sources, run_top = _with_icarus_vcd_dump(sources, build_dir, manifest["top"], ip)
             waves = False
+        test_modules = f"test_{ip},test_mctp_payload_datapath"
         results_file = run(
             simulator=simulator,
             verilog_sources=run_sources,
             toplevel=run_top,
-            module=f"test_{ip}",
+            module=test_modules,
             python_search=[str(tb_dir), str(runtime_dir)],
             sim_build=str(build_dir),
             timescale="1ns/1ps",
@@ -179,6 +298,7 @@ def main() -> int:
     ]
     report.extend(escalations)
     (sim_dir / "sim_report.txt").write_text("\n".join(report) + "\n", encoding="utf-8")
+    _write_scenario_e2e_summary(ip_dir, sim_dir)
     print(f"TESTS={tests} PASS={passed} FAIL={failures + errors}")
     print("0 errors, 0 warnings" if failures == 0 and errors == 0 else f"{errors} errors, {failures} failures")
     for line in escalations:

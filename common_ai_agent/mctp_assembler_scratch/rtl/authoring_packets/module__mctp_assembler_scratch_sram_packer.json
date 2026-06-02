@@ -99,9 +99,9 @@
         "machine_readable": true,
         "module": "mctp_assembler_scratch_sram_packer",
         "port": "sram_wr_valid",
-        "signal": "sram_wr_valid",
+        "signal": "pack_wr_valid",
         "signal_terms": [
-          "sram_wr_valid"
+          "pack_wr_valid"
         ],
         "source_ref": "integration.connections[2]"
       }
@@ -837,12 +837,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 6,
+        "matched_count": 7,
         "matched_terms": [
           "payload",
           "sram",
           "sram_wr_strb",
           "strb",
+          "strobe",
           "wr",
           "write"
         ],
@@ -1127,10 +1128,11 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 2,
+        "matched_count": 3,
         "matched_terms": [
           "partial",
-          "payload"
+          "payload",
+          "strobe"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -1524,12 +1526,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 6,
+        "matched_count": 7,
         "matched_terms": [
           "payload",
           "sram",
           "sram_wr_strb",
           "strb",
+          "strobe",
           "wr",
           "write"
         ],
@@ -1826,10 +1829,11 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 2,
+        "matched_count": 3,
         "matched_terms": [
           "partial",
-          "payload"
+          "payload",
+          "strobe"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -2125,7 +2129,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "f7d51fe86c7b2e93192acdcd2fb7e463badd1ca4416fc82440243aa7e8a43e3c",
+  "todo_plan_sha256": "a6a5a0fbc9df7cbf10ab017b46631a16a00f0b454b4cee41da9ba28dbc65043d",
   "top": "mctp_assembler_scratch",
   "type": "rtl_authoring_packet"
 }

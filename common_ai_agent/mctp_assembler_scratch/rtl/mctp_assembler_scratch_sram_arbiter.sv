@@ -1,35 +1,35 @@
 `include "mctp_assembler_scratch_param.vh"
 
 module mctp_assembler_scratch_sram_arbiter (
-    input  logic                                             axi_aclk,
-    input  logic                                             axi_aresetn,
-    input  logic                                             pack_wr_valid,
-    output logic                                             pack_wr_ready,
-    input  logic [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] pack_wr_addr,
-    input  logic [`MCTP_ASSEMBLER_SCRATCH_SRAM_DATA_WIDTH-1:0] pack_wr_data,
-    input  logic [31:0]                                      pack_wr_strb,
-    input  logic                                             rd_req_valid,
-    output logic                                             rd_req_ready,
-    input  logic [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] rd_req_addr,
-    output logic                                             rd_rsp_valid,
-    input  logic                                             rd_rsp_ready,
-    output logic [`MCTP_ASSEMBLER_SCRATCH_SRAM_DATA_WIDTH-1:0] rd_rsp_data,
-    output logic                                             rd_rsp_error,
-    output logic                                             sram_wr_valid,
-    input  logic                                             sram_wr_ready,
-    output logic [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] sram_wr_addr,
-    output logic [`MCTP_ASSEMBLER_SCRATCH_SRAM_DATA_WIDTH-1:0] sram_wr_data,
-    output logic [31:0]                                      sram_wr_strb,
-    output logic                                             sram_rd_req_valid,
-    input  logic                                             sram_rd_req_ready,
-    output logic [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] sram_rd_req_addr,
-    input  logic                                             sram_rd_rsp_valid,
-    output logic                                             sram_rd_rsp_ready,
-    input  logic [`MCTP_ASSEMBLER_SCRATCH_SRAM_DATA_WIDTH-1:0] sram_rd_rsp_data,
-    input  logic                                             sram_rd_rsp_error
+    input  wire                                             axi_aclk,
+    input  wire                                             axi_aresetn,
+    input  wire                                             pack_wr_valid,
+    output wire                                             pack_wr_ready,
+    input  wire [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] pack_wr_addr,
+    input  wire [`MCTP_ASSEMBLER_SCRATCH_SRAM_DATA_WIDTH-1:0] pack_wr_data,
+    input  wire [31:0]                                      pack_wr_strb,
+    input  wire                                             rd_req_valid,
+    output wire                                             rd_req_ready,
+    input  wire [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] rd_req_addr,
+    output reg                                             rd_rsp_valid,
+    input  wire                                             rd_rsp_ready,
+    output reg [`MCTP_ASSEMBLER_SCRATCH_SRAM_DATA_WIDTH-1:0] rd_rsp_data,
+    output reg                                             rd_rsp_error,
+    output wire                                             sram_wr_valid,
+    input  wire                                             sram_wr_ready,
+    output wire [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] sram_wr_addr,
+    output wire [`MCTP_ASSEMBLER_SCRATCH_SRAM_DATA_WIDTH-1:0] sram_wr_data,
+    output wire [31:0]                                      sram_wr_strb,
+    output wire                                             sram_rd_req_valid,
+    input  wire                                             sram_rd_req_ready,
+    output wire [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] sram_rd_req_addr,
+    input  wire                                             sram_rd_rsp_valid,
+    output reg                                             sram_rd_rsp_ready,
+    input  wire [`MCTP_ASSEMBLER_SCRATCH_SRAM_DATA_WIDTH-1:0] sram_rd_rsp_data,
+    input  wire                                             sram_rd_rsp_error
 );
-    logic read_rsp_wait_q;
-    logic unused_inputs;
+    reg read_rsp_wait_q;
+    wire unused_inputs;
 
     assign unused_inputs = ^{axi_aclk, axi_aresetn};
     assign sram_wr_valid = pack_wr_valid;

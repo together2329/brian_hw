@@ -12,7 +12,7 @@
       "enabled": false,
       "index": 1,
       "key": "all",
-      "module_task_count": 20,
+      "module_task_count": 24,
       "task_limit": 48
     },
     "owner": {
@@ -119,9 +119,9 @@
         "machine_readable": true,
         "module": "mctp_assembler_scratch_sram_packer",
         "port": "sram_wr_valid",
-        "signal": "sram_wr_valid",
+        "signal": "pack_wr_valid",
         "signal_terms": [
-          "sram_wr_valid"
+          "pack_wr_valid"
         ],
         "source_ref": "integration.connections[2]"
       },
@@ -850,6 +850,9 @@
   "summary": {
     "categories": {
       "equivalence.module": 1,
+      "function_model.output": 1,
+      "function_model.output_rule": 2,
+      "function_model.precondition": 1,
       "integration.connections": 5,
       "integration.dependencies": 3,
       "rtl_flow.seed": 1,
@@ -863,14 +866,18 @@
       "enabled": false,
       "index": 1,
       "key": "all",
-      "module_task_count": 20,
+      "module_task_count": 24,
       "task_limit": 48
     },
     "open_required_count": 0,
-    "required_count": 20,
+    "required_count": 24,
     "source_refs": [
       "top_module",
       "io_list",
+      "function_model.transactions.FM_COMPLETE_MESSAGE.output_rules.interrupt",
+      "function_model.transactions.FM_PACKET_DROP.preconditions.precondition_0",
+      "function_model.transactions.FM_PACKET_DROP.outputs.output_0",
+      "function_model.transactions.FM_PACKET_DROP.output_rules.debug_drop_pulse",
       "security.assets.asset_0",
       "security.assets.asset_2",
       "integration.dependencies.external_modules",
@@ -878,7 +885,7 @@
       "integration.dependencies.external_resets",
       "integration.connections.m_axi_awvalid",
       "integration.connections.m_axi_wvalid",
-      "integration.connections.sram_wr_valid",
+      "integration.connections.pack_wr_valid",
       "integration.connections.m_axi_rvalid",
       "integration.connections.pready",
       "synthesis.constraints.constraint_0",
@@ -891,9 +898,9 @@
       "sub_modules.mctp_assembler_scratch.module_equivalence"
     ],
     "status_counts": {
-      "pass": 20
+      "pass": 24
     },
-    "task_count": 20
+    "task_count": 24
   },
   "tasks": [
     {
@@ -970,6 +977,295 @@
       },
       "todo_completion": {
         "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_COMPLETE_MESSAGE: interrupt",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_COMPLETE_MESSAGE.output_rules.interrupt",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_context_table.sv",
+        "interrupt width matches SSOT value 1",
+        "interrupt RTL expression implements SSOT expression descriptor_publish",
+        "DUT port irq is the implementation/observation point for interrupt",
+        "interrupt is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_COMPLETE_MESSAGE.output_rules.interrupt.\nOwner: mctp_assembler_scratch_context_table in rtl/mctp_assembler_scratch_context_table.sv via function_model.transactions.FM_COMPLETE_MESSAGE.\nSSOT item context: name=interrupt; port=irq; expr=descriptor_publish; width=1.",
+      "evidence_terms": [
+        "descriptor",
+        "descriptor_publish",
+        "interrupt",
+        "irq",
+        "publish"
+      ],
+      "id": "RTL-0225",
+      "owner_file": "rtl/mctp_assembler_scratch.sv",
+      "owner_module": "mctp_assembler_scratch",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_COMPLETE_MESSAGE.output_rules.interrupt",
+      "ssot_context": {
+        "expr": "descriptor_publish",
+        "name": "interrupt",
+        "port": "irq",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_COMPLETE_MESSAGE.output_rules.interrupt"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "descriptor",
+          "irq"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "descriptor",
+          "descriptor_publish",
+          "interrupt",
+          "irq",
+          "publish"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_PACKET_DROP: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PACKET_DROP.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_descriptor_queue.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PACKET_DROP.preconditions.precondition_0.\nOwner: mctp_assembler_scratch_descriptor_queue in rtl/mctp_assembler_scratch_descriptor_queue.sv via function_model.transactions.FM_PACKET_DROP.\nSSOT item context: value=packet_drop_reason != DROP_NONE.",
+      "evidence_terms": [
+        "DROP",
+        "DROP_NONE",
+        "NONE",
+        "drop",
+        "packet",
+        "packet_drop_reason",
+        "reason"
+      ],
+      "id": "RTL-0231",
+      "owner_file": "rtl/mctp_assembler_scratch.sv",
+      "owner_module": "mctp_assembler_scratch",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PACKET_DROP.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "packet_drop_reason != DROP_NONE"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PACKET_DROP.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 5,
+        "matched_terms": [
+          "DROP",
+          "drop",
+          "packet",
+          "packet_drop_reason",
+          "reason"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "DROP",
+          "DROP_NONE",
+          "NONE",
+          "drop",
+          "packet",
+          "packet_drop_reason",
+          "reason"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_PACKET_DROP: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PACKET_DROP.outputs.output_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_descriptor_queue.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PACKET_DROP.outputs.output_0.\nOwner: mctp_assembler_scratch_descriptor_queue in rtl/mctp_assembler_scratch_descriptor_queue.sv via function_model.transactions.FM_PACKET_DROP.\nSSOT item context: value=debug_drop_pulse.",
+      "evidence_terms": [
+        "debug",
+        "debug_drop_pulse",
+        "drop",
+        "pulse"
+      ],
+      "id": "RTL-0232",
+      "owner_file": "rtl/mctp_assembler_scratch.sv",
+      "owner_module": "mctp_assembler_scratch",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PACKET_DROP.outputs.output_0",
+      "ssot_context": {
+        "value": "debug_drop_pulse"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PACKET_DROP.outputs.output_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 4,
+        "matched_terms": [
+          "debug",
+          "debug_drop_pulse",
+          "drop",
+          "pulse"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "debug",
+          "debug_drop_pulse",
+          "drop",
+          "pulse"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_PACKET_DROP: debug_drop_pulse",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PACKET_DROP.output_rules.debug_drop_pulse",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_descriptor_queue.sv",
+        "debug_drop_pulse width matches SSOT value 1",
+        "debug_drop_pulse RTL expression implements SSOT expression packet_drop_reason != DROP_NONE",
+        "DUT port debug_drop_pulse is the implementation/observation point for debug_drop_pulse",
+        "debug_drop_pulse is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PACKET_DROP.output_rules.debug_drop_pulse.\nOwner: mctp_assembler_scratch_descriptor_queue in rtl/mctp_assembler_scratch_descriptor_queue.sv via function_model.transactions.FM_PACKET_DROP.\nSSOT item context: name=debug_drop_pulse; port=debug_drop_pulse; expr=packet_drop_reason != DROP_NONE; width=1.",
+      "evidence_terms": [
+        "DROP",
+        "DROP_NONE",
+        "NONE",
+        "debug",
+        "debug_drop_pulse",
+        "drop",
+        "packet",
+        "packet_drop_reason",
+        "pulse",
+        "reason"
+      ],
+      "id": "RTL-0235",
+      "owner_file": "rtl/mctp_assembler_scratch.sv",
+      "owner_module": "mctp_assembler_scratch",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PACKET_DROP.output_rules.debug_drop_pulse",
+      "ssot_context": {
+        "expr": "packet_drop_reason != DROP_NONE",
+        "name": "debug_drop_pulse",
+        "port": "debug_drop_pulse",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PACKET_DROP.output_rules.debug_drop_pulse"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 8,
+        "matched_terms": [
+          "DROP",
+          "debug",
+          "debug_drop_pulse",
+          "drop",
+          "packet",
+          "packet_drop_reason",
+          "pulse",
+          "reason"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "DROP",
+          "DROP_NONE",
+          "NONE",
+          "debug",
+          "debug_drop_pulse",
+          "drop",
+          "packet",
+          "packet_drop_reason",
+          "pulse",
+          "reason"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
         "evidence_basis": [
           "rtl_todo_plan.json task criteria",
           "rtl_traceability.json source_ref mapping",
@@ -1334,17 +1630,19 @@
     },
     {
       "category": "integration.connections",
-      "content": "Implement integration item sram_wr_valid",
+      "content": "Implement integration item pack_wr_valid",
       "criteria": [
         "RTL owner/evidence is named for this SSOT item",
         "Behavior is not represented only by comments or TB code",
         "Downstream verification can observe or justify the item",
-        "Traceability keeps source_ref integration.connections.sram_wr_valid",
+        "Traceability keeps source_ref integration.connections.pack_wr_valid",
         "Primary implementation evidence is in rtl/mctp_assembler_scratch.sv",
         "DUT port sram_wr_valid is the implementation/observation point for sram_wr_valid"
       ],
-      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.sram_wr_valid.\nOwner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via integration.\nSSOT item context: port=sram_wr_valid; signal=sram_wr_valid.",
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.pack_wr_valid.\nOwner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via integration.\nSSOT item context: port=sram_wr_valid; signal=pack_wr_valid.",
       "evidence_terms": [
+        "pack",
+        "pack_wr_valid",
         "sram",
         "sram_wr_valid",
         "valid",
@@ -1355,13 +1653,13 @@
       "owner_module": "mctp_assembler_scratch",
       "priority": "high",
       "required": true,
-      "source_ref": "integration.connections.sram_wr_valid",
+      "source_ref": "integration.connections.pack_wr_valid",
       "ssot_context": {
         "port": "sram_wr_valid",
-        "signal": "sram_wr_valid"
+        "signal": "pack_wr_valid"
       },
       "ssot_refs": [
-        "integration.connections.sram_wr_valid"
+        "integration.connections.pack_wr_valid"
       ],
       "static_evidence": {
         "required": false,
@@ -1802,7 +2100,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "f7d51fe86c7b2e93192acdcd2fb7e463badd1ca4416fc82440243aa7e8a43e3c",
+  "todo_plan_sha256": "a6a5a0fbc9df7cbf10ab017b46631a16a00f0b454b4cee41da9ba28dbc65043d",
   "top": "mctp_assembler_scratch",
   "type": "rtl_authoring_packet"
 }

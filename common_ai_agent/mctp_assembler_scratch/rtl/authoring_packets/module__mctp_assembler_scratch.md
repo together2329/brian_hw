@@ -3,8 +3,8 @@
 - Kind: module
 - Owner module: mctp_assembler_scratch
 - Owner file: rtl/mctp_assembler_scratch.sv
-- Task count: 20
-- Required tasks: 20
+- Task count: 24
+- Required tasks: 24
 
 ## Rules
 
@@ -31,7 +31,7 @@
 - SSOT connection contracts:
   - mctp_assembler_scratch_axi_write_ingress.m_axi_awvalid <= m_axi_awvalid (integration.connections[0])
   - mctp_assembler_scratch_axi_write_ingress.m_axi_wvalid <= m_axi_wvalid (integration.connections[1])
-  - mctp_assembler_scratch_sram_packer.sram_wr_valid <= sram_wr_valid (integration.connections[2])
+  - mctp_assembler_scratch_sram_packer.sram_wr_valid <= pack_wr_valid (integration.connections[2])
   - mctp_assembler_scratch_axi_read_egress.m_axi_rvalid <= m_axi_rvalid (integration.connections[3])
   - mctp_assembler_scratch_apb_regfile.pready <= pready (integration.connections[4])
 - SSOT top IO contracts: 55
@@ -76,6 +76,94 @@ SSOT item context: value=mctp_assembler_scratch.
   - Traceability keeps source_ref io_list
   - Primary implementation evidence is in rtl/mctp_assembler_scratch.sv
 - SSOT refs: io_list
+
+### RTL-0225: Implement output rule for FM_COMPLETE_MESSAGE: interrupt
+
+- Priority: high
+- Required: True
+- Status: pass
+- Category: function_model.output_rule
+- Source ref: function_model.transactions.FM_COMPLETE_MESSAGE.output_rules.interrupt
+- Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
+SSOT ref: function_model.transactions.FM_COMPLETE_MESSAGE.output_rules.interrupt.
+Owner: mctp_assembler_scratch_context_table in rtl/mctp_assembler_scratch_context_table.sv via function_model.transactions.FM_COMPLETE_MESSAGE.
+SSOT item context: name=interrupt; port=irq; expr=descriptor_publish; width=1.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - RTL owner logic is identifiable for this SSOT leaf
+  - Reset/enable/error behavior is consistent with the parent transaction
+  - Downstream equivalence/coverage can observe this behavior
+  - Traceability keeps source_ref function_model.transactions.FM_COMPLETE_MESSAGE.output_rules.interrupt
+  - Primary implementation evidence is in rtl/mctp_assembler_scratch_context_table.sv
+  - interrupt width matches SSOT value 1
+  - interrupt RTL expression implements SSOT expression descriptor_publish
+  - DUT port irq is the implementation/observation point for interrupt
+  - interrupt is not implemented only in FunctionalModel or scoreboard code
+- SSOT refs: function_model.transactions.FM_COMPLETE_MESSAGE.output_rules.interrupt
+
+### RTL-0231: Implement precondition for FM_PACKET_DROP: precondition_0
+
+- Priority: high
+- Required: True
+- Status: pass
+- Category: function_model.precondition
+- Source ref: function_model.transactions.FM_PACKET_DROP.preconditions.precondition_0
+- Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
+SSOT ref: function_model.transactions.FM_PACKET_DROP.preconditions.precondition_0.
+Owner: mctp_assembler_scratch_descriptor_queue in rtl/mctp_assembler_scratch_descriptor_queue.sv via function_model.transactions.FM_PACKET_DROP.
+SSOT item context: value=packet_drop_reason != DROP_NONE.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - RTL owner logic is identifiable for this SSOT leaf
+  - Reset/enable/error behavior is consistent with the parent transaction
+  - Downstream equivalence/coverage can observe this behavior
+  - Traceability keeps source_ref function_model.transactions.FM_PACKET_DROP.preconditions.precondition_0
+  - Primary implementation evidence is in rtl/mctp_assembler_scratch_descriptor_queue.sv
+- SSOT refs: function_model.transactions.FM_PACKET_DROP.preconditions.precondition_0
+
+### RTL-0232: Implement output for FM_PACKET_DROP: output_0
+
+- Priority: high
+- Required: True
+- Status: pass
+- Category: function_model.output
+- Source ref: function_model.transactions.FM_PACKET_DROP.outputs.output_0
+- Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
+SSOT ref: function_model.transactions.FM_PACKET_DROP.outputs.output_0.
+Owner: mctp_assembler_scratch_descriptor_queue in rtl/mctp_assembler_scratch_descriptor_queue.sv via function_model.transactions.FM_PACKET_DROP.
+SSOT item context: value=debug_drop_pulse.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - RTL owner logic is identifiable for this SSOT leaf
+  - Reset/enable/error behavior is consistent with the parent transaction
+  - Downstream equivalence/coverage can observe this behavior
+  - Traceability keeps source_ref function_model.transactions.FM_PACKET_DROP.outputs.output_0
+  - Primary implementation evidence is in rtl/mctp_assembler_scratch_descriptor_queue.sv
+- SSOT refs: function_model.transactions.FM_PACKET_DROP.outputs.output_0
+
+### RTL-0235: Implement output rule for FM_PACKET_DROP: debug_drop_pulse
+
+- Priority: high
+- Required: True
+- Status: pass
+- Category: function_model.output_rule
+- Source ref: function_model.transactions.FM_PACKET_DROP.output_rules.debug_drop_pulse
+- Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
+SSOT ref: function_model.transactions.FM_PACKET_DROP.output_rules.debug_drop_pulse.
+Owner: mctp_assembler_scratch_descriptor_queue in rtl/mctp_assembler_scratch_descriptor_queue.sv via function_model.transactions.FM_PACKET_DROP.
+SSOT item context: name=debug_drop_pulse; port=debug_drop_pulse; expr=packet_drop_reason != DROP_NONE; width=1.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - RTL owner logic is identifiable for this SSOT leaf
+  - Reset/enable/error behavior is consistent with the parent transaction
+  - Downstream equivalence/coverage can observe this behavior
+  - Traceability keeps source_ref function_model.transactions.FM_PACKET_DROP.output_rules.debug_drop_pulse
+  - Primary implementation evidence is in rtl/mctp_assembler_scratch_descriptor_queue.sv
+  - debug_drop_pulse width matches SSOT value 1
+  - debug_drop_pulse RTL expression implements SSOT expression packet_drop_reason != DROP_NONE
+  - DUT port debug_drop_pulse is the implementation/observation point for debug_drop_pulse
+  - debug_drop_pulse is not implemented only in FunctionalModel or scoreboard code
+- SSOT refs: function_model.transactions.FM_PACKET_DROP.output_rules.debug_drop_pulse
 
 ### RTL-0399: Implement security item asset_0
 
@@ -219,26 +307,26 @@ SSOT item context: port=m_axi_wvalid; signal=m_axi_wvalid.
   - DUT port m_axi_wvalid is the implementation/observation point for m_axi_wvalid
 - SSOT refs: integration.connections.m_axi_wvalid
 
-### RTL-0411: Implement integration item sram_wr_valid
+### RTL-0411: Implement integration item pack_wr_valid
 
 - Priority: high
 - Required: True
 - Status: pass
 - Category: integration.connections
-- Source ref: integration.connections.sram_wr_valid
+- Source ref: integration.connections.pack_wr_valid
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
-SSOT ref: integration.connections.sram_wr_valid.
+SSOT ref: integration.connections.pack_wr_valid.
 Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via integration.
-SSOT item context: port=sram_wr_valid; signal=sram_wr_valid.
+SSOT item context: port=sram_wr_valid; signal=pack_wr_valid.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
   - Downstream verification can observe or justify the item
-  - Traceability keeps source_ref integration.connections.sram_wr_valid
+  - Traceability keeps source_ref integration.connections.pack_wr_valid
   - Primary implementation evidence is in rtl/mctp_assembler_scratch.sv
   - DUT port sram_wr_valid is the implementation/observation point for sram_wr_valid
-- SSOT refs: integration.connections.sram_wr_valid
+- SSOT refs: integration.connections.pack_wr_valid
 
 ### RTL-0412: Implement integration item m_axi_rvalid
 

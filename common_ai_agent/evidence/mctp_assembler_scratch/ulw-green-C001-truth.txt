@@ -1,0 +1,4 @@
+....                                                                     [100%]
+4 passed in 1.17s
+[check_truth_coverage] status=pass summary={'obligations': 95, 'covered': 95, 'uncovered_required': 0, 'evidence_tokens': 757}
+[check_truth_coverage] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/signoff/truth_coverage.json

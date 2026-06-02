@@ -17,7 +17,7 @@ import time
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import yaml
 
@@ -485,6 +485,29 @@ class SignoffChecker:
                 issues.append(f"coverage limitations require review: {len(limitations)}")
         self.add("coverage", "fail" if issues else "pass", path, f"status={doc.get('status')}", issues)
 
+    def check_truth_coverage(self) -> None:
+        path = self.ip_dir / "signoff" / "truth_coverage.json"
+        doc, err = _read_json(path)
+        issues = [err] if err else []
+        summary = doc.get("summary") if isinstance(doc.get("summary"), dict) else {}
+        if not issues:
+            if doc.get("type") != "truth_coverage":
+                issues.append("type must be truth_coverage")
+            if doc.get("status") != "pass":
+                issues.append(f"truth_coverage status is {doc.get('status')!r}, expected pass")
+            if _as_int(summary.get("uncovered_required")) != 0:
+                issues.append(f"uncovered_required={summary.get('uncovered_required')}, expected 0")
+            uncovered = doc.get("uncovered_required") if isinstance(doc.get("uncovered_required"), list) else []
+            if uncovered:
+                issues.append(f"uncovered_required list has {len(uncovered)} item(s)")
+        self.add(
+            "truth_coverage",
+            "fail" if issues else "pass",
+            path,
+            f"status={doc.get('status')} uncovered_required={summary.get('uncovered_required')}",
+            issues,
+        )
+
     def check_mutation_guard(self) -> None:
         path = self.ip_dir / "mutation" / "mutation_report.json"
         if not path.is_file():
@@ -507,6 +530,86 @@ class SignoffChecker:
             "fail" if issues else "pass",
             path,
             f"status={doc.get('status')} kill_rate={summary.get('kill_rate')}",
+            issues,
+        )
+
+    def check_verification_hardening(self) -> None:
+        scenario_path = self.ip_dir / "sim" / "scenario_e2e_summary.json"
+        monitor_path = self.ip_dir / "sim" / "monitor_evidence.json"
+        survivor_path = self.ip_dir / "mutation" / "survivor_classification.json"
+        formal_path = self.ip_dir / "verify" / "formal_status.json"
+        safety_path = self.ip_dir / "verify" / "safety_properties.sva"
+        artifact_paths = [scenario_path, monitor_path, survivor_path, formal_path, safety_path]
+        if not any(path.is_file() for path in artifact_paths):
+            self.add(
+                "verification_hardening",
+                "pass",
+                "sim/scenario_e2e_summary.json + sim/monitor_evidence.json + mutation/survivor_classification.json + verify/formal_status.json",
+                "not run; advisory until an IP emits verification-hardening artifacts",
+                [],
+            )
+            return
+
+        issues: list[str] = []
+
+        scenario, err = _read_json(scenario_path)
+        if err:
+            issues.append(err)
+        else:
+            if scenario.get("status") != "pass":
+                issues.append(f"scenario_e2e_summary status is {scenario.get('status')!r}, expected pass")
+            if _as_int(scenario.get("total_directed_scenarios")) < 26:
+                issues.append("scenario_e2e_summary must cover at least 26 directed scenarios")
+            if scenario.get("missing_scenarios"):
+                issues.append("scenario_e2e_summary has missing_scenarios")
+            if scenario.get("failed_scenarios"):
+                issues.append("scenario_e2e_summary has failed_scenarios")
+
+        monitor, err = _read_json(monitor_path)
+        if err:
+            issues.append(err)
+        else:
+            checks = cast(dict[str, Any], monitor.get("checks") if isinstance(monitor.get("checks"), dict) else {})
+            for key in (
+                "sram_payload_no_holes",
+                "sram_payload_only",
+                "sram_no_header_or_pad_write",
+                "axi_write_protocol_pass",
+                "axi_read_protocol_pass",
+                "apb_per_q_readback_pass",
+            ):
+                if checks.get(key) is not True:
+                    issues.append(f"monitor_evidence.{key} must be true")
+            if monitor.get("status") != "pass":
+                issues.append(f"monitor_evidence status is {monitor.get('status')!r}, expected pass")
+
+        survivor, err = _read_json(survivor_path)
+        if err:
+            issues.append(err)
+        else:
+            summary = cast(dict[str, Any], survivor.get("summary") if isinstance(survivor.get("summary"), dict) else {})
+            if survivor.get("status") != "pass":
+                issues.append(f"survivor_classification status is {survivor.get('status')!r}, expected pass")
+            if _as_int(summary.get("classified")) != _as_int(summary.get("total_survivors")):
+                issues.append("survivor_classification classified count must equal total_survivors")
+
+        formal, err = _read_json(formal_path)
+        if err:
+            issues.append(err)
+        else:
+            if formal.get("status") not in {"pass", "optional_not_run"}:
+                issues.append(f"formal_status status is {formal.get('status')!r}, expected pass or optional_not_run")
+            properties = cast(list[Any], formal.get("properties") if isinstance(formal.get("properties"), list) else [])
+            if len(properties) < 5:
+                issues.append("formal_status must record at least five properties")
+        if not safety_path.is_file():
+            issues.append(f"missing {safety_path}")
+
+        self.add(
+            "verification_hardening",
+            "fail" if issues else "pass",
+            "sim/scenario_e2e_summary.json + sim/monitor_evidence.json + mutation/survivor_classification.json + verify/formal_status.json",
+            "directed scenarios, protocol monitors, survivor classification, and optional formal artifacts present",
             issues,
         )
 
@@ -550,7 +653,9 @@ class SignoffChecker:
             self.check_simulation_quality()
             self.check_scoreboard()
             self.check_coverage()
+            self.check_truth_coverage()
             self.check_mutation_guard()
+            self.check_verification_hardening()
             self.check_waivers()
 
         failing = [gate for gate in self.gates if gate.status == "fail"]

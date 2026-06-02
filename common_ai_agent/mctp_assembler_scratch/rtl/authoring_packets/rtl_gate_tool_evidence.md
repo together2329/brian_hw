@@ -31,7 +31,7 @@
 - SSOT connection contracts:
   - mctp_assembler_scratch_axi_write_ingress.m_axi_awvalid <= m_axi_awvalid (integration.connections[0])
   - mctp_assembler_scratch_axi_write_ingress.m_axi_wvalid <= m_axi_wvalid (integration.connections[1])
-  - mctp_assembler_scratch_sram_packer.sram_wr_valid <= sram_wr_valid (integration.connections[2])
+  - mctp_assembler_scratch_sram_packer.sram_wr_valid <= pack_wr_valid (integration.connections[2])
   - mctp_assembler_scratch_axi_read_egress.m_axi_rvalid <= m_axi_rvalid (integration.connections[3])
   - mctp_assembler_scratch_apb_regfile.pready <= pready (integration.connections[4])
 - SSOT top IO contracts: 55

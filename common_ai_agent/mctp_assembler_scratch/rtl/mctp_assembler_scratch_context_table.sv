@@ -1,127 +1,127 @@
 `include "mctp_assembler_scratch_param.vh"
 
 module mctp_assembler_scratch_context_table (
-    input  logic                                             axi_aclk,
-    input  logic                                             axi_aresetn,
-    input  logic                                             assembly_enable,
-    input  logic                                             drop_mode,
-    input  logic [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] sram_base,
-    input  logic [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] sram_limit,
-    input  logic                                             descriptor_full,
-    input  logic                                             descriptor_pop,
-    input  logic                                             fragment_valid,
-    input  logic [7:0]                                       source_eid,
-    input  logic [7:0]                                       destination_eid,
-    input  logic                                             tag_owner,
-    input  logic [2:0]                                       message_tag,
-    input  logic [1:0]                                       packet_seq,
-    input  logic                                             som,
-    input  logic                                             eom,
-    input  logic [7:0]                                       message_type,
-    input  logic [`MCTP_ASSEMBLER_SCRATCH_AXI_DATA_WIDTH-1:0] payload_data_word,
-    input  logic [`MCTP_ASSEMBLER_SCRATCH_AXI_STRB_WIDTH-1:0] payload_byte_strobe,
-    input  logic [12:0]                                      payload_byte_count,
-    input  logic [127:0]                                     first_tlp_header,
-    input  logic [127:0]                                     last_tlp_header,
-    input  logic [7:0]                                       packet_drop_reason_in,
-    output logic                                             payload_write_valid,
-    output logic [`MCTP_ASSEMBLER_SCRATCH_AXI_DATA_WIDTH-1:0] payload_write_data,
-    output logic [`MCTP_ASSEMBLER_SCRATCH_AXI_STRB_WIDTH-1:0] payload_write_strb,
-    output logic [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] payload_write_addr,
-    output logic [12:0]                                      payload_write_bytes,
-    output logic                                             descriptor_push,
-    output logic [3:0]                                       descriptor_qid,
-    output logic [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] descriptor_base,
-    output logic [12:0]                                      descriptor_bytes,
-    output logic [17:0]                                      descriptor_key,
-    output logic [127:0]                                     descriptor_first_header,
-    output logic [127:0]                                     descriptor_last_header,
-    output logic                                             packet_drop_pulse,
-    output logic                                             assembly_drop_pulse,
-    output logic [7:0]                                       drop_reason,
-    output logic [1:0]                                       ctx_state,
-    output logic                                             ctx_valid,
-    output logic                                             ctx_error,
-    output logic [17:0]                                      ctx_key,
-    output logic [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] ctx_payload_base,
-    output logic [12:0]                                      ctx_payload_count,
-    output logic [4:0]                                       ctx_partial_next_lane,
-    output logic                                             ctx_partial_word_valid,
-    output logic [3:0]                                       debug_context_id,
-    output logic [17:0]                                      debug_context_key
+    input  wire                                             axi_aclk,
+    input  wire                                             axi_aresetn,
+    input  wire                                             assembly_enable,
+    input  wire                                             drop_mode,
+    input  wire [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] sram_base,
+    input  wire [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] sram_limit,
+    input  wire                                             descriptor_full,
+    input  wire                                             descriptor_pop,
+    input  wire                                             fragment_valid,
+    input  wire [7:0]                                       source_eid,
+    input  wire [7:0]                                       destination_eid,
+    input  wire                                             tag_owner,
+    input  wire [2:0]                                       message_tag,
+    input  wire [1:0]                                       packet_seq,
+    input  wire                                             som,
+    input  wire                                             eom,
+    input  wire [7:0]                                       message_type,
+    input  wire [`MCTP_ASSEMBLER_SCRATCH_AXI_DATA_WIDTH-1:0] payload_data_word,
+    input  wire [`MCTP_ASSEMBLER_SCRATCH_AXI_STRB_WIDTH-1:0] payload_byte_strobe,
+    input  wire [12:0]                                      payload_byte_count,
+    input  wire [127:0]                                     first_tlp_header,
+    input  wire [127:0]                                     last_tlp_header,
+    input  wire [7:0]                                       packet_drop_reason_in,
+    output reg                                             payload_write_valid,
+    output reg [`MCTP_ASSEMBLER_SCRATCH_AXI_DATA_WIDTH-1:0] payload_write_data,
+    output reg [`MCTP_ASSEMBLER_SCRATCH_AXI_STRB_WIDTH-1:0] payload_write_strb,
+    output reg [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] payload_write_addr,
+    output reg [12:0]                                      payload_write_bytes,
+    output reg                                             descriptor_push,
+    output reg [3:0]                                       descriptor_qid,
+    output reg [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] descriptor_base,
+    output reg [12:0]                                      descriptor_bytes,
+    output reg [17:0]                                      descriptor_key,
+    output reg [127:0]                                     descriptor_first_header,
+    output reg [127:0]                                     descriptor_last_header,
+    output reg                                             packet_drop_pulse,
+    output reg                                             assembly_drop_pulse,
+    output reg [7:0]                                       drop_reason,
+    output reg [1:0]                                       ctx_state,
+    output reg                                             ctx_valid,
+    output reg                                             ctx_error,
+    output reg [17:0]                                      ctx_key,
+    output reg [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] ctx_payload_base,
+    output reg [12:0]                                      ctx_payload_count,
+    output reg [4:0]                                       ctx_partial_next_lane,
+    output reg                                             ctx_partial_word_valid,
+    output reg [3:0]                                       debug_context_id,
+    output reg [17:0]                                      debug_context_key
 );
-    logic [1:0] state_q [0:`MCTP_ASSEMBLER_SCRATCH_CONTEXT_COUNT-1];
-    logic valid_q [0:`MCTP_ASSEMBLER_SCRATCH_CONTEXT_COUNT-1];
-    logic error_q [0:`MCTP_ASSEMBLER_SCRATCH_CONTEXT_COUNT-1];
-    logic [17:0] key_q [0:`MCTP_ASSEMBLER_SCRATCH_CONTEXT_COUNT-1];
-    logic [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] base_q [0:`MCTP_ASSEMBLER_SCRATCH_CONTEXT_COUNT-1];
-    logic [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] next_addr_q [0:`MCTP_ASSEMBLER_SCRATCH_CONTEXT_COUNT-1];
-    logic [12:0] count_q [0:`MCTP_ASSEMBLER_SCRATCH_CONTEXT_COUNT-1];
-    logic [1:0] expected_seq_q [0:`MCTP_ASSEMBLER_SCRATCH_CONTEXT_COUNT-1];
-    logic [127:0] first_header_q [0:`MCTP_ASSEMBLER_SCRATCH_CONTEXT_COUNT-1];
+    reg [1:0] state_q [0:`MCTP_ASSEMBLER_SCRATCH_CONTEXT_COUNT-1];
+    reg [`MCTP_ASSEMBLER_SCRATCH_CONTEXT_COUNT-1:0] valid_q;
+    reg [17:0] key_q [0:`MCTP_ASSEMBLER_SCRATCH_CONTEXT_COUNT-1];
+    reg [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] base_q [0:`MCTP_ASSEMBLER_SCRATCH_CONTEXT_COUNT-1];
+    reg [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] next_addr_q [0:`MCTP_ASSEMBLER_SCRATCH_CONTEXT_COUNT-1];
+    reg [12:0] count_q [0:`MCTP_ASSEMBLER_SCRATCH_CONTEXT_COUNT-1];
+    reg [1:0] expected_seq_q [0:`MCTP_ASSEMBLER_SCRATCH_CONTEXT_COUNT-1];
+    reg [127:0] first_header_q [0:`MCTP_ASSEMBLER_SCRATCH_CONTEXT_COUNT-1];
 
-    logic [17:0] incoming_key;
-    logic match_found;
-    logic free_found;
-    logic [3:0] match_idx;
-    logic [3:0] free_idx;
-    logic [3:0] selected_idx;
-    logic [16:0] selected_base_ext;
-    logic [16:0] write_start_ext;
-    logic [16:0] next_addr_ext;
-    logic [12:0] selected_count;
-    logic [12:0] next_payload_count;
-    logic [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] write_start_addr;
-    logic [4:0] write_next_lane;
-    logic sequence_mismatch;
-    logic sram_overflow;
-    logic unused_context_inputs;
-    integer find_i;
-    integer reset_i;
+    wire [17:0] incoming_key;
+    wire match_found;
+    wire [3:0] match_idx;
+    wire [3:0] selected_idx;
+    wire [16:0] selected_base_ext;
+    wire [16:0] write_start_ext;
+    wire [16:0] next_addr_ext;
+    wire [12:0] selected_count;
+    wire [12:0] next_payload_count;
+    wire [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] write_start_addr;
+    wire [4:0] write_next_lane;
+    wire sequence_mismatch;
+    wire sram_overflow;
+    wire unused_context_inputs;
+    wire [`MCTP_ASSEMBLER_SCRATCH_CONTEXT_COUNT-1:0] match_vec;
 
     assign incoming_key = {source_eid, tag_owner, 6'd0, message_tag};
-    assign unused_context_inputs = ^{message_type, destination_eid, descriptor_pop};
-
-    always @(*) begin
-        match_found = 1'b0;
-        free_found = 1'b0;
-        match_idx = 4'd0;
-        free_idx = 4'd0;
-        for (find_i = 0; find_i < `MCTP_ASSEMBLER_SCRATCH_CONTEXT_COUNT; find_i = find_i + 1) begin
-            if ((!match_found) & valid_q[find_i] & (key_q[find_i] == incoming_key)) begin
-                match_found = 1'b1;
-                match_idx = find_i[3:0];
-            end
-            if ((!free_found) & (!valid_q[find_i])) begin
-                free_found = 1'b1;
-                free_idx = find_i[3:0];
-            end
-        end
-        selected_idx = match_found ? match_idx : {1'b0, message_tag};
-        selected_base_ext = {1'b0, sram_base} + ({13'd0, selected_idx} << 12);
-        write_start_addr = som ? selected_base_ext[15:0] : next_addr_q[selected_idx];
-        write_start_ext = {1'b0, write_start_addr};
-        next_addr_ext = write_start_ext + {4'd0, payload_byte_count};
-        selected_count = match_found ? count_q[selected_idx] : 13'd0;
-        next_payload_count = som ? payload_byte_count : (selected_count + payload_byte_count);
-        write_next_lane = write_start_addr[4:0] + payload_byte_count[4:0];
-        sequence_mismatch = match_found & (!som) & (packet_seq != expected_seq_q[selected_idx]);
-        sram_overflow = next_addr_ext > {1'b0, sram_limit};
-    end
+    assign unused_context_inputs = ^{message_type, destination_eid, descriptor_pop, selected_base_ext[16]};
+    assign match_vec[0] = valid_q[0] & (key_q[0] == incoming_key);
+    assign match_vec[1] = valid_q[1] & (key_q[1] == incoming_key);
+    assign match_vec[2] = valid_q[2] & (key_q[2] == incoming_key);
+    assign match_vec[3] = valid_q[3] & (key_q[3] == incoming_key);
+    assign match_vec[4] = valid_q[4] & (key_q[4] == incoming_key);
+    assign match_vec[5] = valid_q[5] & (key_q[5] == incoming_key);
+    assign match_vec[6] = valid_q[6] & (key_q[6] == incoming_key);
+    assign match_vec[7] = valid_q[7] & (key_q[7] == incoming_key);
+    assign match_vec[8] = valid_q[8] & (key_q[8] == incoming_key);
+    assign match_vec[9] = valid_q[9] & (key_q[9] == incoming_key);
+    assign match_vec[10] = valid_q[10] & (key_q[10] == incoming_key);
+    assign match_vec[11] = valid_q[11] & (key_q[11] == incoming_key);
+    assign match_vec[12] = valid_q[12] & (key_q[12] == incoming_key);
+    assign match_vec[13] = valid_q[13] & (key_q[13] == incoming_key);
+    assign match_vec[14] = valid_q[14] & (key_q[14] == incoming_key);
+    assign match_found = |match_vec;
+    assign match_idx = match_vec[0] ? 4'd0 :
+        (match_vec[1] ? 4'd1 :
+        (match_vec[2] ? 4'd2 :
+        (match_vec[3] ? 4'd3 :
+        (match_vec[4] ? 4'd4 :
+        (match_vec[5] ? 4'd5 :
+        (match_vec[6] ? 4'd6 :
+        (match_vec[7] ? 4'd7 :
+        (match_vec[8] ? 4'd8 :
+        (match_vec[9] ? 4'd9 :
+        (match_vec[10] ? 4'd10 :
+        (match_vec[11] ? 4'd11 :
+        (match_vec[12] ? 4'd12 :
+        (match_vec[13] ? 4'd13 :
+        (match_vec[14] ? 4'd14 : 4'd0))))))))))))));
+    assign selected_idx = match_found ? match_idx : {1'b0, message_tag};
+    assign selected_base_ext = {1'b0, sram_base} + ({13'd0, selected_idx} << 12);
+    assign write_start_addr = som ? selected_base_ext[15:0] : next_addr_q[selected_idx];
+    assign write_start_ext = {1'b0, write_start_addr};
+    assign next_addr_ext = write_start_ext + {4'd0, payload_byte_count};
+    assign selected_count = match_found ? count_q[selected_idx] : 13'd0;
+    assign next_payload_count = som ? payload_byte_count : (selected_count + payload_byte_count);
+    assign write_next_lane = write_start_addr[4:0] + payload_byte_count[4:0];
+    assign sequence_mismatch = match_found & (!som) & (packet_seq != expected_seq_q[selected_idx]);
+    assign sram_overflow = next_addr_ext > {1'b0, sram_limit};
 
     always @(posedge axi_aclk or negedge axi_aresetn) begin
         if (!axi_aresetn) begin
-            for (reset_i = 0; reset_i < `MCTP_ASSEMBLER_SCRATCH_CONTEXT_COUNT; reset_i = reset_i + 1) begin
-                state_q[reset_i] <= `MCTP_ASSEMBLER_SCRATCH_STATE_IDLE;
-                valid_q[reset_i] <= 1'b0;
-                error_q[reset_i] <= 1'b0;
-                key_q[reset_i] <= 18'd0;
-                base_q[reset_i] <= 16'd0;
-                next_addr_q[reset_i] <= 16'd0;
-                count_q[reset_i] <= 13'd0;
-                expected_seq_q[reset_i] <= 2'd0;
-                first_header_q[reset_i] <= 128'd0;
-            end
+            valid_q <= {`MCTP_ASSEMBLER_SCRATCH_CONTEXT_COUNT{1'b0}};
             payload_write_valid <= 1'b0;
             payload_write_data <= 256'd0;
             payload_write_strb <= 32'd0;
@@ -171,33 +171,28 @@ module mctp_assembler_scratch_context_table (
                     assembly_drop_pulse <= 1'b1;
                     drop_reason <= `MCTP_ASSEMBLER_SCRATCH_AD_DUPLICATE_SOM;
                     state_q[selected_idx] <= `MCTP_ASSEMBLER_SCRATCH_STATE_ERROR;
-                    error_q[selected_idx] <= 1'b1;
                     ctx_state <= `MCTP_ASSEMBLER_SCRATCH_STATE_ERROR;
                     ctx_error <= 1'b1;
                 end else if (sequence_mismatch) begin
                     assembly_drop_pulse <= 1'b1;
                     drop_reason <= `MCTP_ASSEMBLER_SCRATCH_AD_SEQUENCE_MISMATCH;
                     state_q[selected_idx] <= `MCTP_ASSEMBLER_SCRATCH_STATE_ERROR;
-                    error_q[selected_idx] <= 1'b1;
                     ctx_state <= `MCTP_ASSEMBLER_SCRATCH_STATE_ERROR;
                     ctx_error <= 1'b1;
                 end else if (descriptor_full & eom) begin
                     assembly_drop_pulse <= 1'b1;
                     drop_reason <= `MCTP_ASSEMBLER_SCRATCH_AD_DESCRIPTOR_FULL;
                     state_q[selected_idx] <= `MCTP_ASSEMBLER_SCRATCH_STATE_ERROR;
-                    error_q[selected_idx] <= 1'b1;
                     ctx_state <= `MCTP_ASSEMBLER_SCRATCH_STATE_ERROR;
                     ctx_error <= 1'b1;
                 end else if (sram_overflow) begin
                     assembly_drop_pulse <= 1'b1;
                     drop_reason <= `MCTP_ASSEMBLER_SCRATCH_AD_SRAM_OVERFLOW;
                     state_q[selected_idx] <= `MCTP_ASSEMBLER_SCRATCH_STATE_ERROR;
-                    error_q[selected_idx] <= 1'b1;
                     ctx_state <= `MCTP_ASSEMBLER_SCRATCH_STATE_ERROR;
                     ctx_error <= 1'b1;
                 end else begin
                     valid_q[selected_idx] <= 1'b1;
-                    error_q[selected_idx] <= 1'b0;
                     key_q[selected_idx] <= incoming_key;
                     if (som | (!match_found)) begin
                         base_q[selected_idx] <= selected_base_ext[15:0];
@@ -222,7 +217,7 @@ module mctp_assembler_scratch_context_table (
                     ctx_payload_base <= (som | (!match_found)) ? selected_base_ext[15:0] : base_q[selected_idx];
                     ctx_payload_count <= next_payload_count;
                     ctx_partial_next_lane <= write_next_lane;
-                    ctx_partial_word_valid <= |write_next_lane;
+                    ctx_partial_word_valid <= (!eom) & |write_next_lane;
                     if (eom) begin
                         descriptor_push <= 1'b1;
                         descriptor_qid <= selected_idx;

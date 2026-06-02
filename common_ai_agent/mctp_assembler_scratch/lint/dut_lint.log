@@ -1,8 +1,8 @@
 ===== pyslang =====
-command: pyslang rtl/mctp_assembler_scratch_axi_write_ingress.sv rtl/mctp_assembler_scratch_pcie_vdm_parser.sv rtl/mctp_assembler_scratch_mctp_parser.sv rtl/mctp_assembler_scratch_context_table.sv rtl/mctp_assembler_scratch_sram_packer.sv rtl/mctp_assembler_scratch_descriptor_queue.sv rtl/mctp_assembler_scratch_axi_read_egress.sv rtl/mctp_assembler_scratch_sram_arbiter.sv rtl/mctp_assembler_scratch_apb_regfile.sv rtl/mctp_assembler_scratch_cdc.sv rtl/mctp_assembler_scratch.sv
+command: pyslang rtl/mctp_assembler_scratch_axi_write_ingress.sv rtl/mctp_assembler_scratch_pcie_vdm_parser.sv rtl/mctp_assembler_scratch_mctp_parser.sv rtl/mctp_assembler_scratch_context_table.sv rtl/mctp_assembler_scratch_sram_packer.sv rtl/mctp_assembler_scratch_axi_read_egress.sv rtl/mctp_assembler_scratch_sram_arbiter.sv rtl/mctp_assembler_scratch_descriptor_queue.sv rtl/mctp_assembler_scratch_apb_regfile.sv rtl/mctp_assembler_scratch_cdc.sv rtl/mctp_assembler_scratch.sv rtl/mctp_assembler_scratch_param.vh
 returncode: 0
 errors: 0 warnings: 0
-pyslang files: 11
+pyslang files: 12
 errors=0 warnings=0
 
 ===== verilator =====
@@ -10,5 +10,5 @@ command: verilator --lint-only -Wall -Irtl -f list/mctp_assembler_scratch.f --to
 returncode: 0
 errors: 0 warnings: 0
 - V e r i l a t i o n   R e p o r t: Verilator 5.046 2026-02-28 rev vUNKNOWN-built20260228
-- Verilator: Built from 0.525 MB sources in 12 modules, into 0.089 MB in 3 C++ files needing 0.000 MB
-- Verilator: Walltime 0.117 s (elab=0.023, cvt=0.059, bld=0.000); cpu 0.065 s on 1 threads; allocated 14.047 MB
+- Verilator: Built from 1.345 MB sources in 12 modules, into 0.365 MB in 3 C++ files needing 0.000 MB
+- Verilator: Walltime 0.150 s (elab=0.021, cvt=0.075, bld=0.000); cpu 0.121 s on 1 threads; allocated 17.141 MB

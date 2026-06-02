@@ -3,8 +3,8 @@
 - Kind: module
 - Owner module: mctp_assembler_scratch_descriptor_queue
 - Owner file: rtl/mctp_assembler_scratch_descriptor_queue.sv
-- Task count: 20
-- Required tasks: 20
+- Task count: 17
+- Required tasks: 17
 
 ## Rules
 
@@ -116,46 +116,6 @@ SSOT item context: id=FM_PACKET_DROP; name=Packet drop without SRAM payload writ
   - Primary implementation evidence is in rtl/mctp_assembler_scratch_descriptor_queue.sv
 - SSOT refs: function_model.transactions.FM_PACKET_DROP
 
-### RTL-0231: Implement precondition for FM_PACKET_DROP: precondition_0
-
-- Priority: high
-- Required: True
-- Status: pass
-- Category: function_model.precondition
-- Source ref: function_model.transactions.FM_PACKET_DROP.preconditions.precondition_0
-- Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
-SSOT ref: function_model.transactions.FM_PACKET_DROP.preconditions.precondition_0.
-Owner: mctp_assembler_scratch_descriptor_queue in rtl/mctp_assembler_scratch_descriptor_queue.sv via function_model.transactions.FM_PACKET_DROP.
-SSOT item context: value=packet_drop_reason != DROP_NONE.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
-- Criteria:
-  - RTL owner logic is identifiable for this SSOT leaf
-  - Reset/enable/error behavior is consistent with the parent transaction
-  - Downstream equivalence/coverage can observe this behavior
-  - Traceability keeps source_ref function_model.transactions.FM_PACKET_DROP.preconditions.precondition_0
-  - Primary implementation evidence is in rtl/mctp_assembler_scratch_descriptor_queue.sv
-- SSOT refs: function_model.transactions.FM_PACKET_DROP.preconditions.precondition_0
-
-### RTL-0232: Implement output for FM_PACKET_DROP: output_0
-
-- Priority: high
-- Required: True
-- Status: pass
-- Category: function_model.output
-- Source ref: function_model.transactions.FM_PACKET_DROP.outputs.output_0
-- Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
-SSOT ref: function_model.transactions.FM_PACKET_DROP.outputs.output_0.
-Owner: mctp_assembler_scratch_descriptor_queue in rtl/mctp_assembler_scratch_descriptor_queue.sv via function_model.transactions.FM_PACKET_DROP.
-SSOT item context: value=debug_drop_pulse.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
-- Criteria:
-  - RTL owner logic is identifiable for this SSOT leaf
-  - Reset/enable/error behavior is consistent with the parent transaction
-  - Downstream equivalence/coverage can observe this behavior
-  - Traceability keeps source_ref function_model.transactions.FM_PACKET_DROP.outputs.output_0
-  - Primary implementation evidence is in rtl/mctp_assembler_scratch_descriptor_queue.sv
-- SSOT refs: function_model.transactions.FM_PACKET_DROP.outputs.output_0
-
 ### RTL-0233: Implement output for FM_PACKET_DROP: packet_drop_count
 
 - Priority: high
@@ -197,30 +157,6 @@ SSOT item context: state=ctx_last_drop_reason; expr=packet_drop_reason.
   - Primary implementation evidence is in rtl/mctp_assembler_scratch_descriptor_queue.sv
   - function_model.transactions.FM_PACKET_DROP.outputs.ctx_last_drop_reason RTL expression implements SSOT expression packet_drop_reason
 - SSOT refs: function_model.transactions.FM_PACKET_DROP.outputs.ctx_last_drop_reason
-
-### RTL-0235: Implement output rule for FM_PACKET_DROP: debug_drop_pulse
-
-- Priority: high
-- Required: True
-- Status: pass
-- Category: function_model.output_rule
-- Source ref: function_model.transactions.FM_PACKET_DROP.output_rules.debug_drop_pulse
-- Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
-SSOT ref: function_model.transactions.FM_PACKET_DROP.output_rules.debug_drop_pulse.
-Owner: mctp_assembler_scratch_descriptor_queue in rtl/mctp_assembler_scratch_descriptor_queue.sv via function_model.transactions.FM_PACKET_DROP.
-SSOT item context: name=debug_drop_pulse; port=debug_drop_pulse; expr=packet_drop_reason != DROP_NONE; width=1.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
-- Criteria:
-  - RTL owner logic is identifiable for this SSOT leaf
-  - Reset/enable/error behavior is consistent with the parent transaction
-  - Downstream equivalence/coverage can observe this behavior
-  - Traceability keeps source_ref function_model.transactions.FM_PACKET_DROP.output_rules.debug_drop_pulse
-  - Primary implementation evidence is in rtl/mctp_assembler_scratch_descriptor_queue.sv
-  - debug_drop_pulse width matches SSOT value 1
-  - debug_drop_pulse RTL expression implements SSOT expression packet_drop_reason != DROP_NONE
-  - DUT port debug_drop_pulse is the implementation/observation point for debug_drop_pulse
-  - debug_drop_pulse is not implemented only in FunctionalModel or scoreboard code
-- SSOT refs: function_model.transactions.FM_PACKET_DROP.output_rules.debug_drop_pulse
 
 ### RTL-0236: Implement state update for FM_PACKET_DROP: packet_drop_count
 

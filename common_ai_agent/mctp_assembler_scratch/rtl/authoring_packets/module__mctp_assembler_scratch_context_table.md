@@ -3,8 +3,8 @@
 - Kind: module
 - Owner module: mctp_assembler_scratch_context_table
 - Owner file: rtl/mctp_assembler_scratch_context_table.sv
-- Task count: 27
-- Required tasks: 27
+- Task count: 30
+- Required tasks: 30
 
 ## Rules
 
@@ -52,6 +52,48 @@ SSOT item context: state=active_context_count; expr=active_context_count + conte
   - function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.active_context_count RTL expression implements SSOT expression active_context_count + context_alloc
 - SSOT refs: function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.active_context_count
 
+### RTL-0179: Implement output for FM_ASSEMBLE_FRAGMENT: ctx_state
+
+- Priority: high
+- Required: True
+- Status: pass
+- Category: function_model.output
+- Source ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_state
+- Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
+SSOT ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_state.
+Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.
+SSOT item context: state=ctx_state; expr=STATE_ASSEMBLING.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - RTL owner logic is identifiable for this SSOT leaf
+  - Reset/enable/error behavior is consistent with the parent transaction
+  - Downstream equivalence/coverage can observe this behavior
+  - Traceability keeps source_ref function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_state
+  - Primary implementation evidence is in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv
+  - function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_state RTL expression implements SSOT expression STATE_ASSEMBLING
+- SSOT refs: function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_state
+
+### RTL-0181: Implement output for FM_ASSEMBLE_FRAGMENT: ctx_expected_seq
+
+- Priority: high
+- Required: True
+- Status: pass
+- Category: function_model.output
+- Source ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_expected_seq
+- Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
+SSOT ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_expected_seq.
+Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.
+SSOT item context: state=ctx_expected_seq; expr=next_seq.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - RTL owner logic is identifiable for this SSOT leaf
+  - Reset/enable/error behavior is consistent with the parent transaction
+  - Downstream equivalence/coverage can observe this behavior
+  - Traceability keeps source_ref function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_expected_seq
+  - Primary implementation evidence is in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv
+  - function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_expected_seq RTL expression implements SSOT expression next_seq
+- SSOT refs: function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_expected_seq
+
 ### RTL-0184: Implement output rule for FM_ASSEMBLE_FRAGMENT: debug_context_id
 
 - Priority: high
@@ -98,6 +140,52 @@ SSOT item context: name=active_context_count; expr=active_context_count + contex
   - active_context_count RTL expression implements SSOT expression active_context_count + context_alloc
   - active_context_count updates exactly once at the SSOT-defined transaction acceptance point
 - SSOT refs: function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.active_context_count
+
+### RTL-0186: Implement state update for FM_ASSEMBLE_FRAGMENT: ctx_state
+
+- Priority: high
+- Required: True
+- Status: pass
+- Category: function_model.state_update
+- Source ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_state
+- Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
+SSOT ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_state.
+Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.
+SSOT item context: name=ctx_state; expr=STATE_ASSEMBLING; width=2.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - RTL owner logic is identifiable for this SSOT leaf
+  - Reset/enable/error behavior is consistent with the parent transaction
+  - Downstream equivalence/coverage can observe this behavior
+  - Traceability keeps source_ref function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_state
+  - Primary implementation evidence is in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv
+  - ctx_state width matches SSOT value 2
+  - ctx_state RTL expression implements SSOT expression STATE_ASSEMBLING
+  - ctx_state updates exactly once at the SSOT-defined transaction acceptance point
+- SSOT refs: function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_state
+
+### RTL-0188: Implement state update for FM_ASSEMBLE_FRAGMENT: ctx_expected_seq
+
+- Priority: high
+- Required: True
+- Status: pass
+- Category: function_model.state_update
+- Source ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_expected_seq
+- Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
+SSOT ref: function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_expected_seq.
+Owner: mctp_assembler_scratch_pcie_vdm_parser in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv via function_model.transactions.FM_ASSEMBLE_FRAGMENT.
+SSOT item context: name=ctx_expected_seq; expr=next_seq; width=2.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - RTL owner logic is identifiable for this SSOT leaf
+  - Reset/enable/error behavior is consistent with the parent transaction
+  - Downstream equivalence/coverage can observe this behavior
+  - Traceability keeps source_ref function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_expected_seq
+  - Primary implementation evidence is in rtl/mctp_assembler_scratch_pcie_vdm_parser.sv
+  - ctx_expected_seq width matches SSOT value 2
+  - ctx_expected_seq RTL expression implements SSOT expression next_seq
+  - ctx_expected_seq updates exactly once at the SSOT-defined transaction acceptance point
+- SSOT refs: function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_expected_seq
 
 ### RTL-0218: Implement transaction FM_COMPLETE_MESSAGE
 
@@ -222,30 +310,6 @@ SSOT item context: state=active_context_count; expr=active_context_count - descr
   - Primary implementation evidence is in rtl/mctp_assembler_scratch_context_table.sv
   - function_model.transactions.FM_COMPLETE_MESSAGE.outputs.active_context_count RTL expression implements SSOT expression active_context_count - descriptor_publish
 - SSOT refs: function_model.transactions.FM_COMPLETE_MESSAGE.outputs.active_context_count
-
-### RTL-0225: Implement output rule for FM_COMPLETE_MESSAGE: interrupt
-
-- Priority: high
-- Required: True
-- Status: pass
-- Category: function_model.output_rule
-- Source ref: function_model.transactions.FM_COMPLETE_MESSAGE.output_rules.interrupt
-- Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
-SSOT ref: function_model.transactions.FM_COMPLETE_MESSAGE.output_rules.interrupt.
-Owner: mctp_assembler_scratch_context_table in rtl/mctp_assembler_scratch_context_table.sv via function_model.transactions.FM_COMPLETE_MESSAGE.
-SSOT item context: name=interrupt; port=irq; expr=descriptor_publish; width=1.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
-- Criteria:
-  - RTL owner logic is identifiable for this SSOT leaf
-  - Reset/enable/error behavior is consistent with the parent transaction
-  - Downstream equivalence/coverage can observe this behavior
-  - Traceability keeps source_ref function_model.transactions.FM_COMPLETE_MESSAGE.output_rules.interrupt
-  - Primary implementation evidence is in rtl/mctp_assembler_scratch_context_table.sv
-  - interrupt width matches SSOT value 1
-  - interrupt RTL expression implements SSOT expression descriptor_publish
-  - DUT port irq is the implementation/observation point for interrupt
-  - interrupt is not implemented only in FunctionalModel or scoreboard code
-- SSOT refs: function_model.transactions.FM_COMPLETE_MESSAGE.output_rules.interrupt
 
 ### RTL-0227: Implement state update for FM_COMPLETE_MESSAGE: ctx_state
 

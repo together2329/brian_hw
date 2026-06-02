@@ -133,7 +133,7 @@
       ]
     }
   ],
-  "generated_at": "2026-05-31T15:34:38Z",
+  "generated_at": "2026-06-01T22:41:28Z",
   "generation": "derived_from_ip_artifacts_not_static_profile",
   "interfaces": [
     {
@@ -354,6 +354,13 @@
       "rationale": "Required scenarios and bins must close against RTL-observed evidence.",
       "required": true,
       "stage_id": "coverage"
+    },
+    {
+      "artifact": "signoff/truth_coverage.json",
+      "id": "truth_coverage",
+      "rationale": "Every required locked-truth obligation must have executable evidence.",
+      "required": true,
+      "stage_id": "truth_coverage"
     },
     {
       "artifact": "verify/protocol_assertions.sv",

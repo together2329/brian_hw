@@ -1,32 +1,32 @@
 `include "mctp_assembler_scratch_param.vh"
 
 module mctp_assembler_scratch_cdc (
-    input  logic                                             axi_aclk,
-    input  logic                                             axi_aresetn,
-    input  logic                                             pclk,
-    input  logic                                             presetn,
-    input  logic                                             enable_pclk,
-    input  logic                                             drop_mode_pclk,
-    input  logic                                             raw_debug_read_enable_pclk,
-    input  logic [12:0]                                      configured_tu_bytes_pclk,
-    input  logic [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] sram_base_pclk,
-    input  logic [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] sram_limit_pclk,
-    output logic                                             enable_axi,
-    output logic                                             drop_mode_axi,
-    output logic                                             raw_debug_read_enable_axi,
-    output logic [12:0]                                      configured_tu_bytes_axi,
-    output logic [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] sram_base_axi,
-    output logic [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] sram_limit_axi,
-    input  logic                                             packet_drop_axi,
-    input  logic                                             assembly_drop_axi,
-    input  logic                                             descriptor_event_axi,
-    input  logic                                             read_error_axi,
-    output logic                                             packet_drop_pclk,
-    output logic                                             assembly_drop_pclk,
-    output logic                                             descriptor_event_pclk,
-    output logic                                             read_error_pclk
+    input  wire                                             axi_aclk,
+    input  wire                                             axi_aresetn,
+    input  wire                                             pclk,
+    input  wire                                             presetn,
+    input  wire                                             enable_pclk,
+    input  wire                                             drop_mode_pclk,
+    input  wire                                             raw_debug_read_enable_pclk,
+    input  wire [12:0]                                      configured_tu_bytes_pclk,
+    input  wire [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] sram_base_pclk,
+    input  wire [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] sram_limit_pclk,
+    output reg                                             enable_axi,
+    output reg                                             drop_mode_axi,
+    output reg                                             raw_debug_read_enable_axi,
+    output reg [12:0]                                      configured_tu_bytes_axi,
+    output reg [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] sram_base_axi,
+    output reg [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] sram_limit_axi,
+    input  wire                                             packet_drop_axi,
+    input  wire                                             assembly_drop_axi,
+    input  wire                                             descriptor_event_axi,
+    input  wire                                             read_error_axi,
+    output reg                                             packet_drop_pclk,
+    output reg                                             assembly_drop_pclk,
+    output reg                                             descriptor_event_pclk,
+    output reg                                             read_error_pclk
 );
-    logic unused_inputs;
+    wire unused_inputs;
 
     assign unused_inputs = ^{pclk, presetn};
 

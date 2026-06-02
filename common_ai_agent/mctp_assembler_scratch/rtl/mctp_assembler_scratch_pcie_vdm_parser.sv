@@ -1,26 +1,26 @@
 `include "mctp_assembler_scratch_param.vh"
 
 module mctp_assembler_scratch_pcie_vdm_parser (
-    input  logic                                             axi_aclk,
-    input  logic                                             axi_aresetn,
-    input  logic                                             tlp_valid,
-    input  logic [`MCTP_ASSEMBLER_SCRATCH_AXI_DATA_WIDTH-1:0] tlp_word,
-    input  logic [`MCTP_ASSEMBLER_SCRATCH_AXI_STRB_WIDTH-1:0] tlp_strb,
-    input  logic [15:0]                                      tlp_byte_count,
-    input  logic [15:0]                                      tlp_awaddr,
-    input  logic [127:0]                                     first_tlp_header,
-    input  logic [127:0]                                     last_tlp_header,
-    input  logic [7:0]                                       ingress_drop_reason,
-    output logic                                             vdm_valid,
-    output logic [`MCTP_ASSEMBLER_SCRATCH_AXI_DATA_WIDTH-1:0] vdm_word,
-    output logic [`MCTP_ASSEMBLER_SCRATCH_AXI_STRB_WIDTH-1:0] vdm_strb,
-    output logic [12:0]                                      vdm_payload_bytes,
-    output logic [127:0]                                     vdm_first_header,
-    output logic [127:0]                                     vdm_last_header,
-    output logic [7:0]                                       packet_drop_reason,
-    output logic                                             debug_vdm_valid
+    input  wire                                             axi_aclk,
+    input  wire                                             axi_aresetn,
+    input  wire                                             tlp_valid,
+    input  wire [`MCTP_ASSEMBLER_SCRATCH_AXI_DATA_WIDTH-1:0] tlp_word,
+    input  wire [`MCTP_ASSEMBLER_SCRATCH_AXI_STRB_WIDTH-1:0] tlp_strb,
+    input  wire [15:0]                                      tlp_byte_count,
+    input  wire [15:0]                                      tlp_awaddr,
+    input  wire [127:0]                                     first_tlp_header,
+    input  wire [127:0]                                     last_tlp_header,
+    input  wire [7:0]                                       ingress_drop_reason,
+    output reg                                             vdm_valid,
+    output reg [`MCTP_ASSEMBLER_SCRATCH_AXI_DATA_WIDTH-1:0] vdm_word,
+    output reg [`MCTP_ASSEMBLER_SCRATCH_AXI_STRB_WIDTH-1:0] vdm_strb,
+    output reg [12:0]                                      vdm_payload_bytes,
+    output reg [127:0]                                     vdm_first_header,
+    output reg [127:0]                                     vdm_last_header,
+    output reg [7:0]                                       packet_drop_reason,
+    output reg                                             debug_vdm_valid
 );
-    logic unused_inputs;
+    wire unused_inputs;
 
     assign unused_inputs = ^tlp_awaddr;
 

@@ -1,0 +1,109 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+___________ test_truth_coverage_credits_structured_evidence_aliases ____________
+
+tmp_path = PosixPath('/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/pytest-of-brian/pytest-852/test_truth_coverage_credits_st0')
+
+    def test_truth_coverage_credits_structured_evidence_aliases(tmp_path: Path) -> None:
+        ip = "structured_truth_ip"
+        ip_dir = tmp_path / ip
+        (ip_dir / "yaml").mkdir(parents=True)
+        (ip_dir / "yaml" / f"{ip}.ssot.yaml").write_text(
+            "\n".join(
+                [
+                    "top_module:",
+                    "  name: structured_truth_ip",
+                    "registers:",
+                    "  register_list:",
+                    "    - name: CTRL",
+                    "interrupts:",
+                    "  sources:",
+                    "    - id: IRQ_DONE",
+                    "      cause: done_count_increment",
+                    "test_requirements:",
+                    "  coverage_goals:",
+                    "    cycle:",
+                    "      bins:",
+                    "        - id: CCOV_LATENCY",
+                    "          source_ref: cycle_model.pipeline",
+                    "workflow_todos:",
+                    "  rtl-gen:",
+                    "    - content: Close implementation criteria.",
+                    "      criteria:",
+                    "        - rtl_compile_passes",
+                    "        - lint_passes",
+                    "        - axi_write_module_present",
+                    "        - all_required_modules_in_filelist",
+                    "        - no_missing_declared_module",
+                    "        - per_q_state_visible",
+                    "  fl-model-gen:",
+                    "    - content: Close model artifacts.",
+                    "      criteria:",
+                    "        - model/fl_model_check.json_passed",
+                    "        - cov/fcov_plan.json_created",
+                    "  ssot-gen:",
+                    "    - content: Close SSOT approval.",
+                    "      criteria:",
+                    "        - approval_manifest_hash_refreshed",
+                    "        - verify_ssot_signoff_passes",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
+        (ip_dir / "sim").mkdir(parents=True)
+        (ip_dir / "sim" / "scoreboard_events.jsonl").write_text(
+            "\n".join(
+                [
+                    json.dumps({"goal_id": "EQ_REGISTER_CTRL", "passed": True, "rtl_observed": {"pready": 1}}),
+                    json.dumps({"goal_id": "EQ_INTERRUPT_IRQ_DONE", "passed": True, "rtl_observed": {"irq": 1}}),
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
+        _write_json(
+            ip_dir / "cov" / "coverage.json",
+            {
+                "status": "pass",
+                "cycle_coverage": {"bins": {"CCOV_LATENCY": {"hit": True}}},
+            },
+        )
+        _write_json(ip_dir / "model" / "fl_model_check.json", {"source": "model/functional_model.py"})
+        _write_json(ip_dir / "cov" / "fcov_plan.json", {"summary": {"total_bins": 1}})
+        _write_json(ip_dir / "req" / "approval_manifest.json", {"source": "req/source_references.md"})
+        _write_json(
+            ip_dir / "rtl" / "rtl_todo_plan.json",
+            {"gate": {"status": "pass", "criteria": ["DUT-only RTL compile report passes"]}},
+        )
+        _write_json(
+            ip_dir / "signoff" / "ip_signoff.json",
+            {
+                "status": "fail",
+                "gates": [
+                    {"name": "ssot", "status": "pass"},
+                    {"name": "rtl_compile", "status": "pass"},
+                    {"name": "lint", "status": "pass"},
+                    {"name": "truth_coverage", "status": "fail"},
+                ],
+            },
+        )
+
+        result = subprocess.run(
+            ["python3", str(SCRIPT), ip, "--root", str(tmp_path)],
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+        )
+
+>       assert result.returncode == 0, result.stdout
+E       AssertionError: [check_truth_coverage] status=fail summary={'obligations': 13, 'covered': 0, 'uncovered_required': 13, 'evidence_tokens': 6}
+E         [check_truth_coverage] wrote /private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/pytest-of-brian/pytest-852/test_truth_coverage_credits_st0/structured_truth_ip/signoff/truth_coverage.json
+E
+E       assert 1 == 0
+E        +  where 1 = CompletedProcess(args=['python3', '/Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/reqcov/scripts/check...0000gn/T/pytest-of-brian/pytest-852/test_truth_coverage_credits_st0/structured_truth_ip/signoff/truth_coverage.json\n").returncode
+
+tests/test_truth_coverage_gate.py:263: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_truth_coverage_gate.py::test_truth_coverage_credits_structured_evidence_aliases
+1 failed in 0.84s

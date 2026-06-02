@@ -38,6 +38,72 @@ def _goals(ip_dir: Path) -> list[dict[str, Any]]:
     return [goal for goal in doc.get("goals", []) if isinstance(goal, dict) and goal.get("blocked") is not True]
 
 
+def _write_scenario_e2e_summary(ip_dir: Path) -> None:
+    manifest_path = ip_dir / "tc" / "scenario_manifest.json"
+    scoreboard_path = ip_dir / "sim" / "scoreboard_events.jsonl"
+    out_path = ip_dir / "sim" / "scenario_e2e_summary.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    scenario_ids = [
+        str(item.get("scenario_id"))
+        for item in manifest.get("scenarios", [])
+        if isinstance(item, dict) and item.get("scenario_id")
+    ]
+    rows_by_scenario: dict[str, dict[str, Any]] = {}
+    for line in scoreboard_path.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        row = json.loads(line)
+        goal_id = str(row.get("goal_id") or "")
+        prefix = "EQ_SCENARIO_"
+        if not goal_id.startswith(prefix):
+            continue
+        scenario_id = goal_id[len(prefix):]
+        observed = row.get("rtl_observed") if isinstance(row.get("rtl_observed"), dict) else {}
+        rows_by_scenario[scenario_id] = {
+            "scenario_id": scenario_id,
+            "goal_id": goal_id,
+            "scoreboard_scenario_id": str(row.get("scenario_id") or ""),
+            "scoreboard_passed": bool(row.get("passed")),
+            "dut_observed": bool(observed),
+            "rtl_observable_count": len(observed),
+            "mismatch": str(row.get("mismatch") or ""),
+        }
+    rows = []
+    missing = []
+    for scenario_id in scenario_ids:
+        row = rows_by_scenario.get(scenario_id)
+        if row is None:
+            missing.append(scenario_id)
+            rows.append({
+                "scenario_id": scenario_id,
+                "goal_id": f"EQ_SCENARIO_{scenario_id}",
+                "scoreboard_scenario_id": "",
+                "scoreboard_passed": False,
+                "dut_observed": False,
+                "rtl_observable_count": 0,
+                "mismatch": "missing scoreboard row",
+            })
+        else:
+            rows.append(row)
+    failed = [
+        row["scenario_id"]
+        for row in rows
+        if not row["scoreboard_passed"] or not row["dut_observed"] or int(row["rtl_observable_count"]) <= 0
+    ]
+    payload = {
+        "schema_version": 1,
+        "type": "scenario_e2e_summary",
+        "status": "pass" if not missing and not failed else "fail",
+        "total_directed_scenarios": len(scenario_ids),
+        "observed_directed_scenarios": len(rows_by_scenario),
+        "missing_scenarios": missing,
+        "failed_scenarios": failed,
+        "source": str(scoreboard_path.relative_to(ip_dir)),
+        "scenarios": rows,
+    }
+    out_path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
 def _has_signal(dut, name: str) -> bool:
     return hasattr(dut, name)
 
@@ -1507,5 +1573,6 @@ async def fl_rtl_equivalence_goals(dut):
         _cl_pct = (_cl_match / _cl_total) * 100.0
         print(f"[CL_COSIM] {ip} cycle-accurate FL/RTL co-sim: {_cl_match}/{_cl_total} match ({_cl_pct:.1f}%)")
     scoreboard.final_check()
+    _write_scenario_e2e_summary(ip_dir)
     await _run_static_coverage_sweep(dut, manifest)
     coverage.write(ip_dir)

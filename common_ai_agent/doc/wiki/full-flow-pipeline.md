@@ -11,9 +11,10 @@ requirement
   -> {lint, tb-gen, syn}
 
 tb-gen -> sim -> {coverage, sim-debug}
+coverage -> truth-coverage
 syn -> {sta, pnr}
 pnr -> post-sta
-all requested evidence -> goal-audit
+all requested evidence -> goal-audit -> signoff
 ```
 
 ATLAS Web UI, Textual UI, and headless tests must call the same common engine
@@ -50,6 +51,7 @@ benchmark/debug runs.
 | TB | `/ssot-tb <ip>` | cocotb/pyuvm TB, manifest, scoreboard |
 | Sim | `/sim <ip>` | `results.xml`, VCD, `scoreboard_events.jsonl` |
 | Coverage | `/coverage <ip>` | function/cycle/static coverage reports |
+| Truth Coverage | `python3 workflow/reqcov/scripts/check_truth_coverage.py <ip> --root <ip-parent>` | `signoff/truth_coverage.json` |
 | Debug | `/sim-debug <ip>` | mismatch classification and wave/source evidence |
 | Audit | `/goal-audit <ip>` | final FL-vs-RTL goal audit |
 

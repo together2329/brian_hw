@@ -1413,8 +1413,6 @@ def _apply_rtl_contract_owner_overrides(
     for task in tasks:
         if not isinstance(task, dict):
             continue
-        if task.get("owner_module") or task.get("owner_file"):
-            continue
         source_ref = str(task.get("source_ref") or "").strip()
         owner = owner_overrides.get(source_ref)
         if not owner:
@@ -1809,6 +1807,10 @@ def _evidence_terms(category: str, source_ref: str, value: Any) -> list[str]:
         for token in re.findall(r"[A-Za-z_][A-Za-z0-9_]*", source_ref):
             if token.startswith("FM_"):
                 terms.update(_split_design_token(token))
+    if "readback_last" in terms:
+        terms.update({"m_axi_rlast", "rlast"})
+    if "firmware_visible_descriptor_metadata" in terms or ("descriptor" in terms and "metadata" in terms):
+        terms.update({"descriptor_valid", "descriptor_count", "descriptor_base", "descriptor_bytes", "descriptor_key"})
     terms = {term for term in terms if term.lower() not in EVIDENCE_STOPWORDS | REFERENCE_STOPWORDS}
     if category.startswith("function_model.") or category == "workflow_todo.rtl_gen":
         terms = {term for term in terms if not _is_fm_observed_marker_term(term)}

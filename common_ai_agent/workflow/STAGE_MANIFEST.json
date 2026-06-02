@@ -19,6 +19,10 @@
     "derive_ip_contract": {
       "description": "Derive per-IP verification/evidence obligations from SSOT/IO/goals without static profiles.",
       "command": "python3 workflow/ip-contract/scripts/derive_ip_contract.py <ip> --root <ip-parent>"
+    },
+    "truth_coverage": {
+      "description": "Check that locked SSOT or optional req-ledger obligations are covered by executable local evidence.",
+      "command": "python3 workflow/reqcov/scripts/check_truth_coverage.py <ip> --root <ip-parent>"
     }
   },
   "stages": [
@@ -131,6 +135,15 @@
       "description": "Build functional/scoreboard coverage summary."
     },
     {
+      "id": "truth_coverage",
+      "owner": "reqcov",
+      "command": "python3 workflow/reqcov/scripts/check_truth_coverage.py <ip> --root <ip-parent>",
+      "inputs": ["<ip>/yaml/<ip>.ssot.yaml", "<ip>/req/requirement_coverage.json", "<ip>/sim/scoreboard_events.jsonl", "<ip>/cov/coverage.json", "<ip>/rtl/rtl_todo_plan.json"],
+      "outputs": ["<ip>/signoff/truth_coverage.json"],
+      "locked_truth": false,
+      "description": "Verify every required locked-truth obligation has executable evidence. Works with direct SSOT authoring; req ledger is optional."
+    },
+    {
       "id": "rtl_provenance_refresh",
       "owner": "rtl-gen",
       "command": "python3 workflow/rtl-gen/scripts/refresh_rtl_provenance.py <ip> --root <ip-parent>",
@@ -161,10 +174,10 @@
       "id": "signoff",
       "owner": "signoff",
       "command": "python3 workflow/signoff/scripts/check_ip_signoff.py <ip> --root <ip-parent>",
-      "inputs": ["IP_SIGNOFF.md", "<ip>/yaml/<ip>.ssot.yaml", "<ip>/verify/ip_contract.json", "<ip>/model/*.json", "<ip>/verify/equivalence_goals.json", "<ip>/rtl/*.json", "<ip>/lint/dut_lint.json", "<ip>/tb/cocotb/tb_py_compile.json", "<ip>/sim/*", "<ip>/cov/coverage.json", "<ip>/signoff/goal_ledger.json"],
+      "inputs": ["IP_SIGNOFF.md", "<ip>/yaml/<ip>.ssot.yaml", "<ip>/verify/ip_contract.json", "<ip>/model/*.json", "<ip>/verify/equivalence_goals.json", "<ip>/rtl/*.json", "<ip>/lint/dut_lint.json", "<ip>/tb/cocotb/tb_py_compile.json", "<ip>/sim/*", "<ip>/cov/coverage.json", "<ip>/signoff/truth_coverage.json", "<ip>/signoff/goal_ledger.json"],
       "outputs": ["<ip>/signoff/ip_signoff.json", "<ip>/signoff/ip_signoff.md"],
       "locked_truth": false,
-      "description": "Aggregate local evidence and fail/block missing machine-checkable signoff criteria from IP_SIGNOFF.md plus the derived per-IP contract."
+      "description": "Aggregate local evidence and fail/block missing machine-checkable signoff criteria from IP_SIGNOFF.md plus the derived per-IP contract and locked-truth coverage."
     }
   ]
 }

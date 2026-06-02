@@ -275,8 +275,9 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 1,
+        "matched_count": 2,
         "matched_terms": [
+          "ar",
           "axi"
         ],
         "owner_file_scoped": true,
@@ -334,9 +335,8 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 2,
+        "matched_count": 1,
         "matched_terms": [
-          "readback",
           "valid"
         ],
         "owner_file_scoped": true,
@@ -394,10 +394,9 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 2,
+        "matched_count": 1,
         "matched_terms": [
-          "data",
-          "readback"
+          "data"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -454,9 +453,8 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 2,
+        "matched_count": 1,
         "matched_terms": [
-          "readback",
           "resp"
         ],
         "owner_file_scoped": true,
@@ -496,8 +494,10 @@
       "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_AXI_READBACK.outputs.output_3.\nOwner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via function_model.transactions.FM_AXI_READBACK.\nSSOT item context: value=readback_last.",
       "evidence_terms": [
         "last",
+        "m_axi_rlast",
         "readback",
-        "readback_last"
+        "readback_last",
+        "rlast"
       ],
       "id": "RTL-0279",
       "owner_file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
@@ -513,19 +513,20 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 3,
+        "matched_count": 2,
         "matched_terms": [
-          "last",
-          "readback",
-          "readback_last"
+          "m_axi_rlast",
+          "rlast"
         ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
         "required_terms": [
           "last",
+          "m_axi_rlast",
           "readback",
-          "readback_last"
+          "readback_last",
+          "rlast"
         ],
         "source_scope": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
         "status": "pass"
@@ -585,9 +586,9 @@
         "fallback_scope": "",
         "matched_count": 5,
         "matched_terms": [
+          "ar",
           "axi",
           "m_axi_rvalid",
-          "readback",
           "rvalid",
           "valid"
         ],
@@ -663,7 +664,7 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 8,
+        "matched_count": 7,
         "matched_terms": [
           "axi",
           "data",
@@ -671,8 +672,7 @@
           "m_axi_rdata",
           "rdata",
           "read",
-          "read_has_descriptor",
-          "readback"
+          "read_has_descriptor"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -750,7 +750,7 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 12,
+        "matched_count": 11,
         "matched_terms": [
           "RESP",
           "RESP_OKAY",
@@ -761,7 +761,6 @@
           "m_axi_rresp",
           "read",
           "read_has_descriptor",
-          "readback",
           "resp",
           "rresp"
         ],
@@ -838,14 +837,11 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 7,
+        "matched_count": 4,
         "matched_terms": [
           "axi",
-          "last",
           "m_axi_rlast",
           "read",
-          "readback",
-          "readback_last",
           "rlast"
         ],
         "owner_file_scoped": true,
@@ -988,9 +984,9 @@
         "fallback_scope": "",
         "matched_count": 5,
         "matched_terms": [
+          "ar",
           "axi",
           "m_axi_rvalid",
-          "readback",
           "rvalid",
           "valid"
         ],
@@ -1069,7 +1065,7 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 8,
+        "matched_count": 7,
         "matched_terms": [
           "axi",
           "data",
@@ -1077,8 +1073,7 @@
           "m_axi_rdata",
           "rdata",
           "read",
-          "read_has_descriptor",
-          "readback"
+          "read_has_descriptor"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -1159,7 +1154,7 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 12,
+        "matched_count": 11,
         "matched_terms": [
           "RESP",
           "RESP_OKAY",
@@ -1170,7 +1165,6 @@
           "m_axi_rresp",
           "read",
           "read_has_descriptor",
-          "readback",
           "resp",
           "rresp"
         ],
@@ -1250,14 +1244,11 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 7,
+        "matched_count": 4,
         "matched_terms": [
           "axi",
-          "last",
           "m_axi_rlast",
           "read",
-          "readback",
-          "readback_last",
           "rlast"
         ],
         "owner_file_scoped": true,
@@ -1408,11 +1399,11 @@
         "fallback_scope": "",
         "matched_count": 10,
         "matched_terms": [
+          "ar",
           "axi",
           "data",
           "debug",
           "descriptor",
-          "last",
           "m_axi_rdata",
           "m_axi_rlast",
           "m_axi_rresp",
@@ -2080,7 +2071,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "f7d51fe86c7b2e93192acdcd2fb7e463badd1ca4416fc82440243aa7e8a43e3c",
+  "todo_plan_sha256": "a6a5a0fbc9df7cbf10ab017b46631a16a00f0b454b4cee41da9ba28dbc65043d",
   "top": "mctp_assembler_scratch",
   "type": "rtl_authoring_packet"
 }

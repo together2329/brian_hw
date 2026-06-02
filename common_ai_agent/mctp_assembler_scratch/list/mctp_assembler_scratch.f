@@ -1,13 +1,12 @@
-+incdir+rtl
-// rtl/mctp_assembler_scratch_param.vh included by all RTL sources
 rtl/mctp_assembler_scratch_axi_write_ingress.sv
 rtl/mctp_assembler_scratch_pcie_vdm_parser.sv
 rtl/mctp_assembler_scratch_mctp_parser.sv
 rtl/mctp_assembler_scratch_context_table.sv
 rtl/mctp_assembler_scratch_sram_packer.sv
-rtl/mctp_assembler_scratch_descriptor_queue.sv
 rtl/mctp_assembler_scratch_axi_read_egress.sv
 rtl/mctp_assembler_scratch_sram_arbiter.sv
+rtl/mctp_assembler_scratch_descriptor_queue.sv
 rtl/mctp_assembler_scratch_apb_regfile.sv
 rtl/mctp_assembler_scratch_cdc.sv
 rtl/mctp_assembler_scratch.sv
+rtl/mctp_assembler_scratch_param.vh

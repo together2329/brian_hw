@@ -29,7 +29,7 @@
 - Human-locked open tasks: 0
 - Owner refs: dataflow, dataflow.sram_pack, function_model, function_model.transactions.FM_SRAM_PACK_WRITE, io_list, memory, memory.instances.payload_sram_window
 - SSOT connection contracts:
-  - mctp_assembler_scratch_sram_packer.sram_wr_valid <= sram_wr_valid (integration.connections[2])
+  - mctp_assembler_scratch_sram_packer.sram_wr_valid <= pack_wr_valid (integration.connections[2])
 
 ## Tasks
 

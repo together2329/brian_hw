@@ -12,7 +12,7 @@
       "enabled": true,
       "index": 2,
       "key": "function_model",
-      "module_task_count": 85,
+      "module_task_count": 89,
       "rule": "Owner module mctp_assembler_scratch_axi_write_ingress is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "function_model",
       "section_chunk_count": 1,
@@ -179,7 +179,7 @@
       "enabled": true,
       "index": 2,
       "key": "function_model",
-      "module_task_count": 85,
+      "module_task_count": 89,
       "rule": "Owner module mctp_assembler_scratch_axi_write_ingress is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "function_model",
       "section_chunk_count": 1,
@@ -350,9 +350,10 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 1,
+        "matched_count": 2,
         "matched_terms": [
-          "bvalid"
+          "bvalid",
+          "next"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -408,9 +409,10 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 1,
+        "matched_count": 2,
         "matched_terms": [
-          "bresp"
+          "bresp",
+          "next"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -478,13 +480,14 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 6,
+        "matched_count": 7,
         "matched_terms": [
           "accept",
           "aw",
           "axi",
           "bvalid",
           "m_axi_bvalid",
+          "next",
           "wlast"
         ],
         "owner_file_scoped": true,
@@ -565,7 +568,7 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 8,
+        "matched_count": 9,
         "matched_terms": [
           "ACCEPT",
           "AXI",
@@ -574,7 +577,8 @@
           "TLP",
           "axi",
           "bresp",
-          "m_axi_bresp"
+          "m_axi_bresp",
+          "next"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -730,13 +734,14 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 6,
+        "matched_count": 7,
         "matched_terms": [
           "accept",
           "aw",
           "axi",
           "bvalid",
           "m_axi_bvalid",
+          "next",
           "wlast"
         ],
         "owner_file_scoped": true,
@@ -820,7 +825,7 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 8,
+        "matched_count": 9,
         "matched_terms": [
           "ACCEPT",
           "AXI",
@@ -829,7 +834,8 @@
           "TLP",
           "axi",
           "bresp",
-          "m_axi_bresp"
+          "m_axi_bresp",
+          "next"
         ],
         "owner_file_scoped": true,
         "required": true,
@@ -1186,7 +1192,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "f7d51fe86c7b2e93192acdcd2fb7e463badd1ca4416fc82440243aa7e8a43e3c",
+  "todo_plan_sha256": "a6a5a0fbc9df7cbf10ab017b46631a16a00f0b454b4cee41da9ba28dbc65043d",
   "top": "mctp_assembler_scratch",
   "type": "rtl_authoring_packet"
 }

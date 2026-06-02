@@ -1,162 +1,170 @@
 `include "mctp_assembler_scratch_param.vh"
 
 module mctp_assembler_scratch (
-    input  logic                                             axi_aclk,
-    input  logic                                             axi_aresetn,
-    input  logic                                             pclk,
-    input  logic                                             presetn,
-    input  logic [`MCTP_ASSEMBLER_SCRATCH_AXI_ADDR_WIDTH-1:0] m_axi_awaddr,
-    input  logic [7:0]                                       m_axi_awlen,
-    input  logic [2:0]                                       m_axi_awsize,
-    input  logic [1:0]                                       m_axi_awburst,
-    input  logic                                             m_axi_awvalid,
-    output logic                                             m_axi_awready,
-    input  logic [`MCTP_ASSEMBLER_SCRATCH_AXI_DATA_WIDTH-1:0] m_axi_wdata,
-    input  logic [`MCTP_ASSEMBLER_SCRATCH_AXI_STRB_WIDTH-1:0] m_axi_wstrb,
-    input  logic                                             m_axi_wlast,
-    input  logic                                             m_axi_wvalid,
-    output logic                                             m_axi_wready,
-    output logic [1:0]                                       m_axi_bresp,
-    output logic                                             m_axi_bvalid,
-    input  logic                                             m_axi_bready,
-    input  logic [`MCTP_ASSEMBLER_SCRATCH_AXI_ADDR_WIDTH-1:0] m_axi_araddr,
-    input  logic [7:0]                                       m_axi_arlen,
-    input  logic [2:0]                                       m_axi_arsize,
-    input  logic [1:0]                                       m_axi_arburst,
-    input  logic                                             m_axi_arvalid,
-    output logic                                             m_axi_arready,
-    output logic [`MCTP_ASSEMBLER_SCRATCH_AXI_DATA_WIDTH-1:0] m_axi_rdata,
-    output logic [1:0]                                       m_axi_rresp,
-    output logic                                             m_axi_rlast,
-    output logic                                             m_axi_rvalid,
-    input  logic                                             m_axi_rready,
-    input  logic [15:0]                                      paddr,
-    input  logic                                             psel,
-    input  logic                                             penable,
-    input  logic                                             pwrite,
-    input  logic [31:0]                                      pwdata,
-    input  logic [3:0]                                       pstrb,
-    output logic [31:0]                                      prdata,
-    output logic                                             pready,
-    output logic                                             pslverr,
-    output logic                                             sram_wr_valid,
-    input  logic                                             sram_wr_ready,
-    output logic [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] sram_wr_addr,
-    output logic [`MCTP_ASSEMBLER_SCRATCH_SRAM_DATA_WIDTH-1:0] sram_wr_data,
-    output logic [31:0]                                      sram_wr_strb,
-    output logic                                             sram_rd_req_valid,
-    input  logic                                             sram_rd_req_ready,
-    output logic [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] sram_rd_req_addr,
-    input  logic                                             sram_rd_rsp_valid,
-    output logic                                             sram_rd_rsp_ready,
-    input  logic [`MCTP_ASSEMBLER_SCRATCH_SRAM_DATA_WIDTH-1:0] sram_rd_rsp_data,
-    input  logic                                             sram_rd_rsp_error,
-    output logic                                             irq,
-    output logic [3:0]                                       debug_context_id,
-    output logic [17:0]                                      debug_context_key,
-    output logic                                             debug_drop_pulse,
-    output logic                                             debug_vdm_valid
+    input  wire                                             axi_aclk,
+    input  wire                                             axi_aresetn,
+    input  wire                                             pclk,
+    input  wire                                             presetn,
+    input  wire [`MCTP_ASSEMBLER_SCRATCH_AXI_ADDR_WIDTH-1:0] m_axi_awaddr,
+    input  wire [7:0]                                       m_axi_awlen,
+    input  wire [2:0]                                       m_axi_awsize,
+    input  wire [1:0]                                       m_axi_awburst,
+    input  wire                                             m_axi_awvalid,
+    output wire                                             m_axi_awready,
+    input  wire [`MCTP_ASSEMBLER_SCRATCH_AXI_DATA_WIDTH-1:0] m_axi_wdata,
+    input  wire [`MCTP_ASSEMBLER_SCRATCH_AXI_STRB_WIDTH-1:0] m_axi_wstrb,
+    input  wire                                             m_axi_wlast,
+    input  wire                                             m_axi_wvalid,
+    output wire                                             m_axi_wready,
+    output wire [1:0]                                       m_axi_bresp,
+    output wire                                             m_axi_bvalid,
+    input  wire                                             m_axi_bready,
+    input  wire [`MCTP_ASSEMBLER_SCRATCH_AXI_ADDR_WIDTH-1:0] m_axi_araddr,
+    input  wire [7:0]                                       m_axi_arlen,
+    input  wire [2:0]                                       m_axi_arsize,
+    input  wire [1:0]                                       m_axi_arburst,
+    input  wire                                             m_axi_arvalid,
+    output wire                                             m_axi_arready,
+    output wire [`MCTP_ASSEMBLER_SCRATCH_AXI_DATA_WIDTH-1:0] m_axi_rdata,
+    output wire [1:0]                                       m_axi_rresp,
+    output wire                                             m_axi_rlast,
+    output wire                                             m_axi_rvalid,
+    input  wire                                             m_axi_rready,
+    input  wire [15:0]                                      paddr,
+    input  wire                                             psel,
+    input  wire                                             penable,
+    input  wire                                             pwrite,
+    input  wire [31:0]                                      pwdata,
+    input  wire [3:0]                                       pstrb,
+    output wire [31:0]                                      prdata,
+    output wire                                             pready,
+    output wire                                             pslverr,
+    output wire                                             sram_wr_valid,
+    input  wire                                             sram_wr_ready,
+    output wire [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] sram_wr_addr,
+    output wire [`MCTP_ASSEMBLER_SCRATCH_SRAM_DATA_WIDTH-1:0] sram_wr_data,
+    output wire [31:0]                                      sram_wr_strb,
+    output wire                                             sram_rd_req_valid,
+    input  wire                                             sram_rd_req_ready,
+    output wire [`MCTP_ASSEMBLER_SCRATCH_SRAM_ADDR_WIDTH-1:0] sram_rd_req_addr,
+    input  wire                                             sram_rd_rsp_valid,
+    output wire                                             sram_rd_rsp_ready,
+    input  wire [`MCTP_ASSEMBLER_SCRATCH_SRAM_DATA_WIDTH-1:0] sram_rd_rsp_data,
+    input  wire                                             sram_rd_rsp_error,
+    output wire                                             irq,
+    output wire [3:0]                                       debug_context_id,
+    output wire [17:0]                                      debug_context_key,
+    output wire                                             debug_drop_pulse,
+    output wire                                             debug_vdm_valid
 );
-    logic enable_pclk;
-    logic drop_mode_pclk;
-    logic raw_debug_read_enable_pclk;
-    logic [12:0] configured_tu_bytes_pclk;
-    logic [15:0] sram_base_pclk;
-    logic [15:0] sram_limit_pclk;
-    logic enable_axi;
-    logic drop_mode_axi;
-    logic raw_debug_read_enable_axi;
-    logic [12:0] configured_tu_bytes_axi;
-    logic [15:0] sram_base_axi;
-    logic [15:0] sram_limit_axi;
-    logic [255:0] tlp_word;
-    logic [31:0] tlp_strb;
-    logic [15:0] tlp_byte_count;
-    logic [15:0] tlp_awaddr;
-    logic [127:0] first_tlp_header;
-    logic [127:0] last_tlp_header;
-    logic [7:0] ingress_drop_reason;
-    logic tlp_valid;
-    logic ingress_busy;
-    logic vdm_valid;
-    logic [255:0] vdm_word;
-    logic [31:0] vdm_strb;
-    logic [12:0] vdm_payload_bytes;
-    logic [127:0] vdm_first_header;
-    logic [127:0] vdm_last_header;
-    logic [7:0] vdm_drop_reason;
-    logic fragment_valid;
-    logic [7:0] source_eid;
-    logic [7:0] destination_eid;
-    logic tag_owner;
-    logic [2:0] message_tag;
-    logic [1:0] packet_seq;
-    logic som;
-    logic eom;
-    logic [7:0] message_type;
-    logic [255:0] payload_data_word;
-    logic [31:0] payload_byte_strobe;
-    logic [12:0] payload_byte_count;
-    logic [127:0] fragment_first_header;
-    logic [127:0] fragment_last_header;
-    logic [7:0] mctp_drop_reason;
-    logic payload_write_valid;
-    logic [255:0] payload_write_data;
-    logic [31:0] payload_write_strb;
-    logic [15:0] payload_write_addr;
-    logic [12:0] payload_write_bytes;
-    logic descriptor_push;
-    logic [3:0] descriptor_qid;
-    logic [15:0] descriptor_base;
-    logic [12:0] descriptor_bytes;
-    logic [17:0] descriptor_key;
-    logic [127:0] descriptor_first_header;
-    logic [127:0] descriptor_last_header;
-    logic packet_drop_pulse_axi;
-    logic assembly_drop_pulse_axi;
-    logic [7:0] drop_reason;
-    logic [1:0] ctx_state;
-    logic ctx_valid;
-    logic ctx_error;
-    logic [17:0] ctx_key;
-    logic [15:0] ctx_payload_base;
-    logic [12:0] ctx_payload_count;
-    logic [4:0] ctx_partial_next_lane;
-    logic ctx_partial_word_valid;
-    logic descriptor_valid;
-    logic descriptor_full;
-    logic [3:0] descriptor_count;
-    logic [3:0] read_qid;
-    logic [15:0] read_base;
-    logic [12:0] read_bytes;
-    logic [17:0] read_key;
-    logic [127:0] read_first_header;
-    logic [127:0] read_last_header;
-    logic descriptor_pop;
-    logic read_error_pulse_axi;
-    logic pack_wr_valid;
-    logic pack_wr_ready;
-    logic [15:0] pack_wr_addr;
-    logic [255:0] pack_wr_data;
-    logic [31:0] pack_wr_strb;
-    logic [4:0] pack_next_lane;
-    logic pack_partial_valid;
-    logic rd_req_valid;
-    logic rd_req_ready;
-    logic [15:0] rd_req_addr;
-    logic rd_rsp_valid;
-    logic rd_rsp_ready;
-    logic [255:0] rd_rsp_data;
-    logic rd_rsp_error;
-    logic packet_drop_event_pclk;
-    logic assembly_drop_event_pclk;
-    logic descriptor_event_pclk;
-    logic read_error_event_pclk;
-    logic unused_top;
+    wire enable_pclk;
+    wire drop_mode_pclk;
+    wire raw_debug_read_enable_pclk;
+    wire [12:0] configured_tu_bytes_pclk;
+    wire [15:0] sram_base_pclk;
+    wire [15:0] sram_limit_pclk;
+    wire enable_axi;
+    wire drop_mode_axi;
+    wire raw_debug_read_enable_axi;
+    wire [12:0] configured_tu_bytes_axi;
+    wire [15:0] sram_base_axi;
+    wire [15:0] sram_limit_axi;
+    wire [255:0] tlp_word;
+    wire [31:0] tlp_strb;
+    wire [15:0] tlp_byte_count;
+    wire [15:0] tlp_awaddr;
+    wire [127:0] first_tlp_header;
+    wire [127:0] last_tlp_header;
+    wire [7:0] ingress_drop_reason;
+    wire tlp_valid;
+    wire ingress_busy;
+    wire vdm_valid;
+    wire [255:0] vdm_word;
+    wire [31:0] vdm_strb;
+    wire [12:0] vdm_payload_bytes;
+    wire [127:0] vdm_first_header;
+    wire [127:0] vdm_last_header;
+    wire [7:0] vdm_drop_reason;
+    wire fragment_valid;
+    wire [7:0] source_eid;
+    wire [7:0] destination_eid;
+    wire tag_owner;
+    wire [2:0] message_tag;
+    wire [1:0] packet_seq;
+    wire som;
+    wire eom;
+    wire [7:0] message_type;
+    wire [255:0] payload_data_word;
+    wire [31:0] payload_byte_strobe;
+    wire [12:0] payload_byte_count;
+    wire [127:0] fragment_first_header;
+    wire [127:0] fragment_last_header;
+    wire [7:0] mctp_drop_reason;
+    wire payload_write_valid;
+    wire [255:0] payload_write_data;
+    wire [31:0] payload_write_strb;
+    wire [15:0] payload_write_addr;
+    wire [12:0] payload_write_bytes;
+    wire payload_replay_valid;
+    wire payload_replay_ready;
+    wire [255:0] payload_replay_data;
+    wire [31:0] payload_replay_strb;
+    wire [15:0] payload_replay_addr;
+    wire [12:0] payload_replay_bytes;
+    wire payload_replay_busy;
+    wire descriptor_push;
+    wire [3:0] descriptor_qid;
+    wire [15:0] descriptor_base;
+    wire [12:0] descriptor_bytes;
+    wire [17:0] descriptor_key;
+    wire [127:0] descriptor_first_header;
+    wire [127:0] descriptor_last_header;
+    wire packet_drop_pulse_axi;
+    wire assembly_drop_pulse_axi;
+    wire [7:0] drop_reason;
+    wire [1:0] ctx_state;
+    wire ctx_valid;
+    wire ctx_error;
+    wire [17:0] ctx_key;
+    wire [15:0] ctx_payload_base;
+    wire [12:0] ctx_payload_count;
+    wire [4:0] ctx_partial_next_lane;
+    wire ctx_partial_word_valid;
+    wire descriptor_valid;
+    wire descriptor_full;
+    wire [3:0] descriptor_count;
+    wire [3:0] read_qid;
+    wire [15:0] read_base;
+    wire [12:0] read_bytes;
+    wire [17:0] read_key;
+    wire [127:0] read_first_header;
+    wire [127:0] read_last_header;
+    wire descriptor_pop;
+    wire read_error_pulse_axi;
+    wire pack_wr_valid;
+    wire pack_wr_ready;
+    wire [15:0] pack_wr_addr;
+    wire [255:0] pack_wr_data;
+    wire [31:0] pack_wr_strb;
+    wire [4:0] pack_next_lane;
+    wire pack_partial_valid;
+    wire rd_req_valid;
+    wire rd_req_ready;
+    wire [15:0] rd_req_addr;
+    wire rd_rsp_valid;
+    wire rd_rsp_ready;
+    wire [255:0] rd_rsp_data;
+    wire rd_rsp_error;
+    wire packet_drop_event_pclk;
+    wire assembly_drop_event_pclk;
+    wire descriptor_event_pclk;
+    wire read_error_event_pclk;
+    wire unused_top;
 
     assign debug_drop_pulse = packet_drop_pulse_axi | assembly_drop_pulse_axi;
-    assign unused_top = ^{ingress_busy, read_qid, read_key, read_first_header, read_last_header,
-                          pack_next_lane, pack_partial_valid};
+    assign unused_top = ^{ingress_busy, payload_write_data, payload_write_strb, payload_replay_busy,
+                          read_qid, read_key, read_first_header, read_last_header, pack_next_lane,
+                          pack_partial_valid};
 
     mctp_assembler_scratch_axi_write_ingress u_axi_write_ingress (
         .axi_aclk(axi_aclk),
@@ -186,6 +194,16 @@ module mctp_assembler_scratch (
         .first_tlp_header(first_tlp_header),
         .last_tlp_header(last_tlp_header),
         .packet_drop_reason(ingress_drop_reason),
+        .payload_commit_valid(payload_write_valid),
+        .payload_commit_addr(payload_write_addr),
+        .payload_commit_bytes(payload_write_bytes),
+        .payload_replay_valid(payload_replay_valid),
+        .payload_replay_ready(payload_replay_ready),
+        .payload_replay_data(payload_replay_data),
+        .payload_replay_strb(payload_replay_strb),
+        .payload_replay_addr(payload_replay_addr),
+        .payload_replay_bytes(payload_replay_bytes),
+        .payload_replay_busy(payload_replay_busy),
         .ingress_busy(ingress_busy)
     );
 
@@ -292,11 +310,12 @@ module mctp_assembler_scratch (
     mctp_assembler_scratch_sram_packer u_sram_packer (
         .axi_aclk(axi_aclk),
         .axi_aresetn(axi_aresetn),
-        .payload_write_valid(payload_write_valid),
-        .payload_write_data(payload_write_data),
-        .payload_write_strb(payload_write_strb),
-        .payload_write_addr(payload_write_addr),
-        .payload_write_bytes(payload_write_bytes),
+        .payload_write_valid(payload_replay_valid),
+        .payload_write_ready(payload_replay_ready),
+        .payload_write_data(payload_replay_data),
+        .payload_write_strb(payload_replay_strb),
+        .payload_write_addr(payload_replay_addr),
+        .payload_write_bytes(payload_replay_bytes),
         .sram_wr_valid(pack_wr_valid),
         .sram_wr_ready(pack_wr_ready),
         .sram_wr_addr(pack_wr_addr),

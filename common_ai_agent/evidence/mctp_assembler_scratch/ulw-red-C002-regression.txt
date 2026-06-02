@@ -1,0 +1,1 @@
+Baseline regression blocker before truth_coverage fix: see evidence/mctp_assembler_scratch/ulw-red-C001-truth.txt, where truth_coverage failed with uncovered SSOT obligations. C002 regression is green-only replay after C001 closure.
