@@ -1,0 +1,33 @@
+........................................................................ [ 48%]
+...F.................................................................... [ 96%]
+......                                                                   [100%]
+=================================== FAILURES ===================================
+__________________ TestMemoryDB.test_memory_db_init_and_crud ___________________
+
+self = <tests.test_atlas_db.TestMemoryDB object at 0x103a801c0>
+memory_db = <core.atlas_db.AtlasDB object at 0x1035d4910>
+
+    def test_memory_db_init_and_crud(self, memory_db):
+>       user = memory_db.create_user("u1", "User One")
+
+tests/test_atlas_db.py:440: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+core/atlas_db.py:1346: in create_user
+    self._execute(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <core.atlas_db.AtlasDB object at 0x1035d4910>
+sql = '\n            INSERT INTO users (id, username, display_name, email, password_hash, role, created_at, last_login_at)\n            VALUES (?, ?, ?, ?, ?, ?, ?, ?)\n            '
+parameters = ('ab926b45dc1e48b5ad1798422570657c', 'u1', 'User One', None, None, 'user', ...)
+
+    def _execute(self, sql: str, parameters: tuple = ()) -> sqlite3.Cursor:
+        """Execute SQL inside the lock."""
+        with self._lock:
+            conn = self._connect()
+>           cursor = conn.execute(sql, parameters)
+E           sqlite3.OperationalError: no such table: users
+
+core/atlas_db.py:908: OperationalError
+=========================== short test summary info ============================
+FAILED tests/test_atlas_db.py::TestMemoryDB::test_memory_db_init_and_crud - s...
+1 failed, 149 passed in 4.10s

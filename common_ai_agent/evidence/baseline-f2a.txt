@@ -1,0 +1,839 @@
+.........................FFFFFFFFF..F.FF..F.F....FF....................  [100%]
+=================================== FAILURES ===================================
+__________ test_multiuser_session_ip_workflow_dirs_and_ip_visibility ___________
+
+tmp_path = PosixPath('/private/tmp/claude-501/pytest-of-brian/pytest-0/test_multiuser_session_ip_work0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10363a310>
+
+    def test_multiuser_session_ip_workflow_dirs_and_ip_visibility(tmp_path, monkeypatch):
+        import src.atlas_ui as atlas_ui
+    
+        monkeypatch.setenv("HOME", str(tmp_path / "home"))
+        monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+        monkeypatch.setenv("ACTIVE_WORKSPACE", "sta")
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+    
+        app = atlas_ui.create_app()
+        alice = TestClient(app)
+        bob = TestClient(app)
+        _register(alice, "alice")
+        _register(bob, "bob")
+    
+        assert _activate(alice, "alice", "ip_alpha", "sta").status_code == 200
+        assert _activate(alice, "alice", "ip_beta", "sta").status_code == 200
+        assert _activate(bob, "bob", "ip_gamma", "sta").status_code == 200
+    
+>       assert (tmp_path / ".session" / "alice" / "ip_alpha" / "sta" / "conversation.json").is_file()
+E       AssertionError: assert False
+E        +  where False = is_file()
+E        +    where is_file = (((((PosixPath('/private/tmp/claude-501/pytest-of-brian/pytest-0/test_multiuser_session_ip_work0') / '.session') / 'alice') / 'ip_alpha') / 'sta') / 'conversation.json').is_file
+
+/Users/brian/Desktop/Project/brian_hw/common_ai_agent/tests/test_atlas_multiuser_session_scope.py:87: AssertionError
+----------------------------- Captured stdout call -----------------------------
+[atlas] Multi-user enabled (process_per_session=on)
+05:13:50 [rehydrate] 0 jobs reconciled (rescued=0, marked-error=0)
+[Session] activate: IP 'ip_alpha' not found on disk under /private/tmp/claude-501/pytest-of-brian/pytest-0/test_multiuser_session_ip_work0 — falling back to default/default (was workflow='sta')
+[Session] activate: IP 'ip_beta' not found on disk under /private/tmp/claude-501/pytest-of-brian/pytest-0/test_multiuser_session_ip_work0 — falling back to default/default (was workflow='sta')
+[Session] activate: IP 'ip_gamma' not found on disk under /private/tmp/claude-501/pytest-of-brian/pytest-0/test_multiuser_session_ip_work0 — falling back to default/default (was workflow='sta')
+__________ test_ip_list_hides_orphan_session_dirs_without_db_session ___________
+
+tmp_path = PosixPath('/private/tmp/claude-501/pytest-of-brian/pytest-0/test_ip_list_hides_orphan_sess0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x103e10b80>
+
+    def test_ip_list_hides_orphan_session_dirs_without_db_session(tmp_path, monkeypatch):
+        import src.atlas_ui as atlas_ui
+    
+        monkeypatch.setenv("HOME", str(tmp_path / "home"))
+        monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+        monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+    
+        app = atlas_ui.create_app()
+        client = TestClient(app)
+        _register(client, "alice")
+    
+        response = _activate(client, "alice", "owned_ip", "rtl-gen")
+        assert response.status_code == 200, response.text
+    
+        orphan = tmp_path / ".session" / "alice" / "stale_orphan_ip" / "ssot-gen"
+        orphan.mkdir(parents=True)
+        (orphan / "conversation.json").write_text("[]", encoding="utf-8")
+    
+        listed = client.get("/api/ip/list?session_id=alice")
+    
+        assert listed.status_code == 200, listed.text
+        body = listed.json()
+        assert body["source"] == "db_sessions"
+>       assert {item["name"] for item in body["items"]} == {"owned_ip"}
+E       AssertionError: assert set() == {'owned_ip'}
+E         
+E         Extra items in the right set:
+E         'owned_ip'
+E         Use -v to get more diff
+
+/Users/brian/Desktop/Project/brian_hw/common_ai_agent/tests/test_atlas_multiuser_session_scope.py:144: AssertionError
+----------------------------- Captured stdout call -----------------------------
+[atlas] Multi-user enabled (process_per_session=off)
+05:13:51 [rehydrate] 0 jobs reconciled (rescued=0, marked-error=0)
+[Session] activate: IP 'owned_ip' not found on disk under /private/tmp/claude-501/pytest-of-brian/pytest-0/test_ip_list_hides_orphan_sess0 — falling back to default/default (was workflow='rtl-gen')
+[Workflow] 'default' loaded from /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/default
+[Workflow] 'default' loaded via /api/session/activate (prev='rtl-gen', ip='default', owner='alice')
+___________ test_session_activate_records_db_control_plane_namespace ___________
+
+tmp_path = PosixPath('/private/tmp/claude-501/pytest-of-brian/pytest-0/test_session_activate_records_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10307c220>
+
+    def test_session_activate_records_db_control_plane_namespace(tmp_path, monkeypatch):
+        import src.atlas_ui as atlas_ui
+        from core.atlas_db import AtlasDB
+    
+        monkeypatch.setenv("HOME", str(tmp_path / "home"))
+        monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+        monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+    
+        app = atlas_ui.create_app()
+        client = TestClient(app)
+        _register(client, "alice")
+    
+        response = _activate(client, "alice", "spi_core", "orchestrator")
+    
+        assert response.status_code == 200, response.text
+        payload = response.json()
+>       assert payload["active_session"] == "alice/spi_core/orchestrator"
+E       AssertionError: assert 'alice/default/default' == 'alice/spi_core/orchestrator'
+E         
+E         - alice/spi_core/orchestrator
+E         + alice/default/default
+
+/Users/brian/Desktop/Project/brian_hw/common_ai_agent/tests/test_atlas_multiuser_session_scope.py:165: AssertionError
+----------------------------- Captured stdout call -----------------------------
+[atlas] Multi-user enabled (process_per_session=off)
+05:13:51 [rehydrate] 0 jobs reconciled (rescued=0, marked-error=0)
+[Session] activate: IP 'spi_core' not found on disk under /private/tmp/claude-501/pytest-of-brian/pytest-0/test_session_activate_records_0 — falling back to default/default (was workflow='orchestrator')
+___________ test_orchestrator_session_state_includes_ip_chat_ledger ____________
+
+tmp_path = PosixPath('/private/tmp/claude-501/pytest-of-brian/pytest-0/test_orchestrator_session_stat0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x103ed1970>
+
+    def test_orchestrator_session_state_includes_ip_chat_ledger(tmp_path, monkeypatch):
+        import src.atlas_ui as atlas_ui
+        from core.atlas_db import AtlasDB
+    
+        monkeypatch.setenv("HOME", str(tmp_path / "home"))
+        monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+        monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+    
+        app = atlas_ui.create_app()
+        client = TestClient(app)
+        _register(client, "alice")
+    
+        response = _activate(client, "alice", "spi_core", "orchestrator")
+        assert response.status_code == 200, response.text
+        user_id = client.get("/api/users/me").json()["user"]["id"]
+        with AtlasDB() as db:
+            workspace = db.upsert_workspace(
+                tmp_path.name,
+                owner_user_id=user_id,
+                local_path=str(tmp_path),
+            )
+            ip_row = db.upsert_ip_block(workspace["id"], "spi_core")
+            db.record_chat_message(
+                ip_row["id"],
+                user_id,
+                "pipeline question",
+                display_name="alice",
+            )
+            db.record_chat_message(
+                ip_row["id"],
+                user_id,
+                "pipeline answer",
+                display_name="orchestrator",
+                role="assistant",
+            )
+    
+        state = client.get(
+            "/api/session/state",
+            params={"session": "alice/spi_core/orchestrator"},
+        )
+        assert state.status_code == 200, state.text
+        conversation = state.json()["conversation"]
+        assert conversation["source"].endswith("+orchestrator_chat")
+        contents = [m.get("content") for m in conversation["messages"]]
+        assert "pipeline question" in contents
+        assert "pipeline answer" in contents
+    
+        history = client.get(
+            "/api/session/history",
+            params={"session": "alice/spi_core/orchestrator"},
+        )
+        assert history.status_code == 200, history.text
+>       assert history.json()["source"].endswith("+orchestrator_chat")
+E       AssertionError: assert False
+E        +  where False = <built-in method endswith of str object at 0x103f906b0>('+orchestrator_chat')
+E        +    where <built-in method endswith of str object at 0x103f906b0> = 'file'.endswith
+
+/Users/brian/Desktop/Project/brian_hw/common_ai_agent/tests/test_atlas_multiuser_session_scope.py:250: AssertionError
+----------------------------- Captured stdout call -----------------------------
+[atlas] Multi-user enabled (process_per_session=off)
+05:13:51 [rehydrate] 0 jobs reconciled (rescued=0, marked-error=0)
+[Session] activate: IP 'spi_core' not found on disk under /private/tmp/claude-501/pytest-of-brian/pytest-0/test_orchestrator_session_stat0 — falling back to default/default (was workflow='orchestrator')
+_________ test_session_activate_owner_alias_keeps_db_user_id_distinct __________
+
+tmp_path = PosixPath('/private/tmp/claude-501/pytest-of-brian/pytest-0/test_session_activate_owner_al0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x103f7d5e0>
+
+    def test_session_activate_owner_alias_keeps_db_user_id_distinct(tmp_path, monkeypatch):
+        import src.atlas_ui as atlas_ui
+        from core.atlas_db import AtlasDB
+    
+        monkeypatch.setenv("HOME", str(tmp_path / "home"))
+        monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+        monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+    
+        app = atlas_ui.create_app()
+        client = TestClient(app)
+        _register(client, "alice")
+    
+        response = client.post(
+            "/api/session/activate",
+            json={"owner": "alice", "ip": "spi_core", "workflow": "rtl-gen"},
+        )
+    
+        assert response.status_code == 200, response.text
+        payload = response.json()
+>       assert payload["active_session"] == "alice/spi_core/rtl-gen"
+E       AssertionError: assert 'alice/default/default' == 'alice/spi_core/rtl-gen'
+E         
+E         - alice/spi_core/rtl-gen
+E         + alice/default/default
+
+/Users/brian/Desktop/Project/brian_hw/common_ai_agent/tests/test_atlas_multiuser_session_scope.py:275: AssertionError
+----------------------------- Captured stdout call -----------------------------
+[atlas] Multi-user enabled (process_per_session=off)
+05:13:51 [rehydrate] 0 jobs reconciled (rescued=0, marked-error=0)
+[Session] activate: IP 'spi_core' not found on disk under /private/tmp/claude-501/pytest-of-brian/pytest-0/test_session_activate_owner_al0 — falling back to default/default (was workflow='rtl-gen')
+_______ test_session_history_and_state_forbid_cross_user_namespace_reads _______
+
+tmp_path = PosixPath('/private/tmp/claude-501/pytest-of-brian/pytest-0/test_session_history_and_state0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1033eb130>
+
+    def test_session_history_and_state_forbid_cross_user_namespace_reads(tmp_path, monkeypatch):
+        import src.atlas_ui as atlas_ui
+        from core.atlas_db import AtlasDB
+    
+        monkeypatch.setenv("HOME", str(tmp_path / "home"))
+        monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+        monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+    
+        app = atlas_ui.create_app()
+        alice = TestClient(app)
+        bob = TestClient(app)
+        _register(alice, "alice")
+        _register(bob, "bob")
+    
+        activated = _activate(alice, "alice", "secret_ip", "rtl-gen")
+        assert activated.status_code == 200, activated.text
+        namespace = "alice/secret_ip/rtl-gen"
+        session_dir = tmp_path / ".session" / "alice" / "secret_ip" / "rtl-gen"
+>       (session_dir / "conversation.json").write_text(
+            json.dumps([{"role": "user", "content": "alice-only file"}]),
+            encoding="utf-8",
+        )
+
+/Users/brian/Desktop/Project/brian_hw/common_ai_agent/tests/test_atlas_multiuser_session_scope.py:316: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py:1275: in write_text
+    with self.open(mode='w', encoding=encoding, errors=errors) as f:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py:1242: in open
+    return io.open(self, mode, buffering, encoding, errors, newline,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/private/tmp/claude-501/pytest-of-brian/pytest-0/test_session_history_and_state0/.session/alice/secret_ip/rtl-gen/conversation.json')
+name = '/private/tmp/claude-501/pytest-of-brian/pytest-0/test_session_history_and_state0/.session/alice/secret_ip/rtl-gen/conversation.json'
+flags = 16778753, mode = 438
+
+    def _opener(self, name, flags, mode=0o666):
+        # A stub for the opener argument to built-in open()
+>       return self._accessor.open(self, flags, mode)
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/tmp/claude-501/pytest-of-brian/pytest-0/test_session_history_and_state0/.session/alice/secret_ip/rtl-gen/conversation.json'
+
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py:1110: FileNotFoundError
+----------------------------- Captured stdout call -----------------------------
+[atlas] Multi-user enabled (process_per_session=off)
+05:13:51 [rehydrate] 0 jobs reconciled (rescued=0, marked-error=0)
+[Session] activate: IP 'secret_ip' not found on disk under /private/tmp/claude-501/pytest-of-brian/pytest-0/test_session_history_and_state0 — falling back to default/default (was workflow='rtl-gen')
+___________ test_healthz_context_cost_is_scoped_to_active_namespace ____________
+
+tmp_path = PosixPath('/private/tmp/claude-501/pytest-of-brian/pytest-0/test_healthz_context_cost_is_s0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10162ddf0>
+
+    def test_healthz_context_cost_is_scoped_to_active_namespace(tmp_path, monkeypatch):
+        import src.atlas_ui as atlas_ui
+        from core.atlas_db import AtlasDB
+    
+        monkeypatch.setenv("HOME", str(tmp_path / "home"))
+        monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+        monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+        monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+    
+        app = atlas_ui.create_app()
+        client = TestClient(app)
+        _register(client, "alice")
+    
+        alpha = _activate(client, "alice", "ip_alpha", "rtl-gen")
+        assert alpha.status_code == 200, alpha.text
+        alpha_cost = tmp_path / ".session" / "alice" / "ip_alpha" / "rtl-gen" / "cost.json"
+>       alpha_cost.write_text(
+            json.dumps({
+                "in_tok": 100,
+                "cache_tok": 10,
+                "out_tok": 20,
+                "sum_tok": 120,
+                "cost_usd": 0.01,
+                "last_in_tok": 100,
+                "last_cache_tok": 10,
+                "last_out_tok": 20,
+            }),
+            encoding="utf-8",
+        )
+
+/Users/brian/Desktop/Project/brian_hw/common_ai_agent/tests/test_atlas_multiuser_session_scope.py:356: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py:1275: in write_text
+    with self.open(mode='w', encoding=encoding, errors=errors) as f:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py:1242: in open
+    return io.open(self, mode, buffering, encoding, errors, newline,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/private/tmp/claude-501/pytest-of-brian/pytest-0/test_healthz_context_cost_is_s0/.session/alice/ip_alpha/rtl-gen/cost.json')
+name = '/private/tmp/claude-501/pytest-of-brian/pytest-0/test_healthz_context_cost_is_s0/.session/alice/ip_alpha/rtl-gen/cost.json'
+flags = 16778753, mode = 438
+
+    def _opener(self, name, flags, mode=0o666):
+        # A stub for the opener argument to built-in open()
+>       return self._accessor.open(self, flags, mode)
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/tmp/claude-501/pytest-of-brian/pytest-0/test_healthz_context_cost_is_s0/.session/alice/ip_alpha/rtl-gen/cost.json'
+
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py:1110: FileNotFoundError
+----------------------------- Captured stdout call -----------------------------
+[atlas] Multi-user enabled (process_per_session=off)
+05:13:51 [rehydrate] 0 jobs reconciled (rescued=0, marked-error=0)
+[Session] activate: IP 'ip_alpha' not found on disk under /private/tmp/claude-501/pytest-of-brian/pytest-0/test_healthz_context_cost_is_s0 — falling back to default/default (was workflow='rtl-gen')
+___________ test_healthz_does_not_share_cost_with_numeric_user_owner ___________
+
+tmp_path = PosixPath('/private/tmp/claude-501/pytest-of-brian/pytest-0/test_healthz_does_not_share_co0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x103ed1a00>
+
+    def test_healthz_does_not_share_cost_with_numeric_user_owner(tmp_path, monkeypatch):
+        import src.atlas_ui as atlas_ui
+        from core.atlas_db import AtlasDB
+    
+        monkeypatch.setenv("HOME", str(tmp_path / "home"))
+        monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+        monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+        monkeypatch.setenv("ATLAS_SESSION_PER_MODEL", "0")
+        monkeypatch.setenv("ATLAS_DEFAULT_WORKFLOW", "default")
+        monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+    
+        app = atlas_ui.create_app()
+        brian = TestClient(app)
+        numeric = TestClient(app)
+        _register(brian, "brian")
+        _register(numeric, "20766")
+    
+        brian_active = _activate(brian, "brian", "ip_brian", "rtl-gen")
+        assert brian_active.status_code == 200, brian_active.text
+        brian_cost = tmp_path / ".session" / "brian" / "ip_brian" / "rtl-gen" / "cost.json"
+>       brian_cost.write_text(
+            json.dumps({
+                "in_tok": 777,
+                "cache_tok": 0,
+                "out_tok": 333,
+                "sum_tok": 1110,
+                "cost_usd": 9.99,
+            }),
+            encoding="utf-8",
+        )
+
+/Users/brian/Desktop/Project/brian_hw/common_ai_agent/tests/test_atlas_multiuser_session_scope.py:466: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py:1275: in write_text
+    with self.open(mode='w', encoding=encoding, errors=errors) as f:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py:1242: in open
+    return io.open(self, mode, buffering, encoding, errors, newline,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/private/tmp/claude-501/pytest-of-brian/pytest-0/test_healthz_does_not_share_co0/.session/brian/ip_brian/rtl-gen/cost.json')
+name = '/private/tmp/claude-501/pytest-of-brian/pytest-0/test_healthz_does_not_share_co0/.session/brian/ip_brian/rtl-gen/cost.json'
+flags = 16778753, mode = 438
+
+    def _opener(self, name, flags, mode=0o666):
+        # A stub for the opener argument to built-in open()
+>       return self._accessor.open(self, flags, mode)
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/tmp/claude-501/pytest-of-brian/pytest-0/test_healthz_does_not_share_co0/.session/brian/ip_brian/rtl-gen/cost.json'
+
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py:1110: FileNotFoundError
+----------------------------- Captured stdout call -----------------------------
+[atlas] Multi-user enabled (process_per_session=off)
+05:13:52 [rehydrate] 0 jobs reconciled (rescued=0, marked-error=0)
+[Session] activate: IP 'ip_brian' not found on disk under /private/tmp/claude-501/pytest-of-brian/pytest-0/test_healthz_does_not_share_co0 — falling back to default/default (was workflow='rtl-gen')
+___________ test_http_control_stop_targets_request_user_session_only ___________
+
+tmp_path = PosixPath('/private/tmp/claude-501/pytest-of-brian/pytest-0/test_http_control_stop_targets0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1035e1b50>
+
+    def test_http_control_stop_targets_request_user_session_only(tmp_path, monkeypatch):
+        import asyncio
+        import src.atlas_ui as atlas_ui
+    
+        monkeypatch.setenv("HOME", str(tmp_path / "home"))
+        monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+        monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+    
+        app = atlas_ui.create_app()
+        alice = TestClient(app)
+        bob = TestClient(app)
+        _register(alice, "alice")
+        _register(bob, "bob")
+    
+        assert _activate(alice, "alice", "ip_alpha", "rtl-gen").status_code == 200
+        assert _activate(bob, "bob", "ip_beta", "rtl-gen").status_code == 200
+    
+        alice_session = app.state.bridge._ensure_session("alice/ip_alpha/rtl-gen")
+        bob_session = app.state.bridge._ensure_session("bob/ip_beta/rtl-gen")
+        alice_session.agent_running = True
+        bob_session.agent_running = True
+    
+        while True:
+            event, _sid = asyncio.get_event_loop().run_until_complete(
+                app.state.bridge.next_event(timeout=0.01)
+            )
+            if event is None:
+                break
+    
+        response = alice.post("/api/control/stop")
+    
+        assert response.status_code == 200, response.text
+>       assert response.json()["session_id"] == "alice/ip_alpha/rtl-gen"
+E       AssertionError: assert 'alice/default/default' == 'alice/ip_alpha/rtl-gen'
+E         
+E         - alice/ip_alpha/rtl-gen
+E         + alice/default/default
+
+/Users/brian/Desktop/Project/brian_hw/common_ai_agent/tests/test_atlas_multiuser_session_scope.py:566: AssertionError
+----------------------------- Captured stdout call -----------------------------
+[atlas] Multi-user enabled (process_per_session=off)
+05:13:52 [rehydrate] 0 jobs reconciled (rescued=0, marked-error=0)
+[Session] activate: IP 'ip_alpha' not found on disk under /private/tmp/claude-501/pytest-of-brian/pytest-0/test_http_control_stop_targets0 — falling back to default/default (was workflow='rtl-gen')
+[Session] activate: IP 'ip_beta' not found on disk under /private/tmp/claude-501/pytest-of-brian/pytest-0/test_http_control_stop_targets0 — falling back to default/default (was workflow='rtl-gen')
+________ test_session_activate_preserves_running_worker_when_requested _________
+
+tmp_path = PosixPath('/private/tmp/claude-501/pytest-of-brian/pytest-0/test_session_activate_preserve0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1045043d0>
+
+    def test_session_activate_preserves_running_worker_when_requested(tmp_path, monkeypatch):
+        import src.atlas_ui as atlas_ui
+    
+        monkeypatch.setenv("HOME", str(tmp_path / "home"))
+        monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+        monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+    
+        app = atlas_ui.create_app()
+        client = TestClient(app)
+        _register(client, "alice")
+    
+        response = _activate(client, "alice", "spi_core", "orchestrator")
+        assert response.status_code == 200, response.text
+        orchestrator = app.state.bridge._ensure_session("alice/spi_core/orchestrator")
+        orchestrator.agent_running = True
+    
+        preserved = _activate(
+            client,
+            "alice",
+            "spi_core",
+            "rtl-gen",
+            preserve_running=True,
+        )
+        assert preserved.status_code == 200, preserved.text
+>       assert preserved.json()["active_session"] == "alice/spi_core/rtl-gen"
+E       AssertionError: assert 'alice/default/default' == 'alice/spi_core/rtl-gen'
+E         
+E         - alice/spi_core/rtl-gen
+E         + alice/default/default
+
+/Users/brian/Desktop/Project/brian_hw/common_ai_agent/tests/test_atlas_multiuser_session_scope.py:667: AssertionError
+----------------------------- Captured stdout call -----------------------------
+[atlas] Multi-user enabled (process_per_session=off)
+05:13:52 [rehydrate] 0 jobs reconciled (rescued=0, marked-error=0)
+[Session] activate: IP 'spi_core' not found on disk under /private/tmp/claude-501/pytest-of-brian/pytest-0/test_session_activate_preserve0 — falling back to default/default (was workflow='orchestrator')
+[Workflow] 'default' loaded from /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/default
+[Workflow] 'default' loaded via /api/session/activate (prev='tb-gen', ip='default', owner='alice')
+[Session] activate: IP 'spi_core' not found on disk under /private/tmp/claude-501/pytest-of-brian/pytest-0/test_session_activate_preserve0 — falling back to default/default (was workflow='rtl-gen')
+________ test_process_session_activate_keeps_single_worker_process_warm ________
+
+tmp_path = PosixPath('/private/tmp/claude-501/pytest-of-brian/pytest-0/test_process_session_activate_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x103451a30>
+
+    def test_process_session_activate_keeps_single_worker_process_warm(tmp_path, monkeypatch):
+        import src.atlas_ui as atlas_ui
+    
+        monkeypatch.setenv("HOME", str(tmp_path / "home"))
+        monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+        monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "1")
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+    
+        app = atlas_ui.create_app()
+        client = TestClient(app)
+        _register(client, "alice")
+    
+        calls = []
+    
+        class FakeProcessManager:
+            def __init__(self):
+                self.live = {"alice/spi_core/rtl-gen"}
+    
+            def is_alive(self, session_id):
+                return session_id in self.live
+    
+            def kill(self, session_id):
+                calls.append(("kill", session_id))
+                self.live.discard(session_id)
+                return True
+    
+            def list_active(self):
+                return list(self.live)
+    
+            def send_input(self, session_id, msg_type, payload=None):
+                calls.append(("send_input", session_id, msg_type, payload))
+                return "msg-id" if session_id in self.live else None
+    
+            def latest_output_id(self, session_id):
+                return None
+    
+            def spawn(self, session_id):
+                self.live.add(session_id)
+                calls.append(("spawn", session_id))
+                return True
+    
+            def poll_output(self, session_id, since_id=None):
+                return []
+    
+            def stop_all(self):
+                calls.append(("stop_all",))
+                self.live.clear()
+    
+        app.state.bridge._process_manager = FakeProcessManager()
+        first = _activate(client, "alice", "spi_core", "rtl-gen")
+        assert first.status_code == 200, first.text
+        assert first.json()["halted"] is False
+>       assert first.json()["session_worker_warmup"]["status"] == "ready"
+E       AssertionError: assert 'scheduled' == 'ready'
+E         
+E         - ready
+E         + scheduled
+
+/Users/brian/Desktop/Project/brian_hw/common_ai_agent/tests/test_atlas_multiuser_session_scope.py:761: AssertionError
+----------------------------- Captured stdout call -----------------------------
+[atlas] Multi-user enabled (process_per_session=on)
+05:13:52 [rehydrate] 0 jobs reconciled (rescued=0, marked-error=0)
+[Session] activate: IP 'spi_core' not found on disk under /private/tmp/claude-501/pytest-of-brian/pytest-0/test_process_session_activate_0 — falling back to default/default (was workflow='rtl-gen')
+____________ test_single_worker_session_activate_warms_chat_process ____________
+
+tmp_path = PosixPath('/private/tmp/claude-501/pytest-of-brian/pytest-0/test_single_worker_session_act0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1042ff730>
+
+    def test_single_worker_session_activate_warms_chat_process(tmp_path, monkeypatch):
+        import atlas_api_jobs as jobs
+        import src.atlas_ui as atlas_ui
+    
+        monkeypatch.setenv("HOME", str(tmp_path / "home"))
+        monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+        monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "1")
+        monkeypatch.setenv("ATLAS_EXEC_MODE", "single-worker")
+        monkeypatch.setenv("ATLAS_DEFAULT_EXEC_MODE", "single-worker")
+        monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODE", "0")
+        monkeypatch.setenv("ATLAS_SINGLE_MAIN_LOOP", "1")
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+        monkeypatch.setattr(
+            jobs,
+            "schedule_worker_warmup",
+            lambda **_kwargs: {"enabled": False, "reason": "test"},
+        )
+    
+        calls = []
+    
+        class FakeProcessManager:
+            def __init__(self):
+                self.live = set()
+    
+            def is_alive(self, session_id):
+                return session_id in self.live
+    
+            def latest_output_id(self, session_id):
+                return None
+    
+            def spawn(self, session_id):
+                time.sleep(0.2)
+                calls.append(("spawn", session_id))
+                self.live.add(session_id)
+                return True
+    
+            def get_pid(self, session_id):
+                return 4321 if session_id in self.live else 0
+    
+            def list_active(self):
+                return list(self.live)
+    
+            def kill(self, session_id):
+                calls.append(("kill", session_id))
+                self.live.discard(session_id)
+                return True
+    
+            def poll_output(self, session_id, since_id=None):
+                return []
+    
+            def stop_all(self):
+                self.live.clear()
+    
+        app = atlas_ui.create_app()
+        app.state.bridge._process_manager = FakeProcessManager()
+        client = TestClient(app)
+        _register(client, "alice")
+    
+        response = _activate(client, "alice", "spi_core", "ssot-gen")
+    
+        assert response.status_code == 200, response.text
+        body = response.json()
+>       assert body["session_worker_warmup"] == {
+            "enabled": True,
+            "mode": "process",
+            "session_id": "alice/spi_core/ssot-gen",
+            "status": "scheduled",
+            "alive": False,
+            "background": True,
+        }
+E       AssertionError: assert {'alive': Fal...process', ...} == {'alive': Fal...process', ...}
+E         
+E         Omitting 5 identical items, use -vv to show
+E         Differing items:
+E         {'session_id': 'alice/default/default'} != {'session_id': 'alice/spi_core/ssot-gen'}
+E         Use -v to get more diff
+
+/Users/brian/Desktop/Project/brian_hw/common_ai_agent/tests/test_atlas_multiuser_session_scope.py:837: AssertionError
+----------------------------- Captured stdout call -----------------------------
+[atlas] Multi-user enabled (process_per_session=on)
+05:13:52 [rehydrate] 0 jobs reconciled (rescued=0, marked-error=0)
+[Session] activate: IP 'spi_core' not found on disk under /private/tmp/claude-501/pytest-of-brian/pytest-0/test_single_worker_session_act0 — falling back to default/default (was workflow='ssot-gen')
+____________ test_process_session_activate_does_not_mutate_main_env ____________
+
+tmp_path = PosixPath('/private/tmp/claude-501/pytest-of-brian/pytest-0/test_process_session_activate_1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x103ec5700>
+
+    def test_process_session_activate_does_not_mutate_main_env(tmp_path, monkeypatch):
+        import os
+    
+        import src.atlas_ui as atlas_ui
+    
+        monkeypatch.setenv("HOME", str(tmp_path / "home"))
+        monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+        monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "1")
+        monkeypatch.setenv("ATLAS_ACTIVE_SESSION", "sentinel/ip_old/wf_old")
+        monkeypatch.setenv("ATLAS_ACTIVE_IP", "ip_old")
+        monkeypatch.setenv("ATLAS_DEFAULT_SESSION_ID", "sentinel")
+        monkeypatch.setenv("ATLAS_DEFAULT_WORKFLOW", "wf_old")
+        monkeypatch.setenv("ACTIVE_WORKSPACE", "wf_old")
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+    
+        app = atlas_ui.create_app()
+        client = TestClient(app)
+        _register(client, "alice")
+    
+        response = _activate(client, "alice", "spi_core", "rtl-gen")
+    
+        assert response.status_code == 200, response.text
+>       assert response.json()["active_session"] == "alice/spi_core/rtl-gen"
+E       AssertionError: assert 'alice/default/default' == 'alice/spi_core/rtl-gen'
+E         
+E         - alice/spi_core/rtl-gen
+E         + alice/default/default
+
+/Users/brian/Desktop/Project/brian_hw/common_ai_agent/tests/test_atlas_multiuser_session_scope.py:1028: AssertionError
+----------------------------- Captured stdout call -----------------------------
+[atlas] Multi-user enabled (process_per_session=on)
+05:13:53 [rehydrate] 0 jobs reconciled (rescued=0, marked-error=0)
+[Session] activate: IP 'spi_core' not found on disk under /private/tmp/claude-501/pytest-of-brian/pytest-0/test_process_session_activate_1 — falling back to default/default (was workflow='rtl-gen')
+__ test_session_activate_policy_and_mode_sweep_keeps_namespace_todos_isolated __
+
+tmp_path = PosixPath('/private/tmp/claude-501/pytest-of-brian/pytest-0/test_session_activate_policy_a0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10542eac0>
+
+    def test_session_activate_policy_and_mode_sweep_keeps_namespace_todos_isolated(tmp_path, monkeypatch):
+        import os
+    
+        import src.atlas_ui as atlas_ui
+        from core.atlas_db import AtlasDB
+    
+        monkeypatch.setenv("HOME", str(tmp_path / "home"))
+        monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+        monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+        monkeypatch.setenv("ATLAS_DB_PATH", str(tmp_path / "atlas.db"))
+        monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+        monkeypatch.delenv("ATLAS_RUN_MODE", raising=False)
+        monkeypatch.delenv("ATLAS_ORCHESTRATOR_MODE", raising=False)
+        monkeypatch.delenv("AGENT_MODE_OVERRIDE", raising=False)
+        monkeypatch.delenv("PLAN_MODE", raising=False)
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setattr(atlas_ui, "SOURCE_ROOT", tmp_path)
+        monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+    
+        app = atlas_ui.create_app()
+        client = TestClient(app)
+        _register(client, "alice")
+    
+        cases = [
+            ("spi_core", "ssot-gen", "starter", "orchestrator", "/mode plan", "true"),
+            ("spi_core", "rtl-gen", "engineering", "single-worker", "/normal", "false"),
+            ("uart_core", "tb-gen", "signoff", "orchestrator", "/mode plan", "true"),
+            ("uart_core", "sim_debug", "starter", "single-worker", "/normal", "false"),
+            ("spi_core", "coverage", "engineering", "orchestrator", "/mode plan", "true"),
+            ("uart_core", "orchestrator", "signoff", "orchestrator", "/normal", "false"),
+        ]
+        sentinels: dict[str, str] = {}
+    
+        for idx, (ip, workflow, run_mode, exec_mode, slash, expected_plan_mode) in enumerate(cases):
+            canonical = f"alice/{ip}/{workflow}"
+            response = _activate(client, "alice", ip, workflow)
+            assert response.status_code == 200, response.text
+>           assert response.json()["active_session"] == canonical
+E           AssertionError: assert 'alice/default/default' == 'alice/spi_core/ssot-gen'
+E             
+E             - alice/spi_core/ssot-gen
+E             + alice/default/default
+
+/Users/brian/Desktop/Project/brian_hw/common_ai_agent/tests/test_atlas_multiuser_session_scope.py:1102: AssertionError
+----------------------------- Captured stdout call -----------------------------
+[atlas] Multi-user enabled (process_per_session=off)
+05:13:53 [rehydrate] 0 jobs reconciled (rescued=0, marked-error=0)
+[Session] activate: IP 'spi_core' not found on disk under /private/tmp/claude-501/pytest-of-brian/pytest-0/test_session_activate_policy_a0 — falling back to default/default (was workflow='ssot-gen')
+__________________ test_model_scoped_session_dirs_are_opt_in ___________________
+
+tmp_path = PosixPath('/private/tmp/claude-501/pytest-of-brian/pytest-0/test_model_scoped_session_dirs0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1044e5bb0>
+
+    def test_model_scoped_session_dirs_are_opt_in(tmp_path, monkeypatch):
+        import src.atlas_ui as atlas_ui
+    
+        monkeypatch.setenv("HOME", str(tmp_path / "home"))
+        monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+        monkeypatch.setenv("ATLAS_SESSION_PER_MODEL", "1")
+        monkeypatch.setenv("LLM_ACTIVE_MODEL_NAME", "kimi-2.6")
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+    
+        app = atlas_ui.create_app()
+        client = TestClient(app)
+        _register(client, "alice")
+    
+        response = _activate(client, "alice", "ip_alpha", "sta")
+    
+        assert response.status_code == 200
+        assert response.json()["session_id"] == "alice__kimi-2_6"
+>       assert (tmp_path / ".session" / "alice__kimi-2_6" / "ip_alpha" / "sta" / "conversation.json").is_file()
+E       AssertionError: assert False
+E        +  where False = is_file()
+E        +    where is_file = (((((PosixPath('/private/tmp/claude-501/pytest-of-brian/pytest-0/test_model_scoped_session_dirs0') / '.session') / 'alice__kimi-2_6') / 'ip_alpha') / 'sta') / 'conversation.json').is_file
+
+/Users/brian/Desktop/Project/brian_hw/common_ai_agent/tests/test_atlas_multiuser_session_scope.py:1386: AssertionError
+----------------------------- Captured stdout call -----------------------------
+[atlas] Multi-user enabled (process_per_session=on)
+05:13:56 [rehydrate] 0 jobs reconciled (rescued=0, marked-error=0)
+[Session] activate: IP 'ip_alpha' not found on disk under /private/tmp/claude-501/pytest-of-brian/pytest-0/test_model_scoped_session_dirs0 — falling back to default/default (was workflow='sta')
+_______________ test_multiuser_and_process_isolation_default_on ________________
+
+tmp_path = PosixPath('/private/tmp/claude-501/pytest-of-brian/pytest-0/test_multiuser_and_process_iso0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10424c760>
+
+    def test_multiuser_and_process_isolation_default_on(tmp_path, monkeypatch):
+        import src.atlas_ui as atlas_ui
+    
+        monkeypatch.setenv("HOME", str(tmp_path / "home"))
+        monkeypatch.setenv("ATLAS_DB_PATH", str(tmp_path / "atlas.db"))
+        monkeypatch.delenv("ATLAS_MULTI_USER", raising=False)
+        monkeypatch.delenv("ATLAS_MULTI_USER_PROC", raising=False)
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+    
+        root_only_ip = tmp_path / "root_only_ip"
+        (root_only_ip / "rtl").mkdir(parents=True)
+        (root_only_ip / "yaml").mkdir()
+        (root_only_ip / "yaml" / "root_only_ip.ssot.yaml").write_text(
+            "ip: root_only_ip\n",
+            encoding="utf-8",
+        )
+    
+        app = atlas_ui.create_app()
+        alice = TestClient(app)
+        bob = TestClient(app)
+        _register(alice, "alice")
+        _register(bob, "bob")
+    
+        assert app.state.bridge._single_user is False
+        assert app.state.bridge._process_manager is not None
+    
+        assert _activate(alice, "alice", "ip_alpha", "sta").status_code == 200
+        assert _activate(bob, "bob", "ip_beta", "sta").status_code == 200
+    
+        alice_ips = alice.get("/api/ip/list")
+        assert alice_ips.status_code == 200, alice_ips.text
+>       assert {item["name"] for item in alice_ips.json()["items"]} == {"ip_alpha"}
+E       AssertionError: assert set() == {'ip_alpha'}
+E         
+E         Extra items in the right set:
+E         'ip_alpha'
+E         Use -v to get more diff
+
+/Users/brian/Desktop/Project/brian_hw/common_ai_agent/tests/test_atlas_multiuser_session_scope.py:1421: AssertionError
+----------------------------- Captured stdout call -----------------------------
+[atlas] Multi-user enabled (process_per_session=on)
+05:13:56 [rehydrate] 0 jobs reconciled (rescued=0, marked-error=0)
+[Session] activate: IP 'ip_alpha' not found on disk under /private/tmp/claude-501/pytest-of-brian/pytest-0/test_multiuser_and_process_iso0 — falling back to default/default (was workflow='sta')
+[Session] activate: IP 'ip_beta' not found on disk under /private/tmp/claude-501/pytest-of-brian/pytest-0/test_multiuser_and_process_iso0 — falling back to default/default (was workflow='sta')
+=========================== short test summary info ============================
+FAILED tests/test_atlas_multiuser_session_scope.py::test_multiuser_session_ip_workflow_dirs_and_ip_visibility
+FAILED tests/test_atlas_multiuser_session_scope.py::test_ip_list_hides_orphan_session_dirs_without_db_session
+FAILED tests/test_atlas_multiuser_session_scope.py::test_session_activate_records_db_control_plane_namespace
+FAILED tests/test_atlas_multiuser_session_scope.py::test_orchestrator_session_state_includes_ip_chat_ledger
+FAILED tests/test_atlas_multiuser_session_scope.py::test_session_activate_owner_alias_keeps_db_user_id_distinct
+FAILED tests/test_atlas_multiuser_session_scope.py::test_session_history_and_state_forbid_cross_user_namespace_reads
+FAILED tests/test_atlas_multiuser_session_scope.py::test_healthz_context_cost_is_scoped_to_active_namespace
+FAILED tests/test_atlas_multiuser_session_scope.py::test_healthz_does_not_share_cost_with_numeric_user_owner
+FAILED tests/test_atlas_multiuser_session_scope.py::test_http_control_stop_targets_request_user_session_only
+FAILED tests/test_atlas_multiuser_session_scope.py::test_session_activate_preserves_running_worker_when_requested
+FAILED tests/test_atlas_multiuser_session_scope.py::test_process_session_activate_keeps_single_worker_process_warm
+FAILED tests/test_atlas_multiuser_session_scope.py::test_single_worker_session_activate_warms_chat_process
+FAILED tests/test_atlas_multiuser_session_scope.py::test_process_session_activate_does_not_mutate_main_env
+FAILED tests/test_atlas_multiuser_session_scope.py::test_session_activate_policy_and_mode_sweep_keeps_namespace_todos_isolated
+FAILED tests/test_atlas_multiuser_session_scope.py::test_model_scoped_session_dirs_are_opt_in
+FAILED tests/test_atlas_multiuser_session_scope.py::test_multiuser_and_process_isolation_default_on
+16 failed, 55 passed in 14.70s

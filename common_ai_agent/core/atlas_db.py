@@ -558,6 +558,163 @@ CREATE TABLE IF NOT EXISTS orchestrator_steps (
 );
 CREATE INDEX IF NOT EXISTS idx_orchestrator_steps_run
     ON orchestrator_steps(run_id, step_index);
+
+-- session_runtime_dbs (CONTROL-DB manifest of per-session runtime DB files)
+-- One row per session that has (or had) a runtime DB. Maps the stable
+-- session_id -> the resolved-once session_uid -> the on-disk runtime path.
+-- The router reads this to find a session's runtime file, and recomputes the
+-- expected path from session_uid+root on every open as a traversal guard
+-- (the stored runtime_db_path is informational/audit, never blindly trusted).
+CREATE TABLE IF NOT EXISTS session_runtime_dbs (
+    session_id TEXT PRIMARY KEY,
+    session_uid TEXT NOT NULL,
+    runtime_db_path TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'active',
+    schema_version INTEGER NOT NULL DEFAULT 1,
+    created_at REAL NOT NULL,
+    updated_at REAL NOT NULL,
+    last_rollup_at REAL
+);
+CREATE INDEX IF NOT EXISTS idx_session_runtime_dbs_uid
+    ON session_runtime_dbs(session_uid);
+CREATE INDEX IF NOT EXISTS idx_session_runtime_dbs_status
+    ON session_runtime_dbs(status, updated_at);
+"""
+
+# Runtime-only schema subset.
+#
+# A per-session runtime DB only ever holds live IPC + session-scoped trace
+# rows; it must NOT materialize the ~24 control-plane tables (users, workspaces,
+# ip_blocks, workflow_runs, artifact_versions, ...). Running the full ~80-stmt
+# SCHEMA_SQL in every one of ~100 runtime files pays a cold-spawn DDL tax and
+# leaves two dozen empty tables per file. This subset is the exact set the plan
+# (§2.1 / §2.9) assigns to runtime DBs: session_queue, messages, parts,
+# trace_events, llm_calls + their indexes. The control DB keeps the FULL
+# SCHEMA_SQL. Both are idempotent (CREATE ... IF NOT EXISTS), so re-running is
+# safe and a runtime file later widened to full schema would simply add the
+# remaining tables.
+RUNTIME_SCHEMA_SQL = """
+-- messages
+CREATE TABLE IF NOT EXISTS messages (
+    id TEXT PRIMARY KEY,
+    session_id TEXT,
+    role TEXT,
+    agent TEXT,
+    model_id TEXT,
+    provider_id TEXT,
+    created_at REAL,
+    completed_at REAL,
+    cost REAL DEFAULT 0,
+    tokens_input INT DEFAULT 0,
+    tokens_output INT DEFAULT 0,
+    tokens_reasoning INT DEFAULT 0,
+    error TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_messages_session ON messages(session_id, created_at);
+
+-- parts
+CREATE TABLE IF NOT EXISTS parts (
+    id TEXT PRIMARY KEY,
+    message_id TEXT,
+    session_id TEXT,
+    type TEXT,
+    created_at REAL,
+    text TEXT,
+    tool_name TEXT,
+    call_id TEXT,
+    tool_status TEXT,
+    tool_input TEXT,
+    tool_output TEXT,
+    tool_error TEXT,
+    tool_title TEXT,
+    start_time REAL,
+    end_time REAL,
+    compacted_at REAL,
+    snapshot_hash TEXT,
+    patch_hash TEXT,
+    patch_files TEXT,
+    step_reason TEXT,
+    step_cost REAL,
+    step_tokens_input INT,
+    step_tokens_output INT
+);
+CREATE INDEX IF NOT EXISTS idx_parts_message ON parts(message_id);
+
+-- session_queue (IPC between Atlas UI and agent workers)
+CREATE TABLE IF NOT EXISTS session_queue (
+    id TEXT PRIMARY KEY,
+    session_id TEXT NOT NULL,
+    direction TEXT NOT NULL,
+    msg_type TEXT NOT NULL,
+    payload TEXT,
+    created_at REAL NOT NULL,
+    processed_at REAL,
+    delivered_at REAL,
+    expires_at REAL
+);
+CREATE INDEX IF NOT EXISTS idx_queue_session_direction ON session_queue(session_id, direction, created_at);
+CREATE INDEX IF NOT EXISTS idx_queue_created ON session_queue(created_at);
+
+-- trace_events (session-scoped append-only ledger)
+CREATE TABLE IF NOT EXISTS trace_events (
+    id TEXT PRIMARY KEY,
+    event_type TEXT NOT NULL,
+    session_id TEXT,
+    workspace_id TEXT,
+    ip_id TEXT,
+    workflow TEXT,
+    run_id TEXT,
+    stage_id TEXT,
+    todo_id TEXT,
+    message_id TEXT,
+    llm_call_id TEXT,
+    artifact_id TEXT,
+    actor_user_id TEXT,
+    correlation_id TEXT,
+    causation_id TEXT,
+    idempotency_key TEXT UNIQUE,
+    payload TEXT,
+    created_at REAL
+);
+CREATE INDEX IF NOT EXISTS idx_trace_events_context ON trace_events(workspace_id, ip_id, workflow, created_at);
+CREATE INDEX IF NOT EXISTS idx_trace_events_run ON trace_events(run_id, stage_id, todo_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_trace_events_correlation ON trace_events(correlation_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_trace_events_session ON trace_events(session_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_trace_events_chat_room
+  ON trace_events(event_type, ip_id, created_at);
+
+-- llm_calls (canonical token/cost trace)
+CREATE TABLE IF NOT EXISTS llm_calls (
+    id TEXT PRIMARY KEY,
+    message_id TEXT,
+    run_id TEXT,
+    stage_id TEXT,
+    todo_id TEXT,
+    session_id TEXT,
+    workspace_id TEXT,
+    ip_id TEXT,
+    workflow TEXT,
+    model TEXT,
+    provider TEXT,
+    base_url_hash TEXT,
+    call_role TEXT,
+    attempt INT DEFAULT 1,
+    tokens_input INT DEFAULT 0,
+    tokens_output INT DEFAULT 0,
+    tokens_reasoning INT DEFAULT 0,
+    cache_read_tokens INT DEFAULT 0,
+    cache_write_tokens INT DEFAULT 0,
+    cost_usd REAL DEFAULT 0,
+    latency_ms REAL,
+    status TEXT,
+    error_type TEXT,
+    created_at REAL,
+    completed_at REAL
+);
+CREATE INDEX IF NOT EXISTS idx_llm_calls_context ON llm_calls(workspace_id, ip_id, workflow, created_at);
+CREATE INDEX IF NOT EXISTS idx_llm_calls_session ON llm_calls(session_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_llm_calls_ip_created ON llm_calls(ip_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_llm_calls_todo ON llm_calls(todo_id, created_at);
 """
 
 # Columns that should be serialized as JSON on write / deserialized on read
@@ -598,24 +755,40 @@ class AtlasDB:
     and an RLock to serialize access across threads.
     """
 
-    # Process-wide serialization. Every AtlasDB(...) opens its own
+    # Path-scoped serialization. Every AtlasDB(...) opens its own
     # sqlite3 connection, so a per-instance lock cannot serialize
     # writers across threads that each `with AtlasDB(...) as db:`. Without
-    # this class-level RLock, N concurrent writers all hit SQLite's WAL
-    # single-writer queue and compete on busy_timeout (30s). All
-    # instances now share `_WRITE_LOCK` as their `_lock`, so SQLite only
-    # ever sees one writer at a time per process. RLock is reentrant so
-    # nested method calls within the same thread are safe. Reads incur
-    # a tiny lock overhead but the SQLite call dominates.
-    _WRITE_LOCK = threading.RLock()
+    # a shared lock, N concurrent writers all hit SQLite's WAL
+    # single-writer queue and compete on busy_timeout (30s).
+    #
+    # Historically this was ONE process-wide ``_WRITE_LOCK`` shared by every
+    # instance — which over-serialized writers to DISTINCT db files against
+    # each other. With per-session runtime DBs (one SQLite file per session),
+    # a single global lock would funnel 100 independent runtime files through
+    # one Python lock, defeating the point of sharding. So the lock is now
+    # keyed by the resolved db path: same file -> same RLock (existing same-DB
+    # concurrency still serializes against SQLite's single-writer queue);
+    # different files -> different RLocks (true parallelism at the Python layer,
+    # each file has its own WAL single-writer queue underneath).
+    #
+    # ``_LOCKS_BY_PATH`` is keyed by ``str(Path(db_path).resolve())``. Mutating
+    # it is itself guarded by ``_LOCKS_GUARD`` so two threads creating the lock
+    # for a brand-new path can't race and end up with two different RLock
+    # objects for the same file. ``:memory:`` is unshareable across connections,
+    # so each in-memory instance gets its OWN instance-local lock.
+    # RLock is reentrant so nested method calls within the same thread are safe.
+    _LOCKS_BY_PATH: Dict[str, "threading.RLock"] = {}
+    _LOCKS_GUARD = threading.RLock()
 
     # Schema bootstrap is idempotent but not free: the full DDL script
     # (~80 CREATE statements) plus the preflight/migration PRAGMA scans cost
-    # ~3 ms per run under _WRITE_LOCK. Hot paths build `with AtlasDB(...)`
+    # ~3 ms per run under the write lock. Hot paths build `with AtlasDB(...)`
     # thousands of times, so re-running it on every construction serialized
-    # the LLM loop behind redundant re-initialization. Track which db files
-    # this process has already initialized and skip the work after the first
-    # pass. Guarded by _WRITE_LOCK (set mutation happens inside the lock).
+    # the LLM loop behind redundant re-initialization. Track which
+    # (db file, schema_set) pairs this process has already initialized and skip
+    # the work after the first pass. Mutation happens inside the per-path lock.
+    # NOTE: entries are (db_path, schema_set) tuples so a path opened as
+    # 'runtime' then 'full' (or vice versa) still gets the right bootstrap.
     _INITIALIZED_PATHS: set = set()
 
     # Per-thread connection cache keyed by db_path. Opening + WAL-configuring
@@ -627,16 +800,69 @@ class AtlasDB:
     # iterated after the lock releases without colliding with another thread.
     _TLS = threading.local()
 
-    def __init__(self, db_path: str = None):
+    def __init__(self, db_path: str = None, schema_set: str = "full"):
+        """Open (and lazily initialize) a SQLite-backed AtlasDB.
+
+        Args:
+            db_path: SQLite file path. Defaults to ATLAS_DB_PATH or the
+                control DB under ~/.common_ai_agent/atlas.db.
+            schema_set: ``"full"`` (default, the control DB — all ~24 tables)
+                or ``"runtime"`` (per-session runtime DB — only the IPC/trace
+                subset: session_queue, messages, parts, trace_events, llm_calls
+                + their indexes). The runtime subset avoids materializing ~24
+                unused control tables in every per-session file. Callers that
+                do not know/care keep the historical full behavior.
+        """
         if db_path is None:
             db_path = os.environ.get("ATLAS_DB_PATH") or str(Path.home() / ".common_ai_agent" / "atlas.db")
         self.db_path = db_path
-        self._lock = AtlasDB._WRITE_LOCK
+        if schema_set not in ("full", "runtime"):
+            raise ValueError(f"schema_set must be 'full' or 'runtime', got {schema_set!r}")
+        self._schema_set = schema_set
+        self._lock = AtlasDB._lock_for_path(db_path)
         self._conn: Optional[sqlite3.Connection] = None
         # Ensure parent dir + schema exist on first instantiation.
         # SCHEMA_SQL is idempotent (CREATE TABLE IF NOT EXISTS).
-        Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)
+        if db_path != ":memory:":
+            Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)
         self.init_db()
+
+    @staticmethod
+    def _lock_key(db_path: str) -> str:
+        """Stable key for the per-path lock map.
+
+        ``:memory:`` is unshareable across connections, so it is NOT keyed in
+        the shared map — callers get a fresh instance-local lock instead (see
+        ``_lock_for_path``). For real files we resolve the path so two callers
+        spelling the same file differently (``./a.db`` vs an absolute path)
+        share one lock and therefore one Python-level write queue.
+        """
+        if db_path == ":memory:":
+            return ":memory:"
+        try:
+            return str(Path(db_path).resolve())
+        except Exception:
+            return os.path.abspath(db_path)
+
+    @classmethod
+    def _lock_for_path(cls, db_path: str) -> "threading.RLock":
+        """Return the RLock that serializes Python-level access to *db_path*.
+
+        Same resolved path -> same lock (serialize same-DB callers). Different
+        paths -> different locks (de-serialize distinct runtime files).
+        ``:memory:`` -> a brand-new instance-local lock every time (in-memory
+        DBs are not shared between connections, so sharing a lock would be
+        pointless cross-talk).
+        """
+        if db_path == ":memory:":
+            return threading.RLock()
+        key = cls._lock_key(db_path)
+        with cls._LOCKS_GUARD:
+            lock = cls._LOCKS_BY_PATH.get(key)
+            if lock is None:
+                lock = threading.RLock()
+                cls._LOCKS_BY_PATH[key] = lock
+            return lock
 
     def _connect(self) -> sqlite3.Connection:
         """Return this thread's connection for db_path, opening it once."""
@@ -738,18 +964,29 @@ class AtlasDB:
     def init_db(self):
         """Create tables and indexes if they don't exist.
 
-        Runs the full schema bootstrap once per db file per process; later
-        calls return immediately (see _INITIALIZED_PATHS).
+        Runs the schema bootstrap once per (db file, schema_set) per process;
+        later calls return immediately (see _INITIALIZED_PATHS). This one-time
+        guard is the 7.85ms -> 0.012ms win and is preserved here.
+
+        ``schema_set='runtime'`` bootstraps only the 5-table IPC/trace subset
+        (RUNTIME_SCHEMA_SQL) and skips the control-table legacy preflight/
+        migrations, which only touch tables a runtime DB never has.
         """
+        # Key the guard by (path, schema_set): a path opened first as 'runtime'
+        # and later as 'full' must still get the full bootstrap, and vice versa.
+        guard_key = (self.db_path, self._schema_set)
         with self._lock:
-            if self.db_path in AtlasDB._INITIALIZED_PATHS:
+            if guard_key in AtlasDB._INITIALIZED_PATHS:
                 return
             conn = self._connect()
-            self._preflight_legacy_schema(conn)
-            conn.executescript(SCHEMA_SQL)
-            self._run_lightweight_migrations(conn)
+            if self._schema_set == "runtime":
+                conn.executescript(RUNTIME_SCHEMA_SQL)
+            else:
+                self._preflight_legacy_schema(conn)
+                conn.executescript(SCHEMA_SQL)
+                self._run_lightweight_migrations(conn)
             conn.commit()
-            AtlasDB._INITIALIZED_PATHS.add(self.db_path)
+            AtlasDB._INITIALIZED_PATHS.add(guard_key)
 
     def _preflight_legacy_schema(self, conn: sqlite3.Connection) -> None:
         """Add columns needed by indexes before running idempotent DDL.
@@ -1903,6 +2140,103 @@ class AtlasDB:
             "session_kind": "runtime",
         }
 
+    # ---------- Runtime DB manifest (control DB only) ----------
+
+    def upsert_session_runtime_db(
+        self,
+        session_id: str,
+        session_uid: str,
+        runtime_db_path: str,
+        *,
+        status: str = "active",
+        schema_version: int = 1,
+    ) -> Dict[str, Any]:
+        """Create or update the control-DB manifest row for a runtime DB.
+
+        Keyed by the stable ``session_id``. The ``session_uid`` and
+        ``runtime_db_path`` are written on first insert and refreshed on update
+        but the router resolves the uid ONCE via ``upsert_runtime_session`` and
+        never re-mints it, so the path stays byte-identical across retries
+        (the cross-DB-accept-atomicity guarantee in plan §2.5 / R4).
+        """
+        now = self._now()
+        with self._lock:
+            conn = self._connect()
+            existing = conn.execute(
+                "SELECT created_at FROM session_runtime_dbs WHERE session_id = ?",
+                (session_id,),
+            ).fetchone()
+            created_at = existing["created_at"] if existing is not None else now
+            conn.execute(
+                """
+                INSERT INTO session_runtime_dbs
+                    (session_id, session_uid, runtime_db_path, status,
+                     schema_version, created_at, updated_at, last_rollup_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, NULL)
+                ON CONFLICT(session_id) DO UPDATE SET
+                    session_uid = excluded.session_uid,
+                    runtime_db_path = excluded.runtime_db_path,
+                    status = excluded.status,
+                    schema_version = excluded.schema_version,
+                    updated_at = excluded.updated_at
+                """,
+                (
+                    session_id,
+                    session_uid,
+                    runtime_db_path,
+                    status,
+                    schema_version,
+                    created_at,
+                    now,
+                ),
+            )
+            conn.commit()
+        return self.get_session_runtime_db(session_id) or {
+            "session_id": session_id,
+            "session_uid": session_uid,
+            "runtime_db_path": runtime_db_path,
+            "status": status,
+            "schema_version": schema_version,
+            "created_at": created_at,
+            "updated_at": now,
+            "last_rollup_at": None,
+        }
+
+    def get_session_runtime_db(self, session_id: str) -> Optional[Dict[str, Any]]:
+        """Return the manifest row for *session_id*, or None."""
+        row = self._fetchone(
+            "SELECT * FROM session_runtime_dbs WHERE session_id = ?",
+            (session_id,),
+        )
+        if row is None:
+            return None
+        return self._row_to_dict(row, "session_runtime_dbs")
+
+    def get_session_runtime_db_by_uid(self, session_uid: str) -> Optional[Dict[str, Any]]:
+        """Return the manifest row for a runtime *session_uid*, or None."""
+        if not session_uid:
+            return None
+        row = self._fetchone(
+            "SELECT * FROM session_runtime_dbs WHERE session_uid = ? LIMIT 1",
+            (session_uid,),
+        )
+        if row is None:
+            return None
+        return self._row_to_dict(row, "session_runtime_dbs")
+
+    def list_session_runtime_dbs(self, status: Optional[str] = None) -> List[Dict[str, Any]]:
+        """List runtime-DB manifest rows, optionally filtered by status."""
+        if status is None:
+            rows = self._fetchall(
+                "SELECT * FROM session_runtime_dbs ORDER BY updated_at DESC"
+            )
+        else:
+            rows = self._fetchall(
+                "SELECT * FROM session_runtime_dbs WHERE status = ? ORDER BY updated_at DESC",
+                (status,),
+            )
+        return [self._row_to_dict(row, "session_runtime_dbs") for row in rows]
+
     def archive_session(self, session_id: str):
         """Mark a session as archived."""
         self._execute(
@@ -2442,11 +2776,17 @@ class AtlasDB:
                 # Use IMMEDIATE to acquire the write lock early for atomicity
                 conn.execute("BEGIN IMMEDIATE")
                 try:
+                    # Strict total order: (created_at, rowid). created_at is
+                    # wall-clock time.time() (non-monotonic, tie-prone); the
+                    # monotonic per-file ``rowid`` is the collision-free
+                    # tiebreaker so two rows enqueued at an identical created_at
+                    # still dequeue lowest-rowid-first, never reordered/skipped
+                    # (plan §2.3 / R1).
                     row = conn.execute(
                         """
-                        SELECT * FROM session_queue
+                        SELECT rowid AS _rowid, * FROM session_queue
                         WHERE session_id = ? AND direction = ? AND processed_at IS NULL
-                        ORDER BY created_at ASC
+                        ORDER BY created_at ASC, rowid ASC
                         LIMIT 1
                         """,
                         (session_id, direction),
@@ -2460,6 +2800,7 @@ class AtlasDB:
                         )
                         conn.commit()
                         result = self._row_to_dict(row, "session_queue")
+                        result.pop("_rowid", None)
                         result["processed_at"] = now
                         return result
 
@@ -2482,29 +2823,67 @@ class AtlasDB:
         """Non-blocking fetch of undelivered messages for a session and direction.
 
         Filters messages where delivered_at IS NULL, optionally after since_id.
+
+        Strict total order (plan §2.3-2.4 / R1/R5): rows are ordered by
+        ``(created_at, rowid)`` and the ``since_id`` cursor is VALUE-BASED on
+        that same tuple. The old correlated subselect compared only
+        ``created_at`` with strict ``>``, so it could (a) SKIP a row sharing the
+        cursor's created_at, and (b) return 0 rows forever if the cursor id was
+        absent (``created_at > NULL`` is never true). The value-based tuple
+        cursor ``(created_at, rowid) > (cursor_created_at, cursor_rowid)`` fixes
+        the skip; absent-cursor handling below preserves the historical 0-rows
+        contract for now (Unit B / Task 4 will replace that with a non-silent
+        recoverable status — see backward_compat_notes).
+
+        ``since_id`` remains the queue row's TEXT ``id`` (unchanged for callers).
         """
         if since_id is not None:
+            # Resolve the cursor row's (created_at, rowid) by its TEXT id.
+            cursor = self._fetchone(
+                "SELECT rowid AS _rowid, created_at FROM session_queue WHERE id = ?",
+                (since_id,),
+            )
+            if cursor is None:
+                # Cursor id not present in THIS db (recreated/swapped runtime DB,
+                # or a stale id). Historically this yielded 0 rows (the
+                # correlated subselect returned NULL). Preserve that for callers
+                # in this unit; Task 4 (R5) makes this a non-silent status.
+                return []
+            cursor_created_at = cursor["created_at"]
+            cursor_rowid = cursor["_rowid"]
             rows = self._fetchall(
                 """
-                SELECT * FROM session_queue
+                SELECT rowid AS _rowid, * FROM session_queue
                 WHERE session_id = ? AND direction = ? AND delivered_at IS NULL
-                AND created_at > (SELECT created_at FROM session_queue WHERE id = ?)
-                ORDER BY created_at ASC
+                  AND (created_at > ? OR (created_at = ? AND rowid > ?))
+                ORDER BY created_at ASC, rowid ASC
                 LIMIT ?
                 """,
-                (session_id, direction, since_id, limit),
+                (
+                    session_id,
+                    direction,
+                    cursor_created_at,
+                    cursor_created_at,
+                    cursor_rowid,
+                    limit,
+                ),
             )
         else:
             rows = self._fetchall(
                 """
-                SELECT * FROM session_queue
+                SELECT rowid AS _rowid, * FROM session_queue
                 WHERE session_id = ? AND direction = ? AND delivered_at IS NULL
-                ORDER BY created_at ASC
+                ORDER BY created_at ASC, rowid ASC
                 LIMIT ?
                 """,
                 (session_id, direction, limit),
             )
-        return [self._row_to_dict(row, "session_queue") for row in rows]
+        results = []
+        for row in rows:
+            d = self._row_to_dict(row, "session_queue")
+            d.pop("_rowid", None)
+            results.append(d)
+        return results
 
     def acknowledge_message(self, msg_id: str) -> None:
         """Mark a message as delivered."""

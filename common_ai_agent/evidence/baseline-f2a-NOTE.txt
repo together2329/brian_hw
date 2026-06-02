@@ -1,0 +1,6 @@
+# Baseline F2a (branch feat/runtime-db-100users @ 33fb7335) — 2026-06-03
+Result: 16 failed, 55 passed.
+ALL 16 failures are in tests/test_atlas_multiuser_session_scope.py — PRE-EXISTING, unrelated to the runtime-DB refactor.
+Root cause: commit 814f8cdc 'fix(sessions): phantom-IP guard' makes /api/session/activate fall back to default/default when project_root()/<ip> is not a dir; these tests activate IPs (ip_alpha, etc.) without scaffolding them under core/custom_agents.project_root(). Tests patch atlas_ui.PROJECT_ROOT but the guard uses custom_agents.project_root().
+The other 4 F2a files (test_process_based_sessions, test_atlas_input_deep_runtime, test_atlas_db_concurrent_writers, test_react_loop_worker_llm_call_persist) PASS.
+Regression criterion for this refactor: those 4 stay green; the 16-failure set in session_scope does not grow; all NEW tests pass.
