@@ -134,6 +134,25 @@ def test_atlas_context_rejects_path_escape_segments(tmp_path: Path) -> None:
         AtlasContext.from_session_key("alice/session-a/../rtl-gen", atlas_root=tmp_path)
 
 
+def test_worker_env_uses_v2_workspace_and_ip_roots(tmp_path: Path, monkeypatch) -> None:
+    from core.session_process_manager import SessionProcessManager
+
+    monkeypatch.setenv("ATLAS_ROOT", str(tmp_path))
+    manager = SessionProcessManager(project_root=tmp_path)
+
+    env = manager.build_worker_env("alice/s1/NEWIP_MCTP/ssot-gen")
+
+    workspace_root = tmp_path / "alice" / "s1"
+    assert env["ATLAS_ACTIVE_SESSION"] == "alice/s1/NEWIP_MCTP/ssot-gen"
+    assert env["ATLAS_CONTEXT_KEY"] == "alice/s1/NEWIP_MCTP/ssot-gen"
+    assert Path(env["ATLAS_PROJECT_ROOT"]).resolve() == workspace_root.resolve()
+    assert Path(env["ATLAS_IP_ROOT"]).resolve() == (workspace_root / "NEWIP_MCTP").resolve()
+    assert Path(env["ATLAS_SESSION_DIR"]).resolve() == (
+        workspace_root / ".session" / "NEWIP_MCTP" / "ssot-gen"
+    ).resolve()
+    assert manager._owner_for_session("alice/s1/NEWIP_MCTP/ssot-gen") == "alice/s1"
+
+
 def test_trace_recorder_writes_event_ledger_and_projections(tmp_path: Path) -> None:
     from core.atlas_context import SessionContext
     from core.atlas_trace import TraceRecorder
