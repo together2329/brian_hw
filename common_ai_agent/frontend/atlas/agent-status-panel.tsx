@@ -363,7 +363,11 @@ const AgentStatusPanel = ({ intent, workflow, activeIp = '', agentAlive = false,
       if (dead) return;
       if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
       try {
-        const r = await fetch('/api/session/worker/status', { cache: 'no-store' });
+        const activeSession = normalizeUiSession(w.ACTIVE_SESSION || '');
+        const statusUrl = activeSession
+          ? `/api/session/worker/status?session_id=${encodeURIComponent(activeSession)}`
+          : '/api/session/worker/status';
+        const r = await fetch(statusUrl, { cache: 'no-store' });
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const j = (await r.json()) as Record<string, unknown>;
         const w0 = (j && (j as { worker?: Record<string, unknown> }).worker) || {};

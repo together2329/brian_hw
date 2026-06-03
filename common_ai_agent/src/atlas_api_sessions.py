@@ -1359,6 +1359,29 @@ def register_sessions_routes(
             # ATLAS_SESSION_PER_MODEL=1 (e.g. alice -> alice__gpt_5).
             owner_slot = _session_owner_with_model(authenticated_owner) if authenticated_owner else ""
 
+            requested_session = normalize_session_name(
+                str(
+                    request.query_params.get("session_id")
+                    or request.query_params.get("session")
+                    or ""
+                )
+            )
+            if requested_session and _multi_user_enabled():
+                requested_parts = [
+                    part for part in requested_session.split("/") if part
+                ]
+                expected_owner = _session_owner_with_model(authenticated_owner)
+                if not authenticated_owner:
+                    return JSONResponse({"error": "login required"}, status_code=401)
+                if not requested_parts or requested_parts[0] not in {
+                    authenticated_owner,
+                    expected_owner,
+                }:
+                    return JSONResponse(
+                        {"error": "session owner mismatch"},
+                        status_code=403,
+                    )
+
             owner_active_session = ""
             try:
                 active_fn = getattr(bridge, "active_session_for_owner", None)
@@ -1366,6 +1389,14 @@ def register_sessions_routes(
                     owner_active_session = str(active_fn(owner_slot) or "")
             except Exception:
                 owner_active_session = ""
+            if requested_session:
+                owner_active_session = requested_session
+                try:
+                    slot_fn = getattr(bridge, "owner_slot_key", None)
+                    if callable(slot_fn):
+                        owner_slot = str(slot_fn(requested_session) or owner_slot)
+                except Exception:
+                    pass
 
             payload["owner"] = owner_slot or authenticated_owner
             payload["authenticated_owner"] = authenticated_owner
@@ -1374,6 +1405,8 @@ def register_sessions_routes(
             if owner_slot and owner_slot != authenticated_owner:
                 payload["owner_slot"] = owner_slot
             payload["owner_active_session"] = owner_active_session
+            if requested_session:
+                payload["requested_session_id"] = requested_session
             payload["worker"] = _worker_view(owner_active_session)
 
             # Admin all-owner inventory — ONLY behind an explicit admin_check.

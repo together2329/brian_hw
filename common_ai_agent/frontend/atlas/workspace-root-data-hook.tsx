@@ -433,7 +433,11 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       if (cancelled) return;
       if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
       try {
-        const r = await fetch('/api/session/worker/status', { cache: 'no-store' });
+        const activeSession = normalizeUiSession(w.ACTIVE_SESSION || '');
+        const statusUrl = activeSession
+          ? `/api/session/worker/status?session_id=${encodeURIComponent(activeSession)}`
+          : '/api/session/worker/status';
+        const r = await fetch(statusUrl, { cache: 'no-store' });
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const j: any = await r.json();
         const hasStatusPayload = !!j && (

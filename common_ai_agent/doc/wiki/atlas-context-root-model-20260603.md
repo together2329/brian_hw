@@ -260,3 +260,40 @@ Regression evidence:
 - Computer Use on the existing ATLAS Desktop window confirmed it was attached to
   a separate existing `127.0.0.1:3030` instance and now reports failed worker
   state honestly instead of green ready.
+
+## 2026-06-03 Session Worker Status Scope Follow-Up
+
+Interactive session workers may remain hot for old sessions so users can switch
+back quickly, but the active UI must never read status from a previous
+workspace session. The status request is now exact-scoped by the canonical
+context key:
+
+```text
+/api/session/worker/status?session_id=user/session/ip/workflow
+```
+
+The backend validates the requested session owner against the authenticated
+user before returning worker status. That prevents `alice/s1/...` from seeing
+`bob/...`, and it prevents `alice/s1/...` from accidentally displaying the
+latest `alice/s2/...` worker.
+
+Regression evidence:
+
+- `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest tests/test_session_worker_e2e.py -q`
+  -> 3 passed.
+- `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest tests/test_owner_slot_switch.py tests/test_session_worker_e2e.py -q`
+  -> 19 passed.
+- `npm run test -- --run __tests__/workspace-render-smoke.test.tsx __tests__/agent-worker-status.test.tsx`
+  -> 37 passed.
+- `npm run build` -> pass.
+- Web E2E on temporary server `127.0.0.1:37971`: after activating
+  `alice/s1/ip_a/default` and `alice/s2/ip_a/default`, the frontend polled
+  `/api/session/worker/status?session_id=.../s1/...` before the switch and
+  `/api/session/worker/status?session_id=.../s2/...` after the switch. Direct
+  status calls returned the matching worker session for both `s1` and `s2`;
+  a cross-owner request returned 403. Screenshot:
+  `.omo/ulw-loop/evidence/browser/atlas-session-status-e2e.png`.
+- Computer Use was attempted against both installed ATLAS app paths, but the
+  tool returned `cgWindowNotFound` / `remoteConnection` for this desktop window
+  during this follow-up. The browser E2E above covered the Web UI status
+  request path that the Desktop shell also loads from the backend URL.

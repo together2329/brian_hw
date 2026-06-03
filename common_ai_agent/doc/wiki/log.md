@@ -2,6 +2,14 @@
 
 ## 2026-06-03
 
+- Fixed ATLAS interactive worker status leakage across workspace sessions.
+  Frontend status polling now includes the active canonical
+  `user/session/ip/workflow`, and `/api/session/worker/status` validates that
+  query against the authenticated owner before returning the worker view. Same
+  user / same IP / different session now reports the selected session worker,
+  not the last active sibling session. Regression, build, Web E2E, and
+  Computer Use attempt notes are recorded in
+  [[atlas-context-root-model-20260603]].
 - Fixed ATLAS workspace-session IP roster leakage. New workspace sessions now
   activate as `user/session/default/default` instead of inheriting the previous
   IP/workflow, and `/api/ip/list` honors `user/workspace_session` scope so a

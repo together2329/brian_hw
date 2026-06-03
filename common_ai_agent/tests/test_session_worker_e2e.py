@@ -9,6 +9,7 @@ entire bridge + API + policy control plane is real.
 from __future__ import annotations
 
 import sys
+import time
 from pathlib import Path
 
 import pytest
@@ -27,8 +28,10 @@ def _register(client: TestClient, username: str) -> None:
     assert r.status_code == 200, r.text
 
 
-def _activate(client, session_id, ip, workflow, preserve_running=None):
+def _activate(client, session_id, ip, workflow, preserve_running=None, workspace_session=None):
     body = {"session_id": session_id, "ip": ip, "workflow": workflow}
+    if workspace_session is not None:
+        body["workspace_session"] = workspace_session
     if preserve_running is not None:
         body["preserve_running"] = preserve_running
     return client.post("/api/session/activate", json=body)
@@ -41,6 +44,7 @@ def _make_app(tmp_path, monkeypatch, *, max_active):
     monkeypatch.setenv("ATLAS_DB_PATH", str(tmp_path / "atlas.db"))
     monkeypatch.setenv("ATLAS_MULTI_USER", "1")
     monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "1")
+    monkeypatch.setenv("ATLAS_SESSION_WORKER_KEEPALIVE", "1")
     monkeypatch.setenv("ATLAS_SESSION_WORKER_POLICY", "single-active-owner")
     monkeypatch.setenv("ATLAS_SESSION_WORKER_MAX_ACTIVE", str(max_active))
     for k in ("ATLAS_ORCHESTRATOR_MODE", "ATLAS_EXEC_MODE", "ATLAS_DEFAULT_EXEC_MODE"):
@@ -57,6 +61,15 @@ def _make_app(tmp_path, monkeypatch, *, max_active):
 
 def _alive_for(fake, owner):
     return sorted(s for s in fake.list_active() if s.split("/", 1)[0] == owner)
+
+
+def _wait_until_alive(fake, session_id: str) -> None:
+    deadline = time.time() + 2.0
+    while time.time() < deadline:
+        if session_id in fake.list_active():
+            return
+        time.sleep(0.02)
+    assert session_id in fake.list_active()
 
 
 def test_e2e_strict_switch_isolation_and_status(tmp_path, monkeypatch):
@@ -92,6 +105,46 @@ def test_e2e_strict_switch_isolation_and_status(tmp_path, monkeypatch):
     assert sbody["owner"] == "alice"
     assert sbody["owner_active_session"] == "alice/ip_a/rtl-gen"
     assert "bob" not in str(sbody)
+
+
+def test_worker_status_uses_requested_v2_workspace_session(tmp_path, monkeypatch):
+    app = _make_app(tmp_path, monkeypatch, max_active=10)
+    fake = app.state.bridge._process_manager
+    alice = TestClient(app)
+    _register(alice, "alice")
+
+    assert _activate(
+        alice, "alice", "ip_a", "ssot-gen", workspace_session="s1"
+    ).status_code == 200
+    assert _activate(
+        alice, "alice", "ip_a", "ssot-gen", workspace_session="s2"
+    ).status_code == 200
+    assert app.state.bridge.warm_session("alice/s1/ip_a/ssot-gen")["alive"] is True
+    assert app.state.bridge.warm_session("alice/s2/ip_a/ssot-gen")["alive"] is True
+    _wait_until_alive(fake, "alice/s1/ip_a/ssot-gen")
+    _wait_until_alive(fake, "alice/s2/ip_a/ssot-gen")
+
+    s1 = alice.get(
+        "/api/session/worker/status",
+        params={"session_id": "alice/s1/ip_a/ssot-gen"},
+    )
+    assert s1.status_code == 200, s1.text
+    assert s1.json()["owner_active_session"] == "alice/s1/ip_a/ssot-gen"
+    assert s1.json()["worker"]["session_id"] == "alice/s1/ip_a/ssot-gen"
+
+    s2 = alice.get(
+        "/api/session/worker/status",
+        params={"session_id": "alice/s2/ip_a/ssot-gen"},
+    )
+    assert s2.status_code == 200, s2.text
+    assert s2.json()["owner_active_session"] == "alice/s2/ip_a/ssot-gen"
+    assert s2.json()["worker"]["session_id"] == "alice/s2/ip_a/ssot-gen"
+
+    denied = alice.get(
+        "/api/session/worker/status",
+        params={"session_id": "bob/s1/ip_a/ssot-gen"},
+    )
+    assert denied.status_code == 403, denied.text
 
 
 def test_e2e_capacity_blocked_activation_is_active_no_worker(tmp_path, monkeypatch):

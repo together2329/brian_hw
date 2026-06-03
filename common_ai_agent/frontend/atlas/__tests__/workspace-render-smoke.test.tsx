@@ -406,7 +406,7 @@ describe('Workspace render smoke (the behavioral gate)', () => {
 
   it('shows session worker failure ahead of the idle ready footer', async () => {
     global.fetch = vi.fn(async (url: RequestInfo | URL, _init?: RequestInit) => {
-      if (String(url) === '/api/session/worker/status') {
+      if (String(url).startsWith('/api/session/worker/status')) {
         return new Response(JSON.stringify({
           policy: 'strict',
           active_count: 0,
@@ -427,7 +427,7 @@ describe('Workspace render smoke (the behavioral gate)', () => {
 
   it('treats missing current-session worker as failed even when other workers are active', async () => {
     global.fetch = vi.fn(async (url: RequestInfo | URL, _init?: RequestInit) => {
-      if (String(url) === '/api/session/worker/status') {
+      if (String(url).startsWith('/api/session/worker/status')) {
         return new Response(JSON.stringify({
           policy: 'strict',
           active_count: 1,
@@ -448,7 +448,7 @@ describe('Workspace render smoke (the behavioral gate)', () => {
 
   it('shows Agent responding ahead of stale session worker failure', async () => {
     global.fetch = vi.fn(async (url: RequestInfo | URL, _init?: RequestInit) => {
-      if (String(url) === '/api/session/worker/status') {
+      if (String(url).startsWith('/api/session/worker/status')) {
         return new Response(JSON.stringify({
           policy: 'strict',
           active_count: 0,
