@@ -97,6 +97,29 @@ class DummyProcessManager(SessionProcessManager):
             }
         return True
 
+    def spawn_result(self, session_id, db_path=None, policy=None, *, replacing=None, reserve=False):
+        # The bridge now admits workers via spawn_result (the Task-4 source of
+        # truth); this double overrides the dummy spawn(), so spawn_result must
+        # delegate to it (otherwise the inherited real spawn_result would Popen a
+        # real core.session_worker and bypass the dummy script).
+        from core.session_process_manager import (
+            SPAWN_STATUS_READY,
+            SPAWN_STATUS_STARTED,
+            SpawnResult,
+        )
+
+        owner = self._owner_for_session(session_id)
+        if self.is_alive(session_id):
+            return SpawnResult(
+                ok=True, status=SPAWN_STATUS_READY, session_id=session_id,
+                owner=owner, pid=self.get_pid(session_id),
+            )
+        ok = bool(self.spawn(session_id, db_path=db_path))
+        return SpawnResult(
+            ok=ok, status=SPAWN_STATUS_STARTED if ok else "capacity_wait",
+            session_id=session_id, owner=owner, pid=self.get_pid(session_id),
+        )
+
 
 @pytest.fixture(scope="module")
 def dummy_worker_script():

@@ -1045,6 +1045,29 @@ class _MultiUserBridge:
                 self._process_output_cursors[session.session_id] = latest_output_id
             else:
                 self._process_output_cursors.pop(session.session_id, None)
+        # Capacity admission (Wave-3 H2/H3/H9): refuse a genuinely NET-NEW owner
+        # slot over the global cap. A same-owner switch already terminated its old
+        # worker above (_prepare_owner_slot_for_session), so the post-termination
+        # active count leaves room — it is never self-refused; an already-alive
+        # session short-circuits (consumes no new slot). The cap lives on the
+        # policy (session-scoped => cap_enabled False => unbounded, byte-identical
+        # to the historical bare spawn()). We deliberately still call
+        # manager.spawn() (not spawn_result) so the bool contract and any spawn
+        # override/monkeypatch keep working; the cap is gated here instead.
+        policy = self.session_worker_policy()
+        if (
+            getattr(policy, "cap_enabled", False)
+            and not manager.is_alive(session.session_id)
+            and policy.cap_exceeded(len(manager.list_active()))
+        ):
+            # No worker admitted (cap). The owner-slot mapping was already
+            # recorded by _prepare/_mark_owner_active in the caller
+            # (active_no_worker); do not claim the worker is alive.
+            session.last_spawn_status = "capacity_wait"
+            session.agent_alive = False
+            session.emit("agent_state", running=bool(session.agent_running), alive=False)
+            return False
+        session.last_spawn_status = "started"
         spawned = bool(manager.spawn(session.session_id))
         self._mark_owner_active(session.session_id)
         alive = bool(manager.is_alive(session.session_id)) if spawned else False
@@ -1323,7 +1346,13 @@ class _MultiUserBridge:
                 "enabled": True,
                 "mode": "process",
                 "session_id": session.session_id,
-                "status": "ready" if was_alive else ("started" if alive else "error"),
+                "status": (
+                    "ready" if was_alive
+                    else "started" if alive
+                    else ("capacity_wait"
+                          if getattr(session, "last_spawn_status", "") == "capacity_wait"
+                          else "error")
+                ),
                 "alive": alive,
                 "pid": pid or 0,
             }
