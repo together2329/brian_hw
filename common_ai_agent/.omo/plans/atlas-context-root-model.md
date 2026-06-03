@@ -88,7 +88,7 @@ ATLAS_SOURCE_ROOT    = runtime/import location only, never semantic cwd
 ## TODOs
 
 - [x] Add failing baseline and v2 context resolver tests for user/session/IP/workflow paths.
-- [ ] Implement central context resolver and env export/import compatibility.
+- [x] Implement central context resolver and env export/import compatibility.
 - [ ] Wire launcher/backend bootstrap, default root, healthz, and session activation to the resolver.
 - [ ] Move worker spawn/tool cwd and slash-command setup to resolved IP/session roots.
 - [ ] Update session/todo/context/history APIs and file/SCM/jobs roots for v2 isolation with v1 read fallback.
