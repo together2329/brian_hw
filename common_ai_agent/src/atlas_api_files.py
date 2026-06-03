@@ -15,12 +15,15 @@ Endpoints registered:
 from __future__ import annotations
 
 import asyncio
+import os
 from collections import OrderedDict
 from pathlib import Path
 from typing import Any, Callable, Optional
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
+
+from core.atlas_context import AtlasContext
 
 
 def register_file_routes(
@@ -58,16 +61,47 @@ def register_file_routes(
             return None
         return fs_authz.ip(request, ip, permission)
 
+    def _context_base(session_id: str) -> Path:
+        raw = str(session_id or "").strip()
+        if not raw:
+            return project_root
+        try:
+            context = AtlasContext.from_session_key(
+                raw,
+                atlas_root=os.environ.get("ATLAS_ROOT") or str(project_root),
+            )
+            if not context.legacy:
+                return context.workspace_root
+        except Exception:
+            pass
+        return project_root
+
+    def _safe_in_base(base: Path, rel_path: str) -> Optional[Path]:
+        rel = str(rel_path or "").lstrip("/")
+        try:
+            candidate = (base / rel).resolve()
+            candidate.relative_to(base.resolve())
+            return candidate
+        except (OSError, ValueError):
+            return None
+
+    def _target_for_session(path: str, session_id: str) -> tuple[Optional[Path], Path]:
+        base = _context_base(session_id)
+        if base == project_root:
+            return safe_path_fn(path), project_root
+        return _safe_in_base(base, path), base
+
     @app.get("/api/files")
     async def api_files(request: Request, path: str = "", recursive: int = 0,
-                          max_depth: int = 4, max_entries: int = 800):
-        target = safe_path_fn(path)
+                          max_depth: int = 4, max_entries: int = 800,
+                          session_id: str = "", session: str = ""):
+        target, root = _target_for_session(path, session_id or session)
         if target is None:
             return JSONResponse({"error": "path outside project root"},
                                 status_code=400)
         if not target.exists():
             return JSONResponse({"error": "not found"}, status_code=404)
-        rel = "" if target == project_root else target.relative_to(project_root).as_posix()
+        rel = "" if target == root else target.relative_to(root).as_posix()
         # A specific path must be readable by the caller; the project-root
         # listing is instead FILTERED to the caller's accessible top-level
         # entries (shared roots + owned/granted IPs) so the IP-rooted file tree
@@ -133,11 +167,11 @@ def register_file_routes(
                               "truncated": len(entries) >= max_entries})
 
     @app.get("/api/file")
-    async def api_file(request: Request, path: str):
+    async def api_file(request: Request, path: str, session_id: str = "", session: str = ""):
         denied = _gate(request, path)
         if denied is not None:
             return denied
-        target = safe_path_fn(path)
+        target, _root = _target_for_session(path, session_id or session)
         if target is None or not target.is_file():
             return JSONResponse({"error": "not found"}, status_code=404)
         try:
@@ -176,7 +210,7 @@ def register_file_routes(
         return JSONResponse({"deleted": True, "ip": clean_ip, "path": clean_path})
 
     @app.get("/api/file/raw")
-    async def api_file_raw(request: Request, path: str):
+    async def api_file_raw(request: Request, path: str, session_id: str = "", session: str = ""):
         """Serve a file's raw bytes with a guessed content-type.
 
         Used by the PreviewPane and inline-markdown rendering to display
@@ -186,7 +220,7 @@ def register_file_routes(
         denied = _gate(request, path)
         if denied is not None:
             return denied
-        target = safe_path_fn(path)
+        target, _root = _target_for_session(path, session_id or session)
         if target is None or not target.is_file():
             return JSONResponse({"error": "not found"}, status_code=404)
         ext = target.suffix.lower().lstrip(".")
@@ -209,11 +243,11 @@ def register_file_routes(
             return JSONResponse({"error": str(exc)}, status_code=500)
 
     @app.get("/api/fold-symbols")
-    async def api_fold_symbols(request: Request, path: str):
+    async def api_fold_symbols(request: Request, path: str, session_id: str = "", session: str = ""):
         denied = _gate(request, path)
         if denied is not None:
             return denied
-        target = safe_path_fn(path)
+        target, _root = _target_for_session(path, session_id or session)
         if target is None or not target.is_file():
             return JSONResponse({"error": "not found"}, status_code=404)
         stat = target.stat()

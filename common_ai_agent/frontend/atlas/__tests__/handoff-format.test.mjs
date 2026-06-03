@@ -82,6 +82,18 @@ describe('handoffFields — dispatch / write_handoff labeled rendering', () => {
     expect(noResult.result).toBeNull();
   });
 
+  it('surfaces a dispatch result with status=blocked + a reason/error (Task 6 feed visibility)', () => {
+    // The orchestrator handoff feed must show a blocked dispatch distinctly: the
+    // status comes through as "blocked" (colored red by handoffStatusColor) and
+    // the reason/error is preserved for the HandoffCard error row.
+    const obs = { text: '{"workflow":"rtl-gen","status":"blocked","result":{"error":"upstream SSOT changed; blocked on owner"}}' };
+    const { result } = handoffFields({ tool: 'dispatch_workflow', argsRaw: { ip: 'uart_tx', workflow: 'rtl-gen' } }, obs);
+    expect(result.workflow).toBe('rtl-gen');
+    expect(result.status).toBe('blocked');
+    expect(result.error).toBe('upstream SSOT changed; blocked on owner');
+    expect(handoffStatusColor(result.status)).toBe('#f85149');
+  });
+
   it('maps status to colors', () => {
     expect(handoffStatusColor('running')).toBe('#58a6ff');
     expect(handoffStatusColor('completed')).toBe('#3fb950');

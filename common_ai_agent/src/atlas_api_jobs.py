@@ -4483,7 +4483,18 @@ def _enforce_completion_evidence_gate(job: dict[str, Any], project_root: Path) -
     _refresh_completed_stage_evidence(job, project_root)
     failed, failure_reason = _job_artifact_failure(job, project_root)
     if failed:
-        job["status"] = "error"
+        # Preserve the distinct meaning of `blocked`: when the deterministic
+        # stage engine explicitly reported the owning stage as blocked or
+        # human_gate (e.g. ssot-rtl can't proceed because the locked SSOT is
+        # missing or a human gate is open), the worker job is `blocked`, not
+        # `error`. `error` is reserved for a stage that ran and produced
+        # genuinely failing/invalid evidence. This keeps owner-routing
+        # actionable downstream (Task 3/4) instead of collapsing to red.
+        evidence_status = str(job.get("stage_evidence_status") or "").strip().lower()
+        if evidence_status in {"blocked", "human_gate"}:
+            job["status"] = "blocked"
+        else:
+            job["status"] = "error"
         job["error"] = f"stage evidence failed: {failure_reason}"
         job["finished_at"] = job.get("finished_at") or time.time()
         return
@@ -5393,7 +5404,11 @@ def register_jobs_routes(
                 return ("running", None)
             if st in ("completed", "success", "ok"):
                 return ("passed", None)
-            if st in ("error", "failed", "blocked", "cancelled"):
+            if st == "blocked":
+                # Preserve blocked distinctly from failed so owner-routing stays
+                # actionable in the UI (Task 3: do not collapse blocked->failed).
+                return ("blocked", row.get("error_summary"))
+            if st in ("error", "failed", "cancelled"):
                 return ("failed", row.get("error_summary"))
             return (None, None)
 
@@ -5665,7 +5680,7 @@ def register_jobs_routes(
                 "history": _stage_history(sid),
                 "blame": stage_blame,
                 "locked_reason": locked_reason,
-                "error_summary": db_error if state == "failed" and db_error else failed_stages.get(sid),
+                "error_summary": db_error if state in ("failed", "blocked") and db_error else failed_stages.get(sid),
                 "source": source,
                 "workflow": stage_workflow,
                 "handoffs": stage_handoffs,
@@ -6587,6 +6602,9 @@ def register_jobs_routes(
                 state = "passed" if sid in passed or evidence_paths else "completed_no_gate"
             elif sid in passed:
                 state = "passed"
+            elif latest and latest.get("status") == "blocked":
+                # Keep blocked distinct from failed for orchestrator routing.
+                state = "blocked"
             elif latest and latest.get("status") in {"error", "failed", "cancelled"}:
                 state = "failed"
             elif sid in failed:

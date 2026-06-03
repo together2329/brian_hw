@@ -304,7 +304,11 @@ export function createDataLoaders(deps: DataLoaderDeps): DataLoaders {
     let recursive = (reqPath && reqPath.length > 0) ? '&recursive=1' : '';
     if (opts && opts.recursive === true) recursive = '&recursive=1';
     try {
-      const r = await fetch('/api/files?path=' + encodeURIComponent(reqPath) + recursive, {
+      const activeSession = normalizeSessionName(w.ACTIVE_SESSION || '');
+      const qs = new URLSearchParams({ path: reqPath });
+      if (activeSession) qs.set('session_id', activeSession);
+      if (recursive) qs.set('recursive', '1');
+      const r = await fetch('/api/files?' + qs.toString(), {
         cache: 'no-store',
         credentials: 'include',
       });

@@ -30,6 +30,24 @@ describe('AgentWorkerStatus', () => {
     expect(summary.tone).toBe('active');
   });
 
+  it('surfaces blocked workers in the live summary with a non-green (warn) tone', () => {
+    // Task 6: a worker reporting blocked jobs (and nothing running) must read as
+    // a warn — blocked is visible, not silently swallowed, and not green.
+    const workers: readonly WorkerSnapshot[] = [
+      { workflow: 'rtl-gen', transport: 'ipc', status: 'ok', blocked_count: 2 },
+    ];
+    const summary = summarizeWorkerLive({
+      workers,
+      workersError: '',
+      agentAlive: false,
+      agentRunning: false,
+      execMode: 'orchestrator',
+    });
+    expect(summary.detailLabel).toContain('2 blocked');
+    expect(summary.tone).not.toBe('active');
+    expect(summary.tone).toBe('ok'); // status ok keeps it alive, blocked shown in detail
+  });
+
   it('renders the live worker strip above the detailed grid', () => {
     const workers: readonly WorkerSnapshot[] = [
       {
