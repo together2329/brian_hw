@@ -3706,6 +3706,63 @@ class AtlasDB:
             (self._now(), msg_id),
         )
 
+    def mark_stale_session_inputs_delivered(
+        self,
+        session_id: str,
+        before_epoch: Optional[str] = None,
+        msg_types: Optional[List[str]] = None,
+    ) -> int:
+        """Fence stale INBOUND rows for session_id: set BOTH markers (Task 5/H7).
+
+        Sets delivered_at AND processed_at so poll_messages (delivered_at IS
+        NULL) stops returning the rows AND session_queue_depth.unprocessed
+        (direction='in' AND processed_at IS NULL) drops to 0, clearing the
+        runtime-DB non-forced delete/rollback gate. msg_types restricts inbound
+        types (e.g. stop/interrupt/answer on a switch); None = all inbound.
+        before_epoch: KEEP rows whose payload worker_epoch EQUALS it (the
+        incoming process's) and fence the rest; None = fence every matching
+        pending row. Epoch lives in payload JSON (no column) so equality is
+        decided in Python. Idempotent (COALESCE). THIS db only. Returns rows
+        newly fenced.
+        """
+        type_set = {str(t) for t in msg_types} if msg_types else None
+        with self._lock:
+            conn = self._connect()
+            rows = conn.execute(
+                """
+                SELECT id, msg_type, payload FROM session_queue
+                WHERE session_id = ? AND direction = 'in'
+                  AND (delivered_at IS NULL OR processed_at IS NULL)
+                """,
+                (session_id,),
+            ).fetchall()
+            now = self._now()
+            fenced = 0
+            for row in rows:
+                if type_set is not None and str(row["msg_type"]) not in type_set:
+                    continue
+                if before_epoch is not None:
+                    payload = self._load_json(row["payload"])
+                    row_epoch = (
+                        payload.get("worker_epoch")
+                        if isinstance(payload, dict)
+                        else None
+                    )
+                    if row_epoch is not None and str(row_epoch) == str(before_epoch):
+                        continue
+                conn.execute(
+                    """
+                    UPDATE session_queue
+                       SET delivered_at = COALESCE(delivered_at, ?),
+                           processed_at = COALESCE(processed_at, ?)
+                     WHERE id = ?
+                    """,
+                    (now, now, row["id"]),
+                )
+                fenced += 1
+            conn.commit()
+            return fenced
+
     def mark_outputs_delivered(
         self,
         session_id: str,

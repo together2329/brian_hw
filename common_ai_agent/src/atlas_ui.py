@@ -9349,6 +9349,20 @@ def create_app():
         if mirror_env:
             os.environ["ATLAS_SESSION_APPLIED"] = session
 
+    # Build the admin-check BEFORE registering session routes so the interactive
+    # worker status endpoint can gate its all-owner view behind it (Wave-3 H8).
+    # The richer _admin_required(request) closure defined below for /api/admin/*
+    # reuses the same core.atlas_auth predicates so both stay in lock-step.
+    from core.atlas_auth import (
+        is_admin_user as _is_admin_user_for_sessions,
+        is_local_admin_mode as _is_local_admin_mode_for_sessions,
+    )
+
+    def _sessions_admin_check(request: Request) -> bool:
+        if _is_local_admin_mode_for_sessions():
+            return True
+        return bool(_is_admin_user_for_sessions(request.scope.get("user") or {}))
+
     register_sessions_routes(
         app,
         project_root=lambda: PROJECT_ROOT,
@@ -9361,6 +9375,7 @@ def create_app():
         atlas_db_factory=AtlasDB,
         setup_session=_setup_session_proxy,
         setup_workspace=_setup_workspace_proxy,
+        admin_check=_sessions_admin_check,
     )
 
     # ── Admin endpoints ──────────────────────────────────────────
@@ -10141,17 +10156,24 @@ def create_app():
                     async def _accept_queued(kind: str = "") -> None:
                         import time as _t
                         _t0 = _t.monotonic()
-                        delivered = bridge.submit_prompt_for_session(session.session_id, _txt)
+                        # Wave-3 C2/H6: use the parallel result variant so a
+                        # capacity refusal surfaces as agent_accepted{ok:false,
+                        # error:"capacity_wait"} with NO agent_received — keeping
+                        # the frontend transport-retry/hold path armed. The bool
+                        # submit_prompt_for_session is intentionally left intact
+                        # for non-WS callers/tests.
+                        _result = bridge.submit_prompt_result_for_session(session.session_id, _txt)
+                        delivered = bool(getattr(_result, "ok", False))
                         _submit_ms = (_t.monotonic() - _t0) * 1000.0
                         if delivered and _msg_id:
                             session.mark_msg_id_seen(_msg_id)
                         _t1 = _t.monotonic()
                         try:
                             await _send_prompt_acceptance(
-                                ok=bool(delivered),
-                                queued=bool(delivered),
+                                ok=delivered,
+                                queued=delivered,
                                 handled=kind,
-                                error="" if delivered else "input was not delivered to the agent worker",
+                                error="" if delivered else (getattr(_result, "error", "") or "input was not delivered to the agent worker"),
                             )
                         except Exception as exc:
                             if not _is_websocket_disconnect(exc):

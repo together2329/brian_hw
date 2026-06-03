@@ -263,6 +263,21 @@ def _message_text(msg: dict[str, Any]) -> str:
     return str(payload)
 
 
+def _message_epoch(msg: dict[str, Any]) -> str | None:
+    """Return the worker_epoch tag from an inbound row payload, if present."""
+    payload = _decode_payload(msg.get("payload"))
+    if isinstance(payload, dict):
+        epoch = payload.get("worker_epoch")
+        if epoch is not None and str(epoch).strip():
+            return str(epoch)
+    return None
+
+
+def _worker_epoch_env() -> str:
+    """This worker's own epoch from the env (empty when unstamped)."""
+    return str(os.environ.get("ATLAS_SESSION_WORKER_EPOCH") or "").strip()
+
+
 def _runtime_db_mode() -> bool:
     """True when this worker is running against a per-session RUNTIME db.
 
@@ -631,13 +646,70 @@ class SessionWorker:
         if msg_id is not None:
             self.db.acknowledge_message(msg_id)
 
+    def _is_stale_input(self, msg: dict[str, Any]) -> bool:
+        """True iff an inbound row was tagged for a DIFFERENT worker epoch.
+
+        Fail-open: no env epoch, or an untagged row, is NOT stale (preserves
+        pre-epoch behavior; never drops a current-epoch/legacy prompt).
+        """
+        my_epoch = _worker_epoch_env()
+        if not my_epoch:
+            return False
+        msg_epoch = _message_epoch(msg)
+        if msg_epoch is None:
+            return False
+        return msg_epoch != my_epoch
+
+    def _discard_stale_input(self, msg: dict[str, Any]) -> None:
+        """Ack (set delivered_at) a stale inbound row; emit stale_input_ignored."""
+        self.acknowledge(msg)
+        self.emit(
+            "stale_input_ignored",
+            {
+                "msg_type": _message_type(msg),
+                "msg_id": _message_id(msg),
+                "msg_epoch": _message_epoch(msg),
+                "worker_epoch": _worker_epoch_env(),
+            },
+        )
+
+    def fence_stale_startup_inputs(self) -> int:
+        """Fence ALL pending epoch-stale inbound rows at startup (Wave-3 line 271).
+
+        A new worker may inherit inbound rows an OLD process never consumed
+        (stop/interrupt/answer AND prompt). Scan once; for every row tagged with
+        a DIFFERENT epoch, ack it + emit stale_input_ignored so it is never
+        executed nor re-returned by poll_messages('in'). Untagged / own-epoch
+        rows are LEFT for normal consumption. No-op without an env epoch.
+        """
+        if not _worker_epoch_env():
+            return 0
+        fenced = 0
+        while True:
+            found = False
+            for msg in self.db.poll_messages(
+                self.session_id, "in", since_id=None, limit=100
+            ) or []:
+                if self._is_stale_input(msg):
+                    self._discard_stale_input(msg)
+                    fenced += 1
+                    found = True
+            if not found:
+                return fenced
+
     def poll_matching(self, msg_types: Iterable[str]) -> dict[str, Any] | None:
         wanted = set(msg_types)
         msgs = self.db.poll_messages(self.session_id, "in", since_id=None, limit=100)
         for msg in msgs or []:
-            if _message_type(msg) in wanted:
-                self.acknowledge(msg)
-                return msg
+            if _message_type(msg) not in wanted:
+                continue
+            # Task 5: a stale stop/interrupt left by a previous process is fenced,
+            # never acted on - check_stop()/poll_interrupt() see no stale hit.
+            if self._is_stale_input(msg):
+                self._discard_stale_input(msg)
+                continue
+            self.acknowledge(msg)
+            return msg
         return None
 
     def wait_matching(
@@ -659,6 +731,11 @@ class SessionWorker:
             for msg in msgs or []:
                 msg_type = _message_type(msg)
                 if msg_type not in wanted:
+                    continue
+                # Task 5: fence epoch-stale rows (old prompt/interrupt/answer)
+                # before flow_id matching or returning them.
+                if self._is_stale_input(msg):
+                    self._discard_stale_input(msg)
                     continue
                 payload = _decode_payload(msg.get("payload"))
                 if flow_id and isinstance(payload, dict) and payload.get("flow_id") not in (None, flow_id):
@@ -1145,6 +1222,10 @@ def run_worker(session_id: str, db_path: str) -> int:
 
     try:
         worker.emit("worker_started", {"pid": os.getpid()})
+        # Task 5 (Wave-3 line 271): fence ALL pending inbound rows left by a
+        # previous process BEFORE the loop, so a stale stop/interrupt/answer/
+        # prompt can never drive the new worker.
+        worker.fence_stale_startup_inputs()
         agent.chat_loop()
         return 0
     except KeyboardInterrupt:

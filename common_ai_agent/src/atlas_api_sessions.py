@@ -39,6 +39,7 @@ def register_sessions_routes(
     atlas_db_factory: Callable[[], Any],
     setup_session: Optional[Callable[[str], Any]] = None,
     setup_workspace: Optional[Callable[[str], None]] = None,
+    admin_check: Optional[Callable[[Request], bool]] = None,
 ) -> None:
     """Register all /api/session* and /api/sessions* routes onto *app*.
 
@@ -100,6 +101,15 @@ def register_sessions_routes(
             pass
         return 0
 
+    def _strict_mode() -> bool:
+        try:
+            getter = getattr(bridge, "session_worker_policy", None)
+            if callable(getter):
+                return bool(getattr(getter(), "is_strict", False))
+        except Exception:
+            pass
+        return False
+
     def _schedule_session_worker_warmup(session_id: str, *, process_mode: bool) -> dict[str, Any]:
         mode = "process" if process_mode else "thread"
         if _session_worker_alive(session_id, process_mode=process_mode):
@@ -122,6 +132,41 @@ def register_sessions_routes(
                 "reason": "missing_warm_session",
             }
 
+        # Strict single-active mode: run ADMISSION synchronously so the response
+        # can report ready / started / capacity_wait truthfully. warm_session ->
+        # _spawn_process_session -> spawn_result already evaluates the global cap
+        # (Task 4) and reserves/replaces the owner slot (Task 3), so a blocking
+        # call here is the admission, not the slow model warmup. We never claim
+        # "ready" unless the worker is actually alive (manager.is_alive).
+        if process_mode and _strict_mode():
+            try:
+                warm_result = warm_fn(session_id)
+            except Exception as exc:
+                return {
+                    "enabled": False,
+                    "mode": mode,
+                    "session_id": session_id,
+                    "error": str(exc),
+                }
+            warm_result = dict(warm_result or {})
+            status = str(warm_result.get("status") or "")
+            # warm_session returns status in {ready, started, capacity_wait, error}.
+            # Demote a stale "ready/started" that did not actually leave a live
+            # worker (defense in depth) and keep capacity_wait verbatim.
+            alive_now = _session_worker_alive(session_id, process_mode=True)
+            if status in ("ready", "started") and not alive_now:
+                status = "error"
+            warm_result.setdefault("enabled", True)
+            warm_result.setdefault("mode", mode)
+            warm_result.setdefault("session_id", session_id)
+            warm_result["status"] = status or ("ready" if alive_now else "error")
+            warm_result["alive"] = bool(alive_now)
+            if "pid" not in warm_result:
+                warm_result["pid"] = _session_worker_pid(session_id)
+            return warm_result
+
+        # Non-strict (session-scoped) mode: preserve the historical behavior —
+        # background the warmup thread and return status="scheduled".
         def _run_background_warmup() -> None:
             try:
                 warm_fn(session_id)
@@ -295,8 +340,33 @@ def register_sessions_routes(
                 prev = candidate_prev
         triple_changed = prev != canonical
         was_running = _session_running(prev) if prev else False
-        halted = bool(prev and triple_changed and was_running and not preserve_running)
-        if halted:
+        strict_mode = _strict_mode()
+        # Wave-3: in strict single-active mode preserve_running must NOT keep an
+        # extra interactive worker alive for this owner slot. A real triple change
+        # forces the interactive lane to terminate the previous worker regardless
+        # of preserve_running (orchestrator job workers are a separate lane and are
+        # untouched here).
+        preserve_running_effective = preserve_running and not (strict_mode and triple_changed)
+        switch_status = "noop"
+        previous_session = ""
+        terminated_session = ""
+        if strict_mode and triple_changed:
+            # Route the previous-worker teardown through the SAME strict switch
+            # helper both activate endpoints use, so termination ordering /
+            # owner-slot reservation is consistent (Task 3). Capture the
+            # structured switch result for the response instead of parsing
+            # emitted events.
+            try:
+                switch_result = bridge._prepare_owner_slot_for_session(
+                    canonical, reason="activate"
+                )
+                switch_status = str(switch_result.get("switch_status") or "switched")
+                previous_session = str(switch_result.get("previous_session") or "")
+                terminated_session = str(switch_result.get("terminated_session") or "")
+            except Exception:
+                switch_status = "termination_failed"
+        halted = bool(prev and triple_changed and was_running and not preserve_running_effective)
+        if halted and not (strict_mode and switch_status in ("switched", "noop")):
             try:
                 if process_mode and not keep_session_worker_hot:
                     bridge.exit_session(prev or canonical)
@@ -511,6 +581,20 @@ def register_sessions_routes(
                 canonical,
                 process_mode=process_mode,
             )
+        # Activation may SUCCEED as a focus change even when warmup is
+        # capacity-blocked: surface switch_status=active_no_worker +
+        # session_worker_warmup.status=capacity_wait, HTTP 200, and NEVER "ready"
+        # unless the worker is actually alive (warm_session already gates on
+        # manager.is_alive). The owner-slot mapping has already been advanced to
+        # the new canonical session by the strict switch helper above.
+        if str((session_worker_warmup or {}).get("status") or "") == "capacity_wait":
+            switch_status = "active_no_worker"
+        try:
+            _policy_view = bridge.session_worker_policy().to_status_dict()
+            _single_active = bool(bridge.session_worker_policy().is_strict)
+        except Exception:
+            _policy_view = {}
+            _single_active = False
         return JSONResponse({
             "ok": True,
             "active_session": canonical,
@@ -528,7 +612,15 @@ def register_sessions_routes(
             "workflow": wf,
             "halted": halted,
             "preserve_running": preserve_running,
+            "preserve_running_effective": preserve_running_effective,
             "process_scoped": process_mode,
+            "session_worker_policy": _policy_view,
+            "single_active_owner": _single_active,
+            "authenticated_owner": request_owner or sid,
+            "owner_slot": sid,
+            "previous_session": previous_session,
+            "terminated_session": terminated_session,
+            "switch_status": switch_status,
             "worker_warmup": worker_warmup,
             "session_worker_warmup": session_worker_warmup or {
                 "enabled": False,
@@ -1094,6 +1186,148 @@ def register_sessions_routes(
             fields.append("summary")
         return {key: session.get(key) for key in fields}
 
+    def _worker_policy_status() -> dict[str, Any]:
+        """Resolved policy view for the status endpoint.
+
+        Prefers the bridge's live policy (``bridge._policy``, wired in Task 2) and
+        falls back to parsing the env so this endpoint reports the real active
+        policy even if the bridge accessor is unavailable.
+        """
+        policy = getattr(bridge, "_policy", None)
+        if policy is None:
+            try:
+                from core.session_worker_policy import SessionWorkerPolicy
+                policy = SessionWorkerPolicy.from_env()
+            except Exception:
+                policy = None
+        if policy is not None and hasattr(policy, "to_status_dict"):
+            base = dict(policy.to_status_dict())
+            base["idle_ttl_sec"] = getattr(policy, "idle_ttl_sec", None)
+            return base
+        return {
+            "policy": "session-scoped",
+            "single_active_owner": False,
+            "cap_enabled": False,
+            "max_active": 0,
+        }
+
+    def _process_mode_on() -> bool:
+        fn = getattr(bridge, "_using_processes", None)
+        try:
+            return bool(fn()) if callable(fn) else False
+        except Exception:
+            return False
+
+    def _active_worker_count() -> int:
+        manager = getattr(bridge, "_process_manager", None)
+        if manager is None:
+            return 0
+        try:
+            return len(list(manager.list_active()))
+        except Exception:
+            return 0
+
+    def _worker_view(session_id: str) -> Optional[dict[str, Any]]:
+        """Per-worker status for one canonical session id, or None if no slot."""
+        if not session_id:
+            return None
+        process_mode = _process_mode_on()
+        alive = _session_worker_alive(session_id, process_mode=process_mode)
+        running = False
+        try:
+            is_running = getattr(bridge, "is_session_running", None)
+            if callable(is_running):
+                running = bool(is_running(session_id))
+            else:
+                running = bool(getattr(bridge.get_session(session_id), "agent_running", False))
+        except Exception:
+            running = False
+        if not alive and not running:
+            return None
+        view: dict[str, Any] = {
+            "session_id": session_id,
+            "alive": bool(alive),
+            "running": bool(running),
+            "pid": _session_worker_pid(session_id) if process_mode else 0,
+            "state": "running" if running else ("ready" if alive else "starting"),
+        }
+        # idle_age_sec: prefer the bridge's Task-7 idle clock and fall back to the
+        # session bridge's last_active so the field is present regardless.
+        try:
+            import time as _t
+            idle_fn = getattr(bridge, "_worker_idle_age_sec", None)
+            manager = getattr(bridge, "_process_manager", None)
+            if callable(idle_fn) and manager is not None:
+                view["idle_age_sec"] = round(float(idle_fn(manager, session_id, _t.time())), 3)
+            else:
+                sess = bridge.get_session(session_id)
+                view["idle_age_sec"] = round(max(0.0, _t.time() - float(getattr(sess, "last_active", _t.time()))), 3)
+        except Exception:
+            pass
+        return view
+
+    @app.get("/api/session/worker/status")
+    async def api_session_worker_status(request: Request):
+        """Interactive session-worker status, scoped to the caller's owner slot.
+
+        User-scoped by default (plan Status Endpoint Scope / Wave-3 H8): never
+        exposes another owner's session ids. An all-owner inventory is returned
+        ONLY when register_sessions_routes() was passed an ``admin_check``
+        callback that returns True for this request. Independent of
+        /api/orchestrator/workers (interactive workers != workflow workers).
+        """
+        try:
+            payload: dict[str, Any] = _worker_policy_status()
+            payload["active_count"] = _active_worker_count()
+
+            authenticated_owner = _request_username(request)
+            # The owner SLOT can differ from the raw login when
+            # ATLAS_SESSION_PER_MODEL=1 (e.g. alice -> alice__gpt_5).
+            owner_slot = _session_owner_with_model(authenticated_owner) if authenticated_owner else ""
+
+            owner_active_session = ""
+            try:
+                active_fn = getattr(bridge, "active_session_for_owner", None)
+                if callable(active_fn) and owner_slot:
+                    owner_active_session = str(active_fn(owner_slot) or "")
+            except Exception:
+                owner_active_session = ""
+
+            payload["owner"] = owner_slot or authenticated_owner
+            payload["authenticated_owner"] = authenticated_owner
+            # Only surface owner_slot explicitly when it diverges from the login
+            # (acceptance: return both when they differ).
+            if owner_slot and owner_slot != authenticated_owner:
+                payload["owner_slot"] = owner_slot
+            payload["owner_active_session"] = owner_active_session
+            payload["worker"] = _worker_view(owner_active_session)
+
+            # Admin all-owner inventory — ONLY behind an explicit admin_check.
+            if admin_check is not None:
+                try:
+                    is_admin = bool(admin_check(request))
+                except Exception:
+                    is_admin = False
+                if is_admin:
+                    owners: list[dict[str, Any]] = []
+                    seen: set[str] = set()
+                    snapshot = dict(getattr(bridge, "_owner_active_sessions", {}) or {})
+                    for owner, sess_id in snapshot.items():
+                        if owner in seen:
+                            continue
+                        seen.add(owner)
+                        owners.append({
+                            "owner": owner,
+                            "owner_active_session": str(sess_id or ""),
+                            "worker": _worker_view(str(sess_id or "")),
+                        })
+                    payload["owners"] = owners
+
+            return JSONResponse(payload)
+        except Exception as e:
+            print(f"api_session_worker_status error: {e}")
+            return JSONResponse({"error": str(e)}, status_code=500)
+
     def _request_user_id(request: Request) -> str:
         user = request.scope.get("user") or {}
         return str(user.get("id") or "default").strip() or "default"
@@ -1212,10 +1446,11 @@ def register_sessions_routes(
     @app.post("/api/sessions/{session_id}/activate")
     async def api_activate_session(session_id: str, request: Request):
         # Activate the session: verify the caller owns it, then make the
-        # backend bridge actually point at it. The previous version was a
-        # no-op stub that returned {"activated": True} without binding
-        # anything — UI session-switcher believed the swap took effect
-        # while subsequent prompts still routed to the stale session.
+        # backend bridge actually point at it. BOTH activate endpoints route the
+        # SAME strict switch helper (Wave-3 / Task 6): in single-active mode this
+        # terminates the previous owner-slot worker before warming the new one
+        # and may succeed as a focus change (active_no_worker) when capacity is
+        # exhausted.
         try:
             user_id = _request_user_id(request)
             with _atlas_db() as db:
@@ -1225,9 +1460,67 @@ def register_sessions_routes(
                         {"error": "session not found or not owned by user"},
                         status_code=404,
                     )
+            canonical = str(session["id"])
+            owner_slot = str(
+                session.get("owner")
+                or (canonical.split("/", 1)[0] if "/" in canonical else canonical)
+            )
+            request_owner = _request_username(request)
+
+            def _process_mode() -> bool:
+                try:
+                    fn = getattr(bridge, "_using_processes", None)
+                    return bool(fn()) if callable(fn) else False
+                except Exception:
+                    return False
+
+            process_mode = _process_mode()
+            strict_mode = _strict_mode()
+            switch_status = "noop"
+            previous_session = ""
+            terminated_session = ""
+            if strict_mode:
+                try:
+                    switch_result = bridge._prepare_owner_slot_for_session(
+                        canonical, reason="activate"
+                    )
+                    switch_status = str(switch_result.get("switch_status") or "switched")
+                    previous_session = str(switch_result.get("previous_session") or "")
+                    terminated_session = str(switch_result.get("terminated_session") or "")
+                except Exception:
+                    switch_status = "termination_failed"
             # Bind on the bridge so emit/inbox/outbox routing follows.
-            bridge.activate_session(session["id"])
-            return JSONResponse({"activated": True, "session_id": session["id"]})
+            bridge.activate_session(canonical)
+            session_worker_warmup: dict[str, Any] = {}
+            if _session_worker_keepalive_enabled():
+                session_worker_warmup = _schedule_session_worker_warmup(
+                    canonical, process_mode=process_mode
+                )
+            if str((session_worker_warmup or {}).get("status") or "") == "capacity_wait":
+                switch_status = "active_no_worker"
+            try:
+                _policy_view = bridge.session_worker_policy().to_status_dict()
+                _single_active = bool(bridge.session_worker_policy().is_strict)
+            except Exception:
+                _policy_view = {}
+                _single_active = False
+            return JSONResponse({
+                "activated": True,
+                "session_id": canonical,
+                "active_session": canonical,
+                "process_scoped": process_mode,
+                "session_worker_policy": _policy_view,
+                "single_active_owner": _single_active,
+                "authenticated_owner": request_owner or owner_slot,
+                "owner_slot": owner_slot,
+                "previous_session": previous_session,
+                "terminated_session": terminated_session,
+                "switch_status": switch_status,
+                "session_worker_warmup": session_worker_warmup or {
+                    "enabled": False,
+                    "reason": "disabled",
+                },
+            })
         except Exception as e:
             print(f"api_activate_session error: {e}")
             return JSONResponse({"error": str(e)}, status_code=500)

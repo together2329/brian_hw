@@ -208,6 +208,71 @@ It must not expose other users' session IDs. An admin all-owner view is optional
 only if `register_sessions_routes()` is explicitly passed an admin-check
 callback or an existing admin-auth route owns that response.
 
+### Wave-3 Residual Contracts (must-fix, decided)
+
+A 3-wave adversarial review (2026-06-03, 22 agents) confirmed the contracts above
+and added these BINDING decisions. Implement to these exactly.
+
+- **C1 — reaper OFF the asyncio loop.** `reap_idle_session_workers` MUST NOT run
+  inline in the single `_broadcast_outbox` asyncio task: a blocking graceful-stop
+  (`stop_ack + kill_grace` ≈ 8s) would stall every websocket client. Run it via
+  `asyncio.to_thread(...)` (or the existing `next_event` executor thread),
+  throttled by `reaper_interval_sec`.
+- **C2 — no result object on the bool methods.** Do NOT change the return type of
+  `submit_prompt_for_session` / `_send_process_input_for_session` (8+ existing
+  `assert delivered is True/False` identity checks depend on it). Mirror the
+  `spawn()/spawn_result()` split: keep the bool methods, ADD
+  `submit_prompt_result_for_session(...) -> PromptDeliveryResult`; only the WS ack
+  path calls the result variant, and only `src/atlas_ui.py` hardcoded error string
+  changes to `result.error/result.status`.
+- **H1 — death→slot cleanup is sourced.** `_clear_owner_slot(session_id)` is
+  invoked from `_poll_process_outputs` for every `dead_sessions` entry and inside
+  `_emit_process_dead`, clearing only if `_owner_active_sessions[owner]` still
+  equals that session_id.
+- **H2/H3 — reserve-on-terminate; cap = net-new only.** The global cap counts
+  owner slots; a same-owner-slot REPLACEMENT (switch) is slot-preserving and MUST
+  NOT be cap-refused. `_prepare_owner_slot_for_session` terminates the old worker
+  and RESERVES that slot for the incoming session atomically in one critical
+  section over the manager counter. `active_no_worker` only for genuinely net-new
+  owners over the cap, and that state is retry-scanned by the reaper path.
+- **H4 — idle has no graceful stop.** A warm-idle worker does not exit on a queued
+  `stop` (stop only interrupts a running turn). `terminate_session` skips the
+  stop-ack wait when the worker has no running prompt and goes straight to
+  `terminate()`→`kill()`; the stop-ack budget applies only to a busy worker.
+- **H5 — flush before cursor pop.** On switch/terminate, drain the worker's final
+  out rows (`worker_stopped`/`worker_exited`/tokens) before removing its output
+  cursor; do not pop the cursor immediately after kill.
+- **H6 — capacity short-circuits the safety net.** `status=="capacity_wait"`
+  returns BEFORE the `_send_process_input_for_session` respawn-retry safety net
+  and BEFORE `_emit_process_dead`; emit no `worker_exited`/`done` on refusal.
+- **H7 — stale rows clear the delete gate.** `mark_stale_session_inputs_delivered`
+  sets BOTH `delivered_at` AND `processed_at` (not "when practical") so
+  `session_queue_depth.unprocessed` drops to 0 and the runtime-DB non-forced
+  delete/rollback gate sees a clean session.
+- **H8 — status auth via callback.** `register_sessions_routes()` takes an optional
+  admin-check callback for the all-owner view; user-scoped only otherwise.
+- **H9 — cap check ordering.** `spawn_result` does the `is_alive` short-circuit
+  (`status="ready"`) + dead-entry cleanup BEFORE evaluating `active_count >=
+  max_active`; the cap is checked only on the branch that will actually `Popen`.
+- **H10 — enumerate worker states + producers.** Legal `state`/SpawnResult values
+  are enumerated; every frontend state
+  (`ready/starting/capacity_wait/switching/stopping/evicted/failed`) has a backend
+  producer (`stopping` set at the start of `terminate_session`, surfaced in
+  `list_active_metadata`) or is dropped.
+- **H11 — test fixes.** Build `FakeProcessManager`; re-point QA that cited the
+  wrong suites (`test_atlas_workflow_switch.py` = git checkpoints;
+  lazy-reaper/TTL = orchestrator lane); the Task-1 "no `agent_received`" case must
+  be RED against current behavior; add Scenario E (switch-under-capacity); verify
+  stale hygiene via `poll_messages('in')`, NOT the dummy `dequeue_message` worker.
+- **H12 — private lifecycle events.** Register `worker_switching` and
+  `worker_evicted` in `_SESSION_PRIVATE_BROADCAST_TYPES` (never `broadcast_all`);
+  test that a switch/eviction for owner A never reaches owner B.
+- **Epoch tagging is unconditional** (not strict-only); the worker drains/fences
+  ALL pending inbound rows at startup, not just `stop`.
+- **Re-anchor** the stale `Existing Anchors` before editing: `create_app`→1081,
+  single-worker flags→1133, `request_stop_for_session`→1755,
+  `exit_session`→1772 (process-manager 452/503/553 are correct).
+
 ## Work Plan
 
 ### Task 1: Add Failing Contract Tests First

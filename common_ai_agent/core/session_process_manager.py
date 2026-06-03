@@ -25,17 +25,120 @@ from __future__ import annotations
 import os
 import shlex
 import shutil
+import uuid
 import signal
 import sqlite3
 import subprocess
 import sys
 import threading
 import time
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from core.atlas_db import AtlasDB
 from core.atlas_db_router import AtlasDBRouter, RuntimeDBError
+from core.session_worker_policy import SessionWorkerPolicy
+
+# Legal SpawnResult.status values (Wave-3 H10 — enumerated, each has a producer).
+SPAWN_STATUS_READY = "ready"          # target already had a live tracked process
+SPAWN_STATUS_STARTED = "started"      # a new subprocess was Popen'd
+SPAWN_STATUS_CAPACITY_WAIT = "capacity_wait"  # net-new spawn refused by the cap
+
+# Legal ProcessEntry.state values (Wave-3 H10). Every frontend state has a
+# backend producer here or is dropped: 'starting' (set at Popen, before liveness
+# is observable), 'ready' (alive worker), 'stopping' (set at the START of
+# terminate_session), 'failed' (Popen/handoff error). 'switching'/'capacity_wait'/
+# 'evicted' are owner-slot/bridge-level states surfaced via SpawnResult.status and
+# the bridge events, NOT stored on the manager entry.
+ENTRY_STATE_STARTING = "starting"
+ENTRY_STATE_READY = "ready"
+ENTRY_STATE_STOPPING = "stopping"
+ENTRY_STATE_FAILED = "failed"
+
+
+class ProcessEntry(dict):
+    """Typed-but-dict-compatible per-session worker entry.
+
+    A ``dict`` subclass on purpose: existing tests inject RAW dicts
+    (``{"proc": ..., "started_at": ...}``) straight into ``manager._processes``
+    and ``DummyProcessManager.spawn`` re-implements spawn writing that same
+    2-key dict. Internal code reads ``entry["proc"]`` / ``entry["started_at"]`` by
+    subscript, so the entry MUST stay subscriptable and tolerate missing new
+    keys. Attribute access mirrors the dict keys for readability; every NEW
+    field is read elsewhere via ``entry.get(...)`` with a default so a foreign
+    plain dict keeps working.
+
+    Fields (Task 4): ``proc``, ``session_id``, ``owner``, ``started_at``,
+    ``last_active_at``, ``last_input_at``, ``last_output_at``, ``worker_epoch``
+    (None until Task 5 lands), ``state`` (see ENTRY_STATE_*).
+    """
+
+    _FIELDS = (
+        "proc",
+        "session_id",
+        "owner",
+        "started_at",
+        "last_active_at",
+        "last_input_at",
+        "last_output_at",
+        "worker_epoch",
+        "state",
+    )
+
+    def __init__(
+        self,
+        proc: Any,
+        *,
+        session_id: str = "",
+        owner: str = "",
+        started_at: Optional[float] = None,
+        state: str = ENTRY_STATE_STARTING,
+        worker_epoch: Optional[str] = None,
+    ) -> None:
+        now = time.time() if started_at is None else started_at
+        super().__init__(
+            proc=proc,
+            session_id=session_id,
+            owner=owner,
+            started_at=now,
+            last_active_at=now,
+            last_input_at=None,
+            last_output_at=None,
+            worker_epoch=worker_epoch,
+            state=state,
+        )
+
+    def __getattr__(self, name: str) -> Any:
+        if name in self._FIELDS:
+            return self.get(name)
+        raise AttributeError(name)
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        if name in self._FIELDS:
+            self[name] = value
+        else:
+            super().__setattr__(name, value)
+
+
+@dataclass
+class SpawnResult:
+    """Structured admission result for an interactive session-worker spawn.
+
+    ``status`` is one of SPAWN_STATUS_READY / _STARTED / _CAPACITY_WAIT (H10).
+    ``ok`` is True for ready/started and False for capacity_wait. ``active_count``
+    / ``max_active`` snapshot the cap accounting at decision time so the bridge
+    and ``/api/session/worker/status`` can render capacity without re-querying.
+    """
+
+    ok: bool
+    status: str
+    reason: str = ""
+    session_id: str = ""
+    owner: str = ""
+    pid: Optional[int] = None
+    active_count: int = 0
+    max_active: int = 0
 
 
 class SessionProcessManager:
@@ -286,6 +389,7 @@ class SessionProcessManager:
         self,
         session_id: str,
         db_path: Optional[str] = None,
+        worker_epoch: Optional[str] = None,
     ) -> Dict[str, str]:
         """Build deterministic worker environment from ``owner/ip/workflow``."""
         env = os.environ.copy()
@@ -336,6 +440,10 @@ class SessionProcessManager:
         # of the launching console locale.
         env.setdefault("PYTHONUTF8", "1")
         env.setdefault("PYTHONIOENCODING", "utf-8:replace")
+        # Task 5: stamp this spawn's epoch so the worker can fence stale inbound
+        # rows and ignore epoch-mismatched prompt/interrupt/answer/stop msgs.
+        if worker_epoch:
+            env["ATLAS_SESSION_WORKER_EPOCH"] = str(worker_epoch)
         return env
 
     @staticmethod
@@ -452,29 +560,87 @@ class SessionProcessManager:
     def spawn(self, session_id: str, db_path: Optional[str] = None) -> bool:
         """Start a worker process for *session_id* if not already running.
 
-        Args:
-            session_id: The Atlas session identifier.
-            db_path: Optional override for the SQLite database path.
-
-        Returns:
-            ``True`` if the worker is running (spawned or already alive).
+        Compatibility wrapper (Task 4 / plan "Result Objects"): the admission
+        source of truth is :meth:`spawn_result`; ``spawn`` stays a ``bool`` for
+        old tests/callers and is simply ``spawn_result(...).ok``. It is called
+        with no policy so the cap is OFF here (unbounded, byte-identical to the
+        historical spawn); only the structured ``spawn_result`` path enforces the
+        cap.
         """
+        return self.spawn_result(session_id, db_path=db_path).ok
+
+    def spawn_result(
+        self,
+        session_id: str,
+        db_path: Optional[str] = None,
+        policy: Optional[SessionWorkerPolicy] = None,
+        *,
+        replacing: Optional[str] = None,
+        reserve: bool = False,
+    ) -> SpawnResult:
+        """Admission-checked spawn for *session_id*; the source of truth (H9).
+
+        Ordering is binding (Wave-3 H9): the ``is_alive`` short-circuit
+        (``status=ready``) and dead-entry cleanup happen BEFORE the cap is
+        evaluated, and the cap is checked ONLY on the branch that will actually
+        ``Popen`` a net-new process.
+
+        ``replacing``/``reserve`` (Wave-3 H2/H3): a same-owner-slot REPLACEMENT
+        (workflow/IP switch) is slot-preserving and MUST NOT be cap-refused. The
+        caller passes ``replacing=<old_session_id>`` (the just-terminated
+        owner-slot session, used only for the audit ``reason``) and/or
+        ``reserve=True`` to mark this spawn as occupying an already-accounted
+        slot. When reserving, the net-new cap branch is skipped entirely. All
+        slot accounting (the live count + the dead-entry cleanup it reads) is
+        done atomically under ``self._lock`` so two owners cannot both win the
+        last slot.
+
+        ``policy`` defaults to an empty :class:`SessionWorkerPolicy` (cap OFF) so
+        the legacy ``spawn`` wrapper stays unbounded.
+        """
+        policy = policy or SessionWorkerPolicy()
+        owner = self._owner_for_session(session_id)
         with self._lock:
-            if session_id in self._processes:
+            # (1) is_alive short-circuit — ready, consumes no new slot (H9).
+            existing = self._processes.get(session_id)
+            if existing is not None:
                 if self.is_alive(session_id):
-                    return True
-                # Dead entry — clean it up before respawning.
+                    existing["state"] = ENTRY_STATE_READY
+                    return SpawnResult(
+                        ok=True,
+                        status=SPAWN_STATUS_READY,
+                        reason="already_alive",
+                        session_id=session_id,
+                        owner=owner,
+                        pid=self._entry_pid(existing),
+                        active_count=self._active_count_locked(),
+                        max_active=policy.max_active,
+                    )
+                # Dead entry — clean it up before the cap is evaluated (H9).
                 self._processes.pop(session_id, None)
 
-            # The worker binds its queue DB from --db-path. In session mode that
-            # MUST be the per-session runtime file so the worker's queue (and,
-            # via env, its llm_calls/trace_events) co-locate with what
-            # send_input/poll_output open here. In central mode this resolves to
-            # the control path == today's behavior. Orphan pruning matches on
-            # this same --db-path, so it must use the runtime path too.
+            # (2) cap is evaluated ONLY here, on the genuine net-new branch, and
+            #     ONLY when this spawn is not a slot-preserving replacement
+            #     (H2/H3 reserve) — counting from the post-cleanup live set.
+            active_count = self._active_count_locked()
+            if not reserve and policy.cap_exceeded(active_count):
+                return SpawnResult(
+                    ok=False,
+                    status=SPAWN_STATUS_CAPACITY_WAIT,
+                    reason="max_active",
+                    session_id=session_id,
+                    owner=owner,
+                    pid=None,
+                    active_count=active_count,
+                    max_active=policy.max_active,
+                )
+
+            # (3) Popen the net-new (or reserved-replacement) worker. The worker
+            #     binds its queue DB from --db-path; in session mode that MUST be
+            #     the per-session runtime file (central -> control path, byte-
+            #     identical). Orphan pruning matches the same --db-path.
             runtime_db = self._resolve_runtime_db_path(session_id, db_path=db_path)
             self._terminate_external_session_workers(session_id, runtime_db)
-
             cmd = [
                 self._worker_python_executable(),
                 "-m",
@@ -483,57 +649,173 @@ class SessionProcessManager:
                 session_id,
             ]
             cmd.extend(["--db-path", runtime_db])
-
-            proc = subprocess.Popen(
-                cmd,
-                stdin=subprocess.DEVNULL,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-                env=self.build_worker_env(session_id, db_path=db_path),
-                cwd=str(self._project_root),
-                # Detach from parent TTY so signals/shells don't propagate.
-                start_new_session=True,
+            # Task 5: mint a fresh epoch for THIS spawn, stamp it into the child
+            # env, and record it on the entry so send_input() tags every inbound
+            # payload with it; a stale input carrying an OLD epoch (queued against
+            # a previous process for this canonical session) is then ignored.
+            worker_epoch = uuid.uuid4().hex
+            try:
+                proc = subprocess.Popen(
+                    cmd,
+                    stdin=subprocess.DEVNULL,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    env=self.build_worker_env(
+                        session_id, db_path=db_path, worker_epoch=worker_epoch
+                    ),
+                    cwd=str(self._project_root),
+                    # Detach from parent TTY so signals/shells don't propagate.
+                    start_new_session=True,
+                )
+            except Exception as exc:  # Popen/env build failure -> failed, no slot held.
+                return SpawnResult(
+                    ok=False,
+                    status=SPAWN_STATUS_CAPACITY_WAIT,
+                    reason=f"spawn_failed:{exc}",
+                    session_id=session_id,
+                    owner=owner,
+                    pid=None,
+                    active_count=active_count,
+                    max_active=policy.max_active,
+                )
+            self._processes[session_id] = ProcessEntry(
+                proc,
+                session_id=session_id,
+                owner=owner,
+                state=ENTRY_STATE_STARTING,
+                worker_epoch=worker_epoch,
             )
-            self._processes[session_id] = {
-                "proc": proc,
-                "started_at": time.time(),
-            }
-            return True
+            return SpawnResult(
+                ok=True,
+                status=SPAWN_STATUS_STARTED,
+                reason="replacing:" + replacing if replacing else "net_new",
+                session_id=session_id,
+                owner=owner,
+                pid=self._entry_pid(self._processes[session_id]),
+                active_count=active_count + 1,
+                max_active=policy.max_active,
+            )
 
     def kill(self, session_id: str) -> bool:
-        """Terminate the worker process for *session_id* gracefully.
+        """Hard-terminate the worker process for *session_id* (or no-op).
 
-        Sends SIGTERM, waits up to 5 seconds, then sends SIGKILL if still alive.
-
-        Args:
-            session_id: The Atlas session identifier.
-
-        Returns:
-            ``True`` if the process was killed (or was not tracked).
+        Backwards-compatible wrapper (Task 4): delegates to
+        :meth:`terminate_session` with ``graceful=False`` and the historical
+        hard-stop grace (5s SIGTERM wait, 2s SIGKILL wait), so old callers keep
+        the exact SIGTERM->wait->SIGKILL behavior and the runtime-DB handle
+        eviction contract. Returns ``True`` even when the session is untracked.
         """
+        return self.terminate_session(
+            session_id,
+            reason="kill",
+            stop_timeout_sec=0.0,
+            kill_grace_sec=5.0,
+            graceful=False,
+        )
+
+    def terminate_session(
+        self,
+        session_id: str,
+        reason: str = "terminate",
+        stop_timeout_sec: float = 0.0,
+        kill_grace_sec: float = 5.0,
+        *,
+        graceful: bool = True,
+        has_running_prompt: bool = False,
+        worker_epoch: Optional[str] = None,
+    ) -> bool:
+        """Stop a tracked worker, then evict its DB handles and entry.
+
+        Ordering (Task 4 + Wave-3 H4): set ``state='stopping'`` at the START
+        (H10 producer), then
+
+        1. GRACEFUL STOP, busy-worker ONLY (H4): if ``graceful`` AND the worker
+           has a running prompt, enqueue a ``stop`` and wait up to
+           ``stop_timeout_sec`` for the PROCESS to exit. A warm-IDLE worker does
+           NOT exit on a queued ``stop`` (stop only interrupts a running turn),
+           so when ``has_running_prompt`` is False (or ``graceful`` is False) we
+           SKIP the stop-ack wait entirely and go straight to terminate/kill.
+           The authoritative manager-side ack is ``proc.poll() is not None``
+           (process exit); the bridge separately observes ``worker_stopped`` /
+           ``worker_exited`` out-rows.
+        2. ``proc.terminate()`` (SIGTERM) and wait up to ``kill_grace_sec``.
+        3. ``proc.kill()`` (SIGKILL) if still alive.
+        4. Evict cached runtime DB handles (existing R2 contract).
+        5. Remove the process entry.
+
+        CRITICAL (plan "Locking And Switch Semantics"): ``self._lock`` is NEVER
+        held while sleeping. Every wait runs OUTSIDE the lock so an unrelated
+        owner slot keeps making progress while this one drains. The lock is only
+        taken for the short critical sections (read the entry / mark state / pop).
+
+        Returns ``True`` even when the session is untracked (no-op), preserving
+        the historical ``kill`` contract.
+        """
+        # -- short critical section: locate + mark stopping (H10). Do NOT pop
+        #    yet; popping now would let a concurrent net-new spawn reuse the
+        #    slot before this process is actually dead.
         with self._lock:
-            entry = self._processes.pop(session_id, None)
-            if entry is not None:
-                proc = entry["proc"]
-                if proc.poll() is None:
-                    try:
-                        proc.terminate()
-                        proc.wait(timeout=5)
-                    except subprocess.TimeoutExpired:
-                        try:
-                            proc.kill()
-                            proc.wait(timeout=2)
-                        except Exception:
-                            pass
-                    except Exception:
-                        # Process may have exited between poll and terminate.
-                        pass
-        # Evict any cached runtime DB handle for this session (R2): a killed
-        # session's long-lived connection must not be reused by a later spawn
-        # that may delete/recreate the runtime file (stale-inode reuse). Done
-        # outside self._lock — _evict_db_handles takes _db_handles_lock.
+            entry = self._processes.get(session_id)
+            if entry is None:
+                # Untracked: still honor the handle-eviction contract + no-op.
+                self._evict_db_handles(session_id)
+                return True
+            entry["state"] = ENTRY_STATE_STOPPING
+            proc = entry.get("proc")
+            epoch = worker_epoch if worker_epoch is not None else entry.get("worker_epoch")
+
+        # -- (1) graceful stop, busy-worker only (H4) — OUTSIDE the lock.
+        if graceful and has_running_prompt and stop_timeout_sec > 0:
+            payload: Dict[str, Any] = {"reason": reason}
+            if epoch is not None:
+                # Task 5 hook: tag the stop with the worker epoch when one exists;
+                # do NOT require epoch support before that task lands.
+                payload["worker_epoch"] = epoch
+            try:
+                self.send_input(session_id, "stop", payload)
+            except Exception:
+                pass
+            self._wait_for_exit(proc, stop_timeout_sec)
+
+        # -- (2)/(3) SIGTERM grace then SIGKILL — OUTSIDE the lock.
+        if proc is not None and proc.poll() is None:
+            try:
+                proc.terminate()
+                self._wait_for_exit(proc, kill_grace_sec)
+            except Exception:
+                pass
+            if proc.poll() is None:
+                try:
+                    proc.kill()
+                    self._wait_for_exit(proc, 2.0)
+                except Exception:
+                    pass
+
+        # -- (5) remove the entry under the lock (idempotent if a race popped it).
+        with self._lock:
+            self._processes.pop(session_id, None)
+        # -- (4) evict cached runtime DB handles (R2) — outside self._lock,
+        #    _evict_db_handles takes _db_handles_lock. Unchanged contract.
         self._evict_db_handles(session_id)
         return True
+
+    @staticmethod
+    def _wait_for_exit(proc: Any, timeout_sec: float) -> bool:
+        """Wait up to *timeout_sec* for *proc* to exit. Never holds the manager
+        lock (callers invoke this outside ``self._lock``). Returns True if the
+        process is no longer running."""
+        if proc is None:
+            return True
+        if timeout_sec <= 0:
+            return proc.poll() is not None
+        try:
+            proc.wait(timeout=timeout_sec)
+            return True
+        except subprocess.TimeoutExpired:
+            return False
+        except Exception:
+            # Process may have already exited between checks.
+            return proc.poll() is not None
 
     def is_alive(self, session_id: str) -> bool:
         """Check whether the worker process for *session_id* is still running.
@@ -566,6 +848,148 @@ class SessionProcessManager:
             for session_id in dead:
                 self._processes.pop(session_id, None)
             return active
+
+    # -- Task 4 metadata / status helpers ----------------------------------
+
+    @staticmethod
+    def _entry_pid(entry: Any) -> Optional[int]:
+        """Best-effort PID from an entry that may be a foreign plain dict."""
+        proc = entry.get("proc") if isinstance(entry, dict) else None
+        try:
+            return int(proc.pid) if proc is not None and proc.pid is not None else None
+        except Exception:
+            return None
+
+    def _owner_for_session(self, session_id: str) -> str:
+        """Owner slot = first path segment of the normalized session id.
+
+        Matches the bridge's ``_owner_from_session_id`` convention (owner is the
+        first ``/``-segment) without importing the bridge. Kept dependency-free
+        and defensive so the cap/metadata accounting never raises.
+        """
+        key = str(session_id or "").strip().strip("/")
+        return key.split("/", 1)[0] if key else ""
+
+    def _active_count_locked(self) -> int:
+        """Count live tracked processes. MUST be called holding ``self._lock``.
+
+        This is the cap denominator (H2/H3 — counts owner slots == live
+        entries). It does not mutate ``_processes`` (unlike ``list_active``); the
+        net-new branch of ``spawn_result`` has already popped the dead entry it
+        cares about, and a stale-dead sibling is conservatively still counted
+        until the reaper/poll path clears it — never under-counting the cap.
+        """
+        count = 0
+        for entry in self._processes.values():
+            proc = entry.get("proc") if isinstance(entry, dict) else None
+            try:
+                if proc is not None and proc.poll() is None:
+                    count += 1
+            except Exception:
+                continue
+        return count
+
+    def active_count(self) -> int:
+        """Public live-worker count for the status endpoint / cap reporting."""
+        with self._lock:
+            return self._active_count_locked()
+
+    def _touch_entry_activity(self, session_id: str, *, msg_type: str = "") -> None:
+        """Stamp last_active_at/last_input_at on an entry (best-effort)."""
+        now = time.time()
+        with self._lock:
+            entry = self._processes.get(session_id)
+            if entry is None:
+                return
+            entry["last_active_at"] = now
+            entry["last_input_at"] = now
+            # A delivered prompt means the worker is no longer warm-idle; promote
+            # a 'starting'/'ready' entry to 'ready' (never override 'stopping').
+            if entry.get("state") != ENTRY_STATE_STOPPING:
+                entry["state"] = ENTRY_STATE_READY
+
+    def note_output_activity(self, session_id: str) -> None:
+        """Stamp last_output_at/last_active_at (called by the bridge poll path).
+
+        Optional hook so the idle-TTL reaper (Task 7) measures idle age from the
+        last OUTPUT too, not only the last input. Safe no-op for untracked ids.
+        """
+        now = time.time()
+        with self._lock:
+            entry = self._processes.get(session_id)
+            if entry is None:
+                return
+            entry["last_output_at"] = now
+            entry["last_active_at"] = now
+
+    def idle_age_sec(self, session_id: str, now: Optional[float] = None) -> Optional[float]:
+        """Seconds since the entry's last activity, or None if untracked.
+
+        Idle age = now - max(last_active_at, last_input_at, last_output_at,
+        started_at). Used by the Task-7 reaper and the status endpoint.
+        """
+        ref = time.time() if now is None else now
+        with self._lock:
+            entry = self._processes.get(session_id)
+            if entry is None:
+                return None
+            stamps = [
+                entry.get("last_active_at"),
+                entry.get("last_input_at"),
+                entry.get("last_output_at"),
+                entry.get("started_at"),
+            ]
+            last = max((s for s in stamps if s is not None), default=ref)
+        return max(0.0, ref - float(last))
+
+    def list_active_metadata(self, now: Optional[float] = None) -> List[Dict[str, Any]]:
+        """Return per-session metadata dicts for the worker-status endpoint.
+
+        One dict per ALIVE tracked worker (dead entries are skipped, matching
+        ``list_active``). ``running`` is the manager's best-effort view
+        (``state == ready and a prompt was the last input`` is NOT tracked here),
+        so it is reported as ``None`` — the bridge merges the authoritative
+        ``_SessionBridge.agent_running``. Fields: ``owner``, ``session_id``,
+        ``alive``, ``running``, ``pid``, ``state``, ``idle_age_sec``,
+        ``last_active_at``, ``last_input_at``, ``last_output_at``,
+        ``started_at``, ``worker_epoch`` (H10 — every status field has a
+        producer here).
+        """
+        ref = time.time() if now is None else now
+        out: List[Dict[str, Any]] = []
+        with self._lock:
+            for session_id, entry in self._processes.items():
+                proc = entry.get("proc") if isinstance(entry, dict) else None
+                try:
+                    alive = proc is not None and proc.poll() is None
+                except Exception:
+                    alive = False
+                if not alive:
+                    continue
+                stamps = [
+                    entry.get("last_active_at"),
+                    entry.get("last_input_at"),
+                    entry.get("last_output_at"),
+                    entry.get("started_at"),
+                ]
+                last = max((s for s in stamps if s is not None), default=ref)
+                out.append(
+                    {
+                        "owner": entry.get("owner") or self._owner_for_session(session_id),
+                        "session_id": session_id,
+                        "alive": True,
+                        "running": None,
+                        "pid": self._entry_pid(entry),
+                        "state": entry.get("state") or ENTRY_STATE_READY,
+                        "idle_age_sec": max(0.0, ref - float(last)),
+                        "last_active_at": entry.get("last_active_at"),
+                        "last_input_at": entry.get("last_input_at"),
+                        "last_output_at": entry.get("last_output_at"),
+                        "started_at": entry.get("started_at"),
+                        "worker_epoch": entry.get("worker_epoch"),
+                    }
+                )
+        return out
 
     def cleanup_zombies(self) -> List[str]:
         """Remove dead processes from internal tracking.
@@ -614,6 +1038,18 @@ class SessionProcessManager:
         with self._lock:
             if not self.is_alive(session_id):
                 return None
+            # Task 5: read the live entry's epoch under the SAME lock that guards
+            # the process table. Wave-3 (line 270): tagging is UNCONDITIONAL.
+            entry = self._processes.get(session_id)
+            worker_epoch = entry.get("worker_epoch") if entry else None
+
+        # Task 5: stamp the current epoch into prompt/interrupt/answer/stop
+        # payloads UNCONDITIONALLY so the worker can drop a stale message that
+        # targets a previous process. Copy first - never mutate the caller's
+        # dict, never overwrite a caller-supplied epoch.
+        if worker_epoch and msg_type in {"prompt", "interrupt", "answer", "stop"}:
+            payload = dict(payload or {})
+            payload.setdefault("worker_epoch", worker_epoch)
 
         # Route to the session's runtime DB (control DB in central mode) and
         # reuse the long-lived handle — do NOT close() on this hot enqueue path
@@ -651,6 +1087,12 @@ class SessionProcessManager:
                 f"type={msg_type} blocked={blocked_ms:.0f}ms",
                 flush=True,
             )
+        # Activity bookkeeping for idle-TTL/status (Task 4 metadata). Best-effort,
+        # defensive: a foreign plain-dict entry simply has these keys added. Touch
+        # only on a real enqueue, and treat a 'prompt' as the worker going busy so
+        # idle-age does not reap a session that was just handed work.
+        if msg_id is not None:
+            self._touch_entry_activity(session_id, msg_type=msg_type)
         return msg_id
 
     def poll_output(
