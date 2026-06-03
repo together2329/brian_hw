@@ -393,7 +393,7 @@ rtl_contract:
     description: FunctionalModel output observable mapped to DUT output port.
   - name: sram_wr_strb
     port: sram_wr_strb
-    expr: lane_mask(ctx_payload_next_addr & 31, payload_bytes)
+    expr: (((1 << payload_bytes) - 1) << (ctx_payload_next_addr & 31))
     width: 32
     description: FunctionalModel output observable mapped to DUT output port.
   - name: rresp_next
@@ -445,6 +445,43 @@ rtl_contract:
   - wlast_seen
   - wstrb_contiguous
 parameters:
+- name: BRESP_OKAY
+  default: 0
+  type: int
+  description: AXI write response OKAY encoding
+  drives:
+  - mctp_assembler_v3_axi_wr_ingress.sv
+- name: RRESP_OKAY
+  default: 0
+  type: int
+  description: AXI read response OKAY encoding
+  drives:
+  - mctp_assembler_v3_axi_rd_payload.sv
+- name: RRESP_SLVERR
+  default: 2
+  type: int
+  description: AXI read response SLVERR encoding
+  drives:
+  - mctp_assembler_v3_axi_rd_payload.sv
+- name: INCR
+  default: 1
+  type: int
+  description: AXI AWBURST/ARBURST INCR burst-type encoding
+  drives:
+  - mctp_assembler_v3_axi_wr_ingress.sv
+  - mctp_assembler_v3_axi_rd_payload.sv
+- name: ASSEMBLING
+  default: 1
+  type: int
+  description: Context FSM state - assembling a fragmented message
+  drives:
+  - mctp_assembler_v3_context_table.sv
+- name: DONE_WAIT_DESCRIPTOR_POP
+  default: 3
+  type: int
+  description: Context FSM state - message complete, awaiting descriptor pop
+  drives:
+  - mctp_assembler_v3_context_table.sv
 - name: AXI_ADDR_WIDTH
   default: 16
   type: int
@@ -928,6 +965,54 @@ function_model:
     source: registers.STATUS.last_drop_class
     reset: 0
     description: Most recent drop class (none/packet/assembly)
+  - name: tlp_seen_count
+    reset: 0
+    width: 32
+    description: Total ingress TLPs observed (saturating traffic counter)
+  - name: tlp_accepted_count
+    reset: 0
+    width: 32
+    description: Legal ingress TLPs accepted into decode
+  - name: active_context_count
+    reset: 0
+    width: 5
+    description: Number of non-idle assembly contexts in the table
+  - name: ctx_payload_byte_count
+    reset: 0
+    width: 13
+    description: Assembled payload bytes for the selected context
+  - name: ctx_expected_seq
+    reset: 0
+    width: 2
+    description: Next expected MCTP packet sequence for the selected context
+  - name: ctx_payload_base_addr
+    reset: 0
+    width: 16
+    description: Allocated SRAM base address for the selected context payload
+  - name: ctx_payload_next_addr
+    reset: 0
+    width: 16
+    description: Next SRAM byte write address for the selected context payload
+  - name: ctx_partial_next_lane
+    reset: 0
+    width: 5
+    description: Next byte lane within the current partial 32-byte SRAM word
+  - name: payload_bytes_written_count
+    reset: 0
+    width: 32
+    description: Total payload bytes packed into SRAM (saturating traffic counter)
+  - name: message_completed_count
+    reset: 0
+    width: 32
+    description: Total completed messages published as descriptors
+  - name: fw_axi_read_beat_count
+    reset: 0
+    width: 32
+    description: Total AXI read beats returned on the firmware payload read path
+  - name: fw_axi_read_error_count
+    reset: 0
+    width: 32
+    description: Total AXI read beats completed with SLVERR
   transactions:
   - id: FM_INGEST_TLP
     name: axi_write_to_tlp_bytes
@@ -986,13 +1071,13 @@ function_model:
       expr: '16'
       width: 5
     - name: requester_id
-      expr: concat(tlp[1], tlp[2])
+      expr: ((tlp[1] << 8) | tlp[2])
       width: 16
     - name: pad_ok
       expr: (pad_len <= 3) and ((pad_len == 0) if not eom else True)
       width: 1
     - name: last_decoded_vdm
-      expr: concat(message_code, vendor_id, vdm_code)
+      expr: ((message_code << 24) | (vendor_id << 8) | vdm_code)
       width: 32
     preconditions:
     - legal TLP bytes available
@@ -1008,13 +1093,13 @@ function_model:
       expr: '16'
       description: Mirrored from executable state_updates for SSOT validator completeness.
     - state: requester_id
-      expr: concat(tlp[1], tlp[2])
+      expr: ((tlp[1] << 8) | tlp[2])
       description: Mirrored from executable state_updates for SSOT validator completeness.
     - state: pad_ok
       expr: (pad_len <= 3) and ((pad_len == 0) if not eom else True)
       description: Mirrored from executable state_updates for SSOT validator completeness.
     - state: last_decoded_vdm
-      expr: concat(message_code, vendor_id, vdm_code)
+      expr: ((message_code << 24) | (vendor_id << 8) | vdm_code)
       description: Mirrored from executable state_updates for SSOT validator completeness.
     side_effects: []
     error_cases:
@@ -1048,7 +1133,7 @@ function_model:
       expr: (not dest_filter_enable) or (dest_eid == local_eid) or (accept_broadcast_eid and (dest_eid == 0xFF)) or (accept_null_eid and (dest_eid == 0x00))
       width: 1
     - name: assembly_key
-      expr: concat(source_eid, tag_owner, message_tag)
+      expr: ((source_eid << 4) | (tag_owner << 3) | message_tag)
       width: 12
     preconditions:
     - validated VDM payload present
@@ -1081,7 +1166,7 @@ function_model:
       expr: (not dest_filter_enable) or (dest_eid == local_eid) or (accept_broadcast_eid and (dest_eid == 0xFF)) or (accept_null_eid and (dest_eid == 0x00))
       description: Mirrored from executable state_updates for SSOT validator completeness.
     - state: assembly_key
-      expr: concat(source_eid, tag_owner, message_tag)
+      expr: ((source_eid << 4) | (tag_owner << 3) | message_tag)
       description: Mirrored from executable state_updates for SSOT validator completeness.
     side_effects: []
     error_cases:
@@ -1218,7 +1303,7 @@ function_model:
       width: 16
       port: sram_wr_addr
     - name: sram_wr_strb
-      expr: lane_mask(ctx_payload_next_addr & 31, payload_bytes)
+      expr: (((1 << payload_bytes) - 1) << (ctx_payload_next_addr & 31))
       width: 32
       port: sram_wr_strb
     state_updates:
@@ -1248,7 +1333,7 @@ function_model:
       description: Mirrored from executable output_rules for SSOT validator completeness.
     - name: sram_wr_strb
       port: sram_wr_strb
-      expr: lane_mask(ctx_payload_next_addr & 31, payload_bytes)
+      expr: (((1 << payload_bytes) - 1) << (ctx_payload_next_addr & 31))
       description: Mirrored from executable output_rules for SSOT validator completeness.
     - state: ctx_payload_next_addr
       expr: ctx_payload_next_addr + payload_bytes

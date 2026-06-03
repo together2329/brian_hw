@@ -1368,6 +1368,7 @@ def test_ip_create_endpoint_scaffolds_once_and_rejects_duplicate(tmp_path, monke
     monkeypatch.setenv("ATLAS_MULTI_USER", "1")
     monkeypatch.setenv("ATLAS_EXEC_MODE", "single-worker")
     monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODE", "0")
+    monkeypatch.setenv("ATLAS_ROOT", str(tmp_path))
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
 
@@ -1379,9 +1380,18 @@ def test_ip_create_endpoint_scaffolds_once_and_rejects_duplicate(tmp_path, monke
 
     assert response.status_code == 200
     assert response.json()["created"] is True
-    assert response.json()["session"] == "alice/gpio/default"
-    assert (tmp_path / "gpio" / "yaml" / "gpio.ssot.yaml").is_file()
-    assert (tmp_path / ".session" / "alice" / "gpio" / "default" / "conversation.json").is_file()
+    assert response.json()["session"] == "alice/default/gpio/default"
+    assert response.json()["workspace_session"] == "default"
+    assert (tmp_path / "alice" / "default" / "gpio" / "yaml" / "gpio.ssot.yaml").is_file()
+    assert (
+        tmp_path
+        / "alice"
+        / "default"
+        / ".session"
+        / "gpio"
+        / "default"
+        / "conversation.json"
+    ).is_file()
 
     listed = client.get("/api/ip/list")
     assert listed.status_code == 200, listed.text
@@ -1391,13 +1401,15 @@ def test_ip_create_endpoint_scaffolds_once_and_rejects_duplicate(tmp_path, monke
     with AtlasDB() as db:
         user = db.get_user_by_username("alice")
         assert user is not None
-        session = db.get_session("alice/gpio/default")
+        session = db.get_session("alice/default/gpio/default")
         assert session is not None
         assert session["user_id"] == user["id"]
         assert session["owner"] == "alice"
         assert session["ip"] == "gpio"
         assert session["workflow"] == "default"
         assert session["summary"]["kind"] == "atlas_ip_scaffold"
+        assert session["summary"]["workspace_session"] == "default"
+        assert session["summary"]["context_key"] == "alice/default/gpio/default"
         ip_rows = db._fetchall("SELECT id, ip_name FROM ip_blocks WHERE ip_name = ?", ("gpio",))
         assert len(ip_rows) == 1
 
@@ -1416,6 +1428,7 @@ def test_ip_create_endpoint_uses_orchestrator_workflow_in_orchestrator_mode(tmp_
     monkeypatch.setenv("ATLAS_MULTI_USER", "1")
     monkeypatch.setenv("ATLAS_EXEC_MODE", "orchestrator")
     monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODE", "1")
+    monkeypatch.setenv("ATLAS_ROOT", str(tmp_path))
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
 
@@ -1427,20 +1440,30 @@ def test_ip_create_endpoint_uses_orchestrator_workflow_in_orchestrator_mode(tmp_
 
     assert response.status_code == 200, response.text
     payload = response.json()
-    assert payload["session"] == "alice/mctp/orchestrator"
+    assert payload["session"] == "alice/default/mctp/orchestrator"
+    assert payload["workspace_session"] == "default"
     assert payload["workflow"] == "orchestrator"
-    assert (tmp_path / ".session" / "alice" / "mctp" / "orchestrator" / "conversation.json").is_file()
+    assert (
+        tmp_path
+        / "alice"
+        / "default"
+        / ".session"
+        / "mctp"
+        / "orchestrator"
+        / "conversation.json"
+    ).is_file()
 
     listed = client.get("/api/ip/list")
     assert listed.status_code == 200, listed.text
     assert listed.json()["items"][0]["workflows"] == ["orchestrator"]
 
     with AtlasDB() as db:
-        session = db.get_session("alice/mctp/orchestrator")
+        session = db.get_session("alice/default/mctp/orchestrator")
         assert session is not None
         assert session["ip"] == "mctp"
         assert session["workflow"] == "orchestrator"
         assert session["summary"]["workflow"] == "orchestrator"
+        assert session["summary"]["workspace_session"] == "default"
 
 
 @pytest.mark.parametrize(
@@ -1468,6 +1491,7 @@ def test_ip_create_endpoint_allows_each_user_to_create_one_ip_per_exec_mode(
     monkeypatch.setenv("ATLAS_EXEC_MODE", exec_mode)
     monkeypatch.setenv("ATLAS_DEFAULT_EXEC_MODE", exec_mode)
     monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODE", orchestrator_mode)
+    monkeypatch.setenv("ATLAS_ROOT", str(tmp_path))
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
 
@@ -1484,19 +1508,22 @@ def test_ip_create_endpoint_allows_each_user_to_create_one_ip_per_exec_mode(
     assert bob_response.status_code == 200, bob_response.text
     alice_payload = alice_response.json()
     bob_payload = bob_response.json()
-    assert alice_payload["session"] == f"alice/{alice_ip}/{expected_workflow}"
-    assert bob_payload["session"] == f"bob/{bob_ip}/{expected_workflow}"
+    assert alice_payload["session"] == f"alice/default/{alice_ip}/{expected_workflow}"
+    assert bob_payload["session"] == f"bob/default/{bob_ip}/{expected_workflow}"
     assert alice_payload["workflow"] == expected_workflow
     assert bob_payload["workflow"] == expected_workflow
+    assert alice_payload["workspace_session"] == "default"
+    assert bob_payload["workspace_session"] == "default"
     assert alice_payload["exec_mode"] == exec_mode
     assert bob_payload["exec_mode"] == exec_mode
 
     for owner, ip in (("alice", alice_ip), ("bob", bob_ip)):
-        assert (tmp_path / ip / "yaml" / f"{ip}.ssot.yaml").is_file()
+        assert (tmp_path / owner / "default" / ip / "yaml" / f"{ip}.ssot.yaml").is_file()
         assert (
             tmp_path
-            / ".session"
             / owner
+            / "default"
+            / ".session"
             / ip
             / expected_workflow
             / "conversation.json"
@@ -1513,7 +1540,7 @@ def test_ip_create_endpoint_allows_each_user_to_create_one_ip_per_exec_mode(
 
     owner_mismatch = alice.get(
         "/api/ip/list",
-        params={"session_id": f"bob/{bob_ip}/{expected_workflow}"},
+        params={"session_id": f"bob/default/{bob_ip}/{expected_workflow}"},
     )
     assert owner_mismatch.status_code == 403, owner_mismatch.text
 
@@ -1523,8 +1550,8 @@ def test_ip_create_endpoint_allows_each_user_to_create_one_ip_per_exec_mode(
         assert alice_user is not None
         assert bob_user is not None
 
-        alice_session = db.get_session(f"alice/{alice_ip}/{expected_workflow}")
-        bob_session = db.get_session(f"bob/{bob_ip}/{expected_workflow}")
+        alice_session = db.get_session(f"alice/default/{alice_ip}/{expected_workflow}")
+        bob_session = db.get_session(f"bob/default/{bob_ip}/{expected_workflow}")
         assert alice_session is not None
         assert bob_session is not None
         assert alice_session["user_id"] == alice_user["id"]

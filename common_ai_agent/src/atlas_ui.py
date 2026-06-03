@@ -507,7 +507,7 @@ def _healthz_cost_cache_ttl() -> float:
         return 30.0
 
 
-def _healthz_cost_cache_get(key: tuple[str, str, str, str]) -> dict[str, Any] | None:
+def _healthz_cost_cache_get(key: tuple[str, ...]) -> dict[str, Any] | None:
     ttl = _healthz_cost_cache_ttl()
     if ttl <= 0:
         return None
@@ -519,7 +519,7 @@ def _healthz_cost_cache_get(key: tuple[str, str, str, str]) -> dict[str, Any] | 
     return None
 
 
-def _healthz_cost_cache_set(key: tuple[str, str, str, str], value: dict[str, Any]) -> None:
+def _healthz_cost_cache_set(key: tuple[str, ...], value: dict[str, Any]) -> None:
     ttl = _healthz_cost_cache_ttl()
     if ttl <= 0:
         return
