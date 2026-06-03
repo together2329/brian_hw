@@ -1,7 +1,7 @@
 {
   "version": 1,
   "createdAt": "2026-06-03T11:22:01.953Z",
-  "updatedAt": "2026-06-03T11:22:32.458Z",
+  "updatedAt": "2026-06-03T11:34:56.836Z",
   "briefPath": ".omo/ulw-loop/019e8b3d-eb18-7c21-83d3-c959d41844ae/brief.md",
   "goalsPath": ".omo/ulw-loop/019e8b3d-eb18-7c21-83d3-c959d41844ae/goals.json",
   "ledgerPath": ".omo/ulw-loop/019e8b3d-eb18-7c21-83d3-c959d41844ae/ledger.jsonl",
@@ -34,13 +34,15 @@
           "scenario": "Browser/API/CLI regression: verify frontend picker and UI status rendering tests, single-worker policy tests, and a browser or Playwright UI smoke selecting orchestrator and observing blocked/failed surface state without breaking single-worker mode.",
           "userModel": "regression",
           "expectedEvidence": ".omo/ulw-loop/evidence/orchestrator-ui-single-worker.txt containing vitest/pytest output, browser or Playwright action log with picker state, UI blocked/failed assertion, and cleanup receipt.",
-          "capturedEvidence": null,
-          "status": "pending"
+          "capturedEvidence": ".omo/ulw-loop/evidence/orchestrator-ui-single-worker.txt",
+          "status": "pass",
+          "capturedAt": "2026-06-03T11:34:56.836Z",
+          "notes": "Backend policy tests, frontend vitest, and Playwright Vite component smoke verify exec picker single-worker→orchestrator and blocked/failed owner UI."
         }
       ],
       "attempt": 1,
       "createdAt": "2026-06-03T11:22:01.953Z",
-      "updatedAt": "2026-06-03T11:22:32.458Z",
+      "updatedAt": "2026-06-03T11:34:56.836Z",
       "startedAt": "2026-06-03T11:22:32.458Z"
     }
   ],

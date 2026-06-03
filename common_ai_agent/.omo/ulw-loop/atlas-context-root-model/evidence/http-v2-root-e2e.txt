@@ -1,7 +1,21 @@
 [opencode-oauth] no credential — run `python -m src.opencode_backend login`
 [atlas] Multi-user enabled (process_per_session=off)
-20:28:18 [rehydrate] 0 jobs reconciled (rescued=0, marked-error=0)
+20:36:10 [rehydrate] 0 jobs reconciled (rescued=0, marked-error=0)
+[OK] register alice: {"user": {"created_at": 1780486570.6101089, "display_name": "alice", "email": null, "id": "dfe49036aaf5421e85f2fad466f86aa6", "last_login_at": null, "role": "user", "username": "alice"}}
+[OK] register bob: {"user": {"created_at": 1780486570.646719, "display_name": "bob", "email": null, "id": "1b7ddebbaaf1405db7d4c02f17bec17e", "last_login_at": null, "role": "user", "username": "bob"}}
+[OK] activate alice/s1/NEWIP_MCTP/default: {"active_session": "alice/s1/NEWIP_MCTP/default", "ip_root": "/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas-v2-e2e-b95uitxh/atlas-root/alice/s1/NEWIP_MCTP", "session_dir": "/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas-v2-e2e-b95uitxh/atlas-root/alice/s1/.session/NEWIP_MCTP/default", "workspace_root": "/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas-v2-e2e-b95uitxh/atlas-root/alice/s1"}
 [Workflow] 'ssot-gen' loaded from /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/ssot-gen
 [Workflow] 'ssot-gen' loaded via /api/session/activate (prev='default', ip='NEWIP_MCTP', owner='alice')
-[Workflow] 'lint' loaded from /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/lint
-[Workflow] 'lint' loaded via /api/session/activate (prev='default', ip='NEWIP_MCTP', owner='alice')
+[OK] activate alice/s1/NEWIP_MCTP/ssot-gen: {"active_session": "alice/s1/NEWIP_MCTP/ssot-gen", "ip_root": "/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas-v2-e2e-b95uitxh/atlas-root/alice/s1/NEWIP_MCTP", "session_dir": "/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas-v2-e2e-b95uitxh/atlas-root/alice/s1/.session/NEWIP_MCTP/ssot-gen", "workspace_root": "/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas-v2-e2e-b95uitxh/atlas-root/alice/s1"}
+[Workflow] 'default' loaded from /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/default
+[Workflow] 'default' loaded via /api/session/activate (prev='ssot-gen', ip='NEWIP_MCTP', owner='alice')
+[OK] activate alice/s2/NEWIP_MCTP/default: {"active_session": "alice/s2/NEWIP_MCTP/default", "ip_root": "/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas-v2-e2e-b95uitxh/atlas-root/alice/s2/NEWIP_MCTP", "session_dir": "/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas-v2-e2e-b95uitxh/atlas-root/alice/s2/.session/NEWIP_MCTP/default", "workspace_root": "/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas-v2-e2e-b95uitxh/atlas-root/alice/s2"}
+[OK] activate bob/s1/NEWIP_MCTP/default: {"active_session": "bob/s1/NEWIP_MCTP/default", "ip_root": "/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas-v2-e2e-b95uitxh/atlas-root/bob/s1/NEWIP_MCTP", "session_dir": "/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas-v2-e2e-b95uitxh/atlas-root/bob/s1/.session/NEWIP_MCTP/default", "workspace_root": "/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas-v2-e2e-b95uitxh/atlas-root/bob/s1"}
+[OK] healthz hint selects alice s1: {"active_session": "alice/s1/NEWIP_MCTP/default", "ip_root": "/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas-v2-e2e-b95uitxh/atlas-root/alice/s1/NEWIP_MCTP", "project_root": "/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas-v2-e2e-b95uitxh/atlas-root/alice/s1"}
+[OK] healthz hint selects alice s2: {"active_session": "alice/s2/NEWIP_MCTP/default", "ip_root": "/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas-v2-e2e-b95uitxh/atlas-root/alice/s2/NEWIP_MCTP", "project_root": "/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas-v2-e2e-b95uitxh/atlas-root/alice/s2"}
+[OK] s1 project_root is v2 workspace root
+[OK] s2 project_root is v2 workspace root
+[OK] workflow switch reflected in healthz: {"active_session": "alice/s1/NEWIP_MCTP/ssot-gen", "session_dir": "/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas-v2-e2e-b95uitxh/atlas-root/alice/s1/.session/NEWIP_MCTP/ssot-gen"}
+[OK] chat history s1/default isolated
+[OK] chat history s1/ssot-gen isolated
+[OK] chat history s2/default isolated
