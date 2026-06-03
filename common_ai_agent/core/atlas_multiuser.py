@@ -706,6 +706,8 @@ class _MultiUserBridge:
     def _owner_from_session_id(self, session_id: str | None) -> str:
         normalized = self._normalize_session_id(session_id)
         parts = [part for part in normalized.split("/") if part]
+        if len(parts) >= 4:
+            return "/".join(parts[:2])
         return parts[0] if parts else "default"
 
     def _mark_owner_active(self, session_id: str | None) -> None:
@@ -719,7 +721,15 @@ class _MultiUserBridge:
         if not normalized_owner:
             return ""
         with self._sessions_lock:
-            return str(self._owner_active_sessions.get(normalized_owner) or "")
+            direct = str(self._owner_active_sessions.get(normalized_owner) or "")
+            if direct:
+                return direct
+            if "/" not in normalized_owner:
+                prefix = f"{normalized_owner}/"
+                for slot, session_id in reversed(list(self._owner_active_sessions.items())):
+                    if str(slot).startswith(prefix):
+                        return str(session_id or "")
+            return ""
 
     def is_session_running(self, session_id: str | None) -> bool:
         normalized = self._normalize_session_id(session_id)
