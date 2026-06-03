@@ -930,14 +930,15 @@ class SessionProcessManager:
             return None
 
     def _owner_for_session(self, session_id: str) -> str:
-        """Owner slot = first path segment of the normalized session id.
+        """Owner slot for v2 is ``user/session``; legacy keeps first segment.
 
-        Matches the bridge's ``_owner_from_session_id`` convention (owner is the
-        first ``/``-segment) without importing the bridge. Kept dependency-free
-        and defensive so the cap/metadata accounting never raises.
+        Matches the bridge's owner-slot convention without importing it. Kept
+        dependency-free and defensive so cap/metadata accounting never raises.
         """
-        key = str(session_id or "").strip().strip("/")
-        return key.split("/", 1)[0] if key else ""
+        parts = [part for part in str(session_id or "").strip().strip("/").split("/") if part]
+        if len(parts) >= 4:
+            return "/".join(parts[:2])
+        return parts[0] if parts else ""
 
     def _active_count_locked(self) -> int:
         """Count live tracked processes. MUST be called holding ``self._lock``.

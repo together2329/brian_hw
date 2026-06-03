@@ -827,7 +827,7 @@ export function useWorkspaceSession(deps: UseWorkspaceSessionDeps) {
     const parts = (sid || activeSession || w.ACTIVE_SESSION || '').split('/');
     const owner = normalizeUiSession((w.ATLAS_USER && w.ATLAS_USER.username) || '') || parts[0] || 'default';
     const workspaceSession = parts.length >= 4 && parts[0] === owner ? parts[1] : 'default';
-    const ip = routeSessionIp(sid) || routeIp || parts[1] || 'default';
+    const ip = routeSessionIp(sid) || routeIp || (parts.length >= 4 ? parts[2] : parts[1]) || 'default';
     w.ACTIVE_IP = ip;
     setWorkflowDispatchInputRoute(next, ip);
     setChatViewSession(sid);

@@ -3778,6 +3778,22 @@ def create_app():
             return "", JSONResponse({"error": "session owner mismatch"}, status_code=403)
         return session, None
 
+    def _todo_file_for_session(session_name: str) -> Path | None:
+        session = normalize_session_name(session_name or "")
+        if not session:
+            return None
+        parts = [part for part in session.split("/") if part]
+        if len(parts) >= 4:
+            try:
+                context = AtlasContext.from_session_key(
+                    "/".join(parts[:4]),
+                    atlas_root=os.environ.get("ATLAS_ROOT") or str(PROJECT_ROOT),
+                )
+                return context.session_dir / "todo.json"
+            except ValueError:
+                return None
+        return PROJECT_ROOT / ".session" / session / "todo.json"
+
     @app.post("/api/todos/clear")
     async def api_todos_clear(request: Request):
         """Clear the todo file for the requested active session."""
@@ -3791,10 +3807,7 @@ def create_app():
         )
         if denied is not None:
             return denied
-        session_todo = (
-            PROJECT_ROOT / ".session" / session_name / "todo.json"
-            if session_name else None
-        )
+        session_todo = _todo_file_for_session(session_name)
         import os as _os
         _os.environ.pop("TODO_TEMPLATE_LOCK_ADDITIONS", None)
         _os.environ.pop("TODO_TEMPLATE_LOCK_NAME", None)
@@ -3887,7 +3900,9 @@ def create_app():
         criteria = str(body.get("criteria") or "").strip()
         if not criteria:
             return JSONResponse({"error": "criteria is required"}, status_code=400)
-        session_todo = PROJECT_ROOT / ".session" / session_name / "todo.json"
+        session_todo = _todo_file_for_session(session_name)
+        if session_todo is None:
+            return JSONResponse({"error": "invalid session"}, status_code=400)
         try:
             from lib.todo_tracker import TodoTracker
             tracker = TodoTracker.load(session_todo)
@@ -3944,7 +3959,9 @@ def create_app():
             index = int(body.get("index"))
         except (TypeError, ValueError):
             return JSONResponse({"error": "index must be an integer"}, status_code=400)
-        session_todo = PROJECT_ROOT / ".session" / session_name / "todo.json"
+        session_todo = _todo_file_for_session(session_name)
+        if session_todo is None:
+            return JSONResponse({"error": "invalid session"}, status_code=400)
         try:
             from lib.todo_tracker import TodoTracker
             tracker = TodoTracker.load(session_todo)
@@ -4006,7 +4023,9 @@ def create_app():
             index = int(body.get("index"))
         except (TypeError, ValueError):
             return JSONResponse({"error": "index must be an integer"}, status_code=400)
-        session_todo = PROJECT_ROOT / ".session" / session_name / "todo.json"
+        session_todo = _todo_file_for_session(session_name)
+        if session_todo is None:
+            return JSONResponse({"error": "invalid session"}, status_code=400)
         try:
             from lib.todo_tracker import TodoTracker
             tracker = TodoTracker.load(session_todo)
@@ -4064,10 +4083,7 @@ def create_app():
         active_session, denied = _todo_session_for_request(request, session)
         if denied is not None:
             return denied
-        active_todo_path = (
-            PROJECT_ROOT / ".session" / active_session / "todo.json"
-            if active_session else None
-        )
+        active_todo_path = _todo_file_for_session(active_session)
 
         try:
             import main as _main  # noqa: WPS433

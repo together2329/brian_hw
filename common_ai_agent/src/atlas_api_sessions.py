@@ -922,12 +922,10 @@ def register_sessions_routes(
             status = 400
             error = "missing session" if not str(session_raw).strip() else f"invalid session {session_raw!r}"
             return JSONResponse({"error": error}, status_code=status)
-        root = (PROJECT_ROOT / ".session").resolve()
-        sdir = (root / session).resolve()
         try:
-            sdir.relative_to(root)
-        except Exception:
-            return JSONResponse({"error": "session path escapes .session"}, status_code=400)
+            sdir, display_base = _session_dir_for_namespace(session)
+        except ValueError as exc:
+            return JSONResponse({"error": str(exc)}, status_code=400)
         access_error = _authorize_session_request(request, session)
         if access_error is not None:
             return access_error
@@ -942,12 +940,12 @@ def register_sessions_routes(
                 db_msgs = _db_conversation_messages(session, _request_user_id(request))
                 if db_msgs is None:
                     return JSONResponse({"messages": [], "session": session,
-                                         "path": hpath.relative_to(PROJECT_ROOT).as_posix(),
+                                         "path": _display_path(hpath, display_base),
                                          "error": f"parse: {e}"}, status_code=500)
         db_msgs = _db_conversation_messages(session, _request_user_id(request))
         if db_msgs is None and not hpath.is_file():
             return JSONResponse({"messages": [], "session": session,
-                                 "path": hpath.relative_to(PROJECT_ROOT).as_posix(),
+                                 "path": _display_path(hpath, display_base),
                                  "exists": False, "source": "file"})
         msgs, source = _merge_conversation_sources(file_msgs, db_msgs)
         # `limit == 0` must return an empty list. The previous form
@@ -966,7 +964,7 @@ def register_sessions_routes(
             limit,
         )
         return JSONResponse({"messages": msgs, "session": session,
-                             "path": hpath.relative_to(PROJECT_ROOT).as_posix(),
+                             "path": _display_path(hpath, display_base),
                              "exists": bool(db_msgs is not None or hpath.is_file()),
                              "source": f"{source}+orchestrator_chat" if chat_merged else source,
                              "truncated_to": limit})
@@ -997,12 +995,10 @@ def register_sessions_routes(
             status = 400
             error = "missing session" if not str(session_raw).strip() else f"invalid session {session_raw!r}"
             return JSONResponse({"error": error}, status_code=status)
-        root = (PROJECT_ROOT / ".session").resolve()
-        sdir = (root / session).resolve()
         try:
-            sdir.relative_to(root)
-        except Exception:
-            return JSONResponse({"error": "session path escapes .session"}, status_code=400)
+            sdir, display_base = _session_dir_for_namespace(session)
+        except ValueError as exc:
+            return JSONResponse({"error": str(exc)}, status_code=400)
         access_error = _authorize_session_request(request, session)
         if access_error is not None:
             return access_error
@@ -1081,11 +1077,11 @@ def register_sessions_routes(
 
         return JSONResponse({
             "session": session,
-            "session_dir": sdir.relative_to(PROJECT_ROOT).as_posix(),
+            "session_dir": _display_path(sdir, display_base),
             "exists": sdir.is_dir(),
             "conversation": {
                 "messages": messages,
-                "path": conv_path.relative_to(PROJECT_ROOT).as_posix(),
+                "path": _display_path(conv_path, display_base),
                 "exists": bool(db_messages is not None or conv_path.is_file()),
                 "source": conversation_source,
                 "mode": mode_norm,
