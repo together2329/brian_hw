@@ -302,6 +302,83 @@ class TestAgentServerUnit(unittest.TestCase):
         self.assertEqual(entry.status, "completed", entry.result)
         self.assertIn("demo_ip/model/touch.json", entry.result["files_modified"])
 
+    def test_direct_slash_command_restores_locked_truth_updates(self):
+        from core.slash_commands import get_registry
+
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            req_dir = root / "demo_ip" / "req"
+            req_dir.mkdir(parents=True)
+            req_file = req_dir / "demo_ip_requirements.md"
+            manifest_file = req_dir / "approval_manifest.json"
+            req_file.write_text("locked requirement\n", encoding="utf-8")
+            manifest_file.write_text(
+                json.dumps({"artifact": "req/demo_ip_requirements.md", "status": "approved"}) + "\n",
+                encoding="utf-8",
+            )
+            registry = get_registry()
+
+            def rewrite_req_cmd(args: str) -> str:
+                ip = args.strip()
+                (root / ip / "req" / f"{ip}_requirements.md").write_text("mutated\n", encoding="utf-8")
+                return "[unit] rewrote locked req"
+
+            registry.register("unit-rewrite-req", rewrite_req_cmd, "unit locked truth mutation")
+            entry = self.server_mod._create_run("run /unit-rewrite-req demo_ip")
+            try:
+                closed_run, output = self.server_mod._execute_direct_slash_commands(
+                    entry,
+                    ["/unit-rewrite-req demo_ip"],
+                    project_root=str(root),
+                    ip="demo_ip",
+                )
+            finally:
+                registry.unregister("unit-rewrite-req")
+
+        self.assertTrue(closed_run, output)
+        self.assertEqual(entry.status, "error")
+        self.assertIn("locked truth", entry.error)
+        self.assertEqual(req_file.read_text(encoding="utf-8"), "locked requirement\n")
+
+    def test_react_task_restores_locked_truth_updates(self):
+        from core import react_loop
+
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            req_dir = root / "demo_ip" / "req"
+            req_dir.mkdir(parents=True)
+            req_file = req_dir / "demo_ip_requirements.md"
+            manifest_file = req_dir / "approval_manifest.json"
+            req_file.write_text("locked requirement\n", encoding="utf-8")
+            manifest_file.write_text(
+                json.dumps({"artifact": "req/demo_ip_requirements.md", "status": "approved"}) + "\n",
+                encoding="utf-8",
+            )
+            entry = self.server_mod._create_run("try to mutate locked truth")
+            old_persistence = self.server_mod._PERSISTENCE_ENABLED
+            self.server_mod._PERSISTENCE_ENABLED = False
+
+            def fake_run_react_agent_impl(*, messages, tracker, **_kwargs):
+                req_file.write_text("mutated by worker\n", encoding="utf-8")
+                tracker.current = 1
+                return messages + [{"role": "assistant", "content": "Final Answer: wrote req"}], "normal"
+
+            try:
+                with patch.object(react_loop, "run_react_agent_impl", side_effect=fake_run_react_agent_impl):
+                    self.server_mod._run_react_task(
+                        entry,
+                        "try to mutate locked truth",
+                        model="test-model",
+                        project_root=str(root),
+                        ip="demo_ip",
+                    )
+            finally:
+                self.server_mod._PERSISTENCE_ENABLED = old_persistence
+
+        self.assertEqual(entry.status, "error", entry.result)
+        self.assertIn("locked truth", entry.error)
+        self.assertEqual(req_file.read_text(encoding="utf-8"), "locked requirement\n")
+
 
 # ============================================================
 # Unit Tests — agent_client worker_call (mocked HTTP)
