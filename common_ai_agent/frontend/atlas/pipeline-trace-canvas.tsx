@@ -43,7 +43,7 @@ export function EnhancedFlowCanvas({ pipelineState, ip, onSelectStage, selectedS
 
   // Find the most-recently-passed stage for "last ✓ from X" in the bus bar
   const lastPassedStageId = (() => {
-    const order = ['ssot', 'fl-model', 'cl-model', 'equivalence', 'rtl', 'lint', 'tb', 'sim', 'syn', 'sim-debug', 'coverage', 'sta', 'pnr', 'sta-post'];
+    const order = ['ssot', 'fl-model', 'cl-model', 'equivalence', 'rtl', 'lint', 'tb', 'sim', 'syn', 'sim-debug', 'coverage', 'sta', 'pnr', 'sta-post', 'contract-check', 'goal-audit'];
     let last = '';
     for (const sid of order) {
       if (stagesState[sid] && stagesState[sid].state === 'passed') last = sid;

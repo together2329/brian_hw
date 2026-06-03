@@ -5,6 +5,12 @@ One command that proves the vite/.tsx frontend **actually works in a real browse
 before). Lives in `scripts/`, runs in isolation on a **test port (3019)** so it
 never touches a running app on `:3000`.
 
+This started as a pre-cutover gate (run before flipping the served default to vite).
+The legacy `.jsx` frontend was retired on 2026-05-30, so it is now the **standing
+post-retirement E2E smoke** for the only frontend. `ATLAS_FRONTEND_MODE=vite` is now
+a **no-op for the served default** — vite is the default — though the script still
+sets it explicitly for clarity.
+
 ## Run
 ```bash
 scripts/atlas_vite_e2e_verify.sh
@@ -37,5 +43,6 @@ Exit 0 = ✅ VERIFIED. Screenshots land in `/tmp/atlas_e2e_shots/` (01_initial,
   (`src-tauri/tauri.conf.json` frontendDist/devUrl), so a green web E2E ⇒ desktop
   renders too — but WKWebView caches hard: after a dist rebuild, fully **quit
   (Cmd+Q) + relaunch** the desktop app. See [[project_ts_vite_tauri_cutover]].
-- Lesson this codifies: **build-pass ≠ renders.** Run this before flipping the
-  served default to vite. Related: [[project_merge_broke_prompt_delivery]].
+- Lesson this codifies: **build-pass ≠ renders.** Keep this in CI/pre-merge as the
+  standing browser smoke for the vite frontend (it predates, and outlived, the
+  2026-05-30 .jsx retirement). Related: [[project_merge_broke_prompt_delivery]].

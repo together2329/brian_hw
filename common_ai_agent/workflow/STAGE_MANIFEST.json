@@ -23,6 +23,10 @@
     "truth_coverage": {
       "description": "Check that locked SSOT or optional req-ledger obligations are covered by executable local evidence.",
       "command": "python3 workflow/reqcov/scripts/check_truth_coverage.py <ip> --root <ip-parent>"
+    },
+    "contract_check": {
+      "description": "Check requirement/obligation/contract_ref reflection and executable evidence closure.",
+      "command": "python3 workflow/contract-reflection/scripts/run_contract_check.py <ip> --root <ip-parent>"
     }
   },
   "stages": [
@@ -142,6 +146,15 @@
       "outputs": ["<ip>/signoff/truth_coverage.json"],
       "locked_truth": false,
       "description": "Verify every required locked-truth obligation has executable evidence. Works with direct SSOT authoring; req ledger is optional."
+    },
+    {
+      "id": "contract-check",
+      "owner": "contract-reflection",
+      "command": "python3 workflow/contract-reflection/scripts/run_contract_check.py <ip> --root <ip-parent>",
+      "inputs": ["<ip>/verify/requirements_index.json", "<ip>/verify/evidence_contract.json", "<ip>/verify/contract_reflection.json", "<ip>/sim/scoreboard_events.jsonl", "<ip>/sim/*.vcd"],
+      "outputs": ["<ip>/signoff/contract_check.json", "<ip>/signoff/evidence_contract_coverage.json", "<ip>/signoff/contract_reflection_coverage.json"],
+      "locked_truth": false,
+      "description": "Validate requirement-to-obligation evidence contracts and contract_ref reflection through SSOT, FL, CL, RTL, TB, simulation, and validator evidence."
     },
     {
       "id": "rtl_provenance_refresh",

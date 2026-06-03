@@ -20,12 +20,22 @@ from core.session_worker_policy import (  # noqa: E402
 )
 
 
-def test_default_is_session_scoped_and_unbounded():
+def test_default_is_strict_single_active_with_cap_30():
+    # DEFAULT changed 2026-06-03: strict single-active-owner (cap 30) when no env.
     p = SessionWorkerPolicy.from_env({})
+    assert p.policy == POLICY_SINGLE_ACTIVE_OWNER
+    assert p.single_active_owner is True
+    assert p.cap_enabled is True
+    assert p.max_active == 30
+    assert p.cap_exceeded(30) is True
+
+
+def test_explicit_session_scoped_opts_out_and_is_unbounded():
+    p = SessionWorkerPolicy.from_env({"ATLAS_SESSION_WORKER_POLICY": "session-scoped"})
     assert p.policy == POLICY_SESSION_SCOPED
     assert p.single_active_owner is False
     assert p.cap_enabled is False
-    assert p.cap_exceeded(10_000) is False  # unbounded by default
+    assert p.cap_exceeded(10_000) is False  # unbounded when opted out
 
 
 def test_strict_via_new_policy_has_default_cap_30():
@@ -40,15 +50,18 @@ def test_strict_via_new_policy_has_default_cap_30():
     assert p.cap_exceeded(29) is False
 
 
-def test_max_active_parsed_but_session_scoped_unbounded_when_absent():
-    # Operator sets an explicit cap in session-scoped mode -> cap enforced.
-    p = SessionWorkerPolicy.from_env({"ATLAS_SESSION_WORKER_MAX_ACTIVE": "5"})
+def test_session_scoped_cap_only_when_max_active_set():
+    # In EXPLICIT session-scoped mode the cap is enforced only when MAX_ACTIVE set.
+    p = SessionWorkerPolicy.from_env(
+        {"ATLAS_SESSION_WORKER_POLICY": "session-scoped", "ATLAS_SESSION_WORKER_MAX_ACTIVE": "5"}
+    )
     assert p.policy == POLICY_SESSION_SCOPED
     assert p.cap_enabled is True
     assert p.max_active == 5
     assert p.cap_exceeded(5) is True
-    # Absent -> unbounded (current behavior preserved).
-    assert SessionWorkerPolicy.from_env({}).cap_enabled is False
+    # session-scoped + no MAX_ACTIVE -> unbounded.
+    p2 = SessionWorkerPolicy.from_env({"ATLAS_SESSION_WORKER_POLICY": "session-scoped"})
+    assert p2.cap_enabled is False
 
 
 def test_legacy_flag_enables_strict_only_when_new_policy_absent():
@@ -77,18 +90,12 @@ def test_legacy_constructor_arg_supported():
     assert p2.single_active_owner is False
 
 
-def test_invalid_policy_fails_closed_with_warning_and_suppresses_legacy():
+def test_invalid_policy_falls_back_to_default_strict_with_warning():
+    # Invalid value -> the DEFAULT (now strict), with a diagnostic warning.
     p = SessionWorkerPolicy.from_env({"ATLAS_SESSION_WORKER_POLICY": "bogus"})
-    assert p.policy == POLICY_SESSION_SCOPED
+    assert p.policy == POLICY_SINGLE_ACTIVE_OWNER
+    assert p.single_active_owner is True
     assert p.warning  # diagnostic string is exposed
-    # Invalid value is "present" => fail closed, do NOT let legacy flip to strict.
-    p2 = SessionWorkerPolicy.from_env(
-        {
-            "ATLAS_SESSION_WORKER_POLICY": "bogus",
-            "ATLAS_SINGLE_WORKER_PER_OWNER": "1",
-        }
-    )
-    assert p2.single_active_owner is False
 
 
 def test_max_active_nonpositive_is_unbounded_even_in_strict():

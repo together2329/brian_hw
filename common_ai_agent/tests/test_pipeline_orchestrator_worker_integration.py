@@ -38,6 +38,7 @@ if str(PROJECT_ROOT / "src") not in sys.path:
 _WORKFLOWS = [
     "SSOT_GEN", "FL_MODEL_GEN", "RTL_GEN", "LINT", "TB_GEN",
     "SIM", "COVERAGE", "SIM_DEBUG", "SYN", "STA", "PNR", "STA_POST",
+    "CONTRACT_REFLECTION",
 ]
 
 
@@ -164,6 +165,7 @@ def _write_mock_stage_artifact(payload: dict) -> None:
             ),
         )
         write(f"list/{ip}.f", f"rtl/{ip}.sv\n")
+        write("rtl/rtl_compile.json", '{"errors":0,"diagnostics":0,"returncode":0}\n')
     elif stage == "lint" or workflow == "lint":
         write("lint/dut_lint.json", '{"errors":0,"warnings":0,"pyslang":[],"verilator":[]}\n')
     elif stage == "tb" or workflow == "tb-gen":
@@ -183,6 +185,10 @@ def _write_mock_stage_artifact(payload: dict) -> None:
         write("pnr/out/routed.v", f"module {ip}; endmodule\n")
     elif stage == "sta-post" or workflow == "sta-post":
         write("sta-post/out/wns.json", '{"wns":0.1}\n')
+    elif stage == "contract-check" or workflow == "contract-reflection":
+        write("signoff/contract_check.json", '{"status":"pass","summary":{"evidence_failed":0,"evidence_passed":1,"evidence_total":1,"reflection_failed":0,"reflection_passed":1,"reflection_total":1}}\n')
+        write("signoff/evidence_contract_coverage.json", '{"status":"pass","summary":{"failed":0,"passed":1,"total":1}}\n')
+        write("signoff/contract_reflection_coverage.json", '{"status":"pass","summary":{"failed":0,"passed":1,"total":1}}\n')
     elif stage == "goal-audit":
         write("sim/fl_rtl_goal_audit.json", '{"status":"pass","summary":{"blockers":[]}}\n')
 
@@ -816,6 +822,7 @@ def test_orchestrator_worker_status_exposes_default_model_bindings(
     toolchains = {item["workflow"]: item.get("toolchain") for item in body["workers"]}
     assert toolchains["lint"] == "pyslang + verilator"
     assert toolchains["coverage"] == "verilator coverage + VCD"
+    assert toolchains["contract-reflection"] == "deterministic contract validators"
 
 
 def test_job_dispatch_keeps_llm_model_separate_from_lint_toolchain(
@@ -997,6 +1004,7 @@ def test_full_ip_pipeline_can_complete_all_stages_across_two_workers(
         jobs._jobs.clear()
 
     real_recovery = jobs._job_artifact_recovery
+    real_failure = jobs._job_artifact_failure
 
     def _mock_recovery(job: dict, project_root: Path) -> tuple[bool, str]:
         stage = str(job.get("stage_id") or job.get("workflow") or "")
@@ -1004,9 +1012,20 @@ def test_full_ip_pipeline_can_complete_all_stages_across_two_workers(
         if stage == "ssot" or workflow == "ssot-gen":
             ssot_path = tmp_path / ip / "yaml" / f"{ip}.ssot.yaml"
             return ssot_path.is_file(), f"test mock validated artifact: {ip}/yaml/{ip}.ssot.yaml"
+        if stage == "rtl" or workflow == "rtl-gen":
+            compile_path = tmp_path / ip / "rtl" / "rtl_compile.json"
+            return compile_path.is_file(), "test mock validated artifact: rtl/rtl_compile.json"
         return real_recovery(job, project_root)
 
+    def _mock_failure(job: dict, project_root: Path) -> tuple[bool, str]:
+        stage = str(job.get("stage_id") or job.get("workflow") or "")
+        workflow = str(job.get("workflow") or "")
+        if stage == "rtl" or workflow == "rtl-gen":
+            return False, ""
+        return real_failure(job, project_root)
+
     monkeypatch.setattr(jobs, "_job_artifact_recovery", _mock_recovery)
+    monkeypatch.setattr(jobs, "_job_artifact_failure", _mock_failure)
 
     with _mock_worker("author") as (author_url, author_worker), _mock_worker("verify") as (verify_url, verify_worker):
         monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODE", "1")
@@ -1018,6 +1037,7 @@ def test_full_ip_pipeline_can_complete_all_stages_across_two_workers(
             "WORKER_URL_SIM",
             "WORKER_URL_COVERAGE",
             "WORKER_URL_SIM_DEBUG",
+            "WORKER_URL_CONTRACT_REFLECTION",
             "WORKER_URL_SYN",
             "WORKER_URL_STA",
             "WORKER_URL_PNR",
@@ -1346,6 +1366,7 @@ def test_orchestrator_chat_run_to_green_dispatches_workers_and_records_chat(
         assert by_stage["lint"]["toolchain"] == "pyslang + verilator"
         assert by_stage["coverage"]["toolchain"] == "verilator coverage + VCD"
         assert by_stage["sim-debug"]["model"] == "kimi"
+        assert by_stage["contract-check"]["toolchain"] == "deterministic contract validators"
         assert all(row["pipeline_run_id"] == body["pipeline_id"] for row in rows)
         assert all(row["user_id"] == "u" for row in rows)
         assert worker.requests

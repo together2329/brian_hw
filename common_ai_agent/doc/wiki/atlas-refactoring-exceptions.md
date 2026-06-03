@@ -24,49 +24,52 @@ the **split barrier**, and the **decomposition cost estimate**.
 
 | | Started | Now | Reduction |
 |---|---:|---:|---:|
-| `src/atlas_ui.py` | 21,415 | 10,301 | **−51.9%** |
-| `frontend/atlas/workspace.jsx` | 21,415 | 13,286 | **−38.0%** |
+| `src/atlas_ui.py` | 21,415 | 10,463 | **−51.1%** |
+| `frontend/atlas/workspace.jsx` | 21,415 | (deleted — migrated to `.tsx` hooks 2026-05-30; over-cap successor is `workspace-root-data-hook.tsx` 3,022) | — |
 
 **79 commits ahead of `origin/main`.** All extracted-cluster jsx files load
 and register their `window.*` exports cleanly; `create_app()` smoke +
 canonical launch path (`python3 src/atlas_ui.py --port 3000 --admin 3002
 --root … --exec s`) both verified after every merge.
 
-## 14 files still ≥ 1000 lines — exception registry
+## 9 files still ≥ 1000 lines — exception registry
 
 Each row is the SINGLE largest function / component / class inside the file,
 measured by AST or regex span. The "split barrier" is the actual technical
 work that prevents file-level extraction from getting the file under 1000.
 
+**Frontend rows re-measured 2026-06-03 against the current `.tsx` files** (all
+`.jsx` were deleted in the 2026-05-30 .jsx->.tsx migration). The successors of
+several former exceptions now fall **under** the cap and have been removed:
+`admin.jsx` (3,246 → `admin.tsx` 970), `app.jsx` (2,694 → `app.tsx` 961),
+`ssot-qa-board.jsx` (1,717 → `ssot-qa-board.tsx` 984), `ssot-digest-content.jsx`
+(1,005 → `ssot-digest-content.tsx` 403), `soc-architect.jsx` (4,210 →
+`soc-architect.tsx` 979), `data.jsx` (1,479 → `data.tsx` 692). `workspace.jsx`
+was split into hooks; its over-cap successor is `workspace-root-data-hook.tsx`.
+
 ### Tier A — mega-entity > 80% of file (file is essentially the entity)
 
 | File | Lines | Mega-entity | % of file | Split barrier |
 |---|---:|---|---:|---|
-| `admin.jsx` | 3,246 | `AdminPage` | **100.0 %** | Single React root. Entire file is one component. Splitting requires extracting child components and re-plumbing them via props — multi-day React refactor. |
 | `atlas_slash_handlers.py` | 1,953 | `make_slash_handlers` factory | **98.9 %** | 14 nested handler closures share captures from the factory's `**kwargs` (45 deps wired via the "kwarg-mirror" pattern). Each handler depends on the same factory locals. Extracting one handler requires duplicating the kwarg-mirror surface in a sibling factory, defeating the purpose. |
-| `ssot-qa-board.jsx` | 1,717 | `SsotQaBoard` | **98.8 %** | Single React component with deeply nested render tree, intertwined state (~30 `useState`/`useRef` calls), and 5 forward-ref deps already on `window`. To split: invert the component to a controller + N sub-views with prop drilling — multi-day work that risks the user-visible Q&A workbench. |
 | `atlas_api_soc.py` | 2,744 | `register_soc_routes` (api_soc) | **98.6 %** | **EMPIRICALLY VERIFIED (see Appendix A).** `api_soc` is a single 2,683-line route handler containing **~45 nested helper functions**, several nested 2 levels deep (e.g. `_simple_summary` lives *inside* `_strict_gate_from_progress`; `_result_xml_paths` inside `_sim_progress`). AST free-variable analysis proves several helpers **capture `api_soc`'s request-scoped locals** — not just pure inputs: `_strict_gate_from_progress` captures `blockers`; `_simple_summary` captures `blockers, goal_audit, req_status, signoff, status`; `_build_module` captures `_yaml, interfaces, item, name`. A naive "move the pure helpers to a sibling module" extraction was attempted and **failed at runtime** (`NameError: _build_module is not defined`) because parent/child span overlap corrupts a reverse-delete, AND the captured locals would break anyway. Real split = convert every captured local into an explicit parameter and thread it through ~45 call sites — a genuine refactor, not a file move. |
-| `atlas_api_sessions.py` | 1,148 | `register_sessions_routes` factory | **98.0 %** | Same factory-with-nested-routes pattern. Biggest nested route `api_session_activate` (349L) is async and captures `~15` factory locals. Same factory-within-factory cost as atlas_slash_handlers. |
-| `ssot-digest-content.jsx` | 1,005 | `SsotDigestContent` | **94.9 %** | Single React component, **5 lines over 1000**. 42 forward-refs are all in use (verified by grep — `0 unused`). The 950-line component body itself is the only thing left to split, which requires breaking up a single render tree. Cost vs. benefit (5 lines) is poor. |
-| `atlas_ui.py` | 10,301 | `create_app()` | **89.3 %** | The factory holds ~9,200 lines of nested closures (~70+ FastAPI route handlers, helper functions, contextvars). Each extraction requires the Phase 14 / 15 / 16 / 17 / 11 pattern: identify closure captures, build a sibling factory taking them as kwargs, and rebind the local `api_X = _register_X_routes(app, ...)` so cross-Python callers like `api_progress` keep working. Track record from this branch: each backend route extraction surfaces 1-3 latent extraction-debt bugs (8 fixed so far via the `_hydrate_atlas_ui_globals()` helper in atlas_runtime). Getting create_app under 1000 means ~50 more such extractions. Multi-week effort. |
-| `app.jsx` | 2,694 | `App` | **82.8 %** | Root React component owning all screen-routing state (`activeIp`, `activeWorkflow`, `screen`, `policyResponse`, …) and mounting every page. Splitting requires moving routing logic to a router-level Provider and refactoring child screens to read context — high-risk because every page reads from App's state through implicit closure capture. |
+| `atlas_api_sessions.py` | 1,188 | `register_sessions_routes` factory | **98.0 %** | Same factory-with-nested-routes pattern. Biggest nested route `api_session_activate` (349L) is async and captures `~15` factory locals. Same factory-within-factory cost as atlas_slash_handlers. |
+| `atlas_ui.py` | 10,463 | `create_app()` | **89.3 %** | The factory holds ~9,200 lines of nested closures (~70+ FastAPI route handlers, helper functions, contextvars). Each extraction requires the Phase 14 / 15 / 16 / 17 / 11 pattern: identify closure captures, build a sibling factory taking them as kwargs, and rebind the local `api_X = _register_X_routes(app, ...)` so cross-Python callers like `api_progress` keep working. Track record from this branch: each backend route extraction surfaces 1-3 latent extraction-debt bugs (8 fixed so far via the `_hydrate_atlas_ui_globals()` helper in atlas_runtime). Getting create_app under 1000 means ~50 more such extractions. Multi-week effort. |
 
 ### Tier B — mega-entity 50-80% of file (extraction would still leave a > 1000 sibling)
 
 | File | Lines | Mega-entity | % of file | Split barrier |
 |---|---:|---|---:|---|
-| `run_atlas_ui` in `atlas_runtime_run.py` | 1,198 | `run_atlas_ui` | **71.9 %** | Phase 28-v3 split `atlas_runtime.py` from 1,208 to 71 by moving run_atlas_ui + main + 4 helpers together to this file. Splitting run_atlas_ui itself requires breaking its 861-line body (websocket handler wiring, bridge callbacks, uvicorn config) into helpers, each needing access to local state. Phase 29 attempt to extract main() separately broke boot via cross-module `_hydrate_atlas_ui_globals()` mismatch (helper writes to its defining module's `__globals__`, so moved functions lose access to symbols). Reverted. |
-| `sim-debug.jsx` | 2,425 | `HierarchyNode` span / `window.SimDebug` | **67.3 %** | `window.SimDebug` is the root export — extracting parts requires moving sub-components with shared `useState` state. Same React-decomposition problem. |
-| `soc-architect.jsx` | 4,210 | `window.SocArchitect` | **55.6 %** | Single root export consuming SoC data (ARM-style modular ssot.yaml). Sub-components inside the body share complex SoC layout state. |
-| `workspace.jsx` | 13,286 | `Workspace` root | **40.0 %** | Already shrunk from 21,415 → 13,286 (−38 %) via 8 successful frontend extraction phases (13a, 13b, 13c, 13d, 13e, 13f, 13g, plus the Phase 30/31 reductions of pipeline-trace.jsx and pipeline-helpers.jsx that route through it). The remaining 5,316-line `Workspace` component is the chat-centric root: react state for the entire chat feed, SSOT/Todo sidebar, file viewer, message handler, and ~40 `useState`/`useEffect` hooks. Decomposing requires lifting state to context providers and refactoring child reads — see [[workspace-jsx-decomposition-plan]] (the original design proposal still calls this "P0-gated, separate sprint"). |
-| `workspace-root-data-hook.tsx` | 2,295 | `useWorkspaceData` hook | ~100 % | The `.tsx` data hook (one `useWorkspaceData` closure) mirroring workspace.jsx's chat-feed/telemetry/file/poll state, now carrying the **faithfully-ported `submitMsg` dispatch hub** (~530 lines: 9 client-side slash commands + orchestrator-chat & job-dispatch HTTP routing + ack-retry/hold + ask_user answer helpers) that captures ~30 hook-internal state/setters/refs. Was 1,609 pre-port (already over the cap); the port (commit `cbd4d917`) added the dispatch hub for **correctness** — the prior ~46-line stub had silently broken live slash/orchestrator chat (caught by the [[frontend-modernization-2026-05-29]] QA pass; gated now by `__tests__/submitmsg-dispatch.test.tsx`). Split = lift `submitMsg`→`useSubmitMsg` + feed/telemetry→sub-hooks (extracting submitMsg alone still leaves ~1,765), the SAME designed decomposition as its parent `workspace.jsx` — deferred to a dedicated pass to avoid re-breaking the just-verified dispatch port. |
+| `run_atlas_ui` in `atlas_runtime_run.py` | 1,205 | `run_atlas_ui` | **71.9 %** | Phase 28-v3 split `atlas_runtime.py` from 1,208 to 71 by moving run_atlas_ui + main + 4 helpers together to this file. Splitting run_atlas_ui itself requires breaking its 861-line body (websocket handler wiring, bridge callbacks, uvicorn config) into helpers, each needing access to local state. Phase 29 attempt to extract main() separately broke boot via cross-module `_hydrate_atlas_ui_globals()` mismatch (helper writes to its defining module's `__globals__`, so moved functions lose access to symbols). Reverted. |
+| `sim-debug.tsx` | 1,401 | `SimDebug` root | ~100 % | `.tsx` successor of `sim-debug.jsx` (2,425, deleted). Root export — extracting parts requires moving sub-components with shared `useState` state. Same React-decomposition problem. Already split off `sim-debug-panels.tsx`, `-wave`, `-helpers`, `-module-signals`, `-header`, `-shortcuts`, `-intent-hook` siblings; the root render tree remains over the cap. |
+| `sim-debug-panels.tsx` | 1,240 | sim-debug panel cluster | ~100 % | Sibling extracted from `sim-debug.tsx`; the panel render cluster still exceeds the cap. Further split needs the shared sim-debug `useState`/cursor state lifted to a context/hook. |
+| `workspace-root-data-hook.tsx` | 3,022 | `useWorkspaceData` hook | ~100 % | The `.tsx` data hook (one `useWorkspaceData` closure) that, with sibling hooks, replaced the deleted `workspace.jsx` (13,286). Mirrors the old chat-feed/telemetry/file/poll state and carries the **faithfully-ported `submitMsg` dispatch hub** (~530 lines: 9 client-side slash commands + orchestrator-chat & job-dispatch HTTP routing + ack-retry/hold + ask_user answer helpers) that captures ~30 hook-internal state/setters/refs. Was 1,609 pre-port / 2,295 mid-port (already over the cap); the port (commit `cbd4d917`) added the dispatch hub for **correctness** — the prior ~46-line stub had silently broken live slash/orchestrator chat (caught by the [[frontend-modernization-2026-05-29]] QA pass; gated now by `__tests__/submitmsg-dispatch.test.tsx`). Split = lift `submitMsg`→`useSubmitMsg` + feed/telemetry→sub-hooks, the SAME designed decomposition as its deleted parent `workspace.jsx` — deferred to a dedicated pass to avoid re-breaking the just-verified dispatch port. |
 
 ### Tier C — outside this branch's scope
 
 | File | Lines | Note |
 |---|---:|---|
 | `atlas_api_jobs.py` | 7,634 | Biggest top-level entity is `register_jobs_routes` (3,005L, 39 %). Authored by a different work track (commit history shows session-warmup / bridge timing changes, not the modularization refactor). Reviewed by `doc/wiki/atlas-refactoring-review-20260528.md` (Findings 1+2). Should be refactored on its own branch, alongside the Findings remediation. |
-| `data.jsx` | 1,479 | Single IIFE wrapping all live data bindings. Phase 33 extracted the AXI DMA mock chunk (~200 lines) but the remaining content is one shared closure of window-global setters that depend on each other's order. Splitting would require breaking the IIFE into multiple `<script>` tags with explicit ordering — invasive for marginal gain. |
 
 ## Decomposition cost matrix
 
@@ -80,7 +83,7 @@ work that prevents file-level extraction from getting the file under 1000.
 
 Each Tier A/B entry carries one of these blockers:
 
-1. **Single React root component** that owns state for the entire screen/page (Workspace, App, AdminPage, SsotQaBoard, SocArchitect, SsotDigestContent, SimDebug). Extracting children means refactoring state into context/props — by definition this is invasive at the call-site, not the file-system.
+1. **Single React root component** that owns state for the entire screen/page (the deleted `.jsx` Workspace — now its `workspace-root-data-hook.tsx`, plus `SimDebug`; the former App/AdminPage/SsotQaBoard/SocArchitect/SsotDigestContent roots all dropped under the cap after the `.tsx` migration). Extracting children means refactoring state into context/props — by definition this is invasive at the call-site, not the file-system.
 
 2. **Single Python factory function** whose nested route/handler closures all capture from the same parent scope (create_app, register_sessions_routes, register_slash_handlers, register_soc_routes). Extracting one handler requires building a sibling factory that re-receives all the same captures — the kwarg list grows linearly with handlers, defeating modularization.
 
@@ -94,7 +97,7 @@ Each Tier A/B entry carries one of these blockers:
 | 13a-g | Frontend cluster extractions (`ui-utils`, `ssot-doc`, `workflow-report`, `preview-pane`, `ssot-digest`, `ssot-qa-board`, `workspace-panels`) | ✓ all under 1000 (except ssot-qa-board Tier A) |
 | 14-17 | Backend route extractions (`atlas_api_soc`, `atlas_api_ssot_gates`, `atlas_api_diagram_plan`, `atlas_api_coverage_report`) | ✓ atlas_api_soc Tier A |
 | 18-31, 33 | Sub-1000 sibling splits | ✓ 6 files brought under 1000 |
-| 28-v3 | atlas_runtime split | ✓ atlas_runtime.py 1,208 → 71 (Tier B sibling 1,198 remains) |
+| 28-v3 | atlas_runtime split | ✓ atlas_runtime.py 1,208 → 71 (Tier B sibling 1,205 remains) |
 
 **Latent bugs caught and fixed by live web verification (would have shipped to production):** 13 distinct extraction-debt bugs across Phase 4/5/6/14/15 surface. Documented in commit messages 253cfaec, 5cefc4ae, b53e6346, 1f183db1, 22a1bf46, d918d503.
 
@@ -199,7 +202,8 @@ files are exceptions: not "hard," but **structurally not a file-move**.
 
 Phases 1–33 already extracted everything that *was* a clean file-move
 (top-level entities, pure cluster components, factory-kwarg route groups):
-`src/atlas_ui.py` 21,415→10,301 (−52%), `workspace.jsx` 21,415→13,286 (−38%),
+`src/atlas_ui.py` 21,415→10,463 (−51%), `workspace.jsx` 21,415→13,286 (−38%,
+historical — file later deleted in the 2026-05-30 `.tsx` migration),
 plus 20+ new sub-1000 modules. What remains ≥1000 is, in every case, a single
 cohesive entity whose internals capture enclosing state. Cracking them is the
 **architectural-bets** work (target architectures sketched in the companion

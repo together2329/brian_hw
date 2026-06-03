@@ -19,7 +19,10 @@ from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 
 from core.atlas_exec_policy import EXEC_MODE_SINGLE, current_exec_mode
-from atlas_session_delete import force_delete_requested, session_delete_response
+try:
+    from atlas_session_delete import force_delete_requested, session_delete_response
+except ModuleNotFoundError:  # imported package-style (src.atlas_api_sessions): src/ not on sys.path as bare
+    from src.atlas_session_delete import force_delete_requested, session_delete_response
 from src.atlas_workflow_switch import (
     WorkflowCheckpointRequest,
     schedule_workflow_checkpoint,
@@ -110,6 +113,18 @@ def register_sessions_routes(
             pass
         return False
 
+    def _cap_enabled() -> bool:
+        # A global admission cap can be active even in session-scoped mode when
+        # ATLAS_SESSION_WORKER_MAX_ACTIVE is set explicitly; warmup must then also
+        # surface capacity_wait synchronously instead of a background "scheduled".
+        try:
+            getter = getattr(bridge, "session_worker_policy", None)
+            if callable(getter):
+                return bool(getattr(getter(), "cap_enabled", False))
+        except Exception:
+            pass
+        return False
+
     def _schedule_session_worker_warmup(session_id: str, *, process_mode: bool) -> dict[str, Any]:
         mode = "process" if process_mode else "thread"
         if _session_worker_alive(session_id, process_mode=process_mode):
@@ -132,13 +147,14 @@ def register_sessions_routes(
                 "reason": "missing_warm_session",
             }
 
-        # Strict single-active mode: run ADMISSION synchronously so the response
-        # can report ready / started / capacity_wait truthfully. warm_session ->
-        # _spawn_process_session -> spawn_result already evaluates the global cap
-        # (Task 4) and reserves/replaces the owner slot (Task 3), so a blocking
-        # call here is the admission, not the slow model warmup. We never claim
-        # "ready" unless the worker is actually alive (manager.is_alive).
-        if process_mode and _strict_mode():
+        # Strict single-active mode OR an explicit global cap (session-scoped +
+        # ATLAS_SESSION_WORKER_MAX_ACTIVE): run ADMISSION synchronously so the
+        # response can report ready / started / capacity_wait truthfully.
+        # warm_session -> _spawn_process_session -> spawn_result already evaluates
+        # the global cap (Task 4) and reserves/replaces the owner slot (Task 3), so
+        # a blocking call here is the admission, not the slow model warmup. We never
+        # claim "ready" unless the worker is actually alive (manager.is_alive).
+        if process_mode and (_strict_mode() or _cap_enabled()):
             try:
                 warm_result = warm_fn(session_id)
             except Exception as exc:

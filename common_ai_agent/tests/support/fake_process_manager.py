@@ -68,6 +68,7 @@ class FakeProcessManager:
         self._fail_terminate = set(fail_terminate_for or set())
         self._busy = set(busy_sessions or set())
         self._procs: Dict[str, Dict[str, Any]] = {}
+        self._reserved_sessions: Set[str] = set()
         self._lock = threading.RLock()
         self._pid_seq = itertools.count(10_000)
         # Observable call logs for assertions.
@@ -80,6 +81,17 @@ class FakeProcessManager:
 
     def _alive_ids(self) -> List[str]:
         return [sid for sid, e in self._procs.items() if e.get("alive")]
+
+    def _admission_count(self, ignore_session_id: str = "") -> int:
+        count = len(self._alive_ids())
+        for session_id in self._reserved_sessions:
+            if session_id == ignore_session_id:
+                continue
+            entry = self._procs.get(session_id)
+            if entry is not None and entry.get("alive"):
+                continue
+            count += 1
+        return count
 
     def _mark_running(self, session_id: str, running: bool) -> None:
         with self._lock:
@@ -162,17 +174,27 @@ class FakeProcessManager:
         with self._lock:
             ids = list(self._procs.keys())
             self._procs.clear()
+            self._reserved_sessions.clear()
             self._busy.clear()
         self.killed.extend(ids)
 
     # -- Task-4 admission / lifecycle contract ----------------------------
 
-    def spawn_result(self, session_id: str, db_path: Optional[str] = None, policy: Any = None):
+    def spawn_result(
+        self,
+        session_id: str,
+        db_path: Optional[str] = None,
+        policy: Any = None,
+        *,
+        replacing: Optional[str] = None,
+        reserve: bool = False,
+    ):
         """Admission source of truth. Cap is net-new only (H2/H3/H9).
 
         Order (H9): is_alive short-circuit (status='ready') + dead cleanup
         BEFORE the cap check; the cap is evaluated only on the branch that will
-        actually create a new entry.
+        actually create a new entry. ``reserve=True`` (a same-owner-slot
+        replacement) skips the cap entirely so a switch is never cap-refused.
         """
         try:
             from core.session_process_manager import SpawnResult  # Task 4 owns it
@@ -183,8 +205,10 @@ class FakeProcessManager:
             ) from exc
         owner = _owner_of(session_id)
         with self._lock:
+            has_reservation = session_id in self._reserved_sessions
             e = self._procs.get(session_id)
             if e is not None and e.get("alive"):
+                self._reserved_sessions.discard(session_id)
                 return SpawnResult(
                     ok=True, status="ready", reason="", session_id=session_id,
                     owner=owner, pid=e["pid"], active_count=len(self._alive_ids()),
@@ -192,8 +216,13 @@ class FakeProcessManager:
                 )
             if e is not None:
                 self._procs.pop(session_id, None)  # dead entry cleanup
-            active_count = len(self._alive_ids())  # net-new count, post-cleanup
-            if policy is not None and policy.cap_exceeded(active_count):
+            active_count = self._admission_count(ignore_session_id=session_id)
+            if (
+                not has_reservation
+                and not reserve
+                and policy is not None
+                and policy.cap_exceeded(active_count)
+            ):
                 return SpawnResult(
                     ok=False, status="capacity_wait", reason="max_active",
                     session_id=session_id, owner=owner, pid=None,
@@ -207,12 +236,46 @@ class FakeProcessManager:
                 "started_at": now, "last_input_at": now, "last_output_at": now,
                 "state": "ready",
             }
+            self._reserved_sessions.discard(session_id)
             self.spawned.append(session_id)
             return SpawnResult(
                 ok=True, status="started", reason="", session_id=session_id,
                 owner=owner, pid=pid, active_count=len(self._alive_ids()),
                 max_active=getattr(policy, "max_active", 0),
             )
+
+    def terminate_and_reserve_slot(
+        self,
+        session_id: str,
+        new_session_id: str,
+        reason: str = "",
+        stop_timeout_sec: float = 0.0,
+        kill_grace_sec: float = 0.0,
+        **kwargs: Any,
+    ) -> bool:
+        with self._lock:
+            self._reserved_sessions.add(new_session_id)
+        try:
+            ok = self.terminate_session(
+                session_id,
+                reason=reason,
+                stop_timeout_sec=stop_timeout_sec,
+                kill_grace_sec=kill_grace_sec,
+                **kwargs,
+            )
+        except Exception:
+            with self._lock:
+                self._reserved_sessions.discard(new_session_id)
+            return False
+        if ok:
+            return True
+        with self._lock:
+            self._reserved_sessions.discard(new_session_id)
+        return False
+
+    def release_reserved_slot(self, session_id: str) -> None:
+        with self._lock:
+            self._reserved_sessions.discard(session_id)
 
     def terminate_session(
         self,
@@ -236,6 +299,7 @@ class FakeProcessManager:
             return False
         with self._lock:
             self._procs.pop(session_id, None)
+            self._reserved_sessions.discard(session_id)
             self._busy.discard(session_id)
         self.terminated.append((session_id, reason))
         return True

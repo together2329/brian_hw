@@ -13,6 +13,7 @@ Persisted at `<ip>/handoff/orchestrator_state.json`:
     "sim":       { "max": 2, "used": 0 },
     "sim_debug": { "max": 1, "used": 0 },
     "coverage":  { "max": 2, "used": 0 },
+    "contract-reflection": { "max": 2, "used": 0 },
     "goal-audit":{ "max": 1, "used": 0 }
   },
   "last_dispatch": { "workflow": "rtl-gen", "at": "..." }
@@ -33,6 +34,7 @@ Persisted at `<ip>/handoff/orchestrator_state.json`:
 | sim | 2 | clean cocotb pass |
 | sim_debug | 1 | always escalate when exhausted |
 | coverage | 2 | full bins |
+| contract-reflection | 2 | route owner repair or escalate |
 | goal-audit | 1 | escalate when exhausted |
 | syn | 2 | success |
 | sta | 2 | success |

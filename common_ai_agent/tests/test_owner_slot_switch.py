@@ -36,7 +36,8 @@ def _bridge(fake, *, strict=True, max_active=30):
             "ATLAS_SESSION_WORKER_MAX_ACTIVE": str(max_active),
         }
         if strict
-        else {}
+        # Default is now strict, so session-scoped must be requested explicitly.
+        else {"ATLAS_SESSION_WORKER_POLICY": "session-scoped"}
     )
     pol = SessionWorkerPolicy.from_env(env)
     b._policy = pol
@@ -71,6 +72,40 @@ def test_switch_via_prompt_path_keeps_one_worker():
         last = f"alice/ip/wf{i}"
         assert b.submit_prompt_for_session(last, f"p{i}") is True
     assert _alive_for(fake, "alice") == [last]
+
+
+def test_warm_switch_reservation_blocks_net_new_owner_steal():
+    fake = FakeProcessManager()
+    b = _bridge(fake, max_active=2)
+    assert b.warm_session("alice/ip/wf0")["status"] == "started"
+    assert b.warm_session("bob/ip/wf0")["status"] == "started"
+
+    switch = b._prepare_owner_slot_for_session("alice/ip/wf1", "warm")
+    assert switch["switch_status"] == "switched"
+    assert fake.is_alive("alice/ip/wf0") is False
+
+    blocked = b.warm_session("carol/ip/wf0")
+    assert blocked["status"] == "capacity_wait"
+    assert blocked["alive"] is False
+    assert fake.is_alive("carol/ip/wf0") is False
+
+    warmed = b.warm_session("alice/ip/wf1")
+    assert warmed["status"] == "started"
+    assert sorted(fake.list_active()) == ["alice/ip/wf1", "bob/ip/wf0"]
+
+
+def test_activate_without_warm_releases_reserved_capacity():
+    fake = FakeProcessManager()
+    b = _bridge(fake, max_active=2)
+    assert b.warm_session("alice/ip/wf0")["status"] == "started"
+    assert b.warm_session("bob/ip/wf0")["status"] == "started"
+
+    b.activate_session("alice/ip/wf1", warm=False)
+    assert fake.is_alive("alice/ip/wf0") is False
+
+    carol = b.warm_session("carol/ip/wf0")
+    assert carol["status"] == "started"
+    assert sorted(fake.list_active()) == ["bob/ip/wf0", "carol/ip/wf0"]
 
 
 # ── other owners untouched ──────────────────────────────────────
@@ -198,6 +233,24 @@ def test_owner_slot_key_honors_per_model(monkeypatch):
     assert b.owner_slot_key("alice/ip/wf") == "alice__gpt-5_3-codex"
     # idempotent: already-scoped segment[0] is unchanged
     assert b.owner_slot_key("alice__gpt-5_3-codex/ip/wf") == "alice__gpt-5_3-codex"
+
+
+def test_mark_active_and_clear_use_model_scoped_slot(monkeypatch):
+    fake = FakeProcessManager()
+    b = _bridge(fake)
+    monkeypatch.setenv("ATLAS_SESSION_PER_MODEL", "1")
+    monkeypatch.setenv("LLM_ACTIVE_MODEL_NAME", "gpt-5.3-codex")
+    monkeypatch.delenv("MODEL_NAME", raising=False)
+    monkeypatch.delenv("LLM_MODEL_NAME", raising=False)
+
+    b.activate_session("alice/ip/rtl-gen", warm=True)
+
+    slot = "alice__gpt-5_3-codex"
+    assert b.active_session_for_owner("alice") == "alice/ip/rtl-gen"
+    assert b.active_session_for_owner(slot) == "alice/ip/rtl-gen"
+    assert b._owner_active_sessions == {slot: "alice/ip/rtl-gen"}
+    b._clear_owner_slot("alice/ip/rtl-gen")
+    assert b._owner_active_sessions == {}
 
 
 # ── session-scoped mode: no displacement ────────────────────────

@@ -15,7 +15,7 @@ const g = window as unknown as Record<string, any>;
 // upstream zip; lives here because soc-shared.jsx doesn't ship it.
 export const PIPELINE_STAGES = [
   'ssot', 'fl-model', 'cl-model', 'equivalence', 'rtl', 'lint', 'tb',
-  'sim', 'coverage', 'sim-debug', 'syn', 'sta', 'pnr', 'sta-post', 'goal-audit',
+  'sim', 'coverage', 'sim-debug', 'syn', 'sta', 'pnr', 'sta-post', 'contract-check', 'goal-audit',
 ];
 export const PIPELINE_LABEL: Record<string, string> = {
   ssot: 'SSOT',
@@ -32,6 +32,7 @@ export const PIPELINE_LABEL: Record<string, string> = {
   sta: 'STA',
   pnr: 'PNR',
   'sta-post': 'PSTA',
+  'contract-check': 'CHK',
   'goal-audit': 'AUDIT',
 };
 export function fullPipeline(status: any, modId: string): Record<string, string> {
@@ -51,6 +52,7 @@ export function fullPipeline(status: any, modId: string): Record<string, string>
     sta: s.sta || 'pending',
     pnr: s.pnr || 'pending',
     'sta-post': s['sta-post'] || s.sta_post || s.signoff || 'pending',
+    'contract-check': s.contract_check || s.contract_reflection || 'pending',
     'goal-audit': s.goal_audit || 'pending',
   };
   const jobs = Array.isArray(window.ATLAS_JOBS) ? window.ATLAS_JOBS : [];
@@ -67,6 +69,7 @@ export function fullPipeline(status: any, modId: string): Record<string, string>
     sta: 'sta',
     pnr: 'pnr',
     'sta-post': 'sta-post',
+    'contract-reflection': 'contract-check',
   };
   for (const j of jobs) {
     if (!j || j.ip !== modId) continue;

@@ -1,5 +1,11 @@
 # APB UART Real-UART Signoff — 2026-05-27
 
+> **STATUS: SUPERSEDED by [[apb-uart-enhanced-signoff-20260527]]** — the active
+> DUT uses framed engines (`uart_rx_framed.sv` / `uart_tx_framed.sv`, per
+> `apb_uart_txrx_demo/list/apb_uart_txrx_demo.f`); the 8n1 modules
+> (`uart_rx_8n1.sv` / `uart_tx_8n1.sv`) described here are obsolete. Kept below
+> as a historical record.
+
 > **Scope**: Current quality/status record for `apb_uart_txrx_demo` after the RX path was upgraded from a simple single-sample UART receiver to a bounded production-style 8N1 receiver.  
 > **Decision**: **GO for bounded real-UART APB demo signoff**.  
 > **Authority caveat**: This is local default-agent evidence, not a visible ATLAS UI/orchestrator product-flow proof. Validate product-flow claims through the common UI/API/worker path described in [[pipeline-progress-debugging]].

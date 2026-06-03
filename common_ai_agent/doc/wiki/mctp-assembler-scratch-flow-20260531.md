@@ -1,7 +1,7 @@
 ---
 type: run
 tags: [ip-flow, mctp, signoff, mutation, owner-routing]
-updated: 2026-06-01
+updated: 2026-06-02
 related: [common-ai-agent-map, workflow-ownership-and-boundaries, rtl-gen-ssot-contract, mutation-baseline-2026-05-23, human-review-and-escalation, truth-coverage-gate]
 ---
 
@@ -16,7 +16,7 @@ The IP was built from the current user requirements, not by reusing prior `mctp_
 - AXI4 write ingress, 256-bit `WDATA`, one PCIe VDM TLP per AXI write transaction.
 - Multi-beat AXI write bursts; `WLAST` ends the TLP.
 - SRAM interface is 256-bit and stores only packed MCTP payload bytes with no alignment holes.
-- Assembler contexts are keyed for interleaving by source EID, tag owner, message tag, and related MCTP fields.
+- Current RTL interleaving key is source EID, tag owner, and message tag; destination EID is parsed but should be explicitly added if the approved requirement is source+destination+tag-owner+message-tag.
 - Per-Q state, base address, counters, debug/control/status/interrupt registers are visible through APB.
 - AXI4 read egress lets firmware read assembled payload from SRAM-backed descriptors.
 - Packet drop and assembly drop reasons are counted and exposed.
@@ -105,6 +105,48 @@ kill_rate=0.5
 
 Interpretation: the workflow signoff treats mutation as advisory unless threshold enforcement is requested. The 0.5 kill-rate is not a formal correctness proof, but it is useful pressure on monitor quality. Surviving mutants should continue to drive reusable monitor improvements rather than weakening the locked truth.
 
+## Assemble Logic Review
+
+The implemented data path is:
+
+```text
+AXI4 write transaction
+-> `mctp_assembler_scratch_axi_write_ingress.sv`
+-> `mctp_assembler_scratch_pcie_vdm_parser.sv`
+-> `mctp_assembler_scratch_mctp_parser.sv`
+-> `mctp_assembler_scratch_context_table.sv`
+-> ingress payload replay
+-> `mctp_assembler_scratch_sram_packer.sv`
+-> `mctp_assembler_scratch_descriptor_queue.sv`
+-> `mctp_assembler_scratch_axi_read_egress.sv`
+```
+
+Current behavior:
+
+- One AXI4 write transaction is treated as one PCIe VDM TLP.
+- The parser extracts VDM/MCTP metadata and payload offset/length.
+- The context table owns the per-Q FSM and decides whether the fragment starts, continues, completes, drops a packet, or drops an assembly.
+- First and last TLP metadata are retained per context.
+- Payload bytes are replayed from ingress capture into the 256-bit SRAM packer.
+- Descriptor push happens on assembled message completion so firmware can read the SRAM-backed payload through AXI read egress.
+
+Post-signoff risks:
+
+- Payload replay is coupled to AXI ingress capture. For production-quality RTL, packet capture and payload streaming should be split into separate modules with a clear contract.
+- Context keying must be locked against the actual requirement. If destination EID is part of the approved interleave key, current RTL needs a fix.
+- SRAM no-hole packing needs stronger byte-lane evidence for 64B to 4KB transfers, unaligned-to-32B fragments, and shorter final fragments.
+- Descriptor push should be explicitly gated by SRAM packer flush/write acceptance, not just by parser EOM state.
+- The cocotb harness is still IP-local. A reusable contract-driven monitor generator is the desired workflow direction.
+
+Quality label:
+
+```text
+local verification prototype
+not production IP
+not PCIe/MCTP standards signoff
+not PPA/DFT/formal signoff
+```
+
 ## Lessons
 
 - For a broad "General IP" flow, static profiles are the wrong abstraction. Obligations must derive from `io_list`, SSOT goals, and `ip_contract.json`.
@@ -118,8 +160,11 @@ Interpretation: the workflow signoff treats mutation as advisory unless threshol
 
 ## Next Repair Order
 
-1. Raise mutation kill-rate with stronger reusable monitors for handshake-hold, operator, and constant-change classes.
-2. Add optional formal checks for small safety invariants such as no descriptor before EOM, no SRAM write on packet drop, and AXI valid/ready hold stability.
-3. Keep production claims blocked until external standard conformance, CDC strategy review, synthesis/PnR/PPA, and formal/STA signoff are explicitly added.
+1. Refactor payload replay out of AXI ingress and give the SRAM packer a direct fragment-byte stream contract.
+2. Decide and lock the interleave key; add destination EID if the approved requirement needs it.
+3. Strengthen SRAM no-hole byte-lane tests and descriptor-after-flush evidence.
+4. Raise mutation kill-rate with stronger reusable monitors for handshake-hold, operator, and constant-change classes.
+5. Add optional formal checks for small safety invariants such as no descriptor before EOM, no SRAM write on packet drop, and AXI valid/ready hold stability.
+6. Keep production claims blocked until external standard conformance, CDC strategy review, synthesis/PnR/PPA, and formal/STA signoff are explicitly added.
 
 Related pages: [[common-ai-agent-map]], [[workflow-ownership-and-boundaries]], [[rtl-gen-ssot-contract]], [[human-review-and-escalation]].

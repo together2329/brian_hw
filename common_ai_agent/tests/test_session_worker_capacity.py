@@ -13,6 +13,7 @@ from __future__ import annotations
 import sys
 import time
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -31,7 +32,7 @@ from tests.support.fake_process_manager import (  # noqa: E402
 )
 
 
-def _bridge_with_fake(policy: SessionWorkerPolicy, fake: FakeProcessManager) -> _MultiUserBridge:
+def _bridge_with_fake(policy: SessionWorkerPolicy, fake: Any) -> _MultiUserBridge:
     """Build a strict-mode bridge wired to a fake manager + the resolved policy.
 
     The bridge reads ``self._policy`` (wired in __init__); we override BOTH it and
@@ -124,6 +125,66 @@ def test_scenario_d_capacity_blocked_prompt_is_not_acked():
     assert result.error == "capacity_wait"
     assert all(_owner(sid) != "bob" for sid, *_ in fake.sent)
     assert "bob/ip/rtl-gen" not in fake.list_active()
+
+
+def test_session_scoped_explicit_cap_blocked_prompt_is_capacity_wait():
+    policy = SessionWorkerPolicy.from_env({
+        "ATLAS_SESSION_WORKER_POLICY": "session-scoped",
+        "ATLAS_SESSION_WORKER_MAX_ACTIVE": "1",
+    })
+    fake = FakeProcessManager()
+    bridge = _bridge_with_fake(policy, fake)
+    assert bridge.submit_prompt_for_session("alice/ip/rtl-gen", "first") is True
+
+    result = bridge.submit_prompt_result_for_session("bob/ip/rtl-gen", "second")
+
+    assert result.ok is False
+    assert result.status == "capacity_wait"
+    assert result.error == "capacity_wait"
+    assert all(_owner(sid) != "bob" for sid, *_ in fake.sent)
+    assert "bob/ip/rtl-gen" not in fake.list_active()
+
+
+def test_legacy_manager_without_spawn_result_still_refuses_over_cap_prompt():
+    policy = SessionWorkerPolicy.from_env({
+        "ATLAS_SESSION_WORKER_POLICY": "single-active-owner",
+        "ATLAS_SESSION_WORKER_MAX_ACTIVE": "1",
+    })
+
+    class LegacyManager:
+        def __init__(self):
+            self.live = {"alice/ip/rtl-gen"}
+            self.spawned = []
+            self.sent = []
+
+        def is_alive(self, session_id):
+            return session_id in self.live
+
+        def latest_output_id(self, session_id):
+            return None
+
+        def list_active(self):
+            return sorted(self.live)
+
+        def spawn(self, session_id):
+            self.spawned.append(session_id)
+            self.live.add(session_id)
+            return True
+
+        def send_input(self, session_id, msg_type, payload=None):
+            self.sent.append((session_id, msg_type, payload))
+            return f"msg-{len(self.sent)}"
+
+    manager = LegacyManager()
+    bridge = _bridge_with_fake(policy, manager)
+
+    result = bridge.submit_prompt_result_for_session("bob/ip/rtl-gen", "second")
+
+    assert result.ok is False
+    assert result.status == "capacity_wait"
+    assert result.error == "capacity_wait"
+    assert manager.spawned == []
+    assert manager.sent == []
 
 
 # ── Scenario E: same-owner switch while ALL slots full -> still 1 live ──

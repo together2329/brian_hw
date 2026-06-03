@@ -179,6 +179,8 @@ HEADLESS_STAGE_ALIASES = {
     "cov": "coverage",
     "sim": "sim",
     "sim-debug": "sim-debug",
+    "contract": "contract-check",
+    "contract-check": "contract-check",
     "goal-audit": "goal-audit",
     "pipeline": "pipeline",
     "pipelining": "pipeline",
@@ -209,6 +211,7 @@ PIPELINE_DEFAULT_STAGES = [
     "sim",
     "coverage",
     "sim-debug",
+    "contract-check",
     "goal-audit",
 ]
 
@@ -3807,6 +3810,9 @@ class HeadlessWorkflowRunner:
     def _stage_goal_audit(self, ip: str) -> StageResult:
         return self._append_engine_result(self.stage_engine.run_stage("goal-audit", ip), "goal-audit")
 
+    def _stage_contract_check(self, ip: str) -> StageResult:
+        return self._append_engine_result(self.stage_engine.run_stage("contract-check", ip), "contract-check")
+
     def _execute_canonical_stage(self, canonical: str, ip: str, context: dict[str, Any]) -> StageResult:
         before = len(self.stages)
         if canonical == "ssot-gen":
@@ -3831,6 +3837,8 @@ class HeadlessWorkflowRunner:
             self._stage_sim(ip)
         elif canonical == "sim-debug":
             self._stage_sim_debug(ip)
+        elif canonical == "contract-check":
+            self._stage_contract_check(ip)
         elif canonical == "goal-audit":
             self._stage_goal_audit(ip)
         elif canonical == "pipeline":
@@ -3858,13 +3866,13 @@ class HeadlessWorkflowRunner:
     def _pipeline_repair_sequence(self, owner: str) -> list[str]:
         owner = self._canonical_repair_owner(owner)
         if owner == "rtl-gen":
-            full = ["rtl-gen", "lint", "tb-gen", "sim", "coverage", "sim-debug", "goal-audit"]
+            full = ["rtl-gen", "lint", "tb-gen", "sim", "coverage", "sim-debug", "contract-check", "goal-audit"]
         elif owner == "tb-gen":
-            full = ["tb-gen", "sim", "coverage", "sim-debug", "goal-audit"]
+            full = ["tb-gen", "sim", "coverage", "sim-debug", "contract-check", "goal-audit"]
         elif owner == "fl-model-gen":
-            full = ["fl-model-gen", "equiv-goals", "tb-gen", "sim", "coverage", "sim-debug", "goal-audit"]
+            full = ["fl-model-gen", "equiv-goals", "tb-gen", "sim", "coverage", "sim-debug", "contract-check", "goal-audit"]
         elif owner == "coverage":
-            full = ["coverage", "goal-audit"]
+            full = ["coverage", "contract-check", "goal-audit"]
         else:
             full = [owner]
         # When the operator constrains the pipeline via ATLAS_HEADLESS_PIPELINE_STAGES

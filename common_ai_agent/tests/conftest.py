@@ -14,6 +14,16 @@ import os
 os.environ.setdefault("ATLAS_SCM_PROVIDER", "")
 os.environ.setdefault("ATLAS_SCM_ADAPTER_PERFORCE", "")
 
+# Same isolation for the interactive worker/runtime settings. Pin env keys
+# before .env auto-loads (override=False) so local runtime settings do not leak
+# into pytest. Empty worker-policy/max-active values exercise the CODE default:
+# strict single-active-owner with the built-in cap. Tests that need session-scoped
+# or runtime-db session mode opt in with monkeypatch. Explicit shell exports still
+# win (setdefault).
+os.environ.setdefault("ATLAS_SESSION_WORKER_POLICY", "")
+os.environ.setdefault("ATLAS_SESSION_WORKER_MAX_ACTIVE", "")
+os.environ.setdefault("ATLAS_RUNTIME_DB_MODE", "central")
+
 # Add paths for imports
 _tests_dir = os.path.dirname(os.path.abspath(__file__))
 _project_root = os.path.dirname(_tests_dir)

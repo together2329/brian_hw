@@ -19,6 +19,7 @@ import shlex
 from pathlib import Path
 from typing import Any, Callable, FrozenSet, Optional
 
+from fastapi import Request
 from fastapi.responses import JSONResponse
 
 
@@ -41,11 +42,16 @@ def register_source_route(
     app: Any,
     *,
     safe_path_fn: Callable[[str], Optional[Path]],
+    fs_authz: Any = None,
 ) -> None:
     """Wire /api/source onto `app` (Phase 11a PoC, kept verbatim)."""
 
     @app.get("/api/source")
-    async def api_source(path: str):
+    async def api_source(request: Request, path: str):
+        if fs_authz is not None:
+            denied = fs_authz.path(request, path)
+            if denied is not None:
+                return denied
         target = safe_path_fn(path)
         if target is None or not target.is_file():
             return JSONResponse({"error": "not found"}, status_code=404)
@@ -77,14 +83,45 @@ def register_sim_debug_routes(
     _safe,
     PROJECT_ROOT,
     WORKFLOW_ROOT,
+    fs_authz=None,
 ):
     """Wire /api/debug/scenarios, /api/elab/status, /api/hierarchy,
     /api/trace, /api/cocotb. Bodies are the verbatim originals from
     create_app(); deps come in as explicit kwargs (lambdas in atlas_ui).
     """
 
+    # ── B1 read gate (injected by create_app). These endpoints expose per-IP
+    # RTL source, hierarchy, signals, scenarios and cocotb testbenches, so each
+    # must be authorized by IP — and by every resolved `sources` path, since a
+    # sources= glob can point into a victim IP even when `ip` is owned. ───────
+    def _gate_ip(request, ip, permission="view"):
+        if fs_authz is None or not ip:
+            return None
+        return fs_authz.ip(request, ip, permission)
+
+    def _gate_sources(request, sources, ip=""):
+        if fs_authz is None or not sources:
+            return None
+        try:
+            paths = _elab_resolve_sources(sources, ip)
+        except Exception:
+            paths = []
+        root = PROJECT_ROOT.resolve()
+        for p in paths or []:
+            try:
+                rel = Path(p).resolve().relative_to(root).as_posix()
+            except Exception:
+                continue
+            denied = fs_authz.path(request, rel)
+            if denied is not None:
+                return denied
+        return None
+
     @app.get("/api/debug/scenarios")
-    async def api_debug_scenarios(ip: str):
+    async def api_debug_scenarios(request: Request, ip: str):
+        denied = _gate_ip(request, ip)
+        if denied is not None:
+            return denied
         """Resolve `<ip>/yaml/<ip>.ssot.yaml` test_requirements.scenarios
         and roll up pass/fail per scenario from
         `<ip>/sim/scoreboard_events.jsonl`.
@@ -242,7 +279,7 @@ def register_sim_debug_routes(
 
 
     @app.get("/api/hierarchy")
-    async def api_hierarchy(top: str, sources: str = "", ip: str = "",
+    async def api_hierarchy(request: Request, top: str, sources: str = "", ip: str = "",
                             backend: str = ""):
         """Return the elaborated instance tree.
 
@@ -252,6 +289,9 @@ def register_sim_debug_routes(
           - ip       : shorthand — prefers `<ip>/list/*.f`, then `<ip>/rtl/*.sv`
           - backend  : 'dual' (default), 'pyslang', 'verilator', or 'slang'
         """
+        denied = _gate_ip(request, ip) or _gate_sources(request, sources, ip)
+        if denied is not None:
+            return denied
         try:
             mod = _load_sim_debug_elab()
             build_hierarchy_cached = mod.build_hierarchy_cached
@@ -286,12 +326,15 @@ def register_sim_debug_routes(
 
 
     @app.get("/api/trace")
-    async def api_trace(signal: str, top: str = "", scope: str = "",
+    async def api_trace(request: Request, signal: str, top: str = "", scope: str = "",
                         sources: str = "", ip: str = "",
                         backend: str = ""):
         """Trace driver/sinks for a signal. Top module resolution priority:
         explicit `top` > scope[0] > `ip` > signal[0]. Same source resolution
         as /api/hierarchy."""
+        denied = _gate_ip(request, ip) or _gate_sources(request, sources, ip)
+        if denied is not None:
+            return denied
         try:
             mod = _load_sim_debug_elab()
             trace_driver_cached = mod.trace_driver_cached
@@ -324,11 +367,14 @@ def register_sim_debug_routes(
 
 
     @app.get("/api/sim_debug/intent")
-    async def api_sim_debug_intent(ip: str = ""):
+    async def api_sim_debug_intent(request: Request, ip: str = ""):
         """Return the latest Sim Debug UI intent pushed by the agent `sim_debug`
         tool (navigate / show signals / place cursor / trace / fit). The panel
         polls this and applies it when `seq` increases. Read-only, no side
         effects; `{"seq": 0}` means nothing pending."""
+        denied = _gate_ip(request, ip)
+        if denied is not None:
+            return denied
         try:
             from core.sim_debug_intent import get_intent
         except Exception as e:
@@ -337,7 +383,7 @@ def register_sim_debug_routes(
 
 
     @app.get("/api/module/signals")
-    async def api_module_signals(module: str, top: str = "", sources: str = "",
+    async def api_module_signals(request: Request, module: str, top: str = "", sources: str = "",
                                  ip: str = "", backend: str = ""):
         """List every declared signal of one RTL module: ports (with
         in/out/inout direction) plus internal nets/variables, each with
@@ -348,6 +394,9 @@ def register_sim_debug_routes(
         directions). Same source resolution as /api/hierarchy."""
         if not module:
             return JSONResponse({"error": "module parameter required", "signals": []}, status_code=400)
+        denied = _gate_ip(request, ip) or _gate_sources(request, sources, ip)
+        if denied is not None:
+            return denied
         try:
             mod = _load_sim_debug_elab()
             module_signals_cached = mod.module_signals_cached
@@ -378,13 +427,16 @@ def register_sim_debug_routes(
 
 
     @app.get("/api/cocotb")
-    async def api_cocotb(ip: str = ""):
+    async def api_cocotb(request: Request, ip: str = ""):
         """Inspect a cocotb testbench environment under <ip>/cocotb/ or <ip>/tb/cocotb/.
         Returns a categorised file tree + parsed results.xml summary
         so the sim_debug UI can show 'TB' alongside the RTL hierarchy.
         """
         if not ip:
             return JSONResponse({"error": "ip parameter required"}, status_code=400)
+        denied = _gate_ip(request, ip)
+        if denied is not None:
+            return denied
         base = _safe(ip + "/cocotb")
         if base is None or not base.is_dir():
             base = _safe(ip + "/tb/cocotb")

@@ -28,6 +28,22 @@ def _authenticated_client(app) -> TestClient:
     return client
 
 
+def _own_ip(username: str, ip: str, workflow: str = "rtl-gen") -> None:
+    """Give *username* ownership of *ip* in multi-user mode by creating a session
+    in its ``<owner>/<ip>/<workflow>`` namespace — the authoritative IP-ownership
+    source the B1 read/write gate (and /api/ip/list) use."""
+    from core.atlas_db import AtlasDB
+
+    with AtlasDB() as db:
+        user = db.get_user_by_username(username)
+        assert user, f"user {username!r} not found"
+        sess = db.create_session(user["id"], f"{ip} session")
+        db._execute(
+            "UPDATE sessions SET namespace = ? WHERE id = ?",
+            (f"{username}/{ip}/{workflow}", sess["id"]),
+        )
+
+
 def test_file_delete_is_ip_scoped_and_file_only(tmp_path: Path, monkeypatch):
     alpha = tmp_path / "alpha"
     beta = tmp_path / "beta"
@@ -39,6 +55,7 @@ def test_file_delete_is_ip_scoped_and_file_only(tmp_path: Path, monkeypatch):
     sibling.write_text("keep me\n", encoding="utf-8")
 
     client = _authenticated_client(_create_app(tmp_path, monkeypatch))
+    _own_ip("fileuser", "alpha")  # fileuser owns the IP it operates on
 
     # /api/file was renamed to /api/file/delete by Phase 9 of
     # refactor/atlas-modular (the file API cluster moved to atlas_api_files.py

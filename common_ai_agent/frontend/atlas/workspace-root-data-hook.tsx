@@ -1885,11 +1885,12 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   // (ack-aware). Session-half primitives are now read from the destructured,
   // TYPED deps above — the old `deps as any` cast (which left setStreamText
   // undefined at runtime) is gone. setStreamText is the data hook's OWN state.
-  const submitMsg = useCallback((cmd?: any) => {
+  const submitMsg = useCallback((cmd?: any, opts?: { clearCurrentInput?: boolean }) => {
     const raw = String(cmd ?? inputRef.current?.value ?? input).trim();
     submittedInputConsumedRef.current = false;
     if (!raw) return;
     requestFeedScrollToBottom();
+    const clearCurrentInput = !!(opts && opts.clearCurrentInput);
 
     // BUG A: read-and-clear the replay msg_id for THIS dispatch. Set only by the
     // held-input replay when re-firing an ack-miss hold; threaded into sendPrompt
@@ -1904,6 +1905,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       recordInputHistory(raw);
       replaceInput((cur: string) => {
         const curText = String(cur || '').trim();
+        if (clearCurrentInput) return '';
         if (!curText || curText === raw) return '';
         if (cmd != null && curText.startsWith('/')) return '';
         return cur;
@@ -2819,8 +2821,8 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     return true;
   };
 
-  const submitMsgKeyResult = (cmd?: any): WorkspacePromptKeyResult => {
-    submitMsg(cmd);
+  const submitMsgKeyResult = (cmd?: any, opts?: { clearCurrentInput?: boolean }): WorkspacePromptKeyResult => {
+    submitMsg(cmd, opts);
     return submittedInputConsumedRef.current ? 'submitted' : 'handled';
   };
 
@@ -2831,7 +2833,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       if (e.key === 'Tab' || e.key === 'Enter') {
         if (filtered[slashSel]) {
           e.preventDefault();
-          if (e.key === 'Enter') return submitMsgKeyResult(filtered[slashSel].cmd);
+          if (e.key === 'Enter') return submitMsgKeyResult(filtered[slashSel].cmd, { clearCurrentInput: true });
           replaceInput(filtered[slashSel].cmd + ' ');
           return 'handled';
         }
@@ -2891,7 +2893,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       }
       if (!e.shiftKey) {
         e.preventDefault();
-        return submitMsgKeyResult(e.currentTarget?.value ?? input);
+        return submitMsgKeyResult(e.currentTarget?.value ?? input, { clearCurrentInput: true });
       }
       // Shift+Enter: textarea native handles newline; onChange fires auto-grow.
     }

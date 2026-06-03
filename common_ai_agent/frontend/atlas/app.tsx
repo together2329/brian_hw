@@ -140,7 +140,7 @@ const App = () => {
     try { localStorage.setItem('atlasUiLangUserSet', '1'); } catch (_) {}
   }, []);
   const TOP_WORKFLOWS = useMemo(() => new Set([
-    'architect', 'coverage', 'fl-model-gen', 'goal-audit', 'lint',
+    'architect', 'contract-reflection', 'coverage', 'fl-model-gen', 'goal-audit', 'lint',
     'mas-gen', 'orchestrator', 'pnr', 'rtl-gen', 'signoff', 'sim', 'sim_debug',
     'ssot-gen', 'sta', 'sta-post', 'syn', 'tb-gen',
   ]), []);

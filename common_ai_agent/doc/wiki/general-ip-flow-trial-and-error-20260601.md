@@ -2,8 +2,8 @@
 title: General IP Flow Trial And Error
 type: lessons
 tags: [ip-flow, ssot, signoff, mutation, formal, mctp, general-ip]
-updated: 2026-06-01
-related: [truth-coverage-gate, mctp-assembler-scratch-flow-20260531, hw-agent-ip-experiment-batch-20260530, uart-tx-end-to-end-findings-20260530, full-flow-pipeline, human-review-and-escalation]
+updated: 2026-06-02
+related: [truth-coverage-gate, evidence-contract-obligation-traceability, mctp-assembler-scratch-flow-20260531, hw-agent-ip-experiment-batch-20260530, uart-tx-end-to-end-findings-20260530, full-flow-pipeline, human-review-and-escalation]
 ---
 
 # General IP Flow Trial And Error - 2026-06-01
@@ -379,7 +379,7 @@ It reads evidence from:
 
 Final signoff now requires `truth_coverage` to pass.
 
-Current MCTP result after adding this stricter gate:
+Initial MCTP result immediately after adding this stricter gate:
 
 ```text
 truth_coverage: status=fail
@@ -390,6 +390,71 @@ signoff: status=fail, 16/17 gates pass
 ```
 
 This is a good failure. It means the workflow now refuses to claim full requirement satisfaction when the evidence map is incomplete.
+
+After the evidence map was repaired, the same scratch IP reached local signoff:
+
+```text
+truth_coverage: status=pass
+obligations=95
+covered=95
+uncovered_required=0
+signoff: status=pass, 18/18 gates pass
+```
+
+This is still a local workflow signoff, not a production or standards-conformance signoff. The lesson is:
+
+```text
+green gates are only meaningful when their scope is explicit.
+```
+
+The next improvement is not more pass/fail gates. It is stronger traceability:
+
+```text
+SSOT requirement
+-> atomic obligation
+-> scenario
+-> required observable
+-> pass condition
+-> scoreboard row
+```
+
+That proposed layer is recorded in [[evidence-contract-obligation-traceability]].
+
+## Post-Signoff Design Review Lessons
+
+The later assemble-logic review found important issues that were not visible from the headline signoff number.
+
+Assemble path currently behaves as:
+
+```text
+AXI4 write burst
+-> PCIe VDM parser
+-> MCTP parser
+-> context table / per-Q FSM
+-> AXI ingress payload replay
+-> SRAM packer
+-> descriptor queue
+-> AXI read egress
+```
+
+Main design lessons:
+
+- The payload write path is too indirect. `context_table` decides the destination address and payload count, then AXI ingress replays captured burst bytes into the SRAM packer. This passed local tests, but the responsibility split is weak. Payload replay should be separated from AXI transaction capture.
+- The context key must be explicitly locked. Current RTL keying was observed as source EID, tag owner, and message tag. If approved truth requires destination EID in the assembly key, the RTL is incomplete even if interleave tests pass.
+- SRAM packing must be an explicit byte-pack and flush contract. "No holes" is not proven by a wide SRAM interface alone; it needs byte-lane evidence for unaligned fragment lengths and final partial beats.
+- Descriptor publication must be tied to SRAM write completion. Pushing a descriptor at EOM is not enough if the final packed SRAM word can still be pending.
+- cocotb exists under the IP, but it is not yet fully separated into a reusable contract-driven monitor generator. The flow needs reusable monitor templates so each new IP does not re-hand-author the same scoreboard plumbing.
+- Mutation survivors are useful review signals. They point to monitor or stimulus weakness, but they do not prove the RTL wrong by themselves because some survivors can be equivalent or irrelevant.
+- Commit/push evidence should be scoped to the IP and workflow artifacts only. Dirty unrelated frontend/core files can exist in the same worktree and must not be reverted or accidentally claimed.
+
+The practical quality label for this MCTP run is:
+
+```text
+local verification prototype:
+  compile/lint/sim/coverage/truth_coverage/signoff pass
+  useful for workflow learning
+  not yet production IP
+```
 
 ## What Changed In Workflow
 
@@ -402,19 +467,20 @@ Landed changes from these trials:
 - `check_truth_coverage.py` checks locked-truth coverage from direct SSOT or optional req ledger.
 - `check_ip_signoff.py` now fails if `truth_coverage.json` is missing or failing.
 - `doc/wiki/truth-coverage-gate.md` records the new gate.
+- `doc/wiki/evidence-contract-obligation-traceability.md` records the next obligation-level traceability proposal.
 
 ## What Is Still Weak
 
 Known remaining gaps:
 
-- MCTP register evidence is not yet mapped deeply enough per register.
-- Interrupt-source evidence is not yet explicit enough.
-- Cycle coverage bins are not fully tied to executable evidence tokens.
+- Some evidence mapping can still become too token-like unless it is backed by concrete scenario rows.
 - Workflow acceptance criteria are sometimes too prose-like.
 - Mutation kill-rate remains advisory and can still be low.
 - Formal proof is documented as optional but not integrated as a running gate.
 - PPA/DFT/PnR remain out of local scratch signoff.
 - External PCIe/MCTP standards conformance is not certified by this flow.
+- Reusable cocotb monitor generation is still weaker than the SSOT/RTL/signoff machinery.
+- RTL design review still matters after machine signoff, especially for ownership split, flush ordering, and keying rules.
 
 ## Current Best Practice
 
@@ -425,12 +491,14 @@ For a new General IP:
 2. Lock SSOT as truth.
 3. Generate FL/CL/equivalence goals.
 4. Derive ip_contract from actual IP artifacts.
-5. Implement RTL and TB.
-6. Run compile/lint/sim/scoreboard/coverage.
-7. Run mutation as harness-depth signal.
-8. Run truth_coverage.
-9. Run final signoff.
-10. If truth_coverage fails, improve evidence or explicitly defer/waive the requirement.
+5. Derive or review evidence_contract obligations.
+6. Implement RTL and TB.
+7. Run compile/lint/sim/scoreboard/coverage.
+8. Run mutation as harness-depth signal.
+9. Run truth_coverage.
+10. Run final local signoff.
+11. Add explicit quality label: local evidence pass, engineering review pass/partial, production signoff blocked/pass.
+12. If truth_coverage or evidence_contract coverage fails, improve evidence or explicitly defer/waive the requirement.
 ```
 
 The stop condition is not "all possible EDA gates exist." The stop condition for local workflow signoff is:
@@ -441,10 +509,47 @@ all machine gates pass,
 remaining optional production gates are explicitly out-of-scope or human-owned.
 ```
 
+Implementation quality should be judged separately from local signoff:
+
+```text
+correctness:
+  RTL observed behavior matches FL/expected results.
+
+coverage:
+  important scenarios and corner cases are exercised.
+
+robustness:
+  mutation/assertion/bug-injection pressure shows monitors can fail.
+
+RTL review:
+  structure naturally implements the requirement, not just the narrow test.
+
+production readiness:
+  standard conformance, CDC, PPA, DFT, STA, formal, and human approval are done
+  if the project scope requires them.
+```
+
+The operational default should stay simple:
+
+```text
+1. 맞게 동작하나?
+   RTL observed output/readback matches FL expected.
+
+2. 충분히 때려봤나?
+   Important scenarios and corner cases executed.
+
+3. 일부러 깨면 잡나?
+   Mutation, assertion, or targeted bug injection can fail the test.
+
+4. 구조가 이상하지 않은가?
+   Human RTL review finds no blocker for the claimed scope.
+```
+
 ## Hard Conclusions
 
 - General IP flow must not use fixed profiles as authority.
 - Direct SSOT is valid, but then SSOT must be the traceable obligation source.
+- requirement satisfaction needs an explicit evidence contract, not only token-level matching.
 - cocotb pass is necessary, not sufficient.
 - coverage pass is necessary, not sufficient unless coverage is tied to locked truth.
 - mutation is useful for test depth, not correctness proof.

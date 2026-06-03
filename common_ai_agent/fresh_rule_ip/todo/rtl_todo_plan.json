@@ -40,7 +40,7 @@
     "static_missing": 0,
     "status": "pass"
   },
-  "generated_at": "2026-05-31T12:28:27Z",
+  "generated_at": "2026-06-03T09:40:22Z",
   "ip": "fresh_rule_ip",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 0,
@@ -2009,7 +2009,7 @@
         "Primary implementation evidence is in rtl/fresh_rule_ip.sv",
         "valid_sample appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
       ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.valid_sample.\nOwner: fresh_rule_ip in rtl/fresh_rule_ip.sv via top_level_handshake_rule.\nSSOT item context: name=valid_sample.",
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.valid_sample.\nOwner: fresh_rule_ip in rtl/fresh_rule_ip.sv via cycle_model.\nSSOT item context: name=valid_sample.",
       "evidence_terms": [
         "sample",
         "valid",
@@ -2017,7 +2017,7 @@
       ],
       "id": "RTL-0035",
       "owner_file": "rtl/fresh_rule_ip.sv",
-      "owner_match": "top_level_handshake_rule",
+      "owner_match": "cycle_model",
       "owner_module": "fresh_rule_ip",
       "priority": "high",
       "required": true,

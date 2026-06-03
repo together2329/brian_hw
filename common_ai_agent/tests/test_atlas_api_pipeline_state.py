@@ -16,7 +16,7 @@ if str(PROJECT_ROOT / "src") not in sys.path:
 _EXPECTED_STAGE_IDS = [
     "ssot", "fl-model", "cl-model", "equivalence", "rtl",
     "lint", "tb", "sim", "coverage", "sim-debug",
-    "syn", "sta", "pnr", "sta-post", "goal-audit",
+    "syn", "sta", "pnr", "sta-post", "contract-check", "goal-audit",
 ]
 
 
@@ -37,7 +37,7 @@ def _make_client(tmp_path: Path, monkeypatch) -> TestClient:
     return client
 
 
-def test_pipeline_state_returns_15_stages(tmp_path: Path, monkeypatch) -> None:
+def test_pipeline_state_returns_16_stages(tmp_path: Path, monkeypatch) -> None:
     ip = "smoke_ip"
     (tmp_path / ip).mkdir()
 
@@ -50,7 +50,7 @@ def test_pipeline_state_returns_15_stages(tmp_path: Path, monkeypatch) -> None:
     assert "stages" in data
     stage_keys = list(data["stages"].keys())
     assert stage_keys == _EXPECTED_STAGE_IDS, stage_keys
-    assert len(stage_keys) == 15
+    assert len(stage_keys) == 16
 
     _valid_states = {"idle", "ready", "running", "passed", "failed", "blocked", "stale", "locked"}
     for sid, sdata in data["stages"].items():

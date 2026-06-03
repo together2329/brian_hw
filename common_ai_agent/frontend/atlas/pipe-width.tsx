@@ -152,7 +152,8 @@ export async function pipelineFetchWorkerSnapshot(opts: WorkerSnapshotOpts = {})
     'sim': ['tb'],
     'coverage': ['sim'],
     'sim-debug': ['sim'],
-    'goal-audit': ['sim'],
+    'contract-check': ['sim-debug'],
+    'goal-audit': ['contract-check'],
     'sta': ['syn'],
     'pnr': ['syn'],
     'sta-post': ['pnr'],
@@ -168,6 +169,7 @@ export async function pipelineFetchWorkerSnapshot(opts: WorkerSnapshotOpts = {})
     sim: 'sim',
     coverage: 'coverage',
     'sim-debug': 'sim_debug',
+    'contract-check': 'contract-reflection',
     syn: 'syn',
     sta: 'sta',
     pnr: 'pnr',
@@ -183,6 +185,7 @@ export async function pipelineFetchWorkerSnapshot(opts: WorkerSnapshotOpts = {})
     sim: 'sim',
     coverage: 'coverage',
     sim_debug: 'sim-debug',
+    'contract-reflection': 'contract-check',
     syn: 'syn',
     sta: 'sta',
     pnr: 'pnr',
@@ -212,6 +215,7 @@ export async function pipelineFetchWorkerSnapshot(opts: WorkerSnapshotOpts = {})
     if (wf === 'sim' || id === 'sim') return `${ip}/sim/sim_summary.json`;
     if (wf === 'coverage' || id === 'coverage') return `${ip}/sim/coverage_report.md`;
     if (wf === 'sim_debug' || id === 'sim-debug') return `${ip}/sim/sim_debug_report.md`;
+    if (wf === 'contract-reflection' || id === 'contract-check') return `${ip}/signoff/contract_check.json`;
     if (wf === 'syn' || id === 'syn') return `${ip}/syn/syn_report.md`;
     if (wf === 'sta' || id === 'sta') return `${ip}/sta/sta_report.md`;
     if (wf === 'pnr' || id === 'pnr') return `${ip}/pnr/pnr_report.md`;
@@ -246,7 +250,7 @@ export async function pipelineFetchWorkerSnapshot(opts: WorkerSnapshotOpts = {})
     { id: 'RTL',        stages: ['rtl'] },
     { id: 'BRANCH',     stages: ['lint', 'tb', 'sim'] },
     { id: 'VERIFY·EDA', stages: ['sim-debug', 'coverage', 'syn', 'sta'] },
-    { id: 'SIGNOFF',    stages: ['pnr', 'sta-post', 'goal-audit'] },
+    { id: 'SIGNOFF',    stages: ['pnr', 'sta-post', 'contract-check', 'goal-audit'] },
   ];
 
   // Graph-first Pipeline layout. Coordinates are SVG viewBox units for a
@@ -276,7 +280,8 @@ export async function pipelineFetchWorkerSnapshot(opts: WorkerSnapshotOpts = {})
     sim:          { lane: 'verify', y: 276 },
     coverage:     { lane: 'verify', y: 168 },
     'sim-debug':  { lane: 'verify', y: 384 },
-    'goal-audit': { lane: 'verify', y: 492 },
+    'contract-check': { lane: 'verify', y: 492 },
+    'goal-audit': { lane: 'verify', y: 542 },
     syn:          { lane: 'eda',    y: 150 },
     sta:          { lane: 'eda',    y: 250 },
     pnr:          { lane: 'eda',    y: 350 },
@@ -291,7 +296,7 @@ export async function pipelineFetchWorkerSnapshot(opts: WorkerSnapshotOpts = {})
       id: 'full',
       name: 'Full IP pipeline',
       summary: 'SSOT through model, RTL, verification, coverage, and signoff audit.',
-      stages: ['ssot', 'fl-model', 'cl-model', 'equivalence', 'rtl', 'lint', 'tb', 'sim', 'coverage', 'sim-debug', 'syn', 'sta', 'pnr', 'sta-post', 'goal-audit'],
+      stages: ['ssot', 'fl-model', 'cl-model', 'equivalence', 'rtl', 'lint', 'tb', 'sim', 'coverage', 'sim-debug', 'syn', 'sta', 'pnr', 'sta-post', 'contract-check', 'goal-audit'],
     },
     {
       id: 'rtl-repair',

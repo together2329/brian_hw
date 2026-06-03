@@ -100,7 +100,7 @@ Because the emit scripts only accept Python forms, the SSOT author
 
 `workflow/ssot-gen/system_prompt.md` "DOWNSTREAM READINESS" section
 already names some of these constraints; the C-style ternary trap is
-the next obvious extension (open improvement in [[log.md]] 2026-05-16).
+the next obvious extension (open improvement in [[log]] 2026-05-16).
 
 ## LLM-vs-deterministic across the pipeline
 

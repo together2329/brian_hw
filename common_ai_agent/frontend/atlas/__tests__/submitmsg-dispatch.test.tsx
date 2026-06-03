@@ -334,6 +334,44 @@ describe('submitMsg dispatch routing (the missing TDD gate)', () => {
     expect(textarea.value).toBe('');
   });
 
+  it('(c3) clears a stale parent-synced prefix when submitting a longer visible draft', async () => {
+    vi.useFakeTimers();
+    const w = window as AnyWindow;
+    w.ATLAS_EXEC_MODE = '';
+    w.ACTIVE_SESSION = 'alice/myip/rtl_gen';
+    w.ACTIVE_IP = 'myip';
+    bk.setAckMode('accept');
+
+    const { container } = await mountWorkspace();
+    const textarea = container.querySelector('textarea') as HTMLTextAreaElement;
+
+    await act(async () => {
+      fireEvent.change(textarea, { target: { value: 'synced prefix' } });
+      await vi.advanceTimersByTimeAsync(80);
+      await Promise.resolve();
+    });
+    expect(textarea.value).toBe('synced prefix');
+
+    await act(async () => {
+      fireEvent.change(textarea, { target: { value: 'synced prefix plus fresh suffix' } });
+      fireEvent.keyDown(textarea, { key: 'Enter', code: 'Enter' });
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(bk.backend.send).toHaveBeenCalled();
+    const promptMsg = bk.sent.find((m) => m && m.type === 'prompt');
+    expect(promptMsg).toBeTruthy();
+    expect(promptMsg.text).toBe('synced prefix plus fresh suffix');
+    expect(textarea.value).toBe('');
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(120);
+      await Promise.resolve();
+    });
+    expect(textarea.value).toBe('');
+  });
+
   it('(d) preserves input if sendPrompt ack explicitly fails', async () => {
     const w = window as AnyWindow;
     w.ATLAS_EXEC_MODE = '';

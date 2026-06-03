@@ -1000,6 +1000,7 @@ def make_slash_handlers(
             "sd": "sim-debug",
             "cov": "coverage",
             "l": "lint",
+            "contract": "contract-check",
             "audit": "goal-audit",
             "ga": "goal-audit",
         }.get(cmd, cmd)

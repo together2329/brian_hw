@@ -44,6 +44,7 @@ from core.session_worker_policy import SessionWorkerPolicy
 SPAWN_STATUS_READY = "ready"          # target already had a live tracked process
 SPAWN_STATUS_STARTED = "started"      # a new subprocess was Popen'd
 SPAWN_STATUS_CAPACITY_WAIT = "capacity_wait"  # net-new spawn refused by the cap
+SPAWN_STATUS_FAILED = "failed"        # net-new spawn raised (Popen/env) — a real failure, NOT backpressure (H10)
 
 # Legal ProcessEntry.state values (Wave-3 H10). Every frontend state has a
 # backend producer here or is dropped: 'starting' (set at Popen, before liveness
@@ -183,6 +184,7 @@ class SessionProcessManager:
         )
         self._project_root = Path(os.path.expanduser(str(raw_project_root))).resolve()
         self._processes: Dict[str, Dict[str, Any]] = {}
+        self._reserved_sessions: set[str] = set()
         self._lock = threading.RLock()
         # Router is the single DB-path resolution point. Pin the control path to
         # an explicit db_path so a constructor override (tests, :memory:) wins
@@ -586,14 +588,12 @@ class SessionProcessManager:
         ``Popen`` a net-new process.
 
         ``replacing``/``reserve`` (Wave-3 H2/H3): a same-owner-slot REPLACEMENT
-        (workflow/IP switch) is slot-preserving and MUST NOT be cap-refused. The
-        caller passes ``replacing=<old_session_id>`` (the just-terminated
-        owner-slot session, used only for the audit ``reason``) and/or
-        ``reserve=True`` to mark this spawn as occupying an already-accounted
-        slot. When reserving, the net-new cap branch is skipped entirely. All
-        slot accounting (the live count + the dead-entry cleanup it reads) is
-        done atomically under ``self._lock`` so two owners cannot both win the
-        last slot.
+        (workflow/IP switch) is slot-preserving and MUST NOT be cap-refused.
+        ``terminate_and_reserve_slot`` creates the authoritative manager-side
+        reservation before killing the previous worker, so the freed slot cannot
+        be stolen by a concurrent net-new owner before this method spawns the
+        replacement. ``reserve=True`` remains a compatibility hint; the manager
+        reservation is the source of truth for cap accounting.
 
         ``policy`` defaults to an empty :class:`SessionWorkerPolicy` (cap OFF) so
         the legacy ``spawn`` wrapper stays unbounded.
@@ -601,11 +601,13 @@ class SessionProcessManager:
         policy = policy or SessionWorkerPolicy()
         owner = self._owner_for_session(session_id)
         with self._lock:
+            has_reservation = session_id in self._reserved_sessions
             # (1) is_alive short-circuit — ready, consumes no new slot (H9).
             existing = self._processes.get(session_id)
             if existing is not None:
                 if self.is_alive(session_id):
                     existing["state"] = ENTRY_STATE_READY
+                    self._reserved_sessions.discard(session_id)
                     return SpawnResult(
                         ok=True,
                         status=SPAWN_STATUS_READY,
@@ -619,11 +621,8 @@ class SessionProcessManager:
                 # Dead entry — clean it up before the cap is evaluated (H9).
                 self._processes.pop(session_id, None)
 
-            # (2) cap is evaluated ONLY here, on the genuine net-new branch, and
-            #     ONLY when this spawn is not a slot-preserving replacement
-            #     (H2/H3 reserve) — counting from the post-cleanup live set.
-            active_count = self._active_count_locked()
-            if not reserve and policy.cap_exceeded(active_count):
+            active_count = self._admission_count_locked(ignore_session_id=session_id)
+            if not has_reservation and not reserve and policy.cap_exceeded(active_count):
                 return SpawnResult(
                     ok=False,
                     status=SPAWN_STATUS_CAPACITY_WAIT,
@@ -668,9 +667,10 @@ class SessionProcessManager:
                     start_new_session=True,
                 )
             except Exception as exc:  # Popen/env build failure -> failed, no slot held.
+                self._reserved_sessions.discard(session_id)
                 return SpawnResult(
                     ok=False,
-                    status=SPAWN_STATUS_CAPACITY_WAIT,
+                    status=SPAWN_STATUS_FAILED,
                     reason=f"spawn_failed:{exc}",
                     session_id=session_id,
                     owner=owner,
@@ -685,16 +685,55 @@ class SessionProcessManager:
                 state=ENTRY_STATE_STARTING,
                 worker_epoch=worker_epoch,
             )
+            self._reserved_sessions.discard(session_id)
             return SpawnResult(
                 ok=True,
                 status=SPAWN_STATUS_STARTED,
-                reason="replacing:" + replacing if replacing else "net_new",
+                reason="replacing:" + replacing if replacing else ("reserved" if has_reservation else "net_new"),
                 session_id=session_id,
                 owner=owner,
                 pid=self._entry_pid(self._processes[session_id]),
                 active_count=active_count + 1,
                 max_active=policy.max_active,
             )
+
+    def terminate_and_reserve_slot(
+        self,
+        session_id: str,
+        new_session_id: str,
+        reason: str = "switch",
+        stop_timeout_sec: float = 0.0,
+        kill_grace_sec: float = 5.0,
+        *,
+        graceful: bool = True,
+        has_running_prompt: bool = False,
+        worker_epoch: Optional[str] = None,
+    ) -> bool:
+        with self._lock:
+            self._reserved_sessions.add(new_session_id)
+        try:
+            ok = self.terminate_session(
+                session_id,
+                reason=reason,
+                stop_timeout_sec=stop_timeout_sec,
+                kill_grace_sec=kill_grace_sec,
+                graceful=graceful,
+                has_running_prompt=has_running_prompt,
+                worker_epoch=worker_epoch,
+            )
+        except Exception:
+            with self._lock:
+                self._reserved_sessions.discard(new_session_id)
+            return False
+        if ok:
+            return True
+        with self._lock:
+            self._reserved_sessions.discard(new_session_id)
+        return False
+
+    def release_reserved_slot(self, session_id: str) -> None:
+        with self._lock:
+            self._reserved_sessions.discard(session_id)
 
     def kill(self, session_id: str) -> bool:
         """Hard-terminate the worker process for *session_id* (or no-op).
@@ -758,6 +797,7 @@ class SessionProcessManager:
             entry = self._processes.get(session_id)
             if entry is None:
                 # Untracked: still honor the handle-eviction contract + no-op.
+                self._reserved_sessions.discard(session_id)
                 self._evict_db_handles(session_id)
                 return True
             entry["state"] = ENTRY_STATE_STOPPING
@@ -791,9 +831,19 @@ class SessionProcessManager:
                 except Exception:
                     pass
 
+        # -- final liveness verdict (Wave-3 P1 fix): a process that survived
+        #    SIGKILL (uninterruptible / unkillable) MUST NOT be reported as
+        #    terminated. Popping its entry would hide a live worker behind
+        #    is_alive()=False and let a caller start a sibling; instead keep it
+        #    tracked and return False so _prepare_owner_slot_for_session yields
+        #    `termination_failed` and refuses to spawn. Only a confirmed-dead (or
+        #    never-running) process frees the slot.
+        if proc is not None and proc.poll() is None:
+            return False
         # -- (5) remove the entry under the lock (idempotent if a race popped it).
         with self._lock:
             self._processes.pop(session_id, None)
+            self._reserved_sessions.discard(session_id)
         # -- (4) evict cached runtime DB handles (R2) — outside self._lock,
         #    _evict_db_handles takes _db_handles_lock. Unchanged contract.
         self._evict_db_handles(session_id)
@@ -887,6 +937,21 @@ class SessionProcessManager:
                     count += 1
             except Exception:
                 continue
+        return count
+
+    def _admission_count_locked(self, *, ignore_session_id: str = "") -> int:
+        count = self._active_count_locked()
+        for reserved_session_id in self._reserved_sessions:
+            if reserved_session_id == ignore_session_id:
+                continue
+            entry = self._processes.get(reserved_session_id)
+            proc = entry.get("proc") if isinstance(entry, dict) else None
+            try:
+                if proc is not None and proc.poll() is None:
+                    continue
+            except Exception:
+                pass
+            count += 1
         return count
 
     def active_count(self) -> int:
@@ -1177,6 +1242,7 @@ class SessionProcessManager:
         """Kill all tracked worker processes and release cached DB handles."""
         with self._lock:
             session_ids = list(self._processes.keys())
+            self._reserved_sessions.clear()
         for session_id in session_ids:
             self.kill(session_id)
         self._close_db_handles()

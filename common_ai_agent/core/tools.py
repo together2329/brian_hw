@@ -6123,6 +6123,7 @@ def set_ensure_lazy_worker_callback(cb):
 _IP_WORKFLOW_STAGES = (
     "ssot-gen", "fl-model-gen", "rtl-gen", "tb-gen", "sim",
     "lint", "coverage", "syn", "sta", "pnr", "sta-post",
+    "contract-reflection",
 )
 _IP_WIKI_GENERATED_DIR = "_generated"
 _IP_WIKI_USER_DIR = "user"
@@ -6933,6 +6934,7 @@ _DIRECT_WORKFLOW_FALLBACKS = {
     "sta",
     "pnr",
     "sta-post",
+    "contract-reflection",
 }
 
 _DIRECT_WORKFLOW_ALIASES = {
@@ -6948,6 +6950,9 @@ _DIRECT_WORKFLOW_ALIASES = {
     "equiv-goals": "fl-model-gen",
     "equivalence-goals": "fl-model-gen",
     "ssot-equiv-goals": "fl-model-gen",
+    "contract": "contract-reflection",
+    "contract-check": "contract-reflection",
+    "evidence-contract": "contract-reflection",
 }
 
 _DIRECT_STAGE_COMMANDS = {
@@ -6964,6 +6969,10 @@ _DIRECT_STAGE_COMMANDS = {
     "equiv-goals": ("ssot-equiv-goals",),
     "equivalence-goals": ("ssot-equiv-goals",),
     "ssot-equiv-goals": ("ssot-equiv-goals",),
+    "contract": ("contract-check",),
+    "contract-check": ("contract-check",),
+    "contract-reflection": ("contract-check",),
+    "evidence-contract": ("contract-check",),
 }
 
 

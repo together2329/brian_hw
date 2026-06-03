@@ -1,7 +1,7 @@
 ---
 title: Orchestrator Loop on react_loop — Reuse Plan (Phase 3.5)
 type: process
-tags: [atlas-ui, orchestrator, react-loop, refactor, plan, reviewed, on-hold]
+tags: [atlas-ui, orchestrator, react-loop, refactor, plan, reviewed, landed]
 updated: 2026-05-18
 related: [orchestrator-llm-loop-phase3, orchestrator-chat-only-product-plan, orchestrator-worker-handoff, multi-user-worker-conflicts]
 ---
@@ -18,7 +18,11 @@ related: [orchestrator-llm-loop-phase3, orchestrator-chat-only-product-plan, orc
 > tool execution / streaming UI / ESC interrupt. Re-implementing those in a
 > parallel loop is not a stable foundation.
 >
-> **Status (2026-05-18)**: SPIKE ON HOLD. Review pass found 1 P0 + 4 P1 + 2 P2.
+> **STATUS: LANDED — react_loop reuse shipped; see Progress table.** The
+> production loop is `src/orchestrator/react_bridge.py::OrchestratorReactLoop`
+> running on `core/react_loop.py::run_react_agent_impl`; Steps 1–6 are all
+> marked landed below. (Earlier 2026-05-18 review pass found 1 P0 + 4 P1 + 2
+> P2 — all discharged, see `## Review Findings` + `## Progress`.)
 >
 > Prereqs before spike (Step 1) can run:
 >

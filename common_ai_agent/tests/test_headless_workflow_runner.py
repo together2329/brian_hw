@@ -26,6 +26,8 @@ from src.workflow_stage_engine import StageEngineResult
 FULL_STAGES = [
     "ssot-gen",
     "fl-model-gen",
+    "cl-model-gen",
+    "dual-fcov",
     "equiv-goals",
     "rtl-gen",
     "lint",
@@ -33,6 +35,7 @@ FULL_STAGES = [
     "sim",
     "coverage",
     "sim-debug",
+    "contract-check",
     "goal-audit",
 ]
 

@@ -1,7 +1,8 @@
 # GPIO Orchestrator Multi-Worker Run
 
-Status: active debug log for GPIO orchestrator + multi-worker scratch runs on
-2026-05-16.
+Status: closed / historical run-log (green as of 2026-05-17). GPIO
+orchestrator + multi-worker scratch runs from 2026-05-16, reaching green on the
+`_002` rerun (goal-audit 16/16, coverage pass). Kept as a historical record.
 
 Latest update: 2026-05-17 03:xx KST. The fresh `_002` rerun uses
 `gpt-5.3-codex` through the common headless workflow with orchestrator mode and

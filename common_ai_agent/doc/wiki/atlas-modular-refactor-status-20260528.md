@@ -1,5 +1,9 @@
 # Atlas modular refactor — status & verification rig (2026-05-28)
 
+> **STATUS: SUPERSEDED** — `workspace.jsx` no longer exists; the .jsx->.tsx
+> migration and legacy frontend retirement (2026-05-30) completed this work.
+> Kept as historical record.
+
 > Living progress note for `refactor/atlas-modular`. Source of truth for
 > what's been extracted from `src/atlas_ui.py` + `frontend/atlas/workspace.jsx`
 > and how to verify the next phase without booting the server.
@@ -8,8 +12,8 @@
 
 | | Started | Now | Reduction |
 |---|---:|---:|---:|
-| `frontend/atlas/workspace.jsx` | 21,415 | **13,286** | **−38.0%** |
-| `src/atlas_ui.py` | 21,415 | **11,179** | **−47.8%** |
+| `frontend/atlas/workspace.jsx` | 21,415 | **13,286** _(historical; index.md and this page disagreed 15,562 vs 13,286 — unreconciled, file since deleted)_ | **−38.0%** |
+| `src/atlas_ui.py` | 21,415 | **10,463** | **−51.1%** |
 
 | Phase | Commit | Target file | Lines moved |
 |---|---|---|---|

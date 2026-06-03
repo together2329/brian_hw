@@ -1,6 +1,7 @@
 ---
 title: Truth Coverage Gate
 tags: [ip-flow, ssot, signoff, requirements]
+related: [evidence-contract-obligation-traceability, general-ip-flow-trial-and-error-20260601, mctp-assembler-scratch-flow-20260531]
 ---
 
 # Truth Coverage Gate
@@ -78,6 +79,42 @@ full requirement satisfaction was still not guaranteed
 ```
 
 `truth_coverage` makes that gap visible. If a requirement is intentionally out of scope, mark it `optional`, `deferred`, `status: deferred`, or move it behind an explicit human waiver. Otherwise it remains a failing obligation.
+
+## Next Traceability Layer
+
+The current `truth_coverage` implementation is intentionally general. It links
+SSOT obligations to evidence through normalized goal, scenario, coverage, and
+artifact tokens. That made the MCTP scratch signoff stricter, but it still does
+not fully answer this harder question:
+
+```text
+Which exact observable and pass condition proves this specific requirement?
+```
+
+The proposed next artifact is:
+
+```text
+<ip>/verify/evidence_contract.json
+```
+
+It should split broad requirements into atomic obligations and connect each one
+to required scenarios, required observables, pass conditions, and passing
+scoreboard rows.
+
+Future direction:
+
+```text
+SSOT
+-> ip_contract
+-> evidence_contract
+-> cocotb monitors / scoreboard rows
+-> evidence_contract_coverage
+-> truth_coverage
+-> signoff
+```
+
+See [[evidence-contract-obligation-traceability]] for the proposed schema,
+MCTP examples, and staged adoption plan.
 
 ## MCTP Refresh Result
 

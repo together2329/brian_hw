@@ -345,13 +345,13 @@ workspace-drilldown set. Implementation and verification details live in
 
 ## Frontend evidence map
 
-- `frontend/atlas/app.jsx` — top-bar `◫ Pipeline` button + screen mount.
-- `frontend/atlas/pipeline.jsx` — `AtlasPipeline / DagMap / StageCard / MiniScoresheet / DispatchRail` (new).
-- `frontend/atlas/soc-architect.jsx:817-893` — `PIPELINE_STAGES`, `PIPELINE_LABEL`, `fullPipeline`, `PipelineStrip` (re-exported, still in use).
-- `frontend/atlas/soc-architect.jsx:3482` — `ArchitectChat` (re-mounted as Pipeline's right column).
-- `frontend/atlas/data.jsx:42-58` — `DEFAULT_FLOW_STAGES` (glyph + colour tokens).
-- `frontend/atlas/styles.css:105-145` — semantic colour tokens.
-- `frontend/atlas/index.html` — `pipeline.jsx` script tag.
+- `frontend/atlas/app.tsx` — top-bar `◫ Pipeline` button + screen mount.
+- `frontend/atlas/pipeline.tsx` — `AtlasPipeline / DagMap / StageCard / MiniScoresheet / DispatchRail`.
+- `frontend/atlas/soc-architect.tsx` — `PIPELINE_STAGES`, `PIPELINE_LABEL`, `fullPipeline`, `PipelineStrip` (re-exported, still in use).
+- `frontend/atlas/soc-architect.tsx` — `ArchitectChat` (re-mounted as Pipeline's right column).
+- `frontend/atlas/data.tsx` — `DEFAULT_FLOW_STAGES` (glyph + colour tokens).
+- `frontend/atlas/styles.css` — semantic colour tokens.
+- Bundled by Vite (`frontend/atlas/index.vite.html` shell); the old `index.html` + per-file `pipeline.jsx` script tag are gone as of the 2026-05-30 .jsx retirement.
 
 ## Verification
 

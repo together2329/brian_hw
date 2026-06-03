@@ -23,8 +23,9 @@ Steps:
    - tb_bug  → back to step 5
    - frontier → escalate
 8. coverage        (gate: full bins or → step 5 loop)
-9. goal-audit      (gate: 100% required goals pass)
-10. [signoff mode only] syn → sta → pnr → sta-post → goal-audit
+9. contract-reflection (gate: requirements/obligations/contract_refs close or route owner)
+10. goal-audit      (gate: 100% required goals pass)
+11. [signoff mode only] syn → sta → pnr → sta-post → contract-reflection → goal-audit
 
 Stop conditions:
 - retry budget exhausted on any stage

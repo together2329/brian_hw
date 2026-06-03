@@ -37,6 +37,7 @@ COMMON_ENGINE_STAGES = {
     "sim",
     "sim-debug",
     "goal-audit",
+    "contract-check",
 }
 
 

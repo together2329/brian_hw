@@ -49,15 +49,16 @@ Model-stage vocabulary:
 
 Hard rules:
 - For direct content questions ("register list?", "what is in the SSOT?",
-  "show me the ports", "why did lint fail?"), read the exact local file with
-  read_file and answer from that evidence. Do NOT dispatch a worker and do NOT
-  use stage-level artifact previews for these questions.
-- read_file is the default evidence tool for local IP files and wiki notes.
-  Use `contains` or a line range when only one section is needed.
-- read_pipeline_state is for status and routing decisions, not for answering
+  "show me the ports", "why did lint fail?"), read the relevant stage's recorded
+  evidence with read_artifact using the STAGE id (e.g. stage="ssot" for SSOT
+  content, stage="lint" for lint results — NOT the worker name like "ssot-gen")
+  and answer from that evidence. Do NOT dispatch a worker just to answer a
+  content question.
+- read_artifact is the evidence tool for a completed stage's recorded output;
+  read_pipeline_state is for status and routing decisions, not for answering
   detailed document questions.
 - Never claim a stage passed without checking current state and, if needed,
-  the exact evidence file with read_file.
+  the stage's recorded evidence via read_artifact.
 - Never silently retry past the budget; call ask_user or finalize as blocked.
 - For repair/build requests, dispatch the relevant worker. If ownership is
   unclear from current state and exact local evidence, ask one short question
@@ -78,11 +79,11 @@ Hard rules:
 
 You have these tools:
 1. read_pipeline_state — every stage's state and active jobs.
-2. read_file — read a safe local file under the active IP or project wiki.
-   Use this for normal user questions. Narrow with `contains`, `start_line`,
-   or `end_line` when possible.
+2. read_artifact — read a completed stage's recorded output/evidence by STAGE
+   id (e.g. stage="ssot", "lint", "rtl" — NOT the worker name "ssot-gen"). Use
+   this to answer direct content questions from real evidence.
 3. dispatch_workflow — start one OR many workers (ssot-gen, rtl-gen, lint,
-   tb-gen, sim, sim_debug, coverage, goal-audit, syn, sta, pnr, sta-post).
+   tb-gen, sim, sim_debug, coverage, contract-reflection, goal-audit, syn, sta, pnr, sta-post).
    Model stages use workflow="fl-model-gen" with stages=["fl-model"],
    ["cl-model"], or ["equivalence"].
    Use stages=[...] with schedule="dag" to fan out independent stages in
@@ -90,6 +91,7 @@ You have these tools:
        ssot → {fl-model, cl-model} → equivalence → rtl
        rtl → {lint, tb, syn}     ← parallel fan-out after rtl passes
        tb  → sim → {coverage, sim-debug}
+       sim-debug → contract-check
        syn → {sta, pnr} → sta-post
        all evidence → goal-audit
    Prefer one dispatch_workflow(stages=[...], schedule="dag") over multiple
@@ -104,6 +106,14 @@ You have these tools:
 7. import_document — extract text from a PDF or text file into req/ for ssot-gen.
     Call this BEFORE dispatch_workflow(ssot-gen) when the user provides a document path.
     Returns a requirement_source_id to include in the ssot-gen dispatch payload.
+8. classify_failure — classify a failed stage and get the owner stage to re-run
+    (e.g. lint → rtl-gen).
+9. write_handoff — queue the next workflow as a handoff record with a reason and
+    payload for the downstream worker.
+10. mark_downstream_stale — after a fresh upstream artifact, mark downstream
+    stages stale and reset their retry budgets so they can be re-dispatched.
+11. web_search — search the web for reference material (ranked snippets).
+12. web_fetch — fetch a URL and return its content (markdown by default).
 
 End-state contract:
 - Call dispatch_workflow with workflow="__final__" and payload={"state": "completed"|
@@ -136,39 +146,6 @@ def tool_schemas() -> List[Dict[str, Any]]:
                         "include_jobs": {"type": "boolean", "default": True},
                     },
                     "required": ["ip"],
-                },
-            },
-        },
-        {
-            "type": "function",
-            "function": {
-                "name": "read_file",
-                "description": (
-                    "Read a safe local file under the active IP directory or project wiki. "
-                    "Use this for direct user questions about SSOT, RTL, logs, docs, or wiki notes."
-                ),
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "ip": {"type": "string"},
-                        "path": {
-                            "type": "string",
-                            "description": (
-                                "Relative path. Paths under the active IP may omit the IP prefix, "
-                                "e.g. yaml/<ip>.ssot.yaml."
-                            ),
-                        },
-                        "contains": {
-                            "type": "string",
-                            "description": "Optional substring to return the surrounding section.",
-                        },
-                        "before": {"type": "integer", "default": 2},
-                        "after": {"type": "integer", "default": 80},
-                        "start_line": {"type": "integer", "default": 0},
-                        "end_line": {"type": "integer", "default": 0},
-                        "max_chars": {"type": "integer", "default": 20000},
-                    },
-                    "required": ["ip", "path"],
                 },
             },
         },
@@ -304,6 +281,99 @@ def tool_schemas() -> List[Dict[str, Any]]:
                         },
                     },
                     "required": ["ip", "path"],
+                },
+            },
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "read_artifact",
+                "description": "Read the recorded artifact/output for a completed pipeline stage of an IP.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "ip": {"type": "string"},
+                        "stage": {"type": "string", "description": "Stage id, e.g. 'rtl-gen', 'sim'."},
+                    },
+                    "required": ["ip", "stage"],
+                },
+            },
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "classify_failure",
+                "description": "Classify a failed stage and route it to the owner stage to re-run (e.g. lint -> rtl-gen).",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "stage": {"type": "string"},
+                        "evidence": {"type": "object"},
+                        "error_text": {"type": "string"},
+                    },
+                    "required": ["stage"],
+                },
+            },
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "write_handoff",
+                "description": "Queue the next workflow as a handoff record with a reason and payload for the downstream worker.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "ip": {"type": "string"},
+                        "workflow": {"type": "string", "description": "Target workflow to hand off to."},
+                        "payload": {"type": "object"},
+                        "reason": {"type": "string"},
+                        "pipeline_run_id": {"type": "string"},
+                    },
+                    "required": ["ip", "workflow", "reason"],
+                },
+            },
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "mark_downstream_stale",
+                "description": "Mark stages downstream of from_stage as stale after a fresh upstream artifact and reset their retry budgets so they can be re-dispatched.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "from_stage": {"type": "string", "description": "Upstream stage that just produced a fresh artifact."},
+                    },
+                    "required": ["from_stage"],
+                },
+            },
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "web_search",
+                "description": "Search the web for reference material; returns ranked result snippets.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "query": {"type": "string"},
+                        "limit": {"type": "integer", "default": 5},
+                    },
+                    "required": ["query"],
+                },
+            },
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "web_fetch",
+                "description": "Fetch a URL and return its content (markdown by default).",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "url": {"type": "string"},
+                        "formats": {"type": "string", "default": "markdown"},
+                    },
+                    "required": ["url"],
                 },
             },
         },

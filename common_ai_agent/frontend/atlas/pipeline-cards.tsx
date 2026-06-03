@@ -60,7 +60,7 @@ const PHASE_BANDS: PhaseBand[] = [
   { num: 3, name: 'RTL',        stages: ['rtl'] },
   { num: 4, name: 'BRANCH',     stages: ['lint', 'tb', 'sim', 'coverage', 'sim-debug'] },
   { num: 5, name: 'VERIFY·EDA', stages: ['syn', 'sta', 'pnr', 'sta-post'] },
-  { num: 6, name: 'SIGNOFF',    stages: ['goal-audit'] },
+  { num: 6, name: 'SIGNOFF',    stages: ['contract-check', 'goal-audit'] },
 ];
 
 export interface PhaseStripProps {
@@ -148,7 +148,8 @@ export const ENH_STAGE_LAYOUT = {
   sta:          { lane: 5, row: 3 },
   pnr:          { lane: 5, row: 4 },
   coverage:     { lane: 6, row: 2 },
-  'goal-audit': { lane: 6, row: 3 },
+  'contract-check': { lane: 6, row: 3 },
+  'goal-audit': { lane: 6, row: 5 },
   'sta-post':   { lane: 6, row: 4 },
 };
 export const ENH_PILL_LABEL = { passed: 'passed', running: 'running', locked: 'locked', ready: 'ready', failed: 'failed', blocked: 'blocked', stale: 'stale' };
@@ -263,7 +264,7 @@ export interface EnhancedDetailCardsProps {
 export function EnhancedDetailCards({ pipelineState, ip, onSelectStage, onChain }: EnhancedDetailCardsProps) {
   const stagesState = (pipelineState && pipelineState.stages) || {};
   // Surface every active stage in canonical order
-  const ORDER = ['ssot', 'fl-model', 'cl-model', 'equivalence', 'rtl', 'lint', 'tb', 'sim', 'syn', 'sim-debug', 'coverage', 'sta', 'pnr', 'sta-post', 'goal-audit'];
+  const ORDER = ['ssot', 'fl-model', 'cl-model', 'equivalence', 'rtl', 'lint', 'tb', 'sim', 'syn', 'sim-debug', 'coverage', 'sta', 'pnr', 'sta-post', 'contract-check', 'goal-audit'];
   // 1 currently-running, 1 most-recently-passed, 1 next-ready, max 4.
   const running: Array<{ stageId: string; info: PipelineStageInfo }> = [];
   let lastPassed: { stageId: string; info: PipelineStageInfo } | null = null;

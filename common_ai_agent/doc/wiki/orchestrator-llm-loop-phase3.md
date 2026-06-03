@@ -6,18 +6,18 @@ updated: 2026-05-18
 related: [orchestrator-chat-only-product-plan, orchestrator-worker-handoff, atlas-pipeline-screen, atlas-pipeline-db-state, full-flow-pipeline, multi-user-worker-conflicts, orchestrator-loop-on-react-loop-plan]
 ---
 
-> **Status: scaffold, scheduled for removal (2026-05-18).** The custom
-> mini-loop in `src/orchestrator/loop.py` was reviewed and ruled NOT the
-> stable surface. The locked decision is to migrate to
-> `core/react_loop.py::run_react_agent_impl` (Phase 3.5 plan:
-> [[orchestrator-loop-on-react-loop-plan]]). Treat everything in this page as
-> *interim implementation* — DB schema (`orchestrator_runs`,
-> `orchestrator_steps`), tools (`src/orchestrator/tools.py`), runner +
-> Waker (`src/orchestrator/runner.py`), HTTP routes, and UI banner all stay
-> after migration. Only `src/orchestrator/loop.py` itself goes away,
-> replaced by `src/orchestrator/react_bridge.py` (~80 lines) that builds a
-> `ReactLoopDeps` for production loop. Do not extend `loop.py` with new
-> features — implement them in the migration plan instead.
+> **Status: migrated (Phase 3.5 LANDED).** The custom mini-loop that lived
+> in `src/orchestrator/loop.py` was reviewed and ruled NOT the stable surface,
+> then removed. Production now runs through
+> `src/orchestrator/react_bridge.py::OrchestratorReactLoop` on top of
+> `core/react_loop.py::run_react_agent_impl` (Phase 3.5 plan, now landed:
+> [[orchestrator-loop-on-react-loop-plan]]). `src/orchestrator/loop.py` is now
+> a thin shim (~48 lines) that only exports the `OrchestratorContext` /
+> `RunOutcome` data types + the `FINAL_WORKFLOW` sentinel — no loop logic. The
+> rest of this page documents surfaces that survived the migration — DB schema
+> (`orchestrator_runs`, `orchestrator_steps`), tools (`src/orchestrator/tools.py`),
+> runner + Waker (`src/orchestrator/runner.py`), HTTP routes, and UI banner.
+> Do not add new loop features to `loop.py` — they belong in `react_bridge.py`.
 
 
 # Orchestrator LLM Loop (Phase 3)

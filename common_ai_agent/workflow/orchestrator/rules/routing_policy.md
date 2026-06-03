@@ -29,7 +29,9 @@ Authoritative routing table. The orchestrator agent consults this file before ev
 | `sim` (mismatches) | `sim_debug` |
 | `sim_debug` | route by owner (see Owner → Workflow Map) |
 | `coverage` (gaps) | `tb-gen` (loop) |
-| `coverage` (full) | `goal-audit` |
+| `coverage` (full) | `contract-reflection` |
+| `contract-reflection` (pass) | `goal-audit` |
+| `contract-reflection` (blocked/fail) | route by `contract_owner_routing.json` |
 | `goal-audit` | escalate to human for sign-off |
 | `syn` | `sta`, `pnr` (parallel) |
 | `pnr` | `sta-post` |
@@ -43,6 +45,7 @@ Authoritative routing table. The orchestrator agent consults this file before ev
 
 ## Gate Rules
 
+- `contract-reflection` is deterministic validation. It reads requirements, obligations, contract refs, stage reflection, scoreboard evidence, and wave/static artifacts. On fail/block, dispatch the reported owner workflow.
 - `goal-audit` does not dispatch — it reads. Run only when every required upstream stage is `passed` with fresh evidence.
 - `human-review-escalation` does not have a worker — write a review card and pause.
 - `goal-audit` failure → escalate; do not auto-retry the whole pipeline.
@@ -63,5 +66,5 @@ The orchestrator must stop the loop and surface to the user when:
 Before dispatching any stage, check `state.run_mode`:
 
 - `starter` — skip `syn`, `sta`, `pnr`, `sta-post`, `coverage` (full), `goal-audit`. Stop at first green `sim`.
-- `engineering` — full DAG up to `goal-audit`, skip EDA sign-off chain unless asked.
+- `engineering` — full DAG up to `goal-audit`, including `contract-reflection`, skip EDA sign-off chain unless asked.
 - `signoff` — full DAG including EDA sign-off. Require human approval on every escalation.

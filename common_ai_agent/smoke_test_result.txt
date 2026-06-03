@@ -1,2 +1,0 @@
-=== Workflow Smoke Test ===
-PASS: all checks ok

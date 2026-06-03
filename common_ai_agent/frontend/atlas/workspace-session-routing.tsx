@@ -162,6 +162,7 @@ export const KNOWN_WORKFLOW_PATH_SEGMENTS = new Set<string>([
   'sim',
   'sim_debug',
   'coverage',
+  'contract-reflection',
   'syn',
   'sta',
   'pnr',

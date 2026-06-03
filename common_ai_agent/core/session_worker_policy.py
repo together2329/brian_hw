@@ -5,20 +5,18 @@ not infer behavior from scattered flags. See
 ``plans/single-active-session-worker-100-users.md`` (Environment Contract +
 Wave-3 Residual Contracts).
 
-Compatibility — the default is byte-identical to historical behavior:
+Environment behavior:
 
-* ``ATLAS_SESSION_WORKER_POLICY`` unset            -> ``session-scoped`` (current).
-* legacy ``ATLAS_SINGLE_WORKER_PER_OWNER``/``_USER``=1 -> ``single-active-owner``,
-  but ONLY when the new policy env is unset (the new policy always wins when
-  present).
-* invalid policy value                             -> fail closed to
-  ``session-scoped`` (and surface ``.warning`` for diagnostics); an invalid value
-  is treated as *present* so it suppresses the legacy fallback (truly fail-closed).
+* ``ATLAS_SESSION_WORKER_POLICY`` unset -> ``single-active-owner`` with cap 30.
+* ``ATLAS_SESSION_WORKER_POLICY=session-scoped`` explicitly opts out to the
+  historical unbounded session-scoped behavior unless a positive
+  ``ATLAS_SESSION_WORKER_MAX_ACTIVE`` is also set.
+* invalid policy value -> fall back to the strict default and surface
+  ``.warning`` for diagnostics.
 
 Capacity cap is enforced ONLY when strict mode is on OR
-``ATLAS_SESSION_WORKER_MAX_ACTIVE`` is explicitly set by the operator. In default
-``session-scoped`` mode with no new env vars, spawning is unbounded (current
-behavior). ``max_active <= 0`` means unbounded even in strict mode.
+``ATLAS_SESSION_WORKER_MAX_ACTIVE`` is explicitly set by the operator.
+``max_active <= 0`` means unbounded even in strict mode.
 """
 
 from __future__ import annotations
@@ -84,32 +82,34 @@ class SessionWorkerPolicy:
     ) -> "SessionWorkerPolicy":
         """Build a policy from ``env`` (defaults to ``os.environ``).
 
-        ``single_worker_per_owner`` is the legacy bridge constructor argument:
-        when the new policy env is unset, passing ``True`` forces strict mode
-        (kept for backward compatibility / tests). It is ignored when the new
-        policy env is present (the new policy always wins).
+        ``single_worker_per_owner`` is the legacy bridge constructor argument.
+        Strict mode is now the default, so the flag is retained only for API
+        compatibility. An explicit ``session-scoped`` policy still opts out.
         """
         env = os.environ if env is None else env
         warning = ""
 
         raw_policy = (env.get("ATLAS_SESSION_WORKER_POLICY") or "").strip().lower()
-        explicit_policy_present = bool(raw_policy)
-        if explicit_policy_present and raw_policy not in _VALID_POLICIES:
+        if raw_policy == POLICY_SESSION_SCOPED:
+            # Explicit opt-OUT of strict mode.
+            resolved = POLICY_SESSION_SCOPED
+        elif raw_policy == POLICY_SINGLE_ACTIVE_OWNER:
+            resolved = POLICY_SINGLE_ACTIVE_OWNER
+        elif raw_policy:
+            # Invalid value -> fall back to the DEFAULT (strict) with a warning.
             warning = (
                 f"invalid ATLAS_SESSION_WORKER_POLICY={raw_policy!r}; "
-                f"falling back to {POLICY_SESSION_SCOPED}"
+                f"using default {POLICY_SINGLE_ACTIVE_OWNER}"
             )
-            resolved = POLICY_SESSION_SCOPED
-        elif explicit_policy_present:
-            resolved = raw_policy
+            resolved = POLICY_SINGLE_ACTIVE_OWNER
         else:
-            # No explicit new policy -> honor the legacy flags / constructor arg.
-            legacy = (
-                _as_bool(env.get("ATLAS_SINGLE_WORKER_PER_OWNER"), False)
-                or _as_bool(env.get("ATLAS_SINGLE_WORKER_PER_USER"), False)
-                or bool(single_worker_per_owner)
-            )
-            resolved = POLICY_SINGLE_ACTIVE_OWNER if legacy else POLICY_SESSION_SCOPED
+            # DEFAULT IS STRICT single-active-owner (changed 2026-06-03 by request:
+            # "기본값도 strict"). Opt OUT with ATLAS_SESSION_WORKER_POLICY=
+            # session-scoped. The legacy ATLAS_SINGLE_WORKER_PER_OWNER/_USER flags
+            # and the single_worker_per_owner kwarg only ever selected strict, which
+            # is now the default, so they are no-ops here (kept for API compat).
+            _ = single_worker_per_owner  # legacy no-op (strict is default)
+            resolved = POLICY_SINGLE_ACTIVE_OWNER
 
         single_active = resolved == POLICY_SINGLE_ACTIVE_OWNER
 
@@ -167,7 +167,7 @@ class SessionWorkerPolicy:
             return False
         return active_count >= self.max_active
 
-    def to_status_dict(self) -> dict:
+    def to_status_dict(self) -> dict[str, str | bool | int]:
         """Compact policy view for the ``/api/session/worker/status`` endpoint."""
         return {
             "policy": self.policy,

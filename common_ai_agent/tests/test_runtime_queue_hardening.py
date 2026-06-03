@@ -24,14 +24,17 @@ from pathlib import Path
 import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PACKAGE_ROOT = PROJECT_ROOT.parent
+if str(PACKAGE_ROOT) not in sys.path:
+    sys.path.insert(0, str(PACKAGE_ROOT))
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 if str(PROJECT_ROOT / "src") not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-from core.atlas_db import AtlasDB, QueueCursorNotFound
-from core.atlas_db_router import AtlasDBRouter
-from core.session_process_manager import SessionProcessManager
+from common_ai_agent.core.atlas_db import AtlasDB, QueueCursorNotFound
+from common_ai_agent.core.atlas_db_router import AtlasDBRouter
+from common_ai_agent.core.session_process_manager import SessionProcessManager
 
 
 # ──────────────────────────────────────────────────────────────────────────
@@ -88,7 +91,7 @@ def _queue_rows(db_path, session_id=None, direction=None):
 
 def test_worker_opens_runtime_subset_schema_in_session_mode(monkeypatch, tmp_path):
     """In session mode the worker's queue DB must NOT contain control tables."""
-    from core import session_worker
+    from common_ai_agent.core import session_worker
 
     monkeypatch.setenv("ATLAS_RUNTIME_DB_MODE", "session")
     runtime_path = tmp_path / "wkr_runtime.db"
@@ -121,7 +124,7 @@ def test_worker_opens_runtime_subset_schema_in_session_mode(monkeypatch, tmp_pat
 
 def test_worker_uses_full_schema_in_central_mode(monkeypatch, tmp_path):
     """Without session mode the worker keeps the historical full schema."""
-    from core import session_worker
+    from common_ai_agent.core import session_worker
 
     monkeypatch.delenv("ATLAS_RUNTIME_DB_MODE", raising=False)
     monkeypatch.delenv("ATLAS_RUNTIME_DB_PATH", raising=False)
@@ -143,7 +146,7 @@ def test_worker_full_schema_when_runtime_equals_control(monkeypatch, tmp_path):
     ATLAS_CONTROL_DB_PATH. The worker must NOT pick the runtime subset for the
     control DB (a non-empty runtime path alone must not imply session mode).
     """
-    from core import session_worker
+    from common_ai_agent.core import session_worker
 
     db_path = tmp_path / "central_equal.db"
     monkeypatch.delenv("ATLAS_RUNTIME_DB_MODE", raising=False)
@@ -210,10 +213,11 @@ def test_two_sessions_queue_rows_isolated_control_empty(monkeypatch, tmp_path):
 
 def test_spawn_retry_delivers_prompt_exactly_once(monkeypatch, tmp_path):
     """Spawn fails once, retry succeeds -> prompt in EXACTLY one file, once."""
-    import core.atlas_multiuser as atlas_multiuser
+    import common_ai_agent.core.atlas_multiuser as atlas_multiuser
 
     control_db, runtime_root = _runtime_env(monkeypatch, tmp_path)
     monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.setenv("ATLAS_SESSION_WORKER_POLICY", "session-scoped")
 
     bridge = atlas_multiuser._MultiUserBridge(use_processes=True)
     real_manager = SessionProcessManager(project_root=str(tmp_path))
@@ -271,7 +275,7 @@ def test_runtime_db_not_initialized_is_recoverable_not_silent_none(monkeypatch, 
     monkeypatch.delenv("ATLAS_RUNTIME_DB_ALLOW_DERIVED_KEY", raising=False)
     router = AtlasDBRouter()
     # An empty session id with no uid + derived-key disabled must FAIL CLOSED.
-    from core.atlas_db_router import RuntimeDBError
+    from common_ai_agent.core.atlas_db_router import RuntimeDBError
 
     with pytest.raises(RuntimeDBError):
         router.runtime_route("", create=False)
@@ -319,7 +323,7 @@ def test_reseed_output_cursor_resumes_without_redelivery(tmp_path):
 
 def test_recreated_runtime_db_midstream_no_stall_no_duplicate(monkeypatch, tmp_path):
     """Delete/recreate a runtime DB mid-stream: re-seed, no stall, no dupes."""
-    import core.atlas_multiuser as atlas_multiuser
+    import common_ai_agent.core.atlas_multiuser as atlas_multiuser
 
     control_db, runtime_root = _runtime_env(monkeypatch, tmp_path)
     bridge = atlas_multiuser._MultiUserBridge(use_processes=True)
@@ -423,7 +427,7 @@ def _delivered_at(db, msg_id):
 def test_broadcaster_delivery_marks_out_rows_delivered(monkeypatch, tmp_path):
     """After a poll batch is pushed to the outbox, those out-rows carry a
     durable delivered_at; rows enqueued AFTER the batch stay undelivered."""
-    import core.atlas_multiuser as atlas_multiuser
+    import common_ai_agent.core.atlas_multiuser as atlas_multiuser
 
     control_db, runtime_root = _runtime_env(monkeypatch, tmp_path)
     bridge = atlas_multiuser._MultiUserBridge(use_processes=True)
@@ -459,7 +463,7 @@ def test_reseed_resumes_from_newest_delivered_after_real_delivery(monkeypatch, t
     """A real broadcaster delivery gives reseed a true resume point: re-seed
     returns the newest-delivered id and a poll from there delivers ONLY the
     still-undelivered tail (no re-delivery of already-pushed rows, no stall)."""
-    import core.atlas_multiuser as atlas_multiuser
+    import common_ai_agent.core.atlas_multiuser as atlas_multiuser
 
     control_db, runtime_root = _runtime_env(monkeypatch, tmp_path)
     bridge = atlas_multiuser._MultiUserBridge(use_processes=True)
@@ -493,7 +497,7 @@ def test_reseed_resumes_from_newest_delivered_after_real_delivery(monkeypatch, t
 def test_cleanup_purges_old_delivered_out_rows_keeps_undelivered(monkeypatch, tmp_path):
     """After a real delivery, cleanup_old_messages purges OLD DELIVERED out-rows
     (runtime DB bounded) but KEEPS old UNDELIVERED out-rows (R22)."""
-    import core.atlas_multiuser as atlas_multiuser
+    import common_ai_agent.core.atlas_multiuser as atlas_multiuser
 
     control_db, runtime_root = _runtime_env(monkeypatch, tmp_path)
     bridge = atlas_multiuser._MultiUserBridge(use_processes=True)

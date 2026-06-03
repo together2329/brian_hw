@@ -17,6 +17,13 @@ import {
   type ChangeEvent,
   type MouseEvent,
 } from 'react';
+import {
+  AgentWorkerStatus,
+  type AtlasWorkersLogicApi,
+  type InteractiveWorkerState,
+  type InteractiveWorkerStatus,
+  type WorkerSnapshot,
+} from './agent-worker-status';
 
 // ── Data shapes flowing through this panel. Loose where the .jsx was loose. ──
 interface ModelOption {
@@ -57,36 +64,6 @@ interface LiveContext {
   [key: string]: unknown;
 }
 
-interface WorkerJob {
-  job_id?: string;
-  run_id?: string;
-  worker_workflow?: string;
-  workflow?: string;
-  ip?: string;
-  status?: string;
-  queue_reason?: string;
-  attempt?: number;
-  max_attempts?: number;
-  worker_log_entries?: number;
-  worker_pid?: number | string;
-  session?: string;
-  worker?: string;
-  worker_log_path?: string;
-  result_summary?: string;
-  error?: string;
-}
-
-interface WorkerSnapshot {
-  url?: string;
-  workflow?: string;
-  status?: string;
-  running_count?: number;
-  pending_count?: number;
-  queued_count?: number;
-  bound_workflow?: string;
-  active_jobs?: WorkerJob[];
-}
-
 interface HealthzResponse {
   model?: string;
   base_model?: string;
@@ -123,12 +100,6 @@ interface SocModule {
   id?: string;
   ip_dir?: string;
   status?: string;
-}
-
-interface AtlasWorkersLogicApi {
-  summarizeWorkers: (workers: WorkerSnapshot[]) => { total: number; upCount: number };
-  portFromUrl: (url?: string) => string;
-  workerTone: (w: WorkerSnapshot) => string;
 }
 
 // ── Cross-file window globals owned by unmigrated .jsx, reached via a narrow
@@ -179,6 +150,8 @@ const AgentStatusPanel = ({ intent, workflow, activeIp = '', agentAlive = false,
   const [liveStageStatus, setLiveStageStatus] = useState<string | null>(null);
   const [liveWorkers, setLiveWorkers] = useState<WorkerSnapshot[]>([]);
   const [workersError, setWorkersError] = useState('');
+  const [interactiveWorker, setInteractiveWorker] = useState<InteractiveWorkerStatus | null>(null);
+  const [interactiveWorkerError, setInteractiveWorkerError] = useState('');
   const effortOptions = ['none', 'low', 'medium', 'high', 'xhigh'];
   const normalizeEffortValue = (value: unknown): string => (
     effortOptions.includes(String(value || '').toLowerCase())
@@ -363,6 +336,47 @@ const AgentStatusPanel = ({ intent, workflow, activeIp = '', agentAlive = false,
     const id = setInterval(poll, 3000);
     return () => { dead = true; clearInterval(id); };
   }, [activeIp]);
+  // Interactive session worker ('agent') status — DISTINCT from the
+  // orchestrator worker list above. Same 3s cadence, paused while hidden,
+  // with its own error channel so an agent-status fetch failure never blanks
+  // the orchestrator worker cards (and vice-versa). Backed by Task 7's
+  // GET /api/session/worker/status (user-scoped: only the caller's slot).
+  useEffect(() => {
+    let dead = false;
+    const poll = async () => {
+      if (dead) return;
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+      try {
+        const r = await fetch('/api/session/worker/status', { cache: 'no-store' });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const j = (await r.json()) as Record<string, unknown>;
+        const w0 = (j && (j as { worker?: Record<string, unknown> }).worker) || {};
+        if (!dead) {
+          setInteractiveWorker({
+            policy: String(j.policy || ''),
+            single_active_owner: !!j.single_active_owner,
+            max_active: Number(j.max_active || 0),
+            active_count: Number(j.active_count || 0),
+            owner: j.owner != null ? String(j.owner) : undefined,
+            owner_slot: j.owner_slot != null ? String(j.owner_slot) : undefined,
+            authenticated_owner: j.authenticated_owner != null ? String(j.authenticated_owner) : undefined,
+            owner_active_session: j.owner_active_session != null ? String(j.owner_active_session) : undefined,
+            state: (String((w0 as { state?: string }).state || (j.active_count ? 'ready' : 'failed')) as InteractiveWorkerState),
+            alive: !!(w0 as { alive?: boolean }).alive,
+            running: !!(w0 as { running?: boolean }).running,
+            pid: (w0 as { pid?: number }).pid,
+            idle_age_sec: (w0 as { idle_age_sec?: number }).idle_age_sec,
+          });
+          setInteractiveWorkerError('');
+        }
+      } catch (e) {
+        if (!dead) setInteractiveWorkerError(String((e && (e as Error).message) || e));
+      }
+    };
+    poll();
+    const id = setInterval(poll, 3000);
+    return () => { dead = true; clearInterval(id); };
+  }, []);
   useEffect(() => {
     let alive = true;
     const refresh = () => {
@@ -598,192 +612,18 @@ const AgentStatusPanel = ({ intent, workflow, activeIp = '', agentAlive = false,
           );
         })()}
 
-        {/* ── orchestrator workers (live lazy-spawn state) ──────── */}
-        {(() => {
-          const _wl = w.AtlasWorkersLogic;
-          const singleWorkerMode = atlasUiExecMode() === 'single-worker';
-          const sessionWorkerAlive = !!agentAlive;
-          const sessionWorkerLabel = agentRunning ? 'running' : (sessionWorkerAlive ? 'hot' : 'cold');
-          const { total, upCount } = _wl
-            ? _wl.summarizeWorkers(liveWorkers)
-            : { total: liveWorkers.length, upCount: liveWorkers.filter(w => String(w.status || '') === 'ok').length };
-          const _portFromUrl = _wl ? _wl.portFromUrl : (u?: string) => {
-            const m = String(u || '').match(/:(\d+)(?:\/|$)/);
-            return m ? m[1] : '';
-          };
-          const portShort = (w: WorkerSnapshot) => _portFromUrl(w.url) || (String(w.workflow || '').slice(0, 4));
-          const tone = (w: WorkerSnapshot) => {
-            if (_wl) {
-              // workerTone covers ok/mismatch/pending; extend locally for queued/pending counts
-              const s = String(w.status || '');
-              if (s === 'ok' && Number(w.running_count || 0) > 0) return 'active';
-              if (s === 'ok' && Number(w.pending_count || 0) > 0) return 'pending';
-              if (s === 'ok' && Number(w.queued_count || 0) > 0) return 'queued';
-              return _wl.workerTone(w);
-            }
-            const s = String(w.status || '');
-            if (s === 'ok' && Number(w.running_count || 0) > 0) return 'active';
-            if (s === 'ok' && Number(w.pending_count || 0) > 0) return 'pending';
-            if (s === 'ok' && Number(w.queued_count || 0) > 0) return 'queued';
-            if (s === 'ok') return 'done';
-            if (s === 'mismatch') return 'err';
-            return 'pending';
-          };
-          const cfgFor = (t: string) => (
-            t === 'active'  ? { color: 'var(--accent)', glyph: '●', bg: 'color-mix(in oklch, var(--accent) 14%, transparent)', border: 'var(--accent)' } :
-            t === 'done'    ? { color: 'var(--ok)',     glyph: '✓', bg: 'color-mix(in oklch, var(--ok) 12%, transparent)',     border: 'var(--ok)' } :
-            t === 'err'     ? { color: 'var(--err)',    glyph: '✗', bg: 'color-mix(in oklch, var(--err) 14%, transparent)',    border: 'var(--err)' } :
-            t === 'queued'  ? { color: 'var(--fg-mute)',glyph: '◌', bg: 'color-mix(in oklch, var(--fg-mute) 9%, transparent)', border: 'var(--line)' } :
-                              { color: 'var(--fg-mute)',glyph: '○', bg: 'transparent',                                          border: 'var(--line)' }
-          );
-          const activeJobs = liveWorkers.flatMap(w => (
-            Array.isArray(w.active_jobs)
-              ? w.active_jobs.map(j => Object.assign({ worker_workflow: w.workflow }, j))
-              : []
-          ));
-          const jobLine = (job: WorkerJob) => {
-            const bits = [
-              job.status || 'running',
-              job.queue_reason || '',
-              job.attempt && job.max_attempts && Number(job.max_attempts) > 1
-                ? `try ${job.attempt}/${job.max_attempts}`
-                : '',
-              job.worker_log_entries ? `${job.worker_log_entries} log` : '',
-              job.worker_pid ? `pid ${job.worker_pid}` : '',
-            ].filter(Boolean);
-            return bits.join(' · ');
-          };
-          return (
-            <>
-              <div className="mute" style={{
-                fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase',
-                marginTop: 14, marginBottom: 6,
-                display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap',
-              }}
-                title={singleWorkerMode
-                  ? 'Live state of the single session worker process.'
-                  : 'Live state of orchestrator workers (port + status). Lazy-spawned on first dispatch.'}
-              >
-                <span style={{ color: 'var(--accent)', fontWeight: 700 }}>▸ {singleWorkerMode ? 'agent' : 'workers'}</span>
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>· {singleWorkerMode ? 'single' : 'orch'}</span>
-                <span style={{ flex: 1 }} />
-                <span className={upCount > 0 ? 'ok' : 'mute'} style={{ fontSize: 9 }}>
-                  {workersError ? '!' : (singleWorkerMode ? sessionWorkerLabel : `${upCount}/${total} up`)}
-                </span>
-              </div>
-              {total === 0 ? (
-                <div className="mute" style={{ fontSize: 10, padding: '4px 0 10px', textAlign: 'center' }}>
-                  {workersError || (
-                    singleWorkerMode
-                      ? (agentRunning ? 'session worker running' : (sessionWorkerAlive ? 'session worker hot — no workflow workers needed' : 'warming session worker'))
-                      : 'no workers yet — dispatch a workflow to spawn'
-                  )}
-                </div>
-              ) : (
-                <div style={{
-                  display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4,
-                  fontSize: 10, marginBottom: 12,
-                }}>
-                  {liveWorkers.map((w) => {
-                    const cfg = cfgFor(tone(w));
-                    const label = String(w.workflow || '').slice(0, 6) || portShort(w);
-                    const running = Number(w.running_count || 0);
-                    const pending = Number(w.pending_count || 0);
-                    const queued = Number(w.queued_count || 0);
-                    const active = running || pending || queued;
-                    return (
-                      <div key={w.url || w.workflow} style={{
-                        border: `1px solid ${cfg.border}`, borderRadius: 2,
-                        padding: '4px 6px', textAlign: 'center', background: cfg.bg,
-                        fontFamily: 'var(--mono)',
-                      }}
-                        title={
-                          `${w.workflow || '?'}\n` +
-                          `${w.url || ''}\n` +
-                          `status: ${w.status || '-'}` +
-                          (running ? `\nrunning jobs: ${running}` : '') +
-                          (pending ? `\nstarting jobs: ${pending}` : '') +
-                          (queued ? `\nqueued jobs: ${queued}` : '') +
-                          (w.bound_workflow ? `\nbound: ${w.bound_workflow}` : '')
-                        }
-                      >
-                        <div style={{ color: cfg.color, fontWeight: 700, fontSize: 10 }}>
-                          {cfg.glyph} {label}
-                        </div>
-                        <div className="mute" style={{ fontSize: 9, marginTop: 1 }}>
-                          {portShort(w)}{active ? ` · ${running ? running : pending ? 's' + pending : 'q' + queued}` : ''}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-              {activeJobs.length > 0 ? (
-                <div style={{
-                  borderTop: '1px solid var(--line)',
-                  paddingTop: 8,
-                  marginBottom: 12,
-                  fontSize: 10,
-                  fontFamily: 'var(--mono)',
-                }}>
-                  <div className="mute" style={{
-                    fontSize: 9,
-                    letterSpacing: '0.08em',
-                    textTransform: 'uppercase',
-                    marginBottom: 5,
-                  }}>now</div>
-                  {activeJobs.slice(0, 4).map(job => (
-                    <button
-                      key={job.job_id || `${job.worker_workflow}-${job.run_id}`}
-                      type="button"
-                      onClick={() => {
-                        try {
-                          w.openPipelineWorkflowWorkspace?.({
-                            ip: String(job.ip || activeIp || '').trim(),
-                            workflow: job.workflow || job.worker_workflow,
-                          });
-                        } catch (_) {}
-                      }}
-                      title={[
-                        job.session || '',
-                        job.worker || '',
-                        job.worker_log_path ? `log: ${job.worker_log_path}` : '',
-                        job.result_summary || job.error || '',
-                      ].filter(Boolean).join('\n')}
-                      style={{
-                        width: '100%',
-                        display: 'grid',
-                        gridTemplateColumns: '12px minmax(0, 1fr)',
-                        gap: 6,
-                        alignItems: 'start',
-                        textAlign: 'left',
-                        padding: '4px 0',
-                        border: 0,
-                        borderBottom: '1px solid color-mix(in oklch, var(--line) 70%, transparent)',
-                        background: 'transparent',
-                        color: 'var(--fg)',
-                        cursor: 'pointer',
-                        fontFamily: 'var(--mono)',
-                      }}
-                    >
-                      <span style={{ color: job.status === 'queued' ? 'var(--fg-mute)' : 'var(--accent)' }}>
-                        {job.status === 'queued' ? '◌' : '▶'}
-                      </span>
-                      <span style={{ minWidth: 0 }}>
-                        <span style={{ display: 'block', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {job.workflow || job.worker_workflow || 'worker'}
-                        </span>
-                        <span className="mute" style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {jobLine(job)}
-                        </span>
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              ) : null}
-            </>
-          );
-        })()}
+        <AgentWorkerStatus
+          workers={liveWorkers}
+          workersError={workersError}
+          activeIp={activeIp}
+          agentAlive={agentAlive}
+          agentRunning={agentRunning}
+          execMode={atlasUiExecMode()}
+          interactiveWorker={interactiveWorker}
+          interactiveWorkerError={interactiveWorkerError}
+          logic={w.AtlasWorkersLogic}
+          onOpenWorkflow={w.openPipelineWorkflowWorkspace}
+        />
       </div>
     </div>
   );

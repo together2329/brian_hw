@@ -77,6 +77,8 @@ STAGE_ALIASES = {
     "audit": "goal-audit",
     "ga": "goal-audit",
     "goal-audit": "goal-audit",
+    "contract": "contract-check",
+    "contract-check": "contract-check",
 }
 
 STAGE_WORKFLOW = {
@@ -92,6 +94,7 @@ STAGE_WORKFLOW = {
     "sim": "sim",
     "sim-debug": "sim_debug",
     "goal-audit": "sim_debug",
+    "contract-check": "contract-reflection",
 }
 
 
@@ -882,6 +885,7 @@ class WorkflowStageEngine:
             "sim": self._run_sim,
             "sim-debug": self._run_sim_debug,
             "goal-audit": self._run_goal_audit,
+            "contract-check": self._run_contract_check,
         }
         result = dispatch[stage](ip)
         self._write_run_log(result)
@@ -1814,6 +1818,39 @@ class WorkflowStageEngine:
         if status != "pass":
             lines += ["", "next: inspect fl_rtl_goal_audit.json and rerun the owning ATLAS stage; do not bypass with a fixed IP template."]
         return self._result("goal-audit", ip, status, headline, lines, runs=[run], artifacts=artifacts, metadata={"blockers": blockers})
+
+    def _run_contract_check(self, ip: str) -> StageEngineResult:
+        script = self.workflow_root / "contract-reflection" / "scripts" / "run_contract_check.py"
+        run = self._run_tool("contract_check", [sys.executable, str(script), ip, "--root", str(self.project_root)], timeout_s=120)
+        report_path = self.ip_dir(ip) / "signoff" / "contract_check.json"
+        report = _read_json(report_path) if report_path.is_file() else {}
+        status = str(report.get("status") or ("pass" if run.returncode == 0 else "fail"))
+        summary = report.get("summary") if isinstance(report.get("summary"), dict) else {}
+        route = report.get("owner_route") if isinstance(report.get("owner_route"), dict) else {}
+        headline = "[contract-check] PASS" if status == "pass" else "[contract-check] BLOCKED"
+        lines = [
+            headline,
+            f"script: {script}",
+            f"module: {ip}",
+            f"exit: {run.returncode}",
+            (
+                "summary: "
+                f"reflection={summary.get('reflection_passed', 0)}/{summary.get('reflection_total', 0)} "
+                f"evidence={summary.get('evidence_passed', 0)}/{summary.get('evidence_total', 0)}"
+            ),
+        ]
+        if route:
+            lines.append(f"owner: {route.get('owner_workflow') or '-'}")
+            lines.append(f"reason: {route.get('reason') or ''}")
+        self._append_runs(lines, [run])
+        artifacts = [
+            f"{ip}/signoff/contract_check.json",
+            f"{ip}/signoff/contract_reflection_coverage.json",
+            f"{ip}/signoff/evidence_contract_coverage.json",
+            f"{ip}/signoff/contract_owner_routing.json",
+        ]
+        self._append_expected(lines, artifacts)
+        return self._result("contract-check", ip, status, headline, lines, runs=[run], artifacts=artifacts, metadata={"contract_check": report})
 
     def _find_tb_runner(self, ip: str) -> Path | None:
         candidates = [

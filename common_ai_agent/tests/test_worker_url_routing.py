@@ -59,7 +59,7 @@ SINGLE_PORT_URL = f"http://127.0.0.1:{_DEFAULT_SINGLE_MAIN_LOOP_PORT}"
 
 ALL_WORKFLOWS = [
     "ssot-gen", "fl-model-gen", "rtl-gen", "lint", "tb-gen",
-    "sim", "coverage", "sim_debug", "syn", "sta", "pnr", "sta-post",
+    "sim", "coverage", "sim_debug", "contract-reflection", "syn", "sta", "pnr", "sta-post",
     "chat", "atcdmac100",
 ]
 
@@ -76,6 +76,7 @@ ORCHESTRATOR_PORT_MAP = {
     "sta":          5630,
     "pnr":          5631,
     "sta-post":     5632,
+    "contract-reflection": 5633,
 }
 
 
@@ -259,12 +260,16 @@ class TestLazyWorkerStart(unittest.TestCase):
         os.environ["ATLAS_LAZY_WORKERS"] = "1"
         os.environ["ATLAS_EXEC_MODE"] = "orchestrator"
         os.environ["ATLAS_SINGLE_MAIN_LOOP"] = "0"
+        os.environ.pop("ATLAS_ACTIVE_IP", None)
+        os.environ.pop("ATLAS_ACTIVE_SESSION", None)
         _m._LAZY_WORKER_PROCS.clear()
 
     def tearDown(self):
         os.environ.pop("ATLAS_LAZY_WORKERS", None)
         os.environ.pop("ATLAS_EXEC_MODE", None)
         os.environ.pop("ATLAS_SINGLE_MAIN_LOOP", None)
+        os.environ.pop("ATLAS_ACTIVE_IP", None)
+        os.environ.pop("ATLAS_ACTIVE_SESSION", None)
         self._clear_worker_overrides()
         _m._LAZY_WORKER_PROCS.clear()
 

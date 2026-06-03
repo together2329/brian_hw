@@ -47,6 +47,7 @@ _DEFAULT_WORKER_PORTS = {
     "sta": 5630,
     "pnr": 5631,
     "sta-post": 5632,
+    "contract-reflection": 5633,
 }
 
 

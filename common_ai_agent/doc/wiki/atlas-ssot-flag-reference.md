@@ -336,8 +336,8 @@ Is your IP stateful (registers / FSM)?
 
 ## Related
 
-- `atlas-new-ip-recipe.md` — full new-IP workflow with 4 demo patterns
-- `silent-pass-exposure-tb-stimulus-gap-20260520.md` — context behind the
+- [[atlas-new-ip-recipe]] — full new-IP workflow with 4 demo patterns
+- [[silent-pass-exposure-tb-stimulus-gap-20260520]] — context behind the
   HARD scoreboard policy and silent-green defenses
-- `systematic-quality-gates-20260521.md` — validator + manifest hygiene
+- [[systematic-quality-gates-20260521]] — validator + manifest hygiene
   + stale sim detection gates

@@ -14,11 +14,12 @@
 
 ## Guide tab
 
-- New screen component `frontend/atlas/guide.jsx` → `window.AtlasGuide`, loaded in
-  `index.html` before `app.jsx` (auto-inlined by `_inline_html_cached`, regex-based —
-  no allowlist). Nav button sits between `◇ Architect` and the `run` selector;
-  `screen === 'guide'` is wired into the router and the URL/localStorage valid-screen
-  checks in `app.jsx`.
+- New screen component `frontend/atlas/guide.tsx` → `window.AtlasGuide`, now compiled
+  into the Vite bundle (the old `_inline_html_cached` auto-inline of per-file `.jsx`
+  was retired with the `index.html` shell on 2026-05-30; see the comment at
+  `src/atlas_ui.py:~1443`). Nav button sits between `◇ Architect` and the `run`
+  selector; `screen === 'guide'` is wired into the router and the URL/localStorage
+  valid-screen checks in `app.tsx`.
 - Content is **authored HTML** rendered through `DOMPurify.sanitize` (scoped CSS lives
   in a sibling `<style>`; classes survive sanitize).
 - **Framing (intentional):** ATLAS is presented as an **SSOT · RTL Generation Agent**.
@@ -45,8 +46,8 @@
 ## Safety / blast radius
 
 - **Pure frontend** — no backend/DB/server/schema change; revert = `git checkout` the
-  frontend files. No server restart (JSX is inlined fresh on mtime change; browser
-  reload only).
+  frontend files. (Originally JSX inlined fresh on mtime change; under the current
+  Vite path a `vite build` / dist refresh is the equivalent reload step.)
 - `window.SOC` had exactly two call sites (both replaced). Existing `soc`-dependent
   hooks were already empty-safe (`soc.clusters || []`, guarded `clusters[0]`), and the
   179 `soc` refs live in the diagram render which only runs once a card is opened

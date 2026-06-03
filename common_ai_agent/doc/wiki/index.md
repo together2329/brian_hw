@@ -21,14 +21,17 @@ This section is additive; it does not replace the reading order below.
 | Guide tab + Architect "My IPs" landing (mock SoC removed) | [[guide-tab-and-architect-my-ips-20260527]] |
 | Andes external RTL DB wiki + optional `ATLAS_RTL_DB_WIKI` / `ATLAS_EXTERNAL_DB_WIKI` pointer | [[andes-rtl-db-wiki-20260527]] |
 | Reusable external RTL DB adapter guide | [[external-rtl-db-integration-guide]] |
+| LLM Wiki vs knowledge graph / node-edge-triple / domain knowledge management Q&A | [[llm-wiki-knowledge-graph-discussion-20260602]] |
 | SSOT datasheet authoring — demo-grade via custom_blocks / timing mapping / FSM | [[ssot-datasheet-authoring-20260527]] |
 | Review note for Atlas single-worker readiness / warmup refactor | [[atlas-refactoring-review-20260528]] |
 | Tech direction (language/runtime/build): keep Python backend, finish TSX + Vite build cutover, Go/Rust/Bun/Tauri surgical only | [[tech-direction-recommendation-20260529]] |
 | Frontend modernization arc (overview): .jsx→.tsx migration + Vite cutover (ATLAS_FRONTEND_MODE) + Tauri desktop + gpt-5.5 | [[frontend-modernization-2026-05-29]] |
 | 테스트 방법론 — 4층 피라미드 + green-while-broken 교훈 + 프론트 컷오버 전 E2E 필수 | [[testing-methodology]] |
 | uart_tx 직접 end-to-end 실행 — flow 골격 검증 + MSB-first mutation으로 shallow-observation silent-PASS 실증 + same-cycle 생성기 경계 + 직접 구동 cheat-sheet (audit=mutation kill-rate 권고) | [[uart-tx-end-to-end-findings-20260530]] |
-| MCTP assembler scratch req-to-audit run — AXI4/VDM/MCTP/SRAM/APB scope, truth_coverage refresh, local signoff 17/17 pass, mutation advisory interpretation | [[mctp-assembler-scratch-flow-20260531]] |
+| MCTP assembler scratch req-to-audit run — AXI4/VDM/MCTP/SRAM/APB scope, truth_coverage refresh, local signoff 18/18 pass, mutation advisory interpretation, post-signoff RTL risks | [[mctp-assembler-scratch-flow-20260531]] |
 | General IP 시행착오 종합 — PyMTL식 FL/CL/RTL, small IP/UART/SPI/CPU/MCTP lessons, mutation/formal/truth_coverage 경계, direct SSOT 허용 정책 | [[general-ip-flow-trial-and-error-20260601]] |
+| Evidence contract proposal — requirement를 atomic obligation / scenario / observable / pass condition / scoreboard row로 연결하는 다음 traceability layer | [[evidence-contract-obligation-traceability]] |
+| Contract reflection workflow — `contract_ref`가 SSOT→FL→CL→RTL→TB→scoreboard까지 끊기지 않았는지 검증하는 다음 layer; MCTP `payload_byte_count` 예시 포함 | [[contract-reflection-workflow]] |
 | ATLAS vite 프론트 자동 E2E 검증(실브라우저) 런북 + `scripts/atlas_vite_e2e_verify.sh` | [[atlas-vite-e2e-verification]] |
 | Sim Debug RTL module-signal panel (pyslang ports+internal, in/out/internal filter, regex search, Ctrl+W/right-click→wave, wave-scroll fix, 50/50 split) | [[sim-debug-module-signals-2026-05-30]] |
 | Sim Debug agent tool `sim_debug` (VCD parser + pyslang; show/goto/cursor/trace/find/value; file-intent + UI polling channel) | [[sim-debug-agent-tool-2026-05-31]] |
@@ -38,6 +41,8 @@ This section is additive; it does not replace the reading order below.
 | Babel/legacy-jsx retirement cutover — PAUSED progress + resume plan (Step1 flip done; Round1 partial; 4 decisions; Rounds 2–4) | [[babel-retirement-cutover-20260529]] |
 | Local IP-root + thin LLM-license server (desktop-app arch): already half-built via --root, Tauri = delivery not enabler; + remote-brain/local-hands variant | [[local-iproot-thin-llm-server-arch-20260529]] |
 | Run Mode / Exec Mode and SSOT provenance policy | [[run-mode-and-provenance-policy]] |
+| Single active session worker + orchestrator worker chat + future rtl-gen subworker lanes | [[atlas-single-active-orchestrator-subworkers-20260603]] |
+| Atlas DB Router + Runtime DB sharding concept for multi-user prompt/worker write isolation | [[atlas-db-router-runtime-sharding-20260602]] |
 | Admin operational dashboard priorities from the real local DB snapshot: inactivity, unattributed cost, queue backlog, stale workflows, identity gaps | [[admin-operational-dashboard-db-snapshot-20260603]] |
 | Why headless is not product-flow authority | [[pipeline-progress-debugging]] |
 | Current CPU handoff / approval / README status | [[arm-m0-min-current-status]] |
@@ -53,7 +58,7 @@ This section is additive; it does not replace the reading order below.
 | When to update wiki during development | [[wiki-curation-policy]] |
 | How agent autonomously implements a new IP end-to-end | [[agent-autonomous-ip-implementation-pattern]] |
 | Default-agent conversational IP creation flow for non-expert users | [[default-agent-ip-flow]] |
-| APB UART real-UART quality/signoff status from the default-agent reference run | [[apb-uart-real-uart-signoff-20260527]] |
+| Current apb_uart_txrx_demo signoff (framed TX/RX engines) | [[apb-uart-enhanced-signoff-20260527]] (earlier 8n1 record, superseded: [[apb-uart-real-uart-signoff-20260527]]) |
 | Full orchestrator workflow bring-up history (system_prompt, multi-model worker spawn, trace, UI orchestra view) | [[orchestrator-workflow-bring-up-20260517]] |
 | pytest collection crash fix (pytest_pymtl3 stale hook) and canonical PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 invocation | [[atlas-pytest-hygiene]] |
 | Side-by-side LLM provider comparison on the same SSOT input | [[triple-llm-rv32i-experiment]] |
@@ -70,7 +75,7 @@ This section is additive; it does not replace the reading order below.
 | SSOT export reverse direction 2026-05-19 (`/api/ssot/export?ip=&format=md|docx|html` renders `<ip>/yaml/<ip>.ssot.yaml` → `<ip>/doc/<ip>_ssot.<ext>` deterministically; md via yaml walker, html via python-`markdown`, docx via python-docx; pdf deferred — see [[ssot-conversion-flow-20260519]] `## Export (reverse direction)`) | [[ssot-conversion-flow-20260519]] |
 | DAG pipeline payload, worker command map, and signoff evidence checklist | [[atlas-dag-ip-flow-runbook]] |
 | Clean interactive `ask_user` discovery protocol | [[interactive-ask-user-ip-discovery]] |
-| Parked `workspace.jsx` decomposition plan | [[workspace-jsx-decomposition-plan]] |
+| `workspace.jsx` decomposition plan — historical design rationale; decomposition realized via the .tsx migration | [[workspace-jsx-decomposition-plan]] |
 
 Current practical rule: final product-flow claims should be validated through
 the same ATLAS UI/API/worker path users run, not only through headless runs.
@@ -86,6 +91,8 @@ regression.
 4a. [[default-agent-ip-flow]] — conversational front-door flow where the default agent hides stage jargon and directly performs read/edit/run/signoff loops for IP creation.
 4b. [[truth-coverage-gate]] — direct-SSOT or req-ledger locked-truth coverage gate required before signoff.
 4c. [[general-ip-flow-trial-and-error-20260601]] — consolidated trial/error record behind the current General IP workflow.
+4d. [[evidence-contract-obligation-traceability]] — proposed next traceability layer between SSOT/truth_coverage and cocotb scoreboard evidence.
+4e. [[contract-reflection-workflow]] — proposed `contract_ref` reflection layer that ties SSOT/FL/CL/RTL/TB/scoreboard evidence together.
 5. [[run-mode-and-provenance-policy]] — why `Starter` / `Engineering` / `Signoff` are work-maturity modes, why `Exec Mode` is separate, and how clean SSOT YAML pairs with resolved SSOT plus sidecar provenance.
 6. [[rtl-gen-ssot-contract]] — why rtl-gen must follow SSOT exactly before downstream stages run.
 7. [[workflow-feedback-and-scheduling]] — worker-aware serial/DAG scheduling and workflow repair feedback.
@@ -98,7 +105,8 @@ regression.
 14. [[human-review-and-escalation]] — when to stop automation and ask for product/spec authority.
 15. [[deterministic-emit-stages]] — why fl-model-gen and cl-model-gen run without an LLM, and what contract that places on the upstream SSOT.
 16. [[karpathy-llm-wiki-pattern]] — reference page for Andrej Karpathy's LLM Wiki concept (3-layer markdown + index + log + schema; no RAG, no vector DB) and how `doc/wiki/` already aligns to it.
-17. [[wiki-curation-policy]] — what to capture, when to capture it, and what to deliberately leave out of the wiki. Lives next to the code so the policy evolves with usage.
+17. [[llm-wiki-knowledge-graph-discussion-20260602]] — follow-up Q&A on LLM Wiki vs knowledge graph, node/edge/triple terminology, service landscape, and domain knowledge management usefulness.
+18. [[wiki-curation-policy]] — what to capture, when to capture it, and what to deliberately leave out of the wiki. Lives next to the code so the policy evolves with usage.
 
 ## UI
 
@@ -109,6 +117,9 @@ regression.
 - [[atlas-pipeline-db-state]] — how `/api/pipeline/state` derives state (DB-first, FS-fallback for hand-placed evidence) and the migration plan for moving KPI dots fully into the DB.
 - [[pipeline-progress-debugging]] — shared observability contract for worker jobs, headless reproduction logs, stuck LLM calls, and same-environment validation.
 - [[ui-design-references]] — external UI checkouts under `external_refs/` (currently `nexu-io/open-design`) and which patterns inform ATLAS.
+- [[tauri-desktop-shell]] — native desktop window for ATLAS (Tauri v2, Option A webview → running backend) for distribution and native file access.
+- [[react-flow-adoption-20260529]] — decision to adopt `@xyflow/react` v12 narrowly (SoC Architect first) in the next cycle, unblocked by the Vite cutover.
+- [[interactive-ui-diagrams-2026-05-23]] — standalone `interactive_ui/` gallery of dependency-free single-file HTML diagrams plus their generators.
 
 ## Reference Runs (working examples on real IPs)
 
@@ -116,7 +127,7 @@ Reloadable snapshots live in [`ip_examples/ref_ip_flow/`](../../ip_examples/ref_
 — each run is portable (IP artifacts + ATLAS sessions + seeds) so it can
 be loaded on a different machine and inspected without recreating the DB.
 
-- [[arm-m0-min-pipeline-run]] — minimal ARMv6-M Thumb CPU, full ssot→lint pipeline with green compile/lint/sim/function+cycle coverage; 2026-05-17 refresh shows 39/39 FL-vs-RTL goals pass and only final human-approved `req` signoff remains blocked. See `arm_m0_min/doc/arm_m0_min_completion_audit.md` for the prompt-to-artifact checklist.
+- [[arm-m0-min-pipeline-run]] — minimal ARMv6-M Thumb CPU, full ssot→lint pipeline with green compile/lint/sim/function+cycle coverage; 2026-05-17 refresh shows 39/39 FL-vs-RTL goals pass and final human-approved `req` signoff approved 2026-05-17 (see [[arm-m0-min-current-status]]). See `arm_m0_min/doc/arm_m0_min_completion_audit.md` for the prompt-to-artifact checklist.
 - [[arm-m0-min-current-status]] — current project-level handoff page for the same CPU; points reviewers to `arm_m0_min/README.md`, the user handoff, and the `approve_locked_scope` approval boundary.
 - [[mini-cpu-rerun-20260517]] — existing `NEW_IP_CPU/mini_cpu` rerun from a scratch copy; SSOT is non-canonical, `equiv-goals` blocks, lint fails, and manual SV sim reaches only 2/4 checks passing (2026-05-17).
 - [[gpio-serial-pipeline-run]] — `simple_gpio_lite` serial smoke run; RTL clean, tb-gen blocks on prose-only FunctionalModel `ssot_question` gaps, and ssot-gen now catches the same missing machine-rule transactions before downstream token spend (2026-05-16).
@@ -134,6 +145,9 @@ be loaded on a different machine and inspected without recreating the DB.
 - [[orchestrator-workflow-bring-up-20260517]] — `workflow/orchestrator/` 디렉토리가 실재로 만들어진 날의 풀 세션 기록: 13파일(system_prompt + routing_policy + retry_budget + 7 slash commands + run-to-green template) 생성, 5 worker × 4 model spawn (glm / gpt-5.3-codex / deepseek / kimi), trace JSONL 인프라(`core/orchestrator_trace.py` + `/api/orchestrator/trace`), Pipeline UI orchestra view (WorkerOrchestraBar + PendingQABanner + OrchestratorTraceStrip + 양방향 화살표), 그리고 sub-agent fire-and-forget 패턴이 interactive workflow(ssot-gen)에서 hang 되는 mismatch 발견 + QA card escape hatch fix까지. e2e 검증: real-LLM orchestrator(gpt-5.5 xhigh)가 3개 worker에 분산 dispatch + sim_debug worker 단일 dispatch + scratch `simple_counter` SSOT 생성 후 pending QA로 자동 정지 (2026-05-17).
 - [[pl330-real-orchestrator-ui-lessons-20260517]] — visible ATLAS UI validation on `pl330realverify`: user challenged fake-looking progress, real Browser/API/worker evidence was required, Orchestrator must dispatch workers instead of direct worker chat, RTL handoff should be `/ssot-rtl <ip>` rather than a giant TODO payload, and active scoped job dedupe prevents duplicate loading runs. RTL compile/lint passed; full RTL audit still had open required TODOs. Also records the accidental `tb-gen` dispatch/cancel that polluted the TB stage card (2026-05-17).
 - [[atcdmac100-document-flow-ui-honesty-20260518]] — corrective record for the Andes ATCDMAC100 PDF-based DMA flow. Real backend/common-engine artifacts were produced through SSOT, models, RTL, lint, TB, sim, coverage, goal-audit, synthesis, and pre-route STA, but the run is explicitly not valid ATLAS UI Orchestrator product-flow proof because most stages were driven by backend scripts rather than right-side Orchestrator chat. Records STA setup failure (`hclk@10ns` WNS `-22.560ns`) and interrupted PnR route.
+- [[apb-uart-enhanced-signoff-20260527]] — current `apb_uart_txrx_demo` signoff: enhanced v2+ bounded UART with framed TX/RX engines, configurable framing, TX/RX FIFOs, IRQ/error behavior, RX timeout, and loopback regression evidence. Supersedes the earlier 8n1 [[apb-uart-real-uart-signoff-20260527]] record.
+- [[orchestrator-new-ip-to-pnr-recipe-2026-05-23]] — orchestrator recipe for taking a brand-new IP from SSOT through to PnR.
+- [[atlas-new-ip-recipe]] — concise recipe for starting a new IP end-to-end in ATLAS.
 
 ## Debugging And Operations
 
@@ -150,11 +164,14 @@ be loaded on a different machine and inspected without recreating the DB.
 - [[atlas-modular-refactor-status-20260528]] — first stop for "what's been extracted from `src/atlas_ui.py` / `frontend/atlas/workspace.jsx`?" and how to verify a new phase without booting the server (Node `vm`-sandbox integration rig at `scripts/atlas_jsx_integration_test.js`).
 - [[atlas-refactoring-review-20260528]] — review note for the single-worker warmup/readiness refactor; current open risks are premature input release on `scheduled` warmup and duplicate in-flight warmup scheduling.
 - [[atlas-refactoring-exceptions]] — sub-1000-line file-size policy + the registry of files that remain ≥1000 with per-file technical justification (single mega-component / mega-factory / cross-module hydration constraints), the decomposition cost matrix, and the verified extraction-pattern catalogue.
+- [[worker-model-gpt-switch]] — first stop for worker/orchestrator LLM model latency: switching off cost-optimized glm/deepseek onto `gpt-5.5` (glm-5.1 ~80s vs gpt-5.3-codex ~10s per call, ≈8×), with the coupled model+auth-route caveat.
+- [[systematic-quality-gates-20260521]] — hub for the system-wide quality gates (manifest hygiene + SSOT validator) applied across all IPs without per-IP hand-tuning.
+- [[atlas-ssot-flag-reference]] — reference for every opt-in flag and per-IP SSOT semantic switch in ATLAS, with the IPs using each and the behavior change it triggers.
 
 ## Open Improvements
 
 - [[workflow-improvement-candidates]] — parking lot for design candidates not yet decided (reference RTL reuse incl. legacy-extend / style-match / pin-compat cases, sectional SSOT-gen, multi-LLM reviewer pattern, stage repair convergence budget, requirements authoring guide). Captured 2026-05-17 from [[atcuart100-pipeline-run]]. None promoted to code yet; do not treat as normative.
-- [[workspace-jsx-decomposition-plan]] — original (2026-05-25) design rationale for splitting `frontend/atlas/workspace.jsx`. Implementation is now landing on `refactor/atlas-modular`; live progress + verification rig under [[atlas-modular-refactor-status-20260528]] (workspace.jsx 21,415 → 15,562 lines as of Phase 13f, −27.3%).
+- [[workspace-jsx-decomposition-plan]] — historical design rationale (2026-05-25) for splitting `frontend/atlas/workspace.jsx`; decomposition now largely realized via the completed .jsx→.tsx migration. Live progress + verification rig under [[atlas-modular-refactor-status-20260528]] (workspace.jsx 21,415 → 15,562 lines as of Phase 13f, −27.3%).
 
 ## Hard Rules
 
@@ -181,6 +198,7 @@ be loaded on a different machine and inspected without recreating the DB.
 
 ## Maintenance
 
+- [[log]] — project-wide append-only event log (the Karpathy L2 log) recording dated wiki/system changes.
 - Add a wiki page when a concept is reused across multiple docs or workflows.
 - Keep wiki pages short and cross-linked.
 - Put implementation details in source docs and scripts; put navigation and authority rules here.

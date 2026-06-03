@@ -1,9 +1,9 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-06-03T02:49:46Z",
+  "generated_at": "2026-06-03T09:40:27Z",
   "root": "doc/wiki",
-  "node_count": 126,
-  "edge_count": 538,
+  "node_count": 132,
+  "edge_count": 594,
   "tags": {
     "admin": [
       "admin-operational-dashboard-db-snapshot-20260603"
@@ -50,8 +50,12 @@
     "chat-persistence": [
       "orchestrator-singleworker-e2e-20260526"
     ],
+    "cl": [
+      "contract-reflection-workflow"
+    ],
     "cocotb": [
-      "atcwdt200-flow-debugging-lessons"
+      "atcwdt200-flow-debugging-lessons",
+      "evidence-contract-obligation-traceability"
     ],
     "cosim": [
       "multi-cycle-production-wiring-20260520"
@@ -84,6 +88,9 @@
     "dma": [
       "atcdmac100-document-flow-ui-honesty-20260518"
     ],
+    "domain-knowledge": [
+      "llm-wiki-knowledge-graph-discussion-20260602"
+    ],
     "e2e": [
       "atlas-e2e-validation-20260519",
       "e2e-orchestrator-validation-plan",
@@ -91,14 +98,23 @@
     ],
     "evidence": [
       "atcdmac100-document-flow-ui-honesty-20260518",
+      "contract-reflection-workflow",
+      "evidence-contract-obligation-traceability",
       "orchestrator-chat-only-product-plan",
       "orchestrator-llm-loop-phase3"
     ],
     "exception-register": [
       "atlas-refactoring-exceptions"
     ],
+    "external-db": [
+      "external-rtl-db-integration-guide",
+      "llm-wiki-knowledge-graph-discussion-20260602"
+    ],
     "file-size-policy": [
       "atlas-refactoring-exceptions"
+    ],
+    "fl": [
+      "contract-reflection-workflow"
     ],
     "formal": [
       "general-ip-flow-trial-and-error-20260601"
@@ -130,9 +146,18 @@
     ],
     "ip-flow": [
       "atlas-dag-ip-flow-runbook",
+      "contract-reflection-workflow",
+      "evidence-contract-obligation-traceability",
       "general-ip-flow-trial-and-error-20260601",
       "mctp-assembler-scratch-flow-20260531",
       "truth-coverage-gate"
+    ],
+    "knowledge-graph": [
+      "external-rtl-db-integration-guide",
+      "llm-wiki-knowledge-graph-discussion-20260602"
+    ],
+    "landed": [
+      "orchestrator-loop-on-react-loop-plan"
     ],
     "latency": [
       "orchestrator-singleworker-e2e-20260526"
@@ -143,10 +168,14 @@
     "llm-loop": [
       "orchestrator-llm-loop-phase3"
     ],
+    "llm-wiki": [
+      "llm-wiki-knowledge-graph-discussion-20260602"
+    ],
     "maintainability": [
       "workspace-jsx-decomposition-plan"
     ],
     "mctp": [
+      "contract-reflection-workflow",
       "general-ip-flow-trial-and-error-20260601",
       "mctp-assembler-scratch-flow-20260531"
     ],
@@ -161,9 +190,6 @@
       "general-ip-flow-trial-and-error-20260601",
       "mctp-assembler-scratch-flow-20260531",
       "project_silent_pass_exposure"
-    ],
-    "on-hold": [
-      "orchestrator-loop-on-react-loop-plan"
     ],
     "orchestrator": [
       "atcdmac100-document-flow-ui-honesty-20260518",
@@ -237,10 +263,15 @@
       "sim-debug-requirements-2026-06-01",
       "truth-coverage-gate"
     ],
+    "reuse": [
+      "external-rtl-db-integration-guide"
+    ],
     "reviewed": [
       "orchestrator-loop-on-react-loop-plan"
     ],
     "rtl": [
+      "contract-reflection-workflow",
+      "external-rtl-db-integration-guide",
       "sim-debug-feature-review-2026-05-31",
       "sim-debug-requirements-2026-06-01"
     ],
@@ -267,6 +298,8 @@
     ],
     "signoff": [
       "atcdmac100-document-flow-ui-honesty-20260518",
+      "contract-reflection-workflow",
+      "evidence-contract-obligation-traceability",
       "general-ip-flow-trial-and-error-20260601",
       "mctp-assembler-scratch-flow-20260531",
       "truth-coverage-gate"
@@ -293,6 +326,8 @@
     ],
     "ssot": [
       "atcwdt200-ssot-rtl-tb-flow-시행착오-2026-05-17",
+      "contract-reflection-workflow",
+      "evidence-contract-obligation-traceability",
       "general-ip-flow-trial-and-error-20260601",
       "multi-cycle-production-wiring-20260520",
       "ssot-conversion-flow-20260519",
@@ -313,6 +348,9 @@
     "tauri": [
       "project_ts_vite_tauri_cutover"
     ],
+    "tb": [
+      "contract-reflection-workflow"
+    ],
     "tb-gen": [
       "atcwdt200-ssot-rtl-tb-flow-시행착오-2026-05-17"
     ],
@@ -330,6 +368,12 @@
     "to-ssot": [
       "ssot-conversion-flow-20260519"
     ],
+    "triples": [
+      "llm-wiki-knowledge-graph-discussion-20260602"
+    ],
+    "truth-coverage": [
+      "evidence-contract-obligation-traceability"
+    ],
     "usage": [
       "admin-operational-dashboard-db-snapshot-20260603"
     ],
@@ -346,6 +390,7 @@
       "sim-debug-requirements-2026-06-01"
     ],
     "verification": [
+      "evidence-contract-obligation-traceability",
       "hardcoded-strip-honest-baseline-20260520",
       "multi-cycle-production-wiring-20260520",
       "orchestrator-verification-report",
@@ -360,6 +405,9 @@
       "sim-debug-feature-review-2026-05-31",
       "sim-debug-requirements-2026-06-01",
       "sim-debug-waveform-renderer-2026-05-31"
+    ],
+    "wiki": [
+      "external-rtl-db-integration-guide"
     ],
     "worker": [
       "atlas-pipeline-worker-workspace-jump"
@@ -383,6 +431,9 @@
     ]
   },
   "types": {
+    "concept": [
+      "contract-reflection-workflow"
+    ],
     "process": [
       "atlas-refactoring-exceptions",
       "orchestrator-chat-only-product-plan",
@@ -413,6 +464,7 @@
       "atlas-pipeline-screen",
       "atlas-pytest-hygiene",
       "atlas-refactoring-review-20260528",
+      "atlas-single-active-orchestrator-subworkers-20260603",
       "atlas-ssot-flag-reference",
       "atlas-test-feature-coverage",
       "atlas-test-hardening-2026-05-23",
@@ -429,6 +481,7 @@
       "deterministic-emit-stages",
       "dma-real-sim-debug-knowhow",
       "e2e-orchestrator-validation-plan",
+      "evidence-contract-obligation-traceability",
       "external-rtl-db-integration-guide",
       "flow-fixes-r2-verify-20260519",
       "flow-fixes-r3-verify-20260519",
@@ -448,6 +501,8 @@
       "interactive-ui-diagrams-2026-05-23",
       "ip-edge-inputs-20260519",
       "karpathy-llm-wiki-pattern",
+      "large-file-decomposition-plan-20260530",
+      "llm-wiki-knowledge-graph-discussion-20260602",
       "local-iproot-thin-llm-server-arch-20260529",
       "log",
       "mini-cpu-rerun-20260517",
@@ -465,6 +520,7 @@
       "orchestrator-worker-live-steps-2026-05-23",
       "orchestrator-workflow-bring-up-20260517",
       "parallel-todo-sub-agent-workers",
+      "perforce-integration-20260530",
       "pipeline-progress-debugging",
       "project_merge_broke_prompt_delivery",
       "project_silent_pass_exposure",
@@ -597,7 +653,9 @@
         "karpathy-llm-wiki-pattern"
       ],
       "incoming": [
-        "index"
+        "external-rtl-db-integration-guide",
+        "index",
+        "llm-wiki-knowledge-graph-discussion-20260602"
       ],
       "broken_refs": [],
       "updated": "",
@@ -617,7 +675,10 @@
         "default-agent-ip-flow",
         "pipeline-progress-debugging"
       ],
-      "incoming": [],
+      "incoming": [
+        "apb-uart-real-uart-signoff-20260527",
+        "index"
+      ],
       "broken_refs": [],
       "updated": "",
       "summary": "> **IP**: `apb_uart_txrx_demo` > **Scope**: Enhanced APB UART v2+ bounded demo: configurable framing, TX/RX FIFOs, expanded status/error/IRQ behavior, RX timeout, loopback, random regression evidence, and generic timing-constraint intent. > **Decision**: **GO for enhanced v2+ bounded UART demo signoff** based on the fresh local artifacts listed below. >…",
@@ -631,6 +692,7 @@
       "tags": [],
       "related": [],
       "outgoing": [
+        "apb-uart-enhanced-signoff-20260527",
         "pipeline-progress-debugging",
         "default-agent-ip-flow",
         "golden-todo-evidence",
@@ -644,9 +706,9 @@
       ],
       "broken_refs": [],
       "updated": "",
-      "summary": "> **Scope**: Current quality/status record for `apb_uart_txrx_demo` after the RX path was upgraded from a simple single-sample UART receiver to a bounded production-style 8N1 receiver. > **Decision**: **GO for bounded real-UART APB demo signoff**. > **Authority caveat**: This is local default-agent evidence, not a visible ATLAS UI/orchestrator product-flow…",
+      "summary": "> **STATUS: SUPERSEDED by [[apb-uart-enhanced-signoff-20260527]]** — the active > DUT uses framed engines (`uart_rx_framed.sv` / `uart_tx_framed.sv`, per > `apb_uart_txrx_demo/list/apb_uart_txrx_demo.f`); the 8n1 modules > (`uart_rx_8n1.sv` / `uart_tx_8n1.sv`) described here are obsolete. Kept below > as a historical record.",
       "path": "doc/wiki/apb-uart-real-uart-signoff-20260527.md",
-      "size_bytes": 4873
+      "size_bytes": 5203
     },
     {
       "id": "api-error-path-20260519",
@@ -716,7 +778,7 @@
       "updated": "",
       "summary": "End-to-end run of common_ai_agent on a minimal ARMv6-M Thumb CPU, `SSOT → fl-model-gen → rtl-gen → tb-gen → sim → lint`. This page is the **reference run** for CPU-class IPs and the first IP-on-DB-stack run captured in the wiki. Detailed run report lives at [`arm_m0_min/PIPELINE_SUMMARY.md`](../../arm_m0_min/PIPELINE_SUMMARY.md).",
       "path": "doc/wiki/arm-m0-min-pipeline-run.md",
-      "size_bytes": 13939
+      "size_bytes": 13936
     },
     {
       "id": "atcdmac100-document-flow-ui-honesty-20260518",
@@ -956,7 +1018,9 @@
         "provider-and-llm-call-accounting"
       ],
       "incoming": [
-        "admin-operational-dashboard-db-snapshot-20260603"
+        "admin-operational-dashboard-db-snapshot-20260603",
+        "index",
+        "log"
       ],
       "broken_refs": [],
       "updated": "2026-06-03",
@@ -1008,13 +1072,14 @@
       "incoming": [
         "atlas-refactoring-exceptions",
         "index",
+        "large-file-decomposition-plan-20260530",
         "tech-direction-recommendation-20260529"
       ],
       "broken_refs": [],
       "updated": "",
-      "summary": "> Living progress note for `refactor/atlas-modular`. Source of truth for > what's been extracted from `src/atlas_ui.py` + `frontend/atlas/workspace.jsx` > and how to verify the next phase without booting the server.",
+      "summary": "> **STATUS: SUPERSEDED** — `workspace.jsx` no longer exists; the .jsx->.tsx > migration and legacy frontend retirement (2026-05-30) completed this work. > Kept as historical record.",
       "path": "doc/wiki/atlas-modular-refactor-status-20260528.md",
-      "size_bytes": 8985
+      "size_bytes": 9273
     },
     {
       "id": "atlas-new-ip-recipe",
@@ -1022,9 +1087,14 @@
       "type": "reference",
       "tags": [],
       "related": [],
-      "outgoing": [],
+      "outgoing": [
+        "silent-pass-exposure-tb-stimulus-gap-20260520",
+        "systematic-quality-gates-20260521"
+      ],
       "incoming": [
+        "atlas-ssot-flag-reference",
         "hardcoded-strip-honest-baseline-20260520",
+        "index",
         "multi-cycle-production-wiring-20260520",
         "orchestrator-singleworker-e2e-20260526",
         "silent-pass-exposure-tb-stimulus-gap-20260520"
@@ -1033,7 +1103,7 @@
       "updated": "",
       "summary": "How to add a new IP to ATLAS with cycle-accurate FL/RTL co-simulation. Validated with four demo IPs in 2026-05-21 that each reached 100% honest PASS on the first sim after ~1.25 SSOT iterations.",
       "path": "doc/wiki/atlas-new-ip-recipe.md",
-      "size_bytes": 12246
+      "size_bytes": 12244
     },
     {
       "id": "atlas-pipeline-db-state",
@@ -1106,7 +1176,7 @@
       "updated": "",
       "summary": "`◫ Pipeline` is a top-level ATLAS screen that turns the 14-stage common_ai_agent flow into a click-to-run + glance-to-read situation board. It replaced the mock `◫ Architect` screen on 2026-05-16 (see [[log]] entry).",
       "path": "doc/wiki/atlas-pipeline-screen.md",
-      "size_bytes": 20765
+      "size_bytes": 20836
     },
     {
       "id": "atlas-pipeline-worker-workspace-jump",
@@ -1160,7 +1230,8 @@
       ],
       "incoming": [
         "index",
-        "orchestrator-chat-ux"
+        "orchestrator-chat-ux",
+        "perforce-integration-20260530"
       ],
       "broken_refs": [],
       "updated": "",
@@ -1188,13 +1259,14 @@
         "frontend-modernization-2026-05-29"
       ],
       "incoming": [
-        "index"
+        "index",
+        "large-file-decomposition-plan-20260530"
       ],
       "broken_refs": [],
       "updated": "2026-05-29",
       "summary": "Every source file in `common_ai_agent/` is held to a soft cap of **1,000 lines per file**. Files exceeding the cap are either (a) refactored under the cap, or (b) recorded in this registry with concrete technical justification for why they're an exception.",
       "path": "doc/wiki/atlas-refactoring-exceptions.md",
-      "size_bytes": 18396
+      "size_bytes": 17230
     },
     {
       "id": "atlas-refactoring-review-20260528",
@@ -1214,14 +1286,36 @@
       "size_bytes": 5162
     },
     {
-      "id": "atlas-ssot-flag-reference",
-      "title": "ATLAS — SSOT Flag Reference",
+      "id": "atlas-single-active-orchestrator-subworkers-20260603",
+      "title": "Atlas Single Active And Orchestrator Subworkers",
       "type": "reference",
       "tags": [],
       "related": [],
       "outgoing": [],
       "incoming": [
+        "index",
+        "log"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Date: 2026-06-03 — **IMPLEMENTED 2026-06-03**",
+      "path": "doc/wiki/atlas-single-active-orchestrator-subworkers-20260603.md",
+      "size_bytes": 13823
+    },
+    {
+      "id": "atlas-ssot-flag-reference",
+      "title": "ATLAS — SSOT Flag Reference",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "atlas-new-ip-recipe",
+        "silent-pass-exposure-tb-stimulus-gap-20260520",
+        "systematic-quality-gates-20260521"
+      ],
+      "incoming": [
         "hardcoded-strip-honest-baseline-20260520",
+        "index",
         "multi-cycle-production-wiring-20260520",
         "silent-pass-exposure-tb-stimulus-gap-20260520"
       ],
@@ -1229,7 +1323,7 @@
       "updated": "",
       "summary": "Every opt-in flag and per-IP semantic switch in ATLAS, with the IPs that use it and the behavior change it triggers. Maintained alongside the new IP recipe (`atlas-new-ip-recipe.md`).",
       "path": "doc/wiki/atlas-ssot-flag-reference.md",
-      "size_bytes": 10631
+      "size_bytes": 10628
     },
     {
       "id": "atlas-test-feature-coverage",
@@ -1315,7 +1409,7 @@
       "updated": "",
       "summary": "One command that proves the vite/.tsx frontend **actually works in a real browser** (not just `tsc`/`build` passing — that gap shipped a white screen + \"no response\" before). Lives in `scripts/`, runs in isolation on a **test port (3019)** so it never touches a running app on `:3000`.",
       "path": "doc/wiki/atlas-vite-e2e-verification.md",
-      "size_bytes": 2188
+      "size_bytes": 2648
     },
     {
       "id": "auth-cookie-expiry-20260519",
@@ -1345,13 +1439,17 @@
         "tech-direction-recommendation-20260529"
       ],
       "incoming": [
-        "index"
+        "frontend-modernization-2026-05-29",
+        "index",
+        "large-file-decomposition-plan-20260530",
+        "perforce-integration-20260530",
+        "tech-direction-recommendation-20260529"
       ],
       "broken_refs": [],
       "updated": "",
-      "summary": "**STATUS: PAUSED** — stopped mid-Round-1 due to a working-tree conflict with parallel edits from another process (session-machine.ts / session-protocol.ts / tsconfig.json / workspace.jsx / .config / mctp_assembler/ are NOT part of this effort). Resume only after the working tree is reconciled.",
+      "summary": "**STATUS: SUPERSEDED** — retirement **completed 2026-05-30** (commits `59cdfb11` \"retire the legacy .jsx frontend — vite/.tsx only\", `b6afdae0` \"rebuild: vite-only frontend on the proven pre-merge input path\"). The legacy `.jsx` frontend is gone (`ls frontend/atlas/*.jsx` → 0 source files) and the `/` route in `src/atlas_ui.py` is **vite-only** (no…",
       "path": "doc/wiki/babel-retirement-cutover-20260529.md",
-      "size_bytes": 7448
+      "size_bytes": 8177
     },
     {
       "id": "common-ai-agent-map",
@@ -1372,8 +1470,10 @@
         "full-flow-pipeline",
         "guide-tab-and-architect-my-ips-20260527",
         "index",
+        "large-file-decomposition-plan-20260530",
         "local-iproot-thin-llm-server-arch-20260529",
         "mctp-assembler-scratch-flow-20260531",
+        "perforce-integration-20260530",
         "tech-direction-recommendation-20260529"
       ],
       "broken_refs": [],
@@ -1395,6 +1495,45 @@
       "summary": "Verified that 3 simultaneous `/api/pipeline/dispatch` requests under `ATLAS_SINGLE_MAIN_LOOP=1` all succeed, are queued to the same worker, and produce distinct DB rows with no duplicate ip_blocks.",
       "path": "doc/wiki/concurrent-dispatch-queue-20260519.md",
       "size_bytes": 3283
+    },
+    {
+      "id": "contract-reflection-workflow",
+      "title": "Contract Reflection Workflow",
+      "type": "concept",
+      "tags": [
+        "ip-flow",
+        "ssot",
+        "evidence",
+        "fl",
+        "cl",
+        "rtl",
+        "tb",
+        "signoff",
+        "mctp"
+      ],
+      "related": [
+        "evidence-contract-obligation-traceability",
+        "truth-coverage-gate",
+        "general-ip-flow-trial-and-error-20260601",
+        "mctp-assembler-scratch-flow-20260531",
+        "workflow-ownership-and-boundaries"
+      ],
+      "outgoing": [
+        "evidence-contract-obligation-traceability",
+        "truth-coverage-gate",
+        "general-ip-flow-trial-and-error-20260601",
+        "mctp-assembler-scratch-flow-20260531",
+        "workflow-ownership-and-boundaries"
+      ],
+      "incoming": [
+        "index",
+        "log"
+      ],
+      "broken_refs": [],
+      "updated": "2026-06-03",
+      "summary": "This page captures the next design layer after `truth_coverage` and `evidence_contract`: every important contract item must be reflected through FL, CL, RTL, TB, and simulation evidence with the same stable ID.",
+      "path": "doc/wiki/contract-reflection-workflow.md",
+      "size_bytes": 32604
     },
     {
       "id": "cross-user-permission-20260519",
@@ -1503,7 +1642,7 @@
       "updated": "",
       "summary": "Some pipeline stages do **not** call an LLM. They are mechanical translators that read SSOT and write a Python or JSON artifact whose content is fully determined by the SSOT input. This page explains why that design choice exists, which stages it applies to today, and what the failure modes look like.",
       "path": "doc/wiki/deterministic-emit-stages.md",
-      "size_bytes": 7504
+      "size_bytes": 7501
     },
     {
       "id": "dma-real-sim-debug-knowhow",
@@ -1552,20 +1691,69 @@
       "size_bytes": 6677
     },
     {
-      "id": "external-rtl-db-integration-guide",
-      "title": "External RTL DB integration guide",
+      "id": "evidence-contract-obligation-traceability",
+      "title": "Evidence Contract And Obligation Traceability",
       "type": "reference",
-      "tags": [],
-      "related": [],
-      "outgoing": [],
+      "tags": [
+        "ip-flow",
+        "ssot",
+        "verification",
+        "evidence",
+        "signoff",
+        "cocotb",
+        "truth-coverage"
+      ],
+      "related": [
+        "truth-coverage-gate",
+        "general-ip-flow-trial-and-error-20260601",
+        "mctp-assembler-scratch-flow-20260531",
+        "workflow-ownership-and-boundaries"
+      ],
+      "outgoing": [
+        "truth-coverage-gate",
+        "general-ip-flow-trial-and-error-20260601",
+        "mctp-assembler-scratch-flow-20260531",
+        "workflow-ownership-and-boundaries"
+      ],
       "incoming": [
-        "index"
+        "contract-reflection-workflow",
+        "general-ip-flow-trial-and-error-20260601",
+        "index",
+        "log",
+        "truth-coverage-gate"
       ],
       "broken_refs": [],
-      "updated": "",
+      "updated": "2026-06-02",
+      "summary": "This page records the next workflow improvement after the MCTP assembler scratch trial.",
+      "path": "doc/wiki/evidence-contract-obligation-traceability.md",
+      "size_bytes": 16069
+    },
+    {
+      "id": "external-rtl-db-integration-guide",
+      "title": "External RTL DB Integration Guide",
+      "type": "reference",
+      "tags": [
+        "external-db",
+        "rtl",
+        "wiki",
+        "knowledge-graph",
+        "reuse"
+      ],
+      "related": [
+        "andes-rtl-db-wiki-20260527"
+      ],
+      "outgoing": [
+        "andes-rtl-db-wiki-20260527"
+      ],
+      "incoming": [
+        "index",
+        "llm-wiki-knowledge-graph-discussion-20260602"
+      ],
+      "broken_refs": [],
+      "updated": "2026-05-27",
       "summary": "Use this when another RTL corpus should become an optional `external-db` source for agent reuse/reference queries.",
       "path": "doc/wiki/external-rtl-db-integration-guide.md",
-      "size_bytes": 2198
+      "size_bytes": 2377
     },
     {
       "id": "feedback_regression_test_per_bug",
@@ -1668,7 +1856,8 @@
       "outgoing": [
         "worker-model-gpt-switch",
         "tauri-desktop-shell",
-        "tech-direction-recommendation-20260529"
+        "tech-direction-recommendation-20260529",
+        "babel-retirement-cutover-20260529"
       ],
       "incoming": [
         "atlas-refactoring-exceptions",
@@ -1676,13 +1865,14 @@
         "index",
         "local-iproot-thin-llm-server-arch-20260529",
         "project_ts_vite_tauri_cutover",
-        "react-flow-adoption-20260529"
+        "react-flow-adoption-20260529",
+        "tech-direction-recommendation-20260529"
       ],
       "broken_refs": [],
       "updated": "",
       "summary": "One-stop overview of the 2026-05-29 modernization arc on `main`. The codebase now runs the **TypeScript + Python + Rust** trio, applied per-layer (not a rewrite): frontend → TypeScript/Vite, backend → Python (unchanged), desktop shell → Rust/Tauri.",
       "path": "doc/wiki/frontend-modernization-2026-05-29.md",
-      "size_bytes": 4667
+      "size_bytes": 5441
     },
     {
       "id": "full-flow-pipeline",
@@ -1757,6 +1947,7 @@
       ],
       "related": [
         "truth-coverage-gate",
+        "evidence-contract-obligation-traceability",
         "mctp-assembler-scratch-flow-20260531",
         "hw-agent-ip-experiment-batch-20260530",
         "uart-tx-end-to-end-findings-20260530",
@@ -1765,6 +1956,7 @@
       ],
       "outgoing": [
         "truth-coverage-gate",
+        "evidence-contract-obligation-traceability",
         "mctp-assembler-scratch-flow-20260531",
         "hw-agent-ip-experiment-batch-20260530",
         "uart-tx-end-to-end-findings-20260530",
@@ -1772,13 +1964,16 @@
         "human-review-and-escalation"
       ],
       "incoming": [
-        "index"
+        "contract-reflection-workflow",
+        "evidence-contract-obligation-traceability",
+        "index",
+        "truth-coverage-gate"
       ],
       "broken_refs": [],
-      "updated": "2026-06-01",
+      "updated": "2026-06-02",
       "summary": "This page records the full set of practical lessons from the recent General IP experiments. It is intentionally a trial-and-error log, not a polished success story.",
       "path": "doc/wiki/general-ip-flow-trial-and-error-20260601.md",
-      "size_bytes": 13000
+      "size_bytes": 17320
     },
     {
       "id": "golden-todo-evidence",
@@ -1845,9 +2040,9 @@
       ],
       "broken_refs": [],
       "updated": "",
-      "summary": "Status: active debug log for GPIO orchestrator + multi-worker scratch runs on 2026-05-16.",
+      "summary": "Status: closed / historical run-log (green as of 2026-05-17). GPIO orchestrator + multi-worker scratch runs from 2026-05-16, reaching green on the `_002` rerun (goal-audit 16/16, coverage pass). Kept as a historical record.",
       "path": "doc/wiki/gpio-orchestrator-multiworker-run.md",
-      "size_bytes": 49480
+      "size_bytes": 49614
     },
     {
       "id": "gpio-serial-pipeline-run",
@@ -1894,7 +2089,7 @@
       "updated": "",
       "summary": "> **Updated**: 2026-05-27 > **Scope**: Two frontend-only UI changes — a new **Guide** tab, and replacing the > Architect screen's demo-SoC mock landing with the user's own IP card grid. > **Related**: [[default-agent-ip-flow]] · [[workflow-ownership-and-boundaries]] · > [[atlas-pipeline-screen]] · [[common-ai-agent-map]]",
       "path": "doc/wiki/guide-tab-and-architect-my-ips-20260527.md",
-      "size_bytes": 3601
+      "size_bytes": 3746
     },
     {
       "id": "hardcoded-strip-honest-baseline-20260520",
@@ -1995,6 +2190,7 @@
         "guide-tab-and-architect-my-ips-20260527",
         "andes-rtl-db-wiki-20260527",
         "external-rtl-db-integration-guide",
+        "llm-wiki-knowledge-graph-discussion-20260602",
         "ssot-datasheet-authoring-20260527",
         "atlas-refactoring-review-20260528",
         "tech-direction-recommendation-20260529",
@@ -2003,6 +2199,8 @@
         "uart-tx-end-to-end-findings-20260530",
         "mctp-assembler-scratch-flow-20260531",
         "general-ip-flow-trial-and-error-20260601",
+        "evidence-contract-obligation-traceability",
+        "contract-reflection-workflow",
         "atlas-vite-e2e-verification",
         "sim-debug-module-signals-2026-05-30",
         "sim-debug-agent-tool-2026-05-31",
@@ -2012,6 +2210,8 @@
         "babel-retirement-cutover-20260529",
         "local-iproot-thin-llm-server-arch-20260529",
         "run-mode-and-provenance-policy",
+        "atlas-single-active-orchestrator-subworkers-20260603",
+        "atlas-db-router-runtime-sharding-20260602",
         "admin-operational-dashboard-db-snapshot-20260603",
         "arm-m0-min-current-status",
         "multi-user-worker-isolation",
@@ -2029,6 +2229,7 @@
         "wiki-curation-policy",
         "agent-autonomous-ip-implementation-pattern",
         "default-agent-ip-flow",
+        "apb-uart-enhanced-signoff-20260527",
         "apb-uart-real-uart-signoff-20260527",
         "orchestrator-workflow-bring-up-20260517",
         "atlas-pytest-hygiene",
@@ -2060,6 +2261,9 @@
         "karpathy-llm-wiki-pattern",
         "atlas-pipeline-db-state",
         "ui-design-references",
+        "tauri-desktop-shell",
+        "react-flow-adoption-20260529",
+        "interactive-ui-diagrams-2026-05-23",
         "arm-m0-min-pipeline-run",
         "mini-cpu-rerun-20260517",
         "gpio-serial-pipeline-run",
@@ -2072,9 +2276,15 @@
         "atcwdt200-flow-debugging-lessons",
         "atcwdt200-ssot-rtl-tb-flow-시행착오-2026-05-17",
         "dma-real-sim-debug-knowhow",
+        "orchestrator-new-ip-to-pnr-recipe-2026-05-23",
+        "atlas-new-ip-recipe",
         "atlas-modular-refactor-status-20260528",
         "atlas-refactoring-exceptions",
-        "workflow-improvement-candidates"
+        "worker-model-gpt-switch",
+        "systematic-quality-gates-20260521",
+        "atlas-ssot-flag-reference",
+        "workflow-improvement-candidates",
+        "log"
       ],
       "incoming": [
         "karpathy-llm-wiki-pattern",
@@ -2086,7 +2296,7 @@
       "updated": "",
       "summary": "This wiki is the cross-linked operating map for common_ai_agent. It is optimized for long-context LLMs and agent handoffs: read the linked pages in order, then follow the source docs for implementation detail.",
       "path": "doc/wiki/index.md",
-      "size_bytes": 27589
+      "size_bytes": 30823
     },
     {
       "id": "interactive-ask-user-ip-discovery",
@@ -2115,7 +2325,9 @@
       "tags": [],
       "related": [],
       "outgoing": [],
-      "incoming": [],
+      "incoming": [
+        "index"
+      ],
       "broken_refs": [],
       "updated": "",
       "summary": "A gallery of dependency-free, single-file HTML diagrams under `common_ai_agent/interactive_ui/`. Each opens by double-clicking (`file://`) — no build, server, or install. All CSS/JS/data is inlined; the only `http://` string is the SVG XML namespace (`createElementNS`), not a network fetch.",
@@ -2151,6 +2363,7 @@
       "incoming": [
         "andes-rtl-db-wiki-20260527",
         "index",
+        "llm-wiki-knowledge-graph-discussion-20260602",
         "log",
         "parallel-todo-sub-agent-workers",
         "triple-llm-rv32i-experiment",
@@ -2161,6 +2374,60 @@
       "summary": "Reference page summarizing Andrej Karpathy's LLM Wiki concept and how the current `common_ai_agent/doc/wiki/` aligns to it. Captured 2026-05-16 so future sessions can pick up the same vocabulary without re-searching.",
       "path": "doc/wiki/karpathy-llm-wiki-pattern.md",
       "size_bytes": 4777
+    },
+    {
+      "id": "large-file-decomposition-plan-20260530",
+      "title": "Large single-file decomposition plan 2026-05-30 — Python backend split + legacy `.jsx` retirement",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "atlas-refactoring-exceptions",
+        "atlas-modular-refactor-status-20260528",
+        "babel-retirement-cutover-20260529",
+        "common-ai-agent-map",
+        "workspace-jsx-decomposition-plan",
+        "wiki-curation-policy"
+      ],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Prioritized, behavior-preserving plan to break up the biggest single files in `common_ai_agent`. Companion pages: [[atlas-refactoring-exceptions]] (sub-1000-line policy + the ≥1000-line registry + extraction-pattern catalogue), [[atlas-modular-refactor-status-20260528]] (what's already been extracted from `src/atlas_ui.py` + the…",
+      "path": "doc/wiki/large-file-decomposition-plan-20260530.md",
+      "size_bytes": 11087
+    },
+    {
+      "id": "llm-wiki-knowledge-graph-discussion-20260602",
+      "title": "LLM Wiki And Knowledge Graph Discussion (2026-06-02)",
+      "type": "reference",
+      "tags": [
+        "llm-wiki",
+        "knowledge-graph",
+        "triples",
+        "external-db",
+        "domain-knowledge"
+      ],
+      "related": [
+        "karpathy-llm-wiki-pattern",
+        "andes-rtl-db-wiki-20260527",
+        "external-rtl-db-integration-guide",
+        "wiki-curation-policy"
+      ],
+      "outgoing": [
+        "karpathy-llm-wiki-pattern",
+        "andes-rtl-db-wiki-20260527",
+        "external-rtl-db-integration-guide",
+        "wiki-curation-policy"
+      ],
+      "incoming": [
+        "index",
+        "log"
+      ],
+      "broken_refs": [],
+      "updated": "2026-06-02",
+      "summary": "Captured from a user Q&A on 2026-06-02 about whether LLM Wiki, LLM-generated knowledge graphs, triples, and external DB tools are meaningfully different and useful for domain knowledge management.",
+      "path": "doc/wiki/llm-wiki-knowledge-graph-discussion-20260602.md",
+      "size_bytes": 5002
     },
     {
       "id": "local-iproot-thin-llm-server-arch-20260529",
@@ -2190,6 +2457,12 @@
       "related": [],
       "outgoing": [
         "admin-operational-dashboard-db-snapshot-20260603",
+        "contract-reflection-workflow",
+        "atlas-single-active-orchestrator-subworkers-20260603",
+        "pipeline-progress-debugging",
+        "atlas-db-router-runtime-sharding-20260602",
+        "evidence-contract-obligation-traceability",
+        "llm-wiki-knowledge-graph-discussion-20260602",
         "sim-debug-requirements-2026-06-01",
         "sim-debug-feature-review-2026-05-31",
         "sim-debug-waveform-renderer-2026-05-31",
@@ -2206,7 +2479,6 @@
         "pl330-real-orchestrator-ui-lessons-20260517",
         "run-mode-and-provenance-policy",
         "index",
-        "pipeline-progress-debugging",
         "multi-user-worker-isolation",
         "orchestrator-worker-handoff",
         "orchestrator-worker-handoff-review",
@@ -2223,14 +2495,15 @@
         "arm-m0-min-pipeline-run",
         "atlas-pipeline-screen",
         "deterministic-emit-stages",
+        "index",
         "karpathy-llm-wiki-pattern",
         "wiki-curation-policy"
       ],
       "broken_refs": [],
       "updated": "",
-      "summary": "- Added [[admin-operational-dashboard-db-snapshot-20260603]] from the real `~/.common_ai_agent/atlas.db` admin audit: 641 users, 89.9% never logged in, 63%+ unattributed LLM cost, all queue rows unprocessed, stale running workflows, and identity/context integrity gaps. The page records dashboard priority order and avoids copying raw user-identifying rows.",
+      "summary": "- Added [[admin-operational-dashboard-db-snapshot-20260603]] from the real `~/.common_ai_agent/atlas.db` admin audit: 641 users, 89.9% never logged in, 63%+ unattributed LLM cost, all queue rows unprocessed, stale running workflows, and identity/context integrity gaps. The page records dashboard priority order and avoids copying raw user-identifying rows.…",
       "path": "doc/wiki/log.md",
-      "size_bytes": 79826
+      "size_bytes": 85224
     },
     {
       "id": "mctp-assembler-scratch-flow-20260531",
@@ -2260,14 +2533,17 @@
         "truth-coverage-gate"
       ],
       "incoming": [
+        "contract-reflection-workflow",
+        "evidence-contract-obligation-traceability",
         "general-ip-flow-trial-and-error-20260601",
-        "index"
+        "index",
+        "truth-coverage-gate"
       ],
       "broken_refs": [],
-      "updated": "2026-06-01",
+      "updated": "2026-06-02",
       "summary": "This page records the fresh `mctp_assembler_scratch` req-to-audit run. It is a handoff map, not a production conformance claim. The original local evidence bundle passed the pre-truth-coverage signoff. After the 2026-06-01 `truth_coverage` gate was added, final signoff became stricter; the refresh now maps all locked-truth obligations to executable…",
       "path": "doc/wiki/mctp-assembler-scratch-flow-20260531.md",
-      "size_bytes": 8258
+      "size_bytes": 10488
     },
     {
       "id": "mini-cpu-rerun-20260517",
@@ -2530,9 +2806,9 @@
       ],
       "broken_refs": [],
       "updated": "2026-05-18",
-      "summary": "> **Status: scaffold, scheduled for removal (2026-05-18).** The custom > mini-loop in `src/orchestrator/loop.py` was reviewed and ruled NOT the > stable surface. The locked decision is to migrate to > `core/react_loop.py::run_react_agent_impl` (Phase 3.5 plan: > [[orchestrator-loop-on-react-loop-plan]]). Treat everything in this page as > *interim…",
+      "summary": "> **Status: migrated (Phase 3.5 LANDED).** The custom mini-loop that lived > in `src/orchestrator/loop.py` was reviewed and ruled NOT the stable surface, > then removed. Production now runs through > `src/orchestrator/react_bridge.py::OrchestratorReactLoop` on top of > `core/react_loop.py::run_react_agent_impl` (Phase 3.5 plan, now landed: >…",
       "path": "doc/wiki/orchestrator-llm-loop-phase3.md",
-      "size_bytes": 11410
+      "size_bytes": 11482
     },
     {
       "id": "orchestrator-loop-on-react-loop-plan",
@@ -2545,7 +2821,7 @@
         "refactor",
         "plan",
         "reviewed",
-        "on-hold"
+        "landed"
       ],
       "related": [
         "orchestrator-llm-loop-phase3",
@@ -2569,7 +2845,7 @@
       "updated": "2026-05-18",
       "summary": "> **Architectural decision LOCKED (2026-05-18)**: the orchestrator loop will > run on top of `core/react_loop.py::run_react_agent_impl` via dependency > injection (Option B in the chat). The custom mini-loop in > `src/orchestrator/loop.py` is treated as a **temporary scaffold** to be > removed once the migration lands — not a permanent surface. Reason: >…",
       "path": "doc/wiki/orchestrator-loop-on-react-loop-plan.md",
-      "size_bytes": 39620
+      "size_bytes": 39915
     },
     {
       "id": "orchestrator-new-ip-to-pnr-recipe-2026-05-23",
@@ -2582,7 +2858,8 @@
         "atlas-test-feature-coverage"
       ],
       "incoming": [
-        "atlas-ui-playwright-screenshot-recipe-2026-05-23"
+        "atlas-ui-playwright-screenshot-recipe-2026-05-23",
+        "index"
       ],
       "broken_refs": [],
       "updated": "",
@@ -2824,6 +3101,24 @@
       "size_bytes": 10259
     },
     {
+      "id": "perforce-integration-20260530",
+      "title": "Perforce integration 2026-05-30 — Helix Core adapter · Sync UI · test-isolation fix",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "common-ai-agent-map",
+        "atlas-pytest-hygiene",
+        "babel-retirement-cutover-20260529"
+      ],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Wires ATLAS's provider-abstracted SCM layer to a real Perforce (Helix Core) server and adds a two-pane **Perforce Sync** tab. A developer can push IP folders to Perforce (add → submit) and pull them back (force-sync = overwrite). Built on a local dev server; design is site-portable. Related: [[common-ai-agent-map]] · [[atlas-pytest-hygiene]] (sibling…",
+      "path": "doc/wiki/perforce-integration-20260530.md",
+      "size_bytes": 7221
+    },
+    {
       "id": "pipeline-progress-debugging",
       "title": "Pipeline Progress Debugging",
       "type": "reference",
@@ -2855,7 +3150,7 @@
       "updated": "",
       "summary": "This page defines how ATLAS should debug progress for pipeline and worker runs without guessing from scattered files.",
       "path": "doc/wiki/pipeline-progress-debugging.md",
-      "size_bytes": 5225
+      "size_bytes": 5517
     },
     {
       "id": "pl330-real-orchestrator-ui-lessons-20260517",
@@ -3083,7 +3378,9 @@
         "frontend-modernization-2026-05-29",
         "tech-direction-recommendation-20260529"
       ],
-      "incoming": [],
+      "incoming": [
+        "index"
+      ],
       "broken_refs": [],
       "updated": "",
       "summary": "**Verdict: ADOPT `@xyflow/react` v12 — narrowly (SoC Architect first), and in the NEXT cycle (not now). Decision committed; execution scheduled.**",
@@ -3216,6 +3513,8 @@
         "systematic-quality-gates-20260521"
       ],
       "incoming": [
+        "atlas-new-ip-recipe",
+        "atlas-ssot-flag-reference",
         "project_silent_pass_exposure",
         "systematic-quality-gates-20260521"
       ],
@@ -3564,7 +3863,10 @@
         "silent-pass-exposure-tb-stimulus-gap-20260520"
       ],
       "incoming": [
+        "atlas-new-ip-recipe",
+        "atlas-ssot-flag-reference",
         "hardcoded-strip-honest-baseline-20260520",
+        "index",
         "multi-cycle-production-wiring-20260520",
         "silent-pass-exposure-tb-stimulus-gap-20260520"
       ],
@@ -3582,7 +3884,8 @@
       "related": [],
       "outgoing": [],
       "incoming": [
-        "frontend-modernization-2026-05-29"
+        "frontend-modernization-2026-05-29",
+        "index"
       ],
       "broken_refs": [],
       "updated": "",
@@ -3597,6 +3900,8 @@
       "tags": [],
       "related": [],
       "outgoing": [
+        "frontend-modernization-2026-05-29",
+        "babel-retirement-cutover-20260529",
         "common-ai-agent-map",
         "atlas-modular-refactor-status-20260528",
         "workspace-jsx-decomposition-plan",
@@ -3611,9 +3916,9 @@
       ],
       "broken_refs": [],
       "updated": "",
-      "summary": "Strategic recommendation on which technologies `common_ai_agent` (ATLAS) should move toward, evaluated against Go, Rust, Python, Node.js, Bun, jsx, tsx, ts. Grounded in measured stack size and the latency bottlenecks already identified this session — not generic language opinions.",
+      "summary": "> **STATUS: EXECUTED (2026-05-30)** — the highest-leverage moves in this doc have > shipped: the TSX+Vite cutover landed and the legacy `.jsx` frontend was **retired** > (commits `59cdfb11`, `b6afdae0`), and a **Tauri v2 desktop shell exists** at > `src-tauri/` (`tauri.conf.json` present, Option A webview→backend). The \"Current > state\" table and…",
       "path": "doc/wiki/tech-direction-recommendation-20260529.md",
-      "size_bytes": 5979
+      "size_bytes": 7986
     },
     {
       "id": "testing-methodology",
@@ -3675,9 +3980,19 @@
         "signoff",
         "requirements"
       ],
-      "related": [],
-      "outgoing": [],
+      "related": [
+        "evidence-contract-obligation-traceability",
+        "general-ip-flow-trial-and-error-20260601",
+        "mctp-assembler-scratch-flow-20260531"
+      ],
+      "outgoing": [
+        "evidence-contract-obligation-traceability",
+        "general-ip-flow-trial-and-error-20260601",
+        "mctp-assembler-scratch-flow-20260531"
+      ],
       "incoming": [
+        "contract-reflection-workflow",
+        "evidence-contract-obligation-traceability",
         "general-ip-flow-trial-and-error-20260601",
         "index",
         "mctp-assembler-scratch-flow-20260531"
@@ -3686,7 +4001,7 @@
       "updated": "",
       "summary": "`truth_coverage` closes the workflow gap where signoff could pass even though the full locked intent was not proven by executable evidence.",
       "path": "doc/wiki/truth-coverage-gate.md",
-      "size_bytes": 3249
+      "size_bytes": 4314
     },
     {
       "id": "uart-tx-end-to-end-findings-20260530",
@@ -3774,6 +4089,8 @@
       "incoming": [
         "atcwdt200-pipeline-run-20260517",
         "index",
+        "large-file-decomposition-plan-20260530",
+        "llm-wiki-knowledge-graph-discussion-20260602",
         "log",
         "parallel-todo-sub-agent-workers",
         "pipeline-progress-debugging",
@@ -3794,7 +4111,8 @@
       "related": [],
       "outgoing": [],
       "incoming": [
-        "frontend-modernization-2026-05-29"
+        "frontend-modernization-2026-05-29",
+        "index"
       ],
       "broken_refs": [],
       "updated": "",
@@ -3880,8 +4198,10 @@
         "atlas-dag-ip-flow-runbook",
         "atlas-pipeline-screen",
         "common-ai-agent-map",
+        "contract-reflection-workflow",
         "default-agent-ip-flow",
         "deterministic-emit-stages",
+        "evidence-contract-obligation-traceability",
         "full-flow-pipeline",
         "golden-todo-evidence",
         "gpio-serial-pipeline-run",
@@ -3932,14 +4252,15 @@
       "incoming": [
         "atlas-refactoring-exceptions",
         "index",
+        "large-file-decomposition-plan-20260530",
         "log",
         "tech-direction-recommendation-20260529"
       ],
       "broken_refs": [],
       "updated": "2026-05-25",
-      "summary": "Status: proposed and parked. Do not implement until P0 is complete.",
+      "summary": "> **STATUS: SUPERSEDED** — workspace.jsx was decomposed into `workspace*.tsx` and > the `.jsx` retired (2026-05-30); kept as historical design rationale.",
       "path": "doc/wiki/workspace-jsx-decomposition-plan.md",
-      "size_bytes": 6120
+      "size_bytes": 6277
     }
   ]
 }

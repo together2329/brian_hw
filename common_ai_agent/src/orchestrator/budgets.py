@@ -15,6 +15,7 @@ Defaults mirror ``workflow/orchestrator/system_prompt.md:65-73``:
     sim          2
     sim_debug    1
     coverage     2
+    contract-reflection 2
     goal-audit   1
 
 Stages not in the table get a generous default of 4 retries.
@@ -61,6 +62,7 @@ _DEFAULT_BUDGETS: Dict[str, int] = {
     "sim_debug": 1,
     "coverage": 2,
     "goal-audit": 1,
+    "contract-reflection": 2,
     # Synthesis / timing / place-and-route: conservative defaults.
     "syn": 3,
     "sta": 2,

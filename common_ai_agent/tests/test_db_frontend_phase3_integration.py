@@ -33,7 +33,7 @@ if str(PROJECT_ROOT / "src") not in sys.path:
 _EXPECTED_STAGE_IDS = [
     "ssot", "fl-model", "cl-model", "equivalence", "rtl",
     "lint", "tb", "sim", "coverage", "sim-debug",
-    "syn", "sta", "pnr", "sta-post", "goal-audit",
+    "syn", "sta", "pnr", "sta-post", "contract-check", "goal-audit",
 ]
 
 # Mirror window.PIPELINE_PHASES in pipeline.jsx:97-103.
@@ -43,7 +43,7 @@ _PHASE_BANDS = [
     ("RTL",        ["rtl"]),
     ("BRANCH",     ["lint", "tb", "sim"]),
     ("VERIFY·EDA", ["sim-debug", "coverage", "syn", "sta"]),
-    ("SIGNOFF",    ["pnr", "sta-post", "goal-audit"]),
+    ("SIGNOFF",    ["pnr", "sta-post", "contract-check", "goal-audit"]),
 ]
 
 

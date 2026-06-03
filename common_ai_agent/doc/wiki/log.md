@@ -7,6 +7,81 @@
   63%+ unattributed LLM cost, all queue rows unprocessed, stale running
   workflows, and identity/context integrity gaps. The page records dashboard
   priority order and avoids copying raw user-identifying rows.
+- Added [[contract-reflection-workflow]] from the workflow discussion about
+  making `contract_ref` survive SSOT -> FL -> CL -> RTL -> TB -> scoreboard.
+  The page captures the MCTP `payload_byte_count` example, FL-vs-CL split, TB
+  authority rules, required reflection manifests, and current implementation
+  status versus the next `check_contract_reflection` gate.
+- Expanded [[contract-reflection-workflow]] with an explicit MCTP v2 gap-closure
+  section: required `requirements_index`, `evidence_contract`,
+  `contract_reflection`, wave-observation, and coverage artifacts; plus the
+  `REQ_MCTP_PAYLOAD_ASSEMBLY_001` split into payload-count, SRAM-pack,
+  descriptor-visibility, and APB-visibility obligations.
+- Implemented the MCTP v2 pilot artifacts and checkers:
+  `workflow/contract-reflection/scripts/check_evidence_contract.py`,
+  `check_contract_reflection.py`, `mctp_assembler_scratch/verify/{requirements_index,evidence_contract,contract_reflection}.json`.
+  First run: contract reflection passes 6/6, evidence contract reports 2/5 pass
+  and exposes missing backpressure-ready, descriptor-byte, and APB-after-update
+  scoreboard evidence.
+- Extended the MCTP v2 evidence checker with deterministic VCD predicates.
+  `OBL_MCTP_DESC_VIS_001` now closes via `descriptor_bytes == 17` in the VCD,
+  moving evidence coverage to 3/5 while preserving real failures for missing
+  valid-under-ready-low hold evidence and APB `Q_PAYLOAD_COUNT` after-update
+  readback.
+- Closed the first MCTP v2 slice end-to-end. Added focused cocotb evidence for
+  `CONTRACT_V2_SRAM_BACKPRESSURE` and
+  `CONTRACT_V2_APB_Q_PAYLOAD_COUNT_AFTER_UPDATE`, generated fresh
+  `sim/contract_v2_events.jsonl` and `sim/contract_v2.vcd`, and reran the
+  contract gates: `evidence_contract_coverage` is now 5/5 pass and
+  `contract_reflection_coverage` remains 6/6 pass.
+- Hardened `check_contract_reflection.py` after review: the wave leg now uses
+  sampled VCD values from `workflow.contract_reflection.evidence_contract_vcd`
+  instead of a signal-name declaration scan, and tests reject declaration-only
+  VCD files.
+- Expanded [[contract-reflection-workflow]] with the default-workflow overlay
+  model and strict single-worker repair queue policy: run contract audit as an
+  overlay first, repair one owner role at a time, forbid direct evidence edits,
+  and defer automatic common-engine repair routing to a later stage.
+- Extended the MCTP v2 pilot through the legacy equivalence-goal overlay. Added
+  `workflow/contract-reflection/scripts/emit_goal_contract_overlay.py`, mapped
+  all 86 generated equivalence goals into `OBL_GOAL_*` obligations under
+  `LEGACY_SCOREBOARD_GOAL_CLOSURE`, and reran the gates:
+  `evidence_contract_coverage` is now 91/91 pass and
+  `contract_reflection_coverage` is now 7/7 pass. The wiki records this as a
+  weaker scoreboard-closure layer, separate from the 5 rich MCTP predicates.
+- Hardened the MCTP v2 evidence-row boundary after review: declared evidence row
+  artifacts are allowlisted to `sim/scoreboard_events.jsonl` and
+  `sim/contract_v2_events.jsonl`, with negative tests for forged rows under
+  both `verify/` and `sim/`. The wiki notes that a common-engine stage should
+  replace this pilot allowlist with provenance-backed simulator manifests.
+- Integrated the contract-reflection gate into executable workflow surfaces:
+  `/contract-check`, `WorkflowStageEngine` stage `contract-check`, headless
+  serial flow, Atlas pipeline state, and orchestrator worker
+  `contract-reflection` on the deterministic-validator toolchain. The latest
+  MCTP run is closed at `contract_reflection_coverage` 7/7 pass and
+  `evidence_contract_coverage` 91/91 pass; targeted backend/frontend tests also
+  cover the new worker registry and pipeline stage. `contract-check` is now in
+  `workflow/STAGE_MANIFEST.json`, and the aggregator rejects stale green reports
+  when a child validator fails.
+- Updated [[atlas-single-active-orchestrator-subworkers-20260603]]: flipped status
+  to IMPLEMENTED 2026-06-03. Added comprehensive policy/environment-variable contract
+  (`ATLAS_SESSION_WORKER_POLICY`, `ATLAS_SESSION_WORKER_MAX_ACTIVE`, idle/reaper
+  timing, `worker_epoch`), key semantics (single-active vs interactive/orchestrator
+  lanes, capacity-wait non-lossy flow, epoch fencing, reaper lifecycle, user-scoped
+  status endpoint), and detailed runbook (enable strict mode, inspect status,
+  debug capacity_wait, rollback to session-scoped). Explicitly deferred rtl-gen
+  multi-worker subworker fanout until worker chat/log visibility and job-lane
+  identity are stable.
+- Wiki review + curation batch — added 10 pages to index, repointed apb_uart signoff link, retired `trace-jsonl-rotation-20260519` (deleted; lesson folded into [[pipeline-progress-debugging]]), flipped stale status banners (babel-retirement, orchestrator-loop/phase3), refreshed frontend .jsx->.tsx pages.
+
+## 2026-06-02
+
+- Added [[atlas-db-router-runtime-sharding-20260602]] capturing the ATLAS DB router / runtime-sharding discussion.
+- Added [[evidence-contract-obligation-traceability]] on evidence/contract obligation traceability.
+- Added [[llm-wiki-knowledge-graph-discussion-20260602]] from the user Q&A about
+  LLM Wiki versus LLM-generated knowledge graphs, node/edge/triple terminology,
+  service landscape, and why the hybrid wiki+graph pattern is useful but should
+  not replace raw source authority.
 
 ## 2026-06-01
 

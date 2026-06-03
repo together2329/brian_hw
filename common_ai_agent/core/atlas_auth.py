@@ -600,8 +600,28 @@ _PUBLIC_PATHS = {
     "/favicon.ico",
     "/api/admin/auth/status",
 }
-_PUBLIC_PREFIXES = ("/static/", "/assets/", "/api/auth/", "/git/")
+# NOTE: "/git/" is NOT a static public prefix. AuthMiddleware treats it as public
+# only when git_anon_read_enabled() is true — which is the DEFAULT (anonymous
+# fetch/clone allowed). Set ATLAS_GIT_ANON_READ=0 to require an authenticated,
+# per-IP-authorized session for /git/ fetch too. PUSH always requires auth.
+_PUBLIC_PREFIXES = ("/static/", "/assets/", "/api/auth/")
 _PUBLIC_EXT = {"js", "jsx", "css", "html", "png", "jpg", "jpeg", "svg", "ico", "woff", "woff2", "ttf", "map"}
+
+
+def git_anon_read_enabled() -> bool:
+    """DEFAULT ON: anonymous git fetch/clone over /git/ is allowed unless the
+    operator explicitly disables it with ATLAS_GIT_ANON_READ=0 (or false/no/off).
+
+    With it on (the default), `git clone http://host/git/<ip>.git` works with no
+    credentials for ANY IP bare repo reachable on the port. PUSH
+    (git-receive-pack) ALWAYS still requires authentication. Set
+    ATLAS_GIT_ANON_READ=0 to require an authenticated, per-IP-authorized session
+    for fetch/clone too.
+    """
+    raw = (os.environ.get("ATLAS_GIT_ANON_READ", "") or "").strip().lower()
+    if raw in ("0", "false", "no", "off"):
+        return False
+    return True
 
 
 class AuthMiddleware:
@@ -634,6 +654,10 @@ class AuthMiddleware:
     @staticmethod
     def _is_public(path: str) -> bool:
         if path in _PUBLIC_PATHS or path.startswith(_PUBLIC_PREFIXES):
+            return True
+        # Opt-in anonymous git read: let /git/ through so the proxy can serve
+        # fetch/clone without a cookie (the proxy still blocks anonymous push).
+        if path.startswith("/git/") and git_anon_read_enabled():
             return True
         if "." in path and path.rsplit(".", 1)[-1].lower() in _PUBLIC_EXT:
             return True

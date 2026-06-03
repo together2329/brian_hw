@@ -644,6 +644,10 @@ def test_session_activate_preserves_running_worker_when_requested(tmp_path, monk
     monkeypatch.setenv("HOME", str(tmp_path / "home"))
     monkeypatch.setenv("ATLAS_MULTI_USER", "1")
     monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    # preserve_running keeps >1 worker per owner alive — a session-scoped
+    # behavior. Strict single-active-owner (the code default) halts the previous
+    # worker on switch, so opt into session-scoped to exercise this path.
+    monkeypatch.setenv("ATLAS_SESSION_WORKER_POLICY", "session-scoped")
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
 
@@ -711,6 +715,10 @@ def test_process_session_activate_keeps_single_worker_process_warm(tmp_path, mon
     monkeypatch.setenv("HOME", str(tmp_path / "home"))
     monkeypatch.setenv("ATLAS_MULTI_USER", "1")
     monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "1")
+    # Exercises the legacy spawn/kill/send_input switch path (session-scoped).
+    # Strict single-active-owner uses spawn_result/terminate_session instead, so
+    # opt into session-scoped for this FakeProcessManager contract.
+    monkeypatch.setenv("ATLAS_SESSION_WORKER_POLICY", "session-scoped")
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
 
@@ -782,6 +790,10 @@ def test_single_worker_session_activate_warms_chat_process(tmp_path, monkeypatch
     monkeypatch.setenv("ATLAS_DEFAULT_EXEC_MODE", "single-worker")
     monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODE", "0")
     monkeypatch.setenv("ATLAS_SINGLE_MAIN_LOOP", "1")
+    # Asserts the background (status="scheduled") warmup contract. Strict
+    # single-active-owner (the code default) warms synchronously (status=
+    # "started"), so opt into session-scoped here.
+    monkeypatch.setenv("ATLAS_SESSION_WORKER_POLICY", "session-scoped")
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
     monkeypatch.setattr(

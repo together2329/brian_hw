@@ -2337,6 +2337,128 @@ def create_app():
         return candidate, None
 
 
+    # ── Multi-tenant filesystem read/write authorization (audit finding B1) ──
+    # Every content-serving endpoint (files, source, vcd, ssot, coverage, …)
+    # confined its path/ip param to PROJECT_ROOT via _safe() but did NO owner
+    # check, so any authenticated user could read any other user's IP source,
+    # waveforms and .session conversation logs. This injected gate closes that
+    # hole using the existing IP ACLs (can_user_access_ip) + the per-user
+    # .session/<owner>/ namespace. Fail closed: anything we cannot positively
+    # authorize is denied. A single shared AtlasDB handle (like _chat_db) backs
+    # the lookups; the per-thread conn cache + RLock make it thread-safe.
+    from types import SimpleNamespace as _AuthzNS  # noqa: WPS433
+    from core.atlas_db import AtlasDB as _AuthzAtlasDB  # noqa: WPS433
+    from core.atlas_auth import is_admin_user as _authz_is_admin  # noqa: WPS433
+    from core import atlas_fs_authz as _fsz  # noqa: WPS433
+
+    # A fresh AtlasDB() is opened per gate call (the per-thread conn cache makes
+    # this cheap and matches /api/ip/list), so no long-lived shared handle.
+
+    def _authz_identity(request):
+        try:
+            user = request.scope.get("user") or {}
+        except Exception:
+            user = {}
+        uid = str((user or {}).get("id") or "default").strip() or "default"
+        uname = normalize_session_name(str((user or {}).get("username") or ""))
+        try:
+            is_admin = bool(_authz_is_admin(user)) or (user or {}).get("role") == "admin"
+        except Exception:
+            is_admin = (user or {}).get("role") == "admin"
+        return uid, uname, bool(is_admin)
+
+    def _authz_owner_aliases(uname):
+        """Owner-segment aliases: the bare username plus the per-model owner
+        ("<user>__<model>") used when ATLAS_SESSION_PER_MODEL is on."""
+        try:
+            model_owner = _session_owner_with_model(uname)
+        except Exception:
+            model_owner = uname
+        return {v for v in (uname, model_owner) if v}
+
+    def _authz_owned_ips_db(db, uid, uname, is_admin):
+        """IP names the user owns via their .session/db-sessions namespace.
+
+        The authoritative multi-user IP-ownership source — the SAME logic
+        /api/ip/list uses (db.list_sessions(user_id) -> namespaces whose owner
+        segment is the user). None = no restriction (single-user/admin); fail
+        closed (empty set) on any error.
+        """
+        if not _multi_user_enabled() or is_admin:
+            return None
+        if not uid or uid == "default" or not uname:
+            return set()
+        try:
+            allowed_owners = _authz_owner_aliases(uname)
+            owned = set()
+            for row in db.list_sessions(uid) or []:
+                ns = normalize_session_name(str(row.get("namespace") or row.get("id") or ""))
+                parts = [p for p in ns.split("/") if p]
+                if len(parts) >= 3 and parts[0] in allowed_owners:
+                    owned.add(parts[1])
+            return owned
+        except Exception:
+            return set()
+
+    def _authz_resolve_rel(rel_path):
+        """Resolve symlinks so the gate authorizes the REAL target, not the
+        requested name — a symlink inside an owned IP must not reach a victim
+        IP. Returns (effective_rel, escaped)."""
+        try:
+            target = _safe(rel_path)
+            if target is None:
+                return rel_path, True
+            return target.resolve().relative_to(PROJECT_ROOT.resolve()).as_posix(), False
+        except Exception:
+            return rel_path, False
+
+    def _authz_path(request, rel_path, permission="view"):
+        """Return a 401/403/400 JSONResponse if the read/write is not allowed, else None."""
+        uid, uname, is_admin = _authz_identity(request)
+        eff, escaped = _authz_resolve_rel(rel_path)
+        if escaped:
+            return JSONResponse({"error": "invalid path"}, status_code=400)
+        with _AuthzAtlasDB() as db:
+            decision = _fsz.authorize_path(
+                eff, user_id=uid, username=uname,
+                owner_aliases=_authz_owner_aliases(uname), is_admin=is_admin,
+                multi_user=_multi_user_enabled(), db=db, permission=permission,
+                owned_ips=_authz_owned_ips_db(db, uid, uname, is_admin),
+            )
+        if decision.allow:
+            return None
+        return JSONResponse({"error": decision.reason or "forbidden"}, status_code=decision.status)
+
+    def _authz_ip(request, ip, permission="view"):
+        uid, uname, is_admin = _authz_identity(request)
+        with _AuthzAtlasDB() as db:
+            decision = _fsz.authorize_ip(
+                ip, user_id=uid, username=uname, is_admin=is_admin,
+                multi_user=_multi_user_enabled(), db=db, permission=permission,
+                owned_ips=_authz_owned_ips_db(db, uid, uname, is_admin),
+            )
+        if decision.allow:
+            return None
+        return JSONResponse({"error": decision.reason or "forbidden"}, status_code=decision.status)
+
+    def _authz_accessible_ips(request):
+        """Set of IP names the caller may see (for filtering listings), or None = no restriction."""
+        uid, uname, is_admin = _authz_identity(request)
+        with _AuthzAtlasDB() as db:
+            return _fsz.accessible_ip_names(
+                user_id=uid, is_admin=is_admin, multi_user=_multi_user_enabled(),
+                db=db, permission="view",
+                owned_ips=_authz_owned_ips_db(db, uid, uname, is_admin),
+            )
+
+    _fs_authz = _AuthzNS(
+        path=_authz_path,
+        ip=_authz_ip,
+        accessible_ips=_authz_accessible_ips,
+        shared_roots=_fsz.SHARED_ROOTS,
+        shared_root_files=_fsz.SHARED_ROOT_FILES,
+    )
+
     # Phase 9: file API cluster moved to src/atlas_api_files.py.
     # Factory pattern — closure captures become explicit kwargs.
     from src.atlas_api_files import register_file_routes as _register_file_routes
@@ -2349,6 +2471,7 @@ def create_app():
         max_read_bytes=MAX_READ_BYTES,
         safe_ip_delete_fn=_safe_ip_file_delete_target,
         bridge=bridge,
+        fs_authz=_fs_authz,
     )
 
     def _lint_ip_candidates(ip: str) -> list[Path]:
@@ -3243,6 +3366,26 @@ def create_app():
                 return JSONResponse({"error": "BARE_GIT_OPTION disabled"}, status_code=404)
         except Exception:
             pass
+        # Git smart-HTTP authz. ATLAS_GIT_ANON_READ is ON BY DEFAULT, so anonymous
+        # fetch/clone of any IP is allowed (AuthMiddleware lets /git/ through).
+        # Set ATLAS_GIT_ANON_READ=0 to require auth + per-IP view for fetch
+        # (fetch -> view, with cross-tenant reads blocked). PUSH (receive-pack)
+        # ALWAYS requires an authenticated user with write access, either way.
+        from core.atlas_auth import git_anon_read_enabled as _git_anon_read_enabled
+        _repo_seg = (path or "").split("/", 1)[0]
+        _git_ip = _repo_seg[:-4] if _repo_seg.endswith(".git") else _repo_seg
+        _is_push = (
+            "service=git-receive-pack" in (request.url.query or "")
+            or str(path or "").endswith("git-receive-pack")
+        )
+        if _is_push:
+            _git_denied = _fs_authz.ip(request, _git_ip, "write")
+            if _git_denied is not None:
+                return _git_denied
+        elif not _git_anon_read_enabled():
+            _git_denied = _fs_authz.ip(request, _git_ip, "view")
+            if _git_denied is not None:
+                return _git_denied
         # Find git-http-backend. Brew puts it under libexec/git-core.
         import subprocess as _sp_git
         backend = ""
@@ -3545,6 +3688,7 @@ def create_app():
         _safe=_safe,
         PROJECT_ROOT=PROJECT_ROOT,
         WORKFLOW_ROOT=WORKFLOW_ROOT,
+        fs_authz=_fs_authz,
     )
 
     # ── Source endpoint — sim_debug signal→driver + cocotb test view ─
@@ -3566,7 +3710,7 @@ def create_app():
 
     # Phase 11a: /api/source moved to src/atlas_api_sim_debug.py via factory.
     from src.atlas_api_sim_debug import register_source_route as _register_source_route
-    _register_source_route(app, safe_path_fn=_safe)
+    _register_source_route(app, safe_path_fn=_safe, fs_authz=_fs_authz)
 
     # ── sim_debug elab module loader ─────────────────────────────
     # Lives at workflow/sim_debug/elab.py — co-located with the rest
@@ -4029,6 +4173,7 @@ def create_app():
             "sim":             ("s",          "run simulation"),
             "sim-debug":       ("sd",         "FL↔RTL mismatch debug pass"),
             "coverage":        ("cov",        "run / iterate coverage"),
+            "contract-check":   ("contract",   "run requirement contract evidence gate"),
             "goal-audit":      ("audit,ga",   "audit goal coverage and evidence"),
             "signoff":         ("",           "final signoff review"),
             "feedback":        ("fb",         "send admin-visible feedback: /feedback <message>"),
@@ -4242,6 +4387,7 @@ def create_app():
         "/sim", "/s",
         "/sim-debug", "/sd",
         "/coverage", "/cov",
+        "/contract-check", "/contract",
         "/goal-audit", "/audit", "/ga",
         "/signoff",
     }
@@ -4301,6 +4447,11 @@ def create_app():
             "workflow": "coverage",
             "template": "coverage_iter",
             "artifact_hint": "cov/coverage.json and sim/coverage_report.md",
+        },
+        "contract-check": {
+            "workflow": "contract-reflection",
+            "template": "contract-check",
+            "artifact_hint": "signoff/contract_check.json",
         },
         "goal-audit": {
             "workflow": "sim_debug",
@@ -9234,6 +9385,7 @@ def create_app():
         safe_path=_safe,
         skip_dirs=SKIP_DIRS,
         max_vcd_bytes=MAX_VCD_BYTES,
+        fs_authz=_fs_authz,
     )
     # Workspaces API (list workflow definitions + download.zip) lives in
     # src/atlas_api_workspaces.py. Inject runtime callables so routes see
@@ -9280,6 +9432,7 @@ def create_app():
         normalize_session_name=normalize_session_name,
         append_session_message=_append_session_message,
         bridge=bridge,
+        fs_authz=_fs_authz,
     )
 
     # ── Sessions API (/api/session*, /api/sessions*) ────────────────

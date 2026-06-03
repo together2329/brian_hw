@@ -24,6 +24,7 @@ _KNOWN_SESSION_FILES = {
 _KNOWN_WORKFLOWS = {
     "architect",
     "coverage",
+    "contract-reflection",
     "fl-model-gen",
     "goal-audit",
     "lint",

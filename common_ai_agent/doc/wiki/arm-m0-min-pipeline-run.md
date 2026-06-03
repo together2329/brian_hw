@@ -208,7 +208,7 @@ governance stages run.
    (`a if cond else b`) and decimal literals. SSOT validator still passes.
    **Workflow improvement candidate**: `repair_ssot_schema.py` should
    normalize these in addition to SystemVerilog fill literals it already
-   handles (see [[log.md]] 2026-05-15 SV fill literal normalization entry).
+   handles (see [[log]] 2026-05-15 SV fill literal normalization entry).
 
 2. **RTL provenance backfill** — Agent did not emit
    `rtl/rtl_authoring_provenance.json` matching the schema. We wrote it

@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "type": "cl_model_check",
+  "ip": "mctp_assembler",
+  "source": "model/cycle_model.py",
+  "backend": "python",
+  "timestamp": "2026-05-29T22:31:39Z",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "backend": "python",
+    "transactions": 7,
+    "results_observed": 7,
+    "coverage_bins": 18,
+    "coverage_hit": 18,
+    "fl_errors": [],
+    "performance_targets": {
+      "frequency_mhz": 100,
+      "throughput": {
+        "sustained_beats_per_cycle": 1,
+        "condition": "No backpressure on the active interface"
+      },
+      "outstanding": {
+        "max": 1,
+        "description": "Default one accepted operation until the SSOT declares deeper buffering"
+      },
+      "pipeline_stages": 3,
+      "queue_depth": 1
+    }
+  },
+  "performance_targets": {
+    "frequency_mhz": 100,
+    "throughput": {
+      "sustained_beats_per_cycle": 1,
+      "condition": "No backpressure on the active interface"
+    },
+    "outstanding": {
+      "max": 1,
+      "description": "Default one accepted operation until the SSOT declares deeper buffering"
+    },
+    "pipeline_stages": 3,
+    "queue_depth": 1
+  },
+  "decomposition_units": 9,
+  "fcov_bins": 18
+}

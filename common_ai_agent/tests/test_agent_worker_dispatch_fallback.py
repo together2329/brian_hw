@@ -18,6 +18,7 @@ _WORKFLOWS = (
     "sta",
     "pnr",
     "sta-post",
+    "contract-reflection",
 )
 
 
@@ -60,6 +61,7 @@ def _assert_scoped_worker_url(url: str, legacy_url: str) -> None:
 
 def test_worker_call_resolves_ssot_gen_alias_to_orchestrator_port(monkeypatch):
     _clear_worker_env(monkeypatch)
+    monkeypatch.setenv("ATLAS_EXEC_MODE", "orchestrator")
 
     assert agent_client._resolve_worker("ssot-gen") == "http://127.0.0.1:5621"
 
@@ -73,6 +75,7 @@ def test_worker_call_resolves_alias_to_single_worker_port(monkeypatch):
 
 def test_worker_call_respects_per_workflow_url_override(monkeypatch):
     _clear_worker_env(monkeypatch)
+    monkeypatch.setenv("ATLAS_EXEC_MODE", "orchestrator")
     monkeypatch.setenv("WORKER_URL_RTL_GEN", "http://127.0.0.1:5999/")
 
     assert agent_client._resolve_worker("rtl-gen") == "http://127.0.0.1:5999"
@@ -80,6 +83,7 @@ def test_worker_call_respects_per_workflow_url_override(monkeypatch):
 
 def test_worker_call_leaves_unknown_alias_unchanged(monkeypatch):
     _clear_worker_env(monkeypatch)
+    monkeypatch.setenv("ATLAS_EXEC_MODE", "orchestrator")
 
     assert agent_client._resolve_worker("custom-worker") == "custom-worker"
 

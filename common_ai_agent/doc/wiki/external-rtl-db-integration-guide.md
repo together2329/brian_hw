@@ -1,3 +1,11 @@
+---
+title: External RTL DB Integration Guide
+type: reference
+tags: [external-db, rtl, wiki, knowledge-graph, reuse]
+updated: 2026-05-27
+related: [andes-rtl-db-wiki-20260527]
+---
+
 # External RTL DB integration guide
 
 Use this when another RTL corpus should become an optional `external-db` source for

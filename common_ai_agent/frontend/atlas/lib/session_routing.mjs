@@ -12,6 +12,7 @@ export const KNOWN_WORKFLOWS = new Set([
   'sim',
   'sim_debug',
   'coverage',
+  'contract-reflection',
   'syn',
   'sta',
   'pnr',

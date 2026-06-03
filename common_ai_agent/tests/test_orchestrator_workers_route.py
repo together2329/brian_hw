@@ -16,7 +16,7 @@ if str(PROJECT_ROOT / "src") not in sys.path:
 
 _EXPECTED_WORKFLOWS = [
     "ssot-gen", "fl-model-gen", "rtl-gen", "lint", "tb-gen",
-    "sim", "coverage", "sim_debug", "syn", "sta", "pnr", "sta-post",
+    "sim", "coverage", "sim_debug", "contract-reflection", "syn", "sta", "pnr", "sta-post",
 ]
 
 
@@ -97,7 +97,7 @@ def _clear_worker_url_env(monkeypatch) -> None:
     monkeypatch.delenv("WORKER_URL_DEFAULT", raising=False)
 
 
-def test_workers_route_returns_12_workers(tmp_path: Path, monkeypatch) -> None:
+def test_workers_route_returns_13_workers(tmp_path: Path, monkeypatch) -> None:
     # Stub urlopen so health probes don't block on real network.
     import urllib.request
 
@@ -118,7 +118,7 @@ def test_workers_route_returns_12_workers(tmp_path: Path, monkeypatch) -> None:
     assert "workers" in data, data
 
     workers = data["workers"]
-    assert len(workers) == 12, f"expected 12 workers, got {len(workers)}: {[w['workflow'] for w in workers]}"
+    assert len(workers) == 13, f"expected 13 workers, got {len(workers)}: {[w['workflow'] for w in workers]}"
 
     workflow_names = {w["workflow"] for w in workers}
     assert "goal-audit" not in workflow_names, "dead goal-audit entry must not appear"
@@ -186,7 +186,7 @@ def test_workers_route_lazy_idle_skips_unspawned_worker_probes(
     assert resp.status_code == 200, resp.text
 
     data = resp.json()
-    assert data["count"] == 12
+    assert data["count"] == 13
     assert all(worker["status"] == "unreachable" for worker in data["workers"])
     assert all(worker["error"] == "lazy worker not spawned" for worker in data["workers"])
     assert probed_urls == []

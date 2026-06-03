@@ -399,19 +399,6 @@ def _bind_orchestrator_tools(
     def _wait_job(**kw):
         return orch_tools.wait_job(kw.get("job_id", ""))
 
-    def _read_file(**kw):
-        return orch_tools.read_file(
-            ip=kw.get("ip", ctx.ip_name),
-            path=kw.get("path", ""),
-            project_root=ctx.project_root,
-            contains=kw.get("contains", ""),
-            before=int(kw.get("before", 2) or 0),
-            after=int(kw.get("after", 80) or 0),
-            start_line=int(kw.get("start_line", 0) or 0),
-            end_line=int(kw.get("end_line", 0) or 0),
-            max_chars=int(kw.get("max_chars", 20_000) or 20_000),
-        )
-
     def _ask_user(**kw):
         return orch_tools.ask_user(
             db=db,
@@ -430,13 +417,85 @@ def _bind_orchestrator_tools(
             project_root=ctx.project_root,
         )
 
+    def _read_artifact(**kw):
+        return orch_tools.read_artifact(
+            ip=kw.get("ip", ctx.ip_name),
+            stage=kw.get("stage", ""),
+            project_root=ctx.project_root,
+        )
+
+    def _classify_failure(**kw):
+        return orch_tools.classify_failure_tool(
+            stage=kw.get("stage", ""),
+            evidence=kw.get("evidence"),
+            error_text=kw.get("error_text", ""),
+        )
+
+    def _write_handoff(**kw):
+        return orch_tools.write_handoff(
+            ip=kw.get("ip", ctx.ip_name),
+            workflow=kw.get("workflow", ""),
+            payload=kw.get("payload", {}) or {},
+            reason=kw.get("reason", ""),
+            user_id=ctx.user_id,
+            session_id=ctx.session_id,
+            pipeline_run_id=kw.get("pipeline_run_id", ""),
+            orchestrator_run_id=ctx.run_id,
+            from_workflow=kw.get("from_workflow", "orchestrator"),
+            project_root=ctx.project_root,
+        )
+
+    def _mark_downstream_stale(**kw):
+        from_stage = kw.get("from_stage", "")
+        result = orch_tools.mark_downstream_stale(
+            db=db,
+            ip_id=ctx.ip_id,
+            from_stage=from_stage,
+            run_id=ctx.run_id,
+            session_id=ctx.session_id,
+        )
+        # The retry-budget tracker is keyed by workflow id (e.g. "sim_debug")
+        # while the stage graph uses stage ids (e.g. "sim-debug"). A fresh
+        # upstream artifact makes downstream stages dispatchable again, so
+        # reset their budgets — both id forms, since the mapping is lossy.
+        try:
+            payload = result[0] if isinstance(result, tuple) else {}
+            for stage in (payload or {}).get("stale", []) or []:
+                budgets.reset(str(stage))
+                budgets.reset(str(stage).replace("-", "_"))
+        except Exception:
+            pass
+        return result
+
+    def _web_search(**kw):
+        return orch_tools.web_search(
+            query=kw.get("query", ""),
+            limit=int(kw.get("limit", 5) or 5),
+        )
+
+    def _web_fetch(**kw):
+        return orch_tools.web_fetch(
+            url=kw.get("url", ""),
+            formats=kw.get("formats", "markdown"),
+        )
+
+    # The orchestrator's curated tool surface (the 11 EXPECTED_CALLABLES the
+    # bridge tests pin). read_artifact/classify_failure/write_handoff/
+    # mark_downstream_stale/web_search/web_fetch were dropped by an orchestrator
+    # auto-commit (39e61294) which also leaked the generic `read_file`; restored
+    # here. Generic agent file tools must NOT be exposed to the orchestrator.
     return {
         "read_pipeline_state":   _wrap("read_pipeline_state",   _read_pipeline_state),
-        "read_file":             _wrap("read_file",             _read_file),
         "dispatch_workflow":     _wrap("dispatch_workflow",     _dispatch_workflow),
         "wait_job":              _wrap("wait_job",              _wait_job),
+        "read_artifact":         _wrap("read_artifact",         _read_artifact),
+        "classify_failure":      _wrap("classify_failure",      _classify_failure),
         "ask_user":              _wrap("ask_user",              _ask_user),
+        "write_handoff":         _wrap("write_handoff",         _write_handoff),
+        "mark_downstream_stale": _wrap("mark_downstream_stale", _mark_downstream_stale),
         "import_document":       _wrap("import_document",       _import_document),
+        "web_search":            _wrap("web_search",            _web_search),
+        "web_fetch":             _wrap("web_fetch",             _web_fetch),
     }
 
 

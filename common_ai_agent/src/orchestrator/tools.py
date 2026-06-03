@@ -913,6 +913,20 @@ def read_artifact(ip: str, stage: str, project_root: Optional[Path] = None) -> T
         "sim_debug": ("sim/fl_rtl_compare.json", "sim/mismatch_classification.json"),
         "goal-audit": ("sim/fl_rtl_goal_audit.json",),
         "goal_audit": ("sim/fl_rtl_goal_audit.json",),
+        "contract-check": (
+            "signoff/contract_check.json",
+            "signoff/contract_reflection_coverage.json",
+            "signoff/evidence_contract_coverage.json",
+            "signoff/contract_owner_routing.json",
+        ),
+        "contract-reflection": (
+            "verify/contract_reflection.json",
+            "signoff/contract_reflection_coverage.json",
+        ),
+        "evidence-contract": (
+            "verify/evidence_contract.json",
+            "signoff/evidence_contract_coverage.json",
+        ),
         "syn": ("syn/out/",),
         "sta": ("sta/out/",),
         "pnr": ("pnr/out/",),

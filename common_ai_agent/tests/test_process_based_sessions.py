@@ -103,6 +103,7 @@ class DummyProcessManager(SessionProcessManager):
         # delegate to it (otherwise the inherited real spawn_result would Popen a
         # real core.session_worker and bypass the dummy script).
         from core.session_process_manager import (
+            SPAWN_STATUS_CAPACITY_WAIT,
             SPAWN_STATUS_READY,
             SPAWN_STATUS_STARTED,
             SpawnResult,
@@ -110,14 +111,38 @@ class DummyProcessManager(SessionProcessManager):
 
         owner = self._owner_for_session(session_id)
         if self.is_alive(session_id):
+            with self._lock:
+                self._reserved_sessions.discard(session_id)
             return SpawnResult(
                 ok=True, status=SPAWN_STATUS_READY, session_id=session_id,
                 owner=owner, pid=self.get_pid(session_id),
             )
+        with self._lock:
+            has_reservation = session_id in self._reserved_sessions
+            active_count = self._admission_count_locked(ignore_session_id=session_id)
+        if (
+            policy is not None
+            and not has_reservation
+            and not reserve
+            and policy.cap_exceeded(active_count)
+        ):
+            return SpawnResult(
+                ok=False,
+                status=SPAWN_STATUS_CAPACITY_WAIT,
+                reason="max_active",
+                session_id=session_id,
+                owner=owner,
+                active_count=active_count,
+                max_active=getattr(policy, "max_active", 0),
+            )
         ok = bool(self.spawn(session_id, db_path=db_path))
+        with self._lock:
+            self._reserved_sessions.discard(session_id)
         return SpawnResult(
             ok=ok, status=SPAWN_STATUS_STARTED if ok else "capacity_wait",
             session_id=session_id, owner=owner, pid=self.get_pid(session_id),
+            active_count=active_count + 1 if ok else active_count,
+            max_active=getattr(policy, "max_active", 0),
         )
 
 
@@ -275,6 +300,9 @@ def test_process_bridge_seeds_output_cursor_before_fresh_spawn():
             self.spawned.append(session_id)
             return True
 
+        def list_active(self):
+            return []
+
         def send_input(self, session_id, msg_type, payload=None):
             self.sent.append((session_id, msg_type, payload))
             return "new-input-row"
@@ -307,6 +335,9 @@ def test_process_bridge_autostart_seeds_output_cursor():
             self.spawned.append(session_id)
             return True
 
+        def list_active(self):
+            return []
+
     bridge = _MultiUserBridge(single_user=False, use_processes=True)
     fake = FakeManager()
     bridge._process_manager = fake
@@ -336,6 +367,9 @@ def test_process_bridge_warm_activation_spawns_worker_without_prompt():
             self.spawned.append(session_id)
             self.live.add(session_id)
             return True
+
+        def list_active(self):
+            return sorted(self.live)
 
         def get_pid(self, session_id):
             return 4321 if session_id in self.live else 0
@@ -448,6 +482,9 @@ def test_process_bridge_reports_prompt_delivery_failure():
         def spawn(self, session_id):
             self.spawned.append(session_id)
             return True
+
+        def list_active(self):
+            return []
 
         def send_input(self, session_id, msg_type, payload=None):
             return None
@@ -688,8 +725,9 @@ def test_multiuser_bridge_process_mode_routes_explicit_sessions(dummy_worker_scr
             pass
 
 
-def test_single_worker_per_owner_kills_previous_owner_worker(dummy_worker_script):
+def test_single_worker_per_owner_kills_previous_owner_worker(monkeypatch, dummy_worker_script):
     db_path = _temp_db()
+    monkeypatch.setenv("ATLAS_SESSION_WORKER_POLICY", "single-active-owner")
     bridge = _MultiUserBridge(use_processes=True, single_worker_per_owner=True)
     bridge._process_manager = DummyProcessManager(
         db_path=db_path, dummy_script_path=dummy_worker_script

@@ -368,5 +368,5 @@ Average: 1.25 iterations from SSOT-write to 100% PASS.
 ## Related
 
 - `ssot-flag-reference.md` — every `cycle_model.*` / SSOT opt-in flag
-- `silent-pass-exposure-tb-stimulus-gap-20260520.md` — why HARD scoreboard policy matters
-- `systematic-quality-gates-20260521.md` — the validator that catches schema gaps before sim
+- [[silent-pass-exposure-tb-stimulus-gap-20260520]] — why HARD scoreboard policy matters
+- [[systematic-quality-gates-20260521]] — the validator that catches schema gaps before sim

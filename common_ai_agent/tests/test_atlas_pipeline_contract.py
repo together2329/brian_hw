@@ -26,6 +26,7 @@ def test_default_pipeline_is_ssot_to_signoff_chain() -> None:
         "sta",
         "pnr",
         "sta-post",
+        "contract-check",
         "goal-audit",
     ]
     assert len(stage_ids) == len(set(stage_ids))
@@ -34,7 +35,7 @@ def test_default_pipeline_is_ssot_to_signoff_chain() -> None:
 def test_frontend_full_flow_matches_backend_default_pipeline() -> None:
     stage_ids = [stage["id"] for stage in jobs._PIPELINE_STAGES]
     pipeline_js = (
-        Path(__file__).resolve().parents[1] / "frontend" / "atlas" / "pipeline.jsx"
+        Path(__file__).resolve().parents[1] / "frontend" / "atlas" / "pipe-width.tsx"
     ).read_text(encoding="utf-8")
 
     match = re.search(
@@ -167,6 +168,7 @@ def test_pipeline_dag_fans_out_after_rtl() -> None:
         "sta",
         "pnr",
         "sta-post",
+        "contract-check",
         "goal-audit",
     ]
 
@@ -183,6 +185,7 @@ def test_pipeline_dag_fans_out_after_rtl() -> None:
     assert jobs._pipeline_stage_dependencies("sta", selected) == ["syn"]
     assert jobs._pipeline_stage_dependencies("pnr", selected) == ["syn"]
     assert jobs._pipeline_stage_dependencies("sta-post", selected) == ["pnr"]
+    assert jobs._pipeline_stage_dependencies("contract-check", selected) == ["sim-debug"]
     assert jobs._pipeline_stage_dependencies("goal-audit", selected) == selected[:-1]
 
 
@@ -596,6 +599,54 @@ def test_coverage_blocked_artifact_is_not_reported_as_pass(tmp_path: Path) -> No
 
     assert failed is True
     assert "cov/coverage.json status=blocked" in reason
+
+
+def test_contract_check_pass_requires_all_coverage_reports(tmp_path: Path) -> None:
+    ip = "contract_partial_ip"
+    signoff_dir = tmp_path / ip / "signoff"
+    signoff_dir.mkdir(parents=True)
+    (signoff_dir / "contract_check.json").write_text(
+        json.dumps({"status": "pass"}),
+        encoding="utf-8",
+    )
+
+    recovered, detail = jobs._job_artifact_recovery(
+        {"ip": ip, "stage_id": "contract-check", "workflow": "contract-reflection"},
+        tmp_path,
+    )
+    failed, reason = jobs._job_artifact_failure(
+        {"ip": ip, "stage_id": "contract-check", "workflow": "contract-reflection"},
+        tmp_path,
+    )
+
+    assert recovered is False
+    assert "missing artifact" in detail
+    assert failed is True
+    assert "missing artifact" in reason
+
+
+def test_contract_check_stage_log_without_signoff_reports_is_not_recovered(tmp_path: Path) -> None:
+    ip = "contract_log_only_ip"
+    log_dir = tmp_path / ip / "logs" / "stage_engine"
+    log_dir.mkdir(parents=True)
+    (log_dir / "contract-check.json").write_text(
+        json.dumps({"status": "pass"}),
+        encoding="utf-8",
+    )
+
+    recovered, detail = jobs._job_artifact_recovery(
+        {"ip": ip, "stage_id": "contract-check", "workflow": "contract-reflection"},
+        tmp_path,
+    )
+    failed, reason = jobs._job_artifact_failure(
+        {"ip": ip, "stage_id": "contract-check", "workflow": "contract-reflection"},
+        tmp_path,
+    )
+
+    assert recovered is False
+    assert "contract_check.json" in detail
+    assert failed is True
+    assert "contract_check.json" in reason
 
 
 def test_rtl_current_pass_evidence_supersedes_stale_blocked_artifacts(tmp_path: Path) -> None:

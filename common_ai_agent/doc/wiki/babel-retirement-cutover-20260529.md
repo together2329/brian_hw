@@ -1,9 +1,12 @@
 # Babel / legacy-JSX Retirement — cutover progress + plan (2026-05-29)
 
-**STATUS: PAUSED** — stopped mid-Round-1 due to a working-tree conflict with
-parallel edits from another process (session-machine.ts / session-protocol.ts /
-tsconfig.json / workspace.jsx / .config / mctp_assembler/ are NOT part of this
-effort). Resume only after the working tree is reconciled.
+**STATUS: SUPERSEDED** — retirement **completed 2026-05-30** (commits `59cdfb11`
+"retire the legacy .jsx frontend — vite/.tsx only", `b6afdae0` "rebuild: vite-only
+frontend on the proven pre-merge input path"). The legacy `.jsx` frontend is gone
+(`ls frontend/atlas/*.jsx` → 0 source files) and the `/` route in `src/atlas_ui.py`
+is **vite-only** (no `ATLAS_FRONTEND_MODE` check; falls back only to a "run
+`npm run build`" page). The PAUSED/resume plan below is **historical** — the work
+it describes has shipped; do **not** resume it. See [[frontend-modernization-2026-05-29]].
 
 Goal: retire in-browser Babel + legacy `.jsx` now that the `.jsx→.tsx` migration
 is done and the Vite build exists. Related: [[frontend-modernization-2026-05-29]]
@@ -60,7 +63,11 @@ multi-stage project, not a 2-line change.
 | dist build delivery | currently git-ignored | **add `npm run build` to deploy/run flow** (not commit dist) |
 | admin.jsx | admin already babel-free | **KEEP** admin.jsx (defer bundle rebuild); ∴ keep `vendor/react*.development.js` |
 
-## Execution plan (resume from here)
+## Execution plan (HISTORICAL — completed 2026-05-30, do NOT resume)
+
+> The rounds below were the plan as of the 2026-05-29 pause. They were carried out
+> and shipped on 2026-05-30 (`59cdfb11`, `b6afdae0`). Kept for history only — there
+> is nothing left to resume.
 
 **Round 1 — parallel, disjoint files** *(was interrupted; partial — see state below)*
 - js-tests: repoint 5 test `.jsx`→`.tsx` reads/imports → vitest stays green.
@@ -117,8 +124,10 @@ Round 1 partial (interrupted):
 `session-machine.ts`, `session-protocol.ts`, `__tests__/session-machine.test.ts`,
 `tsconfig.json`, `workspace.jsx` (M, staged), `.config`, `mctp_assembler/` (untracked).
 
-## Resume checklist
-1. Reconcile / land the parallel work first (the `.config`/`session-*`/`workspace.jsx`/`mctp_assembler` changes).
-2. Decide: keep the partial Round-1 edits or `git checkout` them and rerun Round 1 clean.
-3. If keeping: finish py-tests (the 7 above) → run the targeted pytest green → Round 2 → 3 → 4.
-4. Use single-owner sequencing for `src/atlas_ui.py` and `vite.config.ts` to avoid re-conflict.
+## Resume checklist (HISTORICAL — already executed 2026-05-30; do NOT action)
+*(This checklist is obsolete: the retirement shipped in `59cdfb11` / `b6afdae0`.
+Retained only to show what the pause expected.)*
+1. ~~Reconcile / land the parallel work first (the `.config`/`session-*`/`workspace.jsx`/`mctp_assembler` changes).~~
+2. ~~Decide: keep the partial Round-1 edits or `git checkout` them and rerun Round 1 clean.~~
+3. ~~If keeping: finish py-tests (the 7 above) → run the targeted pytest green → Round 2 → 3 → 4.~~
+4. ~~Use single-owner sequencing for `src/atlas_ui.py` and `vite.config.ts` to avoid re-conflict.~~

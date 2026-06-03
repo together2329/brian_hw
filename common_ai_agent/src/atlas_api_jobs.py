@@ -290,6 +290,7 @@ _PIPELINE_STAGES = [
     {"id": "sta",         "workflow": "sta",          "label": "Pre-route STA"},
     {"id": "pnr",         "workflow": "pnr",          "label": "PnR"},
     {"id": "sta-post",    "workflow": "sta-post",     "label": "Post-route STA"},
+    {"id": "contract-check", "workflow": "contract-reflection", "label": "Contract check"},
     {"id": "goal-audit",  "workflow": "sim_debug",    "label": "Goal audit"},
 ]
 _PIPELINE_BY_ID       = {s["id"]: s       for s in _PIPELINE_STAGES}
@@ -313,6 +314,10 @@ _PIPELINE_ALIASES: dict[str, str] = {
     "sim_debug": "sim-debug",
     "sim-debug": "sim-debug",
     "debug": "sim-debug",
+    "contract": "contract-check",
+    "contract-check": "contract-check",
+    "contract-reflection": "contract-check",
+    "evidence-contract": "contract-check",
     "psta": "sta-post",
     "post-sta": "sta-post",
 }
@@ -343,6 +348,7 @@ _PIPELINE_STAGE_DEPS: dict[str, tuple[str, ...]] = {
     "sta": ("syn",),
     "pnr": ("syn",),
     "sta-post": ("pnr",),
+    "contract-check": ("sim-debug",),
 }
 _PIPELINE_ALLOWED_FAILED_DEPS: dict[str, tuple[str, ...]] = {
     # sim-debug is the diagnostic consumer for failed simulation evidence.
@@ -352,7 +358,7 @@ _PIPELINE_ALLOWED_FAILED_DEPS: dict[str, tuple[str, ...]] = {
 }
 _RTL_VERSION_DOWNSTREAM_STAGES = {
     "lint", "tb", "sim", "coverage", "sim-debug",
-    "syn", "sta", "pnr", "sta-post", "goal-audit",
+    "syn", "sta", "pnr", "sta-post", "contract-check", "goal-audit",
 }
 _STAGE_ARTIFACT_TYPES = {
     "ssot": "ssot",
@@ -412,6 +418,7 @@ _WORKER_MODEL_DEFAULTS = {
     "sta": "gpt-5.3-codex",
     "pnr": "gpt-5.3-codex",
     "sta-post": "gpt-5.3-codex",
+    "contract-reflection": "gpt-5.3-codex",
 }
 _WORKER_REASONING_EFFORT_DEFAULTS = {
     "orchestrator": "high",
@@ -425,6 +432,7 @@ _WORKFLOW_TOOLCHAIN_DEFAULTS = {
     "sta": "opensta",
     "pnr": "openroad",
     "sta-post": "opensta",
+    "contract-reflection": "deterministic contract validators",
 }
 
 
@@ -1647,6 +1655,29 @@ def _json_status_artifact_failure(path: Path, rel: str) -> str:
     return f"{rel} status={status}{suffix}"
 
 
+def _contract_check_artifact_failure(ip_dir: Path) -> str:
+    check_path = ip_dir / "signoff" / "contract_check.json"
+    log_path = ip_dir / "logs" / "stage_engine" / "contract-check.json"
+    required = (
+        "signoff/contract_check.json",
+        "signoff/evidence_contract_coverage.json",
+        "signoff/contract_reflection_coverage.json",
+    )
+    if not check_path.is_file():
+        if log_path.is_file():
+            return "missing artifact: signoff/contract_check.json"
+        return ""
+    for rel in required:
+        path = ip_dir / rel
+        if not path.is_file():
+            return f"missing artifact: {rel}"
+        reason = _json_status_artifact_failure(path, rel)
+        if reason:
+            return reason
+    reason = _json_status_artifact_failure(log_path, "logs/stage_engine/contract-check.json")
+    return reason
+
+
 def _ensure_stage_artifact_version_for_job(
     job: dict[str, Any],
     project_root: Path,
@@ -1736,6 +1767,7 @@ _DEFAULT_WORKER_PORTS: dict[str, int] = {
     "sta":          5630,
     "pnr":          5631,
     "sta-post":     5632,
+    "contract-reflection": 5633,
 }
 
 
@@ -2838,6 +2870,11 @@ def _default_workflow_prompt(workflow: str, ip: str, stage_id: str = "") -> str:
             "using SSOT coverage goals and fresh simulation evidence"
         ),
         "sim-debug": f"run /sim-debug {ip}; compare FL/CL expectations against RTL waveform/scoreboard evidence",
+        "contract-check": (
+            f"run /contract-check {ip}; close locked requirements through requirement, obligation, "
+            "contract_ref, stage reflection, scoreboard/VCD evidence, and deterministic validators. "
+            "If blocked, report the owner workflow and rerun sequence instead of claiming signoff."
+        ),
         "syn": f"run /syn-auto {ip}; synthesize the RTL using SSOT timing/synthesis policy and the configured PDK",
         "sta": f"run /sta-auto {ip}; generate SDC and run pre-route STA on the synthesized netlist",
         "pnr": f"run /pnr-auto {ip}; run floorplan, place, CTS, route, and SPEF handoff generation",
@@ -2863,6 +2900,7 @@ def _default_workflow_prompt(workflow: str, ip: str, stage_id: str = "") -> str:
         "sta":        f"run pre-route STA for {ip} using the synthesized netlist and SDC",
         "pnr":        f"run PnR for {ip}, producing routed DEF/netlist/SPEF reports",
         "sta-post":   f"run post-route STA for {ip} using routed netlist and SPEF",
+        "contract-reflection": f"run /contract-check {ip}; report pass or the owner route for missing contract evidence",
     }
     return prompt_for.get(workflow, f"run {workflow}" + (f" on {ip}" if ip else ""))
 
@@ -4037,6 +4075,15 @@ def _job_artifact_recovery(
         if str(doc.get("status") or "").lower() == "pass":
             return True, f"recovered from passing artifact: {ip}/sim/fl_rtl_goal_audit.json"
         return False, f"non-passing artifact: {ip}/sim/fl_rtl_goal_audit.json"
+    if stage == "contract-check" or workflow == "contract-reflection":
+        if not (ip_dir / "signoff" / "contract_check.json").is_file():
+            reason = _contract_check_artifact_failure(ip_dir)
+            detail = f"{ip}/{reason}" if reason else ""
+            return False, detail
+        reason = _contract_check_artifact_failure(ip_dir)
+        if reason:
+            return False, f"{ip}/{reason}"
+        return True, f"recovered from passing artifacts: {ip}/signoff/contract_check.json"
     if stage == "sim-debug" or (workflow == "sim_debug" and stage != "goal-audit"):
         sim_dir   = ip_dir / "sim"
         cov_dir   = ip_dir / "cov"
@@ -4301,6 +4348,11 @@ def _job_artifact_failure(
             reason = _json_status_artifact_failure(ip_dir / rel, rel)
             if reason:
                 return True, f"{ip}/{reason}"
+        return False, ""
+    if stage == "contract-check" or workflow == "contract-reflection":
+        reason = _contract_check_artifact_failure(ip_dir)
+        if reason:
+            return True, f"{ip}/{reason}"
         return False, ""
     if stage == "rtl" or workflow == "rtl-gen":
         rtl_dir = ip_dir / "rtl"
@@ -5568,6 +5620,7 @@ def register_jobs_routes(
                 "sim": ["sim/results.xml", "sim/fl_rtl_compare.json"],
                 "coverage": ["cov/coverage.json"],
                 "sim-debug": ["sim/mismatch_classification.json"],
+                "contract-check": ["signoff/contract_check.json"],
                 "goal-audit": ["sim/fl_rtl_goal_audit.json"],
                 "syn": ["syn/out/"],
                 "sta": ["sta/out/"],
@@ -6487,6 +6540,7 @@ def register_jobs_routes(
             "sim": ["sim/results.xml", "sim/fl_rtl_compare.json"],
             "coverage": ["cov/coverage.json"],
             "sim-debug": ["sim/mismatch_classification.json"],
+            "contract-check": ["signoff/contract_check.json"],
             "goal-audit": ["sim/fl_rtl_goal_audit.json"],
             "syn": ["syn/out/"],
             "sta": ["sta/out/"],

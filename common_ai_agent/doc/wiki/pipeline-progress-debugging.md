@@ -70,6 +70,8 @@ python3 -m src.progress_debug --root /path/to/workspace --ip <ip>
 python3 -m src.progress_debug --root /path/to/workspace --ip <ip> --json
 ```
 
+- Orchestrator `trace.jsonl` is append-only with no rotation (`core/orchestrator_trace.py:117`); harmless today (~204 KB total across all IPs) since each per-IP file is frozen when its run ends, but add rotation if sustained stress/CI loads push a single IP toward ~14k dispatches (~10 MB).
+
 ## What Good Progress Evidence Looks Like
 
 For a live worker run, the UI should be able to answer these questions without

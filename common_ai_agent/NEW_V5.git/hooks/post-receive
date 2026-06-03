@@ -1,0 +1,4 @@
+#!/bin/sh
+# Atlas — fast-forward the working tree when an external push arrives.
+WORK=/Users/brian/Desktop/Project/brian_hw/common_ai_agent/NEW_V5
+( cd "$WORK" && unset GIT_DIR &&   git fetch -q origin &&   git reset -q --hard origin/main ) >/dev/null 2>&1 || true

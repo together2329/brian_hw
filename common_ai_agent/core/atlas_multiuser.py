@@ -11,7 +11,7 @@ import re
 import threading
 import time
 import weakref
-from typing import Any, Callable
+from typing import Any, Callable, cast
 
 from core.session_process_manager import SessionProcessManager  # pyright: ignore[reportMissingImports]
 from core.session_worker_policy import SessionWorkerPolicy  # pyright: ignore[reportMissingImports]
@@ -182,6 +182,7 @@ class _SessionBridge:
         self._pending_ask_user_lock = threading.Lock()
         self.agent_running = False
         self.agent_alive = False
+        self.last_spawn_status = ""
         self._agent_lock = threading.Lock()
         self._agent_starter = None
         self._stop_flag = False
@@ -709,12 +710,12 @@ class _MultiUserBridge:
 
     def _mark_owner_active(self, session_id: str | None) -> None:
         normalized = self._normalize_session_id(session_id)
-        owner = self._owner_from_session_id(normalized)
+        owner = self.owner_slot_key(normalized)
         with self._sessions_lock:
             self._owner_active_sessions[owner] = normalized
 
     def active_session_for_owner(self, owner: str | None) -> str:
-        normalized_owner = normalize_session_name(str(owner or "")).split("/", 1)[0]
+        normalized_owner = self.owner_slot_key(owner)
         if not normalized_owner:
             return ""
         with self._sessions_lock:
@@ -832,7 +833,13 @@ class _MultiUserBridge:
             if prev and prev != canonical and manager.is_alive(prev):
                 displaced = prev
             else:
-                for active_id in list(manager.list_active()):
+                list_active_fn = getattr(manager, "list_active", None)
+                active_ids = (
+                    list(cast(Callable[[], Any], list_active_fn)())
+                    if callable(list_active_fn)
+                    else []
+                )
+                for active_id in active_ids:
                     if active_id == canonical:
                         continue
                     if self.owner_slot_key(active_id) == slot:
@@ -1015,6 +1022,25 @@ class _MultiUserBridge:
             if self._owner_active_sessions.get(slot) == canonical:
                 self._owner_active_sessions.pop(slot, None)
 
+    def _capacity_wait_without_spawn_result(
+        self,
+        manager: Any,
+        policy: Any,
+        session_id: str,
+        *,
+        is_replacement: bool,
+    ) -> bool:
+        if is_replacement or not getattr(policy, "cap_enabled", False):
+            return False
+        list_active_fn = getattr(manager, "list_active", None)
+        if not callable(list_active_fn):
+            return True
+        try:
+            active_count = len(list(cast(Callable[[], Any], list_active_fn)()))
+        except Exception:
+            return True
+        return bool(policy.cap_exceeded(active_count))
+
     def _spawn_process_session(
         self,
         session: "_SessionBridge",
@@ -1045,30 +1071,55 @@ class _MultiUserBridge:
                 self._process_output_cursors[session.session_id] = latest_output_id
             else:
                 self._process_output_cursors.pop(session.session_id, None)
-        # Capacity admission (Wave-3 H2/H3/H9): refuse a genuinely NET-NEW owner
-        # slot over the global cap. A same-owner switch already terminated its old
-        # worker above (_prepare_owner_slot_for_session), so the post-termination
-        # active count leaves room — it is never self-refused; an already-alive
-        # session short-circuits (consumes no new slot). The cap lives on the
-        # policy (session-scoped => cap_enabled False => unbounded, byte-identical
-        # to the historical bare spawn()). We deliberately still call
-        # manager.spawn() (not spawn_result) so the bool contract and any spawn
-        # override/monkeypatch keep working; the cap is gated here instead.
+        # Capacity admission is the MANAGER's ATOMIC responsibility (Wave-3 H9):
+        # route the spawn through spawn_result(policy=, reserve=) so the cap check
+        # and the Popen happen inside ONE manager-lock critical section. The old
+        # "check len(list_active()) HERE, then call the cap-less spawn()" was a
+        # check-then-act race — two different owners could both pass the manual
+        # pre-check (the per-owner-slot lock does not span owners) and both spawn,
+        # exceeding the GLOBAL cap. A same-owner-slot REPLACEMENT (the switch above
+        # terminated the old worker) reserves the freed slot so it is NEVER
+        # cap-refused (H2/H3); a genuinely net-new owner over the cap gets
+        # capacity_wait. Session-scoped + no explicit cap => cap_enabled False =>
+        # unbounded (byte-identical to the historical bare spawn()).
         policy = self.session_worker_policy()
-        if (
-            getattr(policy, "cap_enabled", False)
-            and not manager.is_alive(session.session_id)
-            and policy.cap_exceeded(len(manager.list_active()))
-        ):
-            # No worker admitted (cap). The owner-slot mapping was already
-            # recorded by _prepare/_mark_owner_active in the caller
-            # (active_no_worker); do not claim the worker is alive.
-            session.last_spawn_status = "capacity_wait"
-            session.agent_alive = False
-            session.emit("agent_state", running=bool(session.agent_running), alive=False)
-            return False
-        session.last_spawn_status = "started"
-        spawned = bool(manager.spawn(session.session_id))
+        is_replacement = slot_result.get("switch_status") == "switched"
+        spawn_result_fn = getattr(manager, "spawn_result", None)
+        # Route through the manager's ATOMIC admission ONLY when a cap is actually
+        # active (strict, or session-scoped + explicit ATLAS_SESSION_WORKER_MAX_ACTIVE).
+        # When unbounded (cap_enabled False) we keep the historical bare spawn() so the
+        # no-cap path stays byte-identical — preserving the bool contract and any
+        # spawn override/monkeypatch (there is no cap to race when none is enforced).
+        if getattr(policy, "cap_enabled", False) and callable(spawn_result_fn):
+            try:
+                res = spawn_result_fn(
+                    session.session_id, policy=policy, reserve=is_replacement
+                )
+            except TypeError:
+                # Legacy/double spawn_result that predates the reserve kwarg.
+                res = spawn_result_fn(session.session_id, policy=policy)
+            if str(getattr(res, "status", "") or "") == "capacity_wait":
+                # No worker admitted (cap). The owner-slot mapping was already
+                # recorded by _prepare/_mark_owner_active in the caller
+                # (active_no_worker); do not claim the worker is alive.
+                session.last_spawn_status = "capacity_wait"
+                session.agent_alive = False
+                session.emit("agent_state", running=bool(session.agent_running), alive=False)
+                return False
+            spawned = bool(getattr(res, "ok", False))
+            session.last_spawn_status = (
+                "started" if spawned else (str(getattr(res, "status", "")) or "failed")
+            )
+        else:
+            if self._capacity_wait_without_spawn_result(
+                manager, policy, session.session_id, is_replacement=is_replacement
+            ):
+                session.last_spawn_status = "capacity_wait"
+                session.agent_alive = False
+                session.emit("agent_state", running=bool(session.agent_running), alive=False)
+                return False
+            session.last_spawn_status = "started"
+            spawned = bool(manager.spawn(session.session_id))
         self._mark_owner_active(session.session_id)
         alive = bool(manager.is_alive(session.session_id)) if spawned else False
         session.agent_alive = alive
@@ -1324,6 +1375,13 @@ class _MultiUserBridge:
         session.touch()
         if warm:
             self.warm_session(session.session_id)
+        else:
+            release = getattr(self._process_manager, "release_reserved_slot", None)
+            if callable(release):
+                try:
+                    release(session.session_id)
+                except Exception:
+                    pass
 
     def warm_session(self, session_id: str | None = None) -> dict[str, Any]:
         session = self._ensure_session(session_id)
@@ -1653,23 +1711,57 @@ class _MultiUserBridge:
         # handled by _prepare_owner_slot_for_session + spawn_result, so we only
         # refuse here when admission for a NET-NEW slot is over the cap.
         policy = self.session_worker_policy()
-        if policy.is_strict and not manager.is_alive(session.session_id):
+        if getattr(policy, "cap_enabled", False) and not manager.is_alive(session.session_id):
+            slot_res: dict[str, Any] = {}
             try:
-                self._prepare_owner_slot_for_session(
+                slot_res = self._prepare_owner_slot_for_session(
                     session.session_id, reason="prompt"
-                )
+                ) or {}
             except Exception:
-                pass
-            spawn_result = None
-            try:
-                spawn_result = manager.spawn_result(
-                    session.session_id, policy=policy
+                slot_res = {}
+            # termination_failed: the previous owner-slot worker would not die.
+            # Refuse to start a sibling (no handoff overlap) instead of silently
+            # spawning a SECOND worker for this owner slot below.
+            if slot_res.get("switch_status") == "termination_failed":
+                session.touch()
+                return PromptDeliveryResult(
+                    ok=False,
+                    status="termination_failed",
+                    reason="previous owner-slot worker did not terminate",
+                    session_id=session.session_id,
+                    owner_slot=owner_slot,
+                    error="termination_failed",
                 )
-            except AttributeError:
-                spawn_result = None
-            if spawn_result is not None and getattr(
-                spawn_result, "status", ""
-            ) == "capacity_wait":
+            # A same-owner-slot replacement reserves the freed slot so it is never
+            # cap-refused (H2/H3); a genuinely net-new owner is cap-checked.
+            is_replacement = slot_res.get("switch_status") == "switched"
+            spawn_result = None
+            spawn_result_fn = getattr(manager, "spawn_result", None)
+            if callable(spawn_result_fn):
+                try:
+                    spawn_result = spawn_result_fn(
+                        session.session_id, policy=policy, reserve=is_replacement
+                    )
+                except TypeError:
+                    spawn_result = spawn_result_fn(session.session_id, policy=policy)
+            elif self._capacity_wait_without_spawn_result(
+                manager, policy, session.session_id, is_replacement=is_replacement
+            ):
+                session.touch()
+                return PromptDeliveryResult(
+                    ok=False,
+                    status="capacity_wait",
+                    reason="max_active",
+                    session_id=session.session_id,
+                    owner_slot=owner_slot,
+                    error="capacity_wait",
+                )
+            sr_status = (
+                str(getattr(spawn_result, "status", "") or "")
+                if spawn_result is not None
+                else ""
+            )
+            if sr_status == "capacity_wait":
                 # H6: short-circuit. Do NOT enter _send_process_input_for_session
                 # (no respawn retry) and do NOT _emit_process_dead.
                 session.touch()
@@ -1681,6 +1773,19 @@ class _MultiUserBridge:
                     owner_slot=owner_slot,
                     spawn_result=spawn_result,
                     error="capacity_wait",
+                )
+            if sr_status == "failed":
+                # A genuine spawn failure (Popen/env), NOT backpressure: report a
+                # hard delivery failure rather than a capacity retry/hold.
+                session.touch()
+                return PromptDeliveryResult(
+                    ok=False,
+                    status="failed",
+                    reason=getattr(spawn_result, "reason", "spawn_failed"),
+                    session_id=session.session_id,
+                    owner_slot=owner_slot,
+                    spawn_result=spawn_result,
+                    error="spawn_failed",
                 )
         # Normal path: reuse the bool delivery (spawn=True), which now finds the
         # worker already admitted/spawned above in the strict net-new case.

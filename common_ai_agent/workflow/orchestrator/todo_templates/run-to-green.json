@@ -5,7 +5,7 @@
   "tasks": [
     {
       "content": "[ORCH] Read pipeline state and route mode",
-      "detail": "Read /api/pipeline/state?ip=<ip>. Pick Run Mode (starter/engineering/signoff) and Exec Mode (single-worker/orchestrator). Decide DAG scope: full DAG up to goal-audit by default; skip syn/sta/pnr/sta-post unless signoff mode.",
+      "detail": "Read /api/pipeline/state?ip=<ip>. Pick Run Mode (starter/engineering/signoff) and Exec Mode (single-worker/orchestrator). Decide DAG scope: full DAG through contract-reflection and goal-audit by default; skip syn/sta/pnr/sta-post unless signoff mode.",
       "criteria": "pipeline_state.json captured\nrun_mode and exec_mode recorded in orchestrator_state.json",
       "priority": "high"
     },
@@ -76,8 +76,14 @@
       "priority": "medium"
     },
     {
+      "content": "[ORCH] Run contract-reflection and route missing evidence",
+      "detail": "Call /dispatch contract-reflection <ip> with stage contract-check. If pass, continue to goal-audit. If blocked/fail, read signoff/contract_owner_routing.json and dispatch the reported owner workflow.",
+      "criteria": "signoff/contract_check.json exists\nstatus == pass or owner route is explicit",
+      "priority": "high"
+    },
+    {
       "content": "[ORCH] Run goal-audit and report",
-      "detail": "Call /dispatch goal-audit <ip>. If passed → report Pipeline complete · X/Y passed. If failed → /escalate (final approval).",
+      "detail": "Call /dispatch goal-audit <ip> only after contract-reflection passes. If passed → report Pipeline complete · X/Y passed. If failed → /escalate (final approval).",
       "criteria": "sim/fl_rtl_goal_audit.json required_passed == required_total",
       "priority": "high"
     },

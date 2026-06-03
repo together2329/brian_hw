@@ -57,6 +57,7 @@ _CANONICAL_WORKER_WORKFLOWS = [
     "sta",
     "pnr",
     "sta-post",
+    "contract-reflection",
 ]
 
 # Tools that MUST be present for every worker workflow

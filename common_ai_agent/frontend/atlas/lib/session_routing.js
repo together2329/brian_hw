@@ -14,6 +14,7 @@
     'sim',
     'sim_debug',
     'coverage',
+    'contract-reflection',
     'syn',
     'sta',
     'pnr',

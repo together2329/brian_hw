@@ -8,6 +8,9 @@ related: [atlas-test-hardening-2026-05-23, atlas-ui-playwright-screenshot-recipe
 
 # workspace.jsx Decomposition Plan
 
+> **STATUS: SUPERSEDED** — workspace.jsx was decomposed into `workspace*.tsx` and
+> the `.jsx` retired (2026-05-30); kept as historical design rationale.
+
 Status: proposed and parked. Do not implement until P0 is complete.
 
 This page captures the agreed incremental split plan for

@@ -13,7 +13,7 @@ import asyncio
 import json
 import re
 from pathlib import Path
-from typing import Callable
+from typing import Any, Callable
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
@@ -28,6 +28,7 @@ def register_vcd_routes(
     safe_path: Callable[[str], "Path | None"],
     skip_dirs: set[str],
     max_vcd_bytes: int,
+    fs_authz: Any = None,
 ) -> None:
     """Mount the VCD waveform API onto *app*.
 
@@ -37,6 +38,32 @@ def register_vcd_routes(
     imported.  skip_dirs and max_vcd_bytes are plain values (they do
     not change after startup).
     """
+
+    # ── B1 read/write gate (injected by create_app). ─────────────────────
+    def _gate_ip(request, ip, permission="view"):
+        if fs_authz is None:
+            return None
+        return fs_authz.ip(request, ip, permission)
+
+    def _gate_path(request, rel, permission="view"):
+        if fs_authz is None:
+            return None
+        return fs_authz.path(request, rel, permission)
+
+    def _filter_files(request, files):
+        """Drop entries the caller may not access (the no-arg whole-root scan)."""
+        if fs_authz is None:
+            return files
+        allowed = fs_authz.accessible_ips(request)
+        if allowed is None:
+            return files
+        shared = getattr(fs_authz, "shared_roots", frozenset())
+        kept = []
+        for f in files or []:
+            seg0 = str((f or {}).get("path") or "").split("/", 1)[0]
+            if seg0 in shared or seg0 in allowed:
+                kept.append(f)
+        return kept
 
     def _rc_name(name: str) -> str | None:
         stem = Path(str(name or "signal.rc").strip()).name
@@ -63,7 +90,7 @@ def register_vcd_routes(
             return None
 
     @app.get("/api/vcd/list")
-    async def api_vcd_list(ip: str = "", scope: str = ""):
+    async def api_vcd_list(request: Request, ip: str = "", scope: str = ""):
         """Discover VCD files under PROJECT_ROOT.
 
         - `ip`    — restrict to VCD files under the active `<ip>/` tree.
@@ -71,6 +98,14 @@ def register_vcd_routes(
         - neither — recursive scan up to depth 4 (cheap on typical projects).
         Returns: `{files: [{path, size, mtime}]}` sorted by mtime desc.
         """
+        if ip:
+            denied = _gate_ip(request, ip)
+            if denied is not None:
+                return denied
+        elif scope:
+            denied = _gate_path(request, scope)
+            if denied is not None:
+                return denied
         def _work():
             if ip:
                 base = safe_path(ip)
@@ -114,11 +149,16 @@ def register_vcd_routes(
             status_code, payload = await asyncio.to_thread(_work)
         except OSError as e:
             return JSONResponse({"error": str(e), "files": []}, status_code=500)
+        if not ip and not scope and isinstance(payload, dict) and payload.get("files"):
+            payload["files"] = _filter_files(request, payload["files"])
         return JSONResponse(payload, status_code=status_code)
 
     @app.get("/api/vcd/rc/list")
-    async def api_vcd_rc_list(ip: str):
+    async def api_vcd_rc_list(request: Request, ip: str):
         """List saved sim_debug waveform rc snapshots under <ip>/sim/*.rc."""
+        denied = _gate_ip(request, ip)
+        if denied is not None:
+            return denied
         def _work():
             rc_dir = _rc_dir(ip)
             if rc_dir is None:
@@ -145,8 +185,11 @@ def register_vcd_routes(
         return JSONResponse(payload, status_code=status_code)
 
     @app.get("/api/vcd/rc/load")
-    async def api_vcd_rc_load(ip: str, name: str = "signal.rc"):
+    async def api_vcd_rc_load(request: Request, ip: str, name: str = "signal.rc"):
         """Load a saved sim_debug waveform rc snapshot."""
+        denied = _gate_ip(request, ip)
+        if denied is not None:
+            return denied
         rc_file = _rc_name(name)
         if rc_file is None:
             return JSONResponse({"error": "invalid rc name"}, status_code=400)
@@ -173,6 +216,9 @@ def register_vcd_routes(
     @app.post("/api/vcd/rc/save")
     async def api_vcd_rc_save(request: Request, ip: str, name: str = "signal.rc"):
         """Save the current sim_debug waveform snapshot as <ip>/sim/<name>.rc."""
+        denied = _gate_ip(request, ip, "write")
+        if denied is not None:
+            return denied
         rc_file = _rc_name(name)
         if rc_file is None:
             return JSONResponse({"error": "invalid rc name"}, status_code=400)
@@ -208,8 +254,11 @@ def register_vcd_routes(
         return JSONResponse(payload, status_code=status_code)
 
     @app.get("/api/vcd/raw")
-    async def api_vcd_raw(path: str):
+    async def api_vcd_raw(request: Request, path: str):
         """Return raw VCD content (UTF-8, replace errors). Capped at max_vcd_bytes."""
+        denied = _gate_path(request, path)
+        if denied is not None:
+            return denied
         def _work():
             target = safe_path(path)
             if target is None or not target.is_file():

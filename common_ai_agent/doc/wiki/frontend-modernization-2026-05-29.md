@@ -13,22 +13,30 @@ rationale: [[tech-direction-recommendation-20260529]].
 |---|---|---|
 | **C** | 8 oversized migrated `.tsx` split to <1000 lines | n/a (inert mirrors) |
 | **B** | `workspace.jsx` (13,286 lines) → 28 typed `workspace*.tsx` | no (inert until cutover) |
-| **A1** | **Vite build cutover** — `main.tsx` entry bundles all `.tsx`; backend serves it behind `ATLAS_FRONTEND_MODE=vite` | **no — default is legacy `.jsx`** |
+| **A1** | **Vite build cutover** — `main.tsx` entry bundles all `.tsx`; backend serves it behind `ATLAS_FRONTEND_MODE=vite` | was "no — default legacy `.jsx`"; **now YES by default (legacy retired 2026-05-30)** |
 | **A2** | **Tauri v2 desktop shell** — native window loading the backend; runnable `ATLAS.app` | n/a (opt-in launch) |
 | **D** | Worker/orchestrator LLM models switched glm → `gpt-5.5` in `.env` | **no — needs restart + OAuth** |
 
-Net frontend state: **all 116 `.tsx` type-check clean (`tsc --noEmit` 0) and pass
-vitest (68/68); every file <1000 lines.** The legacy `.jsx` are still the live
-source (in-browser babel) until the Vite cutover is switched on, so all of the
-above is additive/inert — zero runtime risk by default.
+Net frontend state: **all `.tsx` type-check clean (`tsc --noEmit` 0) and pass
+vitest (68/68); every file <1000 lines.** As of **2026-05-30** the legacy `.jsx`
+frontend is **retired** (commits `59cdfb11`, `b6afdae0`) — the served `/` route is
+**vite/`.tsx` only**, so the cutover described above is now the live default, not
+an additive/inert layer.
 
 ## Current "live vs ready" state (important)
 
-- **Live now:** legacy `.jsx` frontend (babel-in-browser) + glm models. Nothing
-  about the running app changed by default — every new capability is behind a flag
-  or an explicit launch.
+> **Update 2026-05-30:** the "behind a flag" framing below is historical. The
+> legacy `.jsx` frontend has been **retired**; TSX+Vite is now the **only** live
+> frontend and `ATLAS_FRONTEND_MODE=vite` is no longer needed to activate it
+> (the `/` route in `src/atlas_ui.py` serves the built Vite `dist/` unconditionally,
+> with a "run `npm run build`" page as the only fallback). See
+> [[babel-retirement-cutover-20260529]].
+
+- **Live now:** TSX+Vite frontend (built `dist/` bundle, no in-browser babel) is
+  the default for `/`. gpt-5.5 still needs a restart + OAuth (model switch is the
+  one piece that is not auto-active).
 - **Ready, flip to activate:**
-  - TypeScript frontend → set `ATLAS_FRONTEND_MODE=vite` (serves the built `dist/` bundle).
+  - ~~TypeScript frontend → set `ATLAS_FRONTEND_MODE=vite`~~ — **no-op as of 2026-05-30**: TSX+Vite is the served default; the env flag no longer gates the `/` route.
   - gpt-5.5 → `.config` `USE_OPENCODE_OAUTH=true` + restart backend with `--model gpt-5.5`.
   - Desktop app → launch `ATLAS.app` / `scripts/run_atlas_desktop.sh`.
 
@@ -39,8 +47,9 @@ above is additive/inert — zero runtime risk by default.
 open src-tauri/target/release/bundle/macos/ATLAS.app      # pre-built
 scripts/run_atlas_desktop.sh                              # tauri dev (hot Rust reload)
 
-# Show the NEW TypeScript/Vite frontend + gpt-5.5 in that window — restart backend:
-ATLAS_FRONTEND_MODE=vite <your atlas server launch command> --model gpt-5.5
+# TSX+Vite is now the served default (2026-05-30). To also switch to gpt-5.5,
+# restart the backend with the model flag (ATLAS_FRONTEND_MODE is no longer needed):
+<your atlas server launch command> --model gpt-5.5
 
 # Verify the gpt switch took:
 scripts/atlas_model_smoke.sh        # PASS = orchestrator.model == gpt-5.5
@@ -64,7 +73,7 @@ scripts/atlas_model_smoke.sh        # PASS = orchestrator.model == gpt-5.5
 
 ## Deferred (not in this arc)
 
-- Retire the legacy `.jsx` + flip the Vite frontend to default (after browser sign-off).
+- ~~Retire the legacy `.jsx` + flip the Vite frontend to default (after browser sign-off).~~ **DONE 2026-05-30** (commits `59cdfb11`, `b6afdae0`) — see [[babel-retirement-cutover-20260529]].
 - Tauri distribution: PyInstaller-freeze the backend as a sidecar (Option B), code
   signing + notarization, `.dmg` packaging (`bundle_dmg.sh` needs a GUI session),
   real app icon + bundle identifier.

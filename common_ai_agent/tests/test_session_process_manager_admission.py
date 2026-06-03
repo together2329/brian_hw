@@ -115,8 +115,47 @@ def test_reserve_replacement_exempt_from_cap_h2_h3(mgr):
     assert "replacing:alice/ip/wf" in r.reason
 
 
+def test_terminate_and_reserve_slot_blocks_net_new_until_replacement_spawns(mgr):
+    policy = _strict(2)
+    mgr.spawn_result("alice/ip/wf", policy=policy)
+    mgr.spawn_result("bob/ip/wf", policy=policy)
+
+    assert mgr.terminate_and_reserve_slot(
+        "alice/ip/wf", "alice/ip/wf2", reason="switch"
+    ) is True
+    assert mgr.active_count() == 1
+
+    blocked = mgr.spawn_result("carol/ip/wf", policy=policy)
+    assert blocked.ok is False
+    assert blocked.status == SPAWN_STATUS_CAPACITY_WAIT
+    assert blocked.active_count == 2
+    assert mgr.is_alive("carol/ip/wf") is False
+
+    replacement = mgr.spawn_result("alice/ip/wf2", policy=policy)
+    assert replacement.ok is True
+    assert replacement.status == SPAWN_STATUS_STARTED
+    assert mgr.active_count() == 2
+
+
+def test_terminate_and_reserve_slot_clears_reservation_when_terminate_raises(mgr, monkeypatch):
+    policy = _strict(1)
+
+    def raise_terminate(*args, **kwargs):
+        raise RuntimeError("terminate failed")
+
+    monkeypatch.setattr(mgr, "terminate_session", raise_terminate)
+
+    assert mgr.terminate_and_reserve_slot(
+        "alice/ip/wf", "alice/ip/wf2", reason="switch"
+    ) is False
+    assert "alice/ip/wf2" not in mgr._reserved_sessions
+    assert mgr.spawn_result("bob/ip/wf", policy=policy).ok is True
+
+
 def test_unbounded_policy_never_refuses(mgr):
-    policy = SessionWorkerPolicy.from_env({})  # session-scoped, cap OFF
+    policy = SessionWorkerPolicy.from_env(
+        {"ATLAS_SESSION_WORKER_POLICY": "session-scoped"}
+    )
     for i in range(50):
         assert mgr.spawn_result(f"u{i}/ip/wf", policy=policy).ok is True
     assert mgr.active_count() == 50

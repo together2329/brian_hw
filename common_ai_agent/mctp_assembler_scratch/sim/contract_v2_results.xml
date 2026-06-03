@@ -1,0 +1,6 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1780478622" />
+    <testcase name="contract_v2_backpressure_and_apb_visibility" classname="test_mctp_contract_v2" file="/Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/tb/cocotb/test_mctp_contract_v2.py" lineno="195" time="0.006803035736083984" sim_time_ns="295.001" ratio_time="43363.14131576365" />
+  </testsuite>
+</testsuites>

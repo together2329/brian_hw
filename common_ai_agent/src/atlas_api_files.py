@@ -19,6 +19,7 @@ from collections import OrderedDict
 from pathlib import Path
 from typing import Any, Callable, Optional
 
+from fastapi import Request
 from fastapi.responses import JSONResponse
 
 
@@ -32,6 +33,7 @@ def register_file_routes(
     max_read_bytes: int,
     safe_ip_delete_fn: Callable[[str, str], tuple],
     bridge: Any,
+    fs_authz: Any = None,
     fold_max_bytes: int = 5 * 1024 * 1024,
     fold_max_lines: int = 10_000,
     fold_cache_cap: int = 128,
@@ -44,9 +46,21 @@ def register_file_routes(
     # Module-private fold cache (mtime-keyed LRU).
     fold_cache: "OrderedDict[str, tuple]" = OrderedDict()
 
+    # ── B1 read/write gate (injected by create_app; None only in old/direct
+    # callers, where it is a no-op to preserve their behavior). ──────────────
+    def _gate(request, rel_path, permission="view"):
+        if fs_authz is None:
+            return None
+        return fs_authz.path(request, rel_path, permission)
+
+    def _gate_ip(request, ip, permission="view"):
+        if fs_authz is None:
+            return None
+        return fs_authz.ip(request, ip, permission)
+
     @app.get("/api/files")
-    async def api_files(path: str = "", recursive: int = 0, max_depth: int = 4,
-                          max_entries: int = 800):
+    async def api_files(request: Request, path: str = "", recursive: int = 0,
+                          max_depth: int = 4, max_entries: int = 800):
         target = safe_path_fn(path)
         if target is None:
             return JSONResponse({"error": "path outside project root"},
@@ -54,6 +68,14 @@ def register_file_routes(
         if not target.exists():
             return JSONResponse({"error": "not found"}, status_code=404)
         rel = "" if target == project_root else target.relative_to(project_root).as_posix()
+        # A specific path must be readable by the caller; the project-root
+        # listing is instead FILTERED to the caller's accessible top-level
+        # entries (shared roots + owned/granted IPs) so the IP-rooted file tree
+        # keeps working without leaking other tenants' IP directories.
+        if rel:
+            denied = _gate(request, rel)
+            if denied is not None:
+                return denied
         if target.is_file():
             stat = target.stat()
             return JSONResponse({
@@ -61,7 +83,15 @@ def register_file_routes(
                 "size": stat.st_size, "mtime": stat.st_mtime,
             })
 
+        allowed_ips = fs_authz.accessible_ips(request) if fs_authz is not None else None
+        shared_roots = getattr(fs_authz, "shared_roots", frozenset()) if fs_authz is not None else frozenset()
+        shared_files = getattr(fs_authz, "shared_root_files", frozenset()) if fs_authz is not None else frozenset()
+        restrict_top = (rel == "" and allowed_ips is not None)
+
         entries: list = []
+
+        def _top_allowed(name: str) -> bool:
+            return name in shared_roots or name in allowed_ips
 
         def _list_one(d, depth):
             try:
@@ -73,6 +103,13 @@ def register_file_routes(
                 if len(entries) >= max_entries:
                     return
                 if child.name in skip_dirs or child.name.startswith("."):
+                    continue
+                # At the project root, hide top-level IP dirs the caller cannot
+                # access, and non-shared root-level files (avoid filename
+                # disclosure of, e.g., another tenant's stray exports).
+                if restrict_top and depth == 0 and child.is_dir() and not _top_allowed(child.name):
+                    continue
+                if restrict_top and depth == 0 and child.is_file() and child.name not in shared_files:
                     continue
                 if child.is_file() and is_hidden_artifact_fn(child, target):
                     continue
@@ -96,7 +133,10 @@ def register_file_routes(
                               "truncated": len(entries) >= max_entries})
 
     @app.get("/api/file")
-    async def api_file(path: str):
+    async def api_file(request: Request, path: str):
+        denied = _gate(request, path)
+        if denied is not None:
+            return denied
         target = safe_path_fn(path)
         if target is None or not target.is_file():
             return JSONResponse({"error": "not found"}, status_code=404)
@@ -115,7 +155,10 @@ def register_file_routes(
         })
 
     @app.delete("/api/file/delete")
-    async def api_file_delete(ip: str = "", path: str = ""):
+    async def api_file_delete(request: Request, ip: str = "", path: str = ""):
+        denied = _gate_ip(request, ip, "write")
+        if denied is not None:
+            return denied
         target, error = safe_ip_delete_fn(ip, path)
         if target is None:
             status = 404 if error in {"IP not found", "file not found"} else 400
@@ -133,13 +176,16 @@ def register_file_routes(
         return JSONResponse({"deleted": True, "ip": clean_ip, "path": clean_path})
 
     @app.get("/api/file/raw")
-    async def api_file_raw(path: str):
+    async def api_file_raw(request: Request, path: str):
         """Serve a file's raw bytes with a guessed content-type.
 
         Used by the PreviewPane and inline-markdown rendering to display
         images (.png/.jpg/...) and other binary previews. Text files also
         flow through here when the caller wants the un-decoded bytes.
         """
+        denied = _gate(request, path)
+        if denied is not None:
+            return denied
         target = safe_path_fn(path)
         if target is None or not target.is_file():
             return JSONResponse({"error": "not found"}, status_code=404)
@@ -163,7 +209,10 @@ def register_file_routes(
             return JSONResponse({"error": str(exc)}, status_code=500)
 
     @app.get("/api/fold-symbols")
-    async def api_fold_symbols(path: str):
+    async def api_fold_symbols(request: Request, path: str):
+        denied = _gate(request, path)
+        if denied is not None:
+            return denied
         target = safe_path_fn(path)
         if target is None or not target.is_file():
             return JSONResponse({"error": "not found"}, status_code=404)

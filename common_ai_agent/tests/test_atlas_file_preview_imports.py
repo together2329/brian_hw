@@ -15,6 +15,22 @@ WORKSPACE_JSX = ROOT / "frontend" / "atlas" / "workspace.jsx"
 ATLAS_UI_PY = ROOT / "src" / "atlas_ui.py"
 
 
+def _own_ip(username: str, ip: str, workflow: str = "rtl-gen") -> None:
+    """Give *username* ownership of *ip* in multi-user mode by creating a session
+    in its ``<owner>/<ip>/<workflow>`` namespace — the authoritative IP-ownership
+    source the B1 read gate (and /api/ip/list) use."""
+    from core.atlas_db import AtlasDB
+
+    with AtlasDB() as db:
+        user = db.get_user_by_username(username)
+        assert user, f"user {username!r} not found"
+        sess = db.create_session(user["id"], f"{ip} session")
+        db._execute(
+            "UPDATE sessions SET namespace = ? WHERE id = ?",
+            (f"{username}/{ip}/{workflow}", sess["id"]),
+        )
+
+
 def test_api_files_hides_import_image_cache_but_raw_serves_it(tmp_path, monkeypatch):
     import src.atlas_ui as atlas_ui
 
@@ -37,6 +53,7 @@ def test_api_files_hides_import_image_cache_but_raw_serves_it(tmp_path, monkeypa
     client = TestClient(atlas_ui.create_app())
     register = client.post("/api/auth/register", json={"username": "alice", "password": "pw"})
     assert register.status_code == 200, register.text
+    _own_ip("alice", "new_spi")  # alice owns the IP she browses
     listed = client.get("/api/files", params={"path": "new_spi", "recursive": 1, "max_depth": 5})
 
     assert listed.status_code == 200, listed.text

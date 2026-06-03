@@ -39,6 +39,7 @@ def register_ssot_routes(
     normalize_session_name: Callable[[str], str],
     append_session_message: Callable[[str, str, str], None],
     bridge: Any,
+    fs_authz: Any = None,
 ) -> None:
     """Mount the SSOT API onto *app*.
 
@@ -46,9 +47,37 @@ def register_ssot_routes(
     never reaches into atlas_ui's globals.
     """
 
+    # ── B1 read/write gate (injected by create_app). ─────────────────────
+    def _gate_path(request, rel, permission="view"):
+        if fs_authz is None:
+            return None
+        return fs_authz.path(request, rel, permission)
+
+    def _gate_ip(request, ip, permission="view"):
+        if fs_authz is None:
+            return None
+        return fs_authz.ip(request, ip, permission)
+
+    def _filter_files(request, files):
+        if fs_authz is None:
+            return files
+        allowed = fs_authz.accessible_ips(request)
+        if allowed is None:
+            return files
+        shared = getattr(fs_authz, "shared_roots", frozenset())
+        kept = []
+        for f in files or []:
+            seg0 = str((f or {}).get("path") or "").split("/", 1)[0]
+            if seg0 in shared or seg0 in allowed:
+                kept.append(f)
+        return kept
+
     @app.get("/api/ssot")
-    async def api_ssot(file: str = ""):
+    async def api_ssot(request: Request, file: str = ""):
         if file:
+            denied = _gate_path(request, file)
+            if denied is not None:
+                return denied
             target = safe_path(file)
             if target is None or not target.is_file():
                 return JSONResponse({"error": "not found"}, status_code=404)
@@ -89,10 +118,10 @@ def register_ssot_routes(
                                      "mtime": stat.st_mtime})
                 except OSError:
                     continue
-        return JSONResponse({"files": results})
+        return JSONResponse({"files": _filter_files(request, results)})
 
     @app.get("/api/ssot/qa")
-    async def api_ssot_qa(ip: str = "", session: str = ""):
+    async def api_ssot_qa(request: Request, ip: str = "", session: str = ""):
         session_name = normalize_session_name(session or "")
         target = str(ip or "").strip()
         if not target and session_name:
@@ -112,6 +141,9 @@ def register_ssot_routes(
                 "summary": {"total": 0, "approved": 0, "pending": 0},
                 "items": [],
             })
+        denied = _gate_ip(request, target)
+        if denied is not None:
+            return denied
         return JSONResponse(ssot_qa_view(target, session=session_name))
 
     @app.get("/api/ssot/qa/sessions")
@@ -149,6 +181,9 @@ def register_ssot_routes(
         ip = str((body or {}).get("ip") or "").strip()
         if not ip or not valid_ip_name(ip):
             return JSONResponse({"error": f"invalid ip {ip!r}"}, status_code=400)
+        denied = _gate_ip(req, ip, "write")
+        if denied is not None:
+            return denied
         session_name = normalize_session_name(str((body or {}).get("session") or ""))
         if not session_name:
             session_name = canonical_session_string(ip)
