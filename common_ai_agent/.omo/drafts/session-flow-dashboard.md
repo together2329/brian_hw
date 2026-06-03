@@ -10,6 +10,11 @@
 
 ## Technical Decisions
 - Core unit: Session, not User. User/IP/worker/cost/artifact/status become dimensions attached to session flow.
+- Session identity: backend joins and write-path ownership use internal `sessions.id`; API/UI also expose `session_uid` and `namespace` for display and public/session-runtime lookup.
+- Input counting: count explicit user turns from new `session_inputs`; historical rows use best-effort sources and always carry `attribution_confidence`.
+- LLM counting: report both raw attempts and successful calls; retries/errors are counted separately using `llm_calls.status`, `attempt`, and `call_role`.
+- IP provenance: store both direct columns on `ip_blocks` and a flow event, so list screens can query cheaply and timelines remain auditable.
+- Worker identity: create a first-class `worker_runs` ledger keyed by session/IP/workflow with worker kind/id, workflow run, orchestrator run, status, and timing.
 - UI approach: add a dedicated Admin "Session Flow" tab instead of replacing existing admin tabs.
 - Backend approach: add a focused session-flow aggregation module and `/api/admin/session-flow`; keep `/api/admin/usage` stable.
 - Data approach: use additive schema only. Preserve historical rows and backfill best-effort attribution with explicit confidence/gap fields.
@@ -24,6 +29,10 @@
 - Session lifecycle routes live in `src/atlas_api_sessions.py`, especially `/api/session/history`, `/api/session/state`, `/api/session/list`, `/api/session/worker/status`, and `/api/sessions`.
 - Test coverage exists for DB schema/admin usage/session routing/user dashboard, but frontend admin has no dedicated smoke test comparable to user dashboard.
 - Current DB supports a v1 view but not full truth-grade attribution: `messages`/`parts` are empty, `trace_events.llm_call_id` and `artifact_id` are unfilled, many `llm_calls.session_id` values are empty or unmatched, and worker identity is not first-class.
+- Metis risk: `/api/admin/usage` exists in both `src/atlas_admin.py` and `src/atlas_ui.py`; new `/api/admin/session-flow` must be registered in both or route registration must be centralized.
+- Metis risk: runtime mode intentionally makes some admin tabs summary-only; Session Flow must extend control-side rollups/ledger instead of fanning out over runtime DB files on every admin request.
+- Metis risk: SQLite `CREATE TABLE IF NOT EXISTS` does not add columns to existing DBs; final plan must include lightweight migrations and migration tests.
+- Metis guardrail: historical backfill must not imply false truth; use `attribution_confidence = exact | inferred | missing | conflict` plus `missing_reason`.
 
 ## Open Questions
 - No user-blocking question. Default scope is to design the implementation plan, not modify runtime code in this planning turn.
