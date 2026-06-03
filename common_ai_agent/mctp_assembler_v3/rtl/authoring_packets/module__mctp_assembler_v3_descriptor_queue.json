@@ -173,7 +173,7 @@
       "parameters.DESCRIPTOR_FIFO_DEPTH"
     ],
     "status_counts": {
-      "planned": 24
+      "open": 24
     },
     "task_count": 24
   },
@@ -203,6 +203,10 @@
       "ssot_refs": [
         "function_model.transactions.FM_PUBLISH_DESCRIPTOR"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -211,9 +215,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -240,6 +244,10 @@
       "ssot_refs": [
         "function_model.transactions.FM_PUBLISH_DESCRIPTOR.preconditions.precondition_0"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -248,9 +256,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -297,6 +305,34 @@
       "ssot_refs": [
         "function_model.transactions.FM_PUBLISH_DESCRIPTOR.inputs.input_0"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "addr",
+          "base",
+          "completed",
+          "count",
+          "ctx",
+          "ctx_state",
+          "descriptor",
+          "descriptor_base_addr",
+          "descriptor_payload_len",
+          "descriptor_queue_full",
+          "descriptor_ready",
+          "descriptor_valid",
+          "full",
+          "len",
+          "message",
+          "message_completed_count"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -305,9 +341,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -354,6 +390,34 @@
       "ssot_refs": [
         "function_model.transactions.FM_PUBLISH_DESCRIPTOR.inputs.input_1"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "addr",
+          "base",
+          "completed",
+          "count",
+          "ctx",
+          "ctx_state",
+          "descriptor",
+          "descriptor_base_addr",
+          "descriptor_payload_len",
+          "descriptor_queue_full",
+          "descriptor_ready",
+          "descriptor_valid",
+          "full",
+          "header",
+          "last",
+          "last_tlp_header"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -362,9 +426,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -408,6 +472,34 @@
       "ssot_refs": [
         "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.output_0"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "addr",
+          "base",
+          "completion",
+          "completion_status",
+          "context",
+          "context_id",
+          "dest",
+          "dest_eid",
+          "eid",
+          "final",
+          "final_packet_seq",
+          "header",
+          "id",
+          "last",
+          "last_tlp_header",
+          "len"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -416,9 +508,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -453,6 +545,25 @@
       "ssot_refs": [
         "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.output_1"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "completed",
+          "count",
+          "descriptor",
+          "descriptor_ready",
+          "message",
+          "message_completed_count",
+          "ready"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -461,9 +572,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -499,6 +610,24 @@
       "ssot_refs": [
         "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_ready"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "descriptor",
+          "descriptor_queue_full",
+          "descriptor_ready",
+          "full",
+          "queue",
+          "ready"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -507,9 +636,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -547,6 +676,26 @@
       "ssot_refs": [
         "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_payload_len"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "byte",
+          "count",
+          "ctx",
+          "ctx_payload_byte_count",
+          "descriptor",
+          "descriptor_payload_len",
+          "len",
+          "payload"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -555,9 +704,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -594,6 +743,25 @@
       "ssot_refs": [
         "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_base_addr"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "addr",
+          "base",
+          "ctx",
+          "ctx_payload_base_addr",
+          "descriptor",
+          "descriptor_base_addr",
+          "payload"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -602,9 +770,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -638,6 +806,22 @@
       "ssot_refs": [
         "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.message_completed_count"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "completed",
+          "count",
+          "message",
+          "message_completed_count"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -646,9 +830,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -681,6 +865,21 @@
       "ssot_refs": [
         "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_valid"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "descriptor",
+          "descriptor_valid",
+          "valid"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -689,9 +888,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -728,6 +927,25 @@
       "ssot_refs": [
         "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.ctx_state"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "DESCRIPTOR",
+          "DONE",
+          "DONE_WAIT_DESCRIPTOR_POP",
+          "POP",
+          "WAIT",
+          "ctx",
+          "ctx_state"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -736,9 +954,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -777,6 +995,24 @@
       "ssot_refs": [
         "function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.descriptor_ready"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "descriptor",
+          "descriptor_queue_full",
+          "descriptor_ready",
+          "full",
+          "queue",
+          "ready"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -785,9 +1021,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -828,6 +1064,26 @@
       "ssot_refs": [
         "function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.descriptor_payload_len"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "byte",
+          "count",
+          "ctx",
+          "ctx_payload_byte_count",
+          "descriptor",
+          "descriptor_payload_len",
+          "len",
+          "payload"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -836,9 +1092,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -878,6 +1134,25 @@
       "ssot_refs": [
         "function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.descriptor_base_addr"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "addr",
+          "base",
+          "ctx",
+          "ctx_payload_base_addr",
+          "descriptor",
+          "descriptor_base_addr",
+          "payload"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -886,9 +1161,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -925,6 +1200,22 @@
       "ssot_refs": [
         "function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.message_completed_count"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "completed",
+          "count",
+          "message",
+          "message_completed_count"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -933,9 +1224,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -971,6 +1262,21 @@
       "ssot_refs": [
         "function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.descriptor_valid"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "descriptor",
+          "descriptor_valid",
+          "valid"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -979,9 +1285,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1021,6 +1327,25 @@
       "ssot_refs": [
         "function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.ctx_state"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "DESCRIPTOR",
+          "DONE",
+          "DONE_WAIT_DESCRIPTOR_POP",
+          "POP",
+          "WAIT",
+          "ctx",
+          "ctx_state"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -1029,9 +1354,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1078,6 +1403,34 @@
       "ssot_refs": [
         "function_model.transactions.FM_PUBLISH_DESCRIPTOR.side_effects.side_effect_0"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "DESCRIPTOR",
+          "DONE",
+          "DONE_WAIT_DESCRIPTOR_POP",
+          "POP",
+          "WAIT",
+          "addr",
+          "base",
+          "completed",
+          "count",
+          "ctx",
+          "ctx_state",
+          "descriptor",
+          "descriptor_base_addr",
+          "descriptor_payload_len",
+          "descriptor_queue_full",
+          "descriptor_ready"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1086,9 +1439,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1135,6 +1488,34 @@
       "ssot_refs": [
         "function_model.transactions.FM_PUBLISH_DESCRIPTOR.error_cases.error_case_0"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "AD",
+          "AD_DESCRIPTOR_FULL",
+          "DESCRIPTOR",
+          "EOM",
+          "FULL",
+          "addr",
+          "base",
+          "completed",
+          "count",
+          "ctx",
+          "ctx_state",
+          "descriptor",
+          "descriptor_base_addr",
+          "descriptor_payload_len",
+          "descriptor_queue_full",
+          "descriptor_ready"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1143,9 +1524,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1182,6 +1563,21 @@
       "ssot_refs": [
         "memory.instances.descriptor_fifo"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "descriptor",
+          "descriptor_fifo",
+          "fifo"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -1190,9 +1586,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1219,6 +1615,10 @@
       "ssot_refs": [
         "sub_modules.mctp_assembler_v3_descriptor_queue.module_equivalence"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -1227,9 +1627,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1256,6 +1656,10 @@
       "ssot_refs": [
         "parameters.DONE_WAIT_DESCRIPTOR_POP"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1264,9 +1668,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1293,6 +1697,10 @@
       "ssot_refs": [
         "parameters.DESCRIPTOR_FIFO_DEPTH"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1301,9 +1709,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     }
   ],

@@ -780,8 +780,8 @@
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
     "llm_actionable": true,
-    "llm_actionable_open_count": 10,
-    "open_required_count": 10,
+    "llm_actionable_open_count": 6,
+    "open_required_count": 6,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
@@ -814,7 +814,7 @@
       "rtl_gate.rtl_gen": 10
     },
     "module_slice": {},
-    "open_required_count": 10,
+    "open_required_count": 6,
     "required_count": 10,
     "source_refs": [
       "quality_gates.rtl_gen.static_rtl_evidence",
@@ -829,7 +829,8 @@
       "quality_gates.rtl_gen.rtl_implementation_depth_evidence"
     ],
     "status_counts": {
-      "planned": 10
+      "open": 6,
+      "pass": 4
     },
     "task_count": 10
   },
@@ -864,6 +865,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.static_rtl_evidence"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -871,9 +876,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "276 static-evidence-required task(s) still lack DUT RTL evidence.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -905,6 +910,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.owner_logic_structure_evidence"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -912,9 +921,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "8 owner logic structure issue(s) remain. mctp_assembler_v3_pcie_vdm_parser: Behavior-owner module is not declared in its owner file; mctp_assembler_v3_mctp_decoder: Behavior-owner module is not declared in its owner file; mctp_assembler_v3_context_table: Behavior-owner module is not declared in its owner file",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -949,6 +958,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.rtl_placeholder_free_evidence"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -956,9 +969,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "RTL sources contain no placeholder markers or disallowed default-policy constructs.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -990,6 +1003,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.top_io_contract_evidence"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -997,9 +1014,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "SSOT top IO contracts match the RTL top declaration.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1031,6 +1048,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.top_output_drive_evidence"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1038,9 +1059,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "10 top output drive issue(s) remain. s_axi_arready: RTL top output is driven only by a constant without explicit SSOT tieoff allowance; s_axi_rresp: RTL top output is driven only by a constant without explicit SSOT tieoff allowance; s_axi_rlast: RTL top output is driven only by a constant without explicit SSOT tieoff allowance",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1072,6 +1093,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.top_input_consumption_evidence"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1079,9 +1104,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "17 top input consumption issue(s) remain. s_axi_araddr: RTL top input has no RHS/control use or declared child-input consumption evidence; s_axi_arlen: RTL top input has no RHS/control use or declared child-input consumption evidence; s_axi_arsize: RTL top input has no RHS/control use or declared child-input consumption evidence",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1113,6 +1138,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.manifest_hierarchy_integration"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1120,9 +1149,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "8 manifest hierarchy integration issue(s) remain. mctp_assembler_v3_pcie_vdm_parser: SSOT manifest child module is not declared in listed RTL sources; mctp_assembler_v3_mctp_decoder: SSOT manifest child module is not declared in listed RTL sources; mctp_assembler_v3_context_table: SSOT manifest child module is not declared in listed RTL sources",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1154,6 +1183,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.manifest_port_connection_evidence"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1161,9 +1194,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Every reachable manifest child instance has named, non-empty port connections.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1195,6 +1228,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.manifest_signal_flow_evidence"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1202,9 +1239,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Manifest child port maps carry live non-placeholder RTL signal flow.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1236,6 +1273,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.rtl_implementation_depth_evidence"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1243,9 +1284,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "3 production RTL implementation-depth issue(s) remain. Production RTL implementation depth score is below the SSOT-derived or target-scale threshold: actual=106 required=165; Too few RTL modules contain implementation structure for the SSOT behavior complexity: actual=2 required=9; Too few SSOT behavior-owner modules contain implementation-depth evidence: actual=1 required=9",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     }
   ],

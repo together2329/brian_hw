@@ -186,7 +186,7 @@
       "fsm.context_fsm.transitions.transition_5"
     ],
     "status_counts": {
-      "planned": 25
+      "open": 25
     },
     "task_count": 25
   },
@@ -218,6 +218,19 @@
       "ssot_refs": [
         "fsm.ingress_fsm.states.state_0"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "IDLE"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -226,9 +239,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -258,6 +271,19 @@
       "ssot_refs": [
         "fsm.ingress_fsm.states.state_1"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ACCEPT_AW"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -266,9 +292,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -298,6 +324,19 @@
       "ssot_refs": [
         "fsm.ingress_fsm.states.state_2"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "COLLECT_W"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -306,9 +345,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -338,6 +377,19 @@
       "ssot_refs": [
         "fsm.ingress_fsm.states.state_3"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "CHECK_LEGAL"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -346,9 +398,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -378,6 +430,19 @@
       "ssot_refs": [
         "fsm.ingress_fsm.states.state_4"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "EMIT_TLP"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -386,9 +451,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -418,6 +483,19 @@
       "ssot_refs": [
         "fsm.ingress_fsm.states.state_5"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "RESP_B"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -426,9 +504,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -464,6 +542,22 @@
       "ssot_refs": [
         "fsm.ingress_fsm.transitions.transition_0"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ACCEPT",
+          "ACCEPT_AW",
+          "AW",
+          "IDLE"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -472,9 +566,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -514,6 +608,26 @@
       "ssot_refs": [
         "fsm.ingress_fsm.transitions.transition_1"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ACCEPT",
+          "ACCEPT_AW",
+          "AW",
+          "AWBURST",
+          "AWSIZE",
+          "COLLECT",
+          "COLLECT_W",
+          "INCR"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -522,9 +636,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -567,6 +681,29 @@
       "ssot_refs": [
         "fsm.ingress_fsm.transitions.transition_2"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ACCEPT",
+          "ACCEPT_AW",
+          "AW",
+          "AWBURST",
+          "AWSIZE",
+          "MALFORMED",
+          "PD",
+          "PD_MALFORMED_TLP",
+          "RESP",
+          "RESP_B",
+          "TLP"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -575,9 +712,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -614,6 +751,23 @@
       "ssot_refs": [
         "fsm.ingress_fsm.transitions.transition_3"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CHECK",
+          "CHECK_LEGAL",
+          "COLLECT",
+          "COLLECT_W",
+          "LEGAL"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -622,9 +776,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -663,6 +817,25 @@
       "ssot_refs": [
         "fsm.ingress_fsm.transitions.transition_4"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CHECK",
+          "CHECK_LEGAL",
+          "EMIT",
+          "EMIT_TLP",
+          "LEGAL",
+          "TLP",
+          "WSTRB"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -671,9 +844,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -714,6 +887,27 @@
       "ssot_refs": [
         "fsm.ingress_fsm.transitions.transition_5"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CHECK",
+          "CHECK_LEGAL",
+          "LEGAL",
+          "MALFORMED",
+          "PD",
+          "PD_MALFORMED_TLP",
+          "RESP",
+          "RESP_B",
+          "TLP"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -722,9 +916,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -761,6 +955,23 @@
       "ssot_refs": [
         "fsm.ingress_fsm.transitions.transition_6"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "EMIT",
+          "EMIT_TLP",
+          "RESP",
+          "RESP_B",
+          "TLP"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -769,9 +980,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -806,6 +1017,21 @@
       "ssot_refs": [
         "fsm.ingress_fsm.transitions.transition_7"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "IDLE",
+          "RESP",
+          "RESP_B"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -814,9 +1040,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -846,6 +1072,19 @@
       "ssot_refs": [
         "fsm.context_fsm.states.state_0"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "IDLE"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -854,9 +1093,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -886,6 +1125,19 @@
       "ssot_refs": [
         "fsm.context_fsm.states.state_1"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ASSEMBLING"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -894,9 +1146,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -924,6 +1176,10 @@
       "ssot_refs": [
         "fsm.context_fsm.states.state_2"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -932,9 +1188,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -964,6 +1220,19 @@
       "ssot_refs": [
         "fsm.context_fsm.states.state_3"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "DONE_WAIT_DESCRIPTOR_POP"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -972,9 +1241,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1010,6 +1279,22 @@
       "ssot_refs": [
         "fsm.context_fsm.transitions.transition_0"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ASSEMBLING",
+          "EOM",
+          "IDLE",
+          "SOM"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -1018,9 +1303,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1060,6 +1345,26 @@
       "ssot_refs": [
         "fsm.context_fsm.transitions.transition_1"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "DESCRIPTOR",
+          "DONE",
+          "DONE_WAIT_DESCRIPTOR_POP",
+          "EOM",
+          "IDLE",
+          "POP",
+          "SOM",
+          "WAIT"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -1068,9 +1373,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1105,6 +1410,21 @@
       "ssot_refs": [
         "fsm.context_fsm.transitions.transition_2"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ASSEMBLING",
+          "EOM",
+          "SOM"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -1113,9 +1433,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1155,6 +1475,26 @@
       "ssot_refs": [
         "fsm.context_fsm.transitions.transition_3"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ASSEMBLING",
+          "DESCRIPTOR",
+          "DONE",
+          "DONE_WAIT_DESCRIPTOR_POP",
+          "EOM",
+          "POP",
+          "SOM",
+          "WAIT"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -1163,9 +1503,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1201,6 +1541,22 @@
       "ssot_refs": [
         "fsm.context_fsm.transitions.transition_4"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "AD",
+          "AD_",
+          "ASSEMBLING",
+          "SOM"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -1209,9 +1565,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1249,6 +1605,24 @@
       "ssot_refs": [
         "fsm.context_fsm.transitions.transition_5"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "DESCRIPTOR",
+          "DONE",
+          "DONE_WAIT_DESCRIPTOR_POP",
+          "IDLE",
+          "POP",
+          "WAIT"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -1257,9 +1631,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1292,6 +1666,19 @@
       "ssot_refs": [
         "fsm.context_fsm.transitions.transition_6"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "IDLE"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -1300,9 +1687,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     }
   ],

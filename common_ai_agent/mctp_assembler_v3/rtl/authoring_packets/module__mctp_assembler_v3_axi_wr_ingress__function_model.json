@@ -124,8 +124,8 @@
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
     "llm_actionable": true,
-    "llm_actionable_open_count": 29,
-    "open_required_count": 29,
+    "llm_actionable_open_count": 1,
+    "open_required_count": 1,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
@@ -177,7 +177,7 @@
       "section_chunk_index": 1,
       "task_limit": 48
     },
-    "open_required_count": 29,
+    "open_required_count": 1,
     "required_count": 29,
     "source_refs": [
       "function_model.transactions.FM_INGEST_TLP",
@@ -206,7 +206,8 @@
       "function_model.invariants.invariant_3"
     ],
     "status_counts": {
-      "planned": 29
+      "open": 1,
+      "pass": 28
     },
     "task_count": 29
   },
@@ -236,6 +237,10 @@
       "ssot_refs": [
         "function_model.transactions.FM_INGEST_TLP"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -244,9 +249,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -278,6 +283,22 @@
       "ssot_refs": [
         "function_model.transactions.FM_INGEST_TLP.preconditions.precondition_0"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "disabled",
+          "drop",
+          "drop_when_disabled",
+          "when"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -286,9 +307,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Required RTL static evidence is missing.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -315,6 +336,10 @@
       "ssot_refs": [
         "function_model.transactions.FM_INGEST_TLP.preconditions.precondition_1"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -323,9 +348,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -352,6 +377,10 @@
       "ssot_refs": [
         "function_model.transactions.FM_INGEST_TLP.preconditions.precondition_2"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -360,9 +389,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -389,6 +418,10 @@
       "ssot_refs": [
         "function_model.transactions.FM_INGEST_TLP.preconditions.precondition_3"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -397,9 +430,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -426,6 +459,10 @@
       "ssot_refs": [
         "function_model.transactions.FM_INGEST_TLP.preconditions.precondition_4"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -434,9 +471,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -485,6 +522,47 @@
       "ssot_refs": [
         "function_model.transactions.FM_INGEST_TLP.inputs.input_0"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 12,
+        "matched_terms": [
+          "AW",
+          "accept",
+          "awburst",
+          "awsize",
+          "axi",
+          "bresp",
+          "byte",
+          "count",
+          "s_axi_bresp",
+          "seen",
+          "tlp",
+          "tlp_accept"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "AW",
+          "accept",
+          "accepted",
+          "awburst",
+          "awsize",
+          "axi",
+          "axi_wr_slave",
+          "bresp",
+          "byte",
+          "contiguous",
+          "count",
+          "s_axi_bresp",
+          "seen",
+          "slave",
+          "tlp",
+          "tlp_accept"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -493,9 +571,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -522,6 +600,10 @@
       "ssot_refs": [
         "function_model.transactions.FM_INGEST_TLP.outputs.output_0"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -530,9 +612,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -559,6 +641,10 @@
       "ssot_refs": [
         "function_model.transactions.FM_INGEST_TLP.outputs.output_1"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -567,9 +653,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -615,6 +701,39 @@
       "ssot_refs": [
         "function_model.transactions.FM_INGEST_TLP.outputs.bresp_next"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 6,
+        "matched_terms": [
+          "BRESP",
+          "BRESP_OKAY",
+          "TLP",
+          "axi",
+          "bresp",
+          "s_axi_bresp"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "BRESP",
+          "BRESP_OKAY",
+          "FM",
+          "FM_INGEST_TLP",
+          "INGEST",
+          "TLP",
+          "axi",
+          "bresp",
+          "bresp_next",
+          "next",
+          "rsp",
+          "s_axi_bresp",
+          "st_rsp_error",
+          "st_rsp_error_i"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -623,9 +742,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -671,6 +790,50 @@
       "ssot_refs": [
         "function_model.transactions.FM_INGEST_TLP.outputs.tlp_accept"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 15,
+        "matched_terms": [
+          "BYTES",
+          "INCR",
+          "MAX",
+          "MAX_TLP_BYTES",
+          "TLP",
+          "accept",
+          "byte",
+          "count",
+          "seen",
+          "tlp",
+          "tlp_accept",
+          "tlp_byte_count",
+          "wlast",
+          "wlast_seen",
+          "wstrb"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "BYTES",
+          "INCR",
+          "MAX",
+          "MAX_TLP_BYTES",
+          "TLP",
+          "accept",
+          "byte",
+          "contiguous",
+          "count",
+          "seen",
+          "tlp",
+          "tlp_accept",
+          "tlp_byte_count",
+          "wlast",
+          "wlast_seen",
+          "wstrb"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -679,9 +842,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -715,6 +878,26 @@
       "ssot_refs": [
         "function_model.transactions.FM_INGEST_TLP.outputs.tlp_seen_count"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "count",
+          "seen",
+          "tlp"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "count",
+          "seen",
+          "tlp",
+          "tlp_seen_count"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -723,9 +906,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -761,6 +944,29 @@
       "ssot_refs": [
         "function_model.transactions.FM_INGEST_TLP.outputs.tlp_accepted_count"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 4,
+        "matched_terms": [
+          "accept",
+          "count",
+          "tlp",
+          "tlp_accept"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "accept",
+          "accepted",
+          "count",
+          "tlp",
+          "tlp_accept",
+          "tlp_accepted_count"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -769,9 +975,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -820,6 +1026,39 @@
       "ssot_refs": [
         "function_model.transactions.FM_INGEST_TLP.output_rules.bresp_next"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 6,
+        "matched_terms": [
+          "BRESP",
+          "BRESP_OKAY",
+          "TLP",
+          "axi",
+          "bresp",
+          "s_axi_bresp"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "BRESP",
+          "BRESP_OKAY",
+          "FM",
+          "FM_INGEST_TLP",
+          "INGEST",
+          "TLP",
+          "axi",
+          "bresp",
+          "bresp_next",
+          "next",
+          "rsp",
+          "s_axi_bresp",
+          "st_rsp_error",
+          "st_rsp_error_i"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 9,
         "evidence_basis": [
@@ -828,9 +1067,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -879,6 +1118,50 @@
       "ssot_refs": [
         "function_model.transactions.FM_INGEST_TLP.state_updates.tlp_accept"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 15,
+        "matched_terms": [
+          "BYTES",
+          "INCR",
+          "MAX",
+          "MAX_TLP_BYTES",
+          "TLP",
+          "accept",
+          "byte",
+          "count",
+          "seen",
+          "tlp",
+          "tlp_accept",
+          "tlp_byte_count",
+          "wlast",
+          "wlast_seen",
+          "wstrb"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "BYTES",
+          "INCR",
+          "MAX",
+          "MAX_TLP_BYTES",
+          "TLP",
+          "accept",
+          "byte",
+          "contiguous",
+          "count",
+          "seen",
+          "tlp",
+          "tlp_accept",
+          "tlp_byte_count",
+          "wlast",
+          "wlast_seen",
+          "wstrb"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -887,9 +1170,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -926,6 +1209,26 @@
       "ssot_refs": [
         "function_model.transactions.FM_INGEST_TLP.state_updates.tlp_seen_count"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "count",
+          "seen",
+          "tlp"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "count",
+          "seen",
+          "tlp",
+          "tlp_seen_count"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -934,9 +1237,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -975,6 +1278,29 @@
       "ssot_refs": [
         "function_model.transactions.FM_INGEST_TLP.state_updates.tlp_accepted_count"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 4,
+        "matched_terms": [
+          "accept",
+          "count",
+          "tlp",
+          "tlp_accept"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "accept",
+          "accepted",
+          "count",
+          "tlp",
+          "tlp_accept",
+          "tlp_accepted_count"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -983,9 +1309,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1034,6 +1360,47 @@
       "ssot_refs": [
         "function_model.transactions.FM_INGEST_TLP.side_effects.side_effect_0"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 12,
+        "matched_terms": [
+          "accept",
+          "awburst",
+          "awsize",
+          "axi",
+          "bresp",
+          "byte",
+          "count",
+          "s_axi_bresp",
+          "seen",
+          "tlp",
+          "tlp_accept",
+          "tlp_byte_count"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "accept",
+          "accepted",
+          "awburst",
+          "awsize",
+          "axi",
+          "bresp",
+          "byte",
+          "contiguous",
+          "count",
+          "s_axi_bresp",
+          "seen",
+          "tlp",
+          "tlp_accept",
+          "tlp_accepted_count",
+          "tlp_byte_count",
+          "tlp_seen_count"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -1042,9 +1409,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1093,6 +1460,48 @@
       "ssot_refs": [
         "function_model.transactions.FM_INGEST_TLP.side_effects.side_effect_1"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 13,
+        "matched_terms": [
+          "TLP",
+          "accept",
+          "awburst",
+          "awsize",
+          "axi",
+          "bresp",
+          "byte",
+          "count",
+          "s_axi_bresp",
+          "seen",
+          "tlp",
+          "tlp_accept",
+          "tlp_byte_count"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "TLP",
+          "accept",
+          "accepted",
+          "awburst",
+          "awsize",
+          "axi",
+          "bresp",
+          "byte",
+          "contiguous",
+          "count",
+          "s_axi_bresp",
+          "seen",
+          "tlp",
+          "tlp_accept",
+          "tlp_accepted_count",
+          "tlp_byte_count"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -1101,9 +1510,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1152,6 +1561,45 @@
       "ssot_refs": [
         "function_model.transactions.FM_INGEST_TLP.error_cases.error_case_0"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 10,
+        "matched_terms": [
+          "AWBURST",
+          "AWSIZE",
+          "BYTES",
+          "MAX",
+          "MAX_TLP_BYTES",
+          "TLP",
+          "WLAST",
+          "WSTRB",
+          "accept",
+          "awburst"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "AWBURST",
+          "AWSIZE",
+          "BYTES",
+          "MALFORMED",
+          "MAX",
+          "MAX_TLP_BYTES",
+          "PCIe",
+          "PD",
+          "PD_MALFORMED_TLP",
+          "SRAM",
+          "TLP",
+          "WLAST",
+          "WSTRB",
+          "accept",
+          "accepted",
+          "awburst"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -1160,9 +1608,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1192,6 +1640,10 @@
       "ssot_refs": [
         "function_model.invariants.invariant_0"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -1200,9 +1652,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1232,6 +1684,10 @@
       "ssot_refs": [
         "function_model.invariants.invariant_1"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -1240,9 +1696,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1272,6 +1728,10 @@
       "ssot_refs": [
         "function_model.invariants.invariant_2"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -1280,9 +1740,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1312,6 +1772,10 @@
       "ssot_refs": [
         "function_model.invariants.invariant_3"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -1320,9 +1784,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1352,6 +1816,10 @@
       "ssot_refs": [
         "function_model.invariants.invariant_4"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -1360,9 +1828,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1392,6 +1860,10 @@
       "ssot_refs": [
         "function_model.invariants.invariant_5"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -1400,9 +1872,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1432,6 +1904,10 @@
       "ssot_refs": [
         "function_model.invariants.invariant_6"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -1440,9 +1916,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1472,6 +1948,10 @@
       "ssot_refs": [
         "function_model.invariants.invariant_7"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -1480,9 +1960,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -1512,6 +1992,10 @@
       "ssot_refs": [
         "function_model.invariants.invariant_8"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -1520,9 +2004,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     }
   ],

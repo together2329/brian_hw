@@ -791,9 +791,9 @@
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
-    "llm_actionable": true,
-    "llm_actionable_open_count": 2,
-    "open_required_count": 2,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
@@ -837,14 +837,14 @@
       "section_chunk_index": 1,
       "task_limit": 48
     },
-    "open_required_count": 2,
+    "open_required_count": 0,
     "required_count": 2,
     "source_refs": [
       "workflow_todos.rtl-gen[0]",
       "workflow_todos.rtl-gen[1]"
     ],
     "status_counts": {
-      "planned": 2
+      "pass": 2
     },
     "task_count": 2
   },
@@ -882,6 +882,27 @@
         "function_model.transactions",
         "workflow_todos.rtl-gen[0]"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 4,
+        "matched_terms": [
+          "assembler",
+          "mctp",
+          "mctp_assembler_v3",
+          "v3"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "assembler",
+          "mctp",
+          "mctp_assembler_v3",
+          "v3"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -890,9 +911,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_ASSEMBLER_PIPELINE",
@@ -940,6 +961,27 @@
         "reports/rtl_reference_profile.json",
         "workflow_todos.rtl-gen[1]"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 4,
+        "matched_terms": [
+          "assembler",
+          "mctp",
+          "mctp_assembler_v3",
+          "v3"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "assembler",
+          "mctp",
+          "mctp_assembler_v3",
+          "v3"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3.sv",
+        "status": "pass"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -948,9 +990,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_TARGET_SCALE_POLICY",

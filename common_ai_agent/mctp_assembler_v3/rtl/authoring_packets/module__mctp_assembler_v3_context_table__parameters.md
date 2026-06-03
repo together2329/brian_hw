@@ -39,14 +39,14 @@
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: open
 - Category: parameters.item
 - Source ref: parameters.CONTEXT_COUNT
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.CONTEXT_COUNT.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via semantic_terms:context.
 SSOT item context: name=CONTEXT_COUNT.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects

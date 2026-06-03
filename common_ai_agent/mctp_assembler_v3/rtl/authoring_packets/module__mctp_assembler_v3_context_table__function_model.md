@@ -39,14 +39,14 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM_ALLOC_CONTEXT
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.
 SSOT item context: id=FM_ALLOC_CONTEXT; name=context_allocate.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -59,14 +59,14 @@ SSOT item context: id=FM_ALLOC_CONTEXT; name=context_allocate.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM_ALLOC_CONTEXT.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.preconditions.precondition_0.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.
 SSOT item context: value=decoded MCTP packet with SOM=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -79,14 +79,14 @@ SSOT item context: value=decoded MCTP packet with SOM=1.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.input
 - Source ref: function_model.transactions.FM_ALLOC_CONTEXT.inputs.input_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.inputs.input_0.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.
 SSOT item context: id=FM_ALLOC_CONTEXT; name=context_allocate; signal=["assembly_key", "free_slot_available", "som", "eom", "packet_seq", "allocated_len"]; state=["alloc_ok", "single_packet", "ctx_state", "ctx_payload_base_addr", "ctx_expected_seq", "active_context_count", "sram....
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -99,14 +99,14 @@ SSOT item context: id=FM_ALLOC_CONTEXT; name=context_allocate; signal=["assembly
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.input
 - Source ref: function_model.transactions.FM_ALLOC_CONTEXT.inputs.input_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.inputs.input_1.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.
 SSOT item context: id=FM_ALLOC_CONTEXT; name=context_allocate; signal=["first_tlp_header[0:15]", "free_slot_available", "som", "eom", "packet_seq", "allocated_len"]; state=["alloc_ok", "single_packet", "ctx_state", "ctx_payload_base_addr", "ctx_expected_seq", "active_context_count", "sram....
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -119,14 +119,14 @@ SSOT item context: id=FM_ALLOC_CONTEXT; name=context_allocate; signal=["first_tl
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_ALLOC_CONTEXT.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.outputs.output_0.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.
 SSOT item context: value=new ASSEMBLING context (SOM,EOM=0) or single-packet path (SOM,EOM=1).
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -139,14 +139,14 @@ SSOT item context: value=new ASSEMBLING context (SOM,EOM=0) or single-packet pat
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_ALLOC_CONTEXT.outputs.output_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.outputs.output_1.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.
 SSOT item context: value=first_tlp_header stored.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -159,14 +159,14 @@ SSOT item context: value=first_tlp_header stored.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_ALLOC_CONTEXT.outputs.output_2
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.outputs.output_2.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.
 SSOT item context: value=payload_base_addr allocated from sram_alloc_ptr.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -179,14 +179,14 @@ SSOT item context: value=payload_base_addr allocated from sram_alloc_ptr.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_ALLOC_CONTEXT.outputs.alloc_ok
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.outputs.alloc_ok.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.
 SSOT item context: state=alloc_ok; expr=free_slot_available.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -200,14 +200,14 @@ SSOT item context: state=alloc_ok; expr=free_slot_available.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_ALLOC_CONTEXT.outputs.single_packet
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.outputs.single_packet.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.
 SSOT item context: state=single_packet; expr=som and eom.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -221,14 +221,14 @@ SSOT item context: state=single_packet; expr=som and eom.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_ALLOC_CONTEXT.outputs.ctx_state
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.outputs.ctx_state.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.
 SSOT item context: state=ctx_state; expr=DONE_WAIT_DESCRIPTOR_POP if (som and eom) else ASSEMBLING.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -242,14 +242,14 @@ SSOT item context: state=ctx_state; expr=DONE_WAIT_DESCRIPTOR_POP if (som and eo
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_ALLOC_CONTEXT.outputs.ctx_payload_base_addr
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.outputs.ctx_payload_base_addr.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.
 SSOT item context: state=ctx_payload_base_addr; expr=sram_alloc_ptr.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -263,14 +263,14 @@ SSOT item context: state=ctx_payload_base_addr; expr=sram_alloc_ptr.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_ALLOC_CONTEXT.outputs.ctx_expected_seq
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.outputs.ctx_expected_seq.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.
 SSOT item context: state=ctx_expected_seq; expr=(packet_seq + 1) % 4.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -284,14 +284,14 @@ SSOT item context: state=ctx_expected_seq; expr=(packet_seq + 1) % 4.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_ALLOC_CONTEXT.outputs.active_context_count
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.outputs.active_context_count.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.
 SSOT item context: state=active_context_count; expr=active_context_count + 1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -305,14 +305,14 @@ SSOT item context: state=active_context_count; expr=active_context_count + 1.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_ALLOC_CONTEXT.outputs.sram_alloc_ptr
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.outputs.sram_alloc_ptr.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.
 SSOT item context: state=sram_alloc_ptr; expr=sram_alloc_ptr + allocated_len.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -326,14 +326,14 @@ SSOT item context: state=sram_alloc_ptr; expr=sram_alloc_ptr + allocated_len.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_ALLOC_CONTEXT.state_updates.alloc_ok
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.state_updates.alloc_ok.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.
 SSOT item context: name=alloc_ok; expr=free_slot_available; width=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -349,14 +349,14 @@ SSOT item context: name=alloc_ok; expr=free_slot_available; width=1.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_ALLOC_CONTEXT.state_updates.single_packet
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.state_updates.single_packet.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.
 SSOT item context: name=single_packet; expr=som and eom; width=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -372,14 +372,14 @@ SSOT item context: name=single_packet; expr=som and eom; width=1.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_ALLOC_CONTEXT.state_updates.ctx_state
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.state_updates.ctx_state.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.
 SSOT item context: name=ctx_state; expr=DONE_WAIT_DESCRIPTOR_POP if (som and eom) else ASSEMBLING; width=2.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -395,14 +395,14 @@ SSOT item context: name=ctx_state; expr=DONE_WAIT_DESCRIPTOR_POP if (som and eom
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_ALLOC_CONTEXT.state_updates.ctx_payload_base_addr
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.state_updates.ctx_payload_base_addr.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.
 SSOT item context: name=ctx_payload_base_addr; expr=sram_alloc_ptr; width=16.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -418,14 +418,14 @@ SSOT item context: name=ctx_payload_base_addr; expr=sram_alloc_ptr; width=16.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_ALLOC_CONTEXT.state_updates.ctx_expected_seq
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.state_updates.ctx_expected_seq.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.
 SSOT item context: name=ctx_expected_seq; expr=(packet_seq + 1) % 4; width=2.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -441,14 +441,14 @@ SSOT item context: name=ctx_expected_seq; expr=(packet_seq + 1) % 4; width=2.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_ALLOC_CONTEXT.state_updates.active_context_count
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.state_updates.active_context_count.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.
 SSOT item context: name=active_context_count; expr=active_context_count + 1; width=5.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -464,14 +464,14 @@ SSOT item context: name=active_context_count; expr=active_context_count + 1; wid
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_ALLOC_CONTEXT.state_updates.sram_alloc_ptr
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.state_updates.sram_alloc_ptr.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.
 SSOT item context: name=sram_alloc_ptr; expr=sram_alloc_ptr + allocated_len; width=16.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -487,14 +487,14 @@ SSOT item context: name=sram_alloc_ptr; expr=sram_alloc_ptr + allocated_len; wid
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM_ALLOC_CONTEXT.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.side_effects.side_effect_0.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.
 SSOT item context: id=FM_ALLOC_CONTEXT; name=context_allocate; signal=["expected_seq initialized; ctx_state=ASSEMBLING; sram_alloc_ptr advanced", "free_slot_available", "som", "eom", "pac...; state=["alloc_ok", "single_packet", "ctx_state", "ctx_payload_base_addr", "ctx_expected_seq", "active_context_count", "sram....
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -507,14 +507,14 @@ SSOT item context: id=FM_ALLOC_CONTEXT; name=context_allocate; signal=["expected
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.error_case
 - Source ref: function_model.transactions.FM_ALLOC_CONTEXT.error_cases.error_case_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.error_cases.error_case_0.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.
 SSOT item context: id=FM_ALLOC_CONTEXT; name=context_allocate; signal=[{"condition": "no free context for a new fragmented SOM", "result": "PD_BAD_OR_EXPIRED_TAG packet drop (context-tabl...; state=["alloc_ok", "single_packet", "ctx_state", "ctx_payload_base_addr", "ctx_expected_seq", "active_context_count", "sram....
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -527,14 +527,14 @@ SSOT item context: id=FM_ALLOC_CONTEXT; name=context_allocate; signal=[{"conditi
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.error_case
 - Source ref: function_model.transactions.FM_ALLOC_CONTEXT.error_cases.error_case_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.error_cases.error_case_1.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.
 SSOT item context: id=FM_ALLOC_CONTEXT; name=context_allocate; signal=[{"condition": "SOM for an already-active key", "result": "AD_DUPLICATE_SOM assembly drop: abort old context, suppres...; state=["alloc_ok", "single_packet", "ctx_state", "ctx_payload_base_addr", "ctx_expected_seq", "active_context_count", "sram....
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -547,14 +547,14 @@ SSOT item context: id=FM_ALLOC_CONTEXT; name=context_allocate; signal=[{"conditi
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM_APPEND
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM_APPEND.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.
 SSOT item context: id=FM_APPEND; name=context_append.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -567,14 +567,14 @@ SSOT item context: id=FM_APPEND; name=context_append.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM_APPEND.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APPEND.preconditions.precondition_0.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.
 SSOT item context: value=SOM=0 packet matches an active key.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -587,14 +587,14 @@ SSOT item context: value=SOM=0 packet matches an active key.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM_APPEND.preconditions.precondition_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APPEND.preconditions.precondition_1.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.
 SSOT item context: value=packet_seq == ctx_expected_seq.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -607,14 +607,14 @@ SSOT item context: value=packet_seq == ctx_expected_seq.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.input
 - Source ref: function_model.transactions.FM_APPEND.inputs.input_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APPEND.inputs.input_0.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.
 SSOT item context: id=FM_APPEND; name=context_append; signal=["payload bytes", "packet_seq", "eom", "payload_bytes"]; state=["seq_ok", "message_complete", "ctx_payload_byte_count", "ctx_expected_seq", "ctx_last_seq"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -627,14 +627,14 @@ SSOT item context: id=FM_APPEND; name=context_append; signal=["payload bytes", "
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.input
 - Source ref: function_model.transactions.FM_APPEND.inputs.input_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APPEND.inputs.input_1.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.
 SSOT item context: id=FM_APPEND; name=context_append; signal=["last_tlp_header[0:15]", "packet_seq", "eom", "payload_bytes"]; state=["seq_ok", "message_complete", "ctx_payload_byte_count", "ctx_expected_seq", "ctx_last_seq"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -647,14 +647,14 @@ SSOT item context: id=FM_APPEND; name=context_append; signal=["last_tlp_header[0
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_APPEND.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APPEND.outputs.output_0.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.
 SSOT item context: value=payload appended; last_tlp_header updated; expected_seq incremented modulo 4.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -667,14 +667,14 @@ SSOT item context: value=payload appended; last_tlp_header updated; expected_seq
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_APPEND.outputs.output_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APPEND.outputs.output_1.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.
 SSOT item context: value=EOM=1 marks message complete -> FM_PUBLISH_DESCRIPTOR.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -687,14 +687,14 @@ SSOT item context: value=EOM=1 marks message complete -> FM_PUBLISH_DESCRIPTOR.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_APPEND.outputs.seq_ok
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APPEND.outputs.seq_ok.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.
 SSOT item context: state=seq_ok; expr=packet_seq == ctx_expected_seq.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -708,14 +708,14 @@ SSOT item context: state=seq_ok; expr=packet_seq == ctx_expected_seq.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_APPEND.outputs.message_complete
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APPEND.outputs.message_complete.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.
 SSOT item context: state=message_complete; expr=eom.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -729,14 +729,14 @@ SSOT item context: state=message_complete; expr=eom.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_APPEND.outputs.ctx_payload_byte_count
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APPEND.outputs.ctx_payload_byte_count.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.
 SSOT item context: state=ctx_payload_byte_count; expr=ctx_payload_byte_count + payload_bytes.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -750,14 +750,14 @@ SSOT item context: state=ctx_payload_byte_count; expr=ctx_payload_byte_count + p
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_APPEND.outputs.ctx_expected_seq
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APPEND.outputs.ctx_expected_seq.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.
 SSOT item context: state=ctx_expected_seq; expr=(ctx_expected_seq + 1) % 4.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -771,14 +771,14 @@ SSOT item context: state=ctx_expected_seq; expr=(ctx_expected_seq + 1) % 4.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_APPEND.outputs.ctx_last_seq
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APPEND.outputs.ctx_last_seq.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.
 SSOT item context: state=ctx_last_seq; expr=packet_seq.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -792,14 +792,14 @@ SSOT item context: state=ctx_last_seq; expr=packet_seq.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_APPEND.state_updates.seq_ok
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APPEND.state_updates.seq_ok.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.
 SSOT item context: name=seq_ok; expr=packet_seq == ctx_expected_seq; width=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -815,14 +815,14 @@ SSOT item context: name=seq_ok; expr=packet_seq == ctx_expected_seq; width=1.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_APPEND.state_updates.message_complete
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APPEND.state_updates.message_complete.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.
 SSOT item context: name=message_complete; expr=eom; width=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -838,14 +838,14 @@ SSOT item context: name=message_complete; expr=eom; width=1.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_APPEND.state_updates.ctx_payload_byte_count
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APPEND.state_updates.ctx_payload_byte_count.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.
 SSOT item context: name=ctx_payload_byte_count; expr=ctx_payload_byte_count + payload_bytes; width=13.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -861,14 +861,14 @@ SSOT item context: name=ctx_payload_byte_count; expr=ctx_payload_byte_count + pa
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_APPEND.state_updates.ctx_expected_seq
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APPEND.state_updates.ctx_expected_seq.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.
 SSOT item context: name=ctx_expected_seq; expr=(ctx_expected_seq + 1) % 4; width=2.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -884,14 +884,14 @@ SSOT item context: name=ctx_expected_seq; expr=(ctx_expected_seq + 1) % 4; width
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_APPEND.state_updates.ctx_last_seq
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APPEND.state_updates.ctx_last_seq.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.
 SSOT item context: name=ctx_last_seq; expr=packet_seq; width=2.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -907,14 +907,14 @@ SSOT item context: name=ctx_last_seq; expr=packet_seq; width=2.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM_APPEND.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APPEND.side_effects.side_effect_0.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.
 SSOT item context: id=FM_APPEND; name=context_append; signal=["ctx_payload_byte_count += payload_bytes", "packet_seq", "eom", "payload_bytes"]; state=["seq_ok", "message_complete", "ctx_payload_byte_count", "ctx_expected_seq", "ctx_last_seq"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -927,14 +927,14 @@ SSOT item context: id=FM_APPEND; name=context_append; signal=["ctx_payload_byte_
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.error_case
 - Source ref: function_model.transactions.FM_APPEND.error_cases.error_case_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APPEND.error_cases.error_case_0.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.
 SSOT item context: id=FM_APPEND; name=context_append; signal=[{"condition": "middle/end with no active matching context / EOM without prior SOM", "result": "PD_UNEXPECTED_MIDDLE_...; state=["seq_ok", "message_complete", "ctx_payload_byte_count", "ctx_expected_seq", "ctx_last_seq"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -947,14 +947,14 @@ SSOT item context: id=FM_APPEND; name=context_append; signal=[{"condition": "mid
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.error_case
 - Source ref: function_model.transactions.FM_APPEND.error_cases.error_case_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APPEND.error_cases.error_case_1.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.
 SSOT item context: id=FM_APPEND; name=context_append; signal=[{"condition": "packet_seq != expected modulo-4 seq", "result": "AD_SEQUENCE_MISMATCH assembly drop"}, "packet_seq", ...; state=["seq_ok", "message_complete", "ctx_payload_byte_count", "ctx_expected_seq", "ctx_last_seq"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -967,14 +967,14 @@ SSOT item context: id=FM_APPEND; name=context_append; signal=[{"condition": "pac
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.error_case
 - Source ref: function_model.transactions.FM_APPEND.error_cases.error_case_2
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APPEND.error_cases.error_case_2.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.
 SSOT item context: id=FM_APPEND; name=context_append; signal=[{"condition": "append would exceed MAX_MESSAGE_BYTES", "result": "AD_MESSAGE_OVERFLOW assembly drop"}, "packet_seq",...; state=["seq_ok", "message_complete", "ctx_payload_byte_count", "ctx_expected_seq", "ctx_last_seq"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -987,14 +987,14 @@ SSOT item context: id=FM_APPEND; name=context_append; signal=[{"condition": "app
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.error_case
 - Source ref: function_model.transactions.FM_APPEND.error_cases.error_case_3
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_APPEND.error_cases.error_case_3.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.
 SSOT item context: id=FM_APPEND; name=context_append; signal=[{"condition": "context age exceeds assembly_timeout_cycles", "result": "AD_TIMEOUT assembly drop"}, "packet_seq", "e...; state=["seq_ok", "message_complete", "ctx_payload_byte_count", "ctx_expected_seq", "ctx_last_seq"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction

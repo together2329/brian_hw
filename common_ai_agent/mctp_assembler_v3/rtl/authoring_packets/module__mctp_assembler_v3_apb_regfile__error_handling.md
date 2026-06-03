@@ -41,14 +41,14 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: error_handling.recovery
 - Source ref: error_handling.recovery.recovery_0
 - Detail: This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: error_handling.recovery.recovery_0.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via error_handling.
 SSOT item context: action=software W1C interrupt clear + counter_clear + per-context clear policy.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code

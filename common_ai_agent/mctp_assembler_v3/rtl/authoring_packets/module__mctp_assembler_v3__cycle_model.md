@@ -25,7 +25,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 6
+- LLM-actionable open tasks: 2
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.pipeline, dataflow, decomposition, function_model, function_model.transactions, integration, integration.connections, io_list, io_list.interfaces, top_module
 - Module slice: 5/9 section=cycle_model task_limit=48
@@ -46,14 +46,14 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S0_INGEST
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S0_INGEST.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via cycle_model.pipeline.
 SSOT item context: stage=S0_INGEST; action=Reconstruct TLP bytes from AXI W beats; legality check; cycle=0..B.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -68,14 +68,14 @@ SSOT item context: stage=S0_INGEST; action=Reconstruct TLP bytes from AXI W beat
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S1_VDM_DECODE
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S1_VDM_DECODE.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via cycle_model.pipeline.
 SSOT item context: stage=S1_VDM_DECODE; action=Decode/validate 16B PCIe VDM header; strip header/pad/digest; cycle=B+1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -90,14 +90,14 @@ SSOT item context: stage=S1_VDM_DECODE; action=Decode/validate 16B PCIe VDM head
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S2_MCTP_DECODE
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S2_MCTP_DECODE.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via cycle_model.pipeline.
 SSOT item context: stage=S2_MCTP_DECODE; action=Decode MCTP transport header + IC/msg_type on SOM; cycle=B+2.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -112,14 +112,14 @@ SSOT item context: stage=S2_MCTP_DECODE; action=Decode MCTP transport header + I
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S3_CONTEXT
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S3_CONTEXT.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via cycle_model.pipeline.
 SSOT item context: stage=S3_CONTEXT; action=Allocate/append context by key; sequence/timeout checks; cycle=B+3.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -134,14 +134,14 @@ SSOT item context: stage=S3_CONTEXT; action=Allocate/append context by key; sequ
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S4_PACK
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S4_PACK.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via cycle_model.pipeline.
 SSOT item context: stage=S4_PACK; action=Pack payload bytes into 256-bit SRAM words; per-context partial word; cycle=B+4..P.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -156,14 +156,14 @@ SSOT item context: stage=S4_PACK; action=Pack payload bytes into 256-bit SRAM wo
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S5_DESCRIPTOR
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S5_DESCRIPTOR.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via cycle_model.pipeline.
 SSOT item context: stage=S5_DESCRIPTOR; action=On EOM push descriptor + first/last headers; raise descriptor_ready; cycle=P+1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Required RTL static evidence is missing.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior

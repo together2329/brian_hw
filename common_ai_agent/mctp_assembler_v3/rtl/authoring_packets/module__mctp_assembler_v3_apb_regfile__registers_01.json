@@ -210,7 +210,7 @@
       "registers.register_list.STATUS.fields.axi_read_busy"
     ],
     "status_counts": {
-      "planned": 48
+      "open": 48
     },
     "task_count": 48
   },
@@ -247,6 +247,10 @@
       "ssot_refs": [
         "registers.register_list.CONTROL"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 9,
         "evidence_basis": [
@@ -255,9 +259,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -294,6 +298,19 @@
       "ssot_refs": [
         "registers.register_list.CONTROL.fields.enable"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "enable"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -302,9 +319,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -344,6 +361,22 @@
       "ssot_refs": [
         "registers.register_list.CONTROL.fields.drop_when_disabled"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "disabled",
+          "drop",
+          "drop_when_disabled",
+          "when"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -352,9 +385,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -393,6 +426,21 @@
       "ssot_refs": [
         "registers.register_list.CONTROL.fields.soft_reset"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "reset",
+          "soft",
+          "soft_reset"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -401,9 +449,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -443,6 +491,22 @@
       "ssot_refs": [
         "registers.register_list.CONTROL.fields.dest_filter_enable"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "dest",
+          "dest_filter_enable",
+          "enable",
+          "filter"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -451,9 +515,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -493,6 +557,22 @@
       "ssot_refs": [
         "registers.register_list.CONTROL.fields.accept_broadcast_eid"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "accept",
+          "accept_broadcast_eid",
+          "broadcast",
+          "eid"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -501,9 +581,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -543,6 +623,22 @@
       "ssot_refs": [
         "registers.register_list.CONTROL.fields.accept_null_eid"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "accept",
+          "accept_null_eid",
+          "eid",
+          "null"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -551,9 +647,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -595,6 +691,24 @@
       "ssot_refs": [
         "registers.register_list.CONTROL.fields.raw_sram_debug_read_enable"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "debug",
+          "enable",
+          "raw",
+          "raw_sram_debug_read_enable",
+          "read",
+          "sram"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -603,9 +717,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -644,6 +758,21 @@
       "ssot_refs": [
         "registers.register_list.CONTROL.fields.descriptor_pop"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "descriptor",
+          "descriptor_pop",
+          "pop"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -652,9 +781,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -691,6 +820,19 @@
       "ssot_refs": [
         "registers.register_list.CONTROL.fields.counter_clear"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "counter_clear"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -699,9 +841,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -740,6 +882,21 @@
       "ssot_refs": [
         "registers.register_list.CONTROL.fields.local_eid"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "eid",
+          "local",
+          "local_eid"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -748,9 +905,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -790,6 +947,22 @@
       "ssot_refs": [
         "registers.register_list.CONTROL.fields.debug_context_select"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "context",
+          "debug",
+          "debug_context_select",
+          "select"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -798,9 +971,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -839,6 +1012,21 @@
       "ssot_refs": [
         "registers.register_list.CFG_TU"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "CFG",
+          "CFG_TU",
+          "TU"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 9,
         "evidence_basis": [
@@ -847,9 +1035,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -889,6 +1077,22 @@
       "ssot_refs": [
         "registers.register_list.CFG_TU.fields.transmission_unit_bytes"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "bytes",
+          "transmission",
+          "transmission_unit_bytes",
+          "unit"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -897,9 +1101,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -939,6 +1143,22 @@
       "ssot_refs": [
         "registers.register_list.CFG_TU.fields.max_message_bytes"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "bytes",
+          "max",
+          "max_message_bytes",
+          "message"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -947,9 +1167,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -988,6 +1208,21 @@
       "ssot_refs": [
         "registers.register_list.CFG_TIMEOUT"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "CFG",
+          "CFG_TIMEOUT",
+          "TIMEOUT"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 9,
         "evidence_basis": [
@@ -996,9 +1231,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1038,6 +1273,22 @@
       "ssot_refs": [
         "registers.register_list.CFG_TIMEOUT.fields.assembly_timeout_cycles"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "assembly",
+          "assembly_timeout_cycles",
+          "cycles",
+          "timeout"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -1046,9 +1297,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1087,6 +1338,21 @@
       "ssot_refs": [
         "registers.register_list.SRAM_BASE"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "BASE",
+          "SRAM",
+          "SRAM_BASE"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 9,
         "evidence_basis": [
@@ -1095,9 +1361,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1139,6 +1405,24 @@
       "ssot_refs": [
         "registers.register_list.SRAM_BASE.fields.sram_base"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "BASE",
+          "SRAM",
+          "SRAM_BASE",
+          "base",
+          "sram",
+          "sram_base"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -1147,9 +1431,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1188,6 +1472,21 @@
       "ssot_refs": [
         "registers.register_list.SRAM_LIMIT"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "LIMIT",
+          "SRAM",
+          "SRAM_LIMIT"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 9,
         "evidence_basis": [
@@ -1196,9 +1495,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1240,6 +1539,24 @@
       "ssot_refs": [
         "registers.register_list.SRAM_LIMIT.fields.sram_limit"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "LIMIT",
+          "SRAM",
+          "SRAM_LIMIT",
+          "limit",
+          "sram",
+          "sram_limit"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -1248,9 +1565,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1287,6 +1604,19 @@
       "ssot_refs": [
         "registers.register_list.STATUS"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "STATUS"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 9,
         "evidence_basis": [
@@ -1295,9 +1625,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1336,6 +1666,21 @@
       "ssot_refs": [
         "registers.register_list.STATUS.fields.ingress_busy"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "busy",
+          "ingress",
+          "ingress_busy"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -1344,9 +1689,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1386,6 +1731,22 @@
       "ssot_refs": [
         "registers.register_list.STATUS.fields.axi_read_busy"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "axi",
+          "axi_read_busy",
+          "busy",
+          "read"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -1394,9 +1755,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1436,6 +1797,22 @@
       "ssot_refs": [
         "registers.register_list.STATUS.fields.sram_write_busy"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "busy",
+          "sram",
+          "sram_write_busy",
+          "write"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -1444,9 +1821,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1486,6 +1863,22 @@
       "ssot_refs": [
         "registers.register_list.STATUS.fields.sram_read_busy"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "busy",
+          "read",
+          "sram",
+          "sram_read_busy"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -1494,9 +1887,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1535,6 +1928,21 @@
       "ssot_refs": [
         "registers.register_list.STATUS.fields.descriptor_available"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "available",
+          "descriptor",
+          "descriptor_available"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -1543,9 +1951,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1585,6 +1993,22 @@
       "ssot_refs": [
         "registers.register_list.STATUS.fields.descriptor_queue_full"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "descriptor",
+          "descriptor_queue_full",
+          "full",
+          "queue"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -1593,9 +2017,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1634,6 +2058,21 @@
       "ssot_refs": [
         "registers.register_list.STATUS.fields.context_active_any"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "active",
+          "context",
+          "context_active_any"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -1642,9 +2081,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1682,6 +2121,20 @@
       "ssot_refs": [
         "registers.register_list.STATUS.fields.context_error_any"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "context",
+          "context_error_any"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -1690,9 +2143,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1732,6 +2185,22 @@
       "ssot_refs": [
         "registers.register_list.STATUS.fields.packet_drop_seen"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "drop",
+          "packet",
+          "packet_drop_seen",
+          "seen"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -1740,9 +2209,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1782,6 +2251,22 @@
       "ssot_refs": [
         "registers.register_list.STATUS.fields.assembly_drop_seen"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "assembly",
+          "assembly_drop_seen",
+          "drop",
+          "seen"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -1790,9 +2275,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1832,6 +2317,22 @@
       "ssot_refs": [
         "registers.register_list.STATUS.fields.active_context_count"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "active",
+          "active_context_count",
+          "context",
+          "count"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -1840,9 +2341,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1882,6 +2383,22 @@
       "ssot_refs": [
         "registers.register_list.STATUS.fields.last_drop_class"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "class",
+          "drop",
+          "last",
+          "last_drop_class"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -1890,9 +2407,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1932,6 +2449,22 @@
       "ssot_refs": [
         "registers.register_list.STATUS.fields.last_drop_reason"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "drop",
+          "last",
+          "last_drop_reason",
+          "reason"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -1940,9 +2473,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1982,6 +2515,22 @@
       "ssot_refs": [
         "registers.register_list.STATUS.fields.last_error_context_id"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "context",
+          "id",
+          "last",
+          "last_error_context_id"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -1990,9 +2539,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -2030,6 +2579,20 @@
       "ssot_refs": [
         "registers.register_list.CTX_STATE"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "CTX",
+          "CTX_STATE"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 9,
         "evidence_basis": [
@@ -2038,9 +2601,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -2080,6 +2643,22 @@
       "ssot_refs": [
         "registers.register_list.CTX_STATE.fields.ctx_state"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "CTX",
+          "CTX_STATE",
+          "ctx",
+          "ctx_state"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -2088,9 +2667,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -2129,6 +2708,21 @@
       "ssot_refs": [
         "registers.register_list.CTX_STATE.fields.ctx_valid"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_valid",
+          "valid"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -2137,9 +2731,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -2177,6 +2771,20 @@
       "ssot_refs": [
         "registers.register_list.CTX_STATE.fields.ctx_error"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_error"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -2185,9 +2793,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -2227,6 +2835,22 @@
       "ssot_refs": [
         "registers.register_list.CTX_STATE.fields.ctx_source_eid"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_source_eid",
+          "eid",
+          "source"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -2235,9 +2859,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -2277,6 +2901,22 @@
       "ssot_refs": [
         "registers.register_list.CTX_STATE.fields.ctx_message_tag"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_message_tag",
+          "message",
+          "tag"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -2285,9 +2925,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -2327,6 +2967,22 @@
       "ssot_refs": [
         "registers.register_list.CTX_STATE.fields.ctx_tag_owner"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_tag_owner",
+          "owner",
+          "tag"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -2335,9 +2991,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -2377,6 +3033,22 @@
       "ssot_refs": [
         "registers.register_list.CTX_STATE.fields.ctx_expected_seq"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_expected_seq",
+          "expected",
+          "seq"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -2385,9 +3057,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -2427,6 +3099,22 @@
       "ssot_refs": [
         "registers.register_list.CTX_STATE.fields.ctx_last_seq"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_last_seq",
+          "last",
+          "seq"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -2435,9 +3123,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -2477,6 +3165,22 @@
       "ssot_refs": [
         "registers.register_list.CTX_STATE.fields.ctx_message_type"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_message_type",
+          "message",
+          "type"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -2485,9 +3189,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -2528,6 +3232,23 @@
       "ssot_refs": [
         "registers.register_list.CTX_STATE.fields.ctx_last_drop_reason"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_last_drop_reason",
+          "drop",
+          "last",
+          "reason"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 11,
         "evidence_basis": [
@@ -2536,9 +3257,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -2578,6 +3299,22 @@
       "ssot_refs": [
         "registers.register_list.INTR_RAW_STATUS"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "INTR",
+          "INTR_RAW_STATUS",
+          "RAW",
+          "STATUS"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 9,
         "evidence_basis": [
@@ -2586,9 +3323,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     }
   ],

@@ -35,14 +35,14 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.
 Owner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.
 SSOT item context: id=FM_PUBLISH_DESCRIPTOR; name=descriptor_publish.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -55,14 +55,14 @@ SSOT item context: id=FM_PUBLISH_DESCRIPTOR; name=descriptor_publish.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.preconditions.precondition_0.
 Owner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.
 SSOT item context: value=successful EOM for a context.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -75,14 +75,14 @@ SSOT item context: value=successful EOM for a context.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.input
 - Source ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.inputs.input_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.inputs.input_0.
 Owner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.
 SSOT item context: id=FM_PUBLISH_DESCRIPTOR; name=descriptor_publish; signal=["context metadata", "descriptor_queue_full"]; state=["descriptor_ready", "descriptor_payload_len", "descriptor_base_addr", "message_completed_count", "descriptor_valid",....
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -95,14 +95,14 @@ SSOT item context: id=FM_PUBLISH_DESCRIPTOR; name=descriptor_publish; signal=["c
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.input
 - Source ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.inputs.input_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.inputs.input_1.
 Owner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.
 SSOT item context: id=FM_PUBLISH_DESCRIPTOR; name=descriptor_publish; signal=["first/last_tlp_header", "descriptor_queue_full"]; state=["descriptor_ready", "descriptor_payload_len", "descriptor_base_addr", "message_completed_count", "descriptor_valid",....
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -115,14 +115,14 @@ SSOT item context: id=FM_PUBLISH_DESCRIPTOR; name=descriptor_publish; signal=["f
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.output_0.
 Owner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.
 SSOT item context: value=descriptor{source_eid,dest_eid,tag_owner,message_tag,message_type,requester_id,pcie_routing_type,payload_base_addr,pa....
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -135,14 +135,14 @@ SSOT item context: value=descriptor{source_eid,dest_eid,tag_owner,message_tag,me
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.output_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.output_1.
 Owner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.
 SSOT item context: value=descriptor_ready interrupt; message_completed_count increment.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -155,14 +155,14 @@ SSOT item context: value=descriptor_ready interrupt; message_completed_count inc
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_ready
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_ready.
 Owner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.
 SSOT item context: state=descriptor_ready; expr=not descriptor_queue_full.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -176,14 +176,14 @@ SSOT item context: state=descriptor_ready; expr=not descriptor_queue_full.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_payload_len
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_payload_len.
 Owner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.
 SSOT item context: state=descriptor_payload_len; expr=ctx_payload_byte_count.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -197,14 +197,14 @@ SSOT item context: state=descriptor_payload_len; expr=ctx_payload_byte_count.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_base_addr
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_base_addr.
 Owner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.
 SSOT item context: state=descriptor_base_addr; expr=ctx_payload_base_addr.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -218,14 +218,14 @@ SSOT item context: state=descriptor_base_addr; expr=ctx_payload_base_addr.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.message_completed_count
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.message_completed_count.
 Owner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.
 SSOT item context: state=message_completed_count; expr=message_completed_count + 1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -239,14 +239,14 @@ SSOT item context: state=message_completed_count; expr=message_completed_count +
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_valid
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_valid.
 Owner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.
 SSOT item context: state=descriptor_valid; expr=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -260,14 +260,14 @@ SSOT item context: state=descriptor_valid; expr=1.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.ctx_state
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.ctx_state.
 Owner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.
 SSOT item context: state=ctx_state; expr=DONE_WAIT_DESCRIPTOR_POP.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -281,14 +281,14 @@ SSOT item context: state=ctx_state; expr=DONE_WAIT_DESCRIPTOR_POP.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.descriptor_ready
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.descriptor_ready.
 Owner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.
 SSOT item context: name=descriptor_ready; expr=not descriptor_queue_full; width=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -304,14 +304,14 @@ SSOT item context: name=descriptor_ready; expr=not descriptor_queue_full; width=
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.descriptor_payload_len
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.descriptor_payload_len.
 Owner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.
 SSOT item context: name=descriptor_payload_len; expr=ctx_payload_byte_count; width=13.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -327,14 +327,14 @@ SSOT item context: name=descriptor_payload_len; expr=ctx_payload_byte_count; wid
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.descriptor_base_addr
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.descriptor_base_addr.
 Owner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.
 SSOT item context: name=descriptor_base_addr; expr=ctx_payload_base_addr; width=16.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -350,14 +350,14 @@ SSOT item context: name=descriptor_base_addr; expr=ctx_payload_base_addr; width=
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.message_completed_count
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.message_completed_count.
 Owner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.
 SSOT item context: name=message_completed_count; expr=message_completed_count + 1; width=32.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -373,14 +373,14 @@ SSOT item context: name=message_completed_count; expr=message_completed_count + 
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.descriptor_valid
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.descriptor_valid.
 Owner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.
 SSOT item context: name=descriptor_valid; expr=1; width=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -396,14 +396,14 @@ SSOT item context: name=descriptor_valid; expr=1; width=1.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.ctx_state
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.ctx_state.
 Owner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.
 SSOT item context: name=ctx_state; expr=DONE_WAIT_DESCRIPTOR_POP; width=2.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -419,14 +419,14 @@ SSOT item context: name=ctx_state; expr=DONE_WAIT_DESCRIPTOR_POP; width=2.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.side_effects.side_effect_0.
 Owner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.
 SSOT item context: id=FM_PUBLISH_DESCRIPTOR; name=descriptor_publish; signal=["context released (or DONE_WAIT_DESCRIPTOR_POP)", "descriptor_queue_full"]; state=["descriptor_ready", "descriptor_payload_len", "descriptor_base_addr", "message_completed_count", "descriptor_valid",....
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -439,14 +439,14 @@ SSOT item context: id=FM_PUBLISH_DESCRIPTOR; name=descriptor_publish; signal=["c
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.error_case
 - Source ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.error_cases.error_case_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.error_cases.error_case_0.
 Owner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.
 SSOT item context: id=FM_PUBLISH_DESCRIPTOR; name=descriptor_publish; signal=[{"condition": "descriptor/header queue full at EOM", "result": "AD_DESCRIPTOR_FULL assembly drop; no descriptor publ...; state=["descriptor_ready", "descriptor_payload_len", "descriptor_base_addr", "message_completed_count", "descriptor_valid",....
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -459,14 +459,14 @@ SSOT item context: id=FM_PUBLISH_DESCRIPTOR; name=descriptor_publish; signal=[{"
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: memory.instances
 - Source ref: memory.instances.descriptor_fifo
 - Detail: This SSOT memory.instances item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: memory.instances.descriptor_fifo.
 Owner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via memory.instances.descriptor_fifo.
 SSOT item context: name=descriptor_fifo; width=512; depth=8; latency=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -482,13 +482,13 @@ SSOT item context: name=descriptor_fifo; width=512; depth=8; latency=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: equivalence.module
 - Source ref: sub_modules.mctp_assembler_v3_descriptor_queue.module_equivalence
 - Detail: This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.
 SSOT ref: sub_modules.mctp_assembler_v3_descriptor_queue.module_equivalence.
 Owner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via module_equivalence.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.
 - Criteria:
   - verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module
   - cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff
@@ -503,14 +503,14 @@ Owner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_qu
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: open
 - Category: parameters.item
 - Source ref: parameters.DONE_WAIT_DESCRIPTOR_POP
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.DONE_WAIT_DESCRIPTOR_POP.
 Owner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via semantic_terms:descriptor.
 SSOT item context: name=DONE_WAIT_DESCRIPTOR_POP.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -523,14 +523,14 @@ SSOT item context: name=DONE_WAIT_DESCRIPTOR_POP.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: open
 - Category: parameters.item
 - Source ref: parameters.DESCRIPTOR_FIFO_DEPTH
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.DESCRIPTOR_FIFO_DEPTH.
 Owner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via semantic_terms:descriptor.
 SSOT item context: name=DESCRIPTOR_FIFO_DEPTH.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_descriptor_queue.sv.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects

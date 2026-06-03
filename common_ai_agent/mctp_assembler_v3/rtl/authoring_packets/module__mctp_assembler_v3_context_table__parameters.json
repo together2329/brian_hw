@@ -162,7 +162,7 @@
       "parameters.CONTEXT_COUNT"
     ],
     "status_counts": {
-      "planned": 1
+      "open": 1
     },
     "task_count": 1
   },
@@ -191,6 +191,10 @@
       "ssot_refs": [
         "parameters.CONTEXT_COUNT"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -199,9 +203,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     }
   ],

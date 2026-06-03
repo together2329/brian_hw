@@ -25,7 +25,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 2
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.pipeline, dataflow, decomposition, function_model, function_model.transactions, integration, integration.connections, io_list, io_list.interfaces, top_module
 - Module slice: 1/9 section=rtl_flow task_limit=48
@@ -46,13 +46,13 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: rtl_flow.seed
 - Source ref: top_module
 - Detail: Use rtl_todo_plan.json derived from the current SSOT as the implementation checklist. Seed tasks are not the work breakdown; expand directly from the dynamic plan.
 SSOT ref: top_module.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - rtl_todo_plan.json was regenerated from the current SSOT
   - Every required task in the plan is either implemented, evidenced, or escalated
@@ -65,14 +65,14 @@ Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: rtl_flow.top
 - Source ref: io_list
 - Detail: The top wrapper must expose the SSOT ports and connect every owned RTL file without hiding active behavior behind constants.
 SSOT ref: io_list.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
 SSOT item context: value=mctp_assembler_v3.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Top module name matches SSOT top_module
   - Every SSOT top-level port appears with matching direction and width

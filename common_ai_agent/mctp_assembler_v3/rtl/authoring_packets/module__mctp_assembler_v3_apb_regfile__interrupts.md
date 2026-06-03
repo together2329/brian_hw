@@ -41,14 +41,14 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: interrupts.sources
 - Source ref: interrupts.sources.descriptor_ready
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.descriptor_ready.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via interrupts.
 SSOT item context: name=descriptor_ready; clear=W1C.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -62,14 +62,14 @@ SSOT item context: name=descriptor_ready; clear=W1C.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: interrupts.sources
 - Source ref: interrupts.sources.packet_drop
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.packet_drop.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via interrupts.
 SSOT item context: name=packet_drop; clear=W1C.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -83,14 +83,14 @@ SSOT item context: name=packet_drop; clear=W1C.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: interrupts.sources
 - Source ref: interrupts.sources.assembly_drop
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.assembly_drop.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via interrupts.
 SSOT item context: name=assembly_drop; clear=W1C.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -104,14 +104,14 @@ SSOT item context: name=assembly_drop; clear=W1C.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: interrupts.sources
 - Source ref: interrupts.sources.context_timeout
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.context_timeout.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via interrupts.
 SSOT item context: name=context_timeout; clear=W1C.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -125,14 +125,14 @@ SSOT item context: name=context_timeout; clear=W1C.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: interrupts.sources
 - Source ref: interrupts.sources.sram_overflow
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.sram_overflow.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via interrupts.
 SSOT item context: name=sram_overflow; clear=W1C.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -146,14 +146,14 @@ SSOT item context: name=sram_overflow; clear=W1C.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: interrupts.sources
 - Source ref: interrupts.sources.descriptor_queue_full
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.descriptor_queue_full.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via interrupts.
 SSOT item context: name=descriptor_queue_full; clear=W1C.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -167,14 +167,14 @@ SSOT item context: name=descriptor_queue_full; clear=W1C.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: interrupts.sources
 - Source ref: interrupts.sources.axi_write_malformed
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.axi_write_malformed.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via interrupts.
 SSOT item context: name=axi_write_malformed; clear=W1C.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -188,14 +188,14 @@ SSOT item context: name=axi_write_malformed; clear=W1C.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: interrupts.sources
 - Source ref: interrupts.sources.axi_read_error
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.axi_read_error.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via interrupts.
 SSOT item context: name=axi_read_error; clear=W1C.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -209,14 +209,14 @@ SSOT item context: name=axi_read_error; clear=W1C.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: interrupts.sources
 - Source ref: interrupts.sources.fatal_internal_error
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.fatal_internal_error.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via interrupts.
 SSOT item context: name=fatal_internal_error; clear=W1C.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code

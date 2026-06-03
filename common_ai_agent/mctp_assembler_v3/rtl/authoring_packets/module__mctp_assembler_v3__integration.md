@@ -25,7 +25,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 10
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.pipeline, dataflow, decomposition, function_model, function_model.transactions, integration, integration.connections, io_list, io_list.interfaces, top_module
 - Module slice: 4/9 section=integration task_limit=48
@@ -46,14 +46,14 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.dependencies
 - Source ref: integration.dependencies.external_modules
 - Detail: This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.dependencies.external_modules.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via integration.
 SSOT item context: name=external_modules; value=["payload_sram (256-bit, byte-strobed)"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -66,14 +66,14 @@ SSOT item context: name=external_modules; value=["payload_sram (256-bit, byte-st
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.dependencies
 - Source ref: integration.dependencies.external_clocks
 - Detail: This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.dependencies.external_clocks.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via integration.
 SSOT item context: name=external_clocks; value=["axi_aclk", "pclk"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -86,14 +86,14 @@ SSOT item context: name=external_clocks; value=["axi_aclk", "pclk"].
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.dependencies
 - Source ref: integration.dependencies.external_resets
 - Detail: This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.dependencies.external_resets.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via integration.
 SSOT item context: name=external_resets; value=["axi_aresetn", "presetn"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -106,14 +106,14 @@ SSOT item context: name=external_resets; value=["axi_aresetn", "presetn"].
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.axi_aclk
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.axi_aclk.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via integration.connections.
 SSOT item context: port=axi_aclk; signal=axi_aclk.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -127,14 +127,14 @@ SSOT item context: port=axi_aclk; signal=axi_aclk.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.axi_aresetn
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.axi_aresetn.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via integration.connections.
 SSOT item context: port=axi_aresetn; signal=axi_aresetn.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -148,14 +148,14 @@ SSOT item context: port=axi_aresetn; signal=axi_aresetn.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.pclk
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.pclk.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via integration.connections.
 SSOT item context: port=pclk; signal=pclk.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -169,14 +169,14 @@ SSOT item context: port=pclk; signal=pclk.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.presetn
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.presetn.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via integration.connections.
 SSOT item context: port=presetn; signal=presetn.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -190,14 +190,14 @@ SSOT item context: port=presetn; signal=presetn.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.irq
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.irq.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via integration.connections.
 SSOT item context: port=irq_o; signal=irq.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -211,14 +211,14 @@ SSOT item context: port=irq_o; signal=irq.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.sram_wr_valid
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.sram_wr_valid.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via integration.connections.
 SSOT item context: port=sram_wr_valid_o; signal=sram_wr_valid.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -232,14 +232,14 @@ SSOT item context: port=sram_wr_valid_o; signal=sram_wr_valid.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.last_drop_class
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.last_drop_class.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via integration.connections.
 SSOT item context: port=drop_class_o; signal=last_drop_class.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code

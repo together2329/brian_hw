@@ -35,14 +35,14 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM_DECODE_VDM
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM_DECODE_VDM.
 Owner: mctp_assembler_v3_pcie_vdm_parser in rtl/mctp_assembler_v3_pcie_vdm_parser.sv via function_model.transactions.FM_DECODE_VDM.
 SSOT item context: id=FM_DECODE_VDM; name=pcie_vdm_decode.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -55,14 +55,14 @@ SSOT item context: id=FM_DECODE_VDM; name=pcie_vdm_decode.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM_DECODE_VDM.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_VDM.preconditions.precondition_0.
 Owner: mctp_assembler_v3_pcie_vdm_parser in rtl/mctp_assembler_v3_pcie_vdm_parser.sv via function_model.transactions.FM_DECODE_VDM.
 SSOT item context: value=legal TLP bytes available.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -75,14 +75,14 @@ SSOT item context: value=legal TLP bytes available.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.input
 - Source ref: function_model.transactions.FM_DECODE_VDM.inputs.input_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_VDM.inputs.input_0.
 Owner: mctp_assembler_v3_pcie_vdm_parser in rtl/mctp_assembler_v3_pcie_vdm_parser.sv via function_model.transactions.FM_DECODE_VDM.
 SSOT item context: id=FM_DECODE_VDM; name=pcie_vdm_decode; signal=["raw TLP bytes 0..15", "message_code", "vendor_id", "vdm_code", "routing_supported", "traffic_class", "tlp", "pad_le...; state=["vdm_valid", "payload_offset", "requester_id", "pad_ok", "last_decoded_vdm"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -95,14 +95,14 @@ SSOT item context: id=FM_DECODE_VDM; name=pcie_vdm_decode; signal=["raw TLP byte
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_DECODE_VDM.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_VDM.outputs.output_0.
 Owner: mctp_assembler_v3_pcie_vdm_parser in rtl/mctp_assembler_v3_pcie_vdm_parser.sv via function_model.transactions.FM_DECODE_VDM.
 SSOT item context: value=requester_id, pcie_routing_type, message_code, vendor_id, vdm_code, payload_offset(16), pad_len.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -115,14 +115,14 @@ SSOT item context: value=requester_id, pcie_routing_type, message_code, vendor_i
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_DECODE_VDM.outputs.output_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_VDM.outputs.output_1.
 Owner: mctp_assembler_v3_pcie_vdm_parser in rtl/mctp_assembler_v3_pcie_vdm_parser.sv via function_model.transactions.FM_DECODE_VDM.
 SSOT item context: value=first 16B header snapshot candidate.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -135,14 +135,14 @@ SSOT item context: value=first 16B header snapshot candidate.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_DECODE_VDM.outputs.vdm_valid
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_VDM.outputs.vdm_valid.
 Owner: mctp_assembler_v3_pcie_vdm_parser in rtl/mctp_assembler_v3_pcie_vdm_parser.sv via function_model.transactions.FM_DECODE_VDM.
 SSOT item context: state=vdm_valid; expr=(message_code == 0x7F) and (vendor_id == 0x1AB4) and (vdm_code == 0x0) and routing_supported and (traffic_class == 0).
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -156,14 +156,14 @@ SSOT item context: state=vdm_valid; expr=(message_code == 0x7F) and (vendor_id =
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_DECODE_VDM.outputs.payload_offset
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_VDM.outputs.payload_offset.
 Owner: mctp_assembler_v3_pcie_vdm_parser in rtl/mctp_assembler_v3_pcie_vdm_parser.sv via function_model.transactions.FM_DECODE_VDM.
 SSOT item context: state=payload_offset; expr=16.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -177,14 +177,14 @@ SSOT item context: state=payload_offset; expr=16.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_DECODE_VDM.outputs.requester_id
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_VDM.outputs.requester_id.
 Owner: mctp_assembler_v3_pcie_vdm_parser in rtl/mctp_assembler_v3_pcie_vdm_parser.sv via function_model.transactions.FM_DECODE_VDM.
 SSOT item context: state=requester_id; expr=((tlp[1] << 8) | tlp[2]).
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -198,14 +198,14 @@ SSOT item context: state=requester_id; expr=((tlp[1] << 8) | tlp[2]).
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_DECODE_VDM.outputs.pad_ok
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_VDM.outputs.pad_ok.
 Owner: mctp_assembler_v3_pcie_vdm_parser in rtl/mctp_assembler_v3_pcie_vdm_parser.sv via function_model.transactions.FM_DECODE_VDM.
 SSOT item context: state=pad_ok; expr=(pad_len <= 3) and ((pad_len == 0) if not eom else True).
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -219,14 +219,14 @@ SSOT item context: state=pad_ok; expr=(pad_len <= 3) and ((pad_len == 0) if not 
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_DECODE_VDM.outputs.last_decoded_vdm
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_VDM.outputs.last_decoded_vdm.
 Owner: mctp_assembler_v3_pcie_vdm_parser in rtl/mctp_assembler_v3_pcie_vdm_parser.sv via function_model.transactions.FM_DECODE_VDM.
 SSOT item context: state=last_decoded_vdm; expr=((message_code << 24) | (vendor_id << 8) | vdm_code).
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -240,14 +240,14 @@ SSOT item context: state=last_decoded_vdm; expr=((message_code << 24) | (vendor_
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_DECODE_VDM.state_updates.vdm_valid
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_VDM.state_updates.vdm_valid.
 Owner: mctp_assembler_v3_pcie_vdm_parser in rtl/mctp_assembler_v3_pcie_vdm_parser.sv via function_model.transactions.FM_DECODE_VDM.
 SSOT item context: name=vdm_valid; expr=(message_code == 0x7F) and (vendor_id == 0x1AB4) and (vdm_code == 0x0) and routing_supported and (traffic_class == 0); width=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -263,14 +263,14 @@ SSOT item context: name=vdm_valid; expr=(message_code == 0x7F) and (vendor_id ==
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_DECODE_VDM.state_updates.payload_offset
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_VDM.state_updates.payload_offset.
 Owner: mctp_assembler_v3_pcie_vdm_parser in rtl/mctp_assembler_v3_pcie_vdm_parser.sv via function_model.transactions.FM_DECODE_VDM.
 SSOT item context: name=payload_offset; expr=16; width=5.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -286,14 +286,14 @@ SSOT item context: name=payload_offset; expr=16; width=5.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_DECODE_VDM.state_updates.requester_id
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_VDM.state_updates.requester_id.
 Owner: mctp_assembler_v3_pcie_vdm_parser in rtl/mctp_assembler_v3_pcie_vdm_parser.sv via function_model.transactions.FM_DECODE_VDM.
 SSOT item context: name=requester_id; expr=((tlp[1] << 8) | tlp[2]); width=16.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -309,14 +309,14 @@ SSOT item context: name=requester_id; expr=((tlp[1] << 8) | tlp[2]); width=16.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_DECODE_VDM.state_updates.pad_ok
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_VDM.state_updates.pad_ok.
 Owner: mctp_assembler_v3_pcie_vdm_parser in rtl/mctp_assembler_v3_pcie_vdm_parser.sv via function_model.transactions.FM_DECODE_VDM.
 SSOT item context: name=pad_ok; expr=(pad_len <= 3) and ((pad_len == 0) if not eom else True); width=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -332,14 +332,14 @@ SSOT item context: name=pad_ok; expr=(pad_len <= 3) and ((pad_len == 0) if not e
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_DECODE_VDM.state_updates.last_decoded_vdm
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_VDM.state_updates.last_decoded_vdm.
 Owner: mctp_assembler_v3_pcie_vdm_parser in rtl/mctp_assembler_v3_pcie_vdm_parser.sv via function_model.transactions.FM_DECODE_VDM.
 SSOT item context: name=last_decoded_vdm; expr=((message_code << 24) | (vendor_id << 8) | vdm_code); width=32.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -355,14 +355,14 @@ SSOT item context: name=last_decoded_vdm; expr=((message_code << 24) | (vendor_i
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.error_case
 - Source ref: function_model.transactions.FM_DECODE_VDM.error_cases.error_case_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_VDM.error_cases.error_case_0.
 Owner: mctp_assembler_v3_pcie_vdm_parser in rtl/mctp_assembler_v3_pcie_vdm_parser.sv via function_model.transactions.FM_DECODE_VDM.
 SSOT item context: id=FM_DECODE_VDM; name=pcie_vdm_decode; signal=[{"condition": "not Non-Flit VDM-with-data / msg_code!=0x7F / vendor!=0x1AB4 / vdm_code!=0x0 / unsupported routing/TC...; state=["vdm_valid", "payload_offset", "requester_id", "pad_ok", "last_decoded_vdm"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -375,14 +375,14 @@ SSOT item context: id=FM_DECODE_VDM; name=pcie_vdm_decode; signal=[{"condition":
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.error_case
 - Source ref: function_model.transactions.FM_DECODE_VDM.error_cases.error_case_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_VDM.error_cases.error_case_1.
 Owner: mctp_assembler_v3_pcie_vdm_parser in rtl/mctp_assembler_v3_pcie_vdm_parser.sv via function_model.transactions.FM_DECODE_VDM.
 SSOT item context: id=FM_DECODE_VDM; name=pcie_vdm_decode; signal=[{"condition": "pad_len>3 / pad_len!=0 on non-EOM / TU not in [64,4096] or not 4B-aligned / non-EOM payload != TU or ...; state=["vdm_valid", "payload_offset", "requester_id", "pad_ok", "last_decoded_vdm"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -395,14 +395,14 @@ SSOT item context: id=FM_DECODE_VDM; name=pcie_vdm_decode; signal=[{"condition":
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: features.item
 - Source ref: features.axi_ingress
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.axi_ingress.
 Owner: mctp_assembler_v3_pcie_vdm_parser in rtl/mctp_assembler_v3_pcie_vdm_parser.sv via features.
 SSOT item context: name=axi_ingress; output=ordered TLP bytes + accept event, or PD_MALFORMED_TLP.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -415,14 +415,14 @@ SSOT item context: name=axi_ingress; output=ordered TLP bytes + accept event, or
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: features.item
 - Source ref: features.vdm_decode
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.vdm_decode.
 Owner: mctp_assembler_v3_pcie_vdm_parser in rtl/mctp_assembler_v3_pcie_vdm_parser.sv via features.vdm_decode.
 SSOT item context: name=vdm_decode; output=validated VDM fields + payload offset, or PD_UNSUPPORTED_VDM / PD_BAD_PAD_OR_ALIGNMENT.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -435,14 +435,14 @@ SSOT item context: name=vdm_decode; output=validated VDM fields + payload offset
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: features.item
 - Source ref: features.interleaved_assembly
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.interleaved_assembly.
 Owner: mctp_assembler_v3_pcie_vdm_parser in rtl/mctp_assembler_v3_pcie_vdm_parser.sv via features.
 SSOT item context: name=interleaved_assembly; output=appended payload bytes + descriptor on EOM, or AD_* assembly drop.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -455,14 +455,14 @@ SSOT item context: name=interleaved_assembly; output=appended payload bytes + de
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: features.item
 - Source ref: features.descriptor_publish
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.descriptor_publish.
 Owner: mctp_assembler_v3_pcie_vdm_parser in rtl/mctp_assembler_v3_pcie_vdm_parser.sv via features.
 SSOT item context: name=descriptor_publish; output=descriptor_ready interrupt + APB descriptor readout, or AD_DESCRIPTOR_FULL.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -475,14 +475,14 @@ SSOT item context: name=descriptor_publish; output=descriptor_ready interrupt + 
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: features.item
 - Source ref: features.firmware_read
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.firmware_read.
 Owner: mctp_assembler_v3_pcie_vdm_parser in rtl/mctp_assembler_v3_pcie_vdm_parser.sv via features.
 SSOT item context: name=firmware_read; output=rdata beats; SLVERR for out-of-window/no-descriptor reads.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -495,14 +495,14 @@ SSOT item context: name=firmware_read; output=rdata beats; SLVERR for out-of-win
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: features.item
 - Source ref: features.drop_classification
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.drop_classification.
 Owner: mctp_assembler_v3_pcie_vdm_parser in rtl/mctp_assembler_v3_pcie_vdm_parser.sv via features.
 SSOT item context: name=drop_classification; output=last_drop_class/last_drop_reason + per-reason counters + interrupt.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -515,13 +515,13 @@ SSOT item context: name=drop_classification; output=last_drop_class/last_drop_re
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: equivalence.module
 - Source ref: sub_modules.mctp_assembler_v3_pcie_vdm_parser.module_equivalence
 - Detail: This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.
 SSOT ref: sub_modules.mctp_assembler_v3_pcie_vdm_parser.module_equivalence.
 Owner: mctp_assembler_v3_pcie_vdm_parser in rtl/mctp_assembler_v3_pcie_vdm_parser.sv via module_equivalence.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.
 - Criteria:
   - verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module
   - cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff

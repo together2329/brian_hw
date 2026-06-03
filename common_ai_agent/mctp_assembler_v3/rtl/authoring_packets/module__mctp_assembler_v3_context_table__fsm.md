@@ -39,14 +39,14 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: fsm.state
 - Source ref: fsm.ingress_fsm.states.state_0
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.ingress_fsm.states.state_0.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.
 SSOT item context: value=IDLE.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -60,14 +60,14 @@ SSOT item context: value=IDLE.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: fsm.state
 - Source ref: fsm.ingress_fsm.states.state_1
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.ingress_fsm.states.state_1.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.
 SSOT item context: value=ACCEPT_AW.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -81,14 +81,14 @@ SSOT item context: value=ACCEPT_AW.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: fsm.state
 - Source ref: fsm.ingress_fsm.states.state_2
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.ingress_fsm.states.state_2.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.
 SSOT item context: value=COLLECT_W.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -102,14 +102,14 @@ SSOT item context: value=COLLECT_W.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: fsm.state
 - Source ref: fsm.ingress_fsm.states.state_3
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.ingress_fsm.states.state_3.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.
 SSOT item context: value=CHECK_LEGAL.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -123,14 +123,14 @@ SSOT item context: value=CHECK_LEGAL.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: fsm.state
 - Source ref: fsm.ingress_fsm.states.state_4
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.ingress_fsm.states.state_4.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.
 SSOT item context: value=EMIT_TLP.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -144,14 +144,14 @@ SSOT item context: value=EMIT_TLP.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: fsm.state
 - Source ref: fsm.ingress_fsm.states.state_5
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.ingress_fsm.states.state_5.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.
 SSOT item context: value=RESP_B.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -165,14 +165,14 @@ SSOT item context: value=RESP_B.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: fsm.transition
 - Source ref: fsm.ingress_fsm.transitions.transition_0
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.ingress_fsm.transitions.transition_0.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.
 SSOT item context: from=IDLE; to=ACCEPT_AW; condition=awvalid && awready.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -187,14 +187,14 @@ SSOT item context: from=IDLE; to=ACCEPT_AW; condition=awvalid && awready.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: fsm.transition
 - Source ref: fsm.ingress_fsm.transitions.transition_1
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.ingress_fsm.transitions.transition_1.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.
 SSOT item context: from=ACCEPT_AW; to=COLLECT_W; condition=AWSIZE==5 && AWBURST==INCR.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -209,14 +209,14 @@ SSOT item context: from=ACCEPT_AW; to=COLLECT_W; condition=AWSIZE==5 && AWBURST=
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: fsm.transition
 - Source ref: fsm.ingress_fsm.transitions.transition_2
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.ingress_fsm.transitions.transition_2.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.
 SSOT item context: from=ACCEPT_AW; to=RESP_B; condition=illegal AWSIZE/AWBURST (PD_MALFORMED_TLP).
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -231,14 +231,14 @@ SSOT item context: from=ACCEPT_AW; to=RESP_B; condition=illegal AWSIZE/AWBURST (
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: fsm.transition
 - Source ref: fsm.ingress_fsm.transitions.transition_3
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.ingress_fsm.transitions.transition_3.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.
 SSOT item context: from=COLLECT_W; to=CHECK_LEGAL; condition=wlast && wvalid && wready.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -253,14 +253,14 @@ SSOT item context: from=COLLECT_W; to=CHECK_LEGAL; condition=wlast && wvalid && 
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: fsm.transition
 - Source ref: fsm.ingress_fsm.transitions.transition_4
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.ingress_fsm.transitions.transition_4.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.
 SSOT item context: from=CHECK_LEGAL; to=EMIT_TLP; condition=beat-count/WSTRB/length legal.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -275,14 +275,14 @@ SSOT item context: from=CHECK_LEGAL; to=EMIT_TLP; condition=beat-count/WSTRB/len
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: fsm.transition
 - Source ref: fsm.ingress_fsm.transitions.transition_5
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.ingress_fsm.transitions.transition_5.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.
 SSOT item context: from=CHECK_LEGAL; to=RESP_B; condition=malformed (PD_MALFORMED_TLP).
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -297,14 +297,14 @@ SSOT item context: from=CHECK_LEGAL; to=RESP_B; condition=malformed (PD_MALFORME
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: fsm.transition
 - Source ref: fsm.ingress_fsm.transitions.transition_6
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.ingress_fsm.transitions.transition_6.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.
 SSOT item context: from=EMIT_TLP; to=RESP_B; condition=TLP bytes emitted to parser.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -319,14 +319,14 @@ SSOT item context: from=EMIT_TLP; to=RESP_B; condition=TLP bytes emitted to pars
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: fsm.transition
 - Source ref: fsm.ingress_fsm.transitions.transition_7
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.ingress_fsm.transitions.transition_7.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.
 SSOT item context: from=RESP_B; to=IDLE; condition=bvalid && bready (OKAY).
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -341,14 +341,14 @@ SSOT item context: from=RESP_B; to=IDLE; condition=bvalid && bready (OKAY).
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: fsm.state
 - Source ref: fsm.context_fsm.states.state_0
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.context_fsm.states.state_0.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.context_fsm.
 SSOT item context: value=IDLE.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -362,14 +362,14 @@ SSOT item context: value=IDLE.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: fsm.state
 - Source ref: fsm.context_fsm.states.state_1
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.context_fsm.states.state_1.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.context_fsm.
 SSOT item context: value=ASSEMBLING.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -383,14 +383,14 @@ SSOT item context: value=ASSEMBLING.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: fsm.state
 - Source ref: fsm.context_fsm.states.state_2
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.context_fsm.states.state_2.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.context_fsm.
 SSOT item context: value=ERROR.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -404,14 +404,14 @@ SSOT item context: value=ERROR.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: fsm.state
 - Source ref: fsm.context_fsm.states.state_3
 - Detail: Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.context_fsm.states.state_3.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.context_fsm.
 SSOT item context: value=DONE_WAIT_DESCRIPTOR_POP.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - State is encoded/reachable or explicitly replaced by equivalent logic
   - Reset/entry/exit behavior matches SSOT
@@ -425,14 +425,14 @@ SSOT item context: value=DONE_WAIT_DESCRIPTOR_POP.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: fsm.transition
 - Source ref: fsm.context_fsm.transitions.transition_0
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.context_fsm.transitions.transition_0.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.context_fsm.
 SSOT item context: from=IDLE; to=ASSEMBLING; condition=accepted SOM=1,EOM=0 allocates slot.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -447,14 +447,14 @@ SSOT item context: from=IDLE; to=ASSEMBLING; condition=accepted SOM=1,EOM=0 allo
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: fsm.transition
 - Source ref: fsm.context_fsm.transitions.transition_1
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.context_fsm.transitions.transition_1.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.context_fsm.
 SSOT item context: from=IDLE; to=DONE_WAIT_DESCRIPTOR_POP; condition=accepted SOM=1,EOM=1 single-packet completes.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -469,14 +469,14 @@ SSOT item context: from=IDLE; to=DONE_WAIT_DESCRIPTOR_POP; condition=accepted SO
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: fsm.transition
 - Source ref: fsm.context_fsm.transitions.transition_2
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.context_fsm.transitions.transition_2.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.context_fsm.
 SSOT item context: from=ASSEMBLING; to=ASSEMBLING; condition=accepted SOM=0,EOM=0 append, seq ok.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -491,14 +491,14 @@ SSOT item context: from=ASSEMBLING; to=ASSEMBLING; condition=accepted SOM=0,EOM=
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: fsm.transition
 - Source ref: fsm.context_fsm.transitions.transition_3
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.context_fsm.transitions.transition_3.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.context_fsm.
 SSOT item context: from=ASSEMBLING; to=DONE_WAIT_DESCRIPTOR_POP; condition=accepted SOM=0,EOM=1 completes; descriptor pushed.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -513,14 +513,14 @@ SSOT item context: from=ASSEMBLING; to=DONE_WAIT_DESCRIPTOR_POP; condition=accep
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: fsm.transition
 - Source ref: fsm.context_fsm.transitions.transition_4
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.context_fsm.transitions.transition_4.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.context_fsm.
 SSOT item context: from=ASSEMBLING; to=ERROR; condition=AD_* assembly drop (dup SOM/seq/overflow/sram/timeout).
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -535,14 +535,14 @@ SSOT item context: from=ASSEMBLING; to=ERROR; condition=AD_* assembly drop (dup 
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: fsm.transition
 - Source ref: fsm.context_fsm.transitions.transition_5
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.context_fsm.transitions.transition_5.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.context_fsm.
 SSOT item context: from=DONE_WAIT_DESCRIPTOR_POP; to=IDLE; condition=descriptor copied/popped.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented
@@ -557,14 +557,14 @@ SSOT item context: from=DONE_WAIT_DESCRIPTOR_POP; to=IDLE; condition=descriptor 
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: fsm.transition
 - Source ref: fsm.context_fsm.transitions.transition_6
 - Detail: Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.
 SSOT ref: fsm.context_fsm.transitions.transition_6.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.context_fsm.
 SSOT item context: from=ERROR; to=IDLE; condition=clear policy releases the slot.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
 - Criteria:
   - Transition condition is present in RTL control logic
   - Transition action/state update is implemented

@@ -25,7 +25,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 20
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.handshake_rules, function_model, function_model.transactions.FM_INGEST_TLP, io_list, io_list.interfaces.axi_wr_slave, test_requirements
 - Module slice: 4/5 section=test_requirements task_limit=48
@@ -40,14 +40,14 @@
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_SINGLE
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_SINGLE.
 Owner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.
 SSOT item context: id=SC_SINGLE; name=Valid single-packet message; expected=payload assembled, descriptor published, first==last header.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -61,14 +61,14 @@ SSOT item context: id=SC_SINGLE; name=Valid single-packet message; expected=payl
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_FRAG
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_FRAG.
 Owner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.
 SSOT item context: id=SC_FRAG; name=Fragmented message across TLPs; expected=concatenated payload, no SRAM holes, descriptor payload_len correct.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -82,14 +82,14 @@ SSOT item context: id=SC_FRAG; name=Fragmented message across TLPs; expected=con
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_INTERLEAVE
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_INTERLEAVE.
 Owner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.
 SSOT item context: id=SC_INTERLEAVE; name=Interleaved messages distinct keys; expected=independent contexts, B completes before A, partial words preserved.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -103,14 +103,14 @@ SSOT item context: id=SC_INTERLEAVE; name=Interleaved messages distinct keys; ex
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_UNALIGNED_TU
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_UNALIGNED_TU.
 Owner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.
 SSOT item context: id=SC_UNALIGNED_TU; name=TU=68B unaligned 32B continuation; expected=next fragment continues lane 4 of word@64, no gap.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -124,14 +124,14 @@ SSOT item context: id=SC_UNALIGNED_TU; name=TU=68B unaligned 32B continuation; e
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_MAX_TU
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_MAX_TU.
 Owner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.
 SSOT item context: id=SC_MAX_TU; name=Max TU 4096B over 129 beats; expected=129 W beats accepted, payload_len=4096.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -145,14 +145,14 @@ SSOT item context: id=SC_MAX_TU; name=Max TU 4096B over 129 beats; expected=129 
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_PD_MALFORMED
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_PD_MALFORMED.
 Owner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.
 SSOT item context: id=SC_PD_MALFORMED; name=Malformed AXI/TLP drops; expected=PD_MALFORMED_TLP, no context/SRAM/descriptor side effect.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -166,14 +166,14 @@ SSOT item context: id=SC_PD_MALFORMED; name=Malformed AXI/TLP drops; expected=PD
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_PD_VDM
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_PD_VDM.
 Owner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.
 SSOT item context: id=SC_PD_VDM; name=Unsupported VDM constants; expected=PD_UNSUPPORTED_VDM.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -187,14 +187,14 @@ SSOT item context: id=SC_PD_VDM; name=Unsupported VDM constants; expected=PD_UNS
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_PD_MCTP
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_PD_MCTP.
 Owner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.
 SSOT item context: id=SC_PD_MCTP; name=Bad MCTP header version; expected=PD_BAD_MCTP_HEADER.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -208,14 +208,14 @@ SSOT item context: id=SC_PD_MCTP; name=Bad MCTP header version; expected=PD_BAD_
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_PD_EID
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_PD_EID.
 Owner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.
 SSOT item context: id=SC_PD_EID; name=Dest EID reject; expected=PD_DEST_EID_REJECT.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -229,14 +229,14 @@ SSOT item context: id=SC_PD_EID; name=Dest EID reject; expected=PD_DEST_EID_REJE
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_PD_MIDDLE
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_PD_MIDDLE.
 Owner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.
 SSOT item context: id=SC_PD_MIDDLE; name=Middle/EOM without SOM; expected=PD_UNEXPECTED_MIDDLE_END.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -250,14 +250,14 @@ SSOT item context: id=SC_PD_MIDDLE; name=Middle/EOM without SOM; expected=PD_UNE
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_AD_DUP
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_AD_DUP.
 Owner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.
 SSOT item context: id=SC_AD_DUP; name=Duplicate SOM; expected=AD_DUPLICATE_SOM aborts exactly that context.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -271,14 +271,14 @@ SSOT item context: id=SC_AD_DUP; name=Duplicate SOM; expected=AD_DUPLICATE_SOM a
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_AD_SEQ
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_AD_SEQ.
 Owner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.
 SSOT item context: id=SC_AD_SEQ; name=Sequence mismatch; expected=AD_SEQUENCE_MISMATCH abort.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -292,14 +292,14 @@ SSOT item context: id=SC_AD_SEQ; name=Sequence mismatch; expected=AD_SEQUENCE_MI
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_AD_CTXFULL
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_AD_CTXFULL.
 Owner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.
 SSOT item context: id=SC_AD_CTXFULL; name=Context table full; expected=PD_BAD_OR_EXPIRED_TAG (table full), no alloc.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -313,14 +313,14 @@ SSOT item context: id=SC_AD_CTXFULL; name=Context table full; expected=PD_BAD_OR
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_AD_SRAM
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_AD_SRAM.
 Owner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.
 SSOT item context: id=SC_AD_SRAM; name=SRAM overflow; expected=AD_SRAM_OVERFLOW abort.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -334,14 +334,14 @@ SSOT item context: id=SC_AD_SRAM; name=SRAM overflow; expected=AD_SRAM_OVERFLOW 
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_AD_DESCFULL
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_AD_DESCFULL.
 Owner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.
 SSOT item context: id=SC_AD_DESCFULL; name=Descriptor queue full; expected=AD_DESCRIPTOR_FULL, no descriptor.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -355,14 +355,14 @@ SSOT item context: id=SC_AD_DESCFULL; name=Descriptor queue full; expected=AD_DE
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_AD_TIMEOUT
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_AD_TIMEOUT.
 Owner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.
 SSOT item context: id=SC_AD_TIMEOUT; name=Assembly timeout; expected=AD_TIMEOUT abort.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -376,14 +376,14 @@ SSOT item context: id=SC_AD_TIMEOUT; name=Assembly timeout; expected=AD_TIMEOUT 
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_PRIORITY
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_PRIORITY.
 Owner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.
 SSOT item context: id=SC_PRIORITY; name=Drop priority; expected=earlier packet-drop reason wins.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -397,14 +397,14 @@ SSOT item context: id=SC_PRIORITY; name=Drop priority; expected=earlier packet-d
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_FW_READ
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_FW_READ.
 Owner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.
 SSOT item context: id=SC_FW_READ; name=Firmware payload read; expected=payload bytes returned, RLAST on final beat.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -418,14 +418,14 @@ SSOT item context: id=SC_FW_READ; name=Firmware payload read; expected=payload b
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_FW_READ_SLVERR
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_FW_READ_SLVERR.
 Owner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.
 SSOT item context: id=SC_FW_READ_SLVERR; name=Read outside window; expected=RRESP=SLVERR.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -439,14 +439,14 @@ SSOT item context: id=SC_FW_READ_SLVERR; name=Read outside window; expected=RRES
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_REG
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_REG.
 Owner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.
 SSOT item context: id=SC_REG; name=APB register access; expected=register behavior + per-Q visibility.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared

@@ -188,7 +188,7 @@
       "parameters.SRAM_DATA_WIDTH"
     ],
     "status_counts": {
-      "planned": 24
+      "open": 24
     },
     "task_count": 24
   },
@@ -218,6 +218,10 @@
       "ssot_refs": [
         "function_model.transactions.FM_PACK_SRAM"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -226,9 +230,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -255,6 +259,10 @@
       "ssot_refs": [
         "function_model.transactions.FM_PACK_SRAM.preconditions.precondition_0"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -263,9 +271,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -314,6 +322,34 @@
       "ssot_refs": [
         "function_model.transactions.FM_PACK_SRAM.inputs.input_0"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "addr",
+          "bytes",
+          "count",
+          "ctx",
+          "ctx_partial_next_lane",
+          "ctx_payload_next_addr",
+          "lane",
+          "next",
+          "partial",
+          "payload",
+          "payload_bytes",
+          "payload_bytes_written_count",
+          "sram",
+          "sram_wr_addr",
+          "sram_wr_strb",
+          "sram_wr_valid"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_sram_packer.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -322,9 +358,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -373,6 +409,34 @@
       "ssot_refs": [
         "function_model.transactions.FM_PACK_SRAM.inputs.input_1"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "addr",
+          "bytes",
+          "count",
+          "ctx",
+          "ctx_partial_next_lane",
+          "ctx_payload_next_addr",
+          "lane",
+          "next",
+          "partial",
+          "partial_word",
+          "payload",
+          "payload_bytes",
+          "payload_bytes_written_count",
+          "sram",
+          "sram_wr_addr",
+          "sram_wr_strb"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_sram_packer.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -381,9 +445,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -420,6 +484,27 @@
       "ssot_refs": [
         "function_model.transactions.FM_PACK_SRAM.outputs.output_0"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "addr",
+          "base",
+          "base_addr",
+          "sram",
+          "sram_wr_strb",
+          "sram_write",
+          "strb",
+          "wr",
+          "write"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_sram_packer.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -428,9 +513,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -469,6 +554,25 @@
       "ssot_refs": [
         "function_model.transactions.FM_PACK_SRAM.outputs.sram_wr_valid"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "bytes",
+          "payload",
+          "payload_bytes",
+          "sram",
+          "sram_wr_valid",
+          "valid",
+          "wr"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_sram_packer.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -477,9 +581,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -519,6 +623,26 @@
       "ssot_refs": [
         "function_model.transactions.FM_PACK_SRAM.outputs.sram_wr_addr"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "addr",
+          "ctx",
+          "ctx_payload_next_addr",
+          "next",
+          "payload",
+          "sram",
+          "sram_wr_addr",
+          "wr"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_sram_packer.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -527,9 +651,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -572,6 +696,29 @@
       "ssot_refs": [
         "function_model.transactions.FM_PACK_SRAM.outputs.sram_wr_strb"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "addr",
+          "bytes",
+          "ctx",
+          "ctx_payload_next_addr",
+          "next",
+          "payload",
+          "payload_bytes",
+          "sram",
+          "sram_wr_strb",
+          "strb",
+          "wr"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_sram_packer.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -580,9 +727,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -619,6 +766,25 @@
       "ssot_refs": [
         "function_model.transactions.FM_PACK_SRAM.outputs.ctx_payload_next_addr"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "addr",
+          "bytes",
+          "ctx",
+          "ctx_payload_next_addr",
+          "next",
+          "payload",
+          "payload_bytes"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_sram_packer.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -627,9 +793,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -667,6 +833,26 @@
       "ssot_refs": [
         "function_model.transactions.FM_PACK_SRAM.outputs.ctx_partial_next_lane"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "bytes",
+          "ctx",
+          "ctx_partial_next_lane",
+          "lane",
+          "next",
+          "partial",
+          "payload",
+          "payload_bytes"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_sram_packer.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -675,9 +861,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -713,6 +899,24 @@
       "ssot_refs": [
         "function_model.transactions.FM_PACK_SRAM.outputs.payload_bytes_written_count"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "bytes",
+          "count",
+          "payload",
+          "payload_bytes",
+          "payload_bytes_written_count",
+          "written"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_sram_packer.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -721,9 +925,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -765,6 +969,25 @@
       "ssot_refs": [
         "function_model.transactions.FM_PACK_SRAM.output_rules.sram_wr_valid"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "bytes",
+          "payload",
+          "payload_bytes",
+          "sram",
+          "sram_wr_valid",
+          "valid",
+          "wr"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_sram_packer.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 9,
         "evidence_basis": [
@@ -773,9 +996,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -818,6 +1041,26 @@
       "ssot_refs": [
         "function_model.transactions.FM_PACK_SRAM.output_rules.sram_wr_addr"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "addr",
+          "ctx",
+          "ctx_payload_next_addr",
+          "next",
+          "payload",
+          "sram",
+          "sram_wr_addr",
+          "wr"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_sram_packer.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 9,
         "evidence_basis": [
@@ -826,9 +1069,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -874,6 +1117,29 @@
       "ssot_refs": [
         "function_model.transactions.FM_PACK_SRAM.output_rules.sram_wr_strb"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "addr",
+          "bytes",
+          "ctx",
+          "ctx_payload_next_addr",
+          "next",
+          "payload",
+          "payload_bytes",
+          "sram",
+          "sram_wr_strb",
+          "strb",
+          "wr"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_sram_packer.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 9,
         "evidence_basis": [
@@ -882,9 +1148,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -924,6 +1190,25 @@
       "ssot_refs": [
         "function_model.transactions.FM_PACK_SRAM.state_updates.ctx_payload_next_addr"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "addr",
+          "bytes",
+          "ctx",
+          "ctx_payload_next_addr",
+          "next",
+          "payload",
+          "payload_bytes"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_sram_packer.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -932,9 +1217,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -975,6 +1260,26 @@
       "ssot_refs": [
         "function_model.transactions.FM_PACK_SRAM.state_updates.ctx_partial_next_lane"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "bytes",
+          "ctx",
+          "ctx_partial_next_lane",
+          "lane",
+          "next",
+          "partial",
+          "payload",
+          "payload_bytes"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_sram_packer.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -983,9 +1288,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1024,6 +1329,24 @@
       "ssot_refs": [
         "function_model.transactions.FM_PACK_SRAM.state_updates.payload_bytes_written_count"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "bytes",
+          "count",
+          "payload",
+          "payload_bytes",
+          "payload_bytes_written_count",
+          "written"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_sram_packer.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -1032,9 +1355,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1083,6 +1406,34 @@
       "ssot_refs": [
         "function_model.transactions.FM_PACK_SRAM.side_effects.side_effect_0"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "addr",
+          "bytes",
+          "count",
+          "ctx",
+          "ctx_partial_next_lane",
+          "ctx_payload_next_addr",
+          "lane",
+          "next",
+          "partial",
+          "payload",
+          "payload_bytes",
+          "payload_bytes_written_count",
+          "sram",
+          "sram_wr_addr",
+          "sram_wr_strb",
+          "sram_wr_valid"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_sram_packer.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -1091,9 +1442,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1142,6 +1493,34 @@
       "ssot_refs": [
         "function_model.transactions.FM_PACK_SRAM.error_cases.error_case_0"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "AD",
+          "ADDR",
+          "AD_SRAM_OVERFLOW",
+          "OVERFLOW",
+          "SRAM",
+          "SRAM_ADDR_WIDTH",
+          "WIDTH",
+          "addr",
+          "base",
+          "bytes",
+          "count",
+          "ctx",
+          "ctx_partial_next_lane",
+          "ctx_payload_next_addr",
+          "lane",
+          "next"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_sram_packer.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -1150,9 +1529,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1189,6 +1568,21 @@
       "ssot_refs": [
         "memory.instances.context_table"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "context",
+          "context_table",
+          "table"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_sram_packer.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -1197,9 +1591,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1231,6 +1625,21 @@
       "ssot_refs": [
         "features.payload_pack"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "sram",
+          "sram_write",
+          "write"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_sram_packer.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1239,9 +1648,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1268,6 +1677,10 @@
       "ssot_refs": [
         "sub_modules.mctp_assembler_v3_sram_packer.module_equivalence"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -1276,9 +1689,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1305,6 +1718,10 @@
       "ssot_refs": [
         "parameters.SRAM_ADDR_WIDTH"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1313,9 +1730,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1342,6 +1759,10 @@
       "ssot_refs": [
         "parameters.SRAM_DATA_WIDTH"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1350,9 +1771,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     }
   ],

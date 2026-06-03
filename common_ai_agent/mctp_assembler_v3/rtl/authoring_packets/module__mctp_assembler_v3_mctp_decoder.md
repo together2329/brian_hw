@@ -35,14 +35,14 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM_DECODE_MCTP
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM_DECODE_MCTP.
 Owner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.
 SSOT item context: id=FM_DECODE_MCTP; name=mctp_transport_decode.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -55,14 +55,14 @@ SSOT item context: id=FM_DECODE_MCTP; name=mctp_transport_decode.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.precondition
 - Source ref: function_model.transactions.FM_DECODE_MCTP.preconditions.precondition_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_MCTP.preconditions.precondition_0.
 Owner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.
 SSOT item context: value=validated VDM payload present.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -75,14 +75,14 @@ SSOT item context: value=validated VDM payload present.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.input
 - Source ref: function_model.transactions.FM_DECODE_MCTP.inputs.input_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_MCTP.inputs.input_0.
 Owner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.
 SSOT item context: id=FM_DECODE_MCTP; name=mctp_transport_decode; signal=["MCTP transport header (last 4B of 16B header)", "header_version", "mctp_byte0", "dest_filter_enable", "dest_eid", "...; state=["header_version_ok", "som", "eom", "packet_seq", "tag_owner", "message_tag", "dest_accept", "assembly_key"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -95,14 +95,14 @@ SSOT item context: id=FM_DECODE_MCTP; name=mctp_transport_decode; signal=["MCTP 
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.input
 - Source ref: function_model.transactions.FM_DECODE_MCTP.inputs.input_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_MCTP.inputs.input_1.
 Owner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.
 SSOT item context: id=FM_DECODE_MCTP; name=mctp_transport_decode; signal=["SOM body byte (IC+message_type) when SOM=1", "header_version", "mctp_byte0", "dest_filter_enable", "dest_eid", "loc...; state=["header_version_ok", "som", "eom", "packet_seq", "tag_owner", "message_tag", "dest_accept", "assembly_key"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -115,14 +115,14 @@ SSOT item context: id=FM_DECODE_MCTP; name=mctp_transport_decode; signal=["SOM b
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_DECODE_MCTP.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_MCTP.outputs.output_0.
 Owner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.
 SSOT item context: value=header_version, dest_eid, source_eid, SOM, EOM, packet_seq, tag_owner, message_tag.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -135,14 +135,14 @@ SSOT item context: value=header_version, dest_eid, source_eid, SOM, EOM, packet_
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_DECODE_MCTP.outputs.output_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_MCTP.outputs.output_1.
 Owner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.
 SSOT item context: value=ic, message_type on SOM.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -155,14 +155,14 @@ SSOT item context: value=ic, message_type on SOM.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_DECODE_MCTP.outputs.output_2
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_MCTP.outputs.output_2.
 Owner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.
 SSOT item context: value=assembly_key={source_eid,tag_owner,message_tag}.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -175,14 +175,14 @@ SSOT item context: value=assembly_key={source_eid,tag_owner,message_tag}.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_DECODE_MCTP.outputs.header_version_ok
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_MCTP.outputs.header_version_ok.
 Owner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.
 SSOT item context: state=header_version_ok; expr=header_version == 1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -196,14 +196,14 @@ SSOT item context: state=header_version_ok; expr=header_version == 1.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_DECODE_MCTP.outputs.som
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_MCTP.outputs.som.
 Owner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.
 SSOT item context: state=som; expr=mctp_byte0[7].
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -217,14 +217,14 @@ SSOT item context: state=som; expr=mctp_byte0[7].
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_DECODE_MCTP.outputs.eom
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_MCTP.outputs.eom.
 Owner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.
 SSOT item context: state=eom; expr=mctp_byte0[6].
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -238,14 +238,14 @@ SSOT item context: state=eom; expr=mctp_byte0[6].
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_DECODE_MCTP.outputs.packet_seq
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_MCTP.outputs.packet_seq.
 Owner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.
 SSOT item context: state=packet_seq; expr=mctp_byte0[5:4].
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -259,14 +259,14 @@ SSOT item context: state=packet_seq; expr=mctp_byte0[5:4].
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_DECODE_MCTP.outputs.tag_owner
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_MCTP.outputs.tag_owner.
 Owner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.
 SSOT item context: state=tag_owner; expr=mctp_byte0[3].
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -280,14 +280,14 @@ SSOT item context: state=tag_owner; expr=mctp_byte0[3].
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_DECODE_MCTP.outputs.message_tag
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_MCTP.outputs.message_tag.
 Owner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.
 SSOT item context: state=message_tag; expr=mctp_byte0[2:0].
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -301,14 +301,14 @@ SSOT item context: state=message_tag; expr=mctp_byte0[2:0].
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_DECODE_MCTP.outputs.dest_accept
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_MCTP.outputs.dest_accept.
 Owner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.
 SSOT item context: state=dest_accept; expr=(not dest_filter_enable) or (dest_eid == local_eid) or (accept_broadcast_eid and (dest_eid == 0xFF)) or (accept_null_....
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -322,14 +322,14 @@ SSOT item context: state=dest_accept; expr=(not dest_filter_enable) or (dest_eid
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_DECODE_MCTP.outputs.assembly_key
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_MCTP.outputs.assembly_key.
 Owner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.
 SSOT item context: state=assembly_key; expr=((source_eid << 4) | (tag_owner << 3) | message_tag).
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -343,14 +343,14 @@ SSOT item context: state=assembly_key; expr=((source_eid << 4) | (tag_owner << 3
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_DECODE_MCTP.state_updates.header_version_ok
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_MCTP.state_updates.header_version_ok.
 Owner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.
 SSOT item context: name=header_version_ok; expr=header_version == 1; width=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -366,14 +366,14 @@ SSOT item context: name=header_version_ok; expr=header_version == 1; width=1.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_DECODE_MCTP.state_updates.som
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_MCTP.state_updates.som.
 Owner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.
 SSOT item context: name=som; expr=mctp_byte0[7]; width=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -389,14 +389,14 @@ SSOT item context: name=som; expr=mctp_byte0[7]; width=1.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_DECODE_MCTP.state_updates.eom
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_MCTP.state_updates.eom.
 Owner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.
 SSOT item context: name=eom; expr=mctp_byte0[6]; width=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -412,14 +412,14 @@ SSOT item context: name=eom; expr=mctp_byte0[6]; width=1.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_DECODE_MCTP.state_updates.packet_seq
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_MCTP.state_updates.packet_seq.
 Owner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.
 SSOT item context: name=packet_seq; expr=mctp_byte0[5:4]; width=2.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -435,14 +435,14 @@ SSOT item context: name=packet_seq; expr=mctp_byte0[5:4]; width=2.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_DECODE_MCTP.state_updates.tag_owner
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_MCTP.state_updates.tag_owner.
 Owner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.
 SSOT item context: name=tag_owner; expr=mctp_byte0[3]; width=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -458,14 +458,14 @@ SSOT item context: name=tag_owner; expr=mctp_byte0[3]; width=1.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_DECODE_MCTP.state_updates.message_tag
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_MCTP.state_updates.message_tag.
 Owner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.
 SSOT item context: name=message_tag; expr=mctp_byte0[2:0]; width=3.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -481,14 +481,14 @@ SSOT item context: name=message_tag; expr=mctp_byte0[2:0]; width=3.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_DECODE_MCTP.state_updates.dest_accept
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_MCTP.state_updates.dest_accept.
 Owner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.
 SSOT item context: name=dest_accept; expr=(not dest_filter_enable) or (dest_eid == local_eid) or (accept_broadcast_eid and (dest_eid == 0xFF)) or (accept_null_...; width=1.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -504,14 +504,14 @@ SSOT item context: name=dest_accept; expr=(not dest_filter_enable) or (dest_eid 
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_DECODE_MCTP.state_updates.assembly_key
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_MCTP.state_updates.assembly_key.
 Owner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.
 SSOT item context: name=assembly_key; expr=((source_eid << 4) | (tag_owner << 3) | message_tag); width=12.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -527,14 +527,14 @@ SSOT item context: name=assembly_key; expr=((source_eid << 4) | (tag_owner << 3)
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.error_case
 - Source ref: function_model.transactions.FM_DECODE_MCTP.error_cases.error_case_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_MCTP.error_cases.error_case_0.
 Owner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.
 SSOT item context: id=FM_DECODE_MCTP; name=mctp_transport_decode; signal=[{"condition": "header not present / version!=1 / SOM packet without body byte", "result": "PD_BAD_MCTP_HEADER packet...; state=["header_version_ok", "som", "eom", "packet_seq", "tag_owner", "message_tag", "dest_accept", "assembly_key"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -547,14 +547,14 @@ SSOT item context: id=FM_DECODE_MCTP; name=mctp_transport_decode; signal=[{"cond
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.error_case
 - Source ref: function_model.transactions.FM_DECODE_MCTP.error_cases.error_case_1
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_DECODE_MCTP.error_cases.error_case_1.
 Owner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.
 SSOT item context: id=FM_DECODE_MCTP; name=mctp_transport_decode; signal=[{"condition": "dest_eid not local and not accepted broadcast/null while dest_filter_enable", "result": "PD_DEST_EID_...; state=["header_version_ok", "som", "eom", "packet_seq", "tag_owner", "message_tag", "dest_accept", "assembly_key"].
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -567,14 +567,14 @@ SSOT item context: id=FM_DECODE_MCTP; name=mctp_transport_decode; signal=[{"cond
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: features.item
 - Source ref: features.mctp_decode
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.mctp_decode.
 Owner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via features.mctp_decode.
 SSOT item context: name=mctp_decode; output=MCTP fields + assembly key, or PD_BAD_MCTP_HEADER / PD_DEST_EID_REJECT.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -587,13 +587,13 @@ SSOT item context: name=mctp_decode; output=MCTP fields + assembly key, or PD_BA
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: equivalence.module
 - Source ref: sub_modules.mctp_assembler_v3_mctp_decoder.module_equivalence
 - Detail: This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.
 SSOT ref: sub_modules.mctp_assembler_v3_mctp_decoder.module_equivalence.
 Owner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via module_equivalence.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.
 - Criteria:
   - verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module
   - cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff

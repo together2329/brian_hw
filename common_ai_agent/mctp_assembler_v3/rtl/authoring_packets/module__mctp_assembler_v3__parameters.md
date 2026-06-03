@@ -25,7 +25,7 @@
 - Evidence closure allowed: False
 - PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 18
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.pipeline, dataflow, decomposition, function_model, function_model.transactions, integration, integration.connections, io_list, io_list.interfaces, top_module
 - Module slice: 3/9 section=parameters task_limit=48
@@ -46,14 +46,14 @@
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.BRESP_OKAY
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.BRESP_OKAY.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_fallback.
 SSOT item context: name=BRESP_OKAY.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -66,14 +66,14 @@ SSOT item context: name=BRESP_OKAY.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.RRESP_OKAY
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.RRESP_OKAY.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_fallback.
 SSOT item context: name=RRESP_OKAY.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -86,14 +86,14 @@ SSOT item context: name=RRESP_OKAY.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.RRESP_SLVERR
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.RRESP_SLVERR.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_fallback.
 SSOT item context: name=RRESP_SLVERR.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -106,14 +106,14 @@ SSOT item context: name=RRESP_SLVERR.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.INCR
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.INCR.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_fallback.
 SSOT item context: name=INCR.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -126,14 +126,14 @@ SSOT item context: name=INCR.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.ASSEMBLING
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.ASSEMBLING.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_fallback.
 SSOT item context: name=ASSEMBLING.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -146,14 +146,14 @@ SSOT item context: name=ASSEMBLING.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.AXI_ADDR_WIDTH
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.AXI_ADDR_WIDTH.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_fallback.
 SSOT item context: name=AXI_ADDR_WIDTH.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -166,14 +166,14 @@ SSOT item context: name=AXI_ADDR_WIDTH.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.AXI_DATA_WIDTH
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.AXI_DATA_WIDTH.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_fallback.
 SSOT item context: name=AXI_DATA_WIDTH.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -186,14 +186,14 @@ SSOT item context: name=AXI_DATA_WIDTH.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.AXI_STRB_WIDTH
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.AXI_STRB_WIDTH.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_fallback.
 SSOT item context: name=AXI_STRB_WIDTH.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -206,14 +206,14 @@ SSOT item context: name=AXI_STRB_WIDTH.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.TLP_HEADER_SNAPSHOT_BYTES
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.TLP_HEADER_SNAPSHOT_BYTES.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_fallback.
 SSOT item context: name=TLP_HEADER_SNAPSHOT_BYTES.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -226,14 +226,14 @@ SSOT item context: name=TLP_HEADER_SNAPSHOT_BYTES.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.MIN_TRANSMISSION_UNIT_BYTES
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.MIN_TRANSMISSION_UNIT_BYTES.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_fallback.
 SSOT item context: name=MIN_TRANSMISSION_UNIT_BYTES.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -246,14 +246,14 @@ SSOT item context: name=MIN_TRANSMISSION_UNIT_BYTES.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.MAX_TRANSMISSION_UNIT_BYTES
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.MAX_TRANSMISSION_UNIT_BYTES.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_fallback.
 SSOT item context: name=MAX_TRANSMISSION_UNIT_BYTES.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -266,14 +266,14 @@ SSOT item context: name=MAX_TRANSMISSION_UNIT_BYTES.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.TRANSMISSION_UNIT_ALIGN_BYTES
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.TRANSMISSION_UNIT_ALIGN_BYTES.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_fallback.
 SSOT item context: name=TRANSMISSION_UNIT_ALIGN_BYTES.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -286,14 +286,14 @@ SSOT item context: name=TRANSMISSION_UNIT_ALIGN_BYTES.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.MAX_TLP_BYTES
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.MAX_TLP_BYTES.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_fallback.
 SSOT item context: name=MAX_TLP_BYTES.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -306,14 +306,14 @@ SSOT item context: name=MAX_TLP_BYTES.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.MAX_TLP_BEATS
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.MAX_TLP_BEATS.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_fallback.
 SSOT item context: name=MAX_TLP_BEATS.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -326,14 +326,14 @@ SSOT item context: name=MAX_TLP_BEATS.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.MAX_MESSAGE_BYTES
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.MAX_MESSAGE_BYTES.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_fallback.
 SSOT item context: name=MAX_MESSAGE_BYTES.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -346,14 +346,14 @@ SSOT item context: name=MAX_MESSAGE_BYTES.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.BASELINE_MTU_BYTES
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.BASELINE_MTU_BYTES.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_fallback.
 SSOT item context: name=BASELINE_MTU_BYTES.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -366,14 +366,14 @@ SSOT item context: name=BASELINE_MTU_BYTES.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.TIMEOUT_COUNTER_WIDTH
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.TIMEOUT_COUNTER_WIDTH.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_fallback.
 SSOT item context: name=TIMEOUT_COUNTER_WIDTH.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -386,14 +386,14 @@ SSOT item context: name=TIMEOUT_COUNTER_WIDTH.
 
 - Priority: normal
 - Required: True
-- Status: planned
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.RESET_POLARITY
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.RESET_POLARITY.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_fallback.
 SSOT item context: name=RESET_POLARITY.
-- Current reason: RTL audit has not run yet.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects

@@ -172,7 +172,7 @@
       "sub_modules.mctp_assembler_v3_pcie_vdm_parser.module_equivalence"
     ],
     "status_counts": {
-      "planned": 24
+      "open": 24
     },
     "task_count": 24
   },
@@ -202,6 +202,10 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_VDM"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -210,9 +214,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -239,6 +243,10 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_VDM.preconditions.precondition_0"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -247,9 +255,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -296,6 +304,34 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_VDM.inputs.input_0"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "TLP",
+          "class",
+          "code",
+          "decoded",
+          "eom",
+          "id",
+          "last",
+          "last_decoded_vdm",
+          "len",
+          "message",
+          "message_code",
+          "offset",
+          "ok",
+          "pad",
+          "pad_len",
+          "pad_ok"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -304,9 +340,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -350,6 +386,34 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_VDM.outputs.output_0"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "code",
+          "id",
+          "len",
+          "message",
+          "message_code",
+          "offset",
+          "pad",
+          "pad_len",
+          "payload",
+          "payload_offset",
+          "pcie",
+          "pcie_routing_type",
+          "requester",
+          "requester_id",
+          "routing",
+          "type"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -358,9 +422,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -387,6 +451,10 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_VDM.outputs.output_1"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -395,9 +463,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -443,6 +511,34 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_VDM.outputs.vdm_valid"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "class",
+          "code",
+          "id",
+          "message",
+          "message_code",
+          "routing",
+          "routing_supported",
+          "supported",
+          "traffic",
+          "traffic_class",
+          "valid",
+          "vdm",
+          "vdm_code",
+          "vdm_valid",
+          "vendor",
+          "vendor_id"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -451,9 +547,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -486,6 +582,21 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_VDM.outputs.payload_offset"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "offset",
+          "payload",
+          "payload_offset"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -494,9 +605,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -529,6 +640,21 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_VDM.outputs.requester_id"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "id",
+          "requester",
+          "requester_id"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -537,9 +663,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -575,6 +701,24 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_VDM.outputs.pad_ok"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "True",
+          "len",
+          "ok",
+          "pad",
+          "pad_len",
+          "pad_ok"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -583,9 +727,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -626,6 +770,29 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_VDM.outputs.last_decoded_vdm"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "code",
+          "decoded",
+          "id",
+          "last",
+          "last_decoded_vdm",
+          "message",
+          "message_code",
+          "vdm",
+          "vdm_code",
+          "vendor",
+          "vendor_id"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -634,9 +801,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -685,6 +852,34 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_VDM.state_updates.vdm_valid"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "class",
+          "code",
+          "id",
+          "message",
+          "message_code",
+          "routing",
+          "routing_supported",
+          "supported",
+          "traffic",
+          "traffic_class",
+          "valid",
+          "vdm",
+          "vdm_code",
+          "vdm_valid",
+          "vendor",
+          "vendor_id"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -693,9 +888,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -731,6 +926,21 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_VDM.state_updates.payload_offset"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "offset",
+          "payload",
+          "payload_offset"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -739,9 +949,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -777,6 +987,21 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_VDM.state_updates.requester_id"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "id",
+          "requester",
+          "requester_id"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -785,9 +1010,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -826,6 +1051,24 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_VDM.state_updates.pad_ok"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "True",
+          "len",
+          "ok",
+          "pad",
+          "pad_len",
+          "pad_ok"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -834,9 +1077,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -880,6 +1123,29 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_VDM.state_updates.last_decoded_vdm"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "code",
+          "decoded",
+          "id",
+          "last",
+          "last_decoded_vdm",
+          "message",
+          "message_code",
+          "vdm",
+          "vdm_code",
+          "vendor",
+          "vendor_id"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -888,9 +1154,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -937,6 +1203,34 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_VDM.error_cases.error_case_0"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "Flit",
+          "PD",
+          "PD_UNSUPPORTED_VDM",
+          "TC",
+          "UNSUPPORTED",
+          "VDM",
+          "class",
+          "code",
+          "decoded",
+          "eom",
+          "id",
+          "last",
+          "last_decoded_vdm",
+          "len",
+          "message",
+          "message_code"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -945,9 +1239,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -994,6 +1288,34 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_VDM.error_cases.error_case_1"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ALIGNMENT",
+          "BAD",
+          "EOM",
+          "OR",
+          "PAD",
+          "PD",
+          "PD_BAD_PAD_OR_ALIGNMENT",
+          "TU",
+          "class",
+          "code",
+          "decoded",
+          "eom",
+          "id",
+          "last",
+          "last_decoded_vdm",
+          "len"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1002,9 +1324,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1037,6 +1359,22 @@
       "ssot_refs": [
         "features.axi_ingress"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "MALFORMED",
+          "PD",
+          "PD_MALFORMED_TLP",
+          "TLP"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1045,9 +1383,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1085,6 +1423,27 @@
       "ssot_refs": [
         "features.vdm_decode"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ALIGNMENT",
+          "BAD",
+          "OR",
+          "PAD",
+          "PD",
+          "PD_BAD_PAD_OR_ALIGNMENT",
+          "PD_UNSUPPORTED_VDM",
+          "UNSUPPORTED",
+          "VDM"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1093,9 +1452,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1127,6 +1486,21 @@
       "ssot_refs": [
         "features.interleaved_assembly"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "AD",
+          "AD_",
+          "EOM"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1135,9 +1509,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1174,6 +1548,26 @@
       "ssot_refs": [
         "features.descriptor_publish"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "AD",
+          "AD_DESCRIPTOR_FULL",
+          "APB",
+          "DESCRIPTOR",
+          "FULL",
+          "descriptor",
+          "descriptor_ready",
+          "ready"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1182,9 +1576,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1214,6 +1608,19 @@
       "ssot_refs": [
         "features.firmware_read"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "SLVERR"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1222,9 +1629,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1259,6 +1666,24 @@
       "ssot_refs": [
         "features.drop_classification"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "class",
+          "drop",
+          "last",
+          "last_drop_class",
+          "last_drop_reason",
+          "reason"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1267,9 +1692,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1296,6 +1721,10 @@
       "ssot_refs": [
         "sub_modules.mctp_assembler_v3_pcie_vdm_parser.module_equivalence"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -1304,9 +1733,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     }
   ],

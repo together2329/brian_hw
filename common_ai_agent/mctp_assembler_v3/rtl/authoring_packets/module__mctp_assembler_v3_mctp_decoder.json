@@ -171,7 +171,7 @@
       "function_model.transactions.FM_DECODE_MCTP.error_cases.error_case_0"
     ],
     "status_counts": {
-      "planned": 27
+      "open": 27
     },
     "task_count": 27
   },
@@ -201,6 +201,10 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_MCTP"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -209,9 +213,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -238,6 +242,10 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_MCTP.preconditions.precondition_0"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -246,9 +254,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -295,6 +303,34 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_MCTP.inputs.input_0"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "MCTP",
+          "accept",
+          "accept_broadcast_eid",
+          "accept_null_eid",
+          "assembly",
+          "assembly_key",
+          "broadcast",
+          "byte0",
+          "dest",
+          "dest_accept",
+          "dest_eid",
+          "dest_filter_enable",
+          "eid",
+          "enable",
+          "eom",
+          "filter"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -303,9 +339,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -352,6 +388,34 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_MCTP.inputs.input_1"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "IC",
+          "SOM",
+          "accept",
+          "accept_broadcast_eid",
+          "accept_null_eid",
+          "assembly",
+          "assembly_key",
+          "broadcast",
+          "byte0",
+          "dest",
+          "dest_accept",
+          "dest_eid",
+          "dest_filter_enable",
+          "eid",
+          "enable",
+          "eom"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -360,9 +424,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -406,6 +470,34 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_MCTP.outputs.output_0"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "dest",
+          "dest_eid",
+          "eid",
+          "header",
+          "header_version",
+          "message",
+          "message_tag",
+          "owner",
+          "packet",
+          "packet_seq",
+          "seq",
+          "source",
+          "source_eid",
+          "tag",
+          "tag_owner",
+          "version"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -414,9 +506,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -447,6 +539,21 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_MCTP.outputs.output_1"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "message",
+          "message_type",
+          "type"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -455,9 +562,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -496,6 +603,29 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_MCTP.outputs.output_2"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "assembly",
+          "assembly_key",
+          "eid",
+          "key",
+          "message",
+          "message_tag",
+          "owner",
+          "source",
+          "source_eid",
+          "tag",
+          "tag_owner"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -504,9 +634,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -541,6 +671,23 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_MCTP.outputs.header_version_ok"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "header",
+          "header_version",
+          "header_version_ok",
+          "ok",
+          "version"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -549,9 +696,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -585,6 +732,22 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_MCTP.outputs.som"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "byte0",
+          "mctp",
+          "mctp_byte0",
+          "som"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -593,9 +756,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -629,6 +792,22 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_MCTP.outputs.eom"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "byte0",
+          "eom",
+          "mctp",
+          "mctp_byte0"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -637,9 +816,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -675,6 +854,24 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_MCTP.outputs.packet_seq"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "byte0",
+          "mctp",
+          "mctp_byte0",
+          "packet",
+          "packet_seq",
+          "seq"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -683,9 +880,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -721,6 +918,24 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_MCTP.outputs.tag_owner"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "byte0",
+          "mctp",
+          "mctp_byte0",
+          "owner",
+          "tag",
+          "tag_owner"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -729,9 +944,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -767,6 +982,24 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_MCTP.outputs.message_tag"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "byte0",
+          "mctp",
+          "mctp_byte0",
+          "message",
+          "message_tag",
+          "tag"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -775,9 +1008,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -823,6 +1056,34 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_MCTP.outputs.dest_accept"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "accept",
+          "accept_broadcast_eid",
+          "accept_null_eid",
+          "broadcast",
+          "dest",
+          "dest_accept",
+          "dest_eid",
+          "dest_filter_enable",
+          "eid",
+          "enable",
+          "filter",
+          "local",
+          "local_eid",
+          "null",
+          "x00",
+          "xFF"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -831,9 +1092,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -874,6 +1135,29 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_MCTP.outputs.assembly_key"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "assembly",
+          "assembly_key",
+          "eid",
+          "key",
+          "message",
+          "message_tag",
+          "owner",
+          "source",
+          "source_eid",
+          "tag",
+          "tag_owner"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -882,9 +1166,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -922,6 +1206,23 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_MCTP.state_updates.header_version_ok"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "header",
+          "header_version",
+          "header_version_ok",
+          "ok",
+          "version"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -930,9 +1231,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -969,6 +1270,22 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_MCTP.state_updates.som"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "byte0",
+          "mctp",
+          "mctp_byte0",
+          "som"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -977,9 +1294,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1016,6 +1333,22 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_MCTP.state_updates.eom"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "byte0",
+          "eom",
+          "mctp",
+          "mctp_byte0"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -1024,9 +1357,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1065,6 +1398,24 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_MCTP.state_updates.packet_seq"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "byte0",
+          "mctp",
+          "mctp_byte0",
+          "packet",
+          "packet_seq",
+          "seq"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -1073,9 +1424,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1114,6 +1465,24 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_MCTP.state_updates.tag_owner"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "byte0",
+          "mctp",
+          "mctp_byte0",
+          "owner",
+          "tag",
+          "tag_owner"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -1122,9 +1491,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1163,6 +1532,24 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_MCTP.state_updates.message_tag"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "byte0",
+          "mctp",
+          "mctp_byte0",
+          "message",
+          "message_tag",
+          "tag"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -1171,9 +1558,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1222,6 +1609,34 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_MCTP.state_updates.dest_accept"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "accept",
+          "accept_broadcast_eid",
+          "accept_null_eid",
+          "broadcast",
+          "dest",
+          "dest_accept",
+          "dest_eid",
+          "dest_filter_enable",
+          "eid",
+          "enable",
+          "filter",
+          "local",
+          "local_eid",
+          "null",
+          "x00",
+          "xFF"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -1230,9 +1645,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1276,6 +1691,29 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_MCTP.state_updates.assembly_key"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "assembly",
+          "assembly_key",
+          "eid",
+          "key",
+          "message",
+          "message_tag",
+          "owner",
+          "source",
+          "source_eid",
+          "tag",
+          "tag_owner"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -1284,9 +1722,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1333,6 +1771,34 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_MCTP.error_cases.error_case_0"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "BAD",
+          "HEADER",
+          "MCTP",
+          "PD",
+          "PD_BAD_MCTP_HEADER",
+          "SOM",
+          "accept",
+          "accept_broadcast_eid",
+          "accept_null_eid",
+          "assembly",
+          "assembly_key",
+          "broadcast",
+          "byte0",
+          "dest",
+          "dest_accept",
+          "dest_eid"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1341,9 +1807,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1390,6 +1856,34 @@
       "ssot_refs": [
         "function_model.transactions.FM_DECODE_MCTP.error_cases.error_case_1"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "DEST",
+          "EID",
+          "PD",
+          "PD_DEST_EID_REJECT",
+          "REJECT",
+          "accept",
+          "accept_broadcast_eid",
+          "accept_null_eid",
+          "assembly",
+          "assembly_key",
+          "broadcast",
+          "byte0",
+          "dest",
+          "dest_accept",
+          "dest_eid",
+          "dest_filter_enable"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1398,9 +1892,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1438,6 +1932,27 @@
       "ssot_refs": [
         "features.mctp_decode"
       ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "BAD",
+          "DEST",
+          "EID",
+          "HEADER",
+          "MCTP",
+          "PD",
+          "PD_BAD_MCTP_HEADER",
+          "PD_DEST_EID_REJECT",
+          "REJECT"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "status": "missing"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -1446,9 +1961,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -1475,6 +1990,10 @@
       "ssot_refs": [
         "sub_modules.mctp_assembler_v3_mctp_decoder.module_equivalence"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -1483,9 +2002,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_mctp_decoder.sv.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     }
   ],

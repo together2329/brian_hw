@@ -26,16 +26,10 @@
 - PASS allowed: False
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
-- Human-locked open tasks: 7
+- Human-locked open tasks: 1
 - Owner refs: cycle_model, cycle_model.pipeline, dataflow, decomposition, function_model, function_model.transactions, integration, integration.connections, io_list, io_list.interfaces, top_module
 - Locked-truth blockers:
-  - ssot_required_sections: RTL audit has not run yet.
-  - ssot_workflow_todo_format: RTL audit has not run yet.
-  - owner_traceability: RTL audit has not run yet.
-  - manifest_connection_contract_evidence: RTL audit has not run yet.
-  - golden_authority_artifacts: RTL audit has not run yet.
-  - target_scale_policy: RTL audit has not run yet.
-  - cycle_model_artifacts: RTL audit has not run yet.
+  - manifest_connection_contract_evidence: 5 SSOT connection contract issue(s) remain. mctp_assembler_v3_apb_regfile: SSOT connection contract targets a module not declared in RTL; mctp_assembler_v3_apb_regfile: SSOT connection contract targets a module not declared in RTL; mctp_assembler_v3_apb_regfile: SSOT connection contract targets a module not declared in RTL
 - SSOT connection contracts:
   - mctp_assembler_v3_axi_wr_ingress.axi_aclk <= axi_aclk (integration.connections[0])
   - mctp_assembler_v3_axi_wr_ingress.axi_aresetn <= axi_aresetn (integration.connections[1])
@@ -52,13 +46,13 @@
 
 - Priority: critical
 - Required: True
-- Status: planned
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.ssot_required_sections
 - Detail: rtl-gen cannot implement production RTL until the SSOT contains both the functional golden behavior and the cycle/handshake contract.
 SSOT ref: quality_gates.rtl_gen.ssot_required_sections.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
-- Current reason: RTL audit has not run yet.
+- Current reason: SSOT function_model and cycle_model authority is present.
 - Criteria:
   - function_model is present and non-empty in the SSOT
   - cycle_model is present and non-empty in the SSOT
@@ -71,13 +65,13 @@ Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: planned
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.workflow_todo_contract
 - Detail: Every SSOT workflow_todos.rtl-gen item must be executable by rtl-gen and therefore must carry content, detail, and criteria.
 SSOT ref: quality_gates.rtl_gen.workflow_todo_contract.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
-- Current reason: RTL audit has not run yet.
+- Current reason: SSOT-authored rtl-gen workflow TODOs are well formed.
 - Criteria:
   - Every workflow_todos.rtl-gen item has content
   - Every workflow_todos.rtl-gen item has detail
@@ -90,13 +84,13 @@ Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: planned
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.owner_traceability
 - Detail: Function-level, cycle-level, register, dataflow, and FSM behavior must map to an RTL owner module before approval.
 SSOT ref: quality_gates.rtl_gen.owner_traceability.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
-- Current reason: RTL audit has not run yet.
+- Current reason: Every required SSOT-derived RTL behavior has an owner module.
 - Criteria:
   - No required function_model task is orphaned
   - No required cycle_model task is orphaned
@@ -110,13 +104,13 @@ Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: planned
+- Status: open
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.manifest_connection_contract_evidence
 - Detail: Named port maps prove that child instances are wired, but not that they are wired to the SSOT-intended signals. When the SSOT provides integration.connections or sub_modules[].connections, rtl-gen must satisfy those machine-readable connection contracts. Production-profile multi-module RTL must provide such contracts.
 SSOT ref: quality_gates.rtl_gen.manifest_connection_contract_evidence.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
-- Current reason: RTL audit has not run yet.
+- Current reason: 5 SSOT connection contract issue(s) remain. mctp_assembler_v3_apb_regfile: SSOT connection contract targets a module not declared in RTL; mctp_assembler_v3_apb_regfile: SSOT connection contract targets a module not declared in RTL; mctp_assembler_v3_apb_regfile: SSOT connection contract targets a module not declared in RTL
 - Criteria:
   - Production-profile multi-module IPs provide machine-readable integration.connections or sub_modules[].connections
   - Each SSOT connection contract resolves to a reachable manifest child module and port
@@ -129,13 +123,13 @@ Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: planned
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.golden_authority_artifacts
 - Detail: PL330-level RTL cannot proceed from prose alone. It must carry machine-readable authority artifacts that separate human-owned truth from LLM-editable implementation.
 SSOT ref: quality_gates.rtl_gen.golden_authority_artifacts.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
-- Current reason: RTL audit has not run yet.
+- Current reason: Production golden authority artifacts are locked, approved, current, and machine-readable.
 - Criteria:
   - governance/authority.json exists
   - authority.json is the current IP human_llm_authority_manifest
@@ -156,13 +150,13 @@ Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: planned
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.target_scale
 - Detail: When a calibration reference profile provides target-scale candidates, a human must lock the chosen minimum structural scale in SSOT quality_gates.rtl_gen.target_scale or record an explicit SSOT target_scale_waiver before rtl-gen can claim production signoff.
 SSOT ref: quality_gates.rtl_gen.target_scale.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
-- Current reason: RTL audit has not run yet.
+- Current reason: No reference-derived target scale candidate is present, so no target-scale policy lock is required.
 - Criteria:
   - Reference-derived suggested_ssot_target_scale candidates are review inputs only
   - SSOT quality_gates.rtl_gen.target_scale contains human-locked structural depth minima before PL330-level PASS claims
@@ -175,13 +169,13 @@ Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: planned
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.cycle_model_artifacts
 - Detail: Complex DMA-class RTL needs a cycle-level oracle for latency, handshake, ordering, backpressure, and performance-sensitive behavior.
 SSOT ref: quality_gates.rtl_gen.cycle_model_artifacts.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
-- Current reason: RTL audit has not run yet.
+- Current reason: Cycle model artifact and self-check are present.
 - Criteria:
   - model/cycle_model.py exists
   - model/cl_model_check.json passed=true

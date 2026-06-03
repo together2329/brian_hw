@@ -41,14 +41,14 @@
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.context_table
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.context_table.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=context_table; reset=IDLE.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -62,14 +62,14 @@ SSOT item context: name=context_table; reset=IDLE.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.descriptor_queue
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.descriptor_queue.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=descriptor_queue; reset=empty.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -83,14 +83,14 @@ SSOT item context: name=descriptor_queue; reset=empty.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.sram_alloc_ptr
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.sram_alloc_ptr.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=sram_alloc_ptr; reset=sram_base.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -104,14 +104,14 @@ SSOT item context: name=sram_alloc_ptr; reset=sram_base.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.counters
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.counters.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=counters; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -125,14 +125,14 @@ SSOT item context: name=counters; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.last_drop_class
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.last_drop_class.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=last_drop_class; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -146,14 +146,14 @@ SSOT item context: name=last_drop_class; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.tlp_seen_count
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.tlp_seen_count.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=tlp_seen_count; width=32; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -168,14 +168,14 @@ SSOT item context: name=tlp_seen_count; width=32; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.tlp_accepted_count
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.tlp_accepted_count.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=tlp_accepted_count; width=32; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -190,14 +190,14 @@ SSOT item context: name=tlp_accepted_count; width=32; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.active_context_count
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.active_context_count.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=active_context_count; width=5; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -212,14 +212,14 @@ SSOT item context: name=active_context_count; width=5; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.ctx_payload_byte_count
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.ctx_payload_byte_count.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=ctx_payload_byte_count; width=13; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -234,14 +234,14 @@ SSOT item context: name=ctx_payload_byte_count; width=13; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.ctx_expected_seq
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.ctx_expected_seq.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=ctx_expected_seq; width=2; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -256,14 +256,14 @@ SSOT item context: name=ctx_expected_seq; width=2; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.ctx_payload_base_addr
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.ctx_payload_base_addr.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=ctx_payload_base_addr; width=16; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -278,14 +278,14 @@ SSOT item context: name=ctx_payload_base_addr; width=16; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.ctx_payload_next_addr
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.ctx_payload_next_addr.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=ctx_payload_next_addr; width=16; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -300,14 +300,14 @@ SSOT item context: name=ctx_payload_next_addr; width=16; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.ctx_partial_next_lane
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.ctx_partial_next_lane.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=ctx_partial_next_lane; width=5; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -322,14 +322,14 @@ SSOT item context: name=ctx_partial_next_lane; width=5; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.payload_bytes_written_count
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.payload_bytes_written_count.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=payload_bytes_written_count; width=32; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -344,14 +344,14 @@ SSOT item context: name=payload_bytes_written_count; width=32; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.message_completed_count
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.message_completed_count.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=message_completed_count; width=32; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -366,14 +366,14 @@ SSOT item context: name=message_completed_count; width=32; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.fw_axi_read_beat_count
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.fw_axi_read_beat_count.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=fw_axi_read_beat_count; width=32; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -388,14 +388,14 @@ SSOT item context: name=fw_axi_read_beat_count; width=32; reset=0.
 
 - Priority: high
 - Required: True
-- Status: planned
+- Status: open
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.fw_axi_read_error_count
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.fw_axi_read_error_count.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via function_model.state_variables.
 SSOT item context: name=fw_axi_read_error_count; width=32; reset=0.
-- Current reason: RTL audit has not run yet.
+- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
