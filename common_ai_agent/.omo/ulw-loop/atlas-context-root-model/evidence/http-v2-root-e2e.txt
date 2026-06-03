@@ -1,0 +1,7 @@
+[opencode-oauth] no credential — run `python -m src.opencode_backend login`
+[atlas] Multi-user enabled (process_per_session=off)
+20:27:16 [rehydrate] 0 jobs reconciled (rescued=0, marked-error=0)
+[Workflow] 'ssot-gen' loaded from /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/ssot-gen
+[Workflow] 'ssot-gen' loaded via /api/session/activate (prev='default', ip='NEWIP_MCTP', owner='alice')
+[Workflow] 'lint' loaded from /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/lint
+[Workflow] 'lint' loaded via /api/session/activate (prev='default', ip='NEWIP_MCTP', owner='alice')
