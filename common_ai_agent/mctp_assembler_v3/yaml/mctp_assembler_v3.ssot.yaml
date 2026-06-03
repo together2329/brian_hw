@@ -1,0 +1,5 @@
+# mctp_assembler_v3.ssot.yaml — Single Source of Truth
+top_module:
+  name: mctp_assembler_v3
+  type: "<TBD>"  # TBD
+  description: "<TBD>"  # TBD
