@@ -188,6 +188,7 @@ const App = () => {
     if (parts.length >= 3 && isWorkflowSegment(last)) {
       return {
         sessionId: parts[0],
+        workspaceSession: parts.length >= 4 ? parts[1] : '',
         ipId: parts[parts.length - 2] || WORKFLOW_DEFAULT,
         workflow: last,
       };
@@ -383,13 +384,22 @@ const App = () => {
   }, [normalizeSession, splitActiveNamespace, workflowForExecMode]);
 
   const namespaceFor = useCallback((sessionId: unknown, ipId: unknown, workflow: unknown) => {
+    const rawSession = normalizeSession(sessionId);
+    const rawParts = rawSession.split('/').filter(Boolean);
     const owner = loggedInOwner()
-      || normalizeSession(sessionId)
+      || rawParts[0]
       || normalizeSession(window.ATLAS_USER_SESSION_ID || '')
       || 'default';
+    const activeParts = normalizeSession(window.ACTIVE_SESSION || '').split('/').filter(Boolean);
+    const workspaceSession = (
+      (rawParts.length >= 2 && rawParts[0] === owner ? rawParts[1] : '')
+      || (activeParts.length >= 4 && activeParts[0] === owner ? activeParts[1] : '')
+      || normalizeSession((window as any).ATLAS_WORKSPACE_SESSION_ID || '')
+      || 'default'
+    );
     const ip = normalizeSession(ipId || WORKFLOW_DEFAULT) || WORKFLOW_DEFAULT;
     const wf = normalizeSession(workflow || WORKFLOW_DEFAULT) || WORKFLOW_DEFAULT;
-    return `${owner}/${ip}/${wf}`;
+    return `${owner}/${workspaceSession}/${ip}/${wf}`;
   }, [loggedInOwner, normalizeSession]);
 
   const activateBackendWorkflow = useCallback((workflow: unknown, session?: unknown) => {
@@ -476,11 +486,20 @@ const App = () => {
 
   const activateNamespace = useCallback((sessionId: unknown, ipId: unknown, workflow: unknown, syncWorkflow = true, opts: any = {}) => {
     userPickAtRef.current = Date.now();
-    const owner = loggedInOwner() || normalizeSession(sessionId) || 'default';
+    const rawSession = normalizeSession(sessionId);
+    const rawParts = rawSession.split('/').filter(Boolean);
+    const owner = loggedInOwner() || rawParts[0] || 'default';
+    const activeParts = normalizeSession(window.ACTIVE_SESSION || '').split('/').filter(Boolean);
+    const workspaceSession = (
+      (rawParts.length >= 2 && rawParts[0] === owner ? rawParts[1] : '')
+      || (activeParts.length >= 4 && activeParts[0] === owner ? activeParts[1] : '')
+      || normalizeSession((window as any).ATLAS_WORKSPACE_SESSION_ID || '')
+      || 'default'
+    );
     const ip = normalizeSession(ipId || WORKFLOW_DEFAULT) || WORKFLOW_DEFAULT;
     const wf = workflowForExecMode(workflow || WORKFLOW_DEFAULT);
     const preserveRunning = !!(opts && opts.preserveRunning);
-    const namespace = namespaceFor(owner, ip, wf);
+    const namespace = namespaceFor(`${owner}/${workspaceSession}`, ip, wf);
     const prev = window.ACTIVE_SESSION || '';
     const prevParts = splitSessionNamespace(prev || '');
     const prevWf = prevParts.workflow || WORKFLOW_DEFAULT;
@@ -522,6 +541,8 @@ const App = () => {
       window.ATLAS_USER_SESSION_ID = owner;
       try { localStorage.setItem('atlasUserSessionId', owner); } catch (_) {}
     }
+    (window as any).ATLAS_WORKSPACE_SESSION_ID = workspaceSession;
+    try { localStorage.setItem('atlasWorkspaceSessionId', workspaceSession); } catch (_) {}
     if (window.atlasData && typeof window.atlasData.setScopePath === 'function') {
       window.atlasData.setScopePath(ip);
     }
@@ -542,6 +563,7 @@ const App = () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             owner: owner || 'default',
+            workspace_session: workspaceSession || 'default',
             ip: ip || 'default',
             workflow: wf || 'default',
             preserve_running: preserveRunning,
@@ -628,12 +650,14 @@ const App = () => {
 
   const selectSessionId = (rawSessionId: string) => {
     const authOwner = loggedInOwner();
-    const requestedOwner = normalizeSession(rawSessionId) || 'default';
-    if (authOwner && requestedOwner !== authOwner) {
-      showNotice('User is fixed by login. Use IP/workflow to switch scope.');
+    const workspaceSession = normalizeSession(rawSessionId) || 'default';
+    if (!authOwner) {
+      showNotice('Login is required before switching sessions.');
       return;
     }
-    const owner = authOwner || requestedOwner;
+    const owner = `${authOwner}/${workspaceSession}`;
+    (window as any).ATLAS_WORKSPACE_SESSION_ID = workspaceSession;
+    try { localStorage.setItem('atlasWorkspaceSessionId', workspaceSession); } catch (_) {}
     const parsed = splitActiveNamespace();
     const ip = (parsed.ipId === 'soc' ? WORKFLOW_DEFAULT : parsed.ipId) || activeIp || WORKFLOW_DEFAULT;
     const wf = parsed.workflow || currentWorkflow() || WORKFLOW_DEFAULT;
@@ -648,7 +672,8 @@ const App = () => {
     const parsed = splitActiveNamespace();
     const cur = workflowForExecMode(parsed.workflow || currentWorkflow());
     const wf = isWorkflowSegment(cur) ? cur : WORKFLOW_DEFAULT;
-    const owner = loggedInOwner() || parsed.sessionId || activeSessionId || 'default';
+    const ownerBase = loggedInOwner() || parsed.sessionId || activeSessionId || 'default';
+    const owner = parsed.workspaceSession ? `${ownerBase}/${parsed.workspaceSession}` : ownerBase;
     activateNamespace(owner, ip, wf, true);
   };
 
@@ -687,7 +712,8 @@ const App = () => {
     }
     const ok = preserveRunning || confirmStopForWorkflowSwitch(wf);
     if (!ok) return;
-    const owner = loggedInOwner() || parsed.sessionId || activeSessionId || 'default';
+    const ownerBase = loggedInOwner() || parsed.sessionId || activeSessionId || 'default';
+    const owner = parsed.workspaceSession ? `${ownerBase}/${parsed.workspaceSession}` : ownerBase;
     const ip = (parsed.ipId === 'soc' ? WORKFLOW_DEFAULT : parsed.ipId) || activeIp || WORKFLOW_DEFAULT;
     if (screen === 'workspace') {
       try {
@@ -708,21 +734,23 @@ const App = () => {
 
   const commitNewSessionId = (raw: string) => {
     if (!raw) return;
-    const owner = normalizeSession(raw);
-    if (!owner) {
-      showNotice('Invalid user. Use only [A-Za-z0-9_.-].');
+    const workspaceSession = normalizeSession(raw);
+    if (!workspaceSession) {
+      showNotice('Invalid session. Use only [A-Za-z0-9_.-].');
       return false;
     }
     const authOwner = loggedInOwner();
-    if (authOwner && owner !== authOwner) {
-      showNotice('User is fixed by login. Use IP/workflow to switch scope.');
+    if (!authOwner) {
+      showNotice('Login is required before creating a session.');
       return false;
     }
-    setSessionIdOptions(prev => Array.from(new Set([owner].concat(prev || []))));
+    (window as any).ATLAS_WORKSPACE_SESSION_ID = workspaceSession;
+    try { localStorage.setItem('atlasWorkspaceSessionId', workspaceSession); } catch (_) {}
+    setSessionIdOptions(prev => Array.from(new Set([workspaceSession].concat(prev || []))));
     const parsed = splitActiveNamespace();
     const ip = (parsed.ipId === 'soc' ? WORKFLOW_DEFAULT : parsed.ipId) || activeIp || WORKFLOW_DEFAULT;
     const wf = parsed.workflow || currentWorkflow() || WORKFLOW_DEFAULT;
-    activateNamespace(owner, ip, wf, true);
+    activateNamespace(`${authOwner}/${workspaceSession}`, ip, wf, true);
     return true;
   };
 

@@ -1356,6 +1356,10 @@ def test_pipeline_dependency_failure_blocks_downstream_and_records_db_status(
         jobs._jobs.clear()
 
     with _mock_worker("pipeline", fail_workflows={"rtl-gen"}) as (worker_url, _worker):
+        # Orchestrator mode (global env) so worker URL resolution uses
+        # WORKER_URL_DEFAULT instead of the single-main-loop port. The dispatch
+        # body exec_mode alone does not flip _resolve_worker_url's env read.
+        monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODE", "1")
         monkeypatch.setenv("WORKER_URL_DEFAULT", worker_url)
         client = _make_client(tmp_path, monkeypatch)
 
@@ -1411,7 +1415,19 @@ def test_worker_completion_without_stage_evidence_is_not_marked_green(
     with jobs._jobs_lock:
         jobs._jobs.clear()
 
+    # Isolate the gate's pure "missing required evidence" branch: stub the
+    # stage-engine refresh so it does NOT run the real ssot-rtl engine (which,
+    # against an SSOT-less tmp fixture, would short-circuit to a blocked
+    # ssot-rtl.json and reclassify this as `blocked`). With no engine run and no
+    # worker-written artifact, _job_artifact_recovery fails and the gate emits
+    # `error: missing required evidence for rtl`. The gate itself is unchanged;
+    # the engine helper just needs the real workflow/ scripts + a real SSOT,
+    # which is not the unit under test here. The dedicated stage-engine-blocked
+    # contract is covered by test_worker_reported_completed_with_blocked_*.
+    monkeypatch.setattr(jobs, "_refresh_completed_stage_evidence", lambda job, pr: None)
+
     with _mock_worker("pipeline", write_artifacts=False) as (worker_url, _worker):
+        monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODE", "1")
         monkeypatch.setenv("WORKER_URL_DEFAULT", worker_url)
         client = _make_client(tmp_path, monkeypatch)
 
@@ -1470,6 +1486,14 @@ def test_rtl_stage_evidence_gate_rejects_placeholder_sources(tmp_path: Path) -> 
         encoding="utf-8",
     )
     (ip_dir / "list" / f"{ip}.f").write_text(f"rtl/{ip}.sv\n", encoding="utf-8")
+    # The placeholder gate only fires once the stage has actually run, proven by
+    # a verdict artifact (rtl/rtl_compile.json or logs/stage_engine/ssot-rtl.json);
+    # otherwise a fresh create_ip scaffold (which carries a TODO/placeholder)
+    # would read as failed before rtl-gen ever ran. Write the verdict here so the
+    # placeholder check is reached.
+    (ip_dir / "rtl" / "rtl_compile.json").write_text(
+        '{"errors":0,"diagnostics":0,"returncode":0}\n', encoding="utf-8"
+    )
 
     failed, reason = jobs._job_artifact_failure(
         {"ip": ip, "workflow": "rtl-gen", "stage_id": "rtl"},
@@ -1478,6 +1502,32 @@ def test_rtl_stage_evidence_gate_rejects_placeholder_sources(tmp_path: Path) -> 
 
     assert failed is True
     assert "placeholder RTL markers" in reason
+
+
+def test_rtl_scaffold_without_verdict_is_not_marked_failed(tmp_path: Path) -> None:
+    """Mirror of the placeholder gate's lower bound (Task 1 #4): a fresh
+    create_ip scaffold carries a TODO/placeholder rtl/<ip>.sv + list/<ip>.f but
+    NO verdict artifact (no rtl_compile.json / ssot-rtl.json). The gate must NOT
+    flag it as failed, so a brand-new IP does not read rtl=failed before rtl-gen
+    ever runs."""
+    import atlas_api_jobs as jobs
+
+    ip = "scaffold_only_rtl_ip"
+    ip_dir = tmp_path / ip
+    (ip_dir / "rtl").mkdir(parents=True)
+    (ip_dir / "list").mkdir(parents=True)
+    (ip_dir / "rtl" / f"{ip}.sv").write_text(
+        f"module {ip}(input logic clk);\n// TODO: implement\nendmodule\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "list" / f"{ip}.f").write_text(f"rtl/{ip}.sv\n", encoding="utf-8")
+
+    failed, reason = jobs._job_artifact_failure(
+        {"ip": ip, "workflow": "rtl-gen", "stage_id": "rtl"},
+        tmp_path,
+    )
+
+    assert failed is False, reason
 
 
 @_PHASE3_SKIP

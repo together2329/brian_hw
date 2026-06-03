@@ -64,7 +64,7 @@ export function useAtlasSessionSync(deps: AtlasSessionSyncDeps): {
     const currentUserSession = loggedInOwner()
       || normalizeSession(window.ATLAS_USER_SESSION_ID || activeSessionId);
     const ownerScopedRoster = authState === 'authed' && !!currentUserSession;
-    const nextSessionIds = new Set([currentUserSession || 'default']);
+    const nextSessionIds = new Set(['default']);
     const holdActivation = atlasShouldHoldDashboardActivation();
     const nextIps = new Set([WORKFLOW_DEFAULT]);
     const acceptIp = (id: string) => id && (id === WORKFLOW_DEFAULT || !RESERVED_IP_NAMES.has(id));
@@ -74,6 +74,7 @@ export function useAtlasSessionSync(deps: AtlasSessionSyncDeps): {
       (() => { try { return localStorage.getItem('atlasActiveSession') || ''; } catch (_) { return ''; } })()
     );
     const rememberedParts = splitSessionNamespace(rememberedNamespace);
+    if (rememberedParts.workspaceSession) nextSessionIds.add(rememberedParts.workspaceSession);
     const rememberedIp = rememberedParts.ipId === 'soc' ? WORKFLOW_DEFAULT : rememberedParts.ipId;
     if (!ownerScopedRoster && acceptIp(rememberedIp)) nextIps.add(rememberedIp);
     if (!ownerScopedRoster && acceptIp(activeIp)) nextIps.add(activeIp);
@@ -86,7 +87,7 @@ export function useAtlasSessionSync(deps: AtlasSessionSyncDeps): {
           const segments = String(raw).split('/').filter(Boolean);
           const parsed = splitSessionNamespace(raw);
           if (parsed.sessionId && (!currentUserSession || parsed.sessionId === currentUserSession)) {
-            nextSessionIds.add(parsed.sessionId);
+            nextSessionIds.add(parsed.workspaceSession || 'default');
           }
           // Only surface an IP if the on-disk namespace explicitly
           // names an owner (i.e. 3-segment <owner>/<ip>/<wf>). Legacy
@@ -347,7 +348,8 @@ export function useAtlasSessionSync(deps: AtlasSessionSyncDeps): {
       const owner = loggedInOwner() || parsed.sessionId || activeSessionId || 'default';
       const ipSeg = parsed.ipId === 'soc' ? WORKFLOW_DEFAULT : (parsed.ipId || activeIp || WORKFLOW_DEFAULT);
       const wfSeg = parsed.workflow || WORKFLOW_DEFAULT;
-      const canonicalNamespace = namespaceFor(owner, ipSeg, wfSeg);
+      const ownerScope = parsed.workspaceSession ? `${owner}/${parsed.workspaceSession}` : owner;
+      const canonicalNamespace = namespaceFor(ownerScope, ipSeg, wfSeg);
       if (canonicalNamespace && canonicalNamespace !== window.ACTIVE_SESSION) {
         window.ACTIVE_SESSION = canonicalNamespace;
         try { localStorage.setItem('atlasActiveSession', canonicalNamespace); } catch (_) {}
@@ -408,7 +410,7 @@ export function useAtlasSessionSync(deps: AtlasSessionSyncDeps): {
     const owner = parsed.sessionId || '';
     if (owner && owner !== (window.ATLAS_USER.username || '')) return;
     activateNamespace(
-      parsed.sessionId || activeSessionId || 'default',
+      parsed.workspaceSession ? `${owner}/${parsed.workspaceSession}` : (parsed.sessionId || activeSessionId || 'default'),
       parsed.ipId || WORKFLOW_DEFAULT,
       parsed.workflow || WORKFLOW_DEFAULT,
       true
