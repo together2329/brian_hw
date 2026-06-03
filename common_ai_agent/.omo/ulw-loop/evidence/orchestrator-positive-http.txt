@@ -1,0 +1,200 @@
+COMMAND: PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest tests/test_pipeline_orchestrator_worker_integration.py::test_pipeline_dispatch_fans_out_to_other_worker_and_surfaces_handoff_state tests/test_pipeline_orchestrator_worker_integration.py::test_pipeline_dispatch_can_drive_real_agent_server_worker_endpoints tests/test_pipeline_orchestrator_worker_integration.py::test_pipeline_dispatch_persists_db_identity_for_admin_sessions -q
+...                                                                      [100%]
+3 passed in 3.49s
+COMMAND: TestClient positive orchestrator dispatch HTTP transcript
+[opencode-oauth] no credential — run `python -m src.opencode_backend login`
+[atlas] Multi-user enabled (process_per_session=off)
+20:28:14 [rehydrate] 0 jobs reconciled (rescued=0, marked-error=0)
+20:28:14 [dispatch] job=1b26355c1170 workflow=rtl-gen -> http://127.0.0.1:50545 run_id=rtl-run-1
+20:28:15 [dispatch] job=37d1076a915f workflow=lint -> http://127.0.0.1:50546 run_id=lint-run-1
+{
+  "artifacts": {
+    "lint_verdict": true,
+    "rtl_compile": true,
+    "rtl_todo_plan": true,
+    "stage_engine_ssot_rtl": true
+  },
+  "db_rows": [
+    {
+      "error_summary": null,
+      "status": "completed",
+      "workflow": "rtl-gen"
+    },
+    {
+      "error_summary": null,
+      "status": "completed",
+      "workflow": "lint"
+    }
+  ],
+  "dispatch": {
+    "exec_mode": "orchestrator",
+    "ip": "ulw_positive_ip",
+    "jobs": [
+      {
+        "attempt": 1,
+        "created_at": 1780486094.908865,
+        "db_ip_id": "44752d49c6d04230a1f24c39a69ea4ee",
+        "db_session_id": "728cf54007044b658633981f27c0c610",
+        "db_user_id": "2b3b05930a03439492c7a191b3f02702",
+        "db_workspace_id": "3e3f473f06f142bf8e66b9d4c2fa3620",
+        "depends_on": [],
+        "error": "",
+        "exec_mode": "orchestrator",
+        "files_modified": [],
+        "idempotency_key": "1b26355c1170",
+        "ip": "ulw_positive_ip",
+        "iterations": 0,
+        "job_id": "1b26355c1170",
+        "max_attempts": 1,
+        "model": "gpt-5.3-codex",
+        "orchestrator_run_id": "",
+        "pipeline_id": "cdece1fa29a0",
+        "pipeline_index": 0,
+        "pipeline_run_id": "cdece1fa29a0",
+        "pipeline_schedule": "dag",
+        "previous_run_ids": [],
+        "project_root": "/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas_orch_positive_4tts7p3s",
+        "prompt": "[ATLAS ARCHITECT WORKFLOW CONTEXT]\n- ip: ulw_positive_ip\n- workflow: rtl-gen\n- stage_id: rtl\n- pipeline_id: cdece1fa29a0\n- pipeline_run_id: cdece1fa29a0\n- session_namespace: .session/u/ulw_positive_ip/pipeline/cdece1fa29a0/01-rtl-gen\n- project_root: /var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas_orch_positive_4tts7p3s\n- source_root: /Users/brian/Desktop/Project/brian_hw/common_ai_agent\n- run_mode: starter\n- exec_mode: orchestrator\n- model: gpt-5.3-codex\n- reasoning_effort: (default)\n- scope_path: ulw_positive_ip\n- write_boundary: only modify files under ulw_positive_ip/, except workflow-owned status/session files under .session/u/ulw_positive_ip/pipeline/cdece1fa29a0/01-rtl-gen/. Do not edit other IP directories or unrelated workflows.\n- parallelism: assume other IP/workflow jobs may be running; never revert or overwrite their files.\n\nrun /ssot-rtl ulw_positive_ip; regenerate RTL from yaml/ulw_positive_ip.ssot.yaml in the active IP root and close dynamic RTL TODOs, compile, and lint gates. If you edit RTL after the first stage-driver run or after sim-debug evidence, rerun /ssot-rtl ulw_positive_ip as the final validation step; do not report DONE from standalone compile/lint evidence alone\n\n[ATLAS RUN POLICY]\n- run_mode: starter\n- exec_mode: orchestrator",
+        "queue_reason": "",
+        "queued_at": 1780486094.908865,
+        "reasoning_effort": "",
+        "result_summary": "",
+        "retry_count": 0,
+        "rtl_version_id": "",
+        "run_id": "rtl-run-1",
+        "run_mode": "starter",
+        "scope_path": "ulw_positive_ip",
+        "session": "u/ulw_positive_ip/pipeline/cdece1fa29a0/01-rtl-gen",
+        "session_dir": ".session/u/ulw_positive_ip/pipeline/cdece1fa29a0/01-rtl-gen",
+        "source_root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+        "stage_id": "rtl",
+        "started_at": 1780486094.9151008,
+        "status": "running",
+        "template": "",
+        "toolchain": "",
+        "trigger_source": "pipeline_button",
+        "user_id": "u",
+        "worker": "http://127.0.0.1:50545",
+        "worker_command": "cd /var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas_orch_positive_4tts7p3s && ATLAS_PROJECT_ROOT=/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas_orch_positive_4tts7p3s EXECUTION_NO_ACTION_GUARD=false PYTHONPATH=/Users/brian/Desktop/Project/brian_hw/common_ai_agent:$PYTHONPATH python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/src/main.py --serve --port 50545 --workflow rtl-gen --worker-name rtl-gen --session u/ulw_positive_ip/pipeline/cdece1fa29a0/01-rtl-gen --model gpt-5.3-codex",
+        "worker_owner": "u",
+        "worker_partition": "2b3b05930a03439492c7a191b3f02702_u_ulw_positive_ip_pipeline_cdece1fa29a0_01-rtl-gen",
+        "worker_transport": "http",
+        "workflow": "rtl-gen",
+        "workflow_run_id": "bc0609e7787a47329744cb401e907eaa"
+      },
+      {
+        "attempt": 1,
+        "created_at": 1780486094.915689,
+        "db_ip_id": "44752d49c6d04230a1f24c39a69ea4ee",
+        "db_session_id": "728cf54007044b658633981f27c0c610",
+        "db_user_id": "2b3b05930a03439492c7a191b3f02702",
+        "db_workspace_id": "3e3f473f06f142bf8e66b9d4c2fa3620",
+        "depends_on": [
+          "1b26355c1170"
+        ],
+        "error": "",
+        "exec_mode": "orchestrator",
+        "files_modified": [],
+        "idempotency_key": "37d1076a915f",
+        "ip": "ulw_positive_ip",
+        "iterations": 0,
+        "job_id": "37d1076a915f",
+        "max_attempts": 1,
+        "model": "gpt-5.3-codex",
+        "orchestrator_run_id": "",
+        "pipeline_id": "cdece1fa29a0",
+        "pipeline_index": 1,
+        "pipeline_run_id": "cdece1fa29a0",
+        "pipeline_schedule": "dag",
+        "previous_run_ids": [],
+        "project_root": "/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas_orch_positive_4tts7p3s",
+        "prompt": "[ATLAS ARCHITECT WORKFLOW CONTEXT]\n- ip: ulw_positive_ip\n- workflow: lint\n- stage_id: lint\n- pipeline_id: cdece1fa29a0\n- pipeline_run_id: cdece1fa29a0\n- session_namespace: .session/u/ulw_positive_ip/pipeline/cdece1fa29a0/02-lint\n- project_root: /var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas_orch_positive_4tts7p3s\n- source_root: /Users/brian/Desktop/Project/brian_hw/common_ai_agent\n- run_mode: starter\n- exec_mode: orchestrator\n- model: gpt-5.3-codex\n- reasoning_effort: (default)\n- scope_path: ulw_positive_ip\n- write_boundary: only modify files under ulw_positive_ip/, except workflow-owned status/session files under .session/u/ulw_positive_ip/pipeline/cdece1fa29a0/02-lint/. Do not edit other IP directories or unrelated workflows.\n- parallelism: assume other IP/workflow jobs may be running; never revert or overwrite their files.\n\nrun /lint-ip ulw_positive_ip; report and fix root-cause RTL lint errors and warnings\n\n[ATLAS RUN POLICY]\n- run_mode: starter\n- exec_mode: orchestrator",
+        "queue_reason": "dependency_wait",
+        "queued_at": 1780486094.915689,
+        "reasoning_effort": "",
+        "result_summary": "",
+        "retry_count": 0,
+        "rtl_version_id": "",
+        "run_id": "",
+        "run_mode": "starter",
+        "scope_path": "ulw_positive_ip",
+        "session": "u/ulw_positive_ip/pipeline/cdece1fa29a0/02-lint",
+        "session_dir": ".session/u/ulw_positive_ip/pipeline/cdece1fa29a0/02-lint",
+        "source_root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+        "stage_id": "lint",
+        "started_at": 0.0,
+        "status": "queued",
+        "template": "lint-fix",
+        "toolchain": "pyslang + verilator",
+        "trigger_source": "pipeline_button",
+        "user_id": "u",
+        "worker": "http://127.0.0.1:50546",
+        "worker_command": "cd /var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas_orch_positive_4tts7p3s && ATLAS_PROJECT_ROOT=/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas_orch_positive_4tts7p3s EXECUTION_NO_ACTION_GUARD=false PYTHONPATH=/Users/brian/Desktop/Project/brian_hw/common_ai_agent:$PYTHONPATH python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/src/main.py --serve --port 50546 --workflow lint --worker-name lint --session u/ulw_positive_ip/pipeline/cdece1fa29a0/02-lint --model gpt-5.3-codex",
+        "worker_owner": "u",
+        "worker_partition": "2b3b05930a03439492c7a191b3f02702_u_ulw_positive_ip_pipeline_cdece1fa29a0_02-lint",
+        "worker_transport": "http",
+        "workflow": "lint",
+        "workflow_run_id": "1ee9beaa25e84871a9bbf1574d7b92f9"
+      }
+    ],
+    "ok": true,
+    "pipeline_id": "cdece1fa29a0",
+    "pipeline_run_id": "cdece1fa29a0",
+    "requested_schedule": "auto",
+    "run_mode": "starter",
+    "schedule": "dag",
+    "stages": [
+      {
+        "id": "rtl",
+        "label": "RTL gen",
+        "workflow": "rtl-gen"
+      },
+      {
+        "id": "lint",
+        "label": "Lint",
+        "workflow": "lint"
+      }
+    ],
+    "user_id": "u"
+  },
+  "jobs": [
+    {
+      "error": "",
+      "evidence_summary": "recovered from artifact: ulw_positive_ip/lint/dut_lint.json",
+      "stage_id": "lint",
+      "status": "completed",
+      "worker": "http://127.0.0.1:50546",
+      "workflow": "lint"
+    },
+    {
+      "error": "",
+      "evidence_summary": "test mock validated artifact: rtl/rtl_compile.json",
+      "stage_id": "rtl",
+      "status": "completed",
+      "worker": "http://127.0.0.1:50545",
+      "workflow": "rtl-gen"
+    }
+  ],
+  "pipeline_state": {
+    "lint": {
+      "error_summary": null,
+      "source": "db",
+      "state": "passed"
+    },
+    "rtl": {
+      "error_summary": null,
+      "source": "db",
+      "state": "passed"
+    }
+  },
+  "worker_runs": {
+    "lint": 1,
+    "rtl-gen": 1
+  }
+}
+{
+  "cleanup": {
+    "exists_after_context": false,
+    "tempdir": "/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas_orch_positive_4tts7p3s"
+  }
+}

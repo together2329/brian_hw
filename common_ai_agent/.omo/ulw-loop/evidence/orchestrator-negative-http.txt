@@ -1,0 +1,11 @@
+COMMAND: PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest tests/test_pipeline_orchestrator_worker_integration.py::test_worker_completion_without_stage_evidence_is_not_marked_green tests/test_pipeline_orchestrator_worker_integration.py::test_worker_reported_completed_with_blocked_stage_engine_blocks_downstream tests/test_pipeline_orchestrator_worker_integration.py::test_rtl_stage_evidence_gate_rejects_placeholder_sources tests/test_pipeline_orchestrator_worker_integration.py::test_rtl_scaffold_without_verdict_is_not_marked_failed -q
+....                                                                     [100%]
+4 passed in 1.68s
+COMMAND: TestClient negative orchestrator evidence HTTP transcript
+[opencode-oauth] no credential — run `python -m src.opencode_backend login`
+[atlas] Multi-user enabled (process_per_session=off)
+20:29:00 [rehydrate] 0 jobs reconciled (rescued=0, marked-error=0)
+20:29:00 [dispatch] FAIL job=fa0e03785ab6 workflow=rtl-gen worker=http://127.0.0.1:5623 error=<urlopen error [Errno 61] Connection refused>
+[atlas] Multi-user enabled (process_per_session=off)
+20:29:01 [rehydrate] 0 jobs reconciled (rescued=0, marked-error=0)
+20:29:01 [dispatch] FAIL job=8c59fcfe5c4c workflow=rtl-gen worker=http://127.0.0.1:5623 error=<urlopen error [Errno 61] Connection refused>
