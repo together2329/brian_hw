@@ -1,0 +1,2077 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 5,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 30,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+      "name": "mctp_assembler_scratch_axi_read_egress",
+      "refs": [
+        "cycle_model",
+        "cycle_model.handshake_rules.axi_read_channels",
+        "function_model",
+        "function_model.transactions.FM_AXI_READBACK",
+        "io_list",
+        "io_list.interfaces.axi_read_slave",
+        "memory"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "name": "mctp_assembler_scratch_axi_write_ingress",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "name": "mctp_assembler_scratch_pcie_vdm_parser",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_mctp_parser.sv",
+        "name": "mctp_assembler_scratch_mctp_parser",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_context_table.sv",
+        "name": "mctp_assembler_scratch_context_table",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "name": "mctp_assembler_scratch_sram_packer",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "name": "mctp_assembler_scratch_axi_read_egress",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
+        "name": "mctp_assembler_scratch_sram_arbiter",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_descriptor_queue.sv",
+        "name": "mctp_assembler_scratch_descriptor_queue",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+        "name": "mctp_assembler_scratch_apb_regfile",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_cdc.sv",
+        "name": "mctp_assembler_scratch_cdc",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_param.vh",
+        "name": "mctp_assembler_scratch_param",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch.sv",
+        "name": "mctp_assembler_scratch",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_scratch_axi_read_egress",
+        "port": "m_axi_rvalid",
+        "signal": "m_axi_rvalid",
+        "signal_terms": [
+          "m_axi_rvalid"
+        ],
+        "source_ref": "integration.connections[3]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "mctp_assembler_scratch",
+  "kind": "module",
+  "owner_file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+  "owner_module": "mctp_assembler_scratch_axi_read_egress",
+  "packet_id": "module__mctp_assembler_scratch_axi_read_egress",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "cycle_model.handshake_rules": 1,
+      "equivalence.module": 1,
+      "function_model.output": 9,
+      "function_model.output_rule": 4,
+      "function_model.precondition": 1,
+      "function_model.side_effect": 1,
+      "function_model.state_update": 1,
+      "function_model.transaction": 1,
+      "io_list.port": 11
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 30,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 30,
+    "source_refs": [
+      "function_model.transactions.FM_AXI_READBACK",
+      "function_model.transactions.FM_AXI_READBACK.preconditions.precondition_0",
+      "function_model.transactions.FM_AXI_READBACK.outputs.output_0",
+      "function_model.transactions.FM_AXI_READBACK.outputs.output_1",
+      "function_model.transactions.FM_AXI_READBACK.outputs.output_2",
+      "function_model.transactions.FM_AXI_READBACK.outputs.output_3",
+      "function_model.transactions.FM_AXI_READBACK.outputs.readback_valid",
+      "function_model.transactions.FM_AXI_READBACK.outputs.readback_data_out",
+      "function_model.transactions.FM_AXI_READBACK.outputs.readback_resp",
+      "function_model.transactions.FM_AXI_READBACK.outputs.readback_last",
+      "function_model.transactions.FM_AXI_READBACK.outputs.read_error_count",
+      "function_model.transactions.FM_AXI_READBACK.output_rules.readback_valid",
+      "function_model.transactions.FM_AXI_READBACK.output_rules.readback_data_out",
+      "function_model.transactions.FM_AXI_READBACK.output_rules.readback_resp",
+      "function_model.transactions.FM_AXI_READBACK.output_rules.readback_last",
+      "function_model.transactions.FM_AXI_READBACK.state_updates.read_error_count",
+      "function_model.transactions.FM_AXI_READBACK.side_effects.side_effect_0",
+      "cycle_model.handshake_rules.axi_read_channels",
+      "sub_modules.mctp_assembler_scratch_axi_read_egress.module_equivalence",
+      "io_list.interfaces.axi_read_slave.ports.m_axi_araddr",
+      "io_list.interfaces.axi_read_slave.ports.m_axi_arlen",
+      "io_list.interfaces.axi_read_slave.ports.m_axi_arsize",
+      "io_list.interfaces.axi_read_slave.ports.m_axi_arburst",
+      "io_list.interfaces.axi_read_slave.ports.m_axi_arvalid"
+    ],
+    "status_counts": {
+      "pass": 30
+    },
+    "task_count": 30
+  },
+  "tasks": [
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_AXI_READBACK",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_AXI_READBACK",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_read_egress.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_AXI_READBACK.\nOwner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via function_model.transactions.FM_AXI_READBACK.\nSSOT item context: id=FM_AXI_READBACK; name=AXI readback from descriptor-backed SRAM payload.",
+      "evidence_terms": [],
+      "id": "RTL-0274",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_read_egress",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_AXI_READBACK",
+      "ssot_context": {
+        "id": "FM_AXI_READBACK",
+        "name": "AXI readback from descriptor-backed SRAM payload"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_AXI_READBACK"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_AXI_READBACK: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_AXI_READBACK.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_read_egress.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_AXI_READBACK.preconditions.precondition_0.\nOwner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via function_model.transactions.FM_AXI_READBACK.\nSSOT item context: value=axi_ar_accept.",
+      "evidence_terms": [
+        "accept",
+        "ar",
+        "axi",
+        "axi_ar_accept"
+      ],
+      "id": "RTL-0275",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_read_egress",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_AXI_READBACK.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "axi_ar_accept"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_AXI_READBACK.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "ar",
+          "axi"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "accept",
+          "ar",
+          "axi",
+          "axi_ar_accept"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_AXI_READBACK: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_AXI_READBACK.outputs.output_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_read_egress.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_AXI_READBACK.outputs.output_0.\nOwner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via function_model.transactions.FM_AXI_READBACK.\nSSOT item context: value=readback_valid.",
+      "evidence_terms": [
+        "readback",
+        "readback_valid",
+        "valid"
+      ],
+      "id": "RTL-0276",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_read_egress",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_AXI_READBACK.outputs.output_0",
+      "ssot_context": {
+        "value": "readback_valid"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_AXI_READBACK.outputs.output_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 1,
+        "matched_terms": [
+          "valid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "readback",
+          "readback_valid",
+          "valid"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_AXI_READBACK: output_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_AXI_READBACK.outputs.output_1",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_read_egress.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_AXI_READBACK.outputs.output_1.\nOwner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via function_model.transactions.FM_AXI_READBACK.\nSSOT item context: value=readback_data_out.",
+      "evidence_terms": [
+        "data",
+        "out",
+        "readback",
+        "readback_data_out"
+      ],
+      "id": "RTL-0277",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_read_egress",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_AXI_READBACK.outputs.output_1",
+      "ssot_context": {
+        "value": "readback_data_out"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_AXI_READBACK.outputs.output_1"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 1,
+        "matched_terms": [
+          "data"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "data",
+          "out",
+          "readback",
+          "readback_data_out"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_AXI_READBACK: output_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_AXI_READBACK.outputs.output_2",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_read_egress.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_AXI_READBACK.outputs.output_2.\nOwner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via function_model.transactions.FM_AXI_READBACK.\nSSOT item context: value=readback_resp.",
+      "evidence_terms": [
+        "readback",
+        "readback_resp",
+        "resp"
+      ],
+      "id": "RTL-0278",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_read_egress",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_AXI_READBACK.outputs.output_2",
+      "ssot_context": {
+        "value": "readback_resp"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_AXI_READBACK.outputs.output_2"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 1,
+        "matched_terms": [
+          "resp"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "readback",
+          "readback_resp",
+          "resp"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_AXI_READBACK: output_3",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_AXI_READBACK.outputs.output_3",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_read_egress.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_AXI_READBACK.outputs.output_3.\nOwner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via function_model.transactions.FM_AXI_READBACK.\nSSOT item context: value=readback_last.",
+      "evidence_terms": [
+        "last",
+        "m_axi_rlast",
+        "readback",
+        "readback_last",
+        "rlast"
+      ],
+      "id": "RTL-0279",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_read_egress",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_AXI_READBACK.outputs.output_3",
+      "ssot_context": {
+        "value": "readback_last"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_AXI_READBACK.outputs.output_3"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "m_axi_rlast",
+          "rlast"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "last",
+          "m_axi_rlast",
+          "readback",
+          "readback_last",
+          "rlast"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_AXI_READBACK: readback_valid",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_AXI_READBACK.outputs.readback_valid",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "readback_valid RTL expression implements SSOT expression axi_ar_accept",
+        "DUT port m_axi_rvalid is the implementation/observation point for readback_valid"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_AXI_READBACK.outputs.readback_valid.\nOwner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via function_model.transactions.FM_AXI_READBACK.\nSSOT item context: name=readback_valid; port=m_axi_rvalid; expr=axi_ar_accept.",
+      "evidence_terms": [
+        "accept",
+        "ar",
+        "axi",
+        "axi_ar_accept",
+        "m_axi_rvalid",
+        "readback",
+        "readback_valid",
+        "rvalid",
+        "valid"
+      ],
+      "id": "RTL-0280",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_read_egress",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_AXI_READBACK.outputs.readback_valid",
+      "ssot_context": {
+        "expr": "axi_ar_accept",
+        "name": "readback_valid",
+        "port": "m_axi_rvalid"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_AXI_READBACK.outputs.readback_valid"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 5,
+        "matched_terms": [
+          "ar",
+          "axi",
+          "m_axi_rvalid",
+          "rvalid",
+          "valid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "accept",
+          "ar",
+          "axi",
+          "axi_ar_accept",
+          "m_axi_rvalid",
+          "readback",
+          "readback_valid",
+          "rvalid",
+          "valid"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_AXI_READBACK: readback_data_out",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_AXI_READBACK.outputs.readback_data_out",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "readback_data_out RTL expression implements SSOT expression readback_data if read_has_descriptor else ZERO_256",
+        "DUT port m_axi_rdata is the implementation/observation point for readback_data_out"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_AXI_READBACK.outputs.readback_data_out.\nOwner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via function_model.transactions.FM_AXI_READBACK.\nSSOT item context: name=readback_data_out; port=m_axi_rdata; expr=readback_data if read_has_descriptor else ZERO_256.",
+      "evidence_terms": [
+        "axi",
+        "data",
+        "descriptor",
+        "m_axi_rdata",
+        "out",
+        "rdata",
+        "read",
+        "read_has_descriptor",
+        "readback",
+        "readback_data",
+        "readback_data_out"
+      ],
+      "id": "RTL-0281",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_read_egress",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_AXI_READBACK.outputs.readback_data_out",
+      "ssot_context": {
+        "expr": "readback_data if read_has_descriptor else ZERO_256",
+        "name": "readback_data_out",
+        "port": "m_axi_rdata"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_AXI_READBACK.outputs.readback_data_out"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 7,
+        "matched_terms": [
+          "axi",
+          "data",
+          "descriptor",
+          "m_axi_rdata",
+          "rdata",
+          "read",
+          "read_has_descriptor"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "axi",
+          "data",
+          "descriptor",
+          "m_axi_rdata",
+          "out",
+          "rdata",
+          "read",
+          "read_has_descriptor",
+          "readback",
+          "readback_data",
+          "readback_data_out"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_AXI_READBACK: readback_resp",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_AXI_READBACK.outputs.readback_resp",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "readback_resp RTL expression implements SSOT expression RESP_OKAY if read_has_descriptor else RESP_SLVERR",
+        "DUT port m_axi_rresp is the implementation/observation point for readback_resp"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_AXI_READBACK.outputs.readback_resp.\nOwner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via function_model.transactions.FM_AXI_READBACK.\nSSOT item context: name=readback_resp; port=m_axi_rresp; expr=RESP_OKAY if read_has_descriptor else RESP_SLVERR.",
+      "evidence_terms": [
+        "RESP",
+        "RESP_OKAY",
+        "RESP_SLVERR",
+        "SLVERR",
+        "axi",
+        "descriptor",
+        "m_axi_rresp",
+        "read",
+        "read_has_descriptor",
+        "readback",
+        "readback_resp",
+        "resp",
+        "rresp"
+      ],
+      "id": "RTL-0282",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_read_egress",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_AXI_READBACK.outputs.readback_resp",
+      "ssot_context": {
+        "expr": "RESP_OKAY if read_has_descriptor else RESP_SLVERR",
+        "name": "readback_resp",
+        "port": "m_axi_rresp"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_AXI_READBACK.outputs.readback_resp"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 11,
+        "matched_terms": [
+          "RESP",
+          "RESP_OKAY",
+          "RESP_SLVERR",
+          "SLVERR",
+          "axi",
+          "descriptor",
+          "m_axi_rresp",
+          "read",
+          "read_has_descriptor",
+          "resp",
+          "rresp"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "RESP",
+          "RESP_OKAY",
+          "RESP_SLVERR",
+          "SLVERR",
+          "axi",
+          "descriptor",
+          "m_axi_rresp",
+          "read",
+          "read_has_descriptor",
+          "readback",
+          "readback_resp",
+          "resp",
+          "rresp"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_AXI_READBACK: readback_last",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_AXI_READBACK.outputs.readback_last",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "readback_last RTL expression implements SSOT expression read_last",
+        "DUT port m_axi_rlast is the implementation/observation point for readback_last"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_AXI_READBACK.outputs.readback_last.\nOwner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via function_model.transactions.FM_AXI_READBACK.\nSSOT item context: name=readback_last; port=m_axi_rlast; expr=read_last.",
+      "evidence_terms": [
+        "axi",
+        "last",
+        "m_axi_rlast",
+        "read",
+        "read_last",
+        "readback",
+        "readback_last",
+        "rlast"
+      ],
+      "id": "RTL-0283",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_read_egress",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_AXI_READBACK.outputs.readback_last",
+      "ssot_context": {
+        "expr": "read_last",
+        "name": "readback_last",
+        "port": "m_axi_rlast"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_AXI_READBACK.outputs.readback_last"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 4,
+        "matched_terms": [
+          "axi",
+          "m_axi_rlast",
+          "read",
+          "rlast"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "axi",
+          "last",
+          "m_axi_rlast",
+          "read",
+          "read_last",
+          "readback",
+          "readback_last",
+          "rlast"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_AXI_READBACK: read_error_count",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_AXI_READBACK.outputs.read_error_count",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "function_model.transactions.FM_AXI_READBACK.outputs.read_error_count RTL expression implements SSOT expression read_error_count + (not read_has_descriptor)"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_AXI_READBACK.outputs.read_error_count.\nOwner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via function_model.transactions.FM_AXI_READBACK.\nSSOT item context: state=read_error_count; expr=read_error_count + (not read_has_descriptor).",
+      "evidence_terms": [
+        "count",
+        "descriptor",
+        "read",
+        "read_error_count",
+        "read_has_descriptor"
+      ],
+      "id": "RTL-0284",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_read_egress",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_AXI_READBACK.outputs.read_error_count",
+      "ssot_context": {
+        "expr": "read_error_count + (not read_has_descriptor)",
+        "state": "read_error_count"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_AXI_READBACK.outputs.read_error_count"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "descriptor",
+          "read",
+          "read_has_descriptor"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "count",
+          "descriptor",
+          "read",
+          "read_error_count",
+          "read_has_descriptor"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_AXI_READBACK: readback_valid",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_AXI_READBACK.output_rules.readback_valid",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "readback_valid width matches SSOT value 1",
+        "readback_valid RTL expression implements SSOT expression axi_ar_accept",
+        "DUT port m_axi_rvalid is the implementation/observation point for readback_valid",
+        "readback_valid is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_AXI_READBACK.output_rules.readback_valid.\nOwner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via function_model.transactions.FM_AXI_READBACK.\nSSOT item context: name=readback_valid; port=m_axi_rvalid; expr=axi_ar_accept; width=1.",
+      "evidence_terms": [
+        "accept",
+        "ar",
+        "axi",
+        "axi_ar_accept",
+        "m_axi_rvalid",
+        "readback",
+        "readback_valid",
+        "rvalid",
+        "valid"
+      ],
+      "id": "RTL-0285",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_read_egress",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_AXI_READBACK.output_rules.readback_valid",
+      "ssot_context": {
+        "expr": "axi_ar_accept",
+        "name": "readback_valid",
+        "port": "m_axi_rvalid",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_AXI_READBACK.output_rules.readback_valid"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 5,
+        "matched_terms": [
+          "ar",
+          "axi",
+          "m_axi_rvalid",
+          "rvalid",
+          "valid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "accept",
+          "ar",
+          "axi",
+          "axi_ar_accept",
+          "m_axi_rvalid",
+          "readback",
+          "readback_valid",
+          "rvalid",
+          "valid"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_AXI_READBACK: readback_data_out",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_AXI_READBACK.output_rules.readback_data_out",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "readback_data_out width matches SSOT value 256",
+        "readback_data_out RTL expression implements SSOT expression readback_data if read_has_descriptor else ZERO_256",
+        "DUT port m_axi_rdata is the implementation/observation point for readback_data_out",
+        "readback_data_out is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_AXI_READBACK.output_rules.readback_data_out.\nOwner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via function_model.transactions.FM_AXI_READBACK.\nSSOT item context: name=readback_data_out; port=m_axi_rdata; expr=readback_data if read_has_descriptor else ZERO_256; width=256.",
+      "evidence_terms": [
+        "axi",
+        "data",
+        "descriptor",
+        "m_axi_rdata",
+        "out",
+        "rdata",
+        "read",
+        "read_has_descriptor",
+        "readback",
+        "readback_data",
+        "readback_data_out"
+      ],
+      "id": "RTL-0286",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_read_egress",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_AXI_READBACK.output_rules.readback_data_out",
+      "ssot_context": {
+        "expr": "readback_data if read_has_descriptor else ZERO_256",
+        "name": "readback_data_out",
+        "port": "m_axi_rdata",
+        "width": "256"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_AXI_READBACK.output_rules.readback_data_out"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 7,
+        "matched_terms": [
+          "axi",
+          "data",
+          "descriptor",
+          "m_axi_rdata",
+          "rdata",
+          "read",
+          "read_has_descriptor"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "axi",
+          "data",
+          "descriptor",
+          "m_axi_rdata",
+          "out",
+          "rdata",
+          "read",
+          "read_has_descriptor",
+          "readback",
+          "readback_data",
+          "readback_data_out"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_AXI_READBACK: readback_resp",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_AXI_READBACK.output_rules.readback_resp",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "readback_resp width matches SSOT value 2",
+        "readback_resp RTL expression implements SSOT expression RESP_OKAY if read_has_descriptor else RESP_SLVERR",
+        "DUT port m_axi_rresp is the implementation/observation point for readback_resp",
+        "readback_resp is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_AXI_READBACK.output_rules.readback_resp.\nOwner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via function_model.transactions.FM_AXI_READBACK.\nSSOT item context: name=readback_resp; port=m_axi_rresp; expr=RESP_OKAY if read_has_descriptor else RESP_SLVERR; width=2.",
+      "evidence_terms": [
+        "RESP",
+        "RESP_OKAY",
+        "RESP_SLVERR",
+        "SLVERR",
+        "axi",
+        "descriptor",
+        "m_axi_rresp",
+        "read",
+        "read_has_descriptor",
+        "readback",
+        "readback_resp",
+        "resp",
+        "rresp"
+      ],
+      "id": "RTL-0287",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_read_egress",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_AXI_READBACK.output_rules.readback_resp",
+      "ssot_context": {
+        "expr": "RESP_OKAY if read_has_descriptor else RESP_SLVERR",
+        "name": "readback_resp",
+        "port": "m_axi_rresp",
+        "width": "2"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_AXI_READBACK.output_rules.readback_resp"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 11,
+        "matched_terms": [
+          "RESP",
+          "RESP_OKAY",
+          "RESP_SLVERR",
+          "SLVERR",
+          "axi",
+          "descriptor",
+          "m_axi_rresp",
+          "read",
+          "read_has_descriptor",
+          "resp",
+          "rresp"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "RESP",
+          "RESP_OKAY",
+          "RESP_SLVERR",
+          "SLVERR",
+          "axi",
+          "descriptor",
+          "m_axi_rresp",
+          "read",
+          "read_has_descriptor",
+          "readback",
+          "readback_resp",
+          "resp",
+          "rresp"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_AXI_READBACK: readback_last",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_AXI_READBACK.output_rules.readback_last",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "readback_last width matches SSOT value 1",
+        "readback_last RTL expression implements SSOT expression read_last",
+        "DUT port m_axi_rlast is the implementation/observation point for readback_last",
+        "readback_last is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_AXI_READBACK.output_rules.readback_last.\nOwner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via function_model.transactions.FM_AXI_READBACK.\nSSOT item context: name=readback_last; port=m_axi_rlast; expr=read_last; width=1.",
+      "evidence_terms": [
+        "axi",
+        "last",
+        "m_axi_rlast",
+        "read",
+        "read_last",
+        "readback",
+        "readback_last",
+        "rlast"
+      ],
+      "id": "RTL-0288",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_read_egress",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_AXI_READBACK.output_rules.readback_last",
+      "ssot_context": {
+        "expr": "read_last",
+        "name": "readback_last",
+        "port": "m_axi_rlast",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_AXI_READBACK.output_rules.readback_last"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 4,
+        "matched_terms": [
+          "axi",
+          "m_axi_rlast",
+          "read",
+          "rlast"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "axi",
+          "last",
+          "m_axi_rlast",
+          "read",
+          "read_last",
+          "readback",
+          "readback_last",
+          "rlast"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_AXI_READBACK: read_error_count",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_AXI_READBACK.state_updates.read_error_count",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "read_error_count width matches SSOT value 32",
+        "read_error_count RTL expression implements SSOT expression read_error_count + (not read_has_descriptor)",
+        "read_error_count updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_AXI_READBACK.state_updates.read_error_count.\nOwner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via function_model.transactions.FM_AXI_READBACK.\nSSOT item context: name=read_error_count; expr=read_error_count + (not read_has_descriptor); width=32.",
+      "evidence_terms": [
+        "count",
+        "descriptor",
+        "read",
+        "read_error_count",
+        "read_has_descriptor"
+      ],
+      "id": "RTL-0289",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_read_egress",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_AXI_READBACK.state_updates.read_error_count",
+      "ssot_context": {
+        "expr": "read_error_count + (not read_has_descriptor)",
+        "name": "read_error_count",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_AXI_READBACK.state_updates.read_error_count"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "descriptor",
+          "read",
+          "read_has_descriptor"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "count",
+          "descriptor",
+          "read",
+          "read_error_count",
+          "read_has_descriptor"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_AXI_READBACK: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_AXI_READBACK.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "DUT port [\"m_axi_rvalid\", \"m_axi_rdata\", \"m_axi_rresp\", \"m_axi_rlast\"] is the implementation/observation point for AXI readback from descriptor-backed SRAM payload"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_AXI_READBACK.side_effects.side_effect_0.\nOwner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via function_model.transactions.FM_AXI_READBACK.\nSSOT item context: id=FM_AXI_READBACK; name=AXI readback from descriptor-backed SRAM payload; port=[\"m_axi_rvalid\", \"m_axi_rdata\", \"m_axi_rresp\", \"m_axi_rlast\"]; signal=[\"no_descriptor_read_returns_zero_data_and_slverr_unless_raw_debug_enabled\", \"axi_ar_accept\", \"read_has_descriptor\", ...; state=[\"read_error_count\"].",
+      "evidence_terms": [
+        "accept",
+        "ar",
+        "axi",
+        "axi_ar_accept",
+        "count",
+        "data",
+        "debug",
+        "descriptor",
+        "enabled",
+        "last",
+        "m_axi_rdata",
+        "m_axi_rlast",
+        "m_axi_rresp",
+        "m_axi_rvalid",
+        "no_descriptor_read_returns_zero_data_and_slverr_unless_raw_debug_enabled",
+        "raw"
+      ],
+      "id": "RTL-0290",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_read_egress",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_AXI_READBACK.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "FM_AXI_READBACK",
+        "name": "AXI readback from descriptor-backed SRAM payload",
+        "port": "[\"m_axi_rvalid\", \"m_axi_rdata\", \"m_axi_rresp\", \"m_axi_rlast\"]",
+        "signal": "[\"no_descriptor_read_returns_zero_data_and_slverr_unless_raw_debug_enabled\", \"axi_ar_accept\", \"read_has_descriptor\", ...",
+        "state": "[\"read_error_count\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_AXI_READBACK.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 10,
+        "matched_terms": [
+          "ar",
+          "axi",
+          "data",
+          "debug",
+          "descriptor",
+          "m_axi_rdata",
+          "m_axi_rlast",
+          "m_axi_rresp",
+          "m_axi_rvalid",
+          "raw"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "accept",
+          "ar",
+          "axi",
+          "axi_ar_accept",
+          "count",
+          "data",
+          "debug",
+          "descriptor",
+          "enabled",
+          "last",
+          "m_axi_rdata",
+          "m_axi_rlast",
+          "m_axi_rresp",
+          "m_axi_rvalid",
+          "no_descriptor_read_returns_zero_data_and_slverr_unless_raw_debug_enabled",
+          "raw"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: axi_read_channels",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.axi_read_channels",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "axi_read_channels appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.axi_read_channels.\nOwner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via cycle_model.handshake_rules.axi_read_channels.\nSSOT item context: name=axi_read_channels; signal=m_axi_arvalid/m_axi_arready/m_axi_rvalid/m_axi_rready.",
+      "evidence_terms": [
+        "arready",
+        "arvalid",
+        "axi",
+        "axi_read_channels",
+        "channels",
+        "m_axi_arready",
+        "m_axi_arvalid",
+        "m_axi_rready",
+        "m_axi_rvalid",
+        "read",
+        "rready",
+        "rvalid"
+      ],
+      "id": "RTL-0298",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_read_egress",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.axi_read_channels",
+      "ssot_context": {
+        "name": "axi_read_channels",
+        "signal": "m_axi_arvalid/m_axi_arready/m_axi_rvalid/m_axi_rready"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.axi_read_channels"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 10,
+        "matched_terms": [
+          "arready",
+          "arvalid",
+          "axi",
+          "m_axi_arready",
+          "m_axi_arvalid",
+          "m_axi_rready",
+          "m_axi_rvalid",
+          "read",
+          "rready",
+          "rvalid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "arready",
+          "arvalid",
+          "axi",
+          "axi_read_channels",
+          "channels",
+          "m_axi_arready",
+          "m_axi_arvalid",
+          "m_axi_rready",
+          "m_axi_rvalid",
+          "read",
+          "rready",
+          "rvalid"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module mctp_assembler_scratch_axi_read_egress is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.mctp_assembler_scratch_axi_read_egress.module_equivalence",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_read_egress.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.mctp_assembler_scratch_axi_read_egress.module_equivalence.\nOwner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0426",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_read_egress",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.mctp_assembler_scratch_axi_read_egress.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.mctp_assembler_scratch_axi_read_egress.module_equivalence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port m_axi_araddr",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_read_slave.ports.m_axi_araddr",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "m_axi_araddr width matches SSOT value AXI_ADDR_WIDTH",
+        "m_axi_araddr port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_read_slave.ports.m_axi_araddr.\nOwner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via io_list.interfaces.axi_read_slave.\nSSOT item context: name=m_axi_araddr; width=AXI_ADDR_WIDTH; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0067",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_read_egress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_read_slave.ports.m_axi_araddr",
+      "ssot_context": {
+        "direction": "input",
+        "name": "m_axi_araddr",
+        "width": "AXI_ADDR_WIDTH"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_read_slave.ports.m_axi_araddr"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port m_axi_arlen",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_read_slave.ports.m_axi_arlen",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "m_axi_arlen width matches SSOT value 8",
+        "m_axi_arlen port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_read_slave.ports.m_axi_arlen.\nOwner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via io_list.interfaces.axi_read_slave.\nSSOT item context: name=m_axi_arlen; width=8; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0068",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_read_egress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_read_slave.ports.m_axi_arlen",
+      "ssot_context": {
+        "direction": "input",
+        "name": "m_axi_arlen",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_read_slave.ports.m_axi_arlen"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port m_axi_arsize",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_read_slave.ports.m_axi_arsize",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "m_axi_arsize width matches SSOT value 3",
+        "m_axi_arsize port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_read_slave.ports.m_axi_arsize.\nOwner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via io_list.interfaces.axi_read_slave.\nSSOT item context: name=m_axi_arsize; width=3; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0069",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_read_egress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_read_slave.ports.m_axi_arsize",
+      "ssot_context": {
+        "direction": "input",
+        "name": "m_axi_arsize",
+        "width": "3"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_read_slave.ports.m_axi_arsize"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port m_axi_arburst",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_read_slave.ports.m_axi_arburst",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "m_axi_arburst width matches SSOT value 2",
+        "m_axi_arburst port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_read_slave.ports.m_axi_arburst.\nOwner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via io_list.interfaces.axi_read_slave.\nSSOT item context: name=m_axi_arburst; width=2; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0070",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_read_egress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_read_slave.ports.m_axi_arburst",
+      "ssot_context": {
+        "direction": "input",
+        "name": "m_axi_arburst",
+        "width": "2"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_read_slave.ports.m_axi_arburst"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port m_axi_arvalid",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_read_slave.ports.m_axi_arvalid",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "m_axi_arvalid width matches SSOT value 1",
+        "m_axi_arvalid port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_read_slave.ports.m_axi_arvalid.\nOwner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via io_list.interfaces.axi_read_slave.\nSSOT item context: name=m_axi_arvalid; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0071",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_read_egress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_read_slave.ports.m_axi_arvalid",
+      "ssot_context": {
+        "direction": "input",
+        "name": "m_axi_arvalid",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_read_slave.ports.m_axi_arvalid"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port m_axi_arready",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_read_slave.ports.m_axi_arready",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "m_axi_arready width matches SSOT value 1",
+        "m_axi_arready port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_read_slave.ports.m_axi_arready.\nOwner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via io_list.interfaces.axi_read_slave.\nSSOT item context: name=m_axi_arready; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0072",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_read_egress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_read_slave.ports.m_axi_arready",
+      "ssot_context": {
+        "direction": "output",
+        "name": "m_axi_arready",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_read_slave.ports.m_axi_arready"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port m_axi_rdata",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_read_slave.ports.m_axi_rdata",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "m_axi_rdata width matches SSOT value AXI_DATA_WIDTH",
+        "m_axi_rdata port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_read_slave.ports.m_axi_rdata.\nOwner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via io_list.interfaces.axi_read_slave.\nSSOT item context: name=m_axi_rdata; width=AXI_DATA_WIDTH; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0073",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_read_egress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_read_slave.ports.m_axi_rdata",
+      "ssot_context": {
+        "direction": "output",
+        "name": "m_axi_rdata",
+        "width": "AXI_DATA_WIDTH"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_read_slave.ports.m_axi_rdata"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port m_axi_rresp",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_read_slave.ports.m_axi_rresp",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "m_axi_rresp width matches SSOT value 2",
+        "m_axi_rresp port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_read_slave.ports.m_axi_rresp.\nOwner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via io_list.interfaces.axi_read_slave.\nSSOT item context: name=m_axi_rresp; width=2; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0074",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_read_egress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_read_slave.ports.m_axi_rresp",
+      "ssot_context": {
+        "direction": "output",
+        "name": "m_axi_rresp",
+        "width": "2"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_read_slave.ports.m_axi_rresp"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port m_axi_rlast",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_read_slave.ports.m_axi_rlast",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "m_axi_rlast width matches SSOT value 1",
+        "m_axi_rlast port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_read_slave.ports.m_axi_rlast.\nOwner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via io_list.interfaces.axi_read_slave.\nSSOT item context: name=m_axi_rlast; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0075",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_read_egress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_read_slave.ports.m_axi_rlast",
+      "ssot_context": {
+        "direction": "output",
+        "name": "m_axi_rlast",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_read_slave.ports.m_axi_rlast"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port m_axi_rvalid",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_read_slave.ports.m_axi_rvalid",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "m_axi_rvalid width matches SSOT value 1",
+        "m_axi_rvalid port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_read_slave.ports.m_axi_rvalid.\nOwner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via io_list.interfaces.axi_read_slave.\nSSOT item context: name=m_axi_rvalid; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0076",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_read_egress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_read_slave.ports.m_axi_rvalid",
+      "ssot_context": {
+        "direction": "output",
+        "name": "m_axi_rvalid",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_read_slave.ports.m_axi_rvalid"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port m_axi_rready",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_read_slave.ports.m_axi_rready",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "m_axi_rready width matches SSOT value 1",
+        "m_axi_rready port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_read_slave.ports.m_axi_rready.\nOwner: mctp_assembler_scratch_axi_read_egress in rtl/mctp_assembler_scratch_axi_read_egress.sv via io_list.interfaces.axi_read_slave.\nSSOT item context: name=m_axi_rready; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0077",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_read_egress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_read_slave.ports.m_axi_rready",
+      "ssot_context": {
+        "direction": "input",
+        "name": "m_axi_rready",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_read_slave.ports.m_axi_rready"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "a6a5a0fbc9df7cbf10ab017b46631a16a00f0b454b4cee41da9ba28dbc65043d",
+  "top": "mctp_assembler_scratch",
+  "type": "rtl_authoring_packet"
+}

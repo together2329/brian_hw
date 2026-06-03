@@ -1,0 +1,6 @@
+TESTS=3 PASS=3 FAIL=0
+results=mctp_assembler_scratch/sim/results.xml
+scoreboard=mctp_assembler_scratch/sim/scoreboard_events.jsonl
+coverage_functional=mctp_assembler_scratch/cov/coverage_functional.json
+waveforms=mctp_assembler_scratch/sim/mctp_assembler_scratch.vcd
+0 errors, 0 warnings

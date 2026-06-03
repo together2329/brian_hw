@@ -1,0 +1,1105 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 5,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 3,
+      "key": "function_model_02",
+      "module_task_count": 132,
+      "rule": "Owner module mctp_assembler_scratch_apb_regfile is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 2,
+      "section_chunk_index": 2,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+      "name": "mctp_assembler_scratch_apb_regfile",
+      "refs": [
+        "debug_observability",
+        "decomposition",
+        "error_handling",
+        "features",
+        "fsm",
+        "function_model.state_variables",
+        "function_model.transactions.FM_APB_ACCESS",
+        "function_model.transactions.FM_ASSEMBLE_FRAGMENT",
+        "function_model.transactions.FM_ASSEMBLY_DROP",
+        "function_model.transactions.FM_AXI_READBACK",
+        "function_model.transactions.FM_COMPLETE_MESSAGE",
+        "function_model.transactions.FM_PACKET_DROP",
+        "interrupts",
+        "interrupts.sources",
+        "io_list",
+        "io_list.interfaces.apb_slave",
+        "registers",
+        "registers.register_list"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "name": "mctp_assembler_scratch_axi_write_ingress",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "name": "mctp_assembler_scratch_pcie_vdm_parser",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_mctp_parser.sv",
+        "name": "mctp_assembler_scratch_mctp_parser",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_context_table.sv",
+        "name": "mctp_assembler_scratch_context_table",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "name": "mctp_assembler_scratch_sram_packer",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "name": "mctp_assembler_scratch_axi_read_egress",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
+        "name": "mctp_assembler_scratch_sram_arbiter",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_descriptor_queue.sv",
+        "name": "mctp_assembler_scratch_descriptor_queue",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+        "name": "mctp_assembler_scratch_apb_regfile",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_cdc.sv",
+        "name": "mctp_assembler_scratch_cdc",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_param.vh",
+        "name": "mctp_assembler_scratch_param",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch.sv",
+        "name": "mctp_assembler_scratch",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_scratch_apb_regfile",
+        "port": "pready",
+        "signal": "pready",
+        "signal_terms": [
+          "pready"
+        ],
+        "source_ref": "integration.connections[4]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "mctp_assembler_scratch",
+  "kind": "module",
+  "owner_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+  "owner_module": "mctp_assembler_scratch_apb_regfile",
+  "packet_id": "module__mctp_assembler_scratch_apb_regfile__function_model_02",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "function_model.output": 6,
+      "function_model.output_rule": 2,
+      "function_model.precondition": 1,
+      "function_model.side_effect": 1,
+      "function_model.state_update": 2,
+      "function_model.transaction": 1
+    },
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 3,
+      "key": "function_model_02",
+      "module_task_count": 132,
+      "rule": "Owner module mctp_assembler_scratch_apb_regfile is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 2,
+      "section_chunk_index": 2,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 13,
+    "source_refs": [
+      "function_model.transactions.FM_APB_ACCESS",
+      "function_model.transactions.FM_APB_ACCESS.preconditions.precondition_0",
+      "function_model.transactions.FM_APB_ACCESS.outputs.output_0",
+      "function_model.transactions.FM_APB_ACCESS.outputs.output_1",
+      "function_model.transactions.FM_APB_ACCESS.outputs.apb_ready",
+      "function_model.transactions.FM_APB_ACCESS.outputs.apb_error",
+      "function_model.transactions.FM_APB_ACCESS.outputs.enable_reg",
+      "function_model.transactions.FM_APB_ACCESS.outputs.drop_mode_reg",
+      "function_model.transactions.FM_APB_ACCESS.output_rules.apb_ready",
+      "function_model.transactions.FM_APB_ACCESS.output_rules.apb_error",
+      "function_model.transactions.FM_APB_ACCESS.state_updates.enable_reg",
+      "function_model.transactions.FM_APB_ACCESS.state_updates.drop_mode_reg",
+      "function_model.transactions.FM_APB_ACCESS.side_effects.side_effect_0"
+    ],
+    "status_counts": {
+      "pass": 13
+    },
+    "task_count": 13
+  },
+  "tasks": [
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_APB_ACCESS",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_ACCESS",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_apb_regfile.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_APB_ACCESS.\nOwner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_APB_ACCESS.\nSSOT item context: id=FM_APB_ACCESS; name=APB register access.",
+      "evidence_terms": [],
+      "id": "RTL-0261",
+      "owner_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+      "owner_module": "mctp_assembler_scratch_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_ACCESS",
+      "ssot_context": {
+        "id": "FM_APB_ACCESS",
+        "name": "APB register access"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_ACCESS"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_APB_ACCESS: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_ACCESS.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_apb_regfile.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_ACCESS.preconditions.precondition_0.\nOwner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_APB_ACCESS.\nSSOT item context: value=apb_access.",
+      "evidence_terms": [
+        "apb",
+        "apb_access"
+      ],
+      "id": "RTL-0262",
+      "owner_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+      "owner_module": "mctp_assembler_scratch_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_ACCESS.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "apb_access"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_ACCESS.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "apb",
+          "apb_access"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "apb",
+          "apb_access"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_APB_ACCESS: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_ACCESS.outputs.output_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_apb_regfile.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_ACCESS.outputs.output_0.\nOwner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_APB_ACCESS.\nSSOT item context: value=apb_ready.",
+      "evidence_terms": [
+        "apb",
+        "apb_ready",
+        "ready"
+      ],
+      "id": "RTL-0263",
+      "owner_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+      "owner_module": "mctp_assembler_scratch_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_ACCESS.outputs.output_0",
+      "ssot_context": {
+        "value": "apb_ready"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_ACCESS.outputs.output_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 1,
+        "matched_terms": [
+          "apb"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "apb",
+          "apb_ready",
+          "ready"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_APB_ACCESS: output_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_ACCESS.outputs.output_1",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_apb_regfile.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_ACCESS.outputs.output_1.\nOwner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_APB_ACCESS.\nSSOT item context: value=apb_error.",
+      "evidence_terms": [
+        "apb",
+        "apb_error"
+      ],
+      "id": "RTL-0264",
+      "owner_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+      "owner_module": "mctp_assembler_scratch_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_ACCESS.outputs.output_1",
+      "ssot_context": {
+        "value": "apb_error"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_ACCESS.outputs.output_1"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 1,
+        "matched_terms": [
+          "apb"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "apb",
+          "apb_error"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_APB_ACCESS: apb_ready",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_ACCESS.outputs.apb_ready",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_apb_regfile.sv",
+        "apb_ready RTL expression implements SSOT expression apb_access",
+        "DUT port pready is the implementation/observation point for apb_ready"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_ACCESS.outputs.apb_ready.\nOwner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_APB_ACCESS.\nSSOT item context: name=apb_ready; port=pready; expr=apb_access.",
+      "evidence_terms": [
+        "apb",
+        "apb_access",
+        "apb_ready",
+        "pready",
+        "ready"
+      ],
+      "id": "RTL-0265",
+      "owner_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+      "owner_module": "mctp_assembler_scratch_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_ACCESS.outputs.apb_ready",
+      "ssot_context": {
+        "expr": "apb_access",
+        "name": "apb_ready",
+        "port": "pready"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_ACCESS.outputs.apb_ready"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "apb",
+          "apb_access",
+          "pready"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "apb",
+          "apb_access",
+          "apb_ready",
+          "pready",
+          "ready"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_APB_ACCESS: apb_error",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_ACCESS.outputs.apb_error",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_apb_regfile.sv",
+        "apb_error RTL expression implements SSOT expression illegal_apb_access",
+        "DUT port pslverr is the implementation/observation point for apb_error"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_ACCESS.outputs.apb_error.\nOwner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_APB_ACCESS.\nSSOT item context: name=apb_error; port=pslverr; expr=illegal_apb_access.",
+      "evidence_terms": [
+        "apb",
+        "apb_error",
+        "illegal",
+        "illegal_apb_access",
+        "pslverr"
+      ],
+      "id": "RTL-0266",
+      "owner_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+      "owner_module": "mctp_assembler_scratch_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_ACCESS.outputs.apb_error",
+      "ssot_context": {
+        "expr": "illegal_apb_access",
+        "name": "apb_error",
+        "port": "pslverr"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_ACCESS.outputs.apb_error"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "apb",
+          "pslverr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "apb",
+          "apb_error",
+          "illegal",
+          "illegal_apb_access",
+          "pslverr"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_APB_ACCESS: enable_reg",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_ACCESS.outputs.enable_reg",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_apb_regfile.sv",
+        "function_model.transactions.FM_APB_ACCESS.outputs.enable_reg RTL expression implements SSOT expression apb_wdata & apb_write"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_ACCESS.outputs.enable_reg.\nOwner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_APB_ACCESS.\nSSOT item context: state=enable_reg; expr=apb_wdata & apb_write.",
+      "evidence_terms": [
+        "apb",
+        "apb_wdata",
+        "apb_write",
+        "enable",
+        "enable_reg",
+        "reg",
+        "wdata",
+        "write"
+      ],
+      "id": "RTL-0267",
+      "owner_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+      "owner_module": "mctp_assembler_scratch_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_ACCESS.outputs.enable_reg",
+      "ssot_context": {
+        "expr": "apb_wdata & apb_write",
+        "state": "enable_reg"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_ACCESS.outputs.enable_reg"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 4,
+        "matched_terms": [
+          "apb",
+          "enable",
+          "enable_reg",
+          "reg"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "apb",
+          "apb_wdata",
+          "apb_write",
+          "enable",
+          "enable_reg",
+          "reg",
+          "wdata",
+          "write"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_APB_ACCESS: drop_mode_reg",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_ACCESS.outputs.drop_mode_reg",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_apb_regfile.sv",
+        "function_model.transactions.FM_APB_ACCESS.outputs.drop_mode_reg RTL expression implements SSOT expression (apb_wdata >> 1) & apb_write"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_ACCESS.outputs.drop_mode_reg.\nOwner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_APB_ACCESS.\nSSOT item context: state=drop_mode_reg; expr=(apb_wdata >> 1) & apb_write.",
+      "evidence_terms": [
+        "apb",
+        "apb_wdata",
+        "apb_write",
+        "drop",
+        "drop_mode_reg",
+        "mode",
+        "reg",
+        "wdata",
+        "write"
+      ],
+      "id": "RTL-0268",
+      "owner_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+      "owner_module": "mctp_assembler_scratch_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_ACCESS.outputs.drop_mode_reg",
+      "ssot_context": {
+        "expr": "(apb_wdata >> 1) & apb_write",
+        "state": "drop_mode_reg"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_ACCESS.outputs.drop_mode_reg"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 5,
+        "matched_terms": [
+          "apb",
+          "drop",
+          "drop_mode_reg",
+          "mode",
+          "reg"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "apb",
+          "apb_wdata",
+          "apb_write",
+          "drop",
+          "drop_mode_reg",
+          "mode",
+          "reg",
+          "wdata",
+          "write"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_APB_ACCESS: apb_ready",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_ACCESS.output_rules.apb_ready",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_apb_regfile.sv",
+        "apb_ready width matches SSOT value 1",
+        "apb_ready RTL expression implements SSOT expression apb_access",
+        "DUT port pready is the implementation/observation point for apb_ready",
+        "apb_ready is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_ACCESS.output_rules.apb_ready.\nOwner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_APB_ACCESS.\nSSOT item context: name=apb_ready; port=pready; expr=apb_access; width=1.",
+      "evidence_terms": [
+        "apb",
+        "apb_access",
+        "apb_ready",
+        "pready",
+        "ready"
+      ],
+      "id": "RTL-0269",
+      "owner_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+      "owner_module": "mctp_assembler_scratch_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_ACCESS.output_rules.apb_ready",
+      "ssot_context": {
+        "expr": "apb_access",
+        "name": "apb_ready",
+        "port": "pready",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_ACCESS.output_rules.apb_ready"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "apb",
+          "apb_access",
+          "pready"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "apb",
+          "apb_access",
+          "apb_ready",
+          "pready",
+          "ready"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_APB_ACCESS: apb_error",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_ACCESS.output_rules.apb_error",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_apb_regfile.sv",
+        "apb_error width matches SSOT value 1",
+        "apb_error RTL expression implements SSOT expression illegal_apb_access",
+        "DUT port pslverr is the implementation/observation point for apb_error",
+        "apb_error is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_ACCESS.output_rules.apb_error.\nOwner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_APB_ACCESS.\nSSOT item context: name=apb_error; port=pslverr; expr=illegal_apb_access; width=1.",
+      "evidence_terms": [
+        "apb",
+        "apb_error",
+        "illegal",
+        "illegal_apb_access",
+        "pslverr"
+      ],
+      "id": "RTL-0270",
+      "owner_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+      "owner_module": "mctp_assembler_scratch_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_ACCESS.output_rules.apb_error",
+      "ssot_context": {
+        "expr": "illegal_apb_access",
+        "name": "apb_error",
+        "port": "pslverr",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_ACCESS.output_rules.apb_error"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "apb",
+          "pslverr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "apb",
+          "apb_error",
+          "illegal",
+          "illegal_apb_access",
+          "pslverr"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_APB_ACCESS: enable_reg",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_ACCESS.state_updates.enable_reg",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_apb_regfile.sv",
+        "enable_reg width matches SSOT value 1",
+        "enable_reg RTL expression implements SSOT expression apb_wdata & apb_write",
+        "enable_reg updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_ACCESS.state_updates.enable_reg.\nOwner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_APB_ACCESS.\nSSOT item context: name=enable_reg; expr=apb_wdata & apb_write; width=1.",
+      "evidence_terms": [
+        "apb",
+        "apb_wdata",
+        "apb_write",
+        "enable",
+        "enable_reg",
+        "reg",
+        "wdata",
+        "write"
+      ],
+      "id": "RTL-0271",
+      "owner_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+      "owner_module": "mctp_assembler_scratch_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_ACCESS.state_updates.enable_reg",
+      "ssot_context": {
+        "expr": "apb_wdata & apb_write",
+        "name": "enable_reg",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_ACCESS.state_updates.enable_reg"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 4,
+        "matched_terms": [
+          "apb",
+          "enable",
+          "enable_reg",
+          "reg"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "apb",
+          "apb_wdata",
+          "apb_write",
+          "enable",
+          "enable_reg",
+          "reg",
+          "wdata",
+          "write"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_APB_ACCESS: drop_mode_reg",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_ACCESS.state_updates.drop_mode_reg",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_apb_regfile.sv",
+        "drop_mode_reg width matches SSOT value 1",
+        "drop_mode_reg RTL expression implements SSOT expression (apb_wdata >> 1) & apb_write",
+        "drop_mode_reg updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_ACCESS.state_updates.drop_mode_reg.\nOwner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_APB_ACCESS.\nSSOT item context: name=drop_mode_reg; expr=(apb_wdata >> 1) & apb_write; width=1.",
+      "evidence_terms": [
+        "apb",
+        "apb_wdata",
+        "apb_write",
+        "drop",
+        "drop_mode_reg",
+        "mode",
+        "reg",
+        "wdata",
+        "write"
+      ],
+      "id": "RTL-0272",
+      "owner_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+      "owner_module": "mctp_assembler_scratch_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_ACCESS.state_updates.drop_mode_reg",
+      "ssot_context": {
+        "expr": "(apb_wdata >> 1) & apb_write",
+        "name": "drop_mode_reg",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_ACCESS.state_updates.drop_mode_reg"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 5,
+        "matched_terms": [
+          "apb",
+          "drop",
+          "drop_mode_reg",
+          "mode",
+          "reg"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "apb",
+          "apb_wdata",
+          "apb_write",
+          "drop",
+          "drop_mode_reg",
+          "mode",
+          "reg",
+          "wdata",
+          "write"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_APB_ACCESS: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_ACCESS.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_apb_regfile.sv",
+        "DUT port [\"pready\", \"pslverr\"] is the implementation/observation point for APB register access"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_ACCESS.side_effects.side_effect_0.\nOwner: mctp_assembler_scratch_apb_regfile in rtl/mctp_assembler_scratch_apb_regfile.sv via function_model.transactions.FM_APB_ACCESS.\nSSOT item context: id=FM_APB_ACCESS; name=APB register access; port=[\"pready\", \"pslverr\"]; signal=[\"control_status_interrupt_counter_descriptor_debug_register_visible\", \"apb_access\", \"apb_write\", \"apb_wdata\", \"illeg...; state=[\"enable_reg\", \"drop_mode_reg\"].",
+      "evidence_terms": [
+        "apb",
+        "apb_access",
+        "apb_wdata",
+        "apb_write",
+        "control_status_interrupt_counter_descriptor_debug_register_visible",
+        "debug",
+        "descriptor",
+        "drop",
+        "drop_mode_reg",
+        "enable",
+        "enable_reg",
+        "illegal",
+        "illegal_apb_access",
+        "interrupt",
+        "mode",
+        "pready"
+      ],
+      "id": "RTL-0273",
+      "owner_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+      "owner_module": "mctp_assembler_scratch_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_ACCESS.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "FM_APB_ACCESS",
+        "name": "APB register access",
+        "port": "[\"pready\", \"pslverr\"]",
+        "signal": "[\"control_status_interrupt_counter_descriptor_debug_register_visible\", \"apb_access\", \"apb_write\", \"apb_wdata\", \"illeg...",
+        "state": "[\"enable_reg\", \"drop_mode_reg\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_ACCESS.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 10,
+        "matched_terms": [
+          "apb",
+          "apb_access",
+          "debug",
+          "descriptor",
+          "drop",
+          "drop_mode_reg",
+          "enable",
+          "enable_reg",
+          "mode",
+          "pready"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "apb",
+          "apb_access",
+          "apb_wdata",
+          "apb_write",
+          "control_status_interrupt_counter_descriptor_debug_register_visible",
+          "debug",
+          "descriptor",
+          "drop",
+          "drop_mode_reg",
+          "enable",
+          "enable_reg",
+          "illegal",
+          "illegal_apb_access",
+          "interrupt",
+          "mode",
+          "pready"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "a6a5a0fbc9df7cbf10ab017b46631a16a00f0b454b4cee41da9ba28dbc65043d",
+  "top": "mctp_assembler_scratch",
+  "type": "rtl_authoring_packet"
+}

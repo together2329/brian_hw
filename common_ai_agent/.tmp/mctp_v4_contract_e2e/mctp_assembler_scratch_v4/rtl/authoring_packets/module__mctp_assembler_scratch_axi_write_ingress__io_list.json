@@ -1,0 +1,1255 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 5,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 7,
+      "enabled": true,
+      "index": 1,
+      "key": "io_list",
+      "module_task_count": 89,
+      "rule": "Owner module mctp_assembler_scratch_axi_write_ingress is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "io_list",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "name": "mctp_assembler_scratch_axi_write_ingress",
+      "refs": [
+        "cycle_model",
+        "cycle_model.handshake_rules.axi_write_channels",
+        "dataflow",
+        "function_model",
+        "function_model.transactions.FM_ACCEPT_AXI_TLP",
+        "io_list",
+        "io_list.interfaces.axi_write_slave",
+        "test_requirements"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "name": "mctp_assembler_scratch_axi_write_ingress",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "name": "mctp_assembler_scratch_pcie_vdm_parser",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_mctp_parser.sv",
+        "name": "mctp_assembler_scratch_mctp_parser",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_context_table.sv",
+        "name": "mctp_assembler_scratch_context_table",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "name": "mctp_assembler_scratch_sram_packer",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "name": "mctp_assembler_scratch_axi_read_egress",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
+        "name": "mctp_assembler_scratch_sram_arbiter",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_descriptor_queue.sv",
+        "name": "mctp_assembler_scratch_descriptor_queue",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+        "name": "mctp_assembler_scratch_apb_regfile",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_cdc.sv",
+        "name": "mctp_assembler_scratch_cdc",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_param.vh",
+        "name": "mctp_assembler_scratch_param",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch.sv",
+        "name": "mctp_assembler_scratch",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_scratch_axi_write_ingress",
+        "port": "m_axi_awvalid",
+        "signal": "m_axi_awvalid",
+        "signal_terms": [
+          "m_axi_awvalid"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_scratch_axi_write_ingress",
+        "port": "m_axi_wvalid",
+        "signal": "m_axi_wvalid",
+        "signal_terms": [
+          "m_axi_wvalid"
+        ],
+        "source_ref": "integration.connections[1]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "mctp_assembler_scratch",
+  "kind": "module",
+  "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+  "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+  "packet_id": "module__mctp_assembler_scratch_axi_write_ingress__io_list",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "io_list.port": 23
+    },
+    "module_slice": {
+      "count": 7,
+      "enabled": true,
+      "index": 1,
+      "key": "io_list",
+      "module_task_count": 89,
+      "rule": "Owner module mctp_assembler_scratch_axi_write_ingress is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "io_list",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 23,
+    "source_refs": [
+      "io_list.clock_domains.axi_aclk.ports.axi_aclk",
+      "io_list.clock_domains.pclk.ports.pclk",
+      "io_list.resets.axi_aresetn.ports.axi_aresetn",
+      "io_list.resets.presetn.ports.presetn",
+      "io_list.interfaces.axi_write_slave.ports.m_axi_awaddr",
+      "io_list.interfaces.axi_write_slave.ports.m_axi_awlen",
+      "io_list.interfaces.axi_write_slave.ports.m_axi_awsize",
+      "io_list.interfaces.axi_write_slave.ports.m_axi_awburst",
+      "io_list.interfaces.axi_write_slave.ports.m_axi_awvalid",
+      "io_list.interfaces.axi_write_slave.ports.m_axi_awready",
+      "io_list.interfaces.axi_write_slave.ports.m_axi_wdata",
+      "io_list.interfaces.axi_write_slave.ports.m_axi_wstrb",
+      "io_list.interfaces.axi_write_slave.ports.m_axi_wlast",
+      "io_list.interfaces.axi_write_slave.ports.m_axi_wvalid",
+      "io_list.interfaces.axi_write_slave.ports.m_axi_wready",
+      "io_list.interfaces.axi_write_slave.ports.m_axi_bresp",
+      "io_list.interfaces.axi_write_slave.ports.m_axi_bvalid",
+      "io_list.interfaces.axi_write_slave.ports.m_axi_bready",
+      "io_list.interfaces.interrupt_and_debug.ports.irq",
+      "io_list.interfaces.interrupt_and_debug.ports.debug_context_id",
+      "io_list.interfaces.interrupt_and_debug.ports.debug_context_key",
+      "io_list.interfaces.interrupt_and_debug.ports.debug_drop_pulse",
+      "io_list.interfaces.interrupt_and_debug.ports.debug_vdm_valid"
+    ],
+    "status_counts": {
+      "pass": 23
+    },
+    "task_count": 23
+  },
+  "tasks": [
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port axi_aclk",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.clock_domains.axi_aclk.ports.axi_aclk",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "axi_aclk width matches SSOT value 1",
+        "axi_aclk port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.clock_domains.axi_aclk.ports.axi_aclk.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via io_list.\nSSOT item context: name=axi_aclk; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0049",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.clock_domains.axi_aclk.ports.axi_aclk",
+      "ssot_context": {
+        "direction": "input",
+        "name": "axi_aclk",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.clock_domains.axi_aclk.ports.axi_aclk"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port pclk",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.clock_domains.pclk.ports.pclk",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "pclk width matches SSOT value 1",
+        "pclk port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.clock_domains.pclk.ports.pclk.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via io_list.\nSSOT item context: name=pclk; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0050",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.clock_domains.pclk.ports.pclk",
+      "ssot_context": {
+        "direction": "input",
+        "name": "pclk",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.clock_domains.pclk.ports.pclk"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port axi_aresetn",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.resets.axi_aresetn.ports.axi_aresetn",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "axi_aresetn width matches SSOT value 1",
+        "axi_aresetn port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.resets.axi_aresetn.ports.axi_aresetn.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via io_list.\nSSOT item context: name=axi_aresetn; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0051",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.resets.axi_aresetn.ports.axi_aresetn",
+      "ssot_context": {
+        "direction": "input",
+        "name": "axi_aresetn",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.resets.axi_aresetn.ports.axi_aresetn"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port presetn",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.resets.presetn.ports.presetn",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "presetn width matches SSOT value 1",
+        "presetn port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.resets.presetn.ports.presetn.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via io_list.\nSSOT item context: name=presetn; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0052",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.resets.presetn.ports.presetn",
+      "ssot_context": {
+        "direction": "input",
+        "name": "presetn",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.resets.presetn.ports.presetn"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port m_axi_awaddr",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_write_slave.ports.m_axi_awaddr",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "m_axi_awaddr width matches SSOT value AXI_ADDR_WIDTH",
+        "m_axi_awaddr port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_write_slave.ports.m_axi_awaddr.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via io_list.interfaces.axi_write_slave.\nSSOT item context: name=m_axi_awaddr; width=AXI_ADDR_WIDTH; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0053",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_write_slave.ports.m_axi_awaddr",
+      "ssot_context": {
+        "direction": "input",
+        "name": "m_axi_awaddr",
+        "width": "AXI_ADDR_WIDTH"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_write_slave.ports.m_axi_awaddr"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port m_axi_awlen",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_write_slave.ports.m_axi_awlen",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "m_axi_awlen width matches SSOT value 8",
+        "m_axi_awlen port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_write_slave.ports.m_axi_awlen.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via io_list.interfaces.axi_write_slave.\nSSOT item context: name=m_axi_awlen; width=8; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0054",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_write_slave.ports.m_axi_awlen",
+      "ssot_context": {
+        "direction": "input",
+        "name": "m_axi_awlen",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_write_slave.ports.m_axi_awlen"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port m_axi_awsize",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_write_slave.ports.m_axi_awsize",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "m_axi_awsize width matches SSOT value 3",
+        "m_axi_awsize port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_write_slave.ports.m_axi_awsize.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via io_list.interfaces.axi_write_slave.\nSSOT item context: name=m_axi_awsize; width=3; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0055",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_write_slave.ports.m_axi_awsize",
+      "ssot_context": {
+        "direction": "input",
+        "name": "m_axi_awsize",
+        "width": "3"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_write_slave.ports.m_axi_awsize"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port m_axi_awburst",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_write_slave.ports.m_axi_awburst",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "m_axi_awburst width matches SSOT value 2",
+        "m_axi_awburst port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_write_slave.ports.m_axi_awburst.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via io_list.interfaces.axi_write_slave.\nSSOT item context: name=m_axi_awburst; width=2; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0056",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_write_slave.ports.m_axi_awburst",
+      "ssot_context": {
+        "direction": "input",
+        "name": "m_axi_awburst",
+        "width": "2"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_write_slave.ports.m_axi_awburst"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port m_axi_awvalid",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_write_slave.ports.m_axi_awvalid",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "m_axi_awvalid width matches SSOT value 1",
+        "m_axi_awvalid port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_write_slave.ports.m_axi_awvalid.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via io_list.interfaces.axi_write_slave.\nSSOT item context: name=m_axi_awvalid; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0057",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_write_slave.ports.m_axi_awvalid",
+      "ssot_context": {
+        "direction": "input",
+        "name": "m_axi_awvalid",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_write_slave.ports.m_axi_awvalid"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port m_axi_awready",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_write_slave.ports.m_axi_awready",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "m_axi_awready width matches SSOT value 1",
+        "m_axi_awready port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_write_slave.ports.m_axi_awready.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via io_list.interfaces.axi_write_slave.\nSSOT item context: name=m_axi_awready; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0058",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_write_slave.ports.m_axi_awready",
+      "ssot_context": {
+        "direction": "output",
+        "name": "m_axi_awready",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_write_slave.ports.m_axi_awready"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port m_axi_wdata",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_write_slave.ports.m_axi_wdata",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "m_axi_wdata width matches SSOT value AXI_DATA_WIDTH",
+        "m_axi_wdata port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_write_slave.ports.m_axi_wdata.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via io_list.interfaces.axi_write_slave.\nSSOT item context: name=m_axi_wdata; width=AXI_DATA_WIDTH; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0059",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_write_slave.ports.m_axi_wdata",
+      "ssot_context": {
+        "direction": "input",
+        "name": "m_axi_wdata",
+        "width": "AXI_DATA_WIDTH"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_write_slave.ports.m_axi_wdata"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port m_axi_wstrb",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_write_slave.ports.m_axi_wstrb",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "m_axi_wstrb width matches SSOT value AXI_STRB_WIDTH",
+        "m_axi_wstrb port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_write_slave.ports.m_axi_wstrb.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via io_list.interfaces.axi_write_slave.\nSSOT item context: name=m_axi_wstrb; width=AXI_STRB_WIDTH; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0060",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_write_slave.ports.m_axi_wstrb",
+      "ssot_context": {
+        "direction": "input",
+        "name": "m_axi_wstrb",
+        "width": "AXI_STRB_WIDTH"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_write_slave.ports.m_axi_wstrb"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port m_axi_wlast",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_write_slave.ports.m_axi_wlast",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "m_axi_wlast width matches SSOT value 1",
+        "m_axi_wlast port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_write_slave.ports.m_axi_wlast.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via io_list.interfaces.axi_write_slave.\nSSOT item context: name=m_axi_wlast; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0061",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_write_slave.ports.m_axi_wlast",
+      "ssot_context": {
+        "direction": "input",
+        "name": "m_axi_wlast",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_write_slave.ports.m_axi_wlast"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port m_axi_wvalid",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_write_slave.ports.m_axi_wvalid",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "m_axi_wvalid width matches SSOT value 1",
+        "m_axi_wvalid port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_write_slave.ports.m_axi_wvalid.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via io_list.interfaces.axi_write_slave.\nSSOT item context: name=m_axi_wvalid; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0062",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_write_slave.ports.m_axi_wvalid",
+      "ssot_context": {
+        "direction": "input",
+        "name": "m_axi_wvalid",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_write_slave.ports.m_axi_wvalid"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port m_axi_wready",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_write_slave.ports.m_axi_wready",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "m_axi_wready width matches SSOT value 1",
+        "m_axi_wready port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_write_slave.ports.m_axi_wready.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via io_list.interfaces.axi_write_slave.\nSSOT item context: name=m_axi_wready; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0063",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_write_slave.ports.m_axi_wready",
+      "ssot_context": {
+        "direction": "output",
+        "name": "m_axi_wready",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_write_slave.ports.m_axi_wready"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port m_axi_bresp",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_write_slave.ports.m_axi_bresp",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "m_axi_bresp width matches SSOT value 2",
+        "m_axi_bresp port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_write_slave.ports.m_axi_bresp.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via io_list.interfaces.axi_write_slave.\nSSOT item context: name=m_axi_bresp; width=2; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0064",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_write_slave.ports.m_axi_bresp",
+      "ssot_context": {
+        "direction": "output",
+        "name": "m_axi_bresp",
+        "width": "2"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_write_slave.ports.m_axi_bresp"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port m_axi_bvalid",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_write_slave.ports.m_axi_bvalid",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "m_axi_bvalid width matches SSOT value 1",
+        "m_axi_bvalid port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_write_slave.ports.m_axi_bvalid.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via io_list.interfaces.axi_write_slave.\nSSOT item context: name=m_axi_bvalid; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0065",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_write_slave.ports.m_axi_bvalid",
+      "ssot_context": {
+        "direction": "output",
+        "name": "m_axi_bvalid",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_write_slave.ports.m_axi_bvalid"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port m_axi_bready",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_write_slave.ports.m_axi_bready",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "m_axi_bready width matches SSOT value 1",
+        "m_axi_bready port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_write_slave.ports.m_axi_bready.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via io_list.interfaces.axi_write_slave.\nSSOT item context: name=m_axi_bready; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0066",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_write_slave.ports.m_axi_bready",
+      "ssot_context": {
+        "direction": "input",
+        "name": "m_axi_bready",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_write_slave.ports.m_axi_bready"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port irq",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.interrupt_and_debug.ports.irq",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "irq width matches SSOT value 1",
+        "irq port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.interrupt_and_debug.ports.irq.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via io_list.\nSSOT item context: name=irq; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0099",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.interrupt_and_debug.ports.irq",
+      "ssot_context": {
+        "direction": "output",
+        "name": "irq",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.interrupt_and_debug.ports.irq"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port debug_context_id",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.interrupt_and_debug.ports.debug_context_id",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "debug_context_id width matches SSOT value 4",
+        "debug_context_id port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.interrupt_and_debug.ports.debug_context_id.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via io_list.\nSSOT item context: name=debug_context_id; width=4; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0100",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.interrupt_and_debug.ports.debug_context_id",
+      "ssot_context": {
+        "direction": "output",
+        "name": "debug_context_id",
+        "width": "4"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.interrupt_and_debug.ports.debug_context_id"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port debug_context_key",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.interrupt_and_debug.ports.debug_context_key",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "debug_context_key width matches SSOT value 18",
+        "debug_context_key port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.interrupt_and_debug.ports.debug_context_key.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via io_list.\nSSOT item context: name=debug_context_key; width=18; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0101",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.interrupt_and_debug.ports.debug_context_key",
+      "ssot_context": {
+        "direction": "output",
+        "name": "debug_context_key",
+        "width": "18"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.interrupt_and_debug.ports.debug_context_key"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port debug_drop_pulse",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.interrupt_and_debug.ports.debug_drop_pulse",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "debug_drop_pulse width matches SSOT value 1",
+        "debug_drop_pulse port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.interrupt_and_debug.ports.debug_drop_pulse.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via io_list.\nSSOT item context: name=debug_drop_pulse; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0102",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.interrupt_and_debug.ports.debug_drop_pulse",
+      "ssot_context": {
+        "direction": "output",
+        "name": "debug_drop_pulse",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.interrupt_and_debug.ports.debug_drop_pulse"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port debug_vdm_valid",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.interrupt_and_debug.ports.debug_vdm_valid",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "debug_vdm_valid width matches SSOT value 1",
+        "debug_vdm_valid port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.interrupt_and_debug.ports.debug_vdm_valid.\nOwner: mctp_assembler_scratch_axi_write_ingress in rtl/mctp_assembler_scratch_axi_write_ingress.sv via io_list.\nSSOT item context: name=debug_vdm_valid; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0103",
+      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.interrupt_and_debug.ports.debug_vdm_valid",
+      "ssot_context": {
+        "direction": "output",
+        "name": "debug_vdm_valid",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.interrupt_and_debug.ports.debug_vdm_valid"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "a6a5a0fbc9df7cbf10ab017b46631a16a00f0b454b4cee41da9ba28dbc65043d",
+  "top": "mctp_assembler_scratch",
+  "type": "rtl_authoring_packet"
+}

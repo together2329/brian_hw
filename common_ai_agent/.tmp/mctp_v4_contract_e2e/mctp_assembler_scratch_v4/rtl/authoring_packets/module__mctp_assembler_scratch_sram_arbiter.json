@@ -1,0 +1,979 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 5,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 17,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
+      "name": "mctp_assembler_scratch_sram_arbiter",
+      "refs": [
+        "cycle_model",
+        "cycle_model.arbitration",
+        "io_list",
+        "io_list.interfaces.sram_read_port",
+        "io_list.interfaces.sram_write_port",
+        "memory"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "name": "mctp_assembler_scratch_axi_write_ingress",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "name": "mctp_assembler_scratch_pcie_vdm_parser",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_mctp_parser.sv",
+        "name": "mctp_assembler_scratch_mctp_parser",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_context_table.sv",
+        "name": "mctp_assembler_scratch_context_table",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "name": "mctp_assembler_scratch_sram_packer",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "name": "mctp_assembler_scratch_axi_read_egress",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
+        "name": "mctp_assembler_scratch_sram_arbiter",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_descriptor_queue.sv",
+        "name": "mctp_assembler_scratch_descriptor_queue",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+        "name": "mctp_assembler_scratch_apb_regfile",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_cdc.sv",
+        "name": "mctp_assembler_scratch_cdc",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_param.vh",
+        "name": "mctp_assembler_scratch_param",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch.sv",
+        "name": "mctp_assembler_scratch",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "mctp_assembler_scratch",
+  "kind": "module",
+  "owner_file": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
+  "owner_module": "mctp_assembler_scratch_sram_arbiter",
+  "packet_id": "module__mctp_assembler_scratch_sram_arbiter",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "cycle_model.arbitration": 2,
+      "cycle_model.handshake_rules": 1,
+      "cycle_model.ordering": 1,
+      "equivalence.module": 1,
+      "io_list.port": 12
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 17,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 17,
+    "source_refs": [
+      "cycle_model.handshake_rules.sram_ready_valid",
+      "cycle_model.ordering.descriptor_after_sram_flush",
+      "cycle_model.arbitration.name",
+      "cycle_model.arbitration.policy",
+      "sub_modules.mctp_assembler_scratch_sram_arbiter.module_equivalence",
+      "io_list.interfaces.sram_write_port.ports.sram_wr_valid",
+      "io_list.interfaces.sram_write_port.ports.sram_wr_ready",
+      "io_list.interfaces.sram_write_port.ports.sram_wr_addr",
+      "io_list.interfaces.sram_write_port.ports.sram_wr_data",
+      "io_list.interfaces.sram_write_port.ports.sram_wr_strb",
+      "io_list.interfaces.sram_read_port.ports.sram_rd_req_valid",
+      "io_list.interfaces.sram_read_port.ports.sram_rd_req_ready",
+      "io_list.interfaces.sram_read_port.ports.sram_rd_req_addr",
+      "io_list.interfaces.sram_read_port.ports.sram_rd_rsp_valid",
+      "io_list.interfaces.sram_read_port.ports.sram_rd_rsp_ready",
+      "io_list.interfaces.sram_read_port.ports.sram_rd_rsp_data",
+      "io_list.interfaces.sram_read_port.ports.sram_rd_rsp_error"
+    ],
+    "status_counts": {
+      "pass": 17
+    },
+    "task_count": 17
+  },
+  "tasks": [
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: sram_ready_valid",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.sram_ready_valid",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_arbiter.sv",
+        "sram_ready_valid appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.sram_ready_valid.\nOwner: mctp_assembler_scratch_sram_arbiter in rtl/mctp_assembler_scratch_sram_arbiter.sv via cycle_model.\nSSOT item context: name=sram_ready_valid; signal=sram_wr_valid/sram_wr_ready/sram_rd_req_valid/sram_rd_req_ready.",
+      "evidence_terms": [
+        "rd",
+        "ready",
+        "req",
+        "sram",
+        "sram_rd_req_ready",
+        "sram_rd_req_valid",
+        "sram_ready_valid",
+        "sram_wr_ready",
+        "sram_wr_valid",
+        "valid",
+        "wr"
+      ],
+      "id": "RTL-0300",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
+      "owner_module": "mctp_assembler_scratch_sram_arbiter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.sram_ready_valid",
+      "ssot_context": {
+        "name": "sram_ready_valid",
+        "signal": "sram_wr_valid/sram_wr_ready/sram_rd_req_valid/sram_rd_req_ready"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.sram_ready_valid"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 10,
+        "matched_terms": [
+          "rd",
+          "ready",
+          "req",
+          "sram",
+          "sram_rd_req_ready",
+          "sram_rd_req_valid",
+          "sram_wr_ready",
+          "sram_wr_valid",
+          "valid",
+          "wr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "rd",
+          "ready",
+          "req",
+          "sram",
+          "sram_rd_req_ready",
+          "sram_rd_req_valid",
+          "sram_ready_valid",
+          "sram_wr_ready",
+          "sram_wr_valid",
+          "valid",
+          "wr"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: descriptor_after_sram_flush",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.descriptor_after_sram_flush",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_arbiter.sv",
+        "descriptor_after_sram_flush appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.descriptor_after_sram_flush.\nOwner: mctp_assembler_scratch_sram_arbiter in rtl/mctp_assembler_scratch_sram_arbiter.sv via cycle_model.\nSSOT item context: name=descriptor_after_sram_flush.",
+      "evidence_terms": [],
+      "id": "RTL-0310",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
+      "owner_module": "mctp_assembler_scratch_sram_arbiter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.descriptor_after_sram_flush",
+      "ssot_context": {
+        "name": "descriptor_after_sram_flush"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.descriptor_after_sram_flush"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.arbitration",
+      "content": "Implement arbitration rule: name",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.arbitration.name",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_arbiter.sv",
+        "name appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.arbitration.name.\nOwner: mctp_assembler_scratch_sram_arbiter in rtl/mctp_assembler_scratch_sram_arbiter.sv via cycle_model.arbitration.\nSSOT item context: name=name; value=sram_write_priority.",
+      "evidence_terms": [],
+      "id": "RTL-0315",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
+      "owner_module": "mctp_assembler_scratch_sram_arbiter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.arbitration.name",
+      "ssot_context": {
+        "name": "name",
+        "value": "sram_write_priority"
+      },
+      "ssot_refs": [
+        "cycle_model.arbitration.name"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.arbitration",
+      "content": "Implement arbitration rule: policy",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.arbitration.policy",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_arbiter.sv",
+        "policy appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.arbitration.policy.\nOwner: mctp_assembler_scratch_sram_arbiter in rtl/mctp_assembler_scratch_sram_arbiter.sv via cycle_model.arbitration.\nSSOT item context: name=policy; value=assembly SRAM writes win over firmware SRAM reads; reads are retried after write acceptance..",
+      "evidence_terms": [],
+      "id": "RTL-0316",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
+      "owner_module": "mctp_assembler_scratch_sram_arbiter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.arbitration.policy",
+      "ssot_context": {
+        "name": "policy",
+        "value": "assembly SRAM writes win over firmware SRAM reads; reads are retried after write acceptance."
+      },
+      "ssot_refs": [
+        "cycle_model.arbitration.policy"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module mctp_assembler_scratch_sram_arbiter is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.mctp_assembler_scratch_sram_arbiter.module_equivalence",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_arbiter.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.mctp_assembler_scratch_sram_arbiter.module_equivalence.\nOwner: mctp_assembler_scratch_sram_arbiter in rtl/mctp_assembler_scratch_sram_arbiter.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0427",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
+      "owner_module": "mctp_assembler_scratch_sram_arbiter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.mctp_assembler_scratch_sram_arbiter.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.mctp_assembler_scratch_sram_arbiter.module_equivalence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port sram_wr_valid",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.sram_write_port.ports.sram_wr_valid",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_arbiter.sv",
+        "sram_wr_valid width matches SSOT value 1",
+        "sram_wr_valid port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.sram_write_port.ports.sram_wr_valid.\nOwner: mctp_assembler_scratch_sram_arbiter in rtl/mctp_assembler_scratch_sram_arbiter.sv via io_list.interfaces.sram_write_port.\nSSOT item context: name=sram_wr_valid; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0087",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
+      "owner_module": "mctp_assembler_scratch_sram_arbiter",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.sram_write_port.ports.sram_wr_valid",
+      "ssot_context": {
+        "direction": "output",
+        "name": "sram_wr_valid",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.sram_write_port.ports.sram_wr_valid"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port sram_wr_ready",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.sram_write_port.ports.sram_wr_ready",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_arbiter.sv",
+        "sram_wr_ready width matches SSOT value 1",
+        "sram_wr_ready port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.sram_write_port.ports.sram_wr_ready.\nOwner: mctp_assembler_scratch_sram_arbiter in rtl/mctp_assembler_scratch_sram_arbiter.sv via io_list.interfaces.sram_write_port.\nSSOT item context: name=sram_wr_ready; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0088",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
+      "owner_module": "mctp_assembler_scratch_sram_arbiter",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.sram_write_port.ports.sram_wr_ready",
+      "ssot_context": {
+        "direction": "input",
+        "name": "sram_wr_ready",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.sram_write_port.ports.sram_wr_ready"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port sram_wr_addr",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.sram_write_port.ports.sram_wr_addr",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_arbiter.sv",
+        "sram_wr_addr width matches SSOT value SRAM_ADDR_WIDTH",
+        "sram_wr_addr port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.sram_write_port.ports.sram_wr_addr.\nOwner: mctp_assembler_scratch_sram_arbiter in rtl/mctp_assembler_scratch_sram_arbiter.sv via io_list.interfaces.sram_write_port.\nSSOT item context: name=sram_wr_addr; width=SRAM_ADDR_WIDTH; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0089",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
+      "owner_module": "mctp_assembler_scratch_sram_arbiter",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.sram_write_port.ports.sram_wr_addr",
+      "ssot_context": {
+        "direction": "output",
+        "name": "sram_wr_addr",
+        "width": "SRAM_ADDR_WIDTH"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.sram_write_port.ports.sram_wr_addr"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port sram_wr_data",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.sram_write_port.ports.sram_wr_data",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_arbiter.sv",
+        "sram_wr_data width matches SSOT value SRAM_DATA_WIDTH",
+        "sram_wr_data port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.sram_write_port.ports.sram_wr_data.\nOwner: mctp_assembler_scratch_sram_arbiter in rtl/mctp_assembler_scratch_sram_arbiter.sv via io_list.interfaces.sram_write_port.\nSSOT item context: name=sram_wr_data; width=SRAM_DATA_WIDTH; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0090",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
+      "owner_module": "mctp_assembler_scratch_sram_arbiter",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.sram_write_port.ports.sram_wr_data",
+      "ssot_context": {
+        "direction": "output",
+        "name": "sram_wr_data",
+        "width": "SRAM_DATA_WIDTH"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.sram_write_port.ports.sram_wr_data"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port sram_wr_strb",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.sram_write_port.ports.sram_wr_strb",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_arbiter.sv",
+        "sram_wr_strb width matches SSOT value 32",
+        "sram_wr_strb port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.sram_write_port.ports.sram_wr_strb.\nOwner: mctp_assembler_scratch_sram_arbiter in rtl/mctp_assembler_scratch_sram_arbiter.sv via io_list.interfaces.sram_write_port.\nSSOT item context: name=sram_wr_strb; width=32; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0091",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
+      "owner_module": "mctp_assembler_scratch_sram_arbiter",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.sram_write_port.ports.sram_wr_strb",
+      "ssot_context": {
+        "direction": "output",
+        "name": "sram_wr_strb",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.sram_write_port.ports.sram_wr_strb"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port sram_rd_req_valid",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.sram_read_port.ports.sram_rd_req_valid",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_arbiter.sv",
+        "sram_rd_req_valid width matches SSOT value 1",
+        "sram_rd_req_valid port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.sram_read_port.ports.sram_rd_req_valid.\nOwner: mctp_assembler_scratch_sram_arbiter in rtl/mctp_assembler_scratch_sram_arbiter.sv via io_list.interfaces.sram_read_port.\nSSOT item context: name=sram_rd_req_valid; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0092",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
+      "owner_module": "mctp_assembler_scratch_sram_arbiter",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.sram_read_port.ports.sram_rd_req_valid",
+      "ssot_context": {
+        "direction": "output",
+        "name": "sram_rd_req_valid",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.sram_read_port.ports.sram_rd_req_valid"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port sram_rd_req_ready",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.sram_read_port.ports.sram_rd_req_ready",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_arbiter.sv",
+        "sram_rd_req_ready width matches SSOT value 1",
+        "sram_rd_req_ready port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.sram_read_port.ports.sram_rd_req_ready.\nOwner: mctp_assembler_scratch_sram_arbiter in rtl/mctp_assembler_scratch_sram_arbiter.sv via io_list.interfaces.sram_read_port.\nSSOT item context: name=sram_rd_req_ready; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0093",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
+      "owner_module": "mctp_assembler_scratch_sram_arbiter",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.sram_read_port.ports.sram_rd_req_ready",
+      "ssot_context": {
+        "direction": "input",
+        "name": "sram_rd_req_ready",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.sram_read_port.ports.sram_rd_req_ready"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port sram_rd_req_addr",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.sram_read_port.ports.sram_rd_req_addr",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_arbiter.sv",
+        "sram_rd_req_addr width matches SSOT value SRAM_ADDR_WIDTH",
+        "sram_rd_req_addr port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.sram_read_port.ports.sram_rd_req_addr.\nOwner: mctp_assembler_scratch_sram_arbiter in rtl/mctp_assembler_scratch_sram_arbiter.sv via io_list.interfaces.sram_read_port.\nSSOT item context: name=sram_rd_req_addr; width=SRAM_ADDR_WIDTH; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0094",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
+      "owner_module": "mctp_assembler_scratch_sram_arbiter",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.sram_read_port.ports.sram_rd_req_addr",
+      "ssot_context": {
+        "direction": "output",
+        "name": "sram_rd_req_addr",
+        "width": "SRAM_ADDR_WIDTH"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.sram_read_port.ports.sram_rd_req_addr"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port sram_rd_rsp_valid",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.sram_read_port.ports.sram_rd_rsp_valid",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_arbiter.sv",
+        "sram_rd_rsp_valid width matches SSOT value 1",
+        "sram_rd_rsp_valid port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.sram_read_port.ports.sram_rd_rsp_valid.\nOwner: mctp_assembler_scratch_sram_arbiter in rtl/mctp_assembler_scratch_sram_arbiter.sv via io_list.interfaces.sram_read_port.\nSSOT item context: name=sram_rd_rsp_valid; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0095",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
+      "owner_module": "mctp_assembler_scratch_sram_arbiter",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.sram_read_port.ports.sram_rd_rsp_valid",
+      "ssot_context": {
+        "direction": "input",
+        "name": "sram_rd_rsp_valid",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.sram_read_port.ports.sram_rd_rsp_valid"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port sram_rd_rsp_ready",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.sram_read_port.ports.sram_rd_rsp_ready",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_arbiter.sv",
+        "sram_rd_rsp_ready width matches SSOT value 1",
+        "sram_rd_rsp_ready port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.sram_read_port.ports.sram_rd_rsp_ready.\nOwner: mctp_assembler_scratch_sram_arbiter in rtl/mctp_assembler_scratch_sram_arbiter.sv via io_list.interfaces.sram_read_port.\nSSOT item context: name=sram_rd_rsp_ready; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0096",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
+      "owner_module": "mctp_assembler_scratch_sram_arbiter",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.sram_read_port.ports.sram_rd_rsp_ready",
+      "ssot_context": {
+        "direction": "output",
+        "name": "sram_rd_rsp_ready",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.sram_read_port.ports.sram_rd_rsp_ready"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port sram_rd_rsp_data",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.sram_read_port.ports.sram_rd_rsp_data",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_arbiter.sv",
+        "sram_rd_rsp_data width matches SSOT value SRAM_DATA_WIDTH",
+        "sram_rd_rsp_data port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.sram_read_port.ports.sram_rd_rsp_data.\nOwner: mctp_assembler_scratch_sram_arbiter in rtl/mctp_assembler_scratch_sram_arbiter.sv via io_list.interfaces.sram_read_port.\nSSOT item context: name=sram_rd_rsp_data; width=SRAM_DATA_WIDTH; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0097",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
+      "owner_module": "mctp_assembler_scratch_sram_arbiter",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.sram_read_port.ports.sram_rd_rsp_data",
+      "ssot_context": {
+        "direction": "input",
+        "name": "sram_rd_rsp_data",
+        "width": "SRAM_DATA_WIDTH"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.sram_read_port.ports.sram_rd_rsp_data"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port sram_rd_rsp_error",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.sram_read_port.ports.sram_rd_rsp_error",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_arbiter.sv",
+        "sram_rd_rsp_error width matches SSOT value 1",
+        "sram_rd_rsp_error port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.sram_read_port.ports.sram_rd_rsp_error.\nOwner: mctp_assembler_scratch_sram_arbiter in rtl/mctp_assembler_scratch_sram_arbiter.sv via io_list.interfaces.sram_read_port.\nSSOT item context: name=sram_rd_rsp_error; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0098",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
+      "owner_module": "mctp_assembler_scratch_sram_arbiter",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.sram_read_port.ports.sram_rd_rsp_error",
+      "ssot_context": {
+        "direction": "input",
+        "name": "sram_rd_rsp_error",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.sram_read_port.ports.sram_rd_rsp_error"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "a6a5a0fbc9df7cbf10ab017b46631a16a00f0b454b4cee41da9ba28dbc65043d",
+  "top": "mctp_assembler_scratch",
+  "type": "rtl_authoring_packet"
+}

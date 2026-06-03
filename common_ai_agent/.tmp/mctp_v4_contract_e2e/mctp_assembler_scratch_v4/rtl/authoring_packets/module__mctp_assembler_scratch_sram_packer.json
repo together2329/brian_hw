@@ -1,0 +1,2135 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 5,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 27,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+      "name": "mctp_assembler_scratch_sram_packer",
+      "refs": [
+        "dataflow",
+        "dataflow.sram_pack",
+        "function_model",
+        "function_model.transactions.FM_SRAM_PACK_WRITE",
+        "io_list",
+        "memory",
+        "memory.instances.payload_sram_window"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+        "name": "mctp_assembler_scratch_axi_write_ingress",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+        "name": "mctp_assembler_scratch_pcie_vdm_parser",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_mctp_parser.sv",
+        "name": "mctp_assembler_scratch_mctp_parser",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_context_table.sv",
+        "name": "mctp_assembler_scratch_context_table",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "name": "mctp_assembler_scratch_sram_packer",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+        "name": "mctp_assembler_scratch_axi_read_egress",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
+        "name": "mctp_assembler_scratch_sram_arbiter",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_descriptor_queue.sv",
+        "name": "mctp_assembler_scratch_descriptor_queue",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+        "name": "mctp_assembler_scratch_apb_regfile",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_cdc.sv",
+        "name": "mctp_assembler_scratch_cdc",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_param.vh",
+        "name": "mctp_assembler_scratch_param",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch.sv",
+        "name": "mctp_assembler_scratch",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_scratch_sram_packer",
+        "port": "sram_wr_valid",
+        "signal": "pack_wr_valid",
+        "signal_terms": [
+          "pack_wr_valid"
+        ],
+        "source_ref": "integration.connections[2]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "mctp_assembler_scratch",
+  "kind": "module",
+  "owner_file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+  "owner_module": "mctp_assembler_scratch_sram_packer",
+  "packet_id": "module__mctp_assembler_scratch_sram_packer",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "equivalence.module": 1,
+      "function_model.output": 13,
+      "function_model.output_rule": 4,
+      "function_model.precondition": 1,
+      "function_model.side_effect": 1,
+      "function_model.state_update": 5,
+      "function_model.transaction": 1,
+      "memory.instances": 1
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 27,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 27,
+    "source_refs": [
+      "function_model.transactions.FM_SRAM_PACK_WRITE",
+      "function_model.transactions.FM_SRAM_PACK_WRITE.preconditions.precondition_0",
+      "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.output_0",
+      "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.output_1",
+      "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.output_2",
+      "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.output_3",
+      "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.sram_write_valid",
+      "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.sram_write_addr",
+      "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.sram_write_data",
+      "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.sram_write_strb",
+      "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.ctx_partial_word_addr",
+      "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.ctx_partial_next_lane",
+      "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.ctx_partial_word_valid",
+      "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.ctx_partial_word_strobe",
+      "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.ctx_payload_next_addr",
+      "function_model.transactions.FM_SRAM_PACK_WRITE.output_rules.sram_write_valid",
+      "function_model.transactions.FM_SRAM_PACK_WRITE.output_rules.sram_write_addr",
+      "function_model.transactions.FM_SRAM_PACK_WRITE.output_rules.sram_write_data",
+      "function_model.transactions.FM_SRAM_PACK_WRITE.output_rules.sram_write_strb",
+      "function_model.transactions.FM_SRAM_PACK_WRITE.state_updates.ctx_partial_word_addr",
+      "function_model.transactions.FM_SRAM_PACK_WRITE.state_updates.ctx_partial_next_lane",
+      "function_model.transactions.FM_SRAM_PACK_WRITE.state_updates.ctx_partial_word_valid",
+      "function_model.transactions.FM_SRAM_PACK_WRITE.state_updates.ctx_partial_word_strobe",
+      "function_model.transactions.FM_SRAM_PACK_WRITE.state_updates.ctx_payload_next_addr"
+    ],
+    "status_counts": {
+      "pass": 27
+    },
+    "task_count": 27
+  },
+  "tasks": [
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_SRAM_PACK_WRITE",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_SRAM_PACK_WRITE",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_packer.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_SRAM_PACK_WRITE.\nOwner: mctp_assembler_scratch_sram_packer in rtl/mctp_assembler_scratch_sram_packer.sv via function_model.transactions.FM_SRAM_PACK_WRITE.\nSSOT item context: id=FM_SRAM_PACK_WRITE; name=Pack payload bytes into 32-byte SRAM beats with no holes.",
+      "evidence_terms": [],
+      "id": "RTL-0193",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+      "owner_module": "mctp_assembler_scratch_sram_packer",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_SRAM_PACK_WRITE",
+      "ssot_context": {
+        "id": "FM_SRAM_PACK_WRITE",
+        "name": "Pack payload bytes into 32-byte SRAM beats with no holes"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_SRAM_PACK_WRITE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_SRAM_PACK_WRITE: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_SRAM_PACK_WRITE.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_packer.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SRAM_PACK_WRITE.preconditions.precondition_0.\nOwner: mctp_assembler_scratch_sram_packer in rtl/mctp_assembler_scratch_sram_packer.sv via function_model.transactions.FM_SRAM_PACK_WRITE.\nSSOT item context: value=payload_valid and context_accept.",
+      "evidence_terms": [
+        "accept",
+        "context",
+        "context_accept",
+        "payload",
+        "payload_valid",
+        "valid"
+      ],
+      "id": "RTL-0194",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+      "owner_module": "mctp_assembler_scratch_sram_packer",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_SRAM_PACK_WRITE.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "payload_valid and context_accept"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_SRAM_PACK_WRITE.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "payload",
+          "valid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "accept",
+          "context",
+          "context_accept",
+          "payload",
+          "payload_valid",
+          "valid"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_SRAM_PACK_WRITE: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_SRAM_PACK_WRITE.outputs.output_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_packer.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SRAM_PACK_WRITE.outputs.output_0.\nOwner: mctp_assembler_scratch_sram_packer in rtl/mctp_assembler_scratch_sram_packer.sv via function_model.transactions.FM_SRAM_PACK_WRITE.\nSSOT item context: value=sram_write_valid.",
+      "evidence_terms": [
+        "sram",
+        "sram_write_valid",
+        "valid",
+        "write"
+      ],
+      "id": "RTL-0195",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+      "owner_module": "mctp_assembler_scratch_sram_packer",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.output_0",
+      "ssot_context": {
+        "value": "sram_write_valid"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.output_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "sram",
+          "valid",
+          "write"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "sram",
+          "sram_write_valid",
+          "valid",
+          "write"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_SRAM_PACK_WRITE: output_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_SRAM_PACK_WRITE.outputs.output_1",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_packer.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SRAM_PACK_WRITE.outputs.output_1.\nOwner: mctp_assembler_scratch_sram_packer in rtl/mctp_assembler_scratch_sram_packer.sv via function_model.transactions.FM_SRAM_PACK_WRITE.\nSSOT item context: value=sram_write_addr.",
+      "evidence_terms": [
+        "addr",
+        "sram",
+        "sram_write_addr",
+        "write"
+      ],
+      "id": "RTL-0196",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+      "owner_module": "mctp_assembler_scratch_sram_packer",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.output_1",
+      "ssot_context": {
+        "value": "sram_write_addr"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.output_1"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "addr",
+          "sram",
+          "write"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "addr",
+          "sram",
+          "sram_write_addr",
+          "write"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_SRAM_PACK_WRITE: output_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_SRAM_PACK_WRITE.outputs.output_2",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_packer.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SRAM_PACK_WRITE.outputs.output_2.\nOwner: mctp_assembler_scratch_sram_packer in rtl/mctp_assembler_scratch_sram_packer.sv via function_model.transactions.FM_SRAM_PACK_WRITE.\nSSOT item context: value=sram_write_data.",
+      "evidence_terms": [
+        "data",
+        "sram",
+        "sram_write_data",
+        "write"
+      ],
+      "id": "RTL-0197",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+      "owner_module": "mctp_assembler_scratch_sram_packer",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.output_2",
+      "ssot_context": {
+        "value": "sram_write_data"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.output_2"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "data",
+          "sram",
+          "write"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "data",
+          "sram",
+          "sram_write_data",
+          "write"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_SRAM_PACK_WRITE: output_3",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_SRAM_PACK_WRITE.outputs.output_3",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_packer.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SRAM_PACK_WRITE.outputs.output_3.\nOwner: mctp_assembler_scratch_sram_packer in rtl/mctp_assembler_scratch_sram_packer.sv via function_model.transactions.FM_SRAM_PACK_WRITE.\nSSOT item context: value=sram_write_strb.",
+      "evidence_terms": [
+        "sram",
+        "sram_write_strb",
+        "strb",
+        "write"
+      ],
+      "id": "RTL-0198",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+      "owner_module": "mctp_assembler_scratch_sram_packer",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.output_3",
+      "ssot_context": {
+        "value": "sram_write_strb"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.output_3"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "sram",
+          "strb",
+          "write"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "sram",
+          "sram_write_strb",
+          "strb",
+          "write"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_SRAM_PACK_WRITE: sram_write_valid",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_SRAM_PACK_WRITE.outputs.sram_write_valid",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_packer.sv",
+        "sram_write_valid RTL expression implements SSOT expression payload_valid and (word_full or eom)",
+        "DUT port sram_wr_valid is the implementation/observation point for sram_write_valid"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SRAM_PACK_WRITE.outputs.sram_write_valid.\nOwner: mctp_assembler_scratch_sram_packer in rtl/mctp_assembler_scratch_sram_packer.sv via function_model.transactions.FM_SRAM_PACK_WRITE.\nSSOT item context: name=sram_write_valid; port=sram_wr_valid; expr=payload_valid and (word_full or eom).",
+      "evidence_terms": [
+        "full",
+        "payload",
+        "payload_valid",
+        "sram",
+        "sram_wr_valid",
+        "sram_write_valid",
+        "valid",
+        "word",
+        "word_full",
+        "wr",
+        "write"
+      ],
+      "id": "RTL-0199",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+      "owner_module": "mctp_assembler_scratch_sram_packer",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.sram_write_valid",
+      "ssot_context": {
+        "expr": "payload_valid and (word_full or eom)",
+        "name": "sram_write_valid",
+        "port": "sram_wr_valid"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.sram_write_valid"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 6,
+        "matched_terms": [
+          "payload",
+          "sram",
+          "sram_wr_valid",
+          "valid",
+          "wr",
+          "write"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "full",
+          "payload",
+          "payload_valid",
+          "sram",
+          "sram_wr_valid",
+          "sram_write_valid",
+          "valid",
+          "word",
+          "word_full",
+          "wr",
+          "write"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_SRAM_PACK_WRITE: sram_write_addr",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_SRAM_PACK_WRITE.outputs.sram_write_addr",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_packer.sv",
+        "sram_write_addr RTL expression implements SSOT expression current_word_addr",
+        "DUT port sram_wr_addr is the implementation/observation point for sram_write_addr"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SRAM_PACK_WRITE.outputs.sram_write_addr.\nOwner: mctp_assembler_scratch_sram_packer in rtl/mctp_assembler_scratch_sram_packer.sv via function_model.transactions.FM_SRAM_PACK_WRITE.\nSSOT item context: name=sram_write_addr; port=sram_wr_addr; expr=current_word_addr.",
+      "evidence_terms": [
+        "addr",
+        "current",
+        "current_word_addr",
+        "sram",
+        "sram_wr_addr",
+        "sram_write_addr",
+        "word",
+        "wr",
+        "write"
+      ],
+      "id": "RTL-0200",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+      "owner_module": "mctp_assembler_scratch_sram_packer",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.sram_write_addr",
+      "ssot_context": {
+        "expr": "current_word_addr",
+        "name": "sram_write_addr",
+        "port": "sram_wr_addr"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.sram_write_addr"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 5,
+        "matched_terms": [
+          "addr",
+          "sram",
+          "sram_wr_addr",
+          "wr",
+          "write"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "addr",
+          "current",
+          "current_word_addr",
+          "sram",
+          "sram_wr_addr",
+          "sram_write_addr",
+          "word",
+          "wr",
+          "write"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_SRAM_PACK_WRITE: sram_write_data",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_SRAM_PACK_WRITE.outputs.sram_write_data",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_packer.sv",
+        "sram_write_data RTL expression implements SSOT expression payload_data_word",
+        "DUT port sram_wr_data is the implementation/observation point for sram_write_data"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SRAM_PACK_WRITE.outputs.sram_write_data.\nOwner: mctp_assembler_scratch_sram_packer in rtl/mctp_assembler_scratch_sram_packer.sv via function_model.transactions.FM_SRAM_PACK_WRITE.\nSSOT item context: name=sram_write_data; port=sram_wr_data; expr=payload_data_word.",
+      "evidence_terms": [
+        "data",
+        "payload",
+        "payload_data_word",
+        "sram",
+        "sram_wr_data",
+        "sram_write_data",
+        "word",
+        "wr",
+        "write"
+      ],
+      "id": "RTL-0201",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+      "owner_module": "mctp_assembler_scratch_sram_packer",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.sram_write_data",
+      "ssot_context": {
+        "expr": "payload_data_word",
+        "name": "sram_write_data",
+        "port": "sram_wr_data"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.sram_write_data"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 6,
+        "matched_terms": [
+          "data",
+          "payload",
+          "sram",
+          "sram_wr_data",
+          "wr",
+          "write"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "data",
+          "payload",
+          "payload_data_word",
+          "sram",
+          "sram_wr_data",
+          "sram_write_data",
+          "word",
+          "wr",
+          "write"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_SRAM_PACK_WRITE: sram_write_strb",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_SRAM_PACK_WRITE.outputs.sram_write_strb",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_packer.sv",
+        "sram_write_strb RTL expression implements SSOT expression payload_byte_strobe",
+        "DUT port sram_wr_strb is the implementation/observation point for sram_write_strb"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SRAM_PACK_WRITE.outputs.sram_write_strb.\nOwner: mctp_assembler_scratch_sram_packer in rtl/mctp_assembler_scratch_sram_packer.sv via function_model.transactions.FM_SRAM_PACK_WRITE.\nSSOT item context: name=sram_write_strb; port=sram_wr_strb; expr=payload_byte_strobe.",
+      "evidence_terms": [
+        "byte",
+        "payload",
+        "payload_byte_strobe",
+        "sram",
+        "sram_wr_strb",
+        "sram_write_strb",
+        "strb",
+        "strobe",
+        "wr",
+        "write"
+      ],
+      "id": "RTL-0202",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+      "owner_module": "mctp_assembler_scratch_sram_packer",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.sram_write_strb",
+      "ssot_context": {
+        "expr": "payload_byte_strobe",
+        "name": "sram_write_strb",
+        "port": "sram_wr_strb"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.sram_write_strb"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 7,
+        "matched_terms": [
+          "payload",
+          "sram",
+          "sram_wr_strb",
+          "strb",
+          "strobe",
+          "wr",
+          "write"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "byte",
+          "payload",
+          "payload_byte_strobe",
+          "sram",
+          "sram_wr_strb",
+          "sram_write_strb",
+          "strb",
+          "strobe",
+          "wr",
+          "write"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_SRAM_PACK_WRITE: ctx_partial_word_addr",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_SRAM_PACK_WRITE.outputs.ctx_partial_word_addr",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_packer.sv",
+        "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.ctx_partial_word_addr RTL expression implements SSOT expression current_word_addr"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SRAM_PACK_WRITE.outputs.ctx_partial_word_addr.\nOwner: mctp_assembler_scratch_sram_packer in rtl/mctp_assembler_scratch_sram_packer.sv via function_model.transactions.FM_SRAM_PACK_WRITE.\nSSOT item context: state=ctx_partial_word_addr; expr=current_word_addr.",
+      "evidence_terms": [
+        "addr",
+        "ctx",
+        "ctx_partial_word_addr",
+        "current",
+        "current_word_addr",
+        "partial",
+        "word"
+      ],
+      "id": "RTL-0203",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+      "owner_module": "mctp_assembler_scratch_sram_packer",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.ctx_partial_word_addr",
+      "ssot_context": {
+        "expr": "current_word_addr",
+        "state": "ctx_partial_word_addr"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.ctx_partial_word_addr"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "addr",
+          "partial"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "addr",
+          "ctx",
+          "ctx_partial_word_addr",
+          "current",
+          "current_word_addr",
+          "partial",
+          "word"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_SRAM_PACK_WRITE: ctx_partial_next_lane",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_SRAM_PACK_WRITE.outputs.ctx_partial_next_lane",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_packer.sv",
+        "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.ctx_partial_next_lane RTL expression implements SSOT expression ctx_partial_next_lane + lane_advance"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SRAM_PACK_WRITE.outputs.ctx_partial_next_lane.\nOwner: mctp_assembler_scratch_sram_packer in rtl/mctp_assembler_scratch_sram_packer.sv via function_model.transactions.FM_SRAM_PACK_WRITE.\nSSOT item context: state=ctx_partial_next_lane; expr=ctx_partial_next_lane + lane_advance.",
+      "evidence_terms": [
+        "advance",
+        "ctx",
+        "ctx_partial_next_lane",
+        "lane",
+        "lane_advance",
+        "next",
+        "partial"
+      ],
+      "id": "RTL-0204",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+      "owner_module": "mctp_assembler_scratch_sram_packer",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.ctx_partial_next_lane",
+      "ssot_context": {
+        "expr": "ctx_partial_next_lane + lane_advance",
+        "state": "ctx_partial_next_lane"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.ctx_partial_next_lane"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "lane",
+          "next",
+          "partial"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "advance",
+          "ctx",
+          "ctx_partial_next_lane",
+          "lane",
+          "lane_advance",
+          "next",
+          "partial"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_SRAM_PACK_WRITE: ctx_partial_word_valid",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_SRAM_PACK_WRITE.outputs.ctx_partial_word_valid",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_packer.sv",
+        "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.ctx_partial_word_valid RTL expression implements SSOT expression payload_valid and not word_full"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SRAM_PACK_WRITE.outputs.ctx_partial_word_valid.\nOwner: mctp_assembler_scratch_sram_packer in rtl/mctp_assembler_scratch_sram_packer.sv via function_model.transactions.FM_SRAM_PACK_WRITE.\nSSOT item context: state=ctx_partial_word_valid; expr=payload_valid and not word_full.",
+      "evidence_terms": [
+        "ctx",
+        "ctx_partial_word_valid",
+        "full",
+        "partial",
+        "payload",
+        "payload_valid",
+        "valid",
+        "word",
+        "word_full"
+      ],
+      "id": "RTL-0205",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+      "owner_module": "mctp_assembler_scratch_sram_packer",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.ctx_partial_word_valid",
+      "ssot_context": {
+        "expr": "payload_valid and not word_full",
+        "state": "ctx_partial_word_valid"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.ctx_partial_word_valid"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "partial",
+          "payload",
+          "valid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_partial_word_valid",
+          "full",
+          "partial",
+          "payload",
+          "payload_valid",
+          "valid",
+          "word",
+          "word_full"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_SRAM_PACK_WRITE: ctx_partial_word_strobe",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_SRAM_PACK_WRITE.outputs.ctx_partial_word_strobe",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_packer.sv",
+        "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.ctx_partial_word_strobe RTL expression implements SSOT expression payload_byte_strobe"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SRAM_PACK_WRITE.outputs.ctx_partial_word_strobe.\nOwner: mctp_assembler_scratch_sram_packer in rtl/mctp_assembler_scratch_sram_packer.sv via function_model.transactions.FM_SRAM_PACK_WRITE.\nSSOT item context: state=ctx_partial_word_strobe; expr=payload_byte_strobe.",
+      "evidence_terms": [
+        "byte",
+        "ctx",
+        "ctx_partial_word_strobe",
+        "partial",
+        "payload",
+        "payload_byte_strobe",
+        "strobe",
+        "word"
+      ],
+      "id": "RTL-0206",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+      "owner_module": "mctp_assembler_scratch_sram_packer",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.ctx_partial_word_strobe",
+      "ssot_context": {
+        "expr": "payload_byte_strobe",
+        "state": "ctx_partial_word_strobe"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.ctx_partial_word_strobe"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "partial",
+          "payload",
+          "strobe"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "byte",
+          "ctx",
+          "ctx_partial_word_strobe",
+          "partial",
+          "payload",
+          "payload_byte_strobe",
+          "strobe",
+          "word"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_SRAM_PACK_WRITE: ctx_payload_next_addr",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_SRAM_PACK_WRITE.outputs.ctx_payload_next_addr",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_packer.sv",
+        "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.ctx_payload_next_addr RTL expression implements SSOT expression ctx_payload_next_addr + payload_len"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SRAM_PACK_WRITE.outputs.ctx_payload_next_addr.\nOwner: mctp_assembler_scratch_sram_packer in rtl/mctp_assembler_scratch_sram_packer.sv via function_model.transactions.FM_SRAM_PACK_WRITE.\nSSOT item context: state=ctx_payload_next_addr; expr=ctx_payload_next_addr + payload_len.",
+      "evidence_terms": [
+        "addr",
+        "ctx",
+        "ctx_payload_next_addr",
+        "len",
+        "next",
+        "payload",
+        "payload_len"
+      ],
+      "id": "RTL-0207",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+      "owner_module": "mctp_assembler_scratch_sram_packer",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.ctx_payload_next_addr",
+      "ssot_context": {
+        "expr": "ctx_payload_next_addr + payload_len",
+        "state": "ctx_payload_next_addr"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_SRAM_PACK_WRITE.outputs.ctx_payload_next_addr"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "addr",
+          "next",
+          "payload"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "addr",
+          "ctx",
+          "ctx_payload_next_addr",
+          "len",
+          "next",
+          "payload",
+          "payload_len"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_SRAM_PACK_WRITE: sram_write_valid",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_SRAM_PACK_WRITE.output_rules.sram_write_valid",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_packer.sv",
+        "sram_write_valid width matches SSOT value 1",
+        "sram_write_valid RTL expression implements SSOT expression payload_valid and (word_full or eom)",
+        "DUT port sram_wr_valid is the implementation/observation point for sram_write_valid",
+        "sram_write_valid is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SRAM_PACK_WRITE.output_rules.sram_write_valid.\nOwner: mctp_assembler_scratch_sram_packer in rtl/mctp_assembler_scratch_sram_packer.sv via function_model.transactions.FM_SRAM_PACK_WRITE.\nSSOT item context: name=sram_write_valid; port=sram_wr_valid; expr=payload_valid and (word_full or eom); width=1.",
+      "evidence_terms": [
+        "full",
+        "payload",
+        "payload_valid",
+        "sram",
+        "sram_wr_valid",
+        "sram_write_valid",
+        "valid",
+        "word",
+        "word_full",
+        "wr",
+        "write"
+      ],
+      "id": "RTL-0208",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+      "owner_module": "mctp_assembler_scratch_sram_packer",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_SRAM_PACK_WRITE.output_rules.sram_write_valid",
+      "ssot_context": {
+        "expr": "payload_valid and (word_full or eom)",
+        "name": "sram_write_valid",
+        "port": "sram_wr_valid",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_SRAM_PACK_WRITE.output_rules.sram_write_valid"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 6,
+        "matched_terms": [
+          "payload",
+          "sram",
+          "sram_wr_valid",
+          "valid",
+          "wr",
+          "write"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "full",
+          "payload",
+          "payload_valid",
+          "sram",
+          "sram_wr_valid",
+          "sram_write_valid",
+          "valid",
+          "word",
+          "word_full",
+          "wr",
+          "write"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_SRAM_PACK_WRITE: sram_write_addr",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_SRAM_PACK_WRITE.output_rules.sram_write_addr",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_packer.sv",
+        "sram_write_addr width matches SSOT value SRAM_ADDR_WIDTH",
+        "sram_write_addr RTL expression implements SSOT expression current_word_addr",
+        "DUT port sram_wr_addr is the implementation/observation point for sram_write_addr",
+        "sram_write_addr is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SRAM_PACK_WRITE.output_rules.sram_write_addr.\nOwner: mctp_assembler_scratch_sram_packer in rtl/mctp_assembler_scratch_sram_packer.sv via function_model.transactions.FM_SRAM_PACK_WRITE.\nSSOT item context: name=sram_write_addr; port=sram_wr_addr; expr=current_word_addr; width=SRAM_ADDR_WIDTH.",
+      "evidence_terms": [
+        "addr",
+        "current",
+        "current_word_addr",
+        "sram",
+        "sram_wr_addr",
+        "sram_write_addr",
+        "word",
+        "wr",
+        "write"
+      ],
+      "id": "RTL-0209",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+      "owner_module": "mctp_assembler_scratch_sram_packer",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_SRAM_PACK_WRITE.output_rules.sram_write_addr",
+      "ssot_context": {
+        "expr": "current_word_addr",
+        "name": "sram_write_addr",
+        "port": "sram_wr_addr",
+        "width": "SRAM_ADDR_WIDTH"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_SRAM_PACK_WRITE.output_rules.sram_write_addr"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 5,
+        "matched_terms": [
+          "addr",
+          "sram",
+          "sram_wr_addr",
+          "wr",
+          "write"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "addr",
+          "current",
+          "current_word_addr",
+          "sram",
+          "sram_wr_addr",
+          "sram_write_addr",
+          "word",
+          "wr",
+          "write"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_SRAM_PACK_WRITE: sram_write_data",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_SRAM_PACK_WRITE.output_rules.sram_write_data",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_packer.sv",
+        "sram_write_data width matches SSOT value 256",
+        "sram_write_data RTL expression implements SSOT expression payload_data_word",
+        "DUT port sram_wr_data is the implementation/observation point for sram_write_data",
+        "sram_write_data is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SRAM_PACK_WRITE.output_rules.sram_write_data.\nOwner: mctp_assembler_scratch_sram_packer in rtl/mctp_assembler_scratch_sram_packer.sv via function_model.transactions.FM_SRAM_PACK_WRITE.\nSSOT item context: name=sram_write_data; port=sram_wr_data; expr=payload_data_word; width=256.",
+      "evidence_terms": [
+        "data",
+        "payload",
+        "payload_data_word",
+        "sram",
+        "sram_wr_data",
+        "sram_write_data",
+        "word",
+        "wr",
+        "write"
+      ],
+      "id": "RTL-0210",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+      "owner_module": "mctp_assembler_scratch_sram_packer",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_SRAM_PACK_WRITE.output_rules.sram_write_data",
+      "ssot_context": {
+        "expr": "payload_data_word",
+        "name": "sram_write_data",
+        "port": "sram_wr_data",
+        "width": "256"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_SRAM_PACK_WRITE.output_rules.sram_write_data"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 6,
+        "matched_terms": [
+          "data",
+          "payload",
+          "sram",
+          "sram_wr_data",
+          "wr",
+          "write"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "data",
+          "payload",
+          "payload_data_word",
+          "sram",
+          "sram_wr_data",
+          "sram_write_data",
+          "word",
+          "wr",
+          "write"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_SRAM_PACK_WRITE: sram_write_strb",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_SRAM_PACK_WRITE.output_rules.sram_write_strb",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_packer.sv",
+        "sram_write_strb width matches SSOT value 32",
+        "sram_write_strb RTL expression implements SSOT expression payload_byte_strobe",
+        "DUT port sram_wr_strb is the implementation/observation point for sram_write_strb",
+        "sram_write_strb is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SRAM_PACK_WRITE.output_rules.sram_write_strb.\nOwner: mctp_assembler_scratch_sram_packer in rtl/mctp_assembler_scratch_sram_packer.sv via function_model.transactions.FM_SRAM_PACK_WRITE.\nSSOT item context: name=sram_write_strb; port=sram_wr_strb; expr=payload_byte_strobe; width=32.",
+      "evidence_terms": [
+        "byte",
+        "payload",
+        "payload_byte_strobe",
+        "sram",
+        "sram_wr_strb",
+        "sram_write_strb",
+        "strb",
+        "strobe",
+        "wr",
+        "write"
+      ],
+      "id": "RTL-0211",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+      "owner_module": "mctp_assembler_scratch_sram_packer",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_SRAM_PACK_WRITE.output_rules.sram_write_strb",
+      "ssot_context": {
+        "expr": "payload_byte_strobe",
+        "name": "sram_write_strb",
+        "port": "sram_wr_strb",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_SRAM_PACK_WRITE.output_rules.sram_write_strb"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 7,
+        "matched_terms": [
+          "payload",
+          "sram",
+          "sram_wr_strb",
+          "strb",
+          "strobe",
+          "wr",
+          "write"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "byte",
+          "payload",
+          "payload_byte_strobe",
+          "sram",
+          "sram_wr_strb",
+          "sram_write_strb",
+          "strb",
+          "strobe",
+          "wr",
+          "write"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_SRAM_PACK_WRITE: ctx_partial_word_addr",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_SRAM_PACK_WRITE.state_updates.ctx_partial_word_addr",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_packer.sv",
+        "ctx_partial_word_addr width matches SSOT value SRAM_ADDR_WIDTH",
+        "ctx_partial_word_addr RTL expression implements SSOT expression current_word_addr",
+        "ctx_partial_word_addr updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SRAM_PACK_WRITE.state_updates.ctx_partial_word_addr.\nOwner: mctp_assembler_scratch_sram_packer in rtl/mctp_assembler_scratch_sram_packer.sv via function_model.transactions.FM_SRAM_PACK_WRITE.\nSSOT item context: name=ctx_partial_word_addr; expr=current_word_addr; width=SRAM_ADDR_WIDTH.",
+      "evidence_terms": [
+        "addr",
+        "ctx",
+        "ctx_partial_word_addr",
+        "current",
+        "current_word_addr",
+        "partial",
+        "word"
+      ],
+      "id": "RTL-0212",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+      "owner_module": "mctp_assembler_scratch_sram_packer",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_SRAM_PACK_WRITE.state_updates.ctx_partial_word_addr",
+      "ssot_context": {
+        "expr": "current_word_addr",
+        "name": "ctx_partial_word_addr",
+        "width": "SRAM_ADDR_WIDTH"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_SRAM_PACK_WRITE.state_updates.ctx_partial_word_addr"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "addr",
+          "partial"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "addr",
+          "ctx",
+          "ctx_partial_word_addr",
+          "current",
+          "current_word_addr",
+          "partial",
+          "word"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_SRAM_PACK_WRITE: ctx_partial_next_lane",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_SRAM_PACK_WRITE.state_updates.ctx_partial_next_lane",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_packer.sv",
+        "ctx_partial_next_lane width matches SSOT value 5",
+        "ctx_partial_next_lane RTL expression implements SSOT expression ctx_partial_next_lane + lane_advance",
+        "ctx_partial_next_lane updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SRAM_PACK_WRITE.state_updates.ctx_partial_next_lane.\nOwner: mctp_assembler_scratch_sram_packer in rtl/mctp_assembler_scratch_sram_packer.sv via function_model.transactions.FM_SRAM_PACK_WRITE.\nSSOT item context: name=ctx_partial_next_lane; expr=ctx_partial_next_lane + lane_advance; width=5.",
+      "evidence_terms": [
+        "advance",
+        "ctx",
+        "ctx_partial_next_lane",
+        "lane",
+        "lane_advance",
+        "next",
+        "partial"
+      ],
+      "id": "RTL-0213",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+      "owner_module": "mctp_assembler_scratch_sram_packer",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_SRAM_PACK_WRITE.state_updates.ctx_partial_next_lane",
+      "ssot_context": {
+        "expr": "ctx_partial_next_lane + lane_advance",
+        "name": "ctx_partial_next_lane",
+        "width": "5"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_SRAM_PACK_WRITE.state_updates.ctx_partial_next_lane"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "lane",
+          "next",
+          "partial"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "advance",
+          "ctx",
+          "ctx_partial_next_lane",
+          "lane",
+          "lane_advance",
+          "next",
+          "partial"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_SRAM_PACK_WRITE: ctx_partial_word_valid",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_SRAM_PACK_WRITE.state_updates.ctx_partial_word_valid",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_packer.sv",
+        "ctx_partial_word_valid width matches SSOT value 1",
+        "ctx_partial_word_valid RTL expression implements SSOT expression payload_valid and not word_full",
+        "ctx_partial_word_valid updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SRAM_PACK_WRITE.state_updates.ctx_partial_word_valid.\nOwner: mctp_assembler_scratch_sram_packer in rtl/mctp_assembler_scratch_sram_packer.sv via function_model.transactions.FM_SRAM_PACK_WRITE.\nSSOT item context: name=ctx_partial_word_valid; expr=payload_valid and not word_full; width=1.",
+      "evidence_terms": [
+        "ctx",
+        "ctx_partial_word_valid",
+        "full",
+        "partial",
+        "payload",
+        "payload_valid",
+        "valid",
+        "word",
+        "word_full"
+      ],
+      "id": "RTL-0214",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+      "owner_module": "mctp_assembler_scratch_sram_packer",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_SRAM_PACK_WRITE.state_updates.ctx_partial_word_valid",
+      "ssot_context": {
+        "expr": "payload_valid and not word_full",
+        "name": "ctx_partial_word_valid",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_SRAM_PACK_WRITE.state_updates.ctx_partial_word_valid"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "partial",
+          "payload",
+          "valid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_partial_word_valid",
+          "full",
+          "partial",
+          "payload",
+          "payload_valid",
+          "valid",
+          "word",
+          "word_full"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_SRAM_PACK_WRITE: ctx_partial_word_strobe",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_SRAM_PACK_WRITE.state_updates.ctx_partial_word_strobe",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_packer.sv",
+        "ctx_partial_word_strobe width matches SSOT value 32",
+        "ctx_partial_word_strobe RTL expression implements SSOT expression payload_byte_strobe",
+        "ctx_partial_word_strobe updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SRAM_PACK_WRITE.state_updates.ctx_partial_word_strobe.\nOwner: mctp_assembler_scratch_sram_packer in rtl/mctp_assembler_scratch_sram_packer.sv via function_model.transactions.FM_SRAM_PACK_WRITE.\nSSOT item context: name=ctx_partial_word_strobe; expr=payload_byte_strobe; width=32.",
+      "evidence_terms": [
+        "byte",
+        "ctx",
+        "ctx_partial_word_strobe",
+        "partial",
+        "payload",
+        "payload_byte_strobe",
+        "strobe",
+        "word"
+      ],
+      "id": "RTL-0215",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+      "owner_module": "mctp_assembler_scratch_sram_packer",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_SRAM_PACK_WRITE.state_updates.ctx_partial_word_strobe",
+      "ssot_context": {
+        "expr": "payload_byte_strobe",
+        "name": "ctx_partial_word_strobe",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_SRAM_PACK_WRITE.state_updates.ctx_partial_word_strobe"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "partial",
+          "payload",
+          "strobe"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "byte",
+          "ctx",
+          "ctx_partial_word_strobe",
+          "partial",
+          "payload",
+          "payload_byte_strobe",
+          "strobe",
+          "word"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_SRAM_PACK_WRITE: ctx_payload_next_addr",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_SRAM_PACK_WRITE.state_updates.ctx_payload_next_addr",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_packer.sv",
+        "ctx_payload_next_addr width matches SSOT value SRAM_ADDR_WIDTH",
+        "ctx_payload_next_addr RTL expression implements SSOT expression ctx_payload_next_addr + payload_len",
+        "ctx_payload_next_addr updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SRAM_PACK_WRITE.state_updates.ctx_payload_next_addr.\nOwner: mctp_assembler_scratch_sram_packer in rtl/mctp_assembler_scratch_sram_packer.sv via function_model.transactions.FM_SRAM_PACK_WRITE.\nSSOT item context: name=ctx_payload_next_addr; expr=ctx_payload_next_addr + payload_len; width=SRAM_ADDR_WIDTH.",
+      "evidence_terms": [
+        "addr",
+        "ctx",
+        "ctx_payload_next_addr",
+        "len",
+        "next",
+        "payload",
+        "payload_len"
+      ],
+      "id": "RTL-0216",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+      "owner_module": "mctp_assembler_scratch_sram_packer",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_SRAM_PACK_WRITE.state_updates.ctx_payload_next_addr",
+      "ssot_context": {
+        "expr": "ctx_payload_next_addr + payload_len",
+        "name": "ctx_payload_next_addr",
+        "width": "SRAM_ADDR_WIDTH"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_SRAM_PACK_WRITE.state_updates.ctx_payload_next_addr"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "addr",
+          "next",
+          "payload"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "addr",
+          "ctx",
+          "ctx_payload_next_addr",
+          "len",
+          "next",
+          "payload",
+          "payload_len"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_SRAM_PACK_WRITE: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_SRAM_PACK_WRITE.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_packer.sv",
+        "DUT port [\"sram_wr_valid\", \"sram_wr_addr\", \"sram_wr_data\", \"sram_wr_strb\"] is the implementation/observation point for Pack payload bytes into 32-byte SRAM beats with no holes"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_SRAM_PACK_WRITE.side_effects.side_effect_0.\nOwner: mctp_assembler_scratch_sram_packer in rtl/mctp_assembler_scratch_sram_packer.sv via function_model.transactions.FM_SRAM_PACK_WRITE.\nSSOT item context: id=FM_SRAM_PACK_WRITE; name=Pack payload bytes into 32-byte SRAM beats with no holes; port=[\"sram_wr_valid\", \"sram_wr_addr\", \"sram_wr_data\", \"sram_wr_strb\"]; signal=[\"sram_write_beat_emitted_only_when_32B_word_full_or_final_fragment_flushes\", \"payload_valid\", \"payload_len\", \"lane_a...; state=[\"ctx_partial_word_addr\", \"ctx_partial_next_lane\", \"ctx_partial_word_valid\", \"ctx_partial_word_strobe\", \"ctx_payload_....",
+      "evidence_terms": [
+        "32B",
+        "accept",
+        "addr",
+        "advance",
+        "beat",
+        "byte",
+        "context",
+        "context_accept",
+        "ctx",
+        "ctx_partial_next_lane",
+        "ctx_partial_word_addr",
+        "ctx_partial_word_strobe",
+        "ctx_partial_word_valid",
+        "ctx_payload_next_addr",
+        "current",
+        "current_word_addr"
+      ],
+      "id": "RTL-0217",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+      "owner_module": "mctp_assembler_scratch_sram_packer",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_SRAM_PACK_WRITE.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "FM_SRAM_PACK_WRITE",
+        "name": "Pack payload bytes into 32-byte SRAM beats with no holes",
+        "port": "[\"sram_wr_valid\", \"sram_wr_addr\", \"sram_wr_data\", \"sram_wr_strb\"]",
+        "signal": "[\"sram_write_beat_emitted_only_when_32B_word_full_or_final_fragment_flushes\", \"payload_valid\", \"payload_len\", \"lane_a...",
+        "state": "[\"ctx_partial_word_addr\", \"ctx_partial_next_lane\", \"ctx_partial_word_valid\", \"ctx_partial_word_strobe\", \"ctx_payload_..."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_SRAM_PACK_WRITE.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 1,
+        "matched_terms": [
+          "addr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "32B",
+          "accept",
+          "addr",
+          "advance",
+          "beat",
+          "byte",
+          "context",
+          "context_accept",
+          "ctx",
+          "ctx_partial_next_lane",
+          "ctx_partial_word_addr",
+          "ctx_partial_word_strobe",
+          "ctx_partial_word_valid",
+          "ctx_payload_next_addr",
+          "current",
+          "current_word_addr"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "memory.instances",
+      "content": "Implement memory item payload_sram_window",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref memory.instances.payload_sram_window",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_packer.sv"
+      ],
+      "detail": "This SSOT memory.instances item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: memory.instances.payload_sram_window.\nOwner: mctp_assembler_scratch_sram_packer in rtl/mctp_assembler_scratch_sram_packer.sv via memory.instances.payload_sram_window.\nSSOT item context: name=payload_sram_window.",
+      "evidence_terms": [
+        "payload",
+        "payload_sram_window",
+        "sram",
+        "window"
+      ],
+      "id": "RTL-0370",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+      "owner_module": "mctp_assembler_scratch_sram_packer",
+      "priority": "high",
+      "required": true,
+      "source_ref": "memory.instances.payload_sram_window",
+      "ssot_context": {
+        "name": "payload_sram_window"
+      },
+      "ssot_refs": [
+        "memory.instances.payload_sram_window"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "payload",
+          "sram"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "payload",
+          "payload_sram_window",
+          "sram",
+          "window"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_sram_packer.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module mctp_assembler_scratch_sram_packer is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.mctp_assembler_scratch_sram_packer.module_equivalence",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_sram_packer.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.mctp_assembler_scratch_sram_packer.module_equivalence.\nOwner: mctp_assembler_scratch_sram_packer in rtl/mctp_assembler_scratch_sram_packer.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0425",
+      "owner_file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+      "owner_module": "mctp_assembler_scratch_sram_packer",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.mctp_assembler_scratch_sram_packer.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.mctp_assembler_scratch_sram_packer.module_equivalence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "a6a5a0fbc9df7cbf10ab017b46631a16a00f0b454b4cee41da9ba28dbc65043d",
+  "top": "mctp_assembler_scratch",
+  "type": "rtl_authoring_packet"
+}

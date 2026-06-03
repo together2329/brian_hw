@@ -1,0 +1,296 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_check",
+  "ip": "mctp_assembler_scratch",
+  "source": "model/functional_model.py",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "checks": 11,
+    "failed": 0,
+    "transactions": 10,
+    "transaction_results": [
+      {
+        "id": "FM_ACCEPT_AXI_TLP",
+        "name": "Accept one AXI4 write burst as one PCIe VDM TLP",
+        "kind": "FM_ACCEPT_AXI_TLP",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_ACCEPT_AXI_TLP",
+          "transaction_name": "Accept one AXI4 write burst as one PCIe VDM TLP",
+          "sample_accepted": 1,
+          "bvalid_next": 1,
+          "m_axi_bvalid": 1,
+          "bresp_next": 0,
+          "m_axi_bresp": 0,
+          "state_updates": {
+            "collected_tlp_count": 2
+          }
+        }
+      },
+      {
+        "id": "FM_FILTER_VDM",
+        "name": "Validate PCIe VDM envelope for MCTP transport",
+        "kind": "FM_FILTER_VDM",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_FILTER_VDM",
+          "transaction_name": "Validate PCIe VDM envelope for MCTP transport",
+          "sample_accepted": 1,
+          "debug_vdm_valid": 0,
+          "debug_drop_pulse": 1,
+          "state_updates": {
+            "packet_drop_count": 1,
+            "ctx_last_drop_reason": 3
+          }
+        }
+      },
+      {
+        "id": "FM_PARSE_MCTP",
+        "name": "Decode MCTP transport header and context key",
+        "kind": "FM_PARSE_MCTP",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_PARSE_MCTP",
+          "transaction_name": "Decode MCTP transport header and context key",
+          "sample_accepted": 1,
+          "debug_context_key": 3590,
+          "state_updates": {
+            "ctx_source_eid": 3,
+            "ctx_destination_eid": 4,
+            "ctx_tag_owner": 5,
+            "ctx_message_tag": 6,
+            "ctx_message_type": 7,
+            "ctx_last_seq": 8
+          }
+        }
+      },
+      {
+        "id": "FM_ASSEMBLE_FRAGMENT",
+        "name": "Allocate or update a Q context for one MCTP fragment",
+        "kind": "FM_ASSEMBLE_FRAGMENT",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_ASSEMBLE_FRAGMENT",
+          "transaction_name": "Allocate or update a Q context for one MCTP fragment",
+          "sample_accepted": 1,
+          "debug_context_id": 6,
+          "state_updates": {
+            "active_context_count": 5,
+            "ctx_state": 1,
+            "ctx_valid": 4,
+            "ctx_expected_seq": 9,
+            "payload_byte_count": 7,
+            "ctx_payload_byte_count": 7
+          }
+        }
+      },
+      {
+        "id": "FM_SRAM_PACK_WRITE",
+        "name": "Pack payload bytes into 32-byte SRAM beats with no holes",
+        "kind": "FM_SRAM_PACK_WRITE",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_SRAM_PACK_WRITE",
+          "transaction_name": "Pack payload bytes into 32-byte SRAM beats with no holes",
+          "sample_accepted": 1,
+          "sram_write_valid": 1,
+          "sram_wr_valid": 1,
+          "sram_write_addr": 10,
+          "sram_wr_addr": 10,
+          "sram_write_data": 11,
+          "sram_wr_data": 11,
+          "sram_write_strb": 12,
+          "sram_wr_strb": 12,
+          "state_updates": {
+            "ctx_partial_word_addr": 10,
+            "ctx_partial_next_lane": 7,
+            "ctx_partial_word_valid": 0,
+            "ctx_partial_word_strobe": 12,
+            "ctx_payload_next_addr": 6
+          }
+        }
+      },
+      {
+        "id": "FM_COMPLETE_MESSAGE",
+        "name": "Complete EOM message and publish descriptor",
+        "kind": "FM_COMPLETE_MESSAGE",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_COMPLETE_MESSAGE",
+          "transaction_name": "Complete EOM message and publish descriptor",
+          "sample_accepted": 1,
+          "interrupt": 0,
+          "irq": 0,
+          "state_updates": {
+            "descriptor_count": 8,
+            "ctx_state": 3,
+            "active_context_count": -3
+          }
+        }
+      },
+      {
+        "id": "FM_PACKET_DROP",
+        "name": "Packet drop without SRAM payload write",
+        "kind": "FM_PACKET_DROP",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_PACKET_DROP",
+          "transaction_name": "Packet drop without SRAM payload write",
+          "sample_accepted": 1,
+          "debug_drop_pulse": 1,
+          "state_updates": {
+            "packet_drop_count": 2,
+            "ctx_last_drop_reason": 7
+          }
+        }
+      },
+      {
+        "id": "FM_ASSEMBLY_DROP",
+        "name": "Assembly drop without descriptor publish",
+        "kind": "FM_ASSEMBLY_DROP",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_ASSEMBLY_DROP",
+          "transaction_name": "Assembly drop without descriptor publish",
+          "sample_accepted": 1,
+          "debug_drop_pulse": 1,
+          "interrupt": 1,
+          "irq": 1,
+          "state_updates": {
+            "assembly_drop_count": 1,
+            "ctx_error": 1,
+            "ctx_state": 2,
+            "ctx_last_drop_reason": 8
+          }
+        }
+      },
+      {
+        "id": "FM_APB_ACCESS",
+        "name": "APB register access",
+        "kind": "FM_APB_ACCESS",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_APB_ACCESS",
+          "transaction_name": "APB register access",
+          "sample_accepted": 1,
+          "apb_ready": 1,
+          "pready": 1,
+          "apb_error": 0,
+          "pslverr": 0,
+          "state_updates": {
+            "enable_reg": 10,
+            "drop_mode_reg": 0
+          }
+        }
+      },
+      {
+        "id": "FM_AXI_READBACK",
+        "name": "AXI readback from descriptor-backed SRAM payload",
+        "kind": "FM_AXI_READBACK",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_AXI_READBACK",
+          "transaction_name": "AXI readback from descriptor-backed SRAM payload",
+          "sample_accepted": 1,
+          "readback_valid": 0,
+          "m_axi_rvalid": 0,
+          "readback_data_out": 12,
+          "m_axi_rdata": 12,
+          "readback_resp": 0,
+          "m_axi_rresp": 0,
+          "readback_last": 1,
+          "m_axi_rlast": 1,
+          "state_updates": {
+            "read_error_count": 0
+          }
+        }
+      }
+    ],
+    "unsupported_transaction_check": true,
+    "trace_entries": 11,
+    "coverage_bins": 99,
+    "invariants_total": 3,
+    "invariants_evaluated": 3,
+    "invariants_failed": [],
+    "invariants_skipped": [],
+    "reset_consistency": true,
+    "reset_diff": {},
+    "error_cases_total": 13,
+    "error_cases_planned": 13
+  },
+  "decomposition_units": 19,
+  "fcov_bins": 99,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "mctp_assembler_scratch/req/",
+      "mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.yaml",
+      "mctp_assembler_scratch/model/functional_model.py",
+      "mctp_assembler_scratch/cov/fcov_plan.json",
+      "mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.yaml#io_list",
+      "mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "mctp_assembler_scratch/rtl/",
+      "mctp_assembler_scratch/tb/",
+      "mctp_assembler_scratch/sim/",
+      "mctp_assembler_scratch/vectors/",
+      "mctp_assembler_scratch/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  }
+}

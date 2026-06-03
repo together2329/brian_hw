@@ -1,0 +1,144 @@
+{
+  "contract": "IP_SIGNOFF.md",
+  "gates": [
+    {
+      "artifact": "yaml/mctp_assembler_scratch.ssot.yaml",
+      "issues": [],
+      "name": "ssot",
+      "status": "pass",
+      "summary": "SSOT exists and parses"
+    },
+    {
+      "artifact": "verify/ip_contract.json",
+      "issues": [],
+      "name": "ip_contract",
+      "status": "pass",
+      "summary": "capabilities=14 required_evidence=15"
+    },
+    {
+      "artifact": "model/fl_model_check.json",
+      "issues": [],
+      "name": "fl_model",
+      "status": "pass",
+      "summary": "FL artifact check passed=true"
+    },
+    {
+      "artifact": "model/cl_model_check.json",
+      "issues": [],
+      "name": "cl_model",
+      "status": "pass",
+      "summary": "CL self-check passed=true"
+    },
+    {
+      "artifact": "verify/equivalence_goals.json",
+      "issues": [],
+      "name": "equivalence_goals",
+      "status": "pass",
+      "summary": "goals=86 blocked=0"
+    },
+    {
+      "artifact": "rtl/rtl_todo_plan.json",
+      "issues": [],
+      "name": "rtl_todo",
+      "status": "pass",
+      "summary": "RTL todo/static audit gate"
+    },
+    {
+      "artifact": "rtl/rtl_authoring_provenance.json",
+      "issues": [],
+      "name": "rtl_provenance",
+      "status": "pass",
+      "summary": "RTL provenance matches current todo plan"
+    },
+    {
+      "artifact": "rtl/rtl_compile.json",
+      "issues": [],
+      "name": "rtl_compile",
+      "status": "pass",
+      "summary": "DUT-only RTL compile is clean"
+    },
+    {
+      "artifact": "lint/dut_lint.json",
+      "issues": [],
+      "name": "lint",
+      "status": "pass",
+      "summary": "DUT-only lint is clean"
+    },
+    {
+      "artifact": "tb/cocotb/tb_py_compile.json",
+      "issues": [],
+      "name": "tb_python_compile",
+      "status": "pass",
+      "summary": "TB Python compiled before simulation"
+    },
+    {
+      "artifact": "sim/results.xml",
+      "issues": [],
+      "name": "simulation",
+      "status": "pass",
+      "summary": "tests=3 failures=0 errors=0"
+    },
+    {
+      "artifact": "sim/simulation_quality.json",
+      "issues": [],
+      "name": "simulation_quality",
+      "status": "pass",
+      "summary": "status=pass issues=0"
+    },
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "issues": [],
+      "name": "scoreboard",
+      "status": "pass",
+      "summary": "rows=86 goals_with_rows=86"
+    },
+    {
+      "artifact": "cov/coverage.json",
+      "issues": [],
+      "name": "coverage",
+      "status": "pass",
+      "summary": "status=pass"
+    },
+    {
+      "artifact": "signoff/truth_coverage.json",
+      "issues": [],
+      "name": "truth_coverage",
+      "status": "pass",
+      "summary": "status=pass uncovered_required=0"
+    },
+    {
+      "artifact": "mutation/mutation_report.json",
+      "issues": [],
+      "name": "mutation_guard",
+      "status": "pass",
+      "summary": "status=pass kill_rate=0.5"
+    },
+    {
+      "artifact": "sim/scenario_e2e_summary.json + sim/monitor_evidence.json + mutation/survivor_classification.json + verify/formal_status.json",
+      "issues": [],
+      "name": "verification_hardening",
+      "status": "pass",
+      "summary": "directed scenarios, protocol monitors, survivor classification, and optional formal artifacts present"
+    },
+    {
+      "artifact": "signoff/goal_ledger.json",
+      "issues": [],
+      "name": "waivers",
+      "status": "pass",
+      "summary": "waivers explicit and reviewable"
+    }
+  ],
+  "generated_at": "2026-06-02T00:11:55Z",
+  "ip": "mctp_assembler_scratch",
+  "ip_contract": "verify/ip_contract.json",
+  "mode": "local_evidence",
+  "schema_version": 1,
+  "status": "pass",
+  "summary": {
+    "blocked": 0,
+    "failed": 0,
+    "passed": 18,
+    "total_gates": 18
+  },
+  "type": "ip_signoff"
+}

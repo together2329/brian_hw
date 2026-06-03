@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "type": "cl_model_check",
+  "ip": "mctp_assembler_scratch",
+  "source": "model/cycle_model.py",
+  "backend": "python",
+  "timestamp": "2026-05-31T23:30:15Z",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "backend": "python",
+    "transactions": 10,
+    "results_observed": 10,
+    "coverage_bins": 18,
+    "coverage_hit": 18,
+    "fl_errors": [],
+    "performance_targets": {
+      "frequency_mhz": 250,
+      "throughput": {
+        "ingress": "one 256-bit AXI beat per cycle while resources are available",
+        "readback": "one 256-bit AXI R beat per SRAM response"
+      },
+      "outstanding": {
+        "write_max": 1,
+        "read_max": 1,
+        "total_max": 2
+      },
+      "pipeline_stages": 7,
+      "queue_depth": "DESCRIPTOR_FIFO_DEPTH"
+    }
+  },
+  "performance_targets": {
+    "frequency_mhz": 250,
+    "throughput": {
+      "ingress": "one 256-bit AXI beat per cycle while resources are available",
+      "readback": "one 256-bit AXI R beat per SRAM response"
+    },
+    "outstanding": {
+      "write_max": 1,
+      "read_max": 1,
+      "total_max": 2
+    },
+    "pipeline_stages": 7,
+    "queue_depth": "DESCRIPTOR_FIFO_DEPTH"
+  },
+  "decomposition_units": 12,
+  "fcov_bins": 18
+}
