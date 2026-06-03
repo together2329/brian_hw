@@ -283,16 +283,16 @@ const w = window as any;
     } else {
       const parts = storedActive.split('/').filter(Boolean);
       if (parts.length === 2 && String(parts[1] || '').toLowerCase() === DEFAULT_WORKFLOW) {
-        setActiveSessionName(`${parts[0]}/${DEFAULT_WORKFLOW}/${DEFAULT_WORKFLOW}`);
+        setActiveSessionName(`${parts[0]}/default/${DEFAULT_WORKFLOW}/${DEFAULT_WORKFLOW}`);
       } else {
         const legacyIpWorkflow = parts.length === 2
           && String(parts[1] || '').toLowerCase() !== DEFAULT_WORKFLOW
           && KNOWN_WORKFLOWS.has(String(parts[1] || '').toLowerCase());
         const legacyWorkflow = parts.length === 1 && KNOWN_WORKFLOWS.has(String(parts[0] || '').toLowerCase());
         if (legacyIpWorkflow) {
-          setActiveSessionName(`${w.ATLAS_USER_SESSION_ID}/${storedActive}`);
+          setActiveSessionName(`${w.ATLAS_USER_SESSION_ID}/default/${storedActive}`);
         } else if (legacyWorkflow) {
-          setActiveSessionName(`${w.ATLAS_USER_SESSION_ID}/${DEFAULT_WORKFLOW}/${storedActive}`);
+          setActiveSessionName(`${w.ATLAS_USER_SESSION_ID}/default/${DEFAULT_WORKFLOW}/${storedActive}`);
         } else {
           setActiveSessionName(storedActive);
         }
@@ -323,34 +323,41 @@ const w = window as any;
     const scopeParts = scope.split('/').filter(Boolean);
     const joinSessionParts = (parts: string[]) => parts.filter(Boolean).join('/');
     const scopeEndsWithWorkflow = sessionPartsEndWithWorkflow(scopeParts);
-    const scopeIsCompleteNamespace = scopeParts.length >= 3 && scopeEndsWithWorkflow;
+    const scopeIsV2Namespace = scopeParts.length >= 4 && scopeEndsWithWorkflow;
+    const scopeIsLegacyNamespace = scopeParts.length === 3 && scopeEndsWithWorkflow;
     const firstScopePart = scopeParts[0] || '';
     const scopeHasOwner = !!firstScopePart && (
       firstScopePart === userSession
       || /^u-[A-Za-z0-9_-]+$/.test(firstScopePart)
-      || scopeIsCompleteNamespace
+      || scopeIsV2Namespace
+      || scopeIsLegacyNamespace
     );
     if (scopeHasOwner) {
+      const owner = scopeParts[0] || userSession || 'default';
       if (wf) {
-        if (scopeIsCompleteNamespace || scopeParts[scopeParts.length - 1] === 'user') {
+        if (scopeIsV2Namespace) {
           return joinSessionParts([...scopeParts.slice(0, -1), wf]);
         }
-        if (scopeParts.length === 1 || scopeParts[1] === DEFAULT_WORKFLOW) {
-          return joinSessionParts([scopeParts[0], DEFAULT_WORKFLOW, wf]);
+        if (scopeIsLegacyNamespace) {
+          return joinSessionParts([owner, workspaceSession, scopeParts[1], wf]);
         }
-        return joinSessionParts([...scopeParts, wf]);
+        if (scopeParts.length <= 1 || scopeParts[1] === DEFAULT_WORKFLOW) {
+          return joinSessionParts([owner, workspaceSession, DEFAULT_WORKFLOW, wf]);
+        }
+        return joinSessionParts([owner, workspaceSession, scopeParts[1], wf]);
       }
-      if (scopeIsCompleteNamespace) return scope;
+      if (scopeIsV2Namespace) return scope;
+      if (scopeIsLegacyNamespace) return joinSessionParts([owner, workspaceSession, scopeParts[1], scopeParts[2]]);
       if (scopeParts[1] === DEFAULT_WORKFLOW) {
-        return joinSessionParts([scopeParts[0], DEFAULT_WORKFLOW, DEFAULT_WORKFLOW]);
+        return joinSessionParts([owner, workspaceSession, DEFAULT_WORKFLOW, DEFAULT_WORKFLOW]);
       }
-      if (scopeParts.length === 1) return `${scopeParts[0]}/${DEFAULT_WORKFLOW}/${DEFAULT_WORKFLOW}`;
-      return joinSessionParts([...scopeParts, DEFAULT_WORKFLOW]);
+      if (scopeParts.length === 1) return `${owner}/${workspaceSession}/${DEFAULT_WORKFLOW}/${DEFAULT_WORKFLOW}`;
+      return joinSessionParts([owner, workspaceSession, scopeParts[1], DEFAULT_WORKFLOW]);
     }
     if (wf && scope && scopeEndsWithWorkflow) {
       scope = scopeParts.slice(0, -1).join('/');
     } else if (!wf && userSession && scope && scopeEndsWithWorkflow) {
-      return joinSessionParts([userSession, DEFAULT_WORKFLOW, scope]);
+      return joinSessionParts([userSession, workspaceSession, DEFAULT_WORKFLOW, scope]);
     }
     // 'user' / 'soc' synthetic segments removed — they planted
     // confusing `.session/<owner>/user/...` and `.session/<owner>/soc/<wf>/...`

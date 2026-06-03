@@ -221,12 +221,19 @@ const App = () => {
       const owner = normalizeSession(
         parsed.sessionId || url.searchParams.get('session_id') || window.ATLAS_USER_SESSION_ID || ''
       ) || 'default';
+      const workspaceSession = normalizeSession(
+        parsed.workspaceSession
+        || url.searchParams.get('workspace_session')
+        || url.searchParams.get('workspace')
+        || (window as any).ATLAS_WORKSPACE_SESSION_ID
+        || ''
+      ) || 'default';
       const ipParam = normalizeSession(url.searchParams.get('ip') || url.searchParams.get('ip_id') || '');
       const wfParam = normalizeSession(url.searchParams.get('workflow') || url.searchParams.get('wf') || '');
       const ip = ipParam || normalizeSession(parsed.ipId || '');
       const wf = wfParam || normalizeSession(parsed.workflow || '');
       if (!rawSession && !ip && !wf) return '';
-      return `${owner}/${ip || WORKFLOW_DEFAULT}/${wf || WORKFLOW_DEFAULT}`;
+      return `${owner}/${workspaceSession}/${ip || WORKFLOW_DEFAULT}/${wf || WORKFLOW_DEFAULT}`;
     } catch (_) {
       return '';
     }
@@ -245,7 +252,7 @@ const App = () => {
     normalizeSession(window.ATLAS_USER_SESSION_ID || initialSplit.sessionId) || 'default'
   );
   const [activeNamespace, setActiveNamespace] = useState(
-    initialBootstrapNamespace || (holdInitialDashboardActivation ? '' : `${activeSessionId}/default/default`)
+    initialBootstrapNamespace || (holdInitialDashboardActivation ? '' : `${activeSessionId}/default/default/default`)
   );
   const [activeIp, setActiveIp] = useState(initialSplit.ipId || WORKFLOW_DEFAULT);
   useEffect(() => {
