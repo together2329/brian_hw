@@ -1,0 +1,18 @@
+===== HARNESS RUN 1 =====
+.                                                                        [100%]
+1 passed in 1.25s
+----- run 1 exit: 0 -----
+===== RUN 1 JSON SNAPSHOT =====
+enqueue_p95_ms= 91.977 poll_p95_ms= 95.494
+===== HARNESS RUN 2 =====
+.                                                                        [100%]
+1 passed in 1.24s
+----- run 2 exit: 0 -----
+===== RUN 2 JSON SNAPSHOT =====
+enqueue_p95_ms= 84.875 poll_p95_ms= 93.346
+===== HARNESS RUN 3 =====
+.                                                                        [100%]
+1 passed in 1.23s
+----- run 3 exit: 0 -----
+===== RUN 3 JSON SNAPSHOT =====
+enqueue_p95_ms= 85.586 poll_p95_ms= 92.222

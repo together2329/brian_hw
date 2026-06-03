@@ -1,0 +1,9 @@
+FULL-VERIFY SUMMARY  branch=feat/runtime-db-100users
+Task1 smoke (colocation): 1 passed in 0.29s
+Task2 stability 3x p95s:
+enqueue_p95_ms= 91.977 poll_p95_ms= 95.494
+enqueue_p95_ms= 84.875 poll_p95_ms= 93.346
+enqueue_p95_ms= 85.586 poll_p95_ms= 92.222
+  SLA: p95 enqueue<=250ms, p95 poll<=500ms
+Task3 central-parity: 143 passed in 9.73s
+Task4 session-mode: 80 passed in 1.43s

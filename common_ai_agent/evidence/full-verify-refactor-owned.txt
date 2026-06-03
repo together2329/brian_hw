@@ -1,0 +1,161 @@
+...............................F........................................ [ 30%]
+................s....................................................... [ 60%]
+........................................................................ [ 90%]
+......FF..F.....F....FF                                                  [100%]
+=================================== FAILURES ===================================
+__________________ TestMemoryDB.test_memory_db_init_and_crud ___________________
+
+self = <tests.test_atlas_db.TestMemoryDB object at 0x101e6b8b0>
+memory_db = <core.atlas_db.AtlasDB object at 0x10362e220>
+
+    def test_memory_db_init_and_crud(self, memory_db):
+>       user = memory_db.create_user("u1", "User One")
+
+tests/test_atlas_db.py:440: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+core/atlas_db.py:1460: in create_user
+    self._execute(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <core.atlas_db.AtlasDB object at 0x10362e220>
+sql = '\n            INSERT INTO users (id, username, display_name, email, password_hash, role, created_at, last_login_at)\n            VALUES (?, ?, ?, ?, ?, ?, ?, ?)\n            '
+parameters = ('75bf6fb5ce73499eb9e8adbe1bfd89a1', 'u1', 'User One', None, None, 'user', ...)
+
+    def _execute(self, sql: str, parameters: tuple = ()) -> sqlite3.Cursor:
+        """Execute SQL inside the lock."""
+        with self._lock:
+            conn = self._connect()
+>           cursor = conn.execute(sql, parameters)
+E           sqlite3.OperationalError: no such table: users
+
+core/atlas_db.py:1022: OperationalError
+_____ TestAvailableToolsReplaced.test_exactly_nine_orchestrator_callables ______
+
+self = <tests.test_orchestrator_react_bridge.TestAvailableToolsReplaced object at 0x101e8bb20>
+bridge = OrchestratorReactBridge(deps=ReactLoopDeps(cfg=<module 'src.config' from '/Users/brian/Desktop/Project/brian_hw/common..._thread.lock object at 0x1200e5cf0>), chat_writer=<src.orchestrator.react_bridge._ChatPersister object at 0x1200e5d30>)
+
+    def test_exactly_nine_orchestrator_callables(self, bridge):
+>       assert set(bridge.deps.available_tools.keys()) == EXPECTED_CALLABLES
+E       AssertionError: assert {'ask_user', ...', 'wait_job'} == {'ask_user', ...rtifact', ...}
+E         
+E         Extra items in the left set:
+E         'read_file'
+E         Extra items in the right set:
+E         'web_fetch'
+E         'classify_failure'
+E         'web_search'...
+E         
+E         ...Full output truncated (4 lines hidden), use '-vv' to show
+
+tests/test_orchestrator_react_bridge.py:103: AssertionError
+________ TestAvailableToolsReplaced.test_no_generic_agent_tools_leaked _________
+
+self = <tests.test_orchestrator_react_bridge.TestAvailableToolsReplaced object at 0x101e8b7c0>
+bridge = OrchestratorReactBridge(deps=ReactLoopDeps(cfg=<module 'src.config' from '/Users/brian/Desktop/Project/brian_hw/common..._thread.lock object at 0x107a74900>), chat_writer=<src.orchestrator.react_bridge._ChatPersister object at 0x107a74880>)
+
+    def test_no_generic_agent_tools_leaked(self, bridge):
+        forbidden = {"read_file", "write_file", "edit_file",
+                     "todo_write", "todo_update", "spawn_subagent",
+                     "parallel_todo_dispatch", "dispatch_workflow_v1"}
+        leaked = forbidden & set(bridge.deps.available_tools.keys())
+>       assert not leaked, f"generic agent tools leaked into orchestrator: {leaked}"
+E       AssertionError: generic agent tools leaked into orchestrator: {'read_file'}
+E       assert not {'read_file'}
+
+tests/test_orchestrator_react_bridge.py:110: AssertionError
+__ TestCallableRoundTrip.test_classify_failure_callable_returns_owner_routing __
+
+self = <tests.test_orchestrator_react_bridge.TestCallableRoundTrip object at 0x10209f4f0>
+db = <core.atlas_db.AtlasDB object at 0x107a519d0>
+bridge = OrchestratorReactBridge(deps=ReactLoopDeps(cfg=<module 'src.config' from '/Users/brian/Desktop/Project/brian_hw/common..._thread.lock object at 0x1077ca6f0>), chat_writer=<src.orchestrator.react_bridge._ChatPersister object at 0x1077ca6a0>)
+ctx = OrchestratorContext(run_id='151d6701c0ce4571982eef208d6990e4', user_id='u1', ip_id='ip1', ip_name='ipA', workspace_id=..._classify_failure_callable0'), runner=<src.orchestrator.runner.OrchestratorRunner object at 0x107a74fd0>, user_seed='')
+
+    def test_classify_failure_callable_returns_owner_routing(self, db, bridge, ctx):
+>       obs = bridge.available_tools["classify_failure"](
+            pre_parsed_kwargs={"stage": "lint"}
+        )
+E       KeyError: 'classify_failure'
+
+tests/test_orchestrator_react_bridge.py:130: KeyError
+_ TestSystemPromptEmbedsTenSchemas.test_system_prompt_contains_all_ten_tool_names _
+
+self = <tests.test_orchestrator_react_bridge.TestSystemPromptEmbedsTenSchemas object at 0x102094e20>
+bridge = OrchestratorReactBridge(deps=ReactLoopDeps(cfg=<module 'src.config' from '/Users/brian/Desktop/Project/brian_hw/common..._thread.lock object at 0x10682fb40>), chat_writer=<src.orchestrator.react_bridge._ChatPersister object at 0x101e6b310>)
+
+    def test_system_prompt_contains_all_ten_tool_names(self, bridge):
+        prompt = bridge.deps.build_prompt_fn(
+            messages=[{"role": "user", "content": "hi"}],
+            allowed_tools=set(bridge.deps.available_tools.keys()),
+            agent_mode="normal",
+        )
+        assert isinstance(prompt, str)
+        names = EXPECTED_CALLABLES | {"yield_run"}
+        for n in names:
+>           assert f'"name": "{n}"' in prompt, f"missing schema for {n}"
+E           AssertionError: missing schema for web_fetch
+E           assert '"name": "web_fetch"' in 'You are the ATLAS pipeline orchestrator — the only LLM that decides what runs\nnext for an IP. The user talks to you ...   "path"\n        ],\n        "type": "object"\n      }\n    },\n    "type": "function"\n  }\n]\n[/AVAILABLE_TOOLS]\n'
+
+tests/test_orchestrator_react_bridge.py:272: AssertionError
+____ TestReactLoopCallShape.test_react_loop_call_shape_rejects_unknown_tool ____
+
+self = <tests.test_orchestrator_react_bridge.TestReactLoopCallShape object at 0x102094c10>
+bridge = OrchestratorReactBridge(deps=ReactLoopDeps(cfg=<module 'src.config' from '/Users/brian/Desktop/Project/brian_hw/common..._thread.lock object at 0x1077ca1b0>), chat_writer=<src.orchestrator.react_bridge._ChatPersister object at 0x1077ca280>)
+
+    def test_react_loop_call_shape_rejects_unknown_tool(self, bridge):
+        # Generic agent tools (read_file, write_file, web_search, ...) must
+        # be unresolvable. Routing them through deps.execute_tool_fn returns
+        # the dispatcher's "Tool not found" string — no step row, no crash.
+        observation = bridge.deps.execute_tool_fn(
+            "read_file",
+            'path="something.py"',
+            pre_parsed_kwargs={"path": "something.py"},
+        )
+>       assert "not found" in observation.lower()
+E       assert 'not found' in "typeerror: read_file() got an unexpected keyword argument 'contains'"
+E        +  where "typeerror: read_file() got an unexpected keyword argument 'contains'" = <built-in method lower of str object at 0x1077d8a30>()
+E        +    where <built-in method lower of str object at 0x1077d8a30> = "TypeError: read_file() got an unexpected keyword argument 'contains'".lower
+
+tests/test_orchestrator_react_bridge.py:383: AssertionError
+_ TestStepCollectorOrdering.test_parallel_callable_invocations_get_distinct_step_indexes _
+
+self = <tests.test_orchestrator_react_bridge.TestStepCollectorOrdering object at 0x101ece2b0>
+db = <core.atlas_db.AtlasDB object at 0x106634760>
+runner = <src.orchestrator.runner.OrchestratorRunner object at 0x107a4e820>
+ctx = OrchestratorContext(run_id='de612c92beb8471f949f5852da91182e', user_id='u1', ip_id='ip1', ip_name='ipA', workspace_id=..._parallel_callable_invocat0'), runner=<src.orchestrator.runner.OrchestratorRunner object at 0x107a4e820>, user_seed='')
+
+    def test_parallel_callable_invocations_get_distinct_step_indexes(self, db, runner, ctx):
+        # The _OrderedStepCollector uses a single lock so step_index is
+        # monotonically allocated even under contention. Hammer the same
+        # callable from N threads and assert no duplicate / missing indexes.
+        bridge = build_orchestrator_deps(ctx=ctx, runner=runner, db=db)
+    
+        N = 20
+        errors: list[str] = []
+    
+        def call_once():
+            try:
+                bridge.available_tools["classify_failure"](
+                    pre_parsed_kwargs={"stage": "lint"}
+                )
+            except Exception as exc:
+                errors.append(f"{type(exc).__name__}: {exc}")
+    
+        threads = [threading.Thread(target=call_once) for _ in range(N)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+>       assert not errors, errors
+E       AssertionError: ["KeyError: 'classify_failure'", "KeyError: 'classify_failure'", "KeyError: 'classify_failure'", "KeyError: 'classify_failure'", "KeyError: 'classify_failure'", "KeyError: 'classify_failure'", ...]
+E       assert not ["KeyError: 'classify_failure'", "KeyError: 'classify_failure'", "KeyError: 'classify_failure'", "KeyError: 'classify_failure'", "KeyError: 'classify_failure'", "KeyError: 'classify_failure'", ...]
+
+tests/test_orchestrator_react_bridge.py:409: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_atlas_db.py::TestMemoryDB::test_memory_db_init_and_crud - s...
+FAILED tests/test_orchestrator_react_bridge.py::TestAvailableToolsReplaced::test_exactly_nine_orchestrator_callables
+FAILED tests/test_orchestrator_react_bridge.py::TestAvailableToolsReplaced::test_no_generic_agent_tools_leaked
+FAILED tests/test_orchestrator_react_bridge.py::TestCallableRoundTrip::test_classify_failure_callable_returns_owner_routing
+FAILED tests/test_orchestrator_react_bridge.py::TestSystemPromptEmbedsTenSchemas::test_system_prompt_contains_all_ten_tool_names
+FAILED tests/test_orchestrator_react_bridge.py::TestReactLoopCallShape::test_react_loop_call_shape_rejects_unknown_tool
+FAILED tests/test_orchestrator_react_bridge.py::TestStepCollectorOrdering::test_parallel_callable_invocations_get_distinct_step_indexes
+7 failed, 231 passed, 1 skipped in 22.59s

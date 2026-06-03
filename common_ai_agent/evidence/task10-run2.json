@@ -2,11 +2,11 @@
   "coalesced_batch_rows_sample": 20,
   "cold_spawn_latency_ms": {
     "count": 100,
-    "max": 20.112,
-    "mean": 4.646,
-    "p50": 4.219,
-    "p95": 6.352,
-    "p99": 20.112
+    "max": 26.973,
+    "mean": 3.248,
+    "p50": 2.723,
+    "p95": 3.593,
+    "p99": 26.973
   },
   "counts": {
     "control_session_queue_rows": 0,
@@ -17,13 +17,13 @@
   },
   "enqueue_latency_ms": {
     "count": 100,
-    "max": 257.515,
-    "mean": 180.197,
-    "p50": 181.739,
-    "p95": 240.705,
-    "p99": 257.515
+    "max": 86.88,
+    "mean": 62.194,
+    "p50": 64.748,
+    "p95": 84.875,
+    "p99": 86.88
   },
-  "enqueue_window_s": 0.269,
+  "enqueue_window_s": 0.093,
   "failures": {
     "cross_session": [],
     "enqueue": [],
@@ -31,7 +31,7 @@
     "prompt": [],
     "stream": []
   },
-  "generated_at": 1780442851.603312,
+  "generated_at": 1780442397.487821,
   "locked": {
     "fleet_locked_retry_count": 0,
     "manager_locked_retry_count": 0
@@ -47,22 +47,22 @@
   },
   "poll_latency_ms": {
     "count": 6,
-    "max": 203.033,
-    "mean": 43.046,
-    "p50": 12.011,
-    "p95": 203.033,
-    "p99": 203.033
+    "max": 93.346,
+    "mean": 22.849,
+    "p50": 8.901,
+    "p95": 93.346,
+    "p99": 93.346
   },
   "reasoning_per_stream": 10,
   "rollup": {
-    "command_ms": 88.671,
+    "command_ms": 62.715,
     "grand_totals": {
       "messages": 0,
       "session_count": 100,
       "stale_sessions": 0,
       "trace_events": 0
     },
-    "max_lag_s": 1.809,
+    "max_lag_s": 0.93,
     "raw_queue_in": 100,
     "raw_queue_out": 2100,
     "rollup_queue_in": 100,
