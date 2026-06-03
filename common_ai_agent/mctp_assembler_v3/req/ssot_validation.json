@@ -3,21 +3,13 @@
   "ip": "mctp_assembler_v3",
   "mode": "engineering",
   "ssot": "mctp_assembler_v3/yaml/mctp_assembler_v3.ssot.yaml",
-  "ok": false,
-  "blockers": [
-    {
-      "severity": "blocker",
-      "id": "check_ssot_disk.failed",
-      "path": "mctp_assembler_v3/yaml/mctp_assembler_v3.ssot.yaml",
-      "message": "check_ssot_disk.sh failed with exit 1.",
-      "fix": "[check_ssot_disk] FAIL: mctp_assembler_v3/yaml/mctp_assembler_v3.ssot.yaml failed YAML/model validation"
-    }
-  ],
+  "ok": true,
+  "blockers": [],
   "warnings": [],
   "check_ssot_disk": {
-    "ok": false,
-    "returncode": 1,
-    "stdout": "[check_ssot_disk] FAIL: mctp_assembler_v3/yaml/mctp_assembler_v3.ssot.yaml failed YAML/model validation\n  sub_modules[9].name='mctp_assembler_v3' duplicates the IP name; rename, drop, or mark wiring_only:true so rtl-gen can tell it from the top wrapper\n",
+    "ok": true,
+    "returncode": 0,
+    "stdout": "[check_ssot_disk] PASS: mctp_assembler_v3/yaml/mctp_assembler_v3.ssot.yaml = 91116B, 34 sections, 0 TBDs, mode=engineering\n",
     "stderr": ""
   },
   "preview_contract": "strict"
