@@ -14,6 +14,20 @@
 import { useState, useEffect, useRef } from 'react';
 import type { MutableRefObject, Dispatch, SetStateAction } from 'react';
 
+function healthzCostUrl(): string {
+  const activeSession = String(
+    (window as any).ACTIVE_SESSION
+    || (() => {
+      try { return window.localStorage.getItem('atlasActiveSession') || ''; }
+      catch (_) { return ''; }
+    })()
+    || ''
+  ).trim().replace(/^\/+|\/+$/g, '');
+  return activeSession
+    ? `/healthz?cost=0&session_id=${encodeURIComponent(activeSession)}`
+    : '/healthz?cost=0';
+}
+
 export interface AtlasBoot {
   bootSteps: Record<string, string>;
   setBootSteps: Dispatch<SetStateAction<Record<string, string>>>;
@@ -43,7 +57,7 @@ export function useAtlasBoot(authState: string): AtlasBoot {
         health: 'pending', sessions: 'pending', llm: 'pending',
       }));
       if (!bootEverReadyRef.current) setBootHidden(false);
-      fetch('/healthz?cost=0', { cache: 'no-store' })
+      fetch(healthzCostUrl(), { cache: 'no-store' })
         .then(r => mark('health', r.ok ? 'done' : 'fail'))
         .catch(() => mark('health', 'fail'));
       fetch('/api/session/list', { cache: 'no-store' })
@@ -99,7 +113,7 @@ export function useAtlasBoot(authState: string): AtlasBoot {
       fetch('/api/session/list', { cache: 'no-store' })
         .then(r => mark('sessions', r.ok ? 'done' : 'fail'))
         .catch(() => mark('sessions', 'fail'));
-      fetch('/healthz?cost=0', { cache: 'no-store' })
+      fetch(healthzCostUrl(), { cache: 'no-store' })
         .then(r => mark('health', r.ok ? 'done' : 'fail'))
         .catch(() => mark('health', 'fail'));
       fetch('/api/llm/ping', { cache: 'no-store' })

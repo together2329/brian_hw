@@ -260,6 +260,50 @@ def test_session_activate_accepts_v2_user_session_context(tmp_path, monkeypatch)
     assert {entry["name"] for entry in files.json()["entries"]} == {"yaml"}
 
 
+def test_healthz_session_hint_selects_v2_workspace_session(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.setenv("ATLAS_ROOT", str(tmp_path))
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    for workspace_session in ("s1", "s2"):
+        response = client.post(
+            "/api/session/activate",
+            json={
+                "user_name": "alice",
+                "workspace_session": workspace_session,
+                "ip": "NEWIP_MCTP",
+                "workflow": "default",
+            },
+        )
+        assert response.status_code == 200, response.text
+
+    hinted = client.get(
+        "/healthz",
+        params={"session_id": "alice/s1/NEWIP_MCTP/default"},
+    )
+
+    assert hinted.status_code == 200, hinted.text
+    data = hinted.json()
+    assert data["active_session"] == "alice/s1/NEWIP_MCTP/default"
+    assert data["active_ip"] == "NEWIP_MCTP"
+    assert data["active_workflow"] == "default"
+    assert data["workspace_session"] == "s1"
+    assert Path(data["project_root"]).resolve() == (tmp_path / "alice" / "s1").resolve()
+    assert Path(data["session_dir"]).resolve() == (
+        tmp_path / "alice" / "s1" / ".session" / "NEWIP_MCTP" / "default"
+    ).resolve()
+
+
 def test_v2_session_history_state_and_todos_use_workspace_session_root(tmp_path, monkeypatch):
     import src.atlas_ui as atlas_ui
 

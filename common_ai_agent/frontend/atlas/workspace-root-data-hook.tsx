@@ -94,6 +94,13 @@ import type { WorkspaceDataDeps } from './workspace-rootdata-telemetry';
 
 const w = window as any;
 
+const healthzCostUrl = (): string => {
+  const activeSession = normalizeUiSession(w.ACTIVE_SESSION || '');
+  return activeSession
+    ? `/healthz?cost=0&session_id=${encodeURIComponent(activeSession)}`
+    : '/healthz?cost=0';
+};
+
 const askText = (value: any, fallback = ''): string => {
   const text = String(value ?? '').trim();
   return text || fallback;
@@ -326,7 +333,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   useEffect(() => {
     let cancelled = false;
     const poll = () => {
-      fetch('/healthz?cost=0', { cache: 'no-store' })
+      fetch(healthzCostUrl(), { cache: 'no-store' })
         .then((r) => (r.ok ? r.json() : null))
         .then((j: any) => {
           if (cancelled || !j || !healthMatchesCurrentUser(j)) return;
