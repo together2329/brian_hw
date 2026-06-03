@@ -114,7 +114,7 @@ This is wired to the 2026-06-03 **B1 git-access security work**:
 ## Packaging — can the Python + EDA tools ship with the Desktop App?
 
 **Yes (Tauri "Option B": PyInstaller freeze + Tauri `externalBin` sidecar)** —
-already named as deferred in `src-tauri/src` / [[tauri-desktop-shell.md]].
+already named as deferred in `src-tauri/src` / [[tauri-desktop-shell]].
 
 Python code, FastAPI, and compiled wheels freeze fine. The hard part is the **EDA
 native tools** (called via `run_command`, not Python):

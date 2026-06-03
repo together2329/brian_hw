@@ -1,5 +1,1096 @@
-# mctp_assembler_v3.ssot.yaml — Single Source of Truth
+# =============================================================================
+# SSOT — mctp_assembler_v3
+# AXI4 256-bit PCIe VDM MCTP receiver/assembler (Non-Flit Mode, first target).
+# Authored from req/mctp_assembler_v3_requirements.md (DMTF DSP0236 1.3.3 +
+# DSP0238 1.4.0). Schema/order follows workflow/ssot-gen/rules/ssot-template.yaml;
+# all behavior traces to the requirement, not to any example IP.
+# =============================================================================
+
 top_module:
-  name: mctp_assembler_v3
-  type: "<TBD>"  # TBD
-  description: "<TBD>"  # TBD
+  name: "mctp_assembler_v3"
+  file: "rtl/mctp_assembler_v3.sv"
+  version: "1.0"
+  type: "peripheral"
+  description: "Bounded HW receiver that validates PCIe VDM MCTP TLPs from a 256-bit AXI4 write slave, assembles interleaved fragmented MCTP messages by {source_eid,tag_owner,message_tag}, packs payload-only bytes into a 256-bit SRAM, publishes completed-message descriptors with first/last TLP header snapshots, and exposes APB control/status plus an AXI4 read path for firmware payload access."
+  reference_spec: "DMTF DSP0236 v1.3.3 + DSP0238 v1.4.0"
+  target:
+    technology: "generic"
+    clock_freq_mhz: 400
+    area_um2: null
+    power_mw: null
+
+# =============================================================================
+# SECTION 1: Sub-Module List (Hierarchy)
+# =============================================================================
+sub_modules:
+  - { name: "mctp_assembler_v3_axi_wr_ingress", file: "rtl/mctp_assembler_v3_axi_wr_ingress.sv", ownership: "manifest", ssot_gen: true, implements: ["io_list.interfaces.axi_wr_slave", "cycle_model.handshake_rules", "function_model.transactions.FM_INGEST_TLP"], source_sections: ["io_list", "cycle_model", "function_model"], cycle_model_refs: ["cycle_model.handshake_rules"], function_model_refs: ["function_model.transactions.FM_INGEST_TLP"], description: "AXI4 write-slave ingress: reconstructs one raw TLP byte stream from AW/W/B, checks AWSIZE/AWBURST/WLAST/WSTRB legality, emits TLP-byte events or PD_MALFORMED_TLP." }
+  - { name: "mctp_assembler_v3_pcie_vdm_parser", file: "rtl/mctp_assembler_v3_pcie_vdm_parser.sv", ownership: "manifest", ssot_gen: true, implements: ["function_model.transactions.FM_DECODE_VDM", "features.vdm_decode"], source_sections: ["function_model", "features"], function_model_refs: ["function_model.transactions.FM_DECODE_VDM"], feature_refs: ["features.vdm_decode"], description: "Decodes the 16-byte Non-Flit PCIe VDM header (message code 0x7F, vendor 0x1AB4, routing/TC), validates VDM binding, strips header/pad/digest, emits PD_UNSUPPORTED_VDM / PD_BAD_PAD_OR_ALIGNMENT on violation." }
+  - { name: "mctp_assembler_v3_mctp_decoder", file: "rtl/mctp_assembler_v3_mctp_decoder.sv", ownership: "manifest", ssot_gen: true, implements: ["function_model.transactions.FM_DECODE_MCTP", "features.mctp_decode"], source_sections: ["function_model", "features"], function_model_refs: ["function_model.transactions.FM_DECODE_MCTP"], description: "Decodes the MCTP transport header (version/dest_eid/src_eid/SOM/EOM/seq/tag_owner/msg_tag) plus IC/message-type from the SOM body byte; emits PD_BAD_MCTP_HEADER / PD_DEST_EID_REJECT." }
+  - { name: "mctp_assembler_v3_context_table", file: "rtl/mctp_assembler_v3_context_table.sv", ownership: "manifest", ssot_gen: true, implements: ["function_model.transactions.FM_ALLOC_CONTEXT", "function_model.transactions.FM_APPEND", "fsm.context_fsm"], source_sections: ["function_model", "fsm"], function_model_refs: ["function_model.transactions.FM_ALLOC_CONTEXT", "function_model.transactions.FM_APPEND"], fsm_refs: ["fsm.context_fsm"], description: "CONTEXT_COUNT independent assembly contexts keyed by {source_eid,tag_owner,message_tag}; per-context FSM, expected seq, first/last header snapshot, timeout age; emits assembly drops AD_*." }
+  - { name: "mctp_assembler_v3_sram_packer", file: "rtl/mctp_assembler_v3_sram_packer.sv", ownership: "manifest", ssot_gen: true, implements: ["function_model.transactions.FM_PACK_SRAM", "features.payload_pack"], source_sections: ["function_model", "features", "memory"], function_model_refs: ["function_model.transactions.FM_PACK_SRAM"], description: "Packs payload-only bytes into 256-bit SRAM words with per-context partial-word state (addr/data/strb/next_lane); byte i at base_addr+i, no alignment holes across fragments; linear bump allocator sram_base..sram_limit." }
+  - { name: "mctp_assembler_v3_descriptor_queue", file: "rtl/mctp_assembler_v3_descriptor_queue.sv", ownership: "manifest", ssot_gen: true, implements: ["function_model.transactions.FM_PUBLISH_DESCRIPTOR", "memory.instances.descriptor_fifo"], source_sections: ["function_model", "memory"], function_model_refs: ["function_model.transactions.FM_PUBLISH_DESCRIPTOR"], description: "DESCRIPTOR_FIFO_DEPTH completed-message descriptor/header queue holding metadata + first/last TLP header snapshots until descriptor_pop; AD_DESCRIPTOR_FULL on overflow at EOM." }
+  - { name: "mctp_assembler_v3_axi_rd_payload", file: "rtl/mctp_assembler_v3_axi_rd_payload.sv", ownership: "manifest", ssot_gen: true, implements: ["io_list.interfaces.axi_rd_slave", "function_model.transactions.FM_AXI_READ", "fsm.axi_read_fsm"], source_sections: ["io_list", "function_model", "fsm"], function_model_refs: ["function_model.transactions.FM_AXI_READ"], fsm_refs: ["fsm.axi_read_fsm"], description: "AXI4 read slave for firmware payload access: one SRAM read per AXI R beat, RLAST on final ARLEN beat, SLVERR for out-of-window or no-descriptor reads unless raw_sram_debug_read_enable." }
+  - { name: "mctp_assembler_v3_apb_regfile", file: "rtl/mctp_assembler_v3_apb_regfile.sv", ownership: "manifest", ssot_gen: true, implements: ["registers.register_list", "interrupts", "error_handling"], source_sections: ["registers", "interrupts", "error_handling"], register_refs: ["registers.register_list"], description: "APB4 control/status/interrupt/counter/descriptor/debug register file; per-Q register banks; W1C interrupts; counter_clear; descriptor_pop; CDC of status/interrupt from axi_aclk to pclk." }
+  - { name: "mctp_assembler_v3_cdc_sync", file: "rtl/mctp_assembler_v3_cdc_sync.sv", ownership: "manifest", ssot_gen: true, wiring_only: false, implements: ["cdc_requirements.crossings", "cdc_requirements.synchronizers"], source_sections: ["cdc_requirements"], cycle_model_refs: ["cycle_model.handshake_rules"], description: "Explicit CDC synchronizers for status/interrupt/counter crossings between axi_aclk and pclk." }
+  - { name: "mctp_assembler_v3", file: "rtl/mctp_assembler_v3.sv", ownership: "manifest", ssot_gen: false, implements: ["integration.connections", "io_list.interfaces", "function_model"], source_sections: ["integration", "io_list", "function_model", "cycle_model"], function_model_refs: ["function_model.transactions"], cycle_model_refs: ["cycle_model.pipeline"], ssot_refs: ["io_list.interfaces"], description: "Top integration: instantiates ingress, parser, decoder, context table, packer, descriptor queue, AXI read, APB regfile, CDC; wires datapath ingress->parse->decode->assemble->pack->descriptor and the read path." }
+
+decomposition:
+  units:
+    - { id: "ingest", kind: "control", source_refs: ["function_model.transactions.FM_INGEST_TLP", "cycle_model.handshake_rules"], rtl_candidates: ["mctp_assembler_v3_axi_wr_ingress"], verification_impact: ["test_requirements.scenarios"] }
+    - { id: "decode", kind: "datapath/control", source_refs: ["function_model.transactions.FM_DECODE_VDM", "function_model.transactions.FM_DECODE_MCTP"], rtl_candidates: ["mctp_assembler_v3_pcie_vdm_parser", "mctp_assembler_v3_mctp_decoder"], verification_impact: ["test_requirements.scenarios"] }
+    - { id: "assemble", kind: "control/datapath", source_refs: ["function_model.transactions.FM_ALLOC_CONTEXT", "function_model.transactions.FM_APPEND", "function_model.transactions.FM_PACK_SRAM"], rtl_candidates: ["mctp_assembler_v3_context_table", "mctp_assembler_v3_sram_packer"], verification_impact: ["test_requirements.coverage_goals.function"] }
+    - { id: "publish", kind: "control", source_refs: ["function_model.transactions.FM_PUBLISH_DESCRIPTOR"], rtl_candidates: ["mctp_assembler_v3_descriptor_queue"], verification_impact: ["test_requirements.scenarios"] }
+    - { id: "csr", kind: "control", source_refs: ["registers.register_list", "interrupts"], rtl_candidates: ["mctp_assembler_v3_apb_regfile"], verification_impact: ["test_requirements.scenarios"] }
+
+# =============================================================================
+# SECTION 2: RTL Contract
+# =============================================================================
+rtl_contract:
+  transaction: "FM_INGEST_TLP"
+  sample_condition: "one AXI4 write transaction (AW..WLAST..B) equals one PCIe VDM TLP"
+  input_map:
+    tlp_bytes: "axi_wr_slave.wdata/wstrb across beats, byte lane N -> wdata[8*N +: 8]"
+    config: "registers.CONTROL"
+    fw_read: "axi_rd_slave.araddr/arlen"
+  output_map:
+    payload_write: "sram_write.sram_wr_data/sram_wr_strb/sram_wr_addr"
+    descriptor: "registers.descriptor + descriptor_queue"
+    fw_read_data: "axi_rd_slave.rdata"
+    interrupt: "interrupt.irq"
+  state_updates:
+    - { name: "ctx_payload_byte_count", reset: 0, expr: "increment by accepted payload bytes; clear on reset/context release" }
+    - { name: "ctx_expected_seq", reset: 0, expr: "increment modulo 4 after SOM per continuation packet" }
+    - { name: "ctx_state", reset: "IDLE", expr: "IDLE/ASSEMBLING/ERROR/DONE_WAIT_DESCRIPTOR_POP per fsm.context_fsm" }
+
+# =============================================================================
+# SECTION 3: Parameters
+# =============================================================================
+parameters:
+  - { name: "AXI_ADDR_WIDTH", default: 16, type: int, description: "AXI write/read address width for ingress aperture/debug routing", drives: ["mctp_assembler_v3_axi_wr_ingress.sv", "mctp_assembler_v3_axi_rd_payload.sv"] }
+  - { name: "AXI_DATA_WIDTH", default: 256, type: int, description: "AXI WDATA/RDATA width; fixed at 256 for this target", drives: ["mctp_assembler_v3_axi_wr_ingress.sv", "mctp_assembler_v3_axi_rd_payload.sv"] }
+  - { name: "AXI_STRB_WIDTH", default: 32, type: int, description: "AXI WSTRB width derived from data width (256/8)", drives: ["mctp_assembler_v3_axi_wr_ingress.sv"] }
+  - { name: "SRAM_ADDR_WIDTH", default: 16, type: int, description: "Byte-addressed SRAM address width", drives: ["mctp_assembler_v3_sram_packer.sv", "mctp_assembler_v3_axi_rd_payload.sv"] }
+  - { name: "SRAM_DATA_WIDTH", default: 256, type: int, description: "SRAM write/read data width; fixed at 256 for this target", drives: ["mctp_assembler_v3_sram_packer.sv"] }
+  - { name: "CONTEXT_COUNT", default: 15, type: int, description: "Maximum active fragmented MCTP assemblies / context table entries", drives: ["mctp_assembler_v3_context_table.sv", "mctp_assembler_v3_apb_regfile.sv"] }
+  - { name: "TLP_HEADER_SNAPSHOT_BYTES", default: 16, type: int, description: "Raw Non-Flit TLP/VDM/MCTP-transport header bytes saved as first/last snapshot", drives: ["mctp_assembler_v3_context_table.sv", "mctp_assembler_v3_descriptor_queue.sv"] }
+  - { name: "MIN_TRANSMISSION_UNIT_BYTES", default: 64, type: int, description: "Minimum configurable MCTP transmission unit", drives: ["mctp_assembler_v3_pcie_vdm_parser.sv"] }
+  - { name: "MAX_TRANSMISSION_UNIT_BYTES", default: 4096, type: int, description: "Maximum configurable MCTP transmission unit", drives: ["mctp_assembler_v3_pcie_vdm_parser.sv"] }
+  - { name: "TRANSMISSION_UNIT_ALIGN_BYTES", default: 4, type: int, description: "Required alignment for configured TU and non-final packet payload", drives: ["mctp_assembler_v3_pcie_vdm_parser.sv"] }
+  - { name: "MAX_TLP_BYTES", default: 4112, type: int, description: "Max stored bytes per TLP: 16B header + 4096B TU (digest stripped upstream)", drives: ["mctp_assembler_v3_axi_wr_ingress.sv"] }
+  - { name: "MAX_TLP_BEATS", default: 129, type: int, description: "Max 256-bit AXI W beats for MAX_TLP_BYTES", drives: ["mctp_assembler_v3_axi_wr_ingress.sv"] }
+  - { name: "MAX_MESSAGE_BYTES", default: 4096, type: int, description: "Maximum assembled message body bytes", drives: ["mctp_assembler_v3_context_table.sv"] }
+  - { name: "BASELINE_MTU_BYTES", default: 64, type: int, description: "Baseline MCTP transmission unit size", drives: ["mctp_assembler_v3_apb_regfile.sv"] }
+  - { name: "DESCRIPTOR_FIFO_DEPTH", default: 8, type: int, description: "Completed-message descriptor/header queue depth", drives: ["mctp_assembler_v3_descriptor_queue.sv"] }
+  - { name: "TIMEOUT_COUNTER_WIDTH", default: 24, type: int, description: "Assembly timeout counter width", drives: ["mctp_assembler_v3_context_table.sv"] }
+  - { name: "RESET_POLARITY", default: "active_low", type: enum, values: ["active_low", "active_high"], description: "Reset polarity for all .sv files", drives: ["ALL .sv files"] }
+
+# =============================================================================
+# SECTION 3b: IO List (Ports)
+# =============================================================================
+io_list:
+  clock_domains:
+    - { name: "axi_aclk", frequency_mhz: 400, description: "AXI ingress/parser/assembly/SRAM clock", ports: [ { name: "axi_aclk", width: 1, direction: "input", description: "AXI domain clock" } ] }
+    - { name: "pclk", frequency_mhz: 100, description: "APB control/status clock (may be async to axi_aclk)", ports: [ { name: "pclk", width: 1, direction: "input", description: "APB domain clock" } ] }
+  resets:
+    - { name: "axi_aresetn", polarity: "active_low", sync_async: "async_assert_sync_deassert", description: "AXI domain reset", ports: [ { name: "axi_aresetn", width: 1, direction: "input", description: "Active-low AXI reset" } ] }
+    - { name: "presetn", polarity: "active_low", sync_async: "async_assert_sync_deassert", description: "APB domain reset", ports: [ { name: "presetn", width: 1, direction: "input", description: "Active-low APB reset" } ] }
+  interfaces:
+    - name: "axi_wr_slave"
+      type: "AXI4"
+      role: "slave"
+      clock_domain: "axi_aclk"
+      reset_domain: "axi_aresetn"
+      description: "PCIe VDM TLP ingress; one write transaction == one TLP; no IDs, single outstanding"
+      protocol:
+        aw_rule: "Accept AW when awvalid && awready; AWSIZE must be 5 (32B/beat), AWBURST must be INCR; expected W beats = AWLEN+1."
+        w_rule: "Sample wdata/wstrb on wvalid && wready; byte lane N maps to wdata[8*N +: 8]; full beats use all 32 strobes; final beat contiguous from lane 0; WLAST asserts exactly on the final expected beat."
+        b_rule: "After transaction is consumed, return BRESP=OKAY on bvalid && bready; packet/protocol failures are reported via drop/error status, not AXI retry."
+        outstanding_rule: "Single outstanding write transaction; no write interleaving."
+      ports:
+        - { name: "s_axi_awaddr",  width: 16, direction: "input",  description: "Ingress aperture address (debug capture only)" }
+        - { name: "s_axi_awlen",   width: 8,  direction: "input",  description: "Burst length minus 1" }
+        - { name: "s_axi_awsize",  width: 3,  direction: "input",  description: "Burst size; must be 5 (32B)" }
+        - { name: "s_axi_awburst", width: 2,  direction: "input",  description: "Burst type; must be INCR" }
+        - { name: "s_axi_awvalid", width: 1,  direction: "input",  description: "AW valid" }
+        - { name: "s_axi_awready", width: 1,  direction: "output", description: "AW ready" }
+        - { name: "s_axi_wdata",   width: 256, direction: "input",  description: "Write data beat (TLP bytes)" }
+        - { name: "s_axi_wstrb",   width: 32, direction: "input",  description: "Write byte strobes" }
+        - { name: "s_axi_wlast",   width: 1,  direction: "input",  description: "Final beat of the TLP" }
+        - { name: "s_axi_wvalid",  width: 1,  direction: "input",  description: "W valid" }
+        - { name: "s_axi_wready",  width: 1,  direction: "output", description: "W ready" }
+        - { name: "s_axi_bresp",   width: 2,  direction: "output", description: "Write response (OKAY when consumed)" }
+        - { name: "s_axi_bvalid",  width: 1,  direction: "output", description: "B valid" }
+        - { name: "s_axi_bready",  width: 1,  direction: "input",  description: "B ready" }
+    - name: "axi_rd_slave"
+      type: "AXI4"
+      role: "slave"
+      clock_domain: "axi_aclk"
+      reset_domain: "axi_aresetn"
+      description: "Firmware payload read path from payload SRAM; no IDs, single outstanding"
+      protocol:
+        ar_rule: "Accept AR when arvalid && arready; ARSIZE must be 5 (32B/beat), ARBURST must be INCR."
+        r_rule: "Drive rdata on rvalid && rready; one SRAM read per R beat; RLAST asserts on the final beat (ARLEN)."
+        response_rule: "RRESP=SLVERR for reads outside the SRAM read window, or to a payload range with no completed descriptor unless raw_sram_debug_read_enable=1."
+        outstanding_rule: "Single outstanding read transaction; reads may stall behind SRAM writes (write priority)."
+      ports:
+        - { name: "s_axi_araddr",  width: 16, direction: "input",  description: "Read address (32B aligned)" }
+        - { name: "s_axi_arlen",   width: 8,  direction: "input",  description: "Burst length minus 1" }
+        - { name: "s_axi_arsize",  width: 3,  direction: "input",  description: "Burst size; must be 5 (32B)" }
+        - { name: "s_axi_arburst", width: 2,  direction: "input",  description: "Burst type; must be INCR" }
+        - { name: "s_axi_arvalid", width: 1,  direction: "input",  description: "AR valid" }
+        - { name: "s_axi_arready", width: 1,  direction: "output", description: "AR ready" }
+        - { name: "s_axi_rdata",   width: 256, direction: "output", description: "Read data beat" }
+        - { name: "s_axi_rresp",   width: 2,  direction: "output", description: "Read response" }
+        - { name: "s_axi_rlast",   width: 1,  direction: "output", description: "Final read beat" }
+        - { name: "s_axi_rvalid",  width: 1,  direction: "output", description: "R valid" }
+        - { name: "s_axi_rready",  width: 1,  direction: "input",  description: "R ready" }
+    - name: "apb_slave"
+      type: "APB4"
+      role: "slave"
+      clock_domain: "pclk"
+      reset_domain: "presetn"
+      description: "Control/status/interrupt/counter/descriptor/debug register access"
+      protocol:
+        setup_phase: "psel=1, penable=0 captures address/control."
+        access_phase: "psel=1, penable=1 completes when pready=1."
+        read_rule: "prdata valid in the completing access phase for reads."
+        write_rule: "pwdata/pstrb sampled in the completing access phase for writes."
+        error_rule: "pslverr asserted only with pready=1 for illegal/unsupported access."
+      ports:
+        - { name: "paddr",   width: 16, direction: "input",  description: "APB address" }
+        - { name: "psel",    width: 1,  direction: "input",  description: "APB select" }
+        - { name: "penable", width: 1,  direction: "input",  description: "APB enable" }
+        - { name: "pwrite",  width: 1,  direction: "input",  description: "APB write" }
+        - { name: "pwdata",  width: 32, direction: "input",  description: "APB write data" }
+        - { name: "pstrb",   width: 4,  direction: "input",  description: "APB strobes" }
+        - { name: "prdata",  width: 32, direction: "output", description: "APB read data" }
+        - { name: "pready",  width: 1,  direction: "output", description: "APB ready" }
+        - { name: "pslverr", width: 1,  direction: "output", description: "APB error" }
+    - name: "sram_write"
+      type: "custom"
+      role: "master"
+      clock_domain: "axi_aclk"
+      reset_domain: "axi_aresetn"
+      description: "256-bit payload SRAM write interface (assembler side)"
+      protocol:
+        handshake: "Transfer on sram_wr_valid && sram_wr_ready; addr/data/strb held stable while valid && !ready."
+        packing: "sram_wr_addr is the 32B-aligned word containing the target byte; sram_wr_strb marks exactly the valid payload lanes."
+      ports:
+        - { name: "sram_wr_valid", width: 1,  direction: "output", description: "Write valid" }
+        - { name: "sram_wr_ready", width: 1,  direction: "input",  description: "Write ready (backpressure)" }
+        - { name: "sram_wr_addr",  width: 16, direction: "output", description: "Byte-addressed 32B-aligned write word address" }
+        - { name: "sram_wr_data",  width: 256, direction: "output", description: "Write data word" }
+        - { name: "sram_wr_strb",  width: 32, direction: "output", description: "Per-lane write strobes (valid payload lanes only)" }
+    - name: "sram_read"
+      type: "custom"
+      role: "master"
+      clock_domain: "axi_aclk"
+      reset_domain: "axi_aresetn"
+      description: "256-bit payload SRAM read interface (firmware read side)"
+      protocol:
+        req_rule: "Request on sram_rd_req_valid && sram_rd_req_ready; addr is 32B-aligned physical word."
+        rsp_rule: "Response on sram_rd_rsp_valid && sram_rd_rsp_ready; sram_rd_rsp_error marks an out-of-range read."
+      ports:
+        - { name: "sram_rd_req_valid", width: 1,  direction: "output", description: "Read request valid" }
+        - { name: "sram_rd_req_ready", width: 1,  direction: "input",  description: "Read request ready" }
+        - { name: "sram_rd_req_addr",  width: 16, direction: "output", description: "32B-aligned read word address" }
+        - { name: "sram_rd_rsp_valid", width: 1,  direction: "input",  description: "Read response valid" }
+        - { name: "sram_rd_rsp_ready", width: 1,  direction: "output", description: "Read response ready" }
+        - { name: "sram_rd_rsp_data",  width: 256, direction: "input",  description: "Read response data word" }
+        - { name: "sram_rd_rsp_error", width: 1,  direction: "input",  description: "Read response error" }
+    - name: "interrupt"
+      type: "custom"
+      clock_domain: "pclk"
+      reset_domain: "presetn"
+      description: "Combined interrupt output (active-high, level)"
+      protocol:
+        assertion: "irq reflects (intr_raw_status & intr_enable) != 0 after CDC into pclk."
+        deassertion: "irq deasserts after the corresponding intr_clear W1C."
+        reset_value: 0
+      ports:
+        - { name: "irq", width: 1, direction: "output", description: "Combined level interrupt" }
+
+# =============================================================================
+# SECTION 4: Main Features
+# =============================================================================
+features:
+  - { name: "axi_ingress", trigger: "AXI write transaction (AW..WLAST..B)", datapath: "AW/W beats -> raw TLP byte stream (lane N -> wdata[8N+:8])", control: "ingress FSM checks AWSIZE/AWBURST/beat-count/WSTRB/WLAST legality", output: "ordered TLP bytes + accept event, or PD_MALFORMED_TLP" }
+  - { name: "vdm_decode", trigger: "accepted TLP byte stream", datapath: "decode 16B Non-Flit PCIe VDM header; verify msg code 0x7F, vendor 0x1AB4, VDM code 0x0, routing/TC; strip header/pad/digest", control: "parser FSM", output: "validated VDM fields + payload offset, or PD_UNSUPPORTED_VDM / PD_BAD_PAD_OR_ALIGNMENT" }
+  - { name: "mctp_decode", trigger: "validated VDM payload", datapath: "decode MCTP transport header (ver/dest_eid/src_eid/SOM/EOM/seq/tag_owner/msg_tag) + IC/msg_type from SOM body byte", control: "decoder", output: "MCTP fields + assembly key, or PD_BAD_MCTP_HEADER / PD_DEST_EID_REJECT" }
+  - { name: "interleaved_assembly", trigger: "decoded MCTP packet", datapath: "allocate/append context by {source_eid,tag_owner,message_tag}; interleave across keys; track expected seq, first/last header, timeout", control: "per-context FSM", output: "appended payload bytes + descriptor on EOM, or AD_* assembly drop" }
+  - { name: "payload_pack", trigger: "accepted payload bytes for a context", datapath: "pack payload-only bytes into 256-bit SRAM words; byte i at base+i; per-context partial-word state; no holes across fragments", control: "sram packer", output: "sram_write beats with strb marking valid payload lanes" }
+  - { name: "descriptor_publish", trigger: "successful EOM", datapath: "push completed descriptor + first/last header snapshots into the descriptor/header queue", control: "descriptor queue", output: "descriptor_ready interrupt + APB descriptor readout, or AD_DESCRIPTOR_FULL" }
+  - { name: "firmware_read", trigger: "AXI read after descriptor visible", datapath: "one SRAM read per AXI R beat; trim handled in firmware", control: "axi read FSM", output: "rdata beats; SLVERR for out-of-window/no-descriptor reads" }
+  - { name: "drop_classification", trigger: "any reject condition", datapath: "evaluate packet-drop and assembly-drop reasons in priority order", control: "classifier", output: "last_drop_class/last_drop_reason + per-reason counters + interrupt" }
+
+# =============================================================================
+# SECTION 5: Data Flow
+# =============================================================================
+dataflow:
+  write_path:
+    source: "axi_wr_slave (256-bit W beats, one TLP per transaction)"
+    burst: "AWLEN+1 beats, AWSIZE=5 (32B), AWBURST=INCR, WLAST on final beat"
+    buffer: "per-context partial 256-bit SRAM pack buffer + 16B header snapshot store"
+    sequence: "AXI W -> TLP bytes -> VDM decode -> MCTP decode -> context alloc/append -> SRAM payload write -> descriptor on EOM"
+  read_path:
+    source: "payload SRAM via descriptor payload_base_addr/payload_len"
+    burst: "ARLEN+1 beats, ARSIZE=5 (32B), ARBURST=INCR, RLAST on final beat"
+    destination: "axi_rd_slave.rdata"
+    sequence: "descriptor visible -> firmware AXI AR -> SRAM read req/rsp -> AXI R -> RLAST"
+  loop_control:
+    counter: "ctx_payload_byte_count per context; ctx_expected_seq modulo 4"
+    decrement: "n/a (accumulating assembler, not a counted loop)"
+    auto_increment: "ctx_payload_next_addr += accepted payload bytes; expected_seq increments modulo 4 after SOM"
+
+# =============================================================================
+# SECTION 6: Function Model
+# =============================================================================
+function_model:
+  purpose: "Golden executable behavioral contract for rtl-gen and tb-gen; cycle-independent meaning of decode/assembly/pack/descriptor/drop."
+  state_variables:
+    - { name: "context_table", source: "registers.CTX_STATE bank", reset: "IDLE", description: "Per-context assembly state: key{source_eid,tag_owner,message_tag}, dest_eid, expected_seq, payload_base_addr, payload_next_addr, payload_byte_count, tu_bytes, partial_word{addr,data,strb,next_lane}, first/last_tlp_header[0:15], msg_type, ic, timeout_age, state, error" }
+    - { name: "descriptor_queue", source: "memory.instances.descriptor_fifo", reset: "empty", description: "FIFO of completed descriptors + first/last header snapshots, depth DESCRIPTOR_FIFO_DEPTH" }
+    - { name: "sram_alloc_ptr", source: "registers.SRAM_BASE.sram_base", reset: "sram_base", description: "Linear bump allocator pointer in [sram_base, sram_limit)" }
+    - { name: "counters", source: "registers counter block", reset: 0, description: "Aggregate + per-reason packet/assembly drop and traffic counters (saturating)" }
+    - { name: "last_drop_class", source: "registers.STATUS.last_drop_class", reset: 0, description: "Most recent drop class (none/packet/assembly)" }
+  transactions:
+    - id: "FM_INGEST_TLP"
+      name: "axi_write_to_tlp_bytes"
+      preconditions: ["CONTROL.enable==1 or (enable==0 and drop_when_disabled==1)", "AWSIZE==5", "AWBURST==INCR", "W beat count == AWLEN+1", "WLAST on final beat only"]
+      inputs: ["axi_wr_slave AW/W/B"]
+      outputs: ["ordered raw TLP byte vector with valid byte count from WSTRB", "BRESP=OKAY when transaction consumed"]
+      side_effects: ["tlp_seen_count increment", "tlp_accepted_count increment on legal TLP"]
+      error_cases:
+        - { condition: "empty txn / bad AWSIZE/AWBURST / interleave / beat-count mismatch / early/late WLAST / non-contiguous WSTRB / <16B / >MAX_TLP_BYTES / PCIe-length inconsistent / unstripped digest when stripped-mode", result: "PD_MALFORMED_TLP packet drop; no context/SRAM/descriptor side effect" }
+    - id: "FM_DECODE_VDM"
+      name: "pcie_vdm_decode"
+      preconditions: ["legal TLP bytes available"]
+      inputs: ["raw TLP bytes 0..15"]
+      outputs: ["requester_id, pcie_routing_type, message_code, vendor_id, vdm_code, payload_offset(16), pad_len", "first 16B header snapshot candidate"]
+      side_effects: []
+      error_cases:
+        - { condition: "not Non-Flit VDM-with-data / msg_code!=0x7F / vendor!=0x1AB4 / vdm_code!=0x0 / unsupported routing/TC/attr", result: "PD_UNSUPPORTED_VDM packet drop" }
+        - { condition: "pad_len>3 / pad_len!=0 on non-EOM / TU not in [64,4096] or not 4B-aligned / non-EOM payload != TU or not 4B-aligned / EOM payload > TU", result: "PD_BAD_PAD_OR_ALIGNMENT packet drop" }
+    - id: "FM_DECODE_MCTP"
+      name: "mctp_transport_decode"
+      preconditions: ["validated VDM payload present"]
+      inputs: ["MCTP transport header (last 4B of 16B header)", "SOM body byte (IC+message_type) when SOM=1"]
+      outputs: ["header_version, dest_eid, source_eid, SOM, EOM, packet_seq, tag_owner, message_tag", "ic, message_type on SOM", "assembly_key={source_eid,tag_owner,message_tag}"]
+      side_effects: []
+      error_cases:
+        - { condition: "header not present / version!=1 / SOM packet without body byte", result: "PD_BAD_MCTP_HEADER packet drop" }
+        - { condition: "dest_eid not local and not accepted broadcast/null while dest_filter_enable", result: "PD_DEST_EID_REJECT packet drop" }
+    - id: "FM_ALLOC_CONTEXT"
+      name: "context_allocate"
+      preconditions: ["decoded MCTP packet with SOM=1"]
+      inputs: ["assembly_key", "first_tlp_header[0:15]"]
+      outputs: ["new ASSEMBLING context (SOM,EOM=0) or single-packet path (SOM,EOM=1)", "first_tlp_header stored", "payload_base_addr allocated from sram_alloc_ptr"]
+      side_effects: ["expected_seq initialized; ctx_state=ASSEMBLING; sram_alloc_ptr advanced"]
+      error_cases:
+        - { condition: "no free context for a new fragmented SOM", result: "PD_BAD_OR_EXPIRED_TAG packet drop (context-table-full); no allocation" }
+        - { condition: "SOM for an already-active key", result: "AD_DUPLICATE_SOM assembly drop: abort old context, suppress descriptor" }
+    - id: "FM_APPEND"
+      name: "context_append"
+      preconditions: ["SOM=0 packet matches an active key", "packet_seq == ctx_expected_seq"]
+      inputs: ["payload bytes", "last_tlp_header[0:15]"]
+      outputs: ["payload appended; last_tlp_header updated; expected_seq incremented modulo 4", "EOM=1 marks message complete -> FM_PUBLISH_DESCRIPTOR"]
+      side_effects: ["ctx_payload_byte_count += payload_bytes"]
+      error_cases:
+        - { condition: "middle/end with no active matching context / EOM without prior SOM", result: "PD_UNEXPECTED_MIDDLE_END packet drop" }
+        - { condition: "packet_seq != expected modulo-4 seq", result: "AD_SEQUENCE_MISMATCH assembly drop" }
+        - { condition: "append would exceed MAX_MESSAGE_BYTES", result: "AD_MESSAGE_OVERFLOW assembly drop" }
+        - { condition: "context age exceeds assembly_timeout_cycles", result: "AD_TIMEOUT assembly drop" }
+    - id: "FM_PACK_SRAM"
+      name: "payload_pack_write"
+      preconditions: ["accepted payload bytes for a context"]
+      inputs: ["payload bytes", "ctx partial_word state"]
+      outputs: ["256-bit sram_write beats; payload byte i at byte address base_addr+i; sram_wr_strb marks only payload lanes; full words flushed, partial words retained per-context until full or EOM"]
+      side_effects: ["ctx_payload_next_addr advanced; payload_bytes_written_count += bytes"]
+      error_cases:
+        - { condition: "allocation/write would exceed sram_base/limit or SRAM_ADDR_WIDTH", result: "AD_SRAM_OVERFLOW assembly drop" }
+    - id: "FM_PUBLISH_DESCRIPTOR"
+      name: "descriptor_publish"
+      preconditions: ["successful EOM for a context"]
+      inputs: ["context metadata", "first/last_tlp_header"]
+      outputs: ["descriptor{source_eid,dest_eid,tag_owner,message_tag,message_type,requester_id,pcie_routing_type,payload_base_addr,payload_len,final_packet_seq,context_id,completion_status,first/last_tlp_header} pushed", "descriptor_ready interrupt; message_completed_count increment"]
+      side_effects: ["context released (or DONE_WAIT_DESCRIPTOR_POP)"]
+      error_cases:
+        - { condition: "descriptor/header queue full at EOM", result: "AD_DESCRIPTOR_FULL assembly drop; no descriptor published" }
+    - id: "FM_AXI_READ"
+      name: "firmware_payload_read"
+      preconditions: ["ARSIZE==5", "ARBURST==INCR", "descriptor visible for the range or raw_sram_debug_read_enable"]
+      inputs: ["AR address/len"]
+      outputs: ["one SRAM read per R beat; rdata returned unmodified; RLAST on final beat"]
+      side_effects: ["fw_axi_read_beat_count increment"]
+      error_cases:
+        - { condition: "read outside SRAM read window, or no completed descriptor and not raw_sram_debug_read_enable", result: "RRESP=SLVERR; fw_axi_read_error_count increment" }
+  invariants:
+    - "No SRAM payload write occurs before a packet is accepted for assembly."
+    - "The SRAM writer never writes PCIe/VDM headers, MCTP transport headers, pad bytes, or digest bytes as payload."
+    - "For every published descriptor, byte address base_addr..base_addr+payload_len-1 is written exactly as the corresponding assembled payload byte with no alignment gap."
+    - "Active context count never exceeds CONTEXT_COUNT."
+    - "first_tlp_header for a context is written only by the accepted SOM packet; last_tlp_header equals the most recent accepted packet for that context."
+    - "Non-final accepted packets contribute exactly the configured transmission unit byte count; EOM may contribute fewer."
+    - "No descriptor is published before EOM; sequence mismatch aborts the active context and suppresses the success descriptor."
+    - "An earlier packet-drop reason wins over a later assembly-drop reason for the same accepted transaction (drop priority order)."
+    - "ctx_state encoding is mutually exclusive: a context cannot be IDLE and ASSEMBLING or ERROR in the same cycle."
+  reference_model_hint: "tb-gen must implement a Python scoreboard from this section: reconstruct expected payload bytes, headers, descriptor, and drop class per scenario and compare against RTL-observed SRAM writes / descriptor / counters."
+
+# =============================================================================
+# SECTION 7: Cycle Model
+# =============================================================================
+cycle_model:
+  purpose: "Cycle/handshake contract: when valid/ready, payload writes, descriptor, and interrupts may change."
+  executable: "python"
+  backend_policy: "Use the repo-owned pure-Python deterministic stepper; FunctionalModel is the behavioral oracle."
+  clock: "axi_aclk"
+  reset:
+    assertion: "axi_aresetn/presetn low asynchronously clears all architectural state (contexts, queue, parser, packer, counters)."
+    deassertion: "state usable on the first rising edge after synchronized deassertion."
+  latency:
+    register_read: { min_cycles: 0, max_cycles: 1, description: "APB read data/pready timing in pclk" }
+    register_write: { min_cycles: 0, max_cycles: 1, description: "APB write acceptance timing in pclk" }
+    single_beat_transfer: { min_cycles: 1, max_cycles: null, description: "AXI/SRAM handshakes; max depends on backpressure" }
+  handshake_rules:
+    - { signal: "s_axi_awready/s_axi_wready", rule: "Assert only when the ingress can accept the AW/W beat; deassert to backpressure when not in drop_when_disabled mode." }
+    - { signal: "s_axi_bvalid", rule: "Assert after the full TLP transaction is consumed; hold until bready." }
+    - { signal: "sram_wr_valid", rule: "Hold sram_wr_addr/data/strb stable while sram_wr_valid && !sram_wr_ready." }
+    - { signal: "sram_rd_req_valid", rule: "Issue one SRAM read request per AXI read beat; hold until sram_rd_req_ready." }
+    - { signal: "s_axi_rvalid/s_axi_rlast", rule: "Drive rdata after the SRAM read response; assert rlast on the final ARLEN beat only." }
+    - { signal: "apb pready", rule: "Complete the access phase; pslverr only with pready=1." }
+  pipeline:
+    - { stage: "S0_INGEST", cycle: "0..B", action: "Reconstruct TLP bytes from AXI W beats; legality check" }
+    - { stage: "S1_VDM_DECODE", cycle: "B+1", action: "Decode/validate 16B PCIe VDM header; strip header/pad/digest" }
+    - { stage: "S2_MCTP_DECODE", cycle: "B+2", action: "Decode MCTP transport header + IC/msg_type on SOM" }
+    - { stage: "S3_CONTEXT", cycle: "B+3", action: "Allocate/append context by key; sequence/timeout checks" }
+    - { stage: "S4_PACK", cycle: "B+4..P", action: "Pack payload bytes into 256-bit SRAM words; per-context partial word" }
+    - { stage: "S5_DESCRIPTOR", cycle: "P+1", action: "On EOM push descriptor + first/last headers; raise descriptor_ready" }
+  ordering:
+    - "descriptor_publish must occur only after the final SRAM payload write/flush for the message is accepted."
+    - "AXI read response is not issued before the corresponding SRAM read response."
+    - "Interrupt status updates occur on the rising edge the terminal event is recorded (after CDC into pclk for status bits)."
+  backpressure:
+    - "sram_wr_ready deassertion stalls payload writes without dropping accepted bytes unless timeout/overflow occurs."
+    - "SRAM write traffic for assembly has priority over firmware AXI read traffic on a shared port."
+    - "AXI read backpressure must not corrupt ongoing assembly writes; each context owns its own partial-word state."
+  performance:
+    frequency_mhz: 400
+    throughput: { sustained_beats_per_cycle: 1, condition: "No SRAM/AXI backpressure; full 256-bit payload words" }
+    outstanding: { read_max: 1, write_max: 1, description: "Single outstanding AXI write and read transaction" }
+    depth: { pipeline_stages: 6, queue_depth: 8, description: "Pipeline depth + descriptor FIFO depth visible to cycle coverage" }
+  observability:
+    - "Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario."
+
+# =============================================================================
+# SECTION 8: Clock & Reset Domain
+# =============================================================================
+clock_reset_domains:
+  domains:
+    - { name: "axi_aclk", frequency_mhz: 400, description: "AXI/parser/assembly/SRAM domain" }
+    - { name: "pclk", frequency_mhz: 100, description: "APB control/status domain (async to axi_aclk)" }
+  reset_scheme:
+    signal: "axi_aresetn,presetn"
+    polarity: "active_low"
+    type: "async_assert_sync_deassert"
+
+# =============================================================================
+# SECTION 9: CDC Requirements
+# =============================================================================
+cdc_requirements:
+  crossings:
+    - { from: "axi_aclk", to: "pclk", signals: ["status flags", "interrupt raw status", "counter snapshots", "descriptor metadata"], scheme: "2-FF synchronizer for single-bit flags; gray/handshake for multi-bit counter/descriptor reads" }
+    - { from: "pclk", to: "axi_aclk", signals: ["CONTROL config", "soft_reset", "descriptor_pop", "counter_clear"], scheme: "2-FF synchronizer + pulse stretch for command strobes" }
+  synchronizers:
+    - { name: "flag_sync_2ff", stages: 2, type: "level" }
+    - { name: "cmd_pulse_sync", stages: 2, type: "pulse" }
+    - { name: "bus_handshake_sync", stages: 2, type: "req_ack" }
+
+# =============================================================================
+# SECTION 10: RDC Requirements
+# =============================================================================
+rdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "axi_aresetn and presetn each reset their own domain; no signal is reset by one domain and sampled live in the other without the cdc_requirements synchronizers."
+
+# =============================================================================
+# SECTION 11: Registers
+# =============================================================================
+registers:
+  config:
+    register_width: 32
+    addr_width: 16
+    byte_addressable: true
+    channel_stride: 0x40
+    channel_base: 0x400
+    num_channels: 15
+  bit_order: "lsb0"
+  bits_format: "[msb, lsb]"
+  reserved_field_policy:
+    read_value: 0
+    write_effect: "ignore"
+    rtl_requirement: "Reserved fields read as zero and do not allocate storage."
+  register_list:
+    - name: "CONTROL"
+      offset: 0x000
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      category: "control"
+      description: "Global control/policy"
+      write_side_effects: ["soft_reset clears contexts/queue/parser/packer/read state; does not rewrite persistent config", "descriptor_pop retires the oldest descriptor", "counter_clear clears non-sticky counters"]
+      fields:
+        - { name: "enable", bits: [0, 0], access: "rw", reset: 0x0, write_effect: "Enable AXI write ingress", description: "Ingress enable" }
+        - { name: "drop_when_disabled", bits: [1, 1], access: "rw", reset: 0x0, write_effect: "Accept+packet-drop while disabled instead of backpressure", description: "Disabled drop mode" }
+        - { name: "soft_reset", bits: [2, 2], access: "rw", reset: 0x0, write_effect: "Self-clearing soft reset pulse", description: "Soft reset" }
+        - { name: "dest_filter_enable", bits: [3, 3], access: "rw", reset: 0x0, write_effect: "Enable destination EID filtering", description: "Dest EID filter" }
+        - { name: "accept_broadcast_eid", bits: [4, 4], access: "rw", reset: 0x0, write_effect: "Accept broadcast EID", description: "Broadcast accept" }
+        - { name: "accept_null_eid", bits: [5, 5], access: "rw", reset: 0x0, write_effect: "Accept null EID", description: "Null EID accept" }
+        - { name: "raw_sram_debug_read_enable", bits: [6, 6], access: "rw", reset: 0x0, write_effect: "Allow AXI reads outside completed descriptor ranges", description: "Raw SRAM debug read" }
+        - { name: "descriptor_pop", bits: [7, 7], access: "rw", reset: 0x0, write_effect: "1=pop oldest descriptor (self-clearing)", description: "Descriptor pop command" }
+        - { name: "counter_clear", bits: [8, 8], access: "rw", reset: 0x0, write_effect: "1=clear counters (self-clearing)", description: "Counter clear command" }
+        - { name: "local_eid", bits: [23, 16], access: "rw", reset: 0x00, write_effect: "Configured local endpoint ID", description: "Local EID" }
+        - { name: "debug_context_select", bits: [31, 24], access: "rw", reset: 0x00, write_effect: "Select context for DEBUG_CTX mirror", description: "Debug context select" }
+    - name: "CFG_TU"
+      offset: 0x004
+      width: 32
+      access: "rw"
+      reset: 0x10000040
+      category: "control"
+      description: "Transmission unit / message size config"
+      fields:
+        - { name: "transmission_unit_bytes", bits: [12, 0], access: "rw", reset: 0x040, write_effect: "Configured TU 64..4096, 4-byte aligned", description: "TU bytes" }
+        - { name: "reserved_15_13", bits: [15, 13], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved" }
+        - { name: "max_message_bytes", bits: [28, 16], access: "rw", reset: 0x1000, write_effect: "Max assembled message bytes", description: "Max message bytes" }
+        - { name: "reserved_31_29", bits: [31, 29], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved" }
+    - name: "CFG_TIMEOUT"
+      offset: 0x008
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      category: "control"
+      description: "Assembly timeout cycles"
+      fields:
+        - { name: "assembly_timeout_cycles", bits: [23, 0], access: "rw", reset: 0x000000, write_effect: "Context age limit in axi_aclk cycles (0=disabled)", description: "Timeout cycles" }
+        - { name: "reserved_31_24", bits: [31, 24], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved" }
+    - name: "SRAM_BASE"
+      offset: 0x00C
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      category: "control"
+      description: "Payload SRAM base byte address (bump allocator start)"
+      fields:
+        - { name: "sram_base", bits: [15, 0], access: "rw", reset: 0x0000, write_effect: "Allocator start", description: "SRAM base" }
+        - { name: "reserved_31_16", bits: [31, 16], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved" }
+    - name: "SRAM_LIMIT"
+      offset: 0x010
+      width: 32
+      access: "rw"
+      reset: 0x0000FFFF
+      category: "control"
+      description: "Payload SRAM limit byte address (exclusive)"
+      fields:
+        - { name: "sram_limit", bits: [15, 0], access: "rw", reset: 0xFFFF, write_effect: "Allocator limit", description: "SRAM limit" }
+        - { name: "reserved_31_16", bits: [31, 16], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved" }
+    - name: "STATUS"
+      offset: 0x020
+      width: 32
+      access: "ro"
+      reset: 0x00000000
+      category: "status"
+      description: "Global non-destructive status"
+      fields:
+        - { name: "ingress_busy", bits: [0, 0], access: "ro", reset: 0x0, description: "Ingress active" }
+        - { name: "axi_read_busy", bits: [1, 1], access: "ro", reset: 0x0, description: "AXI read active" }
+        - { name: "sram_write_busy", bits: [2, 2], access: "ro", reset: 0x0, description: "SRAM write active" }
+        - { name: "sram_read_busy", bits: [3, 3], access: "ro", reset: 0x0, description: "SRAM read active" }
+        - { name: "descriptor_available", bits: [4, 4], access: "ro", reset: 0x0, description: "Descriptor queue non-empty" }
+        - { name: "descriptor_queue_full", bits: [5, 5], access: "ro", reset: 0x0, description: "Descriptor queue full" }
+        - { name: "context_active_any", bits: [6, 6], access: "ro", reset: 0x0, description: "Any context active" }
+        - { name: "context_error_any", bits: [7, 7], access: "ro", reset: 0x0, description: "Any context in error" }
+        - { name: "packet_drop_seen", bits: [8, 8], access: "ro", reset: 0x0, description: "A packet drop occurred" }
+        - { name: "assembly_drop_seen", bits: [9, 9], access: "ro", reset: 0x0, description: "An assembly drop occurred" }
+        - { name: "active_context_count", bits: [15, 10], access: "ro", reset: 0x0, description: "Active context count" }
+        - { name: "last_drop_class", bits: [17, 16], access: "ro", reset: 0x0, description: "0=none,1=packet,2=assembly" }
+        - { name: "last_drop_reason", bits: [23, 18], access: "ro", reset: 0x0, description: "Last drop reason code" }
+        - { name: "last_error_context_id", bits: [27, 24], access: "ro", reset: 0x0, description: "Context id of last error" }
+        - { name: "reserved_31_28", bits: [31, 28], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved" }
+    - name: "CTX_STATE"
+      offset: 0x400
+      width: 32
+      access: "ro"
+      reset: 0x00000000
+      repeat: 15
+      stride: 0x40
+      category: "channel"
+      description: "Per-context FSM/key snapshot (context[0..CONTEXT_COUNT-1]); full per-Q bank includes payload/header mirrors at +0x04..+0x3C"
+      fields:
+        - { name: "ctx_state", bits: [1, 0], access: "ro", reset: 0x0, description: "0=IDLE,1=ASSEMBLING,2=ERROR,3=DONE_WAIT_DESCRIPTOR_POP" }
+        - { name: "ctx_valid", bits: [2, 2], access: "ro", reset: 0x0, description: "Slot owns active/completed context" }
+        - { name: "ctx_error", bits: [3, 3], access: "ro", reset: 0x0, description: "Slot in error" }
+        - { name: "ctx_source_eid", bits: [11, 4], access: "ro", reset: 0x0, description: "Active source EID" }
+        - { name: "ctx_message_tag", bits: [14, 12], access: "ro", reset: 0x0, description: "Active message tag" }
+        - { name: "ctx_tag_owner", bits: [15, 15], access: "ro", reset: 0x0, description: "Active tag owner" }
+        - { name: "ctx_expected_seq", bits: [17, 16], access: "ro", reset: 0x0, description: "Expected modulo-4 seq" }
+        - { name: "ctx_last_seq", bits: [19, 18], access: "ro", reset: 0x0, description: "Last accepted seq" }
+        - { name: "ctx_message_type", bits: [26, 20], access: "ro", reset: 0x0, description: "Recorded message type" }
+        - { name: "ctx_last_drop_reason", bits: [31, 27], access: "ro", reset: 0x0, description: "Per-context last drop reason" }
+    - name: "INTR_RAW_STATUS"
+      offset: 0x100
+      width: 32
+      access: "ro"
+      reset: 0x00000000
+      category: "interrupt"
+      description: "Raw interrupt event state before masking"
+      fields:
+        - { name: "raw", bits: [8, 0], access: "ro", reset: 0x0, description: "Raw bits: descriptor_ready,packet_drop,assembly_drop,context_timeout,sram_overflow,descriptor_queue_full,axi_write_malformed,axi_read_error,fatal_internal_error" }
+        - { name: "reserved_31_9", bits: [31, 9], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved" }
+    - name: "INTR_ENABLE"
+      offset: 0x104
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      category: "interrupt"
+      description: "Interrupt mask"
+      fields:
+        - { name: "enable", bits: [8, 0], access: "rw", reset: 0x0, write_effect: "Per-bit interrupt enable", description: "Interrupt enable mask" }
+        - { name: "reserved_31_9", bits: [31, 9], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved" }
+    - name: "INTR_STATUS"
+      offset: 0x108
+      width: 32
+      access: "ro"
+      reset: 0x00000000
+      category: "interrupt"
+      description: "Masked interrupt status (raw & enable)"
+      fields:
+        - { name: "status", bits: [8, 0], access: "ro", reset: 0x0, description: "Masked interrupt status" }
+        - { name: "reserved_31_9", bits: [31, 9], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved" }
+    - name: "INTR_CLEAR"
+      offset: 0x10C
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      category: "interrupt"
+      description: "Write-one-to-clear interrupt bits"
+      fields:
+        - { name: "clear", bits: [8, 0], access: "w1c", reset: 0x0, write_effect: "Write 1 clears the matching raw/status bit", description: "W1C clear" }
+        - { name: "reserved_31_9", bits: [31, 9], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved" }
+    - name: "CNT_TLP_SEEN"
+      offset: 0x200
+      width: 32
+      access: "ro"
+      reset: 0x00000000
+      category: "counter"
+      description: "Saturating traffic/drop counters block base (0x200..0x27C): tlp_seen, tlp_accepted, message_completed, payload_bytes_written, fw_axi_read_beat, fw_axi_read_error, packet_drop, assembly_drop, then 8 PD_* reason counters and 6 AD_* reason counters"
+      fields:
+        - { name: "count", bits: [31, 0], access: "ro", reset: 0x00000000, description: "tlp_seen_count (block base; see description for full layout)" }
+    - name: "DESC_VALID"
+      offset: 0x300
+      width: 32
+      access: "ro"
+      reset: 0x00000000
+      category: "descriptor"
+      description: "Oldest completed descriptor: valid + key + status (full descriptor body at 0x300..0x34C including payload_base_addr, payload_len, requester_id, pcie_routing_type, first/last_tlp_header[0:15])"
+      fields:
+        - { name: "descriptor_valid", bits: [0, 0], access: "ro", reset: 0x0, description: "Oldest descriptor valid" }
+        - { name: "completion_status", bits: [3, 1], access: "ro", reset: 0x0, description: "Completion status code" }
+        - { name: "source_eid", bits: [11, 4], access: "ro", reset: 0x0, description: "Source EID" }
+        - { name: "destination_eid", bits: [19, 12], access: "ro", reset: 0x0, description: "Destination EID" }
+        - { name: "message_tag", bits: [22, 20], access: "ro", reset: 0x0, description: "Message tag" }
+        - { name: "tag_owner", bits: [23, 23], access: "ro", reset: 0x0, description: "Tag owner" }
+        - { name: "message_type", bits: [30, 24], access: "ro", reset: 0x0, description: "Message type" }
+        - { name: "context_id", bits: [31, 31], access: "ro", reset: 0x0, description: "Context id low bit (full id in DESC body)" }
+    - name: "DEBUG_CTX"
+      offset: 0x380
+      width: 32
+      access: "ro"
+      reset: 0x00000000
+      category: "debug"
+      description: "Selected-context mirror + FSM states (parser/axi-wr/axi-rd/sram-pack/sram-read) + last decoded VDM/MCTP fields"
+      fields:
+        - { name: "parser_state", bits: [3, 0], access: "ro", reset: 0x0, description: "Parser FSM state" }
+        - { name: "axi_wr_state", bits: [7, 4], access: "ro", reset: 0x0, description: "AXI write ingress FSM state" }
+        - { name: "axi_rd_state", bits: [11, 8], access: "ro", reset: 0x0, description: "AXI read FSM state" }
+        - { name: "sram_pack_state", bits: [15, 12], access: "ro", reset: 0x0, description: "SRAM packer state" }
+        - { name: "sram_read_state", bits: [19, 16], access: "ro", reset: 0x0, description: "SRAM read req/rsp state" }
+        - { name: "selected_ctx", bits: [27, 20], access: "ro", reset: 0x0, description: "Mirrored debug_context_select" }
+        - { name: "reserved_31_28", bits: [31, 28], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved" }
+
+# =============================================================================
+# SECTION 12: Memory Requirements
+# =============================================================================
+memory:
+  instances:
+    - { name: "context_table", type: "register_file", depth: 15, width: 512, read_ports: 2, write_ports: 1, latency: 0, description: "Per-context assembly state incl. 16B first/last header snapshots and partial 256-bit pack buffer" }
+    - { name: "descriptor_fifo", type: "fifo", depth: 8, width: 512, read_ports: 1, write_ports: 1, latency: 0, description: "Completed-message descriptor + first/last header snapshots until pop" }
+  note: "Payload bytes live in EXTERNAL 256-bit SRAM via sram_write/sram_read; not stored inside this IP."
+
+# =============================================================================
+# SECTION 13: Interrupt
+# =============================================================================
+interrupts:
+  sources:
+    - { name: "descriptor_ready",      bit: 0, type: "level", enable_reg: "INTR_ENABLE[0]", status_reg: "INTR_STATUS", clear: "W1C", description: "A completed descriptor is available" }
+    - { name: "packet_drop",           bit: 1, type: "level", enable_reg: "INTR_ENABLE[1]", status_reg: "INTR_STATUS", clear: "W1C", description: "A packet drop occurred" }
+    - { name: "assembly_drop",         bit: 2, type: "level", enable_reg: "INTR_ENABLE[2]", status_reg: "INTR_STATUS", clear: "W1C", description: "An assembly drop occurred" }
+    - { name: "context_timeout",       bit: 3, type: "level", enable_reg: "INTR_ENABLE[3]", status_reg: "INTR_STATUS", clear: "W1C", description: "A context timed out" }
+    - { name: "sram_overflow",         bit: 4, type: "level", enable_reg: "INTR_ENABLE[4]", status_reg: "INTR_STATUS", clear: "W1C", description: "SRAM allocation/write overflow" }
+    - { name: "descriptor_queue_full", bit: 5, type: "level", enable_reg: "INTR_ENABLE[5]", status_reg: "INTR_STATUS", clear: "W1C", description: "Descriptor queue full at EOM" }
+    - { name: "axi_write_malformed",   bit: 6, type: "level", enable_reg: "INTR_ENABLE[6]", status_reg: "INTR_STATUS", clear: "W1C", description: "Malformed AXI write/TLP" }
+    - { name: "axi_read_error",        bit: 7, type: "level", enable_reg: "INTR_ENABLE[7]", status_reg: "INTR_STATUS", clear: "W1C", description: "AXI read error (SLVERR)" }
+    - { name: "fatal_internal_error",  bit: 8, type: "level", enable_reg: "INTR_ENABLE[8]", status_reg: "INTR_STATUS", clear: "W1C", description: "Internal consistency failure" }
+  output:
+    signal: "irq"
+    polarity: "active_high"
+    type: "level"
+
+# =============================================================================
+# SECTION 14: FSM
+# =============================================================================
+fsm:
+  ingress_fsm:
+    states: ["IDLE", "ACCEPT_AW", "COLLECT_W", "CHECK_LEGAL", "EMIT_TLP", "RESP_B"]
+    transitions:
+      - { from: "IDLE", to: "ACCEPT_AW", condition: "awvalid && awready" }
+      - { from: "ACCEPT_AW", to: "COLLECT_W", condition: "AWSIZE==5 && AWBURST==INCR" }
+      - { from: "ACCEPT_AW", to: "RESP_B", condition: "illegal AWSIZE/AWBURST (PD_MALFORMED_TLP)" }
+      - { from: "COLLECT_W", to: "CHECK_LEGAL", condition: "wlast && wvalid && wready" }
+      - { from: "CHECK_LEGAL", to: "EMIT_TLP", condition: "beat-count/WSTRB/length legal" }
+      - { from: "CHECK_LEGAL", to: "RESP_B", condition: "malformed (PD_MALFORMED_TLP)" }
+      - { from: "EMIT_TLP", to: "RESP_B", condition: "TLP bytes emitted to parser" }
+      - { from: "RESP_B", to: "IDLE", condition: "bvalid && bready (OKAY)" }
+  context_fsm:
+    states: ["IDLE", "ASSEMBLING", "ERROR", "DONE_WAIT_DESCRIPTOR_POP"]
+    transitions:
+      - { from: "IDLE", to: "ASSEMBLING", condition: "accepted SOM=1,EOM=0 allocates slot" }
+      - { from: "IDLE", to: "DONE_WAIT_DESCRIPTOR_POP", condition: "accepted SOM=1,EOM=1 single-packet completes" }
+      - { from: "ASSEMBLING", to: "ASSEMBLING", condition: "accepted SOM=0,EOM=0 append, seq ok" }
+      - { from: "ASSEMBLING", to: "DONE_WAIT_DESCRIPTOR_POP", condition: "accepted SOM=0,EOM=1 completes; descriptor pushed" }
+      - { from: "ASSEMBLING", to: "ERROR", condition: "AD_* assembly drop (dup SOM/seq/overflow/sram/timeout)" }
+      - { from: "DONE_WAIT_DESCRIPTOR_POP", to: "IDLE", condition: "descriptor copied/popped" }
+      - { from: "ERROR", to: "IDLE", condition: "clear policy releases the slot" }
+  axi_read_fsm:
+    states: ["IDLE", "ACCEPT_AR", "ISSUE_SRAM_RD", "WAIT_SRAM_RSP", "DRIVE_R", "DONE"]
+    transitions:
+      - { from: "IDLE", to: "ACCEPT_AR", condition: "arvalid && arready" }
+      - { from: "ACCEPT_AR", to: "ISSUE_SRAM_RD", condition: "ARSIZE==5 && in window && (descriptor present or raw_sram_debug_read_enable)" }
+      - { from: "ACCEPT_AR", to: "DRIVE_R", condition: "out-of-window/no-descriptor -> SLVERR" }
+      - { from: "ISSUE_SRAM_RD", to: "WAIT_SRAM_RSP", condition: "sram_rd_req accepted" }
+      - { from: "WAIT_SRAM_RSP", to: "DRIVE_R", condition: "sram_rd_rsp_valid" }
+      - { from: "DRIVE_R", to: "ISSUE_SRAM_RD", condition: "rvalid && rready && !rlast" }
+      - { from: "DRIVE_R", to: "DONE", condition: "rvalid && rready && rlast" }
+      - { from: "DONE", to: "IDLE", condition: "next" }
+
+# =============================================================================
+# SECTION 15: Timing & Performance
+# =============================================================================
+timing:
+  target_clocks:
+    - { name: "axi_aclk", frequency_mhz: 400, duty_cycle: 0.5, uncertainty_ns: 0.1 }
+    - { name: "pclk", frequency_mhz: 100, duty_cycle: 0.5, uncertainty_ns: 0.1 }
+  latency_budget:
+    register_access_cycles: { min: 1, max: 2, measured_from: "psel && penable", measured_to: "pready" }
+    interrupt_latency_cycles: { min: 2, max: 5, measured_from: "terminal event in axi_aclk", measured_to: "irq assertion after CDC" }
+    transfer_latency_cycles: { min: 1, max: null, note: "Unbounded under SRAM/AXI backpressure" }
+  throughput:
+    sustained_beats_per_cycle: 1
+    conditions: "No backpressure, full 256-bit payload words"
+  timing_exceptions: []
+  io_delays:
+    inputs:
+      - { ports: "all_inputs_except_clocks_resets", clock: "axi_aclk", delay_ns: 0.25, source: "system-level timing budget" }
+    outputs:
+      - { ports: "all_outputs", clock: "axi_aclk", delay_ns: 0.25, source: "system-level timing budget" }
+  false_paths:
+    - { from: "axi_aresetn", to: "all_registers", reason: "async reset assertion" }
+    - { from: "presetn", to: "all_registers", reason: "async reset assertion" }
+  multicycle_paths: []
+  sta_expectations:
+    setup_wns_ns_min: 0.0
+    hold_wns_ns_min: 0.0
+    required_reports: ["sta/out/setup.rpt", "sta/out/hold.rpt", "sta/out/wns.json"]
+
+# =============================================================================
+# SECTION 16: Power Intent
+# =============================================================================
+power:
+  domains:
+    - { name: "PD_CORE", voltage: "nominal", clock_domains: ["axi_aclk", "pclk"], isolation: "not_required_single_supply" }
+  clock_gating:
+    required: false
+    rationale: "No explicit low-power mode in this revision"
+  reset_retention:
+    retention_required: false
+    reset_value_source: "registers and function_model state_variables"
+  power_states:
+    - { name: "ON", entry: "reset deasserted", exit: "reset asserted", guarantees: ["All architectural behavior active"] }
+  upf_required: false
+
+# =============================================================================
+# SECTION 17: Security & Safety
+# =============================================================================
+security:
+  classification: "non_secure_datapath_ip"
+  assets:
+    - { name: "payload_sram", protection: "Only assembled MCTP payload bytes written; never header/pad/digest" }
+    - { name: "register_map", protection: "APB access control is external to this IP" }
+  threat_model:
+    - { threat: "malformed TLP corrupts assembly", mitigation: "drop classification + drop-priority ordering, no side effects on packet drop" }
+    - { threat: "context cross-contamination under interleaving", mitigation: "per-context isolated SRAM range + partial-word state + key match" }
+    - { threat: "out-of-range firmware read leaks SRAM", mitigation: "SLVERR for out-of-window / no-descriptor reads unless raw_sram_debug_read_enable" }
+  privilege_model: "External bus fabric enforces privilege; no internal privilege levels"
+  safety_goals:
+    - "No header/pad/digest byte is ever published as payload"
+    - "An earlier packet-format failure is never hidden by a later assembly failure"
+
+# =============================================================================
+# SECTION 18: Error Handling
+# =============================================================================
+error_handling:
+  error_sources:
+    - { id: "PD_DISABLED_DROP_MODE",   condition: "enable=0 and drop_when_disabled=1", architectural_effect: "packet drop; pd_disabled_drop_mode_count++; last_drop_class=packet" }
+    - { id: "PD_MALFORMED_TLP",        condition: "empty/bad AWSIZE/AWBURST/interleave/beat-count/WLAST/WSTRB/<16B/>MAX_TLP_BYTES/length-inconsistent/unstripped-digest", architectural_effect: "packet drop; pd_malformed_tlp_count++; axi_write_malformed interrupt" }
+    - { id: "PD_UNSUPPORTED_VDM",      condition: "not supported Non-Flit VDM / msg_code!=0x7F / vendor!=0x1AB4 / vdm_code!=0x0 / unsupported routing/TC/attr", architectural_effect: "packet drop; pd_unsupported_vdm_count++" }
+    - { id: "PD_BAD_MCTP_HEADER",      condition: "header absent / version!=1 / SOM without body byte / IC policy reject", architectural_effect: "packet drop; pd_bad_mctp_header_count++" }
+    - { id: "PD_BAD_PAD_OR_ALIGNMENT", condition: "pad>3 / pad!=0 on non-EOM / TU/payload alignment or size violations", architectural_effect: "packet drop; pd_bad_pad_or_alignment_count++" }
+    - { id: "PD_DEST_EID_REJECT",      condition: "dest EID fails filter", architectural_effect: "packet drop; pd_dest_eid_reject_count++" }
+    - { id: "PD_UNEXPECTED_MIDDLE_END",condition: "middle/end with no active context / EOM without SOM", architectural_effect: "packet drop; pd_unexpected_middle_end_count++" }
+    - { id: "PD_BAD_OR_EXPIRED_TAG",   condition: "tag policy reject / context-table-full for new SOM", architectural_effect: "packet drop; pd_bad_or_expired_tag_count++" }
+    - { id: "AD_DUPLICATE_SOM",        condition: "SOM for an already-active key", architectural_effect: "assembly drop; abort context; ad_duplicate_som_count++; assembly_drop interrupt" }
+    - { id: "AD_SEQUENCE_MISMATCH",    condition: "seq != expected modulo-4", architectural_effect: "assembly drop; abort context; ad_sequence_mismatch_count++" }
+    - { id: "AD_MESSAGE_OVERFLOW",     condition: "append exceeds MAX_MESSAGE_BYTES", architectural_effect: "assembly drop; ad_message_overflow_count++" }
+    - { id: "AD_SRAM_OVERFLOW",        condition: "alloc/write exceeds sram_base/limit or SRAM_ADDR_WIDTH", architectural_effect: "assembly drop; ad_sram_overflow_count++; sram_overflow interrupt" }
+    - { id: "AD_DESCRIPTOR_FULL",      condition: "descriptor queue full at EOM", architectural_effect: "assembly drop; ad_descriptor_full_count++; descriptor_queue_full interrupt" }
+    - { id: "AD_TIMEOUT",              condition: "context age exceeds assembly_timeout_cycles", architectural_effect: "assembly drop; ad_timeout_count++; context_timeout interrupt" }
+  propagation:
+    - "Drop priority order (first matching class wins): PD_DISABLED_DROP_MODE, PD_MALFORMED_TLP, PD_UNSUPPORTED_VDM, PD_BAD_MCTP_HEADER, PD_BAD_PAD_OR_ALIGNMENT, PD_DEST_EID_REJECT, PD_UNEXPECTED_MIDDLE_END, PD_BAD_OR_EXPIRED_TAG, AD_DUPLICATE_SOM, AD_SEQUENCE_MISMATCH, AD_MESSAGE_OVERFLOW, AD_SRAM_OVERFLOW, AD_DESCRIPTOR_FULL, AD_TIMEOUT."
+    - "Packet drops never mutate context/header/SRAM/descriptor; assembly drops abort exactly the affected context."
+  recovery:
+    - { action: "software W1C interrupt clear + counter_clear + per-context clear policy", clears: ["INTR_STATUS bits", "counters (non-sticky)"], preserves: ["CONTROL/CFG config registers"] }
+
+# =============================================================================
+# SECTION 19: Debug & Observability
+# =============================================================================
+debug_observability:
+  waveform_must_probe:
+    - "ctx_state per context"
+    - "sram_wr_valid/ready/addr/strb"
+    - "descriptor push + first/last header"
+    - "last_drop_class/last_drop_reason"
+    - "irq"
+  status_outputs: ["STATUS", "INTR_STATUS"]
+  trace_events:
+    - { name: "tlp_accepted", trigger: "legal TLP accepted" }
+    - { name: "message_completed", trigger: "successful EOM descriptor push" }
+    - { name: "packet_drop", trigger: "any PD_* classification" }
+    - { name: "assembly_drop", trigger: "any AD_* classification" }
+  debug_registers: ["DEBUG_CTX", "CTX_STATE"]
+
+# =============================================================================
+# SECTION 20: Integration Contract
+# =============================================================================
+integration:
+  bus_attachment:
+    control: "APB4 slave (pclk)"
+    ingress: "AXI4 write slave (axi_aclk)"
+    payload_read: "AXI4 read slave (axi_aclk)"
+    payload_store: "256-bit SRAM write/read master (axi_aclk)"
+  connections:
+    - { module: "mctp_assembler_v3_axi_wr_ingress", port: "axi_aclk", signal: "axi_aclk" }
+    - { module: "mctp_assembler_v3_axi_wr_ingress", port: "axi_aresetn", signal: "axi_aresetn" }
+    - { module: "mctp_assembler_v3_apb_regfile", port: "pclk", signal: "pclk" }
+    - { module: "mctp_assembler_v3_apb_regfile", port: "presetn", signal: "presetn" }
+    - { module: "mctp_assembler_v3_apb_regfile", port: "irq_o", signal: "irq" }
+    - { module: "mctp_assembler_v3_sram_packer", port: "sram_wr_valid_o", signal: "sram_wr_valid" }
+    - { module: "mctp_assembler_v3_context_table", port: "drop_class_o", signal: "last_drop_class" }
+  address_map_requirements:
+    alignment_bytes: 4
+    decode_owner: "SoC interconnect"
+    illegal_access_response: "pslverr for unsupported APB access; SLVERR for out-of-window AXI read"
+  dependencies:
+    external_modules: ["payload_sram (256-bit, byte-strobed)"]
+    external_clocks: ["axi_aclk", "pclk"]
+    external_resets: ["axi_aresetn", "presetn"]
+  integration_notes:
+    - "SoC must provide AXI4-compliant ready/valid; one outstanding write and one outstanding read."
+    - "External SRAM honors byte strobes and the write-priority QoS on a shared port."
+    - "Interrupt controller samples irq as active-high level on pclk."
+
+# =============================================================================
+# SECTION 21: DFT / DFD
+# =============================================================================
+dft:
+  scan_required: false
+  scan_ports: []
+  test_mode_ports: []
+  controllability:
+    reset: "axi_aresetn/presetn controllable in test mode"
+    clocks: ["axi_aclk", "pclk"]
+  observability:
+    required_internal_points: ["ctx_state", "parser_state", "last_drop_reason"]
+  mbist_required: false
+  notes: "Payload SRAM is external; context_table/descriptor_fifo are flop/regfile-based in this baseline."
+
+# =============================================================================
+# SECTION 22: Synthesis
+# =============================================================================
+synthesis:
+  dialect: "systemverilog_2012"
+  top_module: "mctp_assembler_v3"
+  technology:
+    pdk: "sky130"
+    standard_cell_library: "sky130_fd_sc_hd"
+    liberty_corner: "ss_100C_1v40"
+    liberty_env: "SKY130_LIB"
+    lef_env: "SKY130_LEF"
+    tech_lef_env: "SKY130_TLEF"
+    rcx_rules_env: "SKY130_RCX_RULES"
+  constraints:
+    - "No inferred latches"
+    - "All flops reset per clock_reset_domains.reset_scheme"
+    - "No package/interface/modport/function/task/for/while constructs in generated RTL"
+  ppa_targets:
+    area_um2_max: null
+    power_mw_max: null
+    frequency_mhz_min: 400
+  required_outputs:
+    - "syn/out/mctp_assembler_v3.json or syn/out/mctp_assembler_v3.v"
+    - "syn/out/area.rpt"
+    - "syn/out/timing_summary.rpt"
+
+# =============================================================================
+# SECTION 23: PnR
+# =============================================================================
+pnr:
+  utilization_pct: 60
+  aspect_ratio: 1.0
+  core_space_um: 2.0
+  global_density: 0.65
+  io_layers: { horizontal: "met3", vertical: "met2" }
+  placement: { density_target: 0.65, max_displacement_um: null }
+  cts:
+    buf_list: ["sky130_fd_sc_hd__clkbuf_4", "sky130_fd_sc_hd__clkbuf_8"]
+    functional_mode_case_analysis: []
+  routing:
+    signal_layers: { min: "met1", max: "met5" }
+    clock_layers: { min: "met3", max: "met5" }
+    drc_waivers: []
+  required_outputs:
+    - "pnr/out/routed.def"
+    - "pnr/out/routed.v"
+    - "pnr/out/routed.spef"
+    - "pnr/out/pnr.report.md"
+
+# =============================================================================
+# SECTION 24: Coding Rules
+# =============================================================================
+coding_rules:
+  verilog_style: "systemverilog_2012"
+  file_extension: ".sv"
+  parameter_header: "rtl/mctp_assembler_v3_param.vh"
+  conventions:
+    - "nonblocking (<=) in sequential always @(posedge clk ...)"
+    - "blocking (=) in combinational always @(*)"
+    - "No latches: every combinational branch assigns all outputs (use a default)"
+    - "Active-low async reset: always @(posedge clk or negedge rst_n) with if (!rst_n)"
+    - "Parameterize widths (no hardcoded magic numbers)"
+    - "Use rtl/mctp_assembler_v3_param.vh for shared parameters; include inside consuming modules"
+    - "ALLOW: input logic / output logic ANSI ports and internal single-driver logic"
+    - "BANNED: typedef / enum / always_ff / always_comb / always_latch / package / endpackage / import / interface / modport / function / endfunction / task / endtask / for / while / *_pkg.sv"
+    - "Use localparam state encoding with logic state/next_state signals"
+  lint_waivers:
+    - "UNUSEDSIGNAL: explicit approved tie-offs only"
+    - "WIDTHEXPAND: byte-lane indexing in the SRAM packer"
+
+# =============================================================================
+# SECTION 25-27: Reuse / Custom / Dir
+# =============================================================================
+reuse_modules: []
+custom:
+  note: "No custom extensions; all behavior traces to req sections 2-14."
+dir_structure:
+  output_dirs: { rtl: "rtl/", sim: "sim/", docs: "docs/" }
+  yaml_dir: "yaml/"
+
+# =============================================================================
+# SECTION 28: Filelist
+# =============================================================================
+filelist:
+  headers:
+    - "rtl/mctp_assembler_v3_param.vh"
+  rtl:
+    - "rtl/mctp_assembler_v3_axi_wr_ingress.sv"
+    - "rtl/mctp_assembler_v3_pcie_vdm_parser.sv"
+    - "rtl/mctp_assembler_v3_mctp_decoder.sv"
+    - "rtl/mctp_assembler_v3_context_table.sv"
+    - "rtl/mctp_assembler_v3_sram_packer.sv"
+    - "rtl/mctp_assembler_v3_descriptor_queue.sv"
+    - "rtl/mctp_assembler_v3_axi_rd_payload.sv"
+    - "rtl/mctp_assembler_v3_apb_regfile.sv"
+    - "rtl/mctp_assembler_v3_cdc_sync.sv"
+    - "rtl/mctp_assembler_v3.sv"
+  sim:
+    - "tb/cocotb/test_mctp_assembler_v3.py"
+  docs:
+    - "docs/register_map.md"
+    - "docs/README.md"
+
+# =============================================================================
+# SECTION 29: Test Requirements / DV Plan
+# =============================================================================
+test_requirements:
+  scenarios:
+    - { id: "SC_SINGLE", name: "Valid single-packet message", stimulus: "SOM=1,EOM=1 in one AXI transaction", expected: "payload assembled, descriptor published, first==last header", checker: "scoreboard vs FunctionalModel", coverage: ["FM_PUBLISH_DESCRIPTOR", "S5_DESCRIPTOR"] }
+    - { id: "SC_FRAG", name: "Fragmented message across TLPs", stimulus: "SOM, middle(s), EOM with valid modulo-4 seq", expected: "concatenated payload, no SRAM holes, descriptor payload_len correct", checker: "SRAM write monitor byte-accurate", coverage: ["FM_APPEND", "FM_PACK_SRAM"] }
+    - { id: "SC_INTERLEAVE", name: "Interleaved messages distinct keys", stimulus: "A:SOM B:SOM A:mid B:EOM A:EOM", expected: "independent contexts, B completes before A, partial words preserved", checker: "per-context monitor", coverage: ["interleaved_assembly"] }
+    - { id: "SC_UNALIGNED_TU", name: "TU=68B unaligned 32B continuation", stimulus: "fragment ends at offset 68", expected: "next fragment continues lane 4 of word@64, no gap", checker: "SRAM packing monitor", coverage: ["FM_PACK_SRAM"] }
+    - { id: "SC_MAX_TU", name: "Max TU 4096B over 129 beats", stimulus: "4096B payload + 16B header", expected: "129 W beats accepted, payload_len=4096", checker: "AXI write monitor", coverage: ["FM_INGEST_TLP"] }
+    - { id: "SC_PD_MALFORMED", name: "Malformed AXI/TLP drops", stimulus: "early WLAST / bad AWSIZE / non-contiguous WSTRB / <16B", expected: "PD_MALFORMED_TLP, no context/SRAM/descriptor side effect", checker: "drop + counter monitor", coverage: ["PD_MALFORMED_TLP"] }
+    - { id: "SC_PD_VDM", name: "Unsupported VDM constants", stimulus: "wrong msg_code/vendor/vdm_code", expected: "PD_UNSUPPORTED_VDM", checker: "drop monitor", coverage: ["PD_UNSUPPORTED_VDM"] }
+    - { id: "SC_PD_MCTP", name: "Bad MCTP header version", stimulus: "header version != 1", expected: "PD_BAD_MCTP_HEADER", checker: "drop monitor", coverage: ["PD_BAD_MCTP_HEADER"] }
+    - { id: "SC_PD_EID", name: "Dest EID reject", stimulus: "dest EID not local/broadcast/null with filter on", expected: "PD_DEST_EID_REJECT", checker: "drop monitor", coverage: ["PD_DEST_EID_REJECT"] }
+    - { id: "SC_PD_MIDDLE", name: "Middle/EOM without SOM", stimulus: "SOM=0 with no active context", expected: "PD_UNEXPECTED_MIDDLE_END", checker: "drop monitor", coverage: ["PD_UNEXPECTED_MIDDLE_END"] }
+    - { id: "SC_AD_DUP", name: "Duplicate SOM", stimulus: "SOM for active key", expected: "AD_DUPLICATE_SOM aborts exactly that context", checker: "context monitor", coverage: ["AD_DUPLICATE_SOM"] }
+    - { id: "SC_AD_SEQ", name: "Sequence mismatch", stimulus: "continuation seq != expected", expected: "AD_SEQUENCE_MISMATCH abort", checker: "context monitor", coverage: ["AD_SEQUENCE_MISMATCH"] }
+    - { id: "SC_AD_CTXFULL", name: "Context table full", stimulus: "16th distinct fragmented SOM", expected: "PD_BAD_OR_EXPIRED_TAG (table full), no alloc", checker: "context monitor", coverage: ["PD_BAD_OR_EXPIRED_TAG"] }
+    - { id: "SC_AD_SRAM", name: "SRAM overflow", stimulus: "payload exceeds sram_limit", expected: "AD_SRAM_OVERFLOW abort", checker: "sram monitor", coverage: ["AD_SRAM_OVERFLOW"] }
+    - { id: "SC_AD_DESCFULL", name: "Descriptor queue full", stimulus: "EOM with full descriptor FIFO", expected: "AD_DESCRIPTOR_FULL, no descriptor", checker: "descriptor monitor", coverage: ["AD_DESCRIPTOR_FULL"] }
+    - { id: "SC_AD_TIMEOUT", name: "Assembly timeout", stimulus: "context age > assembly_timeout_cycles", expected: "AD_TIMEOUT abort", checker: "context monitor", coverage: ["AD_TIMEOUT"] }
+    - { id: "SC_PRIORITY", name: "Drop priority", stimulus: "packet-format failure + later assembly failure both present", expected: "earlier packet-drop reason wins", checker: "drop priority monitor", coverage: ["error_handling.propagation"] }
+    - { id: "SC_FW_READ", name: "Firmware payload read", stimulus: "AXI read using descriptor base/len", expected: "payload bytes returned, RLAST on final beat", checker: "AXI read monitor vs SRAM", coverage: ["FM_AXI_READ"] }
+    - { id: "SC_FW_READ_SLVERR", name: "Read outside window", stimulus: "AR outside SRAM read window", expected: "RRESP=SLVERR", checker: "AXI read monitor", coverage: ["FM_AXI_READ"] }
+    - { id: "SC_REG", name: "APB register access", stimulus: "write/read CONTROL/CFG/STATUS/INTR/per-Q banks", expected: "register behavior + per-Q visibility", checker: "APB register monitor", coverage: ["registers.register_list"] }
+  scoreboard_checks: 20
+  coverage_goals:
+    function:
+      target_pct: 100
+      model: "function_model"
+      description: "Cycle-independent behavioral intent coverage."
+      bins:
+        - { id: "FCOV_SINGLE", source_ref: "function_model.transactions.FM_PUBLISH_DESCRIPTOR", class: "transaction", description: "Single-packet message completes and publishes a descriptor" }
+        - { id: "FCOV_FRAG", source_ref: "function_model.transactions.FM_APPEND", class: "transaction", description: "Fragmented append observed" }
+        - { id: "FCOV_PACK", source_ref: "function_model.transactions.FM_PACK_SRAM", class: "transaction", description: "Payload-only SRAM pack observed (byte i at base+i)" }
+        - { id: "FCOV_PD_ALL", source_ref: "error_handling.error_sources", class: "error_case", description: "Every PD_* packet-drop reason observed with no side effect" }
+        - { id: "FCOV_AD_ALL", source_ref: "error_handling.error_sources", class: "error_case", description: "Every AD_* assembly-drop reason observed aborting exactly its context" }
+    cycle:
+      target_pct: 100
+      model: "cycle_model"
+      description: "Cycle/handshake/ordering/FSM coverage."
+      bins:
+        - { id: "CCOV_INGEST", source_ref: "cycle_model.pipeline.S0_INGEST", class: "pipeline_stage", description: "Ingest stage observed" }
+        - { id: "CCOV_SRAM_HOLD", source_ref: "cycle_model.handshake_rules", class: "handshake", description: "sram_wr hold-until-ready observed" }
+        - { id: "CCOV_DESC_ORDER", source_ref: "cycle_model.ordering", class: "ordering", description: "descriptor after final SRAM flush observed" }
+        - { id: "CCOV_CTX_FSM", source_ref: "fsm.context_fsm", class: "state_transition", description: "context FSM legal transitions observed" }
+        - { id: "CCOV_OUTSTANDING", source_ref: "cycle_model.performance.outstanding", class: "outstanding", description: "single outstanding read/write exercised" }
+    functional: "Legacy alias: function + cycle coverage must both close."
+    line: ">= 90% instrumented line coverage or explicit waiver"
+    branch: ">= 85% instrumented branch coverage or explicit waiver"
+    fsm: "100% declared FSM states and legal transitions covered"
+    assertions: "All protocol/order/error assertions pass"
+
+# =============================================================================
+# SECTION 30: Quality Gates
+# =============================================================================
+quality_gates:
+  ssot:
+    pass: "All canonical sections present, substantive, internally consistent, no live TBD placeholders."
+    evidence: ["check_ssot_disk.sh PASS", "traceability covers function_model/cycle_model/test_requirements"]
+  rtl_gen:
+    profile: "production"
+    pass: "SSOT-derived rtl_todo_plan has no blockers/orphans; owner-file logic present; FL-vs-RTL goal coverage and RTL-observed coverage close with fresh evidence."
+    evidence: ["rtl/rtl_todo_plan.json", "rtl/rtl_compile.json", "lint/dut_lint.json", "sim/fl_rtl_goal_audit.json", "cov/coverage.json"]
+  rtl:
+    pass: "RTL implements function_model and cycle_model, compiles, no unwaived lint."
+    evidence: ["rtl filelist", "compile log", "lint report"]
+  dv:
+    pass: "Every test_requirements scenario has an executable test, expected/got checker, and coverage bin."
+    evidence: ["results.xml", "coverage.json", "VCD"]
+  coverage:
+    pass: "Functional coverage goals pass and code/FSM/assertion meet thresholds or have approved waiver."
+    evidence: ["coverage_report.md"]
+  eda:
+    pass: "Synthesis, STA, PnR, post-route STA meet SSOT targets or have signed waivers."
+    evidence: ["syn report", "sta reports", "pnr report"]
+  signoff:
+    pass: "SSOT, RTL, lint, DV, sim, coverage, EDA gates pass with fresh evidence."
+    evidence: ["ATLAS progress signoff pass"]
+
+# =============================================================================
+# SECTION 31: Traceability
+# =============================================================================
+traceability:
+  yaml_to_output:
+    - { yaml: "top_module.name", output: "ALL files (module name)" }
+    - { yaml: "parameters", output: "rtl/mctp_assembler_v3_param.vh" }
+    - { yaml: "io_list.interfaces", output: "rtl/mctp_assembler_v3.sv port list + adapter modules" }
+    - { yaml: "registers.register_list", output: "rtl/mctp_assembler_v3_apb_regfile.sv + docs/register_map.md" }
+    - { yaml: "function_model", output: "context_table/sram_packer/decoder RTL + tb/cocotb scoreboard" }
+    - { yaml: "cycle_model", output: "handshake/ordering logic + waveform checks" }
+    - { yaml: "error_handling", output: "drop classifier RTL + DV drop scenarios" }
+    - { yaml: "fsm", output: "ingress/context/axi_read FSM logic" }
+    - { yaml: "test_requirements.scenarios", output: "tb/cocotb/test_mctp_assembler_v3.py" }
+  change_impact_example:
+    change: "parameters.CONTEXT_COUNT from 15 to 31"
+    affected_files:
+      - "rtl/mctp_assembler_v3_param.vh (CONTEXT_COUNT=31)"
+      - "rtl/mctp_assembler_v3_context_table.sv"
+      - "rtl/mctp_assembler_v3_apb_regfile.sv (per-Q banks)"
+
+# =============================================================================
+# SECTION 32: Workflow TODOs
+# =============================================================================
+workflow_todos:
+  ssot-gen:
+    - id: "SSOT_WRITE_VALIDATE_FROM_REQ"
+      content: "Write and validate the canonical SSOT from the MCTP req"
+      detail: "Behavior sources are req sections 2-14 only; the template provides schema/order."
+      command: "/to-ssot mctp_assembler_v3"
+      script: "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py"
+      run_command: "python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" mctp_assembler_v3 --root \"$ATLAS_PROJECT_ROOT\" --mode engineering"
+      instructions:
+        - "Trace every numeric/register/interface fact to req/mctp_assembler_v3_requirements.md."
+        - "Keep blockers open until verify_ssot.py --mode engineering returns zero blockers."
+      criteria:
+        - "SSOT exists at yaml/mctp_assembler_v3.ssot.yaml with canonical top-level keys."
+        - "verify_ssot.py --mode engineering returns zero blockers."
+      source_refs: ["req/mctp_assembler_v3_requirements.md"]
+      priority: "high"
+      required: true
+  fl-model-gen: []
+  rtl-gen:
+    - id: "RTL_ASSEMBLER_PIPELINE"
+      content: "Implement ingress->VDM->MCTP->context->pack->descriptor pipeline"
+      detail: "Translate function_model transactions + cycle_model ordering + fsm into RTL across the manifest sub_modules."
+      command: "/ssot-rtl mctp_assembler_v3"
+      script: "$ATLAS_WORKFLOW_ROOT/rtl-gen/scripts/derive_rtl_todos.py"
+      run_command: "python3 \"$ATLAS_WORKFLOW_ROOT/rtl-gen/scripts/derive_rtl_todos.py\" mctp_assembler_v3 --root \"$ATLAS_PROJECT_ROOT\" --audit-rtl"
+      instructions:
+        - "Derive the dynamic RTL TODO ledger before editing RTL."
+        - "Implement only owner_file/owner_module behavior traced by source_refs; rerun derive --audit-rtl after edits."
+      criteria:
+        - "Owner logic present; FunctionalModel expected vs RTL observed comparable; fresh compile/lint evidence."
+      source_refs: ["function_model.transactions", "cycle_model.pipeline", "fsm"]
+      owner_module: "mctp_assembler_v3"
+      owner_file: "rtl/mctp_assembler_v3.sv"
+      priority: "high"
+      required: true
+  tb-gen: []
+  sim_debug: []
+  coverage: []
+  syn: []
+  pnr: []
+  sta: []
+  sta-post: []
+
+# =============================================================================
+# SECTION 33: Generation Flow
+# =============================================================================
+generation_flow:
+  steps:
+    - { name: "verify_ssot", command: "python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" mctp_assembler_v3 --root \"$ATLAS_PROJECT_ROOT\" --mode engineering", description: "Validate SSOT structure, function_model, cycle_model, DV plan, quality gates" }
+    - { name: "handoff_fl_model", command: "/ssot-fl-model mctp_assembler_v3", description: "fl-model-gen writes FunctionalModel/CycleModel + FCOV plan" }
+    - { name: "handoff_equivalence_goals", command: "/ssot-equiv-goals mctp_assembler_v3", description: "fl-model-gen derives FL-vs-RTL equivalence goals" }
+    - { name: "handoff_rtl", command: "/ssot-rtl mctp_assembler_v3", description: "rtl-gen writes RTL and proves compile/lint" }
+    - { name: "handoff_tb", command: "/ssot-tb mctp_assembler_v3", description: "tb-gen writes cocotb tests, runs sim, emits results/VCD/coverage" }
+  atlas_workflows: ["ssot-gen", "fl-model-gen", "rtl-gen", "tb-gen", "sim_debug", "coverage", "syn", "pnr", "sta", "sta-post"]

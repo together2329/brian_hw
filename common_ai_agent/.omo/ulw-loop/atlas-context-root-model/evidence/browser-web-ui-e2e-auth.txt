@@ -1,0 +1,36 @@
+{
+  "user": "webv2e2ey0x939",
+  "state": {
+    "href": "http://127.0.0.1:3001/?session=webv2e2ey0x939%2Fs1%2FNEWIP_MCTP%2Fdefault&session_id=webv2e2ey0x939&workspace_session=s1&ip=NEWIP_MCTP&workflow=default",
+    "activeSession": "webv2e2ey0x939/s1/NEWIP_MCTP/default",
+    "activeIp": "NEWIP_MCTP",
+    "scopePath": "NEWIP_MCTP",
+    "workspaceSession": "s1",
+    "atlasUser": "webv2e2ey0x939",
+    "localActive": "webv2e2ey0x939/s1/NEWIP_MCTP/default",
+    "localUser": "webv2e2ey0x939",
+    "localWorkspace": "s1",
+    "contextActiveSession": "webv2e2ey0x939/s1/NEWIP_MCTP/default",
+    "contextProjectRoot": "/private/tmp/atlas-ui-e2e-root.ItXmGI/webv2e2ey0x939/s1",
+    "contextWorkspaceRoot": "",
+    "contextIpRoot": "",
+    "contextCwd": "/private/tmp/atlas-ui-e2e-root.ItXmGI",
+    "fileTreeCount": 0,
+    "fileTreeError": "",
+    "hasSessionS1Text": false,
+    "hasIpText": false,
+    "hasWorkspaceTab": true,
+    "textSnippet": "USER\nwebv2e2ey0x939\nSESSION\ndefault\ns1\n+ SESSION\nIP_ID\ndefault\nNEWIP_MCTP\n+ IP\nWORKFLOW\ndefault\n📦 .ZIP\nFONT\nWindows\nSans\nSystem\nMono\nSIZE\n13px\n14px\n15px\n16px\nRES\nAuto\n1366x768\n1600x900\n1920x1080\n2560x1440\n3840x2160\nDARK\nLIGHT\n한국어\nENGLISH\n■ STOP\n✕ EXIT\n↩ WEBV2E2EY0X939\n▦ DASHBOARD\n⌂ WORKSPACE\n◫ PIPELINE\n◇ ARCHITECT\n📖 GUIDE\nRUN\nStarter\nEngineering\nSignoff\nEXEC\nSingle Worker\nOrchestrator\norch:off │ workers:0\n▸ MODE\n‹\nshift+tab\n● NORMAL\n◐ PLAN\nWORKFLOW\n· optional · click to toggle\n1\nGP\ndefault\n◉\n2\nSS\nssot-gen\n○\n3\nFL\nfl-model-gen\n○\n4\nRT\nrtl-gen\n○\n5\nTB\ntb-gen\n○\n6\nDB\nsim_debug\n○\n7\nLT\nlint\n○\n8\nCV\ncoverage\n○\n9\nCC\ncontract-reflection\n○\n10\nSY\nsyn\n○\n11\nST\nsta\n○\n12\nPR\npnr\n○\n13\nPS\nsta-post\n○\n▸ IP\nNEWIP_MCTP\ndir\n›\nNEWIP_MCTP\nA→Z\n▸ all\n↻\n(empty — select an IP or refresh)\n0 entries\n·\n9:09:31 PM\nNEWIP_MCTP\nRECENT\nFULL\nIMPORT / EXPORT\nCHAT\nSPLIT VIEW\nFULL VIEW\nPERFORCE\nGIT\nTODO\n·\n✓\nEnd of loop · agent ready\n❯\n/ cmd · @ file · ↑↓ history · ↵ send · ⌥↵ newline\nATLAS\n● NORMAL\n›\nMode\nNormal · default\nModel"
+  },
+  "stateAfterSsotClick": {
+    "href": "http://127.0.0.1:3001/?session=webv2e2ey0x939%2Fs1%2FNEWIP_MCTP%2Fssot-gen&session_id=webv2e2ey0x939&workspace_session=s1&ip=NEWIP_MCTP&workflow=ssot-gen",
+    "activeSession": "webv2e2ey0x939/s1/NEWIP_MCTP/ssot-gen",
+    "contextActiveSession": "webv2e2ey0x939/s1/NEWIP_MCTP/ssot-gen",
+    "activeIp": "NEWIP_MCTP",
+    "workspaceSession": "s1"
+  },
+  "screenshots": [
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/.omo/ulw-loop/atlas-context-root-model/evidence/web-ui-workspace-v2-session-auth.png",
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/.omo/ulw-loop/atlas-context-root-model/evidence/web-ui-ssot-v2-session-auth.png"
+  ]
+}

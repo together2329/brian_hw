@@ -1,0 +1,24 @@
+{
+  "schema_version": "ssot_validation.v2",
+  "ip": "mctp_assembler_v3",
+  "mode": "engineering",
+  "ssot": "mctp_assembler_v3/yaml/mctp_assembler_v3.ssot.yaml",
+  "ok": false,
+  "blockers": [
+    {
+      "severity": "blocker",
+      "id": "check_ssot_disk.failed",
+      "path": "mctp_assembler_v3/yaml/mctp_assembler_v3.ssot.yaml",
+      "message": "check_ssot_disk.sh failed with exit 1.",
+      "fix": "[check_ssot_disk] FAIL: mctp_assembler_v3/yaml/mctp_assembler_v3.ssot.yaml failed YAML/model validation"
+    }
+  ],
+  "warnings": [],
+  "check_ssot_disk": {
+    "ok": false,
+    "returncode": 1,
+    "stdout": "[check_ssot_disk] FAIL: mctp_assembler_v3/yaml/mctp_assembler_v3.ssot.yaml failed YAML/model validation\n  function_model.transactions[0] must include executable output_rules or state_updates; prose outputs/side_effects are not scoreboard-comparable\n",
+    "stderr": ""
+  },
+  "preview_contract": "strict"
+}

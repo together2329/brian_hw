@@ -1,0 +1,29 @@
+{
+  "user": "webctrly0xubi",
+  "selected": {
+    "userOwner": {
+      "value": "webctrly0xubi",
+      "options": [
+        "webctrly0xubi"
+      ]
+    },
+    "workspaceSession": {
+      "value": "s1",
+      "options": [
+        "default",
+        "s1"
+      ]
+    },
+    "ipId": {
+      "value": "NEWIP_MCTP",
+      "options": [
+        "default",
+        "NEWIP_MCTP"
+      ]
+    },
+    "workflow": null,
+    "activeSession": "webctrly0xubi/s1/NEWIP_MCTP/default",
+    "activeIp": "NEWIP_MCTP",
+    "workspaceSessionGlobal": "s1"
+  }
+}
