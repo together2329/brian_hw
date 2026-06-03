@@ -39,7 +39,7 @@
     ],
     "tool_evidence_plan": []
   },
-  "ip": "mctp_assembler_scratch",
+  "ip": "mctp_assembler_scratch_v4",
   "packet_dir": "rtl/authoring_packets",
   "packets": [
     {
@@ -65,12 +65,12 @@
         "tool_evidence_plan": [],
         "work_allowed": true
       },
-      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_axi_write_ingress__cycle_model.json",
+      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_axi_write_ingress__cycle_model.json",
       "kind": "module",
-      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_axi_write_ingress__cycle_model.md",
-      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
-      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
-      "packet_id": "module__mctp_assembler_scratch_axi_write_ingress__cycle_model",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_axi_write_ingress__cycle_model.md",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_v4_axi_write_ingress",
+      "packet_id": "module__mctp_assembler_scratch_v4_axi_write_ingress__cycle_model",
       "summary": {
         "categories": {
           "cycle_model.backpressure": 3,
@@ -87,7 +87,7 @@
           "index": 3,
           "key": "cycle_model",
           "module_task_count": 89,
-          "rule": "Owner module mctp_assembler_scratch_axi_write_ingress is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "rule": "Owner module mctp_assembler_scratch_v4_axi_write_ingress is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "cycle_model",
           "section_chunk_count": 1,
           "section_chunk_index": 1,
@@ -144,12 +144,12 @@
         "tool_evidence_plan": [],
         "work_allowed": true
       },
-      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_axi_write_ingress__dataflow.json",
+      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_axi_write_ingress__dataflow.json",
       "kind": "module",
-      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_axi_write_ingress__dataflow.md",
-      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
-      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
-      "packet_id": "module__mctp_assembler_scratch_axi_write_ingress__dataflow",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_axi_write_ingress__dataflow.md",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_v4_axi_write_ingress",
+      "packet_id": "module__mctp_assembler_scratch_v4_axi_write_ingress__dataflow",
       "summary": {
         "categories": {
           "dataflow.sequence": 7
@@ -160,7 +160,7 @@
           "index": 7,
           "key": "dataflow",
           "module_task_count": 89,
-          "rule": "Owner module mctp_assembler_scratch_axi_write_ingress is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "rule": "Owner module mctp_assembler_scratch_v4_axi_write_ingress is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "dataflow",
           "section_chunk_count": 1,
           "section_chunk_index": 1,
@@ -206,12 +206,12 @@
         "tool_evidence_plan": [],
         "work_allowed": true
       },
-      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_axi_write_ingress__equivalence.json",
+      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_axi_write_ingress__equivalence.json",
       "kind": "module",
-      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_axi_write_ingress__equivalence.md",
-      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
-      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
-      "packet_id": "module__mctp_assembler_scratch_axi_write_ingress__equivalence",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_axi_write_ingress__equivalence.md",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_v4_axi_write_ingress",
+      "packet_id": "module__mctp_assembler_scratch_v4_axi_write_ingress__equivalence",
       "summary": {
         "categories": {
           "equivalence.module": 1
@@ -222,7 +222,7 @@
           "index": 5,
           "key": "equivalence",
           "module_task_count": 89,
-          "rule": "Owner module mctp_assembler_scratch_axi_write_ingress is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "rule": "Owner module mctp_assembler_scratch_v4_axi_write_ingress is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "equivalence",
           "section_chunk_count": 1,
           "section_chunk_index": 1,
@@ -231,7 +231,7 @@
         "open_required_count": 0,
         "required_count": 1,
         "source_refs": [
-          "sub_modules.mctp_assembler_scratch_axi_write_ingress.module_equivalence"
+          "sub_modules.mctp_assembler_scratch_v4_axi_write_ingress.module_equivalence"
         ],
         "status_counts": {
           "pass": 1
@@ -262,12 +262,12 @@
         "tool_evidence_plan": [],
         "work_allowed": true
       },
-      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_axi_write_ingress__function_model.json",
+      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_axi_write_ingress__function_model.json",
       "kind": "module",
-      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_axi_write_ingress__function_model.md",
-      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
-      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
-      "packet_id": "module__mctp_assembler_scratch_axi_write_ingress__function_model",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_axi_write_ingress__function_model.md",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_v4_axi_write_ingress",
+      "packet_id": "module__mctp_assembler_scratch_v4_axi_write_ingress__function_model",
       "summary": {
         "categories": {
           "function_model.invariant": 1,
@@ -284,7 +284,7 @@
           "index": 2,
           "key": "function_model",
           "module_task_count": 89,
-          "rule": "Owner module mctp_assembler_scratch_axi_write_ingress is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "rule": "Owner module mctp_assembler_scratch_v4_axi_write_ingress is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "function_model",
           "section_chunk_count": 1,
           "section_chunk_index": 1,
@@ -336,12 +336,12 @@
         "tool_evidence_plan": [],
         "work_allowed": true
       },
-      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_axi_write_ingress__io_list.json",
+      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_axi_write_ingress__io_list.json",
       "kind": "module",
-      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_axi_write_ingress__io_list.md",
-      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
-      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
-      "packet_id": "module__mctp_assembler_scratch_axi_write_ingress__io_list",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_axi_write_ingress__io_list.md",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_v4_axi_write_ingress",
+      "packet_id": "module__mctp_assembler_scratch_v4_axi_write_ingress__io_list",
       "summary": {
         "categories": {
           "io_list.port": 23
@@ -352,7 +352,7 @@
           "index": 1,
           "key": "io_list",
           "module_task_count": 89,
-          "rule": "Owner module mctp_assembler_scratch_axi_write_ingress is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "rule": "Owner module mctp_assembler_scratch_v4_axi_write_ingress is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "io_list",
           "section_chunk_count": 1,
           "section_chunk_index": 1,
@@ -414,12 +414,12 @@
         "tool_evidence_plan": [],
         "work_allowed": true
       },
-      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_axi_write_ingress__test_requirements.json",
+      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_axi_write_ingress__test_requirements.json",
       "kind": "module",
-      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_axi_write_ingress__test_requirements.md",
-      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
-      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
-      "packet_id": "module__mctp_assembler_scratch_axi_write_ingress__test_requirements",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_axi_write_ingress__test_requirements.md",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_v4_axi_write_ingress",
+      "packet_id": "module__mctp_assembler_scratch_v4_axi_write_ingress__test_requirements",
       "summary": {
         "categories": {
           "test_requirements.scenario": 26
@@ -430,7 +430,7 @@
           "index": 4,
           "key": "test_requirements",
           "module_task_count": 89,
-          "rule": "Owner module mctp_assembler_scratch_axi_write_ingress is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "rule": "Owner module mctp_assembler_scratch_v4_axi_write_ingress is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "test_requirements",
           "section_chunk_count": 1,
           "section_chunk_index": 1,
@@ -493,12 +493,12 @@
         "tool_evidence_plan": [],
         "work_allowed": true
       },
-      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_axi_write_ingress__workflow_todo.json",
+      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_axi_write_ingress__workflow_todo.json",
       "kind": "module",
-      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_axi_write_ingress__workflow_todo.md",
-      "owner_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
-      "owner_module": "mctp_assembler_scratch_axi_write_ingress",
-      "packet_id": "module__mctp_assembler_scratch_axi_write_ingress__workflow_todo",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_axi_write_ingress__workflow_todo.md",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_v4_axi_write_ingress",
+      "packet_id": "module__mctp_assembler_scratch_v4_axi_write_ingress__workflow_todo",
       "summary": {
         "categories": {
           "workflow_todo.rtl_gen": 1
@@ -509,7 +509,7 @@
           "index": 6,
           "key": "workflow_todo",
           "module_task_count": 89,
-          "rule": "Owner module mctp_assembler_scratch_axi_write_ingress is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "rule": "Owner module mctp_assembler_scratch_v4_axi_write_ingress is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "workflow_todo",
           "section_chunk_count": 1,
           "section_chunk_index": 1,
@@ -549,12 +549,12 @@
         "tool_evidence_plan": [],
         "work_allowed": true
       },
-      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_pcie_vdm_parser.json",
+      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_pcie_vdm_parser.json",
       "kind": "module",
-      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_pcie_vdm_parser.md",
-      "owner_file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
-      "owner_module": "mctp_assembler_scratch_pcie_vdm_parser",
-      "packet_id": "module__mctp_assembler_scratch_pcie_vdm_parser",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_pcie_vdm_parser.md",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_pcie_vdm_parser.sv",
+      "owner_module": "mctp_assembler_scratch_v4_pcie_vdm_parser",
+      "packet_id": "module__mctp_assembler_scratch_v4_pcie_vdm_parser",
       "summary": {
         "categories": {
           "equivalence.module": 1,
@@ -632,12 +632,12 @@
         "tool_evidence_plan": [],
         "work_allowed": true
       },
-      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_mctp_parser.json",
+      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_mctp_parser.json",
       "kind": "module",
-      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_mctp_parser.md",
-      "owner_file": "rtl/mctp_assembler_scratch_mctp_parser.sv",
-      "owner_module": "mctp_assembler_scratch_mctp_parser",
-      "packet_id": "module__mctp_assembler_scratch_mctp_parser",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_mctp_parser.md",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+      "owner_module": "mctp_assembler_scratch_v4_mctp_parser",
+      "packet_id": "module__mctp_assembler_scratch_v4_mctp_parser",
       "summary": {
         "categories": {
           "equivalence.module": 1,
@@ -676,7 +676,7 @@
           "function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_message_type",
           "function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_last_seq",
           "function_model.transactions.FM_PARSE_MCTP.side_effects.side_effect_0",
-          "sub_modules.mctp_assembler_scratch_mctp_parser.module_equivalence"
+          "sub_modules.mctp_assembler_scratch_v4_mctp_parser.module_equivalence"
         ],
         "status_counts": {
           "pass": 18
@@ -707,12 +707,12 @@
         "tool_evidence_plan": [],
         "work_allowed": true
       },
-      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_context_table.json",
+      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_context_table.json",
       "kind": "module",
-      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_context_table.md",
-      "owner_file": "rtl/mctp_assembler_scratch_context_table.sv",
-      "owner_module": "mctp_assembler_scratch_context_table",
-      "packet_id": "module__mctp_assembler_scratch_context_table",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_context_table.md",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_context_table.sv",
+      "owner_module": "mctp_assembler_scratch_v4_context_table",
+      "packet_id": "module__mctp_assembler_scratch_v4_context_table",
       "summary": {
         "categories": {
           "equivalence.module": 1,
@@ -791,12 +791,12 @@
         "tool_evidence_plan": [],
         "work_allowed": true
       },
-      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_sram_packer.json",
+      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_sram_packer.json",
       "kind": "module",
-      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_sram_packer.md",
-      "owner_file": "rtl/mctp_assembler_scratch_sram_packer.sv",
-      "owner_module": "mctp_assembler_scratch_sram_packer",
-      "packet_id": "module__mctp_assembler_scratch_sram_packer",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_sram_packer.md",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_sram_packer.sv",
+      "owner_module": "mctp_assembler_scratch_v4_sram_packer",
+      "packet_id": "module__mctp_assembler_scratch_v4_sram_packer",
       "summary": {
         "categories": {
           "equivalence.module": 1,
@@ -873,12 +873,12 @@
         "tool_evidence_plan": [],
         "work_allowed": true
       },
-      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_axi_read_egress.json",
+      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_axi_read_egress.json",
       "kind": "module",
-      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_axi_read_egress.md",
-      "owner_file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
-      "owner_module": "mctp_assembler_scratch_axi_read_egress",
-      "packet_id": "module__mctp_assembler_scratch_axi_read_egress",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_axi_read_egress.md",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_axi_read_egress.sv",
+      "owner_module": "mctp_assembler_scratch_v4_axi_read_egress",
+      "packet_id": "module__mctp_assembler_scratch_v4_axi_read_egress",
       "summary": {
         "categories": {
           "cycle_model.handshake_rules": 1,
@@ -920,7 +920,7 @@
           "function_model.transactions.FM_AXI_READBACK.state_updates.read_error_count",
           "function_model.transactions.FM_AXI_READBACK.side_effects.side_effect_0",
           "cycle_model.handshake_rules.axi_read_channels",
-          "sub_modules.mctp_assembler_scratch_axi_read_egress.module_equivalence",
+          "sub_modules.mctp_assembler_scratch_v4_axi_read_egress.module_equivalence",
           "io_list.interfaces.axi_read_slave.ports.m_axi_araddr",
           "io_list.interfaces.axi_read_slave.ports.m_axi_arlen",
           "io_list.interfaces.axi_read_slave.ports.m_axi_arsize",
@@ -956,12 +956,12 @@
         "tool_evidence_plan": [],
         "work_allowed": true
       },
-      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_sram_arbiter.json",
+      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_sram_arbiter.json",
       "kind": "module",
-      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_sram_arbiter.md",
-      "owner_file": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
-      "owner_module": "mctp_assembler_scratch_sram_arbiter",
-      "packet_id": "module__mctp_assembler_scratch_sram_arbiter",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_sram_arbiter.md",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_sram_arbiter.sv",
+      "owner_module": "mctp_assembler_scratch_v4_sram_arbiter",
+      "packet_id": "module__mctp_assembler_scratch_v4_sram_arbiter",
       "summary": {
         "categories": {
           "cycle_model.arbitration": 2,
@@ -985,7 +985,7 @@
           "cycle_model.ordering.descriptor_after_sram_flush",
           "cycle_model.arbitration.name",
           "cycle_model.arbitration.policy",
-          "sub_modules.mctp_assembler_scratch_sram_arbiter.module_equivalence",
+          "sub_modules.mctp_assembler_scratch_v4_sram_arbiter.module_equivalence",
           "io_list.interfaces.sram_write_port.ports.sram_wr_valid",
           "io_list.interfaces.sram_write_port.ports.sram_wr_ready",
           "io_list.interfaces.sram_write_port.ports.sram_wr_addr",
@@ -1028,12 +1028,12 @@
         "tool_evidence_plan": [],
         "work_allowed": true
       },
-      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_descriptor_queue.json",
+      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_descriptor_queue.json",
       "kind": "module",
-      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_descriptor_queue.md",
-      "owner_file": "rtl/mctp_assembler_scratch_descriptor_queue.sv",
-      "owner_module": "mctp_assembler_scratch_descriptor_queue",
-      "packet_id": "module__mctp_assembler_scratch_descriptor_queue",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_descriptor_queue.md",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_descriptor_queue.sv",
+      "owner_module": "mctp_assembler_scratch_v4_descriptor_queue",
+      "packet_id": "module__mctp_assembler_scratch_v4_descriptor_queue",
       "summary": {
         "categories": {
           "equivalence.module": 1,
@@ -1072,7 +1072,7 @@
           "function_model.invariants.descriptor_bound",
           "memory.instances.descriptor_fifo",
           "security.assets.asset_1",
-          "sub_modules.mctp_assembler_scratch_descriptor_queue.module_equivalence"
+          "sub_modules.mctp_assembler_scratch_v4_descriptor_queue.module_equivalence"
         ],
         "status_counts": {
           "pass": 17
@@ -1103,12 +1103,12 @@
         "tool_evidence_plan": [],
         "work_allowed": true
       },
-      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_apb_regfile__debug_observability.json",
+      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_apb_regfile__debug_observability.json",
       "kind": "module",
-      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_apb_regfile__debug_observability.md",
-      "owner_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-      "owner_module": "mctp_assembler_scratch_apb_regfile",
-      "packet_id": "module__mctp_assembler_scratch_apb_regfile__debug_observability",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_apb_regfile__debug_observability.md",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_apb_regfile.sv",
+      "owner_module": "mctp_assembler_scratch_v4_apb_regfile",
+      "packet_id": "module__mctp_assembler_scratch_v4_apb_regfile__debug_observability",
       "summary": {
         "categories": {
           "debug_observability.signals": 4
@@ -1119,7 +1119,7 @@
           "index": 9,
           "key": "debug_observability",
           "module_task_count": 132,
-          "rule": "Owner module mctp_assembler_scratch_apb_regfile is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "rule": "Owner module mctp_assembler_scratch_v4_apb_regfile is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "debug_observability",
           "section_chunk_count": 1,
           "section_chunk_index": 1,
@@ -1162,12 +1162,12 @@
         "tool_evidence_plan": [],
         "work_allowed": true
       },
-      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_apb_regfile__equivalence.json",
+      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_apb_regfile__equivalence.json",
       "kind": "module",
-      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_apb_regfile__equivalence.md",
-      "owner_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-      "owner_module": "mctp_assembler_scratch_apb_regfile",
-      "packet_id": "module__mctp_assembler_scratch_apb_regfile__equivalence",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_apb_regfile__equivalence.md",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_apb_regfile.sv",
+      "owner_module": "mctp_assembler_scratch_v4_apb_regfile",
+      "packet_id": "module__mctp_assembler_scratch_v4_apb_regfile__equivalence",
       "summary": {
         "categories": {
           "equivalence.module": 1
@@ -1178,7 +1178,7 @@
           "index": 8,
           "key": "equivalence",
           "module_task_count": 132,
-          "rule": "Owner module mctp_assembler_scratch_apb_regfile is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "rule": "Owner module mctp_assembler_scratch_v4_apb_regfile is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "equivalence",
           "section_chunk_count": 1,
           "section_chunk_index": 1,
@@ -1187,7 +1187,7 @@
         "open_required_count": 0,
         "required_count": 1,
         "source_refs": [
-          "sub_modules.mctp_assembler_scratch_apb_regfile.module_equivalence"
+          "sub_modules.mctp_assembler_scratch_v4_apb_regfile.module_equivalence"
         ],
         "status_counts": {
           "pass": 1
@@ -1218,12 +1218,12 @@
         "tool_evidence_plan": [],
         "work_allowed": true
       },
-      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_apb_regfile__features.json",
+      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_apb_regfile__features.json",
       "kind": "module",
-      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_apb_regfile__features.md",
-      "owner_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-      "owner_module": "mctp_assembler_scratch_apb_regfile",
-      "packet_id": "module__mctp_assembler_scratch_apb_regfile__features",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_apb_regfile__features.md",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_apb_regfile.sv",
+      "owner_module": "mctp_assembler_scratch_v4_apb_regfile",
+      "packet_id": "module__mctp_assembler_scratch_v4_apb_regfile__features",
       "summary": {
         "categories": {
           "features.item": 3
@@ -1234,7 +1234,7 @@
           "index": 6,
           "key": "features",
           "module_task_count": 132,
-          "rule": "Owner module mctp_assembler_scratch_apb_regfile is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "rule": "Owner module mctp_assembler_scratch_v4_apb_regfile is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "features",
           "section_chunk_count": 1,
           "section_chunk_index": 1,
@@ -1276,12 +1276,12 @@
         "tool_evidence_plan": [],
         "work_allowed": true
       },
-      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_apb_regfile__function_model_01.json",
+      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_apb_regfile__function_model_01.json",
       "kind": "module",
-      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_apb_regfile__function_model_01.md",
-      "owner_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-      "owner_module": "mctp_assembler_scratch_apb_regfile",
-      "packet_id": "module__mctp_assembler_scratch_apb_regfile__function_model_01",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_apb_regfile__function_model_01.md",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_apb_regfile.sv",
+      "owner_module": "mctp_assembler_scratch_v4_apb_regfile",
+      "packet_id": "module__mctp_assembler_scratch_v4_apb_regfile__function_model_01",
       "summary": {
         "categories": {
           "function_model.error_case": 3,
@@ -1298,7 +1298,7 @@
           "index": 2,
           "key": "function_model_01",
           "module_task_count": 132,
-          "rule": "Owner module mctp_assembler_scratch_apb_regfile is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "rule": "Owner module mctp_assembler_scratch_v4_apb_regfile is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "function_model",
           "section_chunk_count": 2,
           "section_chunk_index": 1,
@@ -1361,12 +1361,12 @@
         "tool_evidence_plan": [],
         "work_allowed": true
       },
-      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_apb_regfile__function_model_02.json",
+      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_apb_regfile__function_model_02.json",
       "kind": "module",
-      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_apb_regfile__function_model_02.md",
-      "owner_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-      "owner_module": "mctp_assembler_scratch_apb_regfile",
-      "packet_id": "module__mctp_assembler_scratch_apb_regfile__function_model_02",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_apb_regfile__function_model_02.md",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_apb_regfile.sv",
+      "owner_module": "mctp_assembler_scratch_v4_apb_regfile",
+      "packet_id": "module__mctp_assembler_scratch_v4_apb_regfile__function_model_02",
       "summary": {
         "categories": {
           "function_model.output": 6,
@@ -1382,7 +1382,7 @@
           "index": 3,
           "key": "function_model_02",
           "module_task_count": 132,
-          "rule": "Owner module mctp_assembler_scratch_apb_regfile is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "rule": "Owner module mctp_assembler_scratch_v4_apb_regfile is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "function_model",
           "section_chunk_count": 2,
           "section_chunk_index": 2,
@@ -1434,12 +1434,12 @@
         "tool_evidence_plan": [],
         "work_allowed": true
       },
-      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_apb_regfile__interrupts.json",
+      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_apb_regfile__interrupts.json",
       "kind": "module",
-      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_apb_regfile__interrupts.md",
-      "owner_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-      "owner_module": "mctp_assembler_scratch_apb_regfile",
-      "packet_id": "module__mctp_assembler_scratch_apb_regfile__interrupts",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_apb_regfile__interrupts.md",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_apb_regfile.sv",
+      "owner_module": "mctp_assembler_scratch_v4_apb_regfile",
+      "packet_id": "module__mctp_assembler_scratch_v4_apb_regfile__interrupts",
       "summary": {
         "categories": {
           "interrupts.sources": 4
@@ -1450,7 +1450,7 @@
           "index": 7,
           "key": "interrupts",
           "module_task_count": 132,
-          "rule": "Owner module mctp_assembler_scratch_apb_regfile is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "rule": "Owner module mctp_assembler_scratch_v4_apb_regfile is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "interrupts",
           "section_chunk_count": 1,
           "section_chunk_index": 1,
@@ -1493,12 +1493,12 @@
         "tool_evidence_plan": [],
         "work_allowed": true
       },
-      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_apb_regfile__io_list.json",
+      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_apb_regfile__io_list.json",
       "kind": "module",
-      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_apb_regfile__io_list.md",
-      "owner_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-      "owner_module": "mctp_assembler_scratch_apb_regfile",
-      "packet_id": "module__mctp_assembler_scratch_apb_regfile__io_list",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_apb_regfile__io_list.md",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_apb_regfile.sv",
+      "owner_module": "mctp_assembler_scratch_v4_apb_regfile",
+      "packet_id": "module__mctp_assembler_scratch_v4_apb_regfile__io_list",
       "summary": {
         "categories": {
           "io_list.port": 9
@@ -1509,7 +1509,7 @@
           "index": 1,
           "key": "io_list",
           "module_task_count": 132,
-          "rule": "Owner module mctp_assembler_scratch_apb_regfile is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "rule": "Owner module mctp_assembler_scratch_v4_apb_regfile is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "io_list",
           "section_chunk_count": 1,
           "section_chunk_index": 1,
@@ -1557,12 +1557,12 @@
         "tool_evidence_plan": [],
         "work_allowed": true
       },
-      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_apb_regfile__registers_01.json",
+      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_apb_regfile__registers_01.json",
       "kind": "module",
-      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_apb_regfile__registers_01.md",
-      "owner_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-      "owner_module": "mctp_assembler_scratch_apb_regfile",
-      "packet_id": "module__mctp_assembler_scratch_apb_regfile__registers_01",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_apb_regfile__registers_01.md",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_apb_regfile.sv",
+      "owner_module": "mctp_assembler_scratch_v4_apb_regfile",
+      "packet_id": "module__mctp_assembler_scratch_v4_apb_regfile__registers_01",
       "summary": {
         "categories": {
           "registers.field": 36,
@@ -1574,7 +1574,7 @@
           "index": 4,
           "key": "registers_01",
           "module_task_count": 132,
-          "rule": "Owner module mctp_assembler_scratch_apb_regfile is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "rule": "Owner module mctp_assembler_scratch_v4_apb_regfile is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "registers",
           "section_chunk_count": 2,
           "section_chunk_index": 1,
@@ -1637,12 +1637,12 @@
         "tool_evidence_plan": [],
         "work_allowed": true
       },
-      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_apb_regfile__registers_02.json",
+      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_apb_regfile__registers_02.json",
       "kind": "module",
-      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_apb_regfile__registers_02.md",
-      "owner_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-      "owner_module": "mctp_assembler_scratch_apb_regfile",
-      "packet_id": "module__mctp_assembler_scratch_apb_regfile__registers_02",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_apb_regfile__registers_02.md",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_apb_regfile.sv",
+      "owner_module": "mctp_assembler_scratch_v4_apb_regfile",
+      "packet_id": "module__mctp_assembler_scratch_v4_apb_regfile__registers_02",
       "summary": {
         "categories": {
           "registers.field": 2
@@ -1653,7 +1653,7 @@
           "index": 5,
           "key": "registers_02",
           "module_task_count": 132,
-          "rule": "Owner module mctp_assembler_scratch_apb_regfile is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "rule": "Owner module mctp_assembler_scratch_v4_apb_regfile is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "registers",
           "section_chunk_count": 2,
           "section_chunk_index": 2,
@@ -1694,12 +1694,12 @@
         "tool_evidence_plan": [],
         "work_allowed": true
       },
-      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_cdc.json",
+      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_cdc.json",
       "kind": "module",
-      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_cdc.md",
-      "owner_file": "rtl/mctp_assembler_scratch_cdc.sv",
-      "owner_module": "mctp_assembler_scratch_cdc",
-      "packet_id": "module__mctp_assembler_scratch_cdc",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_cdc.md",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_cdc.sv",
+      "owner_module": "mctp_assembler_scratch_v4_cdc",
+      "packet_id": "module__mctp_assembler_scratch_v4_cdc",
       "summary": {
         "categories": {
           "equivalence.module": 1
@@ -1715,7 +1715,7 @@
         "open_required_count": 0,
         "required_count": 1,
         "source_refs": [
-          "sub_modules.mctp_assembler_scratch_cdc.module_equivalence"
+          "sub_modules.mctp_assembler_scratch_v4_cdc.module_equivalence"
         ],
         "status_counts": {
           "pass": 1
@@ -1746,12 +1746,12 @@
         "tool_evidence_plan": [],
         "work_allowed": true
       },
-      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_param.json",
+      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_param.json",
       "kind": "module",
-      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_param.md",
-      "owner_file": "rtl/mctp_assembler_scratch_param.vh",
-      "owner_module": "mctp_assembler_scratch_param",
-      "packet_id": "module__mctp_assembler_scratch_param",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_v4_param.md",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_param.vh",
+      "owner_module": "mctp_assembler_scratch_v4_param",
+      "packet_id": "module__mctp_assembler_scratch_v4_param",
       "summary": {
         "categories": {
           "parameters.item": 25
@@ -1821,12 +1821,12 @@
         "tool_evidence_plan": [],
         "work_allowed": true
       },
-      "json": "rtl/authoring_packets/module__mctp_assembler_scratch.json",
+      "json": "rtl/authoring_packets/module__mctp_assembler_scratch_v4.json",
       "kind": "module",
-      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch.md",
-      "owner_file": "rtl/mctp_assembler_scratch.sv",
-      "owner_module": "mctp_assembler_scratch",
-      "packet_id": "module__mctp_assembler_scratch",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_scratch_v4.md",
+      "owner_file": "rtl/mctp_assembler_scratch_v4.sv",
+      "owner_module": "mctp_assembler_scratch_v4",
+      "packet_id": "module__mctp_assembler_scratch_v4",
       "summary": {
         "categories": {
           "equivalence.module": 1,
@@ -1875,7 +1875,7 @@
           "synthesis.ppa_targets.frequency_mhz_min",
           "synthesis.ppa_targets.area_um2_max",
           "synthesis.ppa_targets.power_mw_max",
-          "sub_modules.mctp_assembler_scratch.module_equivalence"
+          "sub_modules.mctp_assembler_scratch_v4.module_equivalence"
         ],
         "status_counts": {
           "pass": 24
@@ -1909,8 +1909,8 @@
       "json": "rtl/authoring_packets/rtl_gate_evidence_closure.json",
       "kind": "gate",
       "markdown": "rtl/authoring_packets/rtl_gate_evidence_closure.md",
-      "owner_file": "rtl/mctp_assembler_scratch.sv",
-      "owner_module": "mctp_assembler_scratch",
+      "owner_file": "rtl/mctp_assembler_scratch_v4.sv",
+      "owner_module": "mctp_assembler_scratch_v4",
       "packet_id": "rtl_gate_evidence_closure",
       "summary": {
         "categories": {
@@ -1962,8 +1962,8 @@
       "json": "rtl/authoring_packets/rtl_gate_human_closure.json",
       "kind": "gate",
       "markdown": "rtl/authoring_packets/rtl_gate_human_closure.md",
-      "owner_file": "rtl/mctp_assembler_scratch.sv",
-      "owner_module": "mctp_assembler_scratch",
+      "owner_file": "rtl/mctp_assembler_scratch_v4.sv",
+      "owner_module": "mctp_assembler_scratch_v4",
       "packet_id": "rtl_gate_human_closure",
       "summary": {
         "categories": {
@@ -2010,8 +2010,8 @@
       "json": "rtl/authoring_packets/rtl_gate_tool_evidence.json",
       "kind": "gate",
       "markdown": "rtl/authoring_packets/rtl_gate_tool_evidence.md",
-      "owner_file": "rtl/mctp_assembler_scratch.sv",
-      "owner_module": "mctp_assembler_scratch",
+      "owner_file": "rtl/mctp_assembler_scratch_v4.sv",
+      "owner_module": "mctp_assembler_scratch_v4",
       "packet_id": "rtl_gate_tool_evidence",
       "summary": {
         "categories": {
@@ -2091,6 +2091,6 @@
   },
   "target_scale": {},
   "todo_plan_sha256": "a6a5a0fbc9df7cbf10ab017b46631a16a00f0b454b4cee41da9ba28dbc65043d",
-  "top": "mctp_assembler_scratch",
+  "top": "mctp_assembler_scratch_v4",
   "type": "rtl_authoring_plan"
 }

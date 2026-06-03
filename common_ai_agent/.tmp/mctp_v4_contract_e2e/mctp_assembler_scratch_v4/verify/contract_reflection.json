@@ -21,17 +21,17 @@
           "ctx_payload_count"
         ],
         "owner_files": [
-          "rtl/mctp_assembler_scratch_mctp_parser.sv",
-          "rtl/mctp_assembler_scratch_context_table.sv",
-          "rtl/mctp_assembler_scratch_apb_regfile.sv"
+          "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+          "rtl/mctp_assembler_scratch_v4_context_table.sv",
+          "rtl/mctp_assembler_scratch_v4_apb_regfile.sv"
         ]
       },
       "sim": {
         "scoreboard": "sim/scoreboard_events.jsonl",
-        "wave": "sim/mctp_assembler_scratch.vcd"
+        "wave": "sim/mctp_assembler_scratch_v4.vcd"
       },
       "ssot": {
-        "path": "yaml/mctp_assembler_scratch.ssot.yaml",
+        "path": "yaml/mctp_assembler_scratch_v4.ssot.yaml",
         "refs": [
           "function_model.state_variables.payload_byte_count",
           "function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.payload_byte_count",
@@ -40,7 +40,7 @@
       },
       "tb": {
         "monitor": "payload_pack_monitor",
-        "path": "tb/cocotb/test_mctp_assembler_scratch.py"
+        "path": "tb/cocotb/test_mctp_assembler_scratch_v4.py"
       }
     },
     {
@@ -66,23 +66,23 @@
           "sram_wr_addr"
         ],
         "owner_files": [
-          "rtl/mctp_assembler_scratch_sram_packer.sv",
-          "rtl/mctp_assembler_scratch_context_table.sv"
+          "rtl/mctp_assembler_scratch_v4_sram_packer.sv",
+          "rtl/mctp_assembler_scratch_v4_context_table.sv"
         ]
       },
       "sim": {
         "scoreboard": "sim/scoreboard_events.jsonl",
-        "wave": "sim/mctp_assembler_scratch.vcd"
+        "wave": "sim/mctp_assembler_scratch_v4.vcd"
       },
       "ssot": {
-        "path": "yaml/mctp_assembler_scratch.ssot.yaml",
+        "path": "yaml/mctp_assembler_scratch_v4.ssot.yaml",
         "refs": [
           "function_model.transactions.FM_SRAM_PACK_WRITE"
         ]
       },
       "tb": {
         "monitor": "payload_pack_monitor",
-        "path": "tb/cocotb/test_mctp_assembler_scratch.py"
+        "path": "tb/cocotb/test_mctp_assembler_scratch_v4.py"
       }
     },
     {
@@ -106,7 +106,7 @@
           "sram_wr_strb"
         ],
         "owner_files": [
-          "rtl/mctp_assembler_scratch_sram_packer.sv"
+          "rtl/mctp_assembler_scratch_v4_sram_packer.sv"
         ]
       },
       "sim": {
@@ -114,14 +114,14 @@
         "wave": "sim/contract_v2.vcd"
       },
       "ssot": {
-        "path": "yaml/mctp_assembler_scratch.ssot.yaml",
+        "path": "yaml/mctp_assembler_scratch_v4.ssot.yaml",
         "refs": [
           "cycle_model.handshake_rules.sram_ready_valid"
         ]
       },
       "tb": {
         "monitor": "ready_valid_monitor",
-        "path": "tb/cocotb/test_mctp_assembler_scratch.py"
+        "path": "tb/cocotb/test_mctp_assembler_scratch_v4.py"
       }
     },
     {
@@ -146,23 +146,23 @@
           "sram_wr_ready"
         ],
         "owner_files": [
-          "rtl/mctp_assembler_scratch_context_table.sv",
-          "rtl/mctp_assembler_scratch_descriptor_queue.sv"
+          "rtl/mctp_assembler_scratch_v4_context_table.sv",
+          "rtl/mctp_assembler_scratch_v4_descriptor_queue.sv"
         ]
       },
       "sim": {
         "scoreboard": "sim/scoreboard_events.jsonl",
-        "wave": "sim/mctp_assembler_scratch.vcd"
+        "wave": "sim/mctp_assembler_scratch_v4.vcd"
       },
       "ssot": {
-        "path": "yaml/mctp_assembler_scratch.ssot.yaml",
+        "path": "yaml/mctp_assembler_scratch_v4.ssot.yaml",
         "refs": [
           "cycle_model.ordering.descriptor_after_sram_flush"
         ]
       },
       "tb": {
         "monitor": "descriptor_order_monitor",
-        "path": "tb/cocotb/test_mctp_assembler_scratch.py"
+        "path": "tb/cocotb/test_mctp_assembler_scratch_v4.py"
       }
     },
     {
@@ -186,16 +186,16 @@
           "descriptor_count"
         ],
         "owner_files": [
-          "rtl/mctp_assembler_scratch_context_table.sv",
-          "rtl/mctp_assembler_scratch_descriptor_queue.sv"
+          "rtl/mctp_assembler_scratch_v4_context_table.sv",
+          "rtl/mctp_assembler_scratch_v4_descriptor_queue.sv"
         ]
       },
       "sim": {
         "scoreboard": "sim/scoreboard_events.jsonl",
-        "wave": "sim/mctp_assembler_scratch.vcd"
+        "wave": "sim/mctp_assembler_scratch_v4.vcd"
       },
       "ssot": {
-        "path": "yaml/mctp_assembler_scratch.ssot.yaml",
+        "path": "yaml/mctp_assembler_scratch_v4.ssot.yaml",
         "refs": [
           "registers.descriptor_window",
           "function_model.transactions.FM_COMPLETE_MESSAGE"
@@ -203,7 +203,7 @@
       },
       "tb": {
         "monitor": "descriptor_len_monitor",
-        "path": "tb/cocotb/test_mctp_assembler_scratch.py"
+        "path": "tb/cocotb/test_mctp_assembler_scratch_v4.py"
       }
     },
     {
@@ -228,7 +228,7 @@
           "pready"
         ],
         "owner_files": [
-          "rtl/mctp_assembler_scratch_apb_regfile.sv"
+          "rtl/mctp_assembler_scratch_v4_apb_regfile.sv"
         ]
       },
       "sim": {
@@ -236,14 +236,14 @@
         "wave": "sim/contract_v2.vcd"
       },
       "ssot": {
-        "path": "yaml/mctp_assembler_scratch.ssot.yaml",
+        "path": "yaml/mctp_assembler_scratch_v4.ssot.yaml",
         "refs": [
           "registers.register_list.Q_PAYLOAD_COUNT"
         ]
       },
       "tb": {
         "monitor": "apb_register_monitor",
-        "path": "tb/cocotb/test_mctp_assembler_scratch.py"
+        "path": "tb/cocotb/test_mctp_assembler_scratch_v4.py"
       }
     },
     {
@@ -272,34 +272,34 @@
           "pready"
         ],
         "owner_files": [
-          "rtl/mctp_assembler_scratch.sv",
-          "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
-          "rtl/mctp_assembler_scratch_mctp_parser.sv",
-          "rtl/mctp_assembler_scratch_context_table.sv",
-          "rtl/mctp_assembler_scratch_sram_packer.sv",
-          "rtl/mctp_assembler_scratch_descriptor_queue.sv",
-          "rtl/mctp_assembler_scratch_apb_regfile.sv"
+          "rtl/mctp_assembler_scratch_v4.sv",
+          "rtl/mctp_assembler_scratch_v4_axi_write_ingress.sv",
+          "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+          "rtl/mctp_assembler_scratch_v4_context_table.sv",
+          "rtl/mctp_assembler_scratch_v4_sram_packer.sv",
+          "rtl/mctp_assembler_scratch_v4_descriptor_queue.sv",
+          "rtl/mctp_assembler_scratch_v4_apb_regfile.sv"
         ]
       },
       "sim": {
         "scoreboard": "sim/scoreboard_events.jsonl",
-        "wave": "sim/mctp_assembler_scratch.vcd"
+        "wave": "sim/mctp_assembler_scratch_v4.vcd"
       },
       "ssot": {
-        "path": "yaml/mctp_assembler_scratch.ssot.yaml",
+        "path": "yaml/mctp_assembler_scratch_v4.ssot.yaml",
         "refs": [
           "verify.equivalence_goals"
         ]
       },
       "tb": {
         "monitor": "legacy_scoreboard_goal_monitor",
-        "path": "tb/cocotb/test_mctp_assembler_scratch.py"
+        "path": "tb/cocotb/test_mctp_assembler_scratch_v4.py"
       }
     }
   ],
   "generated_at": "2026-06-03T00:00:00Z",
-  "ip": "mctp_assembler_scratch",
+  "ip": "mctp_assembler_scratch_v4",
   "schema_version": 1,
-  "source_of_truth": "yaml/mctp_assembler_scratch.ssot.yaml",
+  "source_of_truth": "yaml/mctp_assembler_scratch_v4.ssot.yaml",
   "type": "contract_reflection"
 }

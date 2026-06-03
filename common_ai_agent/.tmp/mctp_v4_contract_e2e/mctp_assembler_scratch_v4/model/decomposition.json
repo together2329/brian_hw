@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
   "type": "fl_model_decomposition",
-  "ip": "mctp_assembler_scratch",
-  "source": "mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.yaml",
+  "ip": "mctp_assembler_scratch_v4",
+  "source": "mctp_assembler_scratch_v4/yaml/mctp_assembler_scratch_v4.ssot.yaml",
   "units": [
     {
-      "name": "mctp_assembler_scratch_axi_write_ingress",
+      "name": "mctp_assembler_scratch_v4_axi_write_ingress",
       "kind": "rtl_module",
       "source_sections": [
         "cycle_model",
@@ -15,9 +15,9 @@
         "test_requirements"
       ],
       "rtl_candidates": [
-        "mctp_assembler_scratch_axi_write_ingress"
+        "mctp_assembler_scratch_v4_axi_write_ingress"
       ],
-      "rtl_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "rtl_file": "rtl/mctp_assembler_scratch_v4_axi_write_ingress.sv",
       "ssot_refs": [
         "cycle_model",
         "cycle_model.backpressure.backpressure_0",
@@ -103,7 +103,7 @@
       "blocker": ""
     },
     {
-      "name": "mctp_assembler_scratch_pcie_vdm_parser",
+      "name": "mctp_assembler_scratch_v4_pcie_vdm_parser",
       "kind": "rtl_module",
       "source_sections": [
         "custom",
@@ -111,9 +111,9 @@
         "function_model"
       ],
       "rtl_candidates": [
-        "mctp_assembler_scratch_pcie_vdm_parser"
+        "mctp_assembler_scratch_v4_pcie_vdm_parser"
       ],
-      "rtl_file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+      "rtl_file": "rtl/mctp_assembler_scratch_v4_pcie_vdm_parser.sv",
       "ssot_refs": [
         "custom",
         "custom.pcie_vdm_fields",
@@ -190,16 +190,16 @@
       "blocker": ""
     },
     {
-      "name": "mctp_assembler_scratch_mctp_parser",
+      "name": "mctp_assembler_scratch_v4_mctp_parser",
       "kind": "rtl_module",
       "source_sections": [
         "custom",
         "function_model"
       ],
       "rtl_candidates": [
-        "mctp_assembler_scratch_mctp_parser"
+        "mctp_assembler_scratch_v4_mctp_parser"
       ],
-      "rtl_file": "rtl/mctp_assembler_scratch_mctp_parser.sv",
+      "rtl_file": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
       "ssot_refs": [
         "custom",
         "custom.mctp_transport_fields",
@@ -253,7 +253,7 @@
       "blocker": ""
     },
     {
-      "name": "mctp_assembler_scratch_context_table",
+      "name": "mctp_assembler_scratch_v4_context_table",
       "kind": "rtl_module",
       "source_sections": [
         "fsm",
@@ -262,9 +262,9 @@
         "registers"
       ],
       "rtl_candidates": [
-        "mctp_assembler_scratch_context_table"
+        "mctp_assembler_scratch_v4_context_table"
       ],
-      "rtl_file": "rtl/mctp_assembler_scratch_context_table.sv",
+      "rtl_file": "rtl/mctp_assembler_scratch_v4_context_table.sv",
       "ssot_refs": [
         "fsm",
         "fsm.context_fsm",
@@ -318,7 +318,7 @@
       "blocker": ""
     },
     {
-      "name": "mctp_assembler_scratch_sram_packer",
+      "name": "mctp_assembler_scratch_v4_sram_packer",
       "kind": "rtl_module",
       "source_sections": [
         "dataflow",
@@ -327,9 +327,9 @@
         "memory"
       ],
       "rtl_candidates": [
-        "mctp_assembler_scratch_sram_packer"
+        "mctp_assembler_scratch_v4_sram_packer"
       ],
-      "rtl_file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+      "rtl_file": "rtl/mctp_assembler_scratch_v4_sram_packer.sv",
       "ssot_refs": [
         "dataflow",
         "dataflow.sram_pack",
@@ -404,7 +404,7 @@
       "blocker": ""
     },
     {
-      "name": "mctp_assembler_scratch_axi_read_egress",
+      "name": "mctp_assembler_scratch_v4_axi_read_egress",
       "kind": "rtl_module",
       "source_sections": [
         "cycle_model",
@@ -413,9 +413,9 @@
         "memory"
       ],
       "rtl_candidates": [
-        "mctp_assembler_scratch_axi_read_egress"
+        "mctp_assembler_scratch_v4_axi_read_egress"
       ],
-      "rtl_file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+      "rtl_file": "rtl/mctp_assembler_scratch_v4_axi_read_egress.sv",
       "ssot_refs": [
         "cycle_model",
         "cycle_model.handshake_rules.axi_read_channels",
@@ -474,7 +474,7 @@
       "blocker": ""
     },
     {
-      "name": "mctp_assembler_scratch_sram_arbiter",
+      "name": "mctp_assembler_scratch_v4_sram_arbiter",
       "kind": "rtl_module",
       "source_sections": [
         "cycle_model",
@@ -482,9 +482,9 @@
         "memory"
       ],
       "rtl_candidates": [
-        "mctp_assembler_scratch_sram_arbiter"
+        "mctp_assembler_scratch_v4_sram_arbiter"
       ],
-      "rtl_file": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
+      "rtl_file": "rtl/mctp_assembler_scratch_v4_sram_arbiter.sv",
       "ssot_refs": [
         "cycle_model",
         "cycle_model.arbitration",
@@ -514,7 +514,7 @@
       "blocker": ""
     },
     {
-      "name": "mctp_assembler_scratch_descriptor_queue",
+      "name": "mctp_assembler_scratch_v4_descriptor_queue",
       "kind": "rtl_module",
       "source_sections": [
         "function_model",
@@ -523,9 +523,9 @@
         "registers"
       ],
       "rtl_candidates": [
-        "mctp_assembler_scratch_descriptor_queue"
+        "mctp_assembler_scratch_v4_descriptor_queue"
       ],
-      "rtl_file": "rtl/mctp_assembler_scratch_descriptor_queue.sv",
+      "rtl_file": "rtl/mctp_assembler_scratch_v4_descriptor_queue.sv",
       "ssot_refs": [
         "function_model",
         "function_model.invariants.descriptor_bound",
@@ -585,7 +585,7 @@
       "blocker": ""
     },
     {
-      "name": "mctp_assembler_scratch_apb_regfile",
+      "name": "mctp_assembler_scratch_v4_apb_regfile",
       "kind": "rtl_module",
       "source_sections": [
         "debug_observability",
@@ -599,9 +599,9 @@
         "registers"
       ],
       "rtl_candidates": [
-        "mctp_assembler_scratch_apb_regfile"
+        "mctp_assembler_scratch_v4_apb_regfile"
       ],
-      "rtl_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+      "rtl_file": "rtl/mctp_assembler_scratch_v4_apb_regfile.sv",
       "ssot_refs": [
         "debug_observability",
         "decomposition",
@@ -788,7 +788,7 @@
       "blocker": ""
     },
     {
-      "name": "mctp_assembler_scratch_cdc",
+      "name": "mctp_assembler_scratch_v4_cdc",
       "kind": "rtl_module",
       "source_sections": [
         "cdc_requirements",
@@ -796,9 +796,9 @@
         "interrupts"
       ],
       "rtl_candidates": [
-        "mctp_assembler_scratch_cdc"
+        "mctp_assembler_scratch_v4_cdc"
       ],
-      "rtl_file": "rtl/mctp_assembler_scratch_cdc.sv",
+      "rtl_file": "rtl/mctp_assembler_scratch_v4_cdc.sv",
       "ssot_refs": [
         "cdc_requirements",
         "clock_reset_domains",
@@ -816,15 +816,15 @@
       "blocker": "module has no function_model, cycle_model, or structural SSOT ownership refs"
     },
     {
-      "name": "mctp_assembler_scratch_param",
+      "name": "mctp_assembler_scratch_v4_param",
       "kind": "rtl_module",
       "source_sections": [
         "parameters"
       ],
       "rtl_candidates": [
-        "mctp_assembler_scratch_param"
+        "mctp_assembler_scratch_v4_param"
       ],
-      "rtl_file": "rtl/mctp_assembler_scratch_param.vh",
+      "rtl_file": "rtl/mctp_assembler_scratch_v4_param.vh",
       "ssot_refs": [
         "parameters",
         "parameters.axi_addr_width",
@@ -891,7 +891,7 @@
       "blocker": ""
     },
     {
-      "name": "mctp_assembler_scratch",
+      "name": "mctp_assembler_scratch_v4",
       "kind": "rtl_module",
       "source_sections": [
         "dataflow",
@@ -901,9 +901,9 @@
         "top_module"
       ],
       "rtl_candidates": [
-        "mctp_assembler_scratch"
+        "mctp_assembler_scratch_v4"
       ],
-      "rtl_file": "rtl/mctp_assembler_scratch.sv",
+      "rtl_file": "rtl/mctp_assembler_scratch_v4.sv",
       "ssot_refs": [
         "dataflow",
         "decomposition",
@@ -927,15 +927,15 @@
       "blocker": ""
     },
     {
-      "name": "mctp_assembler_scratch_protocol_model",
+      "name": "mctp_assembler_scratch_v4_protocol_model",
       "kind": "protocol",
       "source_sections": [
         "io_list",
         "cycle_model"
       ],
       "rtl_candidates": [
-        "mctp_assembler_scratch_axi_slv",
-        "mctp_assembler_scratch_protocol"
+        "mctp_assembler_scratch_v4_axi_slv",
+        "mctp_assembler_scratch_v4_protocol"
       ],
       "verification_impact": [
         "driver",
@@ -944,15 +944,15 @@
       ]
     },
     {
-      "name": "mctp_assembler_scratch_register_model",
+      "name": "mctp_assembler_scratch_v4_register_model",
       "kind": "register",
       "source_sections": [
         "registers",
         "error_handling"
       ],
       "rtl_candidates": [
-        "mctp_assembler_scratch_regs",
-        "mctp_assembler_scratch_apb_regs"
+        "mctp_assembler_scratch_v4_regs",
+        "mctp_assembler_scratch_v4_apb_regs"
       ],
       "verification_impact": [
         "register sequences",
@@ -960,15 +960,15 @@
       ]
     },
     {
-      "name": "mctp_assembler_scratch_memory_model",
+      "name": "mctp_assembler_scratch_v4_memory_model",
       "kind": "memory",
       "source_sections": [
         "memory",
         "function_model"
       ],
       "rtl_candidates": [
-        "mctp_assembler_scratch_mem",
-        "mctp_assembler_scratch_core"
+        "mctp_assembler_scratch_v4_mem",
+        "mctp_assembler_scratch_v4_core"
       ],
       "verification_impact": [
         "address retention",
@@ -977,7 +977,7 @@
       ]
     },
     {
-      "name": "mctp_assembler_scratch_datapath_model",
+      "name": "mctp_assembler_scratch_v4_datapath_model",
       "kind": "datapath",
       "source_sections": [
         "features",
@@ -985,8 +985,8 @@
         "function_model"
       ],
       "rtl_candidates": [
-        "mctp_assembler_scratch_core",
-        "mctp_assembler_scratch_datapath"
+        "mctp_assembler_scratch_v4_core",
+        "mctp_assembler_scratch_v4_datapath"
       ],
       "verification_impact": [
         "functional scoreboard",
@@ -994,14 +994,14 @@
       ]
     },
     {
-      "name": "mctp_assembler_scratch_fsm_model",
+      "name": "mctp_assembler_scratch_v4_fsm_model",
       "kind": "fsm",
       "source_sections": [
         "fsm",
         "cycle_model"
       ],
       "rtl_candidates": [
-        "mctp_assembler_scratch_core"
+        "mctp_assembler_scratch_v4_core"
       ],
       "verification_impact": [
         "state transition coverage",
@@ -1009,14 +1009,14 @@
       ]
     },
     {
-      "name": "mctp_assembler_scratch_error_model",
+      "name": "mctp_assembler_scratch_v4_error_model",
       "kind": "error",
       "source_sections": [
         "error_handling"
       ],
       "rtl_candidates": [
-        "mctp_assembler_scratch_core",
-        "mctp_assembler_scratch_error"
+        "mctp_assembler_scratch_v4_core",
+        "mctp_assembler_scratch_v4_error"
       ],
       "verification_impact": [
         "negative tests",
@@ -1024,15 +1024,15 @@
       ]
     },
     {
-      "name": "mctp_assembler_scratch_security_model",
+      "name": "mctp_assembler_scratch_v4_security_model",
       "kind": "security",
       "source_sections": [
         "security",
         "debug_observability"
       ],
       "rtl_candidates": [
-        "mctp_assembler_scratch_security",
-        "mctp_assembler_scratch_core"
+        "mctp_assembler_scratch_v4_security",
+        "mctp_assembler_scratch_v4_core"
       ],
       "verification_impact": [
         "security bins",
@@ -1042,10 +1042,10 @@
   ],
   "module_contracts": [
     {
-      "name": "mctp_assembler_scratch_axi_write_ingress",
+      "name": "mctp_assembler_scratch_v4_axi_write_ingress",
       "kind": "rtl_module",
-      "rtl_module": "mctp_assembler_scratch_axi_write_ingress",
-      "rtl_file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
+      "rtl_module": "mctp_assembler_scratch_v4_axi_write_ingress",
+      "rtl_file": "rtl/mctp_assembler_scratch_v4_axi_write_ingress.sv",
       "source_sections": [
         "cycle_model",
         "dataflow",
@@ -1262,10 +1262,10 @@
       "blocker": ""
     },
     {
-      "name": "mctp_assembler_scratch_pcie_vdm_parser",
+      "name": "mctp_assembler_scratch_v4_pcie_vdm_parser",
       "kind": "rtl_module",
-      "rtl_module": "mctp_assembler_scratch_pcie_vdm_parser",
-      "rtl_file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
+      "rtl_module": "mctp_assembler_scratch_v4_pcie_vdm_parser",
+      "rtl_file": "rtl/mctp_assembler_scratch_v4_pcie_vdm_parser.sv",
       "source_sections": [
         "custom",
         "error_handling",
@@ -1455,10 +1455,10 @@
       "blocker": ""
     },
     {
-      "name": "mctp_assembler_scratch_mctp_parser",
+      "name": "mctp_assembler_scratch_v4_mctp_parser",
       "kind": "rtl_module",
-      "rtl_module": "mctp_assembler_scratch_mctp_parser",
-      "rtl_file": "rtl/mctp_assembler_scratch_mctp_parser.sv",
+      "rtl_module": "mctp_assembler_scratch_v4_mctp_parser",
+      "rtl_file": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
       "source_sections": [
         "custom",
         "function_model"
@@ -1584,10 +1584,10 @@
       "blocker": ""
     },
     {
-      "name": "mctp_assembler_scratch_context_table",
+      "name": "mctp_assembler_scratch_v4_context_table",
       "kind": "rtl_module",
-      "rtl_module": "mctp_assembler_scratch_context_table",
-      "rtl_file": "rtl/mctp_assembler_scratch_context_table.sv",
+      "rtl_module": "mctp_assembler_scratch_v4_context_table",
+      "rtl_file": "rtl/mctp_assembler_scratch_v4_context_table.sv",
       "source_sections": [
         "fsm",
         "function_model",
@@ -1708,10 +1708,10 @@
       "blocker": ""
     },
     {
-      "name": "mctp_assembler_scratch_sram_packer",
+      "name": "mctp_assembler_scratch_v4_sram_packer",
       "kind": "rtl_module",
-      "rtl_module": "mctp_assembler_scratch_sram_packer",
-      "rtl_file": "rtl/mctp_assembler_scratch_sram_packer.sv",
+      "rtl_module": "mctp_assembler_scratch_v4_sram_packer",
+      "rtl_file": "rtl/mctp_assembler_scratch_v4_sram_packer.sv",
       "source_sections": [
         "dataflow",
         "function_model",
@@ -1897,10 +1897,10 @@
       "blocker": ""
     },
     {
-      "name": "mctp_assembler_scratch_axi_read_egress",
+      "name": "mctp_assembler_scratch_v4_axi_read_egress",
       "kind": "rtl_module",
-      "rtl_module": "mctp_assembler_scratch_axi_read_egress",
-      "rtl_file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
+      "rtl_module": "mctp_assembler_scratch_v4_axi_read_egress",
+      "rtl_file": "rtl/mctp_assembler_scratch_v4_axi_read_egress.sv",
       "source_sections": [
         "cycle_model",
         "function_model",
@@ -2037,10 +2037,10 @@
       "blocker": ""
     },
     {
-      "name": "mctp_assembler_scratch_sram_arbiter",
+      "name": "mctp_assembler_scratch_v4_sram_arbiter",
       "kind": "rtl_module",
-      "rtl_module": "mctp_assembler_scratch_sram_arbiter",
-      "rtl_file": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
+      "rtl_module": "mctp_assembler_scratch_v4_sram_arbiter",
+      "rtl_file": "rtl/mctp_assembler_scratch_v4_sram_arbiter.sv",
       "source_sections": [
         "cycle_model",
         "io_list",
@@ -2091,10 +2091,10 @@
       "blocker": ""
     },
     {
-      "name": "mctp_assembler_scratch_descriptor_queue",
+      "name": "mctp_assembler_scratch_v4_descriptor_queue",
       "kind": "rtl_module",
-      "rtl_module": "mctp_assembler_scratch_descriptor_queue",
-      "rtl_file": "rtl/mctp_assembler_scratch_descriptor_queue.sv",
+      "rtl_module": "mctp_assembler_scratch_v4_descriptor_queue",
+      "rtl_file": "rtl/mctp_assembler_scratch_v4_descriptor_queue.sv",
       "source_sections": [
         "function_model",
         "interrupts",
@@ -2233,10 +2233,10 @@
       "blocker": ""
     },
     {
-      "name": "mctp_assembler_scratch_apb_regfile",
+      "name": "mctp_assembler_scratch_v4_apb_regfile",
       "kind": "rtl_module",
-      "rtl_module": "mctp_assembler_scratch_apb_regfile",
-      "rtl_file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
+      "rtl_module": "mctp_assembler_scratch_v4_apb_regfile",
+      "rtl_file": "rtl/mctp_assembler_scratch_v4_apb_regfile.sv",
       "source_sections": [
         "debug_observability",
         "decomposition",
@@ -2739,10 +2739,10 @@
       "blocker": ""
     },
     {
-      "name": "mctp_assembler_scratch_cdc",
+      "name": "mctp_assembler_scratch_v4_cdc",
       "kind": "rtl_module",
-      "rtl_module": "mctp_assembler_scratch_cdc",
-      "rtl_file": "rtl/mctp_assembler_scratch_cdc.sv",
+      "rtl_module": "mctp_assembler_scratch_v4_cdc",
+      "rtl_file": "rtl/mctp_assembler_scratch_v4_cdc.sv",
       "source_sections": [
         "cdc_requirements",
         "clock_reset_domains",
@@ -2764,10 +2764,10 @@
       "blocker": "module has no function_model, cycle_model, or structural SSOT ownership refs"
     },
     {
-      "name": "mctp_assembler_scratch_param",
+      "name": "mctp_assembler_scratch_v4_param",
       "kind": "rtl_module",
-      "rtl_module": "mctp_assembler_scratch_param",
-      "rtl_file": "rtl/mctp_assembler_scratch_param.vh",
+      "rtl_module": "mctp_assembler_scratch_v4_param",
+      "rtl_file": "rtl/mctp_assembler_scratch_v4_param.vh",
       "source_sections": [
         "parameters"
       ],
@@ -2937,10 +2937,10 @@
       "blocker": ""
     },
     {
-      "name": "mctp_assembler_scratch",
+      "name": "mctp_assembler_scratch_v4",
       "kind": "rtl_module",
-      "rtl_module": "mctp_assembler_scratch",
-      "rtl_file": "rtl/mctp_assembler_scratch.sv",
+      "rtl_module": "mctp_assembler_scratch_v4",
+      "rtl_file": "rtl/mctp_assembler_scratch_v4.sv",
       "source_sections": [
         "dataflow",
         "decomposition",
@@ -2988,19 +2988,19 @@
       "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
     ],
     "locked_artifacts": [
-      "mctp_assembler_scratch/req/",
-      "mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.yaml",
-      "mctp_assembler_scratch/model/functional_model.py",
-      "mctp_assembler_scratch/cov/fcov_plan.json",
-      "mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.yaml#io_list",
-      "mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.yaml#cycle_model"
+      "mctp_assembler_scratch_v4/req/",
+      "mctp_assembler_scratch_v4/yaml/mctp_assembler_scratch_v4.ssot.yaml",
+      "mctp_assembler_scratch_v4/model/functional_model.py",
+      "mctp_assembler_scratch_v4/cov/fcov_plan.json",
+      "mctp_assembler_scratch_v4/yaml/mctp_assembler_scratch_v4.ssot.yaml#io_list",
+      "mctp_assembler_scratch_v4/yaml/mctp_assembler_scratch_v4.ssot.yaml#cycle_model"
     ],
     "llm_editable_artifacts": [
-      "mctp_assembler_scratch/rtl/",
-      "mctp_assembler_scratch/tb/",
-      "mctp_assembler_scratch/sim/",
-      "mctp_assembler_scratch/vectors/",
-      "mctp_assembler_scratch/reports/"
+      "mctp_assembler_scratch_v4/rtl/",
+      "mctp_assembler_scratch_v4/tb/",
+      "mctp_assembler_scratch_v4/sim/",
+      "mctp_assembler_scratch_v4/vectors/",
+      "mctp_assembler_scratch_v4/reports/"
     ],
     "loopable_evidence_points": [
       "traceability gap",

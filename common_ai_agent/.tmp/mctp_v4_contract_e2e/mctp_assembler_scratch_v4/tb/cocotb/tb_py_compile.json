@@ -1,23 +1,23 @@
 {
   "errors": [],
   "files": [
-    "mctp_assembler_scratch/tb/cocotb/__init__.py",
-    "mctp_assembler_scratch/tb/cocotb/agents.py",
-    "mctp_assembler_scratch/tb/cocotb/mctp_contract_stimulus.py",
-    "mctp_assembler_scratch/tb/cocotb/mctp_scenario_stimulus.py",
-    "mctp_assembler_scratch/tb/cocotb/scoreboard.py",
-    "mctp_assembler_scratch/tb/cocotb/sequences.py",
-    "mctp_assembler_scratch/tb/cocotb/tb_coverage.py",
-    "mctp_assembler_scratch/tb/cocotb/test_mctp_assembler_scratch.py",
-    "mctp_assembler_scratch/tb/cocotb/test_mctp_payload_datapath.py",
-    "mctp_assembler_scratch/tb/cocotb/test_runner.py",
-    "mctp_assembler_scratch/tb/cocotb/transactions.py",
-    "mctp_assembler_scratch/tb/cocotb/uvm_env.py"
+    "mctp_assembler_scratch_v4/tb/cocotb/__init__.py",
+    "mctp_assembler_scratch_v4/tb/cocotb/agents.py",
+    "mctp_assembler_scratch_v4/tb/cocotb/mctp_contract_stimulus.py",
+    "mctp_assembler_scratch_v4/tb/cocotb/mctp_scenario_stimulus.py",
+    "mctp_assembler_scratch_v4/tb/cocotb/scoreboard.py",
+    "mctp_assembler_scratch_v4/tb/cocotb/sequences.py",
+    "mctp_assembler_scratch_v4/tb/cocotb/tb_coverage.py",
+    "mctp_assembler_scratch_v4/tb/cocotb/test_mctp_assembler_scratch_v4.py",
+    "mctp_assembler_scratch_v4/tb/cocotb/test_mctp_payload_datapath.py",
+    "mctp_assembler_scratch_v4/tb/cocotb/test_runner.py",
+    "mctp_assembler_scratch_v4/tb/cocotb/transactions.py",
+    "mctp_assembler_scratch_v4/tb/cocotb/uvm_env.py"
   ],
   "generated_at": "2026-06-01T22:41:28Z",
-  "ip": "mctp_assembler_scratch",
+  "ip": "mctp_assembler_scratch_v4",
   "passed": true,
   "schema_version": 1,
-  "tb_dir": "mctp_assembler_scratch/tb/cocotb",
+  "tb_dir": "mctp_assembler_scratch_v4/tb/cocotb",
   "type": "tb_python_compile"
 }

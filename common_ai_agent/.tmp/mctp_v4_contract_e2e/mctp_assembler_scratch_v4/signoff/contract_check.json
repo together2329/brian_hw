@@ -8,8 +8,8 @@
     "signoff/contract_owner_routing.json"
   ],
   "evidence": {
-    "generated_at": "2026-06-03T09:42:37Z",
-    "ip": "mctp_assembler_scratch",
+    "generated_at": "2026-06-03T12:04:55Z",
+    "ip": "mctp_assembler_scratch_v4",
     "issues": [],
     "obligations": [
       {
@@ -1306,8 +1306,8 @@
     },
     "type": "evidence_contract_coverage"
   },
-  "generated_at": "2026-06-03T09:42:37Z",
-  "ip": "mctp_assembler_scratch",
+  "generated_at": "2026-06-03T12:04:55Z",
+  "ip": "mctp_assembler_scratch_v4",
   "owner_route": {},
   "reflection": {
     "contract_refs": [
@@ -1347,8 +1347,8 @@
         "status": "pass"
       }
     ],
-    "generated_at": "2026-06-03T09:42:37Z",
-    "ip": "mctp_assembler_scratch",
+    "generated_at": "2026-06-03T12:04:55Z",
+    "ip": "mctp_assembler_scratch_v4",
     "schema_version": 1,
     "status": "pass",
     "summary": {
@@ -1362,17 +1362,17 @@
     {
       "label": "contract_overlay",
       "returncode": 0,
-      "stdout": "[goal_overlay] wrote 86 goal obligations with wave=sim/mctp_assembler_scratch.vcd"
+      "stdout": "[goal_overlay] wrote 86 goal obligations with wave=sim/mctp_assembler_scratch_v4.vcd"
     },
     {
       "label": "contract_reflection",
       "returncode": 0,
-      "stdout": "[contract_reflection] pass: wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/signoff/contract_reflection_coverage.json"
+      "stdout": "[contract_reflection] pass: wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/.tmp/mctp_v4_contract_e2e/mctp_assembler_scratch_v4/signoff/contract_reflection_coverage.json"
     },
     {
       "label": "evidence_contract",
       "returncode": 0,
-      "stdout": "[evidence_contract] pass: wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/signoff/evidence_contract_coverage.json"
+      "stdout": "[evidence_contract] pass: wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/.tmp/mctp_v4_contract_e2e/mctp_assembler_scratch_v4/signoff/evidence_contract_coverage.json"
     }
   ],
   "schema_version": 1,

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "type": "fl_model_check",
-  "ip": "mctp_assembler_scratch",
+  "ip": "mctp_assembler_scratch_v4",
   "source": "model/functional_model.py",
   "passed": true,
   "self_check": {
@@ -247,19 +247,19 @@
       "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
     ],
     "locked_artifacts": [
-      "mctp_assembler_scratch/req/",
-      "mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.yaml",
-      "mctp_assembler_scratch/model/functional_model.py",
-      "mctp_assembler_scratch/cov/fcov_plan.json",
-      "mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.yaml#io_list",
-      "mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.yaml#cycle_model"
+      "mctp_assembler_scratch_v4/req/",
+      "mctp_assembler_scratch_v4/yaml/mctp_assembler_scratch_v4.ssot.yaml",
+      "mctp_assembler_scratch_v4/model/functional_model.py",
+      "mctp_assembler_scratch_v4/cov/fcov_plan.json",
+      "mctp_assembler_scratch_v4/yaml/mctp_assembler_scratch_v4.ssot.yaml#io_list",
+      "mctp_assembler_scratch_v4/yaml/mctp_assembler_scratch_v4.ssot.yaml#cycle_model"
     ],
     "llm_editable_artifacts": [
-      "mctp_assembler_scratch/rtl/",
-      "mctp_assembler_scratch/tb/",
-      "mctp_assembler_scratch/sim/",
-      "mctp_assembler_scratch/vectors/",
-      "mctp_assembler_scratch/reports/"
+      "mctp_assembler_scratch_v4/rtl/",
+      "mctp_assembler_scratch_v4/tb/",
+      "mctp_assembler_scratch_v4/sim/",
+      "mctp_assembler_scratch_v4/vectors/",
+      "mctp_assembler_scratch_v4/reports/"
     ],
     "loopable_evidence_points": [
       "traceability gap",

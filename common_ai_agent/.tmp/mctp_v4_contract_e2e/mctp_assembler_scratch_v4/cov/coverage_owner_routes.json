@@ -1,6 +1,6 @@
 {
   "type": "coverage_owner_routes",
-  "ip": "mctp_assembler_scratch",
+  "ip": "mctp_assembler_scratch_v4",
   "status": "non_signoff",
   "source": "workflow/coverage/scripts/ssot_coverage_summary.py missing_bins from RTL-observed scoreboard coverage",
   "route_policy": "Coverage is not claimed as passing; every missing bin is owner-routed to sim_debug for Task 11 mismatch classification.",

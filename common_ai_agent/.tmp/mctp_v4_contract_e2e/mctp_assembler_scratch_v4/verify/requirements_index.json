@@ -1,6 +1,6 @@
 {
   "generated_at": "2026-06-03T00:00:00Z",
-  "ip": "mctp_assembler_scratch",
+  "ip": "mctp_assembler_scratch_v4",
   "requirements": [
     {
       "claim": "Accepted MCTP payload bytes are packed contiguously into SRAM and exposed as the assembled payload byte count through descriptor/APB visibility.",
@@ -14,12 +14,12 @@
       "required": true,
       "requirement_id": "REQ_MCTP_PAYLOAD_ASSEMBLY_001",
       "source_refs": [
-        "req/mctp_assembler_scratch_requirements.md#9.4",
-        "yaml/mctp_assembler_scratch.ssot.yaml:function_model.transactions.FM_ASSEMBLE_FRAGMENT",
-        "yaml/mctp_assembler_scratch.ssot.yaml:function_model.transactions.FM_SRAM_PACK_WRITE",
-        "yaml/mctp_assembler_scratch.ssot.yaml:cycle_model.handshake_rules.sram_ready_valid",
-        "yaml/mctp_assembler_scratch.ssot.yaml:cycle_model.ordering.descriptor_after_sram_flush",
-        "yaml/mctp_assembler_scratch.ssot.yaml:registers.register_list.Q_PAYLOAD_COUNT"
+        "req/mctp_assembler_scratch_v4_requirements.md#9.4",
+        "yaml/mctp_assembler_scratch_v4.ssot.yaml:function_model.transactions.FM_ASSEMBLE_FRAGMENT",
+        "yaml/mctp_assembler_scratch_v4.ssot.yaml:function_model.transactions.FM_SRAM_PACK_WRITE",
+        "yaml/mctp_assembler_scratch_v4.ssot.yaml:cycle_model.handshake_rules.sram_ready_valid",
+        "yaml/mctp_assembler_scratch_v4.ssot.yaml:cycle_model.ordering.descriptor_after_sram_flush",
+        "yaml/mctp_assembler_scratch_v4.ssot.yaml:registers.register_list.Q_PAYLOAD_COUNT"
       ]
     },
     {
@@ -121,6 +121,6 @@
     }
   ],
   "schema_version": 1,
-  "source_of_truth": "yaml/mctp_assembler_scratch.ssot.yaml",
+  "source_of_truth": "yaml/mctp_assembler_scratch_v4.ssot.yaml",
   "type": "requirements_index"
 }

@@ -1,9 +1,9 @@
 // Auto-generated from SSOT cycle_model. Do not hand-edit.
-// Source: mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.yaml
+// Source: mctp_assembler_scratch_v4/yaml/mctp_assembler_scratch_v4.ssot.yaml
 // Schema: protocol_assertions/v1
 // Bind to DUT under simulation. Clock: axi_aclk; reset: axi_aresetn
 
-module mctp_assembler_scratch_protocol_assertions (
+module mctp_assembler_scratch_v4_protocol_assertions (
     input logic axi_aclk,
     input logic axi_aresetn
     /* Bind additional DUT signals via downstream `bind` directive. */

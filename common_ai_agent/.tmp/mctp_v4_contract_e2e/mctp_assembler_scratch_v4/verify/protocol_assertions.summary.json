@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "type": "protocol_assertions_summary",
-  "ip": "mctp_assembler_scratch",
-  "source": "mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.yaml",
+  "ip": "mctp_assembler_scratch_v4",
+  "source": "mctp_assembler_scratch_v4/yaml/mctp_assembler_scratch_v4.ssot.yaml",
   "assertions_total": 8,
   "output": "verify/protocol_assertions.sva"
 }

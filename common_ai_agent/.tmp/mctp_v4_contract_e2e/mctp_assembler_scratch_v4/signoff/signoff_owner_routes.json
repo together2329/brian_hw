@@ -1,5 +1,5 @@
 {
-  "ip": "mctp_assembler_scratch",
+  "ip": "mctp_assembler_scratch_v4",
   "route_summary": {
     "coverage_owner_counts": {
       "sim_debug": 57
@@ -34,7 +34,7 @@
           "category": "rtl_gate.rtl_gen",
           "id": "RTL-0007",
           "owner": "rtl-gen",
-          "owner_module": "mctp_assembler_scratch",
+          "owner_module": "mctp_assembler_scratch_v4",
           "reason": "19 static-evidence-required task(s) still lack DUT RTL evidence.",
           "source_ref": "quality_gates.rtl_gen.static_rtl_evidence"
         },
@@ -43,8 +43,8 @@
           "category": "rtl_gate.rtl_gen",
           "id": "RTL-0008",
           "owner": "rtl-gen",
-          "owner_module": "mctp_assembler_scratch",
-          "reason": "1 owner logic structure issue(s) remain. mctp_assembler_scratch_sram_arbiter: State/register/memory/FSM owner lacks sequential/procedural update evidence",
+          "owner_module": "mctp_assembler_scratch_v4",
+          "reason": "1 owner logic structure issue(s) remain. mctp_assembler_scratch_v4_sram_arbiter: State/register/memory/FSM owner lacks sequential/procedural update evidence",
           "source_ref": "quality_gates.rtl_gen.owner_logic_structure_evidence"
         },
         {
@@ -52,8 +52,8 @@
           "category": "rtl_gate.rtl_gen",
           "id": "RTL-0016",
           "owner": "rtl-gen",
-          "owner_module": "mctp_assembler_scratch",
-          "reason": "1 SSOT connection contract issue(s) remain. mctp_assembler_scratch_sram_packer: SSOT connection contract port is not connected by the RTL named port map",
+          "owner_module": "mctp_assembler_scratch_v4",
+          "reason": "1 SSOT connection contract issue(s) remain. mctp_assembler_scratch_v4_sram_packer: SSOT connection contract port is not connected by the RTL named port map",
           "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence"
         },
         {
@@ -61,7 +61,7 @@
           "category": "rtl_gate.rtl_gen",
           "id": "RTL-0019",
           "owner": "rtl-gen",
-          "owner_module": "mctp_assembler_scratch",
+          "owner_module": "mctp_assembler_scratch_v4",
           "reason": "22 required non-closure TODO(s) remain open.",
           "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure"
         },
@@ -70,7 +70,7 @@
           "category": "cycle_model.handshake_rules",
           "id": "RTL-0299",
           "owner": "rtl-gen",
-          "owner_module": "mctp_assembler_scratch",
+          "owner_module": "mctp_assembler_scratch_v4",
           "reason": "Required RTL static evidence is missing.",
           "source_ref": "cycle_model.handshake_rules.apb_access"
         },
@@ -79,7 +79,7 @@
           "category": "registers.field",
           "id": "RTL-0325",
           "owner": "rtl-gen",
-          "owner_module": "mctp_assembler_scratch_apb_regfile",
+          "owner_module": "mctp_assembler_scratch_v4_apb_regfile",
           "reason": "Required RTL static evidence is missing.",
           "source_ref": "registers.register_list.GLOBAL_STATUS.fields.any_error"
         },
@@ -88,7 +88,7 @@
           "category": "registers.field",
           "id": "RTL-0328",
           "owner": "rtl-gen",
-          "owner_module": "mctp_assembler_scratch_apb_regfile",
+          "owner_module": "mctp_assembler_scratch_v4_apb_regfile",
           "reason": "Required RTL static evidence is missing.",
           "source_ref": "registers.register_list.IRQ_STATUS.fields.desc_pending"
         },
@@ -97,7 +97,7 @@
           "category": "registers.field",
           "id": "RTL-0340",
           "owner": "rtl-gen",
-          "owner_module": "mctp_assembler_scratch_apb_regfile",
+          "owner_module": "mctp_assembler_scratch_v4_apb_regfile",
           "reason": "Required RTL static evidence is missing.",
           "source_ref": "registers.register_list.PACKET_DROP_COUNT.fields.value"
         },
@@ -106,7 +106,7 @@
           "category": "registers.field",
           "id": "RTL-0342",
           "owner": "rtl-gen",
-          "owner_module": "mctp_assembler_scratch_apb_regfile",
+          "owner_module": "mctp_assembler_scratch_v4_apb_regfile",
           "reason": "Required RTL static evidence is missing.",
           "source_ref": "registers.register_list.ASSEMBLY_DROP_COUNT.fields.value"
         },
@@ -115,7 +115,7 @@
           "category": "registers.field",
           "id": "RTL-0354",
           "owner": "rtl-gen",
-          "owner_module": "mctp_assembler_scratch_apb_regfile",
+          "owner_module": "mctp_assembler_scratch_v4_apb_regfile",
           "reason": "Required RTL static evidence is missing.",
           "source_ref": "registers.register_list.Q_KEY.fields.source_eid"
         },
@@ -124,7 +124,7 @@
           "category": "registers.field",
           "id": "RTL-0355",
           "owner": "rtl-gen",
-          "owner_module": "mctp_assembler_scratch_apb_regfile",
+          "owner_module": "mctp_assembler_scratch_v4_apb_regfile",
           "reason": "Required RTL static evidence is missing.",
           "source_ref": "registers.register_list.Q_KEY.fields.destination_eid"
         },
@@ -133,7 +133,7 @@
           "category": "registers.field",
           "id": "RTL-0356",
           "owner": "rtl-gen",
-          "owner_module": "mctp_assembler_scratch_apb_regfile",
+          "owner_module": "mctp_assembler_scratch_v4_apb_regfile",
           "reason": "Required RTL static evidence is missing.",
           "source_ref": "registers.register_list.Q_KEY.fields.tag_owner"
         },
@@ -142,7 +142,7 @@
           "category": "registers.field",
           "id": "RTL-0357",
           "owner": "rtl-gen",
-          "owner_module": "mctp_assembler_scratch_apb_regfile",
+          "owner_module": "mctp_assembler_scratch_v4_apb_regfile",
           "reason": "Required RTL static evidence is missing.",
           "source_ref": "registers.register_list.Q_KEY.fields.message_tag"
         },
@@ -151,7 +151,7 @@
           "category": "registers.field",
           "id": "RTL-0358",
           "owner": "rtl-gen",
-          "owner_module": "mctp_assembler_scratch_apb_regfile",
+          "owner_module": "mctp_assembler_scratch_v4_apb_regfile",
           "reason": "Required RTL static evidence is missing.",
           "source_ref": "registers.register_list.Q_KEY.fields.message_type"
         },
@@ -160,7 +160,7 @@
           "category": "fsm.state",
           "id": "RTL-0378",
           "owner": "rtl-gen",
-          "owner_module": "mctp_assembler_scratch_context_table",
+          "owner_module": "mctp_assembler_scratch_v4_context_table",
           "reason": "Required RTL static evidence is missing.",
           "source_ref": "fsm.context_fsm.states.state_3"
         },
@@ -169,7 +169,7 @@
           "category": "features.item",
           "id": "RTL-0388",
           "owner": "rtl-gen",
-          "owner_module": "mctp_assembler_scratch_apb_regfile",
+          "owner_module": "mctp_assembler_scratch_v4_apb_regfile",
           "reason": "Required RTL static evidence is missing.",
           "source_ref": "features.error_policy"
         },
@@ -178,7 +178,7 @@
           "category": "dataflow.sequence",
           "id": "RTL-0390",
           "owner": "rtl-gen",
-          "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+          "owner_module": "mctp_assembler_scratch_v4_axi_write_ingress",
           "reason": "Required RTL static evidence is missing.",
           "source_ref": "dataflow.sequence.sequence_1"
         },
@@ -187,7 +187,7 @@
           "category": "dataflow.sequence",
           "id": "RTL-0391",
           "owner": "rtl-gen",
-          "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+          "owner_module": "mctp_assembler_scratch_v4_axi_write_ingress",
           "reason": "Required RTL static evidence is missing.",
           "source_ref": "dataflow.sequence.sequence_2"
         },
@@ -196,7 +196,7 @@
           "category": "dataflow.sequence",
           "id": "RTL-0392",
           "owner": "rtl-gen",
-          "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+          "owner_module": "mctp_assembler_scratch_v4_axi_write_ingress",
           "reason": "Required RTL static evidence is missing.",
           "source_ref": "dataflow.sequence.sequence_3"
         },
@@ -205,7 +205,7 @@
           "category": "dataflow.sequence",
           "id": "RTL-0393",
           "owner": "rtl-gen",
-          "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+          "owner_module": "mctp_assembler_scratch_v4_axi_write_ingress",
           "reason": "Required RTL static evidence is missing.",
           "source_ref": "dataflow.sequence.sequence_4"
         },
@@ -214,7 +214,7 @@
           "category": "dataflow.sequence",
           "id": "RTL-0394",
           "owner": "rtl-gen",
-          "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+          "owner_module": "mctp_assembler_scratch_v4_axi_write_ingress",
           "reason": "Required RTL static evidence is missing.",
           "source_ref": "dataflow.sequence.sequence_5"
         },
@@ -223,7 +223,7 @@
           "category": "dataflow.sequence",
           "id": "RTL-0395",
           "owner": "rtl-gen",
-          "owner_module": "mctp_assembler_scratch_axi_write_ingress",
+          "owner_module": "mctp_assembler_scratch_v4_axi_write_ingress",
           "reason": "Required RTL static evidence is missing.",
           "source_ref": "dataflow.sequence.sequence_6"
         },
@@ -232,7 +232,7 @@
           "category": "security.assets",
           "id": "RTL-0400",
           "owner": "rtl-gen",
-          "owner_module": "mctp_assembler_scratch_descriptor_queue",
+          "owner_module": "mctp_assembler_scratch_v4_descriptor_queue",
           "reason": "Required RTL static evidence is missing.",
           "source_ref": "security.assets.asset_1"
         }

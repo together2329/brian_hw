@@ -1,0 +1,1376 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 5,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 18,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+      "name": "mctp_assembler_scratch_v4_mctp_parser",
+      "refs": [
+        "custom",
+        "custom.mctp_transport_fields",
+        "function_model",
+        "function_model.transactions.FM_PARSE_MCTP"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/mctp_assembler_scratch_v4_axi_write_ingress.sv",
+        "name": "mctp_assembler_scratch_v4_axi_write_ingress",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_v4_pcie_vdm_parser.sv",
+        "name": "mctp_assembler_scratch_v4_pcie_vdm_parser",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+        "name": "mctp_assembler_scratch_v4_mctp_parser",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_v4_context_table.sv",
+        "name": "mctp_assembler_scratch_v4_context_table",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_v4_sram_packer.sv",
+        "name": "mctp_assembler_scratch_v4_sram_packer",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_v4_axi_read_egress.sv",
+        "name": "mctp_assembler_scratch_v4_axi_read_egress",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_v4_sram_arbiter.sv",
+        "name": "mctp_assembler_scratch_v4_sram_arbiter",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_v4_descriptor_queue.sv",
+        "name": "mctp_assembler_scratch_v4_descriptor_queue",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_v4_apb_regfile.sv",
+        "name": "mctp_assembler_scratch_v4_apb_regfile",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_v4_cdc.sv",
+        "name": "mctp_assembler_scratch_v4_cdc",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_v4_param.vh",
+        "name": "mctp_assembler_scratch_v4_param",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_v4.sv",
+        "name": "mctp_assembler_scratch_v4",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "mctp_assembler_scratch_v4",
+  "kind": "module",
+  "owner_file": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+  "owner_module": "mctp_assembler_scratch_v4_mctp_parser",
+  "packet_id": "module__mctp_assembler_scratch_v4_mctp_parser",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "equivalence.module": 1,
+      "function_model.output": 7,
+      "function_model.output_rule": 1,
+      "function_model.precondition": 1,
+      "function_model.side_effect": 1,
+      "function_model.state_update": 6,
+      "function_model.transaction": 1
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 18,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 18,
+    "source_refs": [
+      "function_model.transactions.FM_PARSE_MCTP",
+      "function_model.transactions.FM_PARSE_MCTP.preconditions.precondition_0",
+      "function_model.transactions.FM_PARSE_MCTP.outputs.output_0",
+      "function_model.transactions.FM_PARSE_MCTP.outputs.ctx_source_eid",
+      "function_model.transactions.FM_PARSE_MCTP.outputs.ctx_destination_eid",
+      "function_model.transactions.FM_PARSE_MCTP.outputs.ctx_tag_owner",
+      "function_model.transactions.FM_PARSE_MCTP.outputs.ctx_message_tag",
+      "function_model.transactions.FM_PARSE_MCTP.outputs.ctx_message_type",
+      "function_model.transactions.FM_PARSE_MCTP.outputs.ctx_last_seq",
+      "function_model.transactions.FM_PARSE_MCTP.output_rules.debug_context_key",
+      "function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_source_eid",
+      "function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_destination_eid",
+      "function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_tag_owner",
+      "function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_message_tag",
+      "function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_message_type",
+      "function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_last_seq",
+      "function_model.transactions.FM_PARSE_MCTP.side_effects.side_effect_0",
+      "sub_modules.mctp_assembler_scratch_v4_mctp_parser.module_equivalence"
+    ],
+    "status_counts": {
+      "pass": 18
+    },
+    "task_count": 18
+  },
+  "tasks": [
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_PARSE_MCTP",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_PARSE_MCTP",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_v4_mctp_parser.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_PARSE_MCTP.\nOwner: mctp_assembler_scratch_v4_mctp_parser in rtl/mctp_assembler_scratch_v4_mctp_parser.sv via function_model.transactions.FM_PARSE_MCTP.\nSSOT item context: id=FM_PARSE_MCTP; name=Decode MCTP transport header and context key.",
+      "evidence_terms": [],
+      "id": "RTL-0158",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+      "owner_module": "mctp_assembler_scratch_v4_mctp_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PARSE_MCTP",
+      "ssot_context": {
+        "id": "FM_PARSE_MCTP",
+        "name": "Decode MCTP transport header and context key"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PARSE_MCTP"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_PARSE_MCTP: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PARSE_MCTP.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_v4_mctp_parser.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PARSE_MCTP.preconditions.precondition_0.\nOwner: mctp_assembler_scratch_v4_mctp_parser in rtl/mctp_assembler_scratch_v4_mctp_parser.sv via function_model.transactions.FM_PARSE_MCTP.\nSSOT item context: value=vdm_supported.",
+      "evidence_terms": [
+        "supported",
+        "vdm",
+        "vdm_supported"
+      ],
+      "id": "RTL-0159",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+      "owner_module": "mctp_assembler_scratch_v4_mctp_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PARSE_MCTP.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "vdm_supported"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PARSE_MCTP.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 1,
+        "matched_terms": [
+          "vdm"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "supported",
+          "vdm",
+          "vdm_supported"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_PARSE_MCTP: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PARSE_MCTP.outputs.output_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_v4_mctp_parser.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PARSE_MCTP.outputs.output_0.\nOwner: mctp_assembler_scratch_v4_mctp_parser in rtl/mctp_assembler_scratch_v4_mctp_parser.sv via function_model.transactions.FM_PARSE_MCTP.\nSSOT item context: value=debug_context_key.",
+      "evidence_terms": [
+        "context",
+        "debug",
+        "debug_context_key",
+        "key"
+      ],
+      "id": "RTL-0160",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+      "owner_module": "mctp_assembler_scratch_v4_mctp_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PARSE_MCTP.outputs.output_0",
+      "ssot_context": {
+        "value": "debug_context_key"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PARSE_MCTP.outputs.output_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 4,
+        "matched_terms": [
+          "context",
+          "debug",
+          "debug_context_key",
+          "key"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "context",
+          "debug",
+          "debug_context_key",
+          "key"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_PARSE_MCTP: ctx_source_eid",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PARSE_MCTP.outputs.ctx_source_eid",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+        "function_model.transactions.FM_PARSE_MCTP.outputs.ctx_source_eid RTL expression implements SSOT expression source_eid"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PARSE_MCTP.outputs.ctx_source_eid.\nOwner: mctp_assembler_scratch_v4_mctp_parser in rtl/mctp_assembler_scratch_v4_mctp_parser.sv via function_model.transactions.FM_PARSE_MCTP.\nSSOT item context: state=ctx_source_eid; expr=source_eid.",
+      "evidence_terms": [
+        "ctx",
+        "ctx_source_eid",
+        "eid",
+        "source",
+        "source_eid"
+      ],
+      "id": "RTL-0161",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+      "owner_module": "mctp_assembler_scratch_v4_mctp_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PARSE_MCTP.outputs.ctx_source_eid",
+      "ssot_context": {
+        "expr": "source_eid",
+        "state": "ctx_source_eid"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PARSE_MCTP.outputs.ctx_source_eid"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "eid",
+          "source",
+          "source_eid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_source_eid",
+          "eid",
+          "source",
+          "source_eid"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_PARSE_MCTP: ctx_destination_eid",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PARSE_MCTP.outputs.ctx_destination_eid",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+        "function_model.transactions.FM_PARSE_MCTP.outputs.ctx_destination_eid RTL expression implements SSOT expression destination_eid"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PARSE_MCTP.outputs.ctx_destination_eid.\nOwner: mctp_assembler_scratch_v4_mctp_parser in rtl/mctp_assembler_scratch_v4_mctp_parser.sv via function_model.transactions.FM_PARSE_MCTP.\nSSOT item context: state=ctx_destination_eid; expr=destination_eid.",
+      "evidence_terms": [
+        "ctx",
+        "ctx_destination_eid",
+        "destination",
+        "destination_eid",
+        "eid"
+      ],
+      "id": "RTL-0162",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+      "owner_module": "mctp_assembler_scratch_v4_mctp_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PARSE_MCTP.outputs.ctx_destination_eid",
+      "ssot_context": {
+        "expr": "destination_eid",
+        "state": "ctx_destination_eid"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PARSE_MCTP.outputs.ctx_destination_eid"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "destination",
+          "destination_eid",
+          "eid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_destination_eid",
+          "destination",
+          "destination_eid",
+          "eid"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_PARSE_MCTP: ctx_tag_owner",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PARSE_MCTP.outputs.ctx_tag_owner",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+        "function_model.transactions.FM_PARSE_MCTP.outputs.ctx_tag_owner RTL expression implements SSOT expression tag_owner"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PARSE_MCTP.outputs.ctx_tag_owner.\nOwner: mctp_assembler_scratch_v4_mctp_parser in rtl/mctp_assembler_scratch_v4_mctp_parser.sv via function_model.transactions.FM_PARSE_MCTP.\nSSOT item context: state=ctx_tag_owner; expr=tag_owner.",
+      "evidence_terms": [
+        "ctx",
+        "ctx_tag_owner",
+        "owner",
+        "tag",
+        "tag_owner"
+      ],
+      "id": "RTL-0163",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+      "owner_module": "mctp_assembler_scratch_v4_mctp_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PARSE_MCTP.outputs.ctx_tag_owner",
+      "ssot_context": {
+        "expr": "tag_owner",
+        "state": "ctx_tag_owner"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PARSE_MCTP.outputs.ctx_tag_owner"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "owner",
+          "tag",
+          "tag_owner"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_tag_owner",
+          "owner",
+          "tag",
+          "tag_owner"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_PARSE_MCTP: ctx_message_tag",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PARSE_MCTP.outputs.ctx_message_tag",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+        "function_model.transactions.FM_PARSE_MCTP.outputs.ctx_message_tag RTL expression implements SSOT expression message_tag"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PARSE_MCTP.outputs.ctx_message_tag.\nOwner: mctp_assembler_scratch_v4_mctp_parser in rtl/mctp_assembler_scratch_v4_mctp_parser.sv via function_model.transactions.FM_PARSE_MCTP.\nSSOT item context: state=ctx_message_tag; expr=message_tag.",
+      "evidence_terms": [
+        "ctx",
+        "ctx_message_tag",
+        "message",
+        "message_tag",
+        "tag"
+      ],
+      "id": "RTL-0164",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+      "owner_module": "mctp_assembler_scratch_v4_mctp_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PARSE_MCTP.outputs.ctx_message_tag",
+      "ssot_context": {
+        "expr": "message_tag",
+        "state": "ctx_message_tag"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PARSE_MCTP.outputs.ctx_message_tag"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "message",
+          "message_tag",
+          "tag"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_message_tag",
+          "message",
+          "message_tag",
+          "tag"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_PARSE_MCTP: ctx_message_type",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PARSE_MCTP.outputs.ctx_message_type",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+        "function_model.transactions.FM_PARSE_MCTP.outputs.ctx_message_type RTL expression implements SSOT expression message_type"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PARSE_MCTP.outputs.ctx_message_type.\nOwner: mctp_assembler_scratch_v4_mctp_parser in rtl/mctp_assembler_scratch_v4_mctp_parser.sv via function_model.transactions.FM_PARSE_MCTP.\nSSOT item context: state=ctx_message_type; expr=message_type.",
+      "evidence_terms": [
+        "ctx",
+        "ctx_message_type",
+        "message",
+        "message_type",
+        "type"
+      ],
+      "id": "RTL-0165",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+      "owner_module": "mctp_assembler_scratch_v4_mctp_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PARSE_MCTP.outputs.ctx_message_type",
+      "ssot_context": {
+        "expr": "message_type",
+        "state": "ctx_message_type"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PARSE_MCTP.outputs.ctx_message_type"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "message",
+          "message_type",
+          "type"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_message_type",
+          "message",
+          "message_type",
+          "type"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_PARSE_MCTP: ctx_last_seq",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PARSE_MCTP.outputs.ctx_last_seq",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+        "function_model.transactions.FM_PARSE_MCTP.outputs.ctx_last_seq RTL expression implements SSOT expression packet_seq"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PARSE_MCTP.outputs.ctx_last_seq.\nOwner: mctp_assembler_scratch_v4_mctp_parser in rtl/mctp_assembler_scratch_v4_mctp_parser.sv via function_model.transactions.FM_PARSE_MCTP.\nSSOT item context: state=ctx_last_seq; expr=packet_seq.",
+      "evidence_terms": [
+        "ctx",
+        "ctx_last_seq",
+        "last",
+        "packet",
+        "packet_seq",
+        "seq"
+      ],
+      "id": "RTL-0166",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+      "owner_module": "mctp_assembler_scratch_v4_mctp_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PARSE_MCTP.outputs.ctx_last_seq",
+      "ssot_context": {
+        "expr": "packet_seq",
+        "state": "ctx_last_seq"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PARSE_MCTP.outputs.ctx_last_seq"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 4,
+        "matched_terms": [
+          "last",
+          "packet",
+          "packet_seq",
+          "seq"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_last_seq",
+          "last",
+          "packet",
+          "packet_seq",
+          "seq"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_PARSE_MCTP: debug_context_key",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PARSE_MCTP.output_rules.debug_context_key",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+        "debug_context_key width matches SSOT value 18",
+        "debug_context_key RTL expression implements SSOT expression context_key",
+        "DUT port debug_context_key is the implementation/observation point for debug_context_key",
+        "debug_context_key is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PARSE_MCTP.output_rules.debug_context_key.\nOwner: mctp_assembler_scratch_v4_mctp_parser in rtl/mctp_assembler_scratch_v4_mctp_parser.sv via function_model.transactions.FM_PARSE_MCTP.\nSSOT item context: name=debug_context_key; port=debug_context_key; expr=context_key; width=18.",
+      "evidence_terms": [
+        "context",
+        "context_key",
+        "debug",
+        "debug_context_key",
+        "key"
+      ],
+      "id": "RTL-0167",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+      "owner_module": "mctp_assembler_scratch_v4_mctp_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PARSE_MCTP.output_rules.debug_context_key",
+      "ssot_context": {
+        "expr": "context_key",
+        "name": "debug_context_key",
+        "port": "debug_context_key",
+        "width": "18"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PARSE_MCTP.output_rules.debug_context_key"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 5,
+        "matched_terms": [
+          "context",
+          "context_key",
+          "debug",
+          "debug_context_key",
+          "key"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "context",
+          "context_key",
+          "debug",
+          "debug_context_key",
+          "key"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_PARSE_MCTP: ctx_source_eid",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_source_eid",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+        "ctx_source_eid width matches SSOT value 8",
+        "ctx_source_eid RTL expression implements SSOT expression source_eid",
+        "ctx_source_eid updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_source_eid.\nOwner: mctp_assembler_scratch_v4_mctp_parser in rtl/mctp_assembler_scratch_v4_mctp_parser.sv via function_model.transactions.FM_PARSE_MCTP.\nSSOT item context: name=ctx_source_eid; expr=source_eid; width=8.",
+      "evidence_terms": [
+        "ctx",
+        "ctx_source_eid",
+        "eid",
+        "source",
+        "source_eid"
+      ],
+      "id": "RTL-0168",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+      "owner_module": "mctp_assembler_scratch_v4_mctp_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_source_eid",
+      "ssot_context": {
+        "expr": "source_eid",
+        "name": "ctx_source_eid",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_source_eid"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "eid",
+          "source",
+          "source_eid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_source_eid",
+          "eid",
+          "source",
+          "source_eid"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_PARSE_MCTP: ctx_destination_eid",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_destination_eid",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+        "ctx_destination_eid width matches SSOT value 8",
+        "ctx_destination_eid RTL expression implements SSOT expression destination_eid",
+        "ctx_destination_eid updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_destination_eid.\nOwner: mctp_assembler_scratch_v4_mctp_parser in rtl/mctp_assembler_scratch_v4_mctp_parser.sv via function_model.transactions.FM_PARSE_MCTP.\nSSOT item context: name=ctx_destination_eid; expr=destination_eid; width=8.",
+      "evidence_terms": [
+        "ctx",
+        "ctx_destination_eid",
+        "destination",
+        "destination_eid",
+        "eid"
+      ],
+      "id": "RTL-0169",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+      "owner_module": "mctp_assembler_scratch_v4_mctp_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_destination_eid",
+      "ssot_context": {
+        "expr": "destination_eid",
+        "name": "ctx_destination_eid",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_destination_eid"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "destination",
+          "destination_eid",
+          "eid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_destination_eid",
+          "destination",
+          "destination_eid",
+          "eid"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_PARSE_MCTP: ctx_tag_owner",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_tag_owner",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+        "ctx_tag_owner width matches SSOT value 1",
+        "ctx_tag_owner RTL expression implements SSOT expression tag_owner",
+        "ctx_tag_owner updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_tag_owner.\nOwner: mctp_assembler_scratch_v4_mctp_parser in rtl/mctp_assembler_scratch_v4_mctp_parser.sv via function_model.transactions.FM_PARSE_MCTP.\nSSOT item context: name=ctx_tag_owner; expr=tag_owner; width=1.",
+      "evidence_terms": [
+        "ctx",
+        "ctx_tag_owner",
+        "owner",
+        "tag",
+        "tag_owner"
+      ],
+      "id": "RTL-0170",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+      "owner_module": "mctp_assembler_scratch_v4_mctp_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_tag_owner",
+      "ssot_context": {
+        "expr": "tag_owner",
+        "name": "ctx_tag_owner",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_tag_owner"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "owner",
+          "tag",
+          "tag_owner"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_tag_owner",
+          "owner",
+          "tag",
+          "tag_owner"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_PARSE_MCTP: ctx_message_tag",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_message_tag",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+        "ctx_message_tag width matches SSOT value 3",
+        "ctx_message_tag RTL expression implements SSOT expression message_tag",
+        "ctx_message_tag updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_message_tag.\nOwner: mctp_assembler_scratch_v4_mctp_parser in rtl/mctp_assembler_scratch_v4_mctp_parser.sv via function_model.transactions.FM_PARSE_MCTP.\nSSOT item context: name=ctx_message_tag; expr=message_tag; width=3.",
+      "evidence_terms": [
+        "ctx",
+        "ctx_message_tag",
+        "message",
+        "message_tag",
+        "tag"
+      ],
+      "id": "RTL-0171",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+      "owner_module": "mctp_assembler_scratch_v4_mctp_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_message_tag",
+      "ssot_context": {
+        "expr": "message_tag",
+        "name": "ctx_message_tag",
+        "width": "3"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_message_tag"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "message",
+          "message_tag",
+          "tag"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_message_tag",
+          "message",
+          "message_tag",
+          "tag"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_PARSE_MCTP: ctx_message_type",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_message_type",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+        "ctx_message_type width matches SSOT value 8",
+        "ctx_message_type RTL expression implements SSOT expression message_type",
+        "ctx_message_type updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_message_type.\nOwner: mctp_assembler_scratch_v4_mctp_parser in rtl/mctp_assembler_scratch_v4_mctp_parser.sv via function_model.transactions.FM_PARSE_MCTP.\nSSOT item context: name=ctx_message_type; expr=message_type; width=8.",
+      "evidence_terms": [
+        "ctx",
+        "ctx_message_type",
+        "message",
+        "message_type",
+        "type"
+      ],
+      "id": "RTL-0172",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+      "owner_module": "mctp_assembler_scratch_v4_mctp_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_message_type",
+      "ssot_context": {
+        "expr": "message_type",
+        "name": "ctx_message_type",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_message_type"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "message",
+          "message_type",
+          "type"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_message_type",
+          "message",
+          "message_type",
+          "type"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_PARSE_MCTP: ctx_last_seq",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_last_seq",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+        "ctx_last_seq width matches SSOT value 2",
+        "ctx_last_seq RTL expression implements SSOT expression packet_seq",
+        "ctx_last_seq updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_last_seq.\nOwner: mctp_assembler_scratch_v4_mctp_parser in rtl/mctp_assembler_scratch_v4_mctp_parser.sv via function_model.transactions.FM_PARSE_MCTP.\nSSOT item context: name=ctx_last_seq; expr=packet_seq; width=2.",
+      "evidence_terms": [
+        "ctx",
+        "ctx_last_seq",
+        "last",
+        "packet",
+        "packet_seq",
+        "seq"
+      ],
+      "id": "RTL-0173",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+      "owner_module": "mctp_assembler_scratch_v4_mctp_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_last_seq",
+      "ssot_context": {
+        "expr": "packet_seq",
+        "name": "ctx_last_seq",
+        "width": "2"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PARSE_MCTP.state_updates.ctx_last_seq"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 4,
+        "matched_terms": [
+          "last",
+          "packet",
+          "packet_seq",
+          "seq"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctx",
+          "ctx_last_seq",
+          "last",
+          "packet",
+          "packet_seq",
+          "seq"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_PARSE_MCTP: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PARSE_MCTP.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+        "DUT port [\"debug_context_key\"] is the implementation/observation point for Decode MCTP transport header and context key"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PARSE_MCTP.side_effects.side_effect_0.\nOwner: mctp_assembler_scratch_v4_mctp_parser in rtl/mctp_assembler_scratch_v4_mctp_parser.sv via function_model.transactions.FM_PARSE_MCTP.\nSSOT item context: id=FM_PARSE_MCTP; name=Decode MCTP transport header and context key; port=[\"debug_context_key\"]; signal=[\"context key prepared before allocation or lookup\", \"source_eid\", \"destination_eid\", \"tag_owner\", \"message_tag\", \"me...; state=[\"ctx_source_eid\", \"ctx_destination_eid\", \"ctx_tag_owner\", \"ctx_message_tag\", \"ctx_message_type\", \"ctx_last_seq\"].",
+      "evidence_terms": [
+        "context",
+        "ctx",
+        "ctx_destination_eid",
+        "ctx_last_seq",
+        "ctx_message_tag",
+        "ctx_message_type",
+        "ctx_source_eid",
+        "ctx_tag_owner",
+        "debug",
+        "debug_context_key",
+        "destination",
+        "destination_eid",
+        "eid",
+        "eom",
+        "key",
+        "last"
+      ],
+      "id": "RTL-0174",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+      "owner_module": "mctp_assembler_scratch_v4_mctp_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PARSE_MCTP.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "FM_PARSE_MCTP",
+        "name": "Decode MCTP transport header and context key",
+        "port": "[\"debug_context_key\"]",
+        "signal": "[\"context key prepared before allocation or lookup\", \"source_eid\", \"destination_eid\", \"tag_owner\", \"message_tag\", \"me...",
+        "state": "[\"ctx_source_eid\", \"ctx_destination_eid\", \"ctx_tag_owner\", \"ctx_message_tag\", \"ctx_message_type\", \"ctx_last_seq\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PARSE_MCTP.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 9,
+        "matched_terms": [
+          "context",
+          "debug",
+          "debug_context_key",
+          "destination",
+          "destination_eid",
+          "eid",
+          "eom",
+          "key",
+          "last"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "context",
+          "ctx",
+          "ctx_destination_eid",
+          "ctx_last_seq",
+          "ctx_message_tag",
+          "ctx_message_type",
+          "ctx_source_eid",
+          "ctx_tag_owner",
+          "debug",
+          "debug_context_key",
+          "destination",
+          "destination_eid",
+          "eid",
+          "eom",
+          "key",
+          "last"
+        ],
+        "source_scope": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module mctp_assembler_scratch_v4_mctp_parser is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.mctp_assembler_scratch_v4_mctp_parser.module_equivalence",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_v4_mctp_parser.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.mctp_assembler_scratch_v4_mctp_parser.module_equivalence.\nOwner: mctp_assembler_scratch_v4_mctp_parser in rtl/mctp_assembler_scratch_v4_mctp_parser.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0423",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+      "owner_module": "mctp_assembler_scratch_v4_mctp_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.mctp_assembler_scratch_v4_mctp_parser.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.mctp_assembler_scratch_v4_mctp_parser.module_equivalence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "a6a5a0fbc9df7cbf10ab017b46631a16a00f0b454b4cee41da9ba28dbc65043d",
+  "top": "mctp_assembler_scratch_v4",
+  "type": "rtl_authoring_packet"
+}

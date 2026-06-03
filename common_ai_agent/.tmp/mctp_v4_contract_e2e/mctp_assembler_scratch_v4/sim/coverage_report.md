@@ -1,6 +1,6 @@
-# mctp_assembler_scratch SSOT coverage report
+# mctp_assembler_scratch_v4 SSOT coverage report
 
-SSOT: `mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.yaml`
+SSOT: `mctp_assembler_scratch_v4/yaml/mctp_assembler_scratch_v4.ssot.yaml`
 Status: `pass`
 
 DV scenarios: 26

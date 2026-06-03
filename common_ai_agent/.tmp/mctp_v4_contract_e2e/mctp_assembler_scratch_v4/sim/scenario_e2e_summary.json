@@ -335,9 +335,9 @@
   ],
   "schema_version": 1,
   "source_artifacts": {
-    "equivalence_goals": "mctp_assembler_scratch/verify/equivalence_goals.json",
-    "scenario_manifest": "mctp_assembler_scratch/tc/scenario_manifest.json",
-    "scoreboard_events": "mctp_assembler_scratch/sim/scoreboard_events.jsonl"
+    "equivalence_goals": "mctp_assembler_scratch_v4/verify/equivalence_goals.json",
+    "scenario_manifest": "mctp_assembler_scratch_v4/tc/scenario_manifest.json",
+    "scoreboard_events": "mctp_assembler_scratch_v4/sim/scoreboard_events.jsonl"
   },
   "status": "pass",
   "total_directed_scenarios": 26,

@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
   "type": "fl_rtl_compare",
-  "ip": "mctp_assembler_scratch",
+  "ip": "mctp_assembler_scratch_v4",
   "generated_at": "2026-06-01T12:19:01Z",
   "status": "pass",
   "sources": {
-    "equivalence_goals": "mctp_assembler_scratch/verify/equivalence_goals.json",
-    "scoreboard_events": "mctp_assembler_scratch/sim/scoreboard_events.jsonl",
-    "results_xml": "mctp_assembler_scratch/sim/results.xml",
-    "coverage": "mctp_assembler_scratch/cov/coverage.json",
-    "fl_model_check": "mctp_assembler_scratch/model/fl_model_check.json"
+    "equivalence_goals": "mctp_assembler_scratch_v4/verify/equivalence_goals.json",
+    "scoreboard_events": "mctp_assembler_scratch_v4/sim/scoreboard_events.jsonl",
+    "results_xml": "mctp_assembler_scratch_v4/sim/results.xml",
+    "coverage": "mctp_assembler_scratch_v4/cov/coverage.json",
+    "fl_model_check": "mctp_assembler_scratch_v4/model/fl_model_check.json"
   },
   "summary": {
     "total": 86,
@@ -28,7 +28,7 @@
       "total": 3,
       "fail": 0,
       "errors": 0,
-      "source": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/sim/results.xml",
+      "source": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch_v4/sim/results.xml",
       "failures": 0
     }
   },

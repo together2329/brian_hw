@@ -1,6 +1,6 @@
 {
   "generated_at": "2026-06-03T00:00:00Z",
-  "ip": "mctp_assembler_scratch",
+  "ip": "mctp_assembler_scratch_v4",
   "obligations": [
     {
       "claim": "payload_byte_count and ctx_payload_byte_count reflect the accepted 17-byte payload in the SRAM pack transaction.",
@@ -174,7 +174,7 @@
       "obligation_id": "OBL_MCTP_DESC_VIS_001",
       "pass_conditions": [
         {
-          "artifact": "sim/mctp_assembler_scratch.vcd",
+          "artifact": "sim/mctp_assembler_scratch_v4.vcd",
           "id": "descriptor_len_matches_payload_count",
           "kind": "vcd_signal_ever_equals",
           "signal": "descriptor_bytes",
@@ -8077,6 +8077,6 @@
     }
   ],
   "schema_version": 1,
-  "source_of_truth": "yaml/mctp_assembler_scratch.ssot.yaml",
+  "source_of_truth": "yaml/mctp_assembler_scratch_v4.ssot.yaml",
   "type": "evidence_contract"
 }

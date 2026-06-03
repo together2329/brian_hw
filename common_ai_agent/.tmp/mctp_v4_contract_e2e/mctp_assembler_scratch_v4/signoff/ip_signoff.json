@@ -2,7 +2,7 @@
   "contract": "IP_SIGNOFF.md",
   "gates": [
     {
-      "artifact": "yaml/mctp_assembler_scratch.ssot.yaml",
+      "artifact": "yaml/mctp_assembler_scratch_v4.ssot.yaml",
       "issues": [],
       "name": "ssot",
       "status": "pass",
@@ -129,7 +129,7 @@
     }
   ],
   "generated_at": "2026-06-02T00:11:55Z",
-  "ip": "mctp_assembler_scratch",
+  "ip": "mctp_assembler_scratch_v4",
   "ip_contract": "verify/ip_contract.json",
   "mode": "local_evidence",
   "schema_version": 1,

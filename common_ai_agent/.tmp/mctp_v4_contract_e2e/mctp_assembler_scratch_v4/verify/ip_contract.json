@@ -230,7 +230,7 @@
       "type": "native_status"
     }
   ],
-  "ip": "mctp_assembler_scratch",
+  "ip": "mctp_assembler_scratch_v4",
   "observability": {
     "debug_optional": [],
     "required_rtl_observed": [
@@ -503,8 +503,8 @@
   ],
   "schema_version": 1,
   "source_artifacts": {
-    "equivalence_goals": "mctp_assembler_scratch/verify/equivalence_goals.json",
-    "ssot": "mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.yaml"
+    "equivalence_goals": "mctp_assembler_scratch_v4/verify/equivalence_goals.json",
+    "ssot": "mctp_assembler_scratch_v4/yaml/mctp_assembler_scratch_v4.ssot.yaml"
   },
   "type": "ip_evidence_contract"
 }

@@ -1,4 +1,4 @@
-# IP Signoff - mctp_assembler_scratch
+# IP Signoff - mctp_assembler_scratch_v4
 
 - Status: `pass`
 - Generated: `2026-06-02T00:11:55Z`
@@ -6,7 +6,7 @@
 
 | Gate | Status | Artifact | Summary |
 | --- | --- | --- | --- |
-| `ssot` | `pass` | `yaml/mctp_assembler_scratch.ssot.yaml` | SSOT exists and parses |
+| `ssot` | `pass` | `yaml/mctp_assembler_scratch_v4.ssot.yaml` | SSOT exists and parses |
 | `ip_contract` | `pass` | `verify/ip_contract.json` | capabilities=14 required_evidence=15 |
 | `fl_model` | `pass` | `model/fl_model_check.json` | FL artifact check passed=true |
 | `cl_model` | `pass` | `model/cl_model_check.json` | CL self-check passed=true |

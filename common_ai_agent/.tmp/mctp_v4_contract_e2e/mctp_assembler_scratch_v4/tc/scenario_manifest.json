@@ -1,6 +1,6 @@
 {
   "assembly_drop_count": 6,
-  "ip": "mctp_assembler_scratch",
+  "ip": "mctp_assembler_scratch_v4",
   "packet_drop_count": 8,
   "scenario_count": 26,
   "scenarios": [

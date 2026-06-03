@@ -1,4 +1,4 @@
-module mctp_assembler_scratch_safety_properties (
+module mctp_assembler_scratch_v4_safety_properties (
     input logic axi_aclk,
     input logic axi_aresetn,
     input logic m_axi_awvalid,

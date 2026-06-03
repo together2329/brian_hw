@@ -8,8 +8,8 @@
     },
     "connection_contract_suggestions": {},
     "owner": {
-      "file": "rtl/mctp_assembler_scratch.sv",
-      "name": "mctp_assembler_scratch",
+      "file": "rtl/mctp_assembler_scratch_v4.sv",
+      "name": "mctp_assembler_scratch_v4",
       "refs": [
         "dataflow",
         "decomposition",
@@ -21,63 +21,63 @@
     },
     "peer_modules": [
       {
-        "file": "rtl/mctp_assembler_scratch_axi_write_ingress.sv",
-        "name": "mctp_assembler_scratch_axi_write_ingress",
+        "file": "rtl/mctp_assembler_scratch_v4_axi_write_ingress.sv",
+        "name": "mctp_assembler_scratch_v4_axi_write_ingress",
         "wiring_only": false
       },
       {
-        "file": "rtl/mctp_assembler_scratch_pcie_vdm_parser.sv",
-        "name": "mctp_assembler_scratch_pcie_vdm_parser",
+        "file": "rtl/mctp_assembler_scratch_v4_pcie_vdm_parser.sv",
+        "name": "mctp_assembler_scratch_v4_pcie_vdm_parser",
         "wiring_only": false
       },
       {
-        "file": "rtl/mctp_assembler_scratch_mctp_parser.sv",
-        "name": "mctp_assembler_scratch_mctp_parser",
+        "file": "rtl/mctp_assembler_scratch_v4_mctp_parser.sv",
+        "name": "mctp_assembler_scratch_v4_mctp_parser",
         "wiring_only": false
       },
       {
-        "file": "rtl/mctp_assembler_scratch_context_table.sv",
-        "name": "mctp_assembler_scratch_context_table",
+        "file": "rtl/mctp_assembler_scratch_v4_context_table.sv",
+        "name": "mctp_assembler_scratch_v4_context_table",
         "wiring_only": false
       },
       {
-        "file": "rtl/mctp_assembler_scratch_sram_packer.sv",
-        "name": "mctp_assembler_scratch_sram_packer",
+        "file": "rtl/mctp_assembler_scratch_v4_sram_packer.sv",
+        "name": "mctp_assembler_scratch_v4_sram_packer",
         "wiring_only": false
       },
       {
-        "file": "rtl/mctp_assembler_scratch_axi_read_egress.sv",
-        "name": "mctp_assembler_scratch_axi_read_egress",
+        "file": "rtl/mctp_assembler_scratch_v4_axi_read_egress.sv",
+        "name": "mctp_assembler_scratch_v4_axi_read_egress",
         "wiring_only": false
       },
       {
-        "file": "rtl/mctp_assembler_scratch_sram_arbiter.sv",
-        "name": "mctp_assembler_scratch_sram_arbiter",
+        "file": "rtl/mctp_assembler_scratch_v4_sram_arbiter.sv",
+        "name": "mctp_assembler_scratch_v4_sram_arbiter",
         "wiring_only": false
       },
       {
-        "file": "rtl/mctp_assembler_scratch_descriptor_queue.sv",
-        "name": "mctp_assembler_scratch_descriptor_queue",
+        "file": "rtl/mctp_assembler_scratch_v4_descriptor_queue.sv",
+        "name": "mctp_assembler_scratch_v4_descriptor_queue",
         "wiring_only": false
       },
       {
-        "file": "rtl/mctp_assembler_scratch_apb_regfile.sv",
-        "name": "mctp_assembler_scratch_apb_regfile",
+        "file": "rtl/mctp_assembler_scratch_v4_apb_regfile.sv",
+        "name": "mctp_assembler_scratch_v4_apb_regfile",
         "wiring_only": false
       },
       {
-        "file": "rtl/mctp_assembler_scratch_cdc.sv",
-        "name": "mctp_assembler_scratch_cdc",
+        "file": "rtl/mctp_assembler_scratch_v4_cdc.sv",
+        "name": "mctp_assembler_scratch_v4_cdc",
         "wiring_only": false
       },
       {
-        "file": "rtl/mctp_assembler_scratch_param.vh",
-        "name": "mctp_assembler_scratch_param",
+        "file": "rtl/mctp_assembler_scratch_v4_param.vh",
+        "name": "mctp_assembler_scratch_v4_param",
         "wiring_only": false
       },
       {
-        "file": "rtl/mctp_assembler_scratch.sv",
-        "name": "mctp_assembler_scratch",
+        "file": "rtl/mctp_assembler_scratch_v4.sv",
+        "name": "mctp_assembler_scratch_v4",
         "wiring_only": true
       }
     ],
@@ -87,7 +87,7 @@
       {
         "instance": "",
         "machine_readable": true,
-        "module": "mctp_assembler_scratch_axi_write_ingress",
+        "module": "mctp_assembler_scratch_v4_axi_write_ingress",
         "port": "m_axi_awvalid",
         "signal": "m_axi_awvalid",
         "signal_terms": [
@@ -98,7 +98,7 @@
       {
         "instance": "",
         "machine_readable": true,
-        "module": "mctp_assembler_scratch_axi_write_ingress",
+        "module": "mctp_assembler_scratch_v4_axi_write_ingress",
         "port": "m_axi_wvalid",
         "signal": "m_axi_wvalid",
         "signal_terms": [
@@ -109,7 +109,7 @@
       {
         "instance": "",
         "machine_readable": true,
-        "module": "mctp_assembler_scratch_sram_packer",
+        "module": "mctp_assembler_scratch_v4_sram_packer",
         "port": "sram_wr_valid",
         "signal": "pack_wr_valid",
         "signal_terms": [
@@ -120,7 +120,7 @@
       {
         "instance": "",
         "machine_readable": true,
-        "module": "mctp_assembler_scratch_axi_read_egress",
+        "module": "mctp_assembler_scratch_v4_axi_read_egress",
         "port": "m_axi_rvalid",
         "signal": "m_axi_rvalid",
         "signal_terms": [
@@ -131,7 +131,7 @@
       {
         "instance": "",
         "machine_readable": true,
-        "module": "mctp_assembler_scratch_apb_regfile",
+        "module": "mctp_assembler_scratch_v4_apb_regfile",
         "port": "pready",
         "signal": "pready",
         "signal_terms": [
@@ -822,10 +822,10 @@
     "tool_evidence_plan": [],
     "work_allowed": true
   },
-  "ip": "mctp_assembler_scratch",
+  "ip": "mctp_assembler_scratch_v4",
   "kind": "gate",
-  "owner_file": "rtl/mctp_assembler_scratch.sv",
-  "owner_module": "mctp_assembler_scratch",
+  "owner_file": "rtl/mctp_assembler_scratch_v4.sv",
+  "owner_module": "mctp_assembler_scratch_v4",
   "packet_id": "rtl_gate_tool_evidence",
   "rules": [
     "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
@@ -870,9 +870,9 @@
         "provenance rtl_files lists every SSOT manifest RTL file",
         "provenance rtl_files covers the current DUT filelist sources",
         "Traceability keeps source_ref quality_gates.rtl_gen.common_ai_agent_authoring",
-        "Primary implementation evidence is in rtl/mctp_assembler_scratch.sv"
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_v4.sv"
       ],
-      "detail": "RTL approval requires provenance that the common engine/ATLAS/Textual/headless rtl-gen path wrote the RTL from the current SSOT-derived TODO plan.\nSSOT ref: quality_gates.rtl_gen.common_ai_agent_authoring.\nOwner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_module.",
+      "detail": "RTL approval requires provenance that the common engine/ATLAS/Textual/headless rtl-gen path wrote the RTL from the current SSOT-derived TODO plan.\nSSOT ref: quality_gates.rtl_gen.common_ai_agent_authoring.\nOwner: mctp_assembler_scratch_v4 in rtl/mctp_assembler_scratch_v4.sv via top_module.",
       "evidence_terms": [],
       "gate_todo": {
         "artifact": "rtl/rtl_authoring_provenance.json",
@@ -881,8 +881,8 @@
         "stage": "rtl-gen"
       },
       "id": "RTL-0006",
-      "owner_file": "rtl/mctp_assembler_scratch.sv",
-      "owner_module": "mctp_assembler_scratch",
+      "owner_file": "rtl/mctp_assembler_scratch_v4.sv",
+      "owner_module": "mctp_assembler_scratch_v4",
       "priority": "critical",
       "required": true,
       "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
@@ -917,9 +917,9 @@
         "rtl_compile.json is newer than or equal to every listed DUT RTL source",
         "rtl_compile.json rtl_files covers the current DUT filelist Verilog/SystemVerilog sources",
         "Traceability keeps source_ref quality_gates.rtl_gen.dut_compile",
-        "Primary implementation evidence is in rtl/mctp_assembler_scratch.sv"
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_v4.sv"
       ],
-      "detail": "Compile approval must come from the canonical rtl_compile_report.py artifact generated after RTL generation or repair.\nSSOT ref: quality_gates.rtl_gen.dut_compile.\nOwner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_module.",
+      "detail": "Compile approval must come from the canonical rtl_compile_report.py artifact generated after RTL generation or repair.\nSSOT ref: quality_gates.rtl_gen.dut_compile.\nOwner: mctp_assembler_scratch_v4 in rtl/mctp_assembler_scratch_v4.sv via top_module.",
       "evidence_terms": [],
       "gate_todo": {
         "artifact": "rtl/rtl_compile.json",
@@ -928,8 +928,8 @@
         "stage": "rtl-gen"
       },
       "id": "RTL-0017",
-      "owner_file": "rtl/mctp_assembler_scratch.sv",
-      "owner_module": "mctp_assembler_scratch",
+      "owner_file": "rtl/mctp_assembler_scratch_v4.sv",
+      "owner_module": "mctp_assembler_scratch_v4",
       "priority": "critical",
       "required": true,
       "source_ref": "quality_gates.rtl_gen.dut_compile",
@@ -965,9 +965,9 @@
         "dut_lint.json rtl_files covers the current DUT filelist RTL/header sources",
         "No ad-hoc lint suppression violation remains unless represented by an exact SSOT waiver",
         "Traceability keeps source_ref quality_gates.rtl_gen.dut_lint",
-        "Primary implementation evidence is in rtl/mctp_assembler_scratch.sv"
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_v4.sv"
       ],
-      "detail": "Lint approval must come from the canonical dut_lint_report.py artifact and must not rely on ad-hoc suppressions.\nSSOT ref: quality_gates.rtl_gen.dut_lint.\nOwner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_module.",
+      "detail": "Lint approval must come from the canonical dut_lint_report.py artifact and must not rely on ad-hoc suppressions.\nSSOT ref: quality_gates.rtl_gen.dut_lint.\nOwner: mctp_assembler_scratch_v4 in rtl/mctp_assembler_scratch_v4.sv via top_module.",
       "evidence_terms": [],
       "gate_todo": {
         "artifact": "lint/dut_lint.json",
@@ -976,8 +976,8 @@
         "stage": "rtl-gen"
       },
       "id": "RTL-0018",
-      "owner_file": "rtl/mctp_assembler_scratch.sv",
-      "owner_module": "mctp_assembler_scratch",
+      "owner_file": "rtl/mctp_assembler_scratch_v4.sv",
+      "owner_module": "mctp_assembler_scratch_v4",
       "priority": "critical",
       "required": true,
       "source_ref": "quality_gates.rtl_gen.dut_lint",
@@ -1010,9 +1010,9 @@
         "open_required_todos is zero",
         "all_required_todos_pass is true",
         "Traceability keeps source_ref quality_gates.rtl_gen.dynamic_todo_closure",
-        "Primary implementation evidence is in rtl/mctp_assembler_scratch.sv"
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_v4.sv"
       ],
-      "detail": "rtl-gen PASS is forbidden until all required implementation, SSOT workflow, and RTL gate TODOs have pass status.\nSSOT ref: quality_gates.rtl_gen.dynamic_todo_closure.\nOwner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_module.",
+      "detail": "rtl-gen PASS is forbidden until all required implementation, SSOT workflow, and RTL gate TODOs have pass status.\nSSOT ref: quality_gates.rtl_gen.dynamic_todo_closure.\nOwner: mctp_assembler_scratch_v4 in rtl/mctp_assembler_scratch_v4.sv via top_module.",
       "evidence_terms": [],
       "gate_todo": {
         "artifact": "rtl/rtl_todo_plan.json",
@@ -1021,8 +1021,8 @@
         "stage": "rtl-gen"
       },
       "id": "RTL-0019",
-      "owner_file": "rtl/mctp_assembler_scratch.sv",
-      "owner_module": "mctp_assembler_scratch",
+      "owner_file": "rtl/mctp_assembler_scratch_v4.sv",
+      "owner_module": "mctp_assembler_scratch_v4",
       "priority": "critical",
       "required": true,
       "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
@@ -1049,6 +1049,6 @@
     }
   ],
   "todo_plan_sha256": "a6a5a0fbc9df7cbf10ab017b46631a16a00f0b454b4cee41da9ba28dbc65043d",
-  "top": "mctp_assembler_scratch",
+  "top": "mctp_assembler_scratch_v4",
   "type": "rtl_authoring_packet"
 }

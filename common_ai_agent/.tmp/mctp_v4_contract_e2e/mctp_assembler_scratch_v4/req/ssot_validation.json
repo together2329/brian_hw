@@ -1,15 +1,15 @@
 {
   "schema_version": "ssot_validation.v2",
-  "ip": "mctp_assembler_scratch",
+  "ip": "mctp_assembler_scratch_v4",
   "mode": "signoff",
-  "ssot": "mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.yaml",
+  "ssot": "mctp_assembler_scratch_v4/yaml/mctp_assembler_scratch_v4.ssot.yaml",
   "ok": true,
   "blockers": [],
   "warnings": [],
   "check_ssot_disk": {
     "ok": true,
     "returncode": 0,
-    "stdout": "[check_ssot_disk] PASS: mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.yaml = 118029B, 36 sections, 0 TBDs, mode=signoff\n",
+    "stdout": "[check_ssot_disk] PASS: mctp_assembler_scratch_v4/yaml/mctp_assembler_scratch_v4.ssot.yaml = 118029B, 36 sections, 0 TBDs, mode=signoff\n",
     "stderr": ""
   },
   "preview_contract": "strict"

@@ -1,12 +1,12 @@
 ===== pyslang =====
-command: pyslang rtl/mctp_assembler_scratch_axi_write_ingress.sv rtl/mctp_assembler_scratch_pcie_vdm_parser.sv rtl/mctp_assembler_scratch_mctp_parser.sv rtl/mctp_assembler_scratch_context_table.sv rtl/mctp_assembler_scratch_sram_packer.sv rtl/mctp_assembler_scratch_axi_read_egress.sv rtl/mctp_assembler_scratch_sram_arbiter.sv rtl/mctp_assembler_scratch_descriptor_queue.sv rtl/mctp_assembler_scratch_apb_regfile.sv rtl/mctp_assembler_scratch_cdc.sv rtl/mctp_assembler_scratch.sv rtl/mctp_assembler_scratch_param.vh
+command: pyslang rtl/mctp_assembler_scratch_v4_axi_write_ingress.sv rtl/mctp_assembler_scratch_v4_pcie_vdm_parser.sv rtl/mctp_assembler_scratch_v4_mctp_parser.sv rtl/mctp_assembler_scratch_v4_context_table.sv rtl/mctp_assembler_scratch_v4_sram_packer.sv rtl/mctp_assembler_scratch_v4_axi_read_egress.sv rtl/mctp_assembler_scratch_v4_sram_arbiter.sv rtl/mctp_assembler_scratch_v4_descriptor_queue.sv rtl/mctp_assembler_scratch_v4_apb_regfile.sv rtl/mctp_assembler_scratch_v4_cdc.sv rtl/mctp_assembler_scratch_v4.sv rtl/mctp_assembler_scratch_v4_param.vh
 returncode: 0
 errors: 0 warnings: 0
 pyslang files: 12
 errors=0 warnings=0
 
 ===== verilator =====
-command: verilator --lint-only -Wall -Irtl -f list/mctp_assembler_scratch.f --top-module mctp_assembler_scratch
+command: verilator --lint-only -Wall -Irtl -f list/mctp_assembler_scratch_v4.f --top-module mctp_assembler_scratch_v4
 returncode: 0
 errors: 0 warnings: 0
 - V e r i l a t i o n   R e p o r t: Verilator 5.046 2026-02-28 rev vUNKNOWN-built20260228

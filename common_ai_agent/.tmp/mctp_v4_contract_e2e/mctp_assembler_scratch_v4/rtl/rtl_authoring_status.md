@@ -1,8 +1,8 @@
-# RTL Authoring Status: mctp_assembler_scratch
+# RTL Authoring Status: mctp_assembler_scratch_v4
 
 ## Status
 
-- Top: mctp_assembler_scratch
+- Top: mctp_assembler_scratch_v4
 - Packets: 29
 - LLM-actionable tasks: 0
 - Human-locked tasks: 0

@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "type": "functional_coverage_plan",
-  "ip": "mctp_assembler_scratch",
-  "source": "mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.yaml",
+  "ip": "mctp_assembler_scratch_v4",
+  "source": "mctp_assembler_scratch_v4/yaml/mctp_assembler_scratch_v4.ssot.yaml",
   "planned_before_rtl": true,
   "level": "union",
   "summary": {

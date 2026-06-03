@@ -1,8 +1,8 @@
 # RTL Authoring Packet: rtl_gate_tool_evidence
 
 - Kind: gate
-- Owner module: mctp_assembler_scratch
-- Owner file: rtl/mctp_assembler_scratch.sv
+- Owner module: mctp_assembler_scratch_v4
+- Owner file: rtl/mctp_assembler_scratch_v4.sv
 - Task count: 4
 - Required tasks: 4
 
@@ -29,11 +29,11 @@
 - Human-locked open tasks: 0
 - Owner refs: dataflow, decomposition, integration, io_list, top_module
 - SSOT connection contracts:
-  - mctp_assembler_scratch_axi_write_ingress.m_axi_awvalid <= m_axi_awvalid (integration.connections[0])
-  - mctp_assembler_scratch_axi_write_ingress.m_axi_wvalid <= m_axi_wvalid (integration.connections[1])
-  - mctp_assembler_scratch_sram_packer.sram_wr_valid <= pack_wr_valid (integration.connections[2])
-  - mctp_assembler_scratch_axi_read_egress.m_axi_rvalid <= m_axi_rvalid (integration.connections[3])
-  - mctp_assembler_scratch_apb_regfile.pready <= pready (integration.connections[4])
+  - mctp_assembler_scratch_v4_axi_write_ingress.m_axi_awvalid <= m_axi_awvalid (integration.connections[0])
+  - mctp_assembler_scratch_v4_axi_write_ingress.m_axi_wvalid <= m_axi_wvalid (integration.connections[1])
+  - mctp_assembler_scratch_v4_sram_packer.sram_wr_valid <= pack_wr_valid (integration.connections[2])
+  - mctp_assembler_scratch_v4_axi_read_egress.m_axi_rvalid <= m_axi_rvalid (integration.connections[3])
+  - mctp_assembler_scratch_v4_apb_regfile.pready <= pready (integration.connections[4])
 - SSOT top IO contracts: 55
 
 ## Tasks
@@ -47,7 +47,7 @@
 - Source ref: quality_gates.rtl_gen.common_ai_agent_authoring
 - Detail: RTL approval requires provenance that the common engine/ATLAS/Textual/headless rtl-gen path wrote the RTL from the current SSOT-derived TODO plan.
 SSOT ref: quality_gates.rtl_gen.common_ai_agent_authoring.
-Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_module.
+Owner: mctp_assembler_scratch_v4 in rtl/mctp_assembler_scratch_v4.sv via top_module.
 - Current reason: RTL authoring provenance proves common_ai_agent rtl-gen ownership.
 - Criteria:
   - rtl/rtl_authoring_provenance.json exists
@@ -58,7 +58,7 @@ Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_module.
   - provenance rtl_files lists every SSOT manifest RTL file
   - provenance rtl_files covers the current DUT filelist sources
   - Traceability keeps source_ref quality_gates.rtl_gen.common_ai_agent_authoring
-  - Primary implementation evidence is in rtl/mctp_assembler_scratch.sv
+  - Primary implementation evidence is in rtl/mctp_assembler_scratch_v4.sv
 - SSOT refs: quality_gates, quality_gates.rtl_gen.common_ai_agent_authoring
 
 ### RTL-0017: Gate: DUT-only RTL compile report passes after the final RTL edit
@@ -70,7 +70,7 @@ Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_module.
 - Source ref: quality_gates.rtl_gen.dut_compile
 - Detail: Compile approval must come from the canonical rtl_compile_report.py artifact generated after RTL generation or repair.
 SSOT ref: quality_gates.rtl_gen.dut_compile.
-Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_module.
+Owner: mctp_assembler_scratch_v4 in rtl/mctp_assembler_scratch_v4.sv via top_module.
 - Current reason: DUT-only compile artifact passed with zero errors, diagnostics, and style violations.
 - Criteria:
   - rtl/rtl_compile.json exists
@@ -79,7 +79,7 @@ Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_module.
   - rtl_compile.json is newer than or equal to every listed DUT RTL source
   - rtl_compile.json rtl_files covers the current DUT filelist Verilog/SystemVerilog sources
   - Traceability keeps source_ref quality_gates.rtl_gen.dut_compile
-  - Primary implementation evidence is in rtl/mctp_assembler_scratch.sv
+  - Primary implementation evidence is in rtl/mctp_assembler_scratch_v4.sv
 - SSOT refs: quality_gates, quality_gates.rtl_gen.dut_compile
 
 ### RTL-0018: Gate: DUT-only lint report passes after the final RTL edit
@@ -91,7 +91,7 @@ Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_module.
 - Source ref: quality_gates.rtl_gen.dut_lint
 - Detail: Lint approval must come from the canonical dut_lint_report.py artifact and must not rely on ad-hoc suppressions.
 SSOT ref: quality_gates.rtl_gen.dut_lint.
-Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_module.
+Owner: mctp_assembler_scratch_v4 in rtl/mctp_assembler_scratch_v4.sv via top_module.
 - Current reason: DUT-only lint artifact passed with zero errors, warnings, and suppression violations.
 - Criteria:
   - lint/dut_lint.json exists
@@ -101,7 +101,7 @@ Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_module.
   - dut_lint.json rtl_files covers the current DUT filelist RTL/header sources
   - No ad-hoc lint suppression violation remains unless represented by an exact SSOT waiver
   - Traceability keeps source_ref quality_gates.rtl_gen.dut_lint
-  - Primary implementation evidence is in rtl/mctp_assembler_scratch.sv
+  - Primary implementation evidence is in rtl/mctp_assembler_scratch_v4.sv
 - SSOT refs: quality_gates, quality_gates.rtl_gen.dut_lint
 
 ### RTL-0019: Gate: every required rtl_todo_plan item is closed before rtl-gen PASS
@@ -113,12 +113,12 @@ Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_module.
 - Source ref: quality_gates.rtl_gen.dynamic_todo_closure
 - Detail: rtl-gen PASS is forbidden until all required implementation, SSOT workflow, and RTL gate TODOs have pass status.
 SSOT ref: quality_gates.rtl_gen.dynamic_todo_closure.
-Owner: mctp_assembler_scratch in rtl/mctp_assembler_scratch.sv via top_module.
+Owner: mctp_assembler_scratch_v4 in rtl/mctp_assembler_scratch_v4.sv via top_module.
 - Current reason: Every required non-closure TODO has pass status.
 - Criteria:
   - Every required non-closure task has todo_completion.status=pass
   - open_required_todos is zero
   - all_required_todos_pass is true
   - Traceability keeps source_ref quality_gates.rtl_gen.dynamic_todo_closure
-  - Primary implementation evidence is in rtl/mctp_assembler_scratch.sv
+  - Primary implementation evidence is in rtl/mctp_assembler_scratch_v4.sv
 - SSOT refs: quality_gates, quality_gates.rtl_gen.dynamic_todo_closure

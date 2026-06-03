@@ -1,8 +1,8 @@
 {
   "source": "ssot_coverage_summary",
   "status": "pass",
-  "ssot": "mctp_assembler_scratch/yaml/mctp_assembler_scratch.ssot.yaml",
-  "module": "mctp_assembler_scratch",
+  "ssot": "mctp_assembler_scratch_v4/yaml/mctp_assembler_scratch_v4.ssot.yaml",
+  "module": "mctp_assembler_scratch_v4",
   "dv_plan": {
     "scenarios": 26,
     "scoreboard_checks": 22,
@@ -21591,7 +21591,7 @@
   },
   "owner_routes": {
     "status": "complete",
-    "source": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch/cov/coverage_owner_routes.json",
+    "source": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch_v4/cov/coverage_owner_routes.json",
     "routes_by_bin": {},
     "routed_missing_bins": [],
     "unrouted_missing_bins": [],

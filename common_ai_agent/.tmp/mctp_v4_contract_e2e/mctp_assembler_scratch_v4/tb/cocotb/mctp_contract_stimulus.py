@@ -8,7 +8,7 @@ _PROJECT_ROOT = Path(__file__).resolve().parents[3]
 if str(_PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT))
 
-from mctp_assembler_scratch.tb.cocotb.mctp_scenario_stimulus import apply_scenario_contract_defaults
+from mctp_assembler_scratch_v4.tb.cocotb.mctp_scenario_stimulus import apply_scenario_contract_defaults
 
 
 BOOL_EXACT = {
