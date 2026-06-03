@@ -1,0 +1,13 @@
+{
+  "goal": {
+    "threadId": "019e8d85-7b48-79e2-902b-84ae3e37447e",
+    "objective": "orchestrator mode로 $computer-use $browser $omo:ulw-loop 이용해서 UI에서 chat 보이게 해주고, 그리고 uart 정도 되는 IP andes꺼 참고 해서 req 정해서 쭉 req - ssot - fl,cl - rtl - tb -sim 까지 해줘",
+    "status": "blocked",
+    "tokensUsed": 3235180,
+    "timeUsedSeconds": 9237,
+    "createdAt": 1780494009,
+    "updatedAt": 1780503247
+  },
+  "remainingTokens": null,
+  "completionBudgetReport": null
+}

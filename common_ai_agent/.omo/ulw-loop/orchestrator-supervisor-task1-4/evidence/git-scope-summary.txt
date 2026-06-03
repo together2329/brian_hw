@@ -1,0 +1,26 @@
+Relevant changed files for Task1-4:
+ M src/atlas_api_jobs.py
+ M src/orchestrator/runner.py
+ M tests/test_orchestrator_route.py
+?? .omo/ulw-loop/orchestrator-supervisor-task1-4/evidence/
+?? src/atlas_orchestrator_supervisor_ipc.py
+?? src/orchestrator/runtime.py
+?? src/orchestrator/runtime_types.py
+?? src/orchestrator/supervisor_runtime.py
+?? src/orchestrator/supervisor_wake.py
+?? src/orchestrator/supervisor_watch.py
+?? tests/test_orchestrator_runtime_transport.py
+?? tests/test_orchestrator_supervisor_ipc.py
+?? tests/test_orchestrator_supervisor_runtime.py
+?? tests/test_orchestrator_supervisor_wake.py
+
+Relevant diff stat for tracked touched files:
+ common_ai_agent/src/atlas_api_jobs.py            | 672 ++++++++++++++++++++---
+ common_ai_agent/src/orchestrator/runner.py       |   7 +-
+ common_ai_agent/tests/test_orchestrator_route.py | 269 ++++++++-
+ 3 files changed, 844 insertions(+), 104 deletions(-)
+
+Unrelated dirty worktree exists and was not reverted; full dirty count follows:
+     286
+
+Note: src/atlas_api_jobs.py and tests/test_orchestrator_route.py already contain unrelated dirty hunks from concurrent/prior work; Task1-4 changed the orchestrator runtime seam, supervisor job callbacks, wake bridge, access guard exercised by route test, and related tests only.

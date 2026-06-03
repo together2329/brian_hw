@@ -1,0 +1,207 @@
+FFFFFFFFFFF                                                              [100%]
+=================================== FAILURES ===================================
+_________________ test_thread_transport_selects_legacy_runner __________________
+
+tmp_path = PosixPath('/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/pytest-of-brian/pytest-580/test_thread_transport_selects_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x104d90c70>
+
+    def test_thread_transport_selects_legacy_runner(tmp_path: Path, monkeypatch) -> None:
+        from src.orchestrator import runner as runner_mod
+>       from src.orchestrator.runtime import get_orchestrator_runtime
+E       ModuleNotFoundError: No module named 'src.orchestrator.runtime'
+
+tests/test_orchestrator_runtime_transport.py:8: ModuleNotFoundError
+_______________ test_orchestrator_mode_defaults_to_ipc_transport _______________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x104cbe910>
+
+    def test_orchestrator_mode_defaults_to_ipc_transport(monkeypatch) -> None:
+>       from src.orchestrator.runtime import orchestrator_transport
+E       ModuleNotFoundError: No module named 'src.orchestrator.runtime'
+
+tests/test_orchestrator_runtime_transport.py:27: ModuleNotFoundError
+___________ test_chat_route_uses_runtime_selector_not_direct_runner ____________
+
+tmp_path = PosixPath('/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/pytest-of-brian/pytest-580/test_chat_route_uses_runtime_s0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x104b73040>
+
+    def test_chat_route_uses_runtime_selector_not_direct_runner(
+        tmp_path, monkeypatch
+    ):
+        import src.atlas_ui as atlas_ui
+        import importlib
+
+        from src.orchestrator import runner as runner_mod
+
+>       runtime_mod = importlib.import_module("src.orchestrator.runtime")
+
+tests/test_orchestrator_route.py:393:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+<frozen importlib._bootstrap>:1030: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1007: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'src.orchestrator.runtime'
+import_ = <function _gcd_import at 0x10267c310>
+
+>   ???
+E   ModuleNotFoundError: No module named 'src.orchestrator.runtime'
+
+<frozen importlib._bootstrap>:984: ModuleNotFoundError
+_________ test_supervisor_ipc_runs_controlled_loop_and_writes_response _________
+
+tmp_path = PosixPath('/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/pytest-of-brian/pytest-580/test_supervisor_ipc_runs_contr0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x104c32fa0>
+capsys = <_pytest.capture.CaptureFixture object at 0x104c690d0>
+
+    def test_supervisor_ipc_runs_controlled_loop_and_writes_response(
+        tmp_path: Path, monkeypatch, capsys
+    ) -> None:
+>       supervisor = importlib.import_module("src.atlas_orchestrator_supervisor_ipc")
+
+tests/test_orchestrator_supervisor_ipc.py:51:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+<frozen importlib._bootstrap>:1030: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1007: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'src.atlas_orchestrator_supervisor_ipc'
+import_ = <function _gcd_import at 0x10267c310>
+
+>   ???
+E   ModuleNotFoundError: No module named 'src.atlas_orchestrator_supervisor_ipc'
+
+<frozen importlib._bootstrap>:984: ModuleNotFoundError
+________________ test_supervisor_ipc_propagates_request_context ________________
+
+tmp_path = PosixPath('/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/pytest-of-brian/pytest-580/test_supervisor_ipc_propagates0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x104f480a0>
+
+    def test_supervisor_ipc_propagates_request_context(
+        tmp_path: Path, monkeypatch
+    ) -> None:
+>       supervisor = importlib.import_module("src.atlas_orchestrator_supervisor_ipc")
+
+tests/test_orchestrator_supervisor_ipc.py:90:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+<frozen importlib._bootstrap>:1030: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1007: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'src.atlas_orchestrator_supervisor_ipc'
+import_ = <function _gcd_import at 0x10267c310>
+
+>   ???
+E   ModuleNotFoundError: No module named 'src.atlas_orchestrator_supervisor_ipc'
+
+<frozen importlib._bootstrap>:984: ModuleNotFoundError
+___________________ test_first_submit_spawns_supervisor_job ____________________
+
+tmp_path = PosixPath('/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/pytest-of-brian/pytest-580/test_first_submit_spawns_super0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x104b87f70>
+
+    def test_first_submit_spawns_supervisor_job(tmp_path: Path, monkeypatch) -> None:
+>       runtime, _db, spawned, jobs, processes = _runtime(tmp_path)
+
+tests/test_orchestrator_supervisor_runtime.py:51:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+tmp_path = PosixPath('/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/pytest-of-brian/pytest-580/test_first_submit_spawns_super0')
+
+    def _runtime(tmp_path: Path):
+>       from src.orchestrator.supervisor_runtime import OrchestratorSupervisorRuntime
+E       ModuleNotFoundError: No module named 'src.orchestrator.supervisor_runtime'
+
+tests/test_orchestrator_supervisor_runtime.py:26: ModuleNotFoundError
+_________ test_second_submit_appends_user_reply_and_writes_wake_event __________
+
+tmp_path = PosixPath('/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/pytest-of-brian/pytest-580/test_second_submit_appends_use0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1036d1160>
+
+    def test_second_submit_appends_user_reply_and_writes_wake_event(
+        tmp_path: Path, monkeypatch
+    ) -> None:
+>       runtime, db, spawned, _jobs, _processes = _runtime(tmp_path)
+
+tests/test_orchestrator_supervisor_runtime.py:87:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+tmp_path = PosixPath('/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/pytest-of-brian/pytest-580/test_second_submit_appends_use0')
+
+    def _runtime(tmp_path: Path):
+>       from src.orchestrator.supervisor_runtime import OrchestratorSupervisorRuntime
+E       ModuleNotFoundError: No module named 'src.orchestrator.supervisor_runtime'
+
+tests/test_orchestrator_supervisor_runtime.py:26: ModuleNotFoundError
+________________ test_different_ip_gets_independent_supervisor _________________
+
+tmp_path = PosixPath('/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/pytest-of-brian/pytest-580/test_different_ip_gets_indepen0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1034b3d00>
+
+    def test_different_ip_gets_independent_supervisor(
+        tmp_path: Path, monkeypatch
+    ) -> None:
+>       runtime, _db, spawned, jobs, _processes = _runtime(tmp_path)
+
+tests/test_orchestrator_supervisor_runtime.py:124:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+tmp_path = PosixPath('/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/pytest-of-brian/pytest-580/test_different_ip_gets_indepen0')
+
+    def _runtime(tmp_path: Path):
+>       from src.orchestrator.supervisor_runtime import OrchestratorSupervisorRuntime
+E       ModuleNotFoundError: No module named 'src.orchestrator.supervisor_runtime'
+
+tests/test_orchestrator_supervisor_runtime.py:26: ModuleNotFoundError
+_____________________ test_waker_reads_user_message_event ______________________
+
+tmp_path = PosixPath('/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/pytest-of-brian/pytest-580/test_waker_reads_user_message_0')
+
+    def test_waker_reads_user_message_event(tmp_path: Path) -> None:
+>       from src.orchestrator.supervisor_wake import FileBackedWaker, append_wake_event
+E       ModuleNotFoundError: No module named 'src.orchestrator.supervisor_wake'
+
+tests/test_orchestrator_supervisor_wake.py:8: ModuleNotFoundError
+_____________________ test_waker_reads_job_complete_event ______________________
+
+tmp_path = PosixPath('/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/pytest-of-brian/pytest-580/test_waker_reads_job_complete_0')
+
+    def test_waker_reads_job_complete_event(tmp_path: Path) -> None:
+>       from src.orchestrator.supervisor_wake import FileBackedWaker, append_wake_event
+E       ModuleNotFoundError: No module named 'src.orchestrator.supervisor_wake'
+
+tests/test_orchestrator_supervisor_wake.py:30: ModuleNotFoundError
+______________ test_waker_timer_reason_matches_existing_contract _______________
+
+tmp_path = PosixPath('/private/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/pytest-of-brian/pytest-580/test_waker_timer_reason_matche0')
+
+    def test_waker_timer_reason_matches_existing_contract(tmp_path: Path) -> None:
+>       from src.orchestrator.supervisor_wake import FileBackedWaker
+E       ModuleNotFoundError: No module named 'src.orchestrator.supervisor_wake'
+
+tests/test_orchestrator_supervisor_wake.py:58: ModuleNotFoundError
+=========================== short test summary info ============================
+FAILED tests/test_orchestrator_runtime_transport.py::test_thread_transport_selects_legacy_runner
+FAILED tests/test_orchestrator_runtime_transport.py::test_orchestrator_mode_defaults_to_ipc_transport
+FAILED tests/test_orchestrator_route.py::test_chat_route_uses_runtime_selector_not_direct_runner
+FAILED tests/test_orchestrator_supervisor_ipc.py::test_supervisor_ipc_runs_controlled_loop_and_writes_response
+FAILED tests/test_orchestrator_supervisor_ipc.py::test_supervisor_ipc_propagates_request_context
+FAILED tests/test_orchestrator_supervisor_runtime.py::test_first_submit_spawns_supervisor_job
+FAILED tests/test_orchestrator_supervisor_runtime.py::test_second_submit_appends_user_reply_and_writes_wake_event
+FAILED tests/test_orchestrator_supervisor_runtime.py::test_different_ip_gets_independent_supervisor
+FAILED tests/test_orchestrator_supervisor_wake.py::test_waker_reads_user_message_event
+FAILED tests/test_orchestrator_supervisor_wake.py::test_waker_reads_job_complete_event
+FAILED tests/test_orchestrator_supervisor_wake.py::test_waker_timer_reason_matches_existing_contract
+11 failed in 0.80s

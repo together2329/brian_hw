@@ -1,0 +1,2 @@
+/Library/Developer/CommandLineTools/usr/bin/python3: No module named ruff
+exit=1

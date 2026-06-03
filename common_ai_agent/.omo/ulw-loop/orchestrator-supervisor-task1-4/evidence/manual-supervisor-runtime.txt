@@ -1,0 +1,27 @@
+QA_START
+root=/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas-orch-supervisor-qa-1
+tyczqky
+first_status=started run_id=af7964999a1143948412c7015a535c27
+append_status=appended same_run=True
+second_ip_status=started independent=True
+control_dir_exists=True
+request_kind=orchestrator-supervisor request_ip=ipA wake_path=/private/var/folde
+rs/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas-orch-supervisor-qa-1tyczqky/.sessio
+n/orchestrators-ipc/af7964999a1143948412c7015a535c27/wake.jsonl
+log_exists=True
+spawned_count=2 spawned_transport=ipc
+job_ids=['orch-af7964999a1143948412c7015a535c27', 'orch-df07899fa98e4c0bb7820080
+82c2d98e']
+job_metadata_kind=orchestrator-supervisor worker_log_path=.session/orchestrators
+-ipc/af7964999a1143948412c7015a535c27/supervisor.log
+process_keys=['ipc-orch-af7964999a1143948412c7015a535c27', 'ipc-orch-df07899fa98
+e4c0bb782008082c2d98e']
+user_wake_type=user_message user_wake_message=continue ipA
+append_job_complete_wake=True waker_reason=job_complete:stage-job-1:completed
+bridge_last_event=job_complete:stage-job-2:completed
+runtime_shutdown=closed_db
+QA_DONE
+tmux_command_complete
+
+
+cleanup: tmux kill-session -t ulw-qa-orch-c002; TemporaryDirectory removed by Python context; no bound ports spawned

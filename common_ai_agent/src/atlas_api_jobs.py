@@ -23,6 +23,7 @@ import os
 import re
 import shlex
 import hashlib
+import sqlite3
 import subprocess
 import sys
 import threading
@@ -34,7 +35,7 @@ import uuid
 from pathlib import Path
 from typing import Any, Callable
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 
@@ -1024,6 +1025,28 @@ def get_jobs_state() -> tuple[dict[str, dict[str, Any]], threading.Lock]:
     """Return (_jobs, _jobs_lock) for callers in atlas_ui.py that need
     read access to the job tracker (e.g. /api/session/state)."""
     return _jobs, _jobs_lock
+
+
+def _register_orchestrator_supervisor_job(job_id: str, job: dict[str, Any]) -> None:
+    with _jobs_lock:
+        _jobs[job_id] = job
+
+
+def _register_orchestrator_supervisor_process(run_id: str, proc: subprocess.Popen) -> None:
+    with _IPC_WORKER_LOCK:
+        _IPC_WORKER_PROCS[run_id] = proc
+
+
+def _unregister_orchestrator_supervisor_process(run_id: str) -> None:
+    with _IPC_WORKER_LOCK:
+        _IPC_WORKER_PROCS.pop(run_id, None)
+
+
+def _update_orchestrator_supervisor_job(job_id: str, updates: dict[str, Any]) -> None:
+    with _jobs_lock:
+        live = _jobs.get(job_id)
+        if live is not None:
+            live.update(updates)
 
 
 def _summarize_worker_progress(ip_jobs: list[dict[str, Any]]) -> dict[str, Any]:
@@ -2039,17 +2062,34 @@ def _warm_worker_owner_from_session(session_name: str, owner: str = "") -> str:
     return parts[0] if parts else ""
 
 
+def _safe_workspace_session_segment(value: str = "") -> str:
+    raw = str(value or "").strip() or "default"
+    return raw if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", raw) else "default"
+
+
+def _warm_worker_workspace_from_session(session_name: str, workspace_session: str = "") -> str:
+    explicit = str(workspace_session or "").strip()
+    if explicit:
+        return _safe_workspace_session_segment(explicit)
+    parts = [p for p in str(session_name or "").strip("/").split("/") if p]
+    if len(parts) >= 4:
+        return _safe_workspace_session_segment(parts[1])
+    return _safe_workspace_session_segment("")
+
+
 def _warm_worker_job(
     *,
     workflow: str,
     ip: str,
     owner: str,
+    workspace_session: str,
     db_user_id: str,
     project_root_value: str,
     run_mode: str,
     exec_mode: str,
 ) -> dict[str, Any]:
-    session_name = f"{owner}/{ip}/{workflow}" if owner else f"{ip}/{workflow}"
+    workspace = _warm_worker_workspace_from_session("", workspace_session)
+    session_name = f"{owner}/{workspace}/{ip}/{workflow}" if owner else f"{ip}/{workflow}"
     worker_owner, worker_partition = _workflow_worker_owner_keys(
         session_name=session_name,
         user_id=owner,
@@ -2069,6 +2109,7 @@ def _warm_worker_job(
         "worker_partition": worker_partition,
         "workflow": workflow,
         "session": session_name,
+        "workspace_session": workspace,
         "project_root": project_root_value,
         "model": _worker_model_for(workflow),
         "reasoning_effort": _worker_reasoning_effort_for(workflow),
@@ -2144,6 +2185,7 @@ def schedule_worker_warmup(
     owner: str = "",
     db_user_id: str = "",
     session_name: str = "",
+    workspace_session: str = "",
     active_workflow: str = "",
     workflows: list[str] | tuple[str, ...] | None = None,
     project_root_value: str | Path = "",
@@ -2162,6 +2204,7 @@ def schedule_worker_warmup(
     owner_name = _warm_worker_owner_from_session(session_name, owner)
     if not owner_name or owner_name.lower() == "default":
         return {"enabled": True, "reason": "no_active_owner", "scheduled": []}
+    workspace_name = _warm_worker_workspace_from_session(session_name, workspace_session)
     selected = list(workflows or _warm_policy_workflows(active_workflow))
     project_root_text = str(project_root_value or os.environ.get("ATLAS_PROJECT_ROOT") or ".")
     effective_exec = _normalize_exec_mode(exec_mode) or EXEC_MODE_ORCHESTRATOR
@@ -2180,6 +2223,7 @@ def schedule_worker_warmup(
             workflow=workflow,
             ip=ip_name,
             owner=owner_name,
+            workspace_session=workspace_name,
             db_user_id=db_user_id,
             project_root_value=project_root_text,
             run_mode=effective_run,
@@ -2191,6 +2235,7 @@ def schedule_worker_warmup(
         "reason": reason or "policy",
         "ip": ip_name,
         "owner": owner_name,
+        "workspace_session": workspace_name,
         "active_workflow": str(active_workflow or ""),
         "scheduled": scheduled,
     }
@@ -2205,6 +2250,7 @@ def _schedule_worker_warmup_for_job(job: dict[str, Any], *, reason: str) -> None
             owner=owner,
             db_user_id=str(job.get("db_user_id") or ""),
             session_name=session_name,
+            workspace_session=str(job.get("workspace_session") or ""),
             active_workflow=str(job.get("workflow") or ""),
             project_root_value=str(job.get("project_root") or ""),
             run_mode=str(job.get("run_mode") or ""),
@@ -2731,11 +2777,15 @@ def _ensure_lazy_worker_for_direct_dispatch(
     # The flat form dropped owner+ip, so every IP shared one conversation dir
     # and context never matched the active IP. Fall back to "direct" only when
     # no active IP is known.
-    _active_ip = os.environ.get("ATLAS_ACTIVE_IP", "").strip()
     _active_session = os.environ.get("ATLAS_ACTIVE_SESSION", "").strip()
-    _owner = _active_session.split("/", 1)[0].strip() if _active_session else ""
+    _parts = [part for part in _active_session.strip("/").split("/") if part]
+    _active_ip = os.environ.get("ATLAS_ACTIVE_IP", "").strip()
+    if not _active_ip and len(_parts) >= 3:
+        _active_ip = _parts[-2].strip()
+    _owner = _parts[0].strip() if _parts else ""
+    _workspace = _safe_workspace_session_segment(_parts[1]) if len(_parts) >= 4 else "default"
     if _owner and _owner not in ("default", "local-admin") and _active_ip:
-        _session = f"{_owner}/{_active_ip}/{wf}" if wf else f"{_owner}/{_active_ip}"
+        _session = f"{_owner}/{_workspace}/{_active_ip}/{wf}" if wf else f"{_owner}/{_workspace}/{_active_ip}"
     elif _active_ip:
         _session = f"{_active_ip}/{wf}" if wf else _active_ip
     else:
@@ -3540,11 +3590,16 @@ def _ipc_runtime_limits_payload() -> dict[str, Any]:
     }
 
 
-def ipc_worker_snapshot() -> dict[str, Any]:
+def ipc_worker_snapshot(job_filter: Callable[[dict[str, Any]], bool] | None = None) -> dict[str, Any]:
     """Live IPC worker queue/process state for admin and diagnostics."""
     now = time.time()
     with _jobs_lock:
-        jobs = [_public_job(job) for job in _jobs.values() if _job_uses_ipc_worker(job)]
+        raw_jobs = [
+            job for job in _jobs.values()
+            if _job_uses_ipc_worker(job) and (job_filter is None or job_filter(job))
+        ]
+        visible_run_ids = {str(job.get("run_id") or "") for job in raw_jobs if str(job.get("run_id") or "")}
+        jobs = [_public_job(job) for job in raw_jobs]
         running_jobs = [
             job for job in jobs
             if str(job.get("status") or "") in _WORKER_BUSY_STATES
@@ -3572,6 +3627,7 @@ def ipc_worker_snapshot() -> dict[str, Any]:
                 "returncode": proc.poll(),
             }
             for run_id, proc in _IPC_WORKER_PROCS.items()
+            if job_filter is None or run_id in visible_run_ids
         ]
     limits = _ipc_runtime_limits_payload()
     queue_depth = len(running_jobs) + len(queued_jobs)
@@ -3595,7 +3651,10 @@ def ipc_worker_snapshot() -> dict[str, Any]:
     }
 
 
-def worker_runtime_snapshot(project_root_path: Path | str | None = None) -> dict[str, Any]:
+def worker_runtime_snapshot(
+    project_root_path: Path | str | None = None,
+    job_filter: Callable[[dict[str, Any]], bool] | None = None,
+) -> dict[str, Any]:
     """Combined dispatch runtime view for admin surfaces."""
     transport = _worker_transport()
     lazy = lazy_worker_snapshot() if transport == "http" else []
@@ -3604,7 +3663,7 @@ def worker_runtime_snapshot(project_root_path: Path | str | None = None) -> dict
         "project_root": str(project_root_path or os.environ.get("ATLAS_PROJECT_ROOT") or ""),
         "lazy_workers_enabled": _lazy_workers_enabled(),
         "warm_pool_enabled": _worker_warm_pool_enabled(),
-        "ipc": ipc_worker_snapshot(),
+        "ipc": ipc_worker_snapshot(job_filter),
         "http": {
             "lazy_workers": lazy,
             "spawn_parallel": _env_int("ATLAS_LAZY_WORKER_SPAWN_PARALLEL", 4, minimum=1),
@@ -3769,6 +3828,17 @@ def _advance_pipeline_from(job: dict[str, Any]) -> None:
             notify_job_complete(job_id, job_status)
         except Exception:
             pass
+        try:
+            from src.orchestrator.supervisor_wake import append_job_complete_wake
+
+            append_job_complete_wake(
+                Path(job.get("project_root") or ".").resolve(),
+                run_id=str(job.get("orchestrator_run_id") or ""),
+                job_id=job_id,
+                status=job_status,
+            )
+        except Exception:
+            pass
 
     pipeline_id = job.get("pipeline_id") or ""
     if not pipeline_id:
@@ -3868,6 +3938,7 @@ def _active_job_conflicts(
     workflows: list[str] | set[str] | tuple[str, ...] = (),
     user_id: str = "",
     db_user_id: str = "",
+    project_root: Path | str | None = None,
 ) -> list[dict[str, Any]]:
     """Return active jobs that would duplicate the same scoped worker lane."""
     ip_name = str(ip or "").strip()
@@ -3875,6 +3946,8 @@ def _active_job_conflicts(
     workflow_set = {str(item or "").strip() for item in workflows if str(item or "").strip()}
     user_name = str(user_id or "").strip()
     db_user = str(db_user_id or "").strip()
+    root_text = str(project_root or "").strip()
+    root_path = Path(root_text).resolve() if root_text else None
     conflicts: list[dict[str, Any]] = []
     with _jobs_lock:
         for job in _jobs.values():
@@ -3884,11 +3957,25 @@ def _active_job_conflicts(
             if ip_name and str(job.get("ip") or "").strip() != ip_name:
                 continue
             job_db_user = str(job.get("db_user_id") or "").strip()
-            if db_user and job_db_user and job_db_user != db_user:
-                continue
             job_user = str(job.get("user_id") or "").strip()
-            if not db_user and user_name and job_user and job_user != user_name:
-                continue
+            if db_user:
+                if job_db_user:
+                    if job_db_user != db_user:
+                        continue
+                elif user_name:
+                    if job_user != user_name:
+                        continue
+                else:
+                    continue
+            elif user_name:
+                if job_user != user_name:
+                    continue
+            job_root_text = str(job.get("project_root") or "").strip()
+            if root_path is not None:
+                if not job_root_text:
+                    continue
+                if Path(job_root_text).resolve() != root_path:
+                    continue
             job_stage = str(job.get("stage_id") or "").strip()
             job_workflow = str(job.get("workflow") or "").strip()
             if stage_set and job_stage not in stage_set and job_workflow not in stage_set:
@@ -3990,10 +4077,17 @@ def _job_artifact_recovery(
         checker = _workflow_root_for_project(project_root) / "ssot-gen" / "scripts" / "check_ssot_disk.sh"
         if not checker.is_file():
             return False, f"SSOT checker missing: {checker}"
+        run_mode = _normalize_run_mode(job.get("run_mode")) or _current_run_mode()
+        tool_root = _tool_project_root_for_ip(project_root, ip)
+        env = os.environ.copy()
+        env["ATLAS_PROJECT_ROOT"] = str(tool_root)
+        env["ATLAS_RUN_MODE"] = run_mode
+        env.pop("ATLAS_IP_ROOT", None)
         try:
             proc = subprocess.run(
-                ["bash", str(checker), ip, "--mode", _current_run_mode()],
-                cwd=str(_tool_project_root_for_ip(project_root, ip)),
+                ["bash", str(checker), ip, "--root", str(tool_root), "--mode", run_mode],
+                cwd=str(tool_root),
+                env=env,
                 text=True,
                 encoding="utf-8",
                 errors="replace",
@@ -4500,18 +4594,56 @@ def _enforce_completion_evidence_gate(job: dict[str, Any], project_root: Path) -
         return
     ok, evidence_summary = _job_artifact_recovery(job, project_root)
     if ok:
+        job["status"] = "completed"
+        job["error"] = ""
         job["evidence_summary"] = evidence_summary
         return
     stage_id = str(job.get("stage_id") or job.get("workflow") or "").strip()
     job["status"] = "error"
+    detail = f": {evidence_summary}" if evidence_summary else ""
     job["error"] = (
         f"missing required evidence for {stage_id}; "
-        "worker reported completed but no stage artifact was found"
+        f"worker reported completed but no stage artifact was found{detail}"
     )
     job["finished_at"] = job.get("finished_at") or time.time()
 
 
-def _refresh_tracked_jobs(project_root_path: Path | None = None) -> tuple[list[dict[str, Any]], bool]:
+def _recover_terminal_missing_evidence_job(
+    job: dict[str, Any],
+    project_root: Path,
+    now: float,
+) -> bool:
+    status = str(job.get("status") or "").strip()
+    if status not in {"error", "failed"}:
+        return False
+    if not _job_requires_completion_evidence(job):
+        return False
+    error_text = str(job.get("error") or "")
+    if "missing required evidence" not in error_text:
+        return False
+    failed, failure_reason = _job_artifact_failure(job, project_root)
+    if failed:
+        job["evidence_recovery_blocker"] = failure_reason
+        return False
+    ok, evidence_summary = _job_artifact_recovery(job, project_root)
+    if not ok:
+        if evidence_summary:
+            job["evidence_recovery_blocker"] = evidence_summary
+        return False
+    job["status"] = "completed"
+    job["error"] = ""
+    job["evidence_summary"] = evidence_summary
+    job["finished_at"] = job.get("finished_at") or now
+    if not job.get("result_summary"):
+        job["result_summary"] = evidence_summary
+    job["queue_reason"] = ""
+    return True
+
+
+def _refresh_tracked_jobs(
+    project_root_path: Path | None = None,
+    job_filter: Callable[[dict[str, Any]], bool] | None = None,
+) -> tuple[list[dict[str, Any]], bool]:
     """Poll running workers and advance ready pipeline jobs.
 
     `/api/jobs` used to be the only endpoint that performed this refresh. The
@@ -4519,12 +4651,15 @@ def _refresh_tracked_jobs(project_root_path: Path | None = None) -> tuple[list[d
     could stay visually stuck on the first running stage until another widget
     happened to hit `/api/jobs`.
     """
-    pr = project_root_path or project_root()
+    default_project_root = project_root_path or project_root()
     now = time.time()
     changed = False
     with _jobs_lock:
         snapshot = list(_jobs.values())
     for job in snapshot:
+        if job_filter is not None and not job_filter(job):
+            continue
+        pr = Path(job.get("project_root") or default_project_root).resolve()
         # Poll both "running" and "pending" jobs that have an assigned run_id.
         # An assigned run_id means dispatch_job_to_worker reached the worker and
         # received a server-side run id back — but the worker thread for the
@@ -4622,6 +4757,11 @@ def _refresh_tracked_jobs(project_root_path: Path | None = None) -> tuple[list[d
             _enforce_completion_evidence_gate(job, pr)
             changed = changed or job.get("status") != before_gate
             if job.get("status") == "completed":
+                _ensure_stage_artifact_version_for_job(job, pr)
+        if job.get("status") in ("error", "failed"):
+            recovered_missing_evidence = _recover_terminal_missing_evidence_job(job, pr, now)
+            if recovered_missing_evidence:
+                changed = True
                 _ensure_stage_artifact_version_for_job(job, pr)
         if job.get("status") in ("completed", "error", "cancelled"):
             _finish_job_db_run(job, job.get("status"))
@@ -4756,6 +4896,7 @@ def register_jobs_routes(
         request_user: str,
         request_db_user: str,
         request_is_admin: bool = False,
+        request_project_root: Path | None = None,
     ) -> bool:
         """Return True if *job* belongs to the authenticated user.
 
@@ -4768,35 +4909,238 @@ def register_jobs_routes(
         if not _multi_user_enabled():
             return True
         if request_is_admin:
-            return True
+            return _job_project_root_visible(job, request_project_root)
         if not request_user and not request_db_user:
             return False
         job_db_user = str(job.get("db_user_id") or "").strip()
         if job_db_user:
-            return bool(request_db_user and job_db_user == request_db_user)
+            return bool(request_db_user and job_db_user == request_db_user) and _job_project_root_visible(job, request_project_root)
         job_user = str(job.get("user_id") or "").strip()
         if job_user:
-            return bool(request_user and job_user == request_user)
+            return bool(request_user and job_user == request_user) and _job_project_root_visible(job, request_project_root)
         return False
 
-    def _default_job_session_for_owner(owner: str, ip: str, workflow: str) -> str:
-        if _multi_user_enabled() and owner and owner != "local-admin":
-            return f"{owner}/{ip}/{workflow}" if ip else f"{owner}/{workflow}"
+    def _default_job_session_for_owner(owner: str, ip: str, workflow: str, workspace_session: str = "") -> str:
+        if owner and owner != "local-admin":
+            workspace = _workspace_session_from_body({"workspace_session": workspace_session})
+            return f"{owner}/{workspace}/{ip}/{workflow}" if ip else f"{owner}/{workspace}/{workflow}"
         return f"{ip}/{workflow}" if ip else workflow
 
-    def _default_job_session(request: Request, ip: str, workflow: str) -> str:
-        return _default_job_session_for_owner(_request_username(request), ip, workflow)
+    def _default_job_session(request: Request, ip: str, workflow: str, body: dict[str, Any] | None = None) -> str:
+        payload = _workspace_payload_from_request(request, body)
+        owner = _request_username(request)
+        if not _multi_user_enabled():
+            owner = _owner_from_workspace_payload(payload) or ("" if owner == "local-admin" else owner)
+        return _default_job_session_for_owner(
+            owner,
+            ip,
+            workflow,
+            _workspace_session_from_body(payload),
+        )
 
-    def _pipeline_session_prefix_for_owner(owner: str, ip: str, pipeline_id: str) -> str:
+    def _explicit_session_allowed(request: Request, session_name: str, ip: str, workflow: str, body: dict[str, Any] | None = None) -> bool:
+        owner = _request_username(request)
+        if not _multi_user_enabled() or not owner or owner == "local-admin":
+            return True
+        expected = normalize_session_name(_default_job_session(request, ip, workflow, body))
+        return bool(expected and session_name == expected)
+
+    def _orchestrator_session_hint_from_body(body: dict[str, Any] | None = None) -> str:
+        data = body or {}
+        for key in ("orchestrator_session_id", "session_id", "session", "namespace", "active_session"):
+            raw = normalize_session_name(str(data.get(key) or ""))
+            if raw:
+                return raw
+        return ""
+
+    def _pipeline_session_prefix_for_owner(
+        owner: str,
+        ip: str,
+        pipeline_id: str,
+        workspace_session: str = "",
+    ) -> str:
         ip_name = ip or "soc"
-        if _multi_user_enabled() and owner and owner != "local-admin":
-            return f"{owner}/{ip_name}/pipeline/{pipeline_id}"
+        if owner and owner != "local-admin":
+            workspace = _workspace_session_from_body({"workspace_session": workspace_session})
+            return f"{owner}/{workspace}/{ip_name}/pipeline/{pipeline_id}"
         return f"{ip_name}/pipeline/{pipeline_id}"
 
-    def _pipeline_session_prefix(request: Request, ip: str, pipeline_id: str) -> str:
-        return _pipeline_session_prefix_for_owner(_request_username(request), ip, pipeline_id)
+    def _pipeline_session_prefix(
+        request: Request,
+        ip: str,
+        pipeline_id: str,
+        body: dict[str, Any] | None = None,
+    ) -> str:
+        payload = _workspace_payload_from_request(request, body)
+        owner = _request_username(request)
+        if not _multi_user_enabled():
+            owner = _owner_from_workspace_payload(payload) or ("" if owner == "local-admin" else owner)
+        return _pipeline_session_prefix_for_owner(
+            owner,
+            ip,
+            pipeline_id,
+            _workspace_session_from_body(payload),
+        )
 
-    def _assert_ip_access(db_user_id: str, ip: str, request_is_admin: bool = False) -> bool:
+    def _workspace_session_from_body(body: dict[str, Any] | None = None) -> str:
+        data = body or {}
+        raw = str(data.get("workspace_session") or data.get("workspace") or "").strip()
+        if not raw:
+            session_name = normalize_session_name(str(
+                data.get("session")
+                or data.get("namespace")
+                or data.get("active_session")
+                or data.get("orchestrator_session_id")
+                or data.get("session_id")
+                or ""
+            ))
+            parts = [part for part in session_name.split("/") if part]
+            if len(parts) >= 4:
+                raw = parts[1]
+        return _safe_workspace_session_segment(raw or "default")
+
+    def _workspace_payload_from_request(
+        request: Request,
+        body: dict[str, Any] | None = None,
+    ) -> dict[str, Any] | None:
+        if body is not None:
+            return body
+        payload: dict[str, Any] = {}
+        for key in ("workspace_session", "workspace", "session", "namespace", "active_session", "orchestrator_session_id", "session_id"):
+            value = str(request.query_params.get(key) or "").strip()
+            if value:
+                payload[key] = value
+        return payload or None
+
+    def _owner_from_workspace_payload(body: dict[str, Any] | None = None) -> str:
+        data = body or {}
+        for key in ("session", "namespace", "active_session", "orchestrator_session_id", "session_id"):
+            session_name = normalize_session_name(str(data.get(key) or ""))
+            parts = [part for part in session_name.split("/") if part]
+            if len(parts) >= 2 and parts[0] and parts[0] != "default":
+                return parts[0]
+        for key in ("user_name", "username", "owner"):
+            owner = normalize_session_name(str(data.get(key) or ""))
+            if owner and owner != "default":
+                return owner
+        return ""
+
+    def _valid_ip_name(ip: str) -> bool:
+        return bool(ip) and len(ip) <= 64 and bool(re.fullmatch(r"[A-Za-z][A-Za-z0-9_]*", ip))
+
+    def _trace_event_visible_to_request(
+        event: dict[str, Any],
+        request_user: str,
+        request_db_user: str,
+        request_is_admin: bool,
+        workspace_session: str,
+    ) -> bool:
+        if not _multi_user_enabled() or request_is_admin:
+            return True
+        session = normalize_session_name(str(event.get("session") or event.get("session_name") or ""))
+        if not session:
+            return False
+        parts = [part for part in session.split("/") if part]
+        if request_user and parts and parts[0] != request_user:
+            return False
+        if workspace_session:
+            return len(parts) >= 4 and parts[1] == workspace_session
+        event_db_user = str(event.get("db_user_id") or "").strip()
+        if event_db_user and request_db_user and event_db_user != request_db_user:
+            return False
+        return bool(parts)
+
+    def _trace_events_visible_to_request(
+        events: list[dict[str, Any]],
+        request_user: str,
+        request_db_user: str,
+        request_is_admin: bool,
+        workspace_session: str,
+    ) -> list[dict[str, Any]]:
+        return [
+            event for event in events
+            if _trace_event_visible_to_request(
+                event,
+                request_user,
+                request_db_user,
+                request_is_admin,
+                workspace_session,
+            )
+        ]
+
+    def _atlas_root_for_jobs() -> Path:
+        runtime_root = project_root().expanduser().resolve()
+        env_root_value = os.environ.get("ATLAS_ROOT")
+        if not env_root_value:
+            return runtime_root
+        env_root = Path(env_root_value).expanduser().resolve()
+        if os.environ.get("ATLAS_CONTEXT_KEY") and env_root != runtime_root:
+            return runtime_root
+        return env_root
+
+    def _session_artifact_suffix(project_root_value: Path, session_name: str) -> str:
+        normalized = normalize_session_name(session_name)
+        parts = [part for part in normalized.split("/") if part]
+        root_parts = project_root_value.resolve().parts
+        if len(parts) >= 4 and len(root_parts) >= 2 and root_parts[-2:] == tuple(parts[:2]):
+            return "/".join(parts[2:])
+        return normalized
+
+    def _project_root_for_owner(owner: str, ip: str = "", body: dict[str, Any] | None = None) -> Path:
+        legacy_root = project_root().resolve()
+        root = _atlas_root_for_jobs()
+        owner_name = normalize_session_name(owner)
+        if not _multi_user_enabled() and not owner_name:
+            return legacy_root
+        if not owner_name or owner_name == "local-admin":
+            return legacy_root
+        if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", owner_name):
+            return legacy_root
+        workspace_session = _workspace_session_from_body(body)
+        owner_root = root / owner_name
+        workspace_path = owner_root / workspace_session
+        if owner_root.is_symlink() or workspace_path.is_symlink():
+            raise HTTPException(status_code=403, detail="workspace root symlink not allowed")
+        workspace_root = workspace_path.resolve(strict=False)
+        try:
+            workspace_root.relative_to(root)
+        except ValueError:
+            raise HTTPException(status_code=403, detail="workspace root escapes atlas root")
+        return workspace_root
+
+    def _request_project_root(request: Request, ip: str = "", body: dict[str, Any] | None = None) -> Path:
+        payload = _workspace_payload_from_request(request, body)
+        if _multi_user_enabled():
+            owner = _request_username(request)
+        else:
+            owner = _owner_from_workspace_payload(payload)
+        return _project_root_for_owner(owner, ip, payload)
+
+    def _job_project_root_visible(job: dict[str, Any], request_project_root: Path | None) -> bool:
+        if request_project_root is None:
+            return True
+        raw = str(job.get("project_root") or "").strip()
+        if not raw:
+            return False
+        job_root = Path(raw).resolve()
+        request_root = request_project_root.resolve()
+        if job_root == request_root:
+            return True
+        global_root = project_root().resolve()
+        if job_root != global_root:
+            return False
+        try:
+            request_parts = request_root.relative_to(global_root).parts
+        except ValueError:
+            return False
+        return len(request_parts) == 2 and request_parts[1] == "default"
+
+    def _assert_ip_access(
+        db_user_id: str,
+        ip: str,
+        request_is_admin: bool = False,
+        request_project_root: Path | None = None,
+    ) -> bool:
         """Return True if db_user_id may access ip.
 
         An IP is owned by the user whose workspace holds the earliest
@@ -4806,56 +5150,89 @@ def register_jobs_routes(
         holds those runs, have an explicit ip_permissions grant, or be an
         authenticated admin user.
 
-        Only enforced when multi-user mode is on and the request carries a real
-        user identity (not empty / local-admin).
+        In multi-user mode, unauthenticated/rootless callers fail closed unless
+        the request is an authenticated admin request.
         """
         if not _multi_user_enabled():
             return True
         if request_is_admin:
             return True
         if not db_user_id or db_user_id == "local-admin":
-            return True
+            return False
         pr = project_root()
         try:
             from core.atlas_db import AtlasDB
             with AtlasDB(_atlas_job_db_path(pr)) as _db:
                 canonical = _canonical_user_id(_db, db_user_id) or db_user_id
-                # Check explicit permission grant first (covers shared IPs)
-                grant = _db._fetchone(
-                    """
-                    SELECT p.id FROM ip_permissions p
-                      JOIN ip_blocks i ON i.id = p.ip_id
-                     WHERE p.grantee_user_id = ?
-                       AND i.ip_name = ?
-                       AND (p.expires_at IS NULL OR p.expires_at > ?)
-                    LIMIT 1
-                    """,
-                    (canonical, ip, __import__("time").time()),
-                )
+                root_path = str(request_project_root.resolve()) if request_project_root is not None else ""
+                if root_path:
+                    grant = _db._fetchone(
+                        """
+                        SELECT p.id FROM ip_permissions p
+                          JOIN ip_blocks i ON i.id = p.ip_id
+                          JOIN workspaces w ON w.id = i.workspace_id
+                         WHERE p.grantee_user_id = ?
+                           AND i.ip_name = ?
+                           AND w.local_path = ?
+                           AND (p.expires_at IS NULL OR p.expires_at > ?)
+                        LIMIT 1
+                        """,
+                        (canonical, ip, root_path, __import__("time").time()),
+                    )
+                else:
+                    grant = _db._fetchone(
+                        """
+                        SELECT p.id FROM ip_permissions p
+                          JOIN ip_blocks i ON i.id = p.ip_id
+                         WHERE p.grantee_user_id = ?
+                           AND i.ip_name = ?
+                           AND (p.expires_at IS NULL OR p.expires_at > ?)
+                        LIMIT 1
+                        """,
+                        (canonical, ip, __import__("time").time()),
+                    )
                 if grant is not None:
                     return True
                 # Find the workspace that owns the earliest workflow_run for
                 # this IP. That workspace's owner is the de-facto IP owner.
-                first_run = _db._fetchone(
-                    """
-                    SELECT w.owner_user_id
-                      FROM workflow_runs wr
-                      JOIN ip_blocks i ON i.id = wr.ip_id
-                      JOIN workspaces w ON w.id = wr.workspace_id
-                     WHERE i.ip_name = ?
-                       AND w.owner_user_id != ''
-                     ORDER BY wr.started_at ASC
-                     LIMIT 1
-                    """,
-                    (ip,),
-                )
+                if root_path:
+                    first_run = _db._fetchone(
+                        """
+                        SELECT w.owner_user_id
+                          FROM workflow_runs wr
+                          JOIN ip_blocks i ON i.id = wr.ip_id
+                          JOIN workspaces w ON w.id = wr.workspace_id
+                         WHERE i.ip_name = ?
+                           AND w.local_path = ?
+                           AND w.owner_user_id != ''
+                         ORDER BY wr.started_at ASC
+                         LIMIT 1
+                        """,
+                        (ip, root_path),
+                    )
+                    if first_run is None:
+                        return True
+                else:
+                    first_run = _db._fetchone(
+                        """
+                        SELECT w.owner_user_id
+                          FROM workflow_runs wr
+                          JOIN ip_blocks i ON i.id = wr.ip_id
+                          JOIN workspaces w ON w.id = wr.workspace_id
+                         WHERE i.ip_name = ?
+                           AND w.owner_user_id != ''
+                         ORDER BY wr.started_at ASC
+                         LIMIT 1
+                        """,
+                        (ip,),
+                    )
                 if first_run is None:
                     # No workflow_run yet — IP is unclaimed, allow access
                     return True
                 ip_owner = str(first_run["owner_user_id"] or "")
                 return ip_owner == canonical
-        except Exception:
-            return True
+        except (AttributeError, ImportError, KeyError, OSError, RuntimeError, sqlite3.Error, TypeError):
+            return False
 
     def _active_tool_owner() -> str:
         session_name = normalize_session_name(os.environ.get("ATLAS_ACTIVE_SESSION", ""))
@@ -4873,8 +5250,9 @@ def register_jobs_routes(
         run_mode: str = "", exec_mode: str = "", user_id: str = "",
         db_user_id: str = "", db_session_id: str = "",
         trigger_source: str = "", orchestrator_run_id: str = "",
+        project_root_override: Path | None = None,
     ) -> dict[str, Any]:
-        pr = project_root()
+        pr = (project_root_override or project_root()).resolve()
         stage_id    = stage_id or (_PIPELINE_BY_WORKFLOW.get(workflow, {}).get("id") or workflow)
         template    = template or _default_todo_template_for_job(workflow, stage_id, ip)
         run_mode    = _normalize_run_mode(run_mode) or _current_run_mode()
@@ -4885,12 +5263,13 @@ def register_jobs_routes(
         session_name = normalize_session_name(session_name or (f"{ip}/{workflow}" if ip else workflow))
         if not session_name:
             raise ValueError("invalid session namespace")
+        session_artifact = _session_artifact_suffix(pr, session_name)
         scope_path = str(_ip_dir_for(pr, ip).resolve()) if ip else str(pr)
         try:
             rel_scope = str(Path(scope_path).relative_to(pr))
         except Exception:
             rel_scope = ip or "."
-        session_dir = pr / ".session" / session_name
+        session_dir = pr / ".session" / session_artifact
         try:
             session_dir.mkdir(parents=True, exist_ok=True)
         except OSError:
@@ -4929,7 +5308,8 @@ def register_jobs_routes(
             f"- stage_id: {stage_id or workflow}\n"
             f"- pipeline_id: {pipeline_id or '(single-job)'}\n"
             f"- pipeline_run_id: {pipeline_id or '(single-job)'}\n"
-            f"- session_namespace: .session/{session_name}\n"
+            f"- session_namespace: .session/{session_artifact}\n"
+            f"- canonical_session: {session_name}\n"
             f"- project_root: {pr}\n"
             f"- source_root: {_SOURCE_ROOT}\n"
             f"- run_mode: {run_mode}\n"
@@ -4938,7 +5318,7 @@ def register_jobs_routes(
             f"- reasoning_effort: {reasoning_effort or '(default)'}\n"
             f"- scope_path: {rel_scope}\n"
             f"- write_boundary: only modify files under {rel_scope}/, "
-            f"except workflow-owned status/session files under .session/{session_name}/. "
+            f"except workflow-owned status/session files under .session/{session_artifact}/. "
             f"Do not edit other IP directories or unrelated workflows.\n"
             f"- parallelism: assume other IP/workflow jobs may be running; never revert or overwrite their files.\n\n"
         )
@@ -5055,7 +5435,7 @@ def register_jobs_routes(
         stage_raw       = (body.get("stage_id") or body.get("stage") or "").strip()
         session_raw     = (body.get("session")  or "").strip()
         trigger_source  = str(body.get("trigger_source") or "").strip()
-        session_name    = normalize_session_name(session_raw or _default_job_session(request, ip, workflow))
+        session_name    = normalize_session_name(session_raw)
         worker_override = (body.get("worker")   or "").strip()
         if not workflow:
             return JSONResponse({"error": "missing 'workflow'"}, status_code=400)
@@ -5077,21 +5457,41 @@ def register_jobs_routes(
             return JSONResponse({"error": "run_mode must be starter, engineering, or signoff"}, status_code=400)
         if body.get("exec_mode") is not None and not exec_mode:
             return JSONResponse({"error": "exec_mode must be single-worker or orchestrator"}, status_code=400)
-        if not session_name:
-            return JSONResponse({"error": f"invalid session {session_raw!r}"}, status_code=400)
         if worker_override and not re.match(r"^(?:https?|ipc)://[A-Za-z0-9_.:@+\-/]+$", worker_override):
             return JSONResponse({"error": f"invalid worker {worker_override!r}"}, status_code=400)
 
         stage_id = stage_raw or (_PIPELINE_BY_WORKFLOW.get(workflow) or {}).get("id", workflow)
-        _, _ = _refresh_tracked_jobs(project_root())
         request_user = _request_username(request)
         request_db_user = _request_db_user_id(request)
+        request_is_admin = _request_is_admin(request)
+        request_project_root = _request_project_root(request, ip, body)
+        if ip and not _assert_ip_access(
+            request_db_user or request_user,
+            ip,
+            request_is_admin,
+            request_project_root,
+        ):
+            return JSONResponse({"error": "forbidden"}, status_code=403)
+        if session_raw:
+            if not session_name:
+                return JSONResponse({"error": f"invalid session {session_raw!r}"}, status_code=400)
+            if not _explicit_session_allowed(request, session_name, ip, workflow, body):
+                return JSONResponse({"error": "session owner/workspace mismatch"}, status_code=403)
+        else:
+            session_name = normalize_session_name(_default_job_session(request, ip, workflow, body))
+        if not session_name:
+            return JSONResponse({"error": f"invalid session {session_raw!r}"}, status_code=400)
+        _, _ = _refresh_tracked_jobs(
+            request_project_root,
+            job_filter=lambda job: _job_visible_to_request(job, request_user, request_db_user, request_is_admin, request_project_root),
+        )
         conflicts = _active_job_conflicts(
             ip=ip,
             stage_ids=[stage_id],
             workflows=[workflow],
             user_id=request_user,
             db_user_id=request_db_user,
+            project_root=request_project_root,
         )
         if conflicts:
             payload = _dedupe_payload(conflicts, ip=ip)
@@ -5125,9 +5525,21 @@ def register_jobs_routes(
             user_id=request_user,
             db_user_id=request_db_user,
             trigger_source=trigger_source,
+            project_root_override=request_project_root,
         )
         if job.get("status") == "error":
             return JSONResponse({"error": job.get("error"), "worker": job.get("worker")}, status_code=502)
+        def _runtime_job_visible(job: dict[str, Any]) -> bool:
+            if ip and str(job.get("ip") or "") != ip:
+                return False
+            return _job_visible_to_request(
+                job,
+                request_user,
+                request_db_user,
+                request_is_admin,
+                request_project_root,
+            )
+
         return JSONResponse({
             "ok":             True,
             "job_id":         job["job_id"],
@@ -5177,7 +5589,6 @@ def register_jobs_routes(
 
         created: list = []
         errors:  list = []
-        _, _ = _refresh_tracked_jobs(project_root())
         request_user = _request_username(request)
         request_db_user = _request_db_user_id(request)
         for idx, item in enumerate(items):
@@ -5194,7 +5605,8 @@ def register_jobs_routes(
             exec_mode       = _normalize_exec_mode(item.get("exec_mode"))
             stage_raw       = (item.get("stage_id") or item.get("stage") or "").strip()
             session_raw     = (item.get("session")  or "").strip()
-            session_name    = normalize_session_name(session_raw or _default_job_session(request, ip, workflow))
+            item_scope = {**body, **item}
+            session_name    = normalize_session_name(session_raw)
             worker_override = (item.get("worker")   or "").strip()
 
             if not workflow or not re.match(r"^[A-Za-z][A-Za-z0-9_\-]*$", workflow):
@@ -5229,12 +5641,31 @@ def register_jobs_routes(
                 continue
 
             stage_id = stage_raw or (_PIPELINE_BY_WORKFLOW.get(workflow) or {}).get("id", workflow)
+            item_project_root = _request_project_root(request, ip, item_scope)
+            request_is_admin = _request_is_admin(request)
+            if ip and not _assert_ip_access(request_db_user or request_user, ip, request_is_admin, item_project_root):
+                errors.append({"index": idx, "error": "forbidden"})
+                continue
+            if session_raw:
+                if not _explicit_session_allowed(request, session_name, ip, workflow, item_scope):
+                    errors.append({"index": idx, "error": "session owner/workspace mismatch"})
+                    continue
+            else:
+                session_name = normalize_session_name(_default_job_session(request, ip, workflow, item_scope))
+            if not session_name:
+                errors.append({"index": idx, "error": f"invalid session {session_raw!r}"})
+                continue
+            _, _ = _refresh_tracked_jobs(
+                item_project_root,
+                job_filter=lambda job: _job_visible_to_request(job, request_user, request_db_user, request_is_admin, item_project_root),
+            )
             conflicts = _active_job_conflicts(
                 ip=ip,
                 stage_ids=[stage_id],
                 workflows=[workflow],
                 user_id=request_user,
                 db_user_id=request_db_user,
+                project_root=item_project_root,
             )
             if conflicts:
                 payload = _dedupe_payload(conflicts, ip=ip)
@@ -5248,6 +5679,7 @@ def register_jobs_routes(
                 rtl_version_id=rtl_version_id, run_mode=run_mode, exec_mode=exec_mode,
                 user_id=request_user,
                 db_user_id=request_db_user,
+                project_root_override=item_project_root,
             )
             created.append(_public_job(job))
 
@@ -5264,17 +5696,29 @@ def register_jobs_routes(
         return JSONResponse({"stages": _PIPELINE_STAGES})
 
     @app.get("/api/pipeline/progress-debug")
-    async def api_pipeline_progress_debug(ip: str = ""):
+    async def api_pipeline_progress_debug(request: Request, ip: str = ""):
         ip = ip.strip()
         if not ip or len(ip) > 64 or not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", ip):
             return JSONResponse({"error": "invalid or missing ip"}, status_code=400)
-        pr = project_root()
+        pr = _request_project_root(request, ip)
         try:
             from src.progress_debug import summarize_headless_progress
         except ModuleNotFoundError:
             from progress_debug import summarize_headless_progress
+        request_user = _request_username(request)
+        request_db_user = _request_db_user_id(request) or ""
+        request_is_admin = _request_is_admin(request)
+        if _multi_user_enabled() and not request_is_admin and not (request_user or request_db_user):
+            return JSONResponse({"error": "not authenticated"}, status_code=401)
+        if not _assert_ip_access(request_db_user or request_user, ip, request_is_admin, pr):
+            return JSONResponse({"error": "forbidden"}, status_code=403)
         with _jobs_lock:
-            ip_jobs = [dict(j) for j in _jobs.values() if j.get("ip") == ip]
+            ip_jobs = [
+                dict(j)
+                for j in _jobs.values()
+                if j.get("ip") == ip
+                and _job_visible_to_request(j, request_user, request_db_user, request_is_admin, pr)
+            ]
         headless_debug = summarize_headless_progress(pr, ip)
         worker_debug = _summarize_worker_progress(ip_jobs)
         return JSONResponse(_combine_progress_debug(headless_debug, worker_debug))
@@ -5306,13 +5750,22 @@ def register_jobs_routes(
         user_id = str(scoped_user.get("username") or scoped_user.get("id") or "")
         db_user_id = _request_db_user_id(request) or user_id
         request_is_admin = _request_is_admin(request)
-        if not _assert_ip_access(db_user_id, ip, request_is_admin):
+        if _multi_user_enabled() and not request_is_admin and not (user_id or db_user_id):
+            return JSONResponse({"error": "not authenticated"}, status_code=401)
+        pr = _request_project_root(request, ip)
+        if not _assert_ip_access(db_user_id, ip, request_is_admin, pr):
             return JSONResponse({"error": "forbidden"}, status_code=403)
         scope_filter = {"user_id": user_id} if user_id else None
-        cache_key = (ip, user_id)
-
-        pr = project_root()
-        _, jobs_changed = _refresh_tracked_jobs(pr)
+        cache_key = (ip, user_id, str(pr))
+        _ps_request_user = _request_username(request)
+        _ps_request_db_user = _request_db_user_id(request) or ""
+        _, jobs_changed = _refresh_tracked_jobs(
+            pr,
+            job_filter=lambda job: (
+                str(job.get("ip") or "") == ip
+                and _job_visible_to_request(job, _ps_request_user, _ps_request_db_user, request_is_admin, pr)
+            ),
+        )
         if jobs_changed:
             for k in list(_state_cache.keys()):
                 if isinstance(k, tuple) and k[0] == ip:
@@ -5343,12 +5796,12 @@ def register_jobs_routes(
         # filesystem is consulted only as a fallback for hand-placed artifacts.
         rtl_version_id: str | None = None
         db_state_by_workflow: dict[str, dict[str, Any]] = {}
+        scoped_rtl_versions: list[dict[str, Any]] = []
         try:
             import os as _os
             db_path = _os.environ.get("ATLAS_DB_PATH") or str(Path.home() / ".common_ai_agent" / "atlas.db")
             from core.atlas_db import AtlasDB
             with AtlasDB(db_path) as _db:
-                versions = _db.list_rtl_versions()
                 # workspace + ip_block lookup (creates rows if missing — same
                 # pattern as register_rtl_version in this file)
                 try:
@@ -5359,15 +5812,23 @@ def register_jobs_routes(
                             owner_user_id=db_user_id,
                             local_path=str(pr),
                         ))
-                    legacy_ws = _db.upsert_workspace(
-                        pr.name or "default",
-                        owner_user_id="",
-                        local_path=str(pr),
-                    )
-                    if not workspace_candidates or legacy_ws["id"] != workspace_candidates[0]["id"]:
-                        workspace_candidates.append(legacy_ws)
+                    allow_ownerless_db_fallback = not _multi_user_enabled()
+                    if allow_ownerless_db_fallback:
+                        legacy_ws = _db.upsert_workspace(
+                            pr.name or "default",
+                            owner_user_id="",
+                            local_path=str(pr),
+                        )
+                        if not workspace_candidates or legacy_ws["id"] != workspace_candidates[0]["id"]:
+                            workspace_candidates.append(legacy_ws)
                     for _ws in workspace_candidates:
                         _ipb = _db.upsert_ip_block(_ws["id"], ip)
+                        scoped_rtl_versions.extend(
+                            _db.list_rtl_versions(
+                                ip_id=_ipb["id"],
+                                workspace_id=_ws["id"],
+                            )
+                        )
                         _runs = _db._fetchall(
                             """
                             SELECT workflow, status, error_summary, started_at, ended_at,
@@ -5387,9 +5848,8 @@ def register_jobs_routes(
                                 db_state_by_workflow[wf] = dict(_r)
                 except Exception:
                     pass
-            ip_versions = [v for v in versions if v.get("ip") == ip or v.get("ip_id")]
-            if ip_versions:
-                rtl_version_id = ip_versions[-1].get("version") or ip_versions[-1].get("id")
+            if scoped_rtl_versions:
+                rtl_version_id = scoped_rtl_versions[0].get("version") or scoped_rtl_versions[0].get("id")
         except Exception:
             pass
 
@@ -5413,13 +5873,11 @@ def register_jobs_routes(
             return (None, None)
 
         # snapshot of running jobs for this ip, scoped to the authenticated user
-        _ps_request_user = _request_username(request)
-        _ps_request_db_user = _request_db_user_id(request) or ""
         with _jobs_lock:
             ip_jobs = [
                 dict(j) for j in _jobs.values()
                 if j.get("ip") == ip
-                and _job_visible_to_request(j, _ps_request_user, _ps_request_db_user, request_is_admin)
+                and _job_visible_to_request(j, _ps_request_user, _ps_request_db_user, request_is_admin, pr)
             ]
         progress_debug = _combine_progress_debug(
             progress_debug,
@@ -5731,11 +6189,12 @@ def register_jobs_routes(
         exec_mode: str,
         selected_stage_ids: list[str],
         prompt: str = "",
+        project_root_override: Path | None = None,
     ) -> str:
         db_user_id = _request_db_user_id(request)
         if not db_user_id:
             return ""
-        pr = project_root()
+        pr = (project_root_override or project_root()).resolve()
         try:
             from core.atlas_db import AtlasDB
 
@@ -5775,13 +6234,9 @@ def register_jobs_routes(
         project_root: Path,
     ) -> str:
         owner = _request_username(request)
-        raw_session = normalize_session_name(str(
-            body.get("session")
-            or body.get("namespace")
-            or body.get("active_session")
-            or body.get("session_id")
-            or ""
-        ))
+        raw_session = _orchestrator_session_hint_from_body(body)
+        if raw_session and not _explicit_session_allowed(request, raw_session, ip, "orchestrator", body):
+            raise ValueError("session owner/workspace mismatch")
         raw_parts = [p for p in raw_session.split("/") if p]
         raw_workflow = raw_parts[-1] if raw_parts else ""
         raw_ip = raw_parts[-2] if len(raw_parts) >= 3 else ""
@@ -5800,7 +6255,7 @@ def register_jobs_routes(
             if raw_session and ("/" in raw_session or raw_session not in owner_tokens):
                 session_id = raw_session
             else:
-                session_id = _default_job_session(request, ip, "orchestrator")
+                session_id = _default_job_session(request, ip, "orchestrator", body)
         session = db.upsert_runtime_session(
             session_id,
             db_user_id,
@@ -5878,15 +6333,21 @@ def register_jobs_routes(
         owner_user_id    = _request_username(request)
         selected_stage_ids = [stage["id"] for stage in resolved]
         db_user_id = _request_db_user_id(request)
-        if ip and not _assert_ip_access(db_user_id, ip, _request_is_admin(request)):
+        request_is_admin = _request_is_admin(request)
+        request_project_root = _request_project_root(request, ip, body)
+        if ip and not _assert_ip_access(db_user_id or owner_user_id, ip, request_is_admin, request_project_root):
             return JSONResponse({"error": "forbidden"}, status_code=403)
-        _, _ = _refresh_tracked_jobs(project_root())
+        _, _ = _refresh_tracked_jobs(
+            request_project_root,
+            job_filter=lambda job: _job_visible_to_request(job, owner_user_id, db_user_id, request_is_admin, request_project_root),
+        )
         conflicts = _active_job_conflicts(
             ip=ip,
             stage_ids=selected_stage_ids,
             workflows=[stage["workflow"] for stage in resolved],
             user_id=owner_user_id,
             db_user_id=db_user_id,
+            project_root=request_project_root,
         )
         if conflicts:
             payload = _dedupe_payload(conflicts, ip=ip)
@@ -5911,6 +6372,7 @@ def register_jobs_routes(
             exec_mode=exec_mode,
             selected_stage_ids=selected_stage_ids,
             prompt=user_prompt,
+            project_root_override=request_project_root,
         )
         for idx, stage in enumerate(resolved):
             workflow     = stage["workflow"]
@@ -5927,7 +6389,7 @@ def register_jobs_routes(
             # always emit this section when a seed is present.
             if user_seed_text:
                 stage_prompt += f"\n\n[USER REQUIREMENT]\n{user_seed_text}"
-            session = f"{_pipeline_session_prefix(request, ip, pipeline_id)}/{idx + 1:02d}-{workflow}"
+            session = f"{_pipeline_session_prefix(request, ip, pipeline_id, body)}/{idx + 1:02d}-{workflow}"
             dep_stage_ids = _pipeline_stage_dependencies(
                 stage["id"], selected_stage_ids, schedule=schedule,
             )
@@ -5944,6 +6406,7 @@ def register_jobs_routes(
                 user_id=owner_user_id,
                 db_user_id=db_user_id,
                 db_session_id=db_session_id,
+                project_root_override=request_project_root,
             )
             stage_job_ids[stage["id"]] = job["job_id"]
             jobs.append(_public_job(job))
@@ -5999,11 +6462,12 @@ def register_jobs_routes(
         message: str,
         reply: str = "",
         pipeline_id: str = "",
+        body: dict[str, Any] | None = None,
     ) -> None:
         try:
             from core.atlas_db import AtlasDB
 
-            pr = project_root()
+            pr = _request_project_root(request, ip, body)
             user = request.scope.get("user") or {}
             _raw_user_id = _request_db_user_id(request) or str(user.get("username") or "local-admin")
             with AtlasDB(_atlas_job_db_path(pr)) as db:
@@ -6088,16 +6552,20 @@ def register_jobs_routes(
             )
         )
 
-    def _orchestrator_fast_status_reply(request: Request, ip: str) -> str:
-        pr = project_root()
-        snapshot, _ = _refresh_tracked_jobs(pr)
+    def _orchestrator_fast_status_reply(request: Request, ip: str, body: dict[str, Any] | None = None) -> str:
+        pr = _request_project_root(request, ip, body)
         request_user = _request_username(request)
         request_db_user = _request_db_user_id(request)
         request_is_admin = _request_is_admin(request)
+        request_project_root = _request_project_root(request, ip, body)
+        snapshot, _ = _refresh_tracked_jobs(
+            pr,
+            job_filter=lambda job: _job_visible_to_request(job, request_user, request_db_user, request_is_admin, pr),
+        )
         visible = [
             job for job in snapshot
             if str(job.get("ip") or "") == ip
-            and _job_visible_to_request(job, request_user, request_db_user, request_is_admin)
+            and _job_visible_to_request(job, request_user, request_db_user, request_is_admin, pr)
         ]
         active = [
             job for job in visible
@@ -6172,10 +6640,26 @@ def register_jobs_routes(
         ip = _extract_ip_from_orchestrator_message(message, str(body.get("ip") or ""))
         if not ip or len(ip) > 64 or not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", ip):
             return JSONResponse({"error": "valid ip required"}, status_code=400)
+        pr = _request_project_root(request, ip, body)
+        request_user = _request_username(request)
+        request_db_user = _request_db_user_id(request)
+        request_is_admin = _request_is_admin(request)
+        if _multi_user_enabled() and not request_is_admin and not (request_user or request_db_user):
+            return JSONResponse({"error": "not authenticated"}, status_code=401)
+        if not _assert_ip_access(
+            request_db_user or request_user,
+            ip,
+            request_is_admin,
+            pr,
+        ):
+            return JSONResponse({"error": "forbidden"}, status_code=403)
+        session_hint = _orchestrator_session_hint_from_body(body)
+        if session_hint and not _explicit_session_allowed(request, session_hint, ip, "orchestrator", body):
+            return JSONResponse({"error": "session owner/workspace mismatch"}, status_code=403)
 
         if _is_orchestrator_status_query(message):
-            reply = _orchestrator_fast_status_reply(request, ip)
-            _record_orchestrator_chat(request, ip=ip, message=message, reply=reply)
+            reply = _orchestrator_fast_status_reply(request, ip, body)
+            _record_orchestrator_chat(request, ip=ip, message=message, reply=reply, body=body)
             return JSONResponse({
                 "ok": True,
                 "ip": ip,
@@ -6189,12 +6673,11 @@ def register_jobs_routes(
 
         # Persist user chat first so the trace ledger has the message regardless
         # of what the loop does.
-        _record_orchestrator_chat(request, ip=ip, message=message)
+        _record_orchestrator_chat(request, ip=ip, message=message, body=body)
 
         from core.atlas_db import AtlasDB
-        from src.orchestrator.runner import get_runner
+        from src.orchestrator.runtime import get_orchestrator_runtime
 
-        pr = project_root()
         user = request.scope.get("user") or {}
         _raw_user_id = _request_db_user_id(request) or str(user.get("username") or "local-admin")
         with AtlasDB(_atlas_job_db_path(pr)) as db:
@@ -6221,8 +6704,16 @@ def register_jobs_routes(
             except ValueError as exc:
                 return JSONResponse({"error": str(exc)}, status_code=403)
 
-        runner = get_runner(_atlas_job_db_path(pr))
-        outcome = runner.submit_or_attach(
+        runtime = get_orchestrator_runtime(
+            _atlas_job_db_path(pr),
+            project_root=pr,
+            source_root=_SOURCE_ROOT,
+            register_job=_register_orchestrator_supervisor_job,
+            register_process=_register_orchestrator_supervisor_process,
+            update_job=_update_orchestrator_supervisor_job,
+            unregister_process=_unregister_orchestrator_supervisor_process,
+        )
+        outcome = runtime.submit_or_attach(
             user_id=db_user_id,
             ip_id=ip_row["id"],
             ip_name=ip,
@@ -6242,14 +6733,67 @@ def register_jobs_routes(
             "reasoning_effort": ORCHESTRATOR_REASONING_EFFORT,
         })
 
+    def _orchestrator_run_visible_to_request(
+        run: dict[str, Any],
+        *,
+        request_user: str,
+        db_user_id: str,
+        request_is_admin: bool,
+        workspace_id: str,
+        ip_id: str,
+    ) -> bool:
+        run_workspace_id = str(run.get("workspace_id") or "").strip()
+        if not run_workspace_id or not workspace_id or run_workspace_id != workspace_id:
+            return False
+        run_ip_id = str(run.get("ip_id") or "").strip()
+        if not run_ip_id or not ip_id or run_ip_id != ip_id:
+            return False
+        if not _multi_user_enabled() or request_is_admin:
+            return True
+        run_user_id = str(run.get("user_id") or "").strip()
+        visible_user_ids = {value for value in (request_user, db_user_id) if value}
+        return bool(run_user_id and run_user_id in visible_user_ids)
+
     @app.get("/api/orchestrator/runs/{run_id}")
-    async def api_orchestrator_run_detail(run_id: str):
+    async def api_orchestrator_run_detail(request: Request, run_id: str):
         from core.atlas_db import AtlasDB
 
-        pr = project_root()
+        params = dict(request.query_params)
+        ip = (params.get("ip") or "").strip()
+        if not ip or len(ip) > 64 or not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", ip):
+            return JSONResponse({"error": "ip query param required"}, status_code=400)
+        if (
+            _multi_user_enabled()
+            and not _request_is_admin(request)
+            and not (_request_db_user_id(request) or _request_username(request))
+        ):
+            return JSONResponse({"error": "not authenticated"}, status_code=401)
+        pr = _request_project_root(request, ip)
+        user = request.scope.get("user") or {}
+        raw_user_id = _request_db_user_id(request) or str(user.get("username") or "local-admin")
         with AtlasDB(_atlas_job_db_path(pr)) as db:
+            db_user_id = _canonical_user_id(db, raw_user_id)
+            workspace = db.upsert_workspace(
+                pr.name or "default",
+                owner_user_id=db_user_id,
+                local_path=str(pr),
+            )
+            ip_row = db.upsert_ip_block(
+                workspace["id"],
+                ip,
+                ssot_path=f"{ip}/yaml/{ip}.ssot.yaml",
+            )
             run = db.get_orchestrator_run(run_id)
             if run is None:
+                return JSONResponse({"error": f"unknown run {run_id!r}"}, status_code=404)
+            if not _orchestrator_run_visible_to_request(
+                run,
+                request_user=_request_username(request),
+                db_user_id=db_user_id,
+                request_is_admin=_request_is_admin(request),
+                workspace_id=str(workspace["id"] or ""),
+                ip_id=str(ip_row["id"] or ""),
+            ):
                 return JSONResponse({"error": f"unknown run {run_id!r}"}, status_code=404)
             steps = db.list_orchestrator_steps(run_id)
         return JSONResponse({"ok": True, "run": run, "steps": steps})
@@ -6263,13 +6807,19 @@ def register_jobs_routes(
         """
         params = dict(request.query_params)
         ip = (params.get("ip") or "").strip()
-        if not ip:
-            return JSONResponse({"error": "ip query param required"}, status_code=400)
+        if not _valid_ip_name(ip):
+            return JSONResponse({"error": "invalid or missing ip"}, status_code=400)
         from core.atlas_db import AtlasDB
 
-        pr = project_root()
-        user = request.scope.get("user") or {}
-        _raw_user_id = _request_db_user_id(request) or str(user.get("username") or "local-admin")
+        request_user = _request_username(request)
+        request_db_user = _request_db_user_id(request) or ""
+        request_is_admin = _request_is_admin(request)
+        if _multi_user_enabled() and not request_is_admin and not (request_user or request_db_user):
+            return JSONResponse({"error": "not authenticated"}, status_code=401)
+        pr = _request_project_root(request, ip)
+        if not _assert_ip_access(request_db_user or request_user, ip, request_is_admin, pr):
+            return JSONResponse({"error": "forbidden"}, status_code=403)
+        _raw_user_id = request_db_user or request_user or "local-admin"
         with AtlasDB(_atlas_job_db_path(pr)) as db:
             db_user_id = _canonical_user_id(db, _raw_user_id)
             workspace = db.upsert_workspace(
@@ -6378,11 +6928,14 @@ def register_jobs_routes(
             or body.get("session")
             or ""
         ))
+        context_payload = dict(body)
         context_owner = ""
         if context_session and "/" in context_session:
             context_owner = normalize_session_name(context_session.split("/", 1)[0])
         context_db_user = str(body.get("db_user_id") or "").strip()
-        _raw_owner = context_owner or _active_tool_owner()
+        active_owner = _active_tool_owner()
+        run_user_id = ""
+        _raw_owner = context_owner or active_owner or context_db_user
         owner_display_id = normalize_session_name(_raw_owner) or "local-admin"
         owner_user_id = context_db_user or _raw_owner
         chat_context = ""
@@ -6391,19 +6944,94 @@ def register_jobs_routes(
 
             pr_for_chat = project_root()
             with AtlasDB(_atlas_job_db_path(pr_for_chat)) as db:
-                owner_user_id = _canonical_user_id(db, context_db_user or _raw_owner)
+                if orchestrator_run_id_resolved:
+                    run_row = db.get_orchestrator_run(orchestrator_run_id_resolved)
+                    if run_row:
+                        run_user_id = str(run_row.get("user_id") or "").strip()
+                        run_session = normalize_session_name(str(run_row.get("session_id") or ""))
+                        if run_user_id and not context_db_user:
+                            context_db_user = run_user_id
+                        if run_session and not context_session:
+                            context_session = run_session
+                            context_payload["orchestrator_session_id"] = run_session
+                            run_parts = [part for part in run_session.split("/") if part]
+                            if run_parts:
+                                context_owner = normalize_session_name(run_parts[0])
+                if _multi_user_enabled() and not (context_db_user or active_owner):
+                    return {
+                        "ok": False,
+                        "error": "authenticated tool context required",
+                        "source": "dispatch_workflow_tool",
+                        "ip": ip_name,
+                    }
+                _raw_owner = context_owner or active_owner or context_db_user
+                owner_user_id = _canonical_user_id(db, context_db_user or active_owner or context_owner)
                 owner_row = db.get_user(owner_user_id) if owner_user_id else None
-                if owner_row and not context_owner:
-                    owner_display_id = normalize_session_name(
-                        str(owner_row.get("username") or owner_row.get("display_name") or "")
-                    ) or owner_display_id
+                run_canonical_user_id = _canonical_user_id(db, run_user_id) if run_user_id else ""
+                if run_canonical_user_id and owner_user_id and owner_user_id != run_canonical_user_id:
+                    return {
+                        "ok": False,
+                        "error": "session owner/workspace mismatch",
+                        "source": "dispatch_workflow_tool",
+                        "ip": ip_name,
+                    }
+                owner_identifiers: set[str] = set()
+                owner_username = ""
+                if owner_row:
+                    owner_user_id = str(owner_row.get("id") or owner_user_id).strip()
+                    owner_username = normalize_session_name(
+                        str(owner_row.get("username") or owner_row.get("display_name") or owner_user_id)
+                    )
+                    for key in ("username", "display_name", "email", "id"):
+                        owner_identifier = normalize_session_name(str(owner_row.get(key) or ""))
+                        if owner_identifier:
+                            owner_identifiers.add(owner_identifier)
+                trusted_owner_candidates = (
+                    (owner_username, owner_user_id, context_db_user)
+                    if owner_row or context_db_user
+                    else (active_owner, owner_user_id)
+                )
+                for candidate in trusted_owner_candidates:
+                    owner_identifier = normalize_session_name(str(candidate or ""))
+                    if owner_identifier:
+                        owner_identifiers.add(owner_identifier)
+                if _multi_user_enabled():
+                    if active_owner and active_owner not in owner_identifiers:
+                        return {
+                            "ok": False,
+                            "error": "session owner/workspace mismatch",
+                            "source": "dispatch_workflow_tool",
+                            "ip": ip_name,
+                        }
+                    if context_owner and context_owner not in owner_identifiers:
+                        return {
+                            "ok": False,
+                            "error": "session owner/workspace mismatch",
+                            "source": "dispatch_workflow_tool",
+                            "ip": ip_name,
+                        }
+                    if context_session:
+                        workspace_session = _workspace_session_from_body(context_payload)
+                        allowed_sessions = {
+                            normalize_session_name(f"{owner}/{workspace_session}/{ip_name}/orchestrator")
+                            for owner in owner_identifiers
+                            if owner and owner != "local-admin"
+                        }
+                        if not allowed_sessions or context_session not in allowed_sessions:
+                            return {
+                                "ok": False,
+                                "error": "session owner/workspace mismatch",
+                                "source": "dispatch_workflow_tool",
+                                "ip": ip_name,
+                            }
+                owner_display_id = owner_username or normalize_session_name(_raw_owner) or owner_display_id
                 db.upsert_workspace(
                     pr_for_chat.name or "default",
                     owner_user_id=owner_user_id,
                     local_path=str(pr_for_chat),
                 )
                 chat_owner_ids: list[str] = []
-                for candidate in (owner_user_id, context_db_user, _raw_owner, context_owner):
+                for candidate in (owner_user_id, context_db_user, owner_display_id, active_owner, context_owner):
                     text = str(candidate or "").strip()
                     if text and text not in chat_owner_ids:
                         chat_owner_ids.append(text)
@@ -6427,13 +7055,20 @@ def register_jobs_routes(
         except Exception:
             chat_context = ""
         selected_stage_ids = [stage["id"] for stage in resolved]
-        _, _ = _refresh_tracked_jobs(project_root())
+        tool_project_root = _project_root_for_owner(owner_display_id, ip_name, context_payload)
+        if ip_name and not _assert_ip_access(owner_user_id or owner_display_id, ip_name, False, tool_project_root):
+            return {"ok": False, "error": "forbidden", "source": "dispatch_workflow_tool", "ip": ip_name}
+        _, _ = _refresh_tracked_jobs(
+            tool_project_root,
+            job_filter=lambda job: _job_visible_to_request(job, owner_display_id, owner_user_id, False, tool_project_root),
+        )
         conflicts = _active_job_conflicts(
             ip=ip_name,
             stage_ids=selected_stage_ids,
             workflows=[stage["workflow"] for stage in resolved],
             user_id=owner_display_id,
             db_user_id=owner_user_id,
+            project_root=tool_project_root,
         )
         if conflicts:
             payload = _dedupe_payload(conflicts, ip=ip_name)
@@ -6479,7 +7114,7 @@ def register_jobs_routes(
             if reason_text:
                 stage_prompt += f"\n\n[Orchestrator dispatch reason]\n{reason_text}"
             session = (
-                f"{_pipeline_session_prefix_for_owner(owner_display_id, ip_name, pipeline_id)}/"
+                f"{_pipeline_session_prefix_for_owner(owner_display_id, ip_name, pipeline_id, _workspace_session_from_body(context_payload))}/"
                 f"{idx + 1:02d}-{stage_workflow}"
             )
             dep_stage_ids = _pipeline_stage_dependencies(
@@ -6506,6 +7141,7 @@ def register_jobs_routes(
                 db_user_id=owner_user_id,
                 trigger_source=trigger_source_resolved,
                 orchestrator_run_id=orchestrator_run_id_resolved,
+                project_root_override=tool_project_root,
             )
             stage_job_ids[stage["id"]] = job["job_id"]
             jobs.append(_public_job(job))
@@ -6531,6 +7167,7 @@ def register_jobs_routes(
         ip: str = "",
         scope: str = "",
         include_jobs: bool = True,
+        db_user_id: str = "",
     ) -> dict[str, Any]:
         """Return a compact in-process Pipeline state snapshot for LLM tools.
 
@@ -6548,10 +7185,28 @@ def register_jobs_routes(
         if not ip_name or not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", ip_name):
             return {"ok": False, "error": f"invalid or missing ip {ip_name!r}"}
 
-        pr = project_root()
+        scope_session = normalize_session_name(str(scope or os.environ.get("ATLAS_ACTIVE_SESSION") or ""))
+        tool_owner = ""
+        if scope_session and "/" in scope_session:
+            tool_owner = normalize_session_name(scope_session.split("/", 1)[0])
+        tool_db_user = str(db_user_id or "").strip()
+        pr = _project_root_for_owner(tool_owner or _active_tool_owner(), ip_name, {"session": scope_session})
+        if tool_owner and not tool_db_user:
+            try:
+                from core.atlas_db import AtlasDB
+
+                with AtlasDB(_atlas_job_db_path(pr)) as db:
+                    tool_db_user = _canonical_user_id(db, tool_owner)
+            except (AttributeError, ImportError, KeyError, OSError, RuntimeError, sqlite3.Error, TypeError):
+                tool_db_user = ""
         ip_dir = _ip_dir_for(pr, ip_name)
         with _jobs_lock:
-            ip_jobs = [dict(j) for j in _jobs.values() if j.get("ip") == ip_name]
+            ip_jobs = [
+                dict(j)
+                for j in _jobs.values()
+                if j.get("ip") == ip_name
+                and _job_visible_to_request(j, tool_owner, tool_db_user, False, pr)
+            ]
 
         artifact_map: dict[str, list[str]] = {
             "ssot": [f"yaml/{ip_name}.ssot.yaml"],
@@ -6732,8 +7387,15 @@ def register_jobs_routes(
         ip = (params.get("ip") or "").strip()
         if not ip:
             return JSONResponse({"error": "ip query param required"}, status_code=400)
+        if not _valid_ip_name(ip):
+            return JSONResponse({"error": f"invalid ip {ip!r}"}, status_code=400)
         _trace_db_user = _request_db_user_id(request)
-        if not _assert_ip_access(_trace_db_user, ip, _request_is_admin(request)):
+        _trace_request_user = _request_username(request)
+        _trace_is_admin = _request_is_admin(request)
+        if _multi_user_enabled() and not _trace_db_user and not _trace_is_admin:
+            return JSONResponse({"error": "login required"}, status_code=401)
+        trace_project_root = _request_project_root(request, ip)
+        if not _assert_ip_access(_trace_db_user or _trace_request_user, ip, _trace_is_admin, trace_project_root):
             return JSONResponse({"error": "forbidden"}, status_code=403)
         try:
             limit = int(params.get("limit") or "100")
@@ -6741,9 +7403,23 @@ def register_jobs_routes(
             limit = 100
         corr = (params.get("corr") or "").strip() or None
         lens = (params.get("lens") or "").strip() or None
+        workspace_session = _workspace_session_from_body(_workspace_payload_from_request(request))
         try:
             from core.orchestrator_trace import read_trace
-            events = read_trace(ip, limit=max(1, min(1000, limit)), corr=corr, lens=lens)
+            events = read_trace(
+                ip,
+                limit=max(1, min(1000, limit)),
+                project_root=trace_project_root,
+                corr=corr,
+                lens=lens,
+            )
+            events = _trace_events_visible_to_request(
+                events,
+                _trace_request_user,
+                _trace_db_user,
+                _trace_is_admin,
+                workspace_session,
+            )
         except Exception as e:
             return JSONResponse({"error": str(e), "events": []}, status_code=500)
         return JSONResponse({"ip": ip, "count": len(events), "events": events})
@@ -6778,7 +7454,7 @@ def register_jobs_routes(
         # straight from .session/<owner>/<ip>/chat.jsonl.
         try:
             from core.local_chat_store import read_chat
-            rows = read_chat(project_root(), user_id, ip, limit=limit, since=since)
+            rows = read_chat(_request_project_root(request, ip), user_id, ip, limit=limit, since=since)
         except Exception as exc:
             return JSONResponse({"error": str(exc)}, status_code=500)
         # rows are newest-first; reverse for chronological order
@@ -6792,9 +7468,19 @@ def register_jobs_routes(
         ip = (params.get("ip") or "").strip()
         if not ip:
             return JSONResponse({"error": "ip query param required"}, status_code=400)
+        if not _valid_ip_name(ip):
+            return JSONResponse({"error": f"invalid ip {ip!r}"}, status_code=400)
+        _trace_db_user = _request_db_user_id(request)
+        _trace_request_user = _request_username(request)
+        _trace_is_admin = _request_is_admin(request)
+        if _multi_user_enabled() and not _trace_db_user and not _trace_is_admin:
+            return JSONResponse({"error": "login required"}, status_code=401)
+        trace_project_root = _request_project_root(request, ip)
+        if not _assert_ip_access(_trace_db_user or _trace_request_user, ip, _trace_is_admin, trace_project_root):
+            return JSONResponse({"error": "forbidden"}, status_code=403)
         try:
             from core.orchestrator_trace import clear_trace
-            ok = clear_trace(ip)
+            ok = clear_trace(ip, project_root=trace_project_root)
         except Exception as e:
             return JSONResponse({"error": str(e)}, status_code=500)
         return JSONResponse({"ip": ip, "cleared": bool(ok)})
@@ -6812,19 +7498,26 @@ def register_jobs_routes(
         request_db_user = _request_db_user_id(request)
         if _multi_user_enabled() and not request_user and not request_db_user:
             return JSONResponse({"error": "login required"}, status_code=401)
-        owner = str(body.get("owner") or body.get("session_id") or request_user or "").strip()
+        session_hint = str(body.get("session") or body.get("session_id") or "").strip()
+        session_owner = _warm_worker_owner_from_session(session_hint)
+        owner = str(body.get("owner") or session_owner or request_user or "").strip()
         if _multi_user_enabled() and request_user and owner and owner != request_user:
             return JSONResponse({"error": "session owner mismatch"}, status_code=403)
+        ip_name = str(body.get("ip") or "").strip()
+        if ip_name and not _valid_ip_name(ip_name):
+            return JSONResponse({"error": f"invalid ip {ip_name!r}"}, status_code=400)
         raw_workflows = body.get("workflows")
         workflows = raw_workflows if isinstance(raw_workflows, list) else None
+        request_project_root = _request_project_root(request, ip_name, body)
         result = schedule_worker_warmup(
-            ip=str(body.get("ip") or "").strip(),
+            ip=ip_name,
             owner=owner or request_user,
             db_user_id=request_db_user,
-            session_name=str(body.get("session") or "").strip(),
+            session_name=session_hint,
+            workspace_session=str(body.get("workspace_session") or body.get("workspace") or "").strip(),
             active_workflow=str(body.get("workflow") or body.get("active_workflow") or "").strip(),
             workflows=workflows,
-            project_root_value=str(project_root()),
+            project_root_value=str(request_project_root),
             run_mode=str(body.get("run_mode") or "").strip(),
             exec_mode=str(body.get("exec_mode") or "").strip(),
             reason="api_orchestrator_workers_warm",
@@ -6857,6 +7550,8 @@ def register_jobs_routes(
         request_user = _request_username(request)
         request_db_user = _request_db_user_id(request)
         request_is_admin = _request_is_admin(request)
+        request_project_root = _request_project_root(request, ip)
+        request_workspace_session = _workspace_session_from_body(_workspace_payload_from_request(request))
         if _multi_user_enabled() and not request_user and not request_db_user:
             return JSONResponse({
                 "ip": ip or None,
@@ -6899,7 +7594,12 @@ def register_jobs_routes(
             }
 
         def _job_visible(job: dict[str, Any]) -> bool:
-            return _job_visible_to_request(job, request_user, request_db_user, request_is_admin)
+            return _job_visible_to_request(job, request_user, request_db_user, request_is_admin, request_project_root)
+
+        def _runtime_job_visible(job: dict[str, Any]) -> bool:
+            if ip and str(job.get("ip") or "").strip() != ip:
+                return False
+            return _job_visible(job)
 
         def _visible_worker_jobs(workflow: str) -> list[dict[str, Any]]:
             active_states = {"pending", "queued", "running", "blocked"}
@@ -6950,6 +7650,7 @@ def register_jobs_routes(
             loop = asyncio.get_event_loop()
             tasks = []
             transport = _worker_transport()
+            expose_worker_identity = _multi_user_enabled()
             visible_by_workflow = {
                 wf: _visible_worker_jobs(wf)
                 for wf in workflows
@@ -6965,8 +7666,8 @@ def register_jobs_routes(
                 if wf not in workflows_to_probe:
                     continue
                 active_list = visible_by_workflow.get(wf) or []
-                default_session = _default_job_session_for_owner(request_user, ip, wf)
-                expected_worker_owner, _expected_worker_partition = _workflow_worker_owner_keys(
+                default_session = _default_job_session_for_owner(request_user, ip, wf, request_workspace_session)
+                expected_worker_owner, expected_worker_partition = _workflow_worker_owner_keys(
                     session_name=default_session,
                     user_id=request_user,
                     db_user_id=request_db_user,
@@ -6986,6 +7687,8 @@ def register_jobs_routes(
                         wf,
                         url,
                         expected_worker_owner,
+                        expected_worker_partition,
+                        default_session,
                         {
                             "status": "ok" if active_list else "idle",
                             "workflow": wf,
@@ -7006,14 +7709,27 @@ def register_jobs_routes(
                     )
                     idle_health = _idle_lazy_worker_health(url, active_list)
                     if idle_health is not None:
-                        tasks.append((wf, url, expected_worker_owner, idle_health, None))
+                        tasks.append((
+                            wf,
+                            url,
+                            expected_worker_owner,
+                            expected_worker_partition,
+                            default_session,
+                            idle_health,
+                            None,
+                        ))
                     else:
                         tasks.append((
-                            wf, url, expected_worker_owner, None,
+                            wf,
+                            url,
+                            expected_worker_owner,
+                            expected_worker_partition,
+                            default_session,
+                            None,
                             loop.run_in_executor(None, _probe, url),
                         ))
             out = []
-            for wf, url, expected_worker_owner, eager_health, t in tasks:
+            for wf, url, expected_worker_owner, expected_worker_partition, default_session, eager_health, t in tasks:
                 health = eager_health if eager_health is not None else await t
                 health_owner = str(health.get("owner") or "").strip()
                 owner_mismatch = (
@@ -7079,6 +7795,10 @@ def register_jobs_routes(
                     "workflow": wf,
                     "url": url,
                     "transport": health.get("transport") or _worker_transport(),
+                    "worker_owner": expected_worker_owner if expose_worker_identity else "",
+                    "worker_partition": expected_worker_partition if expose_worker_identity else "",
+                    "workspace_session": request_workspace_session if expose_worker_identity else "",
+                    "worker_session": default_session if expose_worker_identity else "",
                     "status": status,
                     "health_status": health_status,
                     "bound_workflow": bound_workflow,
@@ -7127,7 +7847,14 @@ def register_jobs_routes(
         if ip:
             try:
                 from core.orchestrator_trace import read_trace
-                recent = read_trace(ip, limit=20)
+                recent = read_trace(ip, limit=20, project_root=request_project_root)
+                recent = _trace_events_visible_to_request(
+                    recent,
+                    request_user,
+                    request_db_user,
+                    request_is_admin,
+                    request_workspace_session,
+                )
                 for ev in reversed(recent):
                     actor = ev.get("actor") or ""
                     kind = ev.get("kind") or ""
@@ -7156,7 +7883,11 @@ def register_jobs_routes(
             "workers": workers,
             "count": len(workers),
             "active_only": active_only,
-            "runtime": worker_runtime_snapshot(project_root()),
+            "runtime": (
+                worker_runtime_snapshot(request_project_root, _runtime_job_visible)
+                if request_is_admin
+                else {"transport": _worker_transport(), "restricted": True}
+            ),
         })
 
     # ── /api/pipeline/run_policy ────────────────────────────────────
@@ -7248,7 +7979,7 @@ def register_jobs_routes(
         session_id = normalize_session_name(session_raw)
         if not session_id:
             session_id = (
-                _default_job_session(request, ip, workflow or "orchestrator")
+                _default_job_session(request, ip, workflow or "orchestrator", body)
                 if ip else (owner or "default")
             )
         pipeline_run_id = str(
@@ -7268,13 +7999,24 @@ def register_jobs_routes(
         return scope
 
     def _scope_filter_from(scope: dict) -> dict | None:
+        if not _multi_user_enabled():
+            return None
         uid = scope.get("user_id") or ""
         return {"user_id": uid} if uid else None
 
-    def _resolve_ip_dir(ip: str) -> Path | None:
+    def _handoff_auth_error(request: Request, scope: dict) -> JSONResponse | None:
+        if _multi_user_enabled() and not _request_is_admin(request) and not str(scope.get("user_id") or "").strip():
+            return JSONResponse({"error": "login required"}, status_code=401)
+        return None
+
+    def _resolve_ip_dir(
+        request: Request,
+        ip: str,
+        payload: dict | None = None,
+    ) -> Path | None:
         if not ip or len(ip) > 64 or not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", ip):
             return None
-        return project_root() / ip
+        return _ip_dir_for(_request_project_root(request, ip, payload), ip)
 
     @app.get("/api/handoff/list")
     async def api_handoff_list(
@@ -7285,7 +8027,7 @@ def register_jobs_routes(
         pipeline_run_id: str = "",
         pipeline_id: str = "",
     ):
-        ip_dir = _resolve_ip_dir(ip)
+        ip_dir = _resolve_ip_dir(request, ip)
         if ip_dir is None:
             return JSONResponse({"error": "invalid or missing ip"}, status_code=400)
         hq = _handoff_modules()
@@ -7299,6 +8041,9 @@ def register_jobs_routes(
                 "pipeline_id": pipeline_id,
             },
         )
+        auth_error = _handoff_auth_error(request, scope)
+        if auth_error is not None:
+            return auth_error
         sf = _scope_filter_from(scope)
 
         def _filter_workflow(rows):
@@ -7334,7 +8079,7 @@ def register_jobs_routes(
         if not isinstance(body, dict):
             return JSONResponse({"error": "expected JSON object"}, status_code=400)
         ip = str(body.get("ip") or "").strip()
-        ip_dir = _resolve_ip_dir(ip)
+        ip_dir = _resolve_ip_dir(request, ip, body)
         if ip_dir is None:
             return JSONResponse({"error": "invalid or missing ip"}, status_code=400)
         from_workflow = str(body.get("from_workflow") or "").strip()
@@ -7347,6 +8092,9 @@ def register_jobs_routes(
         suffix = str(body.get("suffix") or body.get("reason") or "user").strip()
         hq = _handoff_modules()
         scope = _request_scope(request, ip=ip, workflow="orchestrator", payload=body)
+        auth_error = _handoff_auth_error(request, scope)
+        if auth_error is not None:
+            return auth_error
         record = {
             "schema": hq.SCHEMA,
             "handoff_id": hq.make_handoff_id(ip, from_workflow, to_workflow, suffix),
@@ -7386,7 +8134,7 @@ def register_jobs_routes(
         if not isinstance(body, dict):
             return JSONResponse({"error": "expected JSON object"}, status_code=400)
         ip = str(body.get("ip") or "").strip()
-        ip_dir = _resolve_ip_dir(ip)
+        ip_dir = _resolve_ip_dir(request, ip, body)
         if ip_dir is None:
             return JSONResponse({"error": "invalid or missing ip"}, status_code=400)
         workflow = str(body.get("workflow") or "").strip()
@@ -7394,6 +8142,9 @@ def register_jobs_routes(
             return JSONResponse({"error": "workflow is required"}, status_code=400)
         hq = _handoff_modules()
         scope = _request_scope(request, ip=ip, workflow="orchestrator", payload=body)
+        auth_error = _handoff_auth_error(request, scope)
+        if auth_error is not None:
+            return auth_error
         sf = _scope_filter_from(scope)
         scoped_user = request.scope.get("user") or {}
         claimant = f"ui-{scoped_user.get('username') or 'anon'}"
@@ -7419,14 +8170,17 @@ def register_jobs_routes(
         In multi-user mode the response is scoped to the authenticated user;
         in single-user / local-admin mode all jobs are returned as before.
         """
-        pr  = project_root()
-        snapshot, _ = _refresh_tracked_jobs(pr)
         request_user = _request_username(request)
         request_db_user = _request_db_user_id(request)
         request_is_admin = _request_is_admin(request)
+        pr = _request_project_root(request)
+        snapshot, _ = _refresh_tracked_jobs(
+            pr,
+            job_filter=lambda job: _job_visible_to_request(job, request_user, request_db_user, request_is_admin, pr),
+        )
         out = [
             _public_job(job) for job in snapshot
-            if _job_visible_to_request(job, request_user, request_db_user, request_is_admin)
+            if _job_visible_to_request(job, request_user, request_db_user, request_is_admin, pr)
         ]
         out.sort(key=lambda j: j.get("started_at", 0), reverse=True)
         return JSONResponse({"jobs": out, "count": len(out)})
@@ -7434,18 +8188,24 @@ def register_jobs_routes(
     # ── /api/job/{job_id}/log ──────────────────────────────────────
 
     @app.get("/api/job/{job_id}/log")
-    async def api_job_log(job_id: str, since: int = 0, tail: int = 0):
+    async def api_job_log(request: Request, job_id: str, since: int = 0, tail: int = 0):
         """Proxy a worker run transcript into the Architect chat.
 
         The frontend knows Atlas job ids, not worker run ids.  Keep that
         mapping server-side so users can click a job/status-grid pill and
         inspect the live ReAct transcript without leaving the Architect view.
         """
-        pr = project_root()
         with _jobs_lock:
             job = dict(_jobs.get(job_id) or {})
         if not job:
             return JSONResponse({"error": "job not found"}, status_code=404)
+        request_user = _request_username(request)
+        request_db_user = _request_db_user_id(request)
+        request_is_admin = _request_is_admin(request)
+        request_project_root = _request_project_root(request, str(job.get("ip") or ""))
+        if not _job_visible_to_request(job, request_user, request_db_user, request_is_admin, request_project_root):
+            return JSONResponse({"error": "forbidden"}, status_code=403)
+        pr = Path(job.get("project_root") or _request_project_root(request, str(job.get("ip") or ""))).resolve()
 
         def _session_history_log():
             session = normalize_session_name(str(job.get("session") or ""))
@@ -7695,11 +8455,17 @@ def register_jobs_routes(
     # ── /api/job/{job_id}/cancel ───────────────────────────────────
 
     @app.post("/api/job/{job_id}/cancel")
-    async def api_job_cancel(job_id: str):
+    async def api_job_cancel(request: Request, job_id: str):
         with _jobs_lock:
             job = _jobs.get(job_id)
         if not job:
             return JSONResponse({"error": "job not found"}, status_code=404)
+        request_user = _request_username(request)
+        request_db_user = _request_db_user_id(request)
+        request_is_admin = _request_is_admin(request)
+        request_project_root = _request_project_root(request, str(job.get("ip") or ""))
+        if not _job_visible_to_request(job, request_user, request_db_user, request_is_admin, request_project_root):
+            return JSONResponse({"error": "forbidden"}, status_code=403)
         if job["status"] != "running":
             return JSONResponse({"error": f"job already {job['status']}"}, status_code=400)
         if _job_uses_ipc_worker(job):
@@ -7735,10 +8501,18 @@ def register_jobs_routes(
     # ── /api/jobs/clear ────────────────────────────────────────────
 
     @app.post("/api/jobs/clear")
-    async def api_jobs_clear():
+    async def api_jobs_clear(request: Request):
         """Drop completed/cancelled/failed jobs from the tracker."""
+        request_user = _request_username(request)
+        request_db_user = _request_db_user_id(request)
+        request_is_admin = _request_is_admin(request)
+        pr = _request_project_root(request)
         with _jobs_lock:
             for jid in list(_jobs.keys()):
-                if _jobs[jid]["status"] != "running":
+                job = _jobs[jid]
+                if (
+                    job["status"] != "running"
+                    and _job_visible_to_request(job, request_user, request_db_user, request_is_admin, pr)
+                ):
                     _jobs.pop(jid, None)
         return JSONResponse({"ok": True})

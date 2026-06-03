@@ -19,15 +19,10 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, Optional, Set, Tuple
 
 from src.orchestrator.loop import OrchestratorContext, RunOutcome
+from src.orchestrator.runtime_types import SubmitOutcome
 
 
 _MAX_WORKERS = 4
-
-
-@dataclass
-class SubmitOutcome:
-    run_id: str
-    status: str  # "started" | "appended" | "resumed"
 
 
 @dataclass

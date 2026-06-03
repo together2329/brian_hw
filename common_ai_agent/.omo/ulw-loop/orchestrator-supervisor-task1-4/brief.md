@@ -1,0 +1,5 @@
+Implement Tasks 1-4 from .omo/plans/orchestrator-supervisor-ipc.md using TDD and durable ULW evidence.
+Task 1: add a transport abstraction that preserves the existing thread runner path and lets /api/pipeline/orchestrator/chat select thread or IPC runtime without changing its response contract.
+Task 2: add a dedicated supervisor IPC entrypoint that reads request JSON, builds the orchestrator context with request identifiers, runs a controlled supervisor loop path for tests, and writes response JSON without leaking execution into ATLAS server stdout.
+Task 3: add a server-side supervisor runtime that creates per-run control dirs, writes request/wake/cancel paths, registers an orchestrator-supervisor job, spawns the supervisor subprocess, appends later user replies to the active run, and keeps different IPs isolated.
+Task 4: replace the in-memory-only orchestrator wake path with a durable file-backed wake adapter that reads user-message/job-complete/timer/cancel events and bridges child job completion to supervisor wake events while keeping thread fallback notification.
