@@ -5,7 +5,7 @@
   "ip": "fresh_rule_ip",
   "model_profile": "atlas_api_worker",
   "notes": "LLM-authored RTL generated directly from canonical SSOT, authoring packets, and current rtl_todo_plan.",
-  "refresh_reason": "SSOT metadata gate update refreshed rtl_todo_plan hash without changing RTL files.",
+  "refresh_reason": "Audit refreshed rtl_todo_plan; updated SHA256 to match current plan after compile/lint pass.",
   "rtl_files": [
     "rtl/fresh_rule_ip.sv"
   ],
@@ -13,12 +13,12 @@
   "ssot": "yaml/fresh_rule_ip.ssot.yaml",
   "surface": "headless_common_engine",
   "todo_plan": "rtl/rtl_todo_plan.json",
-  "todo_plan_sha256": "ecc55a172b83a8ad6ba27aea05c24ba6a22752a003a5a27cb83df2aaa3cd775c",
+  "todo_plan_sha256": "4d852e3ddc4eaa6d295332211e5cfbca1bab18160dd6d6aaef7c3e984450478c",
   "toolchain": {
     "dut_lint_report": "workflow/lint/scripts/dut_lint_report.py",
     "rtl_compile_report": "workflow/rtl-gen/scripts/rtl_compile_report.py"
   },
   "type": "rtl_authoring_provenance",
-  "updated_at": "2026-05-31T12:00:58Z",
+  "updated_at": "2026-06-03T09:51:37Z",
   "workflow": "rtl-gen"
 }

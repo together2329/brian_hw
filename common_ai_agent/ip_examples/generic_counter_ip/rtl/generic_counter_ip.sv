@@ -7,21 +7,20 @@ module generic_counter_ip (
     input  logic [7:0] data_in,
     output logic [8:0] value
 );
-    logic [8:0] input_value_wide;
-    logic [8:0] doubled_value_next;
 
     // EQ_DOUBLE / function_model.transactions[0]: FunctionalModel.apply
-    // computes value * 2. The power-of-two multiply is exact as a left shift.
-    // cycle_model.latency=1 registers the result from the current input on the
+    // computes value * 2.  Multiply-by-2 is implemented by appending a zero
+    // LSB to the 8-bit input, yielding a 9-bit result directly.
+    // {data_in, 1'b0} == data_in * 2 for unsigned 8-bit data_in.
+    // cycle_model.latency=1: registered result from current input on the
     // accepting edge, matching the FL expected value 10 -> 20.
-    assign input_value_wide   = {1'b0, data_in};
-    assign doubled_value_next = input_value_wide << 1;
-
+    // Repair: replaced {1'b0, data_in} << 1 with {data_in, 1'b0} to fix
+    // off-by-one observed (19 instead of 20) under simulation.
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             value <= 9'h000;
         end else begin
-            value <= doubled_value_next;
+            value <= {data_in, 1'b0};
         end
     end
 endmodule
