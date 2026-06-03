@@ -317,6 +317,35 @@ central+session suites stay green — 134 touched-surface + 202 central/DB tests
 
 Status: all four review items (#1–#4) are now FIXED.
 
+### Post-review Finding - 2026-06-03
+
+Runtime-delete behavior is now covered by the focused backend suites, but review
+found one packaging/import-path risk:
+
+- **`src.atlas_api_sessions` direct import can fail.** `src/atlas_api_sessions.py`
+  imports the shared delete helper as `from atlas_session_delete import ...`.
+  The normal `atlas_ui` process bootstraps `src/` onto `sys.path`, so that path
+  works there. A direct package-style import with only the repo root on
+  `sys.path` fails with `ModuleNotFoundError: No module named
+  'atlas_session_delete'`.
+
+  Recommended fix: import the helper through the package path
+  (`from src.atlas_session_delete import ...`) or add an explicit compatibility
+  import shim so both launch styles keep working.
+
+Review verification after the follow-up:
+
+- Backend focused suite:
+  `tests/test_router_feedback_followups.py`,
+  `tests/test_runtime_delete_and_delivery_order.py`,
+  `tests/test_output_coalescing.py`, `tests/test_runtime_db_100_user_scale.py`,
+  `tests/test_e2e_api.py`, and `tests/test_session_authz_fail_closed_task8.py`
+  pass together: `41 passed, 1 skipped`.
+- Frontend type/test sweep passes:
+  `bunx tsc --noEmit --project frontend/atlas/tsconfig.json` and
+  `bun run test` under `frontend/atlas` (`45 files, 309 tests passed`).
+- Whitespace checks pass: `git diff --check` and `git diff --cached --check`.
+
 ## Policy
 
 Accepted input should always be durable.
