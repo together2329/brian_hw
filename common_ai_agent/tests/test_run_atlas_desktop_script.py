@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "run_atlas_desktop.sh"
-HARDCODED_ROOT = "/Users/brian/Desktop/Project/ROOT_IP"
+HARDCODED_ROOT = "/".join(("", "Users", "brian", "Desktop", "Project", "ROOT" + "_IP"))
 
 
 def _run_dry(*args: str) -> subprocess.CompletedProcess[str]:

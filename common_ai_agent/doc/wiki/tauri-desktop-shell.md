@@ -50,21 +50,29 @@ verified. On a fresh checkout:
 # 1. (optional) prove the Rust shell compiles — first build pulls ~400 crates (~2 min)
 (cd common_ai_agent/src-tauri && cargo check)
 
-# 2. RUN the desktop window. It loads http://localhost:3000, so the ATLAS
-#    backend must be serving there first (see below). One command:
-common_ai_agent/scripts/run_atlas_desktop.sh          # tauri dev — opens the window
-common_ai_agent/scripts/run_atlas_desktop.sh --prod   # open the pre-built .app
+# 2. RUN the desktop window. Pass the IP parent explicitly with --root; the
+#    launcher starts a local backend for that root unless a matching backend
+#    is already serving.
+common_ai_agent/scripts/run_atlas_desktop.sh --root /path/to/ip-parent --ip <ip-name>
+common_ai_agent/scripts/run_atlas_desktop.sh --prod --root /path/to/ip-parent --ip <ip-name>
+
+# Existing backend mode is still supported:
+common_ai_agent/scripts/run_atlas_desktop.sh --backend-url 'http://127.0.0.1:3000/?ip=<ip-name>'
 
 # 3. build the runnable .app yourself (app-only target, ~2 min release compile):
 (cd common_ai_agent && frontend/atlas/node_modules/.bin/tauri build)
 #    -> src-tauri/target/release/bundle/macos/ATLAS.app   (double-clickable)
 ```
 
-Start the backend before launching the window — e.g. to show the new Vite
-frontend (+ gpt-5.5):
+The launcher never hardcodes a project root. Root selection belongs to the
+backend and flows through `src/atlas_ui.py --root <ip-parent>`. To expose the
+Perforce SCM tab, pass the provider explicitly:
 
 ```bash
-ATLAS_FRONTEND_MODE=vite <your atlas server launch command> --model gpt-5.5
+common_ai_agent/scripts/run_atlas_desktop.sh \
+  --root /path/to/ip-parent \
+  --ip <ip-name> \
+  --scm-provider perforce
 ```
 
 > `bundle.targets` is `["app"]` (not `dmg`): the `.app` is the runnable artifact.
