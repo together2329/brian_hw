@@ -38,6 +38,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from core.atlas_db import AtlasDB
 from core.atlas_db_router import AtlasDBRouter, RuntimeDBError
+from core.atlas_context import AtlasContext
 from core.session_worker_policy import SessionWorkerPolicy
 
 # Legal SpawnResult.status values (Wave-3 H10 — enumerated, each has a producer).
@@ -397,8 +398,17 @@ class SessionProcessManager:
         env = os.environ.copy()
         session_key = str(session_id or "").strip().strip("/") or "default"
         parts = [part for part in session_key.split("/") if part]
+        context: AtlasContext | None = None
         if len(parts) >= 3:
-            owner, ip_name, workflow = parts[0], parts[1], parts[2]
+            try:
+                context = AtlasContext.from_session_key(
+                    session_key,
+                    atlas_root=env.get("ATLAS_ROOT") or str(self._project_root),
+                )
+            except Exception:
+                context = None
+        if context is not None:
+            owner, ip_name, workflow = context.user_name, context.ip_name, context.workflow
         elif len(parts) == 2:
             owner = env.get("ATLAS_DEFAULT_SESSION_ID") or parts[0]
             ip_name, workflow = parts[0], parts[1]
@@ -423,6 +433,8 @@ class SessionProcessManager:
         env["ATLAS_ACTIVE_IP"] = ip_name
         env["ATLAS_DEFAULT_WORKFLOW"] = workflow
         env["ACTIVE_WORKSPACE"] = workflow
+        if context is not None:
+            env.update(context.export_env())
         env["ATLAS_TRACE_ENABLE"] = "1"
         env["ATLAS_CONTROL_DB_PATH"] = control_db
         env["ATLAS_RUNTIME_DB_PATH"] = runtime_db
@@ -430,7 +442,7 @@ class SessionProcessManager:
         env["ATLAS_TRACE_DB_PATH"] = runtime_db
         env["ATLAS_SOURCE_ROOT"] = str(self._source_root)
         env.setdefault("COMMON_AI_AGENT_HOME", str(self._source_root))
-        env["ATLAS_PROJECT_ROOT"] = str(self._project_root)
+        env.setdefault("ATLAS_PROJECT_ROOT", str(self._project_root))
         python_paths = [str(self._source_root), str(self._source_root / "src")]
         existing_pythonpath = env.get("PYTHONPATH", "")
         if existing_pythonpath:
@@ -654,15 +666,22 @@ class SessionProcessManager:
             # a previous process for this canonical session) is then ignored.
             worker_epoch = uuid.uuid4().hex
             try:
+                worker_env = self.build_worker_env(
+                    session_id, db_path=db_path, worker_epoch=worker_epoch
+                )
+                worker_cwd = Path(
+                    worker_env.get("ATLAS_IP_ROOT")
+                    or worker_env.get("ATLAS_PROJECT_ROOT")
+                    or str(self._project_root)
+                ).expanduser().resolve()
+                worker_cwd.mkdir(parents=True, exist_ok=True)
                 proc = subprocess.Popen(
                     cmd,
                     stdin=subprocess.DEVNULL,
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
-                    env=self.build_worker_env(
-                        session_id, db_path=db_path, worker_epoch=worker_epoch
-                    ),
-                    cwd=str(self._project_root),
+                    env=worker_env,
+                    cwd=str(worker_cwd),
                     # Detach from parent TTY so signals/shells don't propagate.
                     start_new_session=True,
                 )

@@ -1271,12 +1271,20 @@ def test_pipeline_dispatch_persists_db_identity_for_admin_sessions(
     from core.atlas_db import AtlasDB
 
     ip = "db_identity_ip"
-    (tmp_path / ip / "rtl").mkdir(parents=True)
+    ip_dir = tmp_path / ip
+    # Valid SSOT/RTL evidence so the strict completion gate accepts rtl and the
+    # pipeline reaches completed (this test asserts DB status == completed).
+    _write_minimal_valid_ssot_rtl_fixture(ip_dir, ip)
 
     with jobs._jobs_lock:
         jobs._jobs.clear()
 
+    _patch_rtl_gate_for_fixture(monkeypatch, jobs, ip, tmp_path)
+
     with _mock_worker("pipeline") as (worker_url, _worker):
+        # Orchestrator mode (global env) so worker URL resolution uses
+        # WORKER_URL_DEFAULT instead of the single-main-loop port.
+        monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODE", "1")
         monkeypatch.setenv("ATLAS_ADMIN_USERS", "u")
         monkeypatch.setenv("WORKER_URL_DEFAULT", worker_url)
         client = _make_client(tmp_path, monkeypatch)
