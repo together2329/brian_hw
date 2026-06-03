@@ -794,6 +794,12 @@ const App = () => {
       || 'default';
     const requestedWorkflow = newIpInitialWorkflow();
     const requestedExecMode = normalizeAtlasExecMode(execMode);
+    const parsedForCreate = splitActiveNamespace();
+    const workspaceSessionForCreate = normalizeSession(
+      parsedForCreate.workspaceSession
+      || (window as any).ATLAS_WORKSPACE_SESSION_ID
+      || ''
+    ) || 'default';
     let createPayload: any = {};
     try {
       const createResponse = await fetch('/api/ip/create', {
@@ -804,6 +810,7 @@ const App = () => {
           kind: 'TBD',
           exec_mode: requestedExecMode,
           workflow: requestedWorkflow,
+          workspace_session: workspaceSessionForCreate,
         }),
       });
       try { createPayload = await createResponse.json(); } catch (_) { createPayload = {}; }
@@ -822,11 +829,12 @@ const App = () => {
     const createdParts = splitSessionNamespace(createdNamespace);
     const payloadWorkflow = normalizeSession(createPayload.workflow || createdParts.workflow || requestedWorkflow) || requestedWorkflow;
     const workflow = requestedExecMode === 'orchestrator' ? 'orchestrator' : payloadWorkflow;
+    const ownerForActivation = createdNamespace || `${me}/${workspaceSessionForCreate}`;
     // Local state first so the dropdown and scope reflect the new IP
     // immediately after the scaffold exists.
     setIpOptions(prev => Array.from(new Set([ip].concat(prev || []))));
     try { setScreen('workspace'); localStorage.atlasScreen = 'workspace'; } catch (_) {}
-    activateNamespace(me, ip, workflow, true, { preserveRunning: preserveRunningForCurrentMode() });
+    activateNamespace(ownerForActivation, ip, workflow, true, { preserveRunning: preserveRunningForCurrentMode() });
     setTimeout(() => {
       try { window.atlasData && window.atlasData.refreshFileTree && window.atlasData.refreshFileTree(ip, { recursive: true }); } catch (_) {}
       try { refreshTopTargets(); } catch (_) {}

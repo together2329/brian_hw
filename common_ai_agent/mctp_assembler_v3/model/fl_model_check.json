@@ -1,0 +1,296 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_check",
+  "ip": "mctp_assembler_v3",
+  "source": "model/functional_model.py",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "checks": 9,
+    "failed": 0,
+    "transactions": 8,
+    "transaction_results": [
+      {
+        "id": "FM_INGEST_TLP",
+        "name": "axi_write_to_tlp_bytes",
+        "kind": "FM_INGEST_TLP",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_INGEST_TLP",
+          "transaction_name": "axi_write_to_tlp_bytes",
+          "sample_accepted": 1,
+          "bresp_next": 0,
+          "s_axi_bresp": 0,
+          "state_updates": {
+            "tlp_accept": 0,
+            "tlp_seen_count": 1,
+            "tlp_accepted_count": 0
+          }
+        }
+      },
+      {
+        "id": "FM_DECODE_VDM",
+        "name": "pcie_vdm_decode",
+        "kind": "FM_DECODE_VDM",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_DECODE_VDM",
+          "transaction_name": "pcie_vdm_decode",
+          "sample_accepted": 1,
+          "state_updates": {
+            "vdm_valid": 0,
+            "payload_offset": 16,
+            "requester_id": 257,
+            "pad_ok": 0,
+            "last_decoded_vdm": 33555204
+          }
+        }
+      },
+      {
+        "id": "FM_DECODE_MCTP",
+        "name": "mctp_transport_decode",
+        "kind": "FM_DECODE_MCTP",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_DECODE_MCTP",
+          "transaction_name": "mctp_transport_decode",
+          "sample_accepted": 1,
+          "state_updates": {
+            "header_version_ok": 0,
+            "som": 0,
+            "eom": 0,
+            "packet_seq": 0,
+            "tag_owner": 0,
+            "message_tag": 4,
+            "dest_accept": 0,
+            "assembly_key": 164
+          }
+        }
+      },
+      {
+        "id": "FM_ALLOC_CONTEXT",
+        "name": "context_allocate",
+        "kind": "FM_ALLOC_CONTEXT",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_ALLOC_CONTEXT",
+          "transaction_name": "context_allocate",
+          "sample_accepted": 1,
+          "state_updates": {
+            "alloc_ok": 4,
+            "single_packet": 1,
+            "ctx_state": 3,
+            "ctx_payload_base_addr": 0,
+            "ctx_expected_seq": 0,
+            "active_context_count": 1,
+            "sram_alloc_ptr": 8
+          }
+        }
+      },
+      {
+        "id": "FM_APPEND",
+        "name": "context_append",
+        "kind": "FM_APPEND",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_APPEND",
+          "transaction_name": "context_append",
+          "sample_accepted": 1,
+          "state_updates": {
+            "seq_ok": 0,
+            "message_complete": 6,
+            "ctx_payload_byte_count": 7,
+            "ctx_expected_seq": 1,
+            "ctx_last_seq": 5
+          }
+        }
+      },
+      {
+        "id": "FM_PACK_SRAM",
+        "name": "payload_pack_write",
+        "kind": "FM_PACK_SRAM",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_PACK_SRAM",
+          "transaction_name": "payload_pack_write",
+          "sample_accepted": 1,
+          "sram_wr_valid": 1,
+          "sram_wr_addr": 0,
+          "sram_wr_strb": 63,
+          "state_updates": {
+            "ctx_payload_next_addr": 6,
+            "ctx_partial_next_lane": 6,
+            "payload_bytes_written_count": 6
+          }
+        }
+      },
+      {
+        "id": "FM_PUBLISH_DESCRIPTOR",
+        "name": "descriptor_publish",
+        "kind": "FM_PUBLISH_DESCRIPTOR",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_PUBLISH_DESCRIPTOR",
+          "transaction_name": "descriptor_publish",
+          "sample_accepted": 1,
+          "state_updates": {
+            "descriptor_ready": 0,
+            "descriptor_payload_len": 7,
+            "descriptor_base_addr": 0,
+            "message_completed_count": 1,
+            "descriptor_valid": 1,
+            "ctx_state": 3
+          }
+        }
+      },
+      {
+        "id": "FM_AXI_READ",
+        "name": "firmware_payload_read",
+        "kind": "FM_AXI_READ",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_AXI_READ",
+          "transaction_name": "firmware_payload_read",
+          "sample_accepted": 1,
+          "rresp_next": 2,
+          "s_axi_rresp": 2,
+          "rlast_next": 0,
+          "s_axi_rlast": 0,
+          "state_updates": {
+            "fw_axi_read_beat_count": 1,
+            "fw_axi_read_error_count": 1
+          }
+        }
+      }
+    ],
+    "unsupported_transaction_check": true,
+    "trace_entries": 9,
+    "coverage_bins": 100,
+    "invariants_total": 9,
+    "invariants_evaluated": 0,
+    "invariants_failed": [],
+    "invariants_skipped": [
+      {
+        "name": "No SRAM payload write occurs before a pa",
+        "expr": "No SRAM payload write occurs before a packet is accepted for assembly.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "The SRAM writer never writes PCIe/VDM he",
+        "expr": "The SRAM writer never writes PCIe/VDM headers, MCTP transport headers, pad bytes, or digest bytes as payload.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "For every published descriptor, byte add",
+        "expr": "For every published descriptor, byte address base_addr..base_addr+payload_len-1 is written exactly as the corresponding assembled payload byte with no alignment gap.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "Active context count never exceeds CONTE",
+        "expr": "Active context count never exceeds CONTEXT_COUNT.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "first_tlp_header for a context is writte",
+        "expr": "first_tlp_header for a context is written only by the accepted SOM packet; last_tlp_header equals the most recent accepted packet for that context.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "Non-final accepted packets contribute ex",
+        "expr": "Non-final accepted packets contribute exactly the configured transmission unit byte count; EOM may contribute fewer.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "No descriptor is published before EOM; s",
+        "expr": "No descriptor is published before EOM; sequence mismatch aborts the active context and suppresses the success descriptor.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "An earlier packet-drop reason wins over ",
+        "expr": "An earlier packet-drop reason wins over a later assembly-drop reason for the same accepted transaction (drop priority order).",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "ctx_state encoding is mutually exclusive",
+        "expr": "ctx_state encoding is mutually exclusive: a context cannot be IDLE and ASSEMBLING or ERROR in the same cycle.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      }
+    ],
+    "reset_consistency": true,
+    "reset_diff": {},
+    "error_cases_total": 14,
+    "error_cases_planned": 14
+  },
+  "decomposition_units": 17,
+  "fcov_bins": 100,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "mctp_assembler_v3/req/",
+      "mctp_assembler_v3/yaml/mctp_assembler_v3.ssot.yaml",
+      "mctp_assembler_v3/model/functional_model.py",
+      "mctp_assembler_v3/cov/fcov_plan.json",
+      "mctp_assembler_v3/yaml/mctp_assembler_v3.ssot.yaml#io_list",
+      "mctp_assembler_v3/yaml/mctp_assembler_v3.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "mctp_assembler_v3/rtl/",
+      "mctp_assembler_v3/tb/",
+      "mctp_assembler_v3/sim/",
+      "mctp_assembler_v3/vectors/",
+      "mctp_assembler_v3/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  }
+}

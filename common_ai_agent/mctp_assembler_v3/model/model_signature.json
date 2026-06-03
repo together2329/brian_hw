@@ -1,0 +1,9 @@
+{
+  "expressions_hash": "4070696582fbf9963691c868dfd85bd60f6d8cff6c62f7d709e94f58f659043f",
+  "invariants_hash": "f75c5c1d70defb83d88c9b6644ba928f19c0d0871bcf6d350896e1931e9f0aa2",
+  "ip": "mctp_assembler_v3",
+  "schema_version": 1,
+  "ssot_hash": "5330d4ab063fcfd59fb7446aead7c03bdce056b7742d550ff5fd29962f6517d5",
+  "transactions_hash": "a627f75064348f43a0e4c38fa9851ecef29c10e1385d67bbe2070d71141df36f",
+  "type": "model_signature"
+}

@@ -1016,6 +1016,7 @@ function_model:
   transactions:
   - id: FM_INGEST_TLP
     name: axi_write_to_tlp_bytes
+    required_fields: [wlast_seen, awsize, awburst, wstrb_contiguous, tlp_byte_count]
     output_rules:
     - name: bresp_next
       expr: BRESP_OKAY
@@ -1063,6 +1064,7 @@ function_model:
       result: PD_MALFORMED_TLP packet drop; no context/SRAM/descriptor side effect
   - id: FM_DECODE_VDM
     name: pcie_vdm_decode
+    required_fields: [message_code, vendor_id, vdm_code, routing_supported, traffic_class, tlp, pad_len, eom]
     state_updates:
     - name: vdm_valid
       expr: (message_code == 0x7F) and (vendor_id == 0x1AB4) and (vdm_code == 0x0) and routing_supported and (traffic_class == 0)
@@ -1110,6 +1112,7 @@ function_model:
     output_rules: []
   - id: FM_DECODE_MCTP
     name: mctp_transport_decode
+    required_fields: [header_version, mctp_byte0, dest_filter_enable, dest_eid, local_eid, accept_broadcast_eid, accept_null_eid, source_eid]
     state_updates:
     - name: header_version_ok
       expr: header_version == 1
@@ -1177,6 +1180,7 @@ function_model:
     output_rules: []
   - id: FM_ALLOC_CONTEXT
     name: context_allocate
+    required_fields: [free_slot_available, som, eom, packet_seq, allocated_len]
     state_updates:
     - name: alloc_ok
       expr: free_slot_available
@@ -1239,6 +1243,7 @@ function_model:
     output_rules: []
   - id: FM_APPEND
     name: context_append
+    required_fields: [packet_seq, eom, payload_bytes]
     state_updates:
     - name: seq_ok
       expr: packet_seq == ctx_expected_seq
@@ -1293,6 +1298,7 @@ function_model:
     output_rules: []
   - id: FM_PACK_SRAM
     name: payload_pack_write
+    required_fields: [payload_bytes]
     output_rules:
     - name: sram_wr_valid
       expr: payload_bytes > 0
@@ -1351,6 +1357,7 @@ function_model:
       result: AD_SRAM_OVERFLOW assembly drop
   - id: FM_PUBLISH_DESCRIPTOR
     name: descriptor_publish
+    required_fields: [descriptor_queue_full]
     state_updates:
     - name: descriptor_ready
       expr: not descriptor_queue_full
@@ -1404,6 +1411,7 @@ function_model:
     output_rules: []
   - id: FM_AXI_READ
     name: firmware_payload_read
+    required_fields: [out_of_window, no_descriptor, raw_sram_debug_read_enable, beat_index, arlen, read_error]
     output_rules:
     - name: rresp_next
       expr: RRESP_SLVERR if (out_of_window or (no_descriptor and not raw_sram_debug_read_enable)) else RRESP_OKAY

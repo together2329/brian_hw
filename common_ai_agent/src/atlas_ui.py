@@ -3175,9 +3175,42 @@ def create_app():
             return JSONResponse({"error": "name required"}, status_code=400)
         if not _valid_ip_name(name) or "/" in name or "\\" in name or ".." in name:
             return JSONResponse({"error": "invalid name"}, status_code=400)
-        target = (PROJECT_ROOT / name).resolve()
+        user = request.scope.get("user") or {}
+        username = normalize_session_name(str(user.get("username") or ""))
+        user_id = str(user.get("id") or "").strip()
+        multi_user_on = _multi_user_enabled()
+        if multi_user_on and (not username or not user_id):
+            return JSONResponse({"error": "login required"}, status_code=401)
+        workspace_session = normalize_session_name(
+            str(
+                (body or {}).get("workspace_session")
+                or (body or {}).get("workspaceSession")
+                or os.environ.get("ATLAS_WORKSPACE_SESSION")
+                or "default"
+            )
+        )
+        if multi_user_on and not workspace_session:
+            workspace_session = "default"
+        atlas_root = Path(os.environ.get("ATLAS_ROOT") or str(PROJECT_ROOT)).expanduser().resolve()
+        context: AtlasContext | None = None
+        workspace_root = PROJECT_ROOT
+        if multi_user_on and username:
+            try:
+                context = AtlasContext(
+                    user_name=username,
+                    workspace_session=workspace_session or "default",
+                    ip_name=name,
+                    workflow=workflow,
+                    atlas_root=atlas_root,
+                )
+            except ValueError as exc:
+                return JSONResponse({"error": str(exc)}, status_code=400)
+            workspace_root = context.workspace_root
+            target = context.ip_root.resolve()
+        else:
+            target = (PROJECT_ROOT / name).resolve()
         try:
-            target.relative_to(PROJECT_ROOT.resolve())
+            target.relative_to(workspace_root.resolve())
         except ValueError:
             return JSONResponse({"error": "outside project root"}, status_code=400)
         if target.exists():
@@ -3185,21 +3218,15 @@ def create_app():
                 "error": f'IP "{name}" already exists. Select it from IP_ID or choose another name.',
                 "ip": name,
             }, status_code=409)
-        user = request.scope.get("user") or {}
-        username = normalize_session_name(str(user.get("username") or ""))
-        user_id = str(user.get("id") or "").strip()
-        multi_user_on = _multi_user_enabled()
-        if multi_user_on and (not username or not user_id):
-            return JSONResponse({"error": "login required"}, status_code=401)
-        session_namespace = f"{username}/{name}/{workflow}" if username else ""
-        session_dir = (PROJECT_ROOT / ".session" / username / name / workflow) if username else None
+        session_namespace = context.active_session_key if context is not None else (f"{username}/{name}/{workflow}" if username else "")
+        session_dir = context.session_dir if context is not None else ((PROJECT_ROOT / ".session" / username / name / workflow) if username else None)
         db_session: dict[str, Any] = {}
         workspace_row: dict[str, Any] = {}
         ip_row: dict[str, Any] = {}
         try:
             target.mkdir(parents=True, exist_ok=True)
-            paths = _ensure_new_ip_structure(name)
-            _ensure_ssot_draft(name, kind)
+            paths = _ensure_new_ip_structure(name, base_root=workspace_root)
+            _ensure_ssot_draft(name, kind, base_root=workspace_root)
             if session_dir is not None:
                 session_dir.mkdir(parents=True, exist_ok=True)
                 conv = session_dir / "conversation.json"
@@ -3210,14 +3237,18 @@ def create_app():
                     "kind": "atlas_ip_scaffold",
                     "namespace": session_namespace,
                     "owner": username,
+                    "workspace_session": workspace_session or "default",
+                    "context_key": context.context_key if context is not None else session_namespace,
                     "ip": name,
                     "workflow": workflow,
+                    "workspace_root": str(workspace_root),
+                    "ip_root": str(target),
                 }
                 with AtlasDB() as db:
                     workspace_row = db.upsert_workspace(
-                        PROJECT_ROOT.name or "default",
+                        f"{PROJECT_ROOT.name or 'default'}/{workspace_session or 'default'}",
                         owner_user_id=user_id,
-                        local_path=str(PROJECT_ROOT.resolve()),
+                        local_path=str(workspace_root.resolve()),
                     ) or {}
                     ip_row = db.upsert_ip_block(
                         str(workspace_row.get("id") or ""),
@@ -3241,6 +3272,13 @@ def create_app():
                     )
         except Exception as exc:
             return JSONResponse({"error": f"failed to scaffold IP: {exc}"}, status_code=500)
+        if session_namespace:
+            try:
+                bridge.activate_session(session_namespace)
+                _atlas_active_session_cv.set(session_namespace)
+                _atlas_active_ip_cv.set(name)
+            except Exception:
+                pass
         worker_warmup: dict[str, Any] = {}
         try:
             try:
@@ -3254,7 +3292,7 @@ def create_app():
                 db_user_id=user_id,
                 session_name=session_namespace,
                 active_workflow=workflow,
-                project_root_value=str(PROJECT_ROOT),
+                project_root_value=str(workspace_root),
                 exec_mode=requested_exec_mode or _current_atlas_exec_mode(),
                 reason="ip_create",
                 background=True,
@@ -3264,10 +3302,16 @@ def create_app():
         return JSONResponse({"ok": True,
                              "ip": name,
                              "created": True,
-                             "path": str(target.relative_to(PROJECT_ROOT.resolve())),
+                             "path": str(target.relative_to(workspace_root.resolve())),
                              "ssot_path": f"{name}/yaml/{name}.ssot.yaml",
                              "paths": paths,
                              "session": session_namespace,
+                             "active_session": session_namespace,
+                             "context_key": context.context_key if context is not None else session_namespace,
+                             "workspace_session": workspace_session or "default",
+                             "workspace_root": str(workspace_root),
+                             "ip_root": str(target),
+                             "session_dir": str(session_dir) if session_dir is not None else "",
                              "workflow": workflow,
                              "exec_mode": requested_exec_mode or _current_atlas_exec_mode(),
                              "policy": exec_policy_payload(requested_exec_mode or _current_atlas_exec_mode(), env=os.environ),
@@ -5216,16 +5260,16 @@ def create_app():
 
 
 
-    def _ssot_yaml_path(ip: str) -> Path:
-        ip_dir = _ip_root(ip)
+    def _ssot_yaml_path(ip: str, base_root: Path | None = None) -> Path:
+        ip_dir = (base_root / ip) if base_root is not None else _ip_root(ip)
         for name in (f"{ip}.ssot.yaml", f"{ip}_ssot.yaml", f"{ip}.ssot.yml"):
             candidate = ip_dir / "yaml" / name
             if candidate.is_file():
                 return candidate
         return ip_dir / "yaml" / f"{ip}.ssot.yaml"
 
-    def _load_ssot_draft(ip: str) -> dict[str, Any]:
-        path = _ssot_yaml_path(ip)
+    def _load_ssot_draft(ip: str, base_root: Path | None = None) -> dict[str, Any]:
+        path = _ssot_yaml_path(ip, base_root=base_root)
         if not path.is_file():
             return {}
         try:
@@ -5236,8 +5280,8 @@ def create_app():
         except Exception:
             return {}
 
-    def _save_ssot_draft(ip: str, doc: dict[str, Any]) -> None:
-        path = _ssot_yaml_path(ip)
+    def _save_ssot_draft(ip: str, doc: dict[str, Any], base_root: Path | None = None) -> None:
+        path = _ssot_yaml_path(ip, base_root=base_root)
         path.parent.mkdir(parents=True, exist_ok=True)
         try:
             import yaml as _yaml  # type: ignore
@@ -5484,7 +5528,7 @@ def create_app():
             "custom": {},
         }
 
-    def _ensure_ssot_draft(ip: str, kind: str = "TBD") -> dict[str, Any]:
+    def _ensure_ssot_draft(ip: str, kind: str = "TBD", base_root: Path | None = None) -> dict[str, Any]:
         # Default top file path follows the canonical convention
         # `rtl/<ip>.sv` so /new-ip scaffolds an SSOT that already has
         # the synthesizable top wired to a name matching the IP. Without
@@ -5492,7 +5536,7 @@ def create_app():
         # rtl-gen runs occasionally settled on `<ip>_wrapper.sv` as the
         # de facto top, which surprised reviewers expecting `<ip>.sv`.
         _default_top_file = f"rtl/{ip}.sv" if ip else "rtl/top.sv"
-        doc = _load_ssot_draft(ip)
+        doc = _load_ssot_draft(ip, base_root=base_root)
         if not doc:
             doc = _full_ssot_tbd_template(ip, _default_top_file, kind)
         # Pull every REQUIRED_SECTIONS key from the template so older drafts
@@ -5523,7 +5567,7 @@ def create_app():
         custom.setdefault("atlas_decision_sources", {})
         custom.setdefault("atlas_imports", [])
         custom.setdefault("atlas_import_conflicts", [])
-        _save_ssot_draft(ip, doc)
+        _save_ssot_draft(ip, doc, base_root=base_root)
         return doc
 
     def _ssot_custom(ip: str, kind: str = "TBD") -> tuple[dict[str, Any], dict[str, Any]]:
@@ -6182,13 +6226,14 @@ def create_app():
             "created_at": time.time(),
         }
 
-    def _scaffold_ip_wiki(ip: str) -> None:
+    def _scaffold_ip_wiki(ip: str, base_root: Path | None = None) -> None:
         """Seed <ip>/wiki/{index.md, log.md, notes.md} idempotently.
 
         Karpathy-style: `[[link]]` ToC into the IP tree + append-only log + free-form notes.
         Re-runs of /new-ip leave existing pages untouched.
         """
-        wiki_dir = PROJECT_ROOT / ip / "wiki"
+        root = base_root or PROJECT_ROOT
+        wiki_dir = root / ip / "wiki"
         wiki_dir.mkdir(parents=True, exist_ok=True)
         today = time.strftime("%Y-%m-%d", time.gmtime())
         seeds = {
@@ -6239,11 +6284,12 @@ def create_app():
             return text
         return text[: max(0, limit - 3)].rstrip() + "..."
 
-    def _refresh_ip_wiki_graph(ip: str) -> None:
+    def _refresh_ip_wiki_graph(ip: str, base_root: Path | None = None) -> None:
         try:
             import subprocess
 
             script = WORKFLOW_ROOT / "wiki" / "build_graph.py"
+            root = base_root or PROJECT_ROOT
             subprocess.run(
                 [
                     "python3",
@@ -6251,7 +6297,7 @@ def create_app():
                     "--ip",
                     ip,
                     "--project-root",
-                    str(PROJECT_ROOT),
+                    str(root),
                     "--quiet",
                 ],
                 check=False,
@@ -6389,7 +6435,8 @@ def create_app():
         except Exception:
             pass
 
-    def _ensure_new_ip_structure(ip: str) -> list[str]:
+    def _ensure_new_ip_structure(ip: str, base_root: Path | None = None) -> list[str]:
+        root = base_root or PROJECT_ROOT
         dirs = [
             "doc",
             "req",
@@ -6405,10 +6452,10 @@ def create_app():
         ]
         created: list[str] = []
         for rel in dirs:
-            path = PROJECT_ROOT / ip / rel
+            path = root / ip / rel
             path.mkdir(parents=True, exist_ok=True)
             created.append(f"{ip}/{rel}")
-        _scaffold_ip_wiki(ip)
+        _scaffold_ip_wiki(ip, base_root=root)
         # Copy the FULL workflow engine into <ip>/workflow/ (every stage's
         # scripts, prompts, system_prompt.md, rules, todo templates, shared
         # scripts/ + prompts/, flow guides) AND generate the wiki/_generated/
@@ -6418,15 +6465,15 @@ def create_app():
         # run. Then rebuild the wiki graph. Best-effort: never block creation.
         try:
             from core.tools import _scaffold_ip_workflow as _scaffold_wf
-            _scaffold_wf(str(PROJECT_ROOT / ip), ip, [], [], [])
+            _scaffold_wf(str(root / ip), ip, [], [], [])
         except Exception:
             pass
-        _refresh_ip_wiki_graph(ip)
+        _refresh_ip_wiki_graph(ip, base_root=root)
         # Per-IP git repo. Each IP gets its OWN .git so the agent's
         # write_file / replace_in_file calls can auto-commit and the
         # user has a per-IP history independent of the outer project
         # repo. Idempotent — `git init` on an existing repo is a no-op.
-        _ip_root = PROJECT_ROOT / ip
+        _ip_root = root / ip
         _git_dir = _ip_root / ".git"
         _gitignore = _ip_root / ".gitignore"
         # Ignore the heavy/derived artifacts so per-IP git history stays
@@ -6498,7 +6545,7 @@ def create_app():
                 _bare_on = True
             if _bare_on:
                 import shlex as _shlex_bare
-                _bare_dir = PROJECT_ROOT / f"{ip}.git"
+                _bare_dir = root / f"{ip}.git"
                 _post_commit  = _ip_root / ".git" / "hooks" / "post-commit"
                 _post_receive = _bare_dir / "hooks" / "post-receive"
                 try:

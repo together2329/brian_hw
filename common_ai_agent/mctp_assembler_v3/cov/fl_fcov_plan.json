@@ -1,19 +1,17 @@
 {
   "schema_version": 1,
-  "type": "functional_coverage_plan",
+  "type": "fl_functional_coverage_plan",
   "ip": "mctp_assembler_v3",
   "source": "mctp_assembler_v3/yaml/mctp_assembler_v3.ssot.yaml",
   "planned_before_rtl": true,
-  "level": "union",
+  "level": "fl",
   "summary": {
-    "total_bins": 82,
+    "total_bins": 65,
     "by_class": {
       "scenario": 20,
       "transaction_type": 8,
       "state_transition": 23,
-      "error": 14,
-      "protocol_handshake": 6,
-      "latency_bin": 11
+      "error": 14
     }
   },
   "bins": [
@@ -442,135 +440,6 @@
       "class": "error",
       "source": "error_handling.error_sources[13]",
       "description": "{'id': 'AD_TIMEOUT', 'condition': 'context age exceeds assembly_timeout_cycles', 'architectural_effect': 'assembly drop; ad_timeout_count++; context_timeout interrupt'}"
-    },
-    {
-      "id": "cycle_s_axi_awready_s_axi_wready",
-      "class": "protocol_handshake",
-      "source": "cycle_model.handshake_rules[0]",
-      "signal": "s_axi_awready/s_axi_wready",
-      "description": "Assert only when the ingress can accept the AW/W beat; deassert to backpressure when not in drop_when_disabled mode."
-    },
-    {
-      "id": "cycle_s_axi_bvalid",
-      "class": "protocol_handshake",
-      "source": "cycle_model.handshake_rules[1]",
-      "signal": "s_axi_bvalid",
-      "description": "Assert after the full TLP transaction is consumed; hold until bready."
-    },
-    {
-      "id": "cycle_sram_wr_valid",
-      "class": "protocol_handshake",
-      "source": "cycle_model.handshake_rules[2]",
-      "signal": "sram_wr_valid",
-      "description": "Hold sram_wr_addr/data/strb stable while sram_wr_valid && !sram_wr_ready."
-    },
-    {
-      "id": "cycle_sram_rd_req_valid",
-      "class": "protocol_handshake",
-      "source": "cycle_model.handshake_rules[3]",
-      "signal": "sram_rd_req_valid",
-      "description": "Issue one SRAM read request per AXI read beat; hold until sram_rd_req_ready."
-    },
-    {
-      "id": "cycle_s_axi_rvalid_s_axi_rlast",
-      "class": "protocol_handshake",
-      "source": "cycle_model.handshake_rules[4]",
-      "signal": "s_axi_rvalid/s_axi_rlast",
-      "description": "Drive rdata after the SRAM read response; assert rlast on the final ARLEN beat only."
-    },
-    {
-      "id": "cycle_apb_pready",
-      "class": "protocol_handshake",
-      "source": "cycle_model.handshake_rules[5]",
-      "signal": "apb pready",
-      "description": "Complete the access phase; pslverr only with pready=1."
-    },
-    {
-      "id": "latency_register_read_at_min",
-      "class": "latency_bin",
-      "source": "cycle_model.latency.register_read",
-      "description": "register_read latency == 0 cycles",
-      "bucket": "min",
-      "cycles": 0
-    },
-    {
-      "id": "latency_register_read_mid",
-      "class": "latency_bin",
-      "source": "cycle_model.latency.register_read",
-      "description": "register_read latency ~mid (0 cycles)",
-      "bucket": "mid",
-      "cycles": 0
-    },
-    {
-      "id": "latency_register_read_at_max",
-      "class": "latency_bin",
-      "source": "cycle_model.latency.register_read",
-      "description": "register_read latency == 1 cycles",
-      "bucket": "max",
-      "cycles": 1
-    },
-    {
-      "id": "latency_register_read_gt_max",
-      "class": "latency_bin",
-      "source": "cycle_model.latency.register_read",
-      "description": "register_read latency > 1 cycles",
-      "bucket": ">max",
-      "threshold": 1
-    },
-    {
-      "id": "latency_register_write_at_min",
-      "class": "latency_bin",
-      "source": "cycle_model.latency.register_write",
-      "description": "register_write latency == 0 cycles",
-      "bucket": "min",
-      "cycles": 0
-    },
-    {
-      "id": "latency_register_write_mid",
-      "class": "latency_bin",
-      "source": "cycle_model.latency.register_write",
-      "description": "register_write latency ~mid (0 cycles)",
-      "bucket": "mid",
-      "cycles": 0
-    },
-    {
-      "id": "latency_register_write_at_max",
-      "class": "latency_bin",
-      "source": "cycle_model.latency.register_write",
-      "description": "register_write latency == 1 cycles",
-      "bucket": "max",
-      "cycles": 1
-    },
-    {
-      "id": "latency_register_write_gt_max",
-      "class": "latency_bin",
-      "source": "cycle_model.latency.register_write",
-      "description": "register_write latency > 1 cycles",
-      "bucket": ">max",
-      "threshold": 1
-    },
-    {
-      "id": "latency_single_beat_transfer_lt_min",
-      "class": "latency_bin",
-      "source": "cycle_model.latency.single_beat_transfer",
-      "description": "single_beat_transfer latency < 1 cycles",
-      "bucket": "<min",
-      "threshold": 1
-    },
-    {
-      "id": "latency_single_beat_transfer_at_min",
-      "class": "latency_bin",
-      "source": "cycle_model.latency.single_beat_transfer",
-      "description": "single_beat_transfer latency == 1 cycles",
-      "bucket": "min",
-      "cycles": 1
-    },
-    {
-      "id": "latency_single_beat_transfer_unbounded",
-      "class": "latency_bin",
-      "source": "cycle_model.latency.single_beat_transfer",
-      "description": "single_beat_transfer latency unbounded (no max_cycles)",
-      "bucket": "unbounded"
     }
   ]
 }

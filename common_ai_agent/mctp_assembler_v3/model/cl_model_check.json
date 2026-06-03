@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "type": "cl_model_check",
+  "ip": "mctp_assembler_v3",
+  "source": "model/cycle_model.py",
+  "backend": "python",
+  "timestamp": "2026-06-03T12:31:44Z",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "backend": "python",
+    "transactions": 8,
+    "results_observed": 8,
+    "coverage_bins": 17,
+    "coverage_hit": 17,
+    "fl_errors": [],
+    "performance_targets": {
+      "frequency_mhz": 400,
+      "throughput": {
+        "sustained_beats_per_cycle": 1,
+        "condition": "No SRAM/AXI backpressure; full 256-bit payload words"
+      },
+      "outstanding": {
+        "read_max": 1,
+        "write_max": 1,
+        "description": "Single outstanding AXI write and read transaction"
+      },
+      "pipeline_stages": 6,
+      "queue_depth": 8
+    }
+  },
+  "performance_targets": {
+    "frequency_mhz": 400,
+    "throughput": {
+      "sustained_beats_per_cycle": 1,
+      "condition": "No SRAM/AXI backpressure; full 256-bit payload words"
+    },
+    "outstanding": {
+      "read_max": 1,
+      "write_max": 1,
+      "description": "Single outstanding AXI write and read transaction"
+    },
+    "pipeline_stages": 6,
+    "queue_depth": 8
+  },
+  "decomposition_units": 10,
+  "fcov_bins": 17
+}

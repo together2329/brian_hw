@@ -71,6 +71,7 @@
         "io_list",
         "io_list.interfaces.axi_wr_slave",
         "parameters.axi_strb_width",
+        "parameters.bresp_okay",
         "parameters.max_tlp_beats",
         "parameters.max_tlp_bytes",
         "test_requirements"
@@ -126,6 +127,7 @@
       ],
       "structural_refs": [
         "parameters.axi_strb_width",
+        "parameters.bresp_okay",
         "parameters.max_tlp_beats",
         "parameters.max_tlp_bytes"
       ],
@@ -366,7 +368,9 @@
         "function_model.transactions.fm_append.state_updates.ctx_payload_byte_count",
         "function_model.transactions.fm_append.state_updates.message_complete",
         "function_model.transactions.fm_append.state_updates.seq_ok",
+        "parameters.assembling",
         "parameters.context_count",
+        "parameters.done_wait_descriptor_pop",
         "parameters.max_message_bytes",
         "parameters.timeout_counter_width"
       ],
@@ -420,7 +424,9 @@
       ],
       "cycle_model_refs": [],
       "structural_refs": [
+        "parameters.assembling",
         "parameters.context_count",
+        "parameters.done_wait_descriptor_pop",
         "parameters.max_message_bytes",
         "parameters.timeout_counter_width"
       ],
@@ -619,6 +625,8 @@
         "io_list",
         "io_list.interfaces.axi_rd_slave",
         "parameters.axi_addr_width",
+        "parameters.rresp_okay",
+        "parameters.rresp_slverr",
         "parameters.sram_addr_width"
       ],
       "function_model_refs": [
@@ -642,6 +650,8 @@
       "cycle_model_refs": [],
       "structural_refs": [
         "parameters.axi_addr_width",
+        "parameters.rresp_okay",
+        "parameters.rresp_slverr",
         "parameters.sram_addr_width"
       ],
       "verification_impact": [
@@ -673,11 +683,23 @@
         "error_handling",
         "features",
         "function_model.state_variables",
+        "function_model.state_variables.active_context_count",
         "function_model.state_variables.context_table",
         "function_model.state_variables.counters",
+        "function_model.state_variables.ctx_expected_seq",
+        "function_model.state_variables.ctx_partial_next_lane",
+        "function_model.state_variables.ctx_payload_base_addr",
+        "function_model.state_variables.ctx_payload_byte_count",
+        "function_model.state_variables.ctx_payload_next_addr",
         "function_model.state_variables.descriptor_queue",
+        "function_model.state_variables.fw_axi_read_beat_count",
+        "function_model.state_variables.fw_axi_read_error_count",
         "function_model.state_variables.last_drop_class",
+        "function_model.state_variables.message_completed_count",
+        "function_model.state_variables.payload_bytes_written_count",
         "function_model.state_variables.sram_alloc_ptr",
+        "function_model.state_variables.tlp_accepted_count",
+        "function_model.state_variables.tlp_seen_count",
         "interrupts",
         "parameters.baseline_mtu_bytes",
         "registers",
@@ -704,11 +726,23 @@
         "registers.register_list.status"
       ],
       "function_model_refs": [
+        "function_model.state_variables.active_context_count",
         "function_model.state_variables.context_table",
         "function_model.state_variables.counters",
+        "function_model.state_variables.ctx_expected_seq",
+        "function_model.state_variables.ctx_partial_next_lane",
+        "function_model.state_variables.ctx_payload_base_addr",
+        "function_model.state_variables.ctx_payload_byte_count",
+        "function_model.state_variables.ctx_payload_next_addr",
         "function_model.state_variables.descriptor_queue",
+        "function_model.state_variables.fw_axi_read_beat_count",
+        "function_model.state_variables.fw_axi_read_error_count",
         "function_model.state_variables.last_drop_class",
-        "function_model.state_variables.sram_alloc_ptr"
+        "function_model.state_variables.message_completed_count",
+        "function_model.state_variables.payload_bytes_written_count",
+        "function_model.state_variables.sram_alloc_ptr",
+        "function_model.state_variables.tlp_accepted_count",
+        "function_model.state_variables.tlp_seen_count"
       ],
       "cycle_model_refs": [],
       "structural_refs": [
@@ -1009,6 +1043,7 @@
         "io_list",
         "io_list.interfaces.axi_wr_slave",
         "parameters.axi_strb_width",
+        "parameters.bresp_okay",
         "parameters.max_tlp_beats",
         "parameters.max_tlp_bytes",
         "test_requirements"
@@ -1064,6 +1099,7 @@
       ],
       "structural_refs": [
         "parameters.axi_strb_width",
+        "parameters.bresp_okay",
         "parameters.max_tlp_beats",
         "parameters.max_tlp_bytes"
       ],
@@ -1250,6 +1286,10 @@
         }
       ],
       "structural_owner_matches": [
+        {
+          "ref": "parameters.bresp_okay",
+          "matched_ref": "semantic_terms:axi,ingress,mctp_assembler_v3_axi_wr_ingress,wr"
+        },
         {
           "ref": "parameters.axi_strb_width",
           "matched_ref": "semantic_terms:axi,ingress,mctp_assembler_v3_axi_wr_ingress,wr"
@@ -1701,7 +1741,9 @@
         "function_model.transactions.fm_append.state_updates.ctx_payload_byte_count",
         "function_model.transactions.fm_append.state_updates.message_complete",
         "function_model.transactions.fm_append.state_updates.seq_ok",
+        "parameters.assembling",
         "parameters.context_count",
+        "parameters.done_wait_descriptor_pop",
         "parameters.max_message_bytes",
         "parameters.timeout_counter_width"
       ],
@@ -1755,7 +1797,9 @@
       ],
       "cycle_model_refs": [],
       "structural_refs": [
+        "parameters.assembling",
         "parameters.context_count",
+        "parameters.done_wait_descriptor_pop",
         "parameters.max_message_bytes",
         "parameters.timeout_counter_width"
       ],
@@ -1946,6 +1990,14 @@
         }
       ],
       "structural_owner_matches": [
+        {
+          "ref": "parameters.assembling",
+          "matched_ref": "semantic_terms:context,mctp_assembler_v3_context_table,table"
+        },
+        {
+          "ref": "parameters.done_wait_descriptor_pop",
+          "matched_ref": "semantic_terms:context,mctp_assembler_v3_context_table,table"
+        },
         {
           "ref": "parameters.context_count",
           "matched_ref": "semantic_terms:context,mctp_assembler_v3_context_table,table"
@@ -2323,6 +2375,8 @@
         "io_list",
         "io_list.interfaces.axi_rd_slave",
         "parameters.axi_addr_width",
+        "parameters.rresp_okay",
+        "parameters.rresp_slverr",
         "parameters.sram_addr_width"
       ],
       "function_model_refs": [
@@ -2346,6 +2400,8 @@
       "cycle_model_refs": [],
       "structural_refs": [
         "parameters.axi_addr_width",
+        "parameters.rresp_okay",
+        "parameters.rresp_slverr",
         "parameters.sram_addr_width"
       ],
       "owner_matches": [
@@ -2416,6 +2472,14 @@
       ],
       "structural_owner_matches": [
         {
+          "ref": "parameters.rresp_okay",
+          "matched_ref": "semantic_terms:axi,mctp_assembler_v3_axi_rd_payload,payload,rd,read"
+        },
+        {
+          "ref": "parameters.rresp_slverr",
+          "matched_ref": "semantic_terms:axi,mctp_assembler_v3_axi_rd_payload,payload,rd,read"
+        },
+        {
           "ref": "parameters.axi_addr_width",
           "matched_ref": "semantic_terms:axi,mctp_assembler_v3_axi_rd_payload,payload,rd,read"
         },
@@ -2448,11 +2512,23 @@
         "error_handling",
         "features",
         "function_model.state_variables",
+        "function_model.state_variables.active_context_count",
         "function_model.state_variables.context_table",
         "function_model.state_variables.counters",
+        "function_model.state_variables.ctx_expected_seq",
+        "function_model.state_variables.ctx_partial_next_lane",
+        "function_model.state_variables.ctx_payload_base_addr",
+        "function_model.state_variables.ctx_payload_byte_count",
+        "function_model.state_variables.ctx_payload_next_addr",
         "function_model.state_variables.descriptor_queue",
+        "function_model.state_variables.fw_axi_read_beat_count",
+        "function_model.state_variables.fw_axi_read_error_count",
         "function_model.state_variables.last_drop_class",
+        "function_model.state_variables.message_completed_count",
+        "function_model.state_variables.payload_bytes_written_count",
         "function_model.state_variables.sram_alloc_ptr",
+        "function_model.state_variables.tlp_accepted_count",
+        "function_model.state_variables.tlp_seen_count",
         "interrupts",
         "parameters.baseline_mtu_bytes",
         "registers",
@@ -2479,11 +2555,23 @@
         "registers.register_list.status"
       ],
       "function_model_refs": [
+        "function_model.state_variables.active_context_count",
         "function_model.state_variables.context_table",
         "function_model.state_variables.counters",
+        "function_model.state_variables.ctx_expected_seq",
+        "function_model.state_variables.ctx_partial_next_lane",
+        "function_model.state_variables.ctx_payload_base_addr",
+        "function_model.state_variables.ctx_payload_byte_count",
+        "function_model.state_variables.ctx_payload_next_addr",
         "function_model.state_variables.descriptor_queue",
+        "function_model.state_variables.fw_axi_read_beat_count",
+        "function_model.state_variables.fw_axi_read_error_count",
         "function_model.state_variables.last_drop_class",
-        "function_model.state_variables.sram_alloc_ptr"
+        "function_model.state_variables.message_completed_count",
+        "function_model.state_variables.payload_bytes_written_count",
+        "function_model.state_variables.sram_alloc_ptr",
+        "function_model.state_variables.tlp_accepted_count",
+        "function_model.state_variables.tlp_seen_count"
       ],
       "cycle_model_refs": [],
       "structural_refs": [
@@ -2528,6 +2616,54 @@
         },
         {
           "ref": "function_model.state_variables.last_drop_class",
+          "matched_ref": "function_model.state_variables"
+        },
+        {
+          "ref": "function_model.state_variables.tlp_seen_count",
+          "matched_ref": "function_model.state_variables"
+        },
+        {
+          "ref": "function_model.state_variables.tlp_accepted_count",
+          "matched_ref": "function_model.state_variables"
+        },
+        {
+          "ref": "function_model.state_variables.active_context_count",
+          "matched_ref": "function_model.state_variables"
+        },
+        {
+          "ref": "function_model.state_variables.ctx_payload_byte_count",
+          "matched_ref": "function_model.state_variables"
+        },
+        {
+          "ref": "function_model.state_variables.ctx_expected_seq",
+          "matched_ref": "function_model.state_variables"
+        },
+        {
+          "ref": "function_model.state_variables.ctx_payload_base_addr",
+          "matched_ref": "function_model.state_variables"
+        },
+        {
+          "ref": "function_model.state_variables.ctx_payload_next_addr",
+          "matched_ref": "function_model.state_variables"
+        },
+        {
+          "ref": "function_model.state_variables.ctx_partial_next_lane",
+          "matched_ref": "function_model.state_variables"
+        },
+        {
+          "ref": "function_model.state_variables.payload_bytes_written_count",
+          "matched_ref": "function_model.state_variables"
+        },
+        {
+          "ref": "function_model.state_variables.message_completed_count",
+          "matched_ref": "function_model.state_variables"
+        },
+        {
+          "ref": "function_model.state_variables.fw_axi_read_beat_count",
+          "matched_ref": "function_model.state_variables"
+        },
+        {
+          "ref": "function_model.state_variables.fw_axi_read_error_count",
           "matched_ref": "function_model.state_variables"
         }
       ],
@@ -2730,7 +2866,7 @@
     }
   ],
   "orphan_function_cycle_refs": [],
-  "function_cycle_ref_count": 199,
+  "function_cycle_ref_count": 211,
   "authority_contract": {
     "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
     "general_evaluation_criteria": [
