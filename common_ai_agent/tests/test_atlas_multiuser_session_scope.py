@@ -260,6 +260,69 @@ def test_session_activate_accepts_v2_user_session_context(tmp_path, monkeypatch)
     assert {entry["name"] for entry in files.json()["entries"]} == {"yaml"}
 
 
+def test_v2_session_history_state_and_todos_use_workspace_session_root(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.setenv("ATLAS_ROOT", str(tmp_path))
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    for workspace_session, content in (("s1", "todo in s1"), ("s2", "todo in s2")):
+        response = client.post(
+            "/api/session/activate",
+            json={
+                "user_name": "alice",
+                "workspace_session": workspace_session,
+                "ip": "NEWIP_MCTP",
+                "workflow": "default",
+            },
+        )
+        assert response.status_code == 200, response.text
+        session_dir = tmp_path / "alice" / workspace_session / ".session" / "NEWIP_MCTP" / "default"
+        session_dir.mkdir(parents=True, exist_ok=True)
+        (session_dir / "conversation.json").write_text(
+            json.dumps([{"role": "assistant", "content": f"history {workspace_session}"}]),
+            encoding="utf-8",
+        )
+        (session_dir / "todo.json").write_text(
+            json.dumps({"todos": [{"content": content, "status": "pending"}]}),
+            encoding="utf-8",
+        )
+
+    s1 = "alice/s1/NEWIP_MCTP/default"
+    s2 = "alice/s2/NEWIP_MCTP/default"
+    history_s1 = client.get("/api/session/history", params={"session": s1})
+    history_s2 = client.get("/api/session/history", params={"session": s2})
+    state_s1 = client.get("/api/session/state", params={"session": s1})
+    todos_s1 = client.get("/api/todos", params={"session": s1})
+    todos_s2 = client.get("/api/todos", params={"session": s2})
+
+    assert history_s1.status_code == 200, history_s1.text
+    assert history_s2.status_code == 200, history_s2.text
+    assert state_s1.status_code == 200, state_s1.text
+    assert todos_s1.status_code == 200, todos_s1.text
+    assert todos_s2.status_code == 200, todos_s2.text
+    assert history_s1.json()["messages"][0]["content"] == "history s1"
+    assert history_s2.json()["messages"][0]["content"] == "history s2"
+    assert state_s1.json()["todos"]["todos"][0]["content"] == "todo in s1"
+    assert todos_s1.json()["todos"][0]["content"] == "todo in s1"
+    assert todos_s2.json()["todos"][0]["content"] == "todo in s2"
+
+    cleared = client.post("/api/todos/clear", json={"session": s1})
+
+    assert cleared.status_code == 200, cleared.text
+    assert client.get("/api/todos", params={"session": s1}).json()["todos"] == []
+    assert client.get("/api/todos", params={"session": s2}).json()["todos"][0]["content"] == "todo in s2"
+
+
 def test_orchestrator_session_state_includes_ip_chat_ledger(tmp_path, monkeypatch):
     import src.atlas_ui as atlas_ui
     from core.atlas_db import AtlasDB

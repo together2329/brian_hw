@@ -1198,6 +1198,33 @@ def register_sessions_routes(
         parts = [part for part in normalize_session_name(str(session or "")).split("/") if part]
         return parts[0] if len(parts) >= 3 else ""
 
+    def _context_atlas_root() -> Path:
+        return Path(os.environ.get("ATLAS_ROOT") or str(project_root())).expanduser().resolve()
+
+    def _session_dir_for_namespace(session: str) -> tuple[Path, Path]:
+        normalized = normalize_session_name(session)
+        parts = [part for part in normalized.split("/") if part]
+        if len(parts) >= 4:
+            context = AtlasContext.from_session_key(
+                "/".join(parts[:4]),
+                atlas_root=_context_atlas_root(),
+            )
+            return context.session_dir.resolve(), context.workspace_root.resolve()
+
+        root = (project_root() / ".session").resolve()
+        session_dir = (root / normalized).resolve()
+        try:
+            session_dir.relative_to(root)
+        except ValueError:
+            raise ValueError("session path escapes .session") from None
+        return session_dir, project_root().resolve()
+
+    def _display_path(path: Path, base: Path) -> str:
+        try:
+            return path.relative_to(base).as_posix()
+        except ValueError:
+            return str(path)
+
     def _authorize_session_request(request: Request, session: str) -> Optional[JSONResponse]:
         if not _multi_user_enabled():
             return None
