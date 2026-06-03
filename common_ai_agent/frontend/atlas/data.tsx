@@ -184,14 +184,29 @@ const w = window as any;
     );
     if (direct && direct.includes('/')) {
       const directParts = direct.split('/').filter(Boolean);
-      if (directParts.length >= 3) return direct;
+      const directStoredOwner = (() => {
+        try { return normalizeSessionName(localStorage.getItem('atlasUserSessionId')); }
+        catch (_) { return ''; }
+      })();
+      const directStoredWorkspace = (() => {
+        try { return normalizeSessionName(localStorage.getItem('atlasWorkspaceSessionId')); }
+        catch (_) { return ''; }
+      })();
+      const directOwner = normalizeSessionName(
+        params.get('session_id') || params.get('user_session') || params.get('owner') || directStoredOwner || w.ATLAS_USER_SESSION_ID || ''
+      ) || 'default';
+      const directWorkspace = normalizeSessionName(
+        params.get('workspace_session') || params.get('workspace') || directStoredWorkspace || ''
+      ) || 'default';
+      if (directParts.length >= 4) return direct;
+      if (directParts.length === 3) return `${directParts[0]}/${directWorkspace}/${directParts[1]}/${directParts[2]}`;
       if (directParts.length === 2) {
-        const owner = directParts[0] || 'default';
+        const first = directParts[0] || DEFAULT_WORKFLOW;
         const second = directParts[1] || DEFAULT_WORKFLOW;
         if (KNOWN_WORKFLOWS.has(String(second).toLowerCase())) {
-          return `${owner}/${DEFAULT_WORKFLOW}/${second}`;
+          return `${directOwner}/${directWorkspace}/${first}/${second}`;
         }
-        return `${owner}/${second}/${DEFAULT_WORKFLOW}`;
+        return `${directOwner}/${directWorkspace}/${first}/${DEFAULT_WORKFLOW}`;
       }
     }
     const owner = normalizeSessionName(

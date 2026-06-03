@@ -128,7 +128,7 @@ export function resolveActiveSession(): string {
       || w.ATLAS_USER_SESSION_ID
       || 'validator';
     if (urlIp && urlIp !== 'default') {
-      return normalizeUiSession(`${username}/${urlIp}/${urlWf}`) || `${username}/${urlIp}/${urlWf}`;
+      return normalizeUiSession(`${username}/default/${urlIp}/${urlWf}`) || `${username}/default/${urlIp}/${urlWf}`;
     }
     try {
       const stored = localStorage.getItem('atlasActiveSession') || '';
@@ -136,7 +136,7 @@ export function resolveActiveSession(): string {
       const storedOwner = (normalizedStored.split('/').filter(Boolean)[0] || '');
       if (normalizedStored && (!username || storedOwner === username)) return normalizedStored;
     } catch (_) {}
-    return normalizeUiSession(`${username}/default/${urlWf}`) || `${username}/default/${urlWf}`;
+    return normalizeUiSession(`${username}/default/default/${urlWf}`) || `${username}/default/default/${urlWf}`;
   } catch (_) {
     return 'default';
   }

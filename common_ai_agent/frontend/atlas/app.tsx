@@ -218,8 +218,10 @@ const App = () => {
       // the literal ?ip= / ?workflow= query params are authoritative for
       // deep links like /?ip=cmux_p0_test.
       const parsed = rawSession ? splitSessionNamespace(rawSession) : { sessionId: '', ipId: '', workflow: '' };
+      const rawParts = rawSession.split('/').filter(Boolean);
+      const parsedOwner = parsed.sessionId === 'default' && rawParts.length < 3 ? '' : parsed.sessionId;
       const owner = normalizeSession(
-        parsed.sessionId || url.searchParams.get('session_id') || window.ATLAS_USER_SESSION_ID || ''
+        parsedOwner || url.searchParams.get('session_id') || window.ATLAS_USER_SESSION_ID || ''
       ) || 'default';
       const workspaceSession = normalizeSession(
         parsed.workspaceSession
