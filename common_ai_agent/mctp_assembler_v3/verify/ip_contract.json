@@ -1,0 +1,468 @@
+{
+  "capabilities": [
+    {
+      "evidence": [
+        "sram_wr_ready deassertion stalls payload writes without dropping accepted bytes unless timeout/overflow occurs. SRAM wri"
+      ],
+      "id": "backpressure",
+      "sources": [
+        "cycle_model.backpressure"
+      ]
+    },
+    {
+      "evidence": [
+        "interface type AXI4",
+        "interface type APB4"
+      ],
+      "id": "bus_transaction",
+      "sources": [
+        "io_list.interfaces.axi_wr_slave",
+        "io_list.interfaces.axi_rd_slave",
+        "io_list.interfaces.apb_slave"
+      ]
+    },
+    {
+      "evidence": [
+        "declared non-trivial error path"
+      ],
+      "id": "error_path",
+      "sources": [
+        "error_handling.error_sources"
+      ]
+    },
+    {
+      "evidence": [
+        "declared FSM"
+      ],
+      "id": "fsm_state",
+      "sources": [
+        "fsm"
+      ]
+    },
+    {
+      "evidence": [
+        "interface ports and role/type declarations"
+      ],
+      "id": "interface_protocol",
+      "sources": [
+        "io_list.interfaces"
+      ]
+    },
+    {
+      "evidence": [
+        "interrupt source/output declaration"
+      ],
+      "id": "interrupt_behavior",
+      "sources": [
+        "interrupts"
+      ]
+    },
+    {
+      "evidence": [
+        "declared memories"
+      ],
+      "id": "memory_state",
+      "sources": [
+        "memory.instances"
+      ]
+    },
+    {
+      "evidence": [
+        "module-scoped goals present"
+      ],
+      "id": "module_equivalence",
+      "sources": [
+        "verify.equivalence_goals"
+      ]
+    },
+    {
+      "evidence": [
+        "pipeline stages=6"
+      ],
+      "id": "multi_cycle_timing",
+      "sources": [
+        "cycle_model.pipeline"
+      ]
+    },
+    {
+      "evidence": [
+        "packet/frame boundary signal names"
+      ],
+      "id": "packet_boundary",
+      "sources": [
+        "io_list.interfaces"
+      ]
+    },
+    {
+      "evidence": [
+        "valid/ready signal names"
+      ],
+      "id": "ready_valid_handshake",
+      "sources": [
+        "io_list.interfaces"
+      ]
+    },
+    {
+      "evidence": [
+        "declared register state"
+      ],
+      "id": "register_state",
+      "sources": [
+        "registers.register_list"
+      ]
+    }
+  ],
+  "generated_at": "2026-06-03T13:24:50Z",
+  "generation": "derived_from_ip_artifacts_not_static_profile",
+  "interfaces": [
+    {
+      "name": "axi_wr_slave",
+      "ports": [
+        "s_axi_awaddr",
+        "s_axi_awburst",
+        "s_axi_awlen",
+        "s_axi_awready",
+        "s_axi_awsize",
+        "s_axi_awvalid",
+        "s_axi_bready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_wdata",
+        "s_axi_wlast",
+        "s_axi_wready",
+        "s_axi_wstrb",
+        "s_axi_wvalid"
+      ],
+      "role": "slave",
+      "type": "AXI4"
+    },
+    {
+      "name": "axi_rd_slave",
+      "ports": [
+        "s_axi_araddr",
+        "s_axi_arburst",
+        "s_axi_arlen",
+        "s_axi_arready",
+        "s_axi_arsize",
+        "s_axi_arvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rready",
+        "s_axi_rresp",
+        "s_axi_rvalid"
+      ],
+      "role": "slave",
+      "type": "AXI4"
+    },
+    {
+      "name": "apb_slave",
+      "ports": [
+        "paddr",
+        "penable",
+        "prdata",
+        "pready",
+        "psel",
+        "pslverr",
+        "pstrb",
+        "pwdata",
+        "pwrite"
+      ],
+      "role": "slave",
+      "type": "APB4"
+    },
+    {
+      "name": "sram_write",
+      "ports": [
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_ready",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "role": "master",
+      "type": "custom"
+    },
+    {
+      "name": "sram_read",
+      "ports": [
+        "sram_rd_req_addr",
+        "sram_rd_req_ready",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_data",
+        "sram_rd_rsp_error",
+        "sram_rd_rsp_ready",
+        "sram_rd_rsp_valid"
+      ],
+      "role": "master",
+      "type": "custom"
+    },
+    {
+      "name": "interrupt",
+      "ports": [
+        "irq"
+      ],
+      "role": "target",
+      "type": "custom"
+    }
+  ],
+  "ip": "mctp_assembler_v3",
+  "observability": {
+    "debug_optional": [],
+    "required_rtl_observed": [
+      "PD_BAD_MCTP_HEADER",
+      "PD_DEST_EID_REJECT",
+      "PD_UNEXPECTED_MIDDLE_END",
+      "PD_UNSUPPORTED_VDM",
+      "bresp_next",
+      "irq",
+      "prdata",
+      "pready",
+      "pslverr",
+      "retention",
+      "rlast_next",
+      "rresp_next",
+      "s_axi_arready",
+      "s_axi_awready",
+      "s_axi_bresp",
+      "s_axi_bvalid",
+      "s_axi_rdata",
+      "s_axi_rlast",
+      "s_axi_rresp",
+      "s_axi_rvalid",
+      "s_axi_wready",
+      "sram_rd_req_addr",
+      "sram_rd_req_valid",
+      "sram_rd_rsp_ready",
+      "sram_wr_addr",
+      "sram_wr_data",
+      "sram_wr_strb",
+      "sram_wr_valid"
+    ],
+    "sources": [
+      "io_list output ports",
+      "function_model output_rules",
+      "equivalence goal observables"
+    ]
+  },
+  "policy": {
+    "locked_truth_changes_require_human": true,
+    "mutation_enforcement_requires_human_policy": true,
+    "no_static_profile_selection": true
+  },
+  "required_evidence": [
+    {
+      "artifact": "yaml/<ip>.ssot.yaml",
+      "id": "ssot",
+      "rationale": "All downstream obligations are derived from locked truth.",
+      "required": true,
+      "stage_id": "ssot"
+    },
+    {
+      "artifact": "model/fl_model_check.json",
+      "id": "fl_equivalence",
+      "rationale": "A golden functional oracle is required for general IP equivalence.",
+      "required": true,
+      "stage_id": "emit_fl"
+    },
+    {
+      "artifact": "model/cl_model_check.json",
+      "id": "cl_contract",
+      "rationale": "Cycle/timing obligations must be explicit even when simple.",
+      "required": true,
+      "stage_id": "emit_cl"
+    },
+    {
+      "artifact": "verify/equivalence_goals.json",
+      "id": "equivalence_goals",
+      "rationale": "Scoreboard rows must map to concrete goals.",
+      "required": true,
+      "stage_id": "emit_equiv_goals"
+    },
+    {
+      "artifact": "rtl/rtl_compile.json",
+      "id": "rtl_compile",
+      "rationale": "DUT-only RTL must compile without diagnostics.",
+      "required": true,
+      "stage_id": "rtl_compile"
+    },
+    {
+      "artifact": "lint/dut_lint.json",
+      "id": "dut_lint",
+      "rationale": "DUT-only lint must be clean or explicitly waived.",
+      "required": true,
+      "stage_id": "dut_lint"
+    },
+    {
+      "artifact": "tb/cocotb/tb_py_compile.json",
+      "id": "tb_python_compile",
+      "rationale": "Generated TB must parse before simulation.",
+      "required": true,
+      "stage_id": "tb_python_compile"
+    },
+    {
+      "artifact": "sim/results.xml",
+      "id": "simulation",
+      "rationale": "Executable RTL evidence is required.",
+      "required": true,
+      "stage_id": "sim"
+    },
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "id": "scoreboard_schema",
+      "rationale": "Simulation must emit structured FL-vs-RTL evidence.",
+      "required": true,
+      "stage_id": "scoreboard_schema"
+    },
+    {
+      "artifact": "cov/coverage.json",
+      "id": "coverage",
+      "rationale": "Required scenarios and bins must close against RTL-observed evidence.",
+      "required": true,
+      "stage_id": "coverage"
+    },
+    {
+      "artifact": "signoff/truth_coverage.json",
+      "id": "truth_coverage",
+      "rationale": "Every required locked-truth obligation must have executable evidence.",
+      "required": true,
+      "stage_id": "truth_coverage"
+    },
+    {
+      "artifact": "verify/protocol_assertions.sv",
+      "id": "protocol_assertions",
+      "rationale": "Temporal interfaces need protocol checks; currently advisory unless generated.",
+      "required": false,
+      "stage_id": "protocol_assertions"
+    },
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "id": "cycle_measurement",
+      "rationale": "Multi-cycle behavior must be visible in cycle-indexed evidence.",
+      "required": true,
+      "stage_id": "sim"
+    },
+    {
+      "artifact": "mutation/mutation_report.json",
+      "id": "mutation_guard",
+      "rationale": "Mutation kill-rate measures harness depth; enforcement is human policy.",
+      "required": false,
+      "stage_id": "mutation_guard"
+    }
+  ],
+  "required_monitors": [
+    {
+      "id": "clock_reset_monitor",
+      "kind": "structural",
+      "required": true,
+      "source": "io_list.clock_domains/io_list.resets"
+    },
+    {
+      "id": "interface_monitor_axi_wr_slave",
+      "kind": "transaction",
+      "required": true,
+      "source": "io_list.interfaces.axi_wr_slave"
+    },
+    {
+      "id": "interface_monitor_axi_rd_slave",
+      "kind": "transaction",
+      "required": true,
+      "source": "io_list.interfaces.axi_rd_slave"
+    },
+    {
+      "id": "interface_monitor_apb_slave",
+      "kind": "transaction",
+      "required": true,
+      "source": "io_list.interfaces.apb_slave"
+    },
+    {
+      "id": "interface_monitor_sram_write",
+      "kind": "transaction",
+      "required": true,
+      "source": "io_list.interfaces.sram_write"
+    },
+    {
+      "id": "interface_monitor_sram_read",
+      "kind": "transaction",
+      "required": true,
+      "source": "io_list.interfaces.sram_read"
+    },
+    {
+      "id": "interface_monitor_interrupt",
+      "kind": "transaction",
+      "required": true,
+      "source": "io_list.interfaces.interrupt"
+    },
+    {
+      "id": "ready_valid_monitor",
+      "kind": "temporal",
+      "required": true,
+      "source": "valid/ready ports"
+    },
+    {
+      "id": "packet_boundary_monitor",
+      "kind": "temporal",
+      "required": true,
+      "source": "boundary ports"
+    },
+    {
+      "id": "backpressure_monitor",
+      "kind": "temporal",
+      "required": true,
+      "source": "cycle_model.backpressure"
+    },
+    {
+      "id": "interrupt_monitor",
+      "kind": "temporal",
+      "required": true,
+      "source": "interrupts"
+    }
+  ],
+  "required_mutations": [
+    {
+      "id": "operator_flip",
+      "required": true,
+      "supported_by_current_guard": true
+    },
+    {
+      "id": "constant_flip",
+      "required": true,
+      "supported_by_current_guard": true
+    },
+    {
+      "id": "comparator_flip",
+      "required": true,
+      "supported_by_current_guard": true
+    },
+    {
+      "id": "state_update_drop",
+      "required": true,
+      "supported_by_current_guard": true
+    },
+    {
+      "id": "reset_value_flip",
+      "required": true,
+      "supported_by_current_guard": false
+    },
+    {
+      "id": "handshake_hold_drop",
+      "required": true,
+      "supported_by_current_guard": true
+    },
+    {
+      "id": "boundary_flag_flip",
+      "required": true,
+      "supported_by_current_guard": false
+    },
+    {
+      "id": "interrupt_clear_priority_flip",
+      "required": true,
+      "supported_by_current_guard": false
+    }
+  ],
+  "schema_version": 1,
+  "source_artifacts": {
+    "equivalence_goals": "mctp_assembler_v3/verify/equivalence_goals.json",
+    "ssot": "mctp_assembler_v3/yaml/mctp_assembler_v3.ssot.yaml"
+  },
+  "type": "ip_evidence_contract"
+}

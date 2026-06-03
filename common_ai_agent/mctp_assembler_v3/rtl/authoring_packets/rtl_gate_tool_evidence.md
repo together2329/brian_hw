@@ -30,7 +30,7 @@
 - Owner refs: cycle_model, cycle_model.pipeline, dataflow, decomposition, function_model, function_model.transactions, integration, integration.connections, io_list, io_list.interfaces, top_module
 - Tool-evidence blockers:
   - common_ai_agent_authoring: Missing common_ai_agent RTL authoring provenance.
-  - dut_compile: Missing canonical DUT compile artifact: rtl/rtl_compile.json.
+  - dut_compile: rtl/rtl_compile.json is older than current RTL source rtl/mctp_assembler_v3_axi_wr_ingress.sv; rerun DUT compile after the final RTL edit.
   - dut_lint: Missing canonical DUT lint artifact: lint/dut_lint.json.
   - dynamic_todo_closure: 336 required non-closure TODO(s) remain open.
   - protocol_assertion_evidence: Missing protocol assertion artifact: verify/protocol_assertions.sva.
@@ -89,7 +89,7 @@ Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
 - Detail: Compile approval must come from the canonical rtl_compile_report.py artifact generated after RTL generation or repair.
 SSOT ref: quality_gates.rtl_gen.dut_compile.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
-- Current reason: Missing canonical DUT compile artifact: rtl/rtl_compile.json.
+- Current reason: rtl/rtl_compile.json is older than current RTL source rtl/mctp_assembler_v3_axi_wr_ingress.sv; rerun DUT compile after the final RTL edit.
 - Criteria:
   - rtl/rtl_compile.json exists
   - rtl_compile.json reports dut_only=true

@@ -785,7 +785,7 @@
       {
         "gate_kind": "dut_compile",
         "owner_module": "mctp_assembler_v3",
-        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
+        "reason": "rtl/rtl_compile.json is older than current RTL source rtl/mctp_assembler_v3_axi_wr_ingress.sv; rerun DUT compile after the final RTL edit.",
         "source": "packet_task",
         "source_ref": "quality_gates.rtl_gen.dut_compile",
         "status": "open",
@@ -892,7 +892,7 @@
         "prerequisites": [
           "mctp_assembler_v3/list/mctp_assembler_v3.f covers the current DUT RTL sources."
         ],
-        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
+        "reason": "rtl/rtl_compile.json is older than current RTL source rtl/mctp_assembler_v3_axi_wr_ingress.sv; rerun DUT compile after the final RTL edit.",
         "source_ref": "quality_gates.rtl_gen.dut_compile",
         "stage_sequence": [
           "ssot-rtl",
@@ -1154,7 +1154,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_compile.json"
         ],
-        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
+        "reason": "rtl/rtl_compile.json is older than current RTL source rtl/mctp_assembler_v3_axi_wr_ingress.sv; rerun DUT compile after the final RTL edit.",
         "required": true,
         "status": "open"
       }

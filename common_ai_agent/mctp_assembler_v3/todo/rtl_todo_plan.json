@@ -47,7 +47,7 @@
     "static_missing": 276,
     "status": "fail"
   },
-  "generated_at": "2026-06-03T12:45:15Z",
+  "generated_at": "2026-06-03T13:24:50Z",
   "ip": "mctp_assembler_v3",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 7,
@@ -230,20 +230,20 @@
     "aggregate": {
       "behavior_owner_logic_modules": 1,
       "control_flow": 6,
-      "depth_score": 106,
+      "depth_score": 113,
       "instances": 1,
-      "lines": 270,
+      "lines": 282,
       "logic_modules": 2,
       "modules": 2,
       "nonconstant_assigns": 6,
       "procedural_blocks": 1,
       "source_files": 2,
-      "state_updates": 42,
-      "storage_decls": 5
+      "state_updates": 45,
+      "storage_decls": 6
     },
     "issues": [
       {
-        "actual": 106,
+        "actual": 113,
         "issue": "Production RTL implementation depth score is below the SSOT-derived or target-scale threshold",
         "required": 165,
         "source": "ssot_derived_threshold"
@@ -263,7 +263,7 @@
     ],
     "modules": [
       {
-        "depth_score": 98,
+        "depth_score": 105,
         "file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
         "metrics": {
           "control_flow": 6,
@@ -271,8 +271,8 @@
           "nonconstant_assigns": 0,
           "placeholder_tokens": false,
           "procedural_blocks": 1,
-          "state_updates": 42,
-          "storage_decls": 5
+          "state_updates": 45,
+          "storage_decls": 6
         },
         "module": "mctp_assembler_v3_axi_wr_ingress"
       },
@@ -4414,7 +4414,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_compile.json"
         ],
-        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
+        "reason": "rtl/rtl_compile.json is older than current RTL source rtl/mctp_assembler_v3_axi_wr_ingress.sv; rerun DUT compile after the final RTL edit.",
         "required": true,
         "status": "open"
       }
@@ -4660,7 +4660,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "3 production RTL implementation-depth issue(s) remain. Production RTL implementation depth score is below the SSOT-derived or target-scale threshold: actual=106 required=165; Too few RTL modules contain implementation structure for the SSOT behavior complexity: actual=2 required=9; Too few SSOT behavior-owner modules contain implementation-depth evidence: actual=1 required=9",
+        "reason": "3 production RTL implementation-depth issue(s) remain. Production RTL implementation depth score is below the SSOT-derived or target-scale threshold: actual=113 required=165; Too few RTL modules contain implementation structure for the SSOT behavior complexity: actual=2 required=9; Too few SSOT behavior-owner modules contain implementation-depth evidence: actual=1 required=9",
         "required": true,
         "status": "open"
       }
@@ -33277,7 +33277,7 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
+        "reason": "rtl/rtl_compile.json is older than current RTL source rtl/mctp_assembler_v3_axi_wr_ingress.sv; rerun DUT compile after the final RTL edit.",
         "source_ref": "quality_gates.rtl_gen.dut_compile",
         "task_id": "RTL-0017"
       },
@@ -33295,7 +33295,7 @@
       },
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "3 production RTL implementation-depth issue(s) remain. Production RTL implementation depth score is below the SSOT-derived or target-scale threshold: actual=106 required=165; Too few RTL modules contain implementation structure for the SSOT behavior complexity: actual=2 required=9; Too few SSOT behavior-owner modules contain implementation-depth evidence: actual=1 required=9",
+        "reason": "3 production RTL implementation-depth issue(s) remain. Production RTL implementation depth score is below the SSOT-derived or target-scale threshold: actual=113 required=165; Too few RTL modules contain implementation structure for the SSOT behavior complexity: actual=2 required=9; Too few SSOT behavior-owner modules contain implementation-depth evidence: actual=1 required=9",
         "source_ref": "quality_gates.rtl_gen.rtl_implementation_depth_evidence",
         "task_id": "RTL-0022"
       },

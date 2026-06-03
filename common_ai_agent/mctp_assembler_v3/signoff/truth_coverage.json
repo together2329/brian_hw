@@ -1,0 +1,671 @@
+{
+  "generated_at": "2026-06-03T13:24:52Z",
+  "ip": "mctp_assembler_v3",
+  "schema_version": 1,
+  "source_mode": "direct_ssot",
+  "status": "fail",
+  "summary": {
+    "covered": 0,
+    "evidence_tokens": 8,
+    "obligations": 72,
+    "uncovered_required": 72
+  },
+  "type": "truth_coverage",
+  "uncovered_required": [
+    {
+      "aliases": [
+        "fm_ingest_tlp"
+      ],
+      "category": "function_transaction",
+      "id": "FM_INGEST_TLP",
+      "source": "function_model.transactions"
+    },
+    {
+      "aliases": [
+        "fcov_pd_all",
+        "fm_decode_vdm"
+      ],
+      "category": "function_transaction",
+      "id": "FM_DECODE_VDM",
+      "source": "function_model.transactions"
+    },
+    {
+      "aliases": [
+        "fm_decode_mctp"
+      ],
+      "category": "function_transaction",
+      "id": "FM_DECODE_MCTP",
+      "source": "function_model.transactions"
+    },
+    {
+      "aliases": [
+        "fm_alloc_context"
+      ],
+      "category": "function_transaction",
+      "id": "FM_ALLOC_CONTEXT",
+      "source": "function_model.transactions"
+    },
+    {
+      "aliases": [
+        "fcov_ad_all",
+        "fcov_frag",
+        "fm_append"
+      ],
+      "category": "function_transaction",
+      "id": "FM_APPEND",
+      "source": "function_model.transactions"
+    },
+    {
+      "aliases": [
+        "fcov_pack",
+        "fm_pack_sram"
+      ],
+      "category": "function_transaction",
+      "id": "FM_PACK_SRAM",
+      "source": "function_model.transactions"
+    },
+    {
+      "aliases": [
+        "fcov_single",
+        "fm_publish_descriptor"
+      ],
+      "category": "function_transaction",
+      "id": "FM_PUBLISH_DESCRIPTOR",
+      "source": "function_model.transactions"
+    },
+    {
+      "aliases": [
+        "fm_axi_read"
+      ],
+      "category": "function_transaction",
+      "id": "FM_AXI_READ",
+      "source": "function_model.transactions"
+    },
+    {
+      "aliases": [
+        "pd_disabled_drop_mode"
+      ],
+      "category": "error_source",
+      "id": "PD_DISABLED_DROP_MODE",
+      "source": "error_handling.error_sources"
+    },
+    {
+      "aliases": [
+        "pd_malformed_tlp"
+      ],
+      "category": "error_source",
+      "id": "PD_MALFORMED_TLP",
+      "source": "error_handling.error_sources"
+    },
+    {
+      "aliases": [
+        "pd_unsupported_vdm"
+      ],
+      "category": "error_source",
+      "id": "PD_UNSUPPORTED_VDM",
+      "source": "error_handling.error_sources"
+    },
+    {
+      "aliases": [
+        "pd_bad_mctp_header"
+      ],
+      "category": "error_source",
+      "id": "PD_BAD_MCTP_HEADER",
+      "source": "error_handling.error_sources"
+    },
+    {
+      "aliases": [
+        "pd_bad_pad_or_alignment"
+      ],
+      "category": "error_source",
+      "id": "PD_BAD_PAD_OR_ALIGNMENT",
+      "source": "error_handling.error_sources"
+    },
+    {
+      "aliases": [
+        "pd_dest_eid_reject"
+      ],
+      "category": "error_source",
+      "id": "PD_DEST_EID_REJECT",
+      "source": "error_handling.error_sources"
+    },
+    {
+      "aliases": [
+        "pd_unexpected_middle_end"
+      ],
+      "category": "error_source",
+      "id": "PD_UNEXPECTED_MIDDLE_END",
+      "source": "error_handling.error_sources"
+    },
+    {
+      "aliases": [
+        "pd_bad_or_expired_tag"
+      ],
+      "category": "error_source",
+      "id": "PD_BAD_OR_EXPIRED_TAG",
+      "source": "error_handling.error_sources"
+    },
+    {
+      "aliases": [
+        "ad_duplicate_som"
+      ],
+      "category": "error_source",
+      "id": "AD_DUPLICATE_SOM",
+      "source": "error_handling.error_sources"
+    },
+    {
+      "aliases": [
+        "ad_sequence_mismatch"
+      ],
+      "category": "error_source",
+      "id": "AD_SEQUENCE_MISMATCH",
+      "source": "error_handling.error_sources"
+    },
+    {
+      "aliases": [
+        "ad_message_overflow"
+      ],
+      "category": "error_source",
+      "id": "AD_MESSAGE_OVERFLOW",
+      "source": "error_handling.error_sources"
+    },
+    {
+      "aliases": [
+        "ad_sram_overflow"
+      ],
+      "category": "error_source",
+      "id": "AD_SRAM_OVERFLOW",
+      "source": "error_handling.error_sources"
+    },
+    {
+      "aliases": [
+        "ad_descriptor_full"
+      ],
+      "category": "error_source",
+      "id": "AD_DESCRIPTOR_FULL",
+      "source": "error_handling.error_sources"
+    },
+    {
+      "aliases": [
+        "ad_timeout"
+      ],
+      "category": "error_source",
+      "id": "AD_TIMEOUT",
+      "source": "error_handling.error_sources"
+    },
+    {
+      "aliases": [
+        "control"
+      ],
+      "category": "register",
+      "id": "CONTROL",
+      "source": "registers.register_list"
+    },
+    {
+      "aliases": [
+        "cfg_tu"
+      ],
+      "category": "register",
+      "id": "CFG_TU",
+      "source": "registers.register_list"
+    },
+    {
+      "aliases": [
+        "cfg_timeout"
+      ],
+      "category": "register",
+      "id": "CFG_TIMEOUT",
+      "source": "registers.register_list"
+    },
+    {
+      "aliases": [
+        "sram_base"
+      ],
+      "category": "register",
+      "id": "SRAM_BASE",
+      "source": "registers.register_list"
+    },
+    {
+      "aliases": [
+        "sram_limit"
+      ],
+      "category": "register",
+      "id": "SRAM_LIMIT",
+      "source": "registers.register_list"
+    },
+    {
+      "aliases": [
+        "status"
+      ],
+      "category": "register",
+      "id": "STATUS",
+      "source": "registers.register_list"
+    },
+    {
+      "aliases": [
+        "ctx_state"
+      ],
+      "category": "register",
+      "id": "CTX_STATE",
+      "source": "registers.register_list"
+    },
+    {
+      "aliases": [
+        "intr_raw_status"
+      ],
+      "category": "register",
+      "id": "INTR_RAW_STATUS",
+      "source": "registers.register_list"
+    },
+    {
+      "aliases": [
+        "intr_enable"
+      ],
+      "category": "register",
+      "id": "INTR_ENABLE",
+      "source": "registers.register_list"
+    },
+    {
+      "aliases": [
+        "intr_status"
+      ],
+      "category": "register",
+      "id": "INTR_STATUS",
+      "source": "registers.register_list"
+    },
+    {
+      "aliases": [
+        "intr_clear"
+      ],
+      "category": "register",
+      "id": "INTR_CLEAR",
+      "source": "registers.register_list"
+    },
+    {
+      "aliases": [
+        "cnt_tlp_seen"
+      ],
+      "category": "register",
+      "id": "CNT_TLP_SEEN",
+      "source": "registers.register_list"
+    },
+    {
+      "aliases": [
+        "desc_valid"
+      ],
+      "category": "register",
+      "id": "DESC_VALID",
+      "source": "registers.register_list"
+    },
+    {
+      "aliases": [
+        "debug_ctx"
+      ],
+      "category": "register",
+      "id": "DEBUG_CTX",
+      "source": "registers.register_list"
+    },
+    {
+      "aliases": [
+        "fm_publish_descriptor",
+        "s5_descriptor",
+        "sc_single"
+      ],
+      "category": "scenario",
+      "id": "SC_SINGLE",
+      "source": "test_requirements.scenarios"
+    },
+    {
+      "aliases": [
+        "fm_append",
+        "fm_pack_sram",
+        "sc_frag"
+      ],
+      "category": "scenario",
+      "id": "SC_FRAG",
+      "source": "test_requirements.scenarios"
+    },
+    {
+      "aliases": [
+        "interleaved_assembly",
+        "sc_interleave"
+      ],
+      "category": "scenario",
+      "id": "SC_INTERLEAVE",
+      "source": "test_requirements.scenarios"
+    },
+    {
+      "aliases": [
+        "fm_pack_sram",
+        "sc_unaligned_tu"
+      ],
+      "category": "scenario",
+      "id": "SC_UNALIGNED_TU",
+      "source": "test_requirements.scenarios"
+    },
+    {
+      "aliases": [
+        "fm_ingest_tlp",
+        "sc_max_tu"
+      ],
+      "category": "scenario",
+      "id": "SC_MAX_TU",
+      "source": "test_requirements.scenarios"
+    },
+    {
+      "aliases": [
+        "pd_malformed_tlp",
+        "sc_pd_malformed"
+      ],
+      "category": "scenario",
+      "id": "SC_PD_MALFORMED",
+      "source": "test_requirements.scenarios"
+    },
+    {
+      "aliases": [
+        "pd_unsupported_vdm",
+        "sc_pd_vdm"
+      ],
+      "category": "scenario",
+      "id": "SC_PD_VDM",
+      "source": "test_requirements.scenarios"
+    },
+    {
+      "aliases": [
+        "pd_bad_mctp_header",
+        "sc_pd_mctp"
+      ],
+      "category": "scenario",
+      "id": "SC_PD_MCTP",
+      "source": "test_requirements.scenarios"
+    },
+    {
+      "aliases": [
+        "pd_dest_eid_reject",
+        "sc_pd_eid"
+      ],
+      "category": "scenario",
+      "id": "SC_PD_EID",
+      "source": "test_requirements.scenarios"
+    },
+    {
+      "aliases": [
+        "pd_unexpected_middle_end",
+        "sc_pd_middle"
+      ],
+      "category": "scenario",
+      "id": "SC_PD_MIDDLE",
+      "source": "test_requirements.scenarios"
+    },
+    {
+      "aliases": [
+        "ad_duplicate_som",
+        "sc_ad_dup"
+      ],
+      "category": "scenario",
+      "id": "SC_AD_DUP",
+      "source": "test_requirements.scenarios"
+    },
+    {
+      "aliases": [
+        "ad_sequence_mismatch",
+        "sc_ad_seq"
+      ],
+      "category": "scenario",
+      "id": "SC_AD_SEQ",
+      "source": "test_requirements.scenarios"
+    },
+    {
+      "aliases": [
+        "pd_bad_or_expired_tag",
+        "sc_ad_ctxfull"
+      ],
+      "category": "scenario",
+      "id": "SC_AD_CTXFULL",
+      "source": "test_requirements.scenarios"
+    },
+    {
+      "aliases": [
+        "ad_sram_overflow",
+        "sc_ad_sram"
+      ],
+      "category": "scenario",
+      "id": "SC_AD_SRAM",
+      "source": "test_requirements.scenarios"
+    },
+    {
+      "aliases": [
+        "ad_descriptor_full",
+        "sc_ad_descfull"
+      ],
+      "category": "scenario",
+      "id": "SC_AD_DESCFULL",
+      "source": "test_requirements.scenarios"
+    },
+    {
+      "aliases": [
+        "ad_timeout",
+        "sc_ad_timeout"
+      ],
+      "category": "scenario",
+      "id": "SC_AD_TIMEOUT",
+      "source": "test_requirements.scenarios"
+    },
+    {
+      "aliases": [
+        "error_handling_propagation",
+        "propagation",
+        "sc_priority"
+      ],
+      "category": "scenario",
+      "id": "SC_PRIORITY",
+      "source": "test_requirements.scenarios"
+    },
+    {
+      "aliases": [
+        "fm_axi_read",
+        "sc_fw_read"
+      ],
+      "category": "scenario",
+      "id": "SC_FW_READ",
+      "source": "test_requirements.scenarios"
+    },
+    {
+      "aliases": [
+        "fm_axi_read",
+        "sc_fw_read_slverr"
+      ],
+      "category": "scenario",
+      "id": "SC_FW_READ_SLVERR",
+      "source": "test_requirements.scenarios"
+    },
+    {
+      "aliases": [
+        "register_list",
+        "registers_register_list",
+        "sc_reg"
+      ],
+      "category": "scenario",
+      "id": "SC_REG",
+      "source": "test_requirements.scenarios"
+    },
+    {
+      "aliases": [
+        "fcov_single",
+        "fm_publish_descriptor",
+        "function_model_transactions_fm_publish_descriptor"
+      ],
+      "category": "coverage_bin",
+      "id": "FCOV_SINGLE",
+      "source": "test_requirements.coverage_goals"
+    },
+    {
+      "aliases": [
+        "fcov_frag",
+        "fm_append",
+        "function_model_transactions_fm_append"
+      ],
+      "category": "coverage_bin",
+      "id": "FCOV_FRAG",
+      "source": "test_requirements.coverage_goals"
+    },
+    {
+      "aliases": [
+        "fcov_pack",
+        "fm_pack_sram",
+        "function_model_transactions_fm_pack_sram"
+      ],
+      "category": "coverage_bin",
+      "id": "FCOV_PACK",
+      "source": "test_requirements.coverage_goals"
+    },
+    {
+      "aliases": [
+        "fcov_pd_all",
+        "fm_decode_vdm",
+        "function_model_transactions_fm_decode_vdm"
+      ],
+      "category": "coverage_bin",
+      "id": "FCOV_PD_ALL",
+      "source": "test_requirements.coverage_goals"
+    },
+    {
+      "aliases": [
+        "fcov_ad_all",
+        "fm_append",
+        "function_model_transactions_fm_append"
+      ],
+      "category": "coverage_bin",
+      "id": "FCOV_AD_ALL",
+      "source": "test_requirements.coverage_goals"
+    },
+    {
+      "aliases": [
+        "ccov_ingest",
+        "cycle_model_pipeline_s0_ingest",
+        "s0_ingest"
+      ],
+      "category": "coverage_bin",
+      "id": "CCOV_INGEST",
+      "source": "test_requirements.coverage_goals"
+    },
+    {
+      "aliases": [
+        "ccov_sram_hold",
+        "cycle_model_handshake_rules",
+        "handshake_rules"
+      ],
+      "category": "coverage_bin",
+      "id": "CCOV_SRAM_HOLD",
+      "source": "test_requirements.coverage_goals"
+    },
+    {
+      "aliases": [
+        "ccov_desc_order",
+        "cycle_model_ordering",
+        "ordering"
+      ],
+      "category": "coverage_bin",
+      "id": "CCOV_DESC_ORDER",
+      "source": "test_requirements.coverage_goals"
+    },
+    {
+      "aliases": [
+        "ccov_ctx_fsm",
+        "context_fsm",
+        "fsm_context_fsm"
+      ],
+      "category": "coverage_bin",
+      "id": "CCOV_CTX_FSM",
+      "source": "test_requirements.coverage_goals"
+    },
+    {
+      "aliases": [
+        "ccov_outstanding",
+        "cycle_model_performance_outstanding",
+        "outstanding"
+      ],
+      "category": "coverage_bin",
+      "id": "CCOV_OUTSTANDING",
+      "source": "test_requirements.coverage_goals"
+    },
+    {
+      "aliases": [
+        "md",
+        "req_mctp_assembler_v3_requirements_md",
+        "ssot_exists_at_yaml_mctp_assembler_v3_ssot_yaml_with_canonical_top_level_keys"
+      ],
+      "category": "acceptance_criterion",
+      "id": "SSOT exists at yaml/mctp_assembler_v3.ssot.yaml with canonical top-level keys.",
+      "source": "workflow_todos.ssot-gen[0]"
+    },
+    {
+      "aliases": [
+        "md",
+        "req_mctp_assembler_v3_requirements_md",
+        "verify_ssot_py_mode_engineering_returns_zero_blockers"
+      ],
+      "category": "acceptance_criterion",
+      "id": "verify_ssot.py --mode engineering returns zero blockers.",
+      "source": "workflow_todos.ssot-gen[0]"
+    },
+    {
+      "aliases": [
+        "cycle_model_pipeline",
+        "fsm",
+        "function_model_transactions",
+        "owner_logic_present_functionalmodel_expected_vs_rtl_observed_comparable_fresh_compile_lint_evidence",
+        "pipeline",
+        "transactions"
+      ],
+      "category": "acceptance_criterion",
+      "id": "Owner logic present; FunctionalModel expected vs RTL observed comparable; fresh compile/lint evidence.",
+      "source": "workflow_todos.rtl-gen[0]"
+    },
+    {
+      "aliases": [
+        "json",
+        "quality_gates_rtl_gen_target_scale",
+        "quality_gates_rtl_gen_target_scale_contains_at_least_one_positive_structural_minimum_such_as_source_files_min_modules_min_or_depth_score_min",
+        "quality_gates_rtl_gen_target_scale_waiver",
+        "reports_rtl_reference_profile_json",
+        "target_scale",
+        "target_scale_contains_at_least_one_positive_structural_minimum_such_as_source_files_min_modules_min_or_depth_score_min",
+        "target_scale_waiver"
+      ],
+      "category": "acceptance_criterion",
+      "id": "quality_gates.rtl_gen.target_scale contains at least one positive structural minimum such as source_files_min, modules_min, or depth_score_min",
+      "source": "workflow_todos.rtl-gen[1]"
+    },
+    {
+      "aliases": [
+        "approved_is_true_with_owner_and_reason",
+        "json",
+        "or_quality_gates_rtl_gen_target_scale_waiver_approved_is_true_with_owner_and_reason",
+        "quality_gates_rtl_gen_target_scale",
+        "quality_gates_rtl_gen_target_scale_waiver",
+        "reports_rtl_reference_profile_json",
+        "target_scale",
+        "target_scale_waiver"
+      ],
+      "category": "acceptance_criterion",
+      "id": "or quality_gates.rtl_gen.target_scale_waiver.approved is true with owner and reason",
+      "source": "workflow_todos.rtl-gen[1]"
+    },
+    {
+      "aliases": [
+        "json",
+        "json_target_scale_policy_gate_passes_after_rerunning_rtl_gen_todo_derivation",
+        "quality_gates_rtl_gen_target_scale",
+        "quality_gates_rtl_gen_target_scale_waiver",
+        "reports_rtl_reference_profile_json",
+        "rtl_todo_plan_json_target_scale_policy_gate_passes_after_rerunning_rtl_gen_todo_derivation",
+        "target_scale",
+        "target_scale_waiver"
+      ],
+      "category": "acceptance_criterion",
+      "id": "rtl_todo_plan.json target_scale_policy gate passes after rerunning rtl-gen TODO derivation",
+      "source": "workflow_todos.rtl-gen[1]"
+    }
+  ]
+}
