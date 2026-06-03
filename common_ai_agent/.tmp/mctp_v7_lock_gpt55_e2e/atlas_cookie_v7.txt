@@ -1,0 +1,5 @@
+# Netscape HTTP Cookie File
+# http://curl.haxx.se/rfc/cookie_spec.html
+# This is a generated file!  Do not edit.
+
+127.0.0.1	FALSE	/	FALSE	1788270316	atlas_session	692fce5e404c4ce09b3c1b40d9fe949a:2d26e4dd8e17571a

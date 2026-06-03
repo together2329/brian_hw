@@ -20,10 +20,10 @@ const normalizeArchitectSession = (session: unknown): string => g.normalizeArchi
 
 // ── ArchitectMyIps — landing card grid of the logged-in user's IPs ──
 // The Architect no longer opens on a mock SoC. It opens on the user's own
-// IPs (owner-scoped via `/api/ip/list`, which falls back to the auth cookie's
-// user when no session_id is passed). Clicking a card opens that IP's real
-// SoC diagram. `ips` (name strings from app.jsx ipOptions) seeds an instant
-// paint; the fetch then enriches each card with SSOT/workflow/mtime status.
+// IPs (workspace-session-scoped via `/api/ip/list`). Clicking a card opens that
+// IP's real SoC diagram. `ips` (name strings from app.jsx ipOptions) seeds an
+// instant paint; the fetch then enriches each card with SSOT/workflow/mtime
+// status.
 interface ArchitectMyIpsProps {
   ips?: any[];
   activeIp?: string;
@@ -33,7 +33,22 @@ export function ArchitectMyIps({ ips, activeIp, onOpen }: ArchitectMyIpsProps) {
   const [rows, setRows] = useState<any[] | null>(null);
   useEffect(() => {
     let cancelled = false;
-    fetch('/api/ip/list', { cache: 'no-store' })
+    const activeSession = normalizeArchitectSession(g.ACTIVE_SESSION || '');
+    const activeParts = activeSession.split('/').filter(Boolean);
+    const owner = normalizeArchitectSession(
+      (g.ATLAS_USER && g.ATLAS_USER.username)
+      || g.ATLAS_USER_SESSION_ID
+      || activeParts[0]
+      || ''
+    );
+    const workspaceSession = normalizeArchitectSession(
+      activeParts.length >= 4 && activeParts[0] === owner
+        ? activeParts[1]
+        : (g.ATLAS_WORKSPACE_SESSION_ID || 'default')
+    ) || 'default';
+    const sessionScope = activeSession || (owner ? `${owner}/${workspaceSession}` : '');
+    const url = '/api/ip/list' + (sessionScope ? `?session_id=${encodeURIComponent(sessionScope)}` : '');
+    fetch(url, { cache: 'no-store' })
       .then(r => (r.ok ? r.json() : null))
       .then(d => { if (!cancelled && d && Array.isArray(d.items)) setRows(d.items); })
       .catch(() => {});

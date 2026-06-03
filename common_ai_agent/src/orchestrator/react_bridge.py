@@ -183,6 +183,15 @@ class _ChatPersister:
     def flush_assistant_turn(self, content: str, *, emit_live: bool = True) -> None:
         self._record(content=content, role="assistant", emit_live=emit_live)
 
+    def emit_run_state(self, status: str, *, final_state: str = "", error: str = "") -> None:
+        extra = {
+            "status": str(status or ""),
+            "final_state": str(final_state or ""),
+        }
+        if error:
+            extra["error"] = str(error)
+        self._emit_live(content="", role="run_state", extra=extra)
+
     def emit_assistant_delta(self, content: str, *, stream_id: str) -> None:
         if not content:
             return
@@ -1065,6 +1074,13 @@ class OrchestratorReactLoop:
                 self._llm_caller, error_sink, chat_writer=bridge.chat_writer
             )
 
+        def emit_terminal_state(status: str, final_state: str = "", error: str = "") -> None:
+            bridge.chat_writer.emit_run_state(
+                status,
+                final_state=final_state,
+                error=error,
+            )
+
         tracker = IterationTracker(max_iterations=max_steps)
         prompt_text = bridge.deps.build_prompt_fn(
             messages=[], allowed_tools=set(bridge.available_tools.keys()),
@@ -1087,6 +1103,7 @@ class OrchestratorReactLoop:
                     self.ctx.run_id, status="error",
                     final_state="llm_error", ended=True,
                 )
+                emit_terminal_state("error", "llm_error", f"{type(exc).__name__}: {exc}")
                 return RunOutcome(
                     status="error",
                     final_state="llm_error",
@@ -1102,6 +1119,7 @@ class OrchestratorReactLoop:
                     self.ctx.run_id, status="error",
                     final_state="llm_error", ended=True,
                 )
+                emit_terminal_state("error", "llm_error", f"{type(exc).__name__}: {exc}")
                 return RunOutcome(
                     status="error",
                     final_state="llm_error",
@@ -1112,6 +1130,7 @@ class OrchestratorReactLoop:
             # Derive outcome from the persisted run row.
             run_row = self.db.get_orchestrator_run(self.ctx.run_id)
             if run_row is None:
+                emit_terminal_state("error", "unknown")
                 return RunOutcome(
                     status="error", final_state="unknown",
                     steps_taken=tracker.current,
@@ -1160,6 +1179,10 @@ class OrchestratorReactLoop:
                 run_row = self.db.get_orchestrator_run(self.ctx.run_id)
             break
 
+        emit_terminal_state(
+            str(run_row["status"] or ""),
+            str(run_row["final_state"] or ""),
+        )
         return RunOutcome(
             status=run_row["status"],
             final_state=run_row["final_state"],

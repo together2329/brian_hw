@@ -18,7 +18,7 @@ import pytest
 from core.atlas_db import AtlasDB
 from src.orchestrator import tools as orch_tools
 from src.orchestrator.loop import OrchestratorContext
-from src.orchestrator.react_bridge import OrchestratorReactLoop
+from src.orchestrator.react_bridge import OrchestratorReactLoop, register_live_event_emitter
 from src.orchestrator.runner import OrchestratorRunner
 from src.orchestrator.ui_formatter import format_tool_call
 
@@ -234,3 +234,34 @@ class TestOrderAndRoles:
         assert [_payload_of(r)["content"] for r in thought_rows] == [
             "checking state\nthen deciding"
         ]
+
+    def test_terminal_run_state_is_emitted_live(self, db, ctx):
+        events = []
+
+        def emit(session_id, event):
+            events.append((session_id, event))
+
+        register_live_event_emitter(emit)
+        try:
+            outcome = OrchestratorReactLoop(
+                db,
+                ctx,
+                llm_caller=_scripted({"content": "done"}),
+            ).run(max_steps=3)
+        finally:
+            register_live_event_emitter(None)
+
+        assert outcome.status == "completed"
+        terminal_payloads = [
+            event["payload"]
+            for session_id, event in events
+            if session_id == ctx.session_id
+            and (event.get("payload") or {}).get("role") == "run_state"
+        ]
+        assert terminal_payloads == [{
+            "role": "run_state",
+            "content": "",
+            "display_name": "orchestrator",
+            "status": "completed",
+            "final_state": "completed",
+        }]

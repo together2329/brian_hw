@@ -506,6 +506,58 @@ describe('Workspace render smoke (the behavioral gate)', () => {
     });
   });
 
+  it('renders orchestrator live chat events in the center feed and clears terminal state', async () => {
+    const w = window as AnyWindow;
+    w.ATLAS_EXEC_MODE = 'orchestrator';
+    w.ACTIVE_SESSION = 'alice/demo/jjj/orchestrator';
+    w.atlasData.sessionFor = (ip: string, wf: string) => `alice/demo/${ip}/${wf}`;
+
+    const { Workspace } = await import('../workspace.tsx');
+    const { queryByText } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
+    const backend = w.backend;
+
+    await act(async () => {
+      backend._emit('orchestrator_chat', {
+        session_id: 'alice/demo/jjj/orchestrator',
+        ip: 'jjj',
+        created_at: 1716400000,
+        payload: {
+          role: 'assistant_delta',
+          content: 'Hi ',
+          stream_id: 'orch-stream-1',
+        },
+      });
+      backend._emit('orchestrator_chat', {
+        session_id: 'alice/demo/jjj/orchestrator',
+        ip: 'jjj',
+        created_at: 1716400001,
+        payload: {
+          role: 'assistant_delta',
+          content: 'there',
+          stream_id: 'orch-stream-1',
+        },
+      });
+    });
+
+    await waitFor(() => expect(queryByText('Agent responding')).not.toBeNull());
+    await waitFor(() => expect(queryByText('Hi there')).not.toBeNull());
+
+    await act(async () => {
+      backend._emit('orchestrator_chat', {
+        session_id: 'alice/demo/jjj/orchestrator',
+        ip: 'jjj',
+        created_at: 1716400002,
+        payload: {
+          role: 'run_state',
+          status: 'completed',
+          final_state: 'completed',
+        },
+      });
+    });
+
+    await waitFor(() => expect(queryByText('Agent responding')).toBeNull());
+  });
+
   it('does not show Agent responding for workflow activation control tokens', async () => {
     const { Workspace } = await import('../workspace.tsx');
     const { queryByText } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
