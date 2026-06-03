@@ -8,5 +8,5 @@ rtl/mctp_assembler_scratch_v5_sram_arbiter.sv
 rtl/mctp_assembler_scratch_v5_descriptor_queue.sv
 rtl/mctp_assembler_scratch_v5_apb_regfile.sv
 rtl/mctp_assembler_scratch_v5_cdc.sv
-rtl/mctp_assembler_scratch_v5.sv
 rtl/mctp_assembler_scratch_v5_param.vh
+rtl/mctp_assembler_scratch_v5.sv

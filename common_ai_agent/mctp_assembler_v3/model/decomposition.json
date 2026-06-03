@@ -11,7 +11,8 @@
         "cycle_model",
         "function_model",
         "io_list",
-        "parameters"
+        "parameters",
+        "test_requirements"
       ],
       "rtl_candidates": [
         "mctp_assembler_v3_axi_wr_ingress"
@@ -46,15 +47,17 @@
         "function_model.invariants.invariant_6",
         "function_model.invariants.invariant_7",
         "function_model.invariants.invariant_8",
-        "function_model.state_variables.counters",
-        "function_model.state_variables.last_drop_class",
         "function_model.transactions.FM_INGEST_TLP",
         "function_model.transactions.fm_ingest_tlp",
         "function_model.transactions.fm_ingest_tlp.error_cases.error_case_0",
         "function_model.transactions.fm_ingest_tlp.inputs.input_0",
         "function_model.transactions.fm_ingest_tlp.output_rules.bresp_next",
+        "function_model.transactions.fm_ingest_tlp.outputs.bresp_next",
         "function_model.transactions.fm_ingest_tlp.outputs.output_0",
         "function_model.transactions.fm_ingest_tlp.outputs.output_1",
+        "function_model.transactions.fm_ingest_tlp.outputs.tlp_accept",
+        "function_model.transactions.fm_ingest_tlp.outputs.tlp_accepted_count",
+        "function_model.transactions.fm_ingest_tlp.outputs.tlp_seen_count",
         "function_model.transactions.fm_ingest_tlp.preconditions.precondition_0",
         "function_model.transactions.fm_ingest_tlp.preconditions.precondition_1",
         "function_model.transactions.fm_ingest_tlp.preconditions.precondition_2",
@@ -69,7 +72,8 @@
         "io_list.interfaces.axi_wr_slave",
         "parameters.axi_strb_width",
         "parameters.max_tlp_beats",
-        "parameters.max_tlp_bytes"
+        "parameters.max_tlp_bytes",
+        "test_requirements"
       ],
       "function_model_refs": [
         "function_model.invariants.invariant_0",
@@ -81,14 +85,16 @@
         "function_model.invariants.invariant_6",
         "function_model.invariants.invariant_7",
         "function_model.invariants.invariant_8",
-        "function_model.state_variables.counters",
-        "function_model.state_variables.last_drop_class",
         "function_model.transactions.fm_ingest_tlp",
         "function_model.transactions.fm_ingest_tlp.error_cases.error_case_0",
         "function_model.transactions.fm_ingest_tlp.inputs.input_0",
         "function_model.transactions.fm_ingest_tlp.output_rules.bresp_next",
+        "function_model.transactions.fm_ingest_tlp.outputs.bresp_next",
         "function_model.transactions.fm_ingest_tlp.outputs.output_0",
         "function_model.transactions.fm_ingest_tlp.outputs.output_1",
+        "function_model.transactions.fm_ingest_tlp.outputs.tlp_accept",
+        "function_model.transactions.fm_ingest_tlp.outputs.tlp_accepted_count",
+        "function_model.transactions.fm_ingest_tlp.outputs.tlp_seen_count",
         "function_model.transactions.fm_ingest_tlp.preconditions.precondition_0",
         "function_model.transactions.fm_ingest_tlp.preconditions.precondition_1",
         "function_model.transactions.fm_ingest_tlp.preconditions.precondition_2",
@@ -135,6 +141,7 @@
       "name": "mctp_assembler_v3_pcie_vdm_parser",
       "kind": "rtl_module",
       "source_sections": [
+        "dataflow",
         "features",
         "function_model",
         "parameters"
@@ -144,6 +151,7 @@
       ],
       "rtl_file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
       "ssot_refs": [
+        "dataflow",
         "features",
         "features.axi_ingress",
         "features.descriptor_publish",
@@ -157,8 +165,13 @@
         "function_model.transactions.fm_decode_vdm.error_cases.error_case_0",
         "function_model.transactions.fm_decode_vdm.error_cases.error_case_1",
         "function_model.transactions.fm_decode_vdm.inputs.input_0",
+        "function_model.transactions.fm_decode_vdm.outputs.last_decoded_vdm",
         "function_model.transactions.fm_decode_vdm.outputs.output_0",
         "function_model.transactions.fm_decode_vdm.outputs.output_1",
+        "function_model.transactions.fm_decode_vdm.outputs.pad_ok",
+        "function_model.transactions.fm_decode_vdm.outputs.payload_offset",
+        "function_model.transactions.fm_decode_vdm.outputs.requester_id",
+        "function_model.transactions.fm_decode_vdm.outputs.vdm_valid",
         "function_model.transactions.fm_decode_vdm.preconditions.precondition_0",
         "function_model.transactions.fm_decode_vdm.state_updates.last_decoded_vdm",
         "function_model.transactions.fm_decode_vdm.state_updates.pad_ok",
@@ -174,8 +187,13 @@
         "function_model.transactions.fm_decode_vdm.error_cases.error_case_0",
         "function_model.transactions.fm_decode_vdm.error_cases.error_case_1",
         "function_model.transactions.fm_decode_vdm.inputs.input_0",
+        "function_model.transactions.fm_decode_vdm.outputs.last_decoded_vdm",
         "function_model.transactions.fm_decode_vdm.outputs.output_0",
         "function_model.transactions.fm_decode_vdm.outputs.output_1",
+        "function_model.transactions.fm_decode_vdm.outputs.pad_ok",
+        "function_model.transactions.fm_decode_vdm.outputs.payload_offset",
+        "function_model.transactions.fm_decode_vdm.outputs.requester_id",
+        "function_model.transactions.fm_decode_vdm.outputs.vdm_valid",
         "function_model.transactions.fm_decode_vdm.preconditions.precondition_0",
         "function_model.transactions.fm_decode_vdm.state_updates.last_decoded_vdm",
         "function_model.transactions.fm_decode_vdm.state_updates.pad_ok",
@@ -224,9 +242,17 @@
         "function_model.transactions.fm_decode_mctp.error_cases.error_case_1",
         "function_model.transactions.fm_decode_mctp.inputs.input_0",
         "function_model.transactions.fm_decode_mctp.inputs.input_1",
+        "function_model.transactions.fm_decode_mctp.outputs.assembly_key",
+        "function_model.transactions.fm_decode_mctp.outputs.dest_accept",
+        "function_model.transactions.fm_decode_mctp.outputs.eom",
+        "function_model.transactions.fm_decode_mctp.outputs.header_version_ok",
+        "function_model.transactions.fm_decode_mctp.outputs.message_tag",
         "function_model.transactions.fm_decode_mctp.outputs.output_0",
         "function_model.transactions.fm_decode_mctp.outputs.output_1",
         "function_model.transactions.fm_decode_mctp.outputs.output_2",
+        "function_model.transactions.fm_decode_mctp.outputs.packet_seq",
+        "function_model.transactions.fm_decode_mctp.outputs.som",
+        "function_model.transactions.fm_decode_mctp.outputs.tag_owner",
         "function_model.transactions.fm_decode_mctp.preconditions.precondition_0",
         "function_model.transactions.fm_decode_mctp.state_updates.assembly_key",
         "function_model.transactions.fm_decode_mctp.state_updates.dest_accept",
@@ -243,9 +269,17 @@
         "function_model.transactions.fm_decode_mctp.error_cases.error_case_1",
         "function_model.transactions.fm_decode_mctp.inputs.input_0",
         "function_model.transactions.fm_decode_mctp.inputs.input_1",
+        "function_model.transactions.fm_decode_mctp.outputs.assembly_key",
+        "function_model.transactions.fm_decode_mctp.outputs.dest_accept",
+        "function_model.transactions.fm_decode_mctp.outputs.eom",
+        "function_model.transactions.fm_decode_mctp.outputs.header_version_ok",
+        "function_model.transactions.fm_decode_mctp.outputs.message_tag",
         "function_model.transactions.fm_decode_mctp.outputs.output_0",
         "function_model.transactions.fm_decode_mctp.outputs.output_1",
         "function_model.transactions.fm_decode_mctp.outputs.output_2",
+        "function_model.transactions.fm_decode_mctp.outputs.packet_seq",
+        "function_model.transactions.fm_decode_mctp.outputs.som",
+        "function_model.transactions.fm_decode_mctp.outputs.tag_owner",
         "function_model.transactions.fm_decode_mctp.preconditions.precondition_0",
         "function_model.transactions.fm_decode_mctp.state_updates.assembly_key",
         "function_model.transactions.fm_decode_mctp.state_updates.dest_accept",
@@ -284,7 +318,6 @@
         "fsm",
         "fsm.context_fsm",
         "function_model",
-        "function_model.state_variables.context_table",
         "function_model.transactions.FM_ALLOC_CONTEXT",
         "function_model.transactions.FM_APPEND",
         "function_model.transactions.fm_alloc_context",
@@ -292,9 +325,16 @@
         "function_model.transactions.fm_alloc_context.error_cases.error_case_1",
         "function_model.transactions.fm_alloc_context.inputs.input_0",
         "function_model.transactions.fm_alloc_context.inputs.input_1",
+        "function_model.transactions.fm_alloc_context.outputs.active_context_count",
+        "function_model.transactions.fm_alloc_context.outputs.alloc_ok",
+        "function_model.transactions.fm_alloc_context.outputs.ctx_expected_seq",
+        "function_model.transactions.fm_alloc_context.outputs.ctx_payload_base_addr",
+        "function_model.transactions.fm_alloc_context.outputs.ctx_state",
         "function_model.transactions.fm_alloc_context.outputs.output_0",
         "function_model.transactions.fm_alloc_context.outputs.output_1",
         "function_model.transactions.fm_alloc_context.outputs.output_2",
+        "function_model.transactions.fm_alloc_context.outputs.single_packet",
+        "function_model.transactions.fm_alloc_context.outputs.sram_alloc_ptr",
         "function_model.transactions.fm_alloc_context.preconditions.precondition_0",
         "function_model.transactions.fm_alloc_context.side_effects.side_effect_0",
         "function_model.transactions.fm_alloc_context.state_updates.active_context_count",
@@ -311,8 +351,13 @@
         "function_model.transactions.fm_append.error_cases.error_case_3",
         "function_model.transactions.fm_append.inputs.input_0",
         "function_model.transactions.fm_append.inputs.input_1",
+        "function_model.transactions.fm_append.outputs.ctx_expected_seq",
+        "function_model.transactions.fm_append.outputs.ctx_last_seq",
+        "function_model.transactions.fm_append.outputs.ctx_payload_byte_count",
+        "function_model.transactions.fm_append.outputs.message_complete",
         "function_model.transactions.fm_append.outputs.output_0",
         "function_model.transactions.fm_append.outputs.output_1",
+        "function_model.transactions.fm_append.outputs.seq_ok",
         "function_model.transactions.fm_append.preconditions.precondition_0",
         "function_model.transactions.fm_append.preconditions.precondition_1",
         "function_model.transactions.fm_append.side_effects.side_effect_0",
@@ -326,15 +371,21 @@
         "parameters.timeout_counter_width"
       ],
       "function_model_refs": [
-        "function_model.state_variables.context_table",
         "function_model.transactions.fm_alloc_context",
         "function_model.transactions.fm_alloc_context.error_cases.error_case_0",
         "function_model.transactions.fm_alloc_context.error_cases.error_case_1",
         "function_model.transactions.fm_alloc_context.inputs.input_0",
         "function_model.transactions.fm_alloc_context.inputs.input_1",
+        "function_model.transactions.fm_alloc_context.outputs.active_context_count",
+        "function_model.transactions.fm_alloc_context.outputs.alloc_ok",
+        "function_model.transactions.fm_alloc_context.outputs.ctx_expected_seq",
+        "function_model.transactions.fm_alloc_context.outputs.ctx_payload_base_addr",
+        "function_model.transactions.fm_alloc_context.outputs.ctx_state",
         "function_model.transactions.fm_alloc_context.outputs.output_0",
         "function_model.transactions.fm_alloc_context.outputs.output_1",
         "function_model.transactions.fm_alloc_context.outputs.output_2",
+        "function_model.transactions.fm_alloc_context.outputs.single_packet",
+        "function_model.transactions.fm_alloc_context.outputs.sram_alloc_ptr",
         "function_model.transactions.fm_alloc_context.preconditions.precondition_0",
         "function_model.transactions.fm_alloc_context.side_effects.side_effect_0",
         "function_model.transactions.fm_alloc_context.state_updates.active_context_count",
@@ -351,8 +402,13 @@
         "function_model.transactions.fm_append.error_cases.error_case_3",
         "function_model.transactions.fm_append.inputs.input_0",
         "function_model.transactions.fm_append.inputs.input_1",
+        "function_model.transactions.fm_append.outputs.ctx_expected_seq",
+        "function_model.transactions.fm_append.outputs.ctx_last_seq",
+        "function_model.transactions.fm_append.outputs.ctx_payload_byte_count",
+        "function_model.transactions.fm_append.outputs.message_complete",
         "function_model.transactions.fm_append.outputs.output_0",
         "function_model.transactions.fm_append.outputs.output_1",
+        "function_model.transactions.fm_append.outputs.seq_ok",
         "function_model.transactions.fm_append.preconditions.precondition_0",
         "function_model.transactions.fm_append.preconditions.precondition_1",
         "function_model.transactions.fm_append.side_effects.side_effect_0",
@@ -393,7 +449,6 @@
         "features",
         "features.payload_pack",
         "function_model",
-        "function_model.state_variables.sram_alloc_ptr",
         "function_model.transactions.FM_PACK_SRAM",
         "function_model.transactions.fm_pack_sram",
         "function_model.transactions.fm_pack_sram.error_cases.error_case_0",
@@ -402,7 +457,13 @@
         "function_model.transactions.fm_pack_sram.output_rules.sram_wr_addr",
         "function_model.transactions.fm_pack_sram.output_rules.sram_wr_strb",
         "function_model.transactions.fm_pack_sram.output_rules.sram_wr_valid",
+        "function_model.transactions.fm_pack_sram.outputs.ctx_partial_next_lane",
+        "function_model.transactions.fm_pack_sram.outputs.ctx_payload_next_addr",
         "function_model.transactions.fm_pack_sram.outputs.output_0",
+        "function_model.transactions.fm_pack_sram.outputs.payload_bytes_written_count",
+        "function_model.transactions.fm_pack_sram.outputs.sram_wr_addr",
+        "function_model.transactions.fm_pack_sram.outputs.sram_wr_strb",
+        "function_model.transactions.fm_pack_sram.outputs.sram_wr_valid",
         "function_model.transactions.fm_pack_sram.preconditions.precondition_0",
         "function_model.transactions.fm_pack_sram.side_effects.side_effect_0",
         "function_model.transactions.fm_pack_sram.state_updates.ctx_partial_next_lane",
@@ -413,7 +474,6 @@
         "parameters.sram_data_width"
       ],
       "function_model_refs": [
-        "function_model.state_variables.sram_alloc_ptr",
         "function_model.transactions.fm_pack_sram",
         "function_model.transactions.fm_pack_sram.error_cases.error_case_0",
         "function_model.transactions.fm_pack_sram.inputs.input_0",
@@ -421,7 +481,13 @@
         "function_model.transactions.fm_pack_sram.output_rules.sram_wr_addr",
         "function_model.transactions.fm_pack_sram.output_rules.sram_wr_strb",
         "function_model.transactions.fm_pack_sram.output_rules.sram_wr_valid",
+        "function_model.transactions.fm_pack_sram.outputs.ctx_partial_next_lane",
+        "function_model.transactions.fm_pack_sram.outputs.ctx_payload_next_addr",
         "function_model.transactions.fm_pack_sram.outputs.output_0",
+        "function_model.transactions.fm_pack_sram.outputs.payload_bytes_written_count",
+        "function_model.transactions.fm_pack_sram.outputs.sram_wr_addr",
+        "function_model.transactions.fm_pack_sram.outputs.sram_wr_strb",
+        "function_model.transactions.fm_pack_sram.outputs.sram_wr_valid",
         "function_model.transactions.fm_pack_sram.preconditions.precondition_0",
         "function_model.transactions.fm_pack_sram.side_effects.side_effect_0",
         "function_model.transactions.fm_pack_sram.state_updates.ctx_partial_next_lane",
@@ -456,12 +522,17 @@
       "rtl_file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
       "ssot_refs": [
         "function_model",
-        "function_model.state_variables.descriptor_queue",
         "function_model.transactions.FM_PUBLISH_DESCRIPTOR",
         "function_model.transactions.fm_publish_descriptor",
         "function_model.transactions.fm_publish_descriptor.error_cases.error_case_0",
         "function_model.transactions.fm_publish_descriptor.inputs.input_0",
         "function_model.transactions.fm_publish_descriptor.inputs.input_1",
+        "function_model.transactions.fm_publish_descriptor.outputs.ctx_state",
+        "function_model.transactions.fm_publish_descriptor.outputs.descriptor_base_addr",
+        "function_model.transactions.fm_publish_descriptor.outputs.descriptor_payload_len",
+        "function_model.transactions.fm_publish_descriptor.outputs.descriptor_ready",
+        "function_model.transactions.fm_publish_descriptor.outputs.descriptor_valid",
+        "function_model.transactions.fm_publish_descriptor.outputs.message_completed_count",
         "function_model.transactions.fm_publish_descriptor.outputs.output_0",
         "function_model.transactions.fm_publish_descriptor.outputs.output_1",
         "function_model.transactions.fm_publish_descriptor.preconditions.precondition_0",
@@ -477,11 +548,16 @@
         "parameters.descriptor_fifo_depth"
       ],
       "function_model_refs": [
-        "function_model.state_variables.descriptor_queue",
         "function_model.transactions.fm_publish_descriptor",
         "function_model.transactions.fm_publish_descriptor.error_cases.error_case_0",
         "function_model.transactions.fm_publish_descriptor.inputs.input_0",
         "function_model.transactions.fm_publish_descriptor.inputs.input_1",
+        "function_model.transactions.fm_publish_descriptor.outputs.ctx_state",
+        "function_model.transactions.fm_publish_descriptor.outputs.descriptor_base_addr",
+        "function_model.transactions.fm_publish_descriptor.outputs.descriptor_payload_len",
+        "function_model.transactions.fm_publish_descriptor.outputs.descriptor_ready",
+        "function_model.transactions.fm_publish_descriptor.outputs.descriptor_valid",
+        "function_model.transactions.fm_publish_descriptor.outputs.message_completed_count",
         "function_model.transactions.fm_publish_descriptor.outputs.output_0",
         "function_model.transactions.fm_publish_descriptor.outputs.output_1",
         "function_model.transactions.fm_publish_descriptor.preconditions.precondition_0",
@@ -529,7 +605,11 @@
         "function_model.transactions.fm_axi_read.inputs.input_0",
         "function_model.transactions.fm_axi_read.output_rules.rlast_next",
         "function_model.transactions.fm_axi_read.output_rules.rresp_next",
+        "function_model.transactions.fm_axi_read.outputs.fw_axi_read_beat_count",
+        "function_model.transactions.fm_axi_read.outputs.fw_axi_read_error_count",
         "function_model.transactions.fm_axi_read.outputs.output_0",
+        "function_model.transactions.fm_axi_read.outputs.rlast_next",
+        "function_model.transactions.fm_axi_read.outputs.rresp_next",
         "function_model.transactions.fm_axi_read.preconditions.precondition_0",
         "function_model.transactions.fm_axi_read.preconditions.precondition_1",
         "function_model.transactions.fm_axi_read.preconditions.precondition_2",
@@ -547,7 +627,11 @@
         "function_model.transactions.fm_axi_read.inputs.input_0",
         "function_model.transactions.fm_axi_read.output_rules.rlast_next",
         "function_model.transactions.fm_axi_read.output_rules.rresp_next",
+        "function_model.transactions.fm_axi_read.outputs.fw_axi_read_beat_count",
+        "function_model.transactions.fm_axi_read.outputs.fw_axi_read_error_count",
         "function_model.transactions.fm_axi_read.outputs.output_0",
+        "function_model.transactions.fm_axi_read.outputs.rlast_next",
+        "function_model.transactions.fm_axi_read.outputs.rresp_next",
         "function_model.transactions.fm_axi_read.preconditions.precondition_0",
         "function_model.transactions.fm_axi_read.preconditions.precondition_1",
         "function_model.transactions.fm_axi_read.preconditions.precondition_2",
@@ -572,7 +656,10 @@
       "name": "mctp_assembler_v3_apb_regfile",
       "kind": "rtl_module",
       "source_sections": [
+        "decomposition",
         "error_handling",
+        "features",
+        "function_model",
         "interrupts",
         "parameters",
         "registers"
@@ -582,7 +669,15 @@
       ],
       "rtl_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "ssot_refs": [
+        "decomposition",
         "error_handling",
+        "features",
+        "function_model.state_variables",
+        "function_model.state_variables.context_table",
+        "function_model.state_variables.counters",
+        "function_model.state_variables.descriptor_queue",
+        "function_model.state_variables.last_drop_class",
+        "function_model.state_variables.sram_alloc_ptr",
         "interrupts",
         "parameters.baseline_mtu_bytes",
         "registers",
@@ -608,7 +703,13 @@
         "registers.register_list.sram_limit",
         "registers.register_list.status"
       ],
-      "function_model_refs": [],
+      "function_model_refs": [
+        "function_model.state_variables.context_table",
+        "function_model.state_variables.counters",
+        "function_model.state_variables.descriptor_queue",
+        "function_model.state_variables.last_drop_class",
+        "function_model.state_variables.sram_alloc_ptr"
+      ],
       "cycle_model_refs": [],
       "structural_refs": [
         "parameters.baseline_mtu_bytes",
@@ -637,7 +738,7 @@
         "module-level FL-vs-RTL scoreboard",
         "module functional coverage"
       ],
-      "requires_module_equivalence": false,
+      "requires_module_equivalence": true,
       "blocked": false,
       "blocker": ""
     },
@@ -674,9 +775,12 @@
       "kind": "rtl_module",
       "source_sections": [
         "cycle_model",
+        "dataflow",
+        "decomposition",
         "function_model",
         "integration",
-        "io_list"
+        "io_list",
+        "top_module"
       ],
       "rtl_candidates": [
         "mctp_assembler_v3"
@@ -691,12 +795,15 @@
         "cycle_model.pipeline.s3_context",
         "cycle_model.pipeline.s4_pack",
         "cycle_model.pipeline.s5_descriptor",
+        "dataflow",
+        "decomposition",
         "function_model",
         "function_model.transactions",
         "integration",
         "integration.connections",
         "io_list",
-        "io_list.interfaces"
+        "io_list.interfaces",
+        "top_module"
       ],
       "function_model_refs": [],
       "cycle_model_refs": [
@@ -711,7 +818,8 @@
         "integration",
         "integration.connections",
         "io_list",
-        "io_list.interfaces"
+        "io_list.interfaces",
+        "top_module"
       ],
       "verification_impact": [
         "module-level FL-vs-RTL scoreboard",
@@ -845,7 +953,8 @@
         "cycle_model",
         "function_model",
         "io_list",
-        "parameters"
+        "parameters",
+        "test_requirements"
       ],
       "ssot_refs": [
         "cycle_model",
@@ -876,15 +985,17 @@
         "function_model.invariants.invariant_6",
         "function_model.invariants.invariant_7",
         "function_model.invariants.invariant_8",
-        "function_model.state_variables.counters",
-        "function_model.state_variables.last_drop_class",
         "function_model.transactions.FM_INGEST_TLP",
         "function_model.transactions.fm_ingest_tlp",
         "function_model.transactions.fm_ingest_tlp.error_cases.error_case_0",
         "function_model.transactions.fm_ingest_tlp.inputs.input_0",
         "function_model.transactions.fm_ingest_tlp.output_rules.bresp_next",
+        "function_model.transactions.fm_ingest_tlp.outputs.bresp_next",
         "function_model.transactions.fm_ingest_tlp.outputs.output_0",
         "function_model.transactions.fm_ingest_tlp.outputs.output_1",
+        "function_model.transactions.fm_ingest_tlp.outputs.tlp_accept",
+        "function_model.transactions.fm_ingest_tlp.outputs.tlp_accepted_count",
+        "function_model.transactions.fm_ingest_tlp.outputs.tlp_seen_count",
         "function_model.transactions.fm_ingest_tlp.preconditions.precondition_0",
         "function_model.transactions.fm_ingest_tlp.preconditions.precondition_1",
         "function_model.transactions.fm_ingest_tlp.preconditions.precondition_2",
@@ -899,7 +1010,8 @@
         "io_list.interfaces.axi_wr_slave",
         "parameters.axi_strb_width",
         "parameters.max_tlp_beats",
-        "parameters.max_tlp_bytes"
+        "parameters.max_tlp_bytes",
+        "test_requirements"
       ],
       "function_model_refs": [
         "function_model.invariants.invariant_0",
@@ -911,14 +1023,16 @@
         "function_model.invariants.invariant_6",
         "function_model.invariants.invariant_7",
         "function_model.invariants.invariant_8",
-        "function_model.state_variables.counters",
-        "function_model.state_variables.last_drop_class",
         "function_model.transactions.fm_ingest_tlp",
         "function_model.transactions.fm_ingest_tlp.error_cases.error_case_0",
         "function_model.transactions.fm_ingest_tlp.inputs.input_0",
         "function_model.transactions.fm_ingest_tlp.output_rules.bresp_next",
+        "function_model.transactions.fm_ingest_tlp.outputs.bresp_next",
         "function_model.transactions.fm_ingest_tlp.outputs.output_0",
         "function_model.transactions.fm_ingest_tlp.outputs.output_1",
+        "function_model.transactions.fm_ingest_tlp.outputs.tlp_accept",
+        "function_model.transactions.fm_ingest_tlp.outputs.tlp_accepted_count",
+        "function_model.transactions.fm_ingest_tlp.outputs.tlp_seen_count",
         "function_model.transactions.fm_ingest_tlp.preconditions.precondition_0",
         "function_model.transactions.fm_ingest_tlp.preconditions.precondition_1",
         "function_model.transactions.fm_ingest_tlp.preconditions.precondition_2",
@@ -955,14 +1069,6 @@
       ],
       "owner_matches": [
         {
-          "ref": "function_model.state_variables.counters",
-          "matched_ref": "function_model"
-        },
-        {
-          "ref": "function_model.state_variables.last_drop_class",
-          "matched_ref": "function_model"
-        },
-        {
           "ref": "function_model.transactions.fm_ingest_tlp",
           "matched_ref": "function_model.transactions.FM_INGEST_TLP"
         },
@@ -996,6 +1102,22 @@
         },
         {
           "ref": "function_model.transactions.fm_ingest_tlp.outputs.output_1",
+          "matched_ref": "function_model.transactions.FM_INGEST_TLP"
+        },
+        {
+          "ref": "function_model.transactions.fm_ingest_tlp.outputs.bresp_next",
+          "matched_ref": "function_model.transactions.FM_INGEST_TLP"
+        },
+        {
+          "ref": "function_model.transactions.fm_ingest_tlp.outputs.tlp_accept",
+          "matched_ref": "function_model.transactions.FM_INGEST_TLP"
+        },
+        {
+          "ref": "function_model.transactions.fm_ingest_tlp.outputs.tlp_seen_count",
+          "matched_ref": "function_model.transactions.FM_INGEST_TLP"
+        },
+        {
+          "ref": "function_model.transactions.fm_ingest_tlp.outputs.tlp_accepted_count",
           "matched_ref": "function_model.transactions.FM_INGEST_TLP"
         },
         {
@@ -1152,11 +1274,13 @@
       "rtl_module": "mctp_assembler_v3_pcie_vdm_parser",
       "rtl_file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
       "source_sections": [
+        "dataflow",
         "features",
         "function_model",
         "parameters"
       ],
       "ssot_refs": [
+        "dataflow",
         "features",
         "features.axi_ingress",
         "features.descriptor_publish",
@@ -1170,8 +1294,13 @@
         "function_model.transactions.fm_decode_vdm.error_cases.error_case_0",
         "function_model.transactions.fm_decode_vdm.error_cases.error_case_1",
         "function_model.transactions.fm_decode_vdm.inputs.input_0",
+        "function_model.transactions.fm_decode_vdm.outputs.last_decoded_vdm",
         "function_model.transactions.fm_decode_vdm.outputs.output_0",
         "function_model.transactions.fm_decode_vdm.outputs.output_1",
+        "function_model.transactions.fm_decode_vdm.outputs.pad_ok",
+        "function_model.transactions.fm_decode_vdm.outputs.payload_offset",
+        "function_model.transactions.fm_decode_vdm.outputs.requester_id",
+        "function_model.transactions.fm_decode_vdm.outputs.vdm_valid",
         "function_model.transactions.fm_decode_vdm.preconditions.precondition_0",
         "function_model.transactions.fm_decode_vdm.state_updates.last_decoded_vdm",
         "function_model.transactions.fm_decode_vdm.state_updates.pad_ok",
@@ -1187,8 +1316,13 @@
         "function_model.transactions.fm_decode_vdm.error_cases.error_case_0",
         "function_model.transactions.fm_decode_vdm.error_cases.error_case_1",
         "function_model.transactions.fm_decode_vdm.inputs.input_0",
+        "function_model.transactions.fm_decode_vdm.outputs.last_decoded_vdm",
         "function_model.transactions.fm_decode_vdm.outputs.output_0",
         "function_model.transactions.fm_decode_vdm.outputs.output_1",
+        "function_model.transactions.fm_decode_vdm.outputs.pad_ok",
+        "function_model.transactions.fm_decode_vdm.outputs.payload_offset",
+        "function_model.transactions.fm_decode_vdm.outputs.requester_id",
+        "function_model.transactions.fm_decode_vdm.outputs.vdm_valid",
         "function_model.transactions.fm_decode_vdm.preconditions.precondition_0",
         "function_model.transactions.fm_decode_vdm.state_updates.last_decoded_vdm",
         "function_model.transactions.fm_decode_vdm.state_updates.pad_ok",
@@ -1227,6 +1361,26 @@
         },
         {
           "ref": "function_model.transactions.fm_decode_vdm.outputs.output_1",
+          "matched_ref": "function_model.transactions.FM_DECODE_VDM"
+        },
+        {
+          "ref": "function_model.transactions.fm_decode_vdm.outputs.vdm_valid",
+          "matched_ref": "function_model.transactions.FM_DECODE_VDM"
+        },
+        {
+          "ref": "function_model.transactions.fm_decode_vdm.outputs.payload_offset",
+          "matched_ref": "function_model.transactions.FM_DECODE_VDM"
+        },
+        {
+          "ref": "function_model.transactions.fm_decode_vdm.outputs.requester_id",
+          "matched_ref": "function_model.transactions.FM_DECODE_VDM"
+        },
+        {
+          "ref": "function_model.transactions.fm_decode_vdm.outputs.pad_ok",
+          "matched_ref": "function_model.transactions.FM_DECODE_VDM"
+        },
+        {
+          "ref": "function_model.transactions.fm_decode_vdm.outputs.last_decoded_vdm",
           "matched_ref": "function_model.transactions.FM_DECODE_VDM"
         },
         {
@@ -1320,9 +1474,17 @@
         "function_model.transactions.fm_decode_mctp.error_cases.error_case_1",
         "function_model.transactions.fm_decode_mctp.inputs.input_0",
         "function_model.transactions.fm_decode_mctp.inputs.input_1",
+        "function_model.transactions.fm_decode_mctp.outputs.assembly_key",
+        "function_model.transactions.fm_decode_mctp.outputs.dest_accept",
+        "function_model.transactions.fm_decode_mctp.outputs.eom",
+        "function_model.transactions.fm_decode_mctp.outputs.header_version_ok",
+        "function_model.transactions.fm_decode_mctp.outputs.message_tag",
         "function_model.transactions.fm_decode_mctp.outputs.output_0",
         "function_model.transactions.fm_decode_mctp.outputs.output_1",
         "function_model.transactions.fm_decode_mctp.outputs.output_2",
+        "function_model.transactions.fm_decode_mctp.outputs.packet_seq",
+        "function_model.transactions.fm_decode_mctp.outputs.som",
+        "function_model.transactions.fm_decode_mctp.outputs.tag_owner",
         "function_model.transactions.fm_decode_mctp.preconditions.precondition_0",
         "function_model.transactions.fm_decode_mctp.state_updates.assembly_key",
         "function_model.transactions.fm_decode_mctp.state_updates.dest_accept",
@@ -1339,9 +1501,17 @@
         "function_model.transactions.fm_decode_mctp.error_cases.error_case_1",
         "function_model.transactions.fm_decode_mctp.inputs.input_0",
         "function_model.transactions.fm_decode_mctp.inputs.input_1",
+        "function_model.transactions.fm_decode_mctp.outputs.assembly_key",
+        "function_model.transactions.fm_decode_mctp.outputs.dest_accept",
+        "function_model.transactions.fm_decode_mctp.outputs.eom",
+        "function_model.transactions.fm_decode_mctp.outputs.header_version_ok",
+        "function_model.transactions.fm_decode_mctp.outputs.message_tag",
         "function_model.transactions.fm_decode_mctp.outputs.output_0",
         "function_model.transactions.fm_decode_mctp.outputs.output_1",
         "function_model.transactions.fm_decode_mctp.outputs.output_2",
+        "function_model.transactions.fm_decode_mctp.outputs.packet_seq",
+        "function_model.transactions.fm_decode_mctp.outputs.som",
+        "function_model.transactions.fm_decode_mctp.outputs.tag_owner",
         "function_model.transactions.fm_decode_mctp.preconditions.precondition_0",
         "function_model.transactions.fm_decode_mctp.state_updates.assembly_key",
         "function_model.transactions.fm_decode_mctp.state_updates.dest_accept",
@@ -1383,6 +1553,38 @@
         },
         {
           "ref": "function_model.transactions.fm_decode_mctp.outputs.output_2",
+          "matched_ref": "function_model.transactions.FM_DECODE_MCTP"
+        },
+        {
+          "ref": "function_model.transactions.fm_decode_mctp.outputs.header_version_ok",
+          "matched_ref": "function_model.transactions.FM_DECODE_MCTP"
+        },
+        {
+          "ref": "function_model.transactions.fm_decode_mctp.outputs.som",
+          "matched_ref": "function_model.transactions.FM_DECODE_MCTP"
+        },
+        {
+          "ref": "function_model.transactions.fm_decode_mctp.outputs.eom",
+          "matched_ref": "function_model.transactions.FM_DECODE_MCTP"
+        },
+        {
+          "ref": "function_model.transactions.fm_decode_mctp.outputs.packet_seq",
+          "matched_ref": "function_model.transactions.FM_DECODE_MCTP"
+        },
+        {
+          "ref": "function_model.transactions.fm_decode_mctp.outputs.tag_owner",
+          "matched_ref": "function_model.transactions.FM_DECODE_MCTP"
+        },
+        {
+          "ref": "function_model.transactions.fm_decode_mctp.outputs.message_tag",
+          "matched_ref": "function_model.transactions.FM_DECODE_MCTP"
+        },
+        {
+          "ref": "function_model.transactions.fm_decode_mctp.outputs.dest_accept",
+          "matched_ref": "function_model.transactions.FM_DECODE_MCTP"
+        },
+        {
+          "ref": "function_model.transactions.fm_decode_mctp.outputs.assembly_key",
           "matched_ref": "function_model.transactions.FM_DECODE_MCTP"
         },
         {
@@ -1451,7 +1653,6 @@
         "fsm",
         "fsm.context_fsm",
         "function_model",
-        "function_model.state_variables.context_table",
         "function_model.transactions.FM_ALLOC_CONTEXT",
         "function_model.transactions.FM_APPEND",
         "function_model.transactions.fm_alloc_context",
@@ -1459,9 +1660,16 @@
         "function_model.transactions.fm_alloc_context.error_cases.error_case_1",
         "function_model.transactions.fm_alloc_context.inputs.input_0",
         "function_model.transactions.fm_alloc_context.inputs.input_1",
+        "function_model.transactions.fm_alloc_context.outputs.active_context_count",
+        "function_model.transactions.fm_alloc_context.outputs.alloc_ok",
+        "function_model.transactions.fm_alloc_context.outputs.ctx_expected_seq",
+        "function_model.transactions.fm_alloc_context.outputs.ctx_payload_base_addr",
+        "function_model.transactions.fm_alloc_context.outputs.ctx_state",
         "function_model.transactions.fm_alloc_context.outputs.output_0",
         "function_model.transactions.fm_alloc_context.outputs.output_1",
         "function_model.transactions.fm_alloc_context.outputs.output_2",
+        "function_model.transactions.fm_alloc_context.outputs.single_packet",
+        "function_model.transactions.fm_alloc_context.outputs.sram_alloc_ptr",
         "function_model.transactions.fm_alloc_context.preconditions.precondition_0",
         "function_model.transactions.fm_alloc_context.side_effects.side_effect_0",
         "function_model.transactions.fm_alloc_context.state_updates.active_context_count",
@@ -1478,8 +1686,13 @@
         "function_model.transactions.fm_append.error_cases.error_case_3",
         "function_model.transactions.fm_append.inputs.input_0",
         "function_model.transactions.fm_append.inputs.input_1",
+        "function_model.transactions.fm_append.outputs.ctx_expected_seq",
+        "function_model.transactions.fm_append.outputs.ctx_last_seq",
+        "function_model.transactions.fm_append.outputs.ctx_payload_byte_count",
+        "function_model.transactions.fm_append.outputs.message_complete",
         "function_model.transactions.fm_append.outputs.output_0",
         "function_model.transactions.fm_append.outputs.output_1",
+        "function_model.transactions.fm_append.outputs.seq_ok",
         "function_model.transactions.fm_append.preconditions.precondition_0",
         "function_model.transactions.fm_append.preconditions.precondition_1",
         "function_model.transactions.fm_append.side_effects.side_effect_0",
@@ -1493,15 +1706,21 @@
         "parameters.timeout_counter_width"
       ],
       "function_model_refs": [
-        "function_model.state_variables.context_table",
         "function_model.transactions.fm_alloc_context",
         "function_model.transactions.fm_alloc_context.error_cases.error_case_0",
         "function_model.transactions.fm_alloc_context.error_cases.error_case_1",
         "function_model.transactions.fm_alloc_context.inputs.input_0",
         "function_model.transactions.fm_alloc_context.inputs.input_1",
+        "function_model.transactions.fm_alloc_context.outputs.active_context_count",
+        "function_model.transactions.fm_alloc_context.outputs.alloc_ok",
+        "function_model.transactions.fm_alloc_context.outputs.ctx_expected_seq",
+        "function_model.transactions.fm_alloc_context.outputs.ctx_payload_base_addr",
+        "function_model.transactions.fm_alloc_context.outputs.ctx_state",
         "function_model.transactions.fm_alloc_context.outputs.output_0",
         "function_model.transactions.fm_alloc_context.outputs.output_1",
         "function_model.transactions.fm_alloc_context.outputs.output_2",
+        "function_model.transactions.fm_alloc_context.outputs.single_packet",
+        "function_model.transactions.fm_alloc_context.outputs.sram_alloc_ptr",
         "function_model.transactions.fm_alloc_context.preconditions.precondition_0",
         "function_model.transactions.fm_alloc_context.side_effects.side_effect_0",
         "function_model.transactions.fm_alloc_context.state_updates.active_context_count",
@@ -1518,8 +1737,13 @@
         "function_model.transactions.fm_append.error_cases.error_case_3",
         "function_model.transactions.fm_append.inputs.input_0",
         "function_model.transactions.fm_append.inputs.input_1",
+        "function_model.transactions.fm_append.outputs.ctx_expected_seq",
+        "function_model.transactions.fm_append.outputs.ctx_last_seq",
+        "function_model.transactions.fm_append.outputs.ctx_payload_byte_count",
+        "function_model.transactions.fm_append.outputs.message_complete",
         "function_model.transactions.fm_append.outputs.output_0",
         "function_model.transactions.fm_append.outputs.output_1",
+        "function_model.transactions.fm_append.outputs.seq_ok",
         "function_model.transactions.fm_append.preconditions.precondition_0",
         "function_model.transactions.fm_append.preconditions.precondition_1",
         "function_model.transactions.fm_append.side_effects.side_effect_0",
@@ -1536,10 +1760,6 @@
         "parameters.timeout_counter_width"
       ],
       "owner_matches": [
-        {
-          "ref": "function_model.state_variables.context_table",
-          "matched_ref": "function_model"
-        },
         {
           "ref": "function_model.transactions.fm_alloc_context",
           "matched_ref": "function_model.transactions.FM_ALLOC_CONTEXT"
@@ -1566,6 +1786,34 @@
         },
         {
           "ref": "function_model.transactions.fm_alloc_context.outputs.output_2",
+          "matched_ref": "function_model.transactions.FM_ALLOC_CONTEXT"
+        },
+        {
+          "ref": "function_model.transactions.fm_alloc_context.outputs.alloc_ok",
+          "matched_ref": "function_model.transactions.FM_ALLOC_CONTEXT"
+        },
+        {
+          "ref": "function_model.transactions.fm_alloc_context.outputs.single_packet",
+          "matched_ref": "function_model.transactions.FM_ALLOC_CONTEXT"
+        },
+        {
+          "ref": "function_model.transactions.fm_alloc_context.outputs.ctx_state",
+          "matched_ref": "function_model.transactions.FM_ALLOC_CONTEXT"
+        },
+        {
+          "ref": "function_model.transactions.fm_alloc_context.outputs.ctx_payload_base_addr",
+          "matched_ref": "function_model.transactions.FM_ALLOC_CONTEXT"
+        },
+        {
+          "ref": "function_model.transactions.fm_alloc_context.outputs.ctx_expected_seq",
+          "matched_ref": "function_model.transactions.FM_ALLOC_CONTEXT"
+        },
+        {
+          "ref": "function_model.transactions.fm_alloc_context.outputs.active_context_count",
+          "matched_ref": "function_model.transactions.FM_ALLOC_CONTEXT"
+        },
+        {
+          "ref": "function_model.transactions.fm_alloc_context.outputs.sram_alloc_ptr",
           "matched_ref": "function_model.transactions.FM_ALLOC_CONTEXT"
         },
         {
@@ -1634,6 +1882,26 @@
         },
         {
           "ref": "function_model.transactions.fm_append.outputs.output_1",
+          "matched_ref": "function_model.transactions.FM_APPEND"
+        },
+        {
+          "ref": "function_model.transactions.fm_append.outputs.seq_ok",
+          "matched_ref": "function_model.transactions.FM_APPEND"
+        },
+        {
+          "ref": "function_model.transactions.fm_append.outputs.message_complete",
+          "matched_ref": "function_model.transactions.FM_APPEND"
+        },
+        {
+          "ref": "function_model.transactions.fm_append.outputs.ctx_payload_byte_count",
+          "matched_ref": "function_model.transactions.FM_APPEND"
+        },
+        {
+          "ref": "function_model.transactions.fm_append.outputs.ctx_expected_seq",
+          "matched_ref": "function_model.transactions.FM_APPEND"
+        },
+        {
+          "ref": "function_model.transactions.fm_append.outputs.ctx_last_seq",
           "matched_ref": "function_model.transactions.FM_APPEND"
         },
         {
@@ -1711,7 +1979,6 @@
         "features",
         "features.payload_pack",
         "function_model",
-        "function_model.state_variables.sram_alloc_ptr",
         "function_model.transactions.FM_PACK_SRAM",
         "function_model.transactions.fm_pack_sram",
         "function_model.transactions.fm_pack_sram.error_cases.error_case_0",
@@ -1720,7 +1987,13 @@
         "function_model.transactions.fm_pack_sram.output_rules.sram_wr_addr",
         "function_model.transactions.fm_pack_sram.output_rules.sram_wr_strb",
         "function_model.transactions.fm_pack_sram.output_rules.sram_wr_valid",
+        "function_model.transactions.fm_pack_sram.outputs.ctx_partial_next_lane",
+        "function_model.transactions.fm_pack_sram.outputs.ctx_payload_next_addr",
         "function_model.transactions.fm_pack_sram.outputs.output_0",
+        "function_model.transactions.fm_pack_sram.outputs.payload_bytes_written_count",
+        "function_model.transactions.fm_pack_sram.outputs.sram_wr_addr",
+        "function_model.transactions.fm_pack_sram.outputs.sram_wr_strb",
+        "function_model.transactions.fm_pack_sram.outputs.sram_wr_valid",
         "function_model.transactions.fm_pack_sram.preconditions.precondition_0",
         "function_model.transactions.fm_pack_sram.side_effects.side_effect_0",
         "function_model.transactions.fm_pack_sram.state_updates.ctx_partial_next_lane",
@@ -1731,7 +2004,6 @@
         "parameters.sram_data_width"
       ],
       "function_model_refs": [
-        "function_model.state_variables.sram_alloc_ptr",
         "function_model.transactions.fm_pack_sram",
         "function_model.transactions.fm_pack_sram.error_cases.error_case_0",
         "function_model.transactions.fm_pack_sram.inputs.input_0",
@@ -1739,7 +2011,13 @@
         "function_model.transactions.fm_pack_sram.output_rules.sram_wr_addr",
         "function_model.transactions.fm_pack_sram.output_rules.sram_wr_strb",
         "function_model.transactions.fm_pack_sram.output_rules.sram_wr_valid",
+        "function_model.transactions.fm_pack_sram.outputs.ctx_partial_next_lane",
+        "function_model.transactions.fm_pack_sram.outputs.ctx_payload_next_addr",
         "function_model.transactions.fm_pack_sram.outputs.output_0",
+        "function_model.transactions.fm_pack_sram.outputs.payload_bytes_written_count",
+        "function_model.transactions.fm_pack_sram.outputs.sram_wr_addr",
+        "function_model.transactions.fm_pack_sram.outputs.sram_wr_strb",
+        "function_model.transactions.fm_pack_sram.outputs.sram_wr_valid",
         "function_model.transactions.fm_pack_sram.preconditions.precondition_0",
         "function_model.transactions.fm_pack_sram.side_effects.side_effect_0",
         "function_model.transactions.fm_pack_sram.state_updates.ctx_partial_next_lane",
@@ -1753,10 +2031,6 @@
         "parameters.sram_data_width"
       ],
       "owner_matches": [
-        {
-          "ref": "function_model.state_variables.sram_alloc_ptr",
-          "matched_ref": "function_model"
-        },
         {
           "ref": "function_model.transactions.fm_pack_sram",
           "matched_ref": "function_model.transactions.FM_PACK_SRAM"
@@ -1775,6 +2049,30 @@
         },
         {
           "ref": "function_model.transactions.fm_pack_sram.outputs.output_0",
+          "matched_ref": "function_model.transactions.FM_PACK_SRAM"
+        },
+        {
+          "ref": "function_model.transactions.fm_pack_sram.outputs.sram_wr_valid",
+          "matched_ref": "function_model.transactions.FM_PACK_SRAM"
+        },
+        {
+          "ref": "function_model.transactions.fm_pack_sram.outputs.sram_wr_addr",
+          "matched_ref": "function_model.transactions.FM_PACK_SRAM"
+        },
+        {
+          "ref": "function_model.transactions.fm_pack_sram.outputs.sram_wr_strb",
+          "matched_ref": "function_model.transactions.FM_PACK_SRAM"
+        },
+        {
+          "ref": "function_model.transactions.fm_pack_sram.outputs.ctx_payload_next_addr",
+          "matched_ref": "function_model.transactions.FM_PACK_SRAM"
+        },
+        {
+          "ref": "function_model.transactions.fm_pack_sram.outputs.ctx_partial_next_lane",
+          "matched_ref": "function_model.transactions.FM_PACK_SRAM"
+        },
+        {
+          "ref": "function_model.transactions.fm_pack_sram.outputs.payload_bytes_written_count",
           "matched_ref": "function_model.transactions.FM_PACK_SRAM"
         },
         {
@@ -1841,12 +2139,17 @@
       ],
       "ssot_refs": [
         "function_model",
-        "function_model.state_variables.descriptor_queue",
         "function_model.transactions.FM_PUBLISH_DESCRIPTOR",
         "function_model.transactions.fm_publish_descriptor",
         "function_model.transactions.fm_publish_descriptor.error_cases.error_case_0",
         "function_model.transactions.fm_publish_descriptor.inputs.input_0",
         "function_model.transactions.fm_publish_descriptor.inputs.input_1",
+        "function_model.transactions.fm_publish_descriptor.outputs.ctx_state",
+        "function_model.transactions.fm_publish_descriptor.outputs.descriptor_base_addr",
+        "function_model.transactions.fm_publish_descriptor.outputs.descriptor_payload_len",
+        "function_model.transactions.fm_publish_descriptor.outputs.descriptor_ready",
+        "function_model.transactions.fm_publish_descriptor.outputs.descriptor_valid",
+        "function_model.transactions.fm_publish_descriptor.outputs.message_completed_count",
         "function_model.transactions.fm_publish_descriptor.outputs.output_0",
         "function_model.transactions.fm_publish_descriptor.outputs.output_1",
         "function_model.transactions.fm_publish_descriptor.preconditions.precondition_0",
@@ -1862,11 +2165,16 @@
         "parameters.descriptor_fifo_depth"
       ],
       "function_model_refs": [
-        "function_model.state_variables.descriptor_queue",
         "function_model.transactions.fm_publish_descriptor",
         "function_model.transactions.fm_publish_descriptor.error_cases.error_case_0",
         "function_model.transactions.fm_publish_descriptor.inputs.input_0",
         "function_model.transactions.fm_publish_descriptor.inputs.input_1",
+        "function_model.transactions.fm_publish_descriptor.outputs.ctx_state",
+        "function_model.transactions.fm_publish_descriptor.outputs.descriptor_base_addr",
+        "function_model.transactions.fm_publish_descriptor.outputs.descriptor_payload_len",
+        "function_model.transactions.fm_publish_descriptor.outputs.descriptor_ready",
+        "function_model.transactions.fm_publish_descriptor.outputs.descriptor_valid",
+        "function_model.transactions.fm_publish_descriptor.outputs.message_completed_count",
         "function_model.transactions.fm_publish_descriptor.outputs.output_0",
         "function_model.transactions.fm_publish_descriptor.outputs.output_1",
         "function_model.transactions.fm_publish_descriptor.preconditions.precondition_0",
@@ -1884,10 +2192,6 @@
         "parameters.descriptor_fifo_depth"
       ],
       "owner_matches": [
-        {
-          "ref": "function_model.state_variables.descriptor_queue",
-          "matched_ref": "function_model"
-        },
         {
           "ref": "function_model.transactions.fm_publish_descriptor",
           "matched_ref": "function_model.transactions.FM_PUBLISH_DESCRIPTOR"
@@ -1910,6 +2214,30 @@
         },
         {
           "ref": "function_model.transactions.fm_publish_descriptor.outputs.output_1",
+          "matched_ref": "function_model.transactions.FM_PUBLISH_DESCRIPTOR"
+        },
+        {
+          "ref": "function_model.transactions.fm_publish_descriptor.outputs.descriptor_ready",
+          "matched_ref": "function_model.transactions.FM_PUBLISH_DESCRIPTOR"
+        },
+        {
+          "ref": "function_model.transactions.fm_publish_descriptor.outputs.descriptor_payload_len",
+          "matched_ref": "function_model.transactions.FM_PUBLISH_DESCRIPTOR"
+        },
+        {
+          "ref": "function_model.transactions.fm_publish_descriptor.outputs.descriptor_base_addr",
+          "matched_ref": "function_model.transactions.FM_PUBLISH_DESCRIPTOR"
+        },
+        {
+          "ref": "function_model.transactions.fm_publish_descriptor.outputs.message_completed_count",
+          "matched_ref": "function_model.transactions.FM_PUBLISH_DESCRIPTOR"
+        },
+        {
+          "ref": "function_model.transactions.fm_publish_descriptor.outputs.descriptor_valid",
+          "matched_ref": "function_model.transactions.FM_PUBLISH_DESCRIPTOR"
+        },
+        {
+          "ref": "function_model.transactions.fm_publish_descriptor.outputs.ctx_state",
           "matched_ref": "function_model.transactions.FM_PUBLISH_DESCRIPTOR"
         },
         {
@@ -1981,7 +2309,11 @@
         "function_model.transactions.fm_axi_read.inputs.input_0",
         "function_model.transactions.fm_axi_read.output_rules.rlast_next",
         "function_model.transactions.fm_axi_read.output_rules.rresp_next",
+        "function_model.transactions.fm_axi_read.outputs.fw_axi_read_beat_count",
+        "function_model.transactions.fm_axi_read.outputs.fw_axi_read_error_count",
         "function_model.transactions.fm_axi_read.outputs.output_0",
+        "function_model.transactions.fm_axi_read.outputs.rlast_next",
+        "function_model.transactions.fm_axi_read.outputs.rresp_next",
         "function_model.transactions.fm_axi_read.preconditions.precondition_0",
         "function_model.transactions.fm_axi_read.preconditions.precondition_1",
         "function_model.transactions.fm_axi_read.preconditions.precondition_2",
@@ -1999,7 +2331,11 @@
         "function_model.transactions.fm_axi_read.inputs.input_0",
         "function_model.transactions.fm_axi_read.output_rules.rlast_next",
         "function_model.transactions.fm_axi_read.output_rules.rresp_next",
+        "function_model.transactions.fm_axi_read.outputs.fw_axi_read_beat_count",
+        "function_model.transactions.fm_axi_read.outputs.fw_axi_read_error_count",
         "function_model.transactions.fm_axi_read.outputs.output_0",
+        "function_model.transactions.fm_axi_read.outputs.rlast_next",
+        "function_model.transactions.fm_axi_read.outputs.rresp_next",
         "function_model.transactions.fm_axi_read.preconditions.precondition_0",
         "function_model.transactions.fm_axi_read.preconditions.precondition_1",
         "function_model.transactions.fm_axi_read.preconditions.precondition_2",
@@ -2035,6 +2371,22 @@
         },
         {
           "ref": "function_model.transactions.fm_axi_read.outputs.output_0",
+          "matched_ref": "function_model.transactions.FM_AXI_READ"
+        },
+        {
+          "ref": "function_model.transactions.fm_axi_read.outputs.rresp_next",
+          "matched_ref": "function_model.transactions.FM_AXI_READ"
+        },
+        {
+          "ref": "function_model.transactions.fm_axi_read.outputs.rlast_next",
+          "matched_ref": "function_model.transactions.FM_AXI_READ"
+        },
+        {
+          "ref": "function_model.transactions.fm_axi_read.outputs.fw_axi_read_beat_count",
+          "matched_ref": "function_model.transactions.FM_AXI_READ"
+        },
+        {
+          "ref": "function_model.transactions.fm_axi_read.outputs.fw_axi_read_error_count",
           "matched_ref": "function_model.transactions.FM_AXI_READ"
         },
         {
@@ -2083,13 +2435,24 @@
       "rtl_module": "mctp_assembler_v3_apb_regfile",
       "rtl_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "source_sections": [
+        "decomposition",
         "error_handling",
+        "features",
+        "function_model",
         "interrupts",
         "parameters",
         "registers"
       ],
       "ssot_refs": [
+        "decomposition",
         "error_handling",
+        "features",
+        "function_model.state_variables",
+        "function_model.state_variables.context_table",
+        "function_model.state_variables.counters",
+        "function_model.state_variables.descriptor_queue",
+        "function_model.state_variables.last_drop_class",
+        "function_model.state_variables.sram_alloc_ptr",
         "interrupts",
         "parameters.baseline_mtu_bytes",
         "registers",
@@ -2115,7 +2478,13 @@
         "registers.register_list.sram_limit",
         "registers.register_list.status"
       ],
-      "function_model_refs": [],
+      "function_model_refs": [
+        "function_model.state_variables.context_table",
+        "function_model.state_variables.counters",
+        "function_model.state_variables.descriptor_queue",
+        "function_model.state_variables.last_drop_class",
+        "function_model.state_variables.sram_alloc_ptr"
+      ],
       "cycle_model_refs": [],
       "structural_refs": [
         "parameters.baseline_mtu_bytes",
@@ -2140,7 +2509,28 @@
         "registers.register_list.sram_limit",
         "registers.register_list.status"
       ],
-      "owner_matches": [],
+      "owner_matches": [
+        {
+          "ref": "function_model.state_variables.context_table",
+          "matched_ref": "function_model.state_variables"
+        },
+        {
+          "ref": "function_model.state_variables.descriptor_queue",
+          "matched_ref": "function_model.state_variables"
+        },
+        {
+          "ref": "function_model.state_variables.sram_alloc_ptr",
+          "matched_ref": "function_model.state_variables"
+        },
+        {
+          "ref": "function_model.state_variables.counters",
+          "matched_ref": "function_model.state_variables"
+        },
+        {
+          "ref": "function_model.state_variables.last_drop_class",
+          "matched_ref": "function_model.state_variables"
+        }
+      ],
       "structural_owner_matches": [
         {
           "ref": "parameters.baseline_mtu_bytes",
@@ -2228,7 +2618,7 @@
         }
       ],
       "verification_scope": "module",
-      "requires_module_equivalence": false,
+      "requires_module_equivalence": true,
       "blocked": false,
       "blocker": ""
     },
@@ -2264,9 +2654,12 @@
       "rtl_file": "rtl/mctp_assembler_v3.sv",
       "source_sections": [
         "cycle_model",
+        "dataflow",
+        "decomposition",
         "function_model",
         "integration",
-        "io_list"
+        "io_list",
+        "top_module"
       ],
       "ssot_refs": [
         "cycle_model",
@@ -2277,12 +2670,15 @@
         "cycle_model.pipeline.s3_context",
         "cycle_model.pipeline.s4_pack",
         "cycle_model.pipeline.s5_descriptor",
+        "dataflow",
+        "decomposition",
         "function_model",
         "function_model.transactions",
         "integration",
         "integration.connections",
         "io_list",
-        "io_list.interfaces"
+        "io_list.interfaces",
+        "top_module"
       ],
       "function_model_refs": [],
       "cycle_model_refs": [
@@ -2297,7 +2693,8 @@
         "integration",
         "integration.connections",
         "io_list",
-        "io_list.interfaces"
+        "io_list.interfaces",
+        "top_module"
       ],
       "owner_matches": [
         {
@@ -2333,7 +2730,7 @@
     }
   ],
   "orphan_function_cycle_refs": [],
-  "function_cycle_ref_count": 154,
+  "function_cycle_ref_count": 199,
   "authority_contract": {
     "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
     "general_evaluation_criteria": [
