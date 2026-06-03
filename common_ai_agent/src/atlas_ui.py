@@ -3802,10 +3802,12 @@ def create_app():
         if not session:
             return None
         parts = [part for part in session.split("/") if part]
-        if len(parts) >= 4:
+        if len(parts) > 4:
+            return None
+        if len(parts) == 4:
             try:
                 context = AtlasContext.from_session_key(
-                    "/".join(parts[:4]),
+                    session,
                     atlas_root=os.environ.get("ATLAS_ROOT") or str(PROJECT_ROOT),
                 )
                 return context.session_dir / "todo.json"
@@ -9534,26 +9536,34 @@ def create_app():
         if not session:
             return
         parts = [part for part in session.split("/") if part]
-        owner = parts[0].strip() if len(parts) >= 1 else ""
-        if len(parts) >= 4:
-            ip = parts[2].strip()
-            workflow = parts[3].strip()
-        else:
-            ip = parts[1].strip() if len(parts) >= 2 else ""
-            workflow = parts[2].strip() if len(parts) >= 3 else ""
+        context: AtlasContext | None = None
+        if len(parts) >= 3:
+            try:
+                context = AtlasContext.from_session_key(
+                    session,
+                    atlas_root=os.environ.get("ATLAS_ROOT") or str(PROJECT_ROOT),
+                )
+            except ValueError:
+                context = None
+        owner = context.user_name if context is not None else (parts[0].strip() if len(parts) >= 1 else "")
+        ip = context.ip_name if context is not None else (parts[1].strip() if len(parts) >= 2 else "")
+        workflow = context.workflow if context is not None else (parts[2].strip() if len(parts) >= 3 else "")
         _atlas_active_session_cv.set(session)
         if ip:
             _atlas_active_ip_cv.set(ip)
         if mirror_env:
-            os.environ["ATLAS_ACTIVE_SESSION"] = session
-            if owner:
-                os.environ["ATLAS_MEMORY_USER"] = owner
-                os.environ["ATLAS_DEFAULT_SESSION_ID"] = owner
-            if ip:
-                os.environ["ATLAS_ACTIVE_IP"] = ip
-            if workflow:
-                os.environ["ATLAS_DEFAULT_WORKFLOW"] = workflow
-                os.environ["ACTIVE_WORKSPACE"] = workflow
+            if context is not None:
+                os.environ.update(context.export_env())
+            else:
+                os.environ["ATLAS_ACTIVE_SESSION"] = session
+                if owner:
+                    os.environ["ATLAS_MEMORY_USER"] = owner
+                    os.environ["ATLAS_DEFAULT_SESSION_ID"] = owner
+                if ip:
+                    os.environ["ATLAS_ACTIVE_IP"] = ip
+                if workflow:
+                    os.environ["ATLAS_DEFAULT_WORKFLOW"] = workflow
+                    os.environ["ACTIVE_WORKSPACE"] = workflow
         if not apply_main:
             return
         try:

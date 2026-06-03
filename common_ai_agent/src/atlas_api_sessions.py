@@ -1200,9 +1200,11 @@ def register_sessions_routes(
     def _session_dir_for_namespace(session: str) -> tuple[Path, Path]:
         normalized = normalize_session_name(session)
         parts = [part for part in normalized.split("/") if part]
-        if len(parts) >= 4:
+        if len(parts) > 4:
+            raise ValueError("session_key must contain at most user/session/ip/workflow")
+        if len(parts) == 4:
             context = AtlasContext.from_session_key(
-                "/".join(parts[:4]),
+                normalized,
                 atlas_root=_context_atlas_root(),
             )
             return context.session_dir.resolve(), context.workspace_root.resolve()

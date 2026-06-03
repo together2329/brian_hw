@@ -121,6 +121,38 @@ def test_git_api_targets_explicit_ip_repo(tmp_path: Path, monkeypatch):
     assert push["ip"] == "alpha"
 
 
+def test_git_api_targets_v2_session_ip_root(tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("ATLAS_ROOT", str(tmp_path / "atlas-root"))
+    legacy_ip = tmp_path / "NEWIP_MCTP"
+    legacy_ip.mkdir()
+
+    ip_repo = tmp_path / "atlas-root" / "alice" / "s1" / "NEWIP_MCTP"
+    _init_repo(ip_repo, branch="v2branch")
+    _ = (ip_repo / "foo.txt").write_text("one\n", encoding="utf-8")
+    _ = _run_git(ip_repo, "add", "foo.txt")
+    _ = _run_git(ip_repo, "commit", "-q", "-m", "v2 ip initial")
+    _ = (ip_repo / "foo.txt").write_text("two\n", encoding="utf-8")
+
+    client = _authenticated_client(_create_app(tmp_path, monkeypatch))
+    session_id = "alice/s1/NEWIP_MCTP/default"
+
+    status = client.get(
+        "/api/git/status",
+        params={"ip": "NEWIP_MCTP", "session_id": session_id},
+    ).json()
+    assert status["ip"] == "NEWIP_MCTP"
+    assert status["branch"] == "v2branch"
+    assert status["cwd"] == str(ip_repo)
+    assert status["dirty"] is True
+
+    graph = client.get(
+        "/api/ip/NEWIP_MCTP/git/graph",
+        params={"limit": "20", "session_id": session_id},
+    ).json()
+    assert graph["provider"] == "git"
+    assert graph["commits"][0]["subject"] == "v2 ip initial"
+
+
 def test_git_api_does_not_fallback_to_root_for_ip_without_git(tmp_path: Path, monkeypatch):
     _init_repo(tmp_path, branch="rootbranch")
     _ = (tmp_path / "root.txt").write_text("root\n", encoding="utf-8")
