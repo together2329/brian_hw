@@ -40,7 +40,7 @@
     "static_missing": 0,
     "status": "pass"
   },
-  "generated_at": "2026-05-31T11:57:54Z",
+  "generated_at": "2026-06-03T10:06:53Z",
   "ip": "generic_counter_ip",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 0,
@@ -103,30 +103,30 @@
     "aggregate": {
       "behavior_owner_logic_modules": 1,
       "control_flow": 1,
-      "depth_score": 13,
+      "depth_score": 9,
       "instances": 0,
-      "lines": 24,
+      "lines": 23,
       "logic_modules": 1,
       "modules": 1,
-      "nonconstant_assigns": 2,
+      "nonconstant_assigns": 0,
       "procedural_blocks": 1,
       "source_files": 1,
       "state_updates": 2,
-      "storage_decls": 3
+      "storage_decls": 1
     },
     "issues": [],
     "modules": [
       {
-        "depth_score": 13,
+        "depth_score": 9,
         "file": "rtl/generic_counter_ip.sv",
         "metrics": {
           "control_flow": 1,
           "instances": 0,
-          "nonconstant_assigns": 2,
+          "nonconstant_assigns": 0,
           "placeholder_tokens": false,
           "procedural_blocks": 1,
           "state_updates": 2,
-          "storage_decls": 3
+          "storage_decls": 1
         },
         "module": "generic_counter_ip"
       }
