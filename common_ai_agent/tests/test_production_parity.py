@@ -104,7 +104,7 @@ def _wait_for_port(host: str, port: int, timeout: float = 12.0) -> bool:
 
 def _collect_output(
     proc: "subprocess.Popen[bytes]",
-    store: list,
+    store: list[str],
     timeout: float,
 ) -> None:
     """Read stdout of *proc* into *store* for up to *timeout* seconds."""
@@ -182,13 +182,28 @@ def test_atlas_ui_imports_cleanly_as_main_module():
         pass  # any exit code is acceptable as long as no ImportError above
 
 
+def test_atlas_ui_direct_script_bootstraps_from_external_cwd(tmp_path: Path):
+    cmd = [sys.executable, str(ATLAS_UI), "--help"]
+    result = subprocess.run(
+        cmd,
+        cwd=str(tmp_path),
+        capture_output=True,
+        timeout=15,
+    )
+    combined = (result.stdout + result.stderr).decode("utf-8", errors="replace")
+    bad = re.search(r"(ImportError|ModuleNotFoundError)", combined)
+    assert bad is None, (
+        f"Import error detected in subprocess output:\n{combined[:2000]}"
+    )
+
+
 # ---------------------------------------------------------------------------
 # Test 2 — full launch + /healthz probe
 # ---------------------------------------------------------------------------
 
 def test_atlas_ui_launches_and_healthz_responds(
     tmp_path: Path,
-    subprocess_guard: list,
+    subprocess_guard: list[subprocess.Popen[bytes]],
 ):
     """
     Launch `python3 src/atlas_ui.py --port <N> --exec o ...` and confirm
@@ -247,7 +262,7 @@ def test_atlas_ui_launches_and_healthz_responds(
 
 def test_lazy_single_worker_does_not_spawn_eagerly(
     tmp_path: Path,
-    subprocess_guard: list,
+    subprocess_guard: list[subprocess.Popen[bytes]],
 ):
     """
     With `--exec s` (single-worker, lazy), atlas_ui must print
@@ -322,7 +337,7 @@ def test_lazy_single_worker_does_not_spawn_eagerly(
 
 def test_env_inheritance_smoke(
     tmp_path: Path,
-    subprocess_guard: list,
+    subprocess_guard: list[subprocess.Popen[bytes]],
 ):
     """
     With ATLAS_SINGLE_WORKER_EAGER=1, atlas_ui must print the eager-spawn

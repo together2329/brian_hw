@@ -1,0 +1,372 @@
+{
+  "schema_version": 1,
+  "type": "generic_ssot_rule_rtl_contract",
+  "ip": "mctp_assembler_v3",
+  "top": "mctp_assembler_v3",
+  "generated_at": "2026-06-03T12:37:56Z",
+  "contract": {
+    "top": "mctp_assembler_v3",
+    "transaction": "FM_INGEST_TLP",
+    "clock": "axi_aclk",
+    "reset": "axi_aresetn",
+    "reset_active": "low",
+    "sample_condition": "1",
+    "outputs": [
+      {
+        "name": "bresp_next",
+        "port": "s_axi_bresp",
+        "expr": "2'(0)",
+        "width": 2,
+        "source": {
+          "name": "bresp_next",
+          "port": "s_axi_bresp",
+          "expr": "BRESP_OKAY",
+          "width": 2,
+          "description": "FunctionalModel output observable mapped to DUT output port."
+        }
+      },
+      {
+        "name": "sram_wr_valid",
+        "port": "sram_wr_valid",
+        "expr": "(((((((payload_bytes) > (0))) != 0))) != 0)",
+        "width": 1,
+        "source": {
+          "name": "sram_wr_valid",
+          "port": "sram_wr_valid",
+          "expr": "payload_bytes > 0",
+          "width": 1,
+          "description": "FunctionalModel output observable mapped to DUT output port."
+        }
+      },
+      {
+        "name": "sram_wr_addr",
+        "port": "sram_wr_addr",
+        "expr": "16'(((ctx_payload_next_addr) & ((~(31)))))",
+        "width": 16,
+        "source": {
+          "name": "sram_wr_addr",
+          "port": "sram_wr_addr",
+          "expr": "ctx_payload_next_addr & ~31",
+          "width": 16,
+          "description": "FunctionalModel output observable mapped to DUT output port."
+        }
+      },
+      {
+        "name": "sram_wr_strb",
+        "port": "sram_wr_strb",
+        "expr": "32'((((((1) << payload_bytes) - 1)) << ((ctx_payload_next_addr) & (31))))",
+        "width": 32,
+        "source": {
+          "name": "sram_wr_strb",
+          "port": "sram_wr_strb",
+          "expr": "(((1 << payload_bytes) - 1) << (ctx_payload_next_addr & 31))",
+          "width": 32,
+          "description": "FunctionalModel output observable mapped to DUT output port."
+        }
+      },
+      {
+        "name": "rresp_next",
+        "port": "s_axi_rresp",
+        "expr": "2'(((((((out_of_window) != 0) || (((((no_descriptor) != 0) && (((!((raw_sram_debug_read_enable) != 0))) != 0))) != 0))) != 0) ? (2) : (0)))",
+        "width": 2,
+        "source": {
+          "name": "rresp_next",
+          "port": "s_axi_rresp",
+          "expr": "RRESP_SLVERR if (out_of_window or (no_descriptor and not raw_sram_debug_read_enable)) else RRESP_OKAY",
+          "width": 2,
+          "description": "FunctionalModel output observable mapped to DUT output port."
+        }
+      },
+      {
+        "name": "rlast_next",
+        "port": "s_axi_rlast",
+        "expr": "(((((((beat_index) == (s_axi_arlen))) != 0))) != 0)",
+        "width": 1,
+        "source": {
+          "name": "rlast_next",
+          "port": "s_axi_rlast",
+          "expr": "beat_index == arlen",
+          "width": 1,
+          "description": "FunctionalModel output observable mapped to DUT output port."
+        }
+      }
+    ],
+    "state_vars": {
+      "context_table": {
+        "width": 32,
+        "reset": 0
+      },
+      "descriptor_queue": {
+        "width": 32,
+        "reset": 0
+      },
+      "sram_alloc_ptr": {
+        "width": 32,
+        "reset": 0
+      },
+      "counters": {
+        "width": 32,
+        "reset": 0
+      },
+      "last_drop_class": {
+        "width": 32,
+        "reset": 0
+      },
+      "tlp_seen_count": {
+        "width": 32,
+        "reset": 0
+      },
+      "tlp_accepted_count": {
+        "width": 32,
+        "reset": 0
+      },
+      "active_context_count": {
+        "width": 5,
+        "reset": 0
+      },
+      "ctx_payload_byte_count": {
+        "width": 13,
+        "reset": 0
+      },
+      "ctx_expected_seq": {
+        "width": 2,
+        "reset": 0
+      },
+      "ctx_payload_base_addr": {
+        "width": 16,
+        "reset": 0
+      },
+      "ctx_payload_next_addr": {
+        "width": 16,
+        "reset": 0
+      },
+      "ctx_partial_next_lane": {
+        "width": 5,
+        "reset": 0
+      },
+      "payload_bytes_written_count": {
+        "width": 32,
+        "reset": 0
+      },
+      "message_completed_count": {
+        "width": 32,
+        "reset": 0
+      },
+      "fw_axi_read_beat_count": {
+        "width": 32,
+        "reset": 0
+      },
+      "fw_axi_read_error_count": {
+        "width": 32,
+        "reset": 0
+      },
+      "ctx_state": {
+        "width": 32,
+        "reset": 0
+      }
+    },
+    "state_updates": [
+      {
+        "name": "ctx_payload_byte_count",
+        "expr": "(ctx_payload_byte_count + payload_bytes)",
+        "source": {
+          "name": "ctx_payload_byte_count",
+          "reset": 0,
+          "expr": "ctx_payload_byte_count + payload_bytes"
+        }
+      },
+      {
+        "name": "ctx_expected_seq",
+        "expr": "((ctx_expected_seq + 1) % 4)",
+        "source": {
+          "name": "ctx_expected_seq",
+          "reset": 0,
+          "expr": "(ctx_expected_seq + 1) % 4"
+        }
+      },
+      {
+        "name": "ctx_state",
+        "expr": "((((((som) != 0) && ((eom) != 0))) != 0) ? (3) : (1))",
+        "source": {
+          "name": "ctx_state",
+          "reset": 0,
+          "expr": "DONE_WAIT_DESCRIPTOR_POP if (som and eom) else ASSEMBLING"
+        }
+      }
+    ],
+    "special_outputs": {
+      "ready_output": "sram_rd_rsp_ready",
+      "output_valid": "sram_wr_valid"
+    },
+    "pipeline_stages": [
+      "S0_INGEST",
+      "S1_VDM_DECODE",
+      "S2_MCTP_DECODE",
+      "S3_CONTEXT",
+      "S4_PACK",
+      "S5_DESCRIPTOR"
+    ],
+    "fsm_states": [],
+    "fsm_transitions": [],
+    "input_map": {
+      "arlen": "s_axi_arlen",
+      "som": "som",
+      "eom": "eom",
+      "beat_index": "beat_index",
+      "out_of_window": "out_of_window",
+      "no_descriptor": "no_descriptor",
+      "payload_bytes": "payload_bytes",
+      "raw_sram_debug_read_enable": "raw_sram_debug_read_enable",
+      "tlp_bytes": "axi_wr_slave_wdata_wstrb_across_beats_byte_lane_N_wdata_8_N_8",
+      "config": "registers_CONTROL",
+      "fw_read": "axi_rd_slave_araddr_arlen",
+      "s_axi_awaddr": "s_axi_awaddr",
+      "s_axi_awlen": "s_axi_awlen",
+      "s_axi_awsize": "s_axi_awsize",
+      "s_axi_awburst": "s_axi_awburst",
+      "s_axi_awvalid": "s_axi_awvalid",
+      "s_axi_wdata": "s_axi_wdata",
+      "s_axi_wstrb": "s_axi_wstrb",
+      "s_axi_wlast": "s_axi_wlast",
+      "s_axi_wvalid": "s_axi_wvalid",
+      "s_axi_bready": "s_axi_bready",
+      "s_axi_araddr": "s_axi_araddr",
+      "s_axi_arlen": "s_axi_arlen",
+      "s_axi_arsize": "s_axi_arsize",
+      "s_axi_arburst": "s_axi_arburst",
+      "s_axi_arvalid": "s_axi_arvalid",
+      "s_axi_rready": "s_axi_rready",
+      "paddr": "paddr",
+      "psel": "psel",
+      "penable": "penable",
+      "pwrite": "pwrite",
+      "pwdata": "pwdata",
+      "pstrb": "pstrb",
+      "sram_wr_ready": "sram_wr_ready",
+      "sram_rd_req_ready": "sram_rd_req_ready",
+      "sram_rd_rsp_data": "sram_rd_rsp_data",
+      "sram_rd_rsp_error": "sram_rd_rsp_error"
+    },
+    "apb_registers": {
+      "addr_width": 16,
+      "data_width": 32,
+      "strb_width": 4,
+      "registers": [
+        {
+          "name": "CONTROL",
+          "offset": 0,
+          "width": 32,
+          "access": "rw",
+          "reset": 0,
+          "description": "Global control/policy"
+        },
+        {
+          "name": "CFG_TU",
+          "offset": 4,
+          "width": 32,
+          "access": "rw",
+          "reset": 268435520,
+          "description": "Transmission unit / message size config"
+        },
+        {
+          "name": "CFG_TIMEOUT",
+          "offset": 8,
+          "width": 32,
+          "access": "rw",
+          "reset": 0,
+          "description": "Assembly timeout cycles"
+        },
+        {
+          "name": "SRAM_BASE",
+          "offset": 12,
+          "width": 32,
+          "access": "rw",
+          "reset": 0,
+          "description": "Payload SRAM base byte address (bump allocator start)"
+        },
+        {
+          "name": "SRAM_LIMIT",
+          "offset": 16,
+          "width": 32,
+          "access": "rw",
+          "reset": 65535,
+          "description": "Payload SRAM limit byte address (exclusive)"
+        },
+        {
+          "name": "STATUS",
+          "offset": 32,
+          "width": 32,
+          "access": "ro",
+          "reset": 0,
+          "description": "Global non-destructive status"
+        },
+        {
+          "name": "CTX_STATE",
+          "offset": 1024,
+          "width": 32,
+          "access": "ro",
+          "reset": 0,
+          "description": "Per-context FSM/key snapshot (context[0..CONTEXT_COUNT-1]); full per-Q bank includes payload/header mirrors at +0x04..+0x3C"
+        },
+        {
+          "name": "INTR_RAW_STATUS",
+          "offset": 256,
+          "width": 32,
+          "access": "ro",
+          "reset": 0,
+          "description": "Raw interrupt event state before masking"
+        },
+        {
+          "name": "INTR_ENABLE",
+          "offset": 260,
+          "width": 32,
+          "access": "rw",
+          "reset": 0,
+          "description": "Interrupt mask"
+        },
+        {
+          "name": "INTR_STATUS",
+          "offset": 264,
+          "width": 32,
+          "access": "ro",
+          "reset": 0,
+          "description": "Masked interrupt status (raw & enable)"
+        },
+        {
+          "name": "INTR_CLEAR",
+          "offset": 268,
+          "width": 32,
+          "access": "rw",
+          "reset": 0,
+          "description": "Write-one-to-clear interrupt bits"
+        },
+        {
+          "name": "CNT_TLP_SEEN",
+          "offset": 512,
+          "width": 32,
+          "access": "ro",
+          "reset": 0,
+          "description": "Saturating traffic/drop counters block base (0x200..0x27C): tlp_seen, tlp_accepted, message_completed, payload_bytes_written, fw_axi_read_beat, fw_axi_read_error, packet_drop, assembly_drop, then 8 PD_* reason counters and 6 AD_* reason counters"
+        },
+        {
+          "name": "DESC_VALID",
+          "offset": 768,
+          "width": 32,
+          "access": "ro",
+          "reset": 0,
+          "description": "Oldest completed descriptor: valid + key + status (full descriptor body at 0x300..0x34C including payload_base_addr, payload_len, requester_id, pcie_routing_type, first/last_tlp_header[0:15])"
+        },
+        {
+          "name": "DEBUG_CTX",
+          "offset": 896,
+          "width": 32,
+          "access": "ro",
+          "reset": 0,
+          "description": "Selected-context mirror + FSM states (parser/axi-wr/axi-rd/sram-pack/sram-read) + last decoded VDM/MCTP fields"
+        }
+      ],
+      "has_interrupt_policy": false
+    },
+    "source": "rtl_contract + function_model.output_rules"
+  }
+}

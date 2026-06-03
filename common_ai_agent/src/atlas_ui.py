@@ -46,6 +46,12 @@ import time
 from pathlib import Path
 from typing import Any, Callable, Optional, TYPE_CHECKING
 
+_THIS_DIR = Path(__file__).resolve().parent
+_REPO_ROOT = _THIS_DIR.parent
+for _p in (str(_THIS_DIR), str(_REPO_ROOT)):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+
 from core.atlas_context import AtlasContext
 
 
@@ -113,17 +119,6 @@ def _is_disconnect_os_error(exc: BaseException) -> bool:
             return True
     return False
 
-
-# Self-bootstrap PYTHONPATH so `python3 src/atlas_ui.py` works without
-# the caller exporting PYTHONPATH=.:src first. atlas_ui imports modules
-# from BOTH this directory (other src/*.py siblings) AND the repo root
-# (core/, lib/, workflow/loader). Adding both up front lets the binary
-# be launched from any cwd.
-_THIS_DIR = Path(__file__).resolve().parent
-_REPO_ROOT = _THIS_DIR.parent
-for _p in (str(_THIS_DIR), str(_REPO_ROOT)):
-    if _p not in sys.path:
-        sys.path.insert(0, _p)
 
 # `from __future__ import annotations` turns every type annotation into
 # a string. FastAPI's `get_type_hints()` then needs to resolve those

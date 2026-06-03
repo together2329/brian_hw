@@ -301,6 +301,14 @@ rtl_contract:
   transaction: FM_INGEST_TLP
   sample_condition: '1'
   input_map:
+    arlen: s_axi_arlen
+    som: som
+    eom: eom
+    beat_index: beat_index
+    out_of_window: out_of_window
+    no_descriptor: no_descriptor
+    payload_bytes: payload_bytes
+    raw_sram_debug_read_enable: raw_sram_debug_read_enable
     tlp_bytes: 'axi_wr_slave.wdata/wstrb across beats, byte lane N -> wdata[8*N +: 8]'
     config: registers.CONTROL
     fw_read: axi_rd_slave.araddr/arlen
@@ -358,13 +366,13 @@ rtl_contract:
   state_updates:
   - name: ctx_payload_byte_count
     reset: 0
-    expr: increment by accepted payload bytes; clear on reset/context release
+    expr: ctx_payload_byte_count + payload_bytes
   - name: ctx_expected_seq
     reset: 0
-    expr: increment modulo 4 after SOM per continuation packet
+    expr: (ctx_expected_seq + 1) % 4
   - name: ctx_state
-    reset: IDLE
-    expr: IDLE/ASSEMBLING/ERROR/DONE_WAIT_DESCRIPTOR_POP per fsm.context_fsm
+    reset: 0
+    expr: DONE_WAIT_DESCRIPTOR_POP if (som and eom) else ASSEMBLING
   owner: ssot-gen
   type: ssot_derived_rule_contract
   clock: axi_aclk
