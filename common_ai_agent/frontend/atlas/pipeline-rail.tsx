@@ -74,6 +74,7 @@ interface AtlasGlue {
   // session / context globals (owned by other files)
   ATLAS_USER?: { username?: string } & Record<string, unknown>;
   ATLAS_USER_SESSION_ID?: unknown;
+  ATLAS_WORKSPACE_SESSION_ID?: unknown;
   ACTIVE_SESSION?: string;
   ATLAS_DB_SESSION_ID?: string;
 }
@@ -91,11 +92,16 @@ export function HierarchyList({ activeIp, onSelect }: HierarchyListProps) {
     let dead = false;
     (async () => {
       try {
-        const sessionId = (w.ATLAS_USER && w.ATLAS_USER.username)
+        const owner = String((w.ATLAS_USER && w.ATLAS_USER.username)
           || w.ATLAS_USER_SESSION_ID
           || (w.ACTIVE_SESSION || '').split('/')[0]
-          || '';
-        const url = sessionId ? `/api/ip/list?session_id=${encodeURIComponent(String(sessionId))}` : '/api/ip/list';
+          || '');
+        const activeParts = String(w.ACTIVE_SESSION || '').split('/').filter(Boolean);
+        const workspaceSession = activeParts.length >= 4 && activeParts[0] === owner
+          ? activeParts[1]
+          : String(w.ATLAS_WORKSPACE_SESSION_ID || 'default');
+        const sessionScope = owner ? `${owner}/${workspaceSession || 'default'}` : '';
+        const url = sessionScope ? `/api/ip/list?session_id=${encodeURIComponent(sessionScope)}` : '/api/ip/list';
         const r = await fetch(url);
         const j = await r.json().catch(() => ({}));
         if (dead) return;
@@ -362,11 +368,16 @@ export function StageStatusRail({ activeIp, onSelectIp, state, simpleSummary, se
     let dead = false;
     (async () => {
       try {
-        const sessionId = (w.ATLAS_USER && w.ATLAS_USER.username)
+        const owner = String((w.ATLAS_USER && w.ATLAS_USER.username)
           || w.ATLAS_USER_SESSION_ID
           || (w.ACTIVE_SESSION || '').split('/')[0]
-          || '';
-        const url = sessionId ? `/api/ip/list?session_id=${encodeURIComponent(String(sessionId))}` : '/api/ip/list';
+          || '');
+        const activeParts = String(w.ACTIVE_SESSION || '').split('/').filter(Boolean);
+        const workspaceSession = activeParts.length >= 4 && activeParts[0] === owner
+          ? activeParts[1]
+          : String(w.ATLAS_WORKSPACE_SESSION_ID || 'default');
+        const sessionScope = owner ? `${owner}/${workspaceSession || 'default'}` : '';
+        const url = sessionScope ? `/api/ip/list?session_id=${encodeURIComponent(sessionScope)}` : '/api/ip/list';
         const r = await fetch(url);
         const j = await r.json().catch(() => ({}));
         if (dead) return;

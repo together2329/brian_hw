@@ -1,0 +1,8 @@
+TESTS=1 PASS=1 FAIL=0
+results=mctp_assembler_v3/sim/results.xml
+scoreboard=mctp_assembler_v3/sim/scoreboard_events.jsonl
+coverage_functional=mctp_assembler_v3/cov/coverage_functional.json
+waveforms=mctp_assembler_v3/sim/mctp_assembler_v3.vcd
+0 errors, 0 warnings
+[SIM ESCALATE] scoreboard_failed=32 owner=sim_debug evidence=/Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_v3/sim/scoreboard_events.jsonl
+[SIM ESCALATE] reason=FL-vs-RTL scoreboard mismatch: EQ_TRANSACTION_FM_DECODE_VDM: no comparable RTL observable for FunctionalModel result; EQ_TRANSACTION_FM_DECODE_MCTP: no comparable RTL observable for FunctionalModel result; EQ_TRANSACTION_FM_ALLOC_CONTEXT: no comparable RTL observable for FunctionalModel result; EQ_TRANSACTION_FM_APPEND: no comparable RTL observable for FunctionalModel result; EQ_TRANSACTION_FM_PACK_SRAM: sram_wr_valid: expected=1 observed=0; sram_wr_strb: expected=262143 observed=0; EQ_TRANSACTION_FM_PUBLISH_DESCRIPTOR: no comparable RTL observable for FunctionalModel result; EQ_TRANSACTION_FM_AXI_READ: rresp_next: expected=2 observed=0; s_axi_rresp: expected=2 observed=0; rlast_next: expected=1 observed=0; s_axi_rlast: expected=1 observed=0; EQ_SCENARIO_SC_SINGLE: no comparable RTL observable for FunctionalModel result; ... +24 more
