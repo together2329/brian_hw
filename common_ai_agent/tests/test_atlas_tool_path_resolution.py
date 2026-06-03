@@ -198,6 +198,61 @@ def test_file_tools_accept_backslash_ip_paths(tmp_path, monkeypatch):
     assert target.read_text(encoding="utf-8") == "delta\ngamma\n"
 
 
+def test_find_files_dot_searches_active_ip_root(tmp_path, monkeypatch):
+    ip = "NEWIP_MCTP"
+    other_ip = "OTHER_IP"
+    project_root = tmp_path / "ROOT_IP"
+    for name in (ip, other_ip):
+        target = project_root / name / "yaml" / f"{name}.ssot.yaml"
+        target.parent.mkdir(parents=True)
+        target.write_text(f"name: {name}\n", encoding="utf-8")
+
+    monkeypatch.chdir(project_root)
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(project_root))
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", ip)
+
+    result = tools.find_files(pattern="*.ssot.yaml", directory=".")
+
+    assert f"yaml/{ip}.ssot.yaml" in result
+    assert other_ip not in result
+    assert f"{ip}/yaml/{ip}.ssot.yaml" not in result
+
+
+def test_read_pipeline_state_defaults_to_active_ip_env(monkeypatch):
+    seen = {}
+
+    def fake_read_pipeline_state(**kwargs):
+        seen.update(kwargs)
+        return {"ok": True, "ip": kwargs["ip"]}
+
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", "NEWIP_MCTP")
+    monkeypatch.setattr(tools, "_read_pipeline_state_callback", fake_read_pipeline_state)
+
+    result = tools.read_pipeline_state()
+
+    assert seen["ip"] == "NEWIP_MCTP"
+    assert '"ip": "NEWIP_MCTP"' in result
+
+
+def test_read_pipeline_state_env_fallback_when_ui_bridge_unavailable(tmp_path, monkeypatch):
+    ip = "NEWIP_MCTP"
+    project_root = tmp_path / "ROOT_IP"
+    ssot = project_root / ip / "yaml" / f"{ip}.ssot.yaml"
+    ssot.parent.mkdir(parents=True)
+    ssot.write_text("name: NEWIP_MCTP\n", encoding="utf-8")
+
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(project_root))
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", ip)
+    monkeypatch.setattr(tools, "_read_pipeline_state_callback", None)
+
+    result = tools.read_pipeline_state()
+
+    assert "[read_pipeline_state unavailable" not in result
+    assert '"source": "read_pipeline_state_env_fallback"' in result
+    assert '"ip": "NEWIP_MCTP"' in result
+    assert f'"yaml/{ip}.ssot.yaml"' in result
+
+
 def test_non_ip_file_tools_normalize_backslash_relative_paths(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     monkeypatch.delenv("ATLAS_PROJECT_ROOT", raising=False)

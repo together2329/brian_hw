@@ -516,6 +516,18 @@ def _resolve_write_path(path):
     return path
 
 
+def _active_ip_dot_search_root(directory):
+    norm = _norm_rel_tool_path(str(directory or "."))
+    if norm not in {"", "."}:
+        return ""
+    project_root = _atlas_project_root()
+    active_ip = (os.environ.get("ATLAS_ACTIVE_IP", "") or "").strip()
+    if not project_root or not active_ip or active_ip == "default":
+        return ""
+    active_root = os.path.join(project_root, active_ip)
+    return active_root if os.path.isdir(active_root) else ""
+
+
 def _summarize_atlas_rtl_ledger(path, total_lines):
     """Return a compact view for large ATLAS RTL ledgers."""
     basename = os.path.basename(path)
@@ -1698,11 +1710,11 @@ def find_files(pattern=None, directory=".", max_depth=None, path=None, recursive
         if not recursive:
             max_depth = 0
 
-        # Try the user's cwd-relative directory first; fall back to
-        # COMMON_AI_AGENT_HOME so bundled asset locations like
-        # `workflow/ssot-gen/rules/` resolve regardless of where the agent
-        # was launched from.
-        directory = _resolve_asset_path(directory)
+        # In an Atlas IP-bound worker, the user's visible "." is the active IP
+        # root, not the served project collection. Keep non-dot paths on the
+        # normal asset resolver so workflow/ and explicit ip/subdir paths retain
+        # their existing behavior.
+        directory = _active_ip_dot_search_root(directory) or _resolve_asset_path(directory)
         if not os.path.exists(directory):
             return f"Error: Directory '{directory}' does not exist."
         
@@ -7378,6 +7390,46 @@ def dispatch_workflow(
     return "\n".join(parts)
 
 
+def _read_pipeline_state_env_fallback(ip="", scope="", include_jobs=True):
+    ip_name = str(ip or "").strip()
+    if not ip_name and scope:
+        ip_name = os.path.basename(str(scope).rstrip("/"))
+    if not ip_name or ip_name == "default":
+        ip_name = (os.environ.get("ATLAS_ACTIVE_IP", "") or "").strip()
+    if not ip_name or not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", ip_name):
+        return None
+    project_root = _atlas_project_root() or os.getcwd()
+    ip_dir = os.path.join(project_root, ip_name)
+    ssot_files = []
+    yaml_dir = os.path.join(ip_dir, "yaml")
+    if os.path.isdir(yaml_dir):
+        for root, _dirs, files in os.walk(yaml_dir):
+            for filename in files:
+                if filename.endswith((".ssot.yaml", ".ssot.yml", "_ssot.yaml", "_ssot.yml")):
+                    ssot_files.append(
+                        _norm_rel_tool_path(os.path.relpath(os.path.join(root, filename), ip_dir))
+                    )
+    ssot_files = sorted(set(ssot_files))
+    state = "passed" if ssot_files else "idle"
+    return {
+        "ok": True,
+        "source": "read_pipeline_state_env_fallback",
+        "ip": ip_name,
+        "project_root": project_root,
+        "ip_dir": ip_dir,
+        "ip_exists": os.path.isdir(ip_dir),
+        "active_jobs": [] if _as_bool(include_jobs, True) else [],
+        "stages": {
+            "ssot": {
+                "state": state,
+                "workflow": "ssot-gen",
+                "evidence_paths": ssot_files,
+                "active_jobs": [] if _as_bool(include_jobs, True) else [],
+            }
+        },
+    }
+
+
 def read_pipeline_state(ip=None, scope=None, include_jobs=True):
     """Read ATLAS Pipeline state through the in-process UI bridge.
 
@@ -7385,11 +7437,25 @@ def read_pipeline_state(ip=None, scope=None, include_jobs=True):
     In the Atlas UI, the callback returns DB/job/artifact-backed state for the
     requested IP. Outside the UI it returns a clear unavailable message.
     """
+    requested_ip = str(ip or "").strip()
+    env_ip = (os.environ.get("ATLAS_ACTIVE_IP", "") or "").strip()
+    if (not requested_ip or requested_ip == "default") and env_ip and env_ip != "default":
+        requested_ip = env_ip
     if _read_pipeline_state_callback is None:
-        return "[read_pipeline_state unavailable — running outside Atlas UI mode]"
+        fallback = _read_pipeline_state_env_fallback(
+            ip=requested_ip,
+            scope=scope or "",
+            include_jobs=include_jobs,
+        )
+        if fallback is None:
+            return "[read_pipeline_state unavailable — running outside Atlas UI mode]"
+        try:
+            return json.dumps(fallback, indent=2, sort_keys=True)
+        except Exception:
+            return str(fallback)
     try:
         result = _read_pipeline_state_callback(
-            ip=ip or "",
+            ip=requested_ip,
             scope=scope or "",
             include_jobs=_as_bool(include_jobs, True),
         )
