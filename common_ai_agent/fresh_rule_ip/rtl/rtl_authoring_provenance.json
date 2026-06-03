@@ -13,12 +13,12 @@
   "ssot": "yaml/fresh_rule_ip.ssot.yaml",
   "surface": "headless_common_engine",
   "todo_plan": "rtl/rtl_todo_plan.json",
-  "todo_plan_sha256": "4d852e3ddc4eaa6d295332211e5cfbca1bab18160dd6d6aaef7c3e984450478c",
+  "todo_plan_sha256": "1111c4b65f6ae0150a935d7707865660080b4b01b269e384b4b31f1207a0caff",
   "toolchain": {
     "dut_lint_report": "workflow/lint/scripts/dut_lint_report.py",
     "rtl_compile_report": "workflow/rtl-gen/scripts/rtl_compile_report.py"
   },
   "type": "rtl_authoring_provenance",
-  "updated_at": "2026-06-03T09:51:37Z",
+  "updated_at": "2026-06-03T10:15:51Z",
   "workflow": "rtl-gen"
 }
