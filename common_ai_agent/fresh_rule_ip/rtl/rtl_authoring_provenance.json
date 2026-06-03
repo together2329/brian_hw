@@ -5,7 +5,7 @@
   "ip": "fresh_rule_ip",
   "model_profile": "atlas_api_worker",
   "notes": "LLM-authored RTL generated directly from canonical SSOT, authoring packets, and current rtl_todo_plan.",
-  "refresh_reason": "Provenance SHA256 refreshed after audit pass.",
+  "refresh_reason": "Post-audit provenance sync \u2014 gate already passed.",
   "rtl_files": [
     "rtl/fresh_rule_ip.sv"
   ],
@@ -13,12 +13,12 @@
   "ssot": "yaml/fresh_rule_ip.ssot.yaml",
   "surface": "headless_common_engine",
   "todo_plan": "rtl/rtl_todo_plan.json",
-  "todo_plan_sha256": "ead3a0b52a2a868a13f98301fafd603becc440c33fce70ad0cc4052cb26200ad",
+  "todo_plan_sha256": "79087c3d3319cf5d13566fc3813b8f4ef504fbfa0588cecd671096e7133e9d69",
   "toolchain": {
     "dut_lint_report": "workflow/lint/scripts/dut_lint_report.py",
     "rtl_compile_report": "workflow/rtl-gen/scripts/rtl_compile_report.py"
   },
   "type": "rtl_authoring_provenance",
-  "updated_at": "2026-06-03T10:30:59Z",
+  "updated_at": "2026-06-03T10:34:21Z",
   "workflow": "rtl-gen"
 }

@@ -22,6 +22,7 @@ describe('Atlas session routing', () => {
 
   it('keeps worker views scoped to their own IP', () => {
     expect(sessionIpFromSession('happy2/mctp/ssot-gen')).toBe('mctp');
+    expect(sessionIpFromSession('happy2/session-a/mctp/ssot-gen')).toBe('mctp');
     expect(activeIpForRouting({
       sessions: ['happy2/mctp/ssot-gen'],
       activeIp: 'old_ip',
@@ -66,6 +67,24 @@ describe('Atlas session routing', () => {
     expect(shouldUseBrowserSession({
       browserSession: 'happy2/mctp/orchestrator',
       payloadSession: 'happy2/NEW_MCTP/ssot-gen',
+    })).toBe(true);
+  });
+
+  it('treats v2 user sessions as separate routing owners even for the same IP', () => {
+    expect(sessionRoute('happy2/s1/mctp/orchestrator')).toEqual({
+      owner: 'happy2/s1',
+      ip: 'mctp',
+      workflow: 'orchestrator',
+    });
+    expect(sessionsShareOwnerIp('happy2/s1/mctp/orchestrator', 'happy2/s1/mctp/ssot-gen')).toBe(true);
+    expect(sessionsShareOwnerIp('happy2/s1/mctp/orchestrator', 'happy2/s2/mctp/ssot-gen')).toBe(false);
+    expect(healthCountersMatchRoute({
+      browserSession: 'happy2/s1/mctp/orchestrator',
+      payloadSession: 'happy2/s2/mctp/ssot-gen',
+    })).toBe(false);
+    expect(shouldUseBrowserSession({
+      browserSession: 'happy2/s1/mctp/orchestrator',
+      payloadSession: 'happy2/s2/mctp/ssot-gen',
     })).toBe(true);
   });
 });
