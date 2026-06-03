@@ -40,8 +40,9 @@ export function sessionIpFromSession(session) {
 export function sessionRoute(session) {
   const p = parts(session);
   const ip = p.length >= 3 && isRealIp(p[p.length - 2]) ? p[p.length - 2] : '';
+  const owner = p.length >= 4 ? `${p[0]}/${p[1]}` : (p[0] || '');
   return {
-    owner: p[0] || '',
+    owner,
     ip,
     workflow: p.length >= 3 ? (p[p.length - 1] || '') : '',
   };

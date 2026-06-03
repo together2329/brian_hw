@@ -42,8 +42,9 @@
   function sessionRoute(session) {
     var p = parts(session);
     var ip = p.length >= 3 && isRealIp(p[p.length - 2]) ? p[p.length - 2] : '';
+    var owner = p.length >= 4 ? p[0] + '/' + p[1] : (p[0] || '');
     return {
-      owner: p[0] || '',
+      owner: owner,
       ip: ip,
       workflow: p.length >= 3 ? (p[p.length - 1] || '') : '',
     };

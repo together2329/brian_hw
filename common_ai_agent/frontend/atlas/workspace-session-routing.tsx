@@ -38,8 +38,9 @@ export const uiSessionRoute = (session: any): { owner: string; ip: string; workf
   }
   const parts = normalizeUiSession(session).split('/').filter(Boolean);
   const ip = parts.length >= 3 ? parts[parts.length - 2] : '';
+  const owner = parts.length >= 4 ? `${parts[0]}/${parts[1]}` : (parts[0] || '');
   return {
-    owner: parts[0] || '',
+    owner,
     ip: ip && ip !== 'default' && ip !== 'soc' ? ip : '',
     workflow: parts.length >= 3 ? (parts[parts.length - 1] || '') : '',
   };
