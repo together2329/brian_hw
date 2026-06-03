@@ -1742,7 +1742,7 @@ def create_app():
                 active = normalize_session_name(bridge.active_session_for_owner(username))
             except Exception:
                 active = ""
-            return active or f"{username}/default"
+            return active or f"{username}/default/default/default"
         return normalize_session_name(_active_session_value() or "")
 
     @app.post("/api/control/stop")
@@ -10143,13 +10143,15 @@ def create_app():
         def _authorize_ws_session(raw_session: str) -> str | None:
             normalized = normalize_session_name(str(raw_session or ""))
             if not normalized or normalized == "default":
-                normalized = f"{username}/default/default" if username else "default/default/default"
+                normalized = f"{username}/default/default/default" if username else "default/default/default/default"
             elif username and normalized == username:
-                normalized = f"{username}/default/default"
+                normalized = f"{username}/default/default/default"
             else:
                 parts = [part for part in normalized.split("/") if part]
                 if len(parts) == 2 and username and parts[0] == username:
-                    normalized = f"{parts[0]}/{parts[1]}/default"
+                    normalized = f"{parts[0]}/default/{parts[1]}/default"
+                elif len(parts) == 3 and username and parts[0] == username:
+                    normalized = f"{parts[0]}/default/{parts[1]}/{parts[2]}"
             owner = normalized.split("/", 1)[0]
             if _multi_user and username and owner != username:
                 with AtlasDB() as db:
