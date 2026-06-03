@@ -43,6 +43,7 @@ This section is additive; it does not replace the reading order below.
 | Run Mode / Exec Mode and SSOT provenance policy | [[run-mode-and-provenance-policy]] |
 | Single active session worker + orchestrator worker chat + future rtl-gen subworker lanes | [[atlas-single-active-orchestrator-subworkers-20260603]] |
 | Atlas DB Router + Runtime DB sharding concept for multi-user prompt/worker write isolation | [[atlas-db-router-runtime-sharding-20260602]] |
+| Atlas context root model proposal — user/session/IP/workflow isolation, worker cwd at IP root, command/todo/context/SCM/jobs migration plan | [[atlas-context-root-model-20260603]] |
 | Admin operational dashboard priorities from the real local DB snapshot: inactivity, unattributed cost, queue backlog, stale workflows, identity gaps | [[admin-operational-dashboard-db-snapshot-20260603]] |
 | Why headless is not product-flow authority | [[pipeline-progress-debugging]] |
 | Current CPU handoff / approval / README status | [[arm-m0-min-current-status]] |
