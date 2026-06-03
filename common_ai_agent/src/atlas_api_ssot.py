@@ -10,6 +10,7 @@ into the host's mutable globals.
 from __future__ import annotations
 
 import asyncio
+import os
 import time
 from pathlib import Path
 from typing import Any, Callable
@@ -66,20 +67,28 @@ def register_ssot_routes(
                 "truncated": stat.st_size > max_read_bytes,
                 "content": content,
             })
-        # No specific file → list every *.ssot.yaml in the project
+        # No specific file → list every *.ssot.yaml in the project.
+        # Path.rglob() is NOT resilient to concurrent directory creation/removal:
+        # while many users scaffold IPs under the project root at once, a sibling
+        # directory can vanish mid-walk and rglob raises FileNotFoundError → 500.
+        # os.walk(onerror=...) skips a transient/again directory instead, and pruning
+        # skip/hidden dirs in-place avoids descending into them at all.
         results = []
         root = project_root()
-        for p in root.rglob("*.ssot.yaml"):
-            if any(part in skip_dirs or part.startswith(".")
-                   for part in p.parts):
-                continue
-            try:
-                rel = p.relative_to(root).as_posix()
-                stat = p.stat()
-                results.append({"path": rel, "size": stat.st_size,
-                                 "mtime": stat.st_mtime})
-            except OSError:
-                continue
+        for dirpath, dirnames, filenames in os.walk(root, onerror=lambda _e: None):
+            dirnames[:] = [d for d in dirnames
+                           if d not in skip_dirs and not d.startswith(".")]
+            for fn in filenames:
+                if not fn.endswith(".ssot.yaml"):
+                    continue
+                p = Path(dirpath) / fn
+                try:
+                    rel = p.relative_to(root).as_posix()
+                    stat = p.stat()
+                    results.append({"path": rel, "size": stat.st_size,
+                                     "mtime": stat.st_mtime})
+                except OSError:
+                    continue
         return JSONResponse({"files": results})
 
     @app.get("/api/ssot/qa")
