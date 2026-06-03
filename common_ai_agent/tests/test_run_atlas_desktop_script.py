@@ -1,0 +1,64 @@
+from __future__ import annotations
+
+import os
+import subprocess
+from pathlib import Path
+
+
+SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "run_atlas_desktop.sh"
+HARDCODED_ROOT = "/Users/brian/Desktop/Project/ROOT_IP"
+
+
+def _run_dry(*args: str) -> subprocess.CompletedProcess[str]:
+    env = {
+        **os.environ,
+        "ATLAS_DESKTOP_DRY_RUN": "1",
+    }
+    return subprocess.run(
+        ["bash", str(SCRIPT), *args],
+        check=False,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        env=env,
+    )
+
+
+def test_desktop_launcher_accepts_root_without_hardcoded_ip_parent(tmp_path: Path) -> None:
+    project_root = tmp_path / "ip_parent"
+    project_root.mkdir()
+
+    result = _run_dry(
+        "--root",
+        str(project_root),
+        "--ip",
+        "NEWIP_MCTP",
+        "--workflow",
+        "default",
+        "--session-id",
+        "2076604",
+        "--scm-provider",
+        "perforce",
+    )
+
+    assert result.returncode == 0, result.stdout
+    assert HARDCODED_ROOT not in result.stdout
+    assert f"--root {project_root}" in result.stdout
+    assert "-ip NEWIP_MCTP" in result.stdout
+    assert "--workflow default" in result.stdout
+    assert "ATLAS_SCM_PROVIDER=perforce" in result.stdout
+    assert "ip=NEWIP_MCTP" in result.stdout
+    assert "workflow=default" in result.stdout
+    assert "session_id=2076604" in result.stdout
+
+
+def test_desktop_launcher_appends_ip_to_backend_url_query() -> None:
+    result = _run_dry(
+        "--backend-url",
+        "http://127.0.0.1:4321/?existing=1",
+        "--ip",
+        "demo_ip",
+    )
+
+    assert result.returncode == 0, result.stdout
+    assert "http://127.0.0.1:4321/?existing=1&ip=demo_ip" in result.stdout
