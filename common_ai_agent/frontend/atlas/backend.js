@@ -253,5 +253,5 @@
   liveConnect();
 
   window.backend = api;
-  console.info('[atlas] backend ready · mode=live');
+  console.info('[atlas] backend adapter ready · mode=live');
 })();

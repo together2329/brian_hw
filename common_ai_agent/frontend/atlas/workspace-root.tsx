@@ -792,8 +792,10 @@ export const Workspace = ({
             </div>
           )}
           {(() => {
-            const backendDown = !w.backend || backendState === 'missing' ||
-              backendState === 'closed' || backendState === 'error';
+            const normalizedBackendState = String(backendState || '').toLowerCase();
+            const backendDown = !w.backend || normalizedBackendState === 'missing' ||
+              normalizedBackendState === 'closed' || normalizedBackendState === 'error' ||
+              normalizedBackendState === 'auth_required';
             const terminalWorkerStatuses = new Set(['passed', 'done', 'completed', 'failed', 'error', 'cancelled', 'blocked']);
             const activeOrchWorker = workflow === 'orchestrator'
               ? (Array.isArray(orchWorkers) ? orchWorkers.find((wk: any) =>
@@ -813,17 +815,26 @@ export const Workspace = ({
             ).trim();
             const liveWorkerActive = !!(activeOrchWorker || activeWorkerProgress);
             const s: any = backendDown
-              ? { icon: '!', text: backendState === 'missing' ? 'Backend adapter missing' : 'Backend disconnected', color: 'var(--err)', bg: 'color-mix(in oklch, var(--err) 12%, transparent)' }
-              : backendState === 'connecting'
-                ? { icon: '·', text: 'Backend connecting', color: 'var(--warn)', bg: 'color-mix(in oklch, var(--warn) 10%, transparent)' }
-                : commandBusy
-                  ? { icon: '◉', text: commandBusy.text || 'Command running', color: 'var(--accent)', bg: 'color-mix(in oklch, var(--accent) 16%, transparent)', spin: true }
+              ? {
+                  icon: '!',
+                  text: normalizedBackendState === 'missing'
+                    ? 'Backend adapter missing'
+                    : normalizedBackendState === 'auth_required'
+                      ? 'Backend auth required'
+                      : 'Backend disconnected',
+                  color: 'var(--err)',
+                  bg: 'color-mix(in oklch, var(--err) 12%, transparent)',
+                }
+              : commandBusy
+                ? { icon: '◉', text: commandBusy.text || 'Command running', color: 'var(--accent)', bg: 'color-mix(in oklch, var(--accent) 16%, transparent)', spin: true }
                 : pendingQcard
               ? { icon: '⏸', text: 'Waiting on you · answer the ask_user above', color: 'var(--warn)', bg: 'color-mix(in oklch, var(--warn) 14%, transparent)' }
               : liveWorkerActive
                 ? { icon: '▶', text: `Worker running · ${liveWorkerWorkflow}`, color: 'var(--warn)', bg: 'color-mix(in oklch, var(--warn) 14%, transparent)' }
               : streaming
                 ? { icon: '◉', text: agentRespondingText, color: 'var(--accent)', bg: 'color-mix(in oklch, var(--accent) 16%, transparent)', spin: true }
+              : normalizedBackendState === 'connecting'
+                ? { icon: '·', text: 'Backend connecting', color: 'var(--warn)', bg: 'color-mix(in oklch, var(--warn) 10%, transparent)' }
               : terminalWorkerProgress
                 ? {
                     icon: workerFinishedOk ? '✓' : '!',

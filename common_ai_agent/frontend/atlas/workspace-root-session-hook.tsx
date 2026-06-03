@@ -263,7 +263,7 @@ export function useWorkspaceSession(deps: UseWorkspaceSessionDeps) {
   }, [isMobile]);
 
   const NORMAL_FEED = [
-    { kind: 'agent', text: 'Connected. Type a message and press Enter to talk to the agent.' },
+    { kind: 'agent', text: 'Workspace loaded.' },
   ];
   const PLAN_FEED = [
     { kind: 'agent', text: '**Plan mode** · read-only. The agent will analyze and propose without executing mutating tools. Use `apply` (or switch back to Normal) to run the plan.' },
