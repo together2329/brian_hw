@@ -4,14 +4,14 @@
   "scope": "dut",
   "dut_only": true,
   "tool": "iverilog",
-  "command": "iverilog -g2012 -Irtl -f list/generic_counter_ip.f -s generic_counter_ip -o /var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/generic_counter_ip_rtl_check.vvp",
+  "command": "iverilog -g2012 -Irtl -f list/generic_counter_ip.f -s generic_counter_ip -o /tmp/claude-501/generic_counter_ip_rtl_check.vvp",
   "cwd": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/ip_examples/generic_counter_ip",
   "top": "generic_counter_ip",
   "filelist": "list/generic_counter_ip.f",
   "rtl_files": [
     "rtl/generic_counter_ip.sv"
   ],
-  "timestamp": "2026-05-31T11:59:00Z",
+  "timestamp": "2026-06-03T09:54:31Z",
   "returncode": 0,
   "errors": 0,
   "diagnostics": 0,
