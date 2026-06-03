@@ -1,7 +1,7 @@
 {
   "version": 1,
   "createdAt": "2026-06-03T10:30:40.135Z",
-  "updatedAt": "2026-06-03T10:31:02.209Z",
+  "updatedAt": "2026-06-03T10:31:58.488Z",
   "briefPath": ".omo/ulw-loop/atlas-context-root-model/brief.md",
   "goalsPath": ".omo/ulw-loop/atlas-context-root-model/goals.json",
   "ledgerPath": ".omo/ulw-loop/atlas-context-root-model/ledger.jsonl",
@@ -11,13 +11,13 @@
       "id": "G001-implement-the-atlas-v2-context-root",
       "title": "Implement the ATLAS v2 context root model end-to-end. Default ATLAS r...",
       "objective": "Implement the ATLAS v2 context root model end-to-end. Default ATLAS root to ~/ATLAS when --root is omitted. Resolve context as user/session/ip/workflow, isolate IP files and .session data under ATLAS_ROOT/user/session, keep legacy owner/ip/workflow read compatibility, start workers in the active IP root, make backend APIs/tools/context/todo/git/perforce/jobs use the resolved IP/session roots, add UI session creation/switching, and verify with automated tests plus HTTP, Browser web UI, and Computer Use desktop UI E2E for multiple users, multiple sessions, same IP across sessions, workflow switching, chat, context command, todo command, and side panel file tree.",
-      "status": "pending",
+      "status": "in_progress",
       "successCriteria": [
         {
           "id": "C001",
-          "scenario": "happy path for: Implement the ATLAS v2 context root model end-to-end. Default ATLAS root to ~...",
+          "scenario": "HTTP call: start the live ATLAS server on a temporary root, create/use two users and two sessions with the same IP, switch workflows, send chat/todo/context requests through curl, and verify returned context_key/project roots plus on-disk .session files are isolated under ATLAS_ROOT/user/session/.session/ip/workflow.",
           "userModel": "happy",
-          "expectedEvidence": "Replace via revise_criterion with observable happy-path proof for goal 1.",
+          "expectedEvidence": ".omo/ulw-loop/evidence/atlas-context-root-http-e2e.txt containing curl -i status lines, JSON bodies for health/session/context/todo/chat, filesystem tree excerpt, and cleanup receipt for server PID/temp root.",
           "capturedEvidence": null,
           "status": "pending"
         },
@@ -38,10 +38,12 @@
           "status": "pending"
         }
       ],
-      "attempt": 0,
+      "attempt": 1,
       "createdAt": "2026-06-03T10:30:40.135Z",
-      "updatedAt": "2026-06-03T10:31:02.209Z"
+      "updatedAt": "2026-06-03T10:31:58.488Z",
+      "startedAt": "2026-06-03T10:31:58.488Z"
     }
   ],
-  "codexObjective": "Complete the durable ulw-loop plan in .omo/ulw-loop/atlas-context-root-model/goals.json, including later accepted/appended stories, under the original brief constraints; use .omo/ulw-loop/atlas-context-root-model/ledger.jsonl as the audit trail."
+  "codexObjective": "Complete the durable ulw-loop plan in .omo/ulw-loop/atlas-context-root-model/goals.json, including later accepted/appended stories, under the original brief constraints; use .omo/ulw-loop/atlas-context-root-model/ledger.jsonl as the audit trail.",
+  "activeGoalId": "G001-implement-the-atlas-v2-context-root"
 }

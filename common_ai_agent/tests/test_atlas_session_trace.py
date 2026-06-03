@@ -63,6 +63,45 @@ def test_session_context_is_explicit_and_reusable(tmp_path: Path) -> None:
     assert derived.workflow == "rtl-gen"
 
 
+def test_session_context_v1_key_keeps_legacy_session_dir(tmp_path: Path) -> None:
+    from core.atlas_context import SessionContext
+
+    ctx = SessionContext.from_session_key(
+        "alice/dma/rtl-gen",
+        username="alice",
+        project_root=tmp_path,
+    )
+
+    assert ctx.session_key == "alice/dma/rtl-gen"
+    assert ctx.session_dir == tmp_path / ".session" / "alice" / "dma" / "rtl-gen"
+
+
+def test_atlas_context_v2_key_derives_workspace_ip_and_session_roots(tmp_path: Path) -> None:
+    from core.atlas_context import AtlasContext
+
+    ctx = AtlasContext.from_session_key(
+        "alice/session-a/dma/rtl-gen",
+        atlas_root=tmp_path,
+    )
+
+    assert ctx.user_name == "alice"
+    assert ctx.workspace_session == "session-a"
+    assert ctx.ip_name == "dma"
+    assert ctx.workflow == "rtl-gen"
+    assert ctx.context_key == "alice/session-a/dma/rtl-gen"
+    assert ctx.workspace_root == tmp_path / "alice" / "session-a"
+    assert ctx.ip_root == tmp_path / "alice" / "session-a" / "dma"
+    assert ctx.session_dir == tmp_path / "alice" / "session-a" / ".session" / "dma" / "rtl-gen"
+    assert ctx.export_env()["ATLAS_PROJECT_ROOT"] == str(tmp_path / "alice" / "session-a")
+
+
+def test_atlas_context_rejects_path_escape_segments(tmp_path: Path) -> None:
+    from core.atlas_context import AtlasContext
+
+    with pytest.raises(ValueError):
+        AtlasContext.from_session_key("alice/session-a/../rtl-gen", atlas_root=tmp_path)
+
+
 def test_trace_recorder_writes_event_ledger_and_projections(tmp_path: Path) -> None:
     from core.atlas_context import SessionContext
     from core.atlas_trace import TraceRecorder

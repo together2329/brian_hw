@@ -85,6 +85,23 @@ ATLAS_SOURCE_ROOT    = runtime/import location only, never semantic cwd
 
 ## Implementation Plan
 
+## TODOs
+
+- [ ] Add failing baseline and v2 context resolver tests for user/session/IP/workflow paths.
+- [ ] Implement central context resolver and env export/import compatibility.
+- [ ] Wire launcher/backend bootstrap, default root, healthz, and session activation to the resolver.
+- [ ] Move worker spawn/tool cwd and slash-command setup to resolved IP/session roots.
+- [ ] Update session/todo/context/history APIs and file/SCM/jobs roots for v2 isolation with v1 read fallback.
+- [ ] Update frontend routing and add session creation/switching UI for v2 context keys.
+- [ ] Run automated regression gates: Python tests, frontend tests, and npm build.
+
+## Final Verification Wave
+
+- [ ] Capture HTTP E2E evidence for multiple users, sessions, same IP, workflow switching, chat, context, todo, and side-panel root data.
+- [ ] Capture Browser E2E evidence for the real web UI.
+- [ ] Capture Computer Use E2E evidence for the Desktop app UI and default/explicit root behavior.
+- [ ] Run final code review checklist and update doc/wiki with implementation notes and evidence links.
+
 ### 1. Add Central Context Resolver
 
 Files:
