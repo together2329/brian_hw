@@ -75,6 +75,50 @@ common_ai_agent/scripts/run_atlas_desktop.sh \
   --scm-provider perforce
 ```
 
+## Backend URL and white-window troubleshooting
+
+The Desktop shell loads one backend URL. If no URL is supplied, the Tauri binary
+defaults to `http://localhost:3000/`. That is correct only when the ATLAS server
+is listening on localhost.
+
+If the server was started with a LAN-only bind, for example:
+
+```bash
+python3 src/atlas_ui.py --host 192.168.45.139 --port 3000 ...
+```
+
+then `localhost:3000` is closed and a default Desktop launch can show a white
+window. Either start the server on localhost/0.0.0.0, or pass the exact backend
+URL:
+
+```bash
+open -na /Applications/ATLAS.app --args \
+  --backend-url 'http://192.168.45.139:3000/?session_id=admin&ip=NEW_IP_v5&workflow=default'
+```
+
+The product launcher should be preferred for normal use because it keeps root,
+backend URL, session, IP, workflow, and SCM flags together:
+
+```bash
+common_ai_agent/scripts/run_atlas_desktop.sh \
+  --prod \
+  --backend-url 'http://127.0.0.1:3000/?session_id=admin&ip=NEW_IP_v5&workflow=default'
+```
+
+For the installed macOS app, launch through `open -na ... --args --backend-url`
+rather than executing `Contents/MacOS/atlas-desktop` directly. Direct binary
+execution can create a window without driving the WebView through the normal
+LaunchServices app path.
+
+Status interpretation:
+
+- `Backend disconnected` means the page/backend transport is missing, closed, or
+  unauthorized.
+- `Agent worker failed · session worker failed` means the backend is reachable
+  but the active interactive session worker is not live.
+- `Agent responding` means a live `agent_state running` event is active and takes
+  priority over stale worker-status polling.
+
 > `bundle.targets` is `["app"]` (not `dmg`): the `.app` is the runnable artifact.
 > `tauri build`'s `.dmg` step (`bundle_dmg.sh`) needs a GUI Finder/AppleScript
 > session and fails headless — DMG/installer packaging is part of the deferred

@@ -386,7 +386,7 @@ if [[ "$MODE" == "prod" ]]; then
     exit 1
   fi
   echo "Opening $APP -> $BACKEND_URL"
-  env ATLAS_DESKTOP_BACKEND_URL="$BACKEND_URL" "$BIN" --backend-url "$BACKEND_URL"
+  open -W -na "$APP" --args --backend-url "$BACKEND_URL"
   exit $?
 fi
 

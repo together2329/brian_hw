@@ -174,3 +174,42 @@ Desktop/product E2E:
 - Multi-user auth checks both user and session scope.
 - v1 session histories remain readable.
 - `/healthz` exposes enough path context to debug root mistakes quickly.
+
+## 2026-06-03 UI Status Follow-Up
+
+The top-level backend connection and the interactive session worker are separate
+health concepts:
+
+- Backend open means the page can talk to the ATLAS HTTP/WebSocket server.
+- Session worker ready means the current user/session/IP/workflow has a live
+  interactive agent lane.
+- Workflow workers are separate orchestrator/job workers.
+
+The workspace footer must not collapse those states into `End of loop · agent
+ready`. The intended priority is:
+
+1. backend missing/closed/error/auth required,
+2. active command, ask_user, worker run, or live `agent_state running`,
+3. interactive session worker failed/starting/capacity-wait,
+4. backend connecting,
+5. terminal worker progress,
+6. idle ready.
+
+This matches the right-side Agent panel: if `/api/session/worker/status` returns
+no live worker for the active owner slot, the footer should show `Agent worker
+failed · session worker failed`, not a green ready state. A live
+`agent_state running` event still takes precedence so stale worker-status polling
+does not hide `Agent responding`.
+
+Verification recorded for this follow-up:
+
+- `npm test -- __tests__/workspace-render-smoke.test.tsx` -> 28 passed.
+- `npx tsc --noEmit` -> pass.
+- `npm run build` -> pass.
+- `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q tests/test_atlas_multiuser_session_scope.py tests/test_production_parity.py::test_atlas_ui_direct_script_bootstraps_from_external_cwd` -> 44 passed.
+- Web E2E on `127.0.0.1:3030`: idle failed footer appears, synthetic
+  `agent_state running` shows `Agent responding`, and the old connected seed
+  is absent.
+- Desktop E2E with `open -na /Applications/ATLAS.app --args --backend-url ...`:
+  login succeeds and the footer shows the same session-worker failure as the
+  right rail.

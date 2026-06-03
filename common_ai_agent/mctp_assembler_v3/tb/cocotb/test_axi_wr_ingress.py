@@ -177,11 +177,12 @@ def strb_is_contiguous(strb, width=32):
 
 @cocotb.test()
 async def test_ingress_contiguity_gap(dut):
-    """Adversarial probe: a legal-size/burst TLP whose WSTRB is NON-contiguous.
+    """Regression guard: a legal-size/burst TLP whose WSTRB is NON-contiguous.
 
-    The FL oracle requires wstrb_contiguous; the authored RTL does NOT check it.
-    This deliberately exercises the case the 6-scenario suite avoided, to show
-    whether ingress equivalence is actually closed.
+    req:128 declares non-contiguous WSTRB a malformed ingress event, and the FL
+    oracle encodes it via wstrb_contiguous. This probe exposed an early RTL gap
+    (RTL accepted it while FL rejected); the ingress now implements the
+    contiguity check, so DUT and FL must agree (both reject).
     """
     cocotb.start_soon(Clock(dut.axi_aclk, 2, units="ns").start())
     await reset_dut(dut)
