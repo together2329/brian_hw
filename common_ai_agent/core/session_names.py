@@ -88,7 +88,7 @@ def normalize_session_name(value: str) -> str:
     if (
         len(parts) > 2
         and parts[-1].lower() in _KNOWN_WORKFLOWS
-        and ((pathish and not had_session_marker) or len(parts) > 3)
+        and ((pathish and not had_session_marker) or (len(parts) > 4 and not had_session_marker))
     ):
         parts = parts[-2:]
 

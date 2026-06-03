@@ -800,13 +800,13 @@ export function StageCard({ stageId, info, ip, onChain }: StageCardProps) {
                     } catch (_) {}
                   }}>[ open evidence ▾ ]</button>
         )}
-        {isFailed && data.blame && data.blame.owner_workflow && (
-          <span className="pipe-blame">
-            <span className="mute">blame →</span>{' '}
-            <b>{data.blame.owner_workflow}</b>{' '}
+        {(isFailed || isBlocked) && blameOwner && (
+          <span className="pipe-blame" data-route-state={stageState}>
+            <span className="mute">{isBlocked ? 'owner →' : 'blame →'}</span>{' '}
+            <b>{blameOwner}</b>{' '}
             <button className="pipe-stage-link"
                     onClick={(e) => { e.stopPropagation(); goFix(); }}>
-              [ go fix {data.blame.owner_workflow} ]
+              [ go fix {blameOwner} ]
             </button>
           </span>
         )}
@@ -845,7 +845,7 @@ export function StageCard({ stageId, info, ip, onChain }: StageCardProps) {
             ⇄ take {data.handoffs.pending}
           </button>
         )}
-        {isFailed && data.blame && data.blame.owner_workflow && (
+        {(isFailed || isBlocked) && blameOwner && (
           <button className="pipe-stage-save rb-btn"
                   disabled={!ip}
                   title="Write a pending handoff JSON for the owning workflow"
@@ -858,8 +858,10 @@ export function StageCard({ stageId, info, ip, onChain }: StageCardProps) {
                         body: JSON.stringify({
                           ip,
                           from_workflow: data.workflow || stageId,
-                          to_workflow: data.blame!.owner_workflow,
-                          reason: data.error_summary || `${stageId} failed; routed to ${data.blame!.owner_workflow}`,
+                          to_workflow: blameOwner,
+                          reason: data.error_summary || (isBlocked
+                            ? `${stageId} blocked; routed to ${blameOwner}`
+                            : `${stageId} failed; routed to ${blameOwner}`),
                           evidence: { stage: stageId, blame: data.blame },
                         }),
                       });

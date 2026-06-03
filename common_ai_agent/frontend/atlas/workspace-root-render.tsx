@@ -521,12 +521,20 @@ export const WorkspacePromptRow = ({
         }}>
           <span className="mute" style={{ color: 'var(--fg-mute)' }}>workers</span>
           {orchWorkers.map((w: any) => {
+            const blocked = Number(w.blocked_count || 0);
+            // Blocked jobs are surfaced as a non-green (err) state so a stalled
+            // owner is visible in the strip — running still wins so an active
+            // worker with one blocked job reads as running.
             const st = Number(w.running_count || 0) > 0 ? 'running'
+              : blocked > 0 ? 'blocked'
               : Number(w.pending_count || 0) > 0 ? 'starting' : 'queued';
-            const col = st === 'running' ? 'var(--accent)' : 'var(--warn)';
+            const col = st === 'running' ? 'var(--accent)'
+              : st === 'blocked' ? 'var(--err)' : 'var(--warn)';
+            const glyph = st === 'running' ? '▶' : st === 'blocked' ? '⏸' : '◌';
             return (
               <button key={w.workflow} type="button"
-                title={`Open the ${w.workflow} worker session for full live detail`}
+                data-worker-state={st}
+                title={`Open the ${w.workflow} worker session for full live detail${blocked ? ` (${blocked} blocked)` : ''}`}
                 onClick={() => {
                   try {
                     (window as any).openPipelineWorkflowWorkspace?.({
@@ -540,9 +548,11 @@ export const WorkspacePromptRow = ({
                   borderRadius: 10, background: 'var(--bg-2)', cursor: 'pointer',
                   color: 'var(--fg)', fontFamily: 'var(--mono)', fontSize: 11,
                 }}>
-                <span style={{ color: col }}>{st === 'running' ? '▶' : '◌'}</span>
+                <span style={{ color: col }}>{glyph}</span>
                 <span style={{ fontWeight: 700 }}>{w.workflow}</span>
-                <span className="mute" style={{ color: 'var(--fg-mute)' }}>{st}</span>
+                <span className="mute" style={{ color: st === 'blocked' ? 'var(--err)' : 'var(--fg-mute)' }}>
+                  {st}{blocked > 0 ? ` ${blocked}` : ''}
+                </span>
               </button>
             );
           })}

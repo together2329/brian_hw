@@ -2660,7 +2660,8 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
         setOrchWorkers(all.filter((wk: any) =>
           Number(wk.running_count || 0) > 0 ||
           Number(wk.pending_count || 0) > 0 ||
-          Number(wk.queued_count || 0) > 0
+          Number(wk.queued_count || 0) > 0 ||
+          Number(wk.blocked_count || 0) > 0
         ));
       } catch (_) {}
     };
