@@ -305,6 +305,23 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     if (!w.backend) return 'missing';
     return w.backend.getConnectionState ? w.backend.getConnectionState() : 'connecting';
   });
+  useEffect(() => {
+    if (!w.backend) {
+      setBackendState('missing');
+      return undefined;
+    }
+    const syncBackendState = (payload?: any) => {
+      const state = String(
+        (payload && payload.state)
+        || (typeof w.backend.getConnectionState === 'function' ? w.backend.getConnectionState() : '')
+        || 'connecting',
+      ).trim();
+      setBackendState(state || 'connecting');
+    };
+    syncBackendState();
+    if (typeof w.backend.subscribe !== 'function') return undefined;
+    return w.backend.subscribe('connection', syncBackendState);
+  }, []);
   const [commandBusy, setCommandBusy] = useState<any>(null);
   const [liveLlmRuntime, setLiveLlmRuntime] = useState<LiveLlmRuntime>({
     model: '',

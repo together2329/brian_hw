@@ -95,19 +95,25 @@ function installWindowStubs() {
   // Backend bridge — a tiny pubsub surface so Workspace can exercise live
   // agent_state/token cleanup without a real WebSocket.
   const backendHandlers: Record<string, Set<(payload: any) => void>> = {};
+  let backendState = 'open';
   w.backend = {
     send: vi.fn(),
     switchSession: vi.fn(),
     on: vi.fn(),
     off: vi.fn(),
     state: 'open',
-    getConnectionState: () => 'open',
+    getConnectionState: () => backendState,
     subscribe: vi.fn((type: string, cb: (payload: any) => void) => {
       (backendHandlers[type] = backendHandlers[type] || new Set()).add(cb);
       return () => backendHandlers[type]?.delete(cb);
     }),
     _emit: (type: string, payload: any = {}) => {
+      if (type === 'connection') backendState = String(payload.state || backendState);
       (backendHandlers[type] || new Set()).forEach((cb) => cb({ type, ...payload }));
+    },
+    _setConnectionState: (state: string) => {
+      backendState = String(state || 'open');
+      w.backend.state = backendState;
     },
   };
   // Banner logic helper (optional-chained in the prompt row).
@@ -383,6 +389,34 @@ describe('Workspace render smoke (the behavioral gate)', () => {
     });
     await waitFor(() => expect(queryByText('Agent responding')).toBeNull());
     expect(queryByText(/End of loop/)).not.toBeNull();
+  });
+
+  it('updates the footer when backend connection closes', async () => {
+    const { Workspace } = await import('../workspace.tsx');
+    const { queryByText } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
+    const backend = (window as AnyWindow).backend;
+
+    await act(async () => {
+      backend._emit('connection', { state: 'closed' });
+    });
+
+    await waitFor(() => expect(queryByText('Backend disconnected')).not.toBeNull());
+    expect(queryByText(/End of loop/)).toBeNull();
+  });
+
+  it('shows Agent responding ahead of stale backend connecting state', async () => {
+    const backend = (window as AnyWindow).backend;
+    backend._setConnectionState('connecting');
+
+    const { Workspace } = await import('../workspace.tsx');
+    const { queryByText } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
+
+    await act(async () => {
+      backend._emit('agent_state', { running: true });
+    });
+
+    await waitFor(() => expect(queryByText('Agent responding')).not.toBeNull());
+    expect(queryByText('Backend connecting')).toBeNull();
   });
 
   it('shows the live LLM model and effort beside Agent responding', async () => {
