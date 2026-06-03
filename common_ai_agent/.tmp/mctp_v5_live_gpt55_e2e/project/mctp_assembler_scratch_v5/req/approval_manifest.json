@@ -1,0 +1,29 @@
+{
+  "type": "requirement_approval_manifest",
+  "schema_version": "req_approval_manifest.v1",
+  "ip": "mctp_assembler_scratch_v5",
+  "approval_scope": "scratch requirements package",
+  "approval_status": "approved_for_local_scratch_flow",
+  "approved_by": "user_request",
+  "approved_at": "2026-05-31",
+  "approved_at_utc": "2026-05-31T00:00:00Z",
+  "authority": "user conversation and copied source requirement package",
+  "target": "mctp_assembler_scratch_v5/req/mctp_assembler_scratch_v5_requirements.md",
+  "target_sha256": "bc788e916a86dd5eb57ed9174a6868c1e3317315a915418486c179dd886f648e",
+  "source": "mctp_assembler_scratch_v5/req/source_references.md",
+  "source_sha256": "d8a4ab95f34d5436f3aaeee31b458e1240208f4c83df3beba77c84279332e841",
+  "source_files": [
+    {
+      "path": "mctp_assembler_scratch_v5/req/mctp_assembler_scratch_v5_requirements.md",
+      "sha256": "bc788e916a86dd5eb57ed9174a6868c1e3317315a915418486c179dd886f648e"
+    },
+    {
+      "path": "mctp_assembler_scratch_v5/req/source_references.md",
+      "sha256": "d8a4ab95f34d5436f3aaeee31b458e1240208f4c83df3beba77c84279332e841"
+    }
+  ],
+  "notes": [
+    "This manifest approves the scratch requirement package for local SSOT-to-audit execution.",
+    "Existing mctp_assembler generated artifacts are reference material only and are not approval evidence for mctp_assembler_scratch_v5."
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "type": "generic_goal_scoreboard_cocotb_generation",
+  "status": "pass",
+  "ip": "mctp_assembler_scratch_v5",
+  "generated_at": "2026-05-31T11:10:41Z",
+  "manifest": "mctp_assembler_scratch_v5/tb/cocotb/tb_manifest.json",
+  "test": "mctp_assembler_scratch_v5/tb/cocotb/test_mctp_assembler_scratch_v5.py",
+  "runner": "mctp_assembler_scratch_v5/tb/cocotb/test_runner.py",
+  "goals": 91,
+  "rtl_sources": 11
+}

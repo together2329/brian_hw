@@ -1,0 +1,106 @@
+{
+  "checks": {
+    "apb_per_q_readback_pass": true,
+    "axi_read_protocol_pass": true,
+    "axi_write_protocol_pass": true,
+    "sram_no_header_or_pad_write": true,
+    "sram_payload_no_holes": true,
+    "sram_payload_only": true
+  },
+  "observations": [
+    {
+      "apb_reads": [
+        {
+          "addr": 256,
+          "data": 0,
+          "error": 0,
+          "ready": 1
+        },
+        {
+          "addr": 264,
+          "data": 0,
+          "error": 0,
+          "ready": 1
+        },
+        {
+          "addr": 268,
+          "data": 0,
+          "error": 0,
+          "ready": 1
+        }
+      ],
+      "axi_read": {
+        "arburst_incr": true,
+        "arready_seen": 0,
+        "arsize_256b": true,
+        "rd_reqs": 3,
+        "rlast_count": 1,
+        "rlast_on_final": true,
+        "rvalid_beats": 3
+      },
+      "axi_write": {
+        "awburst_incr": true,
+        "awlen": 3,
+        "awready_seen": 0,
+        "awsize_256b": true,
+        "beats": 4,
+        "wlast_count": 1,
+        "wlast_on_final": true,
+        "wready_all": false,
+        "wstrb_contiguous": true
+      },
+      "checks": {
+        "apb_per_q_readback_pass": true,
+        "axi_read_protocol_pass": true,
+        "axi_write_protocol_pass": true,
+        "sram_no_header_or_pad_write": true,
+        "sram_payload_no_holes": true,
+        "sram_payload_only": true
+      },
+      "summary": {
+        "apb_reads": 3,
+        "axi_read_transactions": 1,
+        "axi_write_transactions": 1,
+        "sram_write_count": 3
+      },
+      "test": "axi_burst_payload_is_packed_and_read_back_without_holes"
+    },
+    {
+      "axi_write": {
+        "awburst_incr": true,
+        "awlen": 128,
+        "awready_seen": 0,
+        "awsize_256b": true,
+        "beats": 129,
+        "wlast_count": 1,
+        "wlast_on_final": true,
+        "wready_all": false,
+        "wstrb_contiguous": true
+      },
+      "checks": {
+        "apb_per_q_readback_pass": false,
+        "axi_read_protocol_pass": false,
+        "axi_write_protocol_pass": true,
+        "sram_no_header_or_pad_write": true,
+        "sram_payload_no_holes": true,
+        "sram_payload_only": true
+      },
+      "summary": {
+        "apb_reads": 0,
+        "axi_read_transactions": 0,
+        "axi_write_transactions": 1,
+        "sram_write_count": 128
+      },
+      "test": "max_tu_payload_is_written_to_sram_without_holes"
+    }
+  ],
+  "schema_version": 1,
+  "status": "pass",
+  "summary": {
+    "apb_reads": 3,
+    "axi_read_transactions": 1,
+    "axi_write_transactions": 2,
+    "sram_write_count": 131
+  },
+  "type": "monitor_evidence"
+}

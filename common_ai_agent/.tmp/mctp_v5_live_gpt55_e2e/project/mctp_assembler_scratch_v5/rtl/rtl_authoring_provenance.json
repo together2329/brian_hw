@@ -1,0 +1,33 @@
+{
+  "agent": "common_ai_agent",
+  "authoring_packets": [
+    "mctp_assembler_scratch_v5_rtl_scratch_authoring"
+  ],
+  "contract_files": [
+    "rtl/rtl_contract.json"
+  ],
+  "generation_note": "Codex common_ai_agent authored scratch RTL from the current SSOT, rtl_authoring_plan packets, and rtl_todo_plan evidence ledger.",
+  "ip": "mctp_assembler_scratch_v5",
+  "model": "gpt-5",
+  "refresh_reason": "SSOT metadata gate update refreshed rtl_todo_plan hash without changing RTL files.",
+  "rtl_files": [
+    "rtl/mctp_assembler_scratch_v5_axi_write_ingress.sv",
+    "rtl/mctp_assembler_scratch_v5_pcie_vdm_parser.sv",
+    "rtl/mctp_assembler_scratch_v5_mctp_parser.sv",
+    "rtl/mctp_assembler_scratch_v5_context_table.sv",
+    "rtl/mctp_assembler_scratch_v5_sram_packer.sv",
+    "rtl/mctp_assembler_scratch_v5_axi_read_egress.sv",
+    "rtl/mctp_assembler_scratch_v5_sram_arbiter.sv",
+    "rtl/mctp_assembler_scratch_v5_descriptor_queue.sv",
+    "rtl/mctp_assembler_scratch_v5_apb_regfile.sv",
+    "rtl/mctp_assembler_scratch_v5_cdc.sv",
+    "rtl/mctp_assembler_scratch_v5.sv",
+    "rtl/mctp_assembler_scratch_v5_param.vh"
+  ],
+  "schema_version": 1,
+  "surface": "headless_common_engine",
+  "todo_plan_sha256": "a6a5a0fbc9df7cbf10ab017b46631a16a00f0b454b4cee41da9ba28dbc65043d",
+  "type": "rtl_authoring_provenance",
+  "updated_at": "2026-06-01T22:51:40Z",
+  "workflow": "rtl-gen"
+}

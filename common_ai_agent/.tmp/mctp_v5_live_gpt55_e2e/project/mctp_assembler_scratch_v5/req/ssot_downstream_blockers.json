@@ -1,0 +1,6 @@
+{
+  "schema_version": "ssot_downstream_blockers.v1",
+  "ip": "mctp_assembler_scratch_v5",
+  "ssot": "mctp_assembler_scratch_v5/yaml/mctp_assembler_scratch_v5.ssot.yaml",
+  "issues": []
+}

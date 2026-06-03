@@ -1,0 +1,801 @@
+{
+  "schema_version": 1,
+  "type": "functional_coverage_plan",
+  "ip": "mctp_assembler_scratch_v5",
+  "source": "mctp_assembler_scratch_v5/yaml/mctp_assembler_scratch_v5.ssot.yaml",
+  "planned_before_rtl": true,
+  "level": "union",
+  "summary": {
+    "total_bins": 108,
+    "by_class": {
+      "scenario": 26,
+      "transaction_type": 10,
+      "state_transition": 7,
+      "error": 14,
+      "invariant_violation": 3,
+      "protocol_handshake": 4,
+      "ordering": 4,
+      "latency_bin": 39,
+      "outstanding_depth": 1
+    }
+  },
+  "bins": [
+    {
+      "id": "SC_VALID_SINGLE_PACKET_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[0]",
+      "scenario": "SC_VALID_SINGLE_PACKET",
+      "description": "Valid single packet"
+    },
+    {
+      "id": "SC_SINGLE_PACKET_32B_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[1]",
+      "scenario": "SC_SINGLE_PACKET_32B",
+      "description": "Single 32B packet with nonzero key"
+    },
+    {
+      "id": "SC_MULTI_FRAGMENT_TU64_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[2]",
+      "scenario": "SC_MULTI_FRAGMENT_TU64",
+      "description": "Multi-fragment TU64"
+    },
+    {
+      "id": "SC_MULTI_FRAGMENT_3PKT_SHORT_LAST_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[3]",
+      "scenario": "SC_MULTI_FRAGMENT_3PKT_SHORT_LAST",
+      "description": "Three-fragment message with short final payload"
+    },
+    {
+      "id": "SC_MAX_TU_4096_129_BEATS_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[4]",
+      "scenario": "SC_MAX_TU_4096_129_BEATS",
+      "description": "Maximum 4096B transmission unit"
+    },
+    {
+      "id": "SC_INTERLEAVE_TWO_KEYS_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[5]",
+      "scenario": "SC_INTERLEAVE_TWO_KEYS",
+      "description": "Interleaved two keys"
+    },
+    {
+      "id": "SC_INTERLEAVE_TWO_Q_COMPLETE_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[6]",
+      "scenario": "SC_INTERLEAVE_TWO_Q_COMPLETE",
+      "description": "Interleaved two Q contexts complete"
+    },
+    {
+      "id": "SC_UNALIGNED_SRAM_PACK_NO_HOLES_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[7]",
+      "scenario": "SC_UNALIGNED_SRAM_PACK_NO_HOLES",
+      "description": "Unaligned SRAM pack without holes"
+    },
+    {
+      "id": "SC_FIRST_LAST_TLP_HEADERS_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[8]",
+      "scenario": "SC_FIRST_LAST_TLP_HEADERS",
+      "description": "First and last TLP headers stored"
+    },
+    {
+      "id": "SC_AXI_READBACK_TRIM_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[9]",
+      "scenario": "SC_AXI_READBACK_TRIM",
+      "description": "AXI readback trims final short packet"
+    },
+    {
+      "id": "SC_READBACK_AFTER_MULTI_ASSEMBLE_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[10]",
+      "scenario": "SC_READBACK_AFTER_MULTI_ASSEMBLE",
+      "description": "AXI readback after multi-fragment assembly"
+    },
+    {
+      "id": "SC_APB_REGS_PER_Q_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[11]",
+      "scenario": "SC_APB_REGS_PER_Q",
+      "description": "APB per-Q visibility"
+    },
+    {
+      "id": "PD_DISABLED_DROP_MODE_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[12]",
+      "scenario": "PD_DISABLED_DROP_MODE",
+      "description": "Drop mode packet drop"
+    },
+    {
+      "id": "PD_MALFORMED_TLP_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[13]",
+      "scenario": "PD_MALFORMED_TLP",
+      "description": "Malformed TLP packet drop"
+    },
+    {
+      "id": "PD_UNSUPPORTED_VDM_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[14]",
+      "scenario": "PD_UNSUPPORTED_VDM",
+      "description": "Unsupported VDM packet drop"
+    },
+    {
+      "id": "PD_BAD_MCTP_HEADER_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[15]",
+      "scenario": "PD_BAD_MCTP_HEADER",
+      "description": "Bad MCTP header packet drop"
+    },
+    {
+      "id": "PD_BAD_PAD_OR_ALIGNMENT_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[16]",
+      "scenario": "PD_BAD_PAD_OR_ALIGNMENT",
+      "description": "Bad pad or alignment packet drop"
+    },
+    {
+      "id": "PD_DEST_EID_REJECT_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[17]",
+      "scenario": "PD_DEST_EID_REJECT",
+      "description": "Destination EID reject packet drop"
+    },
+    {
+      "id": "PD_UNEXPECTED_MIDDLE_END_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[18]",
+      "scenario": "PD_UNEXPECTED_MIDDLE_END",
+      "description": "Unexpected middle or end packet drop"
+    },
+    {
+      "id": "PD_BAD_OR_EXPIRED_TAG_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[19]",
+      "scenario": "PD_BAD_OR_EXPIRED_TAG",
+      "description": "Bad or expired tag packet drop"
+    },
+    {
+      "id": "AD_DUPLICATE_SOM_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[20]",
+      "scenario": "AD_DUPLICATE_SOM",
+      "description": "Duplicate SOM assembly drop"
+    },
+    {
+      "id": "AD_SEQUENCE_MISMATCH_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[21]",
+      "scenario": "AD_SEQUENCE_MISMATCH",
+      "description": "Sequence mismatch assembly drop"
+    },
+    {
+      "id": "AD_MESSAGE_OVERFLOW_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[22]",
+      "scenario": "AD_MESSAGE_OVERFLOW",
+      "description": "Message overflow assembly drop"
+    },
+    {
+      "id": "AD_SRAM_OVERFLOW_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[23]",
+      "scenario": "AD_SRAM_OVERFLOW",
+      "description": "SRAM overflow assembly drop"
+    },
+    {
+      "id": "AD_DESCRIPTOR_FULL_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[24]",
+      "scenario": "AD_DESCRIPTOR_FULL",
+      "description": "Descriptor full assembly drop"
+    },
+    {
+      "id": "AD_TIMEOUT_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[25]",
+      "scenario": "AD_TIMEOUT",
+      "description": "Timeout assembly drop"
+    },
+    {
+      "id": "function_accept_one_axi4_write_burst_as_one_pcie_vdm_tlp",
+      "class": "transaction_type",
+      "source": "function_model.transactions[0]",
+      "transaction_id": "FM_ACCEPT_AXI_TLP",
+      "transaction_name": "Accept one AXI4 write burst as one PCIe VDM TLP",
+      "description": "FM_ACCEPT_AXI_TLP \u2014 accept_one_axi4_write_burst_as_one_pcie_vdm_tlp"
+    },
+    {
+      "id": "function_validate_pcie_vdm_envelope_for_mctp_transport",
+      "class": "transaction_type",
+      "source": "function_model.transactions[1]",
+      "transaction_id": "FM_FILTER_VDM",
+      "transaction_name": "Validate PCIe VDM envelope for MCTP transport",
+      "description": "FM_FILTER_VDM \u2014 validate_pcie_vdm_envelope_for_mctp_transport"
+    },
+    {
+      "id": "function_decode_mctp_transport_header_and_context_key",
+      "class": "transaction_type",
+      "source": "function_model.transactions[2]",
+      "transaction_id": "FM_PARSE_MCTP",
+      "transaction_name": "Decode MCTP transport header and context key",
+      "description": "FM_PARSE_MCTP \u2014 decode_mctp_transport_header_and_context_key"
+    },
+    {
+      "id": "function_allocate_or_update_a_q_context_for_one_mctp_fragment",
+      "class": "transaction_type",
+      "source": "function_model.transactions[3]",
+      "transaction_id": "FM_ASSEMBLE_FRAGMENT",
+      "transaction_name": "Allocate or update a Q context for one MCTP fragment",
+      "description": "FM_ASSEMBLE_FRAGMENT \u2014 allocate_or_update_a_q_context_for_one_mctp_fragment"
+    },
+    {
+      "id": "function_pack_payload_bytes_into_32_byte_sram_beats_with_no_holes",
+      "class": "transaction_type",
+      "source": "function_model.transactions[4]",
+      "transaction_id": "FM_SRAM_PACK_WRITE",
+      "transaction_name": "Pack payload bytes into 32-byte SRAM beats with no holes",
+      "description": "FM_SRAM_PACK_WRITE \u2014 pack_payload_bytes_into_32_byte_sram_beats_with_no_holes"
+    },
+    {
+      "id": "function_complete_eom_message_and_publish_descriptor",
+      "class": "transaction_type",
+      "source": "function_model.transactions[5]",
+      "transaction_id": "FM_COMPLETE_MESSAGE",
+      "transaction_name": "Complete EOM message and publish descriptor",
+      "description": "FM_COMPLETE_MESSAGE \u2014 complete_eom_message_and_publish_descriptor"
+    },
+    {
+      "id": "function_packet_drop_without_sram_payload_write",
+      "class": "transaction_type",
+      "source": "function_model.transactions[6]",
+      "transaction_id": "FM_PACKET_DROP",
+      "transaction_name": "Packet drop without SRAM payload write",
+      "description": "FM_PACKET_DROP \u2014 packet_drop_without_sram_payload_write"
+    },
+    {
+      "id": "function_assembly_drop_without_descriptor_publish",
+      "class": "transaction_type",
+      "source": "function_model.transactions[7]",
+      "transaction_id": "FM_ASSEMBLY_DROP",
+      "transaction_name": "Assembly drop without descriptor publish",
+      "description": "FM_ASSEMBLY_DROP \u2014 assembly_drop_without_descriptor_publish"
+    },
+    {
+      "id": "function_apb_register_access",
+      "class": "transaction_type",
+      "source": "function_model.transactions[8]",
+      "transaction_id": "FM_APB_ACCESS",
+      "transaction_name": "APB register access",
+      "description": "FM_APB_ACCESS \u2014 apb_register_access"
+    },
+    {
+      "id": "function_axi_readback_from_descriptor_backed_sram_payload",
+      "class": "transaction_type",
+      "source": "function_model.transactions[9]",
+      "transaction_id": "FM_AXI_READBACK",
+      "transaction_name": "AXI readback from descriptor-backed SRAM payload",
+      "description": "FM_AXI_READBACK \u2014 axi_readback_from_descriptor_backed_sram_payload"
+    },
+    {
+      "id": "fsm_context_fsm_idle_to_assembling_0",
+      "class": "state_transition",
+      "source": "fsm.context_fsm.transitions[0]",
+      "description": "{'from': 'IDLE', 'to': 'ASSEMBLING', 'when': 'valid_som_and_context_available', 'action': 'allocate_q_and_store_first_tlp_header'}"
+    },
+    {
+      "id": "fsm_context_fsm_assembling_to_assembling_1",
+      "class": "state_transition",
+      "source": "fsm.context_fsm.transitions[1]",
+      "description": "{'from': 'ASSEMBLING', 'to': 'ASSEMBLING', 'when': 'valid_middle_fragment', 'action': 'append_payload_and_update_last_tlp_header'}"
+    },
+    {
+      "id": "fsm_context_fsm_assembling_to_done_wait_descriptor_pop_2",
+      "class": "state_transition",
+      "source": "fsm.context_fsm.transitions[2]",
+      "description": "{'from': 'ASSEMBLING', 'to': 'DONE_WAIT_DESCRIPTOR_POP', 'when': 'valid_eom_and_descriptor_available', 'action': 'flush_partial_word_and_publish_descriptor'}"
+    },
+    {
+      "id": "fsm_context_fsm_idle_to_error_3",
+      "class": "state_transition",
+      "source": "fsm.context_fsm.transitions[3]",
+      "description": "{'from': 'IDLE', 'to': 'ERROR', 'when': 'unexpected_middle_or_eom', 'action': 'raise_PD_UNEXPECTED_MIDDLE_END'}"
+    },
+    {
+      "id": "fsm_context_fsm_assembling_to_error_4",
+      "class": "state_transition",
+      "source": "fsm.context_fsm.transitions[4]",
+      "description": "{'from': 'ASSEMBLING', 'to': 'ERROR', 'when': 'sequence_or_overflow_or_timeout', 'action': 'raise_AD_drop_reason'}"
+    },
+    {
+      "id": "fsm_context_fsm_done_wait_descriptor_pop_to_idle_5",
+      "class": "state_transition",
+      "source": "fsm.context_fsm.transitions[5]",
+      "description": "{'from': 'DONE_WAIT_DESCRIPTOR_POP', 'to': 'IDLE', 'when': 'descriptor_pop', 'action': 'release_context_without_reclaiming_sram_space'}"
+    },
+    {
+      "id": "fsm_context_fsm_error_to_idle_6",
+      "class": "state_transition",
+      "source": "fsm.context_fsm.transitions[6]",
+      "description": "{'from': 'ERROR', 'to': 'IDLE', 'when': 'software_clear_or_timeout_cleanup', 'action': 'clear_context_visible_error_state'}"
+    },
+    {
+      "id": "error_error_0",
+      "class": "error",
+      "source": "error_handling.error_sources[0]",
+      "description": "{'id': 'PD_DISABLED_DROP_MODE', 'condition': 'drop_mode_reg', 'architectural_effect': 'Status/error reporting follows the SSOT error policy'}"
+    },
+    {
+      "id": "error_error_1",
+      "class": "error",
+      "source": "error_handling.error_sources[1]",
+      "description": "{'id': 'PD_MALFORMED_TLP', 'condition': 'malformed_tlp_header_or_length', 'architectural_effect': 'Status/error reporting follows the SSOT error policy'}"
+    },
+    {
+      "id": "error_error_2",
+      "class": "error",
+      "source": "error_handling.error_sources[2]",
+      "description": "{'id': 'PD_UNSUPPORTED_VDM', 'condition': 'vendor_or_message_code_not_mctp_vdm', 'architectural_effect': 'Status/error reporting follows the SSOT error policy'}"
+    },
+    {
+      "id": "error_error_3",
+      "class": "error",
+      "source": "error_handling.error_sources[3]",
+      "description": "{'id': 'PD_BAD_MCTP_HEADER', 'condition': 'invalid_mctp_transport_header', 'architectural_effect': 'Status/error reporting follows the SSOT error policy'}"
+    },
+    {
+      "id": "error_error_4",
+      "class": "error",
+      "source": "error_handling.error_sources[4]",
+      "description": "{'id': 'PD_BAD_PAD_OR_ALIGNMENT', 'condition': 'nonfinal_payload_not_tu_sized_or_not_4B_aligned', 'architectural_effect': 'Status/error reporting follows the SSOT error policy'}"
+    },
+    {
+      "id": "error_error_5",
+      "class": "error",
+      "source": "error_handling.error_sources[5]",
+      "description": "{'id': 'PD_DEST_EID_REJECT', 'condition': 'destination_eid_filter_miss', 'architectural_effect': 'Status/error reporting follows the SSOT error policy'}"
+    },
+    {
+      "id": "error_error_6",
+      "class": "error",
+      "source": "error_handling.error_sources[6]",
+      "description": "{'id': 'PD_UNEXPECTED_MIDDLE_END', 'condition': 'middle_or_eom_without_matching_context', 'architectural_effect': 'Status/error reporting follows the SSOT error policy'}"
+    },
+    {
+      "id": "error_error_7",
+      "class": "error",
+      "source": "error_handling.error_sources[7]",
+      "description": "{'id': 'PD_BAD_OR_EXPIRED_TAG', 'condition': 'tag_owner_message_tag_key_invalid_or_expired', 'architectural_effect': 'Status/error reporting follows the SSOT error policy'}"
+    },
+    {
+      "id": "error_error_8",
+      "class": "error",
+      "source": "error_handling.error_sources[8]",
+      "description": "{'id': 'AD_DUPLICATE_SOM', 'condition': 'som_matches_active_context', 'architectural_effect': 'Status/error reporting follows the SSOT error policy'}"
+    },
+    {
+      "id": "error_error_9",
+      "class": "error",
+      "source": "error_handling.error_sources[9]",
+      "description": "{'id': 'AD_SEQUENCE_MISMATCH', 'condition': 'packet_seq_not_expected', 'architectural_effect': 'Status/error reporting follows the SSOT error policy'}"
+    },
+    {
+      "id": "error_error_10",
+      "class": "error",
+      "source": "error_handling.error_sources[10]",
+      "description": "{'id': 'AD_MESSAGE_OVERFLOW', 'condition': 'payload_count_exceeds_MAX_MESSAGE_BYTES', 'architectural_effect': 'Status/error reporting follows the SSOT error policy'}"
+    },
+    {
+      "id": "error_error_11",
+      "class": "error",
+      "source": "error_handling.error_sources[11]",
+      "description": "{'id': 'AD_SRAM_OVERFLOW', 'condition': 'linear_allocator_exceeds_sram_limit', 'architectural_effect': 'Status/error reporting follows the SSOT error policy'}"
+    },
+    {
+      "id": "error_error_12",
+      "class": "error",
+      "source": "error_handling.error_sources[12]",
+      "description": "{'id': 'AD_DESCRIPTOR_FULL', 'condition': 'descriptor_fifo_full_at_eom', 'architectural_effect': 'Status/error reporting follows the SSOT error policy'}"
+    },
+    {
+      "id": "error_error_13",
+      "class": "error",
+      "source": "error_handling.error_sources[13]",
+      "description": "{'id': 'AD_TIMEOUT', 'condition': 'ctx_timeout_age_exceeds_timeout_limit', 'architectural_effect': 'Status/error reporting follows the SSOT error policy'}"
+    },
+    {
+      "id": "invariant_context_bound_violated",
+      "class": "invariant_violation",
+      "source": "function_model.invariants[0]",
+      "description": "context_bound"
+    },
+    {
+      "id": "invariant_payload_bound_violated",
+      "class": "invariant_violation",
+      "source": "function_model.invariants[1]",
+      "description": "payload_bound"
+    },
+    {
+      "id": "invariant_descriptor_bound_violated",
+      "class": "invariant_violation",
+      "source": "function_model.invariants[2]",
+      "description": "descriptor_bound"
+    },
+    {
+      "id": "cycle_axi_write_channels",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[0]",
+      "signal": "m_axi_awvalid/m_axi_awready/m_axi_wvalid/m_axi_wready",
+      "description": "AXI write address and data payload remain stable while valid and not ready."
+    },
+    {
+      "id": "cycle_axi_read_channels",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[1]",
+      "signal": "m_axi_arvalid/m_axi_arready/m_axi_rvalid/m_axi_rready",
+      "description": "AXI read address and data payload remain stable while valid and not ready."
+    },
+    {
+      "id": "cycle_apb_access",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[2]",
+      "signal": "psel/penable/pready",
+      "description": "APB completes only in access phase when PREADY is asserted."
+    },
+    {
+      "id": "cycle_sram_ready_valid",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[3]",
+      "signal": "sram_wr_valid/sram_wr_ready/sram_rd_req_valid/sram_rd_req_ready",
+      "description": "SRAM request payload remains stable until accepted."
+    },
+    {
+      "id": "ordering_one_tlp_per_axi_write_transaction",
+      "class": "ordering",
+      "source": "cycle_model.ordering[0]",
+      "description": "WLAST terminates one TLP and no next AW is accepted while the current TLP is open."
+    },
+    {
+      "id": "ordering_per_key_fragment_order",
+      "class": "ordering",
+      "source": "cycle_model.ordering[1]",
+      "description": "Fragments for one context key must follow packet sequence order."
+    },
+    {
+      "id": "ordering_descriptor_after_sram_flush",
+      "class": "ordering",
+      "source": "cycle_model.ordering[2]",
+      "description": "Descriptor publish occurs after final partial SRAM word is flushed."
+    },
+    {
+      "id": "ordering_readback_after_descriptor",
+      "class": "ordering",
+      "source": "cycle_model.ordering[3]",
+      "description": "Firmware readback uses completed descriptors unless raw debug read is enabled."
+    },
+    {
+      "id": "latency_fm_accept_axi_tlp_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.FM_ACCEPT_AXI_TLP",
+      "description": "FM_ACCEPT_AXI_TLP latency < 1 cycles",
+      "bucket": "<min",
+      "threshold": 1
+    },
+    {
+      "id": "latency_fm_accept_axi_tlp_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.FM_ACCEPT_AXI_TLP",
+      "description": "FM_ACCEPT_AXI_TLP latency == 1 cycles",
+      "bucket": "min",
+      "cycles": 1
+    },
+    {
+      "id": "latency_fm_accept_axi_tlp_mid",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.FM_ACCEPT_AXI_TLP",
+      "description": "FM_ACCEPT_AXI_TLP latency ~mid (65 cycles)",
+      "bucket": "mid",
+      "cycles": 65
+    },
+    {
+      "id": "latency_fm_accept_axi_tlp_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.FM_ACCEPT_AXI_TLP",
+      "description": "FM_ACCEPT_AXI_TLP latency == 129 cycles",
+      "bucket": "max",
+      "cycles": 129
+    },
+    {
+      "id": "latency_fm_accept_axi_tlp_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.FM_ACCEPT_AXI_TLP",
+      "description": "FM_ACCEPT_AXI_TLP latency > 129 cycles",
+      "bucket": ">max",
+      "threshold": 129
+    },
+    {
+      "id": "latency_fm_filter_vdm_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.FM_FILTER_VDM",
+      "description": "FM_FILTER_VDM latency < 1 cycles",
+      "bucket": "<min",
+      "threshold": 1
+    },
+    {
+      "id": "latency_fm_filter_vdm_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.FM_FILTER_VDM",
+      "description": "FM_FILTER_VDM latency == 1 cycles",
+      "bucket": "min",
+      "cycles": 1
+    },
+    {
+      "id": "latency_fm_filter_vdm_mid",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.FM_FILTER_VDM",
+      "description": "FM_FILTER_VDM latency ~mid (1 cycles)",
+      "bucket": "mid",
+      "cycles": 1
+    },
+    {
+      "id": "latency_fm_filter_vdm_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.FM_FILTER_VDM",
+      "description": "FM_FILTER_VDM latency == 2 cycles",
+      "bucket": "max",
+      "cycles": 2
+    },
+    {
+      "id": "latency_fm_filter_vdm_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.FM_FILTER_VDM",
+      "description": "FM_FILTER_VDM latency > 2 cycles",
+      "bucket": ">max",
+      "threshold": 2
+    },
+    {
+      "id": "latency_fm_parse_mctp_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.FM_PARSE_MCTP",
+      "description": "FM_PARSE_MCTP latency < 1 cycles",
+      "bucket": "<min",
+      "threshold": 1
+    },
+    {
+      "id": "latency_fm_parse_mctp_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.FM_PARSE_MCTP",
+      "description": "FM_PARSE_MCTP latency == 1 cycles",
+      "bucket": "min",
+      "cycles": 1
+    },
+    {
+      "id": "latency_fm_parse_mctp_mid",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.FM_PARSE_MCTP",
+      "description": "FM_PARSE_MCTP latency ~mid (1 cycles)",
+      "bucket": "mid",
+      "cycles": 1
+    },
+    {
+      "id": "latency_fm_parse_mctp_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.FM_PARSE_MCTP",
+      "description": "FM_PARSE_MCTP latency == 2 cycles",
+      "bucket": "max",
+      "cycles": 2
+    },
+    {
+      "id": "latency_fm_parse_mctp_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.FM_PARSE_MCTP",
+      "description": "FM_PARSE_MCTP latency > 2 cycles",
+      "bucket": ">max",
+      "threshold": 2
+    },
+    {
+      "id": "latency_fm_assemble_fragment_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.FM_ASSEMBLE_FRAGMENT",
+      "description": "FM_ASSEMBLE_FRAGMENT latency < 1 cycles",
+      "bucket": "<min",
+      "threshold": 1
+    },
+    {
+      "id": "latency_fm_assemble_fragment_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.FM_ASSEMBLE_FRAGMENT",
+      "description": "FM_ASSEMBLE_FRAGMENT latency == 1 cycles",
+      "bucket": "min",
+      "cycles": 1
+    },
+    {
+      "id": "latency_fm_assemble_fragment_mid",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.FM_ASSEMBLE_FRAGMENT",
+      "description": "FM_ASSEMBLE_FRAGMENT latency ~mid (2 cycles)",
+      "bucket": "mid",
+      "cycles": 2
+    },
+    {
+      "id": "latency_fm_assemble_fragment_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.FM_ASSEMBLE_FRAGMENT",
+      "description": "FM_ASSEMBLE_FRAGMENT latency == 4 cycles",
+      "bucket": "max",
+      "cycles": 4
+    },
+    {
+      "id": "latency_fm_assemble_fragment_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.FM_ASSEMBLE_FRAGMENT",
+      "description": "FM_ASSEMBLE_FRAGMENT latency > 4 cycles",
+      "bucket": ">max",
+      "threshold": 4
+    },
+    {
+      "id": "latency_fm_sram_pack_write_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.FM_SRAM_PACK_WRITE",
+      "description": "FM_SRAM_PACK_WRITE latency < 1 cycles",
+      "bucket": "<min",
+      "threshold": 1
+    },
+    {
+      "id": "latency_fm_sram_pack_write_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.FM_SRAM_PACK_WRITE",
+      "description": "FM_SRAM_PACK_WRITE latency == 1 cycles",
+      "bucket": "min",
+      "cycles": 1
+    },
+    {
+      "id": "latency_fm_sram_pack_write_mid",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.FM_SRAM_PACK_WRITE",
+      "description": "FM_SRAM_PACK_WRITE latency ~mid (16 cycles)",
+      "bucket": "mid",
+      "cycles": 16
+    },
+    {
+      "id": "latency_fm_sram_pack_write_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.FM_SRAM_PACK_WRITE",
+      "description": "FM_SRAM_PACK_WRITE latency == 32 cycles",
+      "bucket": "max",
+      "cycles": 32
+    },
+    {
+      "id": "latency_fm_sram_pack_write_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.FM_SRAM_PACK_WRITE",
+      "description": "FM_SRAM_PACK_WRITE latency > 32 cycles",
+      "bucket": ">max",
+      "threshold": 32
+    },
+    {
+      "id": "latency_fm_complete_message_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.FM_COMPLETE_MESSAGE",
+      "description": "FM_COMPLETE_MESSAGE latency < 1 cycles",
+      "bucket": "<min",
+      "threshold": 1
+    },
+    {
+      "id": "latency_fm_complete_message_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.FM_COMPLETE_MESSAGE",
+      "description": "FM_COMPLETE_MESSAGE latency == 1 cycles",
+      "bucket": "min",
+      "cycles": 1
+    },
+    {
+      "id": "latency_fm_complete_message_mid",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.FM_COMPLETE_MESSAGE",
+      "description": "FM_COMPLETE_MESSAGE latency ~mid (2 cycles)",
+      "bucket": "mid",
+      "cycles": 2
+    },
+    {
+      "id": "latency_fm_complete_message_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.FM_COMPLETE_MESSAGE",
+      "description": "FM_COMPLETE_MESSAGE latency == 3 cycles",
+      "bucket": "max",
+      "cycles": 3
+    },
+    {
+      "id": "latency_fm_complete_message_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.FM_COMPLETE_MESSAGE",
+      "description": "FM_COMPLETE_MESSAGE latency > 3 cycles",
+      "bucket": ">max",
+      "threshold": 3
+    },
+    {
+      "id": "latency_fm_axi_readback_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.FM_AXI_READBACK",
+      "description": "FM_AXI_READBACK latency < 1 cycles",
+      "bucket": "<min",
+      "threshold": 1
+    },
+    {
+      "id": "latency_fm_axi_readback_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.FM_AXI_READBACK",
+      "description": "FM_AXI_READBACK latency == 1 cycles",
+      "bucket": "min",
+      "cycles": 1
+    },
+    {
+      "id": "latency_fm_axi_readback_mid",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.FM_AXI_READBACK",
+      "description": "FM_AXI_READBACK latency ~mid (4 cycles)",
+      "bucket": "mid",
+      "cycles": 4
+    },
+    {
+      "id": "latency_fm_axi_readback_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.FM_AXI_READBACK",
+      "description": "FM_AXI_READBACK latency == 8 cycles",
+      "bucket": "max",
+      "cycles": 8
+    },
+    {
+      "id": "latency_fm_axi_readback_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.FM_AXI_READBACK",
+      "description": "FM_AXI_READBACK latency > 8 cycles",
+      "bucket": ">max",
+      "threshold": 8
+    },
+    {
+      "id": "latency_default_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.default",
+      "description": "default latency < 1 cycles",
+      "bucket": "<min",
+      "threshold": 1
+    },
+    {
+      "id": "latency_default_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.default",
+      "description": "default latency == 1 cycles",
+      "bucket": "min",
+      "cycles": 1
+    },
+    {
+      "id": "latency_default_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.default",
+      "description": "default latency == 1 cycles",
+      "bucket": "max",
+      "cycles": 1
+    },
+    {
+      "id": "latency_default_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.default",
+      "description": "default latency > 1 cycles",
+      "bucket": ">max",
+      "threshold": 1
+    },
+    {
+      "id": "outstanding_depth_1",
+      "class": "outstanding_depth",
+      "source": "cycle_model.outstanding",
+      "description": "1 outstanding transaction (min)",
+      "depth": 1
+    }
+  ]
+}

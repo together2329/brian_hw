@@ -1,0 +1,15 @@
+{
+  "generated_at": "2026-06-01T23:02:49Z",
+  "ip": "mctp_assembler_scratch_v5",
+  "schema_version": 1,
+  "source_mode": "direct_ssot",
+  "status": "pass",
+  "summary": {
+    "covered": 95,
+    "evidence_tokens": 759,
+    "obligations": 95,
+    "uncovered_required": 0
+  },
+  "type": "truth_coverage",
+  "uncovered_required": []
+}

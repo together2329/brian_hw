@@ -1,0 +1,583 @@
+{
+  "type": "coverage_owner_routes",
+  "ip": "mctp_assembler_scratch_v5",
+  "status": "non_signoff",
+  "source": "workflow/coverage/scripts/ssot_coverage_summary.py missing_bins from RTL-observed scoreboard coverage",
+  "route_policy": "Coverage is not claimed as passing; every missing bin is owner-routed to sim_debug for Task 11 mismatch classification.",
+  "routes": [
+    {
+      "bin_id": "AD_DESCRIPTOR_FULL_executed",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "AD_DUPLICATE_SOM_executed",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "AD_MESSAGE_OVERFLOW_executed",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "AD_SEQUENCE_MISMATCH_executed",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "AD_SRAM_OVERFLOW_executed",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "AD_TIMEOUT_executed",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "PD_BAD_OR_EXPIRED_TAG_executed",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "PD_BAD_PAD_OR_ALIGNMENT_executed",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "PD_DISABLED_DROP_MODE_executed",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "PD_UNEXPECTED_MIDDLE_END_executed",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "SC_APB_REGS_PER_Q_executed",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "SC_AXI_READBACK_TRIM_executed",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "SC_MAX_TU_4096_129_BEATS_executed",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "SC_MULTI_FRAGMENT_TU64_executed",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "SC_UNALIGNED_SRAM_PACK_NO_HOLES_executed",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "SC_VALID_SINGLE_PACKET_executed",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "ccov_backpressure",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "cycle_backpressure_0",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "cycle_backpressure_2",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "cycle_latency_default",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "cycle_latency_fm_assemble_fragment",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "cycle_latency_fm_axi_readback",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "cycle_latency_fm_complete_message",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "cycle_latency_fm_filter_vdm",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "cycle_latency_fm_parse_mctp",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "cycle_latency_fm_sram_pack_write",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "cycle_ordering_0",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "cycle_ordering_1",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "cycle_ordering_2",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "cycle_perf_depth",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "cycle_perf_frequency_mhz",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "cycle_pipeline_context_lookup_update",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "cycle_pipeline_descriptor_irq",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "cycle_pipeline_pcie_vdm_filter",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "error_error_0",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "error_error_10",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "error_error_12",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "error_error_13",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "error_error_4",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "error_error_6",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "error_error_7",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "error_error_8",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "error_error_9",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "fcov_assemble_fragment",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "fcov_assembly_drops",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "fcov_axi_readback",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "fcov_packet_drops",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "fcov_parse_mctp",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "fcov_sram_pack_write",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "function_allocate_or_update_a_q_context_for_one_mctp_fragment",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "function_assembly_drop_without_descriptor_publish",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "function_axi_readback_from_descriptor_backed_sram_payload",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "function_complete_eom_message_and_publish_descriptor",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "function_decode_mctp_transport_header_and_context_key",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "function_pack_payload_bytes_into_32_byte_sram_beats_with_no_holes",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "function_packet_drop_without_sram_payload_write",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    },
+    {
+      "bin_id": "function_validate_pcie_vdm_envelope_for_mctp_transport",
+      "owner": "sim_debug",
+      "status": "non_signoff_blocker",
+      "reason": "Coverage bin lacks a passing RTL-observed scoreboard row; run sim-debug goal audit and route the underlying FL-vs-RTL mismatch before production signoff.",
+      "evidence": [
+        "sim/scoreboard_events.jsonl",
+        "cov/coverage.json"
+      ]
+    }
+  ],
+  "summary": {
+    "missing_bins": 57,
+    "owner": "sim_debug"
+  }
+}

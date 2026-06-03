@@ -17,7 +17,7 @@
   "check_ssot_disk": {
     "ok": false,
     "returncode": 1,
-    "stdout": "[check_ssot_disk] FAIL: mctp_assembler_v3/yaml/mctp_assembler_v3.ssot.yaml failed YAML/model validation\n  function_model.transactions[0].output_rules[0].port is required\n",
+    "stdout": "[check_ssot_disk] FAIL: mctp_assembler_v3/yaml/mctp_assembler_v3.ssot.yaml failed YAML/model validation\n  sub_modules[9].name='mctp_assembler_v3' duplicates the IP name; rename, drop, or mark wiring_only:true so rtl-gen can tell it from the top wrapper\n",
     "stderr": ""
   },
   "preview_contract": "strict"

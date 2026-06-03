@@ -1,0 +1,16 @@
+{
+  "schema_version": "ssot_validation.v2",
+  "ip": "mctp_assembler_scratch_v5",
+  "mode": "signoff",
+  "ssot": "mctp_assembler_scratch_v5/yaml/mctp_assembler_scratch_v5.ssot.yaml",
+  "ok": true,
+  "blockers": [],
+  "warnings": [],
+  "check_ssot_disk": {
+    "ok": true,
+    "returncode": 0,
+    "stdout": "[check_ssot_disk] PASS: mctp_assembler_scratch_v5/yaml/mctp_assembler_scratch_v5.ssot.yaml = 118029B, 36 sections, 0 TBDs, mode=signoff\n",
+    "stderr": ""
+  },
+  "preview_contract": "strict"
+}

@@ -1,0 +1,239 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 5,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 7,
+      "enabled": true,
+      "index": 5,
+      "key": "equivalence",
+      "module_task_count": 89,
+      "rule": "Owner module mctp_assembler_scratch_v5_axi_write_ingress is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "equivalence",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/mctp_assembler_scratch_v5_axi_write_ingress.sv",
+      "name": "mctp_assembler_scratch_v5_axi_write_ingress",
+      "refs": [
+        "cycle_model",
+        "cycle_model.handshake_rules.axi_write_channels",
+        "dataflow",
+        "function_model",
+        "function_model.transactions.FM_ACCEPT_AXI_TLP",
+        "io_list",
+        "io_list.interfaces.axi_write_slave",
+        "test_requirements"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/mctp_assembler_scratch_v5_axi_write_ingress.sv",
+        "name": "mctp_assembler_scratch_v5_axi_write_ingress",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_v5_pcie_vdm_parser.sv",
+        "name": "mctp_assembler_scratch_v5_pcie_vdm_parser",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_v5_mctp_parser.sv",
+        "name": "mctp_assembler_scratch_v5_mctp_parser",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_v5_context_table.sv",
+        "name": "mctp_assembler_scratch_v5_context_table",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_v5_sram_packer.sv",
+        "name": "mctp_assembler_scratch_v5_sram_packer",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_v5_axi_read_egress.sv",
+        "name": "mctp_assembler_scratch_v5_axi_read_egress",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_v5_sram_arbiter.sv",
+        "name": "mctp_assembler_scratch_v5_sram_arbiter",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_v5_descriptor_queue.sv",
+        "name": "mctp_assembler_scratch_v5_descriptor_queue",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_v5_apb_regfile.sv",
+        "name": "mctp_assembler_scratch_v5_apb_regfile",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_v5_cdc.sv",
+        "name": "mctp_assembler_scratch_v5_cdc",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_v5_param.vh",
+        "name": "mctp_assembler_scratch_v5_param",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_scratch_v5.sv",
+        "name": "mctp_assembler_scratch_v5",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_scratch_v5_axi_write_ingress",
+        "port": "m_axi_awvalid",
+        "signal": "m_axi_awvalid",
+        "signal_terms": [
+          "m_axi_awvalid"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_scratch_v5_axi_write_ingress",
+        "port": "m_axi_wvalid",
+        "signal": "m_axi_wvalid",
+        "signal_terms": [
+          "m_axi_wvalid"
+        ],
+        "source_ref": "integration.connections[1]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "mctp_assembler_scratch_v5",
+  "kind": "module",
+  "owner_file": "rtl/mctp_assembler_scratch_v5_axi_write_ingress.sv",
+  "owner_module": "mctp_assembler_scratch_v5_axi_write_ingress",
+  "packet_id": "module__mctp_assembler_scratch_v5_axi_write_ingress__equivalence",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "equivalence.module": 1
+    },
+    "module_slice": {
+      "count": 7,
+      "enabled": true,
+      "index": 5,
+      "key": "equivalence",
+      "module_task_count": 89,
+      "rule": "Owner module mctp_assembler_scratch_v5_axi_write_ingress is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "equivalence",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 1,
+    "source_refs": [
+      "sub_modules.mctp_assembler_scratch_v5_axi_write_ingress.module_equivalence"
+    ],
+    "status_counts": {
+      "pass": 1
+    },
+    "task_count": 1
+  },
+  "tasks": [
+    {
+      "category": "equivalence.module",
+      "content": "Prove module mctp_assembler_scratch_v5_axi_write_ingress is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.mctp_assembler_scratch_v5_axi_write_ingress.module_equivalence",
+        "Primary implementation evidence is in rtl/mctp_assembler_scratch_v5_axi_write_ingress.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.mctp_assembler_scratch_v5_axi_write_ingress.module_equivalence.\nOwner: mctp_assembler_scratch_v5_axi_write_ingress in rtl/mctp_assembler_scratch_v5_axi_write_ingress.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0421",
+      "owner_file": "rtl/mctp_assembler_scratch_v5_axi_write_ingress.sv",
+      "owner_module": "mctp_assembler_scratch_v5_axi_write_ingress",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.mctp_assembler_scratch_v5_axi_write_ingress.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.mctp_assembler_scratch_v5_axi_write_ingress.module_equivalence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "a6a5a0fbc9df7cbf10ab017b46631a16a00f0b454b4cee41da9ba28dbc65043d",
+  "top": "mctp_assembler_scratch_v5",
+  "type": "rtl_authoring_packet"
+}

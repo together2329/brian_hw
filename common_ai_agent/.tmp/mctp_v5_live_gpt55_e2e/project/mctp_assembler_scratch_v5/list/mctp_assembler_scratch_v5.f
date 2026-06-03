@@ -1,0 +1,12 @@
+rtl/mctp_assembler_scratch_v5_axi_write_ingress.sv
+rtl/mctp_assembler_scratch_v5_pcie_vdm_parser.sv
+rtl/mctp_assembler_scratch_v5_mctp_parser.sv
+rtl/mctp_assembler_scratch_v5_context_table.sv
+rtl/mctp_assembler_scratch_v5_sram_packer.sv
+rtl/mctp_assembler_scratch_v5_axi_read_egress.sv
+rtl/mctp_assembler_scratch_v5_sram_arbiter.sv
+rtl/mctp_assembler_scratch_v5_descriptor_queue.sv
+rtl/mctp_assembler_scratch_v5_apb_regfile.sv
+rtl/mctp_assembler_scratch_v5_cdc.sv
+rtl/mctp_assembler_scratch_v5.sv
+rtl/mctp_assembler_scratch_v5_param.vh
