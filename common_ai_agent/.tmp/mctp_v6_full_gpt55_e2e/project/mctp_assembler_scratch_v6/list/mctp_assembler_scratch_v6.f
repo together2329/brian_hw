@@ -1,0 +1,1 @@
+rtl/mctp_assembler_scratch_v6.sv
