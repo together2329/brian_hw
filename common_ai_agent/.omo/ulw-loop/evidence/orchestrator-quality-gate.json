@@ -1,35 +1,33 @@
 {
-  "qualityGate": {
-    "aiSlopCleaner": {
-      "evidence": ".omo/ulw-loop/evidence/ai-slop-noop.txt; no source diff outside .omo/ulw-loop for this execution.",
-      "status": "passed"
-    },
-    "codeReview": {
-      "architectStatus": "CLEAR",
-      "evidence": "UNCONDITIONAL APPROVAL from /root/orchestrator_ulw_final_reviewer: recommendation APPROVE, architectStatus complete, blockers none. Reviewer verified C001/C002/C003 pass, HTTP/TestClient and Vite Playwright evidence, focused Python suite, frontend vitest, frontend build, and acceptable no-op slop report.",
-      "recommendation": "APPROVE"
-    },
-    "criteriaCoverage": {
-      "adversarialClassesCovered": [
-        "happy_path_orchestrator_dispatch",
-        "missing_stage_evidence",
-        "blocked_stage_engine",
-        "downstream_blocking",
-        "single_worker_regression",
-        "ui_blocked_failed_rendering",
-        "misleading_success_output"
-      ],
-      "passCount": 3,
-      "totalCriteria": 3
-    },
-    "verification": {
-      "commands": [
-        "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest tests/test_atlas_exec_policy.py tests/test_atlas_api_pipeline_state.py::test_pipeline_run_policy_get_post_and_state_payload tests/test_atlas_api_pipeline_state.py::test_orchestrator_mode_post_toggles_env_and_state_payload tests/test_atlas_api_pipeline_state.py::test_pipeline_state_preserves_blocked_db_row_as_blocked tests/test_orchestrator_workers_route.py tests/test_pipeline_orchestrator_worker_integration.py -q",
-        "cd frontend/atlas && ./node_modules/.bin/vitest run __tests__/pipeline-stage-blocked.test.tsx __tests__/app-shell-font-select.test.tsx __tests__/exec-policy.test.mjs __tests__/session-routing.test.mjs",
-        "cd frontend/atlas && npm run build"
-      ],
-      "evidence": "Focused Python suite: 39 passed, 5 skipped. Focused frontend vitest: 4 files passed, 25 tests passed. Frontend vite build passed.",
-      "status": "passed"
-    }
+  "aiSlopCleaner": {
+    "evidence": ".omo/ulw-loop/evidence/ai-slop-noop.txt; no source diff outside .omo/ulw-loop for this execution.",
+    "status": "passed"
+  },
+  "codeReview": {
+    "architectStatus": "CLEAR",
+    "evidence": "UNCONDITIONAL APPROVAL from /root/orchestrator_ulw_final_reviewer: recommendation APPROVE, architectStatus complete, blockers none. Reviewer verified C001/C002/C003 pass, HTTP/TestClient and Vite Playwright evidence, focused Python suite, frontend vitest, frontend build, and acceptable no-op slop report.",
+    "recommendation": "APPROVE"
+  },
+  "criteriaCoverage": {
+    "adversarialClassesCovered": [
+      "happy_path_orchestrator_dispatch",
+      "missing_stage_evidence",
+      "blocked_stage_engine",
+      "downstream_blocking",
+      "single_worker_regression",
+      "ui_blocked_failed_rendering",
+      "misleading_success_output"
+    ],
+    "passCount": 3,
+    "totalCriteria": 3
+  },
+  "verification": {
+    "commands": [
+      "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest tests/test_atlas_exec_policy.py tests/test_atlas_api_pipeline_state.py::test_pipeline_run_policy_get_post_and_state_payload tests/test_atlas_api_pipeline_state.py::test_orchestrator_mode_post_toggles_env_and_state_payload tests/test_atlas_api_pipeline_state.py::test_pipeline_state_preserves_blocked_db_row_as_blocked tests/test_orchestrator_workers_route.py tests/test_pipeline_orchestrator_worker_integration.py -q",
+      "cd frontend/atlas && ./node_modules/.bin/vitest run __tests__/pipeline-stage-blocked.test.tsx __tests__/app-shell-font-select.test.tsx __tests__/exec-policy.test.mjs __tests__/session-routing.test.mjs",
+      "cd frontend/atlas && npm run build"
+    ],
+    "evidence": "Focused Python suite: 39 passed, 5 skipped. Focused frontend vitest: 4 files passed, 25 tests passed. Frontend vite build passed.",
+    "status": "passed"
   }
 }

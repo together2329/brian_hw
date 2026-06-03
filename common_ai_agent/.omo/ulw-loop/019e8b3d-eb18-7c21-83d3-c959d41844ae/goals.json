@@ -1,7 +1,7 @@
 {
   "version": 1,
   "createdAt": "2026-06-03T11:22:01.953Z",
-  "updatedAt": "2026-06-03T11:36:38.901Z",
+  "updatedAt": "2026-06-03T11:41:39.006Z",
   "briefPath": ".omo/ulw-loop/019e8b3d-eb18-7c21-83d3-c959d41844ae/brief.md",
   "goalsPath": ".omo/ulw-loop/019e8b3d-eb18-7c21-83d3-c959d41844ae/goals.json",
   "ledgerPath": ".omo/ulw-loop/019e8b3d-eb18-7c21-83d3-c959d41844ae/ledger.jsonl",
@@ -11,7 +11,7 @@
       "id": "G001-implement-orchestrator-mode-stabiliz",
       "title": "Implement orchestrator mode stabilization for ATLAS. Stabilize orches...",
       "objective": "Implement orchestrator mode stabilization for ATLAS. Stabilize orchestrator dispatch with strict evidence gates preserved: positive mock/real worker paths complete only with valid stage evidence; missing/invalid evidence becomes error or blocked and blocks downstream; pipeline state and UI preserve blocked vs failed; single-worker mode remains unaffected. Use the existing plan at .omo/plans/orchestrator-mode-stabilization.md as scope.",
-      "status": "in_progress",
+      "status": "complete",
       "successCriteria": [
         {
           "id": "C001",
@@ -46,10 +46,29 @@
       ],
       "attempt": 1,
       "createdAt": "2026-06-03T11:22:01.953Z",
-      "updatedAt": "2026-06-03T11:36:38.901Z",
-      "startedAt": "2026-06-03T11:22:32.458Z"
+      "updatedAt": "2026-06-03T11:41:39.006Z",
+      "startedAt": "2026-06-03T11:22:32.458Z",
+      "completedAt": "2026-06-03T11:41:39.006Z",
+      "evidence": "G001-implement-orchestrator-mode-stabiliz complete in .omo/ulw-loop/019e8b3d-eb18-7c21-83d3-c959d41844ae/goals.json and ledger.jsonl. C001 positive HTTP/TestClient dispatch evidence: .omo/ulw-loop/evidence/orchestrator-positive-http.txt. C002 negative missing/blocked owner routing evidence: .omo/ulw-loop/evidence/orchestrator-negative-http.txt. C003 UI/single-worker regression evidence and screenshot: .omo/ulw-loop/evidence/orchestrator-ui-single-worker.txt and .png. Validation passed: Python 39 passed 5 skipped; frontend vitest 25 passed; vite build passed. Reviewer APPROVE/CLEAR with no blockers."
     }
   ],
   "codexObjective": "Complete the durable ulw-loop plan in .omo/ulw-loop/019e8b3d-eb18-7c21-83d3-c959d41844ae/goals.json, including later accepted/appended stories, under the original brief constraints; use .omo/ulw-loop/019e8b3d-eb18-7c21-83d3-c959d41844ae/ledger.jsonl as the audit trail.",
-  "activeGoalId": "G001-implement-orchestrator-mode-stabiliz"
+  "aggregateCompletion": {
+    "status": "complete",
+    "completedAt": "2026-06-03T11:41:39.006Z",
+    "evidence": "G001-implement-orchestrator-mode-stabiliz complete in .omo/ulw-loop/019e8b3d-eb18-7c21-83d3-c959d41844ae/goals.json and ledger.jsonl. C001 positive HTTP/TestClient dispatch evidence: .omo/ulw-loop/evidence/orchestrator-positive-http.txt. C002 negative missing/blocked owner routing evidence: .omo/ulw-loop/evidence/orchestrator-negative-http.txt. C003 UI/single-worker regression evidence and screenshot: .omo/ulw-loop/evidence/orchestrator-ui-single-worker.txt and .png. Validation passed: Python 39 passed 5 skipped; frontend vitest 25 passed; vite build passed. Reviewer APPROVE/CLEAR with no blockers.",
+    "codexGoal": {
+      "goal": {
+        "threadId": "019e8b3d-eb18-7c21-83d3-c959d41844ae",
+        "objective": "Complete the durable ulw-loop plan in .omo/ulw-loop/019e8b3d-eb18-7c21-83d3-c959d41844ae/goals.json, including later accepted/appended stories, under the original brief constraints; use .omo/ulw-loop/019e8b3d-eb18-7c21-83d3-c959d41844ae/ledger.jsonl as the audit trail.",
+        "status": "complete",
+        "tokensUsed": 227235,
+        "timeUsedSeconds": 1073,
+        "createdAt": 1780485757,
+        "updatedAt": 1780486831
+      },
+      "remainingTokens": null,
+      "completionBudgetReport": null
+    }
+  }
 }
