@@ -108,8 +108,12 @@ def setup_session(project: str = 'default', workflow: str = '') -> Path:
     """
     import config
 
-    project_root = Path(os.environ.get('ATLAS_PROJECT_ROOT') or Path.cwd()).resolve()
-    session_dir = project_root / '.session' / project.strip('/')
+    session_dir_env = str(os.environ.get('ATLAS_SESSION_DIR') or '').strip()
+    if session_dir_env:
+        session_dir = Path(session_dir_env).expanduser().resolve()
+    else:
+        project_root = Path(os.environ.get('ATLAS_PROJECT_ROOT') or Path.cwd()).resolve()
+        session_dir = project_root / '.session' / project.strip('/')
     session_dir.mkdir(parents=True, exist_ok=True)
 
     _migrate_old_session(session_dir)

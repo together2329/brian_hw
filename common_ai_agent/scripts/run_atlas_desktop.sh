@@ -18,6 +18,10 @@ MODE="dev"
 HOST="${ATLAS_DESKTOP_HOST:-127.0.0.1}"
 PORT="${ATLAS_DESKTOP_PORT:-3000}"
 ROOT="${ATLAS_DESKTOP_ROOT:-}"
+ROOT_EXPLICIT=0
+if [[ -n "$ROOT" ]]; then
+  ROOT_EXPLICIT=1
+fi
 IP="${ATLAS_DESKTOP_IP:-}"
 WORKFLOW="${ATLAS_DESKTOP_WORKFLOW:-default}"
 SESSION_ID="${ATLAS_DESKTOP_SESSION_ID:-${USER:-default}}"
@@ -57,10 +61,12 @@ while [[ $# -gt 0 ]]; do
       ;;
     --root)
       ROOT="${2:-}"
+      ROOT_EXPLICIT=1
       shift 2
       ;;
     --root=*)
       ROOT="${1#*=}"
+      ROOT_EXPLICIT=1
       shift
       ;;
     --ip|-ip)
@@ -149,6 +155,15 @@ if [[ -z "$BACKEND_URL_RAW" ]]; then
   BACKEND_URL_RAW="http://${HOST}:${PORT}/"
 fi
 
+if [[ -z "$ROOT" && "$BACKEND_URL_EXPLICIT" == 0 ]]; then
+  ROOT="${ATLAS_ROOT:-${HOME:-}/ATLAS}"
+  if [[ -z "$ROOT" || "$ROOT" == "/ATLAS" ]]; then
+    echo "HOME is not set; pass --root explicitly." >&2
+    exit 1
+  fi
+  mkdir -p "$ROOT"
+fi
+
 if [[ -n "$ROOT" ]]; then
   if [[ ! -d "$ROOT" ]]; then
     echo "backend root not found: $ROOT" >&2
@@ -220,6 +235,9 @@ backend_command() {
     env
     "ATLAS_FRONTEND_MODE=${ATLAS_FRONTEND_MODE:-vite}"
   )
+  if [[ -n "$ROOT" ]]; then
+    cmd+=("ATLAS_ROOT=$ROOT")
+  fi
   if [[ -n "$SCM_PROVIDER" ]]; then
     cmd+=("ATLAS_SCM_PROVIDER=$SCM_PROVIDER")
   fi
@@ -303,6 +321,9 @@ start_backend_if_needed() {
   local -a env_args=("ATLAS_FRONTEND_MODE=${ATLAS_FRONTEND_MODE:-vite}")
   if [[ -n "$SCM_PROVIDER" ]]; then
     env_args+=("ATLAS_SCM_PROVIDER=$SCM_PROVIDER")
+  fi
+  if [[ -n "$ROOT" ]]; then
+    env_args+=("ATLAS_ROOT=$ROOT")
   fi
   if [[ "$SCM_PROVIDER" == "perforce" && -z "${ATLAS_SCM_ADAPTER_PERFORCE:-}" ]]; then
     env_args+=("ATLAS_SCM_ADAPTER_PERFORCE=core.scm_perforce:PerforceP4Adapter")

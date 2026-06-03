@@ -18,6 +18,7 @@ from fastapi import FastAPI
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 
+from core.atlas_context import AtlasContext
 from core.atlas_exec_policy import EXEC_MODE_SINGLE, current_exec_mode
 try:
     from atlas_session_delete import force_delete_requested, session_delete_response
@@ -238,6 +239,13 @@ def register_sessions_routes(
             or body.get("session_id")
             or ""
         ).strip() or "default"
+        workspace_session = str(
+            body.get("workspace_session")
+            or body.get("workspaceSession")
+            or body.get("workspace_id")
+            or ""
+        ).strip()
+        user_name = str(body.get("user_name") or body.get("user") or "").strip()
         ip = str((body or {}).get("ip") or "").strip() or "default"
         wf = str((body or {}).get("workflow") or "").strip() or "default"
         raw_preserve = (body or {}).get("preserve_running")
@@ -249,6 +257,8 @@ def register_sessions_routes(
             else str(raw_preserve or "").strip().lower() in ("1", "true", "yes", "on")
         )
         request_owner = _request_username(req)
+        if workspace_session:
+            sid = user_name or request_owner or sid
         multi_user_on = _multi_user_enabled()
         # Phantom-IP guard. A stale session (URL param, localStorage, or DB)
         # can restore an IP that no longer exists on disk — e.g. `uart` after
@@ -275,7 +285,12 @@ def register_sessions_routes(
         # Sanitize — refuse exotic path chars to avoid traversal. Usernames
         # may be numeric account ids, so the first segment cannot require a
         # letter.
-        for label, val in (("owner", sid), ("ip", ip), ("workflow", wf)):
+        for label, val in (
+            ("owner", sid),
+            ("workspace_session", workspace_session or "default"),
+            ("ip", ip),
+            ("workflow", wf),
+        ):
             if not re.match(r"^[A-Za-z0-9][A-Za-z0-9_-]*$", val):
                 return JSONResponse(
                     {"error": f"invalid {label}: {val!r}"},
@@ -286,7 +301,18 @@ def register_sessions_routes(
         if multi_user_on and request_owner and sid != request_owner:
             return JSONResponse({"error": "session owner mismatch"}, status_code=403)
         sid = _session_owner_with_model(sid)
-        canonical = f"{sid}/{ip}/{wf}"
+        atlas_root = Path(os.environ.get("ATLAS_ROOT") or project_root()).expanduser().resolve()
+        if workspace_session:
+            context = AtlasContext(
+                user_name=sid,
+                workspace_session=workspace_session,
+                ip_name=ip,
+                workflow=wf,
+                atlas_root=atlas_root,
+            )
+        else:
+            context = AtlasContext.from_session_key(f"{sid}/{ip}/{wf}", atlas_root=project_root())
+        canonical = context.active_session_key
         user_id = _request_user_id(req)
         try:
             with _atlas_db() as db:
@@ -444,7 +470,7 @@ def register_sessions_routes(
         # process mode the actual setup runs inside core.session_worker for
         # that namespace; the main backend only emits UI state.
         prev_parts = [part for part in str(prev or "").split("/") if part]
-        prev_wf = prev_parts[2] if len(prev_parts) >= 3 else os.environ.get("ACTIVE_WORKSPACE", "")
+        prev_wf = prev_parts[-1] if len(prev_parts) >= 3 else os.environ.get("ACTIVE_WORKSPACE", "")
         if setup_workspace is not None and wf and wf != prev_wf:
             # Emit via 'token'+'flush' — workspace.jsx subscribes to that
             # streaming channel, not to a bare 'agent' type.
@@ -526,7 +552,7 @@ def register_sessions_routes(
                 _emit_to_canonical("commands_changed")
             except Exception:
                 pass
-        _root = project_root()
+        _root = context.workspace_root
         # Workflow transition marker commit on the per-IP repo. Closes
         # out the previous stage's work as a single labeled checkpoint
         # so the IP history reads like a workflow timeline. Skipped when
@@ -534,13 +560,14 @@ def register_sessions_routes(
         if wf and prev_wf and wf != prev_wf and prev_wf != "default":
             schedule_workflow_checkpoint(
                 WorkflowCheckpointRequest(
-                    ip_dir=_root / ip,
+                    ip_dir=context.ip_root,
                     previous_workflow=prev_wf,
                     next_workflow=wf,
                 )
             )
-        _session_dir = _root / ".session" / sid / ip / wf
+        _session_dir = context.session_dir
         try:
+            context.ip_root.mkdir(parents=True, exist_ok=True)
             _session_dir.mkdir(parents=True, exist_ok=True)
             _conv = _session_dir / "conversation.json"
             if not _conv.exists():
@@ -553,8 +580,12 @@ def register_sessions_routes(
                 "kind": "atlas_control_plane",
                 "namespace": canonical,
                 "owner": sid,
+                "workspace_session": context.workspace_session,
+                "context_key": context.context_key,
                 "ip": ip,
                 "workflow": wf,
+                "workspace_root": str(context.workspace_root),
+                "ip_root": str(context.ip_root),
             }
             with _atlas_db() as db:
                 session_row = db.upsert_runtime_session(
@@ -586,7 +617,7 @@ def register_sessions_routes(
                 db_user_id=user_id,
                 session_name=canonical,
                 active_workflow=wf,
-                project_root_value=str(_root),
+                    project_root_value=str(_root),
                 reason="session_activate",
                 background=True,
             )
@@ -615,10 +646,15 @@ def register_sessions_routes(
             "ok": True,
             "active_session": canonical,
             "namespace": canonical,
+            "context_key": context.context_key,
             "owner": sid,
             "owner_id": sid,
             "user_id": user_id,
             "session_id": sid,
+            "workspace_session": context.workspace_session,
+            "workspace_root": str(context.workspace_root),
+            "ip_root": str(context.ip_root),
+            "session_dir": str(context.session_dir),
             "db_session_id": canonical,
             "runtime_session_id": session_payload.get("session_uid") or "",
             "session_uid": session_payload.get("session_uid") or "",
