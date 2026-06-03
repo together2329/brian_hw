@@ -141,4 +141,4 @@ class SessionContext:
         }
 
 
-from .atlas_context_paths import AtlasContext
+from .atlas_context_paths import AtlasContext, default_atlas_root

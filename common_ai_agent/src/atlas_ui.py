@@ -2025,22 +2025,44 @@ def create_app():
                     or _active_session_value()
                     or _canonical_session_string()
                 )
-            _active_parts = [
-                part for part in normalize_session_name(
-                    str(info.get("active_session") or "")
-                ).split("/") if part
-            ]
-            info["active_ip"] = (
-                _active_parts[1]
-                if len(_active_parts) >= 2 and _active_parts[1]
-                else (_active_ip_value() or "default")
-            )
-            info["active_workflow"] = (
-                _active_parts[2]
-                if len(_active_parts) >= 3 and _active_parts[2]
-                else (os.environ.get("ATLAS_DEFAULT_WORKFLOW") or "default")
-            )
             active_session_path = normalize_session_name(str(info.get("active_session") or ""))
+            active_context: AtlasContext | None = None
+            if active_session_path:
+                try:
+                    active_context = AtlasContext.from_session_key(
+                        active_session_path,
+                        atlas_root=os.environ.get("ATLAS_ROOT") or str(PROJECT_ROOT),
+                    )
+                    info["active_session"] = active_context.active_session_key
+                    info["context_key"] = active_context.context_key
+                    info["workspace_session"] = active_context.workspace_session
+                    info["active_ip"] = active_context.ip_name
+                    info["active_workflow"] = active_context.workflow
+                    info["atlas_root"] = str(active_context.atlas_root)
+                    info["workspace_root"] = str(active_context.workspace_root)
+                    info["ip_root"] = str(active_context.ip_root)
+                    if not active_context.legacy:
+                        info["backend_project_root"] = str(PROJECT_ROOT)
+                        info["project_root"] = str(active_context.workspace_root)
+                        info["project_root_name"] = active_context.workspace_root.name or ""
+                except Exception:
+                    active_context = None
+            if active_context is None:
+                _active_parts = [
+                    part for part in normalize_session_name(
+                        str(info.get("active_session") or "")
+                    ).split("/") if part
+                ]
+                info["active_ip"] = (
+                    _active_parts[1]
+                    if len(_active_parts) >= 2 and _active_parts[1]
+                    else (_active_ip_value() or "default")
+                )
+                info["active_workflow"] = (
+                    _active_parts[2]
+                    if len(_active_parts) >= 3 and _active_parts[2]
+                    else (os.environ.get("ATLAS_DEFAULT_WORKFLOW") or "default")
+                )
             info["db_session_id"] = ""
             info["session_uid"] = ""
             info["session_label"] = ""
@@ -2056,7 +2078,11 @@ def create_app():
                 except Exception:
                     pass
             if active_session_path:
-                session_dir = PROJECT_ROOT / ".session" / active_session_path
+                session_dir = (
+                    active_context.session_dir
+                    if active_context is not None
+                    else PROJECT_ROOT / ".session" / active_session_path
+                )
                 info["session_dir"] = str(session_dir)
                 info["todo_file"] = str(session_dir / "todo.json")
                 info["history_file"] = str(session_dir / "conversation.json")
@@ -2102,6 +2128,9 @@ def create_app():
                 _sess = str(PROJECT_ROOT)
                 _sess_str = normalize_session_name(str(info.get("active_session") or "")).strip("/")
                 _candidates = []
+                _health_session_dir = str(info.get("session_dir") or "").strip()
+                if _health_session_dir:
+                    _candidates.append(_P(_health_session_dir) / "cost.json")
                 if _sess_str:
                     # Canonical 3-part path:
                     # .session/<owner>/<ip>/<workflow>/cost.json. Do not
