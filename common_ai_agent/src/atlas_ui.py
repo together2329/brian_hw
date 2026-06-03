@@ -46,6 +46,8 @@ import time
 from pathlib import Path
 from typing import Any, Callable, Optional, TYPE_CHECKING
 
+from core.atlas_context import AtlasContext
+
 
 def _configure_utf8_process_io() -> None:
     """Keep Atlas server/worker console I/O from crashing on Windows code pages."""

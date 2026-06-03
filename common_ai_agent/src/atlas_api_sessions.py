@@ -445,10 +445,7 @@ def register_sessions_routes(
         # spawn time, so mutating the shared backend env there would be a
         # cross-user last-writer-wins race.
         if not process_mode:
-            os.environ["ATLAS_ACTIVE_SESSION"] = canonical
-            os.environ["ATLAS_ACTIVE_IP"] = ip
-            os.environ["ATLAS_DEFAULT_SESSION_ID"] = sid
-            os.environ["ATLAS_DEFAULT_WORKFLOW"] = wf
+            os.environ.update(context.export_env())
             if setup_session is not None:
                 try:
                     setup_session(canonical)
@@ -617,7 +614,7 @@ def register_sessions_routes(
                 db_user_id=user_id,
                 session_name=canonical,
                 active_workflow=wf,
-                    project_root_value=str(_root),
+                project_root_value=str(_root),
                 reason="session_activate",
                 background=True,
             )

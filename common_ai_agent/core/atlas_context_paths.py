@@ -7,7 +7,7 @@ import os
 import re
 
 
-_SAFE_SEGMENT_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_.-]*$")
+_SAFE_SEGMENT_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
 
 
 def _validated_segment(value: object, *, field_name: str) -> str:
