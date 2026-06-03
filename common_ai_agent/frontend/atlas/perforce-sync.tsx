@@ -23,6 +23,7 @@ import {
 
 const w = window as unknown as {
   ATLAS_USER_SESSION_ID?: string;
+  ACTIVE_SESSION?: string;
   ACTIVE_IP?: string;
   GitTab?: any;
   AtlasSCMTabOverrides?: Record<string, any>;
@@ -249,6 +250,7 @@ function PerforceSyncTab(props: PerforceSyncProps) {
   const activeStream = stream || pane?.stream || '';
   const activeScmRoot = scmRoot || pane?.scmRoot || '';
   const depotRoot = activeStream ? `${activeStream.replace(/\/+$/, '')}/` : '';
+  const activeSessionId = () => String(w.ACTIVE_SESSION || '').trim();
 
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
 
@@ -259,7 +261,8 @@ function PerforceSyncTab(props: PerforceSyncProps) {
 
   // IP dropdown
   useEffect(() => {
-    const sid = w.ATLAS_USER_SESSION_ID ? `?session_id=${encodeURIComponent(w.ATLAS_USER_SESSION_ID)}` : '';
+    const sessionId = activeSessionId() || w.ATLAS_USER_SESSION_ID || '';
+    const sid = sessionId ? `?session_id=${encodeURIComponent(sessionId)}` : '';
     fetch(`/api/ip/list${sid}`, { cache: 'no-store' })
       .then(r => r.ok ? r.json() : { items: [] })
       .then(d => {
@@ -290,6 +293,8 @@ function PerforceSyncTab(props: PerforceSyncProps) {
       } : current);
     }
     const params = new URLSearchParams({ ip: targetIp, provider: 'perforce' });
+    const sessionId = activeSessionId();
+    if (sessionId) params.set('session_id', sessionId);
     if (targetStream) params.set('stream', targetStream);
     if (targetScmRoot) params.set('scm_root', targetScmRoot);
     if (targetLocalDir) params.set('local_dir', targetLocalDir);
@@ -337,7 +342,8 @@ function PerforceSyncTab(props: PerforceSyncProps) {
     const streamBody = activeStream ? { stream: activeStream } : {};
     const rootBody = activeScmRoot ? { scmRoot: activeScmRoot } : {};
     const changeBody = selectedChange ? { changelist: selectedChange } : {};
-    fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...body, ip, provider: 'perforce', ...streamBody, ...rootBody, ...changeBody }) })
+    const sessionBody = activeSessionId() ? { session_id: activeSessionId() } : {};
+    fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...body, ip, provider: 'perforce', ...streamBody, ...rootBody, ...changeBody, ...sessionBody }) })
       .then(r => r.json())
       .then(d => {
         if (!mounted.current) return;
@@ -370,6 +376,8 @@ function PerforceSyncTab(props: PerforceSyncProps) {
     setDiffErr('');
     setDiffBusy(true);
     const params = new URLSearchParams({ ip, provider: 'perforce', path });
+    const sessionId = activeSessionId();
+    if (sessionId) params.set('session_id', sessionId);
     if (activeStream) params.set('stream', activeStream);
     if (activeScmRoot) params.set('scm_root', activeScmRoot);
     fetch(`/api/scm/diff?${params.toString()}`, { cache: 'no-store' })

@@ -16,6 +16,8 @@ import {
   type GitOpResult,
 } from './workspace-panel-shared';
 
+const activeSessionId = (): string => String((window as any).ACTIVE_SESSION || '').trim();
+
 export interface GitPanelProps {
   activeIp?: string;
 }
@@ -46,6 +48,8 @@ export const GitPanel = ({ activeIp: activeIpProp = '' }: GitPanelProps = {}) =>
     try {
       const params = new URLSearchParams();
       if (activeIp) params.set('ip', activeIp);
+      const sid = activeSessionId();
+      if (sid) params.set('session_id', sid);
       const qs = params.toString();
       const r = await fetch('/api/git/status' + (qs ? `?${qs}` : ''));
       const d = await r.json();
@@ -55,6 +59,8 @@ export const GitPanel = ({ activeIp: activeIpProp = '' }: GitPanelProps = {}) =>
     try {
       const params = new URLSearchParams({ limit: '80' });
       if (activeIp) params.set('ip', activeIp);
+      const sid = activeSessionId();
+      if (sid) params.set('session_id', sid);
       const r = await fetch('/api/git/log?' + params.toString());
       const d = await r.json();
       setCommits(Array.isArray(d.commits) ? d.commits : []);
@@ -70,6 +76,8 @@ export const GitPanel = ({ activeIp: activeIpProp = '' }: GitPanelProps = {}) =>
     setDiffLoading(true);
     const params = new URLSearchParams({ path: selected });
     if (activeIp) params.set('ip', activeIp);
+    const sid = activeSessionId();
+    if (sid) params.set('session_id', sid);
     fetch('/api/git/diff?' + params.toString())
       .then(r => r.json())
       .then(d => { if (!cancelled) { setDiff(d.diff || d.error || ''); setDiffLoading(false); } })
@@ -83,7 +91,7 @@ export const GitPanel = ({ activeIp: activeIpProp = '' }: GitPanelProps = {}) =>
     try {
       const r = await fetch('/api/git/commit', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, add_all: true, ip: activeIp }),
+        body: JSON.stringify({ message, add_all: true, ip: activeIp, session_id: activeSessionId() || undefined }),
       });
       const d = await r.json();
       setLastResult({ kind: 'commit', ...d });
@@ -98,7 +106,7 @@ export const GitPanel = ({ activeIp: activeIpProp = '' }: GitPanelProps = {}) =>
     try {
       const r = await fetch('/api/git/push', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ip: activeIp }),
+        body: JSON.stringify({ ip: activeIp, session_id: activeSessionId() || undefined }),
       });
       const d = await r.json();
       setLastResult({ kind: 'push', ...d });

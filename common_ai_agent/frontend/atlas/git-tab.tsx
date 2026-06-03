@@ -26,6 +26,7 @@ import {
 const w = window as unknown as {
   ATLAS_USER?: { username?: string } | null;
   ATLAS_USER_SESSION_ID?: string;
+  ACTIVE_SESSION?: string;
   ACTIVE_IP?: string;
 };
 
@@ -91,6 +92,13 @@ export function GitTab({ initialIp, provider = '' }: GitTabProps): ReactNode {
     const sep = url.includes('?') ? '&' : '?';
     return `${url}${sep}provider=${encodeURIComponent(forcedProvider)}`;
   }, [forcedProvider]);
+  const withRouteContext = useCallback((url: string) => {
+    const withScmProvider = withProvider(url);
+    const sessionId = String(w.ACTIVE_SESSION || '').trim();
+    if (!sessionId) return withScmProvider;
+    const sep = withScmProvider.includes('?') ? '&' : '?';
+    return `${withScmProvider}${sep}session_id=${encodeURIComponent(sessionId)}`;
+  }, [withProvider]);
 
   const clearSelection = useCallback(() => {
     diffReqRef.current += 1;
@@ -110,7 +118,8 @@ export function GitTab({ initialIp, provider = '' }: GitTabProps): ReactNode {
 
   // Pull the IP roster from /api/ip/list (session-scoped in multi-user mode).
   useEffect(() => {
-    const sid = (w.ATLAS_USER && w.ATLAS_USER.username)
+    const sid = w.ACTIVE_SESSION
+      || (w.ATLAS_USER && w.ATLAS_USER.username)
       || w.ATLAS_USER_SESSION_ID || '';
     const url = '/api/ip/list' + (sid ? `?session_id=${encodeURIComponent(sid)}` : '');
     fetch(url, { cache: 'no-store' })
@@ -141,8 +150,8 @@ export function GitTab({ initialIp, provider = '' }: GitTabProps): ReactNode {
       return;
     }
     setBusy(true); setErr(null);
-    const graphUrl = withProvider(`/api/ip/${encodeURIComponent(ip)}/git/graph?limit=120`);
-    const statusUrl = withProvider(`/api/git/status?ip=${encodeURIComponent(ip)}`);
+    const graphUrl = withRouteContext(`/api/ip/${encodeURIComponent(ip)}/git/graph?limit=120`);
+    const statusUrl = withRouteContext(`/api/git/status?ip=${encodeURIComponent(ip)}`);
     const graphReq = fetch(graphUrl, { cache: 'no-store' })
       .then(r => r.ok ? r.json() : r.json().then(j => Promise.reject(j.error || r.status)));
     const statusReq = fetch(statusUrl, { cache: 'no-store' })
@@ -168,7 +177,7 @@ export function GitTab({ initialIp, provider = '' }: GitTabProps): ReactNode {
         setErr(String(e));
       })
       .finally(() => mountedRef.current && setBusy(false));
-  }, [ip, clearSelection, withProvider]);
+  }, [ip, clearSelection, withRouteContext]);
 
   useEffect(() => { refresh(); }, [refresh]);
 
@@ -179,7 +188,7 @@ export function GitTab({ initialIp, provider = '' }: GitTabProps): ReactNode {
     setDiffBody('');
     setDiffErr('');
     setDiffBusy(true);
-    fetch(withProvider(`/api/git/show?sha=${encodeURIComponent(commit.hash)}&ip=${encodeURIComponent(ip)}`),
+    fetch(withRouteContext(`/api/git/show?sha=${encodeURIComponent(commit.hash)}&ip=${encodeURIComponent(ip)}`),
           { cache: 'no-store' })
       .then(r => r.ok ? r.json() : r.json().then(j => Promise.reject(j.error || r.status)))
       .then(d => {
@@ -193,7 +202,7 @@ export function GitTab({ initialIp, provider = '' }: GitTabProps): ReactNode {
       .finally(() => {
         if (mountedRef.current && diffReqRef.current === reqId) setDiffBusy(false);
       });
-  }, [ip, withProvider]);
+  }, [ip, withRouteContext]);
 
   const confirmRevert = useCallback(() => {
     if (!revertTarget || !ip) return;
@@ -201,7 +210,11 @@ export function GitTab({ initialIp, provider = '' }: GitTabProps): ReactNode {
     fetch(`/api/ip/${encodeURIComponent(ip)}/git/revert`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ hash: revertTarget.hash, provider: forcedProvider || undefined }),
+      body: JSON.stringify({
+        hash: revertTarget.hash,
+        provider: forcedProvider || undefined,
+        session_id: w.ACTIVE_SESSION || undefined,
+      }),
     })
       .then(r => r.json())
       .then(d => {

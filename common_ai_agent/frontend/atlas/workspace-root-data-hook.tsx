@@ -2284,7 +2284,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
         fetch(`/api/ip/${encodeURIComponent(ipName)}/git/commit`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: msg }),
+          body: JSON.stringify({ message: msg, session_id: String((window as any).ACTIVE_SESSION || '').trim() || undefined }),
         })
           .then((r) => r.json())
           .then((j: any) => {
