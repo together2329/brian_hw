@@ -1,4 +1,5 @@
 from core.atlas_exec_policy import (
+    EXEC_MODE_LOCKED,
     EXEC_MODE_ORCHESTRATOR,
     EXEC_MODE_SINGLE,
     apply_exec_mode_env,
@@ -18,11 +19,12 @@ def test_normalize_exec_mode_accepts_cli_and_ui_aliases() -> None:
     assert normalize_exec_mode("unknown") == ""
 
 
+def test_exec_mode_picker_is_not_policy_locked() -> None:
+    assert EXEC_MODE_LOCKED is False
+
+
 def test_current_exec_mode_defaults_to_single_worker_when_nothing_set() -> None:
-    # Fresh launch with no exec env resolves to single-worker (the picker is
-    # UI-locked to single-worker; orchestrator stays opt-in via explicit env).
     assert current_exec_mode({}) == EXEC_MODE_SINGLE
-    # The orchestrator code path is still reachable when explicitly requested.
     assert current_exec_mode({"ATLAS_ORCHESTRATOR_MODE": "1"}) == EXEC_MODE_ORCHESTRATOR
 
 

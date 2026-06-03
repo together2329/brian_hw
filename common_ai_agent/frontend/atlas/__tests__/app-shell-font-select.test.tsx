@@ -7,10 +7,12 @@ import { AppShell } from '../app-shell';
 
 type RenderResult = {
   calls: string[];
+  policyCalls: Array<[string, string]>;
 };
 
 function renderShell(initialFontMode = 'mono'): RenderResult {
   const calls: string[] = [];
+  const policyCalls: Array<[string, string]> = [];
   const noop = vi.fn();
 
   function Harness() {
@@ -67,7 +69,9 @@ function renderShell(initialFontMode = 'mono'): RenderResult {
         screen="workspace"
         setScreen={noop}
         runMode="engineering"
-        saveRunPolicy={noop}
+        saveRunPolicy={(nextRunMode: string, nextExecMode: string) => {
+          policyCalls.push([nextRunMode, nextExecMode]);
+        }}
         WORKFLOW_OPTIONS={['default']}
         selectWorkflow={noop}
         activateDashboardSession={noop}
@@ -76,7 +80,7 @@ function renderShell(initialFontMode = 'mono'): RenderResult {
   }
 
   render(<Harness />);
-  return { calls };
+  return { calls, policyCalls };
 }
 
 describe('AppShell font selector', () => {
@@ -117,6 +121,18 @@ describe('AppShell font selector', () => {
     renderShell('missing-font');
 
     expect(screen.getByLabelText('Font family')).toHaveValue('mono');
+  });
+
+  it('lets users select orchestrator execution mode from the shell picker', () => {
+    const { policyCalls } = renderShell('mono');
+    const select = screen.getByTitle('Exec Mode chooses single-worker execution or orchestrator-managed workers') as HTMLSelectElement;
+
+    expect(select).not.toBeDisabled();
+    expect([...select.options].map(option => option.value)).toEqual(['single-worker', 'orchestrator']);
+
+    fireEvent.change(select, { target: { value: 'orchestrator' } });
+
+    expect(policyCalls).toContainEqual(['engineering', 'orchestrator']);
   });
 });
 

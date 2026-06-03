@@ -109,11 +109,7 @@ export const ATLAS_EXEC_MODE_OPTIONS = [
   { key: 'orchestrator', label: 'Orchestrator' },
 ];
 export const DEFAULT_ATLAS_EXEC_MODE = 'single-worker';
-// Temporary hard lock — mirrors core/atlas_exec_policy.EXEC_MODE_LOCKED.
-// While true, the UI boots single-worker and the exec picker is disabled so
-// users can't switch to orchestrator. Flip both (here + the policy module)
-// to re-enable selection.
-export const ATLAS_EXEC_MODE_LOCKED = true;
+export const ATLAS_EXEC_MODE_LOCKED = false;
 export const ATLAS_FONT_MODE_OPTIONS = [
   { key: 'windows', label: 'Windows' },
   { key: 'sans', label: 'Sans' },

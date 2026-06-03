@@ -16,14 +16,7 @@ EXEC_MODE_ORCHESTRATOR = "orchestrator"
 EXEC_MODES = (EXEC_MODE_SINGLE, EXEC_MODE_ORCHESTRATOR)
 SINGLE_WORKER_URL = "http://127.0.0.1:5601"
 
-# Temporary UI lock for the exec-mode picker. While true, app.jsx
-# (ATLAS_EXEC_MODE_LOCKED mirrors this) boots single-worker and disables the
-# picker so users can't switch to orchestrator. The orchestrator code paths
-# stay intact — an explicit ATLAS_ORCHESTRATOR_MODE / ATLAS_EXEC_MODE launch
-# still selects it for deployments and tests — this only hides the choice in
-# the UI. The fresh-launch default is single-worker regardless (see
-# current_exec_mode). Flip both flags to re-expose the picker.
-EXEC_MODE_LOCKED = True
+EXEC_MODE_LOCKED = False
 LOCKED_EXEC_MODE = EXEC_MODE_SINGLE
 
 _TRUTHY = {"1", "true", "yes", "on"}
