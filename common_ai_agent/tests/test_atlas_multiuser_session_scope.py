@@ -260,6 +260,48 @@ def test_session_activate_accepts_v2_user_session_context(tmp_path, monkeypatch)
     assert {entry["name"] for entry in files.json()["entries"]} == {"yaml"}
 
 
+def test_ip_list_scopes_v2_workspace_session_per_user(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.setenv("ATLAS_ROOT", str(tmp_path))
+    monkeypatch.setenv("ATLAS_EXEC_MODE", "single-worker")
+    monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODE", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    for workspace_session, ip_name in (("s1", "ip_alpha"), ("s2", "ip_beta")):
+        response = client.post(
+            "/api/session/activate",
+            json={
+                "user_name": "alice",
+                "workspace_session": workspace_session,
+                "ip": ip_name,
+                "workflow": "default",
+            },
+        )
+        assert response.status_code == 200, response.text
+        yaml_dir = tmp_path / "alice" / workspace_session / ip_name / "yaml"
+        yaml_dir.mkdir(parents=True, exist_ok=True)
+        (yaml_dir / f"{ip_name}.ssot.yaml").write_text(f"ip: {ip_name}\n", encoding="utf-8")
+
+    s1_list = client.get("/api/ip/list?session_id=alice/s1/default/default")
+    assert s1_list.status_code == 200, s1_list.text
+    assert s1_list.json()["workspace_session"] == "s1"
+    assert {item["name"] for item in s1_list.json()["items"]} == {"ip_alpha"}
+
+    s2_list = client.get("/api/ip/list?session_id=alice/s2")
+    assert s2_list.status_code == 200, s2_list.text
+    assert s2_list.json()["workspace_session"] == "s2"
+    assert {item["name"] for item in s2_list.json()["items"]} == {"ip_beta"}
+
+
 def test_healthz_session_hint_selects_v2_workspace_session(tmp_path, monkeypatch):
     import src.atlas_ui as atlas_ui
     from core.atlas_db import AtlasDB

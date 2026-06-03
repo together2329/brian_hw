@@ -302,16 +302,6 @@ rtl_contract:
   sample_condition: '1'
   input_map:
     arlen: s_axi_arlen
-    som: som
-    eom: eom
-    beat_index: beat_index
-    out_of_window: out_of_window
-    no_descriptor: no_descriptor
-    payload_bytes: payload_bytes
-    raw_sram_debug_read_enable: raw_sram_debug_read_enable
-    tlp_bytes: 'axi_wr_slave.wdata/wstrb across beats, byte lane N -> wdata[8*N +: 8]'
-    config: registers.CONTROL
-    fw_read: axi_rd_slave.araddr/arlen
     s_axi_awaddr: s_axi_awaddr
     s_axi_awlen: s_axi_awlen
     s_axi_awsize: s_axi_awsize
@@ -1021,6 +1011,34 @@ function_model:
     reset: 0
     width: 32
     description: Total AXI read beats completed with SLVERR
+  - name: som
+    reset: 0
+    width: 1
+    description: Decoded MCTP start-of-message bit for the active packet
+  - name: eom
+    reset: 0
+    width: 1
+    description: Decoded MCTP end-of-message bit for the active packet
+  - name: payload_bytes
+    reset: 0
+    width: 13
+    description: Decoded MCTP payload byte count contributed by the active packet
+  - name: beat_index
+    reset: 0
+    width: 8
+    description: AXI read burst beat index on the firmware payload read path
+  - name: out_of_window
+    reset: 0
+    width: 1
+    description: Read address falls outside the valid SRAM payload window
+  - name: no_descriptor
+    reset: 0
+    width: 1
+    description: No published descriptor backs the requested read address
+  - name: raw_sram_debug_read_enable
+    reset: 0
+    width: 1
+    description: DEBUG_CTRL bit allowing raw SRAM reads without a descriptor
   transactions:
   - id: FM_INGEST_TLP
     name: axi_write_to_tlp_bytes

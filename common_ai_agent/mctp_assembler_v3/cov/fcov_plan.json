@@ -4,17 +4,67 @@
   "ip": "mctp_assembler_v3",
   "source": "mctp_assembler_v3/yaml/mctp_assembler_v3.ssot.yaml",
   "planned_before_rtl": true,
-  "level": "union",
-  "summary": {
-    "total_bins": 82,
-    "by_class": {
-      "scenario": 20,
-      "transaction_type": 8,
-      "state_transition": 23,
-      "error": 14,
-      "protocol_handshake": 6,
-      "latency_bin": 11
-    }
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "mctp_assembler_v3/req/",
+      "mctp_assembler_v3/yaml/mctp_assembler_v3.ssot.yaml",
+      "mctp_assembler_v3/model/functional_model.py",
+      "mctp_assembler_v3/cov/fcov_plan.json",
+      "mctp_assembler_v3/yaml/mctp_assembler_v3.ssot.yaml#io_list",
+      "mctp_assembler_v3/yaml/mctp_assembler_v3.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "mctp_assembler_v3/rtl/",
+      "mctp_assembler_v3/tb/",
+      "mctp_assembler_v3/sim/",
+      "mctp_assembler_v3/vectors/",
+      "mctp_assembler_v3/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
   },
   "bins": [
     {
@@ -158,419 +208,652 @@
       "description": "APB register access"
     },
     {
+      "id": "fcov_single",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_PUBLISH_DESCRIPTOR",
+      "source_ref": "function_model.transactions.FM_PUBLISH_DESCRIPTOR",
+      "description": "Single-packet message completes and publishes a descriptor"
+    },
+    {
+      "id": "fcov_frag",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_APPEND",
+      "source_ref": "function_model.transactions.FM_APPEND",
+      "description": "Fragmented append observed"
+    },
+    {
+      "id": "fcov_pack",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_PACK_SRAM",
+      "source_ref": "function_model.transactions.FM_PACK_SRAM",
+      "description": "Payload-only SRAM pack observed (byte i at base+i)"
+    },
+    {
+      "id": "fcov_pd_all",
+      "class": "error_case",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_DECODE_VDM",
+      "source_ref": "function_model.transactions.FM_DECODE_VDM",
+      "description": "Every PD_* packet-drop reason (error_cases of FM_DECODE_VDM/FM_DECODE_MCTP) observed with no side effect"
+    },
+    {
+      "id": "fcov_ad_all",
+      "class": "error_case",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_APPEND",
+      "source_ref": "function_model.transactions.FM_APPEND",
+      "description": "Every AD_* assembly-drop reason (error_cases of FM_ALLOC_CONTEXT/FM_APPEND) observed aborting exactly its context"
+    },
+    {
+      "id": "ccov_ingest",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline.S0_INGEST",
+      "source_ref": "cycle_model.pipeline.S0_INGEST",
+      "description": "Ingest stage observed"
+    },
+    {
+      "id": "ccov_sram_hold",
+      "class": "handshake",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules",
+      "source_ref": "cycle_model.handshake_rules",
+      "description": "sram_wr hold-until-ready observed"
+    },
+    {
+      "id": "ccov_desc_order",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering",
+      "source_ref": "cycle_model.ordering",
+      "description": "descriptor after final SRAM flush observed"
+    },
+    {
+      "id": "ccov_ctx_fsm",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.context_fsm",
+      "source_ref": "fsm.context_fsm",
+      "description": "context FSM legal transitions observed"
+    },
+    {
+      "id": "ccov_outstanding",
+      "class": "outstanding",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.outstanding",
+      "source_ref": "cycle_model.performance.outstanding",
+      "description": "single outstanding read/write exercised"
+    },
+    {
       "id": "function_axi_write_to_tlp_bytes",
       "class": "transaction_type",
+      "coverage_domain": "function",
       "source": "function_model.transactions[0]",
-      "transaction_id": "FM_INGEST_TLP",
-      "transaction_name": "axi_write_to_tlp_bytes",
-      "description": "FM_INGEST_TLP \u2014 axi_write_to_tlp_bytes"
+      "source_ref": "function_model.transactions.fm_ingest_tlp",
+      "description": "FM_INGEST_TLP axi_write_to_tlp_bytes"
     },
     {
       "id": "function_pcie_vdm_decode",
       "class": "transaction_type",
+      "coverage_domain": "function",
       "source": "function_model.transactions[1]",
-      "transaction_id": "FM_DECODE_VDM",
-      "transaction_name": "pcie_vdm_decode",
-      "description": "FM_DECODE_VDM \u2014 pcie_vdm_decode"
+      "source_ref": "function_model.transactions.fm_decode_vdm",
+      "description": "FM_DECODE_VDM pcie_vdm_decode"
     },
     {
       "id": "function_mctp_transport_decode",
       "class": "transaction_type",
+      "coverage_domain": "function",
       "source": "function_model.transactions[2]",
-      "transaction_id": "FM_DECODE_MCTP",
-      "transaction_name": "mctp_transport_decode",
-      "description": "FM_DECODE_MCTP \u2014 mctp_transport_decode"
+      "source_ref": "function_model.transactions.fm_decode_mctp",
+      "description": "FM_DECODE_MCTP mctp_transport_decode"
     },
     {
       "id": "function_context_allocate",
       "class": "transaction_type",
+      "coverage_domain": "function",
       "source": "function_model.transactions[3]",
-      "transaction_id": "FM_ALLOC_CONTEXT",
-      "transaction_name": "context_allocate",
-      "description": "FM_ALLOC_CONTEXT \u2014 context_allocate"
+      "source_ref": "function_model.transactions.fm_alloc_context",
+      "description": "FM_ALLOC_CONTEXT context_allocate"
     },
     {
       "id": "function_context_append",
       "class": "transaction_type",
+      "coverage_domain": "function",
       "source": "function_model.transactions[4]",
-      "transaction_id": "FM_APPEND",
-      "transaction_name": "context_append",
-      "description": "FM_APPEND \u2014 context_append"
+      "source_ref": "function_model.transactions.fm_append",
+      "description": "FM_APPEND context_append"
     },
     {
       "id": "function_payload_pack_write",
       "class": "transaction_type",
+      "coverage_domain": "function",
       "source": "function_model.transactions[5]",
-      "transaction_id": "FM_PACK_SRAM",
-      "transaction_name": "payload_pack_write",
-      "description": "FM_PACK_SRAM \u2014 payload_pack_write"
+      "source_ref": "function_model.transactions.fm_pack_sram",
+      "description": "FM_PACK_SRAM payload_pack_write"
     },
     {
       "id": "function_descriptor_publish",
       "class": "transaction_type",
+      "coverage_domain": "function",
       "source": "function_model.transactions[6]",
-      "transaction_id": "FM_PUBLISH_DESCRIPTOR",
-      "transaction_name": "descriptor_publish",
-      "description": "FM_PUBLISH_DESCRIPTOR \u2014 descriptor_publish"
+      "source_ref": "function_model.transactions.fm_publish_descriptor",
+      "description": "FM_PUBLISH_DESCRIPTOR descriptor_publish"
     },
     {
       "id": "function_firmware_payload_read",
       "class": "transaction_type",
+      "coverage_domain": "function",
       "source": "function_model.transactions[7]",
-      "transaction_id": "FM_AXI_READ",
-      "transaction_name": "firmware_payload_read",
-      "description": "FM_AXI_READ \u2014 firmware_payload_read"
+      "source_ref": "function_model.transactions.fm_axi_read",
+      "description": "FM_AXI_READ firmware_payload_read"
+    },
+    {
+      "id": "cycle_handshake_0",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[0]",
+      "source_ref": "cycle_model.handshake_rules[0]",
+      "description": "{'signal': 's_axi_awready/s_axi_wready', 'rule': 'Assert only when the ingress can accept the AW/W beat; deassert to backpressure when not in drop_when_disabled mode.'}"
+    },
+    {
+      "id": "cycle_handshake_1",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[1]",
+      "source_ref": "cycle_model.handshake_rules[1]",
+      "description": "{'signal': 's_axi_bvalid', 'rule': 'Assert after the full TLP transaction is consumed; hold until bready.'}"
+    },
+    {
+      "id": "cycle_handshake_2",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[2]",
+      "source_ref": "cycle_model.handshake_rules[2]",
+      "description": "{'signal': 'sram_wr_valid', 'rule': 'Hold sram_wr_addr/data/strb stable while sram_wr_valid && !sram_wr_ready.'}"
+    },
+    {
+      "id": "cycle_handshake_3",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[3]",
+      "source_ref": "cycle_model.handshake_rules[3]",
+      "description": "{'signal': 'sram_rd_req_valid', 'rule': 'Issue one SRAM read request per AXI read beat; hold until sram_rd_req_ready.'}"
+    },
+    {
+      "id": "cycle_handshake_4",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[4]",
+      "source_ref": "cycle_model.handshake_rules[4]",
+      "description": "{'signal': 's_axi_rvalid/s_axi_rlast', 'rule': 'Drive rdata after the SRAM read response; assert rlast on the final ARLEN beat only.'}"
+    },
+    {
+      "id": "cycle_handshake_5",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[5]",
+      "source_ref": "cycle_model.handshake_rules[5]",
+      "description": "{'signal': 'apb pready', 'rule': 'Complete the access phase; pslverr only with pready=1.'}"
+    },
+    {
+      "id": "cycle_latency_register_read",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.register_read",
+      "source_ref": "cycle_model.latency.register_read",
+      "description": "{'min_cycles': 0, 'max_cycles': 1, 'description': 'APB read data/pready timing in pclk'}"
+    },
+    {
+      "id": "cycle_latency_register_write",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.register_write",
+      "source_ref": "cycle_model.latency.register_write",
+      "description": "{'min_cycles': 0, 'max_cycles': 1, 'description': 'APB write acceptance timing in pclk'}"
+    },
+    {
+      "id": "cycle_latency_single_beat_transfer",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.single_beat_transfer",
+      "source_ref": "cycle_model.latency.single_beat_transfer",
+      "description": "{'min_cycles': 1, 'max_cycles': None, 'description': 'AXI/SRAM handshakes; max depends on backpressure'}"
+    },
+    {
+      "id": "cycle_pipeline_s0_ingest",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[0]",
+      "source_ref": "cycle_model.pipeline[0]",
+      "description": "Reconstruct TLP bytes from AXI W beats; legality check"
+    },
+    {
+      "id": "cycle_pipeline_s1_vdm_decode",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[1]",
+      "source_ref": "cycle_model.pipeline[1]",
+      "description": "Decode/validate 16B PCIe VDM header; strip header/pad/digest"
+    },
+    {
+      "id": "cycle_pipeline_s2_mctp_decode",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[2]",
+      "source_ref": "cycle_model.pipeline[2]",
+      "description": "Decode MCTP transport header + IC/msg_type on SOM"
+    },
+    {
+      "id": "cycle_pipeline_s3_context",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[3]",
+      "source_ref": "cycle_model.pipeline[3]",
+      "description": "Allocate/append context by key; sequence/timeout checks"
+    },
+    {
+      "id": "cycle_pipeline_s4_pack",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[4]",
+      "source_ref": "cycle_model.pipeline[4]",
+      "description": "Pack payload bytes into 256-bit SRAM words; per-context partial word"
+    },
+    {
+      "id": "cycle_pipeline_s5_descriptor",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[5]",
+      "source_ref": "cycle_model.pipeline[5]",
+      "description": "On EOM push descriptor + first/last headers; raise descriptor_ready"
+    },
+    {
+      "id": "cycle_ordering_0",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[0]",
+      "source_ref": "cycle_model.ordering[0]",
+      "description": "descriptor_publish must occur only after the final SRAM payload write/flush for the message is accepted."
+    },
+    {
+      "id": "cycle_ordering_1",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[1]",
+      "source_ref": "cycle_model.ordering[1]",
+      "description": "AXI read response is not issued before the corresponding SRAM read response."
+    },
+    {
+      "id": "cycle_ordering_2",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[2]",
+      "source_ref": "cycle_model.ordering[2]",
+      "description": "Interrupt status updates occur on the rising edge the terminal event is recorded (after CDC into pclk for status bits)."
+    },
+    {
+      "id": "cycle_backpressure_0",
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.backpressure[0]",
+      "source_ref": "cycle_model.backpressure[0]",
+      "description": "sram_wr_ready deassertion stalls payload writes without dropping accepted bytes unless timeout/overflow occurs."
+    },
+    {
+      "id": "cycle_backpressure_1",
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.backpressure[1]",
+      "source_ref": "cycle_model.backpressure[1]",
+      "description": "SRAM write traffic for assembly has priority over firmware AXI read traffic on a shared port."
+    },
+    {
+      "id": "cycle_backpressure_2",
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.backpressure[2]",
+      "source_ref": "cycle_model.backpressure[2]",
+      "description": "AXI read backpressure must not corrupt ongoing assembly writes; each context owns its own partial-word state."
+    },
+    {
+      "id": "cycle_perf_outstanding",
+      "class": "performance",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.outstanding",
+      "source_ref": "cycle_model.performance.outstanding",
+      "description": "{'read_max': 1, 'write_max': 1, 'description': 'Single outstanding AXI write and read transaction'}"
+    },
+    {
+      "id": "cycle_perf_depth",
+      "class": "performance",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.depth",
+      "source_ref": "cycle_model.performance.depth",
+      "description": "{'pipeline_stages': 6, 'queue_depth': 8, 'description': 'Pipeline depth + descriptor FIFO depth visible to cycle coverage'}"
+    },
+    {
+      "id": "cycle_perf_frequency_mhz",
+      "class": "frequency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.frequency_mhz",
+      "source_ref": "cycle_model.performance.frequency_mhz",
+      "description": "400"
+    },
+    {
+      "id": "cycle_perf_throughput",
+      "class": "throughput",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.throughput",
+      "source_ref": "cycle_model.performance.throughput",
+      "description": "{'sustained_beats_per_cycle': 1, 'condition': 'No SRAM/AXI backpressure; full 256-bit payload words'}"
     },
     {
       "id": "fsm_ingress_fsm_idle_to_accept_aw_0",
       "class": "state_transition",
+      "coverage_domain": "cycle",
       "source": "fsm.ingress_fsm.transitions[0]",
+      "source_ref": "fsm.ingress_fsm.transitions[0]",
       "description": "awvalid && awready"
     },
     {
       "id": "fsm_ingress_fsm_accept_aw_to_collect_w_1",
       "class": "state_transition",
+      "coverage_domain": "cycle",
       "source": "fsm.ingress_fsm.transitions[1]",
+      "source_ref": "fsm.ingress_fsm.transitions[1]",
       "description": "AWSIZE==5 && AWBURST==INCR"
     },
     {
       "id": "fsm_ingress_fsm_accept_aw_to_resp_b_2",
       "class": "state_transition",
+      "coverage_domain": "cycle",
       "source": "fsm.ingress_fsm.transitions[2]",
+      "source_ref": "fsm.ingress_fsm.transitions[2]",
       "description": "illegal AWSIZE/AWBURST (PD_MALFORMED_TLP)"
     },
     {
       "id": "fsm_ingress_fsm_collect_w_to_check_legal_3",
       "class": "state_transition",
+      "coverage_domain": "cycle",
       "source": "fsm.ingress_fsm.transitions[3]",
+      "source_ref": "fsm.ingress_fsm.transitions[3]",
       "description": "wlast && wvalid && wready"
     },
     {
       "id": "fsm_ingress_fsm_check_legal_to_emit_tlp_4",
       "class": "state_transition",
+      "coverage_domain": "cycle",
       "source": "fsm.ingress_fsm.transitions[4]",
+      "source_ref": "fsm.ingress_fsm.transitions[4]",
       "description": "beat-count/WSTRB/length legal"
     },
     {
       "id": "fsm_ingress_fsm_check_legal_to_resp_b_5",
       "class": "state_transition",
+      "coverage_domain": "cycle",
       "source": "fsm.ingress_fsm.transitions[5]",
+      "source_ref": "fsm.ingress_fsm.transitions[5]",
       "description": "malformed (PD_MALFORMED_TLP)"
     },
     {
       "id": "fsm_ingress_fsm_emit_tlp_to_resp_b_6",
       "class": "state_transition",
+      "coverage_domain": "cycle",
       "source": "fsm.ingress_fsm.transitions[6]",
+      "source_ref": "fsm.ingress_fsm.transitions[6]",
       "description": "TLP bytes emitted to parser"
     },
     {
       "id": "fsm_ingress_fsm_resp_b_to_idle_7",
       "class": "state_transition",
+      "coverage_domain": "cycle",
       "source": "fsm.ingress_fsm.transitions[7]",
+      "source_ref": "fsm.ingress_fsm.transitions[7]",
       "description": "bvalid && bready (OKAY)"
     },
     {
       "id": "fsm_context_fsm_idle_to_assembling_0",
       "class": "state_transition",
+      "coverage_domain": "cycle",
       "source": "fsm.context_fsm.transitions[0]",
+      "source_ref": "fsm.context_fsm.transitions[0]",
       "description": "accepted SOM=1,EOM=0 allocates slot"
     },
     {
       "id": "fsm_context_fsm_idle_to_done_wait_descriptor_pop_1",
       "class": "state_transition",
+      "coverage_domain": "cycle",
       "source": "fsm.context_fsm.transitions[1]",
+      "source_ref": "fsm.context_fsm.transitions[1]",
       "description": "accepted SOM=1,EOM=1 single-packet completes"
     },
     {
       "id": "fsm_context_fsm_assembling_to_assembling_2",
       "class": "state_transition",
+      "coverage_domain": "cycle",
       "source": "fsm.context_fsm.transitions[2]",
+      "source_ref": "fsm.context_fsm.transitions[2]",
       "description": "accepted SOM=0,EOM=0 append, seq ok"
     },
     {
       "id": "fsm_context_fsm_assembling_to_done_wait_descriptor_pop_3",
       "class": "state_transition",
+      "coverage_domain": "cycle",
       "source": "fsm.context_fsm.transitions[3]",
+      "source_ref": "fsm.context_fsm.transitions[3]",
       "description": "accepted SOM=0,EOM=1 completes; descriptor pushed"
     },
     {
       "id": "fsm_context_fsm_assembling_to_error_4",
       "class": "state_transition",
+      "coverage_domain": "cycle",
       "source": "fsm.context_fsm.transitions[4]",
+      "source_ref": "fsm.context_fsm.transitions[4]",
       "description": "AD_* assembly drop (dup SOM/seq/overflow/sram/timeout)"
     },
     {
       "id": "fsm_context_fsm_done_wait_descriptor_pop_to_idle_5",
       "class": "state_transition",
+      "coverage_domain": "cycle",
       "source": "fsm.context_fsm.transitions[5]",
+      "source_ref": "fsm.context_fsm.transitions[5]",
       "description": "descriptor copied/popped"
     },
     {
       "id": "fsm_context_fsm_error_to_idle_6",
       "class": "state_transition",
+      "coverage_domain": "cycle",
       "source": "fsm.context_fsm.transitions[6]",
+      "source_ref": "fsm.context_fsm.transitions[6]",
       "description": "clear policy releases the slot"
     },
     {
       "id": "fsm_axi_read_fsm_idle_to_accept_ar_0",
       "class": "state_transition",
+      "coverage_domain": "cycle",
       "source": "fsm.axi_read_fsm.transitions[0]",
+      "source_ref": "fsm.axi_read_fsm.transitions[0]",
       "description": "arvalid && arready"
     },
     {
       "id": "fsm_axi_read_fsm_accept_ar_to_issue_sram_rd_1",
       "class": "state_transition",
+      "coverage_domain": "cycle",
       "source": "fsm.axi_read_fsm.transitions[1]",
+      "source_ref": "fsm.axi_read_fsm.transitions[1]",
       "description": "ARSIZE==5 && in window && (descriptor present or raw_sram_debug_read_enable)"
     },
     {
       "id": "fsm_axi_read_fsm_accept_ar_to_drive_r_2",
       "class": "state_transition",
+      "coverage_domain": "cycle",
       "source": "fsm.axi_read_fsm.transitions[2]",
+      "source_ref": "fsm.axi_read_fsm.transitions[2]",
       "description": "out-of-window/no-descriptor -> SLVERR"
     },
     {
       "id": "fsm_axi_read_fsm_issue_sram_rd_to_wait_sram_rsp_3",
       "class": "state_transition",
+      "coverage_domain": "cycle",
       "source": "fsm.axi_read_fsm.transitions[3]",
+      "source_ref": "fsm.axi_read_fsm.transitions[3]",
       "description": "sram_rd_req accepted"
     },
     {
       "id": "fsm_axi_read_fsm_wait_sram_rsp_to_drive_r_4",
       "class": "state_transition",
+      "coverage_domain": "cycle",
       "source": "fsm.axi_read_fsm.transitions[4]",
+      "source_ref": "fsm.axi_read_fsm.transitions[4]",
       "description": "sram_rd_rsp_valid"
     },
     {
       "id": "fsm_axi_read_fsm_drive_r_to_issue_sram_rd_5",
       "class": "state_transition",
+      "coverage_domain": "cycle",
       "source": "fsm.axi_read_fsm.transitions[5]",
+      "source_ref": "fsm.axi_read_fsm.transitions[5]",
       "description": "rvalid && rready && !rlast"
     },
     {
       "id": "fsm_axi_read_fsm_drive_r_to_done_6",
       "class": "state_transition",
+      "coverage_domain": "cycle",
       "source": "fsm.axi_read_fsm.transitions[6]",
+      "source_ref": "fsm.axi_read_fsm.transitions[6]",
       "description": "rvalid && rready && rlast"
     },
     {
       "id": "fsm_axi_read_fsm_done_to_idle_7",
       "class": "state_transition",
+      "coverage_domain": "cycle",
       "source": "fsm.axi_read_fsm.transitions[7]",
+      "source_ref": "fsm.axi_read_fsm.transitions[7]",
       "description": "next"
     },
     {
       "id": "error_error_0",
       "class": "error",
+      "coverage_domain": "function",
       "source": "error_handling.error_sources[0]",
+      "source_ref": "error_handling.error_sources[0]",
       "description": "{'id': 'PD_DISABLED_DROP_MODE', 'condition': 'enable=0 and drop_when_disabled=1', 'architectural_effect': 'packet drop; pd_disabled_drop_mode_count++; last_drop_class=packet'}"
     },
     {
       "id": "error_error_1",
       "class": "error",
+      "coverage_domain": "function",
       "source": "error_handling.error_sources[1]",
+      "source_ref": "error_handling.error_sources[1]",
       "description": "{'id': 'PD_MALFORMED_TLP', 'condition': 'empty/bad AWSIZE/AWBURST/interleave/beat-count/WLAST/WSTRB/<16B/>MAX_TLP_BYTES/length-inconsistent/unstripped-digest', 'architectural_effect': 'packet drop; pd_malformed_tlp_count++; axi_write_malformed interrupt'}"
     },
     {
       "id": "error_error_2",
       "class": "error",
+      "coverage_domain": "function",
       "source": "error_handling.error_sources[2]",
+      "source_ref": "error_handling.error_sources[2]",
       "description": "{'id': 'PD_UNSUPPORTED_VDM', 'condition': 'not supported Non-Flit VDM / msg_code!=0x7F / vendor!=0x1AB4 / vdm_code!=0x0 / unsupported routing/TC/attr', 'architectural_effect': 'packet drop; pd_unsupported_vdm_count++'}"
     },
     {
       "id": "error_error_3",
       "class": "error",
+      "coverage_domain": "function",
       "source": "error_handling.error_sources[3]",
+      "source_ref": "error_handling.error_sources[3]",
       "description": "{'id': 'PD_BAD_MCTP_HEADER', 'condition': 'header absent / version!=1 / SOM without body byte / IC policy reject', 'architectural_effect': 'packet drop; pd_bad_mctp_header_count++'}"
     },
     {
       "id": "error_error_4",
       "class": "error",
+      "coverage_domain": "function",
       "source": "error_handling.error_sources[4]",
+      "source_ref": "error_handling.error_sources[4]",
       "description": "{'id': 'PD_BAD_PAD_OR_ALIGNMENT', 'condition': 'pad>3 / pad!=0 on non-EOM / TU/payload alignment or size violations', 'architectural_effect': 'packet drop; pd_bad_pad_or_alignment_count++'}"
     },
     {
       "id": "error_error_5",
       "class": "error",
+      "coverage_domain": "function",
       "source": "error_handling.error_sources[5]",
+      "source_ref": "error_handling.error_sources[5]",
       "description": "{'id': 'PD_DEST_EID_REJECT', 'condition': 'dest EID fails filter', 'architectural_effect': 'packet drop; pd_dest_eid_reject_count++'}"
     },
     {
       "id": "error_error_6",
       "class": "error",
+      "coverage_domain": "function",
       "source": "error_handling.error_sources[6]",
+      "source_ref": "error_handling.error_sources[6]",
       "description": "{'id': 'PD_UNEXPECTED_MIDDLE_END', 'condition': 'middle/end with no active context / EOM without SOM', 'architectural_effect': 'packet drop; pd_unexpected_middle_end_count++'}"
     },
     {
       "id": "error_error_7",
       "class": "error",
+      "coverage_domain": "function",
       "source": "error_handling.error_sources[7]",
+      "source_ref": "error_handling.error_sources[7]",
       "description": "{'id': 'PD_BAD_OR_EXPIRED_TAG', 'condition': 'tag policy reject / context-table-full for new SOM', 'architectural_effect': 'packet drop; pd_bad_or_expired_tag_count++'}"
     },
     {
       "id": "error_error_8",
       "class": "error",
+      "coverage_domain": "function",
       "source": "error_handling.error_sources[8]",
+      "source_ref": "error_handling.error_sources[8]",
       "description": "{'id': 'AD_DUPLICATE_SOM', 'condition': 'SOM for an already-active key', 'architectural_effect': 'assembly drop; abort context; ad_duplicate_som_count++; assembly_drop interrupt'}"
     },
     {
       "id": "error_error_9",
       "class": "error",
+      "coverage_domain": "function",
       "source": "error_handling.error_sources[9]",
+      "source_ref": "error_handling.error_sources[9]",
       "description": "{'id': 'AD_SEQUENCE_MISMATCH', 'condition': 'seq != expected modulo-4', 'architectural_effect': 'assembly drop; abort context; ad_sequence_mismatch_count++'}"
     },
     {
       "id": "error_error_10",
       "class": "error",
+      "coverage_domain": "function",
       "source": "error_handling.error_sources[10]",
+      "source_ref": "error_handling.error_sources[10]",
       "description": "{'id': 'AD_MESSAGE_OVERFLOW', 'condition': 'append exceeds MAX_MESSAGE_BYTES', 'architectural_effect': 'assembly drop; ad_message_overflow_count++'}"
     },
     {
       "id": "error_error_11",
       "class": "error",
+      "coverage_domain": "function",
       "source": "error_handling.error_sources[11]",
+      "source_ref": "error_handling.error_sources[11]",
       "description": "{'id': 'AD_SRAM_OVERFLOW', 'condition': 'alloc/write exceeds sram_base/limit or SRAM_ADDR_WIDTH', 'architectural_effect': 'assembly drop; ad_sram_overflow_count++; sram_overflow interrupt'}"
     },
     {
       "id": "error_error_12",
       "class": "error",
+      "coverage_domain": "function",
       "source": "error_handling.error_sources[12]",
+      "source_ref": "error_handling.error_sources[12]",
       "description": "{'id': 'AD_DESCRIPTOR_FULL', 'condition': 'descriptor queue full at EOM', 'architectural_effect': 'assembly drop; ad_descriptor_full_count++; descriptor_queue_full interrupt'}"
     },
     {
       "id": "error_error_13",
       "class": "error",
+      "coverage_domain": "function",
       "source": "error_handling.error_sources[13]",
+      "source_ref": "error_handling.error_sources[13]",
       "description": "{'id': 'AD_TIMEOUT', 'condition': 'context age exceeds assembly_timeout_cycles', 'architectural_effect': 'assembly drop; ad_timeout_count++; context_timeout interrupt'}"
-    },
-    {
-      "id": "cycle_s_axi_awready_s_axi_wready",
-      "class": "protocol_handshake",
-      "source": "cycle_model.handshake_rules[0]",
-      "signal": "s_axi_awready/s_axi_wready",
-      "description": "Assert only when the ingress can accept the AW/W beat; deassert to backpressure when not in drop_when_disabled mode."
-    },
-    {
-      "id": "cycle_s_axi_bvalid",
-      "class": "protocol_handshake",
-      "source": "cycle_model.handshake_rules[1]",
-      "signal": "s_axi_bvalid",
-      "description": "Assert after the full TLP transaction is consumed; hold until bready."
-    },
-    {
-      "id": "cycle_sram_wr_valid",
-      "class": "protocol_handshake",
-      "source": "cycle_model.handshake_rules[2]",
-      "signal": "sram_wr_valid",
-      "description": "Hold sram_wr_addr/data/strb stable while sram_wr_valid && !sram_wr_ready."
-    },
-    {
-      "id": "cycle_sram_rd_req_valid",
-      "class": "protocol_handshake",
-      "source": "cycle_model.handshake_rules[3]",
-      "signal": "sram_rd_req_valid",
-      "description": "Issue one SRAM read request per AXI read beat; hold until sram_rd_req_ready."
-    },
-    {
-      "id": "cycle_s_axi_rvalid_s_axi_rlast",
-      "class": "protocol_handshake",
-      "source": "cycle_model.handshake_rules[4]",
-      "signal": "s_axi_rvalid/s_axi_rlast",
-      "description": "Drive rdata after the SRAM read response; assert rlast on the final ARLEN beat only."
-    },
-    {
-      "id": "cycle_apb_pready",
-      "class": "protocol_handshake",
-      "source": "cycle_model.handshake_rules[5]",
-      "signal": "apb pready",
-      "description": "Complete the access phase; pslverr only with pready=1."
-    },
-    {
-      "id": "latency_register_read_at_min",
-      "class": "latency_bin",
-      "source": "cycle_model.latency.register_read",
-      "description": "register_read latency == 0 cycles",
-      "bucket": "min",
-      "cycles": 0
-    },
-    {
-      "id": "latency_register_read_mid",
-      "class": "latency_bin",
-      "source": "cycle_model.latency.register_read",
-      "description": "register_read latency ~mid (0 cycles)",
-      "bucket": "mid",
-      "cycles": 0
-    },
-    {
-      "id": "latency_register_read_at_max",
-      "class": "latency_bin",
-      "source": "cycle_model.latency.register_read",
-      "description": "register_read latency == 1 cycles",
-      "bucket": "max",
-      "cycles": 1
-    },
-    {
-      "id": "latency_register_read_gt_max",
-      "class": "latency_bin",
-      "source": "cycle_model.latency.register_read",
-      "description": "register_read latency > 1 cycles",
-      "bucket": ">max",
-      "threshold": 1
-    },
-    {
-      "id": "latency_register_write_at_min",
-      "class": "latency_bin",
-      "source": "cycle_model.latency.register_write",
-      "description": "register_write latency == 0 cycles",
-      "bucket": "min",
-      "cycles": 0
-    },
-    {
-      "id": "latency_register_write_mid",
-      "class": "latency_bin",
-      "source": "cycle_model.latency.register_write",
-      "description": "register_write latency ~mid (0 cycles)",
-      "bucket": "mid",
-      "cycles": 0
-    },
-    {
-      "id": "latency_register_write_at_max",
-      "class": "latency_bin",
-      "source": "cycle_model.latency.register_write",
-      "description": "register_write latency == 1 cycles",
-      "bucket": "max",
-      "cycles": 1
-    },
-    {
-      "id": "latency_register_write_gt_max",
-      "class": "latency_bin",
-      "source": "cycle_model.latency.register_write",
-      "description": "register_write latency > 1 cycles",
-      "bucket": ">max",
-      "threshold": 1
-    },
-    {
-      "id": "latency_single_beat_transfer_lt_min",
-      "class": "latency_bin",
-      "source": "cycle_model.latency.single_beat_transfer",
-      "description": "single_beat_transfer latency < 1 cycles",
-      "bucket": "<min",
-      "threshold": 1
-    },
-    {
-      "id": "latency_single_beat_transfer_at_min",
-      "class": "latency_bin",
-      "source": "cycle_model.latency.single_beat_transfer",
-      "description": "single_beat_transfer latency == 1 cycles",
-      "bucket": "min",
-      "cycles": 1
-    },
-    {
-      "id": "latency_single_beat_transfer_unbounded",
-      "class": "latency_bin",
-      "source": "cycle_model.latency.single_beat_transfer",
-      "description": "single_beat_transfer latency unbounded (no max_cycles)",
-      "bucket": "unbounded"
     }
-  ]
+  ],
+  "summary": {
+    "total_bins": 100,
+    "scenario_bins": 20,
+    "transaction_bins": 8,
+    "protocol_bins": 6,
+    "state_transition_bins": 24,
+    "error_bins": 14
+  }
 }

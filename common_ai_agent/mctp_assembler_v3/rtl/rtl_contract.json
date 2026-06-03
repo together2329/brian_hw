@@ -3,7 +3,7 @@
   "type": "generic_ssot_rule_rtl_contract",
   "ip": "mctp_assembler_v3",
   "top": "mctp_assembler_v3",
-  "generated_at": "2026-06-03T12:37:56Z",
+  "generated_at": "2026-06-03T13:41:58Z",
   "contract": {
     "top": "mctp_assembler_v3",
     "transaction": "FM_INGEST_TLP",
@@ -160,6 +160,34 @@
         "width": 32,
         "reset": 0
       },
+      "som": {
+        "width": 1,
+        "reset": 0
+      },
+      "eom": {
+        "width": 1,
+        "reset": 0
+      },
+      "payload_bytes": {
+        "width": 13,
+        "reset": 0
+      },
+      "beat_index": {
+        "width": 8,
+        "reset": 0
+      },
+      "out_of_window": {
+        "width": 1,
+        "reset": 0
+      },
+      "no_descriptor": {
+        "width": 1,
+        "reset": 0
+      },
+      "raw_sram_debug_read_enable": {
+        "width": 1,
+        "reset": 0
+      },
       "ctx_state": {
         "width": 32,
         "reset": 0
@@ -210,16 +238,6 @@
     "fsm_transitions": [],
     "input_map": {
       "arlen": "s_axi_arlen",
-      "som": "som",
-      "eom": "eom",
-      "beat_index": "beat_index",
-      "out_of_window": "out_of_window",
-      "no_descriptor": "no_descriptor",
-      "payload_bytes": "payload_bytes",
-      "raw_sram_debug_read_enable": "raw_sram_debug_read_enable",
-      "tlp_bytes": "axi_wr_slave_wdata_wstrb_across_beats_byte_lane_N_wdata_8_N_8",
-      "config": "registers_CONTROL",
-      "fw_read": "axi_rd_slave_araddr_arlen",
       "s_axi_awaddr": "s_axi_awaddr",
       "s_axi_awlen": "s_axi_awlen",
       "s_axi_awsize": "s_axi_awsize",

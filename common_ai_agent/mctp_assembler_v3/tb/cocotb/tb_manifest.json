@@ -1,0 +1,762 @@
+{
+  "schema_version": 1,
+  "type": "generic_goal_scoreboard_cocotb_manifest",
+  "ip": "mctp_assembler_v3",
+  "top": "mctp_assembler_v3",
+  "generated_at": "2026-06-03T13:41:58Z",
+  "common_ai_agent_root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+  "runtime_dir": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/runtime",
+  "ssot": "mctp_assembler_v3/yaml/mctp_assembler_v3.ssot.yaml",
+  "equivalence_goals": "mctp_assembler_v3/verify/equivalence_goals.json",
+  "rtl_contract": "mctp_assembler_v3/rtl/rtl_contract.json",
+  "rtl_contract_source": "rtl_contract_json",
+  "clock": "axi_aclk",
+  "reset": "axi_aresetn",
+  "reset_active": "low",
+  "latency_cycles": 1,
+  "parameters": {
+    "BRESP_OKAY": 0,
+    "RRESP_OKAY": 0,
+    "RRESP_SLVERR": 2,
+    "INCR": 1,
+    "ASSEMBLING": 1,
+    "DONE_WAIT_DESCRIPTOR_POP": 3,
+    "AXI_ADDR_WIDTH": 16,
+    "AXI_DATA_WIDTH": 256,
+    "AXI_STRB_WIDTH": 32,
+    "SRAM_ADDR_WIDTH": 16,
+    "SRAM_DATA_WIDTH": 256,
+    "CONTEXT_COUNT": 15,
+    "TLP_HEADER_SNAPSHOT_BYTES": 16,
+    "MIN_TRANSMISSION_UNIT_BYTES": 64,
+    "MAX_TRANSMISSION_UNIT_BYTES": 4096,
+    "TRANSMISSION_UNIT_ALIGN_BYTES": 4,
+    "MAX_TLP_BYTES": 4112,
+    "MAX_TLP_BEATS": 129,
+    "MAX_MESSAGE_BYTES": 4096,
+    "BASELINE_MTU_BYTES": 64,
+    "DESCRIPTOR_FIFO_DEPTH": 8,
+    "TIMEOUT_COUNTER_WIDTH": 24,
+    "RESET_POLARITY": 0
+  },
+  "registers": {
+    "config": {
+      "register_width": 32,
+      "addr_width": 16,
+      "byte_addressable": true,
+      "channel_stride": 64,
+      "channel_base": 1024,
+      "num_channels": 15
+    },
+    "register_list": [
+      {
+        "name": "CONTROL",
+        "offset": 0,
+        "access": "rw",
+        "index": 0
+      },
+      {
+        "name": "CFG_TU",
+        "offset": 4,
+        "access": "rw",
+        "index": 1
+      },
+      {
+        "name": "CFG_TIMEOUT",
+        "offset": 8,
+        "access": "rw",
+        "index": 2
+      },
+      {
+        "name": "SRAM_BASE",
+        "offset": 12,
+        "access": "rw",
+        "index": 3
+      },
+      {
+        "name": "SRAM_LIMIT",
+        "offset": 16,
+        "access": "rw",
+        "index": 4
+      },
+      {
+        "name": "STATUS",
+        "offset": 32,
+        "access": "ro",
+        "index": 5
+      },
+      {
+        "name": "CTX_STATE",
+        "offset": 1024,
+        "access": "ro",
+        "index": 6
+      },
+      {
+        "name": "INTR_RAW_STATUS",
+        "offset": 256,
+        "access": "ro",
+        "index": 7
+      },
+      {
+        "name": "INTR_ENABLE",
+        "offset": 260,
+        "access": "rw",
+        "index": 8
+      },
+      {
+        "name": "INTR_STATUS",
+        "offset": 264,
+        "access": "ro",
+        "index": 9
+      },
+      {
+        "name": "INTR_CLEAR",
+        "offset": 268,
+        "access": "rw",
+        "index": 10
+      },
+      {
+        "name": "CNT_TLP_SEEN",
+        "offset": 512,
+        "access": "ro",
+        "index": 11
+      },
+      {
+        "name": "DESC_VALID",
+        "offset": 768,
+        "access": "ro",
+        "index": 12
+      },
+      {
+        "name": "DEBUG_CTX",
+        "offset": 896,
+        "access": "ro",
+        "index": 13
+      }
+    ]
+  },
+  "state_observables": [
+    "context_table",
+    "descriptor_queue",
+    "sram_alloc_ptr",
+    "counters",
+    "last_drop_class",
+    "tlp_seen_count",
+    "tlp_accepted_count",
+    "active_context_count",
+    "ctx_payload_byte_count",
+    "ctx_expected_seq",
+    "ctx_payload_base_addr",
+    "ctx_payload_next_addr",
+    "ctx_partial_next_lane",
+    "payload_bytes_written_count",
+    "message_completed_count",
+    "fw_axi_read_beat_count",
+    "fw_axi_read_error_count",
+    "som",
+    "eom",
+    "payload_bytes",
+    "beat_index",
+    "out_of_window",
+    "no_descriptor",
+    "raw_sram_debug_read_enable"
+  ],
+  "state_observable_aliases": {},
+  "rtl_signal_names": [
+    "aw_fire",
+    "aw_legal",
+    "axi_aclk",
+    "beat_bytes",
+    "beat_contig",
+    "beat_fire",
+    "burst_ok",
+    "byte_acc",
+    "downstream_active",
+    "size_ok",
+    "state",
+    "strb_contig",
+    "tlp_accept",
+    "tlp_beat_data",
+    "tlp_beat_last",
+    "tlp_beat_strb",
+    "tlp_beat_valid",
+    "tlp_byte_count",
+    "wlast_seen",
+    "wstrb_all_ones",
+    "wstrb_lsb_run"
+  ],
+  "ports": [
+    {
+      "name": "axi_aclk",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "pclk",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "axi_aresetn",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "presetn",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "s_axi_awaddr",
+      "direction": "input",
+      "width": 16
+    },
+    {
+      "name": "s_axi_awlen",
+      "direction": "input",
+      "width": 8
+    },
+    {
+      "name": "s_axi_awsize",
+      "direction": "input",
+      "width": 3
+    },
+    {
+      "name": "s_axi_awburst",
+      "direction": "input",
+      "width": 2
+    },
+    {
+      "name": "s_axi_awvalid",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "s_axi_awready",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "s_axi_wdata",
+      "direction": "input",
+      "width": 256
+    },
+    {
+      "name": "s_axi_wstrb",
+      "direction": "input",
+      "width": 32
+    },
+    {
+      "name": "s_axi_wlast",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "s_axi_wvalid",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "s_axi_wready",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "s_axi_bresp",
+      "direction": "output",
+      "width": 2
+    },
+    {
+      "name": "s_axi_bvalid",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "s_axi_bready",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "s_axi_araddr",
+      "direction": "input",
+      "width": 16
+    },
+    {
+      "name": "s_axi_arlen",
+      "direction": "input",
+      "width": 8
+    },
+    {
+      "name": "s_axi_arsize",
+      "direction": "input",
+      "width": 3
+    },
+    {
+      "name": "s_axi_arburst",
+      "direction": "input",
+      "width": 2
+    },
+    {
+      "name": "s_axi_arvalid",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "s_axi_arready",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "s_axi_rdata",
+      "direction": "output",
+      "width": 256
+    },
+    {
+      "name": "s_axi_rresp",
+      "direction": "output",
+      "width": 2
+    },
+    {
+      "name": "s_axi_rlast",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "s_axi_rvalid",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "s_axi_rready",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "paddr",
+      "direction": "input",
+      "width": 16
+    },
+    {
+      "name": "psel",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "penable",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "pwrite",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "pwdata",
+      "direction": "input",
+      "width": 32
+    },
+    {
+      "name": "pstrb",
+      "direction": "input",
+      "width": 4
+    },
+    {
+      "name": "prdata",
+      "direction": "output",
+      "width": 32
+    },
+    {
+      "name": "pready",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "pslverr",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "sram_wr_valid",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "sram_wr_ready",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "sram_wr_addr",
+      "direction": "output",
+      "width": 16
+    },
+    {
+      "name": "sram_wr_data",
+      "direction": "output",
+      "width": 256
+    },
+    {
+      "name": "sram_wr_strb",
+      "direction": "output",
+      "width": 32
+    },
+    {
+      "name": "sram_rd_req_valid",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "sram_rd_req_ready",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "sram_rd_req_addr",
+      "direction": "output",
+      "width": 16
+    },
+    {
+      "name": "sram_rd_rsp_valid",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "sram_rd_rsp_ready",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "sram_rd_rsp_data",
+      "direction": "input",
+      "width": 256
+    },
+    {
+      "name": "sram_rd_rsp_error",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "irq",
+      "direction": "output",
+      "width": 1
+    }
+  ],
+  "port_widths": {
+    "axi_aclk": 1,
+    "pclk": 1,
+    "axi_aresetn": 1,
+    "presetn": 1,
+    "s_axi_awaddr": 16,
+    "s_axi_awlen": 8,
+    "s_axi_awsize": 3,
+    "s_axi_awburst": 2,
+    "s_axi_awvalid": 1,
+    "s_axi_awready": 1,
+    "s_axi_wdata": 256,
+    "s_axi_wstrb": 32,
+    "s_axi_wlast": 1,
+    "s_axi_wvalid": 1,
+    "s_axi_wready": 1,
+    "s_axi_bresp": 2,
+    "s_axi_bvalid": 1,
+    "s_axi_bready": 1,
+    "s_axi_araddr": 16,
+    "s_axi_arlen": 8,
+    "s_axi_arsize": 3,
+    "s_axi_arburst": 2,
+    "s_axi_arvalid": 1,
+    "s_axi_arready": 1,
+    "s_axi_rdata": 256,
+    "s_axi_rresp": 2,
+    "s_axi_rlast": 1,
+    "s_axi_rvalid": 1,
+    "s_axi_rready": 1,
+    "paddr": 16,
+    "psel": 1,
+    "penable": 1,
+    "pwrite": 1,
+    "pwdata": 32,
+    "pstrb": 4,
+    "prdata": 32,
+    "pready": 1,
+    "pslverr": 1,
+    "sram_wr_valid": 1,
+    "sram_wr_ready": 1,
+    "sram_wr_addr": 16,
+    "sram_wr_data": 256,
+    "sram_wr_strb": 32,
+    "sram_rd_req_valid": 1,
+    "sram_rd_req_ready": 1,
+    "sram_rd_req_addr": 16,
+    "sram_rd_rsp_valid": 1,
+    "sram_rd_rsp_ready": 1,
+    "sram_rd_rsp_data": 256,
+    "sram_rd_rsp_error": 1,
+    "irq": 1
+  },
+  "input_ports": [
+    "axi_aclk",
+    "axi_aresetn",
+    "paddr",
+    "pclk",
+    "penable",
+    "presetn",
+    "psel",
+    "pstrb",
+    "pwdata",
+    "pwrite",
+    "s_axi_araddr",
+    "s_axi_arburst",
+    "s_axi_arlen",
+    "s_axi_arsize",
+    "s_axi_arvalid",
+    "s_axi_awaddr",
+    "s_axi_awburst",
+    "s_axi_awlen",
+    "s_axi_awsize",
+    "s_axi_awvalid",
+    "s_axi_bready",
+    "s_axi_rready",
+    "s_axi_wdata",
+    "s_axi_wlast",
+    "s_axi_wstrb",
+    "s_axi_wvalid",
+    "sram_rd_req_ready",
+    "sram_rd_rsp_data",
+    "sram_rd_rsp_error",
+    "sram_rd_rsp_valid",
+    "sram_wr_ready"
+  ],
+  "output_ports": [
+    "irq",
+    "prdata",
+    "pready",
+    "pslverr",
+    "s_axi_arready",
+    "s_axi_awready",
+    "s_axi_bresp",
+    "s_axi_bvalid",
+    "s_axi_rdata",
+    "s_axi_rlast",
+    "s_axi_rresp",
+    "s_axi_rvalid",
+    "s_axi_wready",
+    "sram_rd_req_addr",
+    "sram_rd_req_valid",
+    "sram_rd_rsp_ready",
+    "sram_wr_addr",
+    "sram_wr_data",
+    "sram_wr_strb",
+    "sram_wr_valid"
+  ],
+  "inout_ports": [],
+  "input_map": {
+    "arlen": "s_axi_arlen",
+    "s_axi_awaddr": "s_axi_awaddr",
+    "s_axi_awlen": "s_axi_awlen",
+    "s_axi_awsize": "s_axi_awsize",
+    "s_axi_awburst": "s_axi_awburst",
+    "s_axi_awvalid": "s_axi_awvalid",
+    "s_axi_wdata": "s_axi_wdata",
+    "s_axi_wstrb": "s_axi_wstrb",
+    "s_axi_wlast": "s_axi_wlast",
+    "s_axi_wvalid": "s_axi_wvalid",
+    "s_axi_bready": "s_axi_bready",
+    "s_axi_araddr": "s_axi_araddr",
+    "s_axi_arlen": "s_axi_arlen",
+    "s_axi_arsize": "s_axi_arsize",
+    "s_axi_arburst": "s_axi_arburst",
+    "s_axi_arvalid": "s_axi_arvalid",
+    "s_axi_rready": "s_axi_rready",
+    "paddr": "paddr",
+    "psel": "psel",
+    "penable": "penable",
+    "pwrite": "pwrite",
+    "pwdata": "pwdata",
+    "pstrb": "pstrb",
+    "sram_wr_ready": "sram_wr_ready",
+    "sram_rd_req_ready": "sram_rd_req_ready",
+    "sram_rd_rsp_data": "sram_rd_rsp_data",
+    "sram_rd_rsp_error": "sram_rd_rsp_error"
+  },
+  "sample_condition": "1",
+  "sample_inputs": [],
+  "outputs": [
+    {
+      "name": "bresp_next",
+      "port": "s_axi_bresp",
+      "width": 2
+    },
+    {
+      "name": "sram_wr_valid",
+      "port": "sram_wr_valid",
+      "width": 1
+    },
+    {
+      "name": "sram_wr_addr",
+      "port": "sram_wr_addr",
+      "width": 16
+    },
+    {
+      "name": "sram_wr_strb",
+      "port": "sram_wr_strb",
+      "width": 32
+    },
+    {
+      "name": "rresp_next",
+      "port": "s_axi_rresp",
+      "width": 2
+    },
+    {
+      "name": "rlast_next",
+      "port": "s_axi_rlast",
+      "width": 1
+    },
+    {
+      "name": "irq",
+      "port": "irq",
+      "width": 1
+    },
+    {
+      "name": "prdata",
+      "port": "prdata",
+      "width": 32
+    },
+    {
+      "name": "pready",
+      "port": "pready",
+      "width": 1
+    },
+    {
+      "name": "pslverr",
+      "port": "pslverr",
+      "width": 1
+    },
+    {
+      "name": "s_axi_arready",
+      "port": "s_axi_arready",
+      "width": 1
+    },
+    {
+      "name": "s_axi_awready",
+      "port": "s_axi_awready",
+      "width": 1
+    },
+    {
+      "name": "s_axi_bresp",
+      "port": "s_axi_bresp",
+      "width": 2
+    },
+    {
+      "name": "s_axi_bvalid",
+      "port": "s_axi_bvalid",
+      "width": 1
+    },
+    {
+      "name": "s_axi_rdata",
+      "port": "s_axi_rdata",
+      "width": 256
+    },
+    {
+      "name": "s_axi_rlast",
+      "port": "s_axi_rlast",
+      "width": 1
+    },
+    {
+      "name": "s_axi_rresp",
+      "port": "s_axi_rresp",
+      "width": 2
+    },
+    {
+      "name": "s_axi_rvalid",
+      "port": "s_axi_rvalid",
+      "width": 1
+    },
+    {
+      "name": "s_axi_wready",
+      "port": "s_axi_wready",
+      "width": 1
+    },
+    {
+      "name": "sram_rd_req_addr",
+      "port": "sram_rd_req_addr",
+      "width": 16
+    },
+    {
+      "name": "sram_rd_req_valid",
+      "port": "sram_rd_req_valid",
+      "width": 1
+    },
+    {
+      "name": "sram_rd_rsp_ready",
+      "port": "sram_rd_rsp_ready",
+      "width": 1
+    },
+    {
+      "name": "sram_wr_data",
+      "port": "sram_wr_data",
+      "width": 256
+    }
+  ],
+  "special_outputs": {
+    "ready_output": "sram_rd_rsp_ready",
+    "output_valid": "sram_wr_valid"
+  },
+  "transaction_kind": "FM_INGEST_TLP",
+  "per_goal_reset": true,
+  "cl_cosim": false,
+  "rtl_sources": [
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_v3/rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_v3/rtl/mctp_assembler_v3.sv"
+  ],
+  "goal_count": 90,
+  "module_goal_count": 9,
+  "module_goals": [
+    {
+      "goal_id": "EQ_MODULE_MCTP_ASSEMBLER_V3_AXI_WR_INGRESS",
+      "rtl_module": "mctp_assembler_v3_axi_wr_ingress",
+      "rtl_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv"
+    },
+    {
+      "goal_id": "EQ_MODULE_MCTP_ASSEMBLER_V3_PCIE_VDM_PARSER",
+      "rtl_module": "mctp_assembler_v3_pcie_vdm_parser",
+      "rtl_file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv"
+    },
+    {
+      "goal_id": "EQ_MODULE_MCTP_ASSEMBLER_V3_MCTP_DECODER",
+      "rtl_module": "mctp_assembler_v3_mctp_decoder",
+      "rtl_file": "rtl/mctp_assembler_v3_mctp_decoder.sv"
+    },
+    {
+      "goal_id": "EQ_MODULE_MCTP_ASSEMBLER_V3_CONTEXT_TABLE",
+      "rtl_module": "mctp_assembler_v3_context_table",
+      "rtl_file": "rtl/mctp_assembler_v3_context_table.sv"
+    },
+    {
+      "goal_id": "EQ_MODULE_MCTP_ASSEMBLER_V3_SRAM_PACKER",
+      "rtl_module": "mctp_assembler_v3_sram_packer",
+      "rtl_file": "rtl/mctp_assembler_v3_sram_packer.sv"
+    },
+    {
+      "goal_id": "EQ_MODULE_MCTP_ASSEMBLER_V3_DESCRIPTOR_QUEUE",
+      "rtl_module": "mctp_assembler_v3_descriptor_queue",
+      "rtl_file": "rtl/mctp_assembler_v3_descriptor_queue.sv"
+    },
+    {
+      "goal_id": "EQ_MODULE_MCTP_ASSEMBLER_V3_AXI_RD_PAYLOAD",
+      "rtl_module": "mctp_assembler_v3_axi_rd_payload",
+      "rtl_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv"
+    },
+    {
+      "goal_id": "EQ_MODULE_MCTP_ASSEMBLER_V3_APB_REGFILE",
+      "rtl_module": "mctp_assembler_v3_apb_regfile",
+      "rtl_file": "rtl/mctp_assembler_v3_apb_regfile.sv"
+    },
+    {
+      "goal_id": "EQ_MODULE_MCTP_ASSEMBLER_V3",
+      "rtl_module": "mctp_assembler_v3",
+      "rtl_file": "rtl/mctp_assembler_v3.sv"
+    }
+  ]
+}

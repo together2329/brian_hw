@@ -3652,16 +3652,25 @@ def create_app():
         }
         by_name: dict[str, dict[str, Any]] = {}
 
+        workspace_root_for_list: Path | None = None
+
         def _ssot_exists(name: str) -> bool:
-            yaml_dir = PROJECT_ROOT / name / "yaml"
-            if not yaml_dir.is_dir():
-                return False
-            if (yaml_dir / f"{name}.ssot.yaml").is_file():
-                return True
-            try:
-                return any(yaml_dir.glob("*.ssot.yaml"))
-            except OSError:
-                return False
+            roots = []
+            if workspace_root_for_list is not None:
+                roots.append(workspace_root_for_list)
+            roots.append(PROJECT_ROOT)
+            for root in roots:
+                yaml_dir = root / name / "yaml"
+                if not yaml_dir.is_dir():
+                    continue
+                if (yaml_dir / f"{name}.ssot.yaml").is_file():
+                    return True
+                try:
+                    if any(yaml_dir.glob("*.ssot.yaml")):
+                        return True
+                except OSError:
+                    continue
+            return False
 
         def _add_item(name: str, *, workflows=None, mtime: float = 0.0) -> None:
             if not name or name.startswith(".") or name in skip:
@@ -3690,12 +3699,20 @@ def create_app():
         user = request.scope.get("user") or {}
         username = normalize_session_name(str(user.get("username") or ""))
         requested = normalize_session_name(str(session_id or ""))
-        owner = (requested.split("/", 1)[0] if requested else "") or username
+        requested_parts = [part for part in requested.split("/") if part]
+        owner = (requested_parts[0] if requested_parts else "") or username
+        requested_workspace_session = (
+            requested_parts[1]
+            if len(requested_parts) >= 4 or len(requested_parts) == 2
+            else ""
+        )
         multi_user_on = _multi_user_enabled()
         if multi_user_on and not username:
             return JSONResponse({"error": "login required", "items": [], "count": 0}, status_code=401)
         if multi_user_on and username and owner and owner != username:
             return JSONResponse({"error": "session owner mismatch", "items": []}, status_code=403)
+        if multi_user_on and owner and requested_workspace_session:
+            workspace_root_for_list = (PROJECT_ROOT / owner / requested_workspace_session).resolve()
         session_root = (PROJECT_ROOT / ".session" / owner).resolve() if owner else None
         try:
             if multi_user_on:
@@ -3716,10 +3733,21 @@ def create_app():
                     parts = [part for part in namespace.split("/") if part]
                     if len(parts) < 3 or parts[0] not in allowed_owners:
                         continue
+                    row_workspace_session = parts[1] if len(parts) >= 4 else ""
+                    if requested_workspace_session:
+                        if len(parts) >= 4:
+                            if row_workspace_session != requested_workspace_session:
+                                continue
+                        elif requested_workspace_session != "default":
+                            continue
                     name = parts[-2]
                     workflow = parts[-1]
                     mtime = float(row.get("updated_at") or row.get("created_at") or 0.0)
-                    ip_dir = (session_root / name) if session_root is not None else None
+                    ip_dir = None
+                    if len(parts) >= 4:
+                        ip_dir = PROJECT_ROOT / parts[0] / row_workspace_session / name
+                    elif session_root is not None:
+                        ip_dir = session_root / name
                     try:
                         if ip_dir is not None and ip_dir.is_dir():
                             mtime = max(mtime, ip_dir.stat().st_mtime)
@@ -3730,6 +3758,7 @@ def create_app():
                 return JSONResponse({
                     "project_root": str(PROJECT_ROOT),
                     "session_id": owner or "",
+                    "workspace_session": requested_workspace_session or "",
                     "items": items,
                     "count": len(items),
                     "source": "db_sessions",
@@ -3743,6 +3772,7 @@ def create_app():
                 return JSONResponse({
                     "project_root": str(PROJECT_ROOT),
                     "session_id": owner or "",
+                    "workspace_session": requested_workspace_session or "",
                     "items": items,
                     "count": len(items),
                 })
@@ -3767,6 +3797,7 @@ def create_app():
         return JSONResponse({
             "project_root": str(PROJECT_ROOT),
             "session_id": owner or "",
+            "workspace_session": requested_workspace_session or "",
             "items": items,
             "count": len(items),
         })

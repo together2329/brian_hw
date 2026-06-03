@@ -684,6 +684,7 @@
         "features",
         "function_model.state_variables",
         "function_model.state_variables.active_context_count",
+        "function_model.state_variables.beat_index",
         "function_model.state_variables.context_table",
         "function_model.state_variables.counters",
         "function_model.state_variables.ctx_expected_seq",
@@ -692,11 +693,17 @@
         "function_model.state_variables.ctx_payload_byte_count",
         "function_model.state_variables.ctx_payload_next_addr",
         "function_model.state_variables.descriptor_queue",
+        "function_model.state_variables.eom",
         "function_model.state_variables.fw_axi_read_beat_count",
         "function_model.state_variables.fw_axi_read_error_count",
         "function_model.state_variables.last_drop_class",
         "function_model.state_variables.message_completed_count",
+        "function_model.state_variables.no_descriptor",
+        "function_model.state_variables.out_of_window",
+        "function_model.state_variables.payload_bytes",
         "function_model.state_variables.payload_bytes_written_count",
+        "function_model.state_variables.raw_sram_debug_read_enable",
+        "function_model.state_variables.som",
         "function_model.state_variables.sram_alloc_ptr",
         "function_model.state_variables.tlp_accepted_count",
         "function_model.state_variables.tlp_seen_count",
@@ -727,6 +734,7 @@
       ],
       "function_model_refs": [
         "function_model.state_variables.active_context_count",
+        "function_model.state_variables.beat_index",
         "function_model.state_variables.context_table",
         "function_model.state_variables.counters",
         "function_model.state_variables.ctx_expected_seq",
@@ -735,11 +743,17 @@
         "function_model.state_variables.ctx_payload_byte_count",
         "function_model.state_variables.ctx_payload_next_addr",
         "function_model.state_variables.descriptor_queue",
+        "function_model.state_variables.eom",
         "function_model.state_variables.fw_axi_read_beat_count",
         "function_model.state_variables.fw_axi_read_error_count",
         "function_model.state_variables.last_drop_class",
         "function_model.state_variables.message_completed_count",
+        "function_model.state_variables.no_descriptor",
+        "function_model.state_variables.out_of_window",
+        "function_model.state_variables.payload_bytes",
         "function_model.state_variables.payload_bytes_written_count",
+        "function_model.state_variables.raw_sram_debug_read_enable",
+        "function_model.state_variables.som",
         "function_model.state_variables.sram_alloc_ptr",
         "function_model.state_variables.tlp_accepted_count",
         "function_model.state_variables.tlp_seen_count"
@@ -2513,6 +2527,7 @@
         "features",
         "function_model.state_variables",
         "function_model.state_variables.active_context_count",
+        "function_model.state_variables.beat_index",
         "function_model.state_variables.context_table",
         "function_model.state_variables.counters",
         "function_model.state_variables.ctx_expected_seq",
@@ -2521,11 +2536,17 @@
         "function_model.state_variables.ctx_payload_byte_count",
         "function_model.state_variables.ctx_payload_next_addr",
         "function_model.state_variables.descriptor_queue",
+        "function_model.state_variables.eom",
         "function_model.state_variables.fw_axi_read_beat_count",
         "function_model.state_variables.fw_axi_read_error_count",
         "function_model.state_variables.last_drop_class",
         "function_model.state_variables.message_completed_count",
+        "function_model.state_variables.no_descriptor",
+        "function_model.state_variables.out_of_window",
+        "function_model.state_variables.payload_bytes",
         "function_model.state_variables.payload_bytes_written_count",
+        "function_model.state_variables.raw_sram_debug_read_enable",
+        "function_model.state_variables.som",
         "function_model.state_variables.sram_alloc_ptr",
         "function_model.state_variables.tlp_accepted_count",
         "function_model.state_variables.tlp_seen_count",
@@ -2556,6 +2577,7 @@
       ],
       "function_model_refs": [
         "function_model.state_variables.active_context_count",
+        "function_model.state_variables.beat_index",
         "function_model.state_variables.context_table",
         "function_model.state_variables.counters",
         "function_model.state_variables.ctx_expected_seq",
@@ -2564,11 +2586,17 @@
         "function_model.state_variables.ctx_payload_byte_count",
         "function_model.state_variables.ctx_payload_next_addr",
         "function_model.state_variables.descriptor_queue",
+        "function_model.state_variables.eom",
         "function_model.state_variables.fw_axi_read_beat_count",
         "function_model.state_variables.fw_axi_read_error_count",
         "function_model.state_variables.last_drop_class",
         "function_model.state_variables.message_completed_count",
+        "function_model.state_variables.no_descriptor",
+        "function_model.state_variables.out_of_window",
+        "function_model.state_variables.payload_bytes",
         "function_model.state_variables.payload_bytes_written_count",
+        "function_model.state_variables.raw_sram_debug_read_enable",
+        "function_model.state_variables.som",
         "function_model.state_variables.sram_alloc_ptr",
         "function_model.state_variables.tlp_accepted_count",
         "function_model.state_variables.tlp_seen_count"
@@ -2664,6 +2692,34 @@
         },
         {
           "ref": "function_model.state_variables.fw_axi_read_error_count",
+          "matched_ref": "function_model.state_variables"
+        },
+        {
+          "ref": "function_model.state_variables.som",
+          "matched_ref": "function_model.state_variables"
+        },
+        {
+          "ref": "function_model.state_variables.eom",
+          "matched_ref": "function_model.state_variables"
+        },
+        {
+          "ref": "function_model.state_variables.payload_bytes",
+          "matched_ref": "function_model.state_variables"
+        },
+        {
+          "ref": "function_model.state_variables.beat_index",
+          "matched_ref": "function_model.state_variables"
+        },
+        {
+          "ref": "function_model.state_variables.out_of_window",
+          "matched_ref": "function_model.state_variables"
+        },
+        {
+          "ref": "function_model.state_variables.no_descriptor",
+          "matched_ref": "function_model.state_variables"
+        },
+        {
+          "ref": "function_model.state_variables.raw_sram_debug_read_enable",
           "matched_ref": "function_model.state_variables"
         }
       ],
@@ -2866,7 +2922,7 @@
     }
   ],
   "orphan_function_cycle_refs": [],
-  "function_cycle_ref_count": 211,
+  "function_cycle_ref_count": 218,
   "authority_contract": {
     "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
     "general_evaluation_criteria": [

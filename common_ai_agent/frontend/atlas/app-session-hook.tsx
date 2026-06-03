@@ -74,6 +74,11 @@ export function useAtlasSessionSync(deps: AtlasSessionSyncDeps): {
       (() => { try { return localStorage.getItem('atlasActiveSession') || ''; } catch (_) { return ''; } })()
     );
     const rememberedParts = splitSessionNamespace(rememberedNamespace);
+    const workspaceSessionForRoster = normalizeSession(
+      (rememberedParts.sessionId === currentUserSession ? rememberedParts.workspaceSession : '')
+      || (window as any).ATLAS_WORKSPACE_SESSION_ID
+      || 'default'
+    ) || 'default';
     if (rememberedParts.workspaceSession) nextSessionIds.add(rememberedParts.workspaceSession);
     const rememberedIp = rememberedParts.ipId === 'soc' ? WORKFLOW_DEFAULT : rememberedParts.ipId;
     if (!ownerScopedRoster && acceptIp(rememberedIp)) nextIps.add(rememberedIp);
@@ -111,8 +116,10 @@ export function useAtlasSessionSync(deps: AtlasSessionSyncDeps): {
     let ipListOk = false;
     const backendIps = new Set([WORKFLOW_DEFAULT]);
     try {
-      const ipOwner = normalizeSession(currentUserSession || '');
-      const ipUrl = '/api/ip/list' + (ipOwner ? `?session_id=${encodeURIComponent(ipOwner)}` : '');
+      const ipScope = normalizeSession(
+        currentUserSession ? `${currentUserSession}/${workspaceSessionForRoster}` : ''
+      );
+      const ipUrl = '/api/ip/list' + (ipScope ? `?session_id=${encodeURIComponent(ipScope)}` : '');
       const r2 = await fetch(ipUrl, { cache: 'no-store' });
       if (r2.ok) {
         ipListOk = true;

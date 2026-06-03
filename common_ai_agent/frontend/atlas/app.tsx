@@ -764,10 +764,7 @@ const App = () => {
     (window as any).ATLAS_WORKSPACE_SESSION_ID = workspaceSession;
     try { localStorage.setItem('atlasWorkspaceSessionId', workspaceSession); } catch (_) {}
     setSessionIdOptions(prev => Array.from(new Set([workspaceSession].concat(prev || []))));
-    const parsed = splitActiveNamespace();
-    const ip = (parsed.ipId === 'soc' ? WORKFLOW_DEFAULT : parsed.ipId) || activeIp || WORKFLOW_DEFAULT;
-    const wf = parsed.workflow || currentWorkflow() || WORKFLOW_DEFAULT;
-    activateNamespace(`${authOwner}/${workspaceSession}`, ip, wf, true);
+    activateNamespace(`${authOwner}/${workspaceSession}`, WORKFLOW_DEFAULT, WORKFLOW_DEFAULT, true);
     return true;
   };
 
