@@ -1,9 +1,9 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-06-03T13:06:38Z",
+  "generated_at": "2026-06-03T22:33:31Z",
   "root": "doc/wiki",
-  "node_count": 134,
-  "edge_count": 604,
+  "node_count": 136,
+  "edge_count": 611,
   "tags": {
     "admin": [
       "admin-operational-dashboard-db-snapshot-20260603"
@@ -96,6 +96,9 @@
       "e2e-orchestrator-validation-plan",
       "orchestrator-singleworker-e2e-20260526"
     ],
+    "equivalence": [
+      "mctp-assembler-v3-ingress-fidelity-20260603"
+    ],
     "evidence": [
       "atcdmac100-document-flow-ui-honesty-20260518",
       "contract-reflection-workflow",
@@ -109,6 +112,9 @@
     "external-db": [
       "external-rtl-db-integration-guide",
       "llm-wiki-knowledge-graph-discussion-20260602"
+    ],
+    "fidelity": [
+      "mctp-assembler-v3-ingress-fidelity-20260603"
     ],
     "file-size-policy": [
       "atlas-refactoring-exceptions"
@@ -177,7 +183,8 @@
     "mctp": [
       "contract-reflection-workflow",
       "general-ip-flow-trial-and-error-20260601",
-      "mctp-assembler-scratch-flow-20260531"
+      "mctp-assembler-scratch-flow-20260531",
+      "mctp-assembler-v3-ingress-fidelity-20260603"
     ],
     "multi-user": [
       "atlas-db-router-runtime-sharding-20260602"
@@ -281,6 +288,7 @@
     "rtl-gen": [
       "atcwdt200-ssot-rtl-tb-flow-시행착오-2026-05-17",
       "atlas-e2e-validation-20260519",
+      "mctp-assembler-v3-ingress-fidelity-20260603",
       "pl330-real-orchestrator-ui-lessons-20260517",
       "ssot-rtl-flow-verify-20260519"
     ],
@@ -308,6 +316,7 @@
       "silent-pass-exposure-tb-stimulus-gap-20260520"
     ],
     "silent-pass": [
+      "mctp-assembler-v3-ingress-fidelity-20260603",
       "project_silent_pass_exposure"
     ],
     "sim": [
@@ -352,7 +361,8 @@
       "contract-reflection-workflow"
     ],
     "tb-gen": [
-      "atcwdt200-ssot-rtl-tb-flow-시행착오-2026-05-17"
+      "atcwdt200-ssot-rtl-tb-flow-시행착오-2026-05-17",
+      "mctp-assembler-v3-ingress-fidelity-20260603"
     ],
     "testbench": [
       "silent-pass-exposure-tb-stimulus-gap-20260520"
@@ -456,6 +466,7 @@
       "atcwdt200-ssot-rtl-tb-flow-시행착오-2026-05-17",
       "atlas-auth-recovery-email-review-20260603",
       "atlas-browser-control-runbook",
+      "atlas-context-root-deep-test-plan-20260604",
       "atlas-context-root-model-20260603",
       "atlas-dag-ip-flow-runbook",
       "atlas-db-router-runtime-sharding-20260602",
@@ -507,6 +518,7 @@
       "llm-wiki-knowledge-graph-discussion-20260602",
       "local-iproot-thin-llm-server-arch-20260529",
       "log",
+      "mctp-assembler-v3-ingress-fidelity-20260603",
       "mini-cpu-rerun-20260517",
       "multi-cycle-production-wiring-20260520",
       "multi-user-worker-conflicts",
@@ -968,6 +980,25 @@
       "size_bytes": 12012
     },
     {
+      "id": "atlas-context-root-deep-test-plan-20260604",
+      "title": "Atlas Context Root Deep Test Plan",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "atlas-context-root-model-20260603"
+      ],
+      "incoming": [
+        "index",
+        "log"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Date: 2026-06-04 Branch under test: `feat/atlas-context-root-model` Primary design note: [[atlas-context-root-model-20260603]]",
+      "path": "doc/wiki/atlas-context-root-deep-test-plan-20260604.md",
+      "size_bytes": 23341
+    },
+    {
       "id": "atlas-context-root-model-20260603",
       "title": "Atlas Context Root Model",
       "type": "reference",
@@ -975,14 +1006,16 @@
       "related": [],
       "outgoing": [],
       "incoming": [
+        "atlas-context-root-deep-test-plan-20260604",
         "desktop-local-tool-execution-plan-20260603",
-        "index"
+        "index",
+        "log"
       ],
       "broken_refs": [],
       "updated": "",
       "summary": "Date: 2026-06-03 Branch: `feat/atlas-context-root-model`",
       "path": "doc/wiki/atlas-context-root-model-20260603.md",
-      "size_bytes": 6282
+      "size_bytes": 52664
     },
     {
       "id": "atlas-dag-ip-flow-runbook",
@@ -1555,7 +1588,7 @@
       "updated": "2026-06-03",
       "summary": "This page captures the next design layer after `truth_coverage` and `evidence_contract`: every important contract item must be reflected through FL, CL, RTL, TB, and simulation evidence with the same stable ID.",
       "path": "doc/wiki/contract-reflection-workflow.md",
-      "size_bytes": 33889
+      "size_bytes": 35034
     },
     {
       "id": "cross-user-permission-20260519",
@@ -2262,6 +2295,7 @@
         "atlas-single-active-orchestrator-subworkers-20260603",
         "atlas-db-router-runtime-sharding-20260602",
         "atlas-context-root-model-20260603",
+        "atlas-context-root-deep-test-plan-20260604",
         "admin-operational-dashboard-db-snapshot-20260603",
         "arm-m0-min-current-status",
         "multi-user-worker-isolation",
@@ -2346,7 +2380,7 @@
       "updated": "",
       "summary": "This wiki is the cross-linked operating map for common_ai_agent. It is optimized for long-context LLMs and agent handoffs: read the linked pages in order, then follow the source docs for implementation detail.",
       "path": "doc/wiki/index.md",
-      "size_bytes": 31303
+      "size_bytes": 31459
     },
     {
       "id": "interactive-ask-user-ip-discovery",
@@ -2507,6 +2541,9 @@
       "tags": [],
       "related": [],
       "outgoing": [
+        "atlas-context-root-deep-test-plan-20260604",
+        "atlas-context-root-model-20260603",
+        "tauri-desktop-shell",
         "admin-operational-dashboard-db-snapshot-20260603",
         "contract-reflection-workflow",
         "atlas-single-active-orchestrator-subworkers-20260603",
@@ -2552,9 +2589,9 @@
       ],
       "broken_refs": [],
       "updated": "",
-      "summary": "- Added [[admin-operational-dashboard-db-snapshot-20260603]] from the real `~/.common_ai_agent/atlas.db` admin audit: 641 users, 89.9% never logged in, 63%+ unattributed LLM cost, all queue rows unprocessed, stale running workflows, and identity/context integrity gaps. The page records dashboard priority order and avoids copying raw user-identifying rows.…",
+      "summary": "- Added [[atlas-context-root-deep-test-plan-20260604]] for the `feat/atlas-context-root-model` verification handoff. The plan fixes the expected canonical path model, requires Browser Web UI plus Computer Use Desktop evidence, covers DB/session/IP/job-log/tool-cwd/Perforce/LSP checks, and blocks merge to `main` unless both UI E2E paths pass. - Closed the…",
       "path": "doc/wiki/log.md",
-      "size_bytes": 85695
+      "size_bytes": 96887
     },
     {
       "id": "mctp-assembler-scratch-flow-20260531",
@@ -2588,6 +2625,7 @@
         "evidence-contract-obligation-traceability",
         "general-ip-flow-trial-and-error-20260601",
         "index",
+        "mctp-assembler-v3-ingress-fidelity-20260603",
         "truth-coverage-gate"
       ],
       "broken_refs": [],
@@ -2595,6 +2633,30 @@
       "summary": "This page records the fresh `mctp_assembler_scratch` req-to-audit run. It is a handoff map, not a production conformance claim. The original local evidence bundle passed the pre-truth-coverage signoff. After the 2026-06-01 `truth_coverage` gate was added, final signoff became stricter; the refresh now maps all locked-truth obligations to executable…",
       "path": "doc/wiki/mctp-assembler-scratch-flow-20260531.md",
       "size_bytes": 10488
+    },
+    {
+      "id": "mctp-assembler-v3-ingress-fidelity-20260603",
+      "title": "mctp_assembler_v3 — ingress req→impl fidelity gap (found + fixed via adversarial probe)",
+      "type": "reference",
+      "tags": [
+        "mctp",
+        "rtl-gen",
+        "tb-gen",
+        "equivalence",
+        "fidelity",
+        "silent-pass"
+      ],
+      "related": [],
+      "outgoing": [
+        "silent-pass-exposure-tb-stimulus-gap-20260520",
+        "mctp-assembler-scratch-flow-20260531"
+      ],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Built `mctp_assembler_v3` from scratch through the workflow (req → SSOT → golden FL/CL → RTL slice → cocotb sim). The AXI write-ingress is the one implemented module of nine.",
+      "path": "doc/wiki/mctp-assembler-v3-ingress-fidelity-20260603.md",
+      "size_bytes": 4180
     },
     {
       "id": "mini-cpu-rerun-20260517",
@@ -3049,7 +3111,7 @@
       "updated": "",
       "summary": "This page defines the control-plane concept for cross-workflow repair and pipeline execution.",
       "path": "doc/wiki/orchestrator-worker-handoff.md",
-      "size_bytes": 20995
+      "size_bytes": 22352
     },
     {
       "id": "orchestrator-worker-handoff-review",
@@ -3566,6 +3628,7 @@
       "incoming": [
         "atlas-new-ip-recipe",
         "atlas-ssot-flag-reference",
+        "mctp-assembler-v3-ingress-fidelity-20260603",
         "project_silent_pass_exposure",
         "systematic-quality-gates-20260521"
       ],
@@ -3937,13 +4000,14 @@
       "incoming": [
         "desktop-local-tool-execution-plan-20260603",
         "frontend-modernization-2026-05-29",
-        "index"
+        "index",
+        "log"
       ],
       "broken_refs": [],
       "updated": "",
       "summary": "A native desktop window for ATLAS, for distribution + native file access (OS file dialogs, arbitrary local paths) beyond what a sandboxed browser tab allows.",
       "path": "doc/wiki/tauri-desktop-shell.md",
-      "size_bytes": 5519
+      "size_bytes": 8650
     },
     {
       "id": "tech-direction-recommendation-20260529",

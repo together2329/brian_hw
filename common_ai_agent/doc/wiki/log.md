@@ -1,5 +1,126 @@
 # Wiki Log
 
+## 2026-06-04
+
+- Added [[atlas-context-root-deep-test-plan-20260604]] for the
+  `feat/atlas-context-root-model` verification handoff. The plan fixes the
+  expected canonical path model, requires Browser Web UI plus Computer Use
+  Desktop evidence, covers DB/session/IP/job-log/tool-cwd/Perforce/LSP checks,
+  and blocks merge to `main` unless both UI E2E paths pass.
+- Closed the final5 `[[atlas-context-root-model-20260603]]` Desktop/Web
+  healthz regression. In single-user Desktop mode, `/healthz` now honors an
+  explicit `user/workspace_session/ip/workflow` query session instead of
+  falling back to `local-admin/default/default/default`; this fixes the
+  post-`+ IP` top-bar/file-tree drift to `default`. New regression first failed
+  on `local-admin/default/default/default`, then passed. Verification refreshed
+  `tests/test_atlas_multiuser_session_scope.py` (`48 passed`),
+  pipeline/orchestrator isolation (`54 passed, 5 skipped`), pipeline state
+  (`34 passed`), submit-message Vitest (`10 passed`), Vite build, Web UI E2E
+  with `+ IP`, workflow switch, `/context`, `/todo`, file tree and side panel,
+  plus Desktop launcher dry-run with Perforce propagation. Computer Use could
+  launch an ATLAS process but macOS reported zero windows, so final Desktop
+  visual inspection remains blocked by `cgWindowNotFound` and is recorded as
+  such in the evidence note. After documenting the fix, the final command
+  refresh passed py_compile, backend/session pytest (`82 passed`), job/isolation
+  plus Desktop launcher pytest (`60 passed, 5 skipped`), submit-message Vitest
+  (`10 passed`), Vite build, and wiki graph (`broken_refs=0`).
+- Closed the final3 `[[atlas-context-root-model-20260603]]` blockers before
+  staging: username-scoped dispatch excludes ownerless legacy active jobs,
+  Architect single dispatch omits non-canonical `session=<ip>/<workflow>`, and
+  orchestrator-authored handoffs store session-owner username scope so
+  pipeline state/list/take routes align with authenticated requests. Added
+  regressions and refreshed verification: Python compile pass, new isolation
+  tests `4 passed`, Architect Vitest `7 passed`, refreshed pipeline state
+  suite `38 passed`, Vite build pass, and wiki graph `broken_refs=0`.
+- Finalized the late `[[atlas-context-root-model-20260603]]` isolation
+  refresh before commit: scoped pipeline state now ignores ownerless legacy DB
+  runs, job dedupe includes user/workspace-root identity, handoff routes use
+  the authenticated workspace-session root, and `dispatch_workflow` recovers
+  run-id context while rejecting session/db-user spoofing. Final verification
+  refreshed focused isolation tests (`4 passed`), worker/orchestrator isolation
+  (`143 passed, 5 skipped`), launcher/process (`37 passed`), session/todo trace
+  (`61 passed`), frontend session tests (`48 passed`), frontend worker/pipeline
+  tests (`18 passed`), `tsc --noEmit`, Vite build, and wiki graph
+  (`broken_refs=0`).
+- Tightened the per-user orchestrator/worker isolation follow-up after final
+  review: scoped pipeline state now hides ownerless legacy DB runs,
+  `progress-debug` requires the same IP access gate, orchestrator chat rejects
+  spoofed explicit sessions, and `/api/orchestrator/workers` filters IPC runtime
+  jobs and process metadata by the request's user/workspace/IP scope. Regression
+  evidence refreshed:
+  focused isolation tests `5 passed`; pipeline/orchestrator isolation suite
+  `115 passed, 5 skipped`; worker/session suite `58 passed`; per-user real
+  worker E2E `19 passed`.
+- Closed the same isolation rule through the orchestrator React tool path:
+  `src.orchestrator.tools.read_pipeline_state` now receives the bridge
+  `ctx.session_id` and trusted `ctx.user_id`, so LLM-invoked pipeline-state
+  reads keep the same `user/workspace_session/ip/workflow` scope as the HTTP
+  routes and still see production-shaped jobs that carry `db_user_id`.
+  Regression evidence: ReactBridge/tool/db-user visibility tests `31 passed`,
+  worker route tests `20 passed`, broader pipeline/orchestrator suite
+  `123 passed, 5 skipped`, and worker/session suite `58 passed`.
+- Refreshed `mctp_assembler_v3` locked-truth loop evidence: truth coverage
+  `72/72`, RTL todo audit `501 tasks / 0 blockers / 0 orphans`, IP signoff
+  `18/18`, and headless `sim,coverage,sim-debug,goal-audit,contract-check`
+  passed with cocotb `3/3`, scoreboard `102/102`, coverage `120/120`,
+  sim-debug `102/102`, goal-audit `16/16`, and contract-check
+  `reflection=1/1 evidence=102/102`.
+- Closed `[[atlas-context-root-model-20260603]]` C003 with corrected Desktop
+  evidence: Computer Use inspected the repo release `ATLAS.app` launched by
+  `scripts/run_atlas_desktop.sh` with no `--host` argument. The launcher now
+  defaults local Desktop backends to `localhost` after the `127.0.0.1` Tauri
+  WebView path showed a module-script bootstrap failure; explicit
+  `--host 127.0.0.1` remains tested. The UI showed
+  `.session/2076604/s1/DESK_QA_IP/rtl-gen`, session `s1`, IP `DESK_QA_IP`,
+  workflow `rtl-gen`, side panel `dir > DESK_QA_IP`, `PERFORCE/GIT/TODO`,
+  workflow switch confirmation, and session worker hot/alive. Closing the
+  Desktop window made `open -W` return and port `3047` had no listener.
+  Final verification refreshed launcher/process regressions (`37 passed`),
+  worker/orchestrator isolation (`100 passed, 5 skipped`), session/todo traces
+  (`61 passed`), frontend session tests (`48 passed`), frontend worker/pipeline
+  tests (`18 passed`), `tsc --noEmit`, Vite build, and wiki graph
+  (`broken_refs=0`).
+- Updated [[atlas-context-root-model-20260603]] with the per-user orchestrator
+  worker follow-up. In multi-user orchestrator mode, worker routing and snapshots
+  are now documented as `user / workspace_session / ip / workflow`, with live
+  HTTP E2E evidence for separate Alice/Bob worker URLs and sessions. The page
+  also records the targeted backend, frontend, build, runtime-session, and
+  todo/history verification commands.
+- Extended the same follow-up after finding that warm-pool/direct lazy startup
+  still used `user/ip/workflow`. Warm worker jobs now carry
+  `workspace_session`, the warm route forwards it, and live HTTP E2E verifies
+  Alice/Bob dispatch creates separate `conversation.json` and `todo.json` under
+  each user's workspace-session root.
+- Tightened that follow-up after review: `/api/orchestrator/workers/warm` now
+  starts from the request workspace root, rejects invalid IP names before
+  scheduling, keeps path-like `workspace_session` inputs from becoming a sibling
+  user's worker key, and preserves same-user legacy global-root IPC log access
+  only for the default workspace. Regression coverage: 55 backend tests across
+  warm-pool, worker routes, IPC logs, worker identity, and multi-user isolation.
+- Re-ran current-code live HTTP E2E for the same follow-up: real Atlas server,
+  Alice/Bob auth cookies, separate per-user RTL worker URLs, fake worker `/run`
+  payloads carrying `project_root=ATLAS_ROOT/user/alt`, and
+  `conversation.json`/`todo.json` written under each user's workspace-session
+  root. Broader backend isolation suite now records 86 passed / 5 skipped.
+- Added a real agent-server HTTP worker regression for the same contract:
+  `tests/test_per_user_real_worker_e2e.py` starts two real
+  `core.agent_server` FastAPI worker apps on Alice/Bob computed per-user ports
+  and verifies `/api/job/dispatch` reaches distinct `user/alt/pl330/rtl-gen`
+  workers with `project_root=ATLAS_ROOT/user/alt` and model `gpt-5.5`.
+- Fixed the real `_run_react_task` session override path for per-user workers:
+  conversation and todo files now use the worker request `project_root`
+  (`ATLAS_ROOT/user/workspace_session/.session/user/workspace/ip/workflow`)
+  instead of the source root `.session`. Explicit dispatch sessions are now
+  rejected when they do not match the authenticated
+  `user/workspace_session/ip/workflow` context, and worker `/run` rejects
+  request `project_root` values outside the worker env root. Regression coverage
+  now records 62 focused worker tests and 98 broader worker/orchestrator tests
+  passing. The IPC watcher regression wait was also tightened to wait for the
+  completion hooks, not only the first `job.status=completed` write. Added
+  `tests/test_agent_server_locked_truth_guard.py` to prove sync worker `/run`
+  restores approved requirement files if the ReAct body attempts a locked-truth
+  mutation under the request project root.
+
 ## 2026-06-03
 
 - Fixed ATLAS interactive worker status leakage across workspace sessions.
@@ -886,4 +1007,21 @@
 - **Phase 3.5 prereq P-B cleared (2026-05-18)** — `tests/test_pipeline_orchestrator_worker_integration.py` rebaselined from `4 failed / 6 passed / 5 skipped` to `9 passed / 6 skipped / 0 failed`. Each of the 4 active failures was confirmed pre-existing on commit `496a44d1f` (verified via `git worktree`, not Phase 3 regressions). Triage outcomes: (i) `test_pipeline_dispatch_can_drive_real_agent_server_worker_endpoints` had three independent bugs — `_refresh_tracked_jobs` only polled jobs in `status="running"` so once the worker's `/status/{run_id}` returned "pending" the local view stuck there forever, the test's `fake_react_task` was missing the `reasoning_effort` kwarg so the executor silently TypeError'd, and the polling window was too short to clear the 1.5 s per-job rate limit. Production fix in `src/atlas_api_jobs.py`: `_refresh_tracked_jobs` now polls `("running", "pending")` gated on `run_id` presence. Test fixes: `fake_react_task` signature widened, polling window 50×0.2 s. (ii) `test_job_dispatch_keeps_llm_model_separate_from_lint_toolchain` asserted `lint == gpt-5.3-codex` but `_WORKER_MODEL_DEFAULTS["lint"]` is `"deepseek"`; the adjacent passing test `test_orchestrator_worker_status_exposes_default_model_bindings` already asserts the new default. Updated the failing test to match. (iii) `test_full_ip_pipeline_can_complete_all_stages_across_two_workers` chain-blocks on ssot because `_job_artifact_recovery` shells out to `workflow/ssot-gen/scripts/check_ssot_disk.sh` which validates the full SSOT schema, while the mock `_write_mock_stage_artifact` only emits `ip: <ip>\nrequirements: []` — explicit `@pytest.mark.skip` with a reason that names the gap and proposes both fix paths (schema-valid mock SSOT or per-test validator override). Symlinking the workflow dir into `tmp_path` is kept in the test so the validator is reachable; only the schema content is the remaining blocker. (iv) `test_pipeline_dispatch_persists_db_identity_for_admin_sessions` updated to expect `["gpt-5.3-codex", "deepseek"]` for the rtl+lint dispatch. Phase 3.5 react_loop migration spike is now unblocked.
 - **Architectural decision locked**: ATLAS Orchestrator will run on top of `core/react_loop.py::run_react_agent_impl` via `ReactLoopDeps` injection. `src/orchestrator/loop.py` (the standalone mini-loop shipped in Phase 3) is now a temporary scaffold scheduled for removal in the Phase 3.5 migration. Rationale: user explicitly requested stability and rejected maintaining a second loop in parallel — `react_loop.py` is the production-validated path and already covers compression / TodoTracker sync / per-IP context injection / parallel tool execution / streaming UI / ESC interrupt. Two parallel loops double the verification surface and risk subtle behavioural drift. The "if mode == 'orchestrator':" alternative inside react_loop was rejected because `ReactLoopDeps` is precisely the dependency-injection seam designed to keep generic-loop code free of caller-specific branches. Concrete preservation contract: `orchestrator_runs` / `orchestrator_steps` schema, `src/orchestrator/tools.py` 8 callables, `src/orchestrator/runner.py` single-flight + Waker, the 3 HTTP routes (`POST /api/pipeline/orchestrator/chat`, `GET /api/orchestrator/runs/{id}`, `GET /api/orchestrator/active_run`), and UI surface (StageCard `orch` pill + `OrchestratorAskUserBanner`) all survive. Only `src/orchestrator/loop.py` and its 11 tests get rewritten against `run_react_agent_impl` invocation. Saved as project memory `[[project_orchestrator_loop_decision]]` so future sessions do not re-litigate.
 - Phase 3.5 plan reviewed → **spike ON HOLD**. Independent review (recorded inline as `## Review Findings` in `[[orchestrator-loop-on-react-loop-plan]]`) caught one P0 and four P1 issues against the original sketch: (P0) `base.available_tools.update(...)` would leave every generic agent tool exposed to the orchestrator LLM because `src/main.py:1195` captures `tools.AVAILABLE_TOOLS.keys()` at wrapper construction — must REPLACE not merge, and `build_prompt_fn` + `llm_call_fn` must also be orchestrator-scoped; (P1) `main._build_react_loop_deps()` does not exist — deps live inline at `src/main.py:1190` and `core/agent_server.py:1045`, react_bridge must build them directly from core modules; (P1) yield_run ≠ poll_human_input_fn — `poll_human_input_fn` fires only with `ENABLE_HUMAN_IN_THE_LOOP` at end of iteration (`core/react_loop.py:2031`) while yield_run waits on watched job / user message / timer (`src/orchestrator/loop.py:357`), so yield_run stays a separate tool; (P1) plan under-reported test status — `tests/test_pipeline_orchestrator_worker_integration.py` has **4 active failures** at lines 431/577/652/728 on top of the 5 `@_PHASE3_SKIP`, must be triaged BEFORE the spike; (P1) `llm_calls` accounting is not free — `llm_client._record_call` (`src/llm_client.py:483`) is in-memory perf log, DB write needs explicit `AtlasTrace.record_llm_call()` (`core/atlas_trace.py:395`), and the `llm_calls` schema (`core/atlas_db.py:398`) has no `correlation_id`, so linkage strategy is `run_id`+`message_id` passed to `record_llm_call(...)` from inside iterations, no schema invention. Also P2: parallel step_index must be preserved by a central collector inside the wrapper (DB auto-increment records completion order, not call order — `core/atlas_db.py:3505`), and `orchestrator_inject_fn` must become ctx-bound (`build_orchestrator_inject_fn_for(db, ctx)`) since the legacy injector reads `ATLAS_ACTIVE_IP` env (`core/orchestrator_inject.py:45`) and a contextvar (`core/orchestrator_inject.py:165`) that don't propagate to a background orchestrator thread. Five open questions decided inline. Phase 3.5 plan updated to reflect all findings; spike does not start until (a) plan rewrite lands and (b) the 4 integration failures are rebaselined as intentional-contract-change or fixed-as-regression. Targeted Phase 3 suite still green (57 passed).
+
+## 2026-06-04
+
+- ATLAS context-root final6 refresh recorded in
+  [[atlas-context-root-model-20260603]]. Fixed an order-dependent stale
+  `ATLAS_ROOT` leak from `/api/session/activate` into job/pipeline-state
+  helpers. Web/API E2E passed on `127.0.0.1:49191`: `local-admin/s1/CTX_E2E`,
+  new session `s3`, new IP `CTX_NEWUI`, workflow `ssot-gen`, `/todo`, and
+  `/context` all stayed under `ATLAS_ROOT/local-admin/session/ip`. Evidence:
+  `.omo/ulw-loop/evidence/atlas-context-root-http-e2e.txt` and
+  `.omo/ulw-loop/evidence/atlas-context-root-browser-e2e.md`.
+- Desktop final6 visual recheck is still blocked by OS/window attach:
+  launched ATLAS processes expose zero windows and Computer Use returns
+  `cgWindowNotFound` or bundle ambiguity. Backend/launcher tests and
+  `src-tauri` unit tests pass, but this refresh is not a fresh Web+Desktop E2E
+  pass; do not merge to `main` from this refresh without a successful Desktop
+  rerun or explicit acceptance of the earlier corrected C003 Desktop proof.
 - Phase 3 of `[[orchestrator-chat-only-product-plan]]` landed — the right-side Pipeline chat at `POST /api/pipeline/orchestrator/chat` no longer parses keywords; it persists the user message, then `OrchestratorRunner.submit_or_attach(user_id, ip_id, ...)` either starts a fresh `orchestrator_run` row or appends a `user_reply` step to the existing active run for that `(user_id, ip_id)` (single-flight). The background `ThreadPoolExecutor(max_workers=4)` drives `OrchestratorLoop.run()` which iterates one LLM tool call at a time over 8 tools (`read_pipeline_state`, `dispatch_workflow`, `wait_job` non-blocking, `read_artifact`, `classify_failure`, `ask_user`, `write_handoff`, `mark_downstream_stale`) and writes one `orchestrator_steps` row per iteration with `decision_json` + `evidence_read_json` + `verdict`. Hard caps: 50 steps / 30 min → `final_state="cap_exceeded"`. Terminal states (`completed/blocked/error/paused`) all close the run with `ended_at`. New DB: `orchestrator_runs`, `orchestrator_steps` plus `orchestrator_run_id`/`trigger_source` columns on `workflow_runs` and `artifacts`. New owner-routing extracted from `workflow/orchestrator/system_prompt.md` prose into `src/orchestrator/classify.py::classify_failure(stage, evidence, error_text)` returning `{owner, next_workflow, reason, confidence}`. Two new read endpoints: `GET /api/orchestrator/runs/{run_id}` (run + all steps) and `GET /api/orchestrator/active_run?ip=X` (active run + latest step, used by the new "Human decision waiting" banner in `frontend/atlas/pipeline.jsx`). StageCard gained an `orch` pill when `data.trigger_source === "orchestrator_chat"`. Test coverage: 54 new pytest cases across `tests/test_atlas_db_orchestrator.py`, `test_orchestrator_classify.py`, `test_orchestrator_tools.py`, `test_orchestrator_loop.py`, `test_orchestrator_runner.py`, `test_orchestrator_route.py` — all green with `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1`. Slop-decisions intentionally locked: no env-gated keyword fallback (LLM is the only truth, errors surface as `status=error/final_state=llm_error`), `import_document` excluded from the tool set (deferred to Phase 2 — no placeholder), `wait_job` is non-blocking (loop yields and resumes on the next iteration instead of holding the thread). Five legacy tests in `tests/test_pipeline_orchestrator_worker_integration.py` that asserted the keyword-dispatch contract are decorated `@_PHASE3_SKIP` with a pointer to the new async contract; they need a rewrite (stub LLM caller + poll `/api/orchestrator/runs/{run_id}`) before they re-enter the suite. Full record: `[[orchestrator-llm-loop-phase3]]`.
