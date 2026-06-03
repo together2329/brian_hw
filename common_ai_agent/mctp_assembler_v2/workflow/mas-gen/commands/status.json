@@ -1,0 +1,9 @@
+{
+  "name": "status",
+  "description": "Show MAS project status: files generated, sim result, current phase",
+  "aliases": [
+    "st"
+  ],
+  "handler": "bash:mas_status.sh",
+  "usage": "/status"
+}

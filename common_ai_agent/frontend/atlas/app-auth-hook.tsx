@@ -81,12 +81,20 @@ export function useAtlasAuthGate(deps: AtlasAuthGateDeps): void {
             ? splitSessionNamespace(currentNs)
             : { sessionId: '', ipId: '', workflow: '' };
           const currentBelongsToUser = currentNs && currentParts.sessionId === username;
-          const recoveredNs = currentBelongsToUser
+          const defaultWorkflow = execMode === 'orchestrator' ? 'orchestrator' : WORKFLOW_DEFAULT;
+          const sourceNs = currentBelongsToUser
             ? currentNs
-            : `${username}/${WORKFLOW_DEFAULT}/${execMode === 'orchestrator' ? 'orchestrator' : WORKFLOW_DEFAULT}`;
+            : `${username}/${WORKFLOW_DEFAULT}/${WORKFLOW_DEFAULT}/${defaultWorkflow}`;
+          const sourceParts = splitSessionNamespace(sourceNs);
+          const workspaceSession = normalizeSession(sourceParts.workspaceSession || '') || WORKFLOW_DEFAULT;
+          const recoveredNs = `${username}/${workspaceSession}/${sourceParts.ipId || WORKFLOW_DEFAULT}/${sourceParts.workflow || defaultWorkflow}`;
           const recoveredParts = splitSessionNamespace(recoveredNs);
           window.ACTIVE_SESSION = recoveredNs;
-          try { localStorage.setItem('atlasActiveSession', recoveredNs); } catch (_) {}
+          (window as any).ATLAS_WORKSPACE_SESSION_ID = workspaceSession;
+          try {
+            localStorage.setItem('atlasActiveSession', recoveredNs);
+            localStorage.setItem('atlasWorkspaceSessionId', workspaceSession);
+          } catch (_) {}
           setActiveSessionId(username);
           setActiveNamespace(recoveredNs);
           setActiveIp(recoveredParts.ipId || WORKFLOW_DEFAULT);
@@ -105,12 +113,13 @@ export function useAtlasAuthGate(deps: AtlasAuthGateDeps): void {
           fetch('/api/session/activate', {
             method: 'POST',
             credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              owner: username,
-              ip: recoveredParts.ipId || WORKFLOW_DEFAULT,
-              workflow: recoveredParts.workflow || WORKFLOW_DEFAULT,
-              preserve_running: true,
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                owner: username,
+                workspace_session: recoveredParts.workspaceSession || workspaceSession || WORKFLOW_DEFAULT,
+                ip: recoveredParts.ipId || WORKFLOW_DEFAULT,
+                workflow: recoveredParts.workflow || WORKFLOW_DEFAULT,
+                preserve_running: true,
             }),
           }).catch(() => {});
         })
@@ -146,6 +155,14 @@ export function useAtlasAuthGate(deps: AtlasAuthGateDeps): void {
           const urlParts = urlSession
             ? splitSessionNamespace(urlSession)
             : { sessionId: '', ipId: '', workflow: '' };
+          const workspaceParam = normalizeSession(
+            urlParts.workspaceSession
+            || url.searchParams.get('workspace_session')
+            || url.searchParams.get('workspace')
+            || (window as any).ATLAS_WORKSPACE_SESSION_ID
+            || localStorage.getItem('atlasWorkspaceSessionId')
+            || ''
+          );
           const ipParam = normalizeSession(url.searchParams.get('ip') || url.searchParams.get('ip_id') || '');
           const wfParam = normalizeSession(url.searchParams.get('workflow') || url.searchParams.get('wf') || '');
           const requestedIp = ipParam || normalizeSession(urlParts.ipId || '');
@@ -164,16 +181,20 @@ export function useAtlasAuthGate(deps: AtlasAuthGateDeps): void {
             const savedWorkflow = (!ownerMismatch && currentParts.workflow && currentParts.workflow !== WORKFLOW_DEFAULT)
               ? currentParts.workflow
               : '';
+            const nextWorkspace = workspaceParam || (!ownerMismatch ? currentParts.workspaceSession : '') || WORKFLOW_DEFAULT;
             const nextIp = requestedIp || (!ownerMismatch ? currentParts.ipId : '') || WORKFLOW_DEFAULT;
             const nextWf = requestedWf || savedWorkflow || defaultWorkflow;
-            const nextNs = `${username}/${nextIp}/${nextWf}`;
+            const nextNs = `${username}/${nextWorkspace}/${nextIp}/${nextWf}`;
             window.ACTIVE_SESSION = nextNs;
+            (window as any).ATLAS_WORKSPACE_SESSION_ID = nextWorkspace;
             localStorage.setItem('atlasActiveSession', nextNs);
+            localStorage.setItem('atlasWorkspaceSessionId', nextWorkspace);
             setActiveSessionId(username);
             setActiveNamespace(nextNs);
             setActiveIp(nextIp);
             url.searchParams.set('session', nextNs);
             url.searchParams.set('session_id', username);
+            url.searchParams.set('workspace_session', nextWorkspace);
             url.searchParams.set('ip', nextIp);
             url.searchParams.set('workflow', nextWf);
             url.searchParams.delete('ip_id');
@@ -187,6 +208,8 @@ export function useAtlasAuthGate(deps: AtlasAuthGateDeps): void {
             setActiveIp(WORKFLOW_DEFAULT);
             url.searchParams.delete('session');
             url.searchParams.delete('session_id');
+            url.searchParams.delete('workspace_session');
+            url.searchParams.delete('workspace');
             url.searchParams.delete('ip');
             url.searchParams.delete('ip_id');
             url.searchParams.delete('workflow');
@@ -208,6 +231,7 @@ export function useAtlasAuthGate(deps: AtlasAuthGateDeps): void {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 owner: username || parsed.sessionId,
+                workspace_session: parsed.workspaceSession || WORKFLOW_DEFAULT,
                 ip: parsed.ipId || 'default',
                 workflow: parsed.workflow || 'default',
               }),

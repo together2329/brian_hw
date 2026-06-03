@@ -1,0 +1,18 @@
+{
+  "name": "req-gen",
+  "description": "Requirement Agent \u2014 iterative requirement gathering with user to produce structured requirements.md",
+  "env": {
+    "MAX_ITERATIONS": "200",
+    "ENABLE_MARKDOWN_RENDER": "true",
+    "WORKFLOW_DISABLED_TOOLS": "ask_user,record_ssot_qa,dispatch_workflow"
+  },
+  "skills": {
+    "force_activate": [
+      "verilog-expert"
+    ],
+    "disable": []
+  },
+  "system_prompt_mode": "prepend",
+  "plan_prompt_mode": "prepend",
+  "compression_prompt_mode": "replace"
+}

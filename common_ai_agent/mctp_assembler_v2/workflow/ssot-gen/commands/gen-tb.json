@@ -1,0 +1,7 @@
+{
+  "name": "gen-tb",
+  "description": "Legacy alias: hand off validated YAML SSOT to tb-gen; do not use fixed templates",
+  "aliases": ["gt"],
+  "handler": "bash:gen_tb.sh",
+  "usage": "/gen-tb <module_name>"
+}

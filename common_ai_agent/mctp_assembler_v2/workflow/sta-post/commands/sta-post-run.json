@@ -1,0 +1,8 @@
+{
+  "name": "sta-post-run",
+  "description": "Run OpenSTA on existing run.tcl (no tcl regeneration)",
+  "aliases": [],
+  "handler": "bash:run_sta_post.sh",
+  "usage": "/sta-post-run <ip>",
+  "timeout_sec": 300
+}

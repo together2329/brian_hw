@@ -127,6 +127,13 @@ const w = window as any;
     const urlOwner = normalizeSessionName(
       (urlParts.length >= 3 ? urlParts[0] : '') || params.get('session_id') || ''
     );
+    const urlWorkspace = normalizeSessionName(
+      (urlParts.length >= 4 ? urlParts[1] : '') ||
+      params.get('workspace_session') ||
+      params.get('workspace') ||
+      localStorage.getItem('atlasWorkspaceSessionId') ||
+      ''
+    );
     const urlIp = normalizeSessionName(
       (urlParts.length >= 3 ? urlParts[urlParts.length - 2] : '') ||
       params.get('ip') ||
@@ -139,13 +146,17 @@ const w = window as any;
       params.get('wf') ||
       ''
     );
-    const urlNamespace = urlSession || (
+    const urlNamespace = (urlSession && urlParts.length >= 4 ? urlSession : '') || (
       (urlIp || urlWorkflow)
-        ? `${urlOwner || 'default'}/${urlIp || 'default'}/${urlWorkflow || 'default'}`
+        ? `${urlOwner || 'default'}/${urlWorkspace || 'default'}/${urlIp || 'default'}/${urlWorkflow || 'default'}`
         : ''
     );
     w.ACTIVE_SESSION = urlNamespace || normalizeSessionName(localStorage.getItem('atlasActiveSession')) || 'default';
-    if (urlNamespace) localStorage.setItem('atlasActiveSession', urlNamespace);
+    if (urlNamespace) {
+      localStorage.setItem('atlasActiveSession', urlNamespace);
+      localStorage.setItem('atlasWorkspaceSessionId', urlWorkspace || 'default');
+      w.ATLAS_WORKSPACE_SESSION_ID = urlWorkspace || 'default';
+    }
   } catch (_) {
     w.ACTIVE_SESSION = 'default';
   }

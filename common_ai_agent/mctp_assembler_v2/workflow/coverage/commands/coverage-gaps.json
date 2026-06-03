@@ -1,0 +1,7 @@
+{
+  "name": "coverage-gaps",
+  "description": "Identify top-N uncovered regions from annotated source",
+  "aliases": ["cov-gaps"],
+  "handler": "bash:coverage_gaps.sh",
+  "usage": "/coverage-gaps [<dut_name>] [<top_n>]   (default: 10)"
+}

@@ -462,10 +462,18 @@ const App = () => {
     try {
       const url = new URL(window.location.href);
       const sid = normalizeSession(namespace || '');
+      const sidParts = sid.split('/').filter(Boolean);
+      const workspaceSession = normalizeSession(
+        sidParts.length >= 4
+          ? sidParts[1]
+          : ((window as any).ATLAS_WORKSPACE_SESSION_ID || '')
+      ) || 'default';
       if (sid && sid !== 'default') url.searchParams.set('session', sid);
       else url.searchParams.delete('session');
       if (owner && owner !== 'default') url.searchParams.set('session_id', owner as string);
       else url.searchParams.delete('session_id');
+      if (sid) url.searchParams.set('workspace_session', workspaceSession);
+      else url.searchParams.delete('workspace_session');
       if (ip) url.searchParams.set('ip', ip as string);
       else url.searchParams.delete('ip');
       if (workflow) url.searchParams.set('workflow', workflow as string);
@@ -935,6 +943,11 @@ const App = () => {
   }
 
   const ownerEditable = !loggedInOwner();
+  const activeWorkspaceSession = normalizeSession(
+    splitActiveNamespace().workspaceSession
+    || (window as any).ATLAS_WORKSPACE_SESSION_ID
+    || 'default'
+  ) || 'default';
   // NOTE: activeDbSessionLabel / activeDbSessionTitle were computed here but
   // never rendered — same as the app.jsx reference, which also computes them
   // and never uses them. Dropped to match the working reference exactly and
@@ -963,6 +976,7 @@ const App = () => {
       activeNamespace={activeNamespace}
       ownerEditable={ownerEditable}
       activeSessionId={activeSessionId}
+      activeWorkspaceSession={activeWorkspaceSession}
       sessionIdOptions={sessionIdOptions}
       selectSessionId={selectSessionId}
       newSessionId={newSessionId}

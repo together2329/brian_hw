@@ -1,0 +1,26 @@
+{
+  "_schema": "workspace v1",
+  "_comment": "Chat-responder workflow \u2014 auto-replies to human chat in per-IP rooms and the _global room. Launch per room as its own session: python src/main.py -s atlas-helper/<ip-or-_global>/chat-responder -w chat-responder",
+  "meta": {
+    "name": "chat-responder",
+    "description": "ATLAS Helper bot \u2014 answers human feedback in per-IP and _global Orchestrator Chat rooms.",
+    "version": "1.0"
+  },
+  "env": {
+    "_comment": "Pulled from .env: CHAT_RESPONDER_MODEL (default gpt-5.3-codex), CHAT_RESPONDER_EFFORT (default low), CHAT_RESPONDER_POLL_SECONDS, CHAT_RESPONDER_MIN_INTERVAL_SECONDS, CHAT_RESPONDER_MAX_OUTPUT_TOKENS.",
+    "WORKFLOW_DISABLED_TOOLS": "ask_user,record_ssot_qa,dispatch_workflow"
+  },
+  "prompt": {
+    "system_prompt_mode": "replace",
+    "plan_prompt_mode": "skip"
+  },
+  "skills": {
+    "force_activate": [],
+    "disable": [
+      "todo_write",
+      "todo_update",
+      "todo_add",
+      "todo_remove"
+    ]
+  }
+}

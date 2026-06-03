@@ -1,0 +1,18 @@
+{
+  "name": "mas-gen",
+  "description": "Master Agent System \u2014 orchestrates RTL, TB, Sim, and Doc generation",
+  "env": {
+    "MAX_ITERATIONS": "300",
+    "ENABLE_MARKDOWN_RENDER": "true",
+    "WORKFLOW_DISABLED_TOOLS": "ask_user,record_ssot_qa,dispatch_workflow"
+  },
+  "skills": {
+    "force_activate": [
+      "verilog-expert"
+    ],
+    "disable": []
+  },
+  "system_prompt_mode": "prepend",
+  "plan_prompt_mode": "prepend",
+  "compression_prompt_mode": "replace"
+}

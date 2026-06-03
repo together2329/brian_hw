@@ -221,7 +221,9 @@ export const sessionForExecMode = (session: any): string => {
   if (parts.length >= 3) {
     const workflow = workflowForExecMode(parts[parts.length - 1] || '');
     if (workflow && workflow !== parts[parts.length - 1]) {
-      return normalizeUiSession(`${parts[0]}/${parts[parts.length - 2]}/${workflow}`);
+      const nextParts = parts.slice();
+      nextParts[nextParts.length - 1] = workflow;
+      return normalizeUiSession(nextParts.join('/'));
     }
   }
   return sid;

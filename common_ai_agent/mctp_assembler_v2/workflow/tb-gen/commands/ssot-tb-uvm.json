@@ -1,0 +1,7 @@
+{
+  "name": "ssot-tb-uvm",
+  "description": "Run SSOT-driven UVM TB workflow",
+  "aliases": ["stb-uvm"],
+  "handler": "todo:template:ssot-tb-uvm",
+  "usage": "/ssot-tb-uvm <module_name>"
+}

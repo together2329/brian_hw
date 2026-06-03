@@ -25,6 +25,7 @@ fi
 IP="${ATLAS_DESKTOP_IP:-}"
 WORKFLOW="${ATLAS_DESKTOP_WORKFLOW:-default}"
 SESSION_ID="${ATLAS_DESKTOP_SESSION_ID:-${USER:-default}}"
+WORKSPACE_SESSION="${ATLAS_DESKTOP_WORKSPACE_SESSION:-default}"
 BACKEND_URL_RAW="${ATLAS_DESKTOP_BACKEND_URL:-}"
 BACKEND_URL_EXPLICIT=0
 SCM_PROVIDER="${ATLAS_DESKTOP_SCM_PROVIDER:-${ATLAS_SCM_PROVIDER:-}}"
@@ -41,6 +42,8 @@ Options:
   --ip NAME               Active IP used for URL/session bootstrap.
   --workflow NAME         Active workflow, default: default.
   --session-id NAME       Session owner segment, default: current user.
+  --workspace-session NAME
+                          Workspace session segment between user and IP, default: default.
   --backend-url URL       Existing backend URL to load.
   --backend URL           Alias for --backend-url.
   --host HOST             Local backend host when --root starts a backend.
@@ -91,6 +94,14 @@ while [[ $# -gt 0 ]]; do
       ;;
     --session-id=*|--session=*)
       SESSION_ID="${1#*=}"
+      shift
+      ;;
+    --workspace-session|--ws-session)
+      WORKSPACE_SESSION="${2:-}"
+      shift 2
+      ;;
+    --workspace-session=*|--ws-session=*)
+      WORKSPACE_SESSION="${1#*=}"
       shift
       ;;
     --backend-url|--backend)
@@ -199,8 +210,9 @@ decorate_backend_url() {
   url="$(append_query_param "$url" "ip" "$IP")"
   url="$(append_query_param "$url" "workflow" "$WORKFLOW")"
   url="$(append_query_param "$url" "session_id" "$SESSION_ID")"
+  url="$(append_query_param "$url" "workspace_session" "$WORKSPACE_SESSION")"
   if [[ -n "$IP" && -n "$SESSION_ID" && -n "$WORKFLOW" ]]; then
-    url="$(append_query_param "$url" "session" "${SESSION_ID}/${IP}/${WORKFLOW}")"
+    url="$(append_query_param "$url" "session" "${SESSION_ID}/${WORKSPACE_SESSION:-default}/${IP}/${WORKFLOW}")"
   fi
   url="$(append_query_param "$url" "scm" "$SCM_PROVIDER")"
   printf '%s\n' "$url"
@@ -241,6 +253,11 @@ backend_command() {
   if [[ -n "$SCM_PROVIDER" ]]; then
     cmd+=("ATLAS_SCM_PROVIDER=$SCM_PROVIDER")
   fi
+  cmd+=(
+    "ATLAS_WORKSPACE_SESSION=${WORKSPACE_SESSION:-default}"
+    "ATLAS_SESSION_ID=${WORKSPACE_SESSION:-default}"
+    "ATLAS_CONTEXT_KEY=${SESSION_ID}/${WORKSPACE_SESSION:-default}/${IP:-default}/${WORKFLOW}"
+  )
   if [[ "$SCM_PROVIDER" == "perforce" && -z "${ATLAS_SCM_ADAPTER_PERFORCE:-}" ]]; then
     cmd+=("ATLAS_SCM_ADAPTER_PERFORCE=core.scm_perforce:PerforceP4Adapter")
   fi
@@ -322,6 +339,11 @@ start_backend_if_needed() {
   if [[ -n "$SCM_PROVIDER" ]]; then
     env_args+=("ATLAS_SCM_PROVIDER=$SCM_PROVIDER")
   fi
+  env_args+=(
+    "ATLAS_WORKSPACE_SESSION=${WORKSPACE_SESSION:-default}"
+    "ATLAS_SESSION_ID=${WORKSPACE_SESSION:-default}"
+    "ATLAS_CONTEXT_KEY=${SESSION_ID}/${WORKSPACE_SESSION:-default}/${IP:-default}/${WORKFLOW}"
+  )
   if [[ -n "$ROOT" ]]; then
     env_args+=("ATLAS_ROOT=$ROOT")
   fi

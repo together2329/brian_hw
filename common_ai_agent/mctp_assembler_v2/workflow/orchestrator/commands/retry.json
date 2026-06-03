@@ -1,0 +1,11 @@
+{
+  "name": "retry",
+  "description": "Re-dispatch the most recently failed stage. Increments the retry counter; escalates to human when the budget is exhausted.",
+  "aliases": ["r"],
+  "usage": "/retry [stage]",
+  "args": [
+    { "name": "stage", "required": false, "description": "Stage id (rtl-gen, tb-gen, ...). Defaults to last failed stage." }
+  ],
+  "post_action": "wait_for_evidence",
+  "budget_check": true
+}

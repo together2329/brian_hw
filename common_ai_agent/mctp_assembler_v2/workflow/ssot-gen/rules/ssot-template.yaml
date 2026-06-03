@@ -1,0 +1,1035 @@
+# =============================================================================
+# SSOT TEMPLATE — Production IP YAML Single Source of Truth Structure
+# =============================================================================
+# Based on: DMA-330 real implementation (17/17 scoreboard checks passed)
+# Compatible with: CPU IP, HW Accelerator, DMA, PCIe, Ethernet, any RTL IP
+# =============================================================================
+# Philosophy:
+#   SSOT defines behavior, constraints, DV intent, evidence, and handoff gates.
+#   Downstream agents write RTL/TB directly from this YAML and prove results.
+# =============================================================================
+# Flow:
+#   User Input → Requirements → SSOT(YAML) → Validation → RTL/TB/SIM/EDA
+#        ↑                         ↑             ↑
+#   Q/A with user          Q/A with user    Q/A with user (refinement)
+# =============================================================================
+# Usage:
+#   1. Copy this template: cp rules/ssot-template.yaml <ip>/yaml/<ip>_ssot.yaml
+#   2. Fill in all sections (LLM-assisted)
+#   3. Validate: python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py" <ip> --root "$ATLAS_PROJECT_ROOT" --mode engineering
+#   4. Handoff: /ssot-rtl, /ssot-tb, sim_debug, coverage/EDA workflows
+# =============================================================================
+
+# =============================================================================
+# SECTION 0: Top Module Identity
+# =============================================================================
+# `file` is REQUIRED — the synthesizable top-level Verilog file MUST
+# share the IP name (`rtl/<ip_name>.sv`). Wrapper-only patterns (top
+# named `<ip>_wrapper.sv` with no `<ip>.sv`) confuse downstream tooling
+# and humans expecting `<ip>.sv` as the entry point. If a wrapper layer
+# is genuinely needed, list it as a separate sub_module with
+# wiring_only: true and keep `<ip>.sv` as the top.
+top_module:
+  name: "<ip_name>"
+  file: "rtl/<ip_name>.sv"
+  version: "1.0"
+  type: "dma"                              # dma | cpu | accelerator | bus | peripheral | memory
+  description: "<one-sentence purpose>"
+  reference_spec: "ARM DDI 0424D"          # TRM, datasheet, or "user-defined"
+  target:
+    technology: "generic"
+    clock_freq_mhz: 500
+    area_um2: null
+    power_mw: null
+
+# =============================================================================
+# SECTION 1: Sub-Module List (Hierarchy)
+# =============================================================================
+sub_modules:
+  # ssot_gen is a complexity hint only; it is not permission to use an IP-kind fixed generator.
+  # Downstream rtl-gen must derive each file from this SSOT and prove compile/lint evidence.
+  # ownership: manifest   → internal block described by this leaf YAML
+  # ownership: child_ssot → independently reusable/verifiable child IP
+  # Each manifest-owned non-top module needs an implementation contract.
+  # Description alone is not enough. Active modules need concrete SSOT ownership refs.
+  # Behavior modules should point to function_model/cycle_model/fsm refs and require
+  # module equivalence. Structural modules may point to memory/dataflow/registers/
+  # parameters/features refs and require structural traceability instead.
+  # `implements` may carry those refs directly when they are dotted SSOT refs
+  # such as function_model.transactions.FM_ACCEPT or cycle_model.handshake_rules.axi_aw.
+  # Explicit source_sections plus typed refs are still preferred for review:
+  # function_model_refs, decomposition_refs, cycle_model_refs, feature_refs, dataflow_refs,
+  # register_refs, fsm_refs, test_refs, trace_refs, or ssot_refs.
+  # Wiring-only modules must set wiring_only: true and list ports plus
+  # connections or internal_interfaces.
+  - { name: "<ip>_regs",    file: "rtl/<ip>_regs.sv",    ownership: "manifest", ssot_gen: true,  implements: ["registers.register_list", "interrupts", "error_handling"], source_sections: ["registers", "interrupts", "error_handling"], register_refs: ["registers.register_list"], description: "Register/status block" }
+  - { name: "<ip>_decoder", file: "rtl/<ip>_decoder.sv", ownership: "manifest", ssot_gen: true,  implements: ["function_model.transactions", "decomposition.units.decode", "features.decode"], source_sections: ["function_model", "decomposition", "features"], function_model_refs: ["function_model.transactions"], decomposition_refs: ["decomposition.units.decode"], feature_refs: ["features.decode"], description: "Decoder/datapath decode block" }
+  - { name: "<ip>_fsm",     file: "rtl/<ip>_fsm.sv",     ownership: "manifest", ssot_gen: true,  implements: ["fsm.states", "fsm.transitions", "cycle_model.pipeline"], source_sections: ["fsm", "cycle_model"], fsm_refs: ["fsm.control"], cycle_model_refs: ["cycle_model.pipeline"], description: "Control FSM" }
+  - { name: "<ip>_axi_rd",  file: "rtl/<ip>_axi_rd.sv",  ownership: "manifest", ssot_gen: true,  implements: ["io_list.interfaces", "cycle_model.handshake_rules"], source_sections: ["io_list", "cycle_model"], cycle_model_refs: ["cycle_model.handshake_rules"], ssot_refs: ["io_list.interfaces"], description: "Read protocol adapter" }
+  - { name: "<ip>_axi_wr",  file: "rtl/<ip>_axi_wr.sv",  ownership: "manifest", ssot_gen: true,  implements: ["io_list.interfaces", "cycle_model.handshake_rules"], source_sections: ["io_list", "cycle_model"], cycle_model_refs: ["cycle_model.handshake_rules"], ssot_refs: ["io_list.interfaces"], description: "Write protocol adapter" }
+  - { name: "<ip>_mfifo",   file: "rtl/<ip>_mfifo.sv",   ownership: "manifest", ssot_gen: true,  implements: ["memory.instances", "cycle_model.backpressure"], source_sections: ["memory", "cycle_model"], dataflow_refs: ["dataflow.sequence"], cycle_model_refs: ["cycle_model.backpressure"], description: "Data buffer" }
+  - { name: "<ip>_core",    file: "rtl/<ip>_core.sv",    ownership: "manifest", ssot_gen: false, implements: ["function_model", "decomposition.units.execute", "cycle_model", "dataflow", "features"], source_sections: ["function_model", "decomposition", "cycle_model", "dataflow", "features"], function_model_refs: ["function_model.transactions", "function_model.state_variables"], decomposition_refs: ["decomposition.units.execute"], cycle_model_refs: ["cycle_model.pipeline"], dataflow_refs: ["dataflow.sequence"], feature_refs: ["features"], description: "Core behavior" }
+  - { name: "<ip>_wrapper", file: "rtl/<ip>_wrapper.sv", ownership: "manifest", ssot_gen: true,  wiring_only: true, source_sections: ["io_list", "integration"], ports: ["top-level io_list ports"], connections: "instance wiring from top-level ports to internal modules", description: "Integration wrapper" }
+  # Promote only complex/reusable independently verified internal blocks:
+  # - { name: "<child>", ssot: "submodules/<child>/yaml/<child>.ssot.yaml", ownership: "child_ssot", reusable: true, description: "Independent child IP" }
+
+decomposition:
+  # SSOT-owned functional decomposition. model/decomposition.json is derived
+  # evidence only; RTL ownership must point back to these YAML refs.
+  units:
+    - { id: "decode", kind: "control", source_refs: ["function_model.transactions"], rtl_candidates: ["<ip>_decoder"], verification_impact: ["test_requirements.scenarios"] }
+    - { id: "execute", kind: "datapath/control", source_refs: ["function_model.transactions", "cycle_model.pipeline"], rtl_candidates: ["<ip>_core"], verification_impact: ["coverage_plan.functional"] }
+
+# =============================================================================
+# SECTION 2: RTL Contract
+# =============================================================================
+rtl_contract:
+  transaction: "FM1"
+  sample_condition: "transaction completes on declared interface handshakes"
+  input_map:
+    command_start: "dmago_i or CONTROL.start"
+    source_data: "axi_rd_master.rdata"
+    write_response: "axi_wr_master.bresp"
+  output_map:
+    destination_write: "axi_wr_master.wdata"
+    status: "registers.CSR.ch_status"
+    interrupt: "dmac_irq"
+  state_updates:
+    - { name: "sar", reset: 0, expr: "increment after accepted read beat" }
+    - { name: "dar", reset: 0, expr: "increment after accepted write beat" }
+    - { name: "status", reset: "STOPPED", expr: "STOPPED/EXECUTING/COMPLETED/FAULTED per function_model" }
+
+# =============================================================================
+# SECTION 3: Parameters
+# =============================================================================
+parameters:
+  # Shared RTL parameter declarations, if needed, are projected to
+  # rtl/<ip>_param.vh and included inside each consuming module body.
+  # Do not model parameters as a *_pkg.sv module.
+  - name: "DATA_WIDTH"
+    default: 64
+    type: int
+    description: "AXI data width in bits"
+    drives: ["<ip>_axi_rd.sv", "<ip>_axi_wr.sv", "<ip>_mfifo.sv"]
+  - name: "ADDR_WIDTH"
+    default: 32
+    type: int
+    description: "AXI address width in bits"
+    drives: ["<ip>_axi_rd.sv", "<ip>_axi_wr.sv", "<ip>_core.sv"]
+  - name: "ID_WIDTH"
+    default: 6
+    type: int
+    description: "AXI ID width in bits"
+    drives: ["<ip>_axi_rd.sv", "<ip>_axi_wr.sv"]
+  - name: "NUM_CHANNELS"
+    default: 8
+    type: int
+    description: "Number of channels"
+    drives: ["<ip>_regs.sv", "<ip>_fsm.sv", "<ip>_core.sv"]
+  - name: "NUM_EVENTS"
+    default: 32
+    type: int
+    description: "Number of event lines"
+    drives: ["<ip>_regs.sv", "<ip>_fsm.sv"]
+  - name: "MFIFO_DEPTH"
+    default: 16
+    type: int
+    description: "MFIFO depth in entries"
+    drives: ["<ip>_mfifo.sv"]
+  - name: "CLOCK_FREQ_MHZ"
+    default: 500
+    type: int
+    description: "Target clock frequency in MHz"
+    drives: ["tb_top.sv", "docs/README.md"]
+  - name: "RESET_POLARITY"
+    default: "active_low"
+    type: enum
+    values: ["active_low", "active_high"]
+    drives: ["ALL .sv files"]
+
+# =============================================================================
+# SECTION 3: IO List (Ports)
+# =============================================================================
+io_list:
+  clock_domains:
+    - name: "dmaclk"
+      frequency_mhz: 500
+      description: "Main clock"
+      ports:
+        - { name: "dmaclk", width: 1, direction: "input", description: "System clock" }
+
+  resets:
+    - name: "dmacresetn"
+      polarity: "active_low"
+      sync_async: "async_assert_sync_deassert"
+      description: "Main reset"
+      ports:
+        - { name: "dmacresetn", width: 1, direction: "input", description: "Active-low reset" }
+
+  interfaces:
+    - name: "apb_slave"
+      type: "APB4"
+      role: "slave"
+      clock_domain: "dmaclk"
+      reset_domain: "dmacresetn"
+      description: "Register access interface"
+      protocol:
+        setup_phase: "psel=1, penable=0 captures address/control."
+        access_phase: "psel=1, penable=1 completes when pready=1."
+        read_rule: "prdata is valid in the completing access phase for reads."
+        write_rule: "pwdata/pstrb are sampled in the completing access phase for writes."
+        error_rule: "pslverr is asserted only with pready=1 for illegal or unsupported access."
+      ports:
+        - { name: "paddr",   width: 12, direction: "input",  description: "APB address" }
+        - { name: "psel",    width: 1,  direction: "input",  description: "APB select" }
+        - { name: "penable", width: 1,  direction: "input",  description: "APB enable" }
+        - { name: "pwrite",  width: 1,  direction: "input",  description: "APB write" }
+        - { name: "pwdata",  width: 32, direction: "input",  description: "APB write data" }
+        - { name: "pstrb",   width: 4,  direction: "input",  description: "APB strobes" }
+        - { name: "prdata",  width: 32, direction: "output", description: "APB read data" }
+        - { name: "pready",  width: 1,  direction: "output", description: "APB ready" }
+        - { name: "pslverr", width: 1,  direction: "output", description: "APB error" }
+
+    - name: "axi_rd_master"
+      type: "AXI4"
+      role: "master"
+      clock_domain: "dmaclk"
+      reset_domain: "dmacresetn"
+      description: "Read data from memory"
+      protocol:
+        ar_rule: "Hold arvalid and AR payload stable until arvalid && arready."
+        r_rule: "Accept rdata only on rvalid && rready; rlast marks the final beat."
+        response_rule: "Any rresp other than OKAY maps to error_handling.ERR_AXI_RD."
+        outstanding_rule: "Outstanding read transactions must not exceed cycle_model.performance.outstanding.read_max."
+      ports:
+        - { name: "arid",    width: 6,  direction: "output", description: "Read ID" }
+        - { name: "araddr",  width: 32, direction: "output", description: "Read address" }
+        - { name: "arlen",   width: 8,  direction: "output", description: "Burst length" }
+        - { name: "arsize",  width: 3,  direction: "output", description: "Burst size" }
+        - { name: "arburst", width: 2,  direction: "output", description: "Burst type" }
+        - { name: "arcache", width: 4,  direction: "output", description: "Cache type" }
+        - { name: "arprot",  width: 4,  direction: "output", description: "Protection" }
+        - { name: "arvalid", width: 1,  direction: "output", description: "Address valid" }
+        - { name: "arready", width: 1,  direction: "input",  description: "Address ready" }
+        - { name: "rid",     width: 6,  direction: "input",  description: "Read ID" }
+        - { name: "rdata",   width: 64, direction: "input",  description: "Read data" }
+        - { name: "rresp",   width: 2,  direction: "input",  description: "Read response" }
+        - { name: "rlast",   width: 1,  direction: "input",  description: "Read last" }
+        - { name: "rvalid",  width: 1,  direction: "input",  description: "Read valid" }
+        - { name: "rready",  width: 1,  direction: "output", description: "Read ready" }
+
+    - name: "axi_wr_master"
+      type: "AXI4"
+      role: "master"
+      clock_domain: "dmaclk"
+      reset_domain: "dmacresetn"
+      description: "Write data to memory"
+      protocol:
+        aw_rule: "Hold awvalid and AW payload stable until awvalid && awready."
+        w_rule: "Hold wvalid and W payload stable until wvalid && wready; assert wlast on the final beat."
+        b_rule: "Assert bready while waiting for a write response."
+        response_rule: "Any bresp other than OKAY maps to error_handling.ERR_AXI_WR."
+        outstanding_rule: "Outstanding write transactions must not exceed cycle_model.performance.outstanding.write_max."
+      ports:
+        - { name: "awid",    width: 6,  direction: "output", description: "Write ID" }
+        - { name: "awaddr",  width: 32, direction: "output", description: "Write address" }
+        - { name: "awlen",   width: 8,  direction: "output", description: "Burst length" }
+        - { name: "awsize",  width: 3,  direction: "output", description: "Burst size" }
+        - { name: "awburst", width: 2,  direction: "output", description: "Burst type" }
+        - { name: "awcache", width: 4,  direction: "output", description: "Cache type" }
+        - { name: "awprot",  width: 4,  direction: "output", description: "Protection" }
+        - { name: "awvalid", width: 1,  direction: "output", description: "Address valid" }
+        - { name: "awready", width: 1,  direction: "input",  description: "Address ready" }
+        - { name: "wdata",   width: 64, direction: "output", description: "Write data" }
+        - { name: "wstrb",   width: 8,  direction: "output", description: "Write strobes" }
+        - { name: "wlast",   width: 1,  direction: "output", description: "Write last" }
+        - { name: "wvalid",  width: 1,  direction: "output", description: "Write valid" }
+        - { name: "wready",  width: 1,  direction: "input",  description: "Write ready" }
+        - { name: "bid",     width: 6,  direction: "input",  description: "Response ID" }
+        - { name: "bresp",   width: 2,  direction: "input",  description: "Write response" }
+        - { name: "bvalid",  width: 1,  direction: "input",  description: "Response valid" }
+        - { name: "bready",  width: 1,  direction: "output", description: "Response ready" }
+
+    - name: "peripheral_events"
+      type: "custom"
+      clock_domain: "dmaclk"
+      reset_domain: "dmacresetn"
+      description: "Peripheral event inputs"
+      protocol:
+        sampling: "Sample event bits on dmaclk when dmacresetn is deasserted."
+        stability: "Events consumed by WFP logic must be synchronized or held long enough for one dmaclk sample."
+        side_effect: "A selected event can release WAITING_FOR_PERIPHERAL state."
+      ports:
+        - { name: "peripheral_events", width: 32, direction: "input", description: "Event flags" }
+
+    - name: "interrupt"
+      type: "custom"
+      clock_domain: "dmaclk"
+      reset_domain: "dmacresetn"
+      description: "Interrupt output"
+      protocol:
+        assertion: "dmac_irq reflects enabled pending interrupt status."
+        deassertion: "dmac_irq deasserts after the corresponding W1C status clear."
+        reset_value: 0
+      ports:
+        - { name: "dmac_irq", width: 1, direction: "output", description: "Combined interrupt" }
+
+# =============================================================================
+# SECTION 4: Main Features
+# =============================================================================
+features:
+  - name: "Feature A"
+    trigger: "<what initiates this feature>"
+    datapath: "<step-by-step data flow>"
+    control: "<FSM states involved>"
+    output: "<what the module produces>"
+
+# =============================================================================
+# SECTION 5: Data Flow
+# =============================================================================
+dataflow:
+  read_path:
+    source: "sar_reg (APB-writable)"
+    burst: "Single beat (arlen=0, arsize=3->8 bytes)"
+    buffer: "rd_buf (64-bit register)"
+    sequence: "SAR -> AXI AR -> AXI R -> rd_buf"
+  write_path:
+    source: "rd_buf"
+    burst: "Single beat (awlen=0, awsize=3->8 bytes)"
+    destination: "dar_reg (APB-writable)"
+    sequence: "rd_buf -> AXI AW+W -> AXI B -> auto-increment"
+  loop_control:
+    counter: "loop_count (from LOOP_CFG)"
+    decrement: "After each successful write response"
+    auto_increment: "SAR += 8, DAR += 8 per beat"
+
+# =============================================================================
+# SECTION 6: Function Model
+# =============================================================================
+function_model:
+  purpose: "Executable behavioral contract for rtl-gen and tb-gen; describes what the IP computes independent of cycle timing."
+  state_variables:
+    - { name: "sar", source: "registers.SAR", reset: 0, description: "Current source address" }
+    - { name: "dar", source: "registers.DAR", reset: 0, description: "Current destination address" }
+    - { name: "loop_remaining", source: "registers.LOOP_CFG.loop_count", reset: 0, description: "Remaining transfer beats" }
+    - { name: "status", source: "registers.CSR.ch_status", reset: "STOPPED", description: "Architectural channel status" }
+  transactions:
+    - id: "FM1"
+      name: "single_beat_copy"
+      preconditions:
+        - "status == STOPPED"
+        - "dmago_i asserted or CONTROL.start set"
+        - "source and destination addresses are aligned to DATA_WIDTH"
+      inputs:
+        - "memory_read_data at sar"
+      outputs:
+        - "memory_write_data at dar equals memory_read_data"
+        - "status becomes COMPLETED after final beat"
+      side_effects:
+        - "sar increments by DATA_WIDTH/8"
+        - "dar increments by DATA_WIDTH/8"
+        - "loop_remaining decrements by one"
+      error_cases:
+        - { condition: "fault_inject == 1 or AXI response != OKAY", result: "status becomes FAULTED and CH_FAULT interrupt is raised" }
+  invariants:
+    - "No destination write occurs before the corresponding source read completes."
+    - "Register read side effects are exactly those listed in registers.register_list."
+  reference_model_hint: "tb-gen should implement a Python scoreboard model from this section and compare expected/got for every scenario."
+
+# =============================================================================
+# SECTION 7: Cycle Model
+# =============================================================================
+cycle_model:
+  purpose: "Cycle/handshake contract for rtl-gen; describes when state, valid/ready, outputs, and interrupts may change."
+  executable: "python"
+  backend_policy: "Use the repo-owned pure-Python deterministic stepper; keep FunctionalModel as the behavioral oracle and run direct Python smoke checks."
+  clock: "dmaclk"
+  reset:
+    assertion: "dmacresetn low asynchronously clears all architectural state"
+    deassertion: "state is usable on the first rising edge after synchronized deassertion"
+  latency:
+    register_read: { min_cycles: 0, max_cycles: 1, description: "APB read data and pready timing" }
+    register_write: { min_cycles: 0, max_cycles: 1, description: "APB write acceptance timing" }
+    single_beat_transfer: { min_cycles: 4, max_cycles: null, description: "AR/R/AW/W/B handshakes; max depends on downstream backpressure" }
+  handshake_rules:
+    - { signal: "arvalid", rule: "Hold high until arready is sampled high on a rising edge." }
+    - { signal: "rready", rule: "Assert only when the read data beat can be accepted into rd_buf." }
+    - { signal: "awvalid/wvalid", rule: "Hold each channel valid independently until its ready handshake completes." }
+    - { signal: "bready", rule: "Assert while waiting for the write response." }
+  pipeline:
+    - { stage: "S0_ACCEPT_CMD", cycle: 0, action: "Latch command/register state after start event" }
+    - { stage: "S1_ISSUE_READ", cycle: "1..N", action: "Drive AXI read address until accepted" }
+    - { stage: "S2_CAPTURE_READ", cycle: "N+1..M", action: "Capture read data beat when rvalid && rready" }
+    - { stage: "S3_ISSUE_WRITE", cycle: "M+1..K", action: "Drive write address/data until accepted" }
+    - { stage: "S4_COMPLETE", cycle: "K+1", action: "Update counters/status/interrupts after write response" }
+  ordering:
+    - "A write response for beat i must complete before architectural completion of beat i."
+    - "Interrupt status updates occur on the same rising edge as the terminal status transition."
+  backpressure:
+    - "Downstream ready deassertion stalls only the active handshake stage; architectural state remains stable unless the handshake completes."
+  performance:
+    frequency_mhz: 500
+    throughput: { sustained_beats_per_cycle: 1, condition: "No downstream backpressure and aligned single-beat transfers" }
+    outstanding: { read_max: 1, write_max: 1, description: "Baseline single outstanding read/write operation" }
+    depth: { pipeline_stages: 5, queue_depth: 1, description: "Pipeline and buffering depth visible to cycle coverage" }
+  observability:
+    - "Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario."
+
+# =============================================================================
+# SECTION 8: Clock & Reset Domain
+# =============================================================================
+clock_reset_domains:
+  domains:
+    - { name: "dmaclk", frequency_mhz: 500, description: "Main clock" }
+  reset_scheme:
+    signal: "dmacresetn"
+    polarity: "active_low"
+    type: "async_assert_sync_deassert"
+
+# =============================================================================
+# SECTION 9: CDC Requirements
+# =============================================================================
+cdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single clock domain — no CDC required"
+
+# =============================================================================
+# SECTION 10: RDC Requirements
+# =============================================================================
+rdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "No reset domain crossings"
+
+# =============================================================================
+# SECTION 11: Registers
+# =============================================================================
+registers:
+  config:
+    register_width: 32
+    addr_width: 12
+    byte_addressable: true
+    channel_stride: 0x40
+    channel_base: 0x100
+    num_channels: 8
+  bit_order: "lsb0"
+  bits_format: "[msb, lsb]"
+  reserved_field_policy:
+    read_value: 0
+    write_effect: "ignore"
+    rtl_requirement: "Reserved fields read as zero and do not allocate storage."
+
+  register_list:
+    - name: "DBGCMD"
+      offset: 0x0FC
+      width: 32
+      access: "wo"
+      reset: 0x00000000
+      category: "debug"
+      description: "Debug Command Register"
+      write_side_effects:
+        - "Writing dbgcmd=0 executes one debug command if preconditions are met."
+      fields:
+        - { name: "dbgcmd", bits: [1, 0], access: "wo", reset: 0x0, write_effect: "0=Execute command pulse", description: "Debug command selector" }
+        - { name: "reserved_31_2", bits: [31, 2], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+
+    - name: "CSR"
+      offset: 0x100
+      width: 32
+      access: "ro"
+      reset: 0x00000000
+      repeat: 8
+      stride: 0x40
+      category: "channel"
+      description: "Channel Status Register"
+      fields:
+        - { name: "ch_status", bits: [3, 0], access: "ro", reset: 0x0, description: "0=Stopped, 1=Executing, 6=Completed, 8=Faulted" }
+        - { name: "reserved_31_4", bits: [31, 4], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+
+    - name: "SAR"
+      offset: 0x108
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      repeat: 8
+      stride: 0x40
+      category: "channel"
+      description: "Source Address Register"
+      write_side_effects:
+        - "Software write updates source address only while channel status is STOPPED."
+      fields:
+        - { name: "src_addr", bits: [31, 0], access: "rw", reset: 0x00000000, write_effect: "Update SAR when channel is STOPPED", description: "Source address" }
+
+    - name: "DAR"
+      offset: 0x10C
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      repeat: 8
+      stride: 0x40
+      category: "channel"
+      description: "Destination Address Register"
+      write_side_effects:
+        - "Software write updates destination address only while channel status is STOPPED."
+      fields:
+        - { name: "dst_addr", bits: [31, 0], access: "rw", reset: 0x00000000, write_effect: "Update DAR when channel is STOPPED", description: "Destination address" }
+
+    - name: "LOOP_CFG"
+      offset: 0x110
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      category: "control"
+      description: "Loop Configuration"
+      write_side_effects:
+        - "Software write updates loop count only while channel status is STOPPED."
+      fields:
+        - { name: "loop_count", bits: [3, 0], access: "rw", reset: 0x0, write_effect: "Set transfer loop count encoding", description: "0=1 iter, 15=16 iters" }
+        - { name: "reserved_31_4", bits: [31, 4], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+
+    - name: "CONTROL"
+      offset: 0x114
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      category: "control"
+      description: "Control Register"
+      write_side_effects:
+        - "wfp_event/wfp_enable configure wait-for-peripheral behavior."
+        - "fault_inject forces the error_handling fault path when enabled."
+      fields:
+        - { name: "wfp_event",  bits: [3, 0], access: "rw", reset: 0x0, write_effect: "Select peripheral event index", description: "Event to wait for" }
+        - { name: "wfp_enable", bits: [4, 4], access: "rw", reset: 0x0, write_effect: "Enable wait-for-peripheral gating", description: "Enable WFP" }
+        - { name: "fault_inject", bits: [8, 8], access: "rw", reset: 0x0, write_effect: "Force error path for verification", description: "Inject fault" }
+        - { name: "reserved_31_9", bits: [31, 9], access: "reserved", reset: 0x0, read_value: 0, write_effect: "ignore", description: "Reserved; reads zero" }
+
+# =============================================================================
+# SECTION 12: Memory Requirements
+# =============================================================================
+memory:
+  instances:
+    - { name: "rd_buf", type: "register", depth: 1, width: 64, read_ports: 1, write_ports: 1, latency: 0, description: "Read data buffer" }
+  note: "No SRAM/FIFO in minimal core. Add MFIFO for burst support."
+
+# =============================================================================
+# SECTION 13: Interrupt
+# =============================================================================
+interrupts:
+  sources:
+    - { name: "CH_COMPLETE", bit: 0, type: "level", enable_reg: "INTEN[0]", status_reg: "INTMIS", clear: "W1C", description: "Channel complete" }
+    - { name: "CH_FAULT",    bit: 1, type: "level", enable_reg: "INTEN[1]", status_reg: "INTMIS", clear: "W1C", description: "Channel fault" }
+  output:
+    signal: "dmac_irq"
+    polarity: "active_high"
+    type: "level"
+
+# =============================================================================
+# SECTION 14: FSM (Optional — when generated RTL needs explicit state machines)
+# =============================================================================
+fsm:
+  channel_level:
+    states:
+      - "STOPPED"
+      - "EXECUTING"
+      - "CACHE_MISS"
+      - "UPDATING_PC"
+      - "WAITING_FOR_PERIPHERAL"
+      - "KILLING"
+      - "COMPLETING"
+      - "FAULT_COMPLETING"
+      - "FAULTED"
+    transitions:
+      - { from: "STOPPED",   to: "EXECUTING", condition: "dmago_i=1" }
+      - { from: "EXECUTING", to: "COMPLETING", condition: "instr_type=DMAEND" }
+      - { from: "EXECUTING", to: "WAITING_FOR_PERIPHERAL", condition: "instr_type=DMAWFP" }
+      - { from: "EXECUTING", to: "FAULT_COMPLETING", condition: "fault_i=1" }
+
+  proven_core_fsm:
+    states:
+      - "IDLE"
+      - "WFP"
+      - "SEND_RD"
+      - "WAIT_RD_DONE"
+      - "SEND_WR"
+      - "WAIT_WR_RESP"
+      - "DONE_STATE"
+    note: "LLM-written FSM in <ip>_core.sv from SSOT behavior — not a fixed IP generator template"
+
+# =============================================================================
+# SECTION 16: Timing & Performance
+# =============================================================================
+timing:
+  target_clocks:
+    - { name: "dmaclk", frequency_mhz: 500, duty_cycle: 0.5, uncertainty_ns: 0.1 }
+  latency_budget:
+    register_access_cycles: { min: 1, max: 2, measured_from: "psel && penable", measured_to: "pready" }
+    interrupt_latency_cycles: { min: 1, max: 4, measured_from: "terminal status update", measured_to: "dmac_irq assertion" }
+    transfer_latency_cycles: { min: 4, max: null, note: "Unbounded max when AXI backpressure is present; bounded by downstream ready/valid." }
+  throughput:
+    sustained_beats_per_cycle: 1
+    conditions: "No downstream backpressure, aligned addresses, non-error responses"
+  timing_exceptions: []
+  io_delays:
+    # STA must not invent IO delay defaults. Use explicit values or record a QA gap.
+    inputs:
+      - { ports: "all_inputs_except_clocks_resets", clock: "dmaclk", delay_ns: 0.2, source: "system-level timing budget" }
+    outputs:
+      - { ports: "all_outputs", clock: "dmaclk", delay_ns: 0.2, source: "system-level timing budget" }
+  false_paths:
+    - { from: "dmacresetn", to: "all_registers", reason: "async reset assertion" }
+  multicycle_paths: []
+  sta_expectations:
+    setup_wns_ns_min: 0.0
+    hold_wns_ns_min: 0.0
+    required_reports: ["sta/out/setup.rpt", "sta/out/hold.rpt", "sta/out/wns.json"]
+
+# =============================================================================
+# SECTION 16: Power Intent
+# =============================================================================
+power:
+  domains:
+    - { name: "PD_CORE", voltage: "nominal", clock_domains: ["dmaclk"], isolation: "not_required_single_domain" }
+  clock_gating:
+    required: false
+    rationale: "No explicit low-power mode in this IP revision"
+  reset_retention:
+    retention_required: false
+    reset_value_source: "registers and function_model state_variables"
+  power_states:
+    - { name: "ON", entry: "reset deasserted", exit: "reset asserted", guarantees: ["All architectural behavior active"] }
+  upf_required: false
+
+# =============================================================================
+# SECTION 17: Security & Safety
+# =============================================================================
+security:
+  classification: "non_secure_control_ip"
+  assets:
+    - { name: "register_map", protection: "APB access control is external to this IP" }
+    - { name: "memory_transfer_data", protection: "Data integrity checked by AXI response/error status only" }
+  threat_model:
+    - { threat: "illegal register write", mitigation: "RO/W1C access policy in registers.register_list" }
+    - { threat: "fault response lost", mitigation: "error_handling and interrupt status retain fault until software clear" }
+  privilege_model: "External bus fabric enforces privilege; this IP implements no internal privilege levels"
+  safety_goals:
+    - "No silent data corruption on AXI error response"
+    - "Fault state is software-visible and interruptible"
+
+# =============================================================================
+# SECTION 18: Error Handling
+# =============================================================================
+error_handling:
+  error_sources:
+    - { id: "ERR_AXI_RD", condition: "AXI read response != OKAY", architectural_effect: "STATUS.error=1, error_code=3, CH_FAULT interrupt" }
+    - { id: "ERR_AXI_WR", condition: "AXI write response != OKAY", architectural_effect: "STATUS.error=1, error_code=4, CH_FAULT interrupt" }
+    - { id: "ERR_UNALIGNED", condition: "unaligned source or destination when SUPPORT_UNALIGNED=0", architectural_effect: "STATUS.error=1, error_code=2" }
+  propagation:
+    - "First error wins until software clear unless otherwise specified."
+    - "No completion interrupt is raised for an errored transfer unless explicitly listed in interrupts.sources."
+  recovery:
+    - { action: "software W1C clear", clears: ["STATUS.error", "IRQ_STATUS.CH_FAULT"], preserves: ["configuration registers"] }
+
+# =============================================================================
+# SECTION 19: Debug & Observability
+# =============================================================================
+debug_observability:
+  waveform_must_probe:
+    - "state"
+    - "function_model.state_variables"
+    - "cycle_model.handshake_rules signals"
+    - "interrupt output"
+  status_outputs: []
+  trace_events:
+    - { name: "transfer_start", trigger: "start accepted" }
+    - { name: "transfer_done", trigger: "terminal status becomes COMPLETED" }
+    - { name: "transfer_fault", trigger: "terminal status becomes FAULTED" }
+  debug_registers:
+    - "DBGCMD"
+
+# =============================================================================
+# SECTION 20: Integration Contract
+# =============================================================================
+integration:
+  bus_attachment:
+    control: "APB4 slave"
+    data: "AXI4 master read/write"
+  # Machine-readable child wiring contracts. These are used by rtl-gen gates:
+  # child modules must be instantiated with named port maps that match these
+  # module/port/signal contracts. Do not replace this with prose for
+  # production-profile multi-module IPs. If a contract is not yet known,
+  # record the missing human decision as QA/change_request evidence; rtl-gen
+  # can draft child-module RTL, but top integration/signoff remains blocked.
+  connections:
+    - { module: "<ip>_core", port: "clk_i", signal: "dmaclk" }
+    - { module: "<ip>_core", port: "rst_ni", signal: "dmacresetn" }
+    - { module: "<ip>_apb_regs", port: "irq_o", signal: "dmac_irq" }
+  address_map_requirements:
+    alignment_bytes: 4
+    decode_owner: "SoC interconnect"
+    illegal_access_response: "pslverr for unsupported APB access when implemented"
+  dependencies:
+    external_modules: []
+    external_clocks: ["dmaclk"]
+    external_resets: ["dmacresetn"]
+  integration_notes:
+    - "SoC must provide AXI-compliant ready/valid behavior."
+    - "SoC interrupt controller samples dmac_irq as active-high level."
+
+# =============================================================================
+# SECTION 21: DFT / DFD
+# =============================================================================
+dft:
+  scan_required: false
+  scan_ports: []
+  test_mode_ports: []
+  controllability:
+    reset: "dmacresetn must be controllable in test mode"
+    clocks: ["dmaclk"]
+  observability:
+    required_internal_points: ["state", "status", "error_code"]
+  mbist_required: false
+  notes: "No SRAM macro in this baseline configuration; update if MFIFO/SRAM macro is introduced."
+
+# =============================================================================
+# SECTION 22: Synthesis / Implementation Constraints
+# =============================================================================
+synthesis:
+  dialect: "systemverilog_2012"
+  top_module: "<ip_name>"
+  technology:
+    pdk: "sky130"
+    standard_cell_library: "sky130_fd_sc_hd"
+    liberty_corner: "ss_100C_1v40"
+    liberty_env: "SKY130_LIB"
+    lef_env: "SKY130_LEF"
+    tech_lef_env: "SKY130_TLEF"
+    rcx_rules_env: "SKY130_RCX_RULES"
+  constraints:
+    - "No inferred latches"
+    - "All flops reset according to clock_reset_domains.reset_scheme"
+    - "No package/interface/modport/function/task/for/while constructs in generated RTL"
+  ppa_targets:
+    area_um2_max: null
+    power_mw_max: null
+    frequency_mhz_min: 500
+  required_outputs:
+    - "syn/out/<ip>.json or syn/out/<ip>.v"
+    - "syn/out/area.rpt"
+    - "syn/out/timing_summary.rpt"
+
+# =============================================================================
+# SECTION 23: Physical Implementation / PnR
+# =============================================================================
+pnr:
+  utilization_pct: 60
+  aspect_ratio: 1.0
+  core_space_um: 2.0
+  global_density: 0.65
+  io_layers:
+    horizontal: "met3"
+    vertical: "met2"
+  placement:
+    density_target: 0.65
+    max_displacement_um: null
+  cts:
+    buf_list: ["sky130_fd_sc_hd__clkbuf_4", "sky130_fd_sc_hd__clkbuf_8"]
+    functional_mode_case_analysis:
+      - { port: "scan_en", value: 0, when_present: true }
+  routing:
+    signal_layers: { min: "met1", max: "met5" }
+    clock_layers: { min: "met3", max: "met5" }
+    drc_waivers: []
+  required_outputs:
+    - "pnr/out/floorplan.def"
+    - "pnr/out/placed.def"
+    - "pnr/out/cts.def"
+    - "pnr/out/routed.def"
+    - "pnr/out/routed.v"
+    - "pnr/out/routed.spef"
+    - "pnr/out/pnr.report.md"
+
+# =============================================================================
+# SECTION 24: Coding Rules
+# =============================================================================
+coding_rules:
+  # Project policy: .sv filenames with a portable SystemVerilog subset.
+  verilog_style: "systemverilog_2012"
+  file_extension: ".sv"
+  parameter_header: "rtl/<ip>_param.vh"
+  conventions:
+    - "nonblocking (<=) in sequential always @(posedge clk …)"
+    - "blocking (=) in combinational always @(*)"
+    - "No latches: every combinational branch assigns all outputs (use a default)"
+    - "Active-low async reset: always @(posedge clk or negedge rst_n)  with  if (!rst_n)"
+    - "Parameterize widths (no hardcoded numbers)"
+    - "Use rtl/<ip>_param.vh for shared parameter declarations when needed; include it inside consuming modules"
+    - "ALLOW: input logic / output logic ANSI ports and internal single-driver logic"
+    - "BANNED: typedef / enum / always_ff / always_comb / always_latch / package / endpackage / import / interface / modport / function / endfunction / task / endtask / for / while / *_pkg.sv"
+    - "Use localparam state encoding with logic state/next_state signals"
+  lint_waivers:
+    - "UNUSEDSIGNAL: explicit approved tie-offs only"
+    - "WIDTHEXPAND: peripheral_events indexing"
+    - "UNUSEDPARAM: CHANNEL_ID only when justified by SSOT configurability"
+
+# =============================================================================
+# SECTION 25: Reuse Modules
+# =============================================================================
+reuse_modules: []
+
+# =============================================================================
+# SECTION 26: Custom Extensions
+# =============================================================================
+custom:
+  note: "No custom extensions"
+
+# =============================================================================
+# SECTION 27: Dir Structure
+# =============================================================================
+dir_structure:
+  # Legacy directory keys are retained for compatibility; they are not fixed IP implementation templates.
+  template_dirs:
+    rtl: "templates/rtl/"
+    sim: "templates/sim/"
+  output_dirs:
+    rtl: "rtl/"
+    sim: "sim/"
+    firmware: "firmware/"
+    docs: "docs/"
+  yaml_dir: "yaml/"
+  generators_dir: "generators/"
+
+# =============================================================================
+# SECTION 28: Filelist
+# =============================================================================
+filelist:
+  headers:
+    - "rtl/<ip>_param.vh"
+  rtl:
+    - "rtl/<ip>_regs.sv"
+    - "rtl/<ip>_decoder.sv"
+    - "rtl/<ip>_fsm.sv"
+    - "rtl/<ip>_axi_rd.sv"
+    - "rtl/<ip>_axi_wr.sv"
+    - "rtl/<ip>_mfifo.sv"
+    - "rtl/<ip>_core.sv"
+    - "rtl/<ip>_wrapper.sv"
+  sim:
+    - "sim/tb_top.sv"
+    - "sim/tb_program.sv"
+    - "sim/tb_axi_mem.sv"
+    - "sim/<ip>_model.sv"
+  firmware:
+    - "firmware/<ip>_regs.h"
+    - "firmware/<ip>_instr.h"
+  docs:
+    - "docs/register_map.md"
+    - "docs/instruction_set.md"
+    - "docs/fsm_diagram.md"
+    - "docs/README.md"
+
+# =============================================================================
+# SECTION 29: Test Requirements / DV Plan
+# =============================================================================
+test_requirements:
+  scenarios:
+    - id: "SC1"
+      name: "Basic operation"
+      stimulus: "Program SAR/DAR/LOOP_CFG, assert start, provide OKAY AXI read/write responses"
+      expected: "Function model FM1 completes; destination write data equals source read data; status COMPLETED"
+      checker: "Scoreboard compares AXI write payload and final STATUS/IRQ"
+      coverage: ["FM1", "S0_ACCEPT_CMD", "S4_COMPLETE"]
+    - id: "SC2"
+      name: "Loop/iteration"
+      stimulus: "Configure LOOP_CFG for multiple beats with no backpressure"
+      expected: "Address increments and loop_remaining updates match function_model side effects"
+      checker: "Scoreboard checks every beat address/data pair"
+      coverage: ["loop_remaining", "multi_beat"]
+    - id: "SC3"
+      name: "Peripheral handshake"
+      stimulus: "Exercise WFP/control path with event asserted after a delay"
+      expected: "FSM waits until event and then resumes without corrupting state"
+      checker: "Cycle checker verifies WAITING_FOR_PERIPHERAL hold and resume"
+      coverage: ["WAITING_FOR_PERIPHERAL"]
+    - id: "SC4"
+      name: "Fault injection"
+      stimulus: "Inject AXI read/write error response"
+      expected: "error_handling maps fault to STATUS.error, error_code, and CH_FAULT interrupt"
+      checker: "Scoreboard checks first-error-wins and W1C recovery"
+      coverage: ["ERR_AXI_RD", "ERR_AXI_WR", "CH_FAULT"]
+  scoreboard_checks: 17
+  coverage_goals:
+    function:
+      target_pct: 100
+      model: "function_model"
+      description: "Cycle-independent behavioral intent coverage; proves what the IP computes/updates."
+      bins:
+        - { id: "FCOV_FM1_SINGLE_BEAT_COPY", source_ref: "function_model.transactions.FM1", class: "transaction", description: "FM1 legal single-beat copy observed by scoreboard" }
+        - { id: "FCOV_ERR_AXI_RD", source_ref: "function_model.transactions.FM1.error_cases.ERR_AXI_RD", class: "error_case", description: "Declared AXI read error behavior observed" }
+    cycle:
+      target_pct: 100
+      model: "cycle_model"
+      description: "Cycle/handshake/latency/FSM coverage; proves when behavior occurs."
+      bins:
+        - { id: "CCOV_STAGE_ACCEPT", source_ref: "cycle_model.pipeline.S0_ACCEPT_CMD", class: "pipeline_stage", description: "Command accept stage observed" }
+        - { id: "CCOV_ARVALID_HOLD", source_ref: "cycle_model.handshake_rules.arvalid", class: "handshake", description: "arvalid hold-until-ready rule observed" }
+        - { id: "CCOV_FSM_IDLE_TO_READ", source_ref: "fsm.proven_core_fsm.transitions", class: "state_transition", description: "Representative legal FSM transition observed" }
+        - { id: "CCOV_PERF_OUTSTANDING", source_ref: "cycle_model.performance.outstanding", class: "outstanding", description: "Declared outstanding operation limit exercised" }
+        - { id: "CCOV_PERF_DEPTH", source_ref: "cycle_model.performance.depth", class: "depth", description: "Declared pipeline/buffer depth exercised" }
+        - { id: "CCOV_PERF_THROUGHPUT", source_ref: "cycle_model.performance.throughput", class: "throughput", description: "Declared sustained throughput condition exercised" }
+        - { id: "CCOV_PERF_FREQUENCY", source_ref: "cycle_model.performance.frequency_mhz", class: "frequency", description: "Declared cycle/frequency assumption recorded in coverage evidence" }
+    functional: "Legacy alias: function + cycle coverage must both close; new flows read coverage_goals.function and coverage_goals.cycle separately."
+    line: ">= 90% instrumented line coverage or explicit project waiver"
+    branch: ">= 85% instrumented branch coverage or explicit project waiver"
+    fsm: "100% declared FSM states and legal transitions covered"
+    assertions: "All protocol/order/error assertions pass"
+
+# =============================================================================
+# SECTION 30: Quality Gates / Pass Criteria
+# =============================================================================
+quality_gates:
+  ssot:
+    pass: "All canonical sections are present, substantive, internally consistent, and have no live TBD placeholders."
+    evidence: ["check_ssot_disk.sh PASS", "traceability covers function_model/cycle_model/test_requirements"]
+  rtl_gen:
+    profile: "production"                  # standard | production; production adds FL/CL/protocol-assertion/equivalence/coverage authority gates
+    target_scale:                          # Optional human-locked structural depth minima for PL330/DMA330-class targets; omit or lower for smaller IPs
+      basis: "calibrated from approved architecture/review or rtl_reference_profile; not a template"
+      source_files_min: 0
+      modules_min: 0
+      procedural_blocks_min: 0
+      state_updates_min: 0
+      depth_score_min: 0
+      logic_modules_min: 0
+      behavior_owner_logic_modules_min: 0
+    target_scale_waiver:                   # Optional explicit human waiver when a reference profile exists but target_scale is intentionally not enforced
+      approved: false
+      reason: ""
+      owner: ""
+    pass: "SSOT-derived rtl_todo_plan has no blockers/orphans; all implementation TODOs and rtl_gate.rtl_gen gates close with fresh evidence generated after the final RTL source edit, including locked Human/LLM authority approval, current model signature evidence, rich owner-file static evidence, owner logic structure evidence, placeholder-free RTL evidence, top IO contract evidence, top output drive evidence, top input consumption evidence, top hierarchy reachability, named port-connection evidence, manifest signal-flow evidence, SSOT connection-contract evidence for manifest-owned submodules, FL-vs-RTL goal coverage, and RTL-observed coverage closure."
+    evidence: ["rtl/rtl_todo_plan.json", "governance/authority.json type == human_llm_authority_manifest", "governance/authority.json operating_rules R1..R6 present", "governance/authority.json llm_loops L1..L9 present", "governance/authority.json human_gates G1..G7 approved before production RTL-GEN", "governance/authority.json repo_layout separates locked truth from LLM-editable work", "model/model_signature.json matches current SSOT-derived golden signature", "rtl/rtl_traceability.json", "rtl/rtl_authoring_provenance.json", "rtl/rtl_authoring_provenance.json todo_plan_sha256 matches current rtl_todo_plan", "rtl/rtl_authoring_provenance.json rtl_files covers manifest/filelist RTL sources", "rtl/static_rtl_evidence.missing == 0", "rtl/tasks[].static_evidence.matched_count >= required_match_count", "rtl/owner_logic_evidence in rtl_todo_plan.json", "rtl/owner_logic_evidence.issues == []", "rtl/rtl_placeholder_free_evidence in rtl_todo_plan.json", "rtl/rtl_placeholder_free_evidence.issues == []", "rtl/top_io_contract_evidence in rtl_todo_plan.json", "rtl/top_io_contract_evidence.issues == []", "rtl/top_output_drive_evidence in rtl_todo_plan.json", "rtl/top_output_drive_evidence.issues == []", "rtl/top_input_consumption_evidence in rtl_todo_plan.json", "rtl/top_input_consumption_evidence.issues == []", "rtl/manifest_hierarchy_evidence in rtl_todo_plan.json", "rtl/manifest_hierarchy_evidence.port_connection_issues == []", "rtl/manifest_signal_flow_evidence in rtl_todo_plan.json", "rtl/manifest_signal_flow_evidence.issues == []", "rtl/manifest_hierarchy_evidence.connection_contract_issues == []", "rtl/rtl_compile.json fresh vs listed RTL sources", "rtl/rtl_compile.json rtl_files covers current filelist", "lint/dut_lint.json fresh vs listed RTL sources", "lint/dut_lint.json rtl_files covers current filelist", "verify/protocol_assertions.sva", "sim/assertion_failures.jsonl fresh vs listed RTL sources", "sim/fl_rtl_goal_audit.json fresh vs listed RTL sources", "sim/fl_rtl_compare.json covers every required unblocked equivalence goal", "cov/coverage.json fresh vs listed RTL sources", "cov/coverage.json source == ssot_coverage_summary", "cov/coverage.json rtl_observed.status == pass", "cov/coverage.json rtl_observed missing_bins/invalid_rows are empty"]
+  rtl:
+    pass: "RTL implements function_model and cycle_model, compiles, and has no unwaived lint warnings."
+    evidence: ["rtl filelist", "compile log", "lint report"]
+  dv:
+    pass: "Every test_requirements scenario has an executable test, expected/got checker, and coverage bin."
+    evidence: ["results.xml", "coverage.json", "VCD/FST waveform"]
+  coverage:
+    pass: "Functional coverage goals pass and code/FSM/assertion coverage meets thresholds or has approved waiver."
+    evidence: ["instrumented coverage report", "coverage_report.md"]
+  eda:
+    pass: "Synthesis, pre-route STA, PnR, and post-route STA meet SSOT timing/area/power/physical targets or have explicit signed-off waivers."
+    evidence: ["syn report", "sta setup/hold report", "wns.json", "pnr report", "routed.def", "routed.spef", "sta-post setup/hold report"]
+  signoff:
+    pass: "SSOT, RTL, lint, DV, simulation, coverage, and required EDA gates pass with fresh evidence."
+    evidence: ["ATLAS progress signoff pass", "artifact timestamps newer than final source edits"]
+
+# =============================================================================
+# SECTION 31: Traceability
+# =============================================================================
+traceability:
+  yaml_to_output:
+    - { yaml: "top_module.name", output: "ALL files (module name)" }
+    - { yaml: "parameters", output: "<ip>_param.vh (shared parameter include, no package)" }
+    - { yaml: "io_list.interfaces", output: "<ip>_wrapper.sv (port list)" }
+    - { yaml: "registers.register_list", output: "<ip>_regs.sv + firmware + docs" }
+    - { yaml: "function_model", output: "<ip>_core.sv + tb/cocotb scoreboard/reference model" }
+    - { yaml: "cycle_model", output: "<ip>_core.sv pipeline/handshake logic + waveform checks" }
+    - { yaml: "timing", output: "STA constraints and timing pass/fail criteria" }
+    - { yaml: "pnr", output: "floorplan/place/CTS/route TCL, routed DEF/Verilog/SPEF, PnR pass/fail criteria" }
+    - { yaml: "power", output: "UPF/power-state assumptions or explicit no-UPF rationale" }
+    - { yaml: "security", output: "security/safety checks and threat mitigations" }
+    - { yaml: "error_handling", output: "RTL error paths + DV fault scenarios" }
+    - { yaml: "quality_gates", output: "ATLAS progress/signoff criteria" }
+    - { yaml: "fsm", output: "<ip>_fsm.sv + docs/fsm_diagram.md" }
+    - { yaml: "test_requirements.scenarios", output: "sim/tb_program.sv" }
+  change_impact_example:
+    change: "parameters.DATA_WIDTH from 64 to 128"
+    affected_files:
+      - "<ip>_param.vh (DATA_W=128)"
+      - "<ip>_axi_rd.sv (rdata width)"
+      - "<ip>_axi_wr.sv (wdata width)"
+      - "<ip>_mfifo.sv (mfifo width)"
+      - "<ip>_core.sv (rd_buf width)"
+      - "tb_top.sv (signal widths)"
+
+# =============================================================================
+# SECTION 32: Workflow TODOs / Downstream Task Contract
+# =============================================================================
+# Optional but authoritative downstream work items. Use this when the SSOT owner
+# knows a specific next-step task that generic section expansion may not express
+# precisely enough. Each item must preserve command/script/instructions plus
+# content/detail/criteria/source_refs so the next workflow can execute from a
+# concrete ledger instead of rediscovering intent from prose.
+workflow_todos:
+  ssot-gen:
+    - id: "SSOT_WRITE_VALIDATE_FROM_EVIDENCE"
+      content: "Write and validate the canonical SSOT YAML from approved evidence"
+      detail: "Use import manifest, extracted decisions, wiki import evidence, and approved Q&A as the only behavior sources; the template is schema/order only."
+      command: "/to-ssot <ip>"
+      script: "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py"
+      run_command: "python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/repair_ssot_schema.py\" <ip> --root \"$ATLAS_PROJECT_ROOT\" --mode engineering && python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" <ip> --root \"$ATLAS_PROJECT_ROOT\" --mode engineering"
+      instructions:
+        - "Read <ip>/req/import_manifest.json, <ip>/req/extracted_decisions.json, <ip>/wiki/import-evidence.md, and approved SSOT Q&A before writing."
+        - "Populate canonical sections only from source-backed evidence or explicit no-feature policy."
+        - "Do not copy example IP behavior from this template; preserve only the schema/order contract."
+        - "Run repair_ssot_schema.py and verify_ssot.py after the YAML edit and keep blockers open until fixed."
+      criteria:
+        - "SSOT YAML exists at <ip>/yaml/<ip>.ssot.yaml and uses the canonical top-level keys."
+        - "Every imported numeric/register/interface fact traces to import manifest, import evidence, or approved Q&A."
+        - "verify_ssot.py --mode engineering returns zero blockers after the final write."
+      source_refs: ["req/import_manifest.json", "req/extracted_decisions.json", "wiki/import-evidence.md"]
+      priority: "high"
+      required: true
+  fl-model-gen: []
+  rtl-gen:
+    - id: "RTL_TODO_EXAMPLE"
+      content: "Implement the SSOT-declared transaction pipeline"
+      detail: "Translate function_model transaction acceptance, cycle_model timing, and ownership refs into RTL state/datapath/control logic."
+      command: "/ssot-rtl <ip>"
+      script: "$ATLAS_WORKFLOW_ROOT/rtl-gen/scripts/derive_rtl_todos.py"
+      run_command: "python3 \"$ATLAS_WORKFLOW_ROOT/rtl-gen/scripts/derive_rtl_todos.py\" <ip> --root \"$ATLAS_PROJECT_ROOT\" --audit-rtl"
+      instructions:
+        - "Derive the dynamic RTL TODO ledger from this SSOT before editing RTL."
+        - "Implement only owner_file/owner_module behavior traced by source_refs."
+        - "Rerun derive_rtl_todos.py --audit-rtl after edits and close tasks only with live RTL evidence."
+      criteria:
+        - "RTL owner logic is present in the declared owner_file"
+        - "FunctionalModel expected result and RTL observed result can be compared for the referenced source_refs"
+        - "DUT-only compile/lint evidence is fresh after the final edit"
+      source_refs: ["function_model.transactions", "cycle_model.pipeline"]
+      owner_module: "<ip>_core"
+      owner_file: "rtl/<ip>_core.sv"
+      priority: "high"
+      required: true
+  tb-gen: []
+  sim_debug: []
+  coverage: []
+  syn: []
+  pnr: []
+  sta: []
+  sta-post: []
+
+# =============================================================================
+# SECTION 33: Generation Flow
+# =============================================================================
+generation_flow:
+  steps:
+    - { name: "verify_ssot", command: "python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" <ip> --root \"$ATLAS_PROJECT_ROOT\" --mode ${ATLAS_RUN_MODE:-signoff}", description: "Validate production SSOT structure, Preview fields, function_model, cycle_model, DV plan, and quality gates" }
+    - { name: "handoff_fl_model", command: "/ssot-fl-model <ip>", description: "fl-model-gen writes FunctionalModel, decomposition, and FCOV plan from SSOT" }
+    - { name: "handoff_equivalence_goals", command: "/ssot-equiv-goals <ip>", description: "fl-model-gen derives FL-vs-RTL equivalence goals for TB scoreboards and sim_debug" }
+    - { name: "handoff_rtl", command: "/ssot-rtl <ip>", description: "rtl-gen writes RTL directly from the SSOT and proves compile/lint gates" }
+    - { name: "handoff_tb", command: "/ssot-tb <ip>", description: "tb-gen writes pyuvm/cocotb tests, runs simulation, emits results XML, VCD, and functional coverage" }
+    - { name: "handoff_sim_debug", command: "/wf sim_debug", description: "sim_debug inspects waveform, failures, coverage evidence, and escalation ownership" }
+    - { name: "handoff_coverage", command: "/coverage <ip>", description: "coverage workflow measures SSOT-declared functional/code/toggle/FSM/assertion goals" }
+    - { name: "handoff_eda", command: "/syn <ip> && /sta <ip> && /pnr <ip> && /sta-post <ip>", description: "EDA workflows produce SSOT-declared synthesis, STA, PnR, and post-route STA evidence when quality_gates require it" }
+  atlas_workflows:
+    - "ssot-gen"
+    - "rtl-gen"
+    - "tb-gen"
+    - "sim_debug"
+    - "coverage"
+    - "syn"
+    - "pnr"
+    - "sta"
+    - "sta-post"

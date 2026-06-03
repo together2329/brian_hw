@@ -1,0 +1,8 @@
+{
+  "name": "ssot-authority",
+  "description": "Emit per-IP Human-LLM authority manifest (9 gates, 7 loops, 6 rules) under <ip>/governance/",
+  "aliases": ["sa"],
+  "handler": "stage:ssot-authority",
+  "usage": "/ssot-authority <module_name>",
+  "area": "governance"
+}

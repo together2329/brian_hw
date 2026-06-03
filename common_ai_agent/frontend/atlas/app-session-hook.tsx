@@ -141,7 +141,7 @@ export function useAtlasSessionSync(deps: AtlasSessionSyncDeps): {
       const liveParts = splitSessionNamespace(liveNamespace);
       if (liveParts.sessionId && liveParts.sessionId !== currentUserSession) {
         liveNamespace = namespaceFor(
-          currentUserSession,
+          liveParts.workspaceSession ? `${currentUserSession}/${liveParts.workspaceSession}` : currentUserSession,
           liveParts.ipId || activeIp || WORKFLOW_DEFAULT,
           liveParts.workflow || currentWorkflow() || WORKFLOW_DEFAULT
         );
@@ -192,7 +192,7 @@ export function useAtlasSessionSync(deps: AtlasSessionSyncDeps): {
       return;
     }
     if (parsedLive.sessionId && (!currentUserSession || parsedLive.sessionId === currentUserSession)) {
-      nextSessionIds.add(parsedLive.sessionId);
+      nextSessionIds.add(parsedLive.workspaceSession || 'default');
     }
     // Don't auto-include parsedLive.ipId: when the user deletes a
     // session on disk (rm -rf .session/<owner>/<ip>/<wf>) the

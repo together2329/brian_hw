@@ -37,6 +37,8 @@ def test_desktop_launcher_accepts_root_without_hardcoded_ip_parent(tmp_path: Pat
         "default",
         "--session-id",
         "2076604",
+        "--workspace-session",
+        "default",
         "--scm-provider",
         "perforce",
     )
@@ -50,6 +52,9 @@ def test_desktop_launcher_accepts_root_without_hardcoded_ip_parent(tmp_path: Pat
     assert "ip=NEWIP_MCTP" in result.stdout
     assert "workflow=default" in result.stdout
     assert "session_id=2076604" in result.stdout
+    assert "workspace_session=default" in result.stdout
+    assert "session=2076604%2Fdefault%2FNEWIP_MCTP%2Fdefault" in result.stdout
+    assert "ATLAS_CONTEXT_KEY=2076604/default/NEWIP_MCTP/default" in result.stdout
 
 
 def test_desktop_launcher_appends_ip_to_backend_url_query() -> None:
@@ -62,6 +67,7 @@ def test_desktop_launcher_appends_ip_to_backend_url_query() -> None:
 
     assert result.returncode == 0, result.stdout
     assert "http://127.0.0.1:4321/?existing=1&ip=demo_ip" in result.stdout
+    assert "workspace_session=default" in result.stdout
 
 
 def test_desktop_launcher_defaults_root_to_home_atlas(tmp_path: Path) -> None:
@@ -86,3 +92,28 @@ def test_desktop_launcher_defaults_root_to_home_atlas(tmp_path: Path) -> None:
     assert default_root.is_dir()
     assert f"--root {default_root}" in result.stdout
     assert f"ATLAS_ROOT={default_root}" in result.stdout
+    assert "workspace_session=default" in result.stdout
+
+
+def test_desktop_launcher_accepts_workspace_session_segment(tmp_path: Path) -> None:
+    project_root = tmp_path / "atlas_root"
+    project_root.mkdir()
+
+    result = _run_dry(
+        "--root",
+        str(project_root),
+        "--session-id",
+        "alice",
+        "--workspace-session",
+        "s2",
+        "--ip",
+        "NEWIP_MCTP",
+        "--workflow",
+        "ssot-gen",
+    )
+
+    assert result.returncode == 0, result.stdout
+    assert "session_id=alice" in result.stdout
+    assert "workspace_session=s2" in result.stdout
+    assert "session=alice%2Fs2%2FNEWIP_MCTP%2Fssot-gen" in result.stdout
+    assert "ATLAS_CONTEXT_KEY=alice/s2/NEWIP_MCTP/ssot-gen" in result.stdout

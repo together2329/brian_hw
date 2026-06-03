@@ -1,0 +1,41 @@
+{
+  "name": "tb-impl",
+  "description": "TB implementation: read MAS DV Plan → test sequences → TB → sim loop → coverage",
+  "tasks": [
+    {
+      "content": "Read MAS DV Plan: <module>_mas.md §9",
+      "detail": "Read <module>_mas.md. From §2 extract port list. From §4 extract register map (offsets, bitfields, access types). From §5 extract interrupt sources + clear mechanism. From §6 extract memory configurations. From §9 extract all test sequences (S1-SN table), coverage goals, SVA assertions, and corner cases. List everything — do not write code yet.",
+      "priority": "high"
+    },
+    {
+      "content": "Write test sequence tasks: tc_<module>.sv",
+      "detail": "Use /gen-tc <module>. Implement EVERY sequence from MAS §9 Test Sequence table (S1-SN): S1 reset check, S2 basic operation, S3 interrupt flow (enable → trigger → check irq → W1C clear → verify irq deasserts), S4 memory R/W (write pattern → readback → compare), S5 back-to-back, S6 error injection, S7 corner cases. Each test increments pass_cnt or fail_cnt.",
+      "priority": "high"
+    },
+    {
+      "content": "Add SVA assertions (from MAS §9 coverage goals)",
+      "detail": "Add all SVA assertions listed in MAS §9. Key assertions: (1) FSM no illegal state transitions, (2) irq must deassert within 1 cycle after W1C clear, (3) FIFO never overflow/underflow, (4) register reset values correct after rst_n. Bind assertions in TB.",
+      "priority": "high"
+    },
+    {
+      "content": "Write tb_<module>.sv (top-level testbench)",
+      "detail": "Include: `include tc_<module>.sv, DUT instantiation with all ports from MAS §2, clock gen (always #5 clk=~clk), reset sequence matching MAS §7 timing, call all tc_ tasks in S1-SN order, print final pass/fail count, $finish.",
+      "priority": "high"
+    },
+    {
+      "content": "[SIM] Simulation passed: 0 errors, 0 warnings",
+      "activeForm": "Running simulation (attempt {loop_count}/{max_loop_iterations})...",
+      "detail": "Run /sim tb_<module>.sv. If fail: check [FAIL] lines, diagnose DUT vs TB bug. Fix TB bugs here; DUT bugs → [MAS ESCALATE] rtl-gen. Verify all S1-SN sequences show [PASS].",
+      "loop": true,
+      "max_loop_iterations": 15,
+      "exit_condition": "0 errors, 0 warnings",
+      "validator": "bash workflow/tb-gen/scripts/check_sim_pass.sh",
+      "priority": "high"
+    },
+    {
+      "content": "Coverage review: meet MAS §9 coverage goals",
+      "detail": "Run /coverage <module>. Check: line ≥ 90%, branch ≥ 85%, toggle ≥ 80%. Verify all FSM states visited, all interrupt sources fired+cleared, all register bits toggled. Add tc_ tasks for gaps. Re-run sim if new TCs added.",
+      "priority": "normal"
+    }
+  ]
+}

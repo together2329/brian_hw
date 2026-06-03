@@ -1,0 +1,46 @@
+{
+  "name": "syn-default",
+  "description": "Synthesis: read SSOT+filelist → write run.ys → yosys → sanity gate → area + report",
+  "tasks": [
+    {
+      "content": "[SYN] Read inputs: <ip>/yaml/<ip>.ssot.yaml + <ip>/list/<ip>.f",
+      "detail": "Verify all input files exist:\n- [ ] <ip>/yaml/<ip>.ssot.yaml — extract `top_module` (or fall back to <ip>) + `clocks[]` for the report header.\n- [ ] <ip>/list/<ip>.f — every path inside it must resolve on disk.\nGate: SSOT readable, filelist non-empty, every file in filelist exists.",
+      "priority": "high"
+    },
+    {
+      "content": "[SYN] Verify PDK Liberty ($SKY130_LIB)",
+      "detail": "Check that $SKY130_LIB is set and the file is readable.\nDefault: <repo>/pdk/sky130/lib/sky130_fd_sc_hd__ss_100C_1v40.lib.\nIf missing or unreadable: STOP, emit `[SYN MISSING PDK]`, do NOT fall back to generic synth — STA will reject ungated netlist.\nGate: $SKY130_LIB resolves and `head -1 $SKY130_LIB` succeeds.",
+      "priority": "high"
+    },
+    {
+      "content": "[SYN] Write yosys script <ip>/syn/run.ys",
+      "detail": "Run scripts/write_yosys_script.sh <ip>.\nResulting run.ys must contain: read_liberty, read_verilog -sv (one per filelist entry), hierarchy -top, synth -top, dfflibmap, abc -liberty, opt_clean, write_verilog, stat -liberty.\nGate: <ip>/syn/run.ys exists.",
+      "priority": "high"
+    },
+    {
+      "content": "[SYN] Run yosys → <ip>/syn/out/synth.v + syn.log",
+      "detail": "Run scripts/run_yosys.sh <ip>.\nIf rc != 0: read syn.log tail, identify error class (Latch inferred / Module not found / unmapped cells), fix in RTL, re-run.\nGate: yosys rc=0, synth.v non-empty.",
+      "priority": "high"
+    },
+    {
+      "content": "[SYN] Sanity gate — no unmapped, no unintended latches",
+      "detail": "Run scripts/check_unmapped.sh <ip>.\n- [ ] 0 lines matching `^\\s*\\$_` in synth.v\n- [ ] 0 lines matching generic yosys cell prefixes\n- [ ] 0 latch cells UNLESS SSOT has `latch_intended: true`\nIf the gate fails: do NOT proceed. Report which check failed and which cells / lines triggered it. Re-synthesize after RTL fix.\nGate: check_unmapped.sh exits 0.",
+      "priority": "high"
+    },
+    {
+      "content": "[SYN] Parse area → <ip>/syn/out/area.json",
+      "detail": "Run scripts/parse_area.sh <ip>.\narea.json schema: {top, corner, total_cells, total_area_um2, by_kind.{sequential,combinational}.cells, by_cell{}}.\nGate: area.json exists, total_cells > 0, sequential.cells > 0 (unless SSOT clocks[] is empty).",
+      "priority": "high"
+    },
+    {
+      "content": "[SYN] Write <ip>/syn/out/syn.report.md",
+      "detail": "Run scripts/write_report.sh <ip>.\nReport contents: top, corner, netlist path, total cells, total area μm², seq vs comb counts, top-5 cells by frequency, first 20 yosys warnings.\nGate: syn.report.md written.",
+      "priority": "normal"
+    },
+    {
+      "content": "[SYN HANDOFF] Confirm netlist freshness for /sta",
+      "detail": "Print one summary line so the next workflow knows the handoff is good:\n`[SYN HANDOFF] <ip>/syn/out/synth.v ready (cells=N, FFs=M, area=X μm²) — run /sta`.\nGate: handoff line emitted.",
+      "priority": "normal"
+    }
+  ]
+}

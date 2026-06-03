@@ -1,0 +1,383 @@
+# ══════════════════════════════════════════════════════════════════
+# EDA Converge Loop — spec → rtl → lint → tb → sim
+#
+# This is THE user-facing configuration for the EDA converge loop.
+# Edit stages, criteria, classifiers, and feedback graph here.
+# No Python code changes needed.
+#
+# Loaded by: /converge start <module>
+# Engine:    core/converge.py (generic YAML-driven)
+# ══════════════════════════════════════════════════════════════════
+
+name: eda-fast-loop
+description: "Spec -> RTL -> Lint -> TB -> Sim converge loop for hardware modules"
+
+# ── Pipeline Stages ──────────────────────────────────────
+# Each stage = one sub-agent call via run_agent_session()
+# {module}, {mas_path}, {rtl_path}, {tb_path} are template variables
+# resolved at runtime by the converge engine.
+
+stages:
+  - id: spec
+    workspace: spec-review
+    agent: execute
+    prompt: |
+      [MAS HANDOFF] Read the module specification.
+      Module: {module}
+      Look for spec files in {module}/spec/ or {module}/
+      Generate a MAS (Module Architecture Spec) document.
+      Output: Write MAS to {module}/mas/{module}_mas.md
+
+      IMPORTANT: After completing, you MUST output a summary line in this exact format:
+      METRICS: spec.complete=1, spec.sections=0
+      Where sections = number of MAS sections written.
+    produces:
+      - mas_path
+
+  - id: rtl
+    workspace: rtl-gen
+    agent: execute
+    prompt: |
+      [MAS HANDOFF] Implement RTL from MAS document.
+      Module: {module}
+      MAS: {mas_path}
+      Read the MAS document and implement all sections (§2-§8).
+      Follow the interface, timing, and reset requirements exactly.
+      
+      RULES:
+      - ONE module per .sv file. If submodules are needed, create separate files.
+      - Create a filelist: {module}/list/{module}.f listing all RTL files (one per line, relative paths).
+      - After writing RTL, run verilator or iverilog to verify compilation.
+      - Fix ALL width mismatches — use the correct bit width for every constant.
+      
+      Output: {module}/rtl/{module}.sv
+      Filelist: {module}/list/{module}.f
+
+      IMPORTANT: After completing, you MUST output a summary line in this exact format:
+      METRICS: rtl.complete=1, rtl.files=0, rtl.compile_errors=0
+      Where files = number of .sv files created, compile_errors = compilation errors remaining.
+    depends_on:
+      - spec
+    produces:
+      - rtl_path
+
+  - id: lint
+    workspace: lint
+    agent: execute
+    prompt: |
+      Run verilator --lint-only -Wall on {rtl_path}.
+      Fix ALL errors and warnings. Do NOT suppress warnings — fix the root cause.
+      
+      RULES:
+      - If a module has submodules in the same file, split them into separate files
+        (one module per file, filename matches module name).
+      - Update the filelist if new files are created.
+      - Fix width mismatches by using correct-width constants.
+      - Fix DECLFILENAME by splitting modules into their own files.
+      - After fixing, re-run lint to verify 0 errors, 0 warnings.
+      
+      {lint_context}
+      Output must show 0 errors and 0 warnings.
+
+      IMPORTANT: After completing, you MUST output a summary line in this exact format:
+      METRICS: lint.errors=0, lint.warnings=0
+      Report the actual count from the final lint run.
+    depends_on:
+      - rtl
+
+  - id: tb
+    workspace: tb-gen
+    agent: execute
+    prompt: |
+      [MAS HANDOFF] Generate testbench from MAS DV Plan.
+      Module: {module}
+      MAS: {mas_path}
+      RTL: {rtl_path}
+      Read MAS §9 (DV Plan) and generate a comprehensive testbench.
+      Include test cases for: reset, basic operation, edge cases, error handling.
+      
+      RULES:
+      - Read the RTL file(s) first to get exact port names, widths, and parameters.
+      - Create directory {module}/list/ if it doesn't exist.
+      - Create/update the filelist {module}/list/{module}.f listing ALL .sv files
+        (both RTL and TB) needed for simulation, one per line, relative to project root.
+      - After writing the TB, compile with iverilog to verify no syntax errors.
+      
+      Output: {module}/tb/tb_{module}.sv
+      Filelist: {module}/list/{module}.f
+
+      IMPORTANT: After completing, you MUST output a summary line in this exact format:
+      METRICS: tb.complete=1, tb.tests=0, tb.compile_errors=0
+      Where tests = number of test cases, compile_errors = iverilog compile errors.
+    depends_on:
+      - rtl
+      - lint
+    produces:
+      - tb_path
+
+  - id: sim
+    workspace: sim
+    agent: execute
+    prompt: |
+      Compile and simulate {module}.
+      
+      FIRST: Check if the filelist exists at {module}/list/{module}.f.
+      If it does NOT exist, create it by finding all .sv files:
+        1. All files in {module}/rtl/*.sv
+        2. All files in {module}/tb/*.sv
+        Write one file path per line (relative to project root).
+      
+      Then compile and run:
+        iverilog -g2012 -f {module}/list/{module}.f -o {module}/sim/{module}.out
+        vvp {module}/sim/{module}.out
+      
+      TB: {tb_path}
+      RTL: {rtl_path}
+      Run simulation until ALL tests show [PASS] with 0 errors, 0 warnings.
+      Report each test case result clearly.
+
+      IMPORTANT: After completing, you MUST output a summary line in this exact format:
+      METRICS: sim.pass=0, sim.fail=0, sim.total=0
+      Where pass/fail/total are the actual test counts from simulation output.
+      Use [PASS] and [FAIL] markers in your test output for accurate parsing.
+    depends_on:
+      - tb
+      - lint
+
+# ── Convergence Criteria ────────────────────────────────
+# Hard stop: ALL must be met for "converged"
+# Score threshold: soft target for convergence
+
+criteria:
+  hard_stop:
+    - metric: lint.errors
+      operator: "=="
+      value: 0
+    - metric: sim.fail
+      operator: "=="
+      value: 0
+
+  score_threshold: 10.0
+  max_total_iterations: 30
+  no_improve_limit: 5
+
+# ── Score Function ───────────────────────────────────────
+# Weights for computing a float score from parsed metrics.
+# Negative = penalty, Positive = reward.
+
+score_function:
+  weights:
+    lint.errors: -10.0
+    lint.warnings: -5.0
+    rtl.compile_errors: -15.0
+    tb.compile_errors: -10.0
+    sim.pass_ratio: 10.0
+    sim.has_failures: -20.0
+    sim.fail: -5.0
+    sim.pass: 2.0
+
+# ── Feedback Graph ───────────────────────────────────────
+# When a stage fails, the graph routes to a fix step.
+# Classifier decides WHERE to route based on output patterns.
+
+feedback_graph:
+  # Lint errors -> fix RTL -> re-lint
+  - trigger:
+      stage: lint
+      condition: "lint.errors > 0"
+    fix:
+      workspace: rtl-gen
+      agent: execute
+      prompt: |
+        [LINT FIX] Fix these lint errors in {rtl_path}:
+        {lint_result}
+        Preserve the module interface. Only fix lint issues.
+        Do NOT change functional behavior.
+      retry_from: lint
+      max_retries: 3
+
+  # Sim compile error -> fix TB
+  - trigger:
+      stage: sim
+      classifier: tb_bug
+    fix:
+      workspace: tb-gen
+      agent: execute
+      prompt: |
+        [SIM FIX - TB BUG] Simulation shows compile/testbench errors:
+        {sim_result}
+        Fix the testbench: {module}/tb/
+        Make sure port names and signal widths match the RTL.
+      retry_from: sim
+      max_retries: 5
+
+  # Sim functional failure (early) -> fix TB first
+  - trigger:
+      stage: sim
+      classifier: tb_bug_likely
+    fix:
+      workspace: tb-gen
+      agent: execute
+      prompt: |
+        [SIM FIX - TB BUG LIKELY] Early simulation failures (iteration < 3):
+        {sim_result}
+        Fix testbench stimulus/expected values first.
+        Check signal timings and initial values.
+      retry_from: sim
+      max_retries: 3
+
+  # Sim functional failure (persistent) -> fix RTL
+  - trigger:
+      stage: sim
+      classifier: rtl_bug
+    fix:
+      workspace: rtl-gen
+      agent: execute
+      prompt: |
+        [SIM FIX - RTL BUG] Persistent simulation failures indicate RTL issue:
+        {sim_result}
+        Fix RTL: {rtl_path}
+        Preserve interface. Only fix the failing logic.
+        Check: reset handling, state transitions, edge cases.
+      retry_from: lint
+      max_retries: 5
+
+  # Sim timeout/hang -> fix RTL
+  - trigger:
+      stage: sim
+      classifier: rtl_hang
+    fix:
+      workspace: rtl-gen
+      agent: execute
+      prompt: |
+        [SIM FIX - RTL HANG] Simulation timeout - DUT not responding:
+        {sim_result}
+        Fix RTL: {rtl_path}
+        Check for: infinite loops, missing $finish, deadlock, unhandled states.
+      retry_from: lint
+      max_retries: 3
+
+# ── Classifiers ──────────────────────────────────────────
+# Pattern-based output classification. Maps sub-agent output
+# to a label used by the feedback_graph for routing.
+
+classifiers:
+  - id: tb_bug
+    patterns:
+      - "compile error"
+      - "port mismatch"
+      - "undeclared"
+      - "syntax error"
+      - "cannot find"
+      - "no such file"
+      - "port width mismatch"
+    label: tb_bug
+
+  - id: tb_bug_likely
+    patterns:
+      - "[fail]"
+      - "fail:"
+    condition: "sim.iterations < 3"
+    label: tb_bug_likely
+
+  - id: rtl_bug
+    patterns:
+      - "[fail]"
+      - "fail:"
+      - "xxxx"
+      - "x-prop"
+      - "unknown"
+    condition: "sim.iterations >= 3"
+    label: rtl_bug
+
+  - id: rtl_hang
+    patterns:
+      - "timeout"
+      - "simulation hang"
+      - "no $finish"
+      - "deadlock"
+    label: rtl_hang
+
+# ── Rollback ─────────────────────────────────────────────
+# When score regresses, restore files from best-score snapshot.
+
+rollback:
+  enabled: true
+  paths:
+    - "{module}/rtl/"
+    - "{module}/tb/"
+  on: "regressed"    # "regressed" | "stalled" | "never"
+
+# ── Output Parsers ───────────────────────────────────────
+# How to extract metrics from sub-agent output per stage.
+#
+# Each stage has TWO parser layers:
+#   1. "metrics_line" — extracts from explicit METRICS: lines (primary, reliable)
+#   2. fallback regex patterns — extracts from tool output (secondary)
+
+parsers:
+  spec:
+    type: structured
+    fields:
+      complete:
+        regex: "(?i)METRICS:.*spec\\.complete=(\\d+)"
+        method: "extract"
+      sections:
+        regex: "(?i)METRICS:.*spec\\.sections=(\\d+)"
+        method: "extract"
+
+  rtl:
+    type: structured
+    fields:
+      complete:
+        regex: "(?i)METRICS:.*rtl\\.complete=(\\d+)"
+        method: "extract"
+      files:
+        regex: "(?i)METRICS:.*rtl\\.files=(\\d+)"
+        method: "extract"
+      compile_errors:
+        regex: "(?i)METRICS:.*rtl\\.compile_errors=(\\d+)"
+        method: "extract"
+
+  lint:
+    type: structured
+    fields:
+      errors:
+        regex: "(?i)METRICS:.*lint\\.errors=(\\d+)"
+        method: "extract"
+      warnings:
+        regex: "(?i)METRICS:.*lint\\.warnings=(\\d+)"
+        method: "extract"
+
+  tb:
+    type: structured
+    fields:
+      complete:
+        regex: "(?i)METRICS:.*tb\\.complete=(\\d+)"
+        method: "extract"
+      tests:
+        regex: "(?i)METRICS:.*tb\\.tests=(\\d+)"
+        method: "extract"
+      compile_errors:
+        regex: "(?i)METRICS:.*tb\\.compile_errors=(\\d+)"
+        method: "extract"
+
+  sim:
+    type: structured
+    fields:
+      pass:
+        regex: "(?i)METRICS:.*sim\\.pass=(\\d+)"
+        method: "extract"
+      fail:
+        regex: "(?i)METRICS:.*sim\\.fail=(\\d+)"
+        method: "extract"
+      total:
+        regex: "(?i)METRICS:.*sim\\.total=(\\d+)"
+        method: "extract"
+      # Fallback: also count [PASS]/[FAIL] from simulation output
+      pass_fb:
+        regex: "(?i)\\[pass\\]"
+        method: "count"
+      fail_fb:
+        regex: "(?i)\\[fail\\]"
+        method: "count"

@@ -1,0 +1,7 @@
+{
+  "name": "ssot-req",
+  "description": "Backfill or refresh a traceable requirements ledger from an existing SSOT YAML for audit/recovery",
+  "aliases": ["srq"],
+  "handler": "todo:template:ssot-req",
+  "usage": "/ssot-req <ip>"
+}

@@ -1,0 +1,7 @@
+{
+  "name": "ssot-fl-model",
+  "description": "Generate executable functional model, decomposition, and functional coverage plan from SSOT",
+  "aliases": ["sfm"],
+  "handler": "stage:ssot-fl-model",
+  "usage": "/ssot-fl-model <module_name>"
+}

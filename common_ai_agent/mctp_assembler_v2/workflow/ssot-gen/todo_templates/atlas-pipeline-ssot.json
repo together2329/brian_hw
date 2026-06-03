@@ -1,0 +1,25 @@
+{
+  "name": "atlas-pipeline-ssot",
+  "description": "ATLAS pipeline SSOT direct-write template: write YAML first, repair, validate, handoff",
+  "tasks": [
+    {
+      "content": "[SSOT] Direct-write engineering draft",
+      "detail": "Use the orchestrator goal and ATLAS workflow context to write a compact starter <ip>/yaml/<ip>.ssot.yaml. Do not inspect repository files before the first write unless the path is impossible. Include top_module, sub_modules, parameters, io_list, features, dataflow, function_model, cycle_model, registers, interrupts, fsm, custom.assumptions, test_requirements, quality_gates, and workflow_todos. Keep the first write small enough to complete quickly; repair_ssot_schema.py will expand canonical sections after disk evidence exists.",
+      "criteria": "<ip>/yaml/<ip>.ssot.yaml is written by a real file-write tool\nThe first YAML is a compact starter, not a full generated book\nNon-reset function_model transactions include output_rules or state_updates\nSubmodules include ownership refs\nAssumptions are recorded under custom.assumptions\nNo RTL/TB/sim/lint/coverage/EDA artifacts are written by ssot-gen",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT] Repair and validate on disk",
+      "detail": "Run python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/repair_ssot_schema.py\" <ip> --root \"$ATLAS_PROJECT_ROOT\" --mode engineering, then python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" <ip> --root \"$ATLAS_PROJECT_ROOT\" --mode engineering. Inspect failures literally and repair the YAML if needed.",
+      "criteria": "repair_ssot_schema.py executed\nverify_ssot.py executed with --mode engineering\nYAML parses successfully\nPreview fields are present or explicitly waived\nValidation output is captured\nAny remaining failure is reported as a blocker, not green",
+      "validator": "python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\"",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT] Emit ATLAS handoff",
+      "detail": "Emit a compact [SSOT HANDOFF] for rtl-gen. Include the exact SSOT path, top module, clock/reset, interfaces, registers/CSR policy, function/cycle model summary, assumptions, validation evidence, unresolved gaps, and downstream owners.",
+      "criteria": "[SSOT HANDOFF] block is emitted\nHandoff names rtl-gen as next owner\nHandoff does not claim RTL, TB, sim, lint, waveform, coverage, synthesis, STA, PnR, or signoff completion",
+      "priority": "high"
+    }
+  ]
+}

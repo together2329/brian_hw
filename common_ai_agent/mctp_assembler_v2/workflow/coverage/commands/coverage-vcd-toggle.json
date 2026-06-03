@@ -1,0 +1,7 @@
+{
+  "name": "coverage-vcd-toggle",
+  "description": "Extract toggle coverage from a VCD file (post-process — works with any simulator)",
+  "aliases": ["cov-vcd-toggle", "vcd-toggle"],
+  "handler": "bash:coverage_vcd_toggle.sh",
+  "usage": "/coverage-vcd-toggle [<dut>] [--top N] [--vcd <path>] [--json]"
+}

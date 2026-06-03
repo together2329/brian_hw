@@ -1,0 +1,8 @@
+{
+  "name": "verify-ssot",
+  "description": "Verify an SSOT against canonical YAML shape, Preview-readable fields, and check_ssot_disk gates",
+  "aliases": ["verify_ssot", "vs", "verity-ssot", "verity_ssot"],
+  "handler": "bash:verify_ssot.py",
+  "usage": "/verify-ssot <ip_name> [--mode starter|engineering|signoff]",
+  "timeout_sec": 120
+}

@@ -1,0 +1,8 @@
+{
+  "name": "pnr-cts",
+  "description": "Clock tree synthesis stage — clock_tree_synthesis → cts.def + cts.v",
+  "aliases": ["cts"],
+  "handler": "bash:run_cts.sh",
+  "usage": "/pnr-cts <ip>",
+  "timeout_sec": 600
+}

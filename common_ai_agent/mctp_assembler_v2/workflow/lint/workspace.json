@@ -1,0 +1,18 @@
+{
+  "name": "lint",
+  "description": "RTL lint verification workspace \u2014 runs lint, fixes errors/warnings, generates report",
+  "env": {
+    "MAX_ITERATIONS": "100",
+    "ENABLE_MARKDOWN_RENDER": "true",
+    "WORKFLOW_DISABLED_TOOLS": "ask_user,record_ssot_qa,dispatch_workflow"
+  },
+  "skills": {
+    "force_activate": [
+      "verilog-expert"
+    ],
+    "disable": []
+  },
+  "system_prompt_mode": "prepend",
+  "plan_prompt_mode": "prepend",
+  "compression_prompt_mode": "replace"
+}

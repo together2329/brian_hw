@@ -1,0 +1,7 @@
+{
+  "name": "sim",
+  "description": "Compile and run simulation (auto-detects iverilog from SSOT config, or VCS if configured)",
+  "aliases": ["s"],
+  "handler": "bash:sim.sh",
+  "usage": "/sim <module_name> [--vcs]"
+}

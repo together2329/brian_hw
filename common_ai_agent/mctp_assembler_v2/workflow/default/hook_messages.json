@@ -1,0 +1,25 @@
+{
+  "_comment": "All values support Python str.format(**kwargs) substitution. Override any key in your workspace's hook_messages.json.",
+
+  "tool_truncated": "[Truncated: showing {shown_lines}/{total_lines} lines, {shown_chars}/{total_chars} chars. Use read_lines(path, offset, limit) for specific sections.]",
+
+  "emergency_recovery": "[Emergency Recovery] {removed_count} messages were removed due to context limit. The conversation was about: {topic}",
+
+  "todo_continuation": "[Task {cur_idx}/{total}] {content}\nIf the work is done, mark it complete:\nAction: todo_update\nAction Input: {\"index\": {cur_idx}, \"status\": \"completed\"}\nThen continue to the next task.",
+
+  "todo_rejected": "[Task {cur_idx}/{total} REJECTED] {rejection_reason}\nFix the issue, then call: todo_update(index={cur_idx}, status='in_progress')",
+
+  "todo_review": "[Task {cur_idx}/{total} REVIEW REQUIRED] \"{content}\"\nYou marked this task completed. Now perform a CRITICAL review before approving.\n\u2192 Pass \u2192 todo_update(index={cur_idx}, status='approved', reason='<concrete evidence>')\n\u2192 Issue \u2192 todo_update(index={cur_idx}, status='rejected', reason='<exact problem>')",
+
+  "todo_loop_continue": "[Task {cur_idx}/{total} LOOP {loop_count}/{max_loop}] \"{content}\"\nPrevious attempt did not satisfy exit condition: \"{exit_condition}\"\nTry again. When done call: todo_update(index={cur_idx}, status='completed', tool_output='<full output>')",
+
+  "todo_loop_max_reached": "[Task {cur_idx}/{total} LOOP LIMIT] {loop_count} attempts reached the maximum. Marking as approved automatically.",
+
+  "compression_system": "You are a helpful assistant that summarizes conversation history for an AI agent.",
+
+  "compression_chunk_fallback": "Summarize the following conversation segment concisely. Focus on completed tasks, key decisions, and current state.",
+
+  "compression_result_wrapper": "[Previous Conversation Summary ({msg_count} messages)]: {summary}",
+
+  "compression_failed_wrapper": "[Previous Conversation Summary ({msg_count} messages, compression failed)]: {combined}"
+}

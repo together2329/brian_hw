@@ -53,6 +53,7 @@ export interface AppShellProps {
   activeNamespace: string;
   ownerEditable: boolean;
   activeSessionId: string;
+  activeWorkspaceSession: string;
   sessionIdOptions: string[];
   selectSessionId: (id: string) => void;
   newSessionId: () => void;
@@ -88,7 +89,7 @@ export const AppShell = ({
   bootHidden, setBootHidden, bootSteps, bootFailed, bootDisplayDone,
   nameEntry, setNameEntry, nameEntryBusy, nameEntryInputRef, commitNameEntry,
   newIpInitialWorkflow, normalizeSession, activeNamespace, ownerEditable,
-  activeSessionId, sessionIdOptions, selectSessionId, newSessionId,
+  activeSessionId, activeWorkspaceSession, sessionIdOptions, selectSessionId, newSessionId,
   activeIp, WORKFLOW_DEFAULT, selectIp, ipOptions, authState, beginNameEntry,
   execMode, currentWorkflow, fontMode, setFontMode, fontScale, setFontScale,
   resolution, setResolution, uiLang, chooseUiLang, stopAgent, exitAll,
@@ -292,14 +293,15 @@ export const AppShell = ({
         </div>
       )}
       <div className="dir-switcher atlas-desktop-only">
-        <label className="dir-select-wrap" title={`Select user owner. Active namespace: .session/${normalizeSession(activeNamespace) || 'default'}`}>
+        <label className="dir-select-wrap" title={`User owner. Active namespace: .session/${normalizeSession(activeNamespace) || 'default'}`}>
           <span>user</span>
           <select
+            aria-label="User owner"
             className="dir-select"
             disabled={!ownerEditable}
             value={activeSessionId || 'default'}
-            onChange={e => selectSessionId(e.currentTarget.value)}>
-            {sessionIdOptions.map(s => <option key={s} value={s}>{s}</option>)}
+            onChange={() => {}}>
+            <option value={activeSessionId || 'default'}>{activeSessionId || 'default'}</option>
           </select>
         </label>
         {ownerEditable && (
@@ -307,15 +309,33 @@ export const AppShell = ({
                   title="Create a local user owner and keep the selected IP/workflow"
                   onClick={newSessionId}>+ User</button>
         )}
-        {ownerEditable && nameEntry && nameEntry.kind === 'session' && (
+        <label className="dir-select-wrap" title="Select workspace session. Namespace is user/session/ip_id/workflow.">
+          <span>session</span>
+          <select
+            aria-label="Workspace session"
+            className="dir-select"
+            value={activeWorkspaceSession || 'default'}
+            onChange={e => selectSessionId(e.currentTarget.value)}>
+            {sessionIdOptions.includes(activeWorkspaceSession || 'default') ? null : (
+              <option value={activeWorkspaceSession || 'default'}>{activeWorkspaceSession || 'default'}</option>
+            )}
+            {sessionIdOptions.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </label>
+        {authState === 'authed' && (
+          <button className="dir-btn"
+                  title="Create a workspace session under the current user"
+                  onClick={newSessionId}>+ Session</button>
+        )}
+        {nameEntry && nameEntry.kind === 'session' && (
           <form className="dir-name-entry"
                 data-esc-local="true"
-                title="New user owner: letters, digits, underscore, dash, or dot"
+                title="New workspace session: letters, digits, underscore, dash, or dot"
                 onSubmit={(e) => { e.preventDefault(); commitNameEntry(); }}>
             <input ref={nameEntryInputRef}
                    className="dir-name-input"
-                   aria-label="New user owner"
-                   placeholder="user"
+                   aria-label="New workspace session"
+                   placeholder="session"
                    value={nameEntry.value}
                    onChange={e => setNameEntry({ kind: 'session', value: e.currentTarget.value })}
                    onKeyDown={e => {
@@ -330,9 +350,10 @@ export const AppShell = ({
                     onClick={() => setNameEntry(null)}>×</button>
           </form>
         )}
-        <label className="dir-select-wrap" title="Select ip_id. Namespace is user/ip_id/workflow.">
+        <label className="dir-select-wrap" title="Select ip_id. Namespace is user/session/ip_id/workflow.">
           <span>ip_id</span>
           <select
+            aria-label="IP ID"
             className="dir-select ip"
             value={activeIp || WORKFLOW_DEFAULT}
             onChange={e => selectIp(e.currentTarget.value)}>
