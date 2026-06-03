@@ -1,10 +1,10 @@
 {
   "name": "atlas-pipeline-ssot",
-  "description": "ATLAS pipeline SSOT direct-write template: write YAML first, repair, validate, handoff",
+  "description": "ATLAS pipeline SSOT template: preserve locked truth, write YAML, repair, validate, handoff",
   "tasks": [
     {
       "content": "[SSOT] Direct-write engineering draft",
-      "detail": "Use the orchestrator goal and ATLAS workflow context to write a compact starter <ip>/yaml/<ip>.ssot.yaml. Do not inspect repository files before the first write unless the path is impossible. Include top_module, sub_modules, parameters, io_list, features, dataflow, function_model, cycle_model, registers, interrupts, fsm, custom.assumptions, test_requirements, quality_gates, and workflow_todos. Keep the first write small enough to complete quickly; repair_ssot_schema.py will expand canonical sections after disk evidence exists.",
+      "detail": "Read existing locked requirement files under <ip>/req before the first SSOT write when they exist. Do not write or update req/*_requirements.md, req/source_references.md, or req/approval_manifest.json. Use the locked requirement content, or the orchestrator goal as starter input when no locked requirement exists, to write a compact starter <ip>/yaml/<ip>.ssot.yaml. Do not inspect unrelated repository files before the first YAML write unless the path is impossible. Include top_module, sub_modules, parameters, io_list, features, dataflow, function_model, cycle_model, registers, interrupts, fsm, custom.assumptions, test_requirements, quality_gates, and workflow_todos. Keep the first write small enough to complete quickly; repair_ssot_schema.py will expand canonical sections after disk evidence exists.",
       "criteria": "<ip>/yaml/<ip>.ssot.yaml is written by a real file-write tool\nThe first YAML is a compact starter, not a full generated book\nNon-reset function_model transactions include output_rules or state_updates\nSubmodules include ownership refs\nAssumptions are recorded under custom.assumptions\nNo RTL/TB/sim/lint/coverage/EDA artifacts are written by ssot-gen",
       "priority": "high"
     },

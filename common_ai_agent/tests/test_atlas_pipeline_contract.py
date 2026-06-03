@@ -87,6 +87,8 @@ def test_ssot_starter_prompt_strengthens_axi_apb_packet_contracts() -> None:
     assert "scoreboard checks" in prompt
     assert "Do not default to APB/register-only behavior" in prompt
     assert "scripts as schema repair/validation/measurement gates only" in prompt
+    assert "Do not write or update locked truth files" in prompt
+    assert f"Also write mctp_axi/req/mctp_axi_requirements.md" not in prompt
 
 
 def test_goal_audit_prompt_rejects_summary_only_generated_evidence() -> None:

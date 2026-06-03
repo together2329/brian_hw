@@ -1093,6 +1093,42 @@ hand-authored requirements, atomic obligations, contract refs, scoreboard rows,
 and VCD predicates for payload count, SRAM pack, backpressure, descriptor
 visibility, and APB visibility.
 
+## Locked Truth Write Guard
+
+Once requirement truth is locked, worker stages must not rewrite it. SSOT-gen may
+read locked truth and write the YAML contract, but it may not update:
+
+```text
+<ip>/req/*_requirements.md
+<ip>/req/source_references.md
+<ip>/req/approval_manifest.json
+```
+
+The runtime guard treats `req/approval_manifest.json` as the lock marker unless
+it explicitly says the requirement is draft/unlocked. When the lock is active:
+
+```text
+write_file / replace_in_file on locked truth:
+  refused before the tool writes
+
+slash command, script, or shell mutation:
+  detected after the run, restored from the pre-run byte snapshot, and reported
+  as worker error
+```
+
+This is intentionally stronger than prompt policy. Prompts now tell ssot-gen not
+to write approved requirements, but the deterministic guard is the authority. A
+worker cannot make a green SSOT pass by silently shrinking or replacing the
+locked requirement text.
+
+If the locked requirement is wrong or incomplete, the route is:
+
+```text
+human/spec authority unlocks or re-approves truth
+-> ssot-gen refreshes YAML from the updated truth
+-> downstream FL/CL/RTL/TB/SIM evidence becomes stale and must rerun
+```
+
 ## Current Implementation Status
 
 Already present in the workflow:
@@ -1125,6 +1161,9 @@ ip_signoff:
 contract-check:
   runs through WorkflowStageEngine, headless serial flow, Atlas pipeline
   dispatch, and the orchestrator `contract-reflection` workflow
+
+locked_truth_guard:
+  blocks or restores writes to approved requirement files during worker runs
 
 contract_reflection:
   validates SSOT/FL/CL/RTL/TB/SIM reflection plus sampled VCD evidence

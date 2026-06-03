@@ -335,10 +335,10 @@ class TestAgentServerUnit(unittest.TestCase):
             finally:
                 registry.unregister("unit-rewrite-req")
 
-        self.assertTrue(closed_run, output)
-        self.assertEqual(entry.status, "error")
-        self.assertIn("locked truth", entry.error)
-        self.assertEqual(req_file.read_text(encoding="utf-8"), "locked requirement\n")
+            self.assertTrue(closed_run, output)
+            self.assertEqual(entry.status, "error")
+            self.assertIn("locked truth", entry.error)
+            self.assertEqual(req_file.read_text(encoding="utf-8"), "locked requirement\n")
 
     def test_react_task_restores_locked_truth_updates(self):
         from core import react_loop
@@ -375,9 +375,9 @@ class TestAgentServerUnit(unittest.TestCase):
             finally:
                 self.server_mod._PERSISTENCE_ENABLED = old_persistence
 
-        self.assertEqual(entry.status, "error", entry.result)
-        self.assertIn("locked truth", entry.error)
-        self.assertEqual(req_file.read_text(encoding="utf-8"), "locked requirement\n")
+            self.assertEqual(entry.status, "error", entry.result)
+            self.assertIn("locked truth", entry.error)
+            self.assertEqual(req_file.read_text(encoding="utf-8"), "locked requirement\n")
 
 
 # ============================================================

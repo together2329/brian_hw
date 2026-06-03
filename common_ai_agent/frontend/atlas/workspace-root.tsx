@@ -315,6 +315,8 @@ export const Workspace = ({
     workerProgress,
     orchWorkers,
     workspaceTelemetry,
+    interactiveWorkerStatus,
+    interactiveWorkerStatusError,
     // right rail
     rightTab, setRightTab,
     // bound render helpers (close over feed/input/stream state)
@@ -796,6 +798,11 @@ export const Workspace = ({
             const backendDown = !w.backend || normalizedBackendState === 'missing' ||
               normalizedBackendState === 'closed' || normalizedBackendState === 'error' ||
               normalizedBackendState === 'auth_required';
+            const interactiveWorkerState = String(interactiveWorkerStatus?.state || '').toLowerCase();
+            const interactiveWorkerFailed = !!interactiveWorkerStatusError || interactiveWorkerState === 'failed';
+            const interactiveWorkerStarting = interactiveWorkerState === 'starting' ||
+              interactiveWorkerState === 'capacity_wait' ||
+              interactiveWorkerState === 'switching';
             const terminalWorkerStatuses = new Set(['passed', 'done', 'completed', 'failed', 'error', 'cancelled', 'blocked']);
             const activeOrchWorker = workflow === 'orchestrator'
               ? (Array.isArray(orchWorkers) ? orchWorkers.find((wk: any) =>
@@ -833,6 +840,22 @@ export const Workspace = ({
                 ? { icon: '▶', text: `Worker running · ${liveWorkerWorkflow}`, color: 'var(--warn)', bg: 'color-mix(in oklch, var(--warn) 14%, transparent)' }
               : streaming
                 ? { icon: '◉', text: agentRespondingText, color: 'var(--accent)', bg: 'color-mix(in oklch, var(--accent) 16%, transparent)', spin: true }
+              : interactiveWorkerFailed
+                ? {
+                    icon: '!',
+                    text: interactiveWorkerStatusError
+                      ? `Agent worker status error · ${interactiveWorkerStatusError}`
+                      : 'Agent worker failed · session worker failed',
+                    color: 'var(--err)',
+                    bg: 'color-mix(in oklch, var(--err) 12%, transparent)',
+                  }
+              : interactiveWorkerStarting
+                ? {
+                    icon: '·',
+                    text: `Agent worker ${interactiveWorkerState.replace('_', ' ')}`,
+                    color: 'var(--warn)',
+                    bg: 'color-mix(in oklch, var(--warn) 10%, transparent)',
+                  }
               : normalizedBackendState === 'connecting'
                 ? { icon: '·', text: 'Backend connecting', color: 'var(--warn)', bg: 'color-mix(in oklch, var(--warn) 10%, transparent)' }
               : terminalWorkerProgress

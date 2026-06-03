@@ -63,6 +63,13 @@
   cover the new worker registry and pipeline stage. `contract-check` is now in
   `workflow/STAGE_MANIFEST.json`, and the aggregator rejects stale green reports
   when a child validator fails.
+- Added locked-truth write protection for worker runs. Once
+  `req/approval_manifest.json` locks requirement truth, worker file-tool writes
+  to `req/*_requirements.md`, `req/source_references.md`, or
+  `req/approval_manifest.json` are refused; slash/script mutations are restored
+  from the pre-run byte snapshot and reported as worker errors. SSOT pipeline
+  prompts now read locked requirements and no longer instruct workers to create
+  or update approval manifests.
 - Updated [[atlas-single-active-orchestrator-subworkers-20260603]]: flipped status
   to IMPLEMENTED 2026-06-03. Added comprehensive policy/environment-variable contract
   (`ATLAS_SESSION_WORKER_POLICY`, `ATLAS_SESSION_WORKER_MAX_ACTIVE`, idle/reaper

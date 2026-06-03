@@ -103,6 +103,17 @@ export const AppShell = ({
     setFontMode(next);
     try { localStorage.setItem('atlasFontModeUserSet', '1'); } catch (_) {}
   };
+  const nameEntryIsSession = nameEntry?.kind === 'session';
+  const nameEntryIsIp = nameEntry?.kind === 'ip';
+  const showNameEntryModal = !!nameEntry && (nameEntryIsIp || nameEntryIsSession);
+  const nameEntryModalTitle = nameEntryIsSession ? 'Create Session' : 'Create IP';
+  const nameEntryModalSub = nameEntryIsSession
+    ? `user ${activeSessionId || 'default'}`
+    : `workflow ${newIpInitialWorkflow()}`;
+  const nameEntryFieldLabel = nameEntryIsSession ? 'session' : 'ip_id';
+  const nameEntryInputLabel = nameEntryIsSession ? 'New workspace session' : 'New IP name';
+  const nameEntryPlaceholder = nameEntryIsSession ? 'new_session' : 'new_ip';
+  const nameEntryCancelLabel = nameEntryIsSession ? 'Cancel new session' : 'Cancel new IP';
 
   return (
     <div className="app" data-dir={dir} data-theme={theme}>
@@ -231,7 +242,7 @@ export const AppShell = ({
           <style>{`@keyframes atlas-spin{to{transform:rotate(360deg)}}`}</style>
         </div>
       )}
-      {nameEntry && nameEntry.kind === 'ip' && (
+      {showNameEntryModal && (
         <div
           className="dir-name-modal-backdrop"
           onMouseDown={() => { if (!nameEntryBusy) setNameEntry(null); }}
@@ -241,33 +252,33 @@ export const AppShell = ({
             data-esc-local="true"
             role="dialog"
             aria-modal="true"
-            aria-label="Create IP"
+            aria-label={nameEntryModalTitle}
             onMouseDown={e => e.stopPropagation()}
             onSubmit={(e) => { e.preventDefault(); commitNameEntry(); }}
           >
             <div className="dir-name-modal-head">
               <div>
-                <div className="dir-name-modal-title">Create IP</div>
-                <div className="dir-name-modal-sub">workflow {newIpInitialWorkflow()}</div>
+                <div className="dir-name-modal-title">{nameEntryModalTitle}</div>
+                <div className="dir-name-modal-sub">{nameEntryModalSub}</div>
               </div>
               <button
                 type="button"
                 className="dir-name-modal-close"
-                aria-label="Cancel new IP"
+                aria-label={nameEntryCancelLabel}
                 disabled={nameEntryBusy}
                 onClick={() => setNameEntry(null)}
               >×</button>
             </div>
             <label className="dir-name-modal-field">
-              <span>ip_id</span>
+              <span>{nameEntryFieldLabel}</span>
               <input
                 ref={nameEntryInputRef}
                 className="dir-name-modal-input"
-                aria-label="New IP name"
-                placeholder="new_ip"
+                aria-label={nameEntryInputLabel}
+                placeholder={nameEntryPlaceholder}
                 value={nameEntry.value}
                 disabled={nameEntryBusy}
-                onChange={e => setNameEntry({ kind: 'ip', value: e.currentTarget.value })}
+                onChange={e => setNameEntry({ kind: nameEntry.kind, value: e.currentTarget.value })}
                 onKeyDown={e => {
                   if (e.key === 'Escape' && !nameEntryBusy) {
                     e.preventDefault();
@@ -326,29 +337,6 @@ export const AppShell = ({
           <button className="dir-btn"
                   title="Create a workspace session under the current user"
                   onClick={newSessionId}>+ Session</button>
-        )}
-        {nameEntry && nameEntry.kind === 'session' && (
-          <form className="dir-name-entry"
-                data-esc-local="true"
-                title="New workspace session: letters, digits, underscore, dash, or dot"
-                onSubmit={(e) => { e.preventDefault(); commitNameEntry(); }}>
-            <input ref={nameEntryInputRef}
-                   className="dir-name-input"
-                   aria-label="New workspace session"
-                   placeholder="session"
-                   value={nameEntry.value}
-                   onChange={e => setNameEntry({ kind: 'session', value: e.currentTarget.value })}
-                   onKeyDown={e => {
-                     if (e.key === 'Escape') {
-                       e.preventDefault();
-                       setNameEntry(null);
-                     }
-                   }} />
-            <button type="submit" className="dir-name-action">OK</button>
-            <button type="button" className="dir-name-action"
-                    aria-label="Cancel new user owner"
-                    onClick={() => setNameEntry(null)}>×</button>
-          </form>
         )}
         <label className="dir-select-wrap" title="Select ip_id. Namespace is user/session/ip_id/workflow.">
           <span>ip_id</span>

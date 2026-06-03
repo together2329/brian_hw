@@ -404,6 +404,54 @@ describe('Workspace render smoke (the behavioral gate)', () => {
     expect(queryByText(/End of loop/)).toBeNull();
   });
 
+  it('shows session worker failure ahead of the idle ready footer', async () => {
+    global.fetch = vi.fn(async (url: RequestInfo | URL, _init?: RequestInit) => {
+      if (String(url) === '/api/session/worker/status') {
+        return new Response(JSON.stringify({
+          policy: 'strict',
+          active_count: 0,
+          owner: 'alice',
+          owner_active_session: 'alice/demo/default',
+          worker: null,
+        }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }
+      return new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }) as unknown as typeof fetch;
+
+    const { Workspace } = await import('../workspace.tsx');
+    const { queryByText } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
+
+    await waitFor(() => expect(queryByText(/Agent worker failed/)).not.toBeNull());
+    expect(queryByText(/End of loop/)).toBeNull();
+  });
+
+  it('shows Agent responding ahead of stale session worker failure', async () => {
+    global.fetch = vi.fn(async (url: RequestInfo | URL, _init?: RequestInit) => {
+      if (String(url) === '/api/session/worker/status') {
+        return new Response(JSON.stringify({
+          policy: 'strict',
+          active_count: 0,
+          owner: 'alice',
+          owner_active_session: 'alice/demo/default',
+          worker: null,
+        }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }
+      return new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }) as unknown as typeof fetch;
+
+    const { Workspace } = await import('../workspace.tsx');
+    const { queryByText } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
+    const backend = (window as AnyWindow).backend;
+
+    await waitFor(() => expect(queryByText(/Agent worker failed/)).not.toBeNull());
+    await act(async () => {
+      backend._emit('agent_state', { running: true });
+    });
+
+    await waitFor(() => expect(queryByText('Agent responding')).not.toBeNull());
+    expect(queryByText(/Agent worker failed/)).toBeNull();
+  });
+
   it('shows Agent responding ahead of stale backend connecting state', async () => {
     const backend = (window as AnyWindow).backend;
     backend._setConnectionState('connecting');
