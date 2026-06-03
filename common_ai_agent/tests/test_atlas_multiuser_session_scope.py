@@ -660,7 +660,7 @@ def test_healthz_does_not_share_cost_with_numeric_user_owner(tmp_path, monkeypat
     numeric_before_activate = numeric.get("/healthz")
     assert numeric_before_activate.status_code == 200, numeric_before_activate.text
     before_payload = numeric_before_activate.json()
-    assert before_payload["active_session"] == "20766/default/default"
+    assert before_payload["active_session"] == "20766/default/default/default"
     assert before_payload["tokens"] == 0
     assert before_payload["tokens_in"] == 0
     assert before_payload["tokens_out"] == 0
@@ -794,18 +794,18 @@ def test_websocket_session_switch_rebinds_without_disconnect(tmp_path, monkeypat
     client = TestClient(app)
     _register(client, "alice")
 
-    with client.websocket_connect("/ws/agent?session_id=alice/ip_alpha/rtl-gen") as ws:
+    with client.websocket_connect("/ws/agent?session_id=alice/default/ip_alpha/rtl-gen") as ws:
         assert ws.receive_json()["type"] == "hello"
         ws.send_json({
             "type": "session_switch",
-            "session_id": "alice/ip_beta/tb-gen",
+            "session_id": "alice/default/ip_beta/tb-gen",
         })
         switched = ws.receive_json()
         assert switched["type"] == "session_switched"
-        assert switched["session_id"] == "alice/ip_beta/tb-gen"
+        assert switched["session_id"] == "alice/default/ip_beta/tb-gen"
         ws.send_json({
             "type": "session_switch",
-            "session_id": "bob/ip_beta/tb-gen",
+            "session_id": "bob/default/ip_beta/tb-gen",
         })
         rejected = ws.receive_json()
         assert rejected["type"] == "error"
@@ -1634,10 +1634,10 @@ def test_websocket_binds_full_session_namespace(tmp_path, monkeypatch):
     client = TestClient(app)
     _register(client, "alice")
 
-    with client.websocket_connect("/ws/agent?session_id=alice/ip_alpha/ssot-gen") as ws:
+    with client.websocket_connect("/ws/agent?session_id=alice/default/ip_alpha/ssot-gen") as ws:
         hello = ws.receive_json()
         assert hello["type"] == "hello"
-        session = app.state.bridge.get_session("alice/ip_alpha/ssot-gen")
+        session = app.state.bridge.get_session("alice/default/ip_alpha/ssot-gen")
         assert len(session.clients) == 1
 
     try:
@@ -1648,7 +1648,7 @@ def test_websocket_binds_full_session_namespace(tmp_path, monkeypatch):
         assert exc.code == 1008
 
 
-def test_websocket_default_bind_keeps_three_part_user_namespace(tmp_path, monkeypatch):
+def test_websocket_default_bind_uses_default_workspace_session(tmp_path, monkeypatch):
     import src.atlas_ui as atlas_ui
 
     monkeypatch.setenv("HOME", str(tmp_path / "home"))
@@ -1665,7 +1665,7 @@ def test_websocket_default_bind_keeps_three_part_user_namespace(tmp_path, monkey
         assert hello["type"] == "hello"
         health = client.get("/healthz")
         assert health.status_code == 200, health.text
-        assert health.json()["active_session"] == "20766/default/default"
+        assert health.json()["active_session"] == "20766/default/default/default"
 
 
 def test_websocket_close_unbinds_and_reconnects_same_session(tmp_path, monkeypatch):
@@ -1680,7 +1680,7 @@ def test_websocket_close_unbinds_and_reconnects_same_session(tmp_path, monkeypat
     client = TestClient(app)
     _register(client, "alice")
 
-    session_id = "alice/ip_alpha/ssot-gen"
+    session_id = "alice/default/ip_alpha/ssot-gen"
     with client.websocket_connect(f"/ws/agent?session_id={session_id}") as ws:
         hello = ws.receive_json()
         assert hello["type"] == "hello"
@@ -1713,7 +1713,7 @@ def test_websocket_slash_command_executes_without_agent_prompt(tmp_path, monkeyp
     client = TestClient(app)
     _register(client, "alice")
 
-    session_id = "alice/ip_alpha/ssot-gen"
+    session_id = "alice/default/ip_alpha/ssot-gen"
     session = app.state.bridge._ensure_session(session_id)
     session.agent_running = True
     with client.websocket_connect(f"/ws/agent?session_id={session_id}") as ws:
@@ -1746,7 +1746,7 @@ def test_websocket_plain_command_words_are_llm_prompts(tmp_path, monkeypatch):
     client = TestClient(app)
     _register(client, "alice")
 
-    session_id = "alice/ip_alpha/rtl-gen"
+    session_id = "alice/default/ip_alpha/rtl-gen"
     session = app.state.bridge._ensure_session(session_id)
     prompts = ["list", "ls", "list up rtl", "ssot-rtl"]
 
@@ -1788,7 +1788,7 @@ def test_websocket_bang_command_runs_shell_without_llm_prompt(tmp_path, monkeypa
     client = TestClient(app)
     _register(client, "alice")
 
-    session_id = "alice/ip_alpha/rtl-gen"
+    session_id = "alice/default/ip_alpha/rtl-gen"
     session = app.state.bridge._ensure_session(session_id)
     with client.websocket_connect(f"/ws/agent?session_id={session_id}") as ws:
         assert ws.receive_json()["type"] == "hello"
@@ -1822,8 +1822,8 @@ def test_websocket_context_verbose_reads_active_root_session_conversation(tmp_pa
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
     reset_tracker(max_tokens=200000)
 
-    session_id = "alice/ip_alpha/default"
-    session_dir = tmp_path / ".session" / "alice" / "ip_alpha" / "default"
+    session_id = "alice/default/ip_alpha/default"
+    session_dir = tmp_path / "alice" / "default" / ".session" / "ip_alpha" / "default"
     session_dir.mkdir(parents=True)
     (session_dir / "conversation.json").write_text(
         json.dumps(
@@ -1872,8 +1872,8 @@ def test_websocket_prompt_explicit_session_rebinds_before_queueing(tmp_path, mon
     client = TestClient(app)
     _register(client, "alice")
 
-    default_session_id = "alice/default/default"
-    target_session_id = "alice/ip_alpha/rtl-gen"
+    default_session_id = "alice/default/default/default"
+    target_session_id = "alice/default/ip_alpha/rtl-gen"
     default_session = app.state.bridge._ensure_session(default_session_id)
     target_session = app.state.bridge._ensure_session(target_session_id)
 

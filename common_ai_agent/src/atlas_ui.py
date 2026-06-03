@@ -5019,15 +5019,21 @@ def create_app():
         ip_default = _active_ip_value() or "default"
         wf_default = os.environ.get("ATLAS_DEFAULT_WORKFLOW") or "default"
         owner = _resolve_session_owner() or owner_default
-        if len(parts) >= 3:
+        if len(parts) >= 4:
+            owner, workspace_session, ip, wf = parts[0], parts[1], parts[2], parts[3]
+            canon = PROJECT_ROOT / owner / workspace_session / ".session" / ip / wf
+        elif len(parts) >= 3:
             owner, ip, wf = parts[0], parts[1], parts[2]
+            canon = PROJECT_ROOT / ".session" / owner / ip / wf
         elif len(parts) == 2:
             ip, wf = parts[0], parts[1]
+            canon = PROJECT_ROOT / ".session" / owner / ip / wf
         elif len(parts) == 1:
             ip, wf = ip_default, parts[0]
+            canon = PROJECT_ROOT / ".session" / owner / ip / wf
         else:
             ip, wf = ip_default, wf_default
-        canon = PROJECT_ROOT / ".session" / owner / ip / wf
+            canon = PROJECT_ROOT / ".session" / owner / ip / wf
         # Migrate legacy 2-part / 1-part dirs to canonical on first access.
         if not canon.exists():
             for legacy in (

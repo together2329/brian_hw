@@ -111,6 +111,50 @@ This is wired to the 2026-06-03 **B1 git-access security work**:
   control this distributed model needs. (Default bind is `127.0.0.1`; a real
   multi-user deploy binds `0.0.0.0`/LAN, which is why the gate matters.)
 
+## Database — keep the control plane CENTRAL (user wants this, 2026-06-03)
+
+The DB is **not** all-or-nothing local. ATLAS already splits it
+([[atlas-db-router-runtime-sharding-20260602]], branch `feat/runtime-db-100users`,
+`core/atlas_db_router.py` + `core/runtime_rollup.py`), which maps cleanly:
+
+| DB | Contents | Where | Why |
+|---|---|---|---|
+| **Control DB (`atlas.db`)** | users, auth, `ip_blocks` ACL, workspaces, licensing/metering, usage rollups, jobs index, admin dashboard, cross-user coordination | **CENTRAL (server) — managed** | single source of truth for identity/ACL/cost; backed up; admin visibility ([[admin-operational-dashboard-db-snapshot-20260603]]) |
+| **Runtime DB (per-session, sharded)** | hot per-session prompt / worker / token / todo working state | **local (per machine)** | hot writes stay off the shared DB → removes the single-SQLite contention ceiling |
+
+Flow: the local agent writes session working state to its **local runtime DB**;
+low-frequency control-plane ops (login, ACL check, usage report) hit the **central
+control DB** over a thin API; `core/runtime_rollup.py` (idempotent, no fanout)
+**rolls usage/metadata up** into the central control DB for management + the admin
+dashboard. So "DB를 관리하고 싶다" = keep the **control DB central**, push only the
+hot per-session runtime writes local.
+
+Why it still scales: the central control DB takes only **low-rate control-plane
+writes** (logins, ACL, batched rollups) — NOT per-token hot writes — so one central
+SQLite can serve 100 users (the 100-user review flagged Postgres as the eventual
+control-DB step, but local-first removes most of that pressure; adopt Postgres only
+if the control-plane write rate ever warrants it).
+
+> If you instead want the WHOLE DB central (all session state on the server too):
+> doable, but it reintroduces the single-writer SQLite contention the runtime-DB
+> sharding was built to avoid — then Postgres for the control DB is the real fix,
+> and per-message writes round-trip to the server (latency + central load).
+
+**2026-06-03 follow-up — "SQLite + LLM call on the server, tools local":** the
+agent loop is glued to the DB, so this forks on where the loop runs:
+
+| Config | loop | DB | LLM | tools | 30-worker ceiling | trade |
+|---|---|---|---|---|---|---|
+| **Variant B** (= "all SQLite + LLM server, tools local") | **server** | server (all) | server | local | **stays** | clean DB/LLM, but server loop per user + tool-tunnel latency + RCE security |
+| **Split (recommended)** | **local** | control=server / runtime=local | server | local | **gone** | "DB managed centrally" still holds via control DB + rollup |
+
+So "SQLite 서버로" literally = **Variant B** (remote brain / local hands) — coherent
+and gives central DB + LLM, but the server still runs a loop per active user (the
+30-cap and single-event-loop pressure remain, and tools now round-trip). To ALSO
+remove the ceiling, keep the **loop local** and put only the **control DB** central
+(runtime DB local + `runtime_rollup` up) — you still "manage the DB centrally," just
+not the hot per-message writes.
+
 ## Packaging — can the Python + EDA tools ship with the Desktop App?
 
 **Yes (Tauri "Option B": PyInstaller freeze + Tauri `externalBin` sidecar)** —

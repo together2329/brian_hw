@@ -167,7 +167,7 @@ if [[ -z "$BACKEND_URL_RAW" ]]; then
 fi
 
 if [[ -z "$ROOT" && "$BACKEND_URL_EXPLICIT" == 0 ]]; then
-  ROOT="${ATLAS_ROOT:-${HOME:-}/ATLAS}"
+  ROOT="${HOME:-}/ATLAS"
   if [[ -z "$ROOT" || "$ROOT" == "/ATLAS" ]]; then
     echo "HOME is not set; pass --root explicitly." >&2
     exit 1

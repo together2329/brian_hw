@@ -256,6 +256,12 @@ function_model:
   transactions:
     - id: "FM_INGEST_TLP"
       name: "axi_write_to_tlp_bytes"
+      output_rules:
+        - { name: "tlp_accept", expr: "wlast_seen and (awsize == 5) and (awburst == INCR) and wstrb_contiguous and (tlp_byte_count >= 16) and (tlp_byte_count <= MAX_TLP_BYTES)", width: 1 }
+        - { name: "bresp_next", expr: "BRESP_OKAY", width: 2, port: "s_axi_bresp" }
+      state_updates:
+        - { name: "tlp_seen_count", expr: "tlp_seen_count + 1", width: 32 }
+        - { name: "tlp_accepted_count", expr: "tlp_accepted_count + (1 if tlp_accept else 0)", width: 32 }
       preconditions: ["CONTROL.enable==1 or (enable==0 and drop_when_disabled==1)", "AWSIZE==5", "AWBURST==INCR", "W beat count == AWLEN+1", "WLAST on final beat only"]
       inputs: ["axi_wr_slave AW/W/B"]
       outputs: ["ordered raw TLP byte vector with valid byte count from WSTRB", "BRESP=OKAY when transaction consumed"]
@@ -264,6 +270,13 @@ function_model:
         - { condition: "empty txn / bad AWSIZE/AWBURST / interleave / beat-count mismatch / early/late WLAST / non-contiguous WSTRB / <16B / >MAX_TLP_BYTES / PCIe-length inconsistent / unstripped digest when stripped-mode", result: "PD_MALFORMED_TLP packet drop; no context/SRAM/descriptor side effect" }
     - id: "FM_DECODE_VDM"
       name: "pcie_vdm_decode"
+      output_rules:
+        - { name: "vdm_valid", expr: "(message_code == 0x7F) and (vendor_id == 0x1AB4) and (vdm_code == 0x0) and routing_supported and (traffic_class == 0)", width: 1 }
+        - { name: "payload_offset", expr: "16", width: 5 }
+        - { name: "requester_id", expr: "concat(tlp[1], tlp[2])", width: 16 }
+        - { name: "pad_ok", expr: "(pad_len <= 3) and ((pad_len == 0) if not eom else True)", width: 1 }
+      state_updates:
+        - { name: "last_decoded_vdm", expr: "concat(message_code, vendor_id, vdm_code)", width: 32 }
       preconditions: ["legal TLP bytes available"]
       inputs: ["raw TLP bytes 0..15"]
       outputs: ["requester_id, pcie_routing_type, message_code, vendor_id, vdm_code, payload_offset(16), pad_len", "first 16B header snapshot candidate"]
@@ -273,6 +286,16 @@ function_model:
         - { condition: "pad_len>3 / pad_len!=0 on non-EOM / TU not in [64,4096] or not 4B-aligned / non-EOM payload != TU or not 4B-aligned / EOM payload > TU", result: "PD_BAD_PAD_OR_ALIGNMENT packet drop" }
     - id: "FM_DECODE_MCTP"
       name: "mctp_transport_decode"
+      output_rules:
+        - { name: "header_version_ok", expr: "header_version == 1", width: 1 }
+        - { name: "som", expr: "mctp_byte0[7]", width: 1 }
+        - { name: "eom", expr: "mctp_byte0[6]", width: 1 }
+        - { name: "packet_seq", expr: "mctp_byte0[5:4]", width: 2 }
+        - { name: "tag_owner", expr: "mctp_byte0[3]", width: 1 }
+        - { name: "message_tag", expr: "mctp_byte0[2:0]", width: 3 }
+        - { name: "dest_accept", expr: "(not dest_filter_enable) or (dest_eid == local_eid) or (accept_broadcast_eid and (dest_eid == 0xFF)) or (accept_null_eid and (dest_eid == 0x00))", width: 1 }
+      state_updates:
+        - { name: "assembly_key", expr: "concat(source_eid, tag_owner, message_tag)", width: 12 }
       preconditions: ["validated VDM payload present"]
       inputs: ["MCTP transport header (last 4B of 16B header)", "SOM body byte (IC+message_type) when SOM=1"]
       outputs: ["header_version, dest_eid, source_eid, SOM, EOM, packet_seq, tag_owner, message_tag", "ic, message_type on SOM", "assembly_key={source_eid,tag_owner,message_tag}"]
@@ -282,6 +305,15 @@ function_model:
         - { condition: "dest_eid not local and not accepted broadcast/null while dest_filter_enable", result: "PD_DEST_EID_REJECT packet drop" }
     - id: "FM_ALLOC_CONTEXT"
       name: "context_allocate"
+      output_rules:
+        - { name: "alloc_ok", expr: "free_slot_available", width: 1 }
+        - { name: "single_packet", expr: "som and eom", width: 1 }
+      state_updates:
+        - { name: "ctx_state", expr: "DONE_WAIT_DESCRIPTOR_POP if (som and eom) else ASSEMBLING", width: 2 }
+        - { name: "ctx_payload_base_addr", expr: "sram_alloc_ptr", width: 16 }
+        - { name: "ctx_expected_seq", expr: "(packet_seq + 1) % 4", width: 2 }
+        - { name: "active_context_count", expr: "active_context_count + 1", width: 5 }
+        - { name: "sram_alloc_ptr", expr: "sram_alloc_ptr + allocated_len", width: 16 }
       preconditions: ["decoded MCTP packet with SOM=1"]
       inputs: ["assembly_key", "first_tlp_header[0:15]"]
       outputs: ["new ASSEMBLING context (SOM,EOM=0) or single-packet path (SOM,EOM=1)", "first_tlp_header stored", "payload_base_addr allocated from sram_alloc_ptr"]
@@ -291,6 +323,13 @@ function_model:
         - { condition: "SOM for an already-active key", result: "AD_DUPLICATE_SOM assembly drop: abort old context, suppress descriptor" }
     - id: "FM_APPEND"
       name: "context_append"
+      output_rules:
+        - { name: "seq_ok", expr: "packet_seq == ctx_expected_seq", width: 1 }
+        - { name: "message_complete", expr: "eom", width: 1 }
+      state_updates:
+        - { name: "ctx_payload_byte_count", expr: "ctx_payload_byte_count + payload_bytes", width: 13 }
+        - { name: "ctx_expected_seq", expr: "(ctx_expected_seq + 1) % 4", width: 2 }
+        - { name: "ctx_last_seq", expr: "packet_seq", width: 2 }
       preconditions: ["SOM=0 packet matches an active key", "packet_seq == ctx_expected_seq"]
       inputs: ["payload bytes", "last_tlp_header[0:15]"]
       outputs: ["payload appended; last_tlp_header updated; expected_seq incremented modulo 4", "EOM=1 marks message complete -> FM_PUBLISH_DESCRIPTOR"]
@@ -302,6 +341,14 @@ function_model:
         - { condition: "context age exceeds assembly_timeout_cycles", result: "AD_TIMEOUT assembly drop" }
     - id: "FM_PACK_SRAM"
       name: "payload_pack_write"
+      output_rules:
+        - { name: "sram_wr_valid", expr: "payload_bytes > 0", width: 1, port: "sram_wr_valid" }
+        - { name: "sram_wr_addr", expr: "ctx_payload_next_addr & ~31", width: 16, port: "sram_wr_addr" }
+        - { name: "sram_wr_strb", expr: "lane_mask(ctx_payload_next_addr & 31, payload_bytes)", width: 32, port: "sram_wr_strb" }
+      state_updates:
+        - { name: "ctx_payload_next_addr", expr: "ctx_payload_next_addr + payload_bytes", width: 16 }
+        - { name: "ctx_partial_next_lane", expr: "(ctx_partial_next_lane + payload_bytes) % 32", width: 5 }
+        - { name: "payload_bytes_written_count", expr: "payload_bytes_written_count + payload_bytes", width: 32 }
       preconditions: ["accepted payload bytes for a context"]
       inputs: ["payload bytes", "ctx partial_word state"]
       outputs: ["256-bit sram_write beats; payload byte i at byte address base_addr+i; sram_wr_strb marks only payload lanes; full words flushed, partial words retained per-context until full or EOM"]
@@ -310,6 +357,14 @@ function_model:
         - { condition: "allocation/write would exceed sram_base/limit or SRAM_ADDR_WIDTH", result: "AD_SRAM_OVERFLOW assembly drop" }
     - id: "FM_PUBLISH_DESCRIPTOR"
       name: "descriptor_publish"
+      output_rules:
+        - { name: "descriptor_ready", expr: "not descriptor_queue_full", width: 1 }
+        - { name: "descriptor_payload_len", expr: "ctx_payload_byte_count", width: 13, port: "descriptor.payload_len" }
+        - { name: "descriptor_base_addr", expr: "ctx_payload_base_addr", width: 16, port: "descriptor.payload_base_addr" }
+      state_updates:
+        - { name: "message_completed_count", expr: "message_completed_count + 1", width: 32 }
+        - { name: "descriptor_valid", expr: "1", width: 1 }
+        - { name: "ctx_state", expr: "DONE_WAIT_DESCRIPTOR_POP", width: 2 }
       preconditions: ["successful EOM for a context"]
       inputs: ["context metadata", "first/last_tlp_header"]
       outputs: ["descriptor{source_eid,dest_eid,tag_owner,message_tag,message_type,requester_id,pcie_routing_type,payload_base_addr,payload_len,final_packet_seq,context_id,completion_status,first/last_tlp_header} pushed", "descriptor_ready interrupt; message_completed_count increment"]
@@ -318,6 +373,12 @@ function_model:
         - { condition: "descriptor/header queue full at EOM", result: "AD_DESCRIPTOR_FULL assembly drop; no descriptor published" }
     - id: "FM_AXI_READ"
       name: "firmware_payload_read"
+      output_rules:
+        - { name: "rresp_next", expr: "RRESP_SLVERR if (out_of_window or (no_descriptor and not raw_sram_debug_read_enable)) else RRESP_OKAY", width: 2, port: "s_axi_rresp" }
+        - { name: "rlast_next", expr: "beat_index == arlen", width: 1, port: "s_axi_rlast" }
+      state_updates:
+        - { name: "fw_axi_read_beat_count", expr: "fw_axi_read_beat_count + 1", width: 32 }
+        - { name: "fw_axi_read_error_count", expr: "fw_axi_read_error_count + (1 if read_error else 0)", width: 32 }
       preconditions: ["ARSIZE==5", "ARBURST==INCR", "descriptor visible for the range or raw_sram_debug_read_enable"]
       inputs: ["AR address/len"]
       outputs: ["one SRAM read per R beat; rdata returned unmodified; RLAST on final beat"]
@@ -994,7 +1055,7 @@ test_requirements:
 # =============================================================================
 quality_gates:
   ssot:
-    pass: "All canonical sections present, substantive, internally consistent, no live TBD placeholders."
+    pass: "All canonical sections present, substantive, internally consistent, with no live placeholder markers."
     evidence: ["check_ssot_disk.sh PASS", "traceability covers function_model/cycle_model/test_requirements"]
   rtl_gen:
     profile: "production"
