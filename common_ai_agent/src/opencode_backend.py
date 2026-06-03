@@ -57,6 +57,7 @@ CODEX_OAUTH_ISSUER = "https://auth.openai.com"
 CODEX_CLIENT_ID = "app_EMoamEEZ73f0CkXaXp7hrann"
 
 DEFAULT_AUTH_PATH = os.path.expanduser("~/.local/share/opencode/auth.json")
+MAX_PROMPT_CACHE_KEY_LEN = 64
 
 
 # ──────────────────────────────────────────────────────────────────────────
@@ -215,6 +216,17 @@ def codex_extra_headers(account_id: Optional[str], session_id: Optional[str] = N
     return h
 
 
+def _bounded_session_cache_key(raw: str) -> str:
+    key = (raw or "").strip() or "common_ai_agent"
+    if len(key) <= MAX_PROMPT_CACHE_KEY_LEN:
+        return key
+    digest = hashlib.sha256(key.encode("utf-8")).hexdigest()[:32]
+    safe_prefix = "".join(ch if ch.isalnum() else "-" for ch in key).strip("-")
+    prefix_budget = MAX_PROMPT_CACHE_KEY_LEN - len(digest) - 1
+    prefix = (safe_prefix[:prefix_budget].strip("-") or "session")
+    return f"{prefix}-{digest}"
+
+
 def get_session_cache_key() -> str:
     """Return a stable per-session key used for both:
       • prompt_cache_key in the request body  → enables prefix caching
@@ -228,16 +240,16 @@ def get_session_cache_key() -> str:
     """
     explicit = os.environ.get("OPENCODE_CACHE_KEY", "").strip()
     if explicit:
-        return explicit
+        return _bounded_session_cache_key(explicit)
     try:
         import sys as _sys
         _main = _sys.modules.get("src.main") or _sys.modules.get("__main__")
         sid = getattr(_main, "current_session_id", None)
         if sid:
-            return str(sid)
+            return _bounded_session_cache_key(str(sid))
     except Exception:
         pass
-    return (
+    return _bounded_session_cache_key(
         os.environ.get("ATLAS_SESSION_ID", "").strip()
         or os.environ.get("LLM_SESSION_ID", "").strip()
         or "common_ai_agent"

@@ -135,6 +135,62 @@ const liveLlmRuntimeFrom = (message: any): LiveLlmRuntime => ({
 const hasLiveLlmRuntime = (runtime: LiveLlmRuntime): boolean =>
   !!(runtime.model || runtime.reasoningEffort);
 
+const ORCHESTRATOR_TERMINAL_RUN_STATES = new Set([
+  'blocked',
+  'canceled',
+  'cancelled',
+  'completed',
+  'error',
+  'failed',
+  'paused',
+  'yielded',
+]);
+
+const orchestratorFeedEntryFromLiveMessage = (message: any): any => {
+  const mapper = w.AtlasOrchestratorChatLogic?.feedEntryFromChatMessage;
+  if (typeof mapper === 'function') {
+    try {
+      const mapped = mapper(message);
+      if (mapped) return mapped;
+    } catch (_) {}
+  }
+
+  const payload = (message && message.payload) || {};
+  const role = String(payload.role || '').toLowerCase();
+  const rawContent = payload.content == null ? '' : String(payload.content);
+  const content = rawContent.trim();
+  if (!content && role !== 'assistant_delta') return null;
+  const created = Number((message && message.created_at) || 0);
+  const createdAt = created > 0 ? created * 1000 : Date.now();
+  const tool = String(payload.tool || payload.name || payload.display_name || '').trim();
+
+  if (role === 'assistant_delta') {
+    if (!rawContent) return null;
+    return {
+      kind: 'agent_delta',
+      text: rawContent,
+      streamId: String(payload.stream_id || payload.streamId || ''),
+      createdAt,
+    };
+  }
+  if (role === 'assistant') return { kind: 'agent', text: content, createdAt };
+  if (role === 'thought' || role === 'reasoning') {
+    return { kind: 'thought', text: content, createdAt };
+  }
+  if (role === 'tool') {
+    return {
+      kind: atlasIsIterationMarkerText(content) ? 'iter_marker' : 'action',
+      text: content,
+      tool,
+      createdAt,
+    };
+  }
+  if (role === 'tool_result' || role === 'observation' || role === 'obs') {
+    return { kind: 'obs', text: content, tool, createdAt };
+  }
+  return null;
+};
+
 const askKind = (value: any): string => {
   const kind = String(value || '').toLowerCase();
   if (kind === 'multi') return 'multi';
@@ -809,6 +865,35 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
         if (!eventMatchesCurrentSession(m)) return;
         const text = String((m && (m.text || m.content)) || '').trim();
         if (text) appendLiveFeedEntries({ kind: 'obs', text, tool: (m && m.tool) || '', createdAt: Date.now(), live: true });
+      }));
+      subs.push(w.backend.subscribe('orchestrator_chat', (m: any) => {
+        if (!atlasUiOrchestratorMode()) return;
+        if (!eventMatchesCurrentSession(m, { requireSession: true })) return;
+        const payload = (m && m.payload) || {};
+        const role = String(payload.role || '').toLowerCase();
+        if (role === 'run_state') {
+          const status = String(payload.status || '').toLowerCase();
+          if (ORCHESTRATOR_TERMINAL_RUN_STATES.has(status)) finishRun();
+          return;
+        }
+        const entry = orchestratorFeedEntryFromLiveMessage(m);
+        if (!entry) return;
+        appendLiveFeedEntries(entry);
+        if (
+          role === 'assistant_delta' ||
+          role === 'assistant' ||
+          role === 'thought' ||
+          role === 'reasoning' ||
+          role === 'tool' ||
+          role === 'tool_result' ||
+          role === 'observation' ||
+          role === 'obs'
+        ) {
+          const runtime = liveLlmRuntimeFrom(m);
+          if (hasLiveLlmRuntime(runtime)) setLiveLlmRuntime(runtime);
+          backendRunStartedRef.current = true;
+          setStreaming(true);
+        }
       }));
       subs.push(w.backend.subscribe('slash_output', (m: any) => {
         if (!eventMatchesCurrentSession(m)) return;
