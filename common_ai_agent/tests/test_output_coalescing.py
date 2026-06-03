@@ -234,6 +234,99 @@ def test_time_trigger_advancing_past_50ms_flushes_exactly_once(tmp_path):
     assert len(sink.rows) == 1, "timer flushed an empty buffer"
 
 
+def test_live_timer_flushes_on_emit_path_without_manual_poll(tmp_path):
+    """#4 LIVE streaming timer: the emit/add path itself flushes once the 50ms
+    interval has elapsed since the buffer's first chunk — WITHOUT anyone calling
+    ``maybe_flush_timer()`` (which never runs mid-stream while the worker is busy
+    streaming LLM tokens).
+
+    Drives ``SessionWorker.emit_content`` (the real production emit path, not the
+    raw batcher) with a fake monotonic clock: a few small tokens buffer with the
+    clock frozen (no premature flush, all under 4KB), then advancing the clock
+    past the interval and emitting one more token must flush the already-buffered
+    chunks via the emit path alone. Text/order are preserved exactly.
+    """
+    clock = _FakeClock()
+    worker = _new_worker(tmp_path, monotonic_fn=clock)
+
+    # A few small tokens with the clock frozen: each is well under 4KB so the
+    # size trigger cannot fire, and the live timer cannot fire (0 elapsed). No
+    # out-row should exist yet — they are all still buffered.
+    worker.emit_content("tok0")
+    worker.emit_content("tok1")
+    worker.emit_content("tok2")
+
+    def _batch_rows():
+        rows = worker.db.poll_messages(
+            worker.session_id, "out", since_id=None, limit=10000
+        )
+        return [r for r in rows if r.get("msg_type") == "token_batch"]
+
+    # No flush before the interval — the emit path must NOT flush early.
+    assert _batch_rows() == [], "emit path flushed before the 50ms interval"
+
+    # Stay strictly UNDER the interval, emit again: still no flush.
+    clock.advance(COALESCE_FLUSH_INTERVAL_S / 2)
+    worker.emit_content("tok3")
+    assert _batch_rows() == [], "emit path flushed before the 50ms interval"
+
+    # Cross the interval (since the buffer's FIRST chunk at t=0), then emit one
+    # more token. The emit path itself must flush the accumulated buffer — we do
+    # NOT call worker.maybe_flush_batcher_timer() / batcher.maybe_flush_timer().
+    clock.advance(COALESCE_FLUSH_INTERVAL_S)  # now well past the interval
+    worker.emit_content("tok4")
+
+    rows_after = _batch_rows()
+    assert len(rows_after) == 1, (
+        "emit path did not live-flush after the interval "
+        f"(got {len(rows_after)} batch rows)"
+    )
+
+    # The live flush emitted the chunks accumulated BEFORE tok4 (tok0..tok3);
+    # tok4 opened a fresh buffer and is still pending until an explicit flush.
+    worker.flush_batcher()
+    worker.close()
+
+    events = _expanded_events_via_bridge(worker.db, worker.session_id)
+    token_events = [e for e in events if e.get("type") == "token"]
+    # Exact text + order preserved across the live flush boundary, no loss/dup.
+    assert [e.get("text") for e in token_events] == [
+        "tok0", "tok1", "tok2", "tok3", "tok4",
+    ]
+
+
+def test_live_timer_flush_via_raw_batcher_add_path(tmp_path):
+    """Same #4 guarantee at the batcher seam: ``add_content`` live-flushes the
+    open buffer when the interval has elapsed, without ``maybe_flush_timer``."""
+    clock = _FakeClock()
+    sink = _RecordingSink()
+    batcher = _OutputBatcher(sink, monotonic_fn=clock)
+
+    batcher.add_content("a")  # opens buffer at t=0
+    batcher.add_content("b")
+    assert sink.rows == [], "size/live trigger fired prematurely"
+
+    # Under the interval: another add must NOT flush.
+    clock.advance(COALESCE_FLUSH_INTERVAL_S / 2)
+    batcher.add_content("c")
+    assert sink.rows == [], "add path flushed before the 50ms interval"
+
+    # Past the interval: the next add flushes the open buffer FIRST (a,b,c),
+    # then opens a new buffer holding the new chunk.
+    clock.advance(COALESCE_FLUSH_INTERVAL_S)
+    batcher.add_content("d")
+    assert len(sink.rows) == 1, "add path did not live-flush after the interval"
+    msg_type, payload = sink.rows[0]
+    assert msg_type == "token_batch"
+    assert [c["text"] for c in payload["chunks"]] == ["a", "b", "c"]
+
+    # "d" is still buffered (new buffer opened at the live-flush time); an
+    # explicit flush emits it on its own, preserving order.
+    batcher.flush()
+    assert len(sink.rows) == 2
+    assert [c["text"] for c in sink.rows[1][1]["chunks"]] == ["d"]
+
+
 def test_time_trigger_does_not_double_count_with_size(tmp_path):
     """Frozen clock + tiny payload => only a manual/explicit flush emits a row."""
     clock = _FakeClock()

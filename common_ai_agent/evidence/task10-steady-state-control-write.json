@@ -1,0 +1,24 @@
+{
+  "assertions": {
+    "steady_state_updated_at_flat": true,
+    "steady_state_zero_control_writes": true
+  },
+  "fan_out_passes_total": 8,
+  "feedback_item": "#1",
+  "generated_at": 1780446538.371237,
+  "mode": "session",
+  "n_sessions": 25,
+  "negative_control": {
+    "control_db_upsert_writes": 75,
+    "forced_create_true_polls": 3,
+    "has_teeth": true,
+    "manifest_updated_at_changed_count": 25
+  },
+  "steady_polls": 8,
+  "steady_state": {
+    "control_db_upsert_writes": 0,
+    "manifest_rows_snapshotted": 25,
+    "manifest_updated_at_changed_count": 0
+  },
+  "task": "task10-steady-state-control-write-proof"
+}

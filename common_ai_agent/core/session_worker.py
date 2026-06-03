@@ -141,6 +141,21 @@ class _OutputBatcher:
         # AND never mix token + reasoning chunks in one batch row).
         if self._kind and self._kind != kind:
             self.flush()
+        # LIVE timer trigger (#4): during an active LLM token stream the worker
+        # poll loop is NOT running, so maybe_flush_timer() is never called between
+        # tokens. Without this the open buffer is held until the 4KB size cap, a
+        # non-mergeable event, or stream end — spiking mid-stream latency. Check
+        # the monotonic clock on the emit/add path itself: if the open buffer has
+        # been held >= the 50ms interval since its FIRST chunk, flush it NOW
+        # (in-position, before the new chunk opens a fresh buffer). This emits the
+        # already-accumulated chunks promptly; order/content are untouched because
+        # we only flush the existing buffer ahead of appending the new chunk.
+        if (
+            self._chunks
+            and self._opened_monotonic is not None
+            and (self._monotonic() - self._opened_monotonic) >= self._flush_interval
+        ):
+            self.flush()
         if not self._chunks:
             self._kind = kind
             self._opened_monotonic = self._monotonic()

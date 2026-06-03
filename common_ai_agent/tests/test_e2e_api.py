@@ -121,6 +121,45 @@ def test_session_state_reads_db_messages_before_file_fallback(tmp_path, monkeypa
     assert conversation["messages"][0]["text"] == "hello from db"
 
 
+def test_session_state_falls_back_to_control_when_runtime_file_missing(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+    from core.atlas_db import AtlasDB
+    from core.atlas_db_router import AtlasDBRouter
+
+    control_path = tmp_path / "atlas.db"
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.setenv("ATLAS_DB_PATH", str(control_path))
+    monkeypatch.setenv("ATLAS_CONTROL_DB_PATH", str(control_path))
+    monkeypatch.setenv("ATLAS_RUNTIME_DB_MODE", "session")
+    monkeypatch.setenv("ATLAS_RUNTIME_DB_ROOT", str(tmp_path / "runtime"))
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    client = TestClient(atlas_ui.create_app())
+    login = client.post("/api/auth/register", json={"username": "db_reader", "password": "pw"})
+    assert login.status_code == 200, login.text
+
+    created = client.post("/api/sessions", json={"title": "DB Session", "project_id": "timer"})
+    assert created.status_code == 200, created.text
+    session_id = created.json()["session_id"]
+    route = AtlasDBRouter().runtime_route(session_id, create=True)
+    assert not Path(route.runtime_db_path).exists()
+
+    with AtlasDB(str(control_path), schema_set="full") as db:
+        msg = db.save_message(session_id, "assistant", agent="ssot-gen")
+        db.save_part(msg["id"], session_id, "text", text="hello from control fallback")
+
+    state = client.get(f"/api/session/state?session={session_id}")
+
+    assert state.status_code == 200, state.text
+    conversation = state.json()["conversation"]
+    assert conversation["source"] == "db"
+    assert conversation["exists"] is True
+    assert conversation["messages"][0]["text"] == "hello from control fallback"
+    assert not Path(route.runtime_db_path).exists()
+
+
 def test_session_state_keeps_file_fallback_for_namespace_sessions(tmp_path, monkeypatch):
     import src.atlas_ui as atlas_ui
 

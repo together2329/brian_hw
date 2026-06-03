@@ -2973,10 +2973,10 @@ class AtlasDB:
     ) -> Dict[str, Any]:
         """Delete a session and all associated messages and parts.
 
-        Runtime-DB safety (plan §2.12 / R12 + carried Task-7 LOW#2): in session
-        mode this session may also own a per-session runtime ``.db`` file plus a
-        manifest / rollup / offset bookkeeping set. Deleting only the control
-        tables would orphan that file forever. So we ALSO route through
+        Runtime-DB safety (plan §2.12 / R12 + carried Task-7 LOW#2 + review #2):
+        in session mode this session may also own a per-session runtime ``.db``
+        file plus a manifest / rollup / offset bookkeeping set. Deleting only the
+        control tables would orphan that file forever. So we ALSO route through
         :func:`core.runtime_rollup.delete_session_runtime`, which (a) gates on the
         runtime queue depth — a non-empty queue requires ``force=True`` and writes
         an audit row, otherwise the runtime delete is skipped — (b) evicts any
@@ -2984,18 +2984,25 @@ class AtlasDB:
         ``.db``/``-wal``/``-shm`` files, and (d) atomically scrubs the
         manifest/rollup/offset rows.
 
-        In central mode the runtime step is a no-op (there is no runtime file),
-        so behavior is byte-identical to before. The control-table delete here is
-        unchanged. Returns a dict with the control delete plus the runtime delete
+        ORDERING (review #2): the runtime queue-depth gate runs BEFORE any control
+        row is touched. Deleting control rows first then skipping the runtime
+        delete (non-empty queue, ``force=False``) would orphan the runtime
+        file/manifest while the session row is already gone — the API could report
+        ``deleted=true`` for a session that still has in-flight runtime work. So a
+        non-empty runtime queue without ``force`` is now a NO-OP for the control
+        rows too: nothing is deleted and the returned dict carries
+        ``deleted=False`` plus ``runtime.force_required=True`` so the caller can
+        surface a "force required" / 409 outcome. Control rows are deleted ONLY
+        after runtime cleanup succeeded (``runtime.deleted``) OR a path with no
+        runtime file to orphan is confirmed (central mode / no manifest).
+
+        In central mode the runtime step is a no-op (there is no runtime file) and
+        the control-table delete is byte-identical to before. Returns a dict with
+        ``deleted`` (control delete actually happened) plus the runtime delete
         outcome so callers can surface a "force required" signal.
         """
-        with self._lock:
-            conn = self._connect()
-            conn.execute("DELETE FROM parts WHERE session_id = ?", (session_id,))
-            conn.execute("DELETE FROM messages WHERE session_id = ?", (session_id,))
-            conn.execute("DELETE FROM sessions WHERE id = ?", (session_id,))
-            conn.commit()
-
+        # ---- Runtime gate FIRST (review #2): never delete control rows while a
+        # runtime file/manifest could be left orphaned. ------------------------
         runtime_outcome: Dict[str, Any] = {"deleted": False, "skipped_reason": "central_mode"}
         try:
             # Imported lazily to avoid a control<->router import cycle at module
@@ -3017,7 +3024,31 @@ class AtlasDB:
             }
         except Exception as exc:  # never let runtime cleanup break a control delete
             runtime_outcome = {"deleted": False, "error": str(exc)}
-        return {"session_id": session_id, "runtime": runtime_outcome}
+
+        # A non-empty runtime queue without force must block the control delete so
+        # the (still-present) runtime file/manifest is not orphaned. This is the
+        # ONLY case that aborts the control delete; central_mode / no_manifest /
+        # successful runtime delete all proceed.
+        if (
+            not force
+            and runtime_outcome.get("skipped_reason") == "queue_non_empty"
+        ):
+            runtime_outcome["force_required"] = True
+            return {
+                "session_id": session_id,
+                "deleted": False,
+                "runtime": runtime_outcome,
+            }
+
+        # Runtime is gone (or there was never one to orphan): now delete control.
+        with self._lock:
+            conn = self._connect()
+            conn.execute("DELETE FROM parts WHERE session_id = ?", (session_id,))
+            conn.execute("DELETE FROM messages WHERE session_id = ?", (session_id,))
+            conn.execute("DELETE FROM sessions WHERE id = ?", (session_id,))
+            conn.commit()
+
+        return {"session_id": session_id, "deleted": True, "runtime": runtime_outcome}
 
     # ---------- Messages ----------
 
@@ -3683,23 +3714,37 @@ class AtlasDB:
 
         Batched, not per-token: ``up_to_id`` is the TEXT id of the batch's LAST
         (highest) row in the strict total order ``(created_at, rowid)``; this sets
-        ``delivered_at = now`` for every row of *session_id*/*direction* with
-        ``rowid <= up_to_id``'s rowid that is still ``delivered_at IS NULL``. One
-        UPDATE per poll-batch per session keeps write amplification minimal; an
-        absent / already-marked ``up_to_id`` is a no-op (returns 0). Returns the
-        number of rows newly marked delivered.
+        ``delivered_at = now`` for every row of *session_id*/*direction* up to and
+        including that row IN THAT SAME ORDER that is still ``delivered_at IS
+        NULL``. One UPDATE per poll-batch per session keeps write amplification
+        minimal; an absent / already-marked ``up_to_id`` is a no-op (returns 0).
+        Returns the number of rows newly marked delivered.
+
+        Order match (review #3): polling/dequeue use the strict total order
+        ``(created_at, rowid)``, NOT bare ``rowid``. A backward wall-clock step
+        can give a row a LOWER ``created_at`` but a HIGHER ``rowid`` than an
+        earlier-inserted row, so it sorts EARLIER in the poll order. Marking with
+        a bare ``rowid <= up_to_rowid`` would then mark a higher-rowid row that
+        was actually delivered while LEAVING a lower-rowid row that sorts later
+        (and was NOT yet delivered) — or, conversely, mark a row that has not been
+        polled yet. We therefore resolve ``up_to_id`` to its ``(created_at,
+        rowid)`` boundary and mark with the MATCHING tuple predicate
+        ``created_at < :c OR (created_at = :c AND rowid <= :r)``. This stays
+        consistent with :meth:`poll_messages` and :meth:`reseed_output_cursor`,
+        which order by the same tuple.
         """
         if not up_to_id:
             return 0
         with self._lock:
             conn = self._connect()
             cursor_row = conn.execute(
-                "SELECT rowid FROM session_queue WHERE id = ?",
+                "SELECT rowid, created_at FROM session_queue WHERE id = ?",
                 (up_to_id,),
             ).fetchone()
             if cursor_row is None:
                 return 0
             up_to_rowid = cursor_row["rowid"]
+            up_to_created_at = cursor_row["created_at"]
             cursor = conn.execute(
                 """
                 UPDATE session_queue
@@ -3707,9 +3752,17 @@ class AtlasDB:
                  WHERE session_id = ?
                    AND direction = ?
                    AND delivered_at IS NULL
-                   AND rowid <= ?
+                   AND (created_at < ?
+                        OR (created_at = ? AND rowid <= ?))
                 """,
-                (self._now(), session_id, direction, up_to_rowid),
+                (
+                    self._now(),
+                    session_id,
+                    direction,
+                    up_to_created_at,
+                    up_to_created_at,
+                    up_to_rowid,
+                ),
             )
             conn.commit()
             return cursor.rowcount

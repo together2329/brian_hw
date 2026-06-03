@@ -227,6 +227,29 @@ def _control_session_queue_count(control_path: str) -> int:
         conn.close()
 
 
+def _control_manifest_updated_at(control_path: str) -> Dict[str, float]:
+    """Snapshot ``session_runtime_dbs.updated_at`` for every manifest row.
+
+    Read with a RAW sqlite3 connection straight off the control file on disk
+    (NOT AtlasDB / NOT the router cache) so we observe exactly what was last
+    persisted. ``updated_at`` is bumped only by ``upsert_session_runtime_db``
+    (manifest create/refresh). A flat snapshot across repeated polls is the
+    on-disk proof that the hot poll path did not re-upsert the manifest, i.e.
+    did not write the Control DB (feedback #1 / Task 10 steady-state assertion).
+    """
+    conn = sqlite3.connect(control_path)
+    try:
+        rows = conn.execute(
+            "SELECT session_id, updated_at FROM session_runtime_dbs"
+        ).fetchall()
+        return {str(r[0]): float(r[1]) for r in rows}
+    except sqlite3.OperationalError:
+        # Manifest table absent => no rows to snapshot.
+        return {}
+    finally:
+        conn.close()
+
+
 # --------------------------------------------------------------------------- #
 # Fixture: isolated session-mode environment (temp control DB + runtime root).
 # --------------------------------------------------------------------------- #
@@ -715,6 +738,206 @@ def test_runtime_db_100_user_scale(session_mode_env):
     assert poll_block["p95"] <= P95_POLL_MS, (
         f"p95 poll {poll_block['p95']}ms > {P95_POLL_MS}ms (full block: {poll_block})"
     )
+
+
+# --------------------------------------------------------------------------- #
+# Steady-state Control-DB write proof (feedback #1 / Task 10 closing line).
+#
+# feedback #1 is already CODE-FIXED by SessionProcessManager._runtime_path_cache:
+# a warm poll resolves the runtime path from the cache and never calls
+# AtlasDBRouter.runtime_route(create=True), so it never re-upserts the
+# session_runtime_dbs manifest (= a Control-DB write). This test is the missing
+# PROOF, not a code change. It asserts that after warm-up, many repeated
+# broadcaster passes over active sessions:
+#
+#   (a) do NOT change any session's session_runtime_dbs.updated_at (on-disk
+#       snapshot read with raw sqlite3 — the manifest is the only thing the hot
+#       path could touch in the Control DB), AND
+#   (b) make ZERO upsert_session_runtime_db calls (a Control-DB write counter
+#       wrapped at the AtlasDB class level — catches the router's own control_db
+#       instances too).
+#
+# Both signals must stay flat across >= MIN_STEADY_POLLS full fan-outs.
+#
+# The assertion has TEETH: forcing create=True per poll (modelled here by
+# clearing the manager's _runtime_path_cache before each poll, which is exactly
+# what the un-fixed code did) makes BOTH (a) and (b) trip. We exercise that
+# negative control inline so the proof is self-verifying without leaving the
+# test asserting the wrong behavior.
+# --------------------------------------------------------------------------- #
+
+
+# Steady-state knobs: a smaller fleet is enough to prove zero Control-DB writes
+# while keeping the test fast (the property is per-poll-per-session, so 25
+# sessions x many passes already covers the per-session fan-out).
+STEADY_N_SESSIONS = 25
+STEADY_TOKENS_PER_STREAM = 12
+STEADY_MIN_POLLS = 8
+
+
+def _build_active_fleet(router, manager, bridge, session_ids):
+    """Activate every session (cold-spawn manifest write) + seed output rows.
+
+    Returns nothing; afterwards manager.list_active() == session_ids and each
+    session's runtime DB has STEADY_TOKENS_PER_STREAM undelivered out-rows.
+    """
+    for sid in session_ids:
+        # Cold path: runtime_route(create=True) mints uid + upserts the manifest
+        # (the ONLY legitimate Control-DB write for this session). Seed output.
+        route = router.runtime_route(sid, create=True)
+        rdb = AtlasDB(route.runtime_db_path, schema_set="runtime")
+        try:
+            for i in range(STEADY_TOKENS_PER_STREAM):
+                rdb.enqueue_message(sid, "out", "token", {"text": f"x{i}|", "i": i})
+        finally:
+            rdb.close()
+        _inject_fake_process(manager, sid)
+
+
+def test_steady_state_polling_does_not_write_control_db(session_mode_env):
+    """After warm-up, repeated broadcaster passes write ZERO to the Control DB.
+
+    Proves feedback #1's required assertion: session_runtime_dbs.updated_at must
+    not change AND a Control-DB write counter stays flat across many polls.
+    """
+    control_path = session_mode_env["control_path"]
+    runtime_root = session_mode_env["runtime_root"]
+
+    router = AtlasDBRouter(
+        control_path=control_path, runtime_root=runtime_root, mode="session"
+    )
+    manager = SessionProcessManager(db_path=control_path, router=router)
+    bridge = _build_bridge_with_real_manager(manager)
+    session_ids = _session_ids(STEADY_N_SESSIONS)
+
+    _build_active_fleet(router, manager, bridge, session_ids)
+    assert sorted(manager.list_active()) == sorted(session_ids)
+
+    # Control-DB write counter: wrap upsert_session_runtime_db at the CLASS level
+    # so it catches every AtlasDB instance, including the router's own
+    # control_db() handles opened inside runtime_route(create=True). This is the
+    # exact write feedback #1 names ("upsert session_runtime_dbs on every poll").
+    real_upsert = AtlasDB.upsert_session_runtime_db
+    upsert_calls = {"n": 0}
+
+    def _counting_upsert(self, *args, **kwargs):
+        upsert_calls["n"] += 1
+        return real_upsert(self, *args, **kwargs)
+
+    # -- Warm-up: one poll pass so _runtime_path_cache + connection handles are
+    # established. The steady-state claim is about polls AFTER warm-up.
+    bridge._poll_process_outputs()
+    for sid in session_ids:
+        # Drain the warm-up outbox so later passes start clean.
+        _drain_outbox(bridge.get_session(sid))
+
+    # Snapshot updated_at AFTER warm-up (raw sqlite3, straight off disk).
+    before = _control_manifest_updated_at(control_path)
+    assert len(before) == STEADY_N_SESSIONS, (
+        f"manifest snapshot must cover all sessions, got {len(before)}"
+    )
+
+    # -- Steady state: many repeated broadcaster passes, write counter armed. -- #
+    AtlasDB.upsert_session_runtime_db = _counting_upsert
+    try:
+        for _ in range(STEADY_MIN_POLLS):
+            bridge._poll_process_outputs()
+            for sid in session_ids:
+                _drain_outbox(bridge.get_session(sid))
+    finally:
+        AtlasDB.upsert_session_runtime_db = real_upsert
+    steady_upserts = upsert_calls["n"]
+
+    after = _control_manifest_updated_at(control_path)
+
+    # (a) on-disk proof: no manifest updated_at moved across the steady polls.
+    changed = {
+        sid: (before.get(sid), after.get(sid))
+        for sid in session_ids
+        if before.get(sid) != after.get(sid)
+    }
+    # (b) write-counter proof: zero manifest upserts during steady-state polling.
+    assert steady_upserts == 0, (
+        f"steady-state polling made {steady_upserts} Control-DB "
+        f"upsert_session_runtime_db writes over {STEADY_MIN_POLLS} polls x "
+        f"{STEADY_N_SESSIONS} sessions (want 0; hot path re-upserts the manifest)"
+    )
+    assert not changed, (
+        "session_runtime_dbs.updated_at changed during steady-state polling "
+        f"(want flat): {dict(list(changed.items())[:5])}"
+    )
+
+    # -- Negative control (teeth): force create=True per poll, exactly like the
+    # un-fixed code, and confirm the SAME two signals now TRIP. We model the
+    # broken behavior by clearing _runtime_path_cache before each poll so
+    # _resolve_runtime_db_path misses the cache and calls runtime_route(create=
+    # True), re-upserting the manifest. This proves the assertion above is
+    # load-bearing; the test is LEFT asserting the correct (zero-write) behavior.
+    forced_before = _control_manifest_updated_at(control_path)
+    teeth_calls = {"n": 0}
+
+    def _counting_upsert_teeth(self, *args, **kwargs):
+        teeth_calls["n"] += 1
+        return real_upsert(self, *args, **kwargs)
+
+    AtlasDB.upsert_session_runtime_db = _counting_upsert_teeth
+    try:
+        for _ in range(3):
+            with manager._db_handles_lock:
+                manager._runtime_path_cache.clear()  # force cache miss == create=True
+            bridge._poll_process_outputs()
+            for sid in session_ids:
+                _drain_outbox(bridge.get_session(sid))
+    finally:
+        AtlasDB.upsert_session_runtime_db = real_upsert
+    forced_after = _control_manifest_updated_at(control_path)
+    forced_changed = sum(
+        1 for sid in session_ids
+        if forced_before.get(sid) != forced_after.get(sid)
+    )
+    # The negative control MUST trip both signals — otherwise the steady-state
+    # assertion is vacuous (could pass even with a broken hot path).
+    assert teeth_calls["n"] > 0, (
+        "negative control failed to force a Control-DB write — the steady-state "
+        "assertion would be vacuous (no teeth)"
+    )
+    assert forced_changed > 0, (
+        "negative control failed to move any updated_at — the on-disk "
+        "steady-state assertion would be vacuous (no teeth)"
+    )
+
+    # -- Evidence ---------------------------------------------------------- #
+    evidence = {
+        "task": "task10-steady-state-control-write-proof",
+        "feedback_item": "#1",
+        "generated_at": time.time(),
+        "mode": "session",
+        "n_sessions": STEADY_N_SESSIONS,
+        "steady_polls": STEADY_MIN_POLLS,
+        "fan_out_passes_total": STEADY_MIN_POLLS,
+        "steady_state": {
+            "control_db_upsert_writes": steady_upserts,
+            "manifest_updated_at_changed_count": len(changed),
+            "manifest_rows_snapshotted": len(before),
+        },
+        "negative_control": {
+            "forced_create_true_polls": 3,
+            "control_db_upsert_writes": teeth_calls["n"],
+            "manifest_updated_at_changed_count": forced_changed,
+            "has_teeth": teeth_calls["n"] > 0 and forced_changed > 0,
+        },
+        "assertions": {
+            "steady_state_zero_control_writes": steady_upserts == 0,
+            "steady_state_updated_at_flat": not changed,
+        },
+    }
+    evidence_dir = PROJECT_ROOT / "evidence"
+    evidence_dir.mkdir(parents=True, exist_ok=True)
+    evidence_path = evidence_dir / "task10-steady-state-control-write.json"
+    evidence_path.write_text(json.dumps(evidence, indent=2, sort_keys=True))
+    print("\n[task10-steady-state] " + json.dumps(evidence, sort_keys=True))
+
+    manager.stop_all()
 
 
 # --------------------------------------------------------------------------- #
