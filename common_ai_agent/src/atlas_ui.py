@@ -2019,7 +2019,7 @@ def create_app():
                     or _owned_healthz_session(_active_session_value())
                 )
                 if not active_session:
-                    active_session = f"{_session_owner_with_model(username_norm)}/default/default"
+                    active_session = f"{_session_owner_with_model(username_norm)}/default/default/default"
                 info["active_session"] = active_session
             else:
                 info["active_session"] = (
