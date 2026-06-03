@@ -92,7 +92,39 @@ def test_atlas_context_v2_key_derives_workspace_ip_and_session_roots(tmp_path: P
     assert ctx.workspace_root == tmp_path / "alice" / "session-a"
     assert ctx.ip_root == tmp_path / "alice" / "session-a" / "dma"
     assert ctx.session_dir == tmp_path / "alice" / "session-a" / ".session" / "dma" / "rtl-gen"
+    assert ctx.export_env()["ATLAS_SESSION_ID"] == "session-a"
+    assert ctx.export_env()["ATLAS_CONTEXT_KEY"] == "alice/session-a/dma/rtl-gen"
     assert ctx.export_env()["ATLAS_PROJECT_ROOT"] == str(tmp_path / "alice" / "session-a")
+
+
+def test_atlas_context_v1_key_uses_legacy_project_root_paths(tmp_path: Path) -> None:
+    from core.atlas_context import AtlasContext
+
+    ctx = AtlasContext.from_session_key("alice/dma/rtl-gen", atlas_root=tmp_path)
+
+    assert ctx.user_name == "alice"
+    assert ctx.workspace_session == "default"
+    assert ctx.ip_name == "dma"
+    assert ctx.workflow == "rtl-gen"
+    assert ctx.context_key == "alice/default/dma/rtl-gen"
+    assert ctx.legacy_session_key == "alice/dma/rtl-gen"
+    assert ctx.workspace_root == tmp_path
+    assert ctx.ip_root == tmp_path / "dma"
+    assert ctx.session_dir == tmp_path / ".session" / "alice" / "dma" / "rtl-gen"
+    assert ctx.export_env()["ATLAS_ACTIVE_SESSION"] == "alice/dma/rtl-gen"
+
+
+def test_atlas_context_from_env_prefers_context_key(tmp_path: Path, monkeypatch) -> None:
+    from core.atlas_context import AtlasContext
+
+    monkeypatch.setenv("ATLAS_ROOT", str(tmp_path))
+    monkeypatch.setenv("ATLAS_CONTEXT_KEY", "alice/session-a/dma/rtl-gen")
+    monkeypatch.setenv("ATLAS_ACTIVE_SESSION", "bob/legacy/default")
+
+    ctx = AtlasContext.from_env()
+
+    assert ctx.context_key == "alice/session-a/dma/rtl-gen"
+    assert ctx.workspace_root == tmp_path / "alice" / "session-a"
 
 
 def test_atlas_context_rejects_path_escape_segments(tmp_path: Path) -> None:
