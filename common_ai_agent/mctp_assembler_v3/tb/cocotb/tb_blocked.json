@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "type": "tb_blocker",
+  "status": "blocked",
+  "owner": "ssot-gen + rtl-gen + tb-gen",
+  "ip": "mctp_assembler_v3",
+  "reason": "SSOT/RTL contract is not concrete enough for generic cocotb scoreboard generation.",
+  "questions": [
+    {
+      "id": "TB_INPUT_MAP_SOM",
+      "decision_needed": "Map transaction field 'som' to a real input port.",
+      "evidence": "rtl_contract.input_map.som='som', but 'som' is not an input port.",
+      "options": [
+        "Repair rtl_contract.input_map or io_list."
+      ],
+      "recommended_default": "Repair rtl_contract.input_map or io_list.",
+      "downstream_effect": "The cocotb driver must know which DUT pin receives each FunctionalModel field."
+    },
+    {
+      "id": "TB_INPUT_MAP_EOM",
+      "decision_needed": "Map transaction field 'eom' to a real input port.",
+      "evidence": "rtl_contract.input_map.eom='eom', but 'eom' is not an input port.",
+      "options": [
+        "Repair rtl_contract.input_map or io_list."
+      ],
+      "recommended_default": "Repair rtl_contract.input_map or io_list.",
+      "downstream_effect": "The cocotb driver must know which DUT pin receives each FunctionalModel field."
+    },
+    {
+      "id": "TB_INPUT_MAP_BEAT_INDEX",
+      "decision_needed": "Map transaction field 'beat_index' to a real input port.",
+      "evidence": "rtl_contract.input_map.beat_index='beat_index', but 'beat_index' is not an input port.",
+      "options": [
+        "Repair rtl_contract.input_map or io_list."
+      ],
+      "recommended_default": "Repair rtl_contract.input_map or io_list.",
+      "downstream_effect": "The cocotb driver must know which DUT pin receives each FunctionalModel field."
+    },
+    {
+      "id": "TB_INPUT_MAP_OUT_OF_WINDOW",
+      "decision_needed": "Map transaction field 'out_of_window' to a real input port.",
+      "evidence": "rtl_contract.input_map.out_of_window='out_of_window', but 'out_of_window' is not an input port.",
+      "options": [
+        "Repair rtl_contract.input_map or io_list."
+      ],
+      "recommended_default": "Repair rtl_contract.input_map or io_list.",
+      "downstream_effect": "The cocotb driver must know which DUT pin receives each FunctionalModel field."
+    },
+    {
+      "id": "TB_INPUT_MAP_NO_DESCRIPTOR",
+      "decision_needed": "Map transaction field 'no_descriptor' to a real input port.",
+      "evidence": "rtl_contract.input_map.no_descriptor='no_descriptor', but 'no_descriptor' is not an input port.",
+      "options": [
+        "Repair rtl_contract.input_map or io_list."
+      ],
+      "recommended_default": "Repair rtl_contract.input_map or io_list.",
+      "downstream_effect": "The cocotb driver must know which DUT pin receives each FunctionalModel field."
+    },
+    {
+      "id": "TB_INPUT_MAP_PAYLOAD_BYTES",
+      "decision_needed": "Map transaction field 'payload_bytes' to a real input port.",
+      "evidence": "rtl_contract.input_map.payload_bytes='payload_bytes', but 'payload_bytes' is not an input port.",
+      "options": [
+        "Repair rtl_contract.input_map or io_list."
+      ],
+      "recommended_default": "Repair rtl_contract.input_map or io_list.",
+      "downstream_effect": "The cocotb driver must know which DUT pin receives each FunctionalModel field."
+    },
+    {
+      "id": "TB_INPUT_MAP_RAW_SRAM_DEBUG_READ_ENABLE",
+      "decision_needed": "Map transaction field 'raw_sram_debug_read_enable' to a real input port.",
+      "evidence": "rtl_contract.input_map.raw_sram_debug_read_enable='raw_sram_debug_read_enable', but 'raw_sram_debug_read_enable' is not an input port.",
+      "options": [
+        "Repair rtl_contract.input_map or io_list."
+      ],
+      "recommended_default": "Repair rtl_contract.input_map or io_list.",
+      "downstream_effect": "The cocotb driver must know which DUT pin receives each FunctionalModel field."
+    },
+    {
+      "id": "TB_INPUT_MAP_TLP_BYTES",
+      "decision_needed": "Map transaction field 'tlp_bytes' to a real input port.",
+      "evidence": "rtl_contract.input_map.tlp_bytes='axi_wr_slave_wdata_wstrb_across_beats_byte_lane_N_wdata_8_N_8', but 'axi_wr_slave_wdata_wstrb_across_beats_byte_lane_N_wdata_8_N_8' is not an input port.",
+      "options": [
+        "Repair rtl_contract.input_map or io_list."
+      ],
+      "recommended_default": "Repair rtl_contract.input_map or io_list.",
+      "downstream_effect": "The cocotb driver must know which DUT pin receives each FunctionalModel field."
+    },
+    {
+      "id": "TB_INPUT_MAP_CONFIG",
+      "decision_needed": "Map transaction field 'config' to a real input port.",
+      "evidence": "rtl_contract.input_map.config='registers_CONTROL', but 'registers_CONTROL' is not an input port.",
+      "options": [
+        "Repair rtl_contract.input_map or io_list."
+      ],
+      "recommended_default": "Repair rtl_contract.input_map or io_list.",
+      "downstream_effect": "The cocotb driver must know which DUT pin receives each FunctionalModel field."
+    },
+    {
+      "id": "TB_INPUT_MAP_FW_READ",
+      "decision_needed": "Map transaction field 'fw_read' to a real input port.",
+      "evidence": "rtl_contract.input_map.fw_read='axi_rd_slave_araddr_arlen', but 'axi_rd_slave_araddr_arlen' is not an input port.",
+      "options": [
+        "Repair rtl_contract.input_map or io_list."
+      ],
+      "recommended_default": "Repair rtl_contract.input_map or io_list.",
+      "downstream_effect": "The cocotb driver must know which DUT pin receives each FunctionalModel field."
+    }
+  ],
+  "next_action": "Repair SSOT/RTL contract through ATLAS, rerun /ssot-rtl, then rerun /tb.",
+  "timestamp": "2026-06-03T12:52:26Z"
+}
