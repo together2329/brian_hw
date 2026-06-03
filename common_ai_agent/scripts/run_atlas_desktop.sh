@@ -378,7 +378,7 @@ choose_backend_for_root
 start_backend_if_needed
 
 if [[ "$MODE" == "prod" ]]; then
-  APP="src-tauri/target/release/bundle/macos/ATLAS.app"
+  APP="$HERE/src-tauri/target/release/bundle/macos/ATLAS.app"
   BIN="$APP/Contents/MacOS/atlas-desktop"
   if [[ ! -x "$BIN" ]]; then
     echo "built app not found at $APP - run a release build first:" >&2

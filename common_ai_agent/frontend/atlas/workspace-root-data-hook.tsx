@@ -386,10 +386,17 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
           Object.prototype.hasOwnProperty.call(j, 'policy')
         );
         if (!hasStatusPayload) return;
-        const worker = j.worker || null;
+        const hasWorkerField = Object.prototype.hasOwnProperty.call(j, 'worker');
+        const worker = hasWorkerField && j.worker ? j.worker : null;
         const state = worker && worker.state
           ? String(worker.state)
-          : (Number(j.active_count || 0) > 0 ? 'ready' : 'failed');
+          : worker && worker.running
+            ? 'running'
+            : worker && worker.alive
+              ? 'ready'
+              : hasWorkerField
+                ? 'failed'
+                : (Number(j.active_count || 0) > 0 ? 'ready' : 'failed');
         if (!cancelled) {
           setInteractiveWorkerStatus({
             policy: String(j.policy || ''),
