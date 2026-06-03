@@ -1,60 +1,53 @@
 COMMAND: PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest tests/test_atlas_exec_policy.py tests/test_atlas_api_pipeline_state.py::test_pipeline_run_policy_get_post_and_state_payload tests/test_atlas_api_pipeline_state.py::test_orchestrator_mode_post_toggles_env_and_state_payload tests/test_atlas_api_pipeline_state.py::test_pipeline_state_preserves_blocked_db_row_as_blocked -q
 .........                                                                [100%]
-9 passed in 1.10s
+9 passed in 0.76s
 COMMAND: cd frontend/atlas && ./node_modules/.bin/vitest run __tests__/pipeline-stage-blocked.test.tsx __tests__/app-shell-font-select.test.tsx __tests__/exec-policy.test.mjs __tests__/session-routing.test.mjs
 
  RUN  v3.2.4 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/frontend/atlas
 
- ✓ __tests__/session-routing.test.mjs (6 tests) 6ms
- ✓ __tests__/exec-policy.test.mjs (3 tests) 2ms
- ✓ __tests__/app-shell-font-select.test.tsx (10 tests) 91ms
- ✓ __tests__/pipeline-stage-blocked.test.tsx (6 tests) 284ms
+ ✓ __tests__/exec-policy.test.mjs (3 tests) 3ms
+ ✓ __tests__/session-routing.test.mjs (6 tests) 3ms
+ ✓ __tests__/app-shell-font-select.test.tsx (10 tests) 110ms
+ ✓ __tests__/pipeline-stage-blocked.test.tsx (6 tests) 269ms
 
  Test Files  4 passed (4)
       Tests  25 passed (25)
-   Start at  20:31:59
-   Duration  1.70s (transform 395ms, setup 317ms, collect 797ms, tests 383ms, environment 2.58s, prepare 456ms)
+   Start at  20:34:29
+   Duration  1.61s (transform 433ms, setup 335ms, collect 825ms, tests 385ms, environment 2.21s, prepare 509ms)
 
-COMMAND: Playwright Vite UI smoke for exec picker + blocked/failed owner state
-browser-console-error: Failed to load resource: the server responded with a status of 404 (Not Found)
-browser-console-error: Failed to load resource: the server responded with a status of 404 (Not Found)
-browser-console-error: Failed to load resource: the server responded with a status of 404 (Not Found)
-browser-console-warning: WebSocket connection to 'ws://127.0.0.1:51152/ws/agent' failed: WebSocket is closed before the connection is established.
-browser-console-warning: WebSocket connection to 'ws://127.0.0.1:51152/ws/agent?session_id=u%2Fulw_ui_ip%2Fdefault' failed: WebSocket is closed before the connection is established.
-browser-console-warning: WebSocket connection to 'ws://127.0.0.1:51152/ws/agent?session_id=u%2Fdefault%2Fulw_ui_ip%2Fdefault' failed: WebSocket is closed before the connection is established.
-browser-console-error: Failed to load resource: the server responded with a status of 404 (Not Found)
-browser-console-error: Failed to load resource: the server responded with a status of 404 (Not Found)
-browser-console-error: Failed to load resource: the server responded with a status of 404 (Not Found)
-browser-console-error: Failed to load resource: the server responded with a status of 404 (Not Found)
-browser-console-warning: WebSocket connection to 'ws://127.0.0.1:51152/ws/agent?session_id=default%2Fdefault' failed: WebSocket is closed before the connection is established.
-browser-console-error: Failed to load resource: the server responded with a status of 404 (Not Found)
-browser-console-error: Warning: You are calling ReactDOMClient.createRoot() on a container that has already been passed to createRoot() before. Instead, call root.render() on the existing root instead if you want to update it.
-browser-console-warning: WebSocket connection to 'ws://127.0.0.1:51152/ws/agent?session_id=u%2Fdefault%2Fdefault%2Forchestrator' failed: WebSocket is closed before the connection is established.
-browser-console-warning: WebSocket connection to 'ws://127.0.0.1:51152/ws/agent?session_id=u%2Fdefault%2Forchestrator' failed: WebSocket is closed before the connection is established.
-browser-console-error: Failed to load resource: the server responded with a status of 404 (Not Found)
-browser-console-error: Failed to load resource: the server responded with a status of 404 (Not Found)
-browser-console-error: Failed to load resource: the server responded with a status of 404 (Not Found)
-browser-console-error: Failed to load resource: the server responded with a status of 404 (Not Found)
-browser-console-warning: WebSocket connection to 'ws://127.0.0.1:51152/ws/agent' failed: WebSocket is closed before the connection is established.
-browser-console-warning: WebSocket connection to 'ws://127.0.0.1:51152/ws/agent?session_id=u%2Fdefault%2Forchestrator' failed: WebSocket is closed before the connection is established.
-browser-console-warning: WebSocket connection to 'ws://127.0.0.1:51152/ws/agent?session_id=u%2Fdefault%2Fdefault%2Forchestrator' failed: WebSocket is closed before the connection is established.
-browser-console-error: Failed to load resource: the server responded with a status of 404 (Not Found)
-browser-console-error: Failed to load resource: the server responded with a status of 404 (Not Found)
+COMMAND: Playwright Vite component smoke for exec picker + blocked/failed owner state
 browser-console-error: Failed to load resource: the server responded with a status of 404 (Not Found)
 {
+  "port": 51593,
+  "execBefore": "single-worker",
+  "options": [
+    "single-worker",
+    "orchestrator"
+  ],
+  "execAfterCall": [
+    "engineering",
+    "orchestrator"
+  ],
+  "windowExecMode": "orchestrator",
+  "blockedDataState": "blocked",
+  "failedDataState": "failed",
+  "blockedHasOwner": true,
+  "failedHasBlame": true,
+  "blockedText": "⏸RTLblocked—no secondary evidenceowner → ssot-gen [ go fix ssot-gen ]⌂ workspace▶ run📬 save handoff",
+  "failedText": "!SIMfailed—no secondary evidenceblame → rtl-gen [ go fix rtl-gen ]⌂ workspace▶ run📬 save handoff",
+  "screenshot": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/.omo/ulw-loop/evidence/orchestrator-ui-single-worker.png"
+}
+{
   "cleanup": {
-    "vitePort": 51152,
+    "vitePort": 51593,
     "serverKilled": true,
-    "screenshotExists": false
+    "screenshotExists": true
   },
   "viteLogTail": [
-    "    at async Object.readFile (node:internal/fs/promises:1238:14)",
-    "    at async extractSourcemapFromFile (file:///Users/brian/Desktop/Project/brian_hw/common_ai_agent/frontend/atlas/node_modules/vite/dist/node/chunks/config.js:8066:65)",
-    "    at async loadAndTransform (file:///Users/brian/Desktop/Project/brian_hw/common_ai_agent/frontend/atlas/node_modules/vite/dist/node/chunks/config.js:22657:22)",
-    "8:32:15 PM [vite] (client) hmr update /app.tsx",
-    "8:32:15 PM [vite] (client) hmr invalidate /app.tsx Could not Fast Refresh (\"true\" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports",
-    "8:32:15 PM [vite] (client) page reload app.tsx",
-    "8:32:27 PM [vite] (client) hmr update /workspace-root.tsx",
+    "",
+    "  VITE v7.3.3  ready in 107 ms",
+    "",
+    "  ➜  Local:   http://127.0.0.1:51593/",
     ""
   ]
 }
