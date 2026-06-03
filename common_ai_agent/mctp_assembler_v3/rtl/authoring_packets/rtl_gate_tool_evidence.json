@@ -1,0 +1,1379 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 7,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "owner": {
+      "file": "rtl/mctp_assembler_v3.sv",
+      "name": "mctp_assembler_v3",
+      "refs": [
+        "cycle_model",
+        "cycle_model.pipeline",
+        "dataflow",
+        "decomposition",
+        "function_model",
+        "function_model.transactions",
+        "integration",
+        "integration.connections",
+        "io_list",
+        "io_list.interfaces",
+        "top_module"
+      ],
+      "wiring_only": true
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "name": "mctp_assembler_v3_axi_wr_ingress",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
+        "name": "mctp_assembler_v3_pcie_vdm_parser",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "name": "mctp_assembler_v3_mctp_decoder",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_context_table.sv",
+        "name": "mctp_assembler_v3_context_table",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_sram_packer.sv",
+        "name": "mctp_assembler_v3_sram_packer",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "name": "mctp_assembler_v3_descriptor_queue",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "name": "mctp_assembler_v3_axi_rd_payload",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "name": "mctp_assembler_v3_apb_regfile",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_cdc_sync.sv",
+        "name": "mctp_assembler_v3_cdc_sync",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3.sv",
+        "name": "mctp_assembler_v3",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_v3_axi_wr_ingress",
+        "port": "axi_aclk",
+        "signal": "axi_aclk",
+        "signal_terms": [
+          "axi_aclk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_v3_axi_wr_ingress",
+        "port": "axi_aresetn",
+        "signal": "axi_aresetn",
+        "signal_terms": [
+          "axi_aresetn"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_v3_apb_regfile",
+        "port": "pclk",
+        "signal": "pclk",
+        "signal_terms": [
+          "pclk"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_v3_apb_regfile",
+        "port": "presetn",
+        "signal": "presetn",
+        "signal_terms": [
+          "presetn"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_v3_apb_regfile",
+        "port": "irq_o",
+        "signal": "irq",
+        "signal_terms": [
+          "irq"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_v3_sram_packer",
+        "port": "sram_wr_valid_o",
+        "signal": "sram_wr_valid",
+        "signal_terms": [
+          "sram_wr_valid"
+        ],
+        "source_ref": "integration.connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_v3_context_table",
+        "port": "drop_class_o",
+        "signal": "last_drop_class",
+        "signal_terms": [
+          "last_drop_class"
+        ],
+        "source_ref": "integration.connections[6]"
+      }
+    ],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "axi_aclk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "axi_aclk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "pclk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pclk",
+        "source_ref": "io_list.clock_domains[1].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_aresetn"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "axi_aresetn",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "presetn"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "presetn",
+        "source_ref": "io_list.resets[1].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_awaddr",
+          "s_axi_awaddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_awaddr",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "16"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_awlen",
+          "s_axi_awlen"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_awlen",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_awsize",
+          "s_axi_awsize"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_awsize",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "3"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_awburst",
+          "s_axi_awburst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_awburst",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "2"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_awvalid",
+          "s_axi_awvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_awvalid",
+        "source_ref": "io_list.interfaces[0].ports[4]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_awready",
+          "s_axi_awready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "s_axi_awready",
+        "source_ref": "io_list.interfaces[0].ports[5]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_wdata",
+          "s_axi_wdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_wdata",
+        "source_ref": "io_list.interfaces[0].ports[6]",
+        "width": "256"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_wstrb",
+          "s_axi_wstrb"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_wstrb",
+        "source_ref": "io_list.interfaces[0].ports[7]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_wlast",
+          "s_axi_wlast"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_wlast",
+        "source_ref": "io_list.interfaces[0].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_wvalid",
+          "s_axi_wvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_wvalid",
+        "source_ref": "io_list.interfaces[0].ports[9]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_wready",
+          "s_axi_wready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "s_axi_wready",
+        "source_ref": "io_list.interfaces[0].ports[10]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_bresp",
+          "s_axi_bresp"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "s_axi_bresp",
+        "source_ref": "io_list.interfaces[0].ports[11]",
+        "width": "2"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_bvalid",
+          "s_axi_bvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "s_axi_bvalid",
+        "source_ref": "io_list.interfaces[0].ports[12]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_bready",
+          "s_axi_bready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_bready",
+        "source_ref": "io_list.interfaces[0].ports[13]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_rd_slave_s_axi_araddr",
+          "s_axi_araddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_araddr",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "16"
+      },
+      {
+        "aliases": [
+          "axi_rd_slave_s_axi_arlen",
+          "s_axi_arlen"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_arlen",
+        "source_ref": "io_list.interfaces[1].ports[1]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "axi_rd_slave_s_axi_arsize",
+          "s_axi_arsize"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_arsize",
+        "source_ref": "io_list.interfaces[1].ports[2]",
+        "width": "3"
+      },
+      {
+        "aliases": [
+          "axi_rd_slave_s_axi_arburst",
+          "s_axi_arburst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_arburst",
+        "source_ref": "io_list.interfaces[1].ports[3]",
+        "width": "2"
+      },
+      {
+        "aliases": [
+          "axi_rd_slave_s_axi_arvalid",
+          "s_axi_arvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_arvalid",
+        "source_ref": "io_list.interfaces[1].ports[4]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_rd_slave_s_axi_arready",
+          "s_axi_arready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "s_axi_arready",
+        "source_ref": "io_list.interfaces[1].ports[5]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_rd_slave_s_axi_rdata",
+          "s_axi_rdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "s_axi_rdata",
+        "source_ref": "io_list.interfaces[1].ports[6]",
+        "width": "256"
+      },
+      {
+        "aliases": [
+          "axi_rd_slave_s_axi_rresp",
+          "s_axi_rresp"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "s_axi_rresp",
+        "source_ref": "io_list.interfaces[1].ports[7]",
+        "width": "2"
+      },
+      {
+        "aliases": [
+          "axi_rd_slave_s_axi_rlast",
+          "s_axi_rlast"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "s_axi_rlast",
+        "source_ref": "io_list.interfaces[1].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_rd_slave_s_axi_rvalid",
+          "s_axi_rvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "s_axi_rvalid",
+        "source_ref": "io_list.interfaces[1].ports[9]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_rd_slave_s_axi_rready",
+          "s_axi_rready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_rready",
+        "source_ref": "io_list.interfaces[1].ports[10]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_paddr",
+          "paddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "paddr",
+        "source_ref": "io_list.interfaces[2].ports[0]",
+        "width": "16"
+      },
+      {
+        "aliases": [
+          "apb_slave_psel",
+          "psel"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "psel",
+        "source_ref": "io_list.interfaces[2].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_penable",
+          "penable"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "penable",
+        "source_ref": "io_list.interfaces[2].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_pwrite",
+          "pwrite"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pwrite",
+        "source_ref": "io_list.interfaces[2].ports[3]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_pwdata",
+          "pwdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pwdata",
+        "source_ref": "io_list.interfaces[2].ports[4]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "apb_slave_pstrb",
+          "pstrb"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pstrb",
+        "source_ref": "io_list.interfaces[2].ports[5]",
+        "width": "4"
+      },
+      {
+        "aliases": [
+          "apb_slave_prdata",
+          "prdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "prdata",
+        "source_ref": "io_list.interfaces[2].ports[6]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "apb_slave_pready",
+          "pready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pready",
+        "source_ref": "io_list.interfaces[2].ports[7]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_pslverr",
+          "pslverr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pslverr",
+        "source_ref": "io_list.interfaces[2].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "sram_wr_valid",
+          "sram_write_sram_wr_valid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "sram_wr_valid",
+        "source_ref": "io_list.interfaces[3].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "sram_wr_ready",
+          "sram_write_sram_wr_ready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "sram_wr_ready",
+        "source_ref": "io_list.interfaces[3].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "sram_wr_addr",
+          "sram_write_sram_wr_addr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "sram_wr_addr",
+        "source_ref": "io_list.interfaces[3].ports[2]",
+        "width": "16"
+      },
+      {
+        "aliases": [
+          "sram_wr_data",
+          "sram_write_sram_wr_data"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "sram_wr_data",
+        "source_ref": "io_list.interfaces[3].ports[3]",
+        "width": "256"
+      },
+      {
+        "aliases": [
+          "sram_wr_strb",
+          "sram_write_sram_wr_strb"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "sram_wr_strb",
+        "source_ref": "io_list.interfaces[3].ports[4]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "sram_rd_req_valid",
+          "sram_read_sram_rd_req_valid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "sram_rd_req_valid",
+        "source_ref": "io_list.interfaces[4].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "sram_rd_req_ready",
+          "sram_read_sram_rd_req_ready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "sram_rd_req_ready",
+        "source_ref": "io_list.interfaces[4].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "sram_rd_req_addr",
+          "sram_read_sram_rd_req_addr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "sram_rd_req_addr",
+        "source_ref": "io_list.interfaces[4].ports[2]",
+        "width": "16"
+      },
+      {
+        "aliases": [
+          "sram_rd_rsp_valid",
+          "sram_read_sram_rd_rsp_valid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "sram_rd_rsp_valid",
+        "source_ref": "io_list.interfaces[4].ports[3]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "sram_rd_rsp_ready",
+          "sram_read_sram_rd_rsp_ready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "sram_rd_rsp_ready",
+        "source_ref": "io_list.interfaces[4].ports[4]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "sram_rd_rsp_data",
+          "sram_read_sram_rd_rsp_data"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "sram_rd_rsp_data",
+        "source_ref": "io_list.interfaces[4].ports[5]",
+        "width": "256"
+      },
+      {
+        "aliases": [
+          "sram_rd_rsp_error",
+          "sram_read_sram_rd_rsp_error"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "sram_rd_rsp_error",
+        "source_ref": "io_list.interfaces[4].ports[6]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "interrupt_irq",
+          "irq"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "irq",
+        "source_ref": "io_list.interfaces[5].ports[0]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [
+      {
+        "gate_kind": "common_ai_agent_authoring",
+        "owner_module": "mctp_assembler_v3",
+        "reason": "RTL audit has not run yet.",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+        "status": "planned",
+        "task_id": "RTL-0006"
+      },
+      {
+        "gate_kind": "dut_compile",
+        "owner_module": "mctp_assembler_v3",
+        "reason": "RTL audit has not run yet.",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.dut_compile",
+        "status": "planned",
+        "task_id": "RTL-0017"
+      },
+      {
+        "gate_kind": "dut_lint",
+        "owner_module": "mctp_assembler_v3",
+        "reason": "RTL audit has not run yet.",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.dut_lint",
+        "status": "planned",
+        "task_id": "RTL-0018"
+      },
+      {
+        "gate_kind": "dynamic_todo_closure",
+        "owner_module": "mctp_assembler_v3",
+        "reason": "RTL audit has not run yet.",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+        "status": "planned",
+        "task_id": "RTL-0019"
+      },
+      {
+        "gate_kind": "protocol_assertion_evidence",
+        "owner_module": "mctp_assembler_v3",
+        "reason": "RTL audit has not run yet.",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
+        "status": "planned",
+        "task_id": "RTL-0024"
+      },
+      {
+        "gate_kind": "fl_rtl_goal_audit",
+        "owner_module": "mctp_assembler_v3",
+        "reason": "RTL audit has not run yet.",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
+        "status": "planned",
+        "task_id": "RTL-0025"
+      },
+      {
+        "gate_kind": "coverage_closure",
+        "owner_module": "mctp_assembler_v3",
+        "reason": "RTL audit has not run yet.",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.coverage_closure",
+        "status": "planned",
+        "task_id": "RTL-0026"
+      }
+    ],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": false,
+    "evidence_closure_allowed": true,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 7,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 7,
+    "tool_evidence_plan": [
+      {
+        "artifact": "rtl/rtl_authoring_provenance.json",
+        "artifacts": [
+          "mctp_assembler_v3/rtl/rtl_authoring_provenance.json",
+          "mctp_assembler_v3/rtl/rtl_todo_plan.json"
+        ],
+        "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
+        "commands": [
+          "python3 src/headless_workflow.py --root . --ip mctp_assembler_v3 --stages rtl-gen",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py mctp_assembler_v3 --root . --audit-rtl"
+        ],
+        "gate_kind": "common_ai_agent_authoring",
+        "prerequisites": [
+          "An LLM authoring pass emitted or repaired DUT RTL files."
+        ],
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+        "stage_sequence": [
+          "ssot-rtl"
+        ],
+        "status": "planned",
+        "task_id": "RTL-0006"
+      },
+      {
+        "artifact": "rtl/rtl_compile.json",
+        "artifacts": [
+          "mctp_assembler_v3/rtl/rtl_compile.json",
+          "mctp_assembler_v3/rtl/rtl_compile.log"
+        ],
+        "closure_rule": "rtl_compile.json must be DUT-only, fresh, passed, and cover every current DUT RTL file.",
+        "commands": [
+          "python3 workflow/rtl-gen/scripts/rtl_compile_report.py mctp_assembler_v3 --top mctp_assembler_v3 --project-root .",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py mctp_assembler_v3 --root . --audit-rtl"
+        ],
+        "gate_kind": "dut_compile",
+        "prerequisites": [
+          "mctp_assembler_v3/list/mctp_assembler_v3.f covers the current DUT RTL sources."
+        ],
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "quality_gates.rtl_gen.dut_compile",
+        "stage_sequence": [
+          "ssot-rtl",
+          "dut_compile"
+        ],
+        "status": "planned",
+        "task_id": "RTL-0017"
+      },
+      {
+        "artifact": "lint/dut_lint.json",
+        "artifacts": [
+          "mctp_assembler_v3/lint/dut_lint.json"
+        ],
+        "closure_rule": "dut_lint.json must be DUT-only, fresh, passed, and report zero warnings/errors.",
+        "commands": [
+          "python3 workflow/lint/scripts/dut_lint_report.py mctp_assembler_v3 --top mctp_assembler_v3",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py mctp_assembler_v3 --root . --audit-rtl"
+        ],
+        "gate_kind": "dut_lint",
+        "prerequisites": [
+          "mctp_assembler_v3/list/mctp_assembler_v3.f covers the current DUT RTL/header sources."
+        ],
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "quality_gates.rtl_gen.dut_lint",
+        "stage_sequence": [
+          "lint",
+          "dut_lint"
+        ],
+        "status": "planned",
+        "task_id": "RTL-0018"
+      },
+      {
+        "artifact": "rtl/rtl_todo_plan.json",
+        "artifacts": [
+          "mctp_assembler_v3/rtl/rtl_todo_plan.json",
+          "mctp_assembler_v3/rtl/rtl_authoring_status.md"
+        ],
+        "closure_rule": "dynamic_todo_closure passes only when every required non-closure TODO is already pass.",
+        "commands": [
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py mctp_assembler_v3 --root . --audit-rtl"
+        ],
+        "gate_kind": "dynamic_todo_closure",
+        "prerequisites": [
+          "All non-closure required TODOs have pass status."
+        ],
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+        "stage_sequence": [
+          "audit-rtl"
+        ],
+        "status": "planned",
+        "task_id": "RTL-0019"
+      },
+      {
+        "artifact": "verify/protocol_assertions.sva",
+        "artifacts": [
+          "mctp_assembler_v3/verify/protocol_assertions.sva",
+          "mctp_assembler_v3/verify/protocol_assertions.summary.json",
+          "mctp_assembler_v3/sim/assertion_failures.jsonl"
+        ],
+        "closure_rule": "Generated assertions exist and latest simulation has zero assertion failure records.",
+        "commands": [
+          "python3 workflow/fl-model-gen/scripts/emit_protocol_assertions.py mctp_assembler_v3 --root .",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py mctp_assembler_v3 --root . --audit-rtl"
+        ],
+        "gate_kind": "protocol_assertion_evidence",
+        "prerequisites": [
+          "SSOT cycle_model/protocol rules are machine-checkable.",
+          "Simulation has run after RTL edits."
+        ],
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
+        "stage_sequence": [
+          "ssot-protocol-assertions",
+          "sim"
+        ],
+        "status": "planned",
+        "task_id": "RTL-0024"
+      },
+      {
+        "artifact": "sim/fl_rtl_goal_audit.json",
+        "artifacts": [
+          "mctp_assembler_v3/sim/fl_rtl_goal_audit.json"
+        ],
+        "closure_rule": "fl_rtl_goal_audit.json must be fresh and status=pass.",
+        "commands": [
+          "python3 workflow/sim_debug/scripts/audit_fl_rtl_equivalence_goal.py mctp_assembler_v3 --root .",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py mctp_assembler_v3 --root . --audit-rtl"
+        ],
+        "gate_kind": "fl_rtl_goal_audit",
+        "prerequisites": [
+          "FL model, equivalence goals, TB, and simulation evidence are current."
+        ],
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
+        "stage_sequence": [
+          "ssot-fl-model",
+          "ssot-equiv-goals",
+          "ssot-tb-cocotb",
+          "sim",
+          "goal-audit"
+        ],
+        "status": "planned",
+        "task_id": "RTL-0025"
+      },
+      {
+        "artifact": "cov/coverage.json",
+        "artifacts": [
+          "mctp_assembler_v3/cov/coverage.json"
+        ],
+        "closure_rule": "coverage.json must be fresh, come from ssot_coverage_summary, and close every planned required bin.",
+        "commands": [
+          "python3 workflow/coverage/scripts/ssot_coverage_summary.py mctp_assembler_v3",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py mctp_assembler_v3 --root . --audit-rtl"
+        ],
+        "gate_kind": "coverage_closure",
+        "prerequisites": [
+          "Simulation evidence exists and planned coverage bins are observable."
+        ],
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "quality_gates.rtl_gen.coverage_closure",
+        "stage_sequence": [
+          "sim",
+          "coverage"
+        ],
+        "status": "planned",
+        "task_id": "RTL-0026"
+      }
+    ],
+    "work_allowed": true
+  },
+  "ip": "mctp_assembler_v3",
+  "kind": "gate",
+  "owner_file": "rtl/mctp_assembler_v3.sv",
+  "owner_module": "mctp_assembler_v3",
+  "packet_id": "rtl_gate_tool_evidence",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "rtl_gate.rtl_gen": 7
+    },
+    "module_slice": {},
+    "open_required_count": 7,
+    "required_count": 7,
+    "source_refs": [
+      "quality_gates.rtl_gen.common_ai_agent_authoring",
+      "quality_gates.rtl_gen.dut_compile",
+      "quality_gates.rtl_gen.dut_lint",
+      "quality_gates.rtl_gen.dynamic_todo_closure",
+      "quality_gates.rtl_gen.protocol_assertion_evidence",
+      "quality_gates.rtl_gen.fl_rtl_goal_audit",
+      "quality_gates.rtl_gen.coverage_closure"
+    ],
+    "status_counts": {
+      "planned": 7
+    },
+    "task_count": 7
+  },
+  "tasks": [
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: RTL is authored by common_ai_agent rtl-gen, not by direct operator edits",
+      "criteria": [
+        "rtl/rtl_authoring_provenance.json exists",
+        "provenance agent is common_ai_agent",
+        "provenance workflow is rtl-gen",
+        "provenance surface is atlas_ui, textual_ui, or headless_common_engine",
+        "provenance todo_plan_sha256 matches the current rtl_todo_plan.json",
+        "provenance rtl_files lists every SSOT manifest RTL file",
+        "provenance rtl_files covers the current DUT filelist sources",
+        "Traceability keeps source_ref quality_gates.rtl_gen.common_ai_agent_authoring",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3.sv"
+      ],
+      "detail": "RTL approval requires provenance that the common engine/ATLAS/Textual/headless rtl-gen path wrote the RTL from the current SSOT-derived TODO plan.\nSSOT ref: quality_gates.rtl_gen.common_ai_agent_authoring.\nOwner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "rtl/rtl_authoring_provenance.json",
+        "kind": "common_ai_agent_authoring",
+        "profile": "production",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0006",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.common_ai_agent_authoring"
+      ],
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "rtl/rtl_authoring_provenance.json"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: DUT-only RTL compile report passes after the final RTL edit",
+      "criteria": [
+        "rtl/rtl_compile.json exists",
+        "rtl_compile.json reports dut_only=true",
+        "rtl_compile.json passed=true with zero errors, diagnostics, and style violations",
+        "rtl_compile.json is newer than or equal to every listed DUT RTL source",
+        "rtl_compile.json rtl_files covers the current DUT filelist Verilog/SystemVerilog sources",
+        "Traceability keeps source_ref quality_gates.rtl_gen.dut_compile",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3.sv"
+      ],
+      "detail": "Compile approval must come from the canonical rtl_compile_report.py artifact generated after RTL generation or repair.\nSSOT ref: quality_gates.rtl_gen.dut_compile.\nOwner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "rtl/rtl_compile.json",
+        "kind": "dut_compile",
+        "profile": "production",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0017",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.dut_compile",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.dut_compile"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "rtl/rtl_compile.json"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: DUT-only lint report passes after the final RTL edit",
+      "criteria": [
+        "lint/dut_lint.json exists",
+        "dut_lint.json reports dut_only=true",
+        "dut_lint.json passed=true with zero errors and zero warnings",
+        "dut_lint.json is newer than or equal to every listed DUT RTL source",
+        "dut_lint.json rtl_files covers the current DUT filelist RTL/header sources",
+        "No ad-hoc lint suppression violation remains unless represented by an exact SSOT waiver",
+        "Traceability keeps source_ref quality_gates.rtl_gen.dut_lint",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3.sv"
+      ],
+      "detail": "Lint approval must come from the canonical dut_lint_report.py artifact and must not rely on ad-hoc suppressions.\nSSOT ref: quality_gates.rtl_gen.dut_lint.\nOwner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "lint/dut_lint.json",
+        "kind": "dut_lint",
+        "profile": "production",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0018",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.dut_lint",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.dut_lint"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "lint/dut_lint.json"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: every required rtl_todo_plan item is closed before rtl-gen PASS",
+      "criteria": [
+        "Every required non-closure task has todo_completion.status=pass",
+        "open_required_todos is zero",
+        "all_required_todos_pass is true",
+        "Traceability keeps source_ref quality_gates.rtl_gen.dynamic_todo_closure",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3.sv"
+      ],
+      "detail": "rtl-gen PASS is forbidden until all required implementation, SSOT workflow, and RTL gate TODOs have pass status.\nSSOT ref: quality_gates.rtl_gen.dynamic_todo_closure.\nOwner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "rtl/rtl_todo_plan.json",
+        "kind": "dynamic_todo_closure",
+        "profile": "production",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0019",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.dynamic_todo_closure"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "rtl/rtl_todo_plan.json"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: production RTL has protocol assertion generation and clean simulation evidence",
+      "criteria": [
+        "verify/protocol_assertions.sva exists",
+        "verify/protocol_assertions.summary.json has assertions_total > 0",
+        "sim/assertion_failures.jsonl exists after simulation",
+        "assertion_failures.jsonl is newer than or equal to every listed DUT RTL source",
+        "assertion_failures.jsonl has zero non-empty failure records",
+        "Assertion rules trace to SSOT cycle_model/interface contracts",
+        "Traceability keeps source_ref quality_gates.rtl_gen.protocol_assertion_evidence",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3.sv"
+      ],
+      "detail": "PL330-level RTL needs protocol-checker style evidence for interface, ordering, valid/ready, reset, and backpressure rules. The assertion source comes from SSOT cycle_model; the pass condition comes from real simulation evidence.\nSSOT ref: quality_gates.rtl_gen.protocol_assertion_evidence.\nOwner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "verify/protocol_assertions.sva",
+        "kind": "protocol_assertion_evidence",
+        "profile": "production",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0024",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.protocol_assertion_evidence"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "verify/protocol_assertions.sva"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: production RTL passes FL-vs-RTL goal audit",
+      "criteria": [
+        "sim/fl_rtl_goal_audit.json exists",
+        "fl_rtl_goal_audit.json is newer than or equal to every listed DUT RTL source",
+        "fl_rtl_goal_audit status is pass",
+        "failed_checks is zero",
+        "blockers list is empty",
+        "sim/fl_rtl_compare.json exists and is newer than or equal to every listed DUT RTL source",
+        "Every required unblocked verify/equivalence_goals.json goal is checked and passed by fl_rtl_compare",
+        "Traceability keeps source_ref quality_gates.rtl_gen.fl_rtl_goal_audit",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3.sv"
+      ],
+      "detail": "Passing compile/lint is not enough. The final RTL must be proven against FunctionalModel-derived equivalence goals using real RTL-observed evidence.\nSSOT ref: quality_gates.rtl_gen.fl_rtl_goal_audit.\nOwner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "sim/fl_rtl_goal_audit.json",
+        "kind": "fl_rtl_goal_audit",
+        "profile": "production",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0025",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.fl_rtl_goal_audit"
+      ],
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "sim/fl_rtl_goal_audit.json"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: production RTL closes SSOT functional coverage goals",
+      "criteria": [
+        "cov/coverage.json exists",
+        "coverage.json is newer than or equal to every listed DUT RTL source",
+        "coverage status is pass",
+        "functional coverage pct meets target",
+        "coverage.json source is ssot_coverage_summary",
+        "functional hit equals total with pct >= 100 for planned bins",
+        "rtl_observed.status is pass with passing scoreboard events and coverage refs",
+        "rtl_observed missing_bins and invalid_rows are empty",
+        "coverage limitations are empty or explicitly waived in SSOT",
+        "Traceability keeps source_ref quality_gates.rtl_gen.coverage_closure",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3.sv"
+      ],
+      "detail": "Coverage must be measured from passing RTL-observed scoreboard evidence. Raw FL-only coverage or weakened coverage goals cannot close this gate.\nSSOT ref: quality_gates.rtl_gen.coverage_closure.\nOwner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "cov/coverage.json",
+        "kind": "coverage_closure",
+        "profile": "production",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0026",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.coverage_closure",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.coverage_closure"
+      ],
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "cov/coverage.json"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    }
+  ],
+  "todo_plan_sha256": "928c0a587fbcc3522da24eba470cd1fb51a8ad7c9c51ddd94821393e2967e9f9",
+  "top": "mctp_assembler_v3",
+  "type": "rtl_authoring_packet"
+}

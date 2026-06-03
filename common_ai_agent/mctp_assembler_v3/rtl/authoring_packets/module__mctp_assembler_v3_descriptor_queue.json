@@ -1,0 +1,1313 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 7,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 24,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+      "name": "mctp_assembler_v3_descriptor_queue",
+      "refs": [
+        "function_model",
+        "function_model.transactions.FM_PUBLISH_DESCRIPTOR",
+        "memory",
+        "memory.instances.descriptor_fifo"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "name": "mctp_assembler_v3_axi_wr_ingress",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
+        "name": "mctp_assembler_v3_pcie_vdm_parser",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "name": "mctp_assembler_v3_mctp_decoder",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_context_table.sv",
+        "name": "mctp_assembler_v3_context_table",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_sram_packer.sv",
+        "name": "mctp_assembler_v3_sram_packer",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "name": "mctp_assembler_v3_descriptor_queue",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "name": "mctp_assembler_v3_axi_rd_payload",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "name": "mctp_assembler_v3_apb_regfile",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_cdc_sync.sv",
+        "name": "mctp_assembler_v3_cdc_sync",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3.sv",
+        "name": "mctp_assembler_v3",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 24,
+    "open_required_count": 24,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "mctp_assembler_v3",
+  "kind": "module",
+  "owner_file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+  "owner_module": "mctp_assembler_v3_descriptor_queue",
+  "packet_id": "module__mctp_assembler_v3_descriptor_queue",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "equivalence.module": 1,
+      "function_model.error_case": 1,
+      "function_model.input": 2,
+      "function_model.output": 8,
+      "function_model.precondition": 1,
+      "function_model.side_effect": 1,
+      "function_model.state_update": 6,
+      "function_model.transaction": 1,
+      "memory.instances": 1,
+      "parameters.item": 2
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 24,
+      "task_limit": 48
+    },
+    "open_required_count": 24,
+    "required_count": 24,
+    "source_refs": [
+      "function_model.transactions.FM_PUBLISH_DESCRIPTOR",
+      "function_model.transactions.FM_PUBLISH_DESCRIPTOR.preconditions.precondition_0",
+      "function_model.transactions.FM_PUBLISH_DESCRIPTOR.inputs.input_0",
+      "function_model.transactions.FM_PUBLISH_DESCRIPTOR.inputs.input_1",
+      "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.output_0",
+      "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.output_1",
+      "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_ready",
+      "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_payload_len",
+      "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_base_addr",
+      "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.message_completed_count",
+      "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_valid",
+      "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.ctx_state",
+      "function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.descriptor_ready",
+      "function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.descriptor_payload_len",
+      "function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.descriptor_base_addr",
+      "function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.message_completed_count",
+      "function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.descriptor_valid",
+      "function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.ctx_state",
+      "function_model.transactions.FM_PUBLISH_DESCRIPTOR.side_effects.side_effect_0",
+      "function_model.transactions.FM_PUBLISH_DESCRIPTOR.error_cases.error_case_0",
+      "memory.instances.descriptor_fifo",
+      "sub_modules.mctp_assembler_v3_descriptor_queue.module_equivalence",
+      "parameters.DONE_WAIT_DESCRIPTOR_POP",
+      "parameters.DESCRIPTOR_FIFO_DEPTH"
+    ],
+    "status_counts": {
+      "planned": 24
+    },
+    "task_count": 24
+  },
+  "tasks": [
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_PUBLISH_DESCRIPTOR",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_PUBLISH_DESCRIPTOR",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_descriptor_queue.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.\nOwner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.\nSSOT item context: id=FM_PUBLISH_DESCRIPTOR; name=descriptor_publish.",
+      "evidence_terms": [],
+      "id": "RTL-0247",
+      "owner_file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+      "owner_module": "mctp_assembler_v3_descriptor_queue",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PUBLISH_DESCRIPTOR",
+      "ssot_context": {
+        "id": "FM_PUBLISH_DESCRIPTOR",
+        "name": "descriptor_publish"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PUBLISH_DESCRIPTOR"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_PUBLISH_DESCRIPTOR: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PUBLISH_DESCRIPTOR.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_descriptor_queue.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.preconditions.precondition_0.\nOwner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.\nSSOT item context: value=successful EOM for a context.",
+      "evidence_terms": [],
+      "id": "RTL-0248",
+      "owner_file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+      "owner_module": "mctp_assembler_v3_descriptor_queue",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PUBLISH_DESCRIPTOR.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "successful EOM for a context"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PUBLISH_DESCRIPTOR.preconditions.precondition_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_PUBLISH_DESCRIPTOR: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PUBLISH_DESCRIPTOR.inputs.input_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_descriptor_queue.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.inputs.input_0.\nOwner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.\nSSOT item context: id=FM_PUBLISH_DESCRIPTOR; name=descriptor_publish; signal=[\"context metadata\", \"descriptor_queue_full\"]; state=[\"descriptor_ready\", \"descriptor_payload_len\", \"descriptor_base_addr\", \"message_completed_count\", \"descriptor_valid\",....",
+      "evidence_terms": [
+        "addr",
+        "base",
+        "completed",
+        "count",
+        "ctx",
+        "ctx_state",
+        "descriptor",
+        "descriptor_base_addr",
+        "descriptor_payload_len",
+        "descriptor_queue_full",
+        "descriptor_ready",
+        "descriptor_valid",
+        "full",
+        "len",
+        "message",
+        "message_completed_count"
+      ],
+      "id": "RTL-0249",
+      "owner_file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+      "owner_module": "mctp_assembler_v3_descriptor_queue",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PUBLISH_DESCRIPTOR.inputs.input_0",
+      "ssot_context": {
+        "id": "FM_PUBLISH_DESCRIPTOR",
+        "name": "descriptor_publish",
+        "signal": "[\"context metadata\", \"descriptor_queue_full\"]",
+        "state": "[\"descriptor_ready\", \"descriptor_payload_len\", \"descriptor_base_addr\", \"message_completed_count\", \"descriptor_valid\",..."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PUBLISH_DESCRIPTOR.inputs.input_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_PUBLISH_DESCRIPTOR: input_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PUBLISH_DESCRIPTOR.inputs.input_1",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_descriptor_queue.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.inputs.input_1.\nOwner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.\nSSOT item context: id=FM_PUBLISH_DESCRIPTOR; name=descriptor_publish; signal=[\"first/last_tlp_header\", \"descriptor_queue_full\"]; state=[\"descriptor_ready\", \"descriptor_payload_len\", \"descriptor_base_addr\", \"message_completed_count\", \"descriptor_valid\",....",
+      "evidence_terms": [
+        "addr",
+        "base",
+        "completed",
+        "count",
+        "ctx",
+        "ctx_state",
+        "descriptor",
+        "descriptor_base_addr",
+        "descriptor_payload_len",
+        "descriptor_queue_full",
+        "descriptor_ready",
+        "descriptor_valid",
+        "full",
+        "header",
+        "last",
+        "last_tlp_header"
+      ],
+      "id": "RTL-0250",
+      "owner_file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+      "owner_module": "mctp_assembler_v3_descriptor_queue",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PUBLISH_DESCRIPTOR.inputs.input_1",
+      "ssot_context": {
+        "id": "FM_PUBLISH_DESCRIPTOR",
+        "name": "descriptor_publish",
+        "signal": "[\"first/last_tlp_header\", \"descriptor_queue_full\"]",
+        "state": "[\"descriptor_ready\", \"descriptor_payload_len\", \"descriptor_base_addr\", \"message_completed_count\", \"descriptor_valid\",..."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PUBLISH_DESCRIPTOR.inputs.input_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_PUBLISH_DESCRIPTOR: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.output_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_descriptor_queue.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.output_0.\nOwner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.\nSSOT item context: value=descriptor{source_eid,dest_eid,tag_owner,message_tag,message_type,requester_id,pcie_routing_type,payload_base_addr,pa....",
+      "evidence_terms": [
+        "addr",
+        "base",
+        "completion",
+        "completion_status",
+        "context",
+        "context_id",
+        "dest",
+        "dest_eid",
+        "eid",
+        "final",
+        "final_packet_seq",
+        "header",
+        "id",
+        "last",
+        "last_tlp_header",
+        "len"
+      ],
+      "id": "RTL-0251",
+      "owner_file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+      "owner_module": "mctp_assembler_v3_descriptor_queue",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.output_0",
+      "ssot_context": {
+        "value": "descriptor{source_eid,dest_eid,tag_owner,message_tag,message_type,requester_id,pcie_routing_type,payload_base_addr,pa..."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.output_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_PUBLISH_DESCRIPTOR: output_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.output_1",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_descriptor_queue.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.output_1.\nOwner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.\nSSOT item context: value=descriptor_ready interrupt; message_completed_count increment.",
+      "evidence_terms": [
+        "completed",
+        "count",
+        "descriptor",
+        "descriptor_ready",
+        "message",
+        "message_completed_count",
+        "ready"
+      ],
+      "id": "RTL-0252",
+      "owner_file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+      "owner_module": "mctp_assembler_v3_descriptor_queue",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.output_1",
+      "ssot_context": {
+        "value": "descriptor_ready interrupt; message_completed_count increment"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.output_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_PUBLISH_DESCRIPTOR: descriptor_ready",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_ready",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_ready RTL expression implements SSOT expression not descriptor_queue_full"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_ready.\nOwner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.\nSSOT item context: state=descriptor_ready; expr=not descriptor_queue_full.",
+      "evidence_terms": [
+        "descriptor",
+        "descriptor_queue_full",
+        "descriptor_ready",
+        "full",
+        "queue",
+        "ready"
+      ],
+      "id": "RTL-0253",
+      "owner_file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+      "owner_module": "mctp_assembler_v3_descriptor_queue",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_ready",
+      "ssot_context": {
+        "expr": "not descriptor_queue_full",
+        "state": "descriptor_ready"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_ready"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_PUBLISH_DESCRIPTOR: descriptor_payload_len",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_payload_len",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_payload_len RTL expression implements SSOT expression ctx_payload_byte_count"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_payload_len.\nOwner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.\nSSOT item context: state=descriptor_payload_len; expr=ctx_payload_byte_count.",
+      "evidence_terms": [
+        "byte",
+        "count",
+        "ctx",
+        "ctx_payload_byte_count",
+        "descriptor",
+        "descriptor_payload_len",
+        "len",
+        "payload"
+      ],
+      "id": "RTL-0254",
+      "owner_file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+      "owner_module": "mctp_assembler_v3_descriptor_queue",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_payload_len",
+      "ssot_context": {
+        "expr": "ctx_payload_byte_count",
+        "state": "descriptor_payload_len"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_payload_len"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_PUBLISH_DESCRIPTOR: descriptor_base_addr",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_base_addr",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_base_addr RTL expression implements SSOT expression ctx_payload_base_addr"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_base_addr.\nOwner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.\nSSOT item context: state=descriptor_base_addr; expr=ctx_payload_base_addr.",
+      "evidence_terms": [
+        "addr",
+        "base",
+        "ctx",
+        "ctx_payload_base_addr",
+        "descriptor",
+        "descriptor_base_addr",
+        "payload"
+      ],
+      "id": "RTL-0255",
+      "owner_file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+      "owner_module": "mctp_assembler_v3_descriptor_queue",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_base_addr",
+      "ssot_context": {
+        "expr": "ctx_payload_base_addr",
+        "state": "descriptor_base_addr"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_base_addr"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_PUBLISH_DESCRIPTOR: message_completed_count",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.message_completed_count",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.message_completed_count RTL expression implements SSOT expression message_completed_count + 1"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.message_completed_count.\nOwner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.\nSSOT item context: state=message_completed_count; expr=message_completed_count + 1.",
+      "evidence_terms": [
+        "completed",
+        "count",
+        "message",
+        "message_completed_count"
+      ],
+      "id": "RTL-0256",
+      "owner_file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+      "owner_module": "mctp_assembler_v3_descriptor_queue",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.message_completed_count",
+      "ssot_context": {
+        "expr": "message_completed_count + 1",
+        "state": "message_completed_count"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.message_completed_count"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_PUBLISH_DESCRIPTOR: descriptor_valid",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_valid",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_valid RTL expression implements SSOT expression 1"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_valid.\nOwner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.\nSSOT item context: state=descriptor_valid; expr=1.",
+      "evidence_terms": [
+        "descriptor",
+        "descriptor_valid",
+        "valid"
+      ],
+      "id": "RTL-0257",
+      "owner_file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+      "owner_module": "mctp_assembler_v3_descriptor_queue",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_valid",
+      "ssot_context": {
+        "expr": "1",
+        "state": "descriptor_valid"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_valid"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_PUBLISH_DESCRIPTOR: ctx_state",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.ctx_state",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.ctx_state RTL expression implements SSOT expression DONE_WAIT_DESCRIPTOR_POP"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.ctx_state.\nOwner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.\nSSOT item context: state=ctx_state; expr=DONE_WAIT_DESCRIPTOR_POP.",
+      "evidence_terms": [
+        "DESCRIPTOR",
+        "DONE",
+        "DONE_WAIT_DESCRIPTOR_POP",
+        "POP",
+        "WAIT",
+        "ctx",
+        "ctx_state"
+      ],
+      "id": "RTL-0258",
+      "owner_file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+      "owner_module": "mctp_assembler_v3_descriptor_queue",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.ctx_state",
+      "ssot_context": {
+        "expr": "DONE_WAIT_DESCRIPTOR_POP",
+        "state": "ctx_state"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.ctx_state"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_PUBLISH_DESCRIPTOR: descriptor_ready",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.descriptor_ready",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "descriptor_ready width matches SSOT value 1",
+        "descriptor_ready RTL expression implements SSOT expression not descriptor_queue_full",
+        "descriptor_ready updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.descriptor_ready.\nOwner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.\nSSOT item context: name=descriptor_ready; expr=not descriptor_queue_full; width=1.",
+      "evidence_terms": [
+        "descriptor",
+        "descriptor_queue_full",
+        "descriptor_ready",
+        "full",
+        "queue",
+        "ready"
+      ],
+      "id": "RTL-0259",
+      "owner_file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+      "owner_module": "mctp_assembler_v3_descriptor_queue",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.descriptor_ready",
+      "ssot_context": {
+        "expr": "not descriptor_queue_full",
+        "name": "descriptor_ready",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.descriptor_ready"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_PUBLISH_DESCRIPTOR: descriptor_payload_len",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.descriptor_payload_len",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "descriptor_payload_len width matches SSOT value 13",
+        "descriptor_payload_len RTL expression implements SSOT expression ctx_payload_byte_count",
+        "descriptor_payload_len updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.descriptor_payload_len.\nOwner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.\nSSOT item context: name=descriptor_payload_len; expr=ctx_payload_byte_count; width=13.",
+      "evidence_terms": [
+        "byte",
+        "count",
+        "ctx",
+        "ctx_payload_byte_count",
+        "descriptor",
+        "descriptor_payload_len",
+        "len",
+        "payload"
+      ],
+      "id": "RTL-0260",
+      "owner_file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+      "owner_module": "mctp_assembler_v3_descriptor_queue",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.descriptor_payload_len",
+      "ssot_context": {
+        "expr": "ctx_payload_byte_count",
+        "name": "descriptor_payload_len",
+        "width": "13"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.descriptor_payload_len"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_PUBLISH_DESCRIPTOR: descriptor_base_addr",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.descriptor_base_addr",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "descriptor_base_addr width matches SSOT value 16",
+        "descriptor_base_addr RTL expression implements SSOT expression ctx_payload_base_addr",
+        "descriptor_base_addr updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.descriptor_base_addr.\nOwner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.\nSSOT item context: name=descriptor_base_addr; expr=ctx_payload_base_addr; width=16.",
+      "evidence_terms": [
+        "addr",
+        "base",
+        "ctx",
+        "ctx_payload_base_addr",
+        "descriptor",
+        "descriptor_base_addr",
+        "payload"
+      ],
+      "id": "RTL-0261",
+      "owner_file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+      "owner_module": "mctp_assembler_v3_descriptor_queue",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.descriptor_base_addr",
+      "ssot_context": {
+        "expr": "ctx_payload_base_addr",
+        "name": "descriptor_base_addr",
+        "width": "16"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.descriptor_base_addr"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_PUBLISH_DESCRIPTOR: message_completed_count",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.message_completed_count",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "message_completed_count width matches SSOT value 32",
+        "message_completed_count RTL expression implements SSOT expression message_completed_count + 1",
+        "message_completed_count updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.message_completed_count.\nOwner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.\nSSOT item context: name=message_completed_count; expr=message_completed_count + 1; width=32.",
+      "evidence_terms": [
+        "completed",
+        "count",
+        "message",
+        "message_completed_count"
+      ],
+      "id": "RTL-0262",
+      "owner_file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+      "owner_module": "mctp_assembler_v3_descriptor_queue",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.message_completed_count",
+      "ssot_context": {
+        "expr": "message_completed_count + 1",
+        "name": "message_completed_count",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.message_completed_count"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_PUBLISH_DESCRIPTOR: descriptor_valid",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.descriptor_valid",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "descriptor_valid width matches SSOT value 1",
+        "descriptor_valid RTL expression implements SSOT expression 1",
+        "descriptor_valid updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.descriptor_valid.\nOwner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.\nSSOT item context: name=descriptor_valid; expr=1; width=1.",
+      "evidence_terms": [
+        "descriptor",
+        "descriptor_valid",
+        "valid"
+      ],
+      "id": "RTL-0263",
+      "owner_file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+      "owner_module": "mctp_assembler_v3_descriptor_queue",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.descriptor_valid",
+      "ssot_context": {
+        "expr": "1",
+        "name": "descriptor_valid",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.descriptor_valid"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_PUBLISH_DESCRIPTOR: ctx_state",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.ctx_state",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "ctx_state width matches SSOT value 2",
+        "ctx_state RTL expression implements SSOT expression DONE_WAIT_DESCRIPTOR_POP",
+        "ctx_state updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.ctx_state.\nOwner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.\nSSOT item context: name=ctx_state; expr=DONE_WAIT_DESCRIPTOR_POP; width=2.",
+      "evidence_terms": [
+        "DESCRIPTOR",
+        "DONE",
+        "DONE_WAIT_DESCRIPTOR_POP",
+        "POP",
+        "WAIT",
+        "ctx",
+        "ctx_state"
+      ],
+      "id": "RTL-0264",
+      "owner_file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+      "owner_module": "mctp_assembler_v3_descriptor_queue",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.ctx_state",
+      "ssot_context": {
+        "expr": "DONE_WAIT_DESCRIPTOR_POP",
+        "name": "ctx_state",
+        "width": "2"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.ctx_state"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_PUBLISH_DESCRIPTOR: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PUBLISH_DESCRIPTOR.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_descriptor_queue.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.side_effects.side_effect_0.\nOwner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.\nSSOT item context: id=FM_PUBLISH_DESCRIPTOR; name=descriptor_publish; signal=[\"context released (or DONE_WAIT_DESCRIPTOR_POP)\", \"descriptor_queue_full\"]; state=[\"descriptor_ready\", \"descriptor_payload_len\", \"descriptor_base_addr\", \"message_completed_count\", \"descriptor_valid\",....",
+      "evidence_terms": [
+        "DESCRIPTOR",
+        "DONE",
+        "DONE_WAIT_DESCRIPTOR_POP",
+        "POP",
+        "WAIT",
+        "addr",
+        "base",
+        "completed",
+        "count",
+        "ctx",
+        "ctx_state",
+        "descriptor",
+        "descriptor_base_addr",
+        "descriptor_payload_len",
+        "descriptor_queue_full",
+        "descriptor_ready"
+      ],
+      "id": "RTL-0265",
+      "owner_file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+      "owner_module": "mctp_assembler_v3_descriptor_queue",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PUBLISH_DESCRIPTOR.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "FM_PUBLISH_DESCRIPTOR",
+        "name": "descriptor_publish",
+        "signal": "[\"context released (or DONE_WAIT_DESCRIPTOR_POP)\", \"descriptor_queue_full\"]",
+        "state": "[\"descriptor_ready\", \"descriptor_payload_len\", \"descriptor_base_addr\", \"message_completed_count\", \"descriptor_valid\",..."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PUBLISH_DESCRIPTOR.side_effects.side_effect_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_PUBLISH_DESCRIPTOR: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PUBLISH_DESCRIPTOR.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_descriptor_queue.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PUBLISH_DESCRIPTOR.error_cases.error_case_0.\nOwner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via function_model.transactions.FM_PUBLISH_DESCRIPTOR.\nSSOT item context: id=FM_PUBLISH_DESCRIPTOR; name=descriptor_publish; signal=[{\"condition\": \"descriptor/header queue full at EOM\", \"result\": \"AD_DESCRIPTOR_FULL assembly drop; no descriptor publ...; state=[\"descriptor_ready\", \"descriptor_payload_len\", \"descriptor_base_addr\", \"message_completed_count\", \"descriptor_valid\",....",
+      "evidence_terms": [
+        "AD",
+        "AD_DESCRIPTOR_FULL",
+        "DESCRIPTOR",
+        "EOM",
+        "FULL",
+        "addr",
+        "base",
+        "completed",
+        "count",
+        "ctx",
+        "ctx_state",
+        "descriptor",
+        "descriptor_base_addr",
+        "descriptor_payload_len",
+        "descriptor_queue_full",
+        "descriptor_ready"
+      ],
+      "id": "RTL-0266",
+      "owner_file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+      "owner_module": "mctp_assembler_v3_descriptor_queue",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PUBLISH_DESCRIPTOR.error_cases.error_case_0",
+      "ssot_context": {
+        "id": "FM_PUBLISH_DESCRIPTOR",
+        "name": "descriptor_publish",
+        "signal": "[{\"condition\": \"descriptor/header queue full at EOM\", \"result\": \"AD_DESCRIPTOR_FULL assembly drop; no descriptor publ...",
+        "state": "[\"descriptor_ready\", \"descriptor_payload_len\", \"descriptor_base_addr\", \"message_completed_count\", \"descriptor_valid\",..."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PUBLISH_DESCRIPTOR.error_cases.error_case_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "memory.instances",
+      "content": "Implement memory item descriptor_fifo",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref memory.instances.descriptor_fifo",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "descriptor_fifo width matches SSOT value 512",
+        "descriptor_fifo timing uses SSOT cycle/latency 0",
+        "descriptor_fifo storage depth matches SSOT value 8"
+      ],
+      "detail": "This SSOT memory.instances item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: memory.instances.descriptor_fifo.\nOwner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via memory.instances.descriptor_fifo.\nSSOT item context: name=descriptor_fifo; width=512; depth=8; latency=0.",
+      "evidence_terms": [
+        "descriptor",
+        "descriptor_fifo",
+        "fifo"
+      ],
+      "id": "RTL-0388",
+      "owner_file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+      "owner_module": "mctp_assembler_v3_descriptor_queue",
+      "priority": "high",
+      "required": true,
+      "source_ref": "memory.instances.descriptor_fifo",
+      "ssot_context": {
+        "depth": "8",
+        "latency": "0",
+        "name": "descriptor_fifo",
+        "width": "512"
+      },
+      "ssot_refs": [
+        "memory.instances.descriptor_fifo"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module mctp_assembler_v3_descriptor_queue is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.mctp_assembler_v3_descriptor_queue.module_equivalence",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_descriptor_queue.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.mctp_assembler_v3_descriptor_queue.module_equivalence.\nOwner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0469",
+      "owner_file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+      "owner_module": "mctp_assembler_v3_descriptor_queue",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.mctp_assembler_v3_descriptor_queue.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.mctp_assembler_v3_descriptor_queue.module_equivalence"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter DONE_WAIT_DESCRIPTOR_POP",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.DONE_WAIT_DESCRIPTOR_POP",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_descriptor_queue.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.DONE_WAIT_DESCRIPTOR_POP.\nOwner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via semantic_terms:descriptor.\nSSOT item context: name=DONE_WAIT_DESCRIPTOR_POP.",
+      "evidence_terms": [],
+      "id": "RTL-0034",
+      "owner_file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+      "owner_module": "mctp_assembler_v3_descriptor_queue",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.DONE_WAIT_DESCRIPTOR_POP",
+      "ssot_context": {
+        "name": "DONE_WAIT_DESCRIPTOR_POP"
+      },
+      "ssot_refs": [
+        "parameters.DONE_WAIT_DESCRIPTOR_POP"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter DESCRIPTOR_FIFO_DEPTH",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.DESCRIPTOR_FIFO_DEPTH",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_descriptor_queue.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.DESCRIPTOR_FIFO_DEPTH.\nOwner: mctp_assembler_v3_descriptor_queue in rtl/mctp_assembler_v3_descriptor_queue.sv via semantic_terms:descriptor.\nSSOT item context: name=DESCRIPTOR_FIFO_DEPTH.",
+      "evidence_terms": [],
+      "id": "RTL-0049",
+      "owner_file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+      "owner_module": "mctp_assembler_v3_descriptor_queue",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.DESCRIPTOR_FIFO_DEPTH",
+      "ssot_context": {
+        "name": "DESCRIPTOR_FIFO_DEPTH"
+      },
+      "ssot_refs": [
+        "parameters.DESCRIPTOR_FIFO_DEPTH"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    }
+  ],
+  "todo_plan_sha256": "928c0a587fbcc3522da24eba470cd1fb51a8ad7c9c51ddd94821393e2967e9f9",
+  "top": "mctp_assembler_v3",
+  "type": "rtl_authoring_packet"
+}

@@ -1,0 +1,1778 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 7,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 2,
+      "key": "io_list",
+      "module_task_count": 68,
+      "rule": "Owner module mctp_assembler_v3 is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "io_list",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/mctp_assembler_v3.sv",
+      "name": "mctp_assembler_v3",
+      "refs": [
+        "cycle_model",
+        "cycle_model.pipeline",
+        "dataflow",
+        "decomposition",
+        "function_model",
+        "function_model.transactions",
+        "integration",
+        "integration.connections",
+        "io_list",
+        "io_list.interfaces",
+        "top_module"
+      ],
+      "wiring_only": true
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "name": "mctp_assembler_v3_axi_wr_ingress",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
+        "name": "mctp_assembler_v3_pcie_vdm_parser",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "name": "mctp_assembler_v3_mctp_decoder",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_context_table.sv",
+        "name": "mctp_assembler_v3_context_table",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_sram_packer.sv",
+        "name": "mctp_assembler_v3_sram_packer",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "name": "mctp_assembler_v3_descriptor_queue",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "name": "mctp_assembler_v3_axi_rd_payload",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "name": "mctp_assembler_v3_apb_regfile",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_cdc_sync.sv",
+        "name": "mctp_assembler_v3_cdc_sync",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3.sv",
+        "name": "mctp_assembler_v3",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_v3_axi_wr_ingress",
+        "port": "axi_aclk",
+        "signal": "axi_aclk",
+        "signal_terms": [
+          "axi_aclk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_v3_axi_wr_ingress",
+        "port": "axi_aresetn",
+        "signal": "axi_aresetn",
+        "signal_terms": [
+          "axi_aresetn"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_v3_apb_regfile",
+        "port": "pclk",
+        "signal": "pclk",
+        "signal_terms": [
+          "pclk"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_v3_apb_regfile",
+        "port": "presetn",
+        "signal": "presetn",
+        "signal_terms": [
+          "presetn"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_v3_apb_regfile",
+        "port": "irq_o",
+        "signal": "irq",
+        "signal_terms": [
+          "irq"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_v3_sram_packer",
+        "port": "sram_wr_valid_o",
+        "signal": "sram_wr_valid",
+        "signal_terms": [
+          "sram_wr_valid"
+        ],
+        "source_ref": "integration.connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_v3_context_table",
+        "port": "drop_class_o",
+        "signal": "last_drop_class",
+        "signal_terms": [
+          "last_drop_class"
+        ],
+        "source_ref": "integration.connections[6]"
+      }
+    ],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "axi_aclk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "axi_aclk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "pclk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pclk",
+        "source_ref": "io_list.clock_domains[1].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_aresetn"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "axi_aresetn",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "presetn"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "presetn",
+        "source_ref": "io_list.resets[1].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_awaddr",
+          "s_axi_awaddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_awaddr",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "16"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_awlen",
+          "s_axi_awlen"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_awlen",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_awsize",
+          "s_axi_awsize"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_awsize",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "3"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_awburst",
+          "s_axi_awburst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_awburst",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "2"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_awvalid",
+          "s_axi_awvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_awvalid",
+        "source_ref": "io_list.interfaces[0].ports[4]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_awready",
+          "s_axi_awready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "s_axi_awready",
+        "source_ref": "io_list.interfaces[0].ports[5]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_wdata",
+          "s_axi_wdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_wdata",
+        "source_ref": "io_list.interfaces[0].ports[6]",
+        "width": "256"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_wstrb",
+          "s_axi_wstrb"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_wstrb",
+        "source_ref": "io_list.interfaces[0].ports[7]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_wlast",
+          "s_axi_wlast"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_wlast",
+        "source_ref": "io_list.interfaces[0].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_wvalid",
+          "s_axi_wvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_wvalid",
+        "source_ref": "io_list.interfaces[0].ports[9]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_wready",
+          "s_axi_wready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "s_axi_wready",
+        "source_ref": "io_list.interfaces[0].ports[10]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_bresp",
+          "s_axi_bresp"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "s_axi_bresp",
+        "source_ref": "io_list.interfaces[0].ports[11]",
+        "width": "2"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_bvalid",
+          "s_axi_bvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "s_axi_bvalid",
+        "source_ref": "io_list.interfaces[0].ports[12]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_bready",
+          "s_axi_bready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_bready",
+        "source_ref": "io_list.interfaces[0].ports[13]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_rd_slave_s_axi_araddr",
+          "s_axi_araddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_araddr",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "16"
+      },
+      {
+        "aliases": [
+          "axi_rd_slave_s_axi_arlen",
+          "s_axi_arlen"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_arlen",
+        "source_ref": "io_list.interfaces[1].ports[1]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "axi_rd_slave_s_axi_arsize",
+          "s_axi_arsize"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_arsize",
+        "source_ref": "io_list.interfaces[1].ports[2]",
+        "width": "3"
+      },
+      {
+        "aliases": [
+          "axi_rd_slave_s_axi_arburst",
+          "s_axi_arburst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_arburst",
+        "source_ref": "io_list.interfaces[1].ports[3]",
+        "width": "2"
+      },
+      {
+        "aliases": [
+          "axi_rd_slave_s_axi_arvalid",
+          "s_axi_arvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_arvalid",
+        "source_ref": "io_list.interfaces[1].ports[4]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_rd_slave_s_axi_arready",
+          "s_axi_arready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "s_axi_arready",
+        "source_ref": "io_list.interfaces[1].ports[5]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_rd_slave_s_axi_rdata",
+          "s_axi_rdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "s_axi_rdata",
+        "source_ref": "io_list.interfaces[1].ports[6]",
+        "width": "256"
+      },
+      {
+        "aliases": [
+          "axi_rd_slave_s_axi_rresp",
+          "s_axi_rresp"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "s_axi_rresp",
+        "source_ref": "io_list.interfaces[1].ports[7]",
+        "width": "2"
+      },
+      {
+        "aliases": [
+          "axi_rd_slave_s_axi_rlast",
+          "s_axi_rlast"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "s_axi_rlast",
+        "source_ref": "io_list.interfaces[1].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_rd_slave_s_axi_rvalid",
+          "s_axi_rvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "s_axi_rvalid",
+        "source_ref": "io_list.interfaces[1].ports[9]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_rd_slave_s_axi_rready",
+          "s_axi_rready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_rready",
+        "source_ref": "io_list.interfaces[1].ports[10]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_paddr",
+          "paddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "paddr",
+        "source_ref": "io_list.interfaces[2].ports[0]",
+        "width": "16"
+      },
+      {
+        "aliases": [
+          "apb_slave_psel",
+          "psel"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "psel",
+        "source_ref": "io_list.interfaces[2].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_penable",
+          "penable"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "penable",
+        "source_ref": "io_list.interfaces[2].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_pwrite",
+          "pwrite"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pwrite",
+        "source_ref": "io_list.interfaces[2].ports[3]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_pwdata",
+          "pwdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pwdata",
+        "source_ref": "io_list.interfaces[2].ports[4]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "apb_slave_pstrb",
+          "pstrb"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pstrb",
+        "source_ref": "io_list.interfaces[2].ports[5]",
+        "width": "4"
+      },
+      {
+        "aliases": [
+          "apb_slave_prdata",
+          "prdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "prdata",
+        "source_ref": "io_list.interfaces[2].ports[6]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "apb_slave_pready",
+          "pready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pready",
+        "source_ref": "io_list.interfaces[2].ports[7]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_pslverr",
+          "pslverr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pslverr",
+        "source_ref": "io_list.interfaces[2].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "sram_wr_valid",
+          "sram_write_sram_wr_valid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "sram_wr_valid",
+        "source_ref": "io_list.interfaces[3].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "sram_wr_ready",
+          "sram_write_sram_wr_ready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "sram_wr_ready",
+        "source_ref": "io_list.interfaces[3].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "sram_wr_addr",
+          "sram_write_sram_wr_addr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "sram_wr_addr",
+        "source_ref": "io_list.interfaces[3].ports[2]",
+        "width": "16"
+      },
+      {
+        "aliases": [
+          "sram_wr_data",
+          "sram_write_sram_wr_data"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "sram_wr_data",
+        "source_ref": "io_list.interfaces[3].ports[3]",
+        "width": "256"
+      },
+      {
+        "aliases": [
+          "sram_wr_strb",
+          "sram_write_sram_wr_strb"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "sram_wr_strb",
+        "source_ref": "io_list.interfaces[3].ports[4]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "sram_rd_req_valid",
+          "sram_read_sram_rd_req_valid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "sram_rd_req_valid",
+        "source_ref": "io_list.interfaces[4].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "sram_rd_req_ready",
+          "sram_read_sram_rd_req_ready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "sram_rd_req_ready",
+        "source_ref": "io_list.interfaces[4].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "sram_rd_req_addr",
+          "sram_read_sram_rd_req_addr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "sram_rd_req_addr",
+        "source_ref": "io_list.interfaces[4].ports[2]",
+        "width": "16"
+      },
+      {
+        "aliases": [
+          "sram_rd_rsp_valid",
+          "sram_read_sram_rd_rsp_valid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "sram_rd_rsp_valid",
+        "source_ref": "io_list.interfaces[4].ports[3]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "sram_rd_rsp_ready",
+          "sram_read_sram_rd_rsp_ready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "sram_rd_rsp_ready",
+        "source_ref": "io_list.interfaces[4].ports[4]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "sram_rd_rsp_data",
+          "sram_read_sram_rd_rsp_data"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "sram_rd_rsp_data",
+        "source_ref": "io_list.interfaces[4].ports[5]",
+        "width": "256"
+      },
+      {
+        "aliases": [
+          "sram_rd_rsp_error",
+          "sram_read_sram_rd_rsp_error"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "sram_rd_rsp_error",
+        "source_ref": "io_list.interfaces[4].ports[6]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "interrupt_irq",
+          "irq"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "irq",
+        "source_ref": "io_list.interfaces[5].ports[0]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 22,
+    "open_required_count": 22,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "mctp_assembler_v3",
+  "kind": "module",
+  "owner_file": "rtl/mctp_assembler_v3.sv",
+  "owner_module": "mctp_assembler_v3",
+  "packet_id": "module__mctp_assembler_v3__io_list",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "io_list.port": 22
+    },
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 2,
+      "key": "io_list",
+      "module_task_count": 68,
+      "rule": "Owner module mctp_assembler_v3 is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "io_list",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 22,
+    "required_count": 22,
+    "source_refs": [
+      "io_list.interfaces.apb_slave.ports.paddr",
+      "io_list.interfaces.apb_slave.ports.psel",
+      "io_list.interfaces.apb_slave.ports.penable",
+      "io_list.interfaces.apb_slave.ports.pwrite",
+      "io_list.interfaces.apb_slave.ports.pwdata",
+      "io_list.interfaces.apb_slave.ports.pstrb",
+      "io_list.interfaces.apb_slave.ports.prdata",
+      "io_list.interfaces.apb_slave.ports.pready",
+      "io_list.interfaces.apb_slave.ports.pslverr",
+      "io_list.interfaces.sram_write.ports.sram_wr_valid",
+      "io_list.interfaces.sram_write.ports.sram_wr_ready",
+      "io_list.interfaces.sram_write.ports.sram_wr_addr",
+      "io_list.interfaces.sram_write.ports.sram_wr_data",
+      "io_list.interfaces.sram_write.ports.sram_wr_strb",
+      "io_list.interfaces.sram_read.ports.sram_rd_req_valid",
+      "io_list.interfaces.sram_read.ports.sram_rd_req_ready",
+      "io_list.interfaces.sram_read.ports.sram_rd_req_addr",
+      "io_list.interfaces.sram_read.ports.sram_rd_rsp_valid",
+      "io_list.interfaces.sram_read.ports.sram_rd_rsp_ready",
+      "io_list.interfaces.sram_read.ports.sram_rd_rsp_data",
+      "io_list.interfaces.sram_read.ports.sram_rd_rsp_error",
+      "io_list.interfaces.interrupt.ports.irq"
+    ],
+    "status_counts": {
+      "planned": 22
+    },
+    "task_count": 22
+  },
+  "tasks": [
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port paddr",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.paddr",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3.sv",
+        "paddr width matches SSOT value 16",
+        "paddr port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.paddr.\nOwner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via io_list.interfaces.\nSSOT item context: name=paddr; width=16; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0081",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.paddr",
+      "ssot_context": {
+        "direction": "input",
+        "name": "paddr",
+        "width": "16"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.paddr"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port psel",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.psel",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3.sv",
+        "psel width matches SSOT value 1",
+        "psel port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.psel.\nOwner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via io_list.interfaces.\nSSOT item context: name=psel; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0082",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.psel",
+      "ssot_context": {
+        "direction": "input",
+        "name": "psel",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.psel"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port penable",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.penable",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3.sv",
+        "penable width matches SSOT value 1",
+        "penable port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.penable.\nOwner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via io_list.interfaces.\nSSOT item context: name=penable; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0083",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.penable",
+      "ssot_context": {
+        "direction": "input",
+        "name": "penable",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.penable"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port pwrite",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.pwrite",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3.sv",
+        "pwrite width matches SSOT value 1",
+        "pwrite port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.pwrite.\nOwner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via io_list.interfaces.\nSSOT item context: name=pwrite; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0084",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.pwrite",
+      "ssot_context": {
+        "direction": "input",
+        "name": "pwrite",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.pwrite"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port pwdata",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.pwdata",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3.sv",
+        "pwdata width matches SSOT value 32",
+        "pwdata port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.pwdata.\nOwner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via io_list.interfaces.\nSSOT item context: name=pwdata; width=32; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0085",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.pwdata",
+      "ssot_context": {
+        "direction": "input",
+        "name": "pwdata",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.pwdata"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port pstrb",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.pstrb",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3.sv",
+        "pstrb width matches SSOT value 4",
+        "pstrb port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.pstrb.\nOwner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via io_list.interfaces.\nSSOT item context: name=pstrb; width=4; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0086",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.pstrb",
+      "ssot_context": {
+        "direction": "input",
+        "name": "pstrb",
+        "width": "4"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.pstrb"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port prdata",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.prdata",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3.sv",
+        "prdata width matches SSOT value 32",
+        "prdata port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.prdata.\nOwner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via io_list.interfaces.\nSSOT item context: name=prdata; width=32; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0087",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.prdata",
+      "ssot_context": {
+        "direction": "output",
+        "name": "prdata",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.prdata"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port pready",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.pready",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3.sv",
+        "pready width matches SSOT value 1",
+        "pready port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.pready.\nOwner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via io_list.interfaces.\nSSOT item context: name=pready; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0088",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.pready",
+      "ssot_context": {
+        "direction": "output",
+        "name": "pready",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.pready"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port pslverr",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.pslverr",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3.sv",
+        "pslverr width matches SSOT value 1",
+        "pslverr port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.pslverr.\nOwner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via io_list.interfaces.\nSSOT item context: name=pslverr; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0089",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.pslverr",
+      "ssot_context": {
+        "direction": "output",
+        "name": "pslverr",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.pslverr"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port sram_wr_valid",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.sram_write.ports.sram_wr_valid",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3.sv",
+        "sram_wr_valid width matches SSOT value 1",
+        "sram_wr_valid port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.sram_write.ports.sram_wr_valid.\nOwner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via io_list.interfaces.\nSSOT item context: name=sram_wr_valid; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0090",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.sram_write.ports.sram_wr_valid",
+      "ssot_context": {
+        "direction": "output",
+        "name": "sram_wr_valid",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.sram_write.ports.sram_wr_valid"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port sram_wr_ready",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.sram_write.ports.sram_wr_ready",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3.sv",
+        "sram_wr_ready width matches SSOT value 1",
+        "sram_wr_ready port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.sram_write.ports.sram_wr_ready.\nOwner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via io_list.interfaces.\nSSOT item context: name=sram_wr_ready; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0091",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.sram_write.ports.sram_wr_ready",
+      "ssot_context": {
+        "direction": "input",
+        "name": "sram_wr_ready",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.sram_write.ports.sram_wr_ready"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port sram_wr_addr",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.sram_write.ports.sram_wr_addr",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3.sv",
+        "sram_wr_addr width matches SSOT value 16",
+        "sram_wr_addr port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.sram_write.ports.sram_wr_addr.\nOwner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via io_list.interfaces.\nSSOT item context: name=sram_wr_addr; width=16; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0092",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.sram_write.ports.sram_wr_addr",
+      "ssot_context": {
+        "direction": "output",
+        "name": "sram_wr_addr",
+        "width": "16"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.sram_write.ports.sram_wr_addr"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port sram_wr_data",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.sram_write.ports.sram_wr_data",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3.sv",
+        "sram_wr_data width matches SSOT value 256",
+        "sram_wr_data port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.sram_write.ports.sram_wr_data.\nOwner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via io_list.interfaces.\nSSOT item context: name=sram_wr_data; width=256; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0093",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.sram_write.ports.sram_wr_data",
+      "ssot_context": {
+        "direction": "output",
+        "name": "sram_wr_data",
+        "width": "256"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.sram_write.ports.sram_wr_data"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port sram_wr_strb",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.sram_write.ports.sram_wr_strb",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3.sv",
+        "sram_wr_strb width matches SSOT value 32",
+        "sram_wr_strb port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.sram_write.ports.sram_wr_strb.\nOwner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via io_list.interfaces.\nSSOT item context: name=sram_wr_strb; width=32; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0094",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.sram_write.ports.sram_wr_strb",
+      "ssot_context": {
+        "direction": "output",
+        "name": "sram_wr_strb",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.sram_write.ports.sram_wr_strb"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port sram_rd_req_valid",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.sram_read.ports.sram_rd_req_valid",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3.sv",
+        "sram_rd_req_valid width matches SSOT value 1",
+        "sram_rd_req_valid port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.sram_read.ports.sram_rd_req_valid.\nOwner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via io_list.interfaces.\nSSOT item context: name=sram_rd_req_valid; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0095",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.sram_read.ports.sram_rd_req_valid",
+      "ssot_context": {
+        "direction": "output",
+        "name": "sram_rd_req_valid",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.sram_read.ports.sram_rd_req_valid"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port sram_rd_req_ready",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.sram_read.ports.sram_rd_req_ready",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3.sv",
+        "sram_rd_req_ready width matches SSOT value 1",
+        "sram_rd_req_ready port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.sram_read.ports.sram_rd_req_ready.\nOwner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via io_list.interfaces.\nSSOT item context: name=sram_rd_req_ready; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0096",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.sram_read.ports.sram_rd_req_ready",
+      "ssot_context": {
+        "direction": "input",
+        "name": "sram_rd_req_ready",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.sram_read.ports.sram_rd_req_ready"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port sram_rd_req_addr",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.sram_read.ports.sram_rd_req_addr",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3.sv",
+        "sram_rd_req_addr width matches SSOT value 16",
+        "sram_rd_req_addr port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.sram_read.ports.sram_rd_req_addr.\nOwner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via io_list.interfaces.\nSSOT item context: name=sram_rd_req_addr; width=16; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0097",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.sram_read.ports.sram_rd_req_addr",
+      "ssot_context": {
+        "direction": "output",
+        "name": "sram_rd_req_addr",
+        "width": "16"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.sram_read.ports.sram_rd_req_addr"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port sram_rd_rsp_valid",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.sram_read.ports.sram_rd_rsp_valid",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3.sv",
+        "sram_rd_rsp_valid width matches SSOT value 1",
+        "sram_rd_rsp_valid port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.sram_read.ports.sram_rd_rsp_valid.\nOwner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via io_list.interfaces.\nSSOT item context: name=sram_rd_rsp_valid; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0098",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.sram_read.ports.sram_rd_rsp_valid",
+      "ssot_context": {
+        "direction": "input",
+        "name": "sram_rd_rsp_valid",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.sram_read.ports.sram_rd_rsp_valid"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port sram_rd_rsp_ready",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.sram_read.ports.sram_rd_rsp_ready",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3.sv",
+        "sram_rd_rsp_ready width matches SSOT value 1",
+        "sram_rd_rsp_ready port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.sram_read.ports.sram_rd_rsp_ready.\nOwner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via io_list.interfaces.\nSSOT item context: name=sram_rd_rsp_ready; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0099",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.sram_read.ports.sram_rd_rsp_ready",
+      "ssot_context": {
+        "direction": "output",
+        "name": "sram_rd_rsp_ready",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.sram_read.ports.sram_rd_rsp_ready"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port sram_rd_rsp_data",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.sram_read.ports.sram_rd_rsp_data",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3.sv",
+        "sram_rd_rsp_data width matches SSOT value 256",
+        "sram_rd_rsp_data port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.sram_read.ports.sram_rd_rsp_data.\nOwner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via io_list.interfaces.\nSSOT item context: name=sram_rd_rsp_data; width=256; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0100",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.sram_read.ports.sram_rd_rsp_data",
+      "ssot_context": {
+        "direction": "input",
+        "name": "sram_rd_rsp_data",
+        "width": "256"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.sram_read.ports.sram_rd_rsp_data"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port sram_rd_rsp_error",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.sram_read.ports.sram_rd_rsp_error",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3.sv",
+        "sram_rd_rsp_error width matches SSOT value 1",
+        "sram_rd_rsp_error port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.sram_read.ports.sram_rd_rsp_error.\nOwner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via io_list.interfaces.\nSSOT item context: name=sram_rd_rsp_error; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0101",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.sram_read.ports.sram_rd_rsp_error",
+      "ssot_context": {
+        "direction": "input",
+        "name": "sram_rd_rsp_error",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.sram_read.ports.sram_rd_rsp_error"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port irq",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.interrupt.ports.irq",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3.sv",
+        "irq width matches SSOT value 1",
+        "irq port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.interrupt.ports.irq.\nOwner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via io_list.interfaces.\nSSOT item context: name=irq; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0102",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.interrupt.ports.irq",
+      "ssot_context": {
+        "direction": "output",
+        "name": "irq",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.interrupt.ports.irq"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    }
+  ],
+  "todo_plan_sha256": "928c0a587fbcc3522da24eba470cd1fb51a8ad7c9c51ddd94821393e2967e9f9",
+  "top": "mctp_assembler_v3",
+  "type": "rtl_authoring_packet"
+}

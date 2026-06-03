@@ -640,15 +640,18 @@ export function createDataLoaders(deps: DataLoaderDeps): DataLoaders {
             const prev = Number(_prev[key] || 0);
             return Number.isFinite(next) ? Math.max(prev, next) : prev;
           };
+          const routeCostScope = routeActiveIp ? 'user_ip' : '';
+          const routeCostUser = effectiveRoute.owner || String(_prev.costUser || '').trim();
+          const routeCostIp = routeActiveIp || '';
           return {
             tokens: (d.tokens != null) ? stable('tokens', d.tokens) : keep(Number(_prev.tokens || 0)),
             tokensIn: (d.tokens_in != null) ? stable('tokensIn', d.tokens_in) : keep(Number(_prev.tokensIn || 0)),
             tokensCache: (d.tokens_cache != null) ? stable('tokensCache', d.tokens_cache) : keep(Number(_prev.tokensCache || 0)),
             tokensOut: (d.tokens_out != null) ? stable('tokensOut', d.tokens_out) : keep(Number(_prev.tokensOut || 0)),
             costUsd: (d.cost_usd != null) ? stable('costUsd', d.cost_usd) : keep(Number(_prev.costUsd || 0)),
-            costScope: acceptHealthCounters ? (d.cost_scope || _prev.costScope || '') : (_prev.costScope || (routeActiveIp ? 'user_ip' : '')),
-            costUser: acceptHealthCounters ? (d.cost_user || _prev.costUser || '') : (effectiveRoute.owner || _prev.costUser || ''),
-            costIp: acceptHealthCounters ? (d.cost_ip || routeActiveIp || _prev.costIp || '') : (routeActiveIp || ''),
+            costScope: acceptHealthCounters ? (routeCostScope || d.cost_scope || _prev.costScope || '') : (routeCostScope || ''),
+            costUser: acceptHealthCounters ? (routeCostUser || d.cost_user || _prev.costUser || '') : routeCostUser,
+            costIp: acceptHealthCounters ? (routeCostIp || d.cost_ip || _prev.costIp || '') : routeCostIp,
             costCalls: acceptHealthCounters && d.cost_calls != null ? Number(d.cost_calls || 0) : keep(Number(_prev.costCalls || 0)),
           };
         })(),

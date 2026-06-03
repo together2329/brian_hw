@@ -1,0 +1,2092 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 7,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 42,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "name": "mctp_assembler_v3_axi_rd_payload",
+      "refs": [
+        "fsm",
+        "fsm.axi_read_fsm",
+        "function_model",
+        "function_model.transactions.FM_AXI_READ",
+        "io_list",
+        "io_list.interfaces.axi_rd_slave"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "name": "mctp_assembler_v3_axi_wr_ingress",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
+        "name": "mctp_assembler_v3_pcie_vdm_parser",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "name": "mctp_assembler_v3_mctp_decoder",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_context_table.sv",
+        "name": "mctp_assembler_v3_context_table",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_sram_packer.sv",
+        "name": "mctp_assembler_v3_sram_packer",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "name": "mctp_assembler_v3_descriptor_queue",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "name": "mctp_assembler_v3_axi_rd_payload",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "name": "mctp_assembler_v3_apb_regfile",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_cdc_sync.sv",
+        "name": "mctp_assembler_v3_cdc_sync",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3.sv",
+        "name": "mctp_assembler_v3",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 42,
+    "open_required_count": 42,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "mctp_assembler_v3",
+  "kind": "module",
+  "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+  "owner_module": "mctp_assembler_v3_axi_rd_payload",
+  "packet_id": "module__mctp_assembler_v3_axi_rd_payload",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "equivalence.module": 1,
+      "fsm.state": 6,
+      "fsm.transition": 8,
+      "function_model.error_case": 1,
+      "function_model.input": 1,
+      "function_model.output": 5,
+      "function_model.output_rule": 2,
+      "function_model.precondition": 3,
+      "function_model.side_effect": 1,
+      "function_model.state_update": 2,
+      "function_model.transaction": 1,
+      "io_list.port": 11
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 42,
+      "task_limit": 48
+    },
+    "open_required_count": 42,
+    "required_count": 42,
+    "source_refs": [
+      "function_model.transactions.FM_AXI_READ",
+      "function_model.transactions.FM_AXI_READ.preconditions.precondition_0",
+      "function_model.transactions.FM_AXI_READ.preconditions.precondition_1",
+      "function_model.transactions.FM_AXI_READ.preconditions.precondition_2",
+      "function_model.transactions.FM_AXI_READ.inputs.input_0",
+      "function_model.transactions.FM_AXI_READ.outputs.output_0",
+      "function_model.transactions.FM_AXI_READ.outputs.rresp_next",
+      "function_model.transactions.FM_AXI_READ.outputs.rlast_next",
+      "function_model.transactions.FM_AXI_READ.outputs.fw_axi_read_beat_count",
+      "function_model.transactions.FM_AXI_READ.outputs.fw_axi_read_error_count",
+      "function_model.transactions.FM_AXI_READ.output_rules.rresp_next",
+      "function_model.transactions.FM_AXI_READ.output_rules.rlast_next",
+      "function_model.transactions.FM_AXI_READ.state_updates.fw_axi_read_beat_count",
+      "function_model.transactions.FM_AXI_READ.state_updates.fw_axi_read_error_count",
+      "function_model.transactions.FM_AXI_READ.side_effects.side_effect_0",
+      "function_model.transactions.FM_AXI_READ.error_cases.error_case_0",
+      "fsm.axi_read_fsm.states.state_0",
+      "fsm.axi_read_fsm.states.state_1",
+      "fsm.axi_read_fsm.states.state_2",
+      "fsm.axi_read_fsm.states.state_3",
+      "fsm.axi_read_fsm.states.state_4",
+      "fsm.axi_read_fsm.states.state_5",
+      "fsm.axi_read_fsm.transitions.transition_0",
+      "fsm.axi_read_fsm.transitions.transition_1"
+    ],
+    "status_counts": {
+      "planned": 42
+    },
+    "task_count": 42
+  },
+  "tasks": [
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_AXI_READ",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_AXI_READ",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_AXI_READ.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via function_model.transactions.FM_AXI_READ.\nSSOT item context: id=FM_AXI_READ; name=firmware_payload_read.",
+      "evidence_terms": [],
+      "id": "RTL-0267",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_AXI_READ",
+      "ssot_context": {
+        "id": "FM_AXI_READ",
+        "name": "firmware_payload_read"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_AXI_READ"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_AXI_READ: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_AXI_READ.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_AXI_READ.preconditions.precondition_0.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via function_model.transactions.FM_AXI_READ.\nSSOT item context: value=ARSIZE==5.",
+      "evidence_terms": [],
+      "id": "RTL-0268",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_AXI_READ.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "ARSIZE==5"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_AXI_READ.preconditions.precondition_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_AXI_READ: precondition_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_AXI_READ.preconditions.precondition_1",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_AXI_READ.preconditions.precondition_1.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via function_model.transactions.FM_AXI_READ.\nSSOT item context: value=ARBURST==INCR.",
+      "evidence_terms": [],
+      "id": "RTL-0269",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_AXI_READ.preconditions.precondition_1",
+      "ssot_context": {
+        "value": "ARBURST==INCR"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_AXI_READ.preconditions.precondition_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_AXI_READ: precondition_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_AXI_READ.preconditions.precondition_2",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_AXI_READ.preconditions.precondition_2.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via function_model.transactions.FM_AXI_READ.\nSSOT item context: value=descriptor visible for the range or raw_sram_debug_read_enable.",
+      "evidence_terms": [
+        "debug",
+        "enable",
+        "raw",
+        "raw_sram_debug_read_enable",
+        "read",
+        "sram"
+      ],
+      "id": "RTL-0270",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_AXI_READ.preconditions.precondition_2",
+      "ssot_context": {
+        "value": "descriptor visible for the range or raw_sram_debug_read_enable"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_AXI_READ.preconditions.precondition_2"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_AXI_READ: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_AXI_READ.inputs.input_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "DUT port [\"s_axi_rresp\", \"s_axi_rlast\"] is the implementation/observation point for firmware_payload_read"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_AXI_READ.inputs.input_0.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via function_model.transactions.FM_AXI_READ.\nSSOT item context: id=FM_AXI_READ; name=firmware_payload_read; port=[\"s_axi_rresp\", \"s_axi_rlast\"]; signal=[\"AR address/len\", \"out_of_window\", \"no_descriptor\", \"raw_sram_debug_read_enable\", \"beat_index\", \"arlen\", \"read_error\"]; state=[\"fw_axi_read_beat_count\", \"fw_axi_read_error_count\"].",
+      "evidence_terms": [
+        "AR",
+        "arlen",
+        "axi",
+        "beat",
+        "beat_index",
+        "count",
+        "debug",
+        "descriptor",
+        "enable",
+        "fw",
+        "fw_axi_read_beat_count",
+        "fw_axi_read_error_count",
+        "index",
+        "no_descriptor",
+        "of",
+        "out"
+      ],
+      "id": "RTL-0271",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_AXI_READ.inputs.input_0",
+      "ssot_context": {
+        "id": "FM_AXI_READ",
+        "name": "firmware_payload_read",
+        "port": "[\"s_axi_rresp\", \"s_axi_rlast\"]",
+        "signal": "[\"AR address/len\", \"out_of_window\", \"no_descriptor\", \"raw_sram_debug_read_enable\", \"beat_index\", \"arlen\", \"read_error\"]",
+        "state": "[\"fw_axi_read_beat_count\", \"fw_axi_read_error_count\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_AXI_READ.inputs.input_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_AXI_READ: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_AXI_READ.outputs.output_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_AXI_READ.outputs.output_0.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via function_model.transactions.FM_AXI_READ.\nSSOT item context: value=one SRAM read per R beat; rdata returned unmodified; RLAST on final beat.",
+      "evidence_terms": [],
+      "id": "RTL-0272",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_AXI_READ.outputs.output_0",
+      "ssot_context": {
+        "value": "one SRAM read per R beat; rdata returned unmodified; RLAST on final beat"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_AXI_READ.outputs.output_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_AXI_READ: rresp_next",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_AXI_READ.outputs.rresp_next",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "rresp_next RTL expression implements SSOT expression RRESP_SLVERR if (out_of_window or (no_descriptor and not raw_sram_debug_read_enable)) else RRESP_OKAY",
+        "DUT port s_axi_rresp is the implementation/observation point for rresp_next"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_AXI_READ.outputs.rresp_next.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via function_model.transactions.FM_AXI_READ.\nSSOT item context: name=rresp_next; port=s_axi_rresp; expr=RRESP_SLVERR if (out_of_window or (no_descriptor and not raw_sram_debug_read_enable)) else RRESP_OKAY.",
+      "evidence_terms": [
+        "AXI",
+        "FM",
+        "FM_AXI_READ",
+        "READ",
+        "RRESP",
+        "RRESP_OKAY",
+        "RRESP_SLVERR",
+        "SLVERR",
+        "axi",
+        "debug",
+        "descriptor",
+        "enable",
+        "ld_rsp_error",
+        "ld_rsp_error_i",
+        "next",
+        "no_descriptor"
+      ],
+      "id": "RTL-0273",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_AXI_READ.outputs.rresp_next",
+      "ssot_context": {
+        "expr": "RRESP_SLVERR if (out_of_window or (no_descriptor and not raw_sram_debug_read_enable)) else RRESP_OKAY",
+        "name": "rresp_next",
+        "port": "s_axi_rresp"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_AXI_READ.outputs.rresp_next"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_AXI_READ: rlast_next",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_AXI_READ.outputs.rlast_next",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "rlast_next RTL expression implements SSOT expression beat_index == arlen",
+        "DUT port s_axi_rlast is the implementation/observation point for rlast_next"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_AXI_READ.outputs.rlast_next.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via function_model.transactions.FM_AXI_READ.\nSSOT item context: name=rlast_next; port=s_axi_rlast; expr=beat_index == arlen.",
+      "evidence_terms": [
+        "axi",
+        "beat",
+        "beat_index",
+        "index",
+        "next",
+        "rlast",
+        "rlast_next",
+        "s_axi_rlast"
+      ],
+      "id": "RTL-0274",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_AXI_READ.outputs.rlast_next",
+      "ssot_context": {
+        "expr": "beat_index == arlen",
+        "name": "rlast_next",
+        "port": "s_axi_rlast"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_AXI_READ.outputs.rlast_next"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_AXI_READ: fw_axi_read_beat_count",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_AXI_READ.outputs.fw_axi_read_beat_count",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "function_model.transactions.FM_AXI_READ.outputs.fw_axi_read_beat_count RTL expression implements SSOT expression fw_axi_read_beat_count + 1"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_AXI_READ.outputs.fw_axi_read_beat_count.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via function_model.transactions.FM_AXI_READ.\nSSOT item context: state=fw_axi_read_beat_count; expr=fw_axi_read_beat_count + 1.",
+      "evidence_terms": [
+        "axi",
+        "beat",
+        "count",
+        "fw",
+        "fw_axi_read_beat_count",
+        "read"
+      ],
+      "id": "RTL-0275",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_AXI_READ.outputs.fw_axi_read_beat_count",
+      "ssot_context": {
+        "expr": "fw_axi_read_beat_count + 1",
+        "state": "fw_axi_read_beat_count"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_AXI_READ.outputs.fw_axi_read_beat_count"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_AXI_READ: fw_axi_read_error_count",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_AXI_READ.outputs.fw_axi_read_error_count",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "function_model.transactions.FM_AXI_READ.outputs.fw_axi_read_error_count RTL expression implements SSOT expression fw_axi_read_error_count + (1 if read_error else 0)"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_AXI_READ.outputs.fw_axi_read_error_count.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via function_model.transactions.FM_AXI_READ.\nSSOT item context: state=fw_axi_read_error_count; expr=fw_axi_read_error_count + (1 if read_error else 0).",
+      "evidence_terms": [
+        "axi",
+        "count",
+        "fw",
+        "fw_axi_read_error_count",
+        "read",
+        "read_error"
+      ],
+      "id": "RTL-0276",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_AXI_READ.outputs.fw_axi_read_error_count",
+      "ssot_context": {
+        "expr": "fw_axi_read_error_count + (1 if read_error else 0)",
+        "state": "fw_axi_read_error_count"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_AXI_READ.outputs.fw_axi_read_error_count"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_AXI_READ: rresp_next",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_AXI_READ.output_rules.rresp_next",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "rresp_next width matches SSOT value 2",
+        "rresp_next RTL expression implements SSOT expression RRESP_SLVERR if (out_of_window or (no_descriptor and not raw_sram_debug_read_enable)) else RRESP_OKAY",
+        "DUT port s_axi_rresp is the implementation/observation point for rresp_next",
+        "rresp_next is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_AXI_READ.output_rules.rresp_next.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via function_model.transactions.FM_AXI_READ.\nSSOT item context: name=rresp_next; port=s_axi_rresp; expr=RRESP_SLVERR if (out_of_window or (no_descriptor and not raw_sram_debug_read_enable)) else RRESP_OKAY; width=2.",
+      "evidence_terms": [
+        "AXI",
+        "FM",
+        "FM_AXI_READ",
+        "READ",
+        "RRESP",
+        "RRESP_OKAY",
+        "RRESP_SLVERR",
+        "SLVERR",
+        "axi",
+        "debug",
+        "descriptor",
+        "enable",
+        "ld_rsp_error",
+        "ld_rsp_error_i",
+        "next",
+        "no_descriptor"
+      ],
+      "id": "RTL-0277",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_AXI_READ.output_rules.rresp_next",
+      "ssot_context": {
+        "expr": "RRESP_SLVERR if (out_of_window or (no_descriptor and not raw_sram_debug_read_enable)) else RRESP_OKAY",
+        "name": "rresp_next",
+        "port": "s_axi_rresp",
+        "width": "2"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_AXI_READ.output_rules.rresp_next"
+      ],
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_AXI_READ: rlast_next",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_AXI_READ.output_rules.rlast_next",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "rlast_next width matches SSOT value 1",
+        "rlast_next RTL expression implements SSOT expression beat_index == arlen",
+        "DUT port s_axi_rlast is the implementation/observation point for rlast_next",
+        "rlast_next is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_AXI_READ.output_rules.rlast_next.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via function_model.transactions.FM_AXI_READ.\nSSOT item context: name=rlast_next; port=s_axi_rlast; expr=beat_index == arlen; width=1.",
+      "evidence_terms": [
+        "axi",
+        "beat",
+        "beat_index",
+        "index",
+        "next",
+        "rlast",
+        "rlast_next",
+        "s_axi_rlast"
+      ],
+      "id": "RTL-0278",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_AXI_READ.output_rules.rlast_next",
+      "ssot_context": {
+        "expr": "beat_index == arlen",
+        "name": "rlast_next",
+        "port": "s_axi_rlast",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_AXI_READ.output_rules.rlast_next"
+      ],
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_AXI_READ: fw_axi_read_beat_count",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_AXI_READ.state_updates.fw_axi_read_beat_count",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "fw_axi_read_beat_count width matches SSOT value 32",
+        "fw_axi_read_beat_count RTL expression implements SSOT expression fw_axi_read_beat_count + 1",
+        "fw_axi_read_beat_count updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_AXI_READ.state_updates.fw_axi_read_beat_count.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via function_model.transactions.FM_AXI_READ.\nSSOT item context: name=fw_axi_read_beat_count; expr=fw_axi_read_beat_count + 1; width=32.",
+      "evidence_terms": [
+        "axi",
+        "beat",
+        "count",
+        "fw",
+        "fw_axi_read_beat_count",
+        "read"
+      ],
+      "id": "RTL-0279",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_AXI_READ.state_updates.fw_axi_read_beat_count",
+      "ssot_context": {
+        "expr": "fw_axi_read_beat_count + 1",
+        "name": "fw_axi_read_beat_count",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_AXI_READ.state_updates.fw_axi_read_beat_count"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_AXI_READ: fw_axi_read_error_count",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_AXI_READ.state_updates.fw_axi_read_error_count",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "fw_axi_read_error_count width matches SSOT value 32",
+        "fw_axi_read_error_count RTL expression implements SSOT expression fw_axi_read_error_count + (1 if read_error else 0)",
+        "fw_axi_read_error_count updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_AXI_READ.state_updates.fw_axi_read_error_count.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via function_model.transactions.FM_AXI_READ.\nSSOT item context: name=fw_axi_read_error_count; expr=fw_axi_read_error_count + (1 if read_error else 0); width=32.",
+      "evidence_terms": [
+        "axi",
+        "count",
+        "fw",
+        "fw_axi_read_error_count",
+        "read",
+        "read_error"
+      ],
+      "id": "RTL-0280",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_AXI_READ.state_updates.fw_axi_read_error_count",
+      "ssot_context": {
+        "expr": "fw_axi_read_error_count + (1 if read_error else 0)",
+        "name": "fw_axi_read_error_count",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_AXI_READ.state_updates.fw_axi_read_error_count"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_AXI_READ: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_AXI_READ.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "DUT port [\"s_axi_rresp\", \"s_axi_rlast\"] is the implementation/observation point for firmware_payload_read"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_AXI_READ.side_effects.side_effect_0.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via function_model.transactions.FM_AXI_READ.\nSSOT item context: id=FM_AXI_READ; name=firmware_payload_read; port=[\"s_axi_rresp\", \"s_axi_rlast\"]; signal=[\"fw_axi_read_beat_count increment\", \"out_of_window\", \"no_descriptor\", \"raw_sram_debug_read_enable\", \"beat_index\", \"a...; state=[\"fw_axi_read_beat_count\", \"fw_axi_read_error_count\"].",
+      "evidence_terms": [
+        "arlen",
+        "axi",
+        "beat",
+        "beat_index",
+        "count",
+        "debug",
+        "descriptor",
+        "enable",
+        "fw",
+        "fw_axi_read_beat_count",
+        "fw_axi_read_error_count",
+        "index",
+        "no_descriptor",
+        "of",
+        "out",
+        "out_of_window"
+      ],
+      "id": "RTL-0281",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_AXI_READ.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "FM_AXI_READ",
+        "name": "firmware_payload_read",
+        "port": "[\"s_axi_rresp\", \"s_axi_rlast\"]",
+        "signal": "[\"fw_axi_read_beat_count increment\", \"out_of_window\", \"no_descriptor\", \"raw_sram_debug_read_enable\", \"beat_index\", \"a...",
+        "state": "[\"fw_axi_read_beat_count\", \"fw_axi_read_error_count\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_AXI_READ.side_effects.side_effect_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_AXI_READ: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_AXI_READ.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "DUT port [\"s_axi_rresp\", \"s_axi_rlast\"] is the implementation/observation point for firmware_payload_read"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_AXI_READ.error_cases.error_case_0.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via function_model.transactions.FM_AXI_READ.\nSSOT item context: id=FM_AXI_READ; name=firmware_payload_read; port=[\"s_axi_rresp\", \"s_axi_rlast\"]; signal=[{\"condition\": \"read outside SRAM read window, or no completed descriptor and not raw_sram_debug_read_enable\", \"resul...; state=[\"fw_axi_read_beat_count\", \"fw_axi_read_error_count\"].",
+      "evidence_terms": [
+        "RRESP",
+        "SLVERR",
+        "SRAM",
+        "arlen",
+        "axi",
+        "beat",
+        "beat_index",
+        "count",
+        "debug",
+        "descriptor",
+        "enable",
+        "fw",
+        "fw_axi_read_beat_count",
+        "fw_axi_read_error_count",
+        "index",
+        "no_descriptor"
+      ],
+      "id": "RTL-0282",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_AXI_READ.error_cases.error_case_0",
+      "ssot_context": {
+        "id": "FM_AXI_READ",
+        "name": "firmware_payload_read",
+        "port": "[\"s_axi_rresp\", \"s_axi_rlast\"]",
+        "signal": "[{\"condition\": \"read outside SRAM read window, or no completed descriptor and not raw_sram_debug_read_enable\", \"resul...",
+        "state": "[\"fw_axi_read_beat_count\", \"fw_axi_read_error_count\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_AXI_READ.error_cases.error_case_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state axi_read_fsm.state_0",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.axi_read_fsm.states.state_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.axi_read_fsm.states.state_0.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via fsm.axi_read_fsm.\nSSOT item context: value=IDLE.",
+      "evidence_terms": [
+        "IDLE"
+      ],
+      "id": "RTL-0423",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.axi_read_fsm.states.state_0",
+      "ssot_context": {
+        "value": "IDLE"
+      },
+      "ssot_refs": [
+        "fsm.axi_read_fsm.states.state_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state axi_read_fsm.state_1",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.axi_read_fsm.states.state_1",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.axi_read_fsm.states.state_1.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via fsm.axi_read_fsm.\nSSOT item context: value=ACCEPT_AR.",
+      "evidence_terms": [
+        "ACCEPT_AR"
+      ],
+      "id": "RTL-0424",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.axi_read_fsm.states.state_1",
+      "ssot_context": {
+        "value": "ACCEPT_AR"
+      },
+      "ssot_refs": [
+        "fsm.axi_read_fsm.states.state_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state axi_read_fsm.state_2",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.axi_read_fsm.states.state_2",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.axi_read_fsm.states.state_2.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via fsm.axi_read_fsm.\nSSOT item context: value=ISSUE_SRAM_RD.",
+      "evidence_terms": [
+        "ISSUE_SRAM_RD"
+      ],
+      "id": "RTL-0425",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.axi_read_fsm.states.state_2",
+      "ssot_context": {
+        "value": "ISSUE_SRAM_RD"
+      },
+      "ssot_refs": [
+        "fsm.axi_read_fsm.states.state_2"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state axi_read_fsm.state_3",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.axi_read_fsm.states.state_3",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.axi_read_fsm.states.state_3.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via fsm.axi_read_fsm.\nSSOT item context: value=WAIT_SRAM_RSP.",
+      "evidence_terms": [
+        "WAIT_SRAM_RSP"
+      ],
+      "id": "RTL-0426",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.axi_read_fsm.states.state_3",
+      "ssot_context": {
+        "value": "WAIT_SRAM_RSP"
+      },
+      "ssot_refs": [
+        "fsm.axi_read_fsm.states.state_3"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state axi_read_fsm.state_4",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.axi_read_fsm.states.state_4",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.axi_read_fsm.states.state_4.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via fsm.axi_read_fsm.\nSSOT item context: value=DRIVE_R.",
+      "evidence_terms": [
+        "DRIVE_R"
+      ],
+      "id": "RTL-0427",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.axi_read_fsm.states.state_4",
+      "ssot_context": {
+        "value": "DRIVE_R"
+      },
+      "ssot_refs": [
+        "fsm.axi_read_fsm.states.state_4"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state axi_read_fsm.state_5",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.axi_read_fsm.states.state_5",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.axi_read_fsm.states.state_5.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via fsm.axi_read_fsm.\nSSOT item context: value=DONE.",
+      "evidence_terms": [
+        "DONE"
+      ],
+      "id": "RTL-0428",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.axi_read_fsm.states.state_5",
+      "ssot_context": {
+        "value": "DONE"
+      },
+      "ssot_refs": [
+        "fsm.axi_read_fsm.states.state_5"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition axi_read_fsm.transition_0",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.axi_read_fsm.transitions.transition_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "fsm.axi_read_fsm.transitions.transition_0 condition is implemented as RTL control logic: arvalid && arready",
+        "fsm.axi_read_fsm.transitions.transition_0 transition path IDLE -> ACCEPT_AR is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.axi_read_fsm.transitions.transition_0.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via fsm.axi_read_fsm.\nSSOT item context: from=IDLE; to=ACCEPT_AR; condition=arvalid && arready.",
+      "evidence_terms": [
+        "ACCEPT",
+        "ACCEPT_AR",
+        "AR",
+        "IDLE"
+      ],
+      "id": "RTL-0429",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.axi_read_fsm.transitions.transition_0",
+      "ssot_context": {
+        "condition": "arvalid && arready",
+        "from": "IDLE",
+        "to": "ACCEPT_AR"
+      },
+      "ssot_refs": [
+        "fsm.axi_read_fsm.transitions.transition_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition axi_read_fsm.transition_1",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.axi_read_fsm.transitions.transition_1",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "fsm.axi_read_fsm.transitions.transition_1 condition is implemented as RTL control logic: ARSIZE==5 && in window && (descriptor present or raw_sram_debug_read_enable)",
+        "fsm.axi_read_fsm.transitions.transition_1 transition path ACCEPT_AR -> ISSUE_SRAM_RD is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.axi_read_fsm.transitions.transition_1.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via fsm.axi_read_fsm.\nSSOT item context: from=ACCEPT_AR; to=ISSUE_SRAM_RD; condition=ARSIZE==5 && in window && (descriptor present or raw_sram_debug_read_enable).",
+      "evidence_terms": [
+        "ACCEPT",
+        "ACCEPT_AR",
+        "AR",
+        "ARSIZE",
+        "ISSUE",
+        "ISSUE_SRAM_RD",
+        "RD",
+        "SRAM",
+        "debug",
+        "enable",
+        "raw",
+        "raw_sram_debug_read_enable",
+        "read",
+        "sram"
+      ],
+      "id": "RTL-0430",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.axi_read_fsm.transitions.transition_1",
+      "ssot_context": {
+        "condition": "ARSIZE==5 && in window && (descriptor present or raw_sram_debug_read_enable)",
+        "from": "ACCEPT_AR",
+        "to": "ISSUE_SRAM_RD"
+      },
+      "ssot_refs": [
+        "fsm.axi_read_fsm.transitions.transition_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition axi_read_fsm.transition_2",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.axi_read_fsm.transitions.transition_2",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "fsm.axi_read_fsm.transitions.transition_2 condition is implemented as RTL control logic: out-of-window/no-descriptor -> SLVERR",
+        "fsm.axi_read_fsm.transitions.transition_2 transition path ACCEPT_AR -> DRIVE_R is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.axi_read_fsm.transitions.transition_2.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via fsm.axi_read_fsm.\nSSOT item context: from=ACCEPT_AR; to=DRIVE_R; condition=out-of-window/no-descriptor -> SLVERR.",
+      "evidence_terms": [
+        "ACCEPT",
+        "ACCEPT_AR",
+        "AR",
+        "DRIVE",
+        "DRIVE_R",
+        "SLVERR"
+      ],
+      "id": "RTL-0431",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.axi_read_fsm.transitions.transition_2",
+      "ssot_context": {
+        "condition": "out-of-window/no-descriptor -> SLVERR",
+        "from": "ACCEPT_AR",
+        "to": "DRIVE_R"
+      },
+      "ssot_refs": [
+        "fsm.axi_read_fsm.transitions.transition_2"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition axi_read_fsm.transition_3",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.axi_read_fsm.transitions.transition_3",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "fsm.axi_read_fsm.transitions.transition_3 condition is implemented as RTL control logic: sram_rd_req accepted",
+        "fsm.axi_read_fsm.transitions.transition_3 transition path ISSUE_SRAM_RD -> WAIT_SRAM_RSP is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.axi_read_fsm.transitions.transition_3.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via fsm.axi_read_fsm.\nSSOT item context: from=ISSUE_SRAM_RD; to=WAIT_SRAM_RSP; condition=sram_rd_req accepted.",
+      "evidence_terms": [
+        "ISSUE",
+        "ISSUE_SRAM_RD",
+        "RD",
+        "RSP",
+        "SRAM",
+        "WAIT",
+        "WAIT_SRAM_RSP",
+        "rd",
+        "req",
+        "sram",
+        "sram_rd_req"
+      ],
+      "id": "RTL-0432",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.axi_read_fsm.transitions.transition_3",
+      "ssot_context": {
+        "condition": "sram_rd_req accepted",
+        "from": "ISSUE_SRAM_RD",
+        "to": "WAIT_SRAM_RSP"
+      },
+      "ssot_refs": [
+        "fsm.axi_read_fsm.transitions.transition_3"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition axi_read_fsm.transition_4",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.axi_read_fsm.transitions.transition_4",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "fsm.axi_read_fsm.transitions.transition_4 condition is implemented as RTL control logic: sram_rd_rsp_valid",
+        "fsm.axi_read_fsm.transitions.transition_4 transition path WAIT_SRAM_RSP -> DRIVE_R is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.axi_read_fsm.transitions.transition_4.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via fsm.axi_read_fsm.\nSSOT item context: from=WAIT_SRAM_RSP; to=DRIVE_R; condition=sram_rd_rsp_valid.",
+      "evidence_terms": [
+        "DRIVE",
+        "DRIVE_R",
+        "RSP",
+        "SRAM",
+        "WAIT",
+        "WAIT_SRAM_RSP",
+        "rd",
+        "rsp",
+        "sram",
+        "sram_rd_rsp_valid",
+        "valid"
+      ],
+      "id": "RTL-0433",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.axi_read_fsm.transitions.transition_4",
+      "ssot_context": {
+        "condition": "sram_rd_rsp_valid",
+        "from": "WAIT_SRAM_RSP",
+        "to": "DRIVE_R"
+      },
+      "ssot_refs": [
+        "fsm.axi_read_fsm.transitions.transition_4"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition axi_read_fsm.transition_5",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.axi_read_fsm.transitions.transition_5",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "fsm.axi_read_fsm.transitions.transition_5 condition is implemented as RTL control logic: rvalid && rready && !rlast",
+        "fsm.axi_read_fsm.transitions.transition_5 transition path DRIVE_R -> ISSUE_SRAM_RD is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.axi_read_fsm.transitions.transition_5.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via fsm.axi_read_fsm.\nSSOT item context: from=DRIVE_R; to=ISSUE_SRAM_RD; condition=rvalid && rready && !rlast.",
+      "evidence_terms": [
+        "DRIVE",
+        "DRIVE_R",
+        "ISSUE",
+        "ISSUE_SRAM_RD",
+        "RD",
+        "SRAM"
+      ],
+      "id": "RTL-0434",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.axi_read_fsm.transitions.transition_5",
+      "ssot_context": {
+        "condition": "rvalid && rready && !rlast",
+        "from": "DRIVE_R",
+        "to": "ISSUE_SRAM_RD"
+      },
+      "ssot_refs": [
+        "fsm.axi_read_fsm.transitions.transition_5"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition axi_read_fsm.transition_6",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.axi_read_fsm.transitions.transition_6",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "fsm.axi_read_fsm.transitions.transition_6 condition is implemented as RTL control logic: rvalid && rready && rlast",
+        "fsm.axi_read_fsm.transitions.transition_6 transition path DRIVE_R -> DONE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.axi_read_fsm.transitions.transition_6.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via fsm.axi_read_fsm.\nSSOT item context: from=DRIVE_R; to=DONE; condition=rvalid && rready && rlast.",
+      "evidence_terms": [
+        "DONE",
+        "DRIVE",
+        "DRIVE_R"
+      ],
+      "id": "RTL-0435",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.axi_read_fsm.transitions.transition_6",
+      "ssot_context": {
+        "condition": "rvalid && rready && rlast",
+        "from": "DRIVE_R",
+        "to": "DONE"
+      },
+      "ssot_refs": [
+        "fsm.axi_read_fsm.transitions.transition_6"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition axi_read_fsm.transition_7",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.axi_read_fsm.transitions.transition_7",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "fsm.axi_read_fsm.transitions.transition_7 condition is implemented as RTL control logic: next",
+        "fsm.axi_read_fsm.transitions.transition_7 transition path DONE -> IDLE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.axi_read_fsm.transitions.transition_7.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via fsm.axi_read_fsm.\nSSOT item context: from=DONE; to=IDLE; condition=next.",
+      "evidence_terms": [
+        "DONE",
+        "IDLE"
+      ],
+      "id": "RTL-0436",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.axi_read_fsm.transitions.transition_7",
+      "ssot_context": {
+        "condition": "next",
+        "from": "DONE",
+        "to": "IDLE"
+      },
+      "ssot_refs": [
+        "fsm.axi_read_fsm.transitions.transition_7"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module mctp_assembler_v3_axi_rd_payload is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.mctp_assembler_v3_axi_rd_payload.module_equivalence",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.mctp_assembler_v3_axi_rd_payload.module_equivalence.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0470",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.mctp_assembler_v3_axi_rd_payload.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.mctp_assembler_v3_axi_rd_payload.module_equivalence"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port s_axi_araddr",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_rd_slave.ports.s_axi_araddr",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "s_axi_araddr width matches SSOT value 16",
+        "s_axi_araddr port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_rd_slave.ports.s_axi_araddr.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via io_list.interfaces.axi_rd_slave.\nSSOT item context: name=s_axi_araddr; width=16; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0070",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_rd_slave.ports.s_axi_araddr",
+      "ssot_context": {
+        "direction": "input",
+        "name": "s_axi_araddr",
+        "width": "16"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_rd_slave.ports.s_axi_araddr"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port s_axi_arlen",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_rd_slave.ports.s_axi_arlen",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "s_axi_arlen width matches SSOT value 8",
+        "s_axi_arlen port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_rd_slave.ports.s_axi_arlen.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via io_list.interfaces.axi_rd_slave.\nSSOT item context: name=s_axi_arlen; width=8; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0071",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_rd_slave.ports.s_axi_arlen",
+      "ssot_context": {
+        "direction": "input",
+        "name": "s_axi_arlen",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_rd_slave.ports.s_axi_arlen"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port s_axi_arsize",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_rd_slave.ports.s_axi_arsize",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "s_axi_arsize width matches SSOT value 3",
+        "s_axi_arsize port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_rd_slave.ports.s_axi_arsize.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via io_list.interfaces.axi_rd_slave.\nSSOT item context: name=s_axi_arsize; width=3; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0072",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_rd_slave.ports.s_axi_arsize",
+      "ssot_context": {
+        "direction": "input",
+        "name": "s_axi_arsize",
+        "width": "3"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_rd_slave.ports.s_axi_arsize"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port s_axi_arburst",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_rd_slave.ports.s_axi_arburst",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "s_axi_arburst width matches SSOT value 2",
+        "s_axi_arburst port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_rd_slave.ports.s_axi_arburst.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via io_list.interfaces.axi_rd_slave.\nSSOT item context: name=s_axi_arburst; width=2; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0073",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_rd_slave.ports.s_axi_arburst",
+      "ssot_context": {
+        "direction": "input",
+        "name": "s_axi_arburst",
+        "width": "2"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_rd_slave.ports.s_axi_arburst"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port s_axi_arvalid",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_rd_slave.ports.s_axi_arvalid",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "s_axi_arvalid width matches SSOT value 1",
+        "s_axi_arvalid port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_rd_slave.ports.s_axi_arvalid.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via io_list.interfaces.axi_rd_slave.\nSSOT item context: name=s_axi_arvalid; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0074",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_rd_slave.ports.s_axi_arvalid",
+      "ssot_context": {
+        "direction": "input",
+        "name": "s_axi_arvalid",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_rd_slave.ports.s_axi_arvalid"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port s_axi_arready",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_rd_slave.ports.s_axi_arready",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "s_axi_arready width matches SSOT value 1",
+        "s_axi_arready port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_rd_slave.ports.s_axi_arready.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via io_list.interfaces.axi_rd_slave.\nSSOT item context: name=s_axi_arready; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0075",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_rd_slave.ports.s_axi_arready",
+      "ssot_context": {
+        "direction": "output",
+        "name": "s_axi_arready",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_rd_slave.ports.s_axi_arready"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port s_axi_rdata",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_rd_slave.ports.s_axi_rdata",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "s_axi_rdata width matches SSOT value 256",
+        "s_axi_rdata port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_rd_slave.ports.s_axi_rdata.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via io_list.interfaces.axi_rd_slave.\nSSOT item context: name=s_axi_rdata; width=256; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0076",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_rd_slave.ports.s_axi_rdata",
+      "ssot_context": {
+        "direction": "output",
+        "name": "s_axi_rdata",
+        "width": "256"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_rd_slave.ports.s_axi_rdata"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port s_axi_rresp",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_rd_slave.ports.s_axi_rresp",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "s_axi_rresp width matches SSOT value 2",
+        "s_axi_rresp port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_rd_slave.ports.s_axi_rresp.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via io_list.interfaces.axi_rd_slave.\nSSOT item context: name=s_axi_rresp; width=2; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0077",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_rd_slave.ports.s_axi_rresp",
+      "ssot_context": {
+        "direction": "output",
+        "name": "s_axi_rresp",
+        "width": "2"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_rd_slave.ports.s_axi_rresp"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port s_axi_rlast",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_rd_slave.ports.s_axi_rlast",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "s_axi_rlast width matches SSOT value 1",
+        "s_axi_rlast port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_rd_slave.ports.s_axi_rlast.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via io_list.interfaces.axi_rd_slave.\nSSOT item context: name=s_axi_rlast; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0078",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_rd_slave.ports.s_axi_rlast",
+      "ssot_context": {
+        "direction": "output",
+        "name": "s_axi_rlast",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_rd_slave.ports.s_axi_rlast"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port s_axi_rvalid",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_rd_slave.ports.s_axi_rvalid",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "s_axi_rvalid width matches SSOT value 1",
+        "s_axi_rvalid port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_rd_slave.ports.s_axi_rvalid.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via io_list.interfaces.axi_rd_slave.\nSSOT item context: name=s_axi_rvalid; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0079",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_rd_slave.ports.s_axi_rvalid",
+      "ssot_context": {
+        "direction": "output",
+        "name": "s_axi_rvalid",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_rd_slave.ports.s_axi_rvalid"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port s_axi_rready",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.axi_rd_slave.ports.s_axi_rready",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "s_axi_rready width matches SSOT value 1",
+        "s_axi_rready port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.axi_rd_slave.ports.s_axi_rready.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via io_list.interfaces.axi_rd_slave.\nSSOT item context: name=s_axi_rready; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0080",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.axi_rd_slave.ports.s_axi_rready",
+      "ssot_context": {
+        "direction": "input",
+        "name": "s_axi_rready",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.axi_rd_slave.ports.s_axi_rready"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    }
+  ],
+  "todo_plan_sha256": "928c0a587fbcc3522da24eba470cd1fb51a8ad7c9c51ddd94821393e2967e9f9",
+  "top": "mctp_assembler_v3",
+  "type": "rtl_authoring_packet"
+}

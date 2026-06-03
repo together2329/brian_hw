@@ -126,15 +126,18 @@ export function mergeHealthTelemetry(
     const old = Number(prev[key] || 0);
     return Number.isFinite(next) ? Math.max(old, next) : old;
   };
+  const routeCostScope = effectiveRoute.ip ? 'user_ip' : '';
+  const routeCostUser = effectiveRoute.owner || String(prev.costUser || '').trim();
+  const routeCostIp = effectiveRoute.ip || '';
   return {
     activeSession: nextSession || prev.activeSession || '',
     tokensIn: j.tokens_in != null ? stable('tokensIn', j.tokens_in) : Number(prev.tokensIn || 0),
     tokensCache: j.tokens_cache != null ? stable('tokensCache', j.tokens_cache) : Number(prev.tokensCache || 0),
     tokensOut: j.tokens_out != null ? stable('tokensOut', j.tokens_out) : Number(prev.tokensOut || 0),
     costUsd: j.cost_usd != null ? stable('costUsd', j.cost_usd) : Number(prev.costUsd || 0),
-    costScope: acceptCounters ? (j.cost_scope || prev.costScope || '') : (prev.costScope || (effectiveRoute.ip ? 'user_ip' : '')),
-    costUser: acceptCounters ? (j.cost_user || prev.costUser || '') : (effectiveRoute.owner || prev.costUser || ''),
-    costIp: acceptCounters ? (j.cost_ip || effectiveRoute.ip || prev.costIp || '') : (effectiveRoute.ip || ''),
+    costScope: acceptCounters ? (routeCostScope || j.cost_scope || prev.costScope || '') : routeCostScope,
+    costUser: acceptCounters ? (routeCostUser || j.cost_user || prev.costUser || '') : routeCostUser,
+    costIp: acceptCounters ? (routeCostIp || j.cost_ip || prev.costIp || '') : routeCostIp,
     costCalls: acceptCounters && j.cost_calls != null ? Number(j.cost_calls || 0) : keep(Number(prev.costCalls || 0)),
     model: j.model || j.base_model || prev.model || '',
     agentAlive: typeof j.agent_alive === 'boolean' ? j.agent_alive : !!prev.agentAlive,

@@ -1,0 +1,1447 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 7,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 7,
+      "enabled": true,
+      "index": 3,
+      "key": "registers_02",
+      "module_task_count": 102,
+      "rule": "Owner module mctp_assembler_v3_apb_regfile is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "registers",
+      "section_chunk_count": 2,
+      "section_chunk_index": 2,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+      "name": "mctp_assembler_v3_apb_regfile",
+      "refs": [
+        "decomposition",
+        "error_handling",
+        "features",
+        "function_model.state_variables",
+        "interrupts",
+        "registers",
+        "registers.register_list"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "name": "mctp_assembler_v3_axi_wr_ingress",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
+        "name": "mctp_assembler_v3_pcie_vdm_parser",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "name": "mctp_assembler_v3_mctp_decoder",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_context_table.sv",
+        "name": "mctp_assembler_v3_context_table",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_sram_packer.sv",
+        "name": "mctp_assembler_v3_sram_packer",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "name": "mctp_assembler_v3_descriptor_queue",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "name": "mctp_assembler_v3_axi_rd_payload",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "name": "mctp_assembler_v3_apb_regfile",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_cdc_sync.sv",
+        "name": "mctp_assembler_v3_cdc_sync",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3.sv",
+        "name": "mctp_assembler_v3",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_v3_apb_regfile",
+        "port": "pclk",
+        "signal": "pclk",
+        "signal_terms": [
+          "pclk"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_v3_apb_regfile",
+        "port": "presetn",
+        "signal": "presetn",
+        "signal_terms": [
+          "presetn"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_v3_apb_regfile",
+        "port": "irq_o",
+        "signal": "irq",
+        "signal_terms": [
+          "irq"
+        ],
+        "source_ref": "integration.connections[4]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 25,
+    "open_required_count": 25,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "mctp_assembler_v3",
+  "kind": "module",
+  "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+  "owner_module": "mctp_assembler_v3_apb_regfile",
+  "packet_id": "module__mctp_assembler_v3_apb_regfile__registers_02",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "registers.field": 19,
+      "registers.register": 6
+    },
+    "module_slice": {
+      "count": 7,
+      "enabled": true,
+      "index": 3,
+      "key": "registers_02",
+      "module_task_count": 102,
+      "rule": "Owner module mctp_assembler_v3_apb_regfile is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "registers",
+      "section_chunk_count": 2,
+      "section_chunk_index": 2,
+      "task_limit": 48
+    },
+    "open_required_count": 25,
+    "required_count": 25,
+    "source_refs": [
+      "registers.register_list.INTR_RAW_STATUS.fields.raw",
+      "registers.register_list.INTR_ENABLE",
+      "registers.register_list.INTR_ENABLE.fields.enable",
+      "registers.register_list.INTR_STATUS",
+      "registers.register_list.INTR_STATUS.fields.status",
+      "registers.register_list.INTR_CLEAR",
+      "registers.register_list.INTR_CLEAR.fields.clear",
+      "registers.register_list.CNT_TLP_SEEN",
+      "registers.register_list.CNT_TLP_SEEN.fields.count",
+      "registers.register_list.DESC_VALID",
+      "registers.register_list.DESC_VALID.fields.descriptor_valid",
+      "registers.register_list.DESC_VALID.fields.completion_status",
+      "registers.register_list.DESC_VALID.fields.source_eid",
+      "registers.register_list.DESC_VALID.fields.destination_eid",
+      "registers.register_list.DESC_VALID.fields.message_tag",
+      "registers.register_list.DESC_VALID.fields.tag_owner",
+      "registers.register_list.DESC_VALID.fields.message_type",
+      "registers.register_list.DESC_VALID.fields.context_id",
+      "registers.register_list.DEBUG_CTX",
+      "registers.register_list.DEBUG_CTX.fields.parser_state",
+      "registers.register_list.DEBUG_CTX.fields.axi_wr_state",
+      "registers.register_list.DEBUG_CTX.fields.axi_rd_state",
+      "registers.register_list.DEBUG_CTX.fields.sram_pack_state",
+      "registers.register_list.DEBUG_CTX.fields.sram_read_state"
+    ],
+    "status_counts": {
+      "planned": 25
+    },
+    "task_count": 25
+  },
+  "tasks": [
+    {
+      "category": "registers.field",
+      "content": "Implement field INTR_RAW_STATUS.raw",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.INTR_RAW_STATUS.fields.raw",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_apb_regfile.sv",
+        "raw reset behavior matches SSOT value 0",
+        "raw access policy ro is implemented without read/write shortcuts",
+        "raw readback returns implemented RTL state when readable",
+        "raw write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTR_RAW_STATUS.fields.raw.\nOwner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.\nSSOT item context: name=raw; reset=0; access=ro.",
+      "evidence_terms": [
+        "INTR",
+        "INTR_RAW_STATUS",
+        "RAW",
+        "STATUS",
+        "raw"
+      ],
+      "id": "RTL-0362",
+      "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+      "owner_module": "mctp_assembler_v3_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.INTR_RAW_STATUS.fields.raw",
+      "ssot_context": {
+        "access": "ro",
+        "name": "raw",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.INTR_RAW_STATUS.fields.raw"
+      ],
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register INTR_ENABLE",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.INTR_ENABLE",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_apb_regfile.sv",
+        "INTR_ENABLE width matches SSOT value 32",
+        "INTR_ENABLE reset behavior matches SSOT value 0",
+        "INTR_ENABLE access policy rw is implemented without read/write shortcuts",
+        "INTR_ENABLE decode uses SSOT address/offset 260"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.INTR_ENABLE.\nOwner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.\nSSOT item context: name=INTR_ENABLE; width=32; reset=0; access=rw; offset=260.",
+      "evidence_terms": [
+        "ENABLE",
+        "INTR",
+        "INTR_ENABLE"
+      ],
+      "id": "RTL-0363",
+      "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+      "owner_module": "mctp_assembler_v3_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.INTR_ENABLE",
+      "ssot_context": {
+        "access": "rw",
+        "name": "INTR_ENABLE",
+        "offset": "260",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.INTR_ENABLE"
+      ],
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field INTR_ENABLE.enable",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.INTR_ENABLE.fields.enable",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_apb_regfile.sv",
+        "enable reset behavior matches SSOT value 0",
+        "enable access policy rw is implemented without read/write shortcuts",
+        "enable readback returns implemented RTL state when readable",
+        "enable write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTR_ENABLE.fields.enable.\nOwner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.\nSSOT item context: name=enable; reset=0; access=rw.",
+      "evidence_terms": [
+        "ENABLE",
+        "INTR",
+        "INTR_ENABLE",
+        "enable"
+      ],
+      "id": "RTL-0364",
+      "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+      "owner_module": "mctp_assembler_v3_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.INTR_ENABLE.fields.enable",
+      "ssot_context": {
+        "access": "rw",
+        "name": "enable",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.INTR_ENABLE.fields.enable"
+      ],
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register INTR_STATUS",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.INTR_STATUS",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_apb_regfile.sv",
+        "INTR_STATUS width matches SSOT value 32",
+        "INTR_STATUS reset behavior matches SSOT value 0",
+        "INTR_STATUS access policy ro is implemented without read/write shortcuts",
+        "INTR_STATUS decode uses SSOT address/offset 264"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.INTR_STATUS.\nOwner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.\nSSOT item context: name=INTR_STATUS; width=32; reset=0; access=ro; offset=264.",
+      "evidence_terms": [
+        "INTR",
+        "INTR_STATUS",
+        "STATUS"
+      ],
+      "id": "RTL-0365",
+      "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+      "owner_module": "mctp_assembler_v3_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.INTR_STATUS",
+      "ssot_context": {
+        "access": "ro",
+        "name": "INTR_STATUS",
+        "offset": "264",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.INTR_STATUS"
+      ],
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field INTR_STATUS.status",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.INTR_STATUS.fields.status",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_apb_regfile.sv",
+        "status reset behavior matches SSOT value 0",
+        "status access policy ro is implemented without read/write shortcuts",
+        "status readback returns implemented RTL state when readable",
+        "status write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTR_STATUS.fields.status.\nOwner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.\nSSOT item context: name=status; reset=0; access=ro.",
+      "evidence_terms": [
+        "INTR",
+        "INTR_STATUS",
+        "STATUS",
+        "status"
+      ],
+      "id": "RTL-0366",
+      "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+      "owner_module": "mctp_assembler_v3_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.INTR_STATUS.fields.status",
+      "ssot_context": {
+        "access": "ro",
+        "name": "status",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.INTR_STATUS.fields.status"
+      ],
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register INTR_CLEAR",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.INTR_CLEAR",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_apb_regfile.sv",
+        "INTR_CLEAR width matches SSOT value 32",
+        "INTR_CLEAR reset behavior matches SSOT value 0",
+        "INTR_CLEAR access policy rw is implemented without read/write shortcuts",
+        "INTR_CLEAR decode uses SSOT address/offset 268"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.INTR_CLEAR.\nOwner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.\nSSOT item context: name=INTR_CLEAR; width=32; reset=0; access=rw; offset=268.",
+      "evidence_terms": [
+        "INTR",
+        "INTR_CLEAR"
+      ],
+      "id": "RTL-0367",
+      "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+      "owner_module": "mctp_assembler_v3_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.INTR_CLEAR",
+      "ssot_context": {
+        "access": "rw",
+        "name": "INTR_CLEAR",
+        "offset": "268",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.INTR_CLEAR"
+      ],
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field INTR_CLEAR.clear",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.INTR_CLEAR.fields.clear",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_apb_regfile.sv",
+        "clear reset behavior matches SSOT value 0",
+        "clear access policy w1c is implemented without read/write shortcuts",
+        "clear readback returns implemented RTL state when readable",
+        "clear write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.INTR_CLEAR.fields.clear.\nOwner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.\nSSOT item context: name=clear; reset=0; access=w1c.",
+      "evidence_terms": [
+        "INTR",
+        "INTR_CLEAR"
+      ],
+      "id": "RTL-0368",
+      "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+      "owner_module": "mctp_assembler_v3_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.INTR_CLEAR.fields.clear",
+      "ssot_context": {
+        "access": "w1c",
+        "name": "clear",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.INTR_CLEAR.fields.clear"
+      ],
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register CNT_TLP_SEEN",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.CNT_TLP_SEEN",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_apb_regfile.sv",
+        "CNT_TLP_SEEN width matches SSOT value 32",
+        "CNT_TLP_SEEN reset behavior matches SSOT value 0",
+        "CNT_TLP_SEEN access policy ro is implemented without read/write shortcuts",
+        "CNT_TLP_SEEN decode uses SSOT address/offset 512"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.CNT_TLP_SEEN.\nOwner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.\nSSOT item context: name=CNT_TLP_SEEN; width=32; reset=0; access=ro; offset=512.",
+      "evidence_terms": [
+        "CNT",
+        "CNT_TLP_SEEN",
+        "SEEN",
+        "TLP"
+      ],
+      "id": "RTL-0369",
+      "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+      "owner_module": "mctp_assembler_v3_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CNT_TLP_SEEN",
+      "ssot_context": {
+        "access": "ro",
+        "name": "CNT_TLP_SEEN",
+        "offset": "512",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.CNT_TLP_SEEN"
+      ],
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CNT_TLP_SEEN.count",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CNT_TLP_SEEN.fields.count",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_apb_regfile.sv",
+        "count reset behavior matches SSOT value 0",
+        "count access policy ro is implemented without read/write shortcuts",
+        "count readback returns implemented RTL state when readable",
+        "count write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CNT_TLP_SEEN.fields.count.\nOwner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.\nSSOT item context: name=count; reset=0; access=ro.",
+      "evidence_terms": [
+        "count"
+      ],
+      "id": "RTL-0370",
+      "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+      "owner_module": "mctp_assembler_v3_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CNT_TLP_SEEN.fields.count",
+      "ssot_context": {
+        "access": "ro",
+        "name": "count",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CNT_TLP_SEEN.fields.count"
+      ],
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register DESC_VALID",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.DESC_VALID",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_apb_regfile.sv",
+        "DESC_VALID width matches SSOT value 32",
+        "DESC_VALID reset behavior matches SSOT value 0",
+        "DESC_VALID access policy ro is implemented without read/write shortcuts",
+        "DESC_VALID decode uses SSOT address/offset 768"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.DESC_VALID.\nOwner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.\nSSOT item context: name=DESC_VALID; width=32; reset=0; access=ro; offset=768.",
+      "evidence_terms": [
+        "DESC",
+        "DESC_VALID",
+        "VALID"
+      ],
+      "id": "RTL-0371",
+      "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+      "owner_module": "mctp_assembler_v3_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.DESC_VALID",
+      "ssot_context": {
+        "access": "ro",
+        "name": "DESC_VALID",
+        "offset": "768",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.DESC_VALID"
+      ],
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field DESC_VALID.descriptor_valid",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.DESC_VALID.fields.descriptor_valid",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_apb_regfile.sv",
+        "descriptor_valid reset behavior matches SSOT value 0",
+        "descriptor_valid access policy ro is implemented without read/write shortcuts",
+        "descriptor_valid readback returns implemented RTL state when readable",
+        "descriptor_valid write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DESC_VALID.fields.descriptor_valid.\nOwner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.\nSSOT item context: name=descriptor_valid; reset=0; access=ro.",
+      "evidence_terms": [
+        "descriptor",
+        "descriptor_valid",
+        "valid"
+      ],
+      "id": "RTL-0372",
+      "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+      "owner_module": "mctp_assembler_v3_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.DESC_VALID.fields.descriptor_valid",
+      "ssot_context": {
+        "access": "ro",
+        "name": "descriptor_valid",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.DESC_VALID.fields.descriptor_valid"
+      ],
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field DESC_VALID.completion_status",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.DESC_VALID.fields.completion_status",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_apb_regfile.sv",
+        "completion_status reset behavior matches SSOT value 0",
+        "completion_status access policy ro is implemented without read/write shortcuts",
+        "completion_status readback returns implemented RTL state when readable",
+        "completion_status write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DESC_VALID.fields.completion_status.\nOwner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.\nSSOT item context: name=completion_status; reset=0; access=ro.",
+      "evidence_terms": [
+        "completion",
+        "completion_status",
+        "status"
+      ],
+      "id": "RTL-0373",
+      "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+      "owner_module": "mctp_assembler_v3_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.DESC_VALID.fields.completion_status",
+      "ssot_context": {
+        "access": "ro",
+        "name": "completion_status",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.DESC_VALID.fields.completion_status"
+      ],
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field DESC_VALID.source_eid",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.DESC_VALID.fields.source_eid",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_apb_regfile.sv",
+        "source_eid reset behavior matches SSOT value 0",
+        "source_eid access policy ro is implemented without read/write shortcuts",
+        "source_eid readback returns implemented RTL state when readable",
+        "source_eid write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DESC_VALID.fields.source_eid.\nOwner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.\nSSOT item context: name=source_eid; reset=0; access=ro.",
+      "evidence_terms": [
+        "eid",
+        "source",
+        "source_eid"
+      ],
+      "id": "RTL-0374",
+      "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+      "owner_module": "mctp_assembler_v3_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.DESC_VALID.fields.source_eid",
+      "ssot_context": {
+        "access": "ro",
+        "name": "source_eid",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.DESC_VALID.fields.source_eid"
+      ],
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field DESC_VALID.destination_eid",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.DESC_VALID.fields.destination_eid",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_apb_regfile.sv",
+        "destination_eid reset behavior matches SSOT value 0",
+        "destination_eid access policy ro is implemented without read/write shortcuts",
+        "destination_eid readback returns implemented RTL state when readable",
+        "destination_eid write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DESC_VALID.fields.destination_eid.\nOwner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.\nSSOT item context: name=destination_eid; reset=0; access=ro.",
+      "evidence_terms": [
+        "destination",
+        "destination_eid",
+        "eid"
+      ],
+      "id": "RTL-0375",
+      "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+      "owner_module": "mctp_assembler_v3_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.DESC_VALID.fields.destination_eid",
+      "ssot_context": {
+        "access": "ro",
+        "name": "destination_eid",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.DESC_VALID.fields.destination_eid"
+      ],
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field DESC_VALID.message_tag",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.DESC_VALID.fields.message_tag",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_apb_regfile.sv",
+        "message_tag reset behavior matches SSOT value 0",
+        "message_tag access policy ro is implemented without read/write shortcuts",
+        "message_tag readback returns implemented RTL state when readable",
+        "message_tag write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DESC_VALID.fields.message_tag.\nOwner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.\nSSOT item context: name=message_tag; reset=0; access=ro.",
+      "evidence_terms": [
+        "message",
+        "message_tag",
+        "tag"
+      ],
+      "id": "RTL-0376",
+      "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+      "owner_module": "mctp_assembler_v3_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.DESC_VALID.fields.message_tag",
+      "ssot_context": {
+        "access": "ro",
+        "name": "message_tag",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.DESC_VALID.fields.message_tag"
+      ],
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field DESC_VALID.tag_owner",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.DESC_VALID.fields.tag_owner",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_apb_regfile.sv",
+        "tag_owner reset behavior matches SSOT value 0",
+        "tag_owner access policy ro is implemented without read/write shortcuts",
+        "tag_owner readback returns implemented RTL state when readable",
+        "tag_owner write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DESC_VALID.fields.tag_owner.\nOwner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.\nSSOT item context: name=tag_owner; reset=0; access=ro.",
+      "evidence_terms": [
+        "owner",
+        "tag",
+        "tag_owner"
+      ],
+      "id": "RTL-0377",
+      "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+      "owner_module": "mctp_assembler_v3_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.DESC_VALID.fields.tag_owner",
+      "ssot_context": {
+        "access": "ro",
+        "name": "tag_owner",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.DESC_VALID.fields.tag_owner"
+      ],
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field DESC_VALID.message_type",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.DESC_VALID.fields.message_type",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_apb_regfile.sv",
+        "message_type reset behavior matches SSOT value 0",
+        "message_type access policy ro is implemented without read/write shortcuts",
+        "message_type readback returns implemented RTL state when readable",
+        "message_type write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DESC_VALID.fields.message_type.\nOwner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.\nSSOT item context: name=message_type; reset=0; access=ro.",
+      "evidence_terms": [
+        "message",
+        "message_type",
+        "type"
+      ],
+      "id": "RTL-0378",
+      "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+      "owner_module": "mctp_assembler_v3_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.DESC_VALID.fields.message_type",
+      "ssot_context": {
+        "access": "ro",
+        "name": "message_type",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.DESC_VALID.fields.message_type"
+      ],
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field DESC_VALID.context_id",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.DESC_VALID.fields.context_id",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_apb_regfile.sv",
+        "context_id reset behavior matches SSOT value 0",
+        "context_id access policy ro is implemented without read/write shortcuts",
+        "context_id readback returns implemented RTL state when readable",
+        "context_id write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DESC_VALID.fields.context_id.\nOwner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.\nSSOT item context: name=context_id; reset=0; access=ro.",
+      "evidence_terms": [
+        "context",
+        "context_id",
+        "id"
+      ],
+      "id": "RTL-0379",
+      "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+      "owner_module": "mctp_assembler_v3_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.DESC_VALID.fields.context_id",
+      "ssot_context": {
+        "access": "ro",
+        "name": "context_id",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.DESC_VALID.fields.context_id"
+      ],
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register DEBUG_CTX",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.DEBUG_CTX",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_apb_regfile.sv",
+        "DEBUG_CTX width matches SSOT value 32",
+        "DEBUG_CTX reset behavior matches SSOT value 0",
+        "DEBUG_CTX access policy ro is implemented without read/write shortcuts",
+        "DEBUG_CTX decode uses SSOT address/offset 896"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.DEBUG_CTX.\nOwner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.\nSSOT item context: name=DEBUG_CTX; width=32; reset=0; access=ro; offset=896.",
+      "evidence_terms": [
+        "CTX",
+        "DEBUG",
+        "DEBUG_CTX"
+      ],
+      "id": "RTL-0380",
+      "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+      "owner_module": "mctp_assembler_v3_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.DEBUG_CTX",
+      "ssot_context": {
+        "access": "ro",
+        "name": "DEBUG_CTX",
+        "offset": "896",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.DEBUG_CTX"
+      ],
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field DEBUG_CTX.parser_state",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.DEBUG_CTX.fields.parser_state",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_apb_regfile.sv",
+        "parser_state reset behavior matches SSOT value 0",
+        "parser_state access policy ro is implemented without read/write shortcuts",
+        "parser_state readback returns implemented RTL state when readable",
+        "parser_state write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DEBUG_CTX.fields.parser_state.\nOwner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.\nSSOT item context: name=parser_state; reset=0; access=ro.",
+      "evidence_terms": [
+        "parser",
+        "parser_state"
+      ],
+      "id": "RTL-0381",
+      "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+      "owner_module": "mctp_assembler_v3_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.DEBUG_CTX.fields.parser_state",
+      "ssot_context": {
+        "access": "ro",
+        "name": "parser_state",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.DEBUG_CTX.fields.parser_state"
+      ],
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field DEBUG_CTX.axi_wr_state",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.DEBUG_CTX.fields.axi_wr_state",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_apb_regfile.sv",
+        "axi_wr_state reset behavior matches SSOT value 0",
+        "axi_wr_state access policy ro is implemented without read/write shortcuts",
+        "axi_wr_state readback returns implemented RTL state when readable",
+        "axi_wr_state write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DEBUG_CTX.fields.axi_wr_state.\nOwner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.\nSSOT item context: name=axi_wr_state; reset=0; access=ro.",
+      "evidence_terms": [
+        "axi",
+        "axi_wr_state",
+        "wr"
+      ],
+      "id": "RTL-0382",
+      "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+      "owner_module": "mctp_assembler_v3_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.DEBUG_CTX.fields.axi_wr_state",
+      "ssot_context": {
+        "access": "ro",
+        "name": "axi_wr_state",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.DEBUG_CTX.fields.axi_wr_state"
+      ],
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field DEBUG_CTX.axi_rd_state",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.DEBUG_CTX.fields.axi_rd_state",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_apb_regfile.sv",
+        "axi_rd_state reset behavior matches SSOT value 0",
+        "axi_rd_state access policy ro is implemented without read/write shortcuts",
+        "axi_rd_state readback returns implemented RTL state when readable",
+        "axi_rd_state write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DEBUG_CTX.fields.axi_rd_state.\nOwner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.\nSSOT item context: name=axi_rd_state; reset=0; access=ro.",
+      "evidence_terms": [
+        "axi",
+        "axi_rd_state",
+        "rd"
+      ],
+      "id": "RTL-0383",
+      "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+      "owner_module": "mctp_assembler_v3_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.DEBUG_CTX.fields.axi_rd_state",
+      "ssot_context": {
+        "access": "ro",
+        "name": "axi_rd_state",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.DEBUG_CTX.fields.axi_rd_state"
+      ],
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field DEBUG_CTX.sram_pack_state",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.DEBUG_CTX.fields.sram_pack_state",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_apb_regfile.sv",
+        "sram_pack_state reset behavior matches SSOT value 0",
+        "sram_pack_state access policy ro is implemented without read/write shortcuts",
+        "sram_pack_state readback returns implemented RTL state when readable",
+        "sram_pack_state write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DEBUG_CTX.fields.sram_pack_state.\nOwner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.\nSSOT item context: name=sram_pack_state; reset=0; access=ro.",
+      "evidence_terms": [
+        "pack",
+        "sram",
+        "sram_pack_state"
+      ],
+      "id": "RTL-0384",
+      "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+      "owner_module": "mctp_assembler_v3_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.DEBUG_CTX.fields.sram_pack_state",
+      "ssot_context": {
+        "access": "ro",
+        "name": "sram_pack_state",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.DEBUG_CTX.fields.sram_pack_state"
+      ],
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field DEBUG_CTX.sram_read_state",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.DEBUG_CTX.fields.sram_read_state",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_apb_regfile.sv",
+        "sram_read_state reset behavior matches SSOT value 0",
+        "sram_read_state access policy ro is implemented without read/write shortcuts",
+        "sram_read_state readback returns implemented RTL state when readable",
+        "sram_read_state write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DEBUG_CTX.fields.sram_read_state.\nOwner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.\nSSOT item context: name=sram_read_state; reset=0; access=ro.",
+      "evidence_terms": [
+        "read",
+        "sram",
+        "sram_read_state"
+      ],
+      "id": "RTL-0385",
+      "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+      "owner_module": "mctp_assembler_v3_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.DEBUG_CTX.fields.sram_read_state",
+      "ssot_context": {
+        "access": "ro",
+        "name": "sram_read_state",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.DEBUG_CTX.fields.sram_read_state"
+      ],
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field DEBUG_CTX.selected_ctx",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.DEBUG_CTX.fields.selected_ctx",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_apb_regfile.sv",
+        "selected_ctx reset behavior matches SSOT value 0",
+        "selected_ctx access policy ro is implemented without read/write shortcuts",
+        "selected_ctx readback returns implemented RTL state when readable",
+        "selected_ctx write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DEBUG_CTX.fields.selected_ctx.\nOwner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.\nSSOT item context: name=selected_ctx; reset=0; access=ro.",
+      "evidence_terms": [
+        "ctx",
+        "selected",
+        "selected_ctx"
+      ],
+      "id": "RTL-0386",
+      "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+      "owner_module": "mctp_assembler_v3_apb_regfile",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.DEBUG_CTX.fields.selected_ctx",
+      "ssot_context": {
+        "access": "ro",
+        "name": "selected_ctx",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.DEBUG_CTX.fields.selected_ctx"
+      ],
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    }
+  ],
+  "todo_plan_sha256": "928c0a587fbcc3522da24eba470cd1fb51a8ad7c9c51ddd94821393e2967e9f9",
+  "top": "mctp_assembler_v3",
+  "type": "rtl_authoring_packet"
+}

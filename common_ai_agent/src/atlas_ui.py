@@ -2223,7 +2223,7 @@ def create_app():
                 if include_cost and active_ip_name and active_ip_name != "default":
                     db_path = os.environ.get("ATLAS_DB_PATH") or str(Path.home() / ".common_ai_agent" / "atlas.db")
                     user_id = str(user.get("id") or "") if user else ""
-                    cache_key = (db_path, user_id, username_norm, active_ip_name)
+                    cache_key = (db_path, user_id, username_norm, active_ip_name, active_session_path)
                     usage = _healthz_cost_cache_get(cache_key)
                     if usage is None:
                         with AtlasDB() as _db:
@@ -2231,6 +2231,7 @@ def create_app():
                                 user_id=user_id,
                                 username=username_norm,
                                 ip=active_ip_name,
+                                active_session=active_session_path,
                             )
                         _healthz_cost_cache_set(cache_key, usage)
                     info["tokens_in"] = usage.get("tokens_input", 0)

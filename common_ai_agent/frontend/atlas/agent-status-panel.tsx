@@ -201,6 +201,7 @@ const AgentStatusPanel = ({ intent, workflow, activeIp = '', agentAlive = false,
     const effectiveSession = preserveBrowser
       ? (browserSession || prevSession || incomingSession)
       : (incomingSession || browserSession || prevSession);
+    const effectiveRoute = uiSessionRoute(effectiveSession);
     // Tail match (ip/workflow) so an owner-prefix difference between the
     // orchestrator run session (e.g. `admin/new_axi/orchestrator`) and the
     // workspace session does NOT flip sameSession to false. When it flips,
@@ -218,12 +219,16 @@ const AgentStatusPanel = ({ intent, workflow, activeIp = '', agentAlive = false,
 	    // Context meter post-compression). Only the genuinely-cumulative usage/cost
 	    // counters below are clamped against per-tick jitter.
     const counters = ['tokensIn', 'tokensCache', 'tokensOut', 'costUsd'];
-	    const incomingCostIp = String(clean.costIp || globalCtx.costIp || '').trim();
+    const incomingCostIp = String(clean.costIp || globalCtx.costIp || '').trim();
 	    const prevCostIp = String(prevCtx.costIp || '').trim();
 	    const costIpChanged = !!(incomingCostIp && prevCostIp && incomingCostIp !== prevCostIp);
 	    if (preserveBrowser && prevSession) {
 	      counters.forEach(key => {
 	        if (prevCtx[key] !== undefined && prevCtx[key] !== null) merged[key] = numericValue(prevCtx[key], 0);
+	      });
+	    } else if (preserveBrowser && effectiveRoute.ip) {
+	      counters.forEach(key => {
+	        merged[key] = 0;
 	      });
 	    } else if (costIpChanged) {
 	      counters.forEach(key => {
@@ -235,6 +240,11 @@ const AgentStatusPanel = ({ intent, workflow, activeIp = '', agentAlive = false,
         const prevVal = numericValue(prevCtx[key], 0);
         merged[key] = Number.isFinite(next) ? Math.max(prevVal, next) : prevVal;
       });
+    }
+    if (effectiveRoute.ip && (preserveBrowser || costIpChanged)) {
+      merged.costScope = 'user_ip';
+      merged.costUser = effectiveRoute.owner || merged.costUser || '';
+      merged.costIp = effectiveRoute.ip;
     }
     return merged;
   };

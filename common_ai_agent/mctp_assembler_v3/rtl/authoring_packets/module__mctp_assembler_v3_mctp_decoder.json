@@ -1,0 +1,1495 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 7,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 27,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+      "name": "mctp_assembler_v3_mctp_decoder",
+      "refs": [
+        "features",
+        "features.mctp_decode",
+        "function_model",
+        "function_model.transactions.FM_DECODE_MCTP"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "name": "mctp_assembler_v3_axi_wr_ingress",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
+        "name": "mctp_assembler_v3_pcie_vdm_parser",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "name": "mctp_assembler_v3_mctp_decoder",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_context_table.sv",
+        "name": "mctp_assembler_v3_context_table",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_sram_packer.sv",
+        "name": "mctp_assembler_v3_sram_packer",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "name": "mctp_assembler_v3_descriptor_queue",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "name": "mctp_assembler_v3_axi_rd_payload",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "name": "mctp_assembler_v3_apb_regfile",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_cdc_sync.sv",
+        "name": "mctp_assembler_v3_cdc_sync",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3.sv",
+        "name": "mctp_assembler_v3",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 27,
+    "open_required_count": 27,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "mctp_assembler_v3",
+  "kind": "module",
+  "owner_file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+  "owner_module": "mctp_assembler_v3_mctp_decoder",
+  "packet_id": "module__mctp_assembler_v3_mctp_decoder",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "equivalence.module": 1,
+      "features.item": 1,
+      "function_model.error_case": 2,
+      "function_model.input": 2,
+      "function_model.output": 11,
+      "function_model.precondition": 1,
+      "function_model.state_update": 8,
+      "function_model.transaction": 1
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 27,
+      "task_limit": 48
+    },
+    "open_required_count": 27,
+    "required_count": 27,
+    "source_refs": [
+      "function_model.transactions.FM_DECODE_MCTP",
+      "function_model.transactions.FM_DECODE_MCTP.preconditions.precondition_0",
+      "function_model.transactions.FM_DECODE_MCTP.inputs.input_0",
+      "function_model.transactions.FM_DECODE_MCTP.inputs.input_1",
+      "function_model.transactions.FM_DECODE_MCTP.outputs.output_0",
+      "function_model.transactions.FM_DECODE_MCTP.outputs.output_1",
+      "function_model.transactions.FM_DECODE_MCTP.outputs.output_2",
+      "function_model.transactions.FM_DECODE_MCTP.outputs.header_version_ok",
+      "function_model.transactions.FM_DECODE_MCTP.outputs.som",
+      "function_model.transactions.FM_DECODE_MCTP.outputs.eom",
+      "function_model.transactions.FM_DECODE_MCTP.outputs.packet_seq",
+      "function_model.transactions.FM_DECODE_MCTP.outputs.tag_owner",
+      "function_model.transactions.FM_DECODE_MCTP.outputs.message_tag",
+      "function_model.transactions.FM_DECODE_MCTP.outputs.dest_accept",
+      "function_model.transactions.FM_DECODE_MCTP.outputs.assembly_key",
+      "function_model.transactions.FM_DECODE_MCTP.state_updates.header_version_ok",
+      "function_model.transactions.FM_DECODE_MCTP.state_updates.som",
+      "function_model.transactions.FM_DECODE_MCTP.state_updates.eom",
+      "function_model.transactions.FM_DECODE_MCTP.state_updates.packet_seq",
+      "function_model.transactions.FM_DECODE_MCTP.state_updates.tag_owner",
+      "function_model.transactions.FM_DECODE_MCTP.state_updates.message_tag",
+      "function_model.transactions.FM_DECODE_MCTP.state_updates.dest_accept",
+      "function_model.transactions.FM_DECODE_MCTP.state_updates.assembly_key",
+      "function_model.transactions.FM_DECODE_MCTP.error_cases.error_case_0"
+    ],
+    "status_counts": {
+      "planned": 27
+    },
+    "task_count": 27
+  },
+  "tasks": [
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_DECODE_MCTP",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_DECODE_MCTP",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_mctp_decoder.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_DECODE_MCTP.\nOwner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.\nSSOT item context: id=FM_DECODE_MCTP; name=mctp_transport_decode.",
+      "evidence_terms": [],
+      "id": "RTL-0157",
+      "owner_file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+      "owner_module": "mctp_assembler_v3_mctp_decoder",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DECODE_MCTP",
+      "ssot_context": {
+        "id": "FM_DECODE_MCTP",
+        "name": "mctp_transport_decode"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DECODE_MCTP"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_DECODE_MCTP: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DECODE_MCTP.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_mctp_decoder.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DECODE_MCTP.preconditions.precondition_0.\nOwner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.\nSSOT item context: value=validated VDM payload present.",
+      "evidence_terms": [],
+      "id": "RTL-0158",
+      "owner_file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+      "owner_module": "mctp_assembler_v3_mctp_decoder",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DECODE_MCTP.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "validated VDM payload present"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DECODE_MCTP.preconditions.precondition_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_DECODE_MCTP: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DECODE_MCTP.inputs.input_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_mctp_decoder.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DECODE_MCTP.inputs.input_0.\nOwner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.\nSSOT item context: id=FM_DECODE_MCTP; name=mctp_transport_decode; signal=[\"MCTP transport header (last 4B of 16B header)\", \"header_version\", \"mctp_byte0\", \"dest_filter_enable\", \"dest_eid\", \"...; state=[\"header_version_ok\", \"som\", \"eom\", \"packet_seq\", \"tag_owner\", \"message_tag\", \"dest_accept\", \"assembly_key\"].",
+      "evidence_terms": [
+        "MCTP",
+        "accept",
+        "accept_broadcast_eid",
+        "accept_null_eid",
+        "assembly",
+        "assembly_key",
+        "broadcast",
+        "byte0",
+        "dest",
+        "dest_accept",
+        "dest_eid",
+        "dest_filter_enable",
+        "eid",
+        "enable",
+        "eom",
+        "filter"
+      ],
+      "id": "RTL-0159",
+      "owner_file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+      "owner_module": "mctp_assembler_v3_mctp_decoder",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DECODE_MCTP.inputs.input_0",
+      "ssot_context": {
+        "id": "FM_DECODE_MCTP",
+        "name": "mctp_transport_decode",
+        "signal": "[\"MCTP transport header (last 4B of 16B header)\", \"header_version\", \"mctp_byte0\", \"dest_filter_enable\", \"dest_eid\", \"...",
+        "state": "[\"header_version_ok\", \"som\", \"eom\", \"packet_seq\", \"tag_owner\", \"message_tag\", \"dest_accept\", \"assembly_key\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DECODE_MCTP.inputs.input_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_DECODE_MCTP: input_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DECODE_MCTP.inputs.input_1",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_mctp_decoder.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DECODE_MCTP.inputs.input_1.\nOwner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.\nSSOT item context: id=FM_DECODE_MCTP; name=mctp_transport_decode; signal=[\"SOM body byte (IC+message_type) when SOM=1\", \"header_version\", \"mctp_byte0\", \"dest_filter_enable\", \"dest_eid\", \"loc...; state=[\"header_version_ok\", \"som\", \"eom\", \"packet_seq\", \"tag_owner\", \"message_tag\", \"dest_accept\", \"assembly_key\"].",
+      "evidence_terms": [
+        "IC",
+        "SOM",
+        "accept",
+        "accept_broadcast_eid",
+        "accept_null_eid",
+        "assembly",
+        "assembly_key",
+        "broadcast",
+        "byte0",
+        "dest",
+        "dest_accept",
+        "dest_eid",
+        "dest_filter_enable",
+        "eid",
+        "enable",
+        "eom"
+      ],
+      "id": "RTL-0160",
+      "owner_file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+      "owner_module": "mctp_assembler_v3_mctp_decoder",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DECODE_MCTP.inputs.input_1",
+      "ssot_context": {
+        "id": "FM_DECODE_MCTP",
+        "name": "mctp_transport_decode",
+        "signal": "[\"SOM body byte (IC+message_type) when SOM=1\", \"header_version\", \"mctp_byte0\", \"dest_filter_enable\", \"dest_eid\", \"loc...",
+        "state": "[\"header_version_ok\", \"som\", \"eom\", \"packet_seq\", \"tag_owner\", \"message_tag\", \"dest_accept\", \"assembly_key\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DECODE_MCTP.inputs.input_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_DECODE_MCTP: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DECODE_MCTP.outputs.output_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_mctp_decoder.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DECODE_MCTP.outputs.output_0.\nOwner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.\nSSOT item context: value=header_version, dest_eid, source_eid, SOM, EOM, packet_seq, tag_owner, message_tag.",
+      "evidence_terms": [
+        "dest",
+        "dest_eid",
+        "eid",
+        "header",
+        "header_version",
+        "message",
+        "message_tag",
+        "owner",
+        "packet",
+        "packet_seq",
+        "seq",
+        "source",
+        "source_eid",
+        "tag",
+        "tag_owner",
+        "version"
+      ],
+      "id": "RTL-0161",
+      "owner_file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+      "owner_module": "mctp_assembler_v3_mctp_decoder",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DECODE_MCTP.outputs.output_0",
+      "ssot_context": {
+        "value": "header_version, dest_eid, source_eid, SOM, EOM, packet_seq, tag_owner, message_tag"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DECODE_MCTP.outputs.output_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_DECODE_MCTP: output_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DECODE_MCTP.outputs.output_1",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_mctp_decoder.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DECODE_MCTP.outputs.output_1.\nOwner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.\nSSOT item context: value=ic, message_type on SOM.",
+      "evidence_terms": [
+        "message",
+        "message_type",
+        "type"
+      ],
+      "id": "RTL-0162",
+      "owner_file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+      "owner_module": "mctp_assembler_v3_mctp_decoder",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DECODE_MCTP.outputs.output_1",
+      "ssot_context": {
+        "value": "ic, message_type on SOM"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DECODE_MCTP.outputs.output_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_DECODE_MCTP: output_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DECODE_MCTP.outputs.output_2",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_mctp_decoder.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DECODE_MCTP.outputs.output_2.\nOwner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.\nSSOT item context: value=assembly_key={source_eid,tag_owner,message_tag}.",
+      "evidence_terms": [
+        "assembly",
+        "assembly_key",
+        "eid",
+        "key",
+        "message",
+        "message_tag",
+        "owner",
+        "source",
+        "source_eid",
+        "tag",
+        "tag_owner"
+      ],
+      "id": "RTL-0163",
+      "owner_file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+      "owner_module": "mctp_assembler_v3_mctp_decoder",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DECODE_MCTP.outputs.output_2",
+      "ssot_context": {
+        "value": "assembly_key={source_eid,tag_owner,message_tag}"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DECODE_MCTP.outputs.output_2"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_DECODE_MCTP: header_version_ok",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DECODE_MCTP.outputs.header_version_ok",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "function_model.transactions.FM_DECODE_MCTP.outputs.header_version_ok RTL expression implements SSOT expression header_version == 1"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DECODE_MCTP.outputs.header_version_ok.\nOwner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.\nSSOT item context: state=header_version_ok; expr=header_version == 1.",
+      "evidence_terms": [
+        "header",
+        "header_version",
+        "header_version_ok",
+        "ok",
+        "version"
+      ],
+      "id": "RTL-0164",
+      "owner_file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+      "owner_module": "mctp_assembler_v3_mctp_decoder",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DECODE_MCTP.outputs.header_version_ok",
+      "ssot_context": {
+        "expr": "header_version == 1",
+        "state": "header_version_ok"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DECODE_MCTP.outputs.header_version_ok"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_DECODE_MCTP: som",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DECODE_MCTP.outputs.som",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "function_model.transactions.FM_DECODE_MCTP.outputs.som RTL expression implements SSOT expression mctp_byte0[7]"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DECODE_MCTP.outputs.som.\nOwner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.\nSSOT item context: state=som; expr=mctp_byte0[7].",
+      "evidence_terms": [
+        "byte0",
+        "mctp",
+        "mctp_byte0",
+        "som"
+      ],
+      "id": "RTL-0165",
+      "owner_file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+      "owner_module": "mctp_assembler_v3_mctp_decoder",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DECODE_MCTP.outputs.som",
+      "ssot_context": {
+        "expr": "mctp_byte0[7]",
+        "state": "som"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DECODE_MCTP.outputs.som"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_DECODE_MCTP: eom",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DECODE_MCTP.outputs.eom",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "function_model.transactions.FM_DECODE_MCTP.outputs.eom RTL expression implements SSOT expression mctp_byte0[6]"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DECODE_MCTP.outputs.eom.\nOwner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.\nSSOT item context: state=eom; expr=mctp_byte0[6].",
+      "evidence_terms": [
+        "byte0",
+        "eom",
+        "mctp",
+        "mctp_byte0"
+      ],
+      "id": "RTL-0166",
+      "owner_file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+      "owner_module": "mctp_assembler_v3_mctp_decoder",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DECODE_MCTP.outputs.eom",
+      "ssot_context": {
+        "expr": "mctp_byte0[6]",
+        "state": "eom"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DECODE_MCTP.outputs.eom"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_DECODE_MCTP: packet_seq",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DECODE_MCTP.outputs.packet_seq",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "function_model.transactions.FM_DECODE_MCTP.outputs.packet_seq RTL expression implements SSOT expression mctp_byte0[5:4]"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DECODE_MCTP.outputs.packet_seq.\nOwner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.\nSSOT item context: state=packet_seq; expr=mctp_byte0[5:4].",
+      "evidence_terms": [
+        "byte0",
+        "mctp",
+        "mctp_byte0",
+        "packet",
+        "packet_seq",
+        "seq"
+      ],
+      "id": "RTL-0167",
+      "owner_file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+      "owner_module": "mctp_assembler_v3_mctp_decoder",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DECODE_MCTP.outputs.packet_seq",
+      "ssot_context": {
+        "expr": "mctp_byte0[5:4]",
+        "state": "packet_seq"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DECODE_MCTP.outputs.packet_seq"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_DECODE_MCTP: tag_owner",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DECODE_MCTP.outputs.tag_owner",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "function_model.transactions.FM_DECODE_MCTP.outputs.tag_owner RTL expression implements SSOT expression mctp_byte0[3]"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DECODE_MCTP.outputs.tag_owner.\nOwner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.\nSSOT item context: state=tag_owner; expr=mctp_byte0[3].",
+      "evidence_terms": [
+        "byte0",
+        "mctp",
+        "mctp_byte0",
+        "owner",
+        "tag",
+        "tag_owner"
+      ],
+      "id": "RTL-0168",
+      "owner_file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+      "owner_module": "mctp_assembler_v3_mctp_decoder",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DECODE_MCTP.outputs.tag_owner",
+      "ssot_context": {
+        "expr": "mctp_byte0[3]",
+        "state": "tag_owner"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DECODE_MCTP.outputs.tag_owner"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_DECODE_MCTP: message_tag",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DECODE_MCTP.outputs.message_tag",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "function_model.transactions.FM_DECODE_MCTP.outputs.message_tag RTL expression implements SSOT expression mctp_byte0[2:0]"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DECODE_MCTP.outputs.message_tag.\nOwner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.\nSSOT item context: state=message_tag; expr=mctp_byte0[2:0].",
+      "evidence_terms": [
+        "byte0",
+        "mctp",
+        "mctp_byte0",
+        "message",
+        "message_tag",
+        "tag"
+      ],
+      "id": "RTL-0169",
+      "owner_file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+      "owner_module": "mctp_assembler_v3_mctp_decoder",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DECODE_MCTP.outputs.message_tag",
+      "ssot_context": {
+        "expr": "mctp_byte0[2:0]",
+        "state": "message_tag"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DECODE_MCTP.outputs.message_tag"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_DECODE_MCTP: dest_accept",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DECODE_MCTP.outputs.dest_accept",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "function_model.transactions.FM_DECODE_MCTP.outputs.dest_accept RTL expression implements SSOT expression (not dest_filter_enable) or (dest_eid == local_eid) or (accept_broadcast_eid and (dest_eid == 0xFF)) or (accept_null_..."
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DECODE_MCTP.outputs.dest_accept.\nOwner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.\nSSOT item context: state=dest_accept; expr=(not dest_filter_enable) or (dest_eid == local_eid) or (accept_broadcast_eid and (dest_eid == 0xFF)) or (accept_null_....",
+      "evidence_terms": [
+        "accept",
+        "accept_broadcast_eid",
+        "accept_null_eid",
+        "broadcast",
+        "dest",
+        "dest_accept",
+        "dest_eid",
+        "dest_filter_enable",
+        "eid",
+        "enable",
+        "filter",
+        "local",
+        "local_eid",
+        "null",
+        "x00",
+        "xFF"
+      ],
+      "id": "RTL-0170",
+      "owner_file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+      "owner_module": "mctp_assembler_v3_mctp_decoder",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DECODE_MCTP.outputs.dest_accept",
+      "ssot_context": {
+        "expr": "(not dest_filter_enable) or (dest_eid == local_eid) or (accept_broadcast_eid and (dest_eid == 0xFF)) or (accept_null_...",
+        "state": "dest_accept"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DECODE_MCTP.outputs.dest_accept"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_DECODE_MCTP: assembly_key",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DECODE_MCTP.outputs.assembly_key",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "function_model.transactions.FM_DECODE_MCTP.outputs.assembly_key RTL expression implements SSOT expression ((source_eid << 4) | (tag_owner << 3) | message_tag)"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DECODE_MCTP.outputs.assembly_key.\nOwner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.\nSSOT item context: state=assembly_key; expr=((source_eid << 4) | (tag_owner << 3) | message_tag).",
+      "evidence_terms": [
+        "assembly",
+        "assembly_key",
+        "eid",
+        "key",
+        "message",
+        "message_tag",
+        "owner",
+        "source",
+        "source_eid",
+        "tag",
+        "tag_owner"
+      ],
+      "id": "RTL-0171",
+      "owner_file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+      "owner_module": "mctp_assembler_v3_mctp_decoder",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DECODE_MCTP.outputs.assembly_key",
+      "ssot_context": {
+        "expr": "((source_eid << 4) | (tag_owner << 3) | message_tag)",
+        "state": "assembly_key"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DECODE_MCTP.outputs.assembly_key"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_DECODE_MCTP: header_version_ok",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DECODE_MCTP.state_updates.header_version_ok",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "header_version_ok width matches SSOT value 1",
+        "header_version_ok RTL expression implements SSOT expression header_version == 1",
+        "header_version_ok updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DECODE_MCTP.state_updates.header_version_ok.\nOwner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.\nSSOT item context: name=header_version_ok; expr=header_version == 1; width=1.",
+      "evidence_terms": [
+        "header",
+        "header_version",
+        "header_version_ok",
+        "ok",
+        "version"
+      ],
+      "id": "RTL-0172",
+      "owner_file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+      "owner_module": "mctp_assembler_v3_mctp_decoder",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DECODE_MCTP.state_updates.header_version_ok",
+      "ssot_context": {
+        "expr": "header_version == 1",
+        "name": "header_version_ok",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DECODE_MCTP.state_updates.header_version_ok"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_DECODE_MCTP: som",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DECODE_MCTP.state_updates.som",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "som width matches SSOT value 1",
+        "som RTL expression implements SSOT expression mctp_byte0[7]",
+        "som updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DECODE_MCTP.state_updates.som.\nOwner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.\nSSOT item context: name=som; expr=mctp_byte0[7]; width=1.",
+      "evidence_terms": [
+        "byte0",
+        "mctp",
+        "mctp_byte0",
+        "som"
+      ],
+      "id": "RTL-0173",
+      "owner_file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+      "owner_module": "mctp_assembler_v3_mctp_decoder",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DECODE_MCTP.state_updates.som",
+      "ssot_context": {
+        "expr": "mctp_byte0[7]",
+        "name": "som",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DECODE_MCTP.state_updates.som"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_DECODE_MCTP: eom",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DECODE_MCTP.state_updates.eom",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "eom width matches SSOT value 1",
+        "eom RTL expression implements SSOT expression mctp_byte0[6]",
+        "eom updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DECODE_MCTP.state_updates.eom.\nOwner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.\nSSOT item context: name=eom; expr=mctp_byte0[6]; width=1.",
+      "evidence_terms": [
+        "byte0",
+        "eom",
+        "mctp",
+        "mctp_byte0"
+      ],
+      "id": "RTL-0174",
+      "owner_file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+      "owner_module": "mctp_assembler_v3_mctp_decoder",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DECODE_MCTP.state_updates.eom",
+      "ssot_context": {
+        "expr": "mctp_byte0[6]",
+        "name": "eom",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DECODE_MCTP.state_updates.eom"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_DECODE_MCTP: packet_seq",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DECODE_MCTP.state_updates.packet_seq",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "packet_seq width matches SSOT value 2",
+        "packet_seq RTL expression implements SSOT expression mctp_byte0[5:4]",
+        "packet_seq updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DECODE_MCTP.state_updates.packet_seq.\nOwner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.\nSSOT item context: name=packet_seq; expr=mctp_byte0[5:4]; width=2.",
+      "evidence_terms": [
+        "byte0",
+        "mctp",
+        "mctp_byte0",
+        "packet",
+        "packet_seq",
+        "seq"
+      ],
+      "id": "RTL-0175",
+      "owner_file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+      "owner_module": "mctp_assembler_v3_mctp_decoder",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DECODE_MCTP.state_updates.packet_seq",
+      "ssot_context": {
+        "expr": "mctp_byte0[5:4]",
+        "name": "packet_seq",
+        "width": "2"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DECODE_MCTP.state_updates.packet_seq"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_DECODE_MCTP: tag_owner",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DECODE_MCTP.state_updates.tag_owner",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "tag_owner width matches SSOT value 1",
+        "tag_owner RTL expression implements SSOT expression mctp_byte0[3]",
+        "tag_owner updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DECODE_MCTP.state_updates.tag_owner.\nOwner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.\nSSOT item context: name=tag_owner; expr=mctp_byte0[3]; width=1.",
+      "evidence_terms": [
+        "byte0",
+        "mctp",
+        "mctp_byte0",
+        "owner",
+        "tag",
+        "tag_owner"
+      ],
+      "id": "RTL-0176",
+      "owner_file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+      "owner_module": "mctp_assembler_v3_mctp_decoder",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DECODE_MCTP.state_updates.tag_owner",
+      "ssot_context": {
+        "expr": "mctp_byte0[3]",
+        "name": "tag_owner",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DECODE_MCTP.state_updates.tag_owner"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_DECODE_MCTP: message_tag",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DECODE_MCTP.state_updates.message_tag",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "message_tag width matches SSOT value 3",
+        "message_tag RTL expression implements SSOT expression mctp_byte0[2:0]",
+        "message_tag updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DECODE_MCTP.state_updates.message_tag.\nOwner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.\nSSOT item context: name=message_tag; expr=mctp_byte0[2:0]; width=3.",
+      "evidence_terms": [
+        "byte0",
+        "mctp",
+        "mctp_byte0",
+        "message",
+        "message_tag",
+        "tag"
+      ],
+      "id": "RTL-0177",
+      "owner_file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+      "owner_module": "mctp_assembler_v3_mctp_decoder",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DECODE_MCTP.state_updates.message_tag",
+      "ssot_context": {
+        "expr": "mctp_byte0[2:0]",
+        "name": "message_tag",
+        "width": "3"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DECODE_MCTP.state_updates.message_tag"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_DECODE_MCTP: dest_accept",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DECODE_MCTP.state_updates.dest_accept",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "dest_accept width matches SSOT value 1",
+        "dest_accept RTL expression implements SSOT expression (not dest_filter_enable) or (dest_eid == local_eid) or (accept_broadcast_eid and (dest_eid == 0xFF)) or (accept_null_...",
+        "dest_accept updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DECODE_MCTP.state_updates.dest_accept.\nOwner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.\nSSOT item context: name=dest_accept; expr=(not dest_filter_enable) or (dest_eid == local_eid) or (accept_broadcast_eid and (dest_eid == 0xFF)) or (accept_null_...; width=1.",
+      "evidence_terms": [
+        "accept",
+        "accept_broadcast_eid",
+        "accept_null_eid",
+        "broadcast",
+        "dest",
+        "dest_accept",
+        "dest_eid",
+        "dest_filter_enable",
+        "eid",
+        "enable",
+        "filter",
+        "local",
+        "local_eid",
+        "null",
+        "x00",
+        "xFF"
+      ],
+      "id": "RTL-0178",
+      "owner_file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+      "owner_module": "mctp_assembler_v3_mctp_decoder",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DECODE_MCTP.state_updates.dest_accept",
+      "ssot_context": {
+        "expr": "(not dest_filter_enable) or (dest_eid == local_eid) or (accept_broadcast_eid and (dest_eid == 0xFF)) or (accept_null_...",
+        "name": "dest_accept",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DECODE_MCTP.state_updates.dest_accept"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_DECODE_MCTP: assembly_key",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DECODE_MCTP.state_updates.assembly_key",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "assembly_key width matches SSOT value 12",
+        "assembly_key RTL expression implements SSOT expression ((source_eid << 4) | (tag_owner << 3) | message_tag)",
+        "assembly_key updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DECODE_MCTP.state_updates.assembly_key.\nOwner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.\nSSOT item context: name=assembly_key; expr=((source_eid << 4) | (tag_owner << 3) | message_tag); width=12.",
+      "evidence_terms": [
+        "assembly",
+        "assembly_key",
+        "eid",
+        "key",
+        "message",
+        "message_tag",
+        "owner",
+        "source",
+        "source_eid",
+        "tag",
+        "tag_owner"
+      ],
+      "id": "RTL-0179",
+      "owner_file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+      "owner_module": "mctp_assembler_v3_mctp_decoder",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DECODE_MCTP.state_updates.assembly_key",
+      "ssot_context": {
+        "expr": "((source_eid << 4) | (tag_owner << 3) | message_tag)",
+        "name": "assembly_key",
+        "width": "12"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DECODE_MCTP.state_updates.assembly_key"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_DECODE_MCTP: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DECODE_MCTP.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_mctp_decoder.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DECODE_MCTP.error_cases.error_case_0.\nOwner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.\nSSOT item context: id=FM_DECODE_MCTP; name=mctp_transport_decode; signal=[{\"condition\": \"header not present / version!=1 / SOM packet without body byte\", \"result\": \"PD_BAD_MCTP_HEADER packet...; state=[\"header_version_ok\", \"som\", \"eom\", \"packet_seq\", \"tag_owner\", \"message_tag\", \"dest_accept\", \"assembly_key\"].",
+      "evidence_terms": [
+        "BAD",
+        "HEADER",
+        "MCTP",
+        "PD",
+        "PD_BAD_MCTP_HEADER",
+        "SOM",
+        "accept",
+        "accept_broadcast_eid",
+        "accept_null_eid",
+        "assembly",
+        "assembly_key",
+        "broadcast",
+        "byte0",
+        "dest",
+        "dest_accept",
+        "dest_eid"
+      ],
+      "id": "RTL-0180",
+      "owner_file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+      "owner_module": "mctp_assembler_v3_mctp_decoder",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DECODE_MCTP.error_cases.error_case_0",
+      "ssot_context": {
+        "id": "FM_DECODE_MCTP",
+        "name": "mctp_transport_decode",
+        "signal": "[{\"condition\": \"header not present / version!=1 / SOM packet without body byte\", \"result\": \"PD_BAD_MCTP_HEADER packet...",
+        "state": "[\"header_version_ok\", \"som\", \"eom\", \"packet_seq\", \"tag_owner\", \"message_tag\", \"dest_accept\", \"assembly_key\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DECODE_MCTP.error_cases.error_case_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_DECODE_MCTP: error_case_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DECODE_MCTP.error_cases.error_case_1",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_mctp_decoder.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DECODE_MCTP.error_cases.error_case_1.\nOwner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via function_model.transactions.FM_DECODE_MCTP.\nSSOT item context: id=FM_DECODE_MCTP; name=mctp_transport_decode; signal=[{\"condition\": \"dest_eid not local and not accepted broadcast/null while dest_filter_enable\", \"result\": \"PD_DEST_EID_...; state=[\"header_version_ok\", \"som\", \"eom\", \"packet_seq\", \"tag_owner\", \"message_tag\", \"dest_accept\", \"assembly_key\"].",
+      "evidence_terms": [
+        "DEST",
+        "EID",
+        "PD",
+        "PD_DEST_EID_REJECT",
+        "REJECT",
+        "accept",
+        "accept_broadcast_eid",
+        "accept_null_eid",
+        "assembly",
+        "assembly_key",
+        "broadcast",
+        "byte0",
+        "dest",
+        "dest_accept",
+        "dest_eid",
+        "dest_filter_enable"
+      ],
+      "id": "RTL-0181",
+      "owner_file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+      "owner_module": "mctp_assembler_v3_mctp_decoder",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DECODE_MCTP.error_cases.error_case_1",
+      "ssot_context": {
+        "id": "FM_DECODE_MCTP",
+        "name": "mctp_transport_decode",
+        "signal": "[{\"condition\": \"dest_eid not local and not accepted broadcast/null while dest_filter_enable\", \"result\": \"PD_DEST_EID_...",
+        "state": "[\"header_version_ok\", \"som\", \"eom\", \"packet_seq\", \"tag_owner\", \"message_tag\", \"dest_accept\", \"assembly_key\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DECODE_MCTP.error_cases.error_case_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature mctp_decode",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.mctp_decode",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_mctp_decoder.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.mctp_decode.\nOwner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via features.mctp_decode.\nSSOT item context: name=mctp_decode; output=MCTP fields + assembly key, or PD_BAD_MCTP_HEADER / PD_DEST_EID_REJECT.",
+      "evidence_terms": [
+        "BAD",
+        "DEST",
+        "EID",
+        "HEADER",
+        "MCTP",
+        "PD",
+        "PD_BAD_MCTP_HEADER",
+        "PD_DEST_EID_REJECT",
+        "REJECT"
+      ],
+      "id": "RTL-0439",
+      "owner_file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+      "owner_module": "mctp_assembler_v3_mctp_decoder",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.mctp_decode",
+      "ssot_context": {
+        "name": "mctp_decode",
+        "output": "MCTP fields + assembly key, or PD_BAD_MCTP_HEADER / PD_DEST_EID_REJECT"
+      },
+      "ssot_refs": [
+        "features.mctp_decode"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module mctp_assembler_v3_mctp_decoder is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.mctp_assembler_v3_mctp_decoder.module_equivalence",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_mctp_decoder.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.mctp_assembler_v3_mctp_decoder.module_equivalence.\nOwner: mctp_assembler_v3_mctp_decoder in rtl/mctp_assembler_v3_mctp_decoder.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0466",
+      "owner_file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+      "owner_module": "mctp_assembler_v3_mctp_decoder",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.mctp_assembler_v3_mctp_decoder.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.mctp_assembler_v3_mctp_decoder.module_equivalence"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    }
+  ],
+  "todo_plan_sha256": "928c0a587fbcc3522da24eba470cd1fb51a8ad7c9c51ddd94821393e2967e9f9",
+  "top": "mctp_assembler_v3",
+  "type": "rtl_authoring_packet"
+}

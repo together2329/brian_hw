@@ -1,0 +1,1006 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 7,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 5,
+      "enabled": true,
+      "index": 4,
+      "key": "test_requirements",
+      "module_task_count": 84,
+      "rule": "Owner module mctp_assembler_v3_axi_wr_ingress is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "test_requirements",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+      "name": "mctp_assembler_v3_axi_wr_ingress",
+      "refs": [
+        "cycle_model",
+        "cycle_model.handshake_rules",
+        "function_model",
+        "function_model.transactions.FM_INGEST_TLP",
+        "io_list",
+        "io_list.interfaces.axi_wr_slave",
+        "test_requirements"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "name": "mctp_assembler_v3_axi_wr_ingress",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
+        "name": "mctp_assembler_v3_pcie_vdm_parser",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "name": "mctp_assembler_v3_mctp_decoder",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_context_table.sv",
+        "name": "mctp_assembler_v3_context_table",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_sram_packer.sv",
+        "name": "mctp_assembler_v3_sram_packer",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "name": "mctp_assembler_v3_descriptor_queue",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "name": "mctp_assembler_v3_axi_rd_payload",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "name": "mctp_assembler_v3_apb_regfile",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_cdc_sync.sv",
+        "name": "mctp_assembler_v3_cdc_sync",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3.sv",
+        "name": "mctp_assembler_v3",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_v3_axi_wr_ingress",
+        "port": "axi_aclk",
+        "signal": "axi_aclk",
+        "signal_terms": [
+          "axi_aclk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_v3_axi_wr_ingress",
+        "port": "axi_aresetn",
+        "signal": "axi_aresetn",
+        "signal_terms": [
+          "axi_aresetn"
+        ],
+        "source_ref": "integration.connections[1]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 20,
+    "open_required_count": 20,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "mctp_assembler_v3",
+  "kind": "module",
+  "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+  "owner_module": "mctp_assembler_v3_axi_wr_ingress",
+  "packet_id": "module__mctp_assembler_v3_axi_wr_ingress__test_requirements",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "test_requirements.scenario": 20
+    },
+    "module_slice": {
+      "count": 5,
+      "enabled": true,
+      "index": 4,
+      "key": "test_requirements",
+      "module_task_count": 84,
+      "rule": "Owner module mctp_assembler_v3_axi_wr_ingress is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "test_requirements",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 20,
+    "required_count": 20,
+    "source_refs": [
+      "test_requirements.scenarios.SC_SINGLE",
+      "test_requirements.scenarios.SC_FRAG",
+      "test_requirements.scenarios.SC_INTERLEAVE",
+      "test_requirements.scenarios.SC_UNALIGNED_TU",
+      "test_requirements.scenarios.SC_MAX_TU",
+      "test_requirements.scenarios.SC_PD_MALFORMED",
+      "test_requirements.scenarios.SC_PD_VDM",
+      "test_requirements.scenarios.SC_PD_MCTP",
+      "test_requirements.scenarios.SC_PD_EID",
+      "test_requirements.scenarios.SC_PD_MIDDLE",
+      "test_requirements.scenarios.SC_AD_DUP",
+      "test_requirements.scenarios.SC_AD_SEQ",
+      "test_requirements.scenarios.SC_AD_CTXFULL",
+      "test_requirements.scenarios.SC_AD_SRAM",
+      "test_requirements.scenarios.SC_AD_DESCFULL",
+      "test_requirements.scenarios.SC_AD_TIMEOUT",
+      "test_requirements.scenarios.SC_PRIORITY",
+      "test_requirements.scenarios.SC_FW_READ",
+      "test_requirements.scenarios.SC_FW_READ_SLVERR",
+      "test_requirements.scenarios.SC_REG"
+    ],
+    "status_counts": {
+      "planned": 20
+    },
+    "task_count": 20
+  },
+  "tasks": [
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_SINGLE",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_SINGLE",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: payload assembled, descriptor published, first==last header"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_SINGLE.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.\nSSOT item context: id=SC_SINGLE; name=Valid single-packet message; expected=payload assembled, descriptor published, first==last header.",
+      "evidence_terms": [],
+      "id": "RTL-0474",
+      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_SINGLE",
+      "ssot_context": {
+        "expected": "payload assembled, descriptor published, first==last header",
+        "id": "SC_SINGLE",
+        "name": "Valid single-packet message"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_SINGLE"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_FRAG",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_FRAG",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: concatenated payload, no SRAM holes, descriptor payload_len correct"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_FRAG.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.\nSSOT item context: id=SC_FRAG; name=Fragmented message across TLPs; expected=concatenated payload, no SRAM holes, descriptor payload_len correct.",
+      "evidence_terms": [],
+      "id": "RTL-0475",
+      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_FRAG",
+      "ssot_context": {
+        "expected": "concatenated payload, no SRAM holes, descriptor payload_len correct",
+        "id": "SC_FRAG",
+        "name": "Fragmented message across TLPs"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_FRAG"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_INTERLEAVE",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_INTERLEAVE",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: independent contexts, B completes before A, partial words preserved"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_INTERLEAVE.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.\nSSOT item context: id=SC_INTERLEAVE; name=Interleaved messages distinct keys; expected=independent contexts, B completes before A, partial words preserved.",
+      "evidence_terms": [],
+      "id": "RTL-0476",
+      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_INTERLEAVE",
+      "ssot_context": {
+        "expected": "independent contexts, B completes before A, partial words preserved",
+        "id": "SC_INTERLEAVE",
+        "name": "Interleaved messages distinct keys"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_INTERLEAVE"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_UNALIGNED_TU",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_UNALIGNED_TU",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: next fragment continues lane 4 of word@64, no gap"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_UNALIGNED_TU.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.\nSSOT item context: id=SC_UNALIGNED_TU; name=TU=68B unaligned 32B continuation; expected=next fragment continues lane 4 of word@64, no gap.",
+      "evidence_terms": [],
+      "id": "RTL-0477",
+      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_UNALIGNED_TU",
+      "ssot_context": {
+        "expected": "next fragment continues lane 4 of word@64, no gap",
+        "id": "SC_UNALIGNED_TU",
+        "name": "TU=68B unaligned 32B continuation"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_UNALIGNED_TU"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_MAX_TU",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_MAX_TU",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: 129 W beats accepted, payload_len=4096"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_MAX_TU.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.\nSSOT item context: id=SC_MAX_TU; name=Max TU 4096B over 129 beats; expected=129 W beats accepted, payload_len=4096.",
+      "evidence_terms": [],
+      "id": "RTL-0478",
+      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_MAX_TU",
+      "ssot_context": {
+        "expected": "129 W beats accepted, payload_len=4096",
+        "id": "SC_MAX_TU",
+        "name": "Max TU 4096B over 129 beats"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_MAX_TU"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_PD_MALFORMED",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_PD_MALFORMED",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: PD_MALFORMED_TLP, no context/SRAM/descriptor side effect"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_PD_MALFORMED.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.\nSSOT item context: id=SC_PD_MALFORMED; name=Malformed AXI/TLP drops; expected=PD_MALFORMED_TLP, no context/SRAM/descriptor side effect.",
+      "evidence_terms": [],
+      "id": "RTL-0479",
+      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_PD_MALFORMED",
+      "ssot_context": {
+        "expected": "PD_MALFORMED_TLP, no context/SRAM/descriptor side effect",
+        "id": "SC_PD_MALFORMED",
+        "name": "Malformed AXI/TLP drops"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_PD_MALFORMED"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_PD_VDM",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_PD_VDM",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: PD_UNSUPPORTED_VDM"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_PD_VDM.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.\nSSOT item context: id=SC_PD_VDM; name=Unsupported VDM constants; expected=PD_UNSUPPORTED_VDM.",
+      "evidence_terms": [],
+      "id": "RTL-0480",
+      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_PD_VDM",
+      "ssot_context": {
+        "expected": "PD_UNSUPPORTED_VDM",
+        "id": "SC_PD_VDM",
+        "name": "Unsupported VDM constants"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_PD_VDM"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_PD_MCTP",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_PD_MCTP",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: PD_BAD_MCTP_HEADER"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_PD_MCTP.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.\nSSOT item context: id=SC_PD_MCTP; name=Bad MCTP header version; expected=PD_BAD_MCTP_HEADER.",
+      "evidence_terms": [],
+      "id": "RTL-0481",
+      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_PD_MCTP",
+      "ssot_context": {
+        "expected": "PD_BAD_MCTP_HEADER",
+        "id": "SC_PD_MCTP",
+        "name": "Bad MCTP header version"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_PD_MCTP"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_PD_EID",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_PD_EID",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: PD_DEST_EID_REJECT"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_PD_EID.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.\nSSOT item context: id=SC_PD_EID; name=Dest EID reject; expected=PD_DEST_EID_REJECT.",
+      "evidence_terms": [],
+      "id": "RTL-0482",
+      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_PD_EID",
+      "ssot_context": {
+        "expected": "PD_DEST_EID_REJECT",
+        "id": "SC_PD_EID",
+        "name": "Dest EID reject"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_PD_EID"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_PD_MIDDLE",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_PD_MIDDLE",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: PD_UNEXPECTED_MIDDLE_END"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_PD_MIDDLE.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.\nSSOT item context: id=SC_PD_MIDDLE; name=Middle/EOM without SOM; expected=PD_UNEXPECTED_MIDDLE_END.",
+      "evidence_terms": [],
+      "id": "RTL-0483",
+      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_PD_MIDDLE",
+      "ssot_context": {
+        "expected": "PD_UNEXPECTED_MIDDLE_END",
+        "id": "SC_PD_MIDDLE",
+        "name": "Middle/EOM without SOM"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_PD_MIDDLE"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_AD_DUP",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_AD_DUP",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: AD_DUPLICATE_SOM aborts exactly that context"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_AD_DUP.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.\nSSOT item context: id=SC_AD_DUP; name=Duplicate SOM; expected=AD_DUPLICATE_SOM aborts exactly that context.",
+      "evidence_terms": [],
+      "id": "RTL-0484",
+      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_AD_DUP",
+      "ssot_context": {
+        "expected": "AD_DUPLICATE_SOM aborts exactly that context",
+        "id": "SC_AD_DUP",
+        "name": "Duplicate SOM"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_AD_DUP"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_AD_SEQ",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_AD_SEQ",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: AD_SEQUENCE_MISMATCH abort"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_AD_SEQ.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.\nSSOT item context: id=SC_AD_SEQ; name=Sequence mismatch; expected=AD_SEQUENCE_MISMATCH abort.",
+      "evidence_terms": [],
+      "id": "RTL-0485",
+      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_AD_SEQ",
+      "ssot_context": {
+        "expected": "AD_SEQUENCE_MISMATCH abort",
+        "id": "SC_AD_SEQ",
+        "name": "Sequence mismatch"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_AD_SEQ"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_AD_CTXFULL",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_AD_CTXFULL",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: PD_BAD_OR_EXPIRED_TAG (table full), no alloc"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_AD_CTXFULL.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.\nSSOT item context: id=SC_AD_CTXFULL; name=Context table full; expected=PD_BAD_OR_EXPIRED_TAG (table full), no alloc.",
+      "evidence_terms": [],
+      "id": "RTL-0486",
+      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_AD_CTXFULL",
+      "ssot_context": {
+        "expected": "PD_BAD_OR_EXPIRED_TAG (table full), no alloc",
+        "id": "SC_AD_CTXFULL",
+        "name": "Context table full"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_AD_CTXFULL"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_AD_SRAM",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_AD_SRAM",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: AD_SRAM_OVERFLOW abort"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_AD_SRAM.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.\nSSOT item context: id=SC_AD_SRAM; name=SRAM overflow; expected=AD_SRAM_OVERFLOW abort.",
+      "evidence_terms": [],
+      "id": "RTL-0487",
+      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_AD_SRAM",
+      "ssot_context": {
+        "expected": "AD_SRAM_OVERFLOW abort",
+        "id": "SC_AD_SRAM",
+        "name": "SRAM overflow"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_AD_SRAM"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_AD_DESCFULL",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_AD_DESCFULL",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: AD_DESCRIPTOR_FULL, no descriptor"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_AD_DESCFULL.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.\nSSOT item context: id=SC_AD_DESCFULL; name=Descriptor queue full; expected=AD_DESCRIPTOR_FULL, no descriptor.",
+      "evidence_terms": [],
+      "id": "RTL-0488",
+      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_AD_DESCFULL",
+      "ssot_context": {
+        "expected": "AD_DESCRIPTOR_FULL, no descriptor",
+        "id": "SC_AD_DESCFULL",
+        "name": "Descriptor queue full"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_AD_DESCFULL"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_AD_TIMEOUT",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_AD_TIMEOUT",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: AD_TIMEOUT abort"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_AD_TIMEOUT.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.\nSSOT item context: id=SC_AD_TIMEOUT; name=Assembly timeout; expected=AD_TIMEOUT abort.",
+      "evidence_terms": [],
+      "id": "RTL-0489",
+      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_AD_TIMEOUT",
+      "ssot_context": {
+        "expected": "AD_TIMEOUT abort",
+        "id": "SC_AD_TIMEOUT",
+        "name": "Assembly timeout"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_AD_TIMEOUT"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_PRIORITY",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_PRIORITY",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: earlier packet-drop reason wins"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_PRIORITY.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.\nSSOT item context: id=SC_PRIORITY; name=Drop priority; expected=earlier packet-drop reason wins.",
+      "evidence_terms": [],
+      "id": "RTL-0490",
+      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_PRIORITY",
+      "ssot_context": {
+        "expected": "earlier packet-drop reason wins",
+        "id": "SC_PRIORITY",
+        "name": "Drop priority"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_PRIORITY"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_FW_READ",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_FW_READ",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: payload bytes returned, RLAST on final beat"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_FW_READ.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.\nSSOT item context: id=SC_FW_READ; name=Firmware payload read; expected=payload bytes returned, RLAST on final beat.",
+      "evidence_terms": [],
+      "id": "RTL-0491",
+      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_FW_READ",
+      "ssot_context": {
+        "expected": "payload bytes returned, RLAST on final beat",
+        "id": "SC_FW_READ",
+        "name": "Firmware payload read"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_FW_READ"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_FW_READ_SLVERR",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_FW_READ_SLVERR",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: RRESP=SLVERR"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_FW_READ_SLVERR.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.\nSSOT item context: id=SC_FW_READ_SLVERR; name=Read outside window; expected=RRESP=SLVERR.",
+      "evidence_terms": [],
+      "id": "RTL-0492",
+      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_FW_READ_SLVERR",
+      "ssot_context": {
+        "expected": "RRESP=SLVERR",
+        "id": "SC_FW_READ_SLVERR",
+        "name": "Read outside window"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_FW_READ_SLVERR"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_REG",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_REG",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: register behavior + per-Q visibility"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_REG.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via test_requirements.\nSSOT item context: id=SC_REG; name=APB register access; expected=register behavior + per-Q visibility.",
+      "evidence_terms": [],
+      "id": "RTL-0493",
+      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_REG",
+      "ssot_context": {
+        "expected": "register behavior + per-Q visibility",
+        "id": "SC_REG",
+        "name": "APB register access"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_REG"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    }
+  ],
+  "todo_plan_sha256": "928c0a587fbcc3522da24eba470cd1fb51a8ad7c9c51ddd94821393e2967e9f9",
+  "top": "mctp_assembler_v3",
+  "type": "rtl_authoring_packet"
+}

@@ -1,0 +1,2433 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 7,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 4,
+      "enabled": true,
+      "index": 2,
+      "key": "function_model",
+      "module_task_count": 73,
+      "rule": "Owner module mctp_assembler_v3_context_table is split into 4 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/mctp_assembler_v3_context_table.sv",
+      "name": "mctp_assembler_v3_context_table",
+      "refs": [
+        "fsm",
+        "fsm.context_fsm",
+        "function_model",
+        "function_model.transactions.FM_ALLOC_CONTEXT",
+        "function_model.transactions.FM_APPEND"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "name": "mctp_assembler_v3_axi_wr_ingress",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
+        "name": "mctp_assembler_v3_pcie_vdm_parser",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "name": "mctp_assembler_v3_mctp_decoder",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_context_table.sv",
+        "name": "mctp_assembler_v3_context_table",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_sram_packer.sv",
+        "name": "mctp_assembler_v3_sram_packer",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "name": "mctp_assembler_v3_descriptor_queue",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "name": "mctp_assembler_v3_axi_rd_payload",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "name": "mctp_assembler_v3_apb_regfile",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_cdc_sync.sv",
+        "name": "mctp_assembler_v3_cdc_sync",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3.sv",
+        "name": "mctp_assembler_v3",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_v3_context_table",
+        "port": "drop_class_o",
+        "signal": "last_drop_class",
+        "signal_terms": [
+          "last_drop_class"
+        ],
+        "source_ref": "integration.connections[6]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 46,
+    "open_required_count": 46,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "mctp_assembler_v3",
+  "kind": "module",
+  "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+  "owner_module": "mctp_assembler_v3_context_table",
+  "packet_id": "module__mctp_assembler_v3_context_table__function_model",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "function_model.error_case": 6,
+      "function_model.input": 4,
+      "function_model.output": 17,
+      "function_model.precondition": 3,
+      "function_model.side_effect": 2,
+      "function_model.state_update": 12,
+      "function_model.transaction": 2
+    },
+    "module_slice": {
+      "count": 4,
+      "enabled": true,
+      "index": 2,
+      "key": "function_model",
+      "module_task_count": 73,
+      "rule": "Owner module mctp_assembler_v3_context_table is split into 4 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 46,
+    "required_count": 46,
+    "source_refs": [
+      "function_model.transactions.FM_ALLOC_CONTEXT",
+      "function_model.transactions.FM_ALLOC_CONTEXT.preconditions.precondition_0",
+      "function_model.transactions.FM_ALLOC_CONTEXT.inputs.input_0",
+      "function_model.transactions.FM_ALLOC_CONTEXT.inputs.input_1",
+      "function_model.transactions.FM_ALLOC_CONTEXT.outputs.output_0",
+      "function_model.transactions.FM_ALLOC_CONTEXT.outputs.output_1",
+      "function_model.transactions.FM_ALLOC_CONTEXT.outputs.output_2",
+      "function_model.transactions.FM_ALLOC_CONTEXT.outputs.alloc_ok",
+      "function_model.transactions.FM_ALLOC_CONTEXT.outputs.single_packet",
+      "function_model.transactions.FM_ALLOC_CONTEXT.outputs.ctx_state",
+      "function_model.transactions.FM_ALLOC_CONTEXT.outputs.ctx_payload_base_addr",
+      "function_model.transactions.FM_ALLOC_CONTEXT.outputs.ctx_expected_seq",
+      "function_model.transactions.FM_ALLOC_CONTEXT.outputs.active_context_count",
+      "function_model.transactions.FM_ALLOC_CONTEXT.outputs.sram_alloc_ptr",
+      "function_model.transactions.FM_ALLOC_CONTEXT.state_updates.alloc_ok",
+      "function_model.transactions.FM_ALLOC_CONTEXT.state_updates.single_packet",
+      "function_model.transactions.FM_ALLOC_CONTEXT.state_updates.ctx_state",
+      "function_model.transactions.FM_ALLOC_CONTEXT.state_updates.ctx_payload_base_addr",
+      "function_model.transactions.FM_ALLOC_CONTEXT.state_updates.ctx_expected_seq",
+      "function_model.transactions.FM_ALLOC_CONTEXT.state_updates.active_context_count",
+      "function_model.transactions.FM_ALLOC_CONTEXT.state_updates.sram_alloc_ptr",
+      "function_model.transactions.FM_ALLOC_CONTEXT.side_effects.side_effect_0",
+      "function_model.transactions.FM_ALLOC_CONTEXT.error_cases.error_case_0",
+      "function_model.transactions.FM_ALLOC_CONTEXT.error_cases.error_case_1"
+    ],
+    "status_counts": {
+      "planned": 46
+    },
+    "task_count": 46
+  },
+  "tasks": [
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_ALLOC_CONTEXT",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_ALLOC_CONTEXT",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.\nSSOT item context: id=FM_ALLOC_CONTEXT; name=context_allocate.",
+      "evidence_terms": [],
+      "id": "RTL-0182",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ALLOC_CONTEXT",
+      "ssot_context": {
+        "id": "FM_ALLOC_CONTEXT",
+        "name": "context_allocate"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ALLOC_CONTEXT"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_ALLOC_CONTEXT: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ALLOC_CONTEXT.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.preconditions.precondition_0.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.\nSSOT item context: value=decoded MCTP packet with SOM=1.",
+      "evidence_terms": [],
+      "id": "RTL-0183",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ALLOC_CONTEXT.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "decoded MCTP packet with SOM=1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ALLOC_CONTEXT.preconditions.precondition_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_ALLOC_CONTEXT: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ALLOC_CONTEXT.inputs.input_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.inputs.input_0.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.\nSSOT item context: id=FM_ALLOC_CONTEXT; name=context_allocate; signal=[\"assembly_key\", \"free_slot_available\", \"som\", \"eom\", \"packet_seq\", \"allocated_len\"]; state=[\"alloc_ok\", \"single_packet\", \"ctx_state\", \"ctx_payload_base_addr\", \"ctx_expected_seq\", \"active_context_count\", \"sram....",
+      "evidence_terms": [
+        "active",
+        "active_context_count",
+        "addr",
+        "alloc",
+        "alloc_ok",
+        "allocated",
+        "allocated_len",
+        "assembly",
+        "assembly_key",
+        "available",
+        "base",
+        "context",
+        "count",
+        "ctx",
+        "ctx_expected_seq",
+        "ctx_payload_base_addr"
+      ],
+      "id": "RTL-0184",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ALLOC_CONTEXT.inputs.input_0",
+      "ssot_context": {
+        "id": "FM_ALLOC_CONTEXT",
+        "name": "context_allocate",
+        "signal": "[\"assembly_key\", \"free_slot_available\", \"som\", \"eom\", \"packet_seq\", \"allocated_len\"]",
+        "state": "[\"alloc_ok\", \"single_packet\", \"ctx_state\", \"ctx_payload_base_addr\", \"ctx_expected_seq\", \"active_context_count\", \"sram..."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ALLOC_CONTEXT.inputs.input_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_ALLOC_CONTEXT: input_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ALLOC_CONTEXT.inputs.input_1",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.inputs.input_1.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.\nSSOT item context: id=FM_ALLOC_CONTEXT; name=context_allocate; signal=[\"first_tlp_header[0:15]\", \"free_slot_available\", \"som\", \"eom\", \"packet_seq\", \"allocated_len\"]; state=[\"alloc_ok\", \"single_packet\", \"ctx_state\", \"ctx_payload_base_addr\", \"ctx_expected_seq\", \"active_context_count\", \"sram....",
+      "evidence_terms": [
+        "active",
+        "active_context_count",
+        "addr",
+        "alloc",
+        "alloc_ok",
+        "allocated",
+        "allocated_len",
+        "available",
+        "base",
+        "context",
+        "count",
+        "ctx",
+        "ctx_expected_seq",
+        "ctx_payload_base_addr",
+        "ctx_state",
+        "eom"
+      ],
+      "id": "RTL-0185",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ALLOC_CONTEXT.inputs.input_1",
+      "ssot_context": {
+        "id": "FM_ALLOC_CONTEXT",
+        "name": "context_allocate",
+        "signal": "[\"first_tlp_header[0:15]\", \"free_slot_available\", \"som\", \"eom\", \"packet_seq\", \"allocated_len\"]",
+        "state": "[\"alloc_ok\", \"single_packet\", \"ctx_state\", \"ctx_payload_base_addr\", \"ctx_expected_seq\", \"active_context_count\", \"sram..."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ALLOC_CONTEXT.inputs.input_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_ALLOC_CONTEXT: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ALLOC_CONTEXT.outputs.output_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.outputs.output_0.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.\nSSOT item context: value=new ASSEMBLING context (SOM,EOM=0) or single-packet path (SOM,EOM=1).",
+      "evidence_terms": [],
+      "id": "RTL-0186",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ALLOC_CONTEXT.outputs.output_0",
+      "ssot_context": {
+        "value": "new ASSEMBLING context (SOM,EOM=0) or single-packet path (SOM,EOM=1)"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ALLOC_CONTEXT.outputs.output_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_ALLOC_CONTEXT: output_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ALLOC_CONTEXT.outputs.output_1",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.outputs.output_1.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.\nSSOT item context: value=first_tlp_header stored.",
+      "evidence_terms": [
+        "first",
+        "first_tlp_header",
+        "header",
+        "tlp"
+      ],
+      "id": "RTL-0187",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ALLOC_CONTEXT.outputs.output_1",
+      "ssot_context": {
+        "value": "first_tlp_header stored"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ALLOC_CONTEXT.outputs.output_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_ALLOC_CONTEXT: output_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ALLOC_CONTEXT.outputs.output_2",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.outputs.output_2.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.\nSSOT item context: value=payload_base_addr allocated from sram_alloc_ptr.",
+      "evidence_terms": [
+        "addr",
+        "alloc",
+        "base",
+        "payload",
+        "payload_base_addr",
+        "ptr",
+        "sram",
+        "sram_alloc_ptr"
+      ],
+      "id": "RTL-0188",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ALLOC_CONTEXT.outputs.output_2",
+      "ssot_context": {
+        "value": "payload_base_addr allocated from sram_alloc_ptr"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ALLOC_CONTEXT.outputs.output_2"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_ALLOC_CONTEXT: alloc_ok",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ALLOC_CONTEXT.outputs.alloc_ok",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "function_model.transactions.FM_ALLOC_CONTEXT.outputs.alloc_ok RTL expression implements SSOT expression free_slot_available"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.outputs.alloc_ok.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.\nSSOT item context: state=alloc_ok; expr=free_slot_available.",
+      "evidence_terms": [
+        "alloc",
+        "alloc_ok",
+        "available",
+        "free",
+        "free_slot_available",
+        "ok",
+        "slot"
+      ],
+      "id": "RTL-0189",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ALLOC_CONTEXT.outputs.alloc_ok",
+      "ssot_context": {
+        "expr": "free_slot_available",
+        "state": "alloc_ok"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ALLOC_CONTEXT.outputs.alloc_ok"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_ALLOC_CONTEXT: single_packet",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ALLOC_CONTEXT.outputs.single_packet",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "function_model.transactions.FM_ALLOC_CONTEXT.outputs.single_packet RTL expression implements SSOT expression som and eom"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.outputs.single_packet.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.\nSSOT item context: state=single_packet; expr=som and eom.",
+      "evidence_terms": [
+        "packet",
+        "single",
+        "single_packet"
+      ],
+      "id": "RTL-0190",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ALLOC_CONTEXT.outputs.single_packet",
+      "ssot_context": {
+        "expr": "som and eom",
+        "state": "single_packet"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ALLOC_CONTEXT.outputs.single_packet"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_ALLOC_CONTEXT: ctx_state",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ALLOC_CONTEXT.outputs.ctx_state",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "function_model.transactions.FM_ALLOC_CONTEXT.outputs.ctx_state RTL expression implements SSOT expression DONE_WAIT_DESCRIPTOR_POP if (som and eom) else ASSEMBLING"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.outputs.ctx_state.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.\nSSOT item context: state=ctx_state; expr=DONE_WAIT_DESCRIPTOR_POP if (som and eom) else ASSEMBLING.",
+      "evidence_terms": [
+        "ASSEMBLING",
+        "DESCRIPTOR",
+        "DONE",
+        "DONE_WAIT_DESCRIPTOR_POP",
+        "POP",
+        "WAIT",
+        "ctx",
+        "ctx_state"
+      ],
+      "id": "RTL-0191",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ALLOC_CONTEXT.outputs.ctx_state",
+      "ssot_context": {
+        "expr": "DONE_WAIT_DESCRIPTOR_POP if (som and eom) else ASSEMBLING",
+        "state": "ctx_state"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ALLOC_CONTEXT.outputs.ctx_state"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_ALLOC_CONTEXT: ctx_payload_base_addr",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ALLOC_CONTEXT.outputs.ctx_payload_base_addr",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "function_model.transactions.FM_ALLOC_CONTEXT.outputs.ctx_payload_base_addr RTL expression implements SSOT expression sram_alloc_ptr"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.outputs.ctx_payload_base_addr.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.\nSSOT item context: state=ctx_payload_base_addr; expr=sram_alloc_ptr.",
+      "evidence_terms": [
+        "addr",
+        "alloc",
+        "base",
+        "ctx",
+        "ctx_payload_base_addr",
+        "payload",
+        "ptr",
+        "sram",
+        "sram_alloc_ptr"
+      ],
+      "id": "RTL-0192",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ALLOC_CONTEXT.outputs.ctx_payload_base_addr",
+      "ssot_context": {
+        "expr": "sram_alloc_ptr",
+        "state": "ctx_payload_base_addr"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ALLOC_CONTEXT.outputs.ctx_payload_base_addr"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_ALLOC_CONTEXT: ctx_expected_seq",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ALLOC_CONTEXT.outputs.ctx_expected_seq",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "function_model.transactions.FM_ALLOC_CONTEXT.outputs.ctx_expected_seq RTL expression implements SSOT expression (packet_seq + 1) % 4"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.outputs.ctx_expected_seq.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.\nSSOT item context: state=ctx_expected_seq; expr=(packet_seq + 1) % 4.",
+      "evidence_terms": [
+        "ctx",
+        "ctx_expected_seq",
+        "expected",
+        "packet",
+        "packet_seq",
+        "seq"
+      ],
+      "id": "RTL-0193",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ALLOC_CONTEXT.outputs.ctx_expected_seq",
+      "ssot_context": {
+        "expr": "(packet_seq + 1) % 4",
+        "state": "ctx_expected_seq"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ALLOC_CONTEXT.outputs.ctx_expected_seq"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_ALLOC_CONTEXT: active_context_count",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ALLOC_CONTEXT.outputs.active_context_count",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "function_model.transactions.FM_ALLOC_CONTEXT.outputs.active_context_count RTL expression implements SSOT expression active_context_count + 1"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.outputs.active_context_count.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.\nSSOT item context: state=active_context_count; expr=active_context_count + 1.",
+      "evidence_terms": [
+        "active",
+        "active_context_count",
+        "context",
+        "count"
+      ],
+      "id": "RTL-0194",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ALLOC_CONTEXT.outputs.active_context_count",
+      "ssot_context": {
+        "expr": "active_context_count + 1",
+        "state": "active_context_count"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ALLOC_CONTEXT.outputs.active_context_count"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_ALLOC_CONTEXT: sram_alloc_ptr",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ALLOC_CONTEXT.outputs.sram_alloc_ptr",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "function_model.transactions.FM_ALLOC_CONTEXT.outputs.sram_alloc_ptr RTL expression implements SSOT expression sram_alloc_ptr + allocated_len"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.outputs.sram_alloc_ptr.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.\nSSOT item context: state=sram_alloc_ptr; expr=sram_alloc_ptr + allocated_len.",
+      "evidence_terms": [
+        "alloc",
+        "allocated",
+        "allocated_len",
+        "len",
+        "ptr",
+        "sram",
+        "sram_alloc_ptr"
+      ],
+      "id": "RTL-0195",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ALLOC_CONTEXT.outputs.sram_alloc_ptr",
+      "ssot_context": {
+        "expr": "sram_alloc_ptr + allocated_len",
+        "state": "sram_alloc_ptr"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ALLOC_CONTEXT.outputs.sram_alloc_ptr"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_ALLOC_CONTEXT: alloc_ok",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ALLOC_CONTEXT.state_updates.alloc_ok",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "alloc_ok width matches SSOT value 1",
+        "alloc_ok RTL expression implements SSOT expression free_slot_available",
+        "alloc_ok updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.state_updates.alloc_ok.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.\nSSOT item context: name=alloc_ok; expr=free_slot_available; width=1.",
+      "evidence_terms": [
+        "alloc",
+        "alloc_ok",
+        "available",
+        "free",
+        "free_slot_available",
+        "ok",
+        "slot"
+      ],
+      "id": "RTL-0196",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ALLOC_CONTEXT.state_updates.alloc_ok",
+      "ssot_context": {
+        "expr": "free_slot_available",
+        "name": "alloc_ok",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ALLOC_CONTEXT.state_updates.alloc_ok"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_ALLOC_CONTEXT: single_packet",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ALLOC_CONTEXT.state_updates.single_packet",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "single_packet width matches SSOT value 1",
+        "single_packet RTL expression implements SSOT expression som and eom",
+        "single_packet updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.state_updates.single_packet.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.\nSSOT item context: name=single_packet; expr=som and eom; width=1.",
+      "evidence_terms": [
+        "packet",
+        "single",
+        "single_packet"
+      ],
+      "id": "RTL-0197",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ALLOC_CONTEXT.state_updates.single_packet",
+      "ssot_context": {
+        "expr": "som and eom",
+        "name": "single_packet",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ALLOC_CONTEXT.state_updates.single_packet"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_ALLOC_CONTEXT: ctx_state",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ALLOC_CONTEXT.state_updates.ctx_state",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "ctx_state width matches SSOT value 2",
+        "ctx_state RTL expression implements SSOT expression DONE_WAIT_DESCRIPTOR_POP if (som and eom) else ASSEMBLING",
+        "ctx_state updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.state_updates.ctx_state.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.\nSSOT item context: name=ctx_state; expr=DONE_WAIT_DESCRIPTOR_POP if (som and eom) else ASSEMBLING; width=2.",
+      "evidence_terms": [
+        "ASSEMBLING",
+        "DESCRIPTOR",
+        "DONE",
+        "DONE_WAIT_DESCRIPTOR_POP",
+        "POP",
+        "WAIT",
+        "ctx",
+        "ctx_state"
+      ],
+      "id": "RTL-0198",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ALLOC_CONTEXT.state_updates.ctx_state",
+      "ssot_context": {
+        "expr": "DONE_WAIT_DESCRIPTOR_POP if (som and eom) else ASSEMBLING",
+        "name": "ctx_state",
+        "width": "2"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ALLOC_CONTEXT.state_updates.ctx_state"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_ALLOC_CONTEXT: ctx_payload_base_addr",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ALLOC_CONTEXT.state_updates.ctx_payload_base_addr",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "ctx_payload_base_addr width matches SSOT value 16",
+        "ctx_payload_base_addr RTL expression implements SSOT expression sram_alloc_ptr",
+        "ctx_payload_base_addr updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.state_updates.ctx_payload_base_addr.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.\nSSOT item context: name=ctx_payload_base_addr; expr=sram_alloc_ptr; width=16.",
+      "evidence_terms": [
+        "addr",
+        "alloc",
+        "base",
+        "ctx",
+        "ctx_payload_base_addr",
+        "payload",
+        "ptr",
+        "sram",
+        "sram_alloc_ptr"
+      ],
+      "id": "RTL-0199",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ALLOC_CONTEXT.state_updates.ctx_payload_base_addr",
+      "ssot_context": {
+        "expr": "sram_alloc_ptr",
+        "name": "ctx_payload_base_addr",
+        "width": "16"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ALLOC_CONTEXT.state_updates.ctx_payload_base_addr"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_ALLOC_CONTEXT: ctx_expected_seq",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ALLOC_CONTEXT.state_updates.ctx_expected_seq",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "ctx_expected_seq width matches SSOT value 2",
+        "ctx_expected_seq RTL expression implements SSOT expression (packet_seq + 1) % 4",
+        "ctx_expected_seq updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.state_updates.ctx_expected_seq.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.\nSSOT item context: name=ctx_expected_seq; expr=(packet_seq + 1) % 4; width=2.",
+      "evidence_terms": [
+        "ctx",
+        "ctx_expected_seq",
+        "expected",
+        "packet",
+        "packet_seq",
+        "seq"
+      ],
+      "id": "RTL-0200",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ALLOC_CONTEXT.state_updates.ctx_expected_seq",
+      "ssot_context": {
+        "expr": "(packet_seq + 1) % 4",
+        "name": "ctx_expected_seq",
+        "width": "2"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ALLOC_CONTEXT.state_updates.ctx_expected_seq"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_ALLOC_CONTEXT: active_context_count",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ALLOC_CONTEXT.state_updates.active_context_count",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "active_context_count width matches SSOT value 5",
+        "active_context_count RTL expression implements SSOT expression active_context_count + 1",
+        "active_context_count updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.state_updates.active_context_count.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.\nSSOT item context: name=active_context_count; expr=active_context_count + 1; width=5.",
+      "evidence_terms": [
+        "active",
+        "active_context_count",
+        "context",
+        "count"
+      ],
+      "id": "RTL-0201",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ALLOC_CONTEXT.state_updates.active_context_count",
+      "ssot_context": {
+        "expr": "active_context_count + 1",
+        "name": "active_context_count",
+        "width": "5"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ALLOC_CONTEXT.state_updates.active_context_count"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_ALLOC_CONTEXT: sram_alloc_ptr",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ALLOC_CONTEXT.state_updates.sram_alloc_ptr",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "sram_alloc_ptr width matches SSOT value 16",
+        "sram_alloc_ptr RTL expression implements SSOT expression sram_alloc_ptr + allocated_len",
+        "sram_alloc_ptr updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.state_updates.sram_alloc_ptr.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.\nSSOT item context: name=sram_alloc_ptr; expr=sram_alloc_ptr + allocated_len; width=16.",
+      "evidence_terms": [
+        "alloc",
+        "allocated",
+        "allocated_len",
+        "len",
+        "ptr",
+        "sram",
+        "sram_alloc_ptr"
+      ],
+      "id": "RTL-0202",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ALLOC_CONTEXT.state_updates.sram_alloc_ptr",
+      "ssot_context": {
+        "expr": "sram_alloc_ptr + allocated_len",
+        "name": "sram_alloc_ptr",
+        "width": "16"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ALLOC_CONTEXT.state_updates.sram_alloc_ptr"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_ALLOC_CONTEXT: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ALLOC_CONTEXT.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.side_effects.side_effect_0.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.\nSSOT item context: id=FM_ALLOC_CONTEXT; name=context_allocate; signal=[\"expected_seq initialized; ctx_state=ASSEMBLING; sram_alloc_ptr advanced\", \"free_slot_available\", \"som\", \"eom\", \"pac...; state=[\"alloc_ok\", \"single_packet\", \"ctx_state\", \"ctx_payload_base_addr\", \"ctx_expected_seq\", \"active_context_count\", \"sram....",
+      "evidence_terms": [
+        "ASSEMBLING",
+        "active",
+        "active_context_count",
+        "addr",
+        "alloc",
+        "alloc_ok",
+        "allocated",
+        "allocated_len",
+        "available",
+        "base",
+        "context",
+        "count",
+        "ctx",
+        "ctx_expected_seq",
+        "ctx_payload_base_addr",
+        "ctx_state"
+      ],
+      "id": "RTL-0203",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ALLOC_CONTEXT.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "FM_ALLOC_CONTEXT",
+        "name": "context_allocate",
+        "signal": "[\"expected_seq initialized; ctx_state=ASSEMBLING; sram_alloc_ptr advanced\", \"free_slot_available\", \"som\", \"eom\", \"pac...",
+        "state": "[\"alloc_ok\", \"single_packet\", \"ctx_state\", \"ctx_payload_base_addr\", \"ctx_expected_seq\", \"active_context_count\", \"sram..."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ALLOC_CONTEXT.side_effects.side_effect_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_ALLOC_CONTEXT: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ALLOC_CONTEXT.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.error_cases.error_case_0.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.\nSSOT item context: id=FM_ALLOC_CONTEXT; name=context_allocate; signal=[{\"condition\": \"no free context for a new fragmented SOM\", \"result\": \"PD_BAD_OR_EXPIRED_TAG packet drop (context-tabl...; state=[\"alloc_ok\", \"single_packet\", \"ctx_state\", \"ctx_payload_base_addr\", \"ctx_expected_seq\", \"active_context_count\", \"sram....",
+      "evidence_terms": [
+        "BAD",
+        "EXPIRED",
+        "OR",
+        "PD",
+        "PD_BAD_OR_EXPIRED_TAG",
+        "SOM",
+        "TAG",
+        "active",
+        "active_context_count",
+        "addr",
+        "alloc",
+        "alloc_ok",
+        "allocated",
+        "allocated_len",
+        "available",
+        "base"
+      ],
+      "id": "RTL-0204",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ALLOC_CONTEXT.error_cases.error_case_0",
+      "ssot_context": {
+        "id": "FM_ALLOC_CONTEXT",
+        "name": "context_allocate",
+        "signal": "[{\"condition\": \"no free context for a new fragmented SOM\", \"result\": \"PD_BAD_OR_EXPIRED_TAG packet drop (context-tabl...",
+        "state": "[\"alloc_ok\", \"single_packet\", \"ctx_state\", \"ctx_payload_base_addr\", \"ctx_expected_seq\", \"active_context_count\", \"sram..."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ALLOC_CONTEXT.error_cases.error_case_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_ALLOC_CONTEXT: error_case_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ALLOC_CONTEXT.error_cases.error_case_1",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.error_cases.error_case_1.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.\nSSOT item context: id=FM_ALLOC_CONTEXT; name=context_allocate; signal=[{\"condition\": \"SOM for an already-active key\", \"result\": \"AD_DUPLICATE_SOM assembly drop: abort old context, suppres...; state=[\"alloc_ok\", \"single_packet\", \"ctx_state\", \"ctx_payload_base_addr\", \"ctx_expected_seq\", \"active_context_count\", \"sram....",
+      "evidence_terms": [
+        "AD",
+        "AD_DUPLICATE_SOM",
+        "DUPLICATE",
+        "SOM",
+        "active",
+        "active_context_count",
+        "addr",
+        "alloc",
+        "alloc_ok",
+        "allocated",
+        "allocated_len",
+        "available",
+        "base",
+        "context",
+        "count",
+        "ctx"
+      ],
+      "id": "RTL-0205",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ALLOC_CONTEXT.error_cases.error_case_1",
+      "ssot_context": {
+        "id": "FM_ALLOC_CONTEXT",
+        "name": "context_allocate",
+        "signal": "[{\"condition\": \"SOM for an already-active key\", \"result\": \"AD_DUPLICATE_SOM assembly drop: abort old context, suppres...",
+        "state": "[\"alloc_ok\", \"single_packet\", \"ctx_state\", \"ctx_payload_base_addr\", \"ctx_expected_seq\", \"active_context_count\", \"sram..."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ALLOC_CONTEXT.error_cases.error_case_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_APPEND",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_APPEND",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_APPEND.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.\nSSOT item context: id=FM_APPEND; name=context_append.",
+      "evidence_terms": [],
+      "id": "RTL-0206",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APPEND",
+      "ssot_context": {
+        "id": "FM_APPEND",
+        "name": "context_append"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APPEND"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_APPEND: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APPEND.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APPEND.preconditions.precondition_0.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.\nSSOT item context: value=SOM=0 packet matches an active key.",
+      "evidence_terms": [],
+      "id": "RTL-0207",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APPEND.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "SOM=0 packet matches an active key"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APPEND.preconditions.precondition_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_APPEND: precondition_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APPEND.preconditions.precondition_1",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APPEND.preconditions.precondition_1.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.\nSSOT item context: value=packet_seq == ctx_expected_seq.",
+      "evidence_terms": [
+        "ctx",
+        "ctx_expected_seq",
+        "expected",
+        "packet",
+        "packet_seq",
+        "seq"
+      ],
+      "id": "RTL-0208",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APPEND.preconditions.precondition_1",
+      "ssot_context": {
+        "value": "packet_seq == ctx_expected_seq"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APPEND.preconditions.precondition_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_APPEND: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APPEND.inputs.input_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APPEND.inputs.input_0.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.\nSSOT item context: id=FM_APPEND; name=context_append; signal=[\"payload bytes\", \"packet_seq\", \"eom\", \"payload_bytes\"]; state=[\"seq_ok\", \"message_complete\", \"ctx_payload_byte_count\", \"ctx_expected_seq\", \"ctx_last_seq\"].",
+      "evidence_terms": [
+        "byte",
+        "bytes",
+        "complete",
+        "count",
+        "ctx",
+        "ctx_expected_seq",
+        "ctx_last_seq",
+        "ctx_payload_byte_count",
+        "eom",
+        "expected",
+        "last",
+        "message",
+        "message_complete",
+        "ok",
+        "packet",
+        "packet_seq"
+      ],
+      "id": "RTL-0209",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APPEND.inputs.input_0",
+      "ssot_context": {
+        "id": "FM_APPEND",
+        "name": "context_append",
+        "signal": "[\"payload bytes\", \"packet_seq\", \"eom\", \"payload_bytes\"]",
+        "state": "[\"seq_ok\", \"message_complete\", \"ctx_payload_byte_count\", \"ctx_expected_seq\", \"ctx_last_seq\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APPEND.inputs.input_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_APPEND: input_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APPEND.inputs.input_1",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APPEND.inputs.input_1.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.\nSSOT item context: id=FM_APPEND; name=context_append; signal=[\"last_tlp_header[0:15]\", \"packet_seq\", \"eom\", \"payload_bytes\"]; state=[\"seq_ok\", \"message_complete\", \"ctx_payload_byte_count\", \"ctx_expected_seq\", \"ctx_last_seq\"].",
+      "evidence_terms": [
+        "byte",
+        "bytes",
+        "complete",
+        "count",
+        "ctx",
+        "ctx_expected_seq",
+        "ctx_last_seq",
+        "ctx_payload_byte_count",
+        "eom",
+        "expected",
+        "header",
+        "last",
+        "last_tlp_header",
+        "message",
+        "message_complete",
+        "ok"
+      ],
+      "id": "RTL-0210",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APPEND.inputs.input_1",
+      "ssot_context": {
+        "id": "FM_APPEND",
+        "name": "context_append",
+        "signal": "[\"last_tlp_header[0:15]\", \"packet_seq\", \"eom\", \"payload_bytes\"]",
+        "state": "[\"seq_ok\", \"message_complete\", \"ctx_payload_byte_count\", \"ctx_expected_seq\", \"ctx_last_seq\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APPEND.inputs.input_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_APPEND: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APPEND.outputs.output_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APPEND.outputs.output_0.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.\nSSOT item context: value=payload appended; last_tlp_header updated; expected_seq incremented modulo 4.",
+      "evidence_terms": [
+        "expected",
+        "expected_seq",
+        "header",
+        "last",
+        "last_tlp_header",
+        "seq",
+        "tlp"
+      ],
+      "id": "RTL-0211",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APPEND.outputs.output_0",
+      "ssot_context": {
+        "value": "payload appended; last_tlp_header updated; expected_seq incremented modulo 4"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APPEND.outputs.output_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_APPEND: output_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APPEND.outputs.output_1",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APPEND.outputs.output_1.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.\nSSOT item context: value=EOM=1 marks message complete -> FM_PUBLISH_DESCRIPTOR.",
+      "evidence_terms": [
+        "DESCRIPTOR",
+        "FM",
+        "FM_PUBLISH_DESCRIPTOR",
+        "PUBLISH"
+      ],
+      "id": "RTL-0212",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APPEND.outputs.output_1",
+      "ssot_context": {
+        "value": "EOM=1 marks message complete -> FM_PUBLISH_DESCRIPTOR"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APPEND.outputs.output_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_APPEND: seq_ok",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APPEND.outputs.seq_ok",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "function_model.transactions.FM_APPEND.outputs.seq_ok RTL expression implements SSOT expression packet_seq == ctx_expected_seq"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APPEND.outputs.seq_ok.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.\nSSOT item context: state=seq_ok; expr=packet_seq == ctx_expected_seq.",
+      "evidence_terms": [
+        "ctx",
+        "ctx_expected_seq",
+        "expected",
+        "ok",
+        "packet",
+        "packet_seq",
+        "seq",
+        "seq_ok"
+      ],
+      "id": "RTL-0213",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APPEND.outputs.seq_ok",
+      "ssot_context": {
+        "expr": "packet_seq == ctx_expected_seq",
+        "state": "seq_ok"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APPEND.outputs.seq_ok"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_APPEND: message_complete",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APPEND.outputs.message_complete",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "function_model.transactions.FM_APPEND.outputs.message_complete RTL expression implements SSOT expression eom"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APPEND.outputs.message_complete.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.\nSSOT item context: state=message_complete; expr=eom.",
+      "evidence_terms": [
+        "complete",
+        "message",
+        "message_complete"
+      ],
+      "id": "RTL-0214",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APPEND.outputs.message_complete",
+      "ssot_context": {
+        "expr": "eom",
+        "state": "message_complete"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APPEND.outputs.message_complete"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_APPEND: ctx_payload_byte_count",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APPEND.outputs.ctx_payload_byte_count",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "function_model.transactions.FM_APPEND.outputs.ctx_payload_byte_count RTL expression implements SSOT expression ctx_payload_byte_count + payload_bytes"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APPEND.outputs.ctx_payload_byte_count.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.\nSSOT item context: state=ctx_payload_byte_count; expr=ctx_payload_byte_count + payload_bytes.",
+      "evidence_terms": [
+        "byte",
+        "bytes",
+        "count",
+        "ctx",
+        "ctx_payload_byte_count",
+        "payload",
+        "payload_bytes"
+      ],
+      "id": "RTL-0215",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APPEND.outputs.ctx_payload_byte_count",
+      "ssot_context": {
+        "expr": "ctx_payload_byte_count + payload_bytes",
+        "state": "ctx_payload_byte_count"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APPEND.outputs.ctx_payload_byte_count"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_APPEND: ctx_expected_seq",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APPEND.outputs.ctx_expected_seq",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "function_model.transactions.FM_APPEND.outputs.ctx_expected_seq RTL expression implements SSOT expression (ctx_expected_seq + 1) % 4"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APPEND.outputs.ctx_expected_seq.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.\nSSOT item context: state=ctx_expected_seq; expr=(ctx_expected_seq + 1) % 4.",
+      "evidence_terms": [
+        "ctx",
+        "ctx_expected_seq",
+        "expected",
+        "seq"
+      ],
+      "id": "RTL-0216",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APPEND.outputs.ctx_expected_seq",
+      "ssot_context": {
+        "expr": "(ctx_expected_seq + 1) % 4",
+        "state": "ctx_expected_seq"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APPEND.outputs.ctx_expected_seq"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_APPEND: ctx_last_seq",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APPEND.outputs.ctx_last_seq",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "function_model.transactions.FM_APPEND.outputs.ctx_last_seq RTL expression implements SSOT expression packet_seq"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APPEND.outputs.ctx_last_seq.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.\nSSOT item context: state=ctx_last_seq; expr=packet_seq.",
+      "evidence_terms": [
+        "ctx",
+        "ctx_last_seq",
+        "last",
+        "packet",
+        "packet_seq",
+        "seq"
+      ],
+      "id": "RTL-0217",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APPEND.outputs.ctx_last_seq",
+      "ssot_context": {
+        "expr": "packet_seq",
+        "state": "ctx_last_seq"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APPEND.outputs.ctx_last_seq"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_APPEND: seq_ok",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APPEND.state_updates.seq_ok",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "seq_ok width matches SSOT value 1",
+        "seq_ok RTL expression implements SSOT expression packet_seq == ctx_expected_seq",
+        "seq_ok updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APPEND.state_updates.seq_ok.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.\nSSOT item context: name=seq_ok; expr=packet_seq == ctx_expected_seq; width=1.",
+      "evidence_terms": [
+        "ctx",
+        "ctx_expected_seq",
+        "expected",
+        "ok",
+        "packet",
+        "packet_seq",
+        "seq",
+        "seq_ok"
+      ],
+      "id": "RTL-0218",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APPEND.state_updates.seq_ok",
+      "ssot_context": {
+        "expr": "packet_seq == ctx_expected_seq",
+        "name": "seq_ok",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APPEND.state_updates.seq_ok"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_APPEND: message_complete",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APPEND.state_updates.message_complete",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "message_complete width matches SSOT value 1",
+        "message_complete RTL expression implements SSOT expression eom",
+        "message_complete updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APPEND.state_updates.message_complete.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.\nSSOT item context: name=message_complete; expr=eom; width=1.",
+      "evidence_terms": [
+        "complete",
+        "message",
+        "message_complete"
+      ],
+      "id": "RTL-0219",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APPEND.state_updates.message_complete",
+      "ssot_context": {
+        "expr": "eom",
+        "name": "message_complete",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APPEND.state_updates.message_complete"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_APPEND: ctx_payload_byte_count",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APPEND.state_updates.ctx_payload_byte_count",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "ctx_payload_byte_count width matches SSOT value 13",
+        "ctx_payload_byte_count RTL expression implements SSOT expression ctx_payload_byte_count + payload_bytes",
+        "ctx_payload_byte_count updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APPEND.state_updates.ctx_payload_byte_count.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.\nSSOT item context: name=ctx_payload_byte_count; expr=ctx_payload_byte_count + payload_bytes; width=13.",
+      "evidence_terms": [
+        "byte",
+        "bytes",
+        "count",
+        "ctx",
+        "ctx_payload_byte_count",
+        "payload",
+        "payload_bytes"
+      ],
+      "id": "RTL-0220",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APPEND.state_updates.ctx_payload_byte_count",
+      "ssot_context": {
+        "expr": "ctx_payload_byte_count + payload_bytes",
+        "name": "ctx_payload_byte_count",
+        "width": "13"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APPEND.state_updates.ctx_payload_byte_count"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_APPEND: ctx_expected_seq",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APPEND.state_updates.ctx_expected_seq",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "ctx_expected_seq width matches SSOT value 2",
+        "ctx_expected_seq RTL expression implements SSOT expression (ctx_expected_seq + 1) % 4",
+        "ctx_expected_seq updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APPEND.state_updates.ctx_expected_seq.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.\nSSOT item context: name=ctx_expected_seq; expr=(ctx_expected_seq + 1) % 4; width=2.",
+      "evidence_terms": [
+        "ctx",
+        "ctx_expected_seq",
+        "expected",
+        "seq"
+      ],
+      "id": "RTL-0221",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APPEND.state_updates.ctx_expected_seq",
+      "ssot_context": {
+        "expr": "(ctx_expected_seq + 1) % 4",
+        "name": "ctx_expected_seq",
+        "width": "2"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APPEND.state_updates.ctx_expected_seq"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_APPEND: ctx_last_seq",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APPEND.state_updates.ctx_last_seq",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "ctx_last_seq width matches SSOT value 2",
+        "ctx_last_seq RTL expression implements SSOT expression packet_seq",
+        "ctx_last_seq updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APPEND.state_updates.ctx_last_seq.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.\nSSOT item context: name=ctx_last_seq; expr=packet_seq; width=2.",
+      "evidence_terms": [
+        "ctx",
+        "ctx_last_seq",
+        "last",
+        "packet",
+        "packet_seq",
+        "seq"
+      ],
+      "id": "RTL-0222",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APPEND.state_updates.ctx_last_seq",
+      "ssot_context": {
+        "expr": "packet_seq",
+        "name": "ctx_last_seq",
+        "width": "2"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APPEND.state_updates.ctx_last_seq"
+      ],
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_APPEND: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APPEND.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APPEND.side_effects.side_effect_0.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.\nSSOT item context: id=FM_APPEND; name=context_append; signal=[\"ctx_payload_byte_count += payload_bytes\", \"packet_seq\", \"eom\", \"payload_bytes\"]; state=[\"seq_ok\", \"message_complete\", \"ctx_payload_byte_count\", \"ctx_expected_seq\", \"ctx_last_seq\"].",
+      "evidence_terms": [
+        "byte",
+        "bytes",
+        "complete",
+        "count",
+        "ctx",
+        "ctx_expected_seq",
+        "ctx_last_seq",
+        "ctx_payload_byte_count",
+        "eom",
+        "expected",
+        "last",
+        "message",
+        "message_complete",
+        "ok",
+        "packet",
+        "packet_seq"
+      ],
+      "id": "RTL-0223",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APPEND.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "FM_APPEND",
+        "name": "context_append",
+        "signal": "[\"ctx_payload_byte_count += payload_bytes\", \"packet_seq\", \"eom\", \"payload_bytes\"]",
+        "state": "[\"seq_ok\", \"message_complete\", \"ctx_payload_byte_count\", \"ctx_expected_seq\", \"ctx_last_seq\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APPEND.side_effects.side_effect_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_APPEND: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APPEND.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APPEND.error_cases.error_case_0.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.\nSSOT item context: id=FM_APPEND; name=context_append; signal=[{\"condition\": \"middle/end with no active matching context / EOM without prior SOM\", \"result\": \"PD_UNEXPECTED_MIDDLE_...; state=[\"seq_ok\", \"message_complete\", \"ctx_payload_byte_count\", \"ctx_expected_seq\", \"ctx_last_seq\"].",
+      "evidence_terms": [
+        "END",
+        "EOM",
+        "MIDDLE",
+        "PD",
+        "PD_UNEXPECTED_MIDDLE_END",
+        "SOM",
+        "UNEXPECTED",
+        "byte",
+        "bytes",
+        "complete",
+        "count",
+        "ctx",
+        "ctx_expected_seq",
+        "ctx_last_seq",
+        "ctx_payload_byte_count",
+        "eom"
+      ],
+      "id": "RTL-0224",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APPEND.error_cases.error_case_0",
+      "ssot_context": {
+        "id": "FM_APPEND",
+        "name": "context_append",
+        "signal": "[{\"condition\": \"middle/end with no active matching context / EOM without prior SOM\", \"result\": \"PD_UNEXPECTED_MIDDLE_...",
+        "state": "[\"seq_ok\", \"message_complete\", \"ctx_payload_byte_count\", \"ctx_expected_seq\", \"ctx_last_seq\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APPEND.error_cases.error_case_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_APPEND: error_case_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APPEND.error_cases.error_case_1",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APPEND.error_cases.error_case_1.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.\nSSOT item context: id=FM_APPEND; name=context_append; signal=[{\"condition\": \"packet_seq != expected modulo-4 seq\", \"result\": \"AD_SEQUENCE_MISMATCH assembly drop\"}, \"packet_seq\", ...; state=[\"seq_ok\", \"message_complete\", \"ctx_payload_byte_count\", \"ctx_expected_seq\", \"ctx_last_seq\"].",
+      "evidence_terms": [
+        "AD",
+        "AD_SEQUENCE_MISMATCH",
+        "MISMATCH",
+        "SEQUENCE",
+        "byte",
+        "bytes",
+        "complete",
+        "count",
+        "ctx",
+        "ctx_expected_seq",
+        "ctx_last_seq",
+        "ctx_payload_byte_count",
+        "eom",
+        "expected",
+        "last",
+        "message"
+      ],
+      "id": "RTL-0225",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APPEND.error_cases.error_case_1",
+      "ssot_context": {
+        "id": "FM_APPEND",
+        "name": "context_append",
+        "signal": "[{\"condition\": \"packet_seq != expected modulo-4 seq\", \"result\": \"AD_SEQUENCE_MISMATCH assembly drop\"}, \"packet_seq\", ...",
+        "state": "[\"seq_ok\", \"message_complete\", \"ctx_payload_byte_count\", \"ctx_expected_seq\", \"ctx_last_seq\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APPEND.error_cases.error_case_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_APPEND: error_case_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APPEND.error_cases.error_case_2",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APPEND.error_cases.error_case_2.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.\nSSOT item context: id=FM_APPEND; name=context_append; signal=[{\"condition\": \"append would exceed MAX_MESSAGE_BYTES\", \"result\": \"AD_MESSAGE_OVERFLOW assembly drop\"}, \"packet_seq\",...; state=[\"seq_ok\", \"message_complete\", \"ctx_payload_byte_count\", \"ctx_expected_seq\", \"ctx_last_seq\"].",
+      "evidence_terms": [
+        "AD",
+        "AD_MESSAGE_OVERFLOW",
+        "BYTES",
+        "MAX",
+        "MAX_MESSAGE_BYTES",
+        "MESSAGE",
+        "OVERFLOW",
+        "byte",
+        "bytes",
+        "complete",
+        "count",
+        "ctx",
+        "ctx_expected_seq",
+        "ctx_last_seq",
+        "ctx_payload_byte_count",
+        "eom"
+      ],
+      "id": "RTL-0226",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APPEND.error_cases.error_case_2",
+      "ssot_context": {
+        "id": "FM_APPEND",
+        "name": "context_append",
+        "signal": "[{\"condition\": \"append would exceed MAX_MESSAGE_BYTES\", \"result\": \"AD_MESSAGE_OVERFLOW assembly drop\"}, \"packet_seq\",...",
+        "state": "[\"seq_ok\", \"message_complete\", \"ctx_payload_byte_count\", \"ctx_expected_seq\", \"ctx_last_seq\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APPEND.error_cases.error_case_2"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_APPEND: error_case_3",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APPEND.error_cases.error_case_3",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APPEND.error_cases.error_case_3.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.\nSSOT item context: id=FM_APPEND; name=context_append; signal=[{\"condition\": \"context age exceeds assembly_timeout_cycles\", \"result\": \"AD_TIMEOUT assembly drop\"}, \"packet_seq\", \"e...; state=[\"seq_ok\", \"message_complete\", \"ctx_payload_byte_count\", \"ctx_expected_seq\", \"ctx_last_seq\"].",
+      "evidence_terms": [
+        "AD",
+        "AD_TIMEOUT",
+        "TIMEOUT",
+        "assembly",
+        "assembly_timeout_cycles",
+        "byte",
+        "bytes",
+        "complete",
+        "count",
+        "ctx",
+        "ctx_expected_seq",
+        "ctx_last_seq",
+        "ctx_payload_byte_count",
+        "cycles",
+        "eom",
+        "expected"
+      ],
+      "id": "RTL-0227",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APPEND.error_cases.error_case_3",
+      "ssot_context": {
+        "id": "FM_APPEND",
+        "name": "context_append",
+        "signal": "[{\"condition\": \"context age exceeds assembly_timeout_cycles\", \"result\": \"AD_TIMEOUT assembly drop\"}, \"packet_seq\", \"e...",
+        "state": "[\"seq_ok\", \"message_complete\", \"ctx_payload_byte_count\", \"ctx_expected_seq\", \"ctx_last_seq\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APPEND.error_cases.error_case_3"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    }
+  ],
+  "todo_plan_sha256": "928c0a587fbcc3522da24eba470cd1fb51a8ad7c9c51ddd94821393e2967e9f9",
+  "top": "mctp_assembler_v3",
+  "type": "rtl_authoring_packet"
+}

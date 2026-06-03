@@ -1,0 +1,892 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 7,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 6,
+      "key": "security",
+      "module_task_count": 68,
+      "rule": "Owner module mctp_assembler_v3 is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "security",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/mctp_assembler_v3.sv",
+      "name": "mctp_assembler_v3",
+      "refs": [
+        "cycle_model",
+        "cycle_model.pipeline",
+        "dataflow",
+        "decomposition",
+        "function_model",
+        "function_model.transactions",
+        "integration",
+        "integration.connections",
+        "io_list",
+        "io_list.interfaces",
+        "top_module"
+      ],
+      "wiring_only": true
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "name": "mctp_assembler_v3_axi_wr_ingress",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
+        "name": "mctp_assembler_v3_pcie_vdm_parser",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "name": "mctp_assembler_v3_mctp_decoder",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_context_table.sv",
+        "name": "mctp_assembler_v3_context_table",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_sram_packer.sv",
+        "name": "mctp_assembler_v3_sram_packer",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "name": "mctp_assembler_v3_descriptor_queue",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "name": "mctp_assembler_v3_axi_rd_payload",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "name": "mctp_assembler_v3_apb_regfile",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_cdc_sync.sv",
+        "name": "mctp_assembler_v3_cdc_sync",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3.sv",
+        "name": "mctp_assembler_v3",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_v3_axi_wr_ingress",
+        "port": "axi_aclk",
+        "signal": "axi_aclk",
+        "signal_terms": [
+          "axi_aclk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_v3_axi_wr_ingress",
+        "port": "axi_aresetn",
+        "signal": "axi_aresetn",
+        "signal_terms": [
+          "axi_aresetn"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_v3_apb_regfile",
+        "port": "pclk",
+        "signal": "pclk",
+        "signal_terms": [
+          "pclk"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_v3_apb_regfile",
+        "port": "presetn",
+        "signal": "presetn",
+        "signal_terms": [
+          "presetn"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_v3_apb_regfile",
+        "port": "irq_o",
+        "signal": "irq",
+        "signal_terms": [
+          "irq"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_v3_sram_packer",
+        "port": "sram_wr_valid_o",
+        "signal": "sram_wr_valid",
+        "signal_terms": [
+          "sram_wr_valid"
+        ],
+        "source_ref": "integration.connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_v3_context_table",
+        "port": "drop_class_o",
+        "signal": "last_drop_class",
+        "signal_terms": [
+          "last_drop_class"
+        ],
+        "source_ref": "integration.connections[6]"
+      }
+    ],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "axi_aclk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "axi_aclk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "pclk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pclk",
+        "source_ref": "io_list.clock_domains[1].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_aresetn"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "axi_aresetn",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "presetn"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "presetn",
+        "source_ref": "io_list.resets[1].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_awaddr",
+          "s_axi_awaddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_awaddr",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "16"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_awlen",
+          "s_axi_awlen"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_awlen",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_awsize",
+          "s_axi_awsize"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_awsize",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "3"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_awburst",
+          "s_axi_awburst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_awburst",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "2"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_awvalid",
+          "s_axi_awvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_awvalid",
+        "source_ref": "io_list.interfaces[0].ports[4]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_awready",
+          "s_axi_awready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "s_axi_awready",
+        "source_ref": "io_list.interfaces[0].ports[5]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_wdata",
+          "s_axi_wdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_wdata",
+        "source_ref": "io_list.interfaces[0].ports[6]",
+        "width": "256"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_wstrb",
+          "s_axi_wstrb"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_wstrb",
+        "source_ref": "io_list.interfaces[0].ports[7]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_wlast",
+          "s_axi_wlast"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_wlast",
+        "source_ref": "io_list.interfaces[0].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_wvalid",
+          "s_axi_wvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_wvalid",
+        "source_ref": "io_list.interfaces[0].ports[9]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_wready",
+          "s_axi_wready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "s_axi_wready",
+        "source_ref": "io_list.interfaces[0].ports[10]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_bresp",
+          "s_axi_bresp"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "s_axi_bresp",
+        "source_ref": "io_list.interfaces[0].ports[11]",
+        "width": "2"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_bvalid",
+          "s_axi_bvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "s_axi_bvalid",
+        "source_ref": "io_list.interfaces[0].ports[12]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_wr_slave_s_axi_bready",
+          "s_axi_bready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_bready",
+        "source_ref": "io_list.interfaces[0].ports[13]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_rd_slave_s_axi_araddr",
+          "s_axi_araddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_araddr",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "16"
+      },
+      {
+        "aliases": [
+          "axi_rd_slave_s_axi_arlen",
+          "s_axi_arlen"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_arlen",
+        "source_ref": "io_list.interfaces[1].ports[1]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "axi_rd_slave_s_axi_arsize",
+          "s_axi_arsize"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_arsize",
+        "source_ref": "io_list.interfaces[1].ports[2]",
+        "width": "3"
+      },
+      {
+        "aliases": [
+          "axi_rd_slave_s_axi_arburst",
+          "s_axi_arburst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_arburst",
+        "source_ref": "io_list.interfaces[1].ports[3]",
+        "width": "2"
+      },
+      {
+        "aliases": [
+          "axi_rd_slave_s_axi_arvalid",
+          "s_axi_arvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_arvalid",
+        "source_ref": "io_list.interfaces[1].ports[4]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_rd_slave_s_axi_arready",
+          "s_axi_arready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "s_axi_arready",
+        "source_ref": "io_list.interfaces[1].ports[5]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_rd_slave_s_axi_rdata",
+          "s_axi_rdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "s_axi_rdata",
+        "source_ref": "io_list.interfaces[1].ports[6]",
+        "width": "256"
+      },
+      {
+        "aliases": [
+          "axi_rd_slave_s_axi_rresp",
+          "s_axi_rresp"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "s_axi_rresp",
+        "source_ref": "io_list.interfaces[1].ports[7]",
+        "width": "2"
+      },
+      {
+        "aliases": [
+          "axi_rd_slave_s_axi_rlast",
+          "s_axi_rlast"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "s_axi_rlast",
+        "source_ref": "io_list.interfaces[1].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_rd_slave_s_axi_rvalid",
+          "s_axi_rvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "s_axi_rvalid",
+        "source_ref": "io_list.interfaces[1].ports[9]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_rd_slave_s_axi_rready",
+          "s_axi_rready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axi_rready",
+        "source_ref": "io_list.interfaces[1].ports[10]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_paddr",
+          "paddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "paddr",
+        "source_ref": "io_list.interfaces[2].ports[0]",
+        "width": "16"
+      },
+      {
+        "aliases": [
+          "apb_slave_psel",
+          "psel"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "psel",
+        "source_ref": "io_list.interfaces[2].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_penable",
+          "penable"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "penable",
+        "source_ref": "io_list.interfaces[2].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_pwrite",
+          "pwrite"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pwrite",
+        "source_ref": "io_list.interfaces[2].ports[3]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_pwdata",
+          "pwdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pwdata",
+        "source_ref": "io_list.interfaces[2].ports[4]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "apb_slave_pstrb",
+          "pstrb"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pstrb",
+        "source_ref": "io_list.interfaces[2].ports[5]",
+        "width": "4"
+      },
+      {
+        "aliases": [
+          "apb_slave_prdata",
+          "prdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "prdata",
+        "source_ref": "io_list.interfaces[2].ports[6]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "apb_slave_pready",
+          "pready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pready",
+        "source_ref": "io_list.interfaces[2].ports[7]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_pslverr",
+          "pslverr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pslverr",
+        "source_ref": "io_list.interfaces[2].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "sram_wr_valid",
+          "sram_write_sram_wr_valid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "sram_wr_valid",
+        "source_ref": "io_list.interfaces[3].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "sram_wr_ready",
+          "sram_write_sram_wr_ready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "sram_wr_ready",
+        "source_ref": "io_list.interfaces[3].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "sram_wr_addr",
+          "sram_write_sram_wr_addr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "sram_wr_addr",
+        "source_ref": "io_list.interfaces[3].ports[2]",
+        "width": "16"
+      },
+      {
+        "aliases": [
+          "sram_wr_data",
+          "sram_write_sram_wr_data"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "sram_wr_data",
+        "source_ref": "io_list.interfaces[3].ports[3]",
+        "width": "256"
+      },
+      {
+        "aliases": [
+          "sram_wr_strb",
+          "sram_write_sram_wr_strb"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "sram_wr_strb",
+        "source_ref": "io_list.interfaces[3].ports[4]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "sram_rd_req_valid",
+          "sram_read_sram_rd_req_valid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "sram_rd_req_valid",
+        "source_ref": "io_list.interfaces[4].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "sram_rd_req_ready",
+          "sram_read_sram_rd_req_ready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "sram_rd_req_ready",
+        "source_ref": "io_list.interfaces[4].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "sram_rd_req_addr",
+          "sram_read_sram_rd_req_addr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "sram_rd_req_addr",
+        "source_ref": "io_list.interfaces[4].ports[2]",
+        "width": "16"
+      },
+      {
+        "aliases": [
+          "sram_rd_rsp_valid",
+          "sram_read_sram_rd_rsp_valid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "sram_rd_rsp_valid",
+        "source_ref": "io_list.interfaces[4].ports[3]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "sram_rd_rsp_ready",
+          "sram_read_sram_rd_rsp_ready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "sram_rd_rsp_ready",
+        "source_ref": "io_list.interfaces[4].ports[4]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "sram_rd_rsp_data",
+          "sram_read_sram_rd_rsp_data"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "sram_rd_rsp_data",
+        "source_ref": "io_list.interfaces[4].ports[5]",
+        "width": "256"
+      },
+      {
+        "aliases": [
+          "sram_rd_rsp_error",
+          "sram_read_sram_rd_rsp_error"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "sram_rd_rsp_error",
+        "source_ref": "io_list.interfaces[4].ports[6]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "interrupt_irq",
+          "irq"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "irq",
+        "source_ref": "io_list.interfaces[5].ports[0]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 1,
+    "open_required_count": 1,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "mctp_assembler_v3",
+  "kind": "module",
+  "owner_file": "rtl/mctp_assembler_v3.sv",
+  "owner_module": "mctp_assembler_v3",
+  "packet_id": "module__mctp_assembler_v3__security",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "security.assets": 1
+    },
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 6,
+      "key": "security",
+      "module_task_count": 68,
+      "rule": "Owner module mctp_assembler_v3 is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "security",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 1,
+    "required_count": 1,
+    "source_refs": [
+      "security.assets.payload_sram"
+    ],
+    "status_counts": {
+      "planned": 1
+    },
+    "task_count": 1
+  },
+  "tasks": [
+    {
+      "category": "security.assets",
+      "content": "Implement security item payload_sram",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref security.assets.payload_sram",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3.sv"
+      ],
+      "detail": "This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: security.assets.payload_sram.\nOwner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_fallback.\nSSOT item context: name=payload_sram.",
+      "evidence_terms": [],
+      "id": "RTL-0446",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "priority": "high",
+      "required": true,
+      "source_ref": "security.assets.payload_sram",
+      "ssot_context": {
+        "name": "payload_sram"
+      },
+      "ssot_refs": [
+        "security.assets.payload_sram"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    }
+  ],
+  "todo_plan_sha256": "928c0a587fbcc3522da24eba470cd1fb51a8ad7c9c51ddd94821393e2967e9f9",
+  "top": "mctp_assembler_v3",
+  "type": "rtl_authoring_packet"
+}

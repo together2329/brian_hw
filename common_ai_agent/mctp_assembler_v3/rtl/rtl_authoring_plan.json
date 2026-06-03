@@ -1,0 +1,3101 @@
+{
+  "execution_policy": {
+    "allowed_draft_work": [
+      "Author module RTL from SSOT-derived TODO packets.",
+      "Add tests, vectors, assertions, reports, and repair RTL under LLM-editable surfaces.",
+      "Leave unresolved locked-truth decisions as human_gate/change-request records instead of changing SSOT authority."
+    ],
+    "blocked_by_llm_work": [
+      {
+        "gate_kind": "static_rtl_evidence",
+        "owner_module": "mctp_assembler_v3",
+        "reason": "RTL audit has not run yet.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
+        "status": "planned",
+        "task_id": "RTL-0007"
+      },
+      {
+        "gate_kind": "owner_logic_structure_evidence",
+        "owner_module": "mctp_assembler_v3",
+        "reason": "RTL audit has not run yet.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.owner_logic_structure_evidence",
+        "status": "planned",
+        "task_id": "RTL-0008"
+      },
+      {
+        "gate_kind": "rtl_placeholder_free_evidence",
+        "owner_module": "mctp_assembler_v3",
+        "reason": "RTL audit has not run yet.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
+        "status": "planned",
+        "task_id": "RTL-0009"
+      },
+      {
+        "gate_kind": "top_io_contract_evidence",
+        "owner_module": "mctp_assembler_v3",
+        "reason": "RTL audit has not run yet.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.top_io_contract_evidence",
+        "status": "planned",
+        "task_id": "RTL-0010"
+      },
+      {
+        "gate_kind": "top_output_drive_evidence",
+        "owner_module": "mctp_assembler_v3",
+        "reason": "RTL audit has not run yet.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.top_output_drive_evidence",
+        "status": "planned",
+        "task_id": "RTL-0011"
+      },
+      {
+        "gate_kind": "top_input_consumption_evidence",
+        "owner_module": "mctp_assembler_v3",
+        "reason": "RTL audit has not run yet.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.top_input_consumption_evidence",
+        "status": "planned",
+        "task_id": "RTL-0012"
+      },
+      {
+        "gate_kind": "manifest_hierarchy_integration",
+        "owner_module": "mctp_assembler_v3",
+        "reason": "RTL audit has not run yet.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.manifest_hierarchy_integration",
+        "status": "planned",
+        "task_id": "RTL-0013"
+      },
+      {
+        "gate_kind": "manifest_port_connection_evidence",
+        "owner_module": "mctp_assembler_v3",
+        "reason": "RTL audit has not run yet.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.manifest_port_connection_evidence",
+        "status": "planned",
+        "task_id": "RTL-0014"
+      },
+      {
+        "gate_kind": "manifest_signal_flow_evidence",
+        "owner_module": "mctp_assembler_v3",
+        "reason": "RTL audit has not run yet.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.manifest_signal_flow_evidence",
+        "status": "planned",
+        "task_id": "RTL-0015"
+      },
+      {
+        "gate_kind": "rtl_implementation_depth_evidence",
+        "owner_module": "mctp_assembler_v3",
+        "reason": "RTL audit has not run yet.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.rtl_implementation_depth_evidence",
+        "status": "planned",
+        "task_id": "RTL-0022"
+      }
+    ],
+    "blocked_by_locked_truth": [
+      {
+        "gate_kind": "ssot_required_sections",
+        "owner_module": "mctp_assembler_v3",
+        "reason": "RTL audit has not run yet.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.ssot_required_sections",
+        "status": "planned",
+        "task_id": "RTL-0003"
+      },
+      {
+        "gate_kind": "ssot_workflow_todo_format",
+        "owner_module": "mctp_assembler_v3",
+        "reason": "RTL audit has not run yet.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.workflow_todo_contract",
+        "status": "planned",
+        "task_id": "RTL-0004"
+      },
+      {
+        "gate_kind": "owner_traceability",
+        "owner_module": "mctp_assembler_v3",
+        "reason": "RTL audit has not run yet.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.owner_traceability",
+        "status": "planned",
+        "task_id": "RTL-0005"
+      },
+      {
+        "gate_kind": "manifest_connection_contract_evidence",
+        "owner_module": "mctp_assembler_v3",
+        "reason": "RTL audit has not run yet.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
+        "status": "planned",
+        "task_id": "RTL-0016"
+      },
+      {
+        "gate_kind": "golden_authority_artifacts",
+        "owner_module": "mctp_assembler_v3",
+        "reason": "RTL audit has not run yet.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.golden_authority_artifacts",
+        "status": "planned",
+        "task_id": "RTL-0020"
+      },
+      {
+        "gate_kind": "target_scale_policy",
+        "owner_module": "mctp_assembler_v3",
+        "reason": "RTL audit has not run yet.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.target_scale",
+        "status": "planned",
+        "task_id": "RTL-0021"
+      },
+      {
+        "gate_kind": "cycle_model_artifacts",
+        "owner_module": "mctp_assembler_v3",
+        "reason": "RTL audit has not run yet.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.cycle_model_artifacts",
+        "status": "planned",
+        "task_id": "RTL-0023"
+      }
+    ],
+    "blocked_by_tool_evidence": [
+      {
+        "gate_kind": "common_ai_agent_authoring",
+        "owner_module": "mctp_assembler_v3",
+        "reason": "RTL audit has not run yet.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+        "status": "planned",
+        "task_id": "RTL-0006"
+      },
+      {
+        "gate_kind": "dut_compile",
+        "owner_module": "mctp_assembler_v3",
+        "reason": "RTL audit has not run yet.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.dut_compile",
+        "status": "planned",
+        "task_id": "RTL-0017"
+      },
+      {
+        "gate_kind": "dut_lint",
+        "owner_module": "mctp_assembler_v3",
+        "reason": "RTL audit has not run yet.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.dut_lint",
+        "status": "planned",
+        "task_id": "RTL-0018"
+      },
+      {
+        "gate_kind": "dynamic_todo_closure",
+        "owner_module": "mctp_assembler_v3",
+        "reason": "RTL audit has not run yet.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+        "status": "planned",
+        "task_id": "RTL-0019"
+      },
+      {
+        "gate_kind": "protocol_assertion_evidence",
+        "owner_module": "mctp_assembler_v3",
+        "reason": "RTL audit has not run yet.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
+        "status": "planned",
+        "task_id": "RTL-0024"
+      },
+      {
+        "gate_kind": "fl_rtl_goal_audit",
+        "owner_module": "mctp_assembler_v3",
+        "reason": "RTL audit has not run yet.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
+        "status": "planned",
+        "task_id": "RTL-0025"
+      },
+      {
+        "gate_kind": "coverage_closure",
+        "owner_module": "mctp_assembler_v3",
+        "reason": "RTL audit has not run yet.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.coverage_closure",
+        "status": "planned",
+        "task_id": "RTL-0026"
+      }
+    ],
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 7,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {
+      "path": "rtl/connection_contract_suggestions.json",
+      "rule": "Suggestions are emitted only when production connection contracts are missing.",
+      "sample_rows": [],
+      "summary": {
+        "applied_to_ssot": false,
+        "pending_review": 0,
+        "status": "not_required",
+        "suggested_rows": 0
+      }
+    },
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "gate_status": "planned",
+    "hard_blockers": [],
+    "open_required_todos": 493,
+    "pass_allowed": false,
+    "pass_rule": "rtl-gen may claim PASS only when every required TODO and every locked-truth gate has pass status.",
+    "stop_conditions": [
+      "Do not edit SSOT/FL/coverage/interface/performance authority artifacts without human approval.",
+      "Do not claim rtl-gen PASS while pass_allowed is false.",
+      "Do not sign off top integration while required connection contracts are missing."
+    ],
+    "tool_evidence_plan": [
+      {
+        "artifact": "rtl/rtl_authoring_provenance.json",
+        "artifacts": [
+          "mctp_assembler_v3/rtl/rtl_authoring_provenance.json",
+          "mctp_assembler_v3/rtl/rtl_todo_plan.json"
+        ],
+        "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
+        "commands": [
+          "python3 src/headless_workflow.py --root . --ip mctp_assembler_v3 --stages rtl-gen",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py mctp_assembler_v3 --root . --audit-rtl"
+        ],
+        "gate_kind": "common_ai_agent_authoring",
+        "prerequisites": [
+          "An LLM authoring pass emitted or repaired DUT RTL files."
+        ],
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+        "stage_sequence": [
+          "ssot-rtl"
+        ],
+        "status": "planned",
+        "task_id": "RTL-0006"
+      },
+      {
+        "artifact": "rtl/rtl_compile.json",
+        "artifacts": [
+          "mctp_assembler_v3/rtl/rtl_compile.json",
+          "mctp_assembler_v3/rtl/rtl_compile.log"
+        ],
+        "closure_rule": "rtl_compile.json must be DUT-only, fresh, passed, and cover every current DUT RTL file.",
+        "commands": [
+          "python3 workflow/rtl-gen/scripts/rtl_compile_report.py mctp_assembler_v3 --top mctp_assembler_v3 --project-root .",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py mctp_assembler_v3 --root . --audit-rtl"
+        ],
+        "gate_kind": "dut_compile",
+        "prerequisites": [
+          "mctp_assembler_v3/list/mctp_assembler_v3.f covers the current DUT RTL sources."
+        ],
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "quality_gates.rtl_gen.dut_compile",
+        "stage_sequence": [
+          "ssot-rtl",
+          "dut_compile"
+        ],
+        "status": "planned",
+        "task_id": "RTL-0017"
+      },
+      {
+        "artifact": "lint/dut_lint.json",
+        "artifacts": [
+          "mctp_assembler_v3/lint/dut_lint.json"
+        ],
+        "closure_rule": "dut_lint.json must be DUT-only, fresh, passed, and report zero warnings/errors.",
+        "commands": [
+          "python3 workflow/lint/scripts/dut_lint_report.py mctp_assembler_v3 --top mctp_assembler_v3",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py mctp_assembler_v3 --root . --audit-rtl"
+        ],
+        "gate_kind": "dut_lint",
+        "prerequisites": [
+          "mctp_assembler_v3/list/mctp_assembler_v3.f covers the current DUT RTL/header sources."
+        ],
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "quality_gates.rtl_gen.dut_lint",
+        "stage_sequence": [
+          "lint",
+          "dut_lint"
+        ],
+        "status": "planned",
+        "task_id": "RTL-0018"
+      },
+      {
+        "artifact": "rtl/rtl_todo_plan.json",
+        "artifacts": [
+          "mctp_assembler_v3/rtl/rtl_todo_plan.json",
+          "mctp_assembler_v3/rtl/rtl_authoring_status.md"
+        ],
+        "closure_rule": "dynamic_todo_closure passes only when every required non-closure TODO is already pass.",
+        "commands": [
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py mctp_assembler_v3 --root . --audit-rtl"
+        ],
+        "gate_kind": "dynamic_todo_closure",
+        "prerequisites": [
+          "All non-closure required TODOs have pass status."
+        ],
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+        "stage_sequence": [
+          "audit-rtl"
+        ],
+        "status": "planned",
+        "task_id": "RTL-0019"
+      },
+      {
+        "artifact": "verify/protocol_assertions.sva",
+        "artifacts": [
+          "mctp_assembler_v3/verify/protocol_assertions.sva",
+          "mctp_assembler_v3/verify/protocol_assertions.summary.json",
+          "mctp_assembler_v3/sim/assertion_failures.jsonl"
+        ],
+        "closure_rule": "Generated assertions exist and latest simulation has zero assertion failure records.",
+        "commands": [
+          "python3 workflow/fl-model-gen/scripts/emit_protocol_assertions.py mctp_assembler_v3 --root .",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py mctp_assembler_v3 --root . --audit-rtl"
+        ],
+        "gate_kind": "protocol_assertion_evidence",
+        "prerequisites": [
+          "SSOT cycle_model/protocol rules are machine-checkable.",
+          "Simulation has run after RTL edits."
+        ],
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
+        "stage_sequence": [
+          "ssot-protocol-assertions",
+          "sim"
+        ],
+        "status": "planned",
+        "task_id": "RTL-0024"
+      },
+      {
+        "artifact": "sim/fl_rtl_goal_audit.json",
+        "artifacts": [
+          "mctp_assembler_v3/sim/fl_rtl_goal_audit.json"
+        ],
+        "closure_rule": "fl_rtl_goal_audit.json must be fresh and status=pass.",
+        "commands": [
+          "python3 workflow/sim_debug/scripts/audit_fl_rtl_equivalence_goal.py mctp_assembler_v3 --root .",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py mctp_assembler_v3 --root . --audit-rtl"
+        ],
+        "gate_kind": "fl_rtl_goal_audit",
+        "prerequisites": [
+          "FL model, equivalence goals, TB, and simulation evidence are current."
+        ],
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
+        "stage_sequence": [
+          "ssot-fl-model",
+          "ssot-equiv-goals",
+          "ssot-tb-cocotb",
+          "sim",
+          "goal-audit"
+        ],
+        "status": "planned",
+        "task_id": "RTL-0025"
+      },
+      {
+        "artifact": "cov/coverage.json",
+        "artifacts": [
+          "mctp_assembler_v3/cov/coverage.json"
+        ],
+        "closure_rule": "coverage.json must be fresh, come from ssot_coverage_summary, and close every planned required bin.",
+        "commands": [
+          "python3 workflow/coverage/scripts/ssot_coverage_summary.py mctp_assembler_v3",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py mctp_assembler_v3 --root . --audit-rtl"
+        ],
+        "gate_kind": "coverage_closure",
+        "prerequisites": [
+          "Simulation evidence exists and planned coverage bins are observable."
+        ],
+        "reason": "RTL audit has not run yet.",
+        "source_ref": "quality_gates.rtl_gen.coverage_closure",
+        "stage_sequence": [
+          "sim",
+          "coverage"
+        ],
+        "status": "planned",
+        "task_id": "RTL-0026"
+      }
+    ]
+  },
+  "ip": "mctp_assembler_v3",
+  "packet_dir": "rtl/authoring_packets",
+  "packets": [
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 29,
+        "open_required_count": 29,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__mctp_assembler_v3_axi_wr_ingress__function_model.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_v3_axi_wr_ingress__function_model.md",
+      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
+      "packet_id": "module__mctp_assembler_v3_axi_wr_ingress__function_model",
+      "summary": {
+        "categories": {
+          "function_model.error_case": 1,
+          "function_model.input": 1,
+          "function_model.invariant": 9,
+          "function_model.output": 6,
+          "function_model.output_rule": 1,
+          "function_model.precondition": 5,
+          "function_model.side_effect": 2,
+          "function_model.state_update": 3,
+          "function_model.transaction": 1
+        },
+        "module_slice": {
+          "count": 5,
+          "enabled": true,
+          "index": 2,
+          "key": "function_model",
+          "module_task_count": 84,
+          "rule": "Owner module mctp_assembler_v3_axi_wr_ingress is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "function_model",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 29,
+        "required_count": 29,
+        "source_refs": [
+          "function_model.transactions.FM_INGEST_TLP",
+          "function_model.transactions.FM_INGEST_TLP.preconditions.precondition_0",
+          "function_model.transactions.FM_INGEST_TLP.preconditions.precondition_1",
+          "function_model.transactions.FM_INGEST_TLP.preconditions.precondition_2",
+          "function_model.transactions.FM_INGEST_TLP.preconditions.precondition_3",
+          "function_model.transactions.FM_INGEST_TLP.preconditions.precondition_4",
+          "function_model.transactions.FM_INGEST_TLP.inputs.input_0",
+          "function_model.transactions.FM_INGEST_TLP.outputs.output_0",
+          "function_model.transactions.FM_INGEST_TLP.outputs.output_1",
+          "function_model.transactions.FM_INGEST_TLP.outputs.bresp_next",
+          "function_model.transactions.FM_INGEST_TLP.outputs.tlp_accept",
+          "function_model.transactions.FM_INGEST_TLP.outputs.tlp_seen_count",
+          "function_model.transactions.FM_INGEST_TLP.outputs.tlp_accepted_count",
+          "function_model.transactions.FM_INGEST_TLP.output_rules.bresp_next",
+          "function_model.transactions.FM_INGEST_TLP.state_updates.tlp_accept",
+          "function_model.transactions.FM_INGEST_TLP.state_updates.tlp_seen_count",
+          "function_model.transactions.FM_INGEST_TLP.state_updates.tlp_accepted_count",
+          "function_model.transactions.FM_INGEST_TLP.side_effects.side_effect_0",
+          "function_model.transactions.FM_INGEST_TLP.side_effects.side_effect_1",
+          "function_model.transactions.FM_INGEST_TLP.error_cases.error_case_0",
+          "function_model.invariants.invariant_0",
+          "function_model.invariants.invariant_1",
+          "function_model.invariants.invariant_2",
+          "function_model.invariants.invariant_3"
+        ],
+        "status_counts": {
+          "planned": 29
+        },
+        "task_count": 29
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 20,
+        "open_required_count": 20,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__mctp_assembler_v3_axi_wr_ingress__test_requirements.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_v3_axi_wr_ingress__test_requirements.md",
+      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
+      "packet_id": "module__mctp_assembler_v3_axi_wr_ingress__test_requirements",
+      "summary": {
+        "categories": {
+          "test_requirements.scenario": 20
+        },
+        "module_slice": {
+          "count": 5,
+          "enabled": true,
+          "index": 4,
+          "key": "test_requirements",
+          "module_task_count": 84,
+          "rule": "Owner module mctp_assembler_v3_axi_wr_ingress is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "test_requirements",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 20,
+        "required_count": 20,
+        "source_refs": [
+          "test_requirements.scenarios.SC_SINGLE",
+          "test_requirements.scenarios.SC_FRAG",
+          "test_requirements.scenarios.SC_INTERLEAVE",
+          "test_requirements.scenarios.SC_UNALIGNED_TU",
+          "test_requirements.scenarios.SC_MAX_TU",
+          "test_requirements.scenarios.SC_PD_MALFORMED",
+          "test_requirements.scenarios.SC_PD_VDM",
+          "test_requirements.scenarios.SC_PD_MCTP",
+          "test_requirements.scenarios.SC_PD_EID",
+          "test_requirements.scenarios.SC_PD_MIDDLE",
+          "test_requirements.scenarios.SC_AD_DUP",
+          "test_requirements.scenarios.SC_AD_SEQ",
+          "test_requirements.scenarios.SC_AD_CTXFULL",
+          "test_requirements.scenarios.SC_AD_SRAM",
+          "test_requirements.scenarios.SC_AD_DESCFULL",
+          "test_requirements.scenarios.SC_AD_TIMEOUT",
+          "test_requirements.scenarios.SC_PRIORITY",
+          "test_requirements.scenarios.SC_FW_READ",
+          "test_requirements.scenarios.SC_FW_READ_SLVERR",
+          "test_requirements.scenarios.SC_REG"
+        ],
+        "status_counts": {
+          "planned": 20
+        },
+        "task_count": 20
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 18,
+        "open_required_count": 18,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__mctp_assembler_v3_axi_wr_ingress__io_list.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_v3_axi_wr_ingress__io_list.md",
+      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
+      "packet_id": "module__mctp_assembler_v3_axi_wr_ingress__io_list",
+      "summary": {
+        "categories": {
+          "io_list.port": 18
+        },
+        "module_slice": {
+          "count": 5,
+          "enabled": true,
+          "index": 1,
+          "key": "io_list",
+          "module_task_count": 84,
+          "rule": "Owner module mctp_assembler_v3_axi_wr_ingress is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "io_list",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 18,
+        "required_count": 18,
+        "source_refs": [
+          "io_list.clock_domains.axi_aclk.ports.axi_aclk",
+          "io_list.clock_domains.pclk.ports.pclk",
+          "io_list.resets.axi_aresetn.ports.axi_aresetn",
+          "io_list.resets.presetn.ports.presetn",
+          "io_list.interfaces.axi_wr_slave.ports.s_axi_awaddr",
+          "io_list.interfaces.axi_wr_slave.ports.s_axi_awlen",
+          "io_list.interfaces.axi_wr_slave.ports.s_axi_awsize",
+          "io_list.interfaces.axi_wr_slave.ports.s_axi_awburst",
+          "io_list.interfaces.axi_wr_slave.ports.s_axi_awvalid",
+          "io_list.interfaces.axi_wr_slave.ports.s_axi_awready",
+          "io_list.interfaces.axi_wr_slave.ports.s_axi_wdata",
+          "io_list.interfaces.axi_wr_slave.ports.s_axi_wstrb",
+          "io_list.interfaces.axi_wr_slave.ports.s_axi_wlast",
+          "io_list.interfaces.axi_wr_slave.ports.s_axi_wvalid",
+          "io_list.interfaces.axi_wr_slave.ports.s_axi_wready",
+          "io_list.interfaces.axi_wr_slave.ports.s_axi_bresp",
+          "io_list.interfaces.axi_wr_slave.ports.s_axi_bvalid",
+          "io_list.interfaces.axi_wr_slave.ports.s_axi_bready"
+        ],
+        "status_counts": {
+          "planned": 18
+        },
+        "task_count": 18
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 16,
+        "open_required_count": 16,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__mctp_assembler_v3_axi_wr_ingress__cycle_model.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_v3_axi_wr_ingress__cycle_model.md",
+      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
+      "packet_id": "module__mctp_assembler_v3_axi_wr_ingress__cycle_model",
+      "summary": {
+        "categories": {
+          "cycle_model.backpressure": 3,
+          "cycle_model.clock": 1,
+          "cycle_model.handshake_rules": 6,
+          "cycle_model.latency": 1,
+          "cycle_model.observability": 1,
+          "cycle_model.ordering": 3,
+          "cycle_model.reset": 1
+        },
+        "module_slice": {
+          "count": 5,
+          "enabled": true,
+          "index": 3,
+          "key": "cycle_model",
+          "module_task_count": 84,
+          "rule": "Owner module mctp_assembler_v3_axi_wr_ingress is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "cycle_model",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 16,
+        "required_count": 16,
+        "source_refs": [
+          "cycle_model.clock",
+          "cycle_model.reset",
+          "cycle_model.latency",
+          "cycle_model.handshake_rules.s_axi_awready_s_axi_wready",
+          "cycle_model.handshake_rules.s_axi_bvalid",
+          "cycle_model.handshake_rules.sram_wr_valid",
+          "cycle_model.handshake_rules.sram_rd_req_valid",
+          "cycle_model.handshake_rules.s_axi_rvalid_s_axi_rlast",
+          "cycle_model.handshake_rules.apb_pready",
+          "cycle_model.ordering.ordering_rule_0",
+          "cycle_model.ordering.ordering_rule_1",
+          "cycle_model.ordering.ordering_rule_2",
+          "cycle_model.backpressure.backpressure_rule_0",
+          "cycle_model.backpressure.backpressure_rule_1",
+          "cycle_model.backpressure.backpressure_rule_2",
+          "cycle_model.observability.observability_signal_0"
+        ],
+        "status_counts": {
+          "planned": 16
+        },
+        "task_count": 16
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 1,
+        "open_required_count": 1,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__mctp_assembler_v3_axi_wr_ingress__equivalence.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_v3_axi_wr_ingress__equivalence.md",
+      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
+      "packet_id": "module__mctp_assembler_v3_axi_wr_ingress__equivalence",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1
+        },
+        "module_slice": {
+          "count": 5,
+          "enabled": true,
+          "index": 5,
+          "key": "equivalence",
+          "module_task_count": 84,
+          "rule": "Owner module mctp_assembler_v3_axi_wr_ingress is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "equivalence",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 1,
+        "required_count": 1,
+        "source_refs": [
+          "sub_modules.mctp_assembler_v3_axi_wr_ingress.module_equivalence"
+        ],
+        "status_counts": {
+          "planned": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 24,
+        "open_required_count": 24,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__mctp_assembler_v3_pcie_vdm_parser.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_v3_pcie_vdm_parser.md",
+      "owner_file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
+      "owner_module": "mctp_assembler_v3_pcie_vdm_parser",
+      "packet_id": "module__mctp_assembler_v3_pcie_vdm_parser",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1,
+          "features.item": 6,
+          "function_model.error_case": 2,
+          "function_model.input": 1,
+          "function_model.output": 7,
+          "function_model.precondition": 1,
+          "function_model.state_update": 5,
+          "function_model.transaction": 1
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 24,
+          "task_limit": 48
+        },
+        "open_required_count": 24,
+        "required_count": 24,
+        "source_refs": [
+          "function_model.transactions.FM_DECODE_VDM",
+          "function_model.transactions.FM_DECODE_VDM.preconditions.precondition_0",
+          "function_model.transactions.FM_DECODE_VDM.inputs.input_0",
+          "function_model.transactions.FM_DECODE_VDM.outputs.output_0",
+          "function_model.transactions.FM_DECODE_VDM.outputs.output_1",
+          "function_model.transactions.FM_DECODE_VDM.outputs.vdm_valid",
+          "function_model.transactions.FM_DECODE_VDM.outputs.payload_offset",
+          "function_model.transactions.FM_DECODE_VDM.outputs.requester_id",
+          "function_model.transactions.FM_DECODE_VDM.outputs.pad_ok",
+          "function_model.transactions.FM_DECODE_VDM.outputs.last_decoded_vdm",
+          "function_model.transactions.FM_DECODE_VDM.state_updates.vdm_valid",
+          "function_model.transactions.FM_DECODE_VDM.state_updates.payload_offset",
+          "function_model.transactions.FM_DECODE_VDM.state_updates.requester_id",
+          "function_model.transactions.FM_DECODE_VDM.state_updates.pad_ok",
+          "function_model.transactions.FM_DECODE_VDM.state_updates.last_decoded_vdm",
+          "function_model.transactions.FM_DECODE_VDM.error_cases.error_case_0",
+          "function_model.transactions.FM_DECODE_VDM.error_cases.error_case_1",
+          "features.axi_ingress",
+          "features.vdm_decode",
+          "features.interleaved_assembly",
+          "features.descriptor_publish",
+          "features.firmware_read",
+          "features.drop_classification",
+          "sub_modules.mctp_assembler_v3_pcie_vdm_parser.module_equivalence"
+        ],
+        "status_counts": {
+          "planned": 24
+        },
+        "task_count": 24
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 27,
+        "open_required_count": 27,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__mctp_assembler_v3_mctp_decoder.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_v3_mctp_decoder.md",
+      "owner_file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+      "owner_module": "mctp_assembler_v3_mctp_decoder",
+      "packet_id": "module__mctp_assembler_v3_mctp_decoder",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1,
+          "features.item": 1,
+          "function_model.error_case": 2,
+          "function_model.input": 2,
+          "function_model.output": 11,
+          "function_model.precondition": 1,
+          "function_model.state_update": 8,
+          "function_model.transaction": 1
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 27,
+          "task_limit": 48
+        },
+        "open_required_count": 27,
+        "required_count": 27,
+        "source_refs": [
+          "function_model.transactions.FM_DECODE_MCTP",
+          "function_model.transactions.FM_DECODE_MCTP.preconditions.precondition_0",
+          "function_model.transactions.FM_DECODE_MCTP.inputs.input_0",
+          "function_model.transactions.FM_DECODE_MCTP.inputs.input_1",
+          "function_model.transactions.FM_DECODE_MCTP.outputs.output_0",
+          "function_model.transactions.FM_DECODE_MCTP.outputs.output_1",
+          "function_model.transactions.FM_DECODE_MCTP.outputs.output_2",
+          "function_model.transactions.FM_DECODE_MCTP.outputs.header_version_ok",
+          "function_model.transactions.FM_DECODE_MCTP.outputs.som",
+          "function_model.transactions.FM_DECODE_MCTP.outputs.eom",
+          "function_model.transactions.FM_DECODE_MCTP.outputs.packet_seq",
+          "function_model.transactions.FM_DECODE_MCTP.outputs.tag_owner",
+          "function_model.transactions.FM_DECODE_MCTP.outputs.message_tag",
+          "function_model.transactions.FM_DECODE_MCTP.outputs.dest_accept",
+          "function_model.transactions.FM_DECODE_MCTP.outputs.assembly_key",
+          "function_model.transactions.FM_DECODE_MCTP.state_updates.header_version_ok",
+          "function_model.transactions.FM_DECODE_MCTP.state_updates.som",
+          "function_model.transactions.FM_DECODE_MCTP.state_updates.eom",
+          "function_model.transactions.FM_DECODE_MCTP.state_updates.packet_seq",
+          "function_model.transactions.FM_DECODE_MCTP.state_updates.tag_owner",
+          "function_model.transactions.FM_DECODE_MCTP.state_updates.message_tag",
+          "function_model.transactions.FM_DECODE_MCTP.state_updates.dest_accept",
+          "function_model.transactions.FM_DECODE_MCTP.state_updates.assembly_key",
+          "function_model.transactions.FM_DECODE_MCTP.error_cases.error_case_0"
+        ],
+        "status_counts": {
+          "planned": 27
+        },
+        "task_count": 27
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 46,
+        "open_required_count": 46,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__mctp_assembler_v3_context_table__function_model.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_v3_context_table__function_model.md",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "packet_id": "module__mctp_assembler_v3_context_table__function_model",
+      "summary": {
+        "categories": {
+          "function_model.error_case": 6,
+          "function_model.input": 4,
+          "function_model.output": 17,
+          "function_model.precondition": 3,
+          "function_model.side_effect": 2,
+          "function_model.state_update": 12,
+          "function_model.transaction": 2
+        },
+        "module_slice": {
+          "count": 4,
+          "enabled": true,
+          "index": 2,
+          "key": "function_model",
+          "module_task_count": 73,
+          "rule": "Owner module mctp_assembler_v3_context_table is split into 4 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "function_model",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 46,
+        "required_count": 46,
+        "source_refs": [
+          "function_model.transactions.FM_ALLOC_CONTEXT",
+          "function_model.transactions.FM_ALLOC_CONTEXT.preconditions.precondition_0",
+          "function_model.transactions.FM_ALLOC_CONTEXT.inputs.input_0",
+          "function_model.transactions.FM_ALLOC_CONTEXT.inputs.input_1",
+          "function_model.transactions.FM_ALLOC_CONTEXT.outputs.output_0",
+          "function_model.transactions.FM_ALLOC_CONTEXT.outputs.output_1",
+          "function_model.transactions.FM_ALLOC_CONTEXT.outputs.output_2",
+          "function_model.transactions.FM_ALLOC_CONTEXT.outputs.alloc_ok",
+          "function_model.transactions.FM_ALLOC_CONTEXT.outputs.single_packet",
+          "function_model.transactions.FM_ALLOC_CONTEXT.outputs.ctx_state",
+          "function_model.transactions.FM_ALLOC_CONTEXT.outputs.ctx_payload_base_addr",
+          "function_model.transactions.FM_ALLOC_CONTEXT.outputs.ctx_expected_seq",
+          "function_model.transactions.FM_ALLOC_CONTEXT.outputs.active_context_count",
+          "function_model.transactions.FM_ALLOC_CONTEXT.outputs.sram_alloc_ptr",
+          "function_model.transactions.FM_ALLOC_CONTEXT.state_updates.alloc_ok",
+          "function_model.transactions.FM_ALLOC_CONTEXT.state_updates.single_packet",
+          "function_model.transactions.FM_ALLOC_CONTEXT.state_updates.ctx_state",
+          "function_model.transactions.FM_ALLOC_CONTEXT.state_updates.ctx_payload_base_addr",
+          "function_model.transactions.FM_ALLOC_CONTEXT.state_updates.ctx_expected_seq",
+          "function_model.transactions.FM_ALLOC_CONTEXT.state_updates.active_context_count",
+          "function_model.transactions.FM_ALLOC_CONTEXT.state_updates.sram_alloc_ptr",
+          "function_model.transactions.FM_ALLOC_CONTEXT.side_effects.side_effect_0",
+          "function_model.transactions.FM_ALLOC_CONTEXT.error_cases.error_case_0",
+          "function_model.transactions.FM_ALLOC_CONTEXT.error_cases.error_case_1"
+        ],
+        "status_counts": {
+          "planned": 46
+        },
+        "task_count": 46
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 25,
+        "open_required_count": 25,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__mctp_assembler_v3_context_table__fsm.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_v3_context_table__fsm.md",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "packet_id": "module__mctp_assembler_v3_context_table__fsm",
+      "summary": {
+        "categories": {
+          "fsm.state": 10,
+          "fsm.transition": 15
+        },
+        "module_slice": {
+          "count": 4,
+          "enabled": true,
+          "index": 3,
+          "key": "fsm",
+          "module_task_count": 73,
+          "rule": "Owner module mctp_assembler_v3_context_table is split into 4 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "fsm",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 25,
+        "required_count": 25,
+        "source_refs": [
+          "fsm.ingress_fsm.states.state_0",
+          "fsm.ingress_fsm.states.state_1",
+          "fsm.ingress_fsm.states.state_2",
+          "fsm.ingress_fsm.states.state_3",
+          "fsm.ingress_fsm.states.state_4",
+          "fsm.ingress_fsm.states.state_5",
+          "fsm.ingress_fsm.transitions.transition_0",
+          "fsm.ingress_fsm.transitions.transition_1",
+          "fsm.ingress_fsm.transitions.transition_2",
+          "fsm.ingress_fsm.transitions.transition_3",
+          "fsm.ingress_fsm.transitions.transition_4",
+          "fsm.ingress_fsm.transitions.transition_5",
+          "fsm.ingress_fsm.transitions.transition_6",
+          "fsm.ingress_fsm.transitions.transition_7",
+          "fsm.context_fsm.states.state_0",
+          "fsm.context_fsm.states.state_1",
+          "fsm.context_fsm.states.state_2",
+          "fsm.context_fsm.states.state_3",
+          "fsm.context_fsm.transitions.transition_0",
+          "fsm.context_fsm.transitions.transition_1",
+          "fsm.context_fsm.transitions.transition_2",
+          "fsm.context_fsm.transitions.transition_3",
+          "fsm.context_fsm.transitions.transition_4",
+          "fsm.context_fsm.transitions.transition_5"
+        ],
+        "status_counts": {
+          "planned": 25
+        },
+        "task_count": 25
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 1,
+        "open_required_count": 1,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__mctp_assembler_v3_context_table__equivalence.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_v3_context_table__equivalence.md",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "packet_id": "module__mctp_assembler_v3_context_table__equivalence",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1
+        },
+        "module_slice": {
+          "count": 4,
+          "enabled": true,
+          "index": 4,
+          "key": "equivalence",
+          "module_task_count": 73,
+          "rule": "Owner module mctp_assembler_v3_context_table is split into 4 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "equivalence",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 1,
+        "required_count": 1,
+        "source_refs": [
+          "sub_modules.mctp_assembler_v3_context_table.module_equivalence"
+        ],
+        "status_counts": {
+          "planned": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 1,
+        "open_required_count": 1,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__mctp_assembler_v3_context_table__parameters.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_v3_context_table__parameters.md",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "packet_id": "module__mctp_assembler_v3_context_table__parameters",
+      "summary": {
+        "categories": {
+          "parameters.item": 1
+        },
+        "module_slice": {
+          "count": 4,
+          "enabled": true,
+          "index": 1,
+          "key": "parameters",
+          "module_task_count": 73,
+          "rule": "Owner module mctp_assembler_v3_context_table is split into 4 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "parameters",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 1,
+        "required_count": 1,
+        "source_refs": [
+          "parameters.CONTEXT_COUNT"
+        ],
+        "status_counts": {
+          "planned": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 24,
+        "open_required_count": 24,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__mctp_assembler_v3_sram_packer.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_v3_sram_packer.md",
+      "owner_file": "rtl/mctp_assembler_v3_sram_packer.sv",
+      "owner_module": "mctp_assembler_v3_sram_packer",
+      "packet_id": "module__mctp_assembler_v3_sram_packer",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1,
+          "features.item": 1,
+          "function_model.error_case": 1,
+          "function_model.input": 2,
+          "function_model.output": 7,
+          "function_model.output_rule": 3,
+          "function_model.precondition": 1,
+          "function_model.side_effect": 1,
+          "function_model.state_update": 3,
+          "function_model.transaction": 1,
+          "memory.instances": 1,
+          "parameters.item": 2
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 24,
+          "task_limit": 48
+        },
+        "open_required_count": 24,
+        "required_count": 24,
+        "source_refs": [
+          "function_model.transactions.FM_PACK_SRAM",
+          "function_model.transactions.FM_PACK_SRAM.preconditions.precondition_0",
+          "function_model.transactions.FM_PACK_SRAM.inputs.input_0",
+          "function_model.transactions.FM_PACK_SRAM.inputs.input_1",
+          "function_model.transactions.FM_PACK_SRAM.outputs.output_0",
+          "function_model.transactions.FM_PACK_SRAM.outputs.sram_wr_valid",
+          "function_model.transactions.FM_PACK_SRAM.outputs.sram_wr_addr",
+          "function_model.transactions.FM_PACK_SRAM.outputs.sram_wr_strb",
+          "function_model.transactions.FM_PACK_SRAM.outputs.ctx_payload_next_addr",
+          "function_model.transactions.FM_PACK_SRAM.outputs.ctx_partial_next_lane",
+          "function_model.transactions.FM_PACK_SRAM.outputs.payload_bytes_written_count",
+          "function_model.transactions.FM_PACK_SRAM.output_rules.sram_wr_valid",
+          "function_model.transactions.FM_PACK_SRAM.output_rules.sram_wr_addr",
+          "function_model.transactions.FM_PACK_SRAM.output_rules.sram_wr_strb",
+          "function_model.transactions.FM_PACK_SRAM.state_updates.ctx_payload_next_addr",
+          "function_model.transactions.FM_PACK_SRAM.state_updates.ctx_partial_next_lane",
+          "function_model.transactions.FM_PACK_SRAM.state_updates.payload_bytes_written_count",
+          "function_model.transactions.FM_PACK_SRAM.side_effects.side_effect_0",
+          "function_model.transactions.FM_PACK_SRAM.error_cases.error_case_0",
+          "memory.instances.context_table",
+          "features.payload_pack",
+          "sub_modules.mctp_assembler_v3_sram_packer.module_equivalence",
+          "parameters.SRAM_ADDR_WIDTH",
+          "parameters.SRAM_DATA_WIDTH"
+        ],
+        "status_counts": {
+          "planned": 24
+        },
+        "task_count": 24
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 24,
+        "open_required_count": 24,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__mctp_assembler_v3_descriptor_queue.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_v3_descriptor_queue.md",
+      "owner_file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+      "owner_module": "mctp_assembler_v3_descriptor_queue",
+      "packet_id": "module__mctp_assembler_v3_descriptor_queue",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1,
+          "function_model.error_case": 1,
+          "function_model.input": 2,
+          "function_model.output": 8,
+          "function_model.precondition": 1,
+          "function_model.side_effect": 1,
+          "function_model.state_update": 6,
+          "function_model.transaction": 1,
+          "memory.instances": 1,
+          "parameters.item": 2
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 24,
+          "task_limit": 48
+        },
+        "open_required_count": 24,
+        "required_count": 24,
+        "source_refs": [
+          "function_model.transactions.FM_PUBLISH_DESCRIPTOR",
+          "function_model.transactions.FM_PUBLISH_DESCRIPTOR.preconditions.precondition_0",
+          "function_model.transactions.FM_PUBLISH_DESCRIPTOR.inputs.input_0",
+          "function_model.transactions.FM_PUBLISH_DESCRIPTOR.inputs.input_1",
+          "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.output_0",
+          "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.output_1",
+          "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_ready",
+          "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_payload_len",
+          "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_base_addr",
+          "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.message_completed_count",
+          "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.descriptor_valid",
+          "function_model.transactions.FM_PUBLISH_DESCRIPTOR.outputs.ctx_state",
+          "function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.descriptor_ready",
+          "function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.descriptor_payload_len",
+          "function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.descriptor_base_addr",
+          "function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.message_completed_count",
+          "function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.descriptor_valid",
+          "function_model.transactions.FM_PUBLISH_DESCRIPTOR.state_updates.ctx_state",
+          "function_model.transactions.FM_PUBLISH_DESCRIPTOR.side_effects.side_effect_0",
+          "function_model.transactions.FM_PUBLISH_DESCRIPTOR.error_cases.error_case_0",
+          "memory.instances.descriptor_fifo",
+          "sub_modules.mctp_assembler_v3_descriptor_queue.module_equivalence",
+          "parameters.DONE_WAIT_DESCRIPTOR_POP",
+          "parameters.DESCRIPTOR_FIFO_DEPTH"
+        ],
+        "status_counts": {
+          "planned": 24
+        },
+        "task_count": 24
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 42,
+        "open_required_count": 42,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__mctp_assembler_v3_axi_rd_payload.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_v3_axi_rd_payload.md",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "packet_id": "module__mctp_assembler_v3_axi_rd_payload",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1,
+          "fsm.state": 6,
+          "fsm.transition": 8,
+          "function_model.error_case": 1,
+          "function_model.input": 1,
+          "function_model.output": 5,
+          "function_model.output_rule": 2,
+          "function_model.precondition": 3,
+          "function_model.side_effect": 1,
+          "function_model.state_update": 2,
+          "function_model.transaction": 1,
+          "io_list.port": 11
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 42,
+          "task_limit": 48
+        },
+        "open_required_count": 42,
+        "required_count": 42,
+        "source_refs": [
+          "function_model.transactions.FM_AXI_READ",
+          "function_model.transactions.FM_AXI_READ.preconditions.precondition_0",
+          "function_model.transactions.FM_AXI_READ.preconditions.precondition_1",
+          "function_model.transactions.FM_AXI_READ.preconditions.precondition_2",
+          "function_model.transactions.FM_AXI_READ.inputs.input_0",
+          "function_model.transactions.FM_AXI_READ.outputs.output_0",
+          "function_model.transactions.FM_AXI_READ.outputs.rresp_next",
+          "function_model.transactions.FM_AXI_READ.outputs.rlast_next",
+          "function_model.transactions.FM_AXI_READ.outputs.fw_axi_read_beat_count",
+          "function_model.transactions.FM_AXI_READ.outputs.fw_axi_read_error_count",
+          "function_model.transactions.FM_AXI_READ.output_rules.rresp_next",
+          "function_model.transactions.FM_AXI_READ.output_rules.rlast_next",
+          "function_model.transactions.FM_AXI_READ.state_updates.fw_axi_read_beat_count",
+          "function_model.transactions.FM_AXI_READ.state_updates.fw_axi_read_error_count",
+          "function_model.transactions.FM_AXI_READ.side_effects.side_effect_0",
+          "function_model.transactions.FM_AXI_READ.error_cases.error_case_0",
+          "fsm.axi_read_fsm.states.state_0",
+          "fsm.axi_read_fsm.states.state_1",
+          "fsm.axi_read_fsm.states.state_2",
+          "fsm.axi_read_fsm.states.state_3",
+          "fsm.axi_read_fsm.states.state_4",
+          "fsm.axi_read_fsm.states.state_5",
+          "fsm.axi_read_fsm.transitions.transition_0",
+          "fsm.axi_read_fsm.transitions.transition_1"
+        ],
+        "status_counts": {
+          "planned": 42
+        },
+        "task_count": 42
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 48,
+        "open_required_count": 48,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__mctp_assembler_v3_apb_regfile__registers_01.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_v3_apb_regfile__registers_01.md",
+      "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+      "owner_module": "mctp_assembler_v3_apb_regfile",
+      "packet_id": "module__mctp_assembler_v3_apb_regfile__registers_01",
+      "summary": {
+        "categories": {
+          "registers.field": 40,
+          "registers.register": 8
+        },
+        "module_slice": {
+          "count": 7,
+          "enabled": true,
+          "index": 2,
+          "key": "registers_01",
+          "module_task_count": 102,
+          "rule": "Owner module mctp_assembler_v3_apb_regfile is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "registers",
+          "section_chunk_count": 2,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 48,
+        "required_count": 48,
+        "source_refs": [
+          "registers.register_list.CONTROL",
+          "registers.register_list.CONTROL.fields.enable",
+          "registers.register_list.CONTROL.fields.drop_when_disabled",
+          "registers.register_list.CONTROL.fields.soft_reset",
+          "registers.register_list.CONTROL.fields.dest_filter_enable",
+          "registers.register_list.CONTROL.fields.accept_broadcast_eid",
+          "registers.register_list.CONTROL.fields.accept_null_eid",
+          "registers.register_list.CONTROL.fields.raw_sram_debug_read_enable",
+          "registers.register_list.CONTROL.fields.descriptor_pop",
+          "registers.register_list.CONTROL.fields.counter_clear",
+          "registers.register_list.CONTROL.fields.local_eid",
+          "registers.register_list.CONTROL.fields.debug_context_select",
+          "registers.register_list.CFG_TU",
+          "registers.register_list.CFG_TU.fields.transmission_unit_bytes",
+          "registers.register_list.CFG_TU.fields.max_message_bytes",
+          "registers.register_list.CFG_TIMEOUT",
+          "registers.register_list.CFG_TIMEOUT.fields.assembly_timeout_cycles",
+          "registers.register_list.SRAM_BASE",
+          "registers.register_list.SRAM_BASE.fields.sram_base",
+          "registers.register_list.SRAM_LIMIT",
+          "registers.register_list.SRAM_LIMIT.fields.sram_limit",
+          "registers.register_list.STATUS",
+          "registers.register_list.STATUS.fields.ingress_busy",
+          "registers.register_list.STATUS.fields.axi_read_busy"
+        ],
+        "status_counts": {
+          "planned": 48
+        },
+        "task_count": 48
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 25,
+        "open_required_count": 25,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__mctp_assembler_v3_apb_regfile__registers_02.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_v3_apb_regfile__registers_02.md",
+      "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+      "owner_module": "mctp_assembler_v3_apb_regfile",
+      "packet_id": "module__mctp_assembler_v3_apb_regfile__registers_02",
+      "summary": {
+        "categories": {
+          "registers.field": 19,
+          "registers.register": 6
+        },
+        "module_slice": {
+          "count": 7,
+          "enabled": true,
+          "index": 3,
+          "key": "registers_02",
+          "module_task_count": 102,
+          "rule": "Owner module mctp_assembler_v3_apb_regfile is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "registers",
+          "section_chunk_count": 2,
+          "section_chunk_index": 2,
+          "task_limit": 48
+        },
+        "open_required_count": 25,
+        "required_count": 25,
+        "source_refs": [
+          "registers.register_list.INTR_RAW_STATUS.fields.raw",
+          "registers.register_list.INTR_ENABLE",
+          "registers.register_list.INTR_ENABLE.fields.enable",
+          "registers.register_list.INTR_STATUS",
+          "registers.register_list.INTR_STATUS.fields.status",
+          "registers.register_list.INTR_CLEAR",
+          "registers.register_list.INTR_CLEAR.fields.clear",
+          "registers.register_list.CNT_TLP_SEEN",
+          "registers.register_list.CNT_TLP_SEEN.fields.count",
+          "registers.register_list.DESC_VALID",
+          "registers.register_list.DESC_VALID.fields.descriptor_valid",
+          "registers.register_list.DESC_VALID.fields.completion_status",
+          "registers.register_list.DESC_VALID.fields.source_eid",
+          "registers.register_list.DESC_VALID.fields.destination_eid",
+          "registers.register_list.DESC_VALID.fields.message_tag",
+          "registers.register_list.DESC_VALID.fields.tag_owner",
+          "registers.register_list.DESC_VALID.fields.message_type",
+          "registers.register_list.DESC_VALID.fields.context_id",
+          "registers.register_list.DEBUG_CTX",
+          "registers.register_list.DEBUG_CTX.fields.parser_state",
+          "registers.register_list.DEBUG_CTX.fields.axi_wr_state",
+          "registers.register_list.DEBUG_CTX.fields.axi_rd_state",
+          "registers.register_list.DEBUG_CTX.fields.sram_pack_state",
+          "registers.register_list.DEBUG_CTX.fields.sram_read_state"
+        ],
+        "status_counts": {
+          "planned": 25
+        },
+        "task_count": 25
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 17,
+        "open_required_count": 17,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__mctp_assembler_v3_apb_regfile__function_model.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_v3_apb_regfile__function_model.md",
+      "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+      "owner_module": "mctp_assembler_v3_apb_regfile",
+      "packet_id": "module__mctp_assembler_v3_apb_regfile__function_model",
+      "summary": {
+        "categories": {
+          "function_model.state_variable": 17
+        },
+        "module_slice": {
+          "count": 7,
+          "enabled": true,
+          "index": 1,
+          "key": "function_model",
+          "module_task_count": 102,
+          "rule": "Owner module mctp_assembler_v3_apb_regfile is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "function_model",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 17,
+        "required_count": 17,
+        "source_refs": [
+          "function_model.state_variables.context_table",
+          "function_model.state_variables.descriptor_queue",
+          "function_model.state_variables.sram_alloc_ptr",
+          "function_model.state_variables.counters",
+          "function_model.state_variables.last_drop_class",
+          "function_model.state_variables.tlp_seen_count",
+          "function_model.state_variables.tlp_accepted_count",
+          "function_model.state_variables.active_context_count",
+          "function_model.state_variables.ctx_payload_byte_count",
+          "function_model.state_variables.ctx_expected_seq",
+          "function_model.state_variables.ctx_payload_base_addr",
+          "function_model.state_variables.ctx_payload_next_addr",
+          "function_model.state_variables.ctx_partial_next_lane",
+          "function_model.state_variables.payload_bytes_written_count",
+          "function_model.state_variables.message_completed_count",
+          "function_model.state_variables.fw_axi_read_beat_count",
+          "function_model.state_variables.fw_axi_read_error_count"
+        ],
+        "status_counts": {
+          "planned": 17
+        },
+        "task_count": 17
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 9,
+        "open_required_count": 9,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__mctp_assembler_v3_apb_regfile__interrupts.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_v3_apb_regfile__interrupts.md",
+      "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+      "owner_module": "mctp_assembler_v3_apb_regfile",
+      "packet_id": "module__mctp_assembler_v3_apb_regfile__interrupts",
+      "summary": {
+        "categories": {
+          "interrupts.sources": 9
+        },
+        "module_slice": {
+          "count": 7,
+          "enabled": true,
+          "index": 5,
+          "key": "interrupts",
+          "module_task_count": 102,
+          "rule": "Owner module mctp_assembler_v3_apb_regfile is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "interrupts",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 9,
+        "required_count": 9,
+        "source_refs": [
+          "interrupts.sources.descriptor_ready",
+          "interrupts.sources.packet_drop",
+          "interrupts.sources.assembly_drop",
+          "interrupts.sources.context_timeout",
+          "interrupts.sources.sram_overflow",
+          "interrupts.sources.descriptor_queue_full",
+          "interrupts.sources.axi_write_malformed",
+          "interrupts.sources.axi_read_error",
+          "interrupts.sources.fatal_internal_error"
+        ],
+        "status_counts": {
+          "planned": 9
+        },
+        "task_count": 9
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 1,
+        "open_required_count": 1,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__mctp_assembler_v3_apb_regfile__equivalence.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_v3_apb_regfile__equivalence.md",
+      "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+      "owner_module": "mctp_assembler_v3_apb_regfile",
+      "packet_id": "module__mctp_assembler_v3_apb_regfile__equivalence",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1
+        },
+        "module_slice": {
+          "count": 7,
+          "enabled": true,
+          "index": 7,
+          "key": "equivalence",
+          "module_task_count": 102,
+          "rule": "Owner module mctp_assembler_v3_apb_regfile is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "equivalence",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 1,
+        "required_count": 1,
+        "source_refs": [
+          "sub_modules.mctp_assembler_v3_apb_regfile.module_equivalence"
+        ],
+        "status_counts": {
+          "planned": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 1,
+        "open_required_count": 1,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__mctp_assembler_v3_apb_regfile__error_handling.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_v3_apb_regfile__error_handling.md",
+      "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+      "owner_module": "mctp_assembler_v3_apb_regfile",
+      "packet_id": "module__mctp_assembler_v3_apb_regfile__error_handling",
+      "summary": {
+        "categories": {
+          "error_handling.recovery": 1
+        },
+        "module_slice": {
+          "count": 7,
+          "enabled": true,
+          "index": 4,
+          "key": "error_handling",
+          "module_task_count": 102,
+          "rule": "Owner module mctp_assembler_v3_apb_regfile is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "error_handling",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 1,
+        "required_count": 1,
+        "source_refs": [
+          "error_handling.recovery.recovery_0"
+        ],
+        "status_counts": {
+          "planned": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 1,
+        "open_required_count": 1,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__mctp_assembler_v3_apb_regfile__security.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_v3_apb_regfile__security.md",
+      "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+      "owner_module": "mctp_assembler_v3_apb_regfile",
+      "packet_id": "module__mctp_assembler_v3_apb_regfile__security",
+      "summary": {
+        "categories": {
+          "security.assets": 1
+        },
+        "module_slice": {
+          "count": 7,
+          "enabled": true,
+          "index": 6,
+          "key": "security",
+          "module_task_count": 102,
+          "rule": "Owner module mctp_assembler_v3_apb_regfile is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "security",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 1,
+        "required_count": 1,
+        "source_refs": [
+          "security.assets.register_map"
+        ],
+        "status_counts": {
+          "planned": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 1,
+        "open_required_count": 1,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__mctp_assembler_v3_cdc_sync.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_v3_cdc_sync.md",
+      "owner_file": "rtl/mctp_assembler_v3_cdc_sync.sv",
+      "owner_module": "mctp_assembler_v3_cdc_sync",
+      "packet_id": "module__mctp_assembler_v3_cdc_sync",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 1,
+        "required_count": 1,
+        "source_refs": [
+          "sub_modules.mctp_assembler_v3_cdc_sync.module_equivalence"
+        ],
+        "status_counts": {
+          "planned": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 22,
+        "open_required_count": 22,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__mctp_assembler_v3__io_list.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_v3__io_list.md",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "packet_id": "module__mctp_assembler_v3__io_list",
+      "summary": {
+        "categories": {
+          "io_list.port": 22
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 2,
+          "key": "io_list",
+          "module_task_count": 68,
+          "rule": "Owner module mctp_assembler_v3 is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "io_list",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 22,
+        "required_count": 22,
+        "source_refs": [
+          "io_list.interfaces.apb_slave.ports.paddr",
+          "io_list.interfaces.apb_slave.ports.psel",
+          "io_list.interfaces.apb_slave.ports.penable",
+          "io_list.interfaces.apb_slave.ports.pwrite",
+          "io_list.interfaces.apb_slave.ports.pwdata",
+          "io_list.interfaces.apb_slave.ports.pstrb",
+          "io_list.interfaces.apb_slave.ports.prdata",
+          "io_list.interfaces.apb_slave.ports.pready",
+          "io_list.interfaces.apb_slave.ports.pslverr",
+          "io_list.interfaces.sram_write.ports.sram_wr_valid",
+          "io_list.interfaces.sram_write.ports.sram_wr_ready",
+          "io_list.interfaces.sram_write.ports.sram_wr_addr",
+          "io_list.interfaces.sram_write.ports.sram_wr_data",
+          "io_list.interfaces.sram_write.ports.sram_wr_strb",
+          "io_list.interfaces.sram_read.ports.sram_rd_req_valid",
+          "io_list.interfaces.sram_read.ports.sram_rd_req_ready",
+          "io_list.interfaces.sram_read.ports.sram_rd_req_addr",
+          "io_list.interfaces.sram_read.ports.sram_rd_rsp_valid",
+          "io_list.interfaces.sram_read.ports.sram_rd_rsp_ready",
+          "io_list.interfaces.sram_read.ports.sram_rd_rsp_data",
+          "io_list.interfaces.sram_read.ports.sram_rd_rsp_error",
+          "io_list.interfaces.interrupt.ports.irq"
+        ],
+        "status_counts": {
+          "planned": 22
+        },
+        "task_count": 22
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 18,
+        "open_required_count": 18,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__mctp_assembler_v3__parameters.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_v3__parameters.md",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "packet_id": "module__mctp_assembler_v3__parameters",
+      "summary": {
+        "categories": {
+          "parameters.item": 18
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 3,
+          "key": "parameters",
+          "module_task_count": 68,
+          "rule": "Owner module mctp_assembler_v3 is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "parameters",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 18,
+        "required_count": 18,
+        "source_refs": [
+          "parameters.BRESP_OKAY",
+          "parameters.RRESP_OKAY",
+          "parameters.RRESP_SLVERR",
+          "parameters.INCR",
+          "parameters.ASSEMBLING",
+          "parameters.AXI_ADDR_WIDTH",
+          "parameters.AXI_DATA_WIDTH",
+          "parameters.AXI_STRB_WIDTH",
+          "parameters.TLP_HEADER_SNAPSHOT_BYTES",
+          "parameters.MIN_TRANSMISSION_UNIT_BYTES",
+          "parameters.MAX_TRANSMISSION_UNIT_BYTES",
+          "parameters.TRANSMISSION_UNIT_ALIGN_BYTES",
+          "parameters.MAX_TLP_BYTES",
+          "parameters.MAX_TLP_BEATS",
+          "parameters.MAX_MESSAGE_BYTES",
+          "parameters.BASELINE_MTU_BYTES",
+          "parameters.TIMEOUT_COUNTER_WIDTH",
+          "parameters.RESET_POLARITY"
+        ],
+        "status_counts": {
+          "planned": 18
+        },
+        "task_count": 18
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 10,
+        "open_required_count": 10,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__mctp_assembler_v3__integration.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_v3__integration.md",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "packet_id": "module__mctp_assembler_v3__integration",
+      "summary": {
+        "categories": {
+          "integration.connections": 7,
+          "integration.dependencies": 3
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 4,
+          "key": "integration",
+          "module_task_count": 68,
+          "rule": "Owner module mctp_assembler_v3 is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "integration",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 10,
+        "required_count": 10,
+        "source_refs": [
+          "integration.dependencies.external_modules",
+          "integration.dependencies.external_clocks",
+          "integration.dependencies.external_resets",
+          "integration.connections.axi_aclk",
+          "integration.connections.axi_aresetn",
+          "integration.connections.pclk",
+          "integration.connections.presetn",
+          "integration.connections.irq",
+          "integration.connections.sram_wr_valid",
+          "integration.connections.last_drop_class"
+        ],
+        "status_counts": {
+          "planned": 10
+        },
+        "task_count": 10
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 6,
+        "open_required_count": 6,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__mctp_assembler_v3__cycle_model.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_v3__cycle_model.md",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "packet_id": "module__mctp_assembler_v3__cycle_model",
+      "summary": {
+        "categories": {
+          "cycle_model.pipeline": 6
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 5,
+          "key": "cycle_model",
+          "module_task_count": 68,
+          "rule": "Owner module mctp_assembler_v3 is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "cycle_model",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 6,
+        "required_count": 6,
+        "source_refs": [
+          "cycle_model.pipeline.S0_INGEST",
+          "cycle_model.pipeline.S1_VDM_DECODE",
+          "cycle_model.pipeline.S2_MCTP_DECODE",
+          "cycle_model.pipeline.S3_CONTEXT",
+          "cycle_model.pipeline.S4_PACK",
+          "cycle_model.pipeline.S5_DESCRIPTOR"
+        ],
+        "status_counts": {
+          "planned": 6
+        },
+        "task_count": 6
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 6,
+        "open_required_count": 6,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__mctp_assembler_v3__synthesis.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_v3__synthesis.md",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "packet_id": "module__mctp_assembler_v3__synthesis",
+      "summary": {
+        "categories": {
+          "synthesis.constraints": 3,
+          "synthesis.ppa_targets": 3
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 7,
+          "key": "synthesis",
+          "module_task_count": 68,
+          "rule": "Owner module mctp_assembler_v3 is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "synthesis",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 6,
+        "required_count": 6,
+        "source_refs": [
+          "synthesis.constraints.constraint_0",
+          "synthesis.constraints.constraint_1",
+          "synthesis.constraints.constraint_2",
+          "synthesis.ppa_targets.area_um2_max",
+          "synthesis.ppa_targets.power_mw_max",
+          "synthesis.ppa_targets.frequency_mhz_min"
+        ],
+        "status_counts": {
+          "planned": 6
+        },
+        "task_count": 6
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 2,
+        "open_required_count": 2,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__mctp_assembler_v3__rtl_flow.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_v3__rtl_flow.md",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "packet_id": "module__mctp_assembler_v3__rtl_flow",
+      "summary": {
+        "categories": {
+          "rtl_flow.seed": 1,
+          "rtl_flow.top": 1
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 1,
+          "key": "rtl_flow",
+          "module_task_count": 68,
+          "rule": "Owner module mctp_assembler_v3 is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "rtl_flow",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 2,
+        "required_count": 2,
+        "source_refs": [
+          "top_module",
+          "io_list"
+        ],
+        "status_counts": {
+          "planned": 2
+        },
+        "task_count": 2
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 2,
+        "open_required_count": 2,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__mctp_assembler_v3__workflow_todo.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_v3__workflow_todo.md",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "packet_id": "module__mctp_assembler_v3__workflow_todo",
+      "summary": {
+        "categories": {
+          "workflow_todo.rtl_gen": 2
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 9,
+          "key": "workflow_todo",
+          "module_task_count": 68,
+          "rule": "Owner module mctp_assembler_v3 is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "workflow_todo",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 2,
+        "required_count": 2,
+        "source_refs": [
+          "workflow_todos.rtl-gen[0]",
+          "workflow_todos.rtl-gen[1]"
+        ],
+        "status_counts": {
+          "planned": 2
+        },
+        "task_count": 2
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 1,
+        "open_required_count": 1,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__mctp_assembler_v3__equivalence.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_v3__equivalence.md",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "packet_id": "module__mctp_assembler_v3__equivalence",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 8,
+          "key": "equivalence",
+          "module_task_count": 68,
+          "rule": "Owner module mctp_assembler_v3 is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "equivalence",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 1,
+        "required_count": 1,
+        "source_refs": [
+          "sub_modules.mctp_assembler_v3.module_equivalence"
+        ],
+        "status_counts": {
+          "planned": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 1,
+        "open_required_count": 1,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__mctp_assembler_v3__security.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__mctp_assembler_v3__security.md",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "packet_id": "module__mctp_assembler_v3__security",
+      "summary": {
+        "categories": {
+          "security.assets": 1
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 6,
+          "key": "security",
+          "module_task_count": 68,
+          "rule": "Owner module mctp_assembler_v3 is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "security",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 1,
+        "required_count": 1,
+        "source_refs": [
+          "security.assets.payload_sram"
+        ],
+        "status_counts": {
+          "planned": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": false,
+        "evidence_closure_allowed": true,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 10,
+        "open_required_count": 10,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/rtl_gate_evidence_closure.json",
+      "kind": "gate",
+      "markdown": "rtl/authoring_packets/rtl_gate_evidence_closure.md",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "packet_id": "rtl_gate_evidence_closure",
+      "summary": {
+        "categories": {
+          "rtl_gate.rtl_gen": 10
+        },
+        "module_slice": {},
+        "open_required_count": 10,
+        "required_count": 10,
+        "source_refs": [
+          "quality_gates.rtl_gen.static_rtl_evidence",
+          "quality_gates.rtl_gen.owner_logic_structure_evidence",
+          "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
+          "quality_gates.rtl_gen.top_io_contract_evidence",
+          "quality_gates.rtl_gen.top_output_drive_evidence",
+          "quality_gates.rtl_gen.top_input_consumption_evidence",
+          "quality_gates.rtl_gen.manifest_hierarchy_integration",
+          "quality_gates.rtl_gen.manifest_port_connection_evidence",
+          "quality_gates.rtl_gen.manifest_signal_flow_evidence",
+          "quality_gates.rtl_gen.rtl_implementation_depth_evidence"
+        ],
+        "status_counts": {
+          "planned": 10
+        },
+        "task_count": 10
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [
+          {
+            "gate_kind": "ssot_required_sections",
+            "owner_module": "mctp_assembler_v3",
+            "reason": "RTL audit has not run yet.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.ssot_required_sections",
+            "status": "planned",
+            "task_id": "RTL-0003"
+          },
+          {
+            "gate_kind": "ssot_workflow_todo_format",
+            "owner_module": "mctp_assembler_v3",
+            "reason": "RTL audit has not run yet.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.workflow_todo_contract",
+            "status": "planned",
+            "task_id": "RTL-0004"
+          },
+          {
+            "gate_kind": "owner_traceability",
+            "owner_module": "mctp_assembler_v3",
+            "reason": "RTL audit has not run yet.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.owner_traceability",
+            "status": "planned",
+            "task_id": "RTL-0005"
+          },
+          {
+            "gate_kind": "manifest_connection_contract_evidence",
+            "owner_module": "mctp_assembler_v3",
+            "reason": "RTL audit has not run yet.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
+            "status": "planned",
+            "task_id": "RTL-0016"
+          },
+          {
+            "gate_kind": "golden_authority_artifacts",
+            "owner_module": "mctp_assembler_v3",
+            "reason": "RTL audit has not run yet.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.golden_authority_artifacts",
+            "status": "planned",
+            "task_id": "RTL-0020"
+          },
+          {
+            "gate_kind": "target_scale_policy",
+            "owner_module": "mctp_assembler_v3",
+            "reason": "RTL audit has not run yet.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.target_scale",
+            "status": "planned",
+            "task_id": "RTL-0021"
+          },
+          {
+            "gate_kind": "cycle_model_artifacts",
+            "owner_module": "mctp_assembler_v3",
+            "reason": "RTL audit has not run yet.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.cycle_model_artifacts",
+            "status": "planned",
+            "task_id": "RTL-0023"
+          }
+        ],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": false,
+        "evidence_closure_allowed": true,
+        "human_locked_open_count": 7,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 7,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/rtl_gate_human_closure.json",
+      "kind": "gate",
+      "markdown": "rtl/authoring_packets/rtl_gate_human_closure.md",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "packet_id": "rtl_gate_human_closure",
+      "summary": {
+        "categories": {
+          "rtl_gate.rtl_gen": 7
+        },
+        "module_slice": {},
+        "open_required_count": 7,
+        "required_count": 7,
+        "source_refs": [
+          "quality_gates.rtl_gen.ssot_required_sections",
+          "quality_gates.rtl_gen.workflow_todo_contract",
+          "quality_gates.rtl_gen.owner_traceability",
+          "quality_gates.rtl_gen.manifest_connection_contract_evidence",
+          "quality_gates.rtl_gen.golden_authority_artifacts",
+          "quality_gates.rtl_gen.target_scale",
+          "quality_gates.rtl_gen.cycle_model_artifacts"
+        ],
+        "status_counts": {
+          "planned": 7
+        },
+        "task_count": 7
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [
+          {
+            "gate_kind": "common_ai_agent_authoring",
+            "owner_module": "mctp_assembler_v3",
+            "reason": "RTL audit has not run yet.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+            "status": "planned",
+            "task_id": "RTL-0006"
+          },
+          {
+            "gate_kind": "dut_compile",
+            "owner_module": "mctp_assembler_v3",
+            "reason": "RTL audit has not run yet.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.dut_compile",
+            "status": "planned",
+            "task_id": "RTL-0017"
+          },
+          {
+            "gate_kind": "dut_lint",
+            "owner_module": "mctp_assembler_v3",
+            "reason": "RTL audit has not run yet.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.dut_lint",
+            "status": "planned",
+            "task_id": "RTL-0018"
+          },
+          {
+            "gate_kind": "dynamic_todo_closure",
+            "owner_module": "mctp_assembler_v3",
+            "reason": "RTL audit has not run yet.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+            "status": "planned",
+            "task_id": "RTL-0019"
+          },
+          {
+            "gate_kind": "protocol_assertion_evidence",
+            "owner_module": "mctp_assembler_v3",
+            "reason": "RTL audit has not run yet.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
+            "status": "planned",
+            "task_id": "RTL-0024"
+          },
+          {
+            "gate_kind": "fl_rtl_goal_audit",
+            "owner_module": "mctp_assembler_v3",
+            "reason": "RTL audit has not run yet.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
+            "status": "planned",
+            "task_id": "RTL-0025"
+          },
+          {
+            "gate_kind": "coverage_closure",
+            "owner_module": "mctp_assembler_v3",
+            "reason": "RTL audit has not run yet.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.coverage_closure",
+            "status": "planned",
+            "task_id": "RTL-0026"
+          }
+        ],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": false,
+        "evidence_closure_allowed": true,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 7,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 7,
+        "tool_evidence_plan": [
+          {
+            "artifact": "rtl/rtl_authoring_provenance.json",
+            "artifacts": [
+              "mctp_assembler_v3/rtl/rtl_authoring_provenance.json",
+              "mctp_assembler_v3/rtl/rtl_todo_plan.json"
+            ],
+            "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
+            "commands": [
+              "python3 src/headless_workflow.py --root . --ip mctp_assembler_v3 --stages rtl-gen",
+              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py mctp_assembler_v3 --root . --audit-rtl"
+            ],
+            "gate_kind": "common_ai_agent_authoring",
+            "prerequisites": [
+              "An LLM authoring pass emitted or repaired DUT RTL files."
+            ],
+            "reason": "RTL audit has not run yet.",
+            "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+            "stage_sequence": [
+              "ssot-rtl"
+            ],
+            "status": "planned",
+            "task_id": "RTL-0006"
+          },
+          {
+            "artifact": "rtl/rtl_compile.json",
+            "artifacts": [
+              "mctp_assembler_v3/rtl/rtl_compile.json",
+              "mctp_assembler_v3/rtl/rtl_compile.log"
+            ],
+            "closure_rule": "rtl_compile.json must be DUT-only, fresh, passed, and cover every current DUT RTL file.",
+            "commands": [
+              "python3 workflow/rtl-gen/scripts/rtl_compile_report.py mctp_assembler_v3 --top mctp_assembler_v3 --project-root .",
+              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py mctp_assembler_v3 --root . --audit-rtl"
+            ],
+            "gate_kind": "dut_compile",
+            "prerequisites": [
+              "mctp_assembler_v3/list/mctp_assembler_v3.f covers the current DUT RTL sources."
+            ],
+            "reason": "RTL audit has not run yet.",
+            "source_ref": "quality_gates.rtl_gen.dut_compile",
+            "stage_sequence": [
+              "ssot-rtl",
+              "dut_compile"
+            ],
+            "status": "planned",
+            "task_id": "RTL-0017"
+          },
+          {
+            "artifact": "lint/dut_lint.json",
+            "artifacts": [
+              "mctp_assembler_v3/lint/dut_lint.json"
+            ],
+            "closure_rule": "dut_lint.json must be DUT-only, fresh, passed, and report zero warnings/errors.",
+            "commands": [
+              "python3 workflow/lint/scripts/dut_lint_report.py mctp_assembler_v3 --top mctp_assembler_v3",
+              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py mctp_assembler_v3 --root . --audit-rtl"
+            ],
+            "gate_kind": "dut_lint",
+            "prerequisites": [
+              "mctp_assembler_v3/list/mctp_assembler_v3.f covers the current DUT RTL/header sources."
+            ],
+            "reason": "RTL audit has not run yet.",
+            "source_ref": "quality_gates.rtl_gen.dut_lint",
+            "stage_sequence": [
+              "lint",
+              "dut_lint"
+            ],
+            "status": "planned",
+            "task_id": "RTL-0018"
+          },
+          {
+            "artifact": "rtl/rtl_todo_plan.json",
+            "artifacts": [
+              "mctp_assembler_v3/rtl/rtl_todo_plan.json",
+              "mctp_assembler_v3/rtl/rtl_authoring_status.md"
+            ],
+            "closure_rule": "dynamic_todo_closure passes only when every required non-closure TODO is already pass.",
+            "commands": [
+              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py mctp_assembler_v3 --root . --audit-rtl"
+            ],
+            "gate_kind": "dynamic_todo_closure",
+            "prerequisites": [
+              "All non-closure required TODOs have pass status."
+            ],
+            "reason": "RTL audit has not run yet.",
+            "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+            "stage_sequence": [
+              "audit-rtl"
+            ],
+            "status": "planned",
+            "task_id": "RTL-0019"
+          },
+          {
+            "artifact": "verify/protocol_assertions.sva",
+            "artifacts": [
+              "mctp_assembler_v3/verify/protocol_assertions.sva",
+              "mctp_assembler_v3/verify/protocol_assertions.summary.json",
+              "mctp_assembler_v3/sim/assertion_failures.jsonl"
+            ],
+            "closure_rule": "Generated assertions exist and latest simulation has zero assertion failure records.",
+            "commands": [
+              "python3 workflow/fl-model-gen/scripts/emit_protocol_assertions.py mctp_assembler_v3 --root .",
+              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py mctp_assembler_v3 --root . --audit-rtl"
+            ],
+            "gate_kind": "protocol_assertion_evidence",
+            "prerequisites": [
+              "SSOT cycle_model/protocol rules are machine-checkable.",
+              "Simulation has run after RTL edits."
+            ],
+            "reason": "RTL audit has not run yet.",
+            "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
+            "stage_sequence": [
+              "ssot-protocol-assertions",
+              "sim"
+            ],
+            "status": "planned",
+            "task_id": "RTL-0024"
+          },
+          {
+            "artifact": "sim/fl_rtl_goal_audit.json",
+            "artifacts": [
+              "mctp_assembler_v3/sim/fl_rtl_goal_audit.json"
+            ],
+            "closure_rule": "fl_rtl_goal_audit.json must be fresh and status=pass.",
+            "commands": [
+              "python3 workflow/sim_debug/scripts/audit_fl_rtl_equivalence_goal.py mctp_assembler_v3 --root .",
+              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py mctp_assembler_v3 --root . --audit-rtl"
+            ],
+            "gate_kind": "fl_rtl_goal_audit",
+            "prerequisites": [
+              "FL model, equivalence goals, TB, and simulation evidence are current."
+            ],
+            "reason": "RTL audit has not run yet.",
+            "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
+            "stage_sequence": [
+              "ssot-fl-model",
+              "ssot-equiv-goals",
+              "ssot-tb-cocotb",
+              "sim",
+              "goal-audit"
+            ],
+            "status": "planned",
+            "task_id": "RTL-0025"
+          },
+          {
+            "artifact": "cov/coverage.json",
+            "artifacts": [
+              "mctp_assembler_v3/cov/coverage.json"
+            ],
+            "closure_rule": "coverage.json must be fresh, come from ssot_coverage_summary, and close every planned required bin.",
+            "commands": [
+              "python3 workflow/coverage/scripts/ssot_coverage_summary.py mctp_assembler_v3",
+              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py mctp_assembler_v3 --root . --audit-rtl"
+            ],
+            "gate_kind": "coverage_closure",
+            "prerequisites": [
+              "Simulation evidence exists and planned coverage bins are observable."
+            ],
+            "reason": "RTL audit has not run yet.",
+            "source_ref": "quality_gates.rtl_gen.coverage_closure",
+            "stage_sequence": [
+              "sim",
+              "coverage"
+            ],
+            "status": "planned",
+            "task_id": "RTL-0026"
+          }
+        ],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/rtl_gate_tool_evidence.json",
+      "kind": "gate",
+      "markdown": "rtl/authoring_packets/rtl_gate_tool_evidence.md",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "packet_id": "rtl_gate_tool_evidence",
+      "summary": {
+        "categories": {
+          "rtl_gate.rtl_gen": 7
+        },
+        "module_slice": {},
+        "open_required_count": 7,
+        "required_count": 7,
+        "source_refs": [
+          "quality_gates.rtl_gen.common_ai_agent_authoring",
+          "quality_gates.rtl_gen.dut_compile",
+          "quality_gates.rtl_gen.dut_lint",
+          "quality_gates.rtl_gen.dynamic_todo_closure",
+          "quality_gates.rtl_gen.protocol_assertion_evidence",
+          "quality_gates.rtl_gen.fl_rtl_goal_audit",
+          "quality_gates.rtl_gen.coverage_closure"
+        ],
+        "status_counts": {
+          "planned": 7
+        },
+        "task_count": 7
+      }
+    }
+  ],
+  "policy": {
+    "dynamic_task_rule": "Use every required task in this file as the authoritative RTL implementation/evidence ledger. Expose Atlas/UI TodoTracker items as a flat one-to-one projection of this ledger so the existing flat TodoTracker executes one SSOT-derived RTL task at a time.",
+    "fixed_template_role": "seed_only",
+    "no_orphan_function_level": true,
+    "reference_profile_rule": "Optional rtl_reference_profile artifacts are calibration-only scale reports; they must not be copied, transformed, or used as fixed RTL templates.",
+    "rtl_gate_todo_rule": "RTL-gen quality gates are first-class rtl_gate.rtl_gen TODOs; compile/lint/static/ownership/owner-logic/placeholder-free/implementation-depth/top-io/top-output-drive/top-input-consumption/hierarchy/port-connection/signal-flow/connection-contract gates must close as TODOs before PASS.",
+    "rtl_quality_profile": "production",
+    "rtl_target_scale": {},
+    "rtl_target_scale_waiver": {},
+    "single_source_of_truth": "SSOT YAML is the only authority for function_model, cycle_model, RTL ownership, DV plan, and coverage.",
+    "ssot_workflow_todo_rule": "workflow_todos.rtl-gen[] entries are first-class downstream tasks; content/detail/criteria must be preserved and satisfied by RTL evidence.",
+    "target_scale_rule": "Optional quality_gates.rtl_gen.target_scale is SSOT-locked human policy. It can be calibrated from a reference profile, but it is enforced as generic structural depth evidence, not as copied reference RTL."
+  },
+  "reference_profile": null,
+  "reference_scale_gap": {},
+  "rules": [
+    "Use rtl_todo_plan.json as the complete ledger and rtl_authoring_plan.json as the LLM work queue.",
+    "Process one authoring packet at a time: module packets first, then unowned tasks if any, then rtl_gate_evidence_closure; leave rtl_gate_tool_evidence to tools and rtl_gate_contract_blocked/rtl_gate_human_closure to human-locked authority gaps.",
+    "Generate real RTL; do not instantiate a fixed IP template or copy boilerplate as the implementation.",
+    "Do not close static RTL evidence with comments: derive_rtl_todos.py strips comments before matching, so evidence_terms must be preserved in live lint-clean RTL identifiers/logic.",
+    "Do not close static RTL evidence with evidence-only alias wires or marker-only helper wires; the matched identifiers must participate in real RTL behavior.",
+    "Repair-generated FunctionModel fm*_observed markers are advisory schema-repair traceability only; do not create RTL ports, wires, or state solely for tasks tagged repair_generated_fm_marker.",
+    "If reference_profile is present, use it only to understand implementation scale and decomposition gaps; never copy or clone reference RTL.",
+    "After the top RTL exists, prioritize missing manifest child RTL packets before residual top-module slices.",
+    "Keep locked authority artifacts unchanged unless a human approves a change request.",
+    "Rerun rtl_todo_plan audit, compile, lint, sim, and coverage evidence until required TODOs pass."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "status_markdown": "rtl/rtl_authoring_status.md",
+  "summary": {
+    "connection_contract_suggestions_present": false,
+    "deferred_human_qa_allowed": true,
+    "gate_packets": 3,
+    "human_locked_packets": 1,
+    "human_locked_tasks": 7,
+    "llm_actionable_packets": 32,
+    "llm_actionable_tasks": 479,
+    "max_packet_required_tasks": 48,
+    "module_packets": 31,
+    "next_llm_packets": [
+      "module__mctp_assembler_v3_axi_wr_ingress__function_model",
+      "module__mctp_assembler_v3_axi_wr_ingress__test_requirements",
+      "module__mctp_assembler_v3_axi_wr_ingress__io_list",
+      "module__mctp_assembler_v3_axi_wr_ingress__cycle_model",
+      "module__mctp_assembler_v3_axi_wr_ingress__equivalence",
+      "module__mctp_assembler_v3_pcie_vdm_parser",
+      "module__mctp_assembler_v3_mctp_decoder",
+      "module__mctp_assembler_v3_context_table__function_model"
+    ],
+    "packet_task_limit": 48,
+    "packets": 34,
+    "pass_allowed": false,
+    "pending_connection_contract_suggestions": 0,
+    "recommended_packet_batch_limit": 4,
+    "reference_profile_present": false,
+    "reference_scale_gap_present": false,
+    "required_tasks": 493,
+    "sliced_module_packets": 25,
+    "target_scale_present": false,
+    "tool_evidence_packets": 1,
+    "tool_evidence_tasks": 7,
+    "total_tasks": 493,
+    "unowned_packets": 0
+  },
+  "target_scale": {},
+  "todo_plan_sha256": "928c0a587fbcc3522da24eba470cd1fb51a8ad7c9c51ddd94821393e2967e9f9",
+  "top": "mctp_assembler_v3",
+  "type": "rtl_authoring_plan"
+}

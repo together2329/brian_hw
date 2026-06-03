@@ -1,0 +1,1312 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 7,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": true,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 4,
+      "enabled": true,
+      "index": 3,
+      "key": "fsm",
+      "module_task_count": 73,
+      "rule": "Owner module mctp_assembler_v3_context_table is split into 4 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "fsm",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/mctp_assembler_v3_context_table.sv",
+      "name": "mctp_assembler_v3_context_table",
+      "refs": [
+        "fsm",
+        "fsm.context_fsm",
+        "function_model",
+        "function_model.transactions.FM_ALLOC_CONTEXT",
+        "function_model.transactions.FM_APPEND"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "name": "mctp_assembler_v3_axi_wr_ingress",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
+        "name": "mctp_assembler_v3_pcie_vdm_parser",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+        "name": "mctp_assembler_v3_mctp_decoder",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_context_table.sv",
+        "name": "mctp_assembler_v3_context_table",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_sram_packer.sv",
+        "name": "mctp_assembler_v3_sram_packer",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+        "name": "mctp_assembler_v3_descriptor_queue",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "name": "mctp_assembler_v3_axi_rd_payload",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_apb_regfile.sv",
+        "name": "mctp_assembler_v3_apb_regfile",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3_cdc_sync.sv",
+        "name": "mctp_assembler_v3_cdc_sync",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/mctp_assembler_v3.sv",
+        "name": "mctp_assembler_v3",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "production",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_v3_context_table",
+        "port": "drop_class_o",
+        "signal": "last_drop_class",
+        "signal_terms": [
+          "last_drop_class"
+        ],
+        "source_ref": "integration.connections[6]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 25,
+    "open_required_count": 25,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "mctp_assembler_v3",
+  "kind": "module",
+  "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+  "owner_module": "mctp_assembler_v3_context_table",
+  "packet_id": "module__mctp_assembler_v3_context_table__fsm",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "fsm.state": 10,
+      "fsm.transition": 15
+    },
+    "module_slice": {
+      "count": 4,
+      "enabled": true,
+      "index": 3,
+      "key": "fsm",
+      "module_task_count": 73,
+      "rule": "Owner module mctp_assembler_v3_context_table is split into 4 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "fsm",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 25,
+    "required_count": 25,
+    "source_refs": [
+      "fsm.ingress_fsm.states.state_0",
+      "fsm.ingress_fsm.states.state_1",
+      "fsm.ingress_fsm.states.state_2",
+      "fsm.ingress_fsm.states.state_3",
+      "fsm.ingress_fsm.states.state_4",
+      "fsm.ingress_fsm.states.state_5",
+      "fsm.ingress_fsm.transitions.transition_0",
+      "fsm.ingress_fsm.transitions.transition_1",
+      "fsm.ingress_fsm.transitions.transition_2",
+      "fsm.ingress_fsm.transitions.transition_3",
+      "fsm.ingress_fsm.transitions.transition_4",
+      "fsm.ingress_fsm.transitions.transition_5",
+      "fsm.ingress_fsm.transitions.transition_6",
+      "fsm.ingress_fsm.transitions.transition_7",
+      "fsm.context_fsm.states.state_0",
+      "fsm.context_fsm.states.state_1",
+      "fsm.context_fsm.states.state_2",
+      "fsm.context_fsm.states.state_3",
+      "fsm.context_fsm.transitions.transition_0",
+      "fsm.context_fsm.transitions.transition_1",
+      "fsm.context_fsm.transitions.transition_2",
+      "fsm.context_fsm.transitions.transition_3",
+      "fsm.context_fsm.transitions.transition_4",
+      "fsm.context_fsm.transitions.transition_5"
+    ],
+    "status_counts": {
+      "planned": 25
+    },
+    "task_count": 25
+  },
+  "tasks": [
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state ingress_fsm.state_0",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.ingress_fsm.states.state_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ingress_fsm.states.state_0.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.\nSSOT item context: value=IDLE.",
+      "evidence_terms": [
+        "IDLE"
+      ],
+      "id": "RTL-0398",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.ingress_fsm.states.state_0",
+      "ssot_context": {
+        "value": "IDLE"
+      },
+      "ssot_refs": [
+        "fsm.ingress_fsm.states.state_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state ingress_fsm.state_1",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.ingress_fsm.states.state_1",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ingress_fsm.states.state_1.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.\nSSOT item context: value=ACCEPT_AW.",
+      "evidence_terms": [
+        "ACCEPT_AW"
+      ],
+      "id": "RTL-0399",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.ingress_fsm.states.state_1",
+      "ssot_context": {
+        "value": "ACCEPT_AW"
+      },
+      "ssot_refs": [
+        "fsm.ingress_fsm.states.state_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state ingress_fsm.state_2",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.ingress_fsm.states.state_2",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ingress_fsm.states.state_2.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.\nSSOT item context: value=COLLECT_W.",
+      "evidence_terms": [
+        "COLLECT_W"
+      ],
+      "id": "RTL-0400",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.ingress_fsm.states.state_2",
+      "ssot_context": {
+        "value": "COLLECT_W"
+      },
+      "ssot_refs": [
+        "fsm.ingress_fsm.states.state_2"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state ingress_fsm.state_3",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.ingress_fsm.states.state_3",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ingress_fsm.states.state_3.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.\nSSOT item context: value=CHECK_LEGAL.",
+      "evidence_terms": [
+        "CHECK_LEGAL"
+      ],
+      "id": "RTL-0401",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.ingress_fsm.states.state_3",
+      "ssot_context": {
+        "value": "CHECK_LEGAL"
+      },
+      "ssot_refs": [
+        "fsm.ingress_fsm.states.state_3"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state ingress_fsm.state_4",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.ingress_fsm.states.state_4",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ingress_fsm.states.state_4.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.\nSSOT item context: value=EMIT_TLP.",
+      "evidence_terms": [
+        "EMIT_TLP"
+      ],
+      "id": "RTL-0402",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.ingress_fsm.states.state_4",
+      "ssot_context": {
+        "value": "EMIT_TLP"
+      },
+      "ssot_refs": [
+        "fsm.ingress_fsm.states.state_4"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state ingress_fsm.state_5",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.ingress_fsm.states.state_5",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ingress_fsm.states.state_5.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.\nSSOT item context: value=RESP_B.",
+      "evidence_terms": [
+        "RESP_B"
+      ],
+      "id": "RTL-0403",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.ingress_fsm.states.state_5",
+      "ssot_context": {
+        "value": "RESP_B"
+      },
+      "ssot_refs": [
+        "fsm.ingress_fsm.states.state_5"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition ingress_fsm.transition_0",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.ingress_fsm.transitions.transition_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "fsm.ingress_fsm.transitions.transition_0 condition is implemented as RTL control logic: awvalid && awready",
+        "fsm.ingress_fsm.transitions.transition_0 transition path IDLE -> ACCEPT_AW is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ingress_fsm.transitions.transition_0.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.\nSSOT item context: from=IDLE; to=ACCEPT_AW; condition=awvalid && awready.",
+      "evidence_terms": [
+        "ACCEPT",
+        "ACCEPT_AW",
+        "AW",
+        "IDLE"
+      ],
+      "id": "RTL-0404",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.ingress_fsm.transitions.transition_0",
+      "ssot_context": {
+        "condition": "awvalid && awready",
+        "from": "IDLE",
+        "to": "ACCEPT_AW"
+      },
+      "ssot_refs": [
+        "fsm.ingress_fsm.transitions.transition_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition ingress_fsm.transition_1",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.ingress_fsm.transitions.transition_1",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "fsm.ingress_fsm.transitions.transition_1 condition is implemented as RTL control logic: AWSIZE==5 && AWBURST==INCR",
+        "fsm.ingress_fsm.transitions.transition_1 transition path ACCEPT_AW -> COLLECT_W is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ingress_fsm.transitions.transition_1.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.\nSSOT item context: from=ACCEPT_AW; to=COLLECT_W; condition=AWSIZE==5 && AWBURST==INCR.",
+      "evidence_terms": [
+        "ACCEPT",
+        "ACCEPT_AW",
+        "AW",
+        "AWBURST",
+        "AWSIZE",
+        "COLLECT",
+        "COLLECT_W",
+        "INCR"
+      ],
+      "id": "RTL-0405",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.ingress_fsm.transitions.transition_1",
+      "ssot_context": {
+        "condition": "AWSIZE==5 && AWBURST==INCR",
+        "from": "ACCEPT_AW",
+        "to": "COLLECT_W"
+      },
+      "ssot_refs": [
+        "fsm.ingress_fsm.transitions.transition_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition ingress_fsm.transition_2",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.ingress_fsm.transitions.transition_2",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "fsm.ingress_fsm.transitions.transition_2 condition is implemented as RTL control logic: illegal AWSIZE/AWBURST (PD_MALFORMED_TLP)",
+        "fsm.ingress_fsm.transitions.transition_2 transition path ACCEPT_AW -> RESP_B is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ingress_fsm.transitions.transition_2.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.\nSSOT item context: from=ACCEPT_AW; to=RESP_B; condition=illegal AWSIZE/AWBURST (PD_MALFORMED_TLP).",
+      "evidence_terms": [
+        "ACCEPT",
+        "ACCEPT_AW",
+        "AW",
+        "AWBURST",
+        "AWSIZE",
+        "MALFORMED",
+        "PD",
+        "PD_MALFORMED_TLP",
+        "RESP",
+        "RESP_B",
+        "TLP"
+      ],
+      "id": "RTL-0406",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.ingress_fsm.transitions.transition_2",
+      "ssot_context": {
+        "condition": "illegal AWSIZE/AWBURST (PD_MALFORMED_TLP)",
+        "from": "ACCEPT_AW",
+        "to": "RESP_B"
+      },
+      "ssot_refs": [
+        "fsm.ingress_fsm.transitions.transition_2"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition ingress_fsm.transition_3",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.ingress_fsm.transitions.transition_3",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "fsm.ingress_fsm.transitions.transition_3 condition is implemented as RTL control logic: wlast && wvalid && wready",
+        "fsm.ingress_fsm.transitions.transition_3 transition path COLLECT_W -> CHECK_LEGAL is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ingress_fsm.transitions.transition_3.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.\nSSOT item context: from=COLLECT_W; to=CHECK_LEGAL; condition=wlast && wvalid && wready.",
+      "evidence_terms": [
+        "CHECK",
+        "CHECK_LEGAL",
+        "COLLECT",
+        "COLLECT_W",
+        "LEGAL"
+      ],
+      "id": "RTL-0407",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.ingress_fsm.transitions.transition_3",
+      "ssot_context": {
+        "condition": "wlast && wvalid && wready",
+        "from": "COLLECT_W",
+        "to": "CHECK_LEGAL"
+      },
+      "ssot_refs": [
+        "fsm.ingress_fsm.transitions.transition_3"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition ingress_fsm.transition_4",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.ingress_fsm.transitions.transition_4",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "fsm.ingress_fsm.transitions.transition_4 condition is implemented as RTL control logic: beat-count/WSTRB/length legal",
+        "fsm.ingress_fsm.transitions.transition_4 transition path CHECK_LEGAL -> EMIT_TLP is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ingress_fsm.transitions.transition_4.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.\nSSOT item context: from=CHECK_LEGAL; to=EMIT_TLP; condition=beat-count/WSTRB/length legal.",
+      "evidence_terms": [
+        "CHECK",
+        "CHECK_LEGAL",
+        "EMIT",
+        "EMIT_TLP",
+        "LEGAL",
+        "TLP",
+        "WSTRB"
+      ],
+      "id": "RTL-0408",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.ingress_fsm.transitions.transition_4",
+      "ssot_context": {
+        "condition": "beat-count/WSTRB/length legal",
+        "from": "CHECK_LEGAL",
+        "to": "EMIT_TLP"
+      },
+      "ssot_refs": [
+        "fsm.ingress_fsm.transitions.transition_4"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition ingress_fsm.transition_5",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.ingress_fsm.transitions.transition_5",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "fsm.ingress_fsm.transitions.transition_5 condition is implemented as RTL control logic: malformed (PD_MALFORMED_TLP)",
+        "fsm.ingress_fsm.transitions.transition_5 transition path CHECK_LEGAL -> RESP_B is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ingress_fsm.transitions.transition_5.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.\nSSOT item context: from=CHECK_LEGAL; to=RESP_B; condition=malformed (PD_MALFORMED_TLP).",
+      "evidence_terms": [
+        "CHECK",
+        "CHECK_LEGAL",
+        "LEGAL",
+        "MALFORMED",
+        "PD",
+        "PD_MALFORMED_TLP",
+        "RESP",
+        "RESP_B",
+        "TLP"
+      ],
+      "id": "RTL-0409",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.ingress_fsm.transitions.transition_5",
+      "ssot_context": {
+        "condition": "malformed (PD_MALFORMED_TLP)",
+        "from": "CHECK_LEGAL",
+        "to": "RESP_B"
+      },
+      "ssot_refs": [
+        "fsm.ingress_fsm.transitions.transition_5"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition ingress_fsm.transition_6",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.ingress_fsm.transitions.transition_6",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "fsm.ingress_fsm.transitions.transition_6 condition is implemented as RTL control logic: TLP bytes emitted to parser",
+        "fsm.ingress_fsm.transitions.transition_6 transition path EMIT_TLP -> RESP_B is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ingress_fsm.transitions.transition_6.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.\nSSOT item context: from=EMIT_TLP; to=RESP_B; condition=TLP bytes emitted to parser.",
+      "evidence_terms": [
+        "EMIT",
+        "EMIT_TLP",
+        "RESP",
+        "RESP_B",
+        "TLP"
+      ],
+      "id": "RTL-0410",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.ingress_fsm.transitions.transition_6",
+      "ssot_context": {
+        "condition": "TLP bytes emitted to parser",
+        "from": "EMIT_TLP",
+        "to": "RESP_B"
+      },
+      "ssot_refs": [
+        "fsm.ingress_fsm.transitions.transition_6"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition ingress_fsm.transition_7",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.ingress_fsm.transitions.transition_7",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "fsm.ingress_fsm.transitions.transition_7 condition is implemented as RTL control logic: bvalid && bready (OKAY)",
+        "fsm.ingress_fsm.transitions.transition_7 transition path RESP_B -> IDLE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.ingress_fsm.transitions.transition_7.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.\nSSOT item context: from=RESP_B; to=IDLE; condition=bvalid && bready (OKAY).",
+      "evidence_terms": [
+        "IDLE",
+        "RESP",
+        "RESP_B"
+      ],
+      "id": "RTL-0411",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.ingress_fsm.transitions.transition_7",
+      "ssot_context": {
+        "condition": "bvalid && bready (OKAY)",
+        "from": "RESP_B",
+        "to": "IDLE"
+      },
+      "ssot_refs": [
+        "fsm.ingress_fsm.transitions.transition_7"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state context_fsm.state_0",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.context_fsm.states.state_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.context_fsm.states.state_0.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.context_fsm.\nSSOT item context: value=IDLE.",
+      "evidence_terms": [
+        "IDLE"
+      ],
+      "id": "RTL-0412",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.context_fsm.states.state_0",
+      "ssot_context": {
+        "value": "IDLE"
+      },
+      "ssot_refs": [
+        "fsm.context_fsm.states.state_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state context_fsm.state_1",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.context_fsm.states.state_1",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.context_fsm.states.state_1.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.context_fsm.\nSSOT item context: value=ASSEMBLING.",
+      "evidence_terms": [
+        "ASSEMBLING"
+      ],
+      "id": "RTL-0413",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.context_fsm.states.state_1",
+      "ssot_context": {
+        "value": "ASSEMBLING"
+      },
+      "ssot_refs": [
+        "fsm.context_fsm.states.state_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state context_fsm.state_2",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.context_fsm.states.state_2",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.context_fsm.states.state_2.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.context_fsm.\nSSOT item context: value=ERROR.",
+      "evidence_terms": [],
+      "id": "RTL-0414",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.context_fsm.states.state_2",
+      "ssot_context": {
+        "value": "ERROR"
+      },
+      "ssot_refs": [
+        "fsm.context_fsm.states.state_2"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state context_fsm.state_3",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.context_fsm.states.state_3",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.context_fsm.states.state_3.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.context_fsm.\nSSOT item context: value=DONE_WAIT_DESCRIPTOR_POP.",
+      "evidence_terms": [
+        "DONE_WAIT_DESCRIPTOR_POP"
+      ],
+      "id": "RTL-0415",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.context_fsm.states.state_3",
+      "ssot_context": {
+        "value": "DONE_WAIT_DESCRIPTOR_POP"
+      },
+      "ssot_refs": [
+        "fsm.context_fsm.states.state_3"
+      ],
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition context_fsm.transition_0",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.context_fsm.transitions.transition_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "fsm.context_fsm.transitions.transition_0 condition is implemented as RTL control logic: accepted SOM=1,EOM=0 allocates slot",
+        "fsm.context_fsm.transitions.transition_0 transition path IDLE -> ASSEMBLING is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.context_fsm.transitions.transition_0.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.context_fsm.\nSSOT item context: from=IDLE; to=ASSEMBLING; condition=accepted SOM=1,EOM=0 allocates slot.",
+      "evidence_terms": [
+        "ASSEMBLING",
+        "EOM",
+        "IDLE",
+        "SOM"
+      ],
+      "id": "RTL-0416",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.context_fsm.transitions.transition_0",
+      "ssot_context": {
+        "condition": "accepted SOM=1,EOM=0 allocates slot",
+        "from": "IDLE",
+        "to": "ASSEMBLING"
+      },
+      "ssot_refs": [
+        "fsm.context_fsm.transitions.transition_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition context_fsm.transition_1",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.context_fsm.transitions.transition_1",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "fsm.context_fsm.transitions.transition_1 condition is implemented as RTL control logic: accepted SOM=1,EOM=1 single-packet completes",
+        "fsm.context_fsm.transitions.transition_1 transition path IDLE -> DONE_WAIT_DESCRIPTOR_POP is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.context_fsm.transitions.transition_1.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.context_fsm.\nSSOT item context: from=IDLE; to=DONE_WAIT_DESCRIPTOR_POP; condition=accepted SOM=1,EOM=1 single-packet completes.",
+      "evidence_terms": [
+        "DESCRIPTOR",
+        "DONE",
+        "DONE_WAIT_DESCRIPTOR_POP",
+        "EOM",
+        "IDLE",
+        "POP",
+        "SOM",
+        "WAIT"
+      ],
+      "id": "RTL-0417",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.context_fsm.transitions.transition_1",
+      "ssot_context": {
+        "condition": "accepted SOM=1,EOM=1 single-packet completes",
+        "from": "IDLE",
+        "to": "DONE_WAIT_DESCRIPTOR_POP"
+      },
+      "ssot_refs": [
+        "fsm.context_fsm.transitions.transition_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition context_fsm.transition_2",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.context_fsm.transitions.transition_2",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "fsm.context_fsm.transitions.transition_2 condition is implemented as RTL control logic: accepted SOM=0,EOM=0 append, seq ok",
+        "fsm.context_fsm.transitions.transition_2 transition path ASSEMBLING -> ASSEMBLING is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.context_fsm.transitions.transition_2.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.context_fsm.\nSSOT item context: from=ASSEMBLING; to=ASSEMBLING; condition=accepted SOM=0,EOM=0 append, seq ok.",
+      "evidence_terms": [
+        "ASSEMBLING",
+        "EOM",
+        "SOM"
+      ],
+      "id": "RTL-0418",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.context_fsm.transitions.transition_2",
+      "ssot_context": {
+        "condition": "accepted SOM=0,EOM=0 append, seq ok",
+        "from": "ASSEMBLING",
+        "to": "ASSEMBLING"
+      },
+      "ssot_refs": [
+        "fsm.context_fsm.transitions.transition_2"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition context_fsm.transition_3",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.context_fsm.transitions.transition_3",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "fsm.context_fsm.transitions.transition_3 condition is implemented as RTL control logic: accepted SOM=0,EOM=1 completes; descriptor pushed",
+        "fsm.context_fsm.transitions.transition_3 transition path ASSEMBLING -> DONE_WAIT_DESCRIPTOR_POP is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.context_fsm.transitions.transition_3.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.context_fsm.\nSSOT item context: from=ASSEMBLING; to=DONE_WAIT_DESCRIPTOR_POP; condition=accepted SOM=0,EOM=1 completes; descriptor pushed.",
+      "evidence_terms": [
+        "ASSEMBLING",
+        "DESCRIPTOR",
+        "DONE",
+        "DONE_WAIT_DESCRIPTOR_POP",
+        "EOM",
+        "POP",
+        "SOM",
+        "WAIT"
+      ],
+      "id": "RTL-0419",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.context_fsm.transitions.transition_3",
+      "ssot_context": {
+        "condition": "accepted SOM=0,EOM=1 completes; descriptor pushed",
+        "from": "ASSEMBLING",
+        "to": "DONE_WAIT_DESCRIPTOR_POP"
+      },
+      "ssot_refs": [
+        "fsm.context_fsm.transitions.transition_3"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition context_fsm.transition_4",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.context_fsm.transitions.transition_4",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "fsm.context_fsm.transitions.transition_4 condition is implemented as RTL control logic: AD_* assembly drop (dup SOM/seq/overflow/sram/timeout)",
+        "fsm.context_fsm.transitions.transition_4 transition path ASSEMBLING -> ERROR is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.context_fsm.transitions.transition_4.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.context_fsm.\nSSOT item context: from=ASSEMBLING; to=ERROR; condition=AD_* assembly drop (dup SOM/seq/overflow/sram/timeout).",
+      "evidence_terms": [
+        "AD",
+        "AD_",
+        "ASSEMBLING",
+        "SOM"
+      ],
+      "id": "RTL-0420",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.context_fsm.transitions.transition_4",
+      "ssot_context": {
+        "condition": "AD_* assembly drop (dup SOM/seq/overflow/sram/timeout)",
+        "from": "ASSEMBLING",
+        "to": "ERROR"
+      },
+      "ssot_refs": [
+        "fsm.context_fsm.transitions.transition_4"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition context_fsm.transition_5",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.context_fsm.transitions.transition_5",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "fsm.context_fsm.transitions.transition_5 condition is implemented as RTL control logic: descriptor copied/popped",
+        "fsm.context_fsm.transitions.transition_5 transition path DONE_WAIT_DESCRIPTOR_POP -> IDLE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.context_fsm.transitions.transition_5.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.context_fsm.\nSSOT item context: from=DONE_WAIT_DESCRIPTOR_POP; to=IDLE; condition=descriptor copied/popped.",
+      "evidence_terms": [
+        "DESCRIPTOR",
+        "DONE",
+        "DONE_WAIT_DESCRIPTOR_POP",
+        "IDLE",
+        "POP",
+        "WAIT"
+      ],
+      "id": "RTL-0421",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.context_fsm.transitions.transition_5",
+      "ssot_context": {
+        "condition": "descriptor copied/popped",
+        "from": "DONE_WAIT_DESCRIPTOR_POP",
+        "to": "IDLE"
+      },
+      "ssot_refs": [
+        "fsm.context_fsm.transitions.transition_5"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition context_fsm.transition_6",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.context_fsm.transitions.transition_6",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_context_table.sv",
+        "fsm.context_fsm.transitions.transition_6 condition is implemented as RTL control logic: clear policy releases the slot",
+        "fsm.context_fsm.transitions.transition_6 transition path ERROR -> IDLE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.context_fsm.transitions.transition_6.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via fsm.context_fsm.\nSSOT item context: from=ERROR; to=IDLE; condition=clear policy releases the slot.",
+      "evidence_terms": [
+        "IDLE"
+      ],
+      "id": "RTL-0422",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.context_fsm.transitions.transition_6",
+      "ssot_context": {
+        "condition": "clear policy releases the slot",
+        "from": "ERROR",
+        "to": "IDLE"
+      },
+      "ssot_refs": [
+        "fsm.context_fsm.transitions.transition_6"
+      ],
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    }
+  ],
+  "todo_plan_sha256": "928c0a587fbcc3522da24eba470cd1fb51a8ad7c9c51ddd94821393e2967e9f9",
+  "top": "mctp_assembler_v3",
+  "type": "rtl_authoring_packet"
+}

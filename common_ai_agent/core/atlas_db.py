@@ -5518,6 +5518,7 @@ class AtlasDB:
         user_id: str = "",
         username: str = "",
         ip: str = "",
+        active_session: str = "",
     ) -> Dict[str, Any]:
         """Aggregate LLM usage for one visible user/IP scope.
 
@@ -5530,6 +5531,7 @@ class AtlasDB:
         uid = str(user_id or "").strip()
         owner = str(username or "").strip()
         ip_name = str(ip or "").strip()
+        active_parts = [part for part in str(active_session or "").strip().strip("/").split("/") if part]
 
         def like_escape(value: str) -> str:
             return (
@@ -5571,10 +5573,15 @@ class AtlasDB:
                 "cost_usd": float(data.get("cost_usd") or 0.0),
             }
 
-        runtime_exact = f"{owner}/{ip_name}" if owner and ip_name else ""
+        scoped_runtime_base = ""
+        if len(active_parts) == 4 and active_parts[0] == owner and active_parts[2] == ip_name:
+            scoped_runtime_base = "/".join(active_parts[:3])
+        elif len(active_parts) == 3 and active_parts[0] == owner and active_parts[1] == ip_name:
+            scoped_runtime_base = "/".join(active_parts[:2])
+        runtime_exact = scoped_runtime_base or (f"{owner}/{ip_name}" if owner and ip_name else "")
         runtime_prefix = (
-            f"{owner}/{ip_name}/"
-            if owner and ip_name
+            f"{runtime_exact}/"
+            if runtime_exact
             else (f"{owner}/" if owner else "")
         )
         runtime_upper = prefix_upper_bound(runtime_prefix)
@@ -5596,14 +5603,23 @@ class AtlasDB:
         session_ip_clauses: list[str] = []
         session_ip_values: list[Any] = []
         if ip_name:
-            session_ip_clauses.extend(["ip_id = ?", "ip = ?"])
-            session_ip_values.extend([ip_name, ip_name])
-            if runtime_exact:
-                session_ip_clauses.append("namespace = ?")
-                session_ip_values.append(runtime_exact)
-            if runtime_prefix:
-                session_ip_clauses.append("(namespace >= ? AND namespace < ?)")
-                session_ip_values.extend([runtime_prefix, runtime_upper])
+            if scoped_runtime_base:
+                session_ip_clauses.extend(["namespace = ?", "id = ?"])
+                session_ip_values.extend([runtime_exact, runtime_exact])
+                if runtime_prefix:
+                    session_ip_clauses.append("(namespace >= ? AND namespace < ?)")
+                    session_ip_values.extend([runtime_prefix, runtime_upper])
+                    session_ip_clauses.append("(id >= ? AND id < ?)")
+                    session_ip_values.extend([runtime_prefix, runtime_upper])
+            else:
+                session_ip_clauses.extend(["ip_id = ?", "ip = ?"])
+                session_ip_values.extend([ip_name, ip_name])
+                if runtime_exact:
+                    session_ip_clauses.append("namespace = ?")
+                    session_ip_values.append(runtime_exact)
+                if runtime_prefix:
+                    session_ip_clauses.append("(namespace >= ? AND namespace < ?)")
+                    session_ip_values.extend([runtime_prefix, runtime_upper])
 
         session_clauses: list[str] = []
         session_values: list[Any] = []
