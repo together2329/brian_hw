@@ -2,6 +2,11 @@
 
 ## 2026-06-03
 
+- Fixed ATLAS workspace-session IP roster leakage. New workspace sessions now
+  activate as `user/session/default/default` instead of inheriting the previous
+  IP/workflow, and `/api/ip/list` honors `user/workspace_session` scope so a
+  newly created session no longer shows IPs from older sessions. Regression and
+  Web E2E evidence are recorded in [[atlas-context-root-model-20260603]].
 - Fixed ATLAS Workspace footer status honesty for the Desktop/Web worker-state
   issue. The footer now distinguishes backend transport health from interactive
   session-worker health: backend closed -> `Backend disconnected`, backend open

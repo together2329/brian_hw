@@ -223,3 +223,40 @@ Verification recorded for this follow-up:
 - Computer Use E2E on the ATLAS Desktop window: footer and right rail both show
   `Agent worker failed · session worker failed`, confirming the UI no longer
   reports a false green ready state.
+
+## 2026-06-03 Session/IP Roster Follow-Up
+
+The session selector is part of the context key, not a cosmetic label. The
+intended active key is:
+
+```text
+user/workspace_session/ip_id/workflow
+```
+
+Creating a new workspace session must start at `default/default`; it must not
+carry the previous session's `ip_id` or workflow. Otherwise the UI immediately
+re-activates the old IP under the new session, making it look as if previous
+session state or workers leaked.
+
+The IP roster endpoint must also be scoped by `user/workspace_session`. A
+request for `alice/s1/...` may return IPs from `alice/s1`, but not from
+`alice/s2`. Owner-only requests such as `session_id=alice` remain a broad
+compatibility view for older callers; top-bar, side-panel, Git/Perforce/SOC UI
+surfaces should prefer the workspace-session-scoped form.
+
+Regression evidence:
+
+- `tests/test_atlas_multiuser_session_scope.py::test_ip_list_scopes_v2_workspace_session_per_user`
+  creates `alice/s1/ip_alpha` and `alice/s2/ip_beta`; `/api/ip/list?session_id=alice/s1/default/default`
+  returns only `ip_alpha`, and `/api/ip/list?session_id=alice/s2` returns only
+  `ip_beta`.
+- Web E2E on a temporary server at `127.0.0.1:3058`: loading
+  `alice/s1/ip_alpha/default` requested `/api/ip/list?session_id=alice/s1` and
+  set `window.IP_OPTIONS` to `["default", "ip_alpha"]`.
+- Web E2E create-session flow: pressing `+ Session`, creating `s3`, and waiting
+  for activation produced `ACTIVE_SESSION=alice/s3/default/default`,
+  `ATLAS_WORKSPACE_SESSION_ID=s3`, `ACTIVE_IP=default`, and
+  `IP_OPTIONS=["default"]`; no `ip_alpha`/`ip_beta` text remained on the page.
+- Computer Use on the existing ATLAS Desktop window confirmed it was attached to
+  a separate existing `127.0.0.1:3030` instance and now reports failed worker
+  state honestly instead of green ready.
