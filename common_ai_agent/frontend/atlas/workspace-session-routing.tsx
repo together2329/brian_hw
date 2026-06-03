@@ -120,6 +120,8 @@ export const stripScopeDirective = (t: any): any => {
 export function resolveActiveSession(): string {
   try {
     const url = new URLSearchParams(window.location.search);
+    const urlSession = normalizeUiSession(url.get('session') || url.get('sid') || url.get('namespace') || '');
+    const urlSessionParts = urlSession.split('/').filter(Boolean);
     const urlIp = String(url.get('ip') || url.get('ip_id') || '').trim();
     const urlWf = String(url.get('workflow') || url.get('wf') || '').trim()
       || defaultWorkflowForExecMode()
@@ -127,8 +129,29 @@ export function resolveActiveSession(): string {
     const username = (w.ATLAS_USER && w.ATLAS_USER.username)
       || w.ATLAS_USER_SESSION_ID
       || 'validator';
+    const workspaceSession = normalizeUiSession(
+      url.get('workspace_session')
+      || url.get('workspace')
+      || w.ATLAS_WORKSPACE_SESSION_ID
+      || (() => {
+        try { return localStorage.getItem('atlasWorkspaceSessionId') || ''; }
+        catch (_) { return ''; }
+      })()
+      || ''
+    ) || 'default';
+    if (urlSessionParts.length >= 4) {
+      return urlSession;
+    }
+    if (urlSessionParts.length === 3) {
+      return normalizeUiSession(`${urlSessionParts[0]}/${workspaceSession}/${urlSessionParts[1]}/${urlSessionParts[2]}`)
+        || `${urlSessionParts[0]}/${workspaceSession}/${urlSessionParts[1]}/${urlSessionParts[2]}`;
+    }
+    if (urlSessionParts.length === 2) {
+      return normalizeUiSession(`${username}/${workspaceSession}/${urlSessionParts[0]}/${urlSessionParts[1]}`)
+        || `${username}/${workspaceSession}/${urlSessionParts[0]}/${urlSessionParts[1]}`;
+    }
     if (urlIp && urlIp !== 'default') {
-      return normalizeUiSession(`${username}/default/${urlIp}/${urlWf}`) || `${username}/default/${urlIp}/${urlWf}`;
+      return normalizeUiSession(`${username}/${workspaceSession}/${urlIp}/${urlWf}`) || `${username}/${workspaceSession}/${urlIp}/${urlWf}`;
     }
     try {
       const stored = localStorage.getItem('atlasActiveSession') || '';

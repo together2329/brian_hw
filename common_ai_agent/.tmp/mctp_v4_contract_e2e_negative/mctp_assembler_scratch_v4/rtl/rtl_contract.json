@@ -1,0 +1,134 @@
+{
+  "schema_version": 1,
+  "type": "generic_ssot_rule_rtl_contract",
+  "ip": "mctp_assembler_scratch_v4",
+  "top": "mctp_assembler_scratch_v4",
+  "generated_at": "2026-05-31T11:10:00Z",
+  "contract": {
+    "top": "mctp_assembler_scratch_v4",
+    "transaction": "FM_ACCEPT_AXI_TLP",
+    "clock": "axi_aclk",
+    "reset": "axi_aresetn",
+    "reset_active": "low",
+    "sample_condition": "1",
+    "input_map": {
+      "m_axi_awaddr": "m_axi_awaddr",
+      "m_axi_awlen": "m_axi_awlen",
+      "m_axi_awsize": "m_axi_awsize",
+      "m_axi_awburst": "m_axi_awburst",
+      "m_axi_awvalid": "m_axi_awvalid",
+      "m_axi_wdata": "m_axi_wdata",
+      "m_axi_wstrb": "m_axi_wstrb",
+      "m_axi_wlast": "m_axi_wlast",
+      "m_axi_wvalid": "m_axi_wvalid",
+      "m_axi_bready": "m_axi_bready",
+      "m_axi_araddr": "m_axi_araddr",
+      "m_axi_arlen": "m_axi_arlen",
+      "m_axi_arsize": "m_axi_arsize",
+      "m_axi_arburst": "m_axi_arburst",
+      "m_axi_arvalid": "m_axi_arvalid",
+      "m_axi_rready": "m_axi_rready",
+      "paddr": "paddr",
+      "psel": "psel",
+      "penable": "penable",
+      "pwrite": "pwrite",
+      "pwdata": "pwdata",
+      "pstrb": "pstrb",
+      "sram_wr_ready": "sram_wr_ready",
+      "sram_rd_req_ready": "sram_rd_req_ready",
+      "sram_rd_rsp_valid": "sram_rd_rsp_valid",
+      "sram_rd_rsp_data": "sram_rd_rsp_data",
+      "sram_rd_rsp_error": "sram_rd_rsp_error"
+    },
+    "outputs": [
+      {"name": "axi_awready", "port": "m_axi_awready", "expr": "1", "width": 1},
+      {"name": "axi_wready", "port": "m_axi_wready", "expr": "1", "width": 1},
+      {"name": "axi_bvalid", "port": "m_axi_bvalid", "expr": "0", "width": 1},
+      {"name": "axi_bresp", "port": "m_axi_bresp", "expr": "0", "width": 2},
+      {"name": "axi_arready", "port": "m_axi_arready", "expr": "1", "width": 1},
+      {"name": "axi_rvalid", "port": "m_axi_rvalid", "expr": "0", "width": 1},
+      {"name": "axi_rresp", "port": "m_axi_rresp", "expr": "0", "width": 2},
+      {"name": "axi_rlast", "port": "m_axi_rlast", "expr": "0", "width": 1},
+      {"name": "sram_write_valid", "port": "sram_wr_valid", "expr": "0", "width": 1},
+      {"name": "sram_write_addr", "port": "sram_wr_addr", "expr": "0", "width": 16},
+      {"name": "sram_write_strb", "port": "sram_wr_strb", "expr": "0", "width": 32},
+      {"name": "sram_read_req_valid", "port": "sram_rd_req_valid", "expr": "0", "width": 1},
+      {"name": "apb_ready", "port": "pready", "expr": "psel and penable", "width": 1},
+      {"name": "apb_error", "port": "pslverr", "expr": "0", "width": 1},
+      {"name": "apb_read_data", "port": "prdata", "expr": "0", "width": 32},
+      {"name": "interrupt", "port": "irq", "expr": "0", "width": 1},
+      {"name": "debug_context_id", "port": "debug_context_id", "expr": "0", "width": 4},
+      {"name": "debug_context_key", "port": "debug_context_key", "expr": "0", "width": 18},
+      {"name": "debug_drop", "port": "debug_drop_pulse", "expr": "0", "width": 1},
+      {"name": "debug_vdm_valid", "port": "debug_vdm_valid", "expr": "0", "width": 1}
+    ],
+    "state_updates": [],
+    "state_vars": {},
+    "special_outputs": {
+      "ready_output": "m_axi_awready",
+      "output_valid": "sram_wr_valid"
+    },
+    "pipeline_stages": [
+      "axi_write_collect",
+      "pcie_vdm_parse",
+      "mctp_parse",
+      "context_lookup_update",
+      "sram_pack_write",
+      "descriptor_irq",
+      "axi_readback"
+    ],
+    "source": "scratch RTL + SSOT io_list + function_model output rules"
+  },
+  "owner_resolutions": [
+    {
+      "source_ref": "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_state",
+      "owner_module": "mctp_assembler_scratch_v4_context_table",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_context_table.sv"
+    },
+    {
+      "source_ref": "function_model.transactions.FM_ASSEMBLE_FRAGMENT.outputs.ctx_expected_seq",
+      "owner_module": "mctp_assembler_scratch_v4_context_table",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_context_table.sv"
+    },
+    {
+      "source_ref": "function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_state",
+      "owner_module": "mctp_assembler_scratch_v4_context_table",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_context_table.sv"
+    },
+    {
+      "source_ref": "function_model.transactions.FM_ASSEMBLE_FRAGMENT.state_updates.ctx_expected_seq",
+      "owner_module": "mctp_assembler_scratch_v4_context_table",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_context_table.sv"
+    },
+    {
+      "source_ref": "function_model.transactions.FM_COMPLETE_MESSAGE.output_rules.interrupt",
+      "owner_module": "mctp_assembler_scratch_v4",
+      "owner_file": "rtl/mctp_assembler_scratch_v4.sv"
+    },
+    {
+      "source_ref": "function_model.transactions.FM_PACKET_DROP.preconditions.precondition_0",
+      "owner_module": "mctp_assembler_scratch_v4",
+      "owner_file": "rtl/mctp_assembler_scratch_v4.sv"
+    },
+    {
+      "source_ref": "function_model.transactions.FM_PACKET_DROP.outputs.output_0",
+      "owner_module": "mctp_assembler_scratch_v4",
+      "owner_file": "rtl/mctp_assembler_scratch_v4.sv"
+    },
+    {
+      "source_ref": "function_model.transactions.FM_PACKET_DROP.output_rules.debug_drop_pulse",
+      "owner_module": "mctp_assembler_scratch_v4",
+      "owner_file": "rtl/mctp_assembler_scratch_v4.sv"
+    },
+    {
+      "source_ref": "function_model.transactions.FM_AXI_READBACK.outputs.output_3",
+      "owner_module": "mctp_assembler_scratch_v4_axi_read_egress",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_axi_read_egress.sv"
+    },
+    {
+      "source_ref": "security.assets.asset_1",
+      "owner_module": "mctp_assembler_scratch_v4_descriptor_queue",
+      "owner_file": "rtl/mctp_assembler_scratch_v4_descriptor_queue.sv"
+    }
+  ]
+}

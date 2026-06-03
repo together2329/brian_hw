@@ -1,0 +1,605 @@
+{
+  "schema_version": 1,
+  "type": "mismatch_owner_routes",
+  "ip": "mctp_assembler_scratch_v4",
+  "generated_at": "2026-05-31T11:45:42Z",
+  "source": "mctp_assembler_scratch_v4/sim/mismatch_classification.json",
+  "status": "complete",
+  "total": 65,
+  "owner_counts": {
+    "tb-gen": 33,
+    "rtl-gen": 32
+  },
+  "classification_counts": {
+    "tb_bug": 33,
+    "rtl_bug": 32
+  },
+  "unresolved": [],
+  "routes": [
+    {
+      "goal_id": "EQ_TRANSACTION_FM_FILTER_VDM",
+      "classification": "tb_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_TRANSACTION_FM_FILTER_VDM. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: debug_drop_pulse: expected=1 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: vdm_supported, packet_drop_reason",
+      "reason": "debug_drop_pulse: expected=1 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: vdm_supported, packet_drop_reason"
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM_PARSE_MCTP",
+      "classification": "tb_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_TRANSACTION_FM_PARSE_MCTP. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: debug_context_key: expected=3587 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: source_eid, destination_eid, tag_owner, message_tag, message_type, packet_seq, som, eom",
+      "reason": "debug_context_key: expected=3587 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: source_eid, destination_eid, tag_owner, message_tag, message_type, packet_seq, som, eom"
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM_ASSEMBLE_FRAGMENT",
+      "classification": "tb_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_TRANSACTION_FM_ASSEMBLE_FRAGMENT. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: debug_context_id: expected=4 observed=0; ctx_state: expected=1 observed=0; ctx_valid: expected=4 observed=0; payload_byte_count: expected=16 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: context_accept, context_alloc, context_id, payload_len, packet_seq, next_seq",
+      "reason": "debug_context_id: expected=4 observed=0; ctx_state: expected=1 observed=0; ctx_valid: expected=4 observed=0; payload_byte_count: expected=16 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: context_accept, context_alloc, context_id, payload_len, packet_seq, next_seq"
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM_SRAM_PACK_WRITE",
+      "classification": "tb_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_TRANSACTION_FM_SRAM_PACK_WRITE. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: sram_write_valid: expected=1 observed=0; sram_wr_valid: expected=1 observed=0; sram_write_addr: expected=52 observed=0; sram_wr_addr: expected=52 observed=0; sram_write_data: expected=17 observed=0; sram_wr_data: expected=17 observed=0; sram_write_strb: expected=17 observed=0; sram_wr_strb: expected=17 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: payload_valid, payload_len, lane_advance, word_full, eom, current_word_addr, payload_data_word, payload_byte_strobe, ... +1",
+      "reason": "sram_write_valid: expected=1 observed=0; sram_wr_valid: expected=1 observed=0; sram_write_addr: expected=52 observed=0; sram_wr_addr: expected=52 observed=0; sram_write_data: expected=17 observed=0; sram_wr_data: expected=17 observed=0; sram_write_strb: expected=17 observed=0; sram_wr_strb: expected=17 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: payload_valid, payload_len, lane_advance, word_full, eom, current_word_addr, payload_data_word, payload_byte_strobe, ... +1"
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM_COMPLETE_MESSAGE",
+      "classification": "tb_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_TRANSACTION_FM_COMPLETE_MESSAGE. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: descriptor_count: expected=6 observed=0; ctx_state: expected=3 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: eom, descriptor_ready, descriptor_publish",
+      "reason": "descriptor_count: expected=6 observed=0; ctx_state: expected=3 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: eom, descriptor_ready, descriptor_publish"
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM_PACKET_DROP",
+      "classification": "tb_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_TRANSACTION_FM_PACKET_DROP. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: debug_drop_pulse: expected=1 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: packet_drop_reason",
+      "reason": "debug_drop_pulse: expected=1 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: packet_drop_reason"
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM_ASSEMBLY_DROP",
+      "classification": "tb_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_TRANSACTION_FM_ASSEMBLY_DROP. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: debug_drop_pulse: expected=1 observed=0; interrupt: expected=1 observed='x'; irq: expected=1 observed='x'; ctx_error: expected=1 observed=0; ctx_state: expected=2 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: assembly_drop_reason",
+      "reason": "debug_drop_pulse: expected=1 observed=0; interrupt: expected=1 observed='x'; irq: expected=1 observed='x'; ctx_error: expected=1 observed=0; ctx_state: expected=2 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: assembly_drop_reason"
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM_APB_ACCESS",
+      "classification": "rtl_bug",
+      "owner": "rtl-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair RTL for EQ_TRANSACTION_FM_APB_ACCESS. Keep SSOT and FunctionalModel expected behavior unchanged. Use equivalence goal pass criteria and scoreboard mismatch evidence. Reason: apb_error: expected=1 observed=0; pslverr: expected=1 observed=0",
+      "reason": "apb_error: expected=1 observed=0; pslverr: expected=1 observed=0"
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM_AXI_READBACK",
+      "classification": "tb_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_TRANSACTION_FM_AXI_READBACK. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: readback_data_out: expected=22 observed=0; m_axi_rdata: expected=22 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: axi_ar_accept, read_has_descriptor, readback_data, read_last",
+      "reason": "readback_data_out: expected=22 observed=0; m_axi_rdata: expected=22 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: axi_ar_accept, read_has_descriptor, readback_data, read_last"
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_VALID_SINGLE_PACKET",
+      "classification": "rtl_bug",
+      "owner": "rtl-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair RTL for EQ_SCENARIO_SC_VALID_SINGLE_PACKET. Keep SSOT and FunctionalModel expected behavior unchanged. Use equivalence goal pass criteria and scoreboard mismatch evidence. Reason: ctx_state: expected=1 observed=0; payload_byte_count: expected=16 observed=0",
+      "reason": "ctx_state: expected=1 observed=0; payload_byte_count: expected=16 observed=0"
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_MULTI_FRAGMENT_TU64",
+      "classification": "rtl_bug",
+      "owner": "rtl-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair RTL for EQ_SCENARIO_SC_MULTI_FRAGMENT_TU64. Keep SSOT and FunctionalModel expected behavior unchanged. Use equivalence goal pass criteria and scoreboard mismatch evidence. Reason: ctx_state: expected=1 observed=0; payload_byte_count: expected=16 observed=0",
+      "reason": "ctx_state: expected=1 observed=0; payload_byte_count: expected=16 observed=0"
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_MAX_TU_4096_129_BEATS",
+      "classification": "rtl_bug",
+      "owner": "rtl-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair RTL for EQ_SCENARIO_SC_MAX_TU_4096_129_BEATS. Keep SSOT and FunctionalModel expected behavior unchanged. Use equivalence goal pass criteria and scoreboard mismatch evidence. Reason: bvalid_next: expected=0 observed=1; m_axi_bvalid: expected=0 observed=1",
+      "reason": "bvalid_next: expected=0 observed=1; m_axi_bvalid: expected=0 observed=1"
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_UNALIGNED_SRAM_PACK_NO_HOLES",
+      "classification": "rtl_bug",
+      "owner": "rtl-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair RTL for EQ_SCENARIO_SC_UNALIGNED_SRAM_PACK_NO_HOLES. Keep SSOT and FunctionalModel expected behavior unchanged. Use equivalence goal pass criteria and scoreboard mismatch evidence. Reason: ctx_partial_next_lane: expected=5 observed=0",
+      "reason": "ctx_partial_next_lane: expected=5 observed=0"
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_AXI_READBACK_TRIM",
+      "classification": "rtl_bug",
+      "owner": "rtl-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair RTL for EQ_SCENARIO_SC_AXI_READBACK_TRIM. Keep SSOT and FunctionalModel expected behavior unchanged. Use equivalence goal pass criteria and scoreboard mismatch evidence. Reason: readback_valid: expected=0 observed=1; m_axi_rvalid: expected=0 observed=1; readback_last: expected=0 observed=1; m_axi_rlast: expected=0 observed=1",
+      "reason": "readback_valid: expected=0 observed=1; m_axi_rvalid: expected=0 observed=1; readback_last: expected=0 observed=1; m_axi_rlast: expected=0 observed=1"
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_APB_REGS_PER_Q",
+      "classification": "rtl_bug",
+      "owner": "rtl-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair RTL for EQ_SCENARIO_SC_APB_REGS_PER_Q. Keep SSOT and FunctionalModel expected behavior unchanged. Use equivalence goal pass criteria and scoreboard mismatch evidence. Reason: readback_resp: expected=2 observed=0; m_axi_rresp: expected=2 observed=0",
+      "reason": "readback_resp: expected=2 observed=0; m_axi_rresp: expected=2 observed=0"
+    },
+    {
+      "goal_id": "EQ_SCENARIO_PD_DISABLED_DROP_MODE",
+      "classification": "rtl_bug",
+      "owner": "rtl-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair RTL for EQ_SCENARIO_PD_DISABLED_DROP_MODE. Keep SSOT and FunctionalModel expected behavior unchanged. Use equivalence goal pass criteria and scoreboard mismatch evidence. Reason: ctx_state: expected=1 observed=0; payload_byte_count: expected=16 observed=0",
+      "reason": "ctx_state: expected=1 observed=0; payload_byte_count: expected=16 observed=0"
+    },
+    {
+      "goal_id": "EQ_SCENARIO_PD_BAD_PAD_OR_ALIGNMENT",
+      "classification": "rtl_bug",
+      "owner": "rtl-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair RTL for EQ_SCENARIO_PD_BAD_PAD_OR_ALIGNMENT. Keep SSOT and FunctionalModel expected behavior unchanged. Use equivalence goal pass criteria and scoreboard mismatch evidence. Reason: ctx_partial_next_lane: expected=5 observed=0",
+      "reason": "ctx_partial_next_lane: expected=5 observed=0"
+    },
+    {
+      "goal_id": "EQ_SCENARIO_PD_UNEXPECTED_MIDDLE_END",
+      "classification": "rtl_bug",
+      "owner": "rtl-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair RTL for EQ_SCENARIO_PD_UNEXPECTED_MIDDLE_END. Keep SSOT and FunctionalModel expected behavior unchanged. Use equivalence goal pass criteria and scoreboard mismatch evidence. Reason: ctx_state: expected=1 observed=0; payload_byte_count: expected=16 observed=0",
+      "reason": "ctx_state: expected=1 observed=0; payload_byte_count: expected=16 observed=0"
+    },
+    {
+      "goal_id": "EQ_SCENARIO_PD_BAD_OR_EXPIRED_TAG",
+      "classification": "rtl_bug",
+      "owner": "rtl-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair RTL for EQ_SCENARIO_PD_BAD_OR_EXPIRED_TAG. Keep SSOT and FunctionalModel expected behavior unchanged. Use equivalence goal pass criteria and scoreboard mismatch evidence. Reason: ctx_partial_next_lane: expected=5 observed=0",
+      "reason": "ctx_partial_next_lane: expected=5 observed=0"
+    },
+    {
+      "goal_id": "EQ_SCENARIO_AD_DUPLICATE_SOM",
+      "classification": "rtl_bug",
+      "owner": "rtl-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair RTL for EQ_SCENARIO_AD_DUPLICATE_SOM. Keep SSOT and FunctionalModel expected behavior unchanged. Use equivalence goal pass criteria and scoreboard mismatch evidence. Reason: ctx_state: expected=1 observed=0; payload_byte_count: expected=16 observed=0",
+      "reason": "ctx_state: expected=1 observed=0; payload_byte_count: expected=16 observed=0"
+    },
+    {
+      "goal_id": "EQ_SCENARIO_AD_SEQUENCE_MISMATCH",
+      "classification": "rtl_bug",
+      "owner": "rtl-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair RTL for EQ_SCENARIO_AD_SEQUENCE_MISMATCH. Keep SSOT and FunctionalModel expected behavior unchanged. Use equivalence goal pass criteria and scoreboard mismatch evidence. Reason: ctx_state: expected=1 observed=0; payload_byte_count: expected=16 observed=0",
+      "reason": "ctx_state: expected=1 observed=0; payload_byte_count: expected=16 observed=0"
+    },
+    {
+      "goal_id": "EQ_SCENARIO_AD_MESSAGE_OVERFLOW",
+      "classification": "rtl_bug",
+      "owner": "rtl-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair RTL for EQ_SCENARIO_AD_MESSAGE_OVERFLOW. Keep SSOT and FunctionalModel expected behavior unchanged. Use equivalence goal pass criteria and scoreboard mismatch evidence. Reason: ctx_partial_next_lane: expected=5 observed=0",
+      "reason": "ctx_partial_next_lane: expected=5 observed=0"
+    },
+    {
+      "goal_id": "EQ_SCENARIO_AD_SRAM_OVERFLOW",
+      "classification": "rtl_bug",
+      "owner": "rtl-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair RTL for EQ_SCENARIO_AD_SRAM_OVERFLOW. Keep SSOT and FunctionalModel expected behavior unchanged. Use equivalence goal pass criteria and scoreboard mismatch evidence. Reason: ctx_partial_next_lane: expected=5 observed=0",
+      "reason": "ctx_partial_next_lane: expected=5 observed=0"
+    },
+    {
+      "goal_id": "EQ_SCENARIO_AD_DESCRIPTOR_FULL",
+      "classification": "rtl_bug",
+      "owner": "rtl-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair RTL for EQ_SCENARIO_AD_DESCRIPTOR_FULL. Keep SSOT and FunctionalModel expected behavior unchanged. Use equivalence goal pass criteria and scoreboard mismatch evidence. Reason: ctx_state: expected=2 observed=0",
+      "reason": "ctx_state: expected=2 observed=0"
+    },
+    {
+      "goal_id": "EQ_SCENARIO_AD_TIMEOUT",
+      "classification": "rtl_bug",
+      "owner": "rtl-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair RTL for EQ_SCENARIO_AD_TIMEOUT. Keep SSOT and FunctionalModel expected behavior unchanged. Use equivalence goal pass criteria and scoreboard mismatch evidence. Reason: ctx_state: expected=1 observed=0; payload_byte_count: expected=16 observed=0",
+      "reason": "ctx_state: expected=1 observed=0; payload_byte_count: expected=16 observed=0"
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_AXI_WRITE_CHANNELS",
+      "classification": "rtl_bug",
+      "owner": "rtl-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair RTL for EQ_PROTOCOL_AXI_WRITE_CHANNELS. Keep SSOT and FunctionalModel expected behavior unchanged. Use equivalence goal pass criteria and scoreboard mismatch evidence. Reason: bvalid_next: expected=0 observed=1; m_axi_bvalid: expected=0 observed=1",
+      "reason": "bvalid_next: expected=0 observed=1; m_axi_bvalid: expected=0 observed=1"
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_AXI_READ_CHANNELS",
+      "classification": "rtl_bug",
+      "owner": "rtl-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair RTL for EQ_PROTOCOL_AXI_READ_CHANNELS. Keep SSOT and FunctionalModel expected behavior unchanged. Use equivalence goal pass criteria and scoreboard mismatch evidence. Reason: readback_resp: expected=2 observed=0; m_axi_rresp: expected=2 observed=0",
+      "reason": "readback_resp: expected=2 observed=0; m_axi_rresp: expected=2 observed=0"
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_APB_ACCESS",
+      "classification": "rtl_bug",
+      "owner": "rtl-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair RTL for EQ_PROTOCOL_APB_ACCESS. Keep SSOT and FunctionalModel expected behavior unchanged. Use equivalence goal pass criteria and scoreboard mismatch evidence. Reason: bvalid_next: expected=0 observed=1; m_axi_bvalid: expected=0 observed=1",
+      "reason": "bvalid_next: expected=0 observed=1; m_axi_bvalid: expected=0 observed=1"
+    },
+    {
+      "goal_id": "EQ_TIMING_ONE_TLP_PER_AXI_WRITE_TRANSACTION",
+      "classification": "tb_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_TIMING_ONE_TLP_PER_AXI_WRITE_TRANSACTION. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: bvalid_next: expected=0 observed=1; m_axi_bvalid: expected=0 observed=1; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: transaction_order",
+      "reason": "bvalid_next: expected=0 observed=1; m_axi_bvalid: expected=0 observed=1; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: transaction_order"
+    },
+    {
+      "goal_id": "EQ_TIMING_PER_KEY_FRAGMENT_ORDER",
+      "classification": "tb_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_TIMING_PER_KEY_FRAGMENT_ORDER. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: ctx_state: expected=1 observed=0; payload_byte_count: expected=16 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: transaction_order",
+      "reason": "ctx_state: expected=1 observed=0; payload_byte_count: expected=16 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: transaction_order"
+    },
+    {
+      "goal_id": "EQ_TIMING_DESCRIPTOR_AFTER_SRAM_FLUSH",
+      "classification": "tb_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_TIMING_DESCRIPTOR_AFTER_SRAM_FLUSH. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: ctx_partial_next_lane: expected=5 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: transaction_order",
+      "reason": "ctx_partial_next_lane: expected=5 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: transaction_order"
+    },
+    {
+      "goal_id": "EQ_TIMING_READBACK_AFTER_DESCRIPTOR",
+      "classification": "tb_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_TIMING_READBACK_AFTER_DESCRIPTOR. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: readback_resp: expected=2 observed=0; m_axi_rresp: expected=2 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: transaction_order",
+      "reason": "readback_resp: expected=2 observed=0; m_axi_rresp: expected=2 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: transaction_order"
+    },
+    {
+      "goal_id": "EQ_REGISTER_GLOBAL_CTRL",
+      "classification": "rtl_bug",
+      "owner": "rtl-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair RTL for EQ_REGISTER_GLOBAL_CTRL. Keep SSOT and FunctionalModel expected behavior unchanged. Use equivalence goal pass criteria and scoreboard mismatch evidence. Reason: bvalid_next: expected=0 observed=1; m_axi_bvalid: expected=0 observed=1",
+      "reason": "bvalid_next: expected=0 observed=1; m_axi_bvalid: expected=0 observed=1"
+    },
+    {
+      "goal_id": "EQ_REGISTER_GLOBAL_STATUS",
+      "classification": "rtl_bug",
+      "owner": "rtl-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair RTL for EQ_REGISTER_GLOBAL_STATUS. Keep SSOT and FunctionalModel expected behavior unchanged. Use equivalence goal pass criteria and scoreboard mismatch evidence. Reason: readback_resp: expected=2 observed=0; m_axi_rresp: expected=2 observed=0",
+      "reason": "readback_resp: expected=2 observed=0; m_axi_rresp: expected=2 observed=0"
+    },
+    {
+      "goal_id": "EQ_REGISTER_IRQ_STATUS",
+      "classification": "rtl_bug",
+      "owner": "rtl-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair RTL for EQ_REGISTER_IRQ_STATUS. Keep SSOT and FunctionalModel expected behavior unchanged. Use equivalence goal pass criteria and scoreboard mismatch evidence. Reason: bvalid_next: expected=0 observed=1; m_axi_bvalid: expected=0 observed=1",
+      "reason": "bvalid_next: expected=0 observed=1; m_axi_bvalid: expected=0 observed=1"
+    },
+    {
+      "goal_id": "EQ_REGISTER_PACKET_DROP_COUNT",
+      "classification": "rtl_bug",
+      "owner": "rtl-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair RTL for EQ_REGISTER_PACKET_DROP_COUNT. Keep SSOT and FunctionalModel expected behavior unchanged. Use equivalence goal pass criteria and scoreboard mismatch evidence. Reason: readback_valid: expected=0 observed=1; m_axi_rvalid: expected=0 observed=1; readback_last: expected=0 observed=1; m_axi_rlast: expected=0 observed=1",
+      "reason": "readback_valid: expected=0 observed=1; m_axi_rvalid: expected=0 observed=1; readback_last: expected=0 observed=1; m_axi_rlast: expected=0 observed=1"
+    },
+    {
+      "goal_id": "EQ_REGISTER_ASSEMBLY_DROP_COUNT",
+      "classification": "rtl_bug",
+      "owner": "rtl-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair RTL for EQ_REGISTER_ASSEMBLY_DROP_COUNT. Keep SSOT and FunctionalModel expected behavior unchanged. Use equivalence goal pass criteria and scoreboard mismatch evidence. Reason: readback_resp: expected=2 observed=0; m_axi_rresp: expected=2 observed=0",
+      "reason": "readback_resp: expected=2 observed=0; m_axi_rresp: expected=2 observed=0"
+    },
+    {
+      "goal_id": "EQ_REGISTER_SRAM_BASE",
+      "classification": "rtl_bug",
+      "owner": "rtl-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair RTL for EQ_REGISTER_SRAM_BASE. Keep SSOT and FunctionalModel expected behavior unchanged. Use equivalence goal pass criteria and scoreboard mismatch evidence. Reason: bvalid_next: expected=0 observed=1; m_axi_bvalid: expected=0 observed=1",
+      "reason": "bvalid_next: expected=0 observed=1; m_axi_bvalid: expected=0 observed=1"
+    },
+    {
+      "goal_id": "EQ_REGISTER_Q_STATE",
+      "classification": "rtl_bug",
+      "owner": "rtl-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair RTL for EQ_REGISTER_Q_STATE. Keep SSOT and FunctionalModel expected behavior unchanged. Use equivalence goal pass criteria and scoreboard mismatch evidence. Reason: readback_valid: expected=0 observed=1; m_axi_rvalid: expected=0 observed=1; readback_last: expected=0 observed=1; m_axi_rlast: expected=0 observed=1",
+      "reason": "readback_valid: expected=0 observed=1; m_axi_rvalid: expected=0 observed=1; readback_last: expected=0 observed=1; m_axi_rlast: expected=0 observed=1"
+    },
+    {
+      "goal_id": "EQ_REGISTER_Q_KEY",
+      "classification": "rtl_bug",
+      "owner": "rtl-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair RTL for EQ_REGISTER_Q_KEY. Keep SSOT and FunctionalModel expected behavior unchanged. Use equivalence goal pass criteria and scoreboard mismatch evidence. Reason: readback_resp: expected=2 observed=0; m_axi_rresp: expected=2 observed=0",
+      "reason": "readback_resp: expected=2 observed=0; m_axi_rresp: expected=2 observed=0"
+    },
+    {
+      "goal_id": "EQ_REGISTER_Q_PAYLOAD_BASE",
+      "classification": "rtl_bug",
+      "owner": "rtl-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair RTL for EQ_REGISTER_Q_PAYLOAD_BASE. Keep SSOT and FunctionalModel expected behavior unchanged. Use equivalence goal pass criteria and scoreboard mismatch evidence. Reason: bvalid_next: expected=0 observed=1; m_axi_bvalid: expected=0 observed=1",
+      "reason": "bvalid_next: expected=0 observed=1; m_axi_bvalid: expected=0 observed=1"
+    },
+    {
+      "goal_id": "EQ_REGISTER_Q_PAYLOAD_COUNT",
+      "classification": "rtl_bug",
+      "owner": "rtl-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair RTL for EQ_REGISTER_Q_PAYLOAD_COUNT. Keep SSOT and FunctionalModel expected behavior unchanged. Use equivalence goal pass criteria and scoreboard mismatch evidence. Reason: readback_resp: expected=2 observed=0; m_axi_rresp: expected=2 observed=0",
+      "reason": "readback_resp: expected=2 observed=0; m_axi_rresp: expected=2 observed=0"
+    },
+    {
+      "goal_id": "EQ_MEMORY_CONTEXT_TABLE",
+      "classification": "rtl_bug",
+      "owner": "rtl-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair RTL for EQ_MEMORY_CONTEXT_TABLE. Keep SSOT and FunctionalModel expected behavior unchanged. Use equivalence goal pass criteria and scoreboard mismatch evidence. Reason: ctx_partial_next_lane: expected=5 observed=0",
+      "reason": "ctx_partial_next_lane: expected=5 observed=0"
+    },
+    {
+      "goal_id": "EQ_MEMORY_DESCRIPTOR_FIFO",
+      "classification": "tb_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_MEMORY_DESCRIPTOR_FIFO. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: ctx_partial_next_lane: expected=5 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: op, addr, data",
+      "reason": "ctx_partial_next_lane: expected=5 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: op, addr, data"
+    },
+    {
+      "goal_id": "EQ_MEMORY_PARTIAL_WORD_BUFFER",
+      "classification": "rtl_bug",
+      "owner": "rtl-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair RTL for EQ_MEMORY_PARTIAL_WORD_BUFFER. Keep SSOT and FunctionalModel expected behavior unchanged. Use equivalence goal pass criteria and scoreboard mismatch evidence. Reason: ctx_partial_next_lane: expected=5 observed=0",
+      "reason": "ctx_partial_next_lane: expected=5 observed=0"
+    },
+    {
+      "goal_id": "EQ_MEMORY_PAYLOAD_SRAM_WINDOW",
+      "classification": "tb_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_MEMORY_PAYLOAD_SRAM_WINDOW. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: ctx_partial_next_lane: expected=5 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: op, addr, data",
+      "reason": "ctx_partial_next_lane: expected=5 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: op, addr, data"
+    },
+    {
+      "goal_id": "EQ_ERROR_NONE",
+      "classification": "tb_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_ERROR_NONE. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: bvalid_next: expected=0 observed=1; m_axi_bvalid: expected=0 observed=1; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: fault_condition",
+      "reason": "bvalid_next: expected=0 observed=1; m_axi_bvalid: expected=0 observed=1; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: fault_condition"
+    },
+    {
+      "goal_id": "EQ_STATE_CONTEXT_FSM_IDLE_TO_ASSEMBLING_0",
+      "classification": "tb_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_STATE_CONTEXT_FSM_IDLE_TO_ASSEMBLING_0. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: ctx_state: expected=1 observed=0; payload_byte_count: expected=16 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: pre_state, stimulus",
+      "reason": "ctx_state: expected=1 observed=0; payload_byte_count: expected=16 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: pre_state, stimulus"
+    },
+    {
+      "goal_id": "EQ_STATE_CONTEXT_FSM_ASSEMBLING_TO_DONE_WAIT_DESCRIPTOR_POP_2",
+      "classification": "tb_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_STATE_CONTEXT_FSM_ASSEMBLING_TO_DONE_WAIT_DESCRIPTOR_POP_2. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: descriptor_count: expected=6 observed=0; ctx_state: expected=3 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: pre_state, stimulus",
+      "reason": "descriptor_count: expected=6 observed=0; ctx_state: expected=3 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: pre_state, stimulus"
+    },
+    {
+      "goal_id": "EQ_STATE_CONTEXT_FSM_IDLE_TO_ERROR_3",
+      "classification": "tb_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_STATE_CONTEXT_FSM_IDLE_TO_ERROR_3. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: ctx_state: expected=1 observed=0; payload_byte_count: expected=16 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: pre_state, stimulus",
+      "reason": "ctx_state: expected=1 observed=0; payload_byte_count: expected=16 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: pre_state, stimulus"
+    },
+    {
+      "goal_id": "EQ_STATE_CONTEXT_FSM_ASSEMBLING_TO_ERROR_4",
+      "classification": "tb_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_STATE_CONTEXT_FSM_ASSEMBLING_TO_ERROR_4. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: ctx_state: expected=1 observed=0; payload_byte_count: expected=16 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: pre_state, stimulus",
+      "reason": "ctx_state: expected=1 observed=0; payload_byte_count: expected=16 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: pre_state, stimulus"
+    },
+    {
+      "goal_id": "EQ_STATE_CONTEXT_FSM_DONE_WAIT_DESCRIPTOR_POP_TO_IDLE_5",
+      "classification": "tb_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_STATE_CONTEXT_FSM_DONE_WAIT_DESCRIPTOR_POP_TO_IDLE_5. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: descriptor_count: expected=6 observed=0; ctx_state: expected=3 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: pre_state, stimulus",
+      "reason": "descriptor_count: expected=6 observed=0; ctx_state: expected=3 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: pre_state, stimulus"
+    },
+    {
+      "goal_id": "EQ_STATE_CONTEXT_FSM_ERROR_TO_IDLE_6",
+      "classification": "tb_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_STATE_CONTEXT_FSM_ERROR_TO_IDLE_6. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: ctx_state: expected=1 observed=0; payload_byte_count: expected=16 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: pre_state, stimulus",
+      "reason": "ctx_state: expected=1 observed=0; payload_byte_count: expected=16 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: pre_state, stimulus"
+    },
+    {
+      "goal_id": "EQ_MODULE_MCTP_ASSEMBLER_SCRATCH_AXI_WRITE_INGRESS",
+      "classification": "tb_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_MODULE_MCTP_ASSEMBLER_SCRATCH_AXI_WRITE_INGRESS. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: bvalid_next: expected=1 observed=0; m_axi_bvalid: expected=1 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: axi_aw_accept, axi_wlast_seen, tlp_byte_count",
+      "reason": "bvalid_next: expected=1 observed=0; m_axi_bvalid: expected=1 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: axi_aw_accept, axi_wlast_seen, tlp_byte_count"
+    },
+    {
+      "goal_id": "EQ_MODULE_MCTP_ASSEMBLER_SCRATCH_MCTP_PARSER",
+      "classification": "tb_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_MODULE_MCTP_ASSEMBLER_SCRATCH_MCTP_PARSER. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: bvalid_next: expected=1 observed=0; m_axi_bvalid: expected=1 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: axi_aw_accept, axi_wlast_seen, tlp_byte_count",
+      "reason": "bvalid_next: expected=1 observed=0; m_axi_bvalid: expected=1 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: axi_aw_accept, axi_wlast_seen, tlp_byte_count"
+    },
+    {
+      "goal_id": "EQ_MODULE_MCTP_ASSEMBLER_SCRATCH_SRAM_PACKER",
+      "classification": "tb_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_MODULE_MCTP_ASSEMBLER_SCRATCH_SRAM_PACKER. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: bvalid_next: expected=1 observed=0; m_axi_bvalid: expected=1 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: axi_aw_accept, axi_wlast_seen, tlp_byte_count",
+      "reason": "bvalid_next: expected=1 observed=0; m_axi_bvalid: expected=1 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: axi_aw_accept, axi_wlast_seen, tlp_byte_count"
+    },
+    {
+      "goal_id": "EQ_MODULE_MCTP_ASSEMBLER_SCRATCH_SRAM_ARBITER",
+      "classification": "tb_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_MODULE_MCTP_ASSEMBLER_SCRATCH_SRAM_ARBITER. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: bvalid_next: expected=1 observed=0; m_axi_bvalid: expected=1 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: axi_aw_accept, axi_wlast_seen, tlp_byte_count",
+      "reason": "bvalid_next: expected=1 observed=0; m_axi_bvalid: expected=1 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: axi_aw_accept, axi_wlast_seen, tlp_byte_count"
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CCOV_BACKPRESSURE",
+      "classification": "tb_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_COVERAGE_CCOV_BACKPRESSURE. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: bvalid_next: expected=1 observed=0; m_axi_bvalid: expected=1 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: axi_aw_accept, axi_wlast_seen, tlp_byte_count",
+      "reason": "bvalid_next: expected=1 observed=0; m_axi_bvalid: expected=1 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: axi_aw_accept, axi_wlast_seen, tlp_byte_count"
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_DEFAULT",
+      "classification": "tb_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_COVERAGE_CYCLE_LATENCY_DEFAULT. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: bvalid_next: expected=1 observed=0; m_axi_bvalid: expected=1 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: axi_aw_accept, axi_wlast_seen, tlp_byte_count",
+      "reason": "bvalid_next: expected=1 observed=0; m_axi_bvalid: expected=1 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: axi_aw_accept, axi_wlast_seen, tlp_byte_count"
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_PCIE_VDM_FILTER",
+      "classification": "tb_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_COVERAGE_CYCLE_PIPELINE_PCIE_VDM_FILTER. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: bvalid_next: expected=1 observed=0; m_axi_bvalid: expected=1 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: axi_aw_accept, axi_wlast_seen, tlp_byte_count",
+      "reason": "bvalid_next: expected=1 observed=0; m_axi_bvalid: expected=1 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: axi_aw_accept, axi_wlast_seen, tlp_byte_count"
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_CONTEXT_LOOKUP_UPDATE",
+      "classification": "tb_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_COVERAGE_CYCLE_PIPELINE_CONTEXT_LOOKUP_UPDATE. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: bvalid_next: expected=1 observed=0; m_axi_bvalid: expected=1 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: axi_aw_accept, axi_wlast_seen, tlp_byte_count",
+      "reason": "bvalid_next: expected=1 observed=0; m_axi_bvalid: expected=1 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: axi_aw_accept, axi_wlast_seen, tlp_byte_count"
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_DESCRIPTOR_IRQ",
+      "classification": "tb_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_COVERAGE_CYCLE_PIPELINE_DESCRIPTOR_IRQ. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: bvalid_next: expected=1 observed=0; m_axi_bvalid: expected=1 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: axi_aw_accept, axi_wlast_seen, tlp_byte_count",
+      "reason": "bvalid_next: expected=1 observed=0; m_axi_bvalid: expected=1 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: axi_aw_accept, axi_wlast_seen, tlp_byte_count"
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+      "classification": "tb_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_COVERAGE_CYCLE_BACKPRESSURE_0. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: bvalid_next: expected=1 observed=0; m_axi_bvalid: expected=1 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: axi_aw_accept, axi_wlast_seen, tlp_byte_count",
+      "reason": "bvalid_next: expected=1 observed=0; m_axi_bvalid: expected=1 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: axi_aw_accept, axi_wlast_seen, tlp_byte_count"
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_2",
+      "classification": "tb_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_COVERAGE_CYCLE_BACKPRESSURE_2. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: bvalid_next: expected=1 observed=0; m_axi_bvalid: expected=1 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: axi_aw_accept, axi_wlast_seen, tlp_byte_count",
+      "reason": "bvalid_next: expected=1 observed=0; m_axi_bvalid: expected=1 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: axi_aw_accept, axi_wlast_seen, tlp_byte_count"
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+      "classification": "tb_bug",
+      "owner": "tb-gen",
+      "llm_loop_allowed": true,
+      "status": "owner_classified_blocker",
+      "repair_prompt": "Repair TB/scoreboard/coverage for EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ. Keep expected values sourced from FunctionalModel.apply and SSOT. Reason: bvalid_next: expected=1 observed=0; m_axi_bvalid: expected=1 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: axi_aw_accept, axi_wlast_seen, tlp_byte_count",
+      "reason": "bvalid_next: expected=1 observed=0; m_axi_bvalid: expected=1 observed=0; TB stimulus carries FunctionalModel-only required fields that are not driven through input_map/input_ports and no protocol encoder or machine_spec is present: axi_aw_accept, axi_wlast_seen, tlp_byte_count"
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+module mctp_assembler_scratch_v4_safety_properties (
+    input logic axi_aclk,
+    input logic axi_aresetn,
+    input logic m_axi_awvalid,
+    input logic m_axi_awready,
+    input logic [31:0] m_axi_awaddr,
+    input logic [7:0] m_axi_awlen,
+    input logic m_axi_wvalid,
+    input logic m_axi_wready,
+    input logic [255:0] m_axi_wdata,
+    input logic [31:0] m_axi_wstrb,
+    input logic m_axi_wlast,
+    input logic m_axi_arvalid,
+    input logic m_axi_arready,
+    input logic [31:0] m_axi_araddr,
+    input logic [7:0] m_axi_arlen,
+    input logic sram_wr_valid,
+    input logic sram_wr_ready,
+    input logic descriptor_valid,
+    input logic packet_drop_pulse,
+    input logic assembly_drop_pulse,
+    input logic [1:0] q0_state,
+    input logic [1:0] q1_state,
+    input logic [1:0] q2_state,
+    input logic [1:0] q3_state
+);
+    default clocking cb @(posedge axi_aclk); endclocking
+    default disable iff (!axi_aresetn);
+
+    property p_axi_aw_stable_while_wait;
+        m_axi_awvalid && !m_axi_awready |=> m_axi_awvalid && $stable(m_axi_awaddr) && $stable(m_axi_awlen);
+    endproperty
+    assert property (p_axi_aw_stable_while_wait);
+
+    property p_axi_w_stable_while_wait;
+        m_axi_wvalid && !m_axi_wready |=> m_axi_wvalid && $stable(m_axi_wdata) && $stable(m_axi_wstrb) && $stable(m_axi_wlast);
+    endproperty
+    assert property (p_axi_w_stable_while_wait);
+
+    property p_axi_ar_stable_while_wait;
+        m_axi_arvalid && !m_axi_arready |=> m_axi_arvalid && $stable(m_axi_araddr) && $stable(m_axi_arlen);
+    endproperty
+    assert property (p_axi_ar_stable_while_wait);
+
+    property p_drop_suppresses_descriptor_same_cycle;
+        packet_drop_pulse || assembly_drop_pulse |-> !descriptor_valid;
+    endproperty
+    assert property (p_drop_suppresses_descriptor_same_cycle);
+
+    property p_sram_write_requires_ready_valid;
+        sram_wr_valid |-> !$isunknown(sram_wr_ready);
+    endproperty
+    assert property (p_sram_write_requires_ready_valid);
+
+    property p_q_states_legal;
+        q0_state <= 2'd2 && q1_state <= 2'd2 && q2_state <= 2'd2 && q3_state <= 2'd2;
+    endproperty
+    assert property (p_q_states_legal);
+endmodule

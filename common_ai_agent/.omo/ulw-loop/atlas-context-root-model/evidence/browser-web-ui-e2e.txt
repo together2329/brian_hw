@@ -1,0 +1,19 @@
+{
+  "href": "http://127.0.0.1:3001/?session=webalice%2Fs1%2FNEWIP_MCTP%2Fdefault&session_id=webalice&workspace_session=s1&ip=NEWIP_MCTP&workflow=default",
+  "activeSession": "webalice/s1/NEWIP_MCTP/default",
+  "activeIp": "NEWIP_MCTP",
+  "scopePath": "NEWIP_MCTP",
+  "workspaceSession": "default",
+  "atlasUser": "",
+  "localActive": "webalice/s1/NEWIP_MCTP/default",
+  "localUser": "webalice",
+  "localWorkspace": "default",
+  "contextActiveSession": "webalice/s1/NEWIP_MCTP/default",
+  "contextProjectRoot": "/private/tmp/atlas-ui-e2e-root.ItXmGI/webalice/default",
+  "contextCwd": "/private/tmp/atlas-ui-e2e-root.ItXmGI",
+  "fileTreeCount": 0,
+  "fileTreeError": "login required",
+  "textHasSessionControl": false,
+  "textHasIpControl": false,
+  "textSnippet": "ATLAS\nSign in\nUsername\nPassword\nLogin\nRegister"
+}

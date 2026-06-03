@@ -1,0 +1,6 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1780229079" />
+    <testcase name="fl_rtl_equivalence_goals" classname="test_mctp_assembler_scratch_v4" file="/Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_scratch_v4/tb/cocotb/test_mctp_assembler_scratch_v4.py" lineno="1187" time="11.146944046020508" sim_time_ns="17215.001" ratio_time="1544.3695535679851" />
+  </testsuite>
+</testsuites>

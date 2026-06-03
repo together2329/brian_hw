@@ -212,7 +212,8 @@ export function normalizeSessionName(value: unknown): string {
   if (
     parts.length > 2 &&
     KNOWN_WORKFLOWS.has(String(parts[parts.length - 1]).toLowerCase()) &&
-    ((pathish && !hadSessionMarker) || parts.length > 3)
+    pathish &&
+    !hadSessionMarker
   ) {
     parts = parts.slice(-2);
   }

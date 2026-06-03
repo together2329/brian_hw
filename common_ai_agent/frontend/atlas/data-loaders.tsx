@@ -512,9 +512,13 @@ export function createDataLoaders(deps: DataLoaderDeps): DataLoaders {
   async function refreshHealth(): Promise<void> {
     try {
       const activeSession = normalizeSessionName(w.ACTIVE_SESSION || URL_ACTIVE_SESSION || '');
-      const healthUrl = activeSession
-        ? `/healthz?session_id=${encodeURIComponent(activeSession)}`
-        : '/healthz';
+      const activeParts = activeSession.split('/').filter(Boolean);
+      const activeWorkspaceSession = activeParts.length >= 4 ? activeParts[1] : '';
+      const healthParams = new URLSearchParams();
+      if (activeSession) healthParams.set('session_id', activeSession);
+      if (activeWorkspaceSession) healthParams.set('workspace_session', activeWorkspaceSession);
+      const healthQuery = healthParams.toString();
+      const healthUrl = healthQuery ? `/healthz?${healthQuery}` : '/healthz';
       const r = await fetch(healthUrl);
       if (!r.ok) return;
       const d = await r.json();
@@ -581,7 +585,7 @@ export function createDataLoaders(deps: DataLoaderDeps): DataLoaders {
       const effectiveRoute = routeSessionInfo(effectiveSession);
       const effectiveParts = effectiveSession.split('/').filter(Boolean);
       const workspaceSession = normalizeSessionName(
-        d.workspace_session || (effectiveParts.length >= 4 ? effectiveParts[1] : '')
+        (effectiveParts.length >= 4 ? effectiveParts[1] : '') || d.workspace_session || ''
       );
       if (workspaceSession) {
         (w as any).ATLAS_WORKSPACE_SESSION_ID = workspaceSession;

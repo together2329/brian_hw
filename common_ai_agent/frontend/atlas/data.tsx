@@ -43,6 +43,7 @@ import {
   normalizeScopePath,
   createUserSessionId,
   normalizeSessionName,
+  activeIpFromSession,
   sessionPartsEndWithWorkflow,
   KNOWN_WORKFLOWS,
   normalizeTodos,
@@ -461,8 +462,7 @@ const w = window as any;
       // Scope is no longer user-browsable: the left file tree is always
       // rooted at the active IP. The IP_ID dropdown is the only control
       // that changes this root; folder clicks only fold/unfold locally.
-      const sess = String(w.ACTIVE_SESSION || '').split('/').filter(Boolean);
-      const activeIp = sess.length >= 2 && sess[1] !== DEFAULT_WORKFLOW ? sess[1] : '';
+      const activeIp = activeIpFromSession(w.ACTIVE_SESSION || '');
       if (activeIp) {
         next = activeIp;
       } else {
