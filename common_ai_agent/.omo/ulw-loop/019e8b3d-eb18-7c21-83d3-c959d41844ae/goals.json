@@ -1,7 +1,7 @@
 {
   "version": 1,
   "createdAt": "2026-06-03T11:22:01.953Z",
-  "updatedAt": "2026-06-03T11:34:56.836Z",
+  "updatedAt": "2026-06-03T11:36:38.901Z",
   "briefPath": ".omo/ulw-loop/019e8b3d-eb18-7c21-83d3-c959d41844ae/brief.md",
   "goalsPath": ".omo/ulw-loop/019e8b3d-eb18-7c21-83d3-c959d41844ae/goals.json",
   "ledgerPath": ".omo/ulw-loop/019e8b3d-eb18-7c21-83d3-c959d41844ae/ledger.jsonl",
@@ -18,31 +18,35 @@
           "scenario": "HTTP call + CLI transcript: run focused orchestrator positive path tests, then use a FastAPI TestClient HTTP scenario to POST /api/pipeline/dispatch with exec_mode=orchestrator against mock workers and capture /api/jobs JSON showing rtl/lint completed only after required evidence exists.",
           "userModel": "happy",
           "expectedEvidence": ".omo/ulw-loop/evidence/orchestrator-positive-http.txt containing command output, HTTP request/response JSON, completed rtl/lint statuses, and cleanup receipt.",
-          "capturedEvidence": null,
-          "status": "pending"
+          "capturedEvidence": ".omo/ulw-loop/evidence/orchestrator-positive-http.txt | cleanup: TestClient tempdir removed after context; no live worker/server process spawned",
+          "status": "pass",
+          "capturedAt": "2026-06-03T11:36:27.348Z",
+          "notes": "Focused positive orchestrator tests pass; TestClient HTTP dispatch shows rtl/lint completed only with rtl_compile/lint/stage-engine artifacts and DB passed rows."
         },
         {
           "id": "C002",
           "scenario": "HTTP call + CLI transcript: run negative orchestrator evidence tests and use TestClient HTTP scenario where worker reports completed without evidence; capture /api/jobs, /api/pipeline/state, and DB workflow_runs showing owner stage error/blocked and downstream blocked, not green.",
           "userModel": "edge",
           "expectedEvidence": ".omo/ulw-loop/evidence/orchestrator-negative-http.txt containing command output, HTTP/state/DB JSON, error/blocked statuses, and cleanup receipt.",
-          "capturedEvidence": null,
-          "status": "pending"
+          "capturedEvidence": ".omo/ulw-loop/evidence/orchestrator-negative-http.txt | cleanup: TestClient tempdirs removed after contexts; no live worker/server process spawned",
+          "status": "pass",
+          "capturedAt": "2026-06-03T11:36:32.239Z",
+          "notes": "Negative TestClient HTTP dispatch shows missing evidence becomes rtl error + lint blocked, while stage-engine blocked preserves rtl blocked + downstream blocked in jobs/state/DB."
         },
         {
           "id": "C003",
           "scenario": "Browser/API/CLI regression: verify frontend picker and UI status rendering tests, single-worker policy tests, and a browser or Playwright UI smoke selecting orchestrator and observing blocked/failed surface state without breaking single-worker mode.",
           "userModel": "regression",
           "expectedEvidence": ".omo/ulw-loop/evidence/orchestrator-ui-single-worker.txt containing vitest/pytest output, browser or Playwright action log with picker state, UI blocked/failed assertion, and cleanup receipt.",
-          "capturedEvidence": ".omo/ulw-loop/evidence/orchestrator-ui-single-worker.txt",
+          "capturedEvidence": ".omo/ulw-loop/evidence/orchestrator-ui-single-worker.txt | cleanup: Vite Playwright smoke killed server, closed browser context, screenshot persisted",
           "status": "pass",
-          "capturedAt": "2026-06-03T11:34:56.836Z",
+          "capturedAt": "2026-06-03T11:36:38.901Z",
           "notes": "Backend policy tests, frontend vitest, and Playwright Vite component smoke verify exec picker single-worker→orchestrator and blocked/failed owner UI."
         }
       ],
       "attempt": 1,
       "createdAt": "2026-06-03T11:22:01.953Z",
-      "updatedAt": "2026-06-03T11:34:56.836Z",
+      "updatedAt": "2026-06-03T11:36:38.901Z",
       "startedAt": "2026-06-03T11:22:32.458Z"
     }
   ],

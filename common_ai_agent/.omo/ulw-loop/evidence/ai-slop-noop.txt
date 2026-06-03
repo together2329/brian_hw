@@ -1,0 +1,18 @@
+AI slop cleanup report: no-op pass
+
+Scope:
+  Orchestrator stabilization ULW execution.
+
+Reason:
+  No source files were modified during this ULW execution. Current git diff
+  outside .omo/ulw-loop is empty, so there is no newly introduced code to clean.
+
+Verification after no-op:
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest tests/test_atlas_exec_policy.py tests/test_atlas_api_pipeline_state.py::test_pipeline_run_policy_get_post_and_state_payload tests/test_atlas_api_pipeline_state.py::test_orchestrator_mode_post_toggles_env_and_state_payload tests/test_atlas_api_pipeline_state.py::test_pipeline_state_preserves_blocked_db_row_as_blocked tests/test_orchestrator_workers_route.py tests/test_pipeline_orchestrator_worker_integration.py -q
+  Result: 39 passed, 5 skipped.
+
+  cd frontend/atlas && ./node_modules/.bin/vitest run __tests__/pipeline-stage-blocked.test.tsx __tests__/app-shell-font-select.test.tsx __tests__/exec-policy.test.mjs __tests__/session-routing.test.mjs
+  Result: 4 files passed, 25 tests passed.
+
+  cd frontend/atlas && npm run build
+  Result: vite build passed.
