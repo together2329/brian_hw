@@ -38,6 +38,8 @@ def _json_any(value: Any) -> Any:
 def _session_parts(session_id: str) -> tuple[str, str, str]:
     parts = [p for p in _text(session_id).split("/") if p]
     owner = parts[0] if len(parts) > 0 else ""
+    if len(parts) >= 4:
+        return owner, parts[2], parts[3]
     ip = parts[1] if len(parts) > 1 else ""
     workflow = parts[2] if len(parts) > 2 else ""
     return owner, ip, workflow

@@ -105,7 +105,10 @@ def _atlas_runtime_session_context(
     parts = [part for part in session_id.split("/") if part]
     ip_id = ""
     workflow = fallback_workflow or _atlas_runtime_workflow(cfg)
-    if len(parts) >= 3:
+    if len(parts) >= 4:
+        ip_id = parts[2]
+        workflow = parts[3] or workflow
+    elif len(parts) >= 3:
         ip_id = parts[1]
         workflow = parts[2] or workflow
     elif len(parts) == 2:

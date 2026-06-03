@@ -18,11 +18,13 @@ from typing import Any, Callable, Optional
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
+from core.atlas_context_paths import AtlasContext
 from core.scm import (
     configured_scm_provider,
     resolve_scm_adapter,
     scm_provider_allows_missing_git_dir,
 )
+from core.session_names import normalize_session_name
 
 
 def register_git_routes(
@@ -77,10 +79,38 @@ def register_git_routes(
             return None, JSONResponse({"error": f"{label} not found", label: str(resolved)}, status_code=404)
         return resolved, None
 
+    def _context_atlas_root() -> Path:
+        raw = os.environ.get("ATLAS_ROOT", "").strip()
+        return (Path(raw).expanduser() if raw else project_root()).resolve()
+
+    def _context_for_session(session_id: str) -> tuple[AtlasContext | None, JSONResponse | None]:
+        session = normalize_session_name(str(session_id or ""))
+        if not session:
+            return None, None
+        parts = [part for part in session.split("/") if part]
+        if len(parts) not in {3, 4}:
+            return None, JSONResponse(
+                {"error": "session_id must be owner/ip/workflow or user/session/ip/workflow"},
+                status_code=400,
+            )
+        try:
+            return AtlasContext.from_session_key(session, atlas_root=_context_atlas_root()), None
+        except ValueError as exc:
+            return None, JSONResponse({"error": str(exc)}, status_code=400)
+
+    def _root_relative_base(local_root: Path) -> Path:
+        project = project_root().resolve()
+        try:
+            local_root.resolve().relative_to(project)
+            return project
+        except ValueError:
+            return local_root.resolve().parent
+
     def _default_scm_root(provider: str, local_root: Path) -> Path:
         selected = _request_provider(provider) or configured_scm_provider()
         if selected != "perforce":
             return local_root
+        relative_base = _root_relative_base(local_root)
         configured = (
             os.environ.get("ATLAS_SCM_ROOT_PERFORCE", "").strip()
             or os.environ.get("ATLAS_PERFORCE_ROOT", "").strip()
@@ -89,16 +119,17 @@ def register_git_routes(
         if configured:
             candidate = Path(configured).expanduser()
             if not candidate.is_absolute():
-                candidate = project_root() / candidate
+                candidate = relative_base / candidate
             if candidate.is_dir():
                 return candidate.resolve()
-        candidate = project_root() / "perforce"
-        return candidate.resolve() if candidate.is_dir() else project_root().resolve()
+        candidate = relative_base / "perforce"
+        return candidate.resolve() if candidate.is_dir() else relative_base.resolve()
 
     def _scm_roots_for_ip(
         ip: str,
         provider: str = "",
         scm_root_value: str = "",
+        session_id: str = "",
     ) -> tuple[str | None, str | None, JSONResponse | None, str]:
         """Resolve the cwd for a per-IP SCM workspace.
 
@@ -107,9 +138,15 @@ def register_git_routes(
         outer workspace for a missing per-IP workspace makes submit/push hit
         the wrong source-control root.
         """
+        context, context_error = _context_for_session(session_id)
+        if context_error is not None:
+            return None, None, context_error, ""
         clean = str(ip or "").strip()
+        if context is not None and not clean:
+            clean = context.ip_name
+        workspace_root = context.workspace_root.resolve() if context is not None else project_root().resolve()
         if not clean:
-            local_root = project_root().resolve()
+            local_root = workspace_root
             explicit_scm, explicit_error = _resolve_existing_root(scm_root_value, "scmRoot")
             if explicit_error is not None:
                 return None, None, explicit_error, ""
@@ -117,9 +154,9 @@ def register_git_routes(
             return str(local_root), str(scm_root), None, ""
         if not valid_ip_name(clean):
             return None, None, JSONResponse({"error": "invalid ip", "ip": clean}, status_code=400), clean
-        candidate = (project_root() / clean).resolve()
+        candidate = (workspace_root / clean).resolve()
         try:
-            candidate.relative_to(project_root().resolve())
+            candidate.relative_to(workspace_root)
         except ValueError:
             return None, None, JSONResponse({"error": "ip path escapes project root", "ip": clean}, status_code=400), clean
         if not candidate.is_dir():
@@ -139,16 +176,24 @@ def register_git_routes(
         ip: str,
         provider: str = "",
         scm_root_value: str = "",
+        session_id: str = "",
     ) -> tuple[str | None, str | None, JSONResponse | None, str]:
-        return _scm_roots_for_ip(ip or active_ip_value(), provider=provider, scm_root_value=scm_root_value)
+        return _scm_roots_for_ip(
+            ip or active_ip_value(),
+            provider=provider,
+            scm_root_value=scm_root_value,
+            session_id=session_id,
+        )
 
     def _root_fields(local_root: str | None, scm_root: str | None) -> dict[str, str | None]:
         return {"cwd": local_root, "localRoot": local_root, "scmRoot": scm_root}
 
     @app.get("/api/scm/status")
     @app.get("/api/git/status")
-    async def api_git_status(ip: str = "", provider: str = "", scm_root: str = ""):
-        local_root, scm_root_path, error, resolved_ip = _route_roots(ip, provider=provider, scm_root_value=scm_root)
+    async def api_git_status(ip: str = "", provider: str = "", scm_root: str = "", session_id: str = ""):
+        local_root, scm_root_path, error, resolved_ip = _route_roots(
+            ip, provider=provider, scm_root_value=scm_root, session_id=session_id,
+        )
         if error is not None:
             return error
         kwargs = {"local_root": local_root} if _request_provider(provider) == "perforce" else {}
@@ -171,8 +216,10 @@ def register_git_routes(
 
     @app.get("/api/scm/log")
     @app.get("/api/git/log")
-    async def api_git_log(ip: str = "", limit: int = 60, provider: str = "", scm_root: str = ""):
-        local_root, scm_root_path, error, resolved_ip = _route_roots(ip, provider=provider, scm_root_value=scm_root)
+    async def api_git_log(ip: str = "", limit: int = 60, provider: str = "", scm_root: str = "", session_id: str = ""):
+        local_root, scm_root_path, error, resolved_ip = _route_roots(
+            ip, provider=provider, scm_root_value=scm_root, session_id=session_id,
+        )
         if error is not None:
             return error
         log = await _scm_call(scm_root_path, "log", limit, provider=provider)
@@ -194,8 +241,17 @@ def register_git_routes(
 
     @app.get("/api/scm/show")
     @app.get("/api/git/show")
-    async def api_git_show(sha: str = "", revision: str = "", ip: str = "", provider: str = "", scm_root: str = ""):
-        local_root, scm_root_path, error, resolved_ip = _route_roots(ip, provider=provider, scm_root_value=scm_root)
+    async def api_git_show(
+        sha: str = "",
+        revision: str = "",
+        ip: str = "",
+        provider: str = "",
+        scm_root: str = "",
+        session_id: str = "",
+    ):
+        local_root, scm_root_path, error, resolved_ip = _route_roots(
+            ip, provider=provider, scm_root_value=scm_root, session_id=session_id,
+        )
         if error is not None:
             return error
         selected_revision = (sha or revision).strip()
@@ -232,8 +288,11 @@ def register_git_routes(
         provider: str = "",
         scm_root: str = "",
         stream: str = "",
+        session_id: str = "",
     ):
-        local_root, scm_root_path, error, resolved_ip = _route_roots(ip, provider=provider, scm_root_value=scm_root)
+        local_root, scm_root_path, error, resolved_ip = _route_roots(
+            ip, provider=provider, scm_root_value=scm_root, session_id=session_id,
+        )
         if error is not None:
             return error
         kwargs = {"local_root": local_root} if _request_provider(provider) == "perforce" else {}
@@ -265,11 +324,12 @@ def register_git_routes(
         stream = str(body.get("stream") or "")
         changelist = str(body.get("changelist") or body.get("change") or "")
         scm_root_value = str(body.get("scmRoot") or body.get("scm_root") or "")
+        session_id = str(body.get("session_id") or body.get("sessionId") or body.get("active_session") or "")
         if not message:
             return JSONResponse({"error": "commit message required"},
                                  status_code=400)
         local_root, scm_root_path, error, resolved_ip = _route_roots(
-            str(body.get("ip") or ""), provider=provider, scm_root_value=scm_root_value,
+            str(body.get("ip") or ""), provider=provider, scm_root_value=scm_root_value, session_id=session_id,
         )
         if error is not None:
             return error
@@ -294,8 +354,9 @@ def register_git_routes(
         body = payload or {}
         provider = str(body.get("provider") or "")
         scm_root_value = str(body.get("scmRoot") or body.get("scm_root") or "")
+        session_id = str(body.get("session_id") or body.get("sessionId") or body.get("active_session") or "")
         local_root, scm_root_path, error, resolved_ip = _route_roots(
-            str(body.get("ip") or ""), provider=provider, scm_root_value=scm_root_value,
+            str(body.get("ip") or ""), provider=provider, scm_root_value=scm_root_value, session_id=session_id,
         )
         if error is not None:
             return error
@@ -352,9 +413,10 @@ def register_git_routes(
         revision = str(body.get("revision") or "")
         stream = str(body.get("stream") or "")
         scm_root_value = str(body.get("scmRoot") or body.get("scm_root") or "")
+        session_id = str(body.get("session_id") or body.get("sessionId") or body.get("active_session") or "")
         target_paths = body.get("targetPaths") or body.get("target_paths") or []
         local_root, scm_root_path, error, resolved_ip = _route_roots(
-            str(body.get("ip") or ""), provider=provider, scm_root_value=scm_root_value,
+            str(body.get("ip") or ""), provider=provider, scm_root_value=scm_root_value, session_id=session_id,
         )
         if error is not None:
             return error
@@ -387,11 +449,14 @@ def register_git_routes(
         provider: str = "",
         stream: str = "",
         scm_root: str = "",
+        session_id: str = "",
         local_dir: str = "",
         depot_dir: str = "",
     ):
         # Two-pane Perforce Sync view: local / depot / pending. Provider-specific.
-        local_root, scm_root_path, error, resolved_ip = _route_roots(ip, provider=provider, scm_root_value=scm_root)
+        local_root, scm_root_path, error, resolved_ip = _route_roots(
+            ip, provider=provider, scm_root_value=scm_root, session_id=session_id,
+        )
         if error is not None:
             return error
         kwargs = {"local_root": local_root}
@@ -426,8 +491,9 @@ def register_git_routes(
         target_paths = body.get("targetPaths") or body.get("target_paths") or []
         changelist = str(body.get("changelist") or body.get("change") or "")
         scm_root_value = str(body.get("scmRoot") or body.get("scm_root") or "")
+        session_id = str(body.get("session_id") or body.get("sessionId") or body.get("active_session") or "")
         local_root, scm_root_path, error, resolved_ip = _route_roots(
-            str(body.get("ip") or ""), provider=provider, scm_root_value=scm_root_value,
+            str(body.get("ip") or ""), provider=provider, scm_root_value=scm_root_value, session_id=session_id,
         )
         if error is not None:
             return error
@@ -451,8 +517,9 @@ def register_git_routes(
         stream = str(body.get("stream") or "")
         paths = body.get("paths") or []
         scm_root_value = str(body.get("scmRoot") or body.get("scm_root") or "")
+        session_id = str(body.get("session_id") or body.get("sessionId") or body.get("active_session") or "")
         local_root, scm_root_path, error, resolved_ip = _route_roots(
-            str(body.get("ip") or ""), provider=provider, scm_root_value=scm_root_value,
+            str(body.get("ip") or ""), provider=provider, scm_root_value=scm_root_value, session_id=session_id,
         )
         if error is not None:
             return error
@@ -476,8 +543,9 @@ def register_git_routes(
         source_root = str(body.get("sourceRoot") or body.get("source_root") or "local").strip().lower()
         changelist = str(body.get("changelist") or body.get("change") or "")
         scm_root_value = str(body.get("scmRoot") or body.get("scm_root") or "")
+        session_id = str(body.get("session_id") or body.get("sessionId") or body.get("active_session") or "")
         local_root, scm_root_path, error, resolved_ip = _route_roots(
-            str(body.get("ip") or ""), provider=provider, scm_root_value=scm_root_value,
+            str(body.get("ip") or ""), provider=provider, scm_root_value=scm_root_value, session_id=session_id,
         )
         if error is not None:
             return error

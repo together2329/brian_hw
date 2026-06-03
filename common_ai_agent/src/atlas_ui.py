@@ -927,6 +927,8 @@ def _atlas_fast_prompt_kind(text: str) -> str:
 
 def _atlas_session_route_parts(session_id: str) -> tuple[str, str, str]:
     parts = [part for part in normalize_session_name(str(session_id or "")).split("/") if part]
+    if len(parts) >= 4:
+        return parts[0], parts[2], parts[3]
     while len(parts) < 3:
         parts.append("default")
     return parts[0], parts[1], parts[2]
@@ -3270,7 +3272,11 @@ def create_app():
         provider = str(value or "").strip().lower()
         return "" if provider in {"", "auto", "default"} else provider
 
-    def _resolve_ip_path(name: str, provider: str = "") -> Path | tuple[None, JSONResponse]:
+    def _resolve_ip_path(
+        name: str,
+        provider: str = "",
+        session_id: str = "",
+    ) -> Path | tuple[None, JSONResponse]:
         """Validate a path-segment-style IP name and return its on-disk dir.
 
         Returns a Path on success, or a (None, JSONResponse) tuple on
@@ -3278,9 +3284,20 @@ def create_app():
         clean = str(name or "").strip()
         if not clean or "/" in clean or "\\" in clean or ".." in clean:
             return None, JSONResponse({"error": "invalid ip name"}, status_code=400)
-        target = (PROJECT_ROOT / clean).resolve()
+        base = PROJECT_ROOT.resolve()
+        session = normalize_session_name(str(session_id or ""))
+        if session:
+            try:
+                context = AtlasContext.from_session_key(
+                    session,
+                    atlas_root=os.environ.get("ATLAS_ROOT") or str(PROJECT_ROOT),
+                )
+                base = context.workspace_root.resolve()
+            except ValueError as exc:
+                return None, JSONResponse({"error": str(exc)}, status_code=400)
+        target = (base / clean).resolve()
         try:
-            target.relative_to(PROJECT_ROOT.resolve())
+            target.relative_to(base)
         except ValueError:
             return None, JSONResponse({"error": "outside project root"}, status_code=400)
         if not target.is_dir():
@@ -3301,7 +3318,8 @@ def create_app():
             body = {}
         message = str((body or {}).get("message") or "").strip() or "commit"
         provider = _git_route_provider((body or {}).get("provider"))
-        resolved = _resolve_ip_path(name, provider=provider)
+        session_id = str((body or {}).get("session_id") or (body or {}).get("sessionId") or "")
+        resolved = _resolve_ip_path(name, provider=provider, session_id=session_id)
         if isinstance(resolved, tuple):
             _, err = resolved
             return err
@@ -3329,10 +3347,10 @@ def create_app():
             return JSONResponse({"error": str(exc)}, status_code=500)
 
     @app.get("/api/ip/{name}/git/log")
-    async def api_ip_git_log(name: str, limit: int = 50, provider: str = ""):
+    async def api_ip_git_log(name: str, limit: int = 50, provider: str = "", session_id: str = ""):
         """Return the last N commits of the per-IP repo as JSON."""
         provider = _git_route_provider(provider)
-        resolved = _resolve_ip_path(name, provider=provider)
+        resolved = _resolve_ip_path(name, provider=provider, session_id=session_id)
         if isinstance(resolved, tuple):
             _, err = resolved
             return err
@@ -3500,13 +3518,13 @@ def create_app():
         return _StarResponse(content=resp_body, status_code=status, headers=headers)
 
     @app.get("/api/ip/{name}/git/graph")
-    async def api_ip_git_graph(name: str, limit: int = 80, provider: str = ""):
+    async def api_ip_git_graph(name: str, limit: int = 80, provider: str = "", session_id: str = ""):
         """ASCII graph of the per-IP commit history. Returns the raw
         `git log --graph --oneline --decorate --all` text plus a parsed
         commit list so the frontend can render either a monospaced graph
         or a structured list."""
         provider = _git_route_provider(provider)
-        resolved = _resolve_ip_path(name, provider=provider)
+        resolved = _resolve_ip_path(name, provider=provider, session_id=session_id)
         if isinstance(resolved, tuple):
             _, err = resolved
             return err
@@ -3536,7 +3554,8 @@ def create_app():
             body = {}
         target_hash = str((body or {}).get("hash") or "").strip()
         provider = _git_route_provider((body or {}).get("provider"))
-        resolved = _resolve_ip_path(name, provider=provider)
+        session_id = str((body or {}).get("session_id") or (body or {}).get("sessionId") or "")
+        resolved = _resolve_ip_path(name, provider=provider, session_id=session_id)
         if isinstance(resolved, tuple):
             _, err = resolved
             return err
@@ -9516,8 +9535,12 @@ def create_app():
             return
         parts = [part for part in session.split("/") if part]
         owner = parts[0].strip() if len(parts) >= 1 else ""
-        ip = parts[1].strip() if len(parts) >= 2 else ""
-        workflow = parts[2].strip() if len(parts) >= 3 else ""
+        if len(parts) >= 4:
+            ip = parts[2].strip()
+            workflow = parts[3].strip()
+        else:
+            ip = parts[1].strip() if len(parts) >= 2 else ""
+            workflow = parts[2].strip() if len(parts) >= 3 else ""
         _atlas_active_session_cv.set(session)
         if ip:
             _atlas_active_ip_cv.set(ip)
