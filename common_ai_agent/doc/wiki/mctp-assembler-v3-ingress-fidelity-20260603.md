@@ -52,6 +52,26 @@ pass → TESTS=2 PASS=2, compile/`-Wall` clean.
   assertions, `check_sim_pass.sh`) were **not** run. The passing cocotb TB is
   hand-authored and directed, not the workflow scoreboard.
 
+## Authoritative signoff verdict (the wiki's definition of "closed")
+
+Ran the canonical gates (`check_ip_signoff.py`) instead of trusting the hand TB:
+
+```
+status=fail  gates: 8/18 pass, 10 fail, 0 blocked
+PASS: ssot, ip_contract, fl_model, cl_model, equivalence_goals(90),
+      rtl_compile, mutation_guard(advisory), verification_hardening(advisory)
+FAIL: rtl_todo (open_required=337, static_missing=276 → 8/9 modules unauthored),
+      rtl_provenance(missing), lint(23 warnings), tb_python_compile(missing),
+      simulation(no sim/results.xml), simulation_quality(missing),
+      scoreboard(no sim/scoreboard_events.jsonl, rows=0), coverage(missing),
+      truth_coverage(0/72 obligations covered), waivers(no goal_ledger.json)
+```
+
+The hand-authored cocotb TB (TESTS=2 PASS=2) lives in `tb/cocotb/` and emits NO
+`sim/scoreboard_events.jsonl` / `simulation_quality.json` / `cov/coverage.json`, so it
+contributes **zero** to signoff — textbook silent-green (runner PASS ≠ scoreboard PASS).
+Bar to match: `mctp_assembler_scratch` = 18/18, truth 95/95, scoreboard 86/86.
+
 ## Lesson
 
 The workflow's intent (req → golden FL → equivalence gate) is sound and would have
