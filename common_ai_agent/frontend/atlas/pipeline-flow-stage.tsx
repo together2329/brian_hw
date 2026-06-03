@@ -571,7 +571,11 @@ interface StageInfo {
   locked_reason?: string;
   scoresheet?: unknown;
   history?: unknown[];
-  blame?: StageBlame;
+  // Backend /api/pipeline/state emits blame as a BARE STRING workflow name for
+  // sim failures (atlas_api_jobs stage_blame), but the orchestrator/handoff
+  // path produces the richer { owner_workflow, feedback_packet } object. Accept
+  // BOTH shapes; StageCard normalizes via blameOwner / blamePacket below.
+  blame?: StageBlame | string;
   handoffs?: StageHandoffs;
   error_summary?: string;
   [key: string]: unknown;
@@ -596,6 +600,22 @@ export function StageCard({ stageId, info, ip, onChain }: StageCardProps) {
   const isFailed  = stageState === 'failed'  || stageState === 'err';
   const isPassed  = stageState === 'passed'  || stageState === 'ok';
   const isLocked  = stageState === 'locked';
+  // Mirror the pillLabel grouping ('stale' -> 'blocked') in PipelineFlowMap so a
+  // blocked/stale owner-routed stage exposes the same blame route + handoff UI a
+  // failed stage does.
+  const isBlocked = stageState === 'blocked' || stageState === 'stale';
+  // Normalize blame: the backend live payload sends a bare STRING workflow name,
+  // while the orchestrator/handoff path sends { owner_workflow, feedback_packet }.
+  // blameOwner is the routed owner under either shape; blamePacket is only the
+  // object form's repair packet.
+  const blameOwner = (
+    data.blame && typeof data.blame === 'object'
+      ? data.blame.owner_workflow
+      : (typeof data.blame === 'string' ? data.blame : '')
+  ) || '';
+  const blamePacket = (data.blame && typeof data.blame === 'object')
+    ? (data.blame.feedback_packet || '')
+    : '';
   const cardRef = useRef<HTMLDivElement>(null);
 
   // Allow the DAG map (or chip click) to scroll/focus this card.
@@ -642,7 +662,7 @@ export function StageCard({ stageId, info, ip, onChain }: StageCardProps) {
   };
 
   const goFix = async (): Promise<void> => {
-    const owner = (data.blame && data.blame.owner_workflow) || '';
+    const owner = blameOwner;
     if (!owner || !ip) return;
     const ownerStage = (win.PIPELINE_STAGES || []).find((s: string) => {
       // Map workflow id back to stage id heuristically.
@@ -655,8 +675,8 @@ export function StageCard({ stageId, info, ip, onChain }: StageCardProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ip, stages: [ownerStage], schedule: 'serial',
-          prompt: data.blame && data.blame.feedback_packet
-            ? `Repair feedback packet: ${data.blame.feedback_packet}`
+          prompt: blamePacket
+            ? `Repair feedback packet: ${blamePacket}`
             : '',
           ...win.pipelinePolicyPayload!(),
         }),

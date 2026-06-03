@@ -15,6 +15,20 @@ class TestSessionNameNormalization(unittest.TestCase):
             "u-mabc123/dma330/rtl-gen",
         )
 
+    def test_accepts_user_workspace_ip_workflow_namespace(self):
+        self.assertEqual(
+            normalize_session_name("alice/s1/NEWIP_MCTP/ssot-gen"),
+            "alice/s1/NEWIP_MCTP/ssot-gen",
+        )
+
+    def test_accepts_four_level_session_path_with_marker(self):
+        self.assertEqual(
+            normalize_session_name(
+                r"C:\repo\NEW_ATLAS\.session\alice\s1\NEWIP_MCTP\ssot-gen\conversation.json"
+            ),
+            "alice/s1/NEWIP_MCTP/ssot-gen",
+        )
+
     def test_accepts_three_level_session_path_with_marker(self):
         self.assertEqual(
             normalize_session_name(
