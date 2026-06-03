@@ -62,3 +62,27 @@ def test_desktop_launcher_appends_ip_to_backend_url_query() -> None:
 
     assert result.returncode == 0, result.stdout
     assert "http://127.0.0.1:4321/?existing=1&ip=demo_ip" in result.stdout
+
+
+def test_desktop_launcher_defaults_root_to_home_atlas(tmp_path: Path) -> None:
+    env_home = tmp_path / "home"
+    env_home.mkdir()
+    env = {
+        **os.environ,
+        "ATLAS_DESKTOP_DRY_RUN": "1",
+        "HOME": str(env_home),
+    }
+    result = subprocess.run(
+        ["bash", str(SCRIPT), "--ip", "NEWIP_MCTP", "--workflow", "default"],
+        check=False,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        env=env,
+    )
+
+    default_root = env_home / "ATLAS"
+    assert result.returncode == 0, result.stdout
+    assert default_root.is_dir()
+    assert f"--root {default_root}" in result.stdout
+    assert f"ATLAS_ROOT={default_root}" in result.stdout

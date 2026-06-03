@@ -189,8 +189,56 @@ def test_session_activate_records_db_control_plane_namespace(tmp_path, monkeypat
         assert session["summary"]["ip"] == "spi_core"
         assert session["summary"]["workflow"] == "orchestrator"
         listed = {row["id"]: row for row in db.list_all_sessions()}
-        assert listed["alice/spi_core/orchestrator"]["ip"] == "spi_core"
-        assert listed["alice/spi_core/orchestrator"]["workflow"] == "orchestrator"
+            assert listed["alice/spi_core/orchestrator"]["ip"] == "spi_core"
+            assert listed["alice/spi_core/orchestrator"]["workflow"] == "orchestrator"
+
+
+def test_session_activate_accepts_v2_user_session_context(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.setenv("ATLAS_ROOT", str(tmp_path))
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    response = client.post(
+        "/api/session/activate",
+        json={
+            "user_name": "alice",
+            "workspace_session": "s1",
+            "ip": "NEWIP_MCTP",
+            "workflow": "ssot-gen",
+        },
+    )
+
+    assert response.status_code == 200, response.text
+    body = response.json()
+    workspace_root = tmp_path / "alice" / "s1"
+    session_dir = workspace_root / ".session" / "NEWIP_MCTP" / "ssot-gen"
+    assert body["active_session"] == "alice/s1/NEWIP_MCTP/ssot-gen"
+    assert body["context_key"] == "alice/s1/NEWIP_MCTP/ssot-gen"
+    assert body["workspace_session"] == "s1"
+    assert Path(body["workspace_root"]).resolve() == workspace_root.resolve()
+    assert Path(body["ip_root"]).resolve() == (workspace_root / "NEWIP_MCTP").resolve()
+    assert Path(body["session_dir"]).resolve() == session_dir.resolve()
+    assert (session_dir / "conversation.json").is_file()
+
+    health = client.get("/healthz")
+    assert health.status_code == 200, health.text
+    health_data = health.json()
+    assert health_data["active_session"] == "alice/s1/NEWIP_MCTP/ssot-gen"
+    assert health_data["active_ip"] == "NEWIP_MCTP"
+    assert health_data["active_workflow"] == "ssot-gen"
+    assert health_data["context_key"] == "alice/s1/NEWIP_MCTP/ssot-gen"
+    assert Path(health_data["workspace_root"]).resolve() == workspace_root.resolve()
+    assert Path(health_data["session_dir"]).resolve() == session_dir.resolve()
 
 
 def test_orchestrator_session_state_includes_ip_chat_ledger(tmp_path, monkeypatch):
