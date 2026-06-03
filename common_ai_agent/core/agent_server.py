@@ -41,6 +41,12 @@ if os.path.join(_project_root, 'src') not in sys.path:
     sys.path.insert(0, os.path.join(_project_root, 'src'))
 
 from core.session_names import normalize_session_name
+from core.locked_truth_guard import (
+    locked_truth_violation_message,
+    locked_truth_write_error,
+    restore_locked_truth_if_changed,
+    snapshot_locked_truth,
+)
 
 
 def _configure_text_stdio() -> None:
@@ -639,11 +645,13 @@ def _execute_direct_slash_commands(
     """
     from core.slash_commands import get_registry
 
+    locked_snapshot = snapshot_locked_truth(project_root, ip)
     before = _snapshot_scope_files(project_root, ip)
     registry = get_registry()
     outputs: List[str] = []
     failed = False
     needs_llm_followup = False
+    locked_truth_error = ""
     for command in commands:
         entry.add_log("action", f"slash:{command}", role="assistant")
         result = registry.execute(command)
@@ -657,6 +665,10 @@ def _execute_direct_slash_commands(
 
     after = _snapshot_scope_files(project_root, ip)
     files_modified = _changed_scope_files(before, after)
+    locked_result = restore_locked_truth_if_changed(locked_snapshot)
+    if locked_result.modified_paths:
+        failed = True
+        locked_truth_error = locked_truth_violation_message(locked_result.modified_paths)
     final_output = "\n\n".join(outputs)
     if needs_llm_followup and not failed:
         entry.add_log(
@@ -667,7 +679,7 @@ def _execute_direct_slash_commands(
         return False, final_output
 
     entry.status = "error" if failed else "completed"
-    entry.error = "direct slash command failed" if failed else None
+    entry.error = locked_truth_error or ("direct slash command failed" if failed else None)
     entry.finished_at = time.time()
     entry.result = {
         "run_id": entry.run_id,
@@ -679,6 +691,10 @@ def _execute_direct_slash_commands(
         "todos_summary": _build_todos_summary(getattr(entry, "_todos", []) or [], entry),
         "direct_slash_commands": commands,
     }
+    if locked_truth_error:
+        entry.result["error"] = locked_truth_error
+        entry.result["locked_truth_modified"] = list(locked_result.modified_paths)
+        entry.result["locked_truth_restored"] = list(locked_result.restored_paths)
     _on_status_change()
     entry.add_log(
         "done" if not failed else "error",
@@ -735,6 +751,8 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
     entry.started_at = time.time()
     _on_status_change()
     entry.add_log("system", "ReAct loop starting (full run_react_agent_impl)...", role="system")
+    run_project_root = project_root or _project_root
+    locked_truth_snapshot = snapshot_locked_truth(run_project_root, ip)
     _trace_runtime_prev = None
     custom_system_prompt = str(system_prompt or "").strip()
     custom_agent_name = str(custom_agent or "").strip()
@@ -1359,8 +1377,54 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
                 role="system",
             )
 
+        def _mutation_target_path(tool_name: str, args_str: Any, pre_parsed_kwargs: Any) -> str:
+            if tool_name not in {
+                "write_file",
+                "write_to_file",
+                "replace_in_file",
+                "replace_lines",
+                "replace_file_content",
+                "multi_replace_file_content",
+                "edit_file",
+                "create_file",
+            }:
+                return ""
+            if isinstance(pre_parsed_kwargs, dict):
+                value = pre_parsed_kwargs.get("path") or pre_parsed_kwargs.get("file")
+                if value:
+                    return str(value)
+            raw = str(args_str or "").strip()
+            if not raw:
+                return ""
+            if raw.startswith("{"):
+                try:
+                    value = json.loads(raw)
+                except json.JSONDecodeError:
+                    value = None
+                if isinstance(value, dict):
+                    target = value.get("path") or value.get("file")
+                    if target:
+                        return str(target)
+            try:
+                from core.action_parser import parse_tool_arguments
+                parsed_args, parsed_kwargs = parse_tool_arguments(raw)
+            except Exception:
+                parsed_args, parsed_kwargs = [], {}
+            target = parsed_kwargs.get("path") or parsed_kwargs.get("file")
+            if target:
+                return str(target)
+            if parsed_args and isinstance(parsed_args[0], str):
+                return parsed_args[0]
+            return ""
+
         # ── Execute tool wrapper (bake in AVAILABLE_TOOLS like main.py does) ──
         def _execute_tool_fn(tool_name, args_str="", *, pre_parsed_kwargs=None):
+            target_path = _mutation_target_path(str(tool_name or ""), args_str, pre_parsed_kwargs)
+            if target_path:
+                locked_error = locked_truth_write_error(run_project_root, ip, target_path)
+                if locked_error:
+                    entry.add_log("error", locked_error, role="system")
+                    return locked_error
             with scoped_todo_runtime(
                 run_todo_tracker,
                 session_overrides.get("TODO_FILE"),
@@ -1710,6 +1774,12 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
                 )
 
         # Build result
+        locked_result = restore_locked_truth_if_changed(locked_truth_snapshot)
+        locked_truth_error = ""
+        if locked_result.modified_paths:
+            terminal_status = "error"
+            locked_truth_error = locked_truth_violation_message(locked_result.modified_paths)
+            entry.error = locked_truth_error
         entry.result = {
             "run_id": entry.run_id,
             "status": terminal_status,
@@ -1719,6 +1789,10 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
             "iterations": reported_iterations,
             "todos_summary": _build_todos_summary(todos or [], entry),
         }
+        if locked_truth_error:
+            entry.result["error"] = locked_truth_error
+            entry.result["locked_truth_modified"] = list(locked_result.modified_paths)
+            entry.result["locked_truth_restored"] = list(locked_result.restored_paths)
         if silent_fail_reason:
             entry.result["silent_fail_reason"] = silent_fail_reason
             entry.error = silent_fail_reason

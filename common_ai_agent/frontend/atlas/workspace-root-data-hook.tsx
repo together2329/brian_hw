@@ -346,6 +346,8 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     agentAlive: false,
     agentRunning: false,
   });
+  const [interactiveWorkerStatus, setInteractiveWorkerStatus] = useState<any>(null);
+  const [interactiveWorkerStatusError, setInteractiveWorkerStatusError] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -366,6 +368,48 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     };
     poll();
     const id = setInterval(poll, 30000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const poll = async () => {
+      if (cancelled) return;
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+      try {
+        const r = await fetch('/api/session/worker/status', { cache: 'no-store' });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const j: any = await r.json();
+        const hasStatusPayload = !!j && (
+          Object.prototype.hasOwnProperty.call(j, 'active_count') ||
+          Object.prototype.hasOwnProperty.call(j, 'worker') ||
+          Object.prototype.hasOwnProperty.call(j, 'policy')
+        );
+        if (!hasStatusPayload) return;
+        const worker = j.worker || null;
+        const state = worker && worker.state
+          ? String(worker.state)
+          : (Number(j.active_count || 0) > 0 ? 'ready' : 'failed');
+        if (!cancelled) {
+          setInteractiveWorkerStatus({
+            policy: String(j.policy || ''),
+            activeCount: Number(j.active_count || 0),
+            owner: j.owner != null ? String(j.owner) : '',
+            ownerActiveSession: j.owner_active_session != null ? String(j.owner_active_session) : '',
+            state,
+            alive: !!(worker && worker.alive),
+            running: !!(worker && worker.running),
+            pid: worker && worker.pid,
+            idleAgeSec: worker && worker.idle_age_sec,
+          });
+          setInteractiveWorkerStatusError('');
+        }
+      } catch (e) {
+        if (!cancelled) setInteractiveWorkerStatusError(String((e && (e as Error).message) || e));
+      }
+    };
+    poll();
+    const id = setInterval(poll, 3000);
     return () => { cancelled = true; clearInterval(id); };
   }, []);
 
@@ -2977,6 +3021,8 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     commandBusy, setCommandBusy,
     liveLlmRuntime,
     workspaceTelemetry, setWorkspaceTelemetry,
+    interactiveWorkerStatus, setInteractiveWorkerStatus,
+    interactiveWorkerStatusError, setInteractiveWorkerStatusError,
     peerCount, setPeerCount,
     streamText, setStreamText,
     // streaming (composer-owned; re-surfaced for the JSX destructure + spinner)

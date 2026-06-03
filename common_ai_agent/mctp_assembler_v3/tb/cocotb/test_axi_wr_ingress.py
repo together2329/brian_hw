@@ -129,3 +129,82 @@ async def test_ingress_fl_equivalence(dut):
 
     assert mismatches == 0, f"{mismatches} FL/RTL scoreboard mismatch(es)"
     dut._log.info(f"all {len(scenarios)} ingress scenarios match the FL oracle")
+
+
+async def axi_write_explicit_strb(dut, strbs, awsize=5, awburst=1):
+    """Drive a burst with caller-specified per-beat WSTRB patterns."""
+    dut.s_axi_awaddr.value = 0
+    dut.s_axi_awlen.value = len(strbs) - 1
+    dut.s_axi_awsize.value = awsize
+    dut.s_axi_awburst.value = awburst
+    dut.s_axi_awvalid.value = 1
+    while True:
+        await FallingEdge(dut.axi_aclk)
+        if dut.s_axi_awready.value == 1:
+            break
+    await RisingEdge(dut.axi_aclk)
+    dut.s_axi_awvalid.value = 0
+    for i, strb in enumerate(strbs):
+        dut.s_axi_wdata.value = 0xA5A50000 + i
+        dut.s_axi_wstrb.value = strb
+        dut.s_axi_wlast.value = 1 if i == len(strbs) - 1 else 0
+        dut.s_axi_wvalid.value = 1
+        while True:
+            await FallingEdge(dut.axi_aclk)
+            if dut.s_axi_wready.value == 1:
+                break
+        await RisingEdge(dut.axi_aclk)
+    dut.s_axi_wvalid.value = 0
+    dut.s_axi_wlast.value = 0
+    dut.s_axi_bready.value = 1
+    while True:
+        await FallingEdge(dut.axi_aclk)
+        if dut.s_axi_bvalid.value == 1:
+            break
+    bresp = int(dut.s_axi_bresp.value)
+    await RisingEdge(dut.axi_aclk)
+    dut.s_axi_bready.value = 0
+    await FallingEdge(dut.axi_aclk)
+    return bresp, int(dut.tlp_accept.value), int(dut.tlp_byte_count.value)
+
+
+def strb_is_contiguous(strb, width=32):
+    if strb == 0:
+        return True
+    ones = [i for i in range(width) if (strb >> i) & 1]
+    return (max(ones) - min(ones) + 1) == len(ones)
+
+
+@cocotb.test()
+async def test_ingress_contiguity_gap(dut):
+    """Adversarial probe: a legal-size/burst TLP whose WSTRB is NON-contiguous.
+
+    The FL oracle requires wstrb_contiguous; the authored RTL does NOT check it.
+    This deliberately exercises the case the 6-scenario suite avoided, to show
+    whether ingress equivalence is actually closed.
+    """
+    cocotb.start_soon(Clock(dut.axi_aclk, 2, units="ns").start())
+    await reset_dut(dut)
+
+    strb = 0x00FF00FF                      # 16 set bits with an interior gap
+    n_bytes = bin(strb).count("1")
+    contig = strb_is_contiguous(strb)
+    bresp, dut_accept, byte_count = await axi_write_explicit_strb(dut, [strb])
+
+    fl = FunctionalModel()
+    r = fl.apply({
+        "kind": "FM_INGEST_TLP", "wlast_seen": 1, "awsize": 5, "awburst": 1,
+        "wstrb_contiguous": 1 if contig else 0, "tlp_byte_count": n_bytes,
+    })
+    fl_accept = int(r.get("state_updates", {}).get("tlp_accept", 0))
+
+    dut._log.info(
+        f"non-contiguous WSTRB=0x{strb:08X} (contig={contig}, bytes={n_bytes}): "
+        f"DUT accept={dut_accept}, FL accept={fl_accept}"
+    )
+    assert dut_accept == fl_accept, (
+        f"FL/RTL DIVERGENCE: DUT accept={dut_accept} but FL accept={fl_accept} — "
+        "RTL ingress does not implement the wstrb_contiguous check the oracle requires; "
+        "ingress equivalence is NOT closed."
+    )
+
